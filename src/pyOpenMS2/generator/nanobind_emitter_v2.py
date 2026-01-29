@@ -114,6 +114,9 @@ SKIP_METHODS = {
         "getAllSearchModifications",  # Complex return type
         "getModification",  # Overloaded
         "addModification",  # Takes unique_ptr
+        "searchModificationsByDiffMonoMass",  # Uses TermSpecificity from module_8 - causes std::bad_cast
+        "getBestModificationByDiffMonoMass",  # Uses TermSpecificity from module_8
+        "searchModifications",  # Uses TermSpecificity from module_8
     },
     "ResidueModification": {
         "getDiffFormula",  # Complex return type
@@ -137,13 +140,39 @@ SKIP_METHODS = {
         "select",  # Complex parameter types
     },
     "MSNumpressCoder": {
-        "encodeNP", "decodeNP",  # Static methods with complex buffer types
+        "encodeNP", "decodeNP",  # Output parameter methods - wrapped in SPECIAL_METHODS
+        "encodeNPRaw", "decodeNPRaw",  # Output parameter methods - wrapped in SPECIAL_METHODS
+    },
+    "RankData": {
+        "rankdata_double", "rankdata_float", "rankdata_int",  # Return numpy arrays
     },
     "File": {
         "getUniqueName",  # Returns temp file path
     },
+    "MzMLFile": {
+        "load", "store", "loadBuffer", "storeBuffer", "isSemanticallyValid",  # By-value params in auto-gen; SPECIAL_METHODS uses refs
+    },
+    "MzXMLFile": {
+        "load", "store",  # By-value params in auto-gen; SPECIAL_METHODS uses refs
+    },
+    "IdXMLFile": {
+        "load", "store",  # By-value params in auto-gen; SPECIAL_METHODS uses refs
+    },
+    "FeatureXMLFile": {
+        "load", "store",  # By-value params in auto-gen; SPECIAL_METHODS uses refs
+    },
+    "ConsensusXMLFile": {
+        "load", "store",  # By-value params in auto-gen; SPECIAL_METHODS uses refs
+    },
     "MascotXMLFile": {
         "initializeLookup",  # Static method takes SpectrumMetaDataLookup by value, private copy ctor
+        "load",  # Overload with SpectrumMetaDataLookup by value, private copy ctor
+    },
+    "PeakPickerHiRes": {
+        "pickExperiment",  # Overload uses OnDiscMSExperiment (needs special handling)
+    },
+    "LinearResamplerAlign": {
+        "raster",  # Inherited const overload conflicts with non-const override
     },
     "PepXMLFile": {
         "load", "store",  # Complex signature with PeptideIdentificationList
@@ -166,6 +195,176 @@ SKIP_METHODS = {
     },
     "ProteinInference": {
         "run",  # Takes ConsensusMap (forward-declared)
+    },
+    # === High-priority classes being unblocked from SKIP_CLASSES ===
+    "IDFilter": {
+        "countHits",  # Overloaded (PeptideIdentificationList vs ProteinIdentification vector)
+        "getBestHit",  # Output parameter
+        "updateProteinGroups",  # ProteinGroup nested type
+        "extractPeptideSequences",  # Output parameter (set<String>&)
+    },
+    "FalseDiscoveryRate": {
+        "applyBasic",  # ScoreToTgtDecLabelPairs unknown type
+        "rocN",  # ScoreToTgtDecLabelPairs unknown type
+        "applyEstimated",  # ScoreToTgtDecLabelPairs unknown type
+        "trapezoidal_area_xEqy",  # ScoreToTgtDecLabelPairs unknown type
+    },
+    "FASTAFile": {
+        "load",  # Needs vector<FASTAEntry> - handled via SPECIAL_METHODS
+        "store",  # Needs vector<FASTAEntry> - handled via SPECIAL_METHODS
+        "readNext",  # FASTAEntry nested type issue
+        "writeNext",  # FASTAEntry nested type issue
+    },
+    "TraMLFile": {
+        "load", "store",  # By-value params in auto-gen; SPECIAL_METHODS uses refs
+        "isSemanticallyValid",  # Complex validator types
+    },
+    "TargetedExperiment": {
+        "setInstruments",  # Namespace issue with vector<Instrument>
+        "addInstrument",  # TargetedExperimentHelper::Instrument double-qualified
+        "getInstruments",  # TargetedExperimentHelper namespace issue
+        "setTargets",  # TargetedExperimentHelper namespace
+        "getTargets",  # TargetedExperimentHelper namespace
+        "addTarget",  # TargetedExperimentHelper namespace
+        "setContacts",  # TargetedExperimentHelper::Contact namespace
+        "getContacts",  # TargetedExperimentHelper::Contact namespace
+        "addContact",  # TargetedExperimentHelper::Contact namespace
+        "setPublications",  # TargetedExperimentHelper::Publication namespace
+        "getPublications",  # TargetedExperimentHelper::Publication namespace
+        "addPublication",  # TargetedExperimentHelper::Publication namespace
+        "setCVs",  # TargetedExperimentHelper::CV namespace
+        "getCVs",  # TargetedExperimentHelper::CV namespace
+        "addCV",  # TargetedExperimentHelper::CV namespace
+        "setInterpretations",  # TargetedExperimentHelper::Interpretation namespace
+        "getInterpretations",  # TargetedExperimentHelper::Interpretation namespace
+    },
+    "MapAlignmentAlgorithmPoseClustering": {
+        "align",  # pxd type mismatch
+        "setReference",  # pxd type mismatch
+    },
+    "MapAlignmentTransformer": {
+        "transformRetentionTimes",  # Overloaded
+    },
+    "TransformationDescription": {
+        "fitModel",  # Lambda analysis / complex param types
+        "getModelTypes",  # Output param - handled in SPECIAL_METHODS with nb::list
+    },
+    "TransformationModelLinear": {
+        "getDefaultParameters",  # Static method with output params
+    },
+    "InstrumentSettings": {
+        "getScanWindows",  # ScanWindow incomplete type
+        "setScanWindows",  # ScanWindow incomplete type
+    },
+    "Instrument": {
+        "getIonSources",  # const/non-const overloads + incomplete types
+        "setIonSources",  # IonSource incomplete type
+        "getIonDetectors",  # const/non-const overloads + incomplete types
+        "setIonDetectors",  # IonDetector incomplete type
+        "getMassAnalyzers",  # const/non-const overloads + incomplete types
+        "setMassAnalyzers",  # MassAnalyzer incomplete type
+    },
+    "ReactionMonitoringTransition": {
+        "getProduct",  # Lambda analysis
+        "setProduct",  # Lambda analysis
+        "getIntermediateProduct",  # Lambda analysis
+        "setIntermediateProduct",  # Lambda analysis
+        "getPrediction",  # Lambda analysis
+        "setPrediction",  # Lambda analysis
+    },
+    "PeakIntegrator": {
+        "integratePeak",  # Overloaded (chrom vs spectrum) - handled in SPECIAL_METHODS
+        "estimateBackground",  # Overloaded
+        "calculatePeakShapeMetrics",  # Overloaded
+        "getDefaultParameters",  # Output parameter
+    },
+    "MRMFeatureQC": {
+        "component_qcs",  # Nested type vector - handled in SPECIAL_METHODS
+        "component_group_qcs",  # Nested type vector
+        "component_group_pair_qcs",  # Nested type vector
+    },
+    "ProteaseDigestion": {
+        "digest",  # pxd type mismatch
+        "digestUnmodified",  # pxd type mismatch
+    },
+    "ProteaseDB": {
+        "getInstance",  # Singleton
+        "getAllNames",  # Output parameter
+        "getEnzyme",  # Returns pointer
+    },
+    "ElementDB": {
+        "getInstance",  # Singleton - handled via SPECIAL_METHODS
+        "getElement",  # Overloaded, returns pointer - handled via SPECIAL_METHODS
+        "hasElement",  # Overloaded - handled via SPECIAL_METHODS
+        "addElement",  # Handled via SPECIAL_METHODS
+        "getNames",  # Returns unordered_map of pointers
+        "getSymbols",  # Returns unordered_map of pointers
+        "getAtomicNumbers",  # Returns unordered_map of pointers
+    },
+    "RibonucleotideDB": {
+        "getInstance",  # Singleton - handled via SPECIAL_METHODS
+        "getRibonucleotide",  # Returns shared_ptr - must use reference policy
+        "getRibonucleotidePrefix",  # Returns shared_ptr - must use reference policy
+    },
+    "FileHandler": {
+        "loadExperiment",  # Need overloads with default args
+        "storeExperiment",  # Need overloads with default args
+        "getType",  # pxd returns int, C++ returns FileTypes::Type enum
+    },
+    "MultipleTesting": {
+        "pi0Est",  # Handled via SPECIAL_METHODS
+        "qValue",  # Handled via SPECIAL_METHODS
+        "lfdr",  # Handled via SPECIAL_METHODS
+        "pNorm",  # Handled via SPECIAL_METHODS
+        "pi0MethodToString",  # Uses Pi0Method enum - handled via enum binding
+        "toPi0Method",  # Uses Pi0Method enum
+        "lfdrTransformToString",  # Uses LfdrTransform enum
+        "toLfdrTransform",  # Uses LfdrTransform enum
+    },
+    # === Batch unblock: FLASHDeconv, FileHandler, IMTypes, etc. ===
+    "IMTypes": {
+        "determineIMFormat",  # Overloaded (MSExperiment vs MSSpectrum)
+    },
+    "DeconvolvedSpectrum": {
+        "setCharges",  # pxd type mismatch: vector<int> vs actual type
+        "getChargeRange",  # output parameter
+    },
+    "FLASHDeconvAlgorithm": {
+        "performSpectrumDeconvolution",  # Complex parameter types
+        "calculateAveragine",  # Complex parameter types
+    },
+    "SpectralDeconvolution": {
+        "getIsotopeCosineAndIsoOffset",  # output reference parameter
+    },
+    "PeakGroup": {
+        "getAbundance",  # Overloaded
+        "getMonoMass",  # Overloaded
+        "getRepAbundance",  # pxd type mismatch
+    },
+    "BilinearInterpolation": {
+        # Template class - all methods handled via merge
+    },
+    # === Unblocked classes: OnDiscMSExperiment, IndexedMzMLFileLoader, ExperimentalDesign, AcquisitionInfo, ExperimentalSettings ===
+    "OnDiscMSExperiment": {
+        "getExperimentalSettings",  # Returns shared_ptr<const ExperimentalSettings>
+        "getMetaData",  # Returns shared_ptr<MSExperiment>
+        "getSpectrumById",  # Returns shared_ptr<Spectrum> (interface type)
+        "getChromatogramById",  # Returns shared_ptr<Chromatogram> (interface type)
+    },
+    "IndexedMzMLFileLoader": {
+        "store",  # Overloaded (OnDiscMSExperiment& vs MSExperiment&)
+    },
+    "ExperimentalDesign": {
+        "getMSFileSection",  # Uses ExperimentalDesign_MSFileSectionEntry (unbound nested type)
+        "setMSFileSection",  # Uses ExperimentalDesign_MSFileSectionEntry (unbound nested type)
+        "getSampleSection",  # Uses ExperimentalDesign_SampleSection (unbound nested type)
+        "setSampleSection",  # Uses ExperimentalDesign_SampleSection (unbound nested type)
+        "fromConsensusMap",  # Static method
+        "fromFeatureMap",  # Static method
+        "fromIdentifications",  # Static method
+    },
+    "AcquisitionInfo": {
+        "operator[]",  # Returns Acquisition& by index - needs special handling
     },
 }
 
@@ -212,7 +411,7 @@ SKIP_CLASSES = {
 
     # Nested classes or special cases
     "XMLHandler",
-    "IndexedMzMLHandler",
+    # "IndexedMzMLHandler",  # Unblocked
 
     # Classes with static methods not marked in .pxd (need @staticmethod or wrap-static)
     "PercolatorFeatureSetHelper",
@@ -227,16 +426,16 @@ SKIP_CLASSES = {
     "ProFormaParser",               # Only explicit(string_view) constructor
 
     # Classes with Cython template syntax issues
-    "TraMLFile",
-    "MZTrafoModel",
+    # "TraMLFile",  # Unblocked - problematic methods in SKIP_METHODS
+    # "MZTrafoModel",  # Unblocked
 
     # Private inheritance issues (inherit from std::vector but not accessible)
-    "AcquisitionInfo",
+    # "AcquisitionInfo",  # Unblocked - problematic methods in SKIP_METHODS
 
     # Classes with complex constructors that reference unbound types
     "TransformationModel",          # Base class with DataPoints nested type
     "TransformationModelBSpline",
-    "TransformationModelLinear",
+    # "TransformationModelLinear",  # Unblocked - problematic methods in SKIP_METHODS
     "TransformationModelLowess",
     "TransformationModelInterpolated",
 
@@ -254,7 +453,7 @@ SKIP_CLASSES = {
     "FeatureFinderIdentificationAlgorithm",  # constructor parameter issues
 
     # Classes with overloaded static methods (need explicit overload_cast)
-    "IMTypes",                      # determineIMFormat has overloads
+    # "IMTypes",                    # Unblocked - problematic methods in SKIP_METHODS
     "XQuestScores",                 # preScore has overloads
     "ExperimentalDesignFile",       # load has overloads
     "IDConflictResolverAlgorithm",  # resolve has overloads
@@ -267,7 +466,7 @@ SKIP_CLASSES = {
     "TransitionTSVFile",            # convertTSVToTargetedExperiment param issues
     "MRMFeaturePickerFile",         # load() needs nested type vectors
     "MRMTransitionGroupPicker",     # findLargestPeak needs vector<MSChromatogram>
-    "PeakIntegrator",               # iterator reference issues in integratePeak
+    # "PeakIntegrator",             # Unblocked - methods in SPECIAL_METHODS
 
     # Classes with OpenSwath type dependencies
     "MRMFeatureFinderScoring",      # prepareProteinPeptideMaps_ needs LightTargetedExperiment
@@ -275,29 +474,29 @@ SKIP_CLASSES = {
     "OpenSwathHelper",              # Static methods use OpenSwath:: namespace types
 
     # Classes with namespace parsing issues
-    "TargetedExperiment",           # setInstruments namespace issue
+    # "TargetedExperiment",         # Unblocked - problematic methods in SKIP_METHODS
     "TargetedExperimentHelper",     # nested type references
 
     # Classes with incomplete type errors in lambdas
-    "IndexedMzMLFileLoader",        # OnDiscMSExperiment incomplete type
-    "OnDiscMSExperiment",           # incomplete type
+    # "IndexedMzMLFileLoader",      # Unblocked - problematic methods in SKIP_METHODS
+    # "OnDiscMSExperiment",         # Unblocked - problematic methods in SKIP_METHODS
     "ModificationDefinitionsSet",   # parameter type issues
 
     # Classes with unknown parameter types
-    "FalseDiscoveryRate",           # ScoreToTgtDecLabelPairs unknown
-    "ProteaseDB",                   # parameter type issues (int instead of proper type)
+    # "FalseDiscoveryRate",         # Unblocked - problematic methods in SKIP_METHODS
+    # "ProteaseDB",                 # Unblocked - problematic methods in SKIP_METHODS
     "RNaseDB",                      # similar to ProteaseDB
-    "SpectralDeconvolution",        # parameter type issues
+    # "SpectralDeconvolution",      # Unblocked - problematic methods in SKIP_METHODS
 
     # Classes inheriting from XMLHandler (non-copyable)
     "QcMLFile",                     # XMLHandler base is non-copyable
 
     # Classes with incomplete types in their methods
     "CVMappingRule",                # Uses CVMappingTerm which is forward-declared
-    "InstrumentSettings",           # Uses ScanWindow which has incomplete type issues
-    "Instrument",                   # getIonSources has const/non-const overloads + incomplete types
-    "ExperimentalDesign",           # Complex nested types
-    "ExperimentalSettings",         # Similar to ExperimentalDesign
+    # "InstrumentSettings",         # Unblocked - problematic methods in SKIP_METHODS
+    # "Instrument",                 # Unblocked - problematic methods in SKIP_METHODS
+    # "ExperimentalDesign",         # Unblocked - problematic methods in SKIP_METHODS
+    # "ExperimentalSettings",       # Unblocked - straightforward class
 
     # Classes with constructor type mismatches
     "NASequence",                   # constructor needs vector<const Ribonucleotide*>
@@ -306,9 +505,9 @@ SKIP_CLASSES = {
     # Classes with wrong parameter types (int instead of proper types)
     "AbsoluteQuantitationMethodFile",  # load/store need vector<AQMethod>
     "AbsoluteQuantitationStandardsFile",  # load needs vector<AQStandards>
-    "DeconvolvedSpectrum",          # setCharges needs vector<int>
-    "FLASHDeconvAlgorithm",         # performSpectrumDeconvolution params
-    "FASTAFile",                    # load/store need vector<FASTAEntry>
+    # "DeconvolvedSpectrum",        # Unblocked - problematic methods in SKIP_METHODS
+    # "FLASHDeconvAlgorithm",       # Unblocked - problematic methods in SKIP_METHODS
+    # "FASTAFile",                  # Unblocked - load/store in SKIP_METHODS, needs SPECIAL_METHODS
     "MRMScoring",                   # OpenSwath namespace, param type issues
 
     # Classes with template parameters or complex constructors
@@ -325,29 +524,29 @@ SKIP_CLASSES = {
     "GridBasedCluster",             # Complex constructors with nested Point/Rectangle types
     "MultiplexDeltaMassesGenerator",  # Constructor type mismatch: pxd says (String,int,int), C++ expects (String,int,map)
     "PeptideAndProteinQuant",  # PeptideIdentificationList/ExperimentalDesign types incomplete
-    "FeatureGroupingAlgorithmLabeled",  # ConsensusMap type incomplete in lambda
+    # "FeatureGroupingAlgorithmLabeled",  # Unblocked - try again
     "FeatureGroupingAlgorithmUnlabeled",  # ConsensusMap type incomplete in lambda
     "KDTreeFeatureMaps",  # Lambda analysis fails
     "MapAlignmentAlgorithmKD",  # pxd type mismatch: int instead of vector<FeatureMap>
-    "MapAlignmentAlgorithmPoseClustering",  # pxd type mismatch: int instead of vector<TransformationModelLowess*>
-    "ReactionMonitoringTransition",  # Lambda analysis fails
+    # "MapAlignmentAlgorithmPoseClustering",  # Unblocked - problematic methods in SKIP_METHODS
+    # "ReactionMonitoringTransition",  # Unblocked - problematic methods in SKIP_METHODS
     "MRMFeature",  # Lambda analysis fails (inherits from Feature)
     "IncludeExcludeTarget",  # Lambda analysis fails
     "ScanWindow",  # pxd type mismatch
     "LPWrapper",  # pxd type mismatch: int instead of proper vector/reference types
-    "ProteaseDigestion",  # pxd type mismatch in digest method
+    # "ProteaseDigestion",  # Unblocked - problematic methods in SKIP_METHODS
 
     # Classes with unresolved overloads
     "KroenikFile",
     "MascotGenericFile",
     "MzTabFile",
-    "NLargest",
+    # "NLargest",  # Unblocked - no actual overloads in pxd
     "RNaseDigestion",
-    "RankScaler",
-    "PeakGroup",
+    # "RankScaler",  # Unblocked - try
+    # "PeakGroup",                  # Unblocked - problematic methods in SKIP_METHODS
     "SpectrumLookup",               # extractScanNumber has overloads
     "DIAScoring",                   # parameter type issues
-    "MapAlignmentTransformer",      # transformRetentionTimes has overloads
+    # "MapAlignmentTransformer",    # Unblocked - problematic methods in SKIP_METHODS
     "SpectrumMetaDataLookup",       # getSpectrumMetaData has overloads
 
     # Template classes (need specialized instantiation)
@@ -361,7 +560,7 @@ SKIP_CLASSES = {
     "OSWFile",                      # SqliteConnector header parsing issues
 
     # More classes with overloaded static methods
-    "IDFilter",                     # countHits has overloads
+    # "IDFilter",                   # Unblocked - problematic methods in SKIP_METHODS
     "NonNegativeLeastSquaresSolver", # solve has overloads
 
     # Classes with non-const reference constructor parameters
@@ -376,21 +575,48 @@ SKIP_CLASSES = {
 
     # Classes with external type issues (types from other libraries not bound)
     "IonMobilityScoring",           # Uses OpenSwath::LightTransition (not bound)
-    "AASequence",                   # char* constructor, nanobind passes const char*
+
+    # Classes provided as HANDWRITTEN_CLASSES (skip auto-generation)
+    "LightTargetedExperiment",      # HANDWRITTEN_CLASS - OpenSwath type
+    "LightTransition",              # HANDWRITTEN_CLASS - OpenSwath type
+    "LightCompound",                # HANDWRITTEN_CLASS - OpenSwath type
+    "LightProtein",                 # HANDWRITTEN_CLASS - OpenSwath type
+    "LightModification",            # HANDWRITTEN_CLASS - OpenSwath type
+    "OSSpectrum",                   # HANDWRITTEN_CLASS - OpenSwath data structure
+    "OSChromatogram",               # HANDWRITTEN_CLASS - OpenSwath data structure
+    "OSBinaryDataArray",            # HANDWRITTEN_CLASS - OpenSwath data structure
+    "IsobaricChannelInformation",   # HANDWRITTEN_CLASS - nested type
+    "TransformationModelBSpline",   # HANDWRITTEN_CLASS - dummy with static method
+    "TransformationModelLowess",    # HANDWRITTEN_CLASS - dummy with static method
+    "NASequence",                   # HANDWRITTEN_CLASS - minimal binding
+    "SpectrumMetaDataLookup",       # HANDWRITTEN_CLASS - static methods
+    "IsobaricChannelExtractor",     # HANDWRITTEN_CLASS
+    "IsobaricNormalizer",           # HANDWRITTEN_CLASS
+    "SpectrumAccessOpenMS",         # HANDWRITTEN_CLASS
+    "SpectrumAccessOpenMSInMemory", # HANDWRITTEN_CLASS
+    "SwathMap",                     # HANDWRITTEN_CLASS
+    "ExtractionCoordinates",        # HANDWRITTEN_CLASS - nested type
+    "DIAScoring",                   # HANDWRITTEN_CLASS
+    "MRMFeatureFinderScoring",      # HANDWRITTEN_CLASS
+    "OpenSwathScoring",             # HANDWRITTEN_CLASS
+    "ColumnHeader",                 # HANDWRITTEN_CLASS - ConsensusMap nested type
+    "MRMFeature",                   # HANDWRITTEN_CLASS
+    "MRMTransitionGroupCP",         # HANDWRITTEN_CLASS - template specialization
+    # AASequence: removed from SKIP_CLASSES - use SPECIAL_METHODS for custom binding
 
     # Classes referencing Param::ParamEntry (nested type incomplete)
     "ElutionModelFitter",           # Param::ParamEntry incomplete type
     "MSSim",                        # Param::ParamEntry incomplete type
-    "File",                         # isDirectory param issues + Param::ParamEntry
+    # "File",                       # Unblocked - has SPECIAL_METHODS
 
     # Classes with forward-declared types or nested enum issues
     "OpenSwathWorkflowBase",        # Nested enum / forward decl issues
     "KDTreeFeatureNode",            # KDTreeFeatureMaps is forward-declared
 
     # Classes with lambda analysis failures (nanobind can't deduce types)
-    "TransformationDescription",    # Lambda analysis fails
+    # "TransformationDescription",  # Unblocked - problematic methods in SKIP_METHODS
     "MorpheusScore",                # Copy assignment operator issues
-    "Normalizer",                   # Lambda analysis fails
+    # "Normalizer",                 # Unblocked - simple class
     "SeedListGenerator",            # Lambda analysis fails
     "NucleicAcidSearchEngine",      # Lambda analysis fails
     "MSFraggerAdapter",             # Lambda analysis fails
@@ -401,7 +627,7 @@ SKIP_CLASSES = {
 
     # Classes with pxd type mismatches (method signature issues)
     "DecoyGenerator",               # shuffle() pxd mismatch
-    "FileHandler",                  # Methods use int instead of ProgressLogger::LogType enum
+    # "FileHandler",                # Unblocked - problematic methods in SKIP_METHODS
     "SequestInfile",                # pxd type mismatch
     "SequestOutfile",               # pxd type mismatch
     "BSpline2d",                    # Lambda analysis fails
@@ -418,7 +644,7 @@ SKIP_CLASSES = {
     "IMSWeights",                   # Not found in C++ headers (nested/helper class)
     "IntegerMassDecomposer",        # Uses IMSWeights which isn't bound
     "RealMassDecomposer",           # Uses IMSWeights which isn't bound
-    "BilinearInterpolation",        # Template class
+    "BilinearInterpolation",        # Template class - needs explicit instantiation
 }
 
 # Enums to skip (value name mismatches between pxd and C++, or other issues)
@@ -427,6 +653,10 @@ SKIP_CLASSES = {
 SKIP_ENUMS = {
     "ResidueType",      # pxd has Precursor_ion but C++ has Precursor
     "CHARGEMODE",       # In FeatureDeconvolution - pxd uses 'class' enum name
+    "DriftTimeUnit",    # Already bound via SPECIAL_METHODS["__enums__"]
+    "IMFormat",         # Already bound via SPECIAL_METHODS["__enums__"]
+    "Method",           # Already bound via SPECIAL_METHODS["__enums__"] (RankData::Method)
+    "NaNPolicy",        # Already bound via SPECIAL_METHODS["__enums__"] (RankData::NaNPolicy)
 }
 
 # Additional headers needed for specific classes
@@ -436,7 +666,7 @@ ADDITIONAL_INCLUDES = {
     "MSExperiment": ["<OpenMS/KERNEL/MSSpectrum.h>", "<OpenMS/KERNEL/MSChromatogram.h>", "<OpenMS/KERNEL/MSExperiment.h>"],
     "Feature": ["<OpenMS/KERNEL/Feature.h>", "<OpenMS/METADATA/PeptideIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
     "FeatureMap": ["<OpenMS/KERNEL/FeatureMap.h>", "<OpenMS/KERNEL/Feature.h>", "<OpenMS/METADATA/ProteinIdentification.h>", "<OpenMS/METADATA/PeptideIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
-    "ConsensusFeature": ["<OpenMS/KERNEL/ConsensusFeature.h>", "<OpenMS/METADATA/PeptideIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
+    "ConsensusFeature": ["<OpenMS/KERNEL/ConsensusFeature.h>", "<OpenMS/KERNEL/FeatureHandle.h>", "<OpenMS/METADATA/PeptideIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
     "ConsensusMap": ["<OpenMS/KERNEL/ConsensusMap.h>", "<OpenMS/KERNEL/ConsensusFeature.h>", "<OpenMS/METADATA/ProteinIdentification.h>", "<OpenMS/METADATA/PeptideIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
     "PeptideIdentification": ["<OpenMS/METADATA/PeptideIdentification.h>", "<OpenMS/METADATA/PeptideHit.h>"],
     "ProteinIdentification": ["<OpenMS/METADATA/ProteinIdentification.h>", "<OpenMS/METADATA/ProteinHit.h>"],
@@ -474,6 +704,39 @@ ADDITIONAL_INCLUDES = {
     "DRange2": ["<OpenMS/DATASTRUCTURES/DRange.h>"],
     "DataFilters": ["<OpenMS/PROCESSING/MISC/DataFilters.h>", "<OpenMS/KERNEL/Feature.h>", "<OpenMS/KERNEL/ConsensusFeature.h>"],
     "ProteinInference": ["<OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>", "<OpenMS/KERNEL/ConsensusMap.h>"],
+    "FASTAFile": ["<OpenMS/FORMAT/FASTAFile.h>"],
+    "TraMLFile": ["<OpenMS/FORMAT/TraMLFile.h>", "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>"],
+    "IDFilter": ["<OpenMS/PROCESSING/ID/IDFilter.h>", "<OpenMS/METADATA/PeptideIdentification.h>", "<OpenMS/METADATA/ProteinIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
+    "FalseDiscoveryRate": ["<OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>"],
+    "TargetedExperiment": ["<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>", "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>"],
+    "WindowMower": ["<OpenMS/PROCESSING/FILTERING/WindowMower.h>"],
+    "Deisotoper": ["<OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>"],
+    "ReactionMonitoringTransition": ["<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>"],
+    "TransformationDescription": ["<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>"],
+    "ChromatogramExtractor": ["<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>", "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>", "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>", "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>"],
+    "ChromatogramExtractorAlgorithm": ["<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>", "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>", "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    "TransformationModelLinear": ["<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>"],
+    "MapAlignmentAlgorithmPoseClustering": ["<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>"],
+    "MapAlignmentTransformer": ["<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>"],
+    "Instrument": ["<OpenMS/METADATA/Instrument.h>"],
+    "ProteaseDigestion": ["<OpenMS/CHEMISTRY/ProteaseDigestion.h>"],
+    "ProteaseDB": ["<OpenMS/CHEMISTRY/ProteaseDB.h>"],
+    "IsobaricQuantitationMethod": ["<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>"],
+    "AbsoluteQuantitation": ["<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>", "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>"],
+    "Peptide": ["<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>"],
+    "ElementDB": ["<OpenMS/CHEMISTRY/ElementDB.h>", "<OpenMS/CHEMISTRY/Element.h>"],
+    "ParamEntry": ["<OpenMS/DATASTRUCTURES/Param.h>"],
+    "ParamNode": ["<OpenMS/DATASTRUCTURES/Param.h>"],
+    "FeatureGroupingAlgorithmLabeled": ["<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>", "<OpenMS/KERNEL/ConsensusMap.h>", "<OpenMS/KERNEL/FeatureMap.h>"],
+    "OnDiscMSExperiment": ["<OpenMS/KERNEL/OnDiscMSExperiment.h>", "<OpenMS/KERNEL/MSExperiment.h>", "<OpenMS/KERNEL/MSSpectrum.h>", "<OpenMS/KERNEL/MSChromatogram.h>"],
+    "IndexedMzMLFileLoader": ["<OpenMS/FORMAT/IndexedMzMLFileLoader.h>", "<OpenMS/KERNEL/OnDiscMSExperiment.h>", "<OpenMS/KERNEL/MSExperiment.h>"],
+    "ExperimentalDesign": ["<OpenMS/METADATA/ExperimentalDesign.h>"],
+    "ExperimentalSettings": ["<OpenMS/METADATA/ExperimentalSettings.h>", "<OpenMS/METADATA/Instrument.h>", "<OpenMS/METADATA/HPLC.h>", "<OpenMS/METADATA/Sample.h>", "<OpenMS/METADATA/ContactPerson.h>", "<OpenMS/METADATA/SourceFile.h>"],
+    "AcquisitionInfo": ["<OpenMS/METADATA/AcquisitionInfo.h>", "<OpenMS/METADATA/Acquisition.h>"],
+    "RibonucleotideDB": ["<OpenMS/CHEMISTRY/RibonucleotideDB.h>"],
+    "PeakIntegrator": ["<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>", "<OpenMS/KERNEL/MSChromatogram.h>", "<OpenMS/KERNEL/MSSpectrum.h>"],
+    "ConvexHull2D": ["<OpenMS/DATASTRUCTURES/ConvexHull2D.h>", "<OpenMS/DATASTRUCTURES/DBoundingBox.h>"],
+    "MRMFeatureQC": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>"],
 }
 
 # FALLBACK: Classes that need special __len__ support (container-like)
@@ -567,9 +830,7 @@ CORE_CLASSES = {
     "ClusterProxyKD", "ClusteringGrid",
     "Compomer",
     "ConfidenceScoring",
-    "ConsensusIDAlgorithm", "ConsensusIDAlgorithmAverage", "ConsensusIDAlgorithmBest",
-    "ConsensusIDAlgorithmIdentity", "ConsensusIDAlgorithmPEPIons", "ConsensusIDAlgorithmPEPMatrix",
-    "ConsensusIDAlgorithmRanks", "ConsensusIDAlgorithmSimilarity", "ConsensusIDAlgorithmWorst",
+    # ConsensusIDAlgorithm* - removed from CORE_CLASSES, they're abstract and auto-skipped
     "ConsensusMapNormalizerAlgorithmMedian", "ConsensusMapNormalizerAlgorithmQuantile",
     "ConsensusMapNormalizerAlgorithmThreshold",
     "ControlledVocabulary",
@@ -604,7 +865,7 @@ CORE_CLASSES = {
     # === BATCH 6: Classes F ===
     "FASTAFile",
     "FIAMSDataProcessor", "FIAMSScheduler",
-    "FLASHDeconvAlgorithm", "FLASHDeconvFeatureFile", "FLASHDeconvSpectrumFile",
+    # FLASHDeconv* - removed from CORE_CLASSES, in SKIP_CLASSES due to complex parameter types
     "FalseDiscoveryRate",
     "FeatureDeconvolution",
     "FeatureDistance",
@@ -676,7 +937,8 @@ CORE_CLASSES = {
     "MRMDecoy",
     "MRMFeature", "MRMFeatureFilter", "MRMFeatureFinderScoring",
     "MRMFeaturePicker", "MRMFeaturePickerFile",
-    "MRMFeatureQC", "MRMFeatureQCFile",
+    # "MRMFeatureQC",  # Unblocked - nested types in HANDWRITTEN_CLASSES
+    "MRMFeatureQCFile",
     "MRMFeatureSelector",
     "MRMIonSeries",
     "MRMMapping",
@@ -724,6 +986,7 @@ CORE_CLASSES = {
     "NASequence",
     "NLargest",
     "NonNegativeLeastSquaresSolver",
+    "Normalizer",
     "NucleicAcidSpectrumGenerator",
     "OMSSACSVFile", "OMSSAXMLFile",
     "OPXLDataStructs", "OPXLHelper", "OPXLSpectrumProcessingAlgorithms",
@@ -739,7 +1002,7 @@ CORE_CLASSES = {
     "ParamCTDFile", "ParamEntry", "ParamNode", "ParamValue", "ParamXMLFile",
     "PeakFileOptions",
     "PeakIndex",
-    "PeakIntegrator",
+    # "PeakIntegrator",  # Unblocked - methods in SPECIAL_METHODS
     "PeakPickerChromatogram", "PeakPickerHiRes", "PeakPickerIM", "PeakPickerIterative",
     "PeakTypeEstimator", "PeakWidthEstimator",
     "PepXMLFileMascot",
@@ -874,25 +1137,126 @@ VECTOR_INHERITED_METHODS = {
     "insert", "erase", "emplace", "emplace_back", "assign", "swap",
 }
 
+# Methods with output parameters that need special handling.
+# Maps method_name -> C++ lambda template for wrapping output parameter methods.
+# The template uses {FULL_CLASS} as placeholder for the fully-qualified C++ class name.
+# These replace the auto-generated binding with one that modifies the Python list in-place.
+OUTPUT_PARAM_METHODS = {
+    "getKeys": '''
+        .def("getKeys", []({FULL_CLASS}& self, nb::list py_keys) {{
+            std::vector<OpenMS::String> keys;
+            self.getKeys(keys);
+            py_keys.attr("clear")();
+            for (const auto& k : keys) {{
+                py_keys.append(nb::cast(std::string(k)));
+            }}
+        }}, "keys"_a, "Fills the given list with all meta value keys")''',
+}
+
 # Special method implementations for critical classes
 # These are C++ lambdas that implement Python methods
 SPECIAL_METHODS = {
+    "Software": {
+        "__init__default": '''
+        .def(nb::init<>(), "Default constructor")''',
+    },
+    "RibonucleotideDB": {
+        "getInstance": '''
+        .def_static("getInstance", []() -> OpenMS::RibonucleotideDB* {
+            return OpenMS::RibonucleotideDB::getInstance();
+        }, nb::rv_policy::reference, "Returns the singleton instance")''',
+        "getRibonucleotide": '''
+        .def("getRibonucleotide", [](OpenMS::RibonucleotideDB& self, const OpenMS::String& code) -> const OpenMS::Ribonucleotide* {
+            return self.getRibonucleotide(code);
+        }, "code"_a, nb::rv_policy::reference, "Returns the ribonucleotide with the given code")''',
+        "getRibonucleotidePrefix": '''
+        .def("getRibonucleotidePrefix", [](OpenMS::RibonucleotideDB& self, const OpenMS::String& seq) -> const OpenMS::Ribonucleotide* {
+            return self.getRibonucleotidePrefix(seq);
+        }, "seq"_a, nb::rv_policy::reference, "Returns the ribonucleotide matching the longest prefix")''',
+    },
+    # NOTE: Mobilogram SPECIAL_METHODS are consolidated below (search for "Mobilogram")
+    # NOTE: FileHandler SPECIAL_METHODS are consolidated below (search for "FileHandler")
+    "ExperimentalDesign": {
+        "fromConsensusMap": '''
+        .def_static("fromConsensusMap", [](const OpenMS::ConsensusMap& c) {
+            return OpenMS::ExperimentalDesign::fromConsensusMap(c);
+        }, "c"_a, "Extract experimental design from consensus map")''',
+        "fromFeatureMap": '''
+        .def_static("fromFeatureMap", [](const OpenMS::FeatureMap& f) {
+            return OpenMS::ExperimentalDesign::fromFeatureMap(f);
+        }, "f"_a, "Extract experimental design from feature map")''',
+        "fromIdentifications": '''
+        .def_static("fromIdentifications", [](const std::vector<OpenMS::ProteinIdentification>& proteins) {
+            return OpenMS::ExperimentalDesign::fromIdentifications(proteins);
+        }, "proteins"_a, "Extract experimental design from identifications")''',
+    },
+    "IMTypes": {
+        "toDriftTimeUnit": '''
+        .def_static("toDriftTimeUnit", [](const OpenMS::String& dtu_string) {
+            return OpenMS::toDriftTimeUnit(dtu_string);
+        }, "dtu_string"_a, "Convert string to DriftTimeUnit")''',
+        "driftTimeUnitToString": '''
+        .def_static("driftTimeUnitToString", [](OpenMS::DriftTimeUnit value) {
+            return OpenMS::driftTimeUnitToString(value);
+        }, "value"_a, "Convert DriftTimeUnit to string")''',
+        "toIMFormat": '''
+        .def_static("toIMFormat", [](const OpenMS::String& im_format) {
+            return OpenMS::toIMFormat(im_format);
+        }, "im_format"_a, "Convert string to IMFormat")''',
+        "imFormatToString": '''
+        .def_static("imFormatToString", [](OpenMS::IMFormat value) {
+            return OpenMS::imFormatToString(value);
+        }, "value"_a, "Convert IMFormat to string")''',
+    },
+    "AcquisitionInfo": {
+        "size": '''
+        .def("size", [](const OpenMS::AcquisitionInfo& self) -> size_t {
+            return self.size();
+        }, "Returns the number of Acquisition objects")''',
+        "push_back": '''
+        .def("push_back", [](OpenMS::AcquisitionInfo& self, const OpenMS::Acquisition& acq) {
+            self.push_back(acq);
+        }, "acq"_a, "Append an Acquisition object")''',
+        "resize": '''
+        .def("resize", [](OpenMS::AcquisitionInfo& self, size_t n) {
+            self.resize(n);
+        }, "n"_a, "Resize the AcquisitionInfo")''',
+        "__getitem__": '''
+        .def("__getitem__", [](OpenMS::AcquisitionInfo& self, size_t i) -> OpenMS::Acquisition& {
+            if (i >= self.size()) throw nb::index_error();
+            return self[i];
+        }, "i"_a, nb::rv_policy::reference_internal)''',
+        "__len__": '''
+        .def("__len__", [](const OpenMS::AcquisitionInfo& self) -> size_t {
+            return self.size();
+        })''',
+        "__setitem__": '''
+        .def("__setitem__", [](OpenMS::AcquisitionInfo& self, size_t i, const OpenMS::Acquisition& acq) {
+            if (i >= self.size()) throw nb::index_error();
+            self[i] = acq;
+        }, "i"_a, "acq"_a)''',
+    },
     "MSSpectrum": {
+        "getIMData": '''
+        .def("getIMData", [](const OpenMS::MSSpectrum& self) {
+            auto result = self.getIMData();
+            return nb::make_tuple((int)result.first, (int)result.second);
+        }, "Returns (index, drift_time_unit) for ion mobility data")''',
         "get_peaks": '''
         .def("get_peaks", [](const OpenMS::MSSpectrum& self) {
-            // Return (mz_array, intensity_array) as numpy float64 arrays
-            // Both returned as float64 for pyOpenMS backward compatibility
+            // Return (mz_array, intensity_array) as numpy arrays
+            // mz as float64 (double), intensity as float32 (float) matching C++ storage
             const size_t n = self.size();
             double* mz_data = new double[n];
-            double* int_data = new double[n];
+            float* int_data = new float[n];
             for (size_t i = 0; i < n; ++i) {
                 mz_data[i] = self[i].getMZ();
-                int_data[i] = static_cast<double>(self[i].getIntensity());
+                int_data[i] = self[i].getIntensity();
             }
             nb::capsule mz_owner(mz_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
             auto mz_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(mz_data, {n}, mz_owner);
-            auto int_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(int_data, {n}, int_owner);
+            auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, int_owner);
             return nb::make_tuple(mz_arr, int_arr);
         }, "Returns a tuple of (mz_array, intensity_array) as numpy arrays")''',
         "set_peaks": '''
@@ -910,13 +1274,13 @@ SPECIAL_METHODS = {
                 self[i].setIntensity(intensity[i]);
             }
         }, "mz"_a, "intensity"_a, "Set peaks from mz and intensity arrays")
-        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::tuple peaks_tuple) {
-            // Accept a tuple of (mz_array, intensity_array) for compatibility with pyOpenMS API
-            if (nb::len(peaks_tuple) != 2) {
-                throw std::runtime_error("set_peaks tuple must contain exactly 2 arrays (mz, intensity)");
+        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object peaks_seq) {
+            // Accept a tuple or list of (mz_array, intensity_array) for compatibility with pyOpenMS API
+            if (nb::len(peaks_seq) != 2) {
+                throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (mz, intensity)");
             }
-            std::vector<double> mz = nb::cast<std::vector<double>>(peaks_tuple[0]);
-            std::vector<double> intensity = nb::cast<std::vector<double>>(peaks_tuple[1]);
+            std::vector<double> mz = nb::cast<std::vector<double>>(peaks_seq[0]);
+            std::vector<double> intensity = nb::cast<std::vector<double>>(peaks_seq[1]);
             const size_t n = mz.size();
             if (intensity.size() != n) {
                 throw std::runtime_error("mz and intensity arrays must have same length");
@@ -1079,6 +1443,44 @@ SPECIAL_METHODS = {
             }
             return nb::make_tuple(rt, intensity);
         }, "Returns a tuple of (rt_array, intensity_array)")''',
+        "set_peaks": '''
+        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj) {
+            std::vector<double> rt = nb::cast<std::vector<double>>(rt_obj);
+            std::vector<double> intensity = nb::cast<std::vector<double>>(int_obj);
+            const size_t n = rt.size();
+            if (intensity.size() != n) {
+                throw std::runtime_error("rt and intensity arrays must have same length");
+            }
+            self.resize(n);
+            for (size_t i = 0; i < n; ++i) {
+                self[i].setRT(rt[i]);
+                self[i].setIntensity(intensity[i]);
+            }
+        }, "rt"_a, "intensity"_a, "Set peaks from rt and intensity arrays")
+        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object peaks_seq) {
+            if (nb::len(peaks_seq) != 2) {
+                throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (rt, intensity)");
+            }
+            std::vector<double> rt = nb::cast<std::vector<double>>(peaks_seq[0]);
+            std::vector<double> intensity = nb::cast<std::vector<double>>(peaks_seq[1]);
+            const size_t n = rt.size();
+            if (intensity.size() != n) {
+                throw std::runtime_error("rt and intensity arrays must have same length");
+            }
+            self.resize(n);
+            for (size_t i = 0; i < n; ++i) {
+                self[i].setRT(rt[i]);
+                self[i].setIntensity(intensity[i]);
+            }
+        }, "peaks"_a, "Set peaks from a tuple/list of (rt_array, intensity_array)")''',
+        "size": '''
+        .def("size", [](const OpenMS::MSChromatogram& self) {
+            return self.size();
+        }, "Returns the number of peaks")''',
+        "push_back": '''
+        .def("push_back", [](OpenMS::MSChromatogram& self, const OpenMS::ChromatogramPeak& peak) {
+            self.push_back(peak);
+        }, "peak"_a, "Append a peak")''',
     },
     "Peak1D": {
         "__hash__": '''
@@ -1112,12 +1514,50 @@ SPECIAL_METHODS = {
     "__enums__": {
         "DriftTimeUnit": '''
     // DriftTimeUnit enum
-    nb::enum_<OpenMS::DriftTimeUnit>(m, "DriftTimeUnit")
+    nb::enum_<OpenMS::DriftTimeUnit>(m, "DriftTimeUnit", nb::is_arithmetic())
         .value("NONE", OpenMS::DriftTimeUnit::NONE)
         .value("MILLISECOND", OpenMS::DriftTimeUnit::MILLISECOND)
         .value("VSSC", OpenMS::DriftTimeUnit::VSSC)
         .export_values();''',
+        "IMFormat": '''
+    // IMFormat enum
+    nb::enum_<OpenMS::IMFormat>(m, "IMFormat", nb::is_arithmetic())
+        .value("NONE", OpenMS::IMFormat::NONE)
+        .value("CONCATENATED", OpenMS::IMFormat::CONCATENATED)
+        .value("MULTIPLE_SPECTRA", OpenMS::IMFormat::MULTIPLE_SPECTRA)
+        .value("MIXED", OpenMS::IMFormat::MIXED)
+        .value("CENTROIDED", OpenMS::IMFormat::CENTROIDED)
+        .value("UNKNOWN", OpenMS::IMFormat::UNKNOWN)
+        .export_values();''',
+        "Pi0Method": '''
+    // Pi0Method enum (used by MultipleTesting)
+    nb::enum_<OpenMS::Math::MultipleTesting::Pi0Method>(m, "Pi0Method", nb::is_arithmetic())
+        .value("Smoother", OpenMS::Math::MultipleTesting::Pi0Method::Smoother)
+        .value("Bootstrap", OpenMS::Math::MultipleTesting::Pi0Method::Bootstrap)
+        .export_values();''',
+        "LfdrTransform": '''
+    // LfdrTransform enum (used by MultipleTesting)
+    nb::enum_<OpenMS::Math::MultipleTesting::LfdrTransform>(m, "LfdrTransform", nb::is_arithmetic())
+        .value("Probit", OpenMS::Math::MultipleTesting::LfdrTransform::Probit)
+        .value("Logit", OpenMS::Math::MultipleTesting::LfdrTransform::Logit)
+        .export_values();''',
         # LogType and FileType enums are now auto-generated from pxd files
+        "Method": '''
+    // RankData::Method enum
+    nb::enum_<OpenMS::Math::RankData::Method>(m, "Method", nb::is_arithmetic())
+        .value("Average", OpenMS::Math::RankData::Method::Average)
+        .value("Min", OpenMS::Math::RankData::Method::Min)
+        .value("Max", OpenMS::Math::RankData::Method::Max)
+        .value("Dense", OpenMS::Math::RankData::Method::Dense)
+        .value("Ordinal", OpenMS::Math::RankData::Method::Ordinal)
+        .export_values();''',
+        "NaNPolicy": '''
+    // RankData::NaNPolicy enum
+    nb::enum_<OpenMS::Math::RankData::NaNPolicy>(m, "NaNPolicy", nb::is_arithmetic())
+        .value("Propagate", OpenMS::Math::RankData::NaNPolicy::Propagate)
+        .value("Omit", OpenMS::Math::RankData::NaNPolicy::Omit)
+        .value("Raise", OpenMS::Math::RankData::NaNPolicy::Raise)
+        .export_values();''',
     },
     # Nested enum bindings that must be added AFTER the containing class is bound
     "__post_class_enums__": {
@@ -1126,7 +1566,7 @@ SPECIAL_METHODS = {
     {
         // Get the SpectrumSettings type from the module (already bound above)
         nb::handle spectrum_settings_type = m.attr("SpectrumSettings");
-        nb::enum_<OpenMS::SpectrumSettings::SpectrumType>(spectrum_settings_type, "SpectrumType")
+        nb::enum_<OpenMS::SpectrumSettings::SpectrumType>(spectrum_settings_type, "SpectrumType", nb::is_arithmetic())
             .value("UNKNOWN", OpenMS::SpectrumSettings::SpectrumType::UNKNOWN)
             .value("CENTROID", OpenMS::SpectrumSettings::SpectrumType::CENTROID)
             .value("PROFILE", OpenMS::SpectrumSettings::SpectrumType::PROFILE)
@@ -1275,10 +1715,10 @@ SPECIAL_METHODS = {
             return self.size();
         })''',
         "__getitem__": '''
-        .def("__getitem__", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
+        .def("__getitem__", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
-        }, nb::rv_policy::reference_internal)''',
+        })''',
         "__iter__": '''
         .def("__iter__", [](OpenMS::MSExperiment& self) {
             return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "MSExperiment_iter", self.begin(), self.end());
@@ -1358,10 +1798,10 @@ SPECIAL_METHODS = {
             return self.size();
         })''',
         "__getitem__": '''
-        .def("__getitem__", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature& {
+        .def("__getitem__", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
-        }, nb::rv_policy::reference_internal)''',
+        })''',
         "__iter__": '''
         .def("__iter__", [](OpenMS::FeatureMap& self) {
             return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "FeatureMap_iter", self.begin(), self.end());
@@ -1381,6 +1821,10 @@ SPECIAL_METHODS = {
         .def("setPeptideIdentifications", [](OpenMS::ConsensusFeature& self, const std::vector<OpenMS::PeptideIdentification>& ids) {
             self.setPeptideIdentifications(ids);
         }, "ids"_a, "Set the peptide identifications")''',
+        "getFeatureList": '''
+        .def("getFeatureList", [](const OpenMS::ConsensusFeature& self) {
+            return self.getFeatureList();
+        }, "Returns a list of all contained feature handles")''',
     },
     "ConsensusMap": {
         "getProteinIdentifications": '''
@@ -1409,10 +1853,10 @@ SPECIAL_METHODS = {
             return self.size();
         })''',
         "__getitem__": '''
-        .def("__getitem__", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature& {
+        .def("__getitem__", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
-        }, nb::rv_policy::reference_internal)''',
+        })''',
         "__iter__": '''
         .def("__iter__", [](OpenMS::ConsensusMap& self) {
             return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "ConsensusMap_iter", self.begin(), self.end());
@@ -1421,8 +1865,22 @@ SPECIAL_METHODS = {
         .def("push_back", [](OpenMS::ConsensusMap& self, const OpenMS::ConsensusFeature& f) {
             self.push_back(f);
         }, "feature"_a, "Add a consensus feature to the map")''',
+        "getColumnHeaders": '''
+        .def("getColumnHeaders", [](const OpenMS::ConsensusMap& self) {
+            return self.getColumnHeaders();
+        }, "Returns the column headers")''',
+        "setColumnHeaders": '''
+        .def("setColumnHeaders", [](OpenMS::ConsensusMap& self, const std::map<OpenMS::UInt64, OpenMS::ConsensusMap::ColumnHeader>& headers) {
+            self.setColumnHeaders(headers);
+        }, "headers"_a, "Sets the column headers")''',
     },
     "AASequence": {
+        "__init__": '''
+        .def(nb::init<>(), "Default constructor - creates empty sequence")
+        .def(nb::init<const OpenMS::AASequence&>(), "Copy constructor")
+        .def("__init__", [](OpenMS::AASequence* self, const std::string& s) {
+            new (self) OpenMS::AASequence(OpenMS::String(s));
+        }, "sequence"_a, "Create AASequence from string (e.g., 'PEPTIDE')")''',
         "size": '''
         .def("size", [](const OpenMS::AASequence& self) {
             return self.size();
@@ -1444,8 +1902,8 @@ SPECIAL_METHODS = {
             return self.getMonoWeight();
         }, "Returns monoisotopic weight")''',
         "fromString": '''
-        .def_static("fromString", [](const OpenMS::String& s) {
-            return OpenMS::AASequence::fromString(s);
+        .def_static("fromString", [](const std::string& s) {
+            return OpenMS::AASequence::fromString(OpenMS::String(s));
         }, "sequence"_a, "Create AASequence from string")''',
     },
     "Param": {
@@ -1454,6 +1912,12 @@ SPECIAL_METHODS = {
             return self.getValue(key);
         }, "key"_a, "Returns the value for a key")''',
         "setValue": '''
+        .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value, const OpenMS::String& description, const std::vector<std::string>& tags) {
+            self.setValue(key, value, description, tags);
+        }, "key"_a, "value"_a, "description"_a, "tags"_a, "Sets a value with description and tags")
+        .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value, const OpenMS::String& description) {
+            self.setValue(key, value, description);
+        }, "key"_a, "value"_a, "description"_a, "Sets a value with description")
         .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value) {
             self.setValue(key, value);
         }, "key"_a, "value"_a, "Set a value for a key")''',
@@ -1486,7 +1950,7 @@ SPECIAL_METHODS = {
     },
     "IdXMLFile": {
         "load": '''
-        .def("load", [](OpenMS::IdXMLFile& self, const OpenMS::String& filename) {
+        .def("_load_internal", [](OpenMS::IdXMLFile& self, const OpenMS::String& filename) {
             std::vector<OpenMS::ProteinIdentification> proteins;
             OpenMS::PeptideIdentificationList peptides;
             self.load(filename, proteins, peptides);
@@ -1494,7 +1958,7 @@ SPECIAL_METHODS = {
             return nb::make_tuple(proteins, peptide_vec);
         }, "filename"_a, "Load an idXML file, returns tuple (proteins, peptides)")''',
         "store": '''
-        .def("store", [](OpenMS::IdXMLFile& self, const OpenMS::String& filename,
+        .def("_store_internal", [](OpenMS::IdXMLFile& self, const OpenMS::String& filename,
                          const std::vector<OpenMS::ProteinIdentification>& proteins,
                          const std::vector<OpenMS::PeptideIdentification>& peptides) {
             OpenMS::PeptideIdentificationList peptide_list(peptides);
@@ -1521,7 +1985,29 @@ SPECIAL_METHODS = {
             self.store(filename, map);
         }, "filename"_a, "map"_a, "Store a ConsensusMap to consensusXML")''',
     },
+    "MzXMLFile": {
+        "load": '''
+        .def("load", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
+            self.load(filename, exp);
+        }, "filename"_a, "exp"_a, "Load an mzXML file into an MSExperiment")''',
+        "store": '''
+        .def("store", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
+            self.store(filename, exp);
+        }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzXML file")''',
+    },
+    "TraMLFile": {
+        "load": '''
+        .def("load", [](OpenMS::TraMLFile& self, const OpenMS::String& filename, OpenMS::TargetedExperiment& exp) {
+            self.load(filename, exp);
+        }, "filename"_a, "exp"_a, "Load a TraML file")''',
+        "store": '''
+        .def("store", [](OpenMS::TraMLFile& self, const OpenMS::String& filename, const OpenMS::TargetedExperiment& exp) {
+            self.store(filename, exp);
+        }, "filename"_a, "exp"_a, "Store to a TraML file")''',
+    },
     "PeptideIdentificationList": {
+        "__init__": '''
+        .def(nb::init<>(), "Default constructor - creates an empty list")''',
         "size": '''
         .def("size", [](const OpenMS::PeptideIdentificationList& self) {
             return self.size();
@@ -1543,6 +2029,14 @@ SPECIAL_METHODS = {
         .def("push_back", [](OpenMS::PeptideIdentificationList& self, const OpenMS::PeptideIdentification& id) {
             self.push_back(id);
         }, "id"_a, "Add a peptide identification")''',
+        "append": '''
+        .def("append", [](OpenMS::PeptideIdentificationList& self, const OpenMS::PeptideIdentification& id) {
+            self.push_back(id);
+        }, "id"_a, "Add a peptide identification (alias for push_back)")''',
+        "extend": '''
+        .def("extend", [](OpenMS::PeptideIdentificationList& self, const OpenMS::PeptideIdentificationList& other) {
+            for (const auto& id : other) self.push_back(id);
+        }, "other"_a, "Extend with items from another list")''',
         "clear": '''
         .def("clear", [](OpenMS::PeptideIdentificationList& self) {
             self.clear();
@@ -1550,7 +2044,7 @@ SPECIAL_METHODS = {
     },
     "PepXMLFile": {
         "load": '''
-        .def("load", [](OpenMS::PepXMLFile& self, const OpenMS::String& filename) {
+        .def("_load_internal", [](OpenMS::PepXMLFile& self, const OpenMS::String& filename) {
             std::vector<OpenMS::ProteinIdentification> proteins;
             OpenMS::PeptideIdentificationList peptides;
             self.load(filename, proteins, peptides);
@@ -1558,7 +2052,7 @@ SPECIAL_METHODS = {
             return nb::make_tuple(proteins, peptide_vec);
         }, "filename"_a, "Load a pepXML file, returns tuple (proteins, peptides)")''',
         "store": '''
-        .def("store", [](OpenMS::PepXMLFile& self, const OpenMS::String& filename,
+        .def("_store_internal", [](OpenMS::PepXMLFile& self, const OpenMS::String& filename,
                          std::vector<OpenMS::ProteinIdentification> proteins,
                          const std::vector<OpenMS::PeptideIdentification>& peptides) {
             OpenMS::PeptideIdentificationList peptide_list(peptides);
@@ -1567,7 +2061,7 @@ SPECIAL_METHODS = {
     },
     "MzIdentMLFile": {
         "load": '''
-        .def("load", [](OpenMS::MzIdentMLFile& self, const OpenMS::String& filename) {
+        .def("_load_internal", [](OpenMS::MzIdentMLFile& self, const OpenMS::String& filename) {
             std::vector<OpenMS::ProteinIdentification> proteins;
             OpenMS::PeptideIdentificationList peptides;
             self.load(filename, proteins, peptides);
@@ -1575,7 +2069,7 @@ SPECIAL_METHODS = {
             return nb::make_tuple(proteins, peptide_vec);
         }, "filename"_a, "Load an mzIdentML file, returns tuple (proteins, peptides)")''',
         "store": '''
-        .def("store", [](OpenMS::MzIdentMLFile& self, const OpenMS::String& filename,
+        .def("_store_internal", [](OpenMS::MzIdentMLFile& self, const OpenMS::String& filename,
                          std::vector<OpenMS::ProteinIdentification> proteins,
                          const std::vector<OpenMS::PeptideIdentification>& peptides) {
             OpenMS::PeptideIdentificationList peptide_list(peptides);
@@ -1608,6 +2102,90 @@ SPECIAL_METHODS = {
         .def("clear", [](OpenMS::Mobilogram& self) {
             self.clear();
         }, "Clear all peaks")''',
+        "get_peaks": '''
+        .def("get_peaks", [](const OpenMS::Mobilogram& self) {
+            size_t n = self.size();
+            double* mob_data = new double[n];
+            float* int_data = new float[n];
+            for (size_t i = 0; i < n; ++i) {
+                mob_data[i] = self[i].getMobility();
+                int_data[i] = self[i].getIntensity();
+            }
+            nb::capsule mob_owner(mob_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            auto mob_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(mob_data, {n}, mob_owner);
+            auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, int_owner);
+            return nb::make_tuple(mob_arr, int_arr);
+        }, "Get mobility and intensity arrays as numpy arrays")''',
+        "set_peaks": '''
+        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj) {
+            auto mob_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(mob_obj);
+            auto int_arr = nb::cast<nb::ndarray<nb::numpy, float, nb::ndim<1>>>(int_obj);
+            size_t n = mob_arr.shape(0);
+            self.resize(n);
+            const double* mob_ptr = static_cast<const double*>(mob_arr.data());
+            const float* int_ptr = static_cast<const float*>(int_arr.data());
+            for (size_t i = 0; i < n; ++i) {
+                self[i].setMobility(mob_ptr[i]);
+                self[i].setIntensity(int_ptr[i]);
+            }
+        }, "mob"_a, "intensity"_a, "Set mobility and intensity from numpy arrays")
+        .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object peaks_seq) {
+            nb::object item0, item1;
+            if (nb::isinstance<nb::tuple>(peaks_seq)) {
+                auto tup = nb::cast<nb::tuple>(peaks_seq);
+                if (nb::len(tup) != 2) throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays");
+                item0 = tup[0]; item1 = tup[1];
+            } else {
+                auto lst = nb::cast<nb::list>(peaks_seq);
+                if (nb::len(lst) != 2) throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays");
+                item0 = lst[0]; item1 = lst[1];
+            }
+            auto mob_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(item0);
+            auto int_arr = nb::cast<nb::ndarray<nb::numpy, float, nb::ndim<1>>>(item1);
+            size_t n = mob_arr.shape(0);
+            self.resize(n);
+            const double* mob_ptr = static_cast<const double*>(mob_arr.data());
+            const float* int_ptr = static_cast<const float*>(int_arr.data());
+            for (size_t i = 0; i < n; ++i) {
+                self[i].setMobility(mob_ptr[i]);
+                self[i].setIntensity(int_ptr[i]);
+            }
+        }, "peaks"_a, "Set peaks from [mobility_array, intensity_array]")''',
+        "getFloatDataArrays": '''
+        .def("getFloatDataArrays", [](const OpenMS::Mobilogram& self) {
+            return self.getFloatDataArrays();
+        }, "Get float data arrays")''',
+        "setFloatDataArrays": '''
+        .def("setFloatDataArrays", [](OpenMS::Mobilogram& self, std::vector<OpenMS::DataArrays::FloatDataArray> fda) {
+            self.setFloatDataArrays(fda);
+        }, "fda"_a, "Set float data arrays")''',
+        "getMinMobility": '''
+        .def("getMinMobility", [](const OpenMS::Mobilogram& self) -> double {
+            if (self.empty()) return 0.0;
+            double min_mob = self[0].getMobility();
+            for (size_t i = 1; i < self.size(); ++i) {
+                if (self[i].getMobility() < min_mob) min_mob = self[i].getMobility();
+            }
+            return min_mob;
+        }, "Get minimum mobility value")''',
+        "getMaxMobility": '''
+        .def("getMaxMobility", [](const OpenMS::Mobilogram& self) -> double {
+            if (self.empty()) return 0.0;
+            double max_mob = self[0].getMobility();
+            for (size_t i = 1; i < self.size(); ++i) {
+                if (self[i].getMobility() > max_mob) max_mob = self[i].getMobility();
+            }
+            return max_mob;
+        }, "Get maximum mobility value")''',
+        "getMinIntensity": '''
+        .def("getMinIntensity", [](const OpenMS::Mobilogram& self) -> double {
+            return self.getMinIntensity();
+        }, "Get minimum intensity")''',
+        "getMaxIntensity": '''
+        .def("getMaxIntensity", [](const OpenMS::Mobilogram& self) -> double {
+            return self.getMaxIntensity();
+        }, "Get maximum intensity")''',
     },
     "File": {
         "exists": '''
@@ -1646,12 +2224,1496 @@ SPECIAL_METHODS = {
         .def_static("getUserDirectory", []() {
             return OpenMS::File::getUserDirectory();
         }, "Get the user home directory")''',
+        "getUniqueName": '''
+        .def_static("getUniqueName", [](bool include_hostname) {
+            return OpenMS::File::getUniqueName(include_hostname);
+        }, "include_hostname"_a = true, "Get a unique name")
+        .def_static("getUniqueName", []() {
+            return OpenMS::File::getUniqueName();
+        }, "Get a unique name")''',
     },
+    "FileHandler": {
+        "loadExperiment": '''
+        .def("loadExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
+            self.loadExperiment(filename, exp);
+        }, "filename"_a, "exp"_a, "Load experiment from file")
+        .def("loadExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log,
+             bool rewrite_source_file, bool compute_hash) {
+            self.loadExperiment(filename, exp, allowed_types, log, rewrite_source_file, compute_hash);
+        }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "rewrite_source_file"_a, "compute_hash"_a, "Load experiment with options")''',
+        "storeExperiment": '''
+        .def("storeExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
+            self.storeExperiment(filename, exp);
+        }, "filename"_a, "exp"_a, "Store experiment to file")
+        .def("storeExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            self.storeExperiment(filename, exp, allowed_types, log);
+        }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "Store experiment with options")''',
+        "getType": '''
+        .def_static("getType", [](const OpenMS::String& filename) {
+            return OpenMS::FileHandler::getType(filename);
+        }, "filename"_a, "Determine the file type from the file name")''',
+    },
+    "WindowMower": {
+        "filterPeakSpectrumForTopNInSlidingWindow": '''
+        .def("filterPeakSpectrumForTopNInSlidingWindow", [](OpenMS::WindowMower& self, OpenMS::MSSpectrum& spectrum) {
+            self.filterPeakSpectrumForTopNInSlidingWindow(spectrum);
+        }, "spectrum"_a, "Sliding window version (slower)")''',
+    },
+    "TargetedExperiment": {
+        "setCVs": '''
+        .def("setCVs", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::CV>& cvs) {
+            self.setCVs(cvs);
+        }, "cvs"_a, "Set CVs")''',
+        "getCVs": '''
+        .def("getCVs", [](const OpenMS::TargetedExperiment& self) {
+            return self.getCVs();
+        }, "Get CVs")''',
+    },
+    "TransformationModelLinear": {
+        "getDefaultParameters": '''
+        .def_static("getDefaultParameters", [](OpenMS::Param& params) {
+            OpenMS::TransformationModelLinear::getDefaultParameters(params);
+        }, "params"_a, "Get default parameters")''',
+    },
+    "Deisotoper": {
+        "deisotopeAndSingleCharge": '''
+        .def_static("deisotopeAndSingleCharge", [](OpenMS::MSSpectrum& spectrum,
+             double fragment_tolerance, bool fragment_unit_ppm,
+             int min_charge, int max_charge, bool keep_only_deisotoped,
+             unsigned int min_isopeaks, unsigned int max_isopeaks,
+             bool make_single_charged, bool annotate_charge,
+             bool annotate_iso_peak_count, bool use_decreasing_model,
+             unsigned int start_intensity_check, bool add_up_intensity,
+             bool annotate_features) {
+            OpenMS::Deisotoper::deisotopeAndSingleCharge(spectrum,
+                fragment_tolerance, fragment_unit_ppm, min_charge, max_charge,
+                keep_only_deisotoped, min_isopeaks, max_isopeaks,
+                make_single_charged, annotate_charge, annotate_iso_peak_count,
+                use_decreasing_model, start_intensity_check, add_up_intensity,
+                annotate_features);
+        }, "spectrum"_a, "fragment_tolerance"_a, "fragment_unit_ppm"_a,
+           "min_charge"_a = 1, "max_charge"_a = 3, "keep_only_deisotoped"_a = false,
+           "min_isopeaks"_a = 3, "max_isopeaks"_a = 10,
+           "make_single_charged"_a = true, "annotate_charge"_a = false,
+           "annotate_iso_peak_count"_a = false, "use_decreasing_model"_a = true,
+           "start_intensity_check"_a = 2, "add_up_intensity"_a = false,
+           "annotate_features"_a = false,
+           "Deisotope and single charge a spectrum")''',
+    },
+    # NOTE: TransformationDescription SPECIAL_METHODS consolidated below
     "DataProcessing": {
         "setProcessingActions": '''
         .def("setProcessingActions", [](OpenMS::DataProcessing& self, const std::set<OpenMS::DataProcessing::ProcessingAction>& actions) {
             self.setProcessingActions(actions);
         }, "actions"_a, "Set processing actions")''',
+    },
+    "ModificationsDB": {
+        "getInstance": '''
+        .def_static("getInstance", []() -> const OpenMS::ModificationsDB* {
+            return OpenMS::ModificationsDB::getInstance();
+        }, nb::rv_policy::reference, "Get the singleton instance of ModificationsDB")''',
+        "searchModifications": '''
+        .def("searchModifications", [](const OpenMS::ModificationsDB& self, const OpenMS::String& mod_name, const OpenMS::String& residue, int term_spec) {
+            std::set<const OpenMS::ResidueModification*> mods;
+            self.searchModifications(mods, mod_name, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
+            nb::list result;
+            for (auto* m : mods) {
+                result.append(nb::cast(m, nb::rv_policy::reference));
+            }
+            return result;
+        }, "mod_name"_a, "residue"_a = "", "term_spec"_a = static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY), "Search for modifications by name")''',
+        "getNumberOfModifications": '''
+        .def("getNumberOfModifications", [](const OpenMS::ModificationsDB& self) {
+            return self.getNumberOfModifications();
+        }, "Get the number of modifications")''',
+    },
+    "ProteaseDB": {
+        "getInstance": '''
+        .def_static("getInstance", []() -> const OpenMS::ProteaseDB* {
+            return OpenMS::ProteaseDB::getInstance();
+        }, nb::rv_policy::reference, "Get the singleton instance of ProteaseDB")''',
+        "hasEnzyme": '''
+        .def("hasEnzyme", [](const OpenMS::ProteaseDB& self, const OpenMS::String& name) {
+            return self.hasEnzyme(name);
+        }, "name"_a, "Check if an enzyme with the given name exists")''',
+    },
+    "RankData": {
+        "rankdata_double": '''
+        .def_static("rankdata_double", [](std::vector<double> a, OpenMS::Math::RankData::Method m, OpenMS::Math::RankData::NaNPolicy p) {
+            auto result = OpenMS::Math::RankData::rankdata_double(a, m, p);
+            size_t n = result.size();
+            double* data = new double[n];
+            std::copy(result.begin(), result.end(), data);
+            nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            return nb::ndarray<nb::numpy, double, nb::ndim<1>>(data, {n}, owner);
+        }, "a"_a, "method"_a, "nan_policy"_a)''',
+        "rankdata_float": '''
+        .def_static("rankdata_float", [](std::vector<float> a, OpenMS::Math::RankData::Method m, OpenMS::Math::RankData::NaNPolicy p) {
+            auto result = OpenMS::Math::RankData::rankdata_float(a, m, p);
+            size_t n = result.size();
+            double* data = new double[n];
+            std::copy(result.begin(), result.end(), data);
+            nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            return nb::ndarray<nb::numpy, double, nb::ndim<1>>(data, {n}, owner);
+        }, "a"_a, "method"_a, "nan_policy"_a)''',
+        "rankdata_int": '''
+        .def_static("rankdata_int", [](std::vector<int> a, OpenMS::Math::RankData::Method m, OpenMS::Math::RankData::NaNPolicy p) {
+            auto result = OpenMS::Math::RankData::rankdata_int(a, m, p);
+            size_t n = result.size();
+            double* data = new double[n];
+            std::copy(result.begin(), result.end(), data);
+            nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            return nb::ndarray<nb::numpy, double, nb::ndim<1>>(data, {n}, owner);
+        }, "a"_a, "method"_a, "nan_policy"_a)''',
+    },
+    "MSNumpressCoder": {
+        "encodeNP": '''
+        .def("encodeNP", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, nb::object out_obj, bool zlib_compression, OpenMS::MSNumpressCoder::NumpressConfig config) {
+            OpenMS::String result;
+            self.encodeNP(in, result, zlib_compression, config);
+            // Write result back to the output String-like object
+            if (nb::hasattr(out_obj, "_value")) {
+                out_obj.attr("_value") = std::string(result);
+            }
+        }, "in"_a, "result"_a, "zlib_compression"_a, "config"_a, "Encode vector of doubles to Base64 numpress string")''',
+        "decodeNP": '''
+        .def("decodeNP", [](OpenMS::MSNumpressCoder& self, nb::object in_obj, nb::list out, bool zlib_compression, OpenMS::MSNumpressCoder::NumpressConfig config) {
+            std::string in_str;
+            if (nb::isinstance<nb::bytes>(in_obj)) {
+                auto b = nb::cast<nb::bytes>(in_obj);
+                in_str = std::string(b.c_str(), b.size());
+            } else {
+                in_str = nb::cast<std::string>(in_obj);
+            }
+            std::vector<double> result;
+            self.decodeNP(in_str, result, zlib_compression, config);
+            for (double v : result) out.append(v);
+        }, "in"_a, "out"_a, "zlib_compression"_a, "config"_a, "Decode Base64 numpress string to vector of doubles")''',
+        "encodeNPRaw": '''
+        .def("encodeNPRaw", [](OpenMS::MSNumpressCoder& self, std::vector<double> in, nb::object out_obj, OpenMS::MSNumpressCoder::NumpressConfig config) {
+            OpenMS::String result;
+            self.encodeNPRaw(in, result, config);
+            if (nb::hasattr(out_obj, "_value")) {
+                // Raw encoding may contain null bytes - use the full size
+                out_obj.attr("_value") = nb::bytes(result.c_str(), result.size());
+            }
+        }, "in"_a, "result"_a, "config"_a, "Encode vector of doubles to raw numpress byte array")''',
+        "decodeNPRaw": '''
+        .def("decodeNPRaw", [](OpenMS::MSNumpressCoder& self, nb::object in_obj, nb::list out, OpenMS::MSNumpressCoder::NumpressConfig config) {
+            std::string in_str;
+            if (nb::isinstance<nb::bytes>(in_obj)) {
+                auto b = nb::cast<nb::bytes>(in_obj);
+                in_str = std::string(b.c_str(), b.size());
+            } else {
+                in_str = nb::cast<std::string>(in_obj);
+            }
+            std::vector<double> result;
+            self.decodeNPRaw(in_str, result, config);
+            for (double v : result) out.append(v);
+        }, "in"_a, "out"_a, "config"_a, "Decode raw numpress byte array to vector of doubles")''',
+    },
+    "IsobaricQuantitationMethod": {
+        "getIsotopeCorrectionMatrix": '''
+        .def("getIsotopeCorrectionMatrix", [](const OpenMS::IsobaricQuantitationMethod& self) {
+            return self.getIsotopeCorrectionMatrix();
+        }, "Get the isotope correction matrix")''',
+    },
+    "AbsoluteQuantitation": {
+        "setQuantMethods": '''
+        .def("setQuantMethods", [](OpenMS::AbsoluteQuantitation& self, const std::vector<OpenMS::AbsoluteQuantitationMethod>& quant_methods) {
+            std::vector<OpenMS::AbsoluteQuantitationMethod> methods_copy(quant_methods);
+            self.setQuantMethods(methods_copy);
+        }, "quant_methods"_a, "Set the quantitation methods")''',
+        "getQuantMethods": '''
+        .def("getQuantMethods", [](OpenMS::AbsoluteQuantitation& self) {
+            return self.getQuantMethods();
+        }, "Get the quantitation methods")''',
+    },
+    "Peptide": {
+        "protein_refs": '''
+        .def_rw("protein_refs", &OpenMS::TargetedExperimentHelper::Peptide::protein_refs)''',
+        "id_field": '''
+        .def_rw("id", &OpenMS::TargetedExperimentHelper::Peptide::id)''',
+        "sequence_field": '''
+        .def_rw("sequence", &OpenMS::TargetedExperimentHelper::Peptide::sequence)''',
+    },
+    "ElementDB": {
+        "getInstance": '''
+        .def_static("getInstance", []() -> OpenMS::ElementDB* {
+            return OpenMS::ElementDB::getInstance();
+        }, nb::rv_policy::reference, "Get the singleton instance of ElementDB")''',
+        "getElement_name": '''
+        .def("getElement", [](const OpenMS::ElementDB& self, const std::string& name) -> const OpenMS::Element* {
+            return self.getElement(name);
+        }, "name"_a, nb::rv_policy::reference, "Get element by name or symbol")''',
+        "getElement_number": '''
+        .def("getElement", [](const OpenMS::ElementDB& self, unsigned int atomic_number) -> const OpenMS::Element* {
+            return self.getElement(atomic_number);
+        }, "atomic_number"_a, nb::rv_policy::reference, "Get element by atomic number")''',
+        "hasElement_name": '''
+        .def("hasElement", [](const OpenMS::ElementDB& self, const std::string& name) {
+            return self.hasElement(name);
+        }, "name"_a, "Check if element exists by name or symbol")''',
+        "hasElement_number": '''
+        .def("hasElement", [](const OpenMS::ElementDB& self, unsigned int atomic_number) {
+            return self.hasElement(atomic_number);
+        }, "atomic_number"_a, "Check if element exists by atomic number")''',
+        "addElement": '''
+        .def("addElement", [](OpenMS::ElementDB& self, const std::string& name, const std::string& symbol,
+                unsigned int an, const std::map<unsigned int, double>& abundance,
+                const std::map<unsigned int, double>& mass, bool replace_existing) {
+            self.addElement(name, symbol, an, abundance, mass, replace_existing);
+        }, "name"_a, "symbol"_a, "atomic_number"_a, "abundance"_a, "mass"_a, "replace_existing"_a,
+        "Add a new element to the database")''',
+    },
+    "FASTAFile": {
+        "load": '''
+        .def("load", [](const OpenMS::FASTAFile& self, const OpenMS::String& filename) {
+            std::vector<OpenMS::FASTAFile::FASTAEntry> entries;
+            self.load(filename, entries);
+            // Convert to list of tuples (identifier, description, sequence)
+            nb::list result;
+            for (const auto& e : entries) {
+                result.append(nb::make_tuple(e.identifier, e.description, e.sequence));
+            }
+            return result;
+        }, "filename"_a, "Load a FASTA file. Returns list of (identifier, description, sequence) tuples")''',
+        "store": '''
+        .def("store", [](const OpenMS::FASTAFile& self, const OpenMS::String& filename, const nb::list& entries) {
+            std::vector<OpenMS::FASTAFile::FASTAEntry> fasta_entries;
+            for (auto item : entries) {
+                auto tup = nb::cast<nb::tuple>(item);
+                OpenMS::FASTAFile::FASTAEntry e;
+                e.identifier = nb::cast<std::string>(tup[0]);
+                e.description = nb::cast<std::string>(tup[1]);
+                e.sequence = nb::cast<std::string>(tup[2]);
+                fasta_entries.push_back(e);
+            }
+            self.store(filename, fasta_entries);
+        }, "filename"_a, "entries"_a, "Store a FASTA file. Takes list of (identifier, description, sequence) tuples")''',
+    },
+    "TransformationDescription": {
+        "getDataPoints": '''
+        .def("getDataPoints", [](const OpenMS::TransformationDescription& self) {
+            return self.getDataPoints();
+        }, "Get the data points used for the transformation")''',
+        "setDataPoints": '''
+        .def("setDataPoints", [](OpenMS::TransformationDescription& self, const std::vector<std::pair<double, double>>& data) {
+            OpenMS::TransformationDescription::DataPoints dp;
+            for (const auto& p : data) {
+                dp.push_back(std::make_pair(p.first, p.second));
+            }
+            self.setDataPoints(dp);
+        }, "data"_a, "Set the data points for the transformation")''',
+        "apply": '''
+        .def("apply", [](const OpenMS::TransformationDescription& self, double value) {
+            return self.apply(value);
+        }, "value"_a, "Apply the transformation to a value")''',
+        "getModelTypes": '''
+        .def_static("getModelTypes", [](nb::list result) {
+            std::vector<OpenMS::String> types;
+            OpenMS::TransformationDescription::getModelTypes(types);
+            for (const auto& t : types) {
+                result.append(nb::cast(t));
+            }
+        }, "result"_a, "Get available model types (fills list)")''',
+    },
+    "Pi0Result": {
+        "pi0": '''
+        .def_rw("pi0", &OpenMS::Math::Pi0Result::pi0)''',
+        "pi0_lambda": '''
+        .def_rw("pi0_lambda", &OpenMS::Math::Pi0Result::pi0_lambda)''',
+        "lambda_": '''
+        .def_rw("lambda_", &OpenMS::Math::Pi0Result::lambda_)''',
+        "pi0_smooth": '''
+        .def_rw("pi0_smooth", &OpenMS::Math::Pi0Result::pi0_smooth)''',
+    },
+    "MultipleTesting": {
+        "pi0Est": '''
+        .def_static("pi0Est", [](const std::vector<double>& p_values,
+                                  const std::vector<double>& lambda,
+                                  OpenMS::Math::MultipleTesting::Pi0Method method,
+                                  int smooth_df,
+                                  bool smooth_log_pi0) {
+            return OpenMS::Math::MultipleTesting::pi0Est(p_values, lambda, method, smooth_df, smooth_log_pi0);
+        }, "p_values"_a, "lambda_"_a, "method"_a = OpenMS::Math::MultipleTesting::Pi0Method::Smoother,
+           "smooth_df"_a = 3, "smooth_log_pi0"_a = false,
+           "Estimate the proportion of true null hypotheses (pi0)")''',
+        "qValue": '''
+        .def_static("qValue", [](const std::vector<double>& p_values, double pi0, bool pfdr) {
+            return OpenMS::Math::MultipleTesting::qValue(p_values, pi0, pfdr);
+        }, "p_values"_a, "pi0"_a, "pfdr"_a = false, "Calculate q-values")''',
+        "lfdr": '''
+        .def_static("lfdr", [](const std::vector<double>& p_values, double pi0,
+                               bool trunc, bool monotone,
+                               OpenMS::Math::MultipleTesting::LfdrTransform transf,
+                               double adj, double eps, size_t gridsize, double cut) {
+            return OpenMS::Math::MultipleTesting::lfdr(p_values, pi0, trunc, monotone, transf, adj, eps, gridsize, cut);
+        }, "p_values"_a, "pi0"_a, "trunc"_a = true, "monotone"_a = true,
+           "transf"_a = OpenMS::Math::MultipleTesting::LfdrTransform::Probit,
+           "adj"_a = 1.5, "eps"_a = 1e-8, "gridsize"_a = (size_t)10000, "cut"_a = 0.1,
+           "Estimate local false discovery rate")''',
+        "pNorm": '''
+        .def_static("pNorm", [](const std::vector<double>& stat, const std::vector<double>& stat0) {
+            return OpenMS::Math::MultipleTesting::pNorm(stat, stat0);
+        }, "stat"_a, "stat0"_a, "Compute tail probabilities under a fitted normal distribution")''',
+        "pi0MethodToString": '''
+        .def_static("pi0MethodToString", [](OpenMS::Math::MultipleTesting::Pi0Method m) {
+            return OpenMS::Math::MultipleTesting::pi0MethodToString(m);
+        }, "method"_a, "Convert Pi0Method enum to string representation")''',
+        "toPi0Method": '''
+        .def_static("toPi0Method", [](const std::string& s) {
+            return OpenMS::Math::MultipleTesting::toPi0Method(s);
+        }, "s"_a, "Convert string to Pi0Method enum")''',
+        "lfdrTransformToString": '''
+        .def_static("lfdrTransformToString", [](OpenMS::Math::MultipleTesting::LfdrTransform t) {
+            return OpenMS::Math::MultipleTesting::lfdrTransformToString(t);
+        }, "transform"_a, "Convert LfdrTransform enum to string representation")''',
+        "toLfdrTransform": '''
+        .def_static("toLfdrTransform", [](const std::string& s) {
+            return OpenMS::Math::MultipleTesting::toLfdrTransform(s);
+        }, "s"_a, "Convert string to LfdrTransform enum")''',
+    },
+    "ProteaseDigestion": {
+        "digest": '''
+        .def("digest", [](OpenMS::ProteaseDigestion& self, const OpenMS::AASequence& protein, std::vector<OpenMS::AASequence>& output) {
+            self.digest(protein, output);
+        }, "protein"_a, "output"_a, "Performs the enzymatic digestion of a protein sequence")
+        .def("digest", [](OpenMS::ProteaseDigestion& self, const OpenMS::AASequence& protein) {
+            std::vector<OpenMS::AASequence> output;
+            self.digest(protein, output);
+            return output;
+        }, "protein"_a, "Performs the enzymatic digestion of a protein sequence, returns list of peptides")''',
+    },
+    "CoarseIsotopePatternGenerator": {
+        "__init__default": '''
+        .def(nb::init<>())
+        .def(nb::init<OpenMS::Size>(), "max_isotope"_a)''',
+    },
+    "MRMFeatureQC": {
+        "component_qcs_prop": '''
+        .def_prop_rw("component_qcs",
+            [](OpenMS::MRMFeatureQC& self) -> std::vector<OpenMS::MRMFeatureQC::ComponentQCs>& { return self.component_qcs; },
+            [](OpenMS::MRMFeatureQC& self, std::vector<OpenMS::MRMFeatureQC::ComponentQCs> v) { self.component_qcs = std::move(v); })''',
+        "component_group_qcs_prop": '''
+        .def_prop_rw("component_group_qcs",
+            [](OpenMS::MRMFeatureQC& self) -> std::vector<OpenMS::MRMFeatureQC::ComponentGroupQCs>& { return self.component_group_qcs; },
+            [](OpenMS::MRMFeatureQC& self, std::vector<OpenMS::MRMFeatureQC::ComponentGroupQCs> v) { self.component_group_qcs = std::move(v); })''',
+        "component_group_pair_qcs_prop": '''
+        .def_prop_rw("component_group_pair_qcs",
+            [](OpenMS::MRMFeatureQC& self) -> std::vector<OpenMS::MRMFeatureQC::ComponentGroupPairQCs>& { return self.component_group_pair_qcs; },
+            [](OpenMS::MRMFeatureQC& self, std::vector<OpenMS::MRMFeatureQC::ComponentGroupPairQCs> v) { self.component_group_pair_qcs = std::move(v); })''',
+    },
+    "ConvexHull2D": {
+        "getBoundingBox": '''
+        .def("getBoundingBox", [](const OpenMS::ConvexHull2D& self) {
+            return self.getBoundingBox();
+        }, "Returns the bounding box")''',
+    },
+    "PeakIntegrator": {
+        "integratePeak_chrom": '''
+        .def("integratePeak", [](OpenMS::PeakIntegrator& self, const OpenMS::MSChromatogram& chrom, double left, double right) {
+            return self.integratePeak(chrom, left, right);
+        }, "chromatogram"_a, "left"_a, "right"_a, "Integrate peak in chromatogram")''',
+        "integratePeak_spec": '''
+        .def("integratePeak", [](OpenMS::PeakIntegrator& self, const OpenMS::MSSpectrum& spec, double left, double right) {
+            return self.integratePeak(spec, left, right);
+        }, "spectrum"_a, "left"_a, "right"_a, "Integrate peak in spectrum")''',
+        "estimateBackground_chrom": '''
+        .def("estimateBackground", [](OpenMS::PeakIntegrator& self, const OpenMS::MSChromatogram& chrom, double left, double right, double apex) {
+            return self.estimateBackground(chrom, left, right, apex);
+        }, "chromatogram"_a, "left"_a, "right"_a, "peak_apex_pos"_a, "Estimate background in chromatogram")''',
+        "calculatePeakShapeMetrics_chrom": '''
+        .def("calculatePeakShapeMetrics", [](OpenMS::PeakIntegrator& self, const OpenMS::MSChromatogram& chrom, double left, double right, double height, double apex) {
+            return self.calculatePeakShapeMetrics(chrom, left, right, height, apex);
+        }, "chromatogram"_a, "left"_a, "right"_a, "peak_height"_a, "peak_apex_pos"_a, "Calculate peak shape metrics")''',
+    },
+    "PeakGroup": {
+        "getMonoMass": '''
+        .def("getMonoMass", &OpenMS::PeakGroup::getMonoMass, "Returns the monoisotopic mass")''',
+    },
+    "DeconvolvedSpectrum": {
+        "__getitem__": '''
+        .def("__getitem__", [](const OpenMS::DeconvolvedSpectrum& self, int idx) -> const OpenMS::PeakGroup& {
+            if (idx < 0) idx += self.size();
+            if (idx < 0 || (size_t)idx >= self.size()) throw nb::index_error("index out of range");
+            return self[idx];
+        }, nb::rv_policy::reference_internal, "idx"_a, "Get peak group by index")''',
+    },
+    "Spectrum": {
+        "setMZArray": '''
+        .def("setMZArray", [](OpenMS::Interfaces::Spectrum& self, std::vector<double> data) {
+            auto arr = std::make_shared<OpenMS::Interfaces::BinaryDataArray>();
+            arr->data = std::move(data);
+            self.setMZArray(arr);
+        }, "data"_a, "Set m/z array from list")''',
+        "setIntensityArray": '''
+        .def("setIntensityArray", [](OpenMS::Interfaces::Spectrum& self, std::vector<double> data) {
+            auto arr = std::make_shared<OpenMS::Interfaces::BinaryDataArray>();
+            arr->data = std::move(data);
+            self.setIntensityArray(arr);
+        }, "data"_a, "Set intensity array from list")''',
+        "getMZArray": '''
+        .def("getMZArray", [](const OpenMS::Interfaces::Spectrum& self) {
+            auto arr = self.getMZArray();
+            if (!arr) return std::vector<double>();
+            return arr->data;
+        }, "Get m/z array")''',
+        "getIntensityArray": '''
+        .def("getIntensityArray", [](const OpenMS::Interfaces::Spectrum& self) {
+            auto arr = self.getIntensityArray();
+            if (!arr) return std::vector<double>();
+            return arr->data;
+        }, "Get intensity array")''',
+    },
+    "ChromatogramExtractor": {
+        "extractChromatograms": '''
+        .def("extractChromatograms", [](OpenMS::ChromatogramExtractor& self,
+                std::shared_ptr<OpenMS::SpectrumAccessOpenMS> input,
+                nb::list output_py,
+                std::vector<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates> extraction_coordinates,
+                double mz_extraction_window,
+                bool ppm,
+                double im_extraction_window,
+                const std::string& filter) {
+            // Convert Python list to C++ vector
+            std::vector<std::shared_ptr<OpenSwath::OSChromatogram>> output;
+            for (size_t i = 0; i < nb::len(output_py); ++i) {
+                output.push_back(nb::cast<std::shared_ptr<OpenSwath::OSChromatogram>>(output_py[i]));
+            }
+            self.extractChromatograms(input, output, extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
+            // Update the Python list in-place
+            while (nb::len(output_py) > 0) { output_py.attr("pop")(); }
+            for (auto& c : output) { output_py.append(nb::cast(c)); }
+        }, "input"_a, "output"_a, "extraction_coordinates"_a, "mz_extraction_window"_a, "ppm"_a, "im_extraction_window"_a, "filter"_a)''',
+        "prepare_coordinates": '''
+        .def_static("prepare_coordinates", [](
+                nb::list output_chromatograms_py,
+                nb::list extraction_coordinates_py,
+                OpenMS::TargetedExperiment& targeted,
+                double rt_extraction_window,
+                bool ms1,
+                int ms1_isotopes) {
+            std::vector<std::shared_ptr<OpenSwath::OSChromatogram>> output_chromatograms;
+            std::vector<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates> extraction_coordinates;
+            OpenMS::ChromatogramExtractor::prepare_coordinates(output_chromatograms, extraction_coordinates, targeted, rt_extraction_window, ms1, ms1_isotopes);
+            // Update Python lists in-place
+            while (nb::len(output_chromatograms_py) > 0) { output_chromatograms_py.attr("pop")(); }
+            for (auto& c : output_chromatograms) { output_chromatograms_py.append(nb::cast(c)); }
+            while (nb::len(extraction_coordinates_py) > 0) { extraction_coordinates_py.attr("pop")(); }
+            for (auto& c : extraction_coordinates) { extraction_coordinates_py.append(nb::cast(c)); }
+        }, "output_chromatograms"_a, "extraction_coordinates"_a, "targeted"_a, "rt_extraction_window"_a, "ms1"_a = false, "ms1_isotopes"_a = 0, "Prepare extraction coordinates from targeted experiment")''',
+    },
+    "ChromatogramExtractorAlgorithm": {
+        "extractChromatograms": '''
+        .def("extractChromatograms", [](OpenMS::ChromatogramExtractorAlgorithm& self,
+                std::shared_ptr<OpenMS::SpectrumAccessOpenMS> input,
+                std::vector<std::shared_ptr<OpenSwath::OSChromatogram>>& output,
+                std::vector<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates> extraction_coordinates,
+                double mz_extraction_window,
+                bool ppm,
+                double im_extraction_window,
+                const std::string& filter) {
+            self.extractChromatograms(input, output, extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
+        }, "input"_a, "output"_a, "extraction_coordinates"_a, "mz_extraction_window"_a, "ppm"_a, "im_extraction_window"_a, "filter"_a)''',
+    },
+    "Chromatogram": {
+        "setTimeArray": '''
+        .def("setTimeArray", [](OpenMS::Interfaces::Chromatogram& self, std::vector<double> data) {
+            auto arr = std::make_shared<OpenMS::Interfaces::BinaryDataArray>();
+            arr->data = std::move(data);
+            self.setTimeArray(arr);
+        }, "data"_a, "Set time array from list")''',
+        "setIntensityArray": '''
+        .def("setIntensityArray", [](OpenMS::Interfaces::Chromatogram& self, std::vector<double> data) {
+            auto arr = std::make_shared<OpenMS::Interfaces::BinaryDataArray>();
+            arr->data = std::move(data);
+            self.setIntensityArray(arr);
+        }, "data"_a, "Set intensity array from list")''',
+        "getTimeArray": '''
+        .def("getTimeArray", [](const OpenMS::Interfaces::Chromatogram& self) {
+            auto arr = self.getTimeArray();
+            if (!arr) return std::vector<double>();
+            return arr->data;
+        }, "Get time array")''',
+        "getIntensityArray": '''
+        .def("getIntensityArray", [](const OpenMS::Interfaces::Chromatogram& self) {
+            auto arr = self.getIntensityArray();
+            if (!arr) return std::vector<double>();
+            return arr->data;
+        }, "Get intensity array")''',
+    },
+}
+
+# Nested class bindings that are emitted in the same module as a parent class.
+# Maps parent_class_name -> list of (binding_code, extra_includes) tuples.
+# These are standalone nb::class_<> definitions for C++ nested types
+# (e.g. OpenMS::Param::ParamEntry) that can't be auto-generated.
+NESTED_CLASS_BINDINGS = {
+    "Param": [
+        ('''
+    nb::class_<OpenMS::Param::ParamEntry>(m, "ParamEntry")
+        .def(nb::init<>())
+        .def(nb::init<const std::string&, const OpenMS::ParamValue&, const std::string&>(), "name"_a, "value"_a, "description"_a)
+        .def_rw("name", &OpenMS::Param::ParamEntry::name)
+        .def_rw("description", &OpenMS::Param::ParamEntry::description)
+        .def_rw("value", &OpenMS::Param::ParamEntry::value)
+        .def_rw("valid_strings", &OpenMS::Param::ParamEntry::valid_strings)
+        .def_rw("max_float", &OpenMS::Param::ParamEntry::max_float)
+        .def_rw("min_float", &OpenMS::Param::ParamEntry::min_float)
+        .def_rw("max_int", &OpenMS::Param::ParamEntry::max_int)
+        .def_rw("min_int", &OpenMS::Param::ParamEntry::min_int)
+        .def("isValid", [](const OpenMS::Param::ParamEntry& self) {
+            std::string msg;
+            bool valid = self.isValid(msg);
+            return nb::make_tuple(valid, msg);
+        }, "Check if value fulfills restrictions. Returns (valid, message)")
+        .def("__eq__", &OpenMS::Param::ParamEntry::operator==)
+        ;''',
+         ["<OpenMS/DATASTRUCTURES/Param.h>"]),
+        ('''
+    nb::class_<OpenMS::Param::ParamNode>(m, "ParamNode")
+        .def(nb::init<>())
+        .def(nb::init<const std::string&, const std::string&>(), "name"_a, "description"_a)
+        .def_rw("name", &OpenMS::Param::ParamNode::name)
+        .def_rw("description", &OpenMS::Param::ParamNode::description)
+        .def_rw("entries", &OpenMS::Param::ParamNode::entries)
+        .def_rw("nodes", &OpenMS::Param::ParamNode::nodes)
+        .def("size", &OpenMS::Param::ParamNode::size)
+        .def("suffix", &OpenMS::Param::ParamNode::suffix, "key"_a)
+        .def("__eq__", &OpenMS::Param::ParamNode::operator==)
+        ;''',
+         ["<OpenMS/DATASTRUCTURES/Param.h>"]),
+    ],
+    "PeakFileOptions": [
+        ('''
+    nb::class_<OpenMS::DRange<1>>(m, "DRange1")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::DRange<1>&>())
+        .def("__init__", [](OpenMS::DRange<1>* self, double min_val, double max_val) {
+            new (self) OpenMS::DRange<1>(OpenMS::DPosition<1>(min_val), OpenMS::DPosition<1>(max_val));
+        }, "min"_a, "max"_a)
+        .def("__eq__", [](const OpenMS::DRange<1>& self, const OpenMS::DRange<1>& other) {
+            return self == other;
+        })
+        .def("encloses", [](const OpenMS::DRange<1>& self, double pos) {
+            return self.encloses(OpenMS::DPosition<1>(pos));
+        }, "position"_a, "Check if position is within this range")
+        .def("united", [](const OpenMS::DRange<1>& self, const OpenMS::DRange<1>& other) {
+            return self.united(other);
+        }, "other"_a, "Returns the union of this range with another")
+        .def("isIntersected", [](const OpenMS::DRange<1>& self, const OpenMS::DRange<1>& other) {
+            return self.isIntersected(other);
+        }, "other"_a, "Check if two ranges intersect")
+        .def("isEmpty", [](const OpenMS::DRange<1>& self) { return self.isEmpty(); })
+        .def("minX", [](const OpenMS::DRange<1>& self) { return self.minPosition()[0]; })
+        .def("maxX", [](const OpenMS::DRange<1>& self) { return self.maxPosition()[0]; })
+        .def("setMinX", [](OpenMS::DRange<1>& self, double c) {
+            self.min_[0] = c;
+        }, "c"_a)
+        .def("setMaxX", [](OpenMS::DRange<1>& self, double c) {
+            self.max_[0] = c;
+        }, "c"_a)
+        .def("__repr__", [](const OpenMS::DRange<1>& self) {
+            std::ostringstream oss;
+            oss << "DRange1(" << self.minPosition()[0] << ", " << self.maxPosition()[0] << ")";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::DRange<1>& self) {
+            std::ostringstream oss;
+            oss << "DRange1(" << self.minPosition()[0] << ", " << self.maxPosition()[0] << ")";
+            return oss.str();
+        })
+        ;''',
+         ["<OpenMS/DATASTRUCTURES/DRange.h>", "<OpenMS/DATASTRUCTURES/DPosition.h>"]),
+    ],
+    "MSNumpressCoder": [
+        ('''
+    nb::class_<OpenMS::MSNumpressCoder::NumpressConfig>(m, "NumpressConfig")
+        .def(nb::init<>())
+        .def_rw("numpressFixedPoint", &OpenMS::MSNumpressCoder::NumpressConfig::numpressFixedPoint)
+        .def_rw("numpressErrorTolerance", &OpenMS::MSNumpressCoder::NumpressConfig::numpressErrorTolerance)
+        .def_rw("np_compression", &OpenMS::MSNumpressCoder::NumpressConfig::np_compression)
+        .def_rw("estimate_fixed_point", &OpenMS::MSNumpressCoder::NumpressConfig::estimate_fixed_point)
+        .def_rw("linear_fp_mass_acc", &OpenMS::MSNumpressCoder::NumpressConfig::linear_fp_mass_acc)
+        ;''',
+         ["<OpenMS/FORMAT/MSNumpressCoder.h>"]),
+    ],
+}
+
+# Fully handwritten class bindings for classes that can't go through the normal
+# generation pipeline (e.g., template specializations, complex nested types).
+# These are assigned to modules by hash of class name.
+HANDWRITTEN_CLASSES = {
+    "MatrixDouble": {
+        "binding": '''
+    using MatrixD = OpenMS::Matrix<double>;
+    nb::class_<MatrixD>(m, "MatrixDouble")
+        .def(nb::init<>())
+        .def(nb::init<const MatrixD&>())
+        .def("__init__", [](MatrixD* self, size_t rows, size_t cols, double value) {
+            new (self) MatrixD(rows, cols, value);
+        }, "rows"_a, "cols"_a, "value"_a)
+        .def("getValue", [](const MatrixD& self, size_t i, size_t j) { return self.getValue(i, j); }, "i"_a, "j"_a)
+        .def("setValue", &MatrixD::setValue, "i"_a, "j"_a, "value"_a)
+        .def("rows", &MatrixD::rows)
+        .def("cols", &MatrixD::cols)
+        .def("size", &MatrixD::size)
+        .def("resize", [](MatrixD& self, size_t rows, size_t cols) { self.resize(rows, cols); }, "rows"_a, "cols"_a)
+        ;''',
+        "includes": ["<OpenMS/DATASTRUCTURES/Matrix.h>"],
+    },
+    "BilinearInterpolation": {
+        "binding": '''
+    using BLI = OpenMS::Math::BilinearInterpolation<double, double>;
+    nb::class_<BLI>(m, "BilinearInterpolation")
+        .def(nb::init<>())
+        .def(nb::init<const BLI&>())
+        .def("value", &BLI::value, "arg_pos_0"_a, "arg_pos_1"_a, "Performs bilinear interpolation")
+        .def("addValue", &BLI::addValue, "arg_pos_0"_a, "arg_pos_1"_a, "arg_value"_a, "Performs bilinear resampling")
+        .def("getData", [](const BLI& self) -> const OpenMS::Matrix<double>& { return self.getData(); }, nb::rv_policy::reference_internal)
+        .def("setData", [](BLI& self, const OpenMS::Matrix<double>& data) { self.setData(data); }, "data"_a)
+        .def("empty", &BLI::empty)
+        .def("key2index_0", &BLI::key2index_0, "pos"_a)
+        .def("index2key_0", &BLI::index2key_0, "pos"_a)
+        .def("key2index_1", &BLI::key2index_1, "pos"_a)
+        .def("index2key_1", &BLI::index2key_1, "pos"_a)
+        .def("getScale_0", &BLI::getScale_0)
+        .def("setScale_0", &BLI::setScale_0, "scale"_a)
+        .def("getScale_1", &BLI::getScale_1)
+        .def("setScale_1", &BLI::setScale_1, "scale"_a)
+        .def("getOffset_0", &BLI::getOffset_0)
+        .def("setOffset_0", &BLI::setOffset_0, "offset"_a)
+        .def("getOffset_1", &BLI::getOffset_1)
+        .def("setOffset_1", &BLI::setOffset_1, "offset"_a)
+        .def("setMapping_0", nb::overload_cast<double const&, double const&, double const&>(&BLI::setMapping_0), "scale"_a, "inside"_a, "outside"_a)
+        .def("setMapping_0", nb::overload_cast<double const&, double const&, double const&, double const&>(&BLI::setMapping_0), "inside_low"_a, "outside_low"_a, "inside_high"_a, "outside_high"_a)
+        .def("setMapping_1", nb::overload_cast<double const&, double const&, double const&>(&BLI::setMapping_1), "scale"_a, "inside"_a, "outside"_a)
+        .def("setMapping_1", nb::overload_cast<double const&, double const&, double const&, double const&>(&BLI::setMapping_1), "inside_low"_a, "outside_low"_a, "inside_high"_a, "outside_high"_a)
+        .def("getInsideReferencePoint_0", &BLI::getInsideReferencePoint_0)
+        .def("getInsideReferencePoint_1", &BLI::getInsideReferencePoint_1)
+        .def("getOutsideReferencePoint_0", &BLI::getOutsideReferencePoint_0)
+        .def("getOutsideReferencePoint_1", &BLI::getOutsideReferencePoint_1)
+        .def("supportMin_0", &BLI::supportMin_0)
+        .def("supportMin_1", &BLI::supportMin_1)
+        .def("supportMax_0", &BLI::supportMax_0)
+        .def("supportMax_1", &BLI::supportMax_1)
+        ;''',
+        "includes": [
+            "<OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>",
+            "<OpenMS/DATASTRUCTURES/Matrix.h>",
+        ],
+    },
+    "LogMzPeak": {
+        "binding": '''
+    using LMP = OpenMS::FLASHHelperClasses::LogMzPeak;
+    nb::class_<LMP>(m, "LogMzPeak")
+        .def(nb::init<>())
+        .def(nb::init<const LMP&>())
+        .def("__init__", [](LMP* self, const OpenMS::Peak1D& peak, bool positive) {
+            new (self) LMP(peak, positive);
+        }, "peak"_a, "positive"_a)
+        .def("getUnchargedMass", &LMP::getUnchargedMass)
+        .def("__lt__", [](const LMP& self, const LMP& other) { return self < other; })
+        .def("__gt__", [](const LMP& self, const LMP& other) { return self > other; })
+        .def("__eq__", [](const LMP& self, const LMP& other) { return self == other; })
+        .def_rw("mz", &LMP::mz)
+        .def_rw("intensity", &LMP::intensity)
+        .def_rw("logMz", &LMP::logMz)
+        .def_rw("mass", &LMP::mass)
+        .def_rw("abs_charge", &LMP::abs_charge)
+        .def_rw("is_positive", &LMP::is_positive)
+        .def_rw("isotopeIndex", &LMP::isotopeIndex)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>", "<OpenMS/KERNEL/Peak1D.h>"],
+    },
+    "PrecalAveragine": {
+        "binding": '''
+    using PCA = OpenMS::FLASHHelperClasses::PrecalculatedAveragine;
+    nb::class_<PCA>(m, "PrecalAveragine")
+        .def(nb::init<>())
+        .def(nb::init<const PCA&>())
+        .def("__init__", [](PCA* self, double min_mass, double max_mass, double delta,
+             OpenMS::CoarseIsotopePatternGenerator& gen, bool use_RNA) {
+            new (self) PCA(min_mass, max_mass, delta, gen, use_RNA);
+        }, "min_mass"_a, "max_mass"_a, "delta"_a, "generator"_a, "use_RNA_averagine"_a)
+        .def("__init__", [](PCA* self, double min_mass, double max_mass, double delta,
+             OpenMS::CoarseIsotopePatternGenerator& gen, bool use_RNA, double decoy_dist) {
+            new (self) PCA(min_mass, max_mass, delta, gen, use_RNA, decoy_dist);
+        }, "min_mass"_a, "max_mass"_a, "delta"_a, "generator"_a, "use_RNA_averagine"_a, "decoy_iso_distance"_a)
+        .def("get", &PCA::get, "mass"_a)
+        .def("getMaxIsotopeIndex", &PCA::getMaxIsotopeIndex)
+        .def("setMaxIsotopeIndex", &PCA::setMaxIsotopeIndex, "index"_a)
+        .def("getLeftCountFromApex", &PCA::getLeftCountFromApex, "mass"_a)
+        .def("getRightCountFromApex", &PCA::getRightCountFromApex, "mass"_a)
+        .def("getApexIndex", &PCA::getApexIndex, "mass"_a)
+        .def("getLastIndex", &PCA::getLastIndex, "mass"_a)
+        .def("getAverageMassDelta", &PCA::getAverageMassDelta, "mass"_a)
+        .def("getMostAbundantMassDelta", &PCA::getMostAbundantMassDelta, "mass"_a)
+        .def("getSNRMultiplicationFactor", &PCA::getSNRMultiplicationFactor, "mass"_a)
+        ;''',
+        "includes": [
+            "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>",
+            "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>",
+        ],
+    },
+    "MassFeature_FDHS": {
+        "binding": '''
+    using MF = OpenMS::FLASHHelperClasses::MassFeature;
+    nb::class_<MF>(m, "MassFeature_FDHS")
+        .def(nb::init<>())
+        .def(nb::init<const MF&>())
+        .def("__lt__", [](const MF& self, const MF& other) { return self < other; })
+        .def("__gt__", [](const MF& self, const MF& other) { return self > other; })
+        .def("__eq__", [](const MF& self, const MF& other) { return self == other; })
+        .def_rw("index", &MF::index)
+        .def_rw("per_charge_intensity", &MF::per_charge_intensity)
+        .def_rw("per_isotope_intensity", &MF::per_isotope_intensity)
+        .def_rw("iso_offset", &MF::iso_offset)
+        .def_rw("scan_number", &MF::scan_number)
+        .def_rw("min_scan_number", &MF::min_scan_number)
+        .def_rw("max_scan_number", &MF::max_scan_number)
+        .def_rw("rep_charge", &MF::rep_charge)
+        .def_rw("avg_mass", &MF::avg_mass)
+        .def_rw("min_charge", &MF::min_charge)
+        .def_rw("max_charge", &MF::max_charge)
+        .def_rw("charge_count", &MF::charge_count)
+        .def_rw("isotope_score", &MF::isotope_score)
+        .def_rw("qscore", &MF::qscore)
+        .def_rw("rep_mz", &MF::rep_mz)
+        .def_rw("is_decoy", &MF::is_decoy)
+        .def_rw("ms_level", &MF::ms_level)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>"],
+    },
+    "IsobaricQuantities": {
+        "binding": '''
+    using IQ = OpenMS::FLASHHelperClasses::IsobaricQuantities;
+    nb::class_<IQ>(m, "IsobaricQuantities")
+        .def(nb::init<>())
+        .def(nb::init<const IQ&>())
+        .def("empty", &IQ::empty)
+        .def_rw("scan", &IQ::scan)
+        .def_rw("rt", &IQ::rt)
+        .def_rw("precursor_mz", &IQ::precursor_mz)
+        .def_rw("precursor_mass", &IQ::precursor_mass)
+        .def_rw("quantities", &IQ::quantities)
+        .def_rw("merged_quantities", &IQ::merged_quantities)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>"],
+    },
+    "DBoundingBox2": {
+        "binding": '''
+    using DBB2 = OpenMS::DBoundingBox<2>;
+    nb::class_<DBB2>(m, "DBoundingBox2")
+        .def(nb::init<>())
+        .def("minPosition", [](const DBB2& self) {
+            auto p = self.minPosition();
+            nb::list result;
+            result.append(p[0]);
+            result.append(p[1]);
+            return result;
+        }, "Returns the minimum position")
+        .def("maxPosition", [](const DBB2& self) {
+            auto p = self.maxPosition();
+            nb::list result;
+            result.append(p[0]);
+            result.append(p[1]);
+            return result;
+        }, "Returns the maximum position")
+        ;''',
+        "includes": ["<OpenMS/DATASTRUCTURES/DBoundingBox.h>"],
+    },
+    "MRMFQC_ComponentQCs": {
+        "binding": '''
+    using CQ = OpenMS::MRMFeatureQC::ComponentQCs;
+    nb::class_<CQ>(m, "MRMFQC_ComponentQCs")
+        .def(nb::init<>())
+        .def_rw("component_name", &CQ::component_name)
+        .def_rw("retention_time_l", &CQ::retention_time_l)
+        .def_rw("retention_time_u", &CQ::retention_time_u)
+        .def_rw("intensity_l", &CQ::intensity_l)
+        .def_rw("intensity_u", &CQ::intensity_u)
+        .def_rw("overall_quality_l", &CQ::overall_quality_l)
+        .def_rw("overall_quality_u", &CQ::overall_quality_u)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>"],
+    },
+    "MRMFQC_ComponentGroupQCs": {
+        "binding": '''
+    using CGQ = OpenMS::MRMFeatureQC::ComponentGroupQCs;
+    nb::class_<CGQ>(m, "MRMFQC_ComponentGroupQCs")
+        .def(nb::init<>())
+        .def_rw("component_group_name", &CGQ::component_group_name)
+        .def_rw("retention_time_l", &CGQ::retention_time_l)
+        .def_rw("retention_time_u", &CGQ::retention_time_u)
+        .def_rw("intensity_l", &CGQ::intensity_l)
+        .def_rw("intensity_u", &CGQ::intensity_u)
+        .def_rw("overall_quality_l", &CGQ::overall_quality_l)
+        .def_rw("overall_quality_u", &CGQ::overall_quality_u)
+        .def_rw("n_heavy_l", &CGQ::n_heavy_l)
+        .def_rw("n_heavy_u", &CGQ::n_heavy_u)
+        .def_rw("n_light_l", &CGQ::n_light_l)
+        .def_rw("n_light_u", &CGQ::n_light_u)
+        .def_rw("n_detecting_l", &CGQ::n_detecting_l)
+        .def_rw("n_detecting_u", &CGQ::n_detecting_u)
+        .def_rw("n_quantifying_l", &CGQ::n_quantifying_l)
+        .def_rw("n_quantifying_u", &CGQ::n_quantifying_u)
+        .def_rw("n_identifying_l", &CGQ::n_identifying_l)
+        .def_rw("n_identifying_u", &CGQ::n_identifying_u)
+        .def_rw("n_transitions_l", &CGQ::n_transitions_l)
+        .def_rw("n_transitions_u", &CGQ::n_transitions_u)
+        .def_rw("ion_ratio_pair_name_1", &CGQ::ion_ratio_pair_name_1)
+        .def_rw("ion_ratio_pair_name_2", &CGQ::ion_ratio_pair_name_2)
+        .def_rw("ion_ratio_l", &CGQ::ion_ratio_l)
+        .def_rw("ion_ratio_u", &CGQ::ion_ratio_u)
+        .def_rw("ion_ratio_feature_name", &CGQ::ion_ratio_feature_name)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>"],
+    },
+    "MRMFQC_ComponentGroupPairQCs": {
+        "binding": '''
+    using CGPQ = OpenMS::MRMFeatureQC::ComponentGroupPairQCs;
+    nb::class_<CGPQ>(m, "MRMFQC_ComponentGroupPairQCs")
+        .def(nb::init<>())
+        .def_rw("component_group_name", &CGPQ::component_group_name)
+        .def_rw("resolution_pair_name", &CGPQ::resolution_pair_name)
+        .def_rw("resolution_l", &CGPQ::resolution_l)
+        .def_rw("resolution_u", &CGPQ::resolution_u)
+        .def_rw("rt_diff_l", &CGPQ::rt_diff_l)
+        .def_rw("rt_diff_u", &CGPQ::rt_diff_u)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>"],
+    },
+    "SelectorParameters": {
+        "binding": '''
+    using SP = OpenMS::MRMFeatureSelector::SelectorParameters;
+    nb::class_<SP>(m, "SelectorParameters")
+        .def(nb::init<>())
+        .def_rw("nn_threshold", &SP::nn_threshold)
+        .def_rw("locality_weight", &SP::locality_weight)
+        .def_rw("select_transition_group", &SP::select_transition_group)
+        .def_rw("segment_window_length", &SP::segment_window_length)
+        .def_rw("segment_step_length", &SP::segment_step_length)
+        .def_rw("optimal_threshold", &SP::optimal_threshold)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>"],
+    },
+    "PI_PeakArea": {
+        "binding": '''
+    using PPA = OpenMS::PeakIntegrator::PeakArea;
+    nb::class_<PPA>(m, "PI_PeakArea")
+        .def(nb::init<>())
+        .def_rw("area", &PPA::area)
+        .def_rw("height", &PPA::height)
+        .def_rw("apex_pos", &PPA::apex_pos)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>"],
+    },
+    "PI_PeakBackground": {
+        "binding": '''
+    using PPB = OpenMS::PeakIntegrator::PeakBackground;
+    nb::class_<PPB>(m, "PI_PeakBackground")
+        .def(nb::init<>())
+        .def_rw("area", &PPB::area)
+        .def_rw("height", &PPB::height)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>"],
+    },
+    "PI_PeakShapeMetrics": {
+        "binding": '''
+    using PPSM = OpenMS::PeakIntegrator::PeakShapeMetrics;
+    nb::class_<PPSM>(m, "PI_PeakShapeMetrics")
+        .def(nb::init<>())
+        .def_rw("width_at_5", &PPSM::width_at_5)
+        .def_rw("width_at_10", &PPSM::width_at_10)
+        .def_rw("width_at_50", &PPSM::width_at_50)
+        .def_rw("start_position_at_5", &PPSM::start_position_at_5)
+        .def_rw("start_position_at_10", &PPSM::start_position_at_10)
+        .def_rw("start_position_at_50", &PPSM::start_position_at_50)
+        .def_rw("end_position_at_5", &PPSM::end_position_at_5)
+        .def_rw("end_position_at_10", &PPSM::end_position_at_10)
+        .def_rw("end_position_at_50", &PPSM::end_position_at_50)
+        .def_rw("total_width", &PPSM::total_width)
+        .def_rw("tailing_factor", &PPSM::tailing_factor)
+        .def_rw("asymmetry_factor", &PPSM::asymmetry_factor)
+        .def_rw("slope_of_baseline", &PPSM::slope_of_baseline)
+        .def_rw("baseline_delta_2_height", &PPSM::baseline_delta_2_height)
+        .def_rw("points_across_baseline", &PPSM::points_across_baseline)
+        .def_rw("points_across_half_height", &PPSM::points_across_half_height)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>"],
+    },
+    "OSBinaryDataArray": {
+        "binding": '''
+    using OSBDA = OpenSwath::OSBinaryDataArray;
+    nb::class_<OSBDA>(m, "OSBinaryDataArray")
+        .def(nb::init<>())
+        .def(nb::init<const OSBDA&>())
+        .def_rw("data", &OSBDA::data)
+        .def_rw("description", &OSBDA::description)
+        .def("get_data", [](const OSBDA& self) {
+            return self.data;
+        }, "Access to a copy of the underlying data")
+        .def("get_data_mv", [](nb::object self_obj) -> nb::object {
+            auto& self = nb::cast<OSBDA&>(self_obj);
+            size_t shape[] = {self.data.size()};
+            return nb::ndarray<nb::numpy, double>(self.data.data(), 1, shape, self_obj).cast();
+        }, "Access to the underlying data using a memory view")
+        ;''',
+        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>"],
+    },
+    "OSSpectrum": {
+        "binding": '''
+    using OSSpec = OpenSwath::OSSpectrum;
+    using OSBDA = OpenSwath::OSBinaryDataArray;
+    using BDAPtr = std::shared_ptr<OpenSwath::BinaryDataArray>;
+    nb::class_<OSSpec>(m, "OSSpectrum")
+        .def(nb::init<>())
+        .def(nb::init<const OSSpec&>())
+        .def("getMZArray", &OSSpec::getMZArray)
+        .def("getIntensityArray", &OSSpec::getIntensityArray)
+        .def("getDriftTimeArray", &OSSpec::getDriftTimeArray)
+        .def("setMZArray", &OSSpec::setMZArray, "data"_a)
+        .def("setIntensityArray", &OSSpec::setIntensityArray, "data"_a)
+        .def("setDriftTimeArray", &OSSpec::setDriftTimeArray, "data"_a)
+        .def("set_mz_array", [](OSSpec& self, std::vector<double> data) {
+            auto arr = std::make_shared<OSBDA>();
+            arr->data = std::move(data);
+            self.setMZArray(arr);
+        }, "data"_a, "Set m/z array from list")
+        .def("set_intensity_array", [](OSSpec& self, std::vector<double> data) {
+            auto arr = std::make_shared<OSBDA>();
+            arr->data = std::move(data);
+            self.setIntensityArray(arr);
+        }, "data"_a, "Set intensity array from list")
+        .def("get_mz_array", [](const OSSpec& self) {
+            auto arr = self.getMZArray();
+            if (!arr) return std::vector<double>();
+            return arr->data;
+        }, "Get m/z array as list")
+        .def("get_mz_array_mv", [](nb::object self_obj) -> nb::object {
+            auto& self = nb::cast<OSSpec&>(self_obj);
+            auto& data = self.getMZArray()->data;
+            size_t shape[] = {data.size()};
+            return nb::ndarray<nb::numpy, double>(data.data(), 1, shape, self_obj).cast();
+        }, "Get m/z array as writable memory view")
+        .def("get_intensity_array", [](const OSSpec& self) {
+            auto arr = self.getIntensityArray();
+            if (!arr) return std::vector<double>();
+            return arr->data;
+        }, "Get intensity array as list")
+        .def("get_intensity_array_mv", [](nb::object self_obj) -> nb::object {
+            auto& self = nb::cast<OSSpec&>(self_obj);
+            auto& data = self.getIntensityArray()->data;
+            size_t shape[] = {data.size()};
+            return nb::ndarray<nb::numpy, double>(data.data(), 1, shape, self_obj).cast();
+        }, "Get intensity array as writable memory view")
+        .def("get_drift_time_array", [](const OSSpec& self) -> nb::object {
+            auto arr = self.getDriftTimeArray();
+            if (!arr) return nb::none();
+            return nb::cast(arr->data);
+        }, "Get drift time array or None")
+        .def("get_data_arrays", [](OSSpec& self) {
+            auto& arrays = self.getDataArrays();
+            std::vector<std::shared_ptr<OSBDA>> result;
+            for (auto& a : arrays) result.push_back(a);
+            return result;
+        }, "Get all data arrays")
+        .def("set_data_arrays", [](OSSpec& self, std::vector<std::shared_ptr<OSBDA>> arrays) {
+            std::vector<BDAPtr> ptrs;
+            for (auto& a : arrays) ptrs.push_back(a);
+            self.setDataArrays(ptrs);
+        }, "arrays"_a, "Set all data arrays")
+        ;''',
+        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>"],
+    },
+    "OSChromatogram": {
+        "binding": '''
+    using OSChrom = OpenSwath::OSChromatogram;
+    using OSBDA_C = OpenSwath::OSBinaryDataArray;
+    using BDAPtr_C = std::shared_ptr<OpenSwath::BinaryDataArray>;
+    nb::class_<OSChrom>(m, "OSChromatogram")
+        .def(nb::init<>())
+        .def(nb::init<const OSChrom&>())
+        .def("getTimeArray", &OSChrom::getTimeArray)
+        .def("getIntensityArray", &OSChrom::getIntensityArray)
+        .def("setTimeArray", &OSChrom::setTimeArray, "data"_a)
+        .def("setIntensityArray", &OSChrom::setIntensityArray, "data"_a)
+        .def("set_time_array", [](OSChrom& self, std::vector<double> data) {
+            auto arr = std::make_shared<OSBDA_C>();
+            arr->data = std::move(data);
+            self.setTimeArray(arr);
+        }, "data"_a, "Set time array from list")
+        .def("set_intensity_array", [](OSChrom& self, std::vector<double> data) {
+            auto arr = std::make_shared<OSBDA_C>();
+            arr->data = std::move(data);
+            self.setIntensityArray(arr);
+        }, "data"_a, "Set intensity array from list")
+        .def("get_time_array", [](OSChrom& self) {
+            auto arr = self.getTimeArray();
+            if (!arr) return std::vector<double>();
+            return arr->data;
+        }, "Get time array as list")
+        .def("get_intensity_array", [](OSChrom& self) {
+            auto arr = self.getIntensityArray();
+            if (!arr) return std::vector<double>();
+            return arr->data;
+        }, "Get intensity array as list")
+        .def("get_data_arrays", [](OSChrom& self) {
+            auto& arrays = self.getDataArrays();
+            std::vector<std::shared_ptr<OSBDA_C>> result;
+            for (auto& a : arrays) result.push_back(a);
+            return result;
+        }, "Get all data arrays")
+        .def("set_data_arrays", [](OSChrom& self, std::vector<std::shared_ptr<OSBDA_C>> arrays) {
+            std::vector<BDAPtr_C> ptrs;
+            for (auto& a : arrays) ptrs.push_back(a);
+            self.setDataArrays(ptrs);
+        }, "arrays"_a, "Set all data arrays")
+        ;''',
+        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>"],
+    },
+    "LightTransition": {
+        "binding": '''
+    using LT = OpenSwath::LightTransition;
+    nb::class_<LT>(m, "LightTransition")
+        .def(nb::init<>())
+        .def(nb::init<const LT&>())
+        .def("getProductChargeState", &LT::getProductChargeState)
+        .def("isProductChargeStateSet", &LT::isProductChargeStateSet)
+        .def("getNativeID", &LT::getNativeID)
+        .def("getPeptideRef", &LT::getPeptideRef)
+        .def("getLibraryIntensity", &LT::getLibraryIntensity)
+        .def("setLibraryIntensity", &LT::setLibraryIntensity, "l"_a)
+        .def("getProductMZ", &LT::getProductMZ)
+        .def("getPrecursorMZ", &LT::getPrecursorMZ)
+        .def("isPrecursorImSet", &LT::isPrecursorImSet)
+        .def("getPrecursorIM", &LT::getPrecursorIM)
+        .def("getCompoundRef", &LT::getCompoundRef)
+        .def("getDecoy", &LT::getDecoy)
+        .def("setDecoy", &LT::setDecoy, "d"_a)
+        .def("getFragmentType", &LT::getFragmentType)
+        .def("setFragmentType", &LT::setFragmentType, "s"_a)
+        .def("getAnnotation", &LT::getAnnotation)
+        .def("setDetectingTransition", &LT::setDetectingTransition, "d"_a)
+        .def("isDetectingTransition", &LT::isDetectingTransition)
+        .def("setQuantifyingTransition", &LT::setQuantifyingTransition, "q"_a)
+        .def("isQuantifyingTransition", &LT::isQuantifyingTransition)
+        .def("setIdentifyingTransition", &LT::setIdentifyingTransition, "i"_a)
+        .def("isIdentifyingTransition", &LT::isIdentifyingTransition)
+        .def_rw("fragment_nr", &LT::fragment_nr)
+        .def_rw("peptidoforms", &LT::peptidoforms)
+        ;''',
+        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    },
+    "LightModification": {
+        "binding": '''
+    using LM = OpenSwath::LightModification;
+    nb::class_<LM>(m, "LightModification")
+        .def(nb::init<>())
+        .def(nb::init<const LM&>())
+        .def_rw("location", &LM::location)
+        .def_rw("unimod_id", &LM::unimod_id)
+        ;''',
+        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    },
+    "LightCompound": {
+        "binding": '''
+    using LC = OpenSwath::LightCompound;
+    nb::class_<LC>(m, "LightCompound")
+        .def(nb::init<>())
+        .def(nb::init<const LC&>())
+        .def_rw("rt", &LC::rt)
+        .def_rw("drift_time", &LC::drift_time)
+        .def_rw("charge", &LC::charge)
+        .def_rw("sequence", &LC::sequence)
+        .def_rw("protein_refs", &LC::protein_refs)
+        .def_rw("peptide_group_label", &LC::peptide_group_label)
+        .def_rw("gene_name", &LC::gene_name)
+        .def_rw("id", &LC::id)
+        .def_rw("sum_formula", &LC::sum_formula)
+        .def_rw("compound_name", &LC::compound_name)
+        .def_rw("label_type", &LC::label_type)
+        .def_rw("smiles", &LC::smiles)
+        .def_rw("adducts", &LC::adducts)
+        .def_rw("modifications", &LC::modifications)
+        .def("setDriftTime", &LC::setDriftTime, "d"_a)
+        .def("getDriftTime", &LC::getDriftTime)
+        .def("getChargeState", &LC::getChargeState)
+        .def("isPeptide", &LC::isPeptide)
+        .def("setChargeState", &LC::setChargeState, "ch"_a)
+        ;''',
+        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    },
+    "LightProtein": {
+        "binding": '''
+    using LP = OpenSwath::LightProtein;
+    nb::class_<LP>(m, "LightProtein")
+        .def(nb::init<>())
+        .def(nb::init<const LP&>())
+        .def_rw("id", &LP::id)
+        .def_rw("sequence", &LP::sequence)
+        .def_rw("uniprot_id", &LP::uniprot_id)
+        ;''',
+        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    },
+    "LightTargetedExperiment": {
+        "binding": '''
+    using LTE = OpenSwath::LightTargetedExperiment;
+    nb::class_<LTE>(m, "LightTargetedExperiment")
+        .def(nb::init<>())
+        .def(nb::init<const LTE&>())
+        .def_rw("transitions", &LTE::transitions)
+        .def_rw("compounds", &LTE::compounds)
+        .def_rw("proteins", &LTE::proteins)
+        .def("getTransitions", [](const LTE& self) { return self.getTransitions(); })
+        .def("getCompounds", [](const LTE& self) { return self.getCompounds(); })
+        .def("getProteins", [](const LTE& self) { return self.getProteins(); })
+        .def("getCompoundByRef", [](LTE& self, const std::string& ref) { return self.getCompoundByRef(ref); }, "ref"_a)
+        .def("getPeptideByRef", [](LTE& self, const std::string& ref) { return self.getPeptideByRef(ref); }, "ref"_a)
+        ;''',
+        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    },
+    "IsobaricChannelInformation": {
+        "binding": '''
+    using ICI = OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation;
+    nb::class_<ICI>(m, "IsobaricChannelInformation")
+        .def("__init__", [](ICI* self, const std::string& name, int id, const std::string& description, double center, std::vector<int> affected_channels) {
+            new (self) ICI(name, id, description, center, affected_channels);
+        }, "name"_a, "id"_a, "description"_a, "center"_a, "affected_channels"_a)
+        .def(nb::init<const ICI&>())
+        .def_rw("name", &ICI::name)
+        .def_rw("id", &ICI::id)
+        .def_rw("description", &ICI::description)
+        .def_rw("center", &ICI::center)
+        .def_rw("affected_channels", &ICI::affected_channels)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>"],
+    },
+    "SpectrumHelper": {
+        "binding": '''
+    // SpectrumHelper is a namespace-level helper class with only static methods
+    struct SpectrumHelper_Dummy {};
+    nb::class_<SpectrumHelper_Dummy>(m, "SpectrumHelper")
+        .def_static("removePeaks", [](OpenMS::MSSpectrum& spec, double min_mz, double max_mz) {
+            OpenMS::removePeaks(spec, min_mz, max_mz);
+        }, "spectrum"_a, "min_mz"_a, "max_mz"_a, "Remove peaks outside the given m/z range")
+        .def_static("subtractMinimumIntensity", [](OpenMS::MSSpectrum& spec) {
+            OpenMS::subtractMinimumIntensity(spec);
+        }, "spectrum"_a, "Subtract the minimum intensity from all peaks")
+        ;''',
+        "includes": ["<OpenMS/KERNEL/SpectrumHelper.h>", "<OpenMS/KERNEL/MSSpectrum.h>"],
+    },
+    # TransformationModelBSpline - only static getDefaultParameters needed by tests
+    "TransformationModelBSpline": {
+        "binding": '''
+    struct TransformationModelBSpline_Dummy {};
+    nb::class_<TransformationModelBSpline_Dummy>(m, "TransformationModelBSpline")
+        .def_static("getDefaultParameters", [](OpenMS::Param& params) {
+            OpenMS::TransformationModelBSpline::getDefaultParameters(params);
+        }, "params"_a, "Get default parameters")
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>", "<OpenMS/KERNEL/StandardTypes.h>"],
+    },
+    # TransformationModelLowess - only static getDefaultParameters needed by tests
+    "TransformationModelLowess": {
+        "binding": '''
+    struct TransformationModelLowess_Dummy {};
+    nb::class_<TransformationModelLowess_Dummy>(m, "TransformationModelLowess")
+        .def_static("getDefaultParameters", [](OpenMS::Param& params) {
+            OpenMS::TransformationModelLowess::getDefaultParameters(params);
+        }, "params"_a, "Get default parameters")
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>", "<OpenMS/KERNEL/StandardTypes.h>"],
+    },
+    # NASequence - minimal binding for fromString static method
+    "NASequence": {
+        "binding": '''
+    nb::class_<OpenMS::NASequence>(m, "NASequence")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::NASequence&>())
+        .def("toString", &OpenMS::NASequence::toString, "Get string representation")
+        .def("__str__", [](const OpenMS::NASequence& self) { return self.toString(); })
+        .def("size", &OpenMS::NASequence::size, "Get number of residues")
+        .def("empty", &OpenMS::NASequence::empty, "Check if empty")
+        .def("getFormula", [](const OpenMS::NASequence& self) { return self.getFormula(); }, "Get empirical formula")
+        .def("getMonoWeight", [](const OpenMS::NASequence& self) { return self.getMonoWeight(); }, "Get monoisotopic weight")
+        .def("getAverageWeight", [](const OpenMS::NASequence& self) { return self.getAverageWeight(); }, "Get average weight")
+        .def_static("fromString", [](const std::string& s) { return OpenMS::NASequence::fromString(s); }, "s"_a, "Create NASequence from string")
+        .def("__eq__", [](const OpenMS::NASequence& self, const OpenMS::NASequence& other) { return self == other; }, "other"_a)
+        .def("__ne__", [](const OpenMS::NASequence& self, const OpenMS::NASequence& other) { return self != other; }, "other"_a)
+        ;''',
+        "includes": ["<OpenMS/CHEMISTRY/NASequence.h>"],
+    },
+    # SpectrumMetaDataLookup - static methods for adding missing RTs/references
+    "SpectrumMetaDataLookup": {
+        "binding": '''
+    struct SpectrumMetaDataLookup_Dummy {};
+
+    auto smld_addMissingRTs = [](OpenMS::PeptideIdentificationList& peptides, const OpenMS::MSExperiment& exp) -> bool {
+        return OpenMS::SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptides, exp);
+    };
+
+    auto smld_addMissingRefs = [](OpenMS::PeptideIdentificationList& peptides,
+            const std::string& filename, bool stop_on_error, bool override_spectra_data, bool override_spectra_references) -> bool {
+        std::vector<OpenMS::ProteinIdentification> proteins;
+        return OpenMS::SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, stop_on_error, override_spectra_data, override_spectra_references, proteins);
+    };
+
+    nb::class_<SpectrumMetaDataLookup_Dummy>(m, "SpectrumMetaDataLookup")
+        .def_static("addMissingRTsToPeptideIDs", smld_addMissingRTs, "peptides"_a, "exp"_a, "Add missing RTs to peptide IDs")
+        .def_static("addMissingSpectrumReferences", smld_addMissingRefs, "peptides"_a, "filename"_a, "stop_on_error"_a = false, "override_spectra_data"_a = false, "override_spectra_references"_a = false, "Add missing spectrum references")
+        ;''',
+        "includes": ["<OpenMS/METADATA/SpectrumMetaDataLookup.h>", "<OpenMS/KERNEL/MSExperiment.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
+    },
+    # IsobaricChannelExtractor
+    "IsobaricChannelExtractor": {
+        "binding": '''
+    nb::class_<OpenMS::IsobaricChannelExtractor, OpenMS::DefaultParamHandler>(m, "IsobaricChannelExtractor")
+        .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod*>(), "quant_method"_a)
+        .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod*>(), "quant_method"_a)
+        .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod*>(), "quant_method"_a)
+        .def(nb::init<const OpenMS::TMTTenPlexQuantitationMethod*>(), "quant_method"_a)
+        .def("extractChannels", &OpenMS::IsobaricChannelExtractor::extractChannels, "ms_exp_data"_a, "consensus_map"_a, "Extract isobaric channels")
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>",
+                      "<OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>",
+                      "<OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>",
+                      "<OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>",
+                      "<OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>"],
+    },
+    # IsobaricNormalizer
+    "IsobaricNormalizer": {
+        "binding": '''
+    nb::class_<OpenMS::IsobaricNormalizer>(m, "IsobaricNormalizer")
+        .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod*>(), "quant_method"_a)
+        .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod*>(), "quant_method"_a)
+        .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod*>(), "quant_method"_a)
+        .def(nb::init<const OpenMS::TMTTenPlexQuantitationMethod*>(), "quant_method"_a)
+        .def("normalize", &OpenMS::IsobaricNormalizer::normalize, "consensus_map"_a, "Normalize consensus map")
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>",
+                      "<OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>",
+                      "<OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>",
+                      "<OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>",
+                      "<OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>"],
+    },
+    # SpectrumAccessOpenMS
+    "SpectrumAccessOpenMS": {
+        "binding": '''
+    nb::class_<OpenMS::SpectrumAccessOpenMS>(m, "SpectrumAccessOpenMS")
+        .def(nb::init<std::shared_ptr<OpenMS::MSExperiment>>(), "ms_experiment"_a)
+        .def("getSpectrumById", &OpenMS::SpectrumAccessOpenMS::getSpectrumById, "id"_a, "Get spectrum by index")
+        .def("getChromatogramById", &OpenMS::SpectrumAccessOpenMS::getChromatogramById, "id"_a, "Get chromatogram by index")
+        .def("getNrSpectra", &OpenMS::SpectrumAccessOpenMS::getNrSpectra, "Get number of spectra")
+        .def("getNrChromatograms", &OpenMS::SpectrumAccessOpenMS::getNrChromatograms, "Get number of chromatograms")
+        .def("getSpectrumMetaById", &OpenMS::SpectrumAccessOpenMS::getSpectrumMetaById, "id"_a, "Get spectrum metadata by index")
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>",
+                      "<OpenMS/KERNEL/MSExperiment.h>"],
+    },
+    # SpectrumAccessOpenMSInMemory
+    "SpectrumAccessOpenMSInMemory": {
+        "binding": '''
+    nb::class_<OpenMS::SpectrumAccessOpenMSInMemory>(m, "SpectrumAccessOpenMSInMemory")
+        .def("__init__", [](OpenMS::SpectrumAccessOpenMSInMemory* self, OpenMS::SpectrumAccessOpenMS& other) {
+            new (self) OpenMS::SpectrumAccessOpenMSInMemory(other);
+        }, "other"_a)
+        .def("getSpectrumById", &OpenMS::SpectrumAccessOpenMSInMemory::getSpectrumById, "id"_a)
+        .def("getChromatogramById", &OpenMS::SpectrumAccessOpenMSInMemory::getChromatogramById, "id"_a)
+        .def("getNrSpectra", &OpenMS::SpectrumAccessOpenMSInMemory::getNrSpectra)
+        .def("getNrChromatograms", &OpenMS::SpectrumAccessOpenMSInMemory::getNrChromatograms)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>",
+                      "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>"],
+    },
+    # SwathMap
+    "SwathMap": {
+        "binding": '''
+    nb::class_<OpenSwath::SwathMap>(m, "SwathMap")
+        .def(nb::init<>())
+        .def(nb::init<const OpenSwath::SwathMap&>())
+        .def(nb::init<double, double, double, bool>(), "mz_start"_a, "mz_end"_a, "mz_center"_a, "is_ms1"_a)
+        .def_rw("lower", &OpenSwath::SwathMap::lower)
+        .def_rw("upper", &OpenSwath::SwathMap::upper)
+        .def_rw("center", &OpenSwath::SwathMap::center)
+        .def_rw("ms1", &OpenSwath::SwathMap::ms1)
+        .def("setSpectrumPtr", [](OpenSwath::SwathMap& self, std::shared_ptr<OpenMS::SpectrumAccessOpenMS> sa) {
+            self.sptr = sa;
+        }, "spectrum_access"_a, "Set spectrum access pointer (SpectrumAccessOpenMS)")
+        .def("setSpectrumPtr", [](OpenSwath::SwathMap& self, std::shared_ptr<OpenMS::SpectrumAccessOpenMSInMemory> sa) {
+            self.sptr = sa;
+        }, "spectrum_access"_a, "Set spectrum access pointer (SpectrumAccessOpenMSInMemory)")
+        .def("getSpectrumPtr", [](OpenSwath::SwathMap& self) -> nb::object {
+            if (!self.sptr) return nb::none();
+            // Try dynamic_pointer_cast to known types
+            auto sa = std::dynamic_pointer_cast<OpenMS::SpectrumAccessOpenMS>(self.sptr);
+            if (sa) return nb::cast(sa);
+            auto inmem = std::dynamic_pointer_cast<OpenMS::SpectrumAccessOpenMSInMemory>(self.sptr);
+            if (inmem) return nb::cast(inmem);
+            return nb::none();
+        }, "Get spectrum access pointer")
+        ;''',
+        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>",
+                      "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>",
+                      "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>"],
+    },
+    # ExtractionCoordinates (nested in ChromatogramExtractorAlgorithm)
+    "ExtractionCoordinates": {
+        "binding": '''
+    nb::class_<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates>(m, "ExtractionCoordinates")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates&>())
+        .def_rw("mz", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::mz)
+        .def_rw("mz_precursor", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::mz_precursor)
+        .def_rw("rt_start", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::rt_start)
+        .def_rw("rt_end", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::rt_end)
+        .def_rw("ion_mobility", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::ion_mobility)
+        .def_rw("id", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::id)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>"],
+    },
+    # DIAScoring
+    "DIAScoring": {
+        "binding": '''
+    nb::class_<OpenMS::DIAScoring, OpenMS::DefaultParamHandler>(m, "DIAScoring")
+        .def(nb::init<>())
+        .def("score_with_isotopes", [](OpenMS::DIAScoring& self,
+                std::vector<std::shared_ptr<OpenSwath::OSSpectrum>>& spectrum,
+                std::vector<OpenSwath::LightTransition>& transitions,
+                OpenMS::RangeMobility& im_range,
+                double dotprod, double manhattan) {
+            self.score_with_isotopes(spectrum, transitions, im_range, dotprod, manhattan);
+            return nb::make_tuple(dotprod, manhattan);
+        }, "spectrum"_a, "transitions"_a, "im_range"_a, "dotprod"_a, "manhattan"_a)
+        .def("dia_by_ion_score", [](OpenMS::DIAScoring& self,
+                std::vector<std::shared_ptr<OpenSwath::OSSpectrum>>& spectrum,
+                OpenMS::AASequence& sequence,
+                int charge,
+                OpenMS::RangeMobility& im_range,
+                double bseries_score, double yseries_score) {
+            self.dia_by_ion_score(spectrum, sequence, charge, im_range, bseries_score, yseries_score);
+            return nb::make_tuple(bseries_score, yseries_score);
+        }, "spectrum"_a, "sequence"_a, "charge"_a, "im_range"_a, "bseries_score"_a, "yseries_score"_a,
+        "Score the DIA window for b/y ion series")
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>",
+                      "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    },
+    # MRMFeature
+    "MRMFeature": {
+        "binding": '''
+    nb::class_<OpenMS::MRMFeature, OpenMS::Feature>(m, "MRMFeature")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::MRMFeature&>())
+        .def("getScores", [](const OpenMS::MRMFeature& self) { return self.getScores(); })
+        .def("setScores", &OpenMS::MRMFeature::setScores, "s"_a)
+        .def("getFeature", [](const OpenMS::MRMFeature& self, const OpenMS::String& key) { return self.getFeature(key); }, "key"_a)
+        .def("addFeature", [](OpenMS::MRMFeature& self, const OpenMS::Feature& f, const OpenMS::String& key) { self.addFeature(f, key); }, "f"_a, "key"_a)
+        .def("getFeatures", [](const OpenMS::MRMFeature& self) { return self.getFeatures(); })
+        .def("getFeatureIDs", [](OpenMS::MRMFeature& self) {
+            std::vector<OpenMS::String> result;
+            self.getFeatureIDs(result);
+            return result;
+        })
+        .def("getPrecursorFeature", [](const OpenMS::MRMFeature& self, const OpenMS::String& key) { return self.getPrecursorFeature(key); }, "key"_a)
+        .def("addPrecursorFeature", [](OpenMS::MRMFeature& self, const OpenMS::Feature& f, const OpenMS::String& key) { self.addPrecursorFeature(f, key); }, "f"_a, "key"_a)
+        .def("getPrecursorFeatureIDs", [](OpenMS::MRMFeature& self) {
+            std::vector<OpenMS::String> result;
+            self.getPrecursorFeatureIDs(result);
+            return result;
+        })
+        .def("__eq__", [](const OpenMS::MRMFeature& a, const OpenMS::MRMFeature& b) { return a == b; })
+        .def("__ne__", [](const OpenMS::MRMFeature& a, const OpenMS::MRMFeature& b) { return a != b; })
+        ;''',
+        "includes": ["<OpenMS/KERNEL/MRMFeature.h>",
+                      "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>"],
+    },
+    # MRMTransitionGroupCP (template specialization)
+    "MRMTransitionGroupCP": {
+        "binding": '''
+    using MRMGroup = OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>;
+    nb::class_<MRMGroup>(m, "MRMTransitionGroupCP")
+        .def(nb::init<>())
+        .def(nb::init<const MRMGroup&>())
+        .def("size", &MRMGroup::size)
+        .def("getTransitionGroupID", &MRMGroup::getTransitionGroupID)
+        .def("setTransitionGroupID", &MRMGroup::setTransitionGroupID, "id"_a)
+        .def("getTransitions", [](const MRMGroup& self) { return self.getTransitions(); })
+        .def("addTransition", &MRMGroup::addTransition, "transition"_a, "key"_a)
+        .def("getTransition", [](MRMGroup& self, const OpenMS::String& key) -> const OpenMS::ReactionMonitoringTransition& { return self.getTransition(key); }, "key"_a, nb::rv_policy::reference_internal)
+        .def("hasTransition", &MRMGroup::hasTransition, "key"_a)
+        .def("getChromatograms", [](const MRMGroup& self) { return self.getChromatograms(); })
+        .def("addChromatogram", &MRMGroup::addChromatogram, "chromatogram"_a, "key"_a)
+        .def("getChromatogram", [](const MRMGroup& self, const OpenMS::String& key) -> const OpenMS::MSChromatogram& { return self.getChromatogram(key); }, "key"_a, nb::rv_policy::reference_internal)
+        .def("hasChromatogram", &MRMGroup::hasChromatogram, "key"_a)
+        .def("getPrecursorChromatograms", [](const MRMGroup& self) { return self.getPrecursorChromatograms(); })
+        .def("addPrecursorChromatogram", &MRMGroup::addPrecursorChromatogram, "chromatogram"_a, "key"_a)
+        .def("getPrecursorChromatogram", [](const MRMGroup& self, const OpenMS::String& key) -> const OpenMS::MSChromatogram& { return self.getPrecursorChromatogram(key); }, "key"_a, nb::rv_policy::reference_internal)
+        .def("hasPrecursorChromatogram", &MRMGroup::hasPrecursorChromatogram, "key"_a)
+        .def("getFeatures", [](const MRMGroup& self) { return self.getFeatures(); })
+        .def("addFeature", [](MRMGroup& self, const OpenMS::MRMFeature& feature) { self.addFeature(feature); }, "feature"_a)
+        .def("getBestFeature", [](const MRMGroup& self) -> const OpenMS::MRMFeature& { return self.getBestFeature(); }, nb::rv_policy::reference_internal)
+        .def("isInternallyConsistent", &MRMGroup::isInternallyConsistent)
+        .def("chromatogramIdsMatch", &MRMGroup::chromatogramIdsMatch)
+        ;''',
+        "includes": ["<OpenMS/KERNEL/MRMTransitionGroup.h>",
+                      "<OpenMS/KERNEL/MSChromatogram.h>",
+                      "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>",
+                      "<OpenMS/KERNEL/MRMFeature.h>"],
+    },
+    # MRMFeatureFinderScoring
+    "MRMFeatureFinderScoring": {
+        "binding": '''
+    nb::class_<OpenMS::MRMFeatureFinderScoring, OpenMS::DefaultParamHandler>(m, "MRMFeatureFinderScoring")
+        .def(nb::init<>())
+        .def("pickExperiment", [](OpenMS::MRMFeatureFinderScoring& self,
+                OpenMS::MSExperiment& chromatograms,
+                OpenMS::FeatureMap& output,
+                OpenMS::TargetedExperiment& transition_exp,
+                OpenMS::TransformationDescription& trafo,
+                OpenMS::MSExperiment& swath_map) {
+            self.pickExperiment(chromatograms, output, transition_exp, trafo, swath_map);
+        }, "chromatograms"_a, "output"_a, "transition_exp"_a, "trafo"_a, "swath_map"_a)
+        .def("setStrictFlag", &OpenMS::MRMFeatureFinderScoring::setStrictFlag, "flag"_a)
+        .def("setMS1Map", [](OpenMS::MRMFeatureFinderScoring& self, std::shared_ptr<OpenMS::SpectrumAccessOpenMS> ms1_map) {
+            self.setMS1Map(ms1_map);
+        }, "ms1_map"_a)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>",
+                      "<OpenMS/KERNEL/MSExperiment.h>",
+                      "<OpenMS/KERNEL/FeatureMap.h>",
+                      "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>"],
+    },
+    "ColumnHeader": {
+        "binding": '''
+    nb::class_<OpenMS::ConsensusMap::ColumnHeader, OpenMS::MetaInfoInterface>(m, "ColumnHeader")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ConsensusMap::ColumnHeader&>())
+        .def_rw("filename", &OpenMS::ConsensusMap::ColumnHeader::filename)
+        .def_rw("label", &OpenMS::ConsensusMap::ColumnHeader::label)
+        .def_rw("size", &OpenMS::ConsensusMap::ColumnHeader::size)
+        .def_rw("unique_id", &OpenMS::ConsensusMap::ColumnHeader::unique_id)
+        ;''',
+        "includes": ["<OpenMS/KERNEL/ConsensusMap.h>"],
+    },
+    "OpenSwathScoring": {
+        "binding": '''
+    // OpenSwathScoring
+    nb::class_<OpenMS::OpenSwathScoring>(m, "OpenSwathScoring")
+        .def(nb::init<>())
+        .def("initialize", &OpenMS::OpenSwathScoring::initialize,
+            "rt_normalization_factor"_a, "add_up_spectra"_a,
+            "spacing_for_spectra_resampling"_a, "merge_spectra_by_peak_width_fraction"_a,
+            "drift_extra"_a, "su"_a, "spectrum_addition_method"_a,
+            "spectrum_merge_method_type"_a, "use_ms1_ion_mobility"_a,
+            "apply_im_peak_picking"_a)
+        ;''',
+        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>",
+                      "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>"],
     },
 }
 
@@ -1680,7 +3742,9 @@ class NanobindEmitterV2:
         self._standard_includes = {
             "<nanobind/nanobind.h>",
             "<nanobind/operators.h>",
-            "<nanobind/stl/string.h>",
+            # Note: <nanobind/stl/string.h> is NOT included here because we use
+            # a custom std::string caster (std_string_bytes_caster.h via all_casters.h)
+            # that also accepts Python bytes, matching pyOpenMS/Cython behavior.
             "<nanobind/stl/vector.h>",
             "<nanobind/stl/map.h>",
             "<nanobind/stl/set.h>",
@@ -1735,7 +3799,7 @@ class NanobindEmitterV2:
 
         # Generate module files
         for i, module_classes in enumerate(modules, 1):
-            content = self._generate_module_content(module_classes, classes)
+            content = self._generate_module_content(module_classes, classes, module_idx=i)
             output_file = output_dir / f"module_{i}.cpp"
             self._write_module_file(output_file, i, content)
 
@@ -1946,6 +4010,7 @@ class NanobindEmitterV2:
         self,
         module_classes: List[MergedClass],
         all_classes: Dict[str, MergedClass],
+        module_idx: int = 1,
     ) -> ModuleContent:
         """Generate content for a module."""
         content = ModuleContent(
@@ -1992,6 +4057,11 @@ class NanobindEmitterV2:
             # Note: Most enums are now auto-generated from pxd files
             enum_class_map = {
                 "DriftTimeUnit": "MSSpectrum",  # Not attached to class in pxd
+                "IMFormat": "MSSpectrum",  # Not attached to class in pxd
+                "Pi0Method": "MultipleTesting",  # Nested in MultipleTesting
+                "LfdrTransform": "MultipleTesting",  # Nested in MultipleTesting
+                "Method": "RankData",  # Nested in RankData
+                "NaNPolicy": "RankData",  # Nested in RankData
             }
             for enum_name, enum_code in SPECIAL_METHODS["__enums__"].items():
                 # Skip if already generated from pxd
@@ -2002,6 +4072,13 @@ class NanobindEmitterV2:
                     # In core_only mode, only add if target class is in CORE_CLASSES
                     if not self.core_only or target_class in CORE_CLASSES:
                         content.enum_bindings.append(enum_code)
+                        # Add includes for enums that need specific headers
+                        enum_include_map = {
+                            "Method": "<OpenMS/MATH/STATISTICS/RankData.h>",
+                            "NaNPolicy": "<OpenMS/MATH/STATISTICS/RankData.h>",
+                        }
+                        if enum_name in enum_include_map:
+                            content.includes.add(enum_include_map[enum_name])
 
         # Add nested enum bindings (SpectrumType) to the module with SpectrumSettings
         # Only add if not already auto-generated from pxd
@@ -2069,6 +4146,21 @@ class NanobindEmitterV2:
                     for inc in ADDITIONAL_INCLUDES[class_name]:
                         content.includes.add(inc)
 
+                # Emit nested class bindings associated with this parent class
+                if class_name in NESTED_CLASS_BINDINGS:
+                    for binding_code, extra_includes in NESTED_CLASS_BINDINGS[class_name]:
+                        content.class_bindings.append(binding_code)
+                        for inc in extra_includes:
+                            content.includes.add(inc)
+
+        # Emit handwritten full class bindings (assigned to modules by hash)
+        for hw_class_name, hw_info in HANDWRITTEN_CLASSES.items():
+            hw_module = (int(hashlib.md5(hw_class_name.encode()).hexdigest(), 16) % self.num_modules) + 1
+            if hw_module == module_idx:
+                content.class_bindings.append(hw_info["binding"])
+                for inc in hw_info.get("includes", []):
+                    content.includes.add(inc)
+
         return content
 
     def _generate_class_binding(
@@ -2112,9 +4204,13 @@ class NanobindEmitterV2:
             return None
 
         # Skip classes with only private/protected constructors (singletons, etc.)
+        # Exception: allow if class has SPECIAL_METHODS (e.g. singleton getInstance)
         if merged_class.has_private_constructor:
-            logger.debug(f"Skipping class with private constructors: {class_name}")
-            return None
+            if class_name not in SPECIAL_METHODS:
+                logger.debug(f"Skipping class with private constructors: {class_name}")
+                return None
+            else:
+                logger.debug(f"Class {class_name} has private constructors but has SPECIAL_METHODS - binding anyway")
 
         # Handle base classes - nanobind supports multiple inheritance
         # We can only specify base classes that are also bound to nanobind AND
@@ -2143,12 +4239,16 @@ class NanobindEmitterV2:
                     lines.append(f"        {ctor_code}")
 
         # Generate methods
+        gen_method_count = 0
         for merged_method in merged_class.methods:
             if merged_method.wrap_ignore:
                 continue
             method_code = self._generate_method(merged_method, qualified_name, merged_class)
             if method_code:
                 lines.append(f"        {method_code}")
+                gen_method_count += 1
+        if class_name == "MSSpectrum":
+            logger.info(f"MSSpectrum: {len(merged_class.methods)} merged, {gen_method_count} generated, lines so far: {len(lines)}")
 
         # Add explicit inherited method bindings for classes where we skipped base class
         # specification due to non-virtual destructor issues
@@ -2191,9 +4291,13 @@ class NanobindEmitterV2:
             lines.append(f'        }}, nb::rv_policy::reference_internal)')
 
         # Add special methods for this class (get_peaks, set_peaks, etc.)
+        post_class_code = []
         if class_name in SPECIAL_METHODS:
             for method_name, method_code in SPECIAL_METHODS[class_name].items():
-                lines.append(method_code)
+                if method_name == "__post_class__":
+                    post_class_code.append(method_code)
+                else:
+                    lines.append(method_code)
 
         # Add __repr__ for key classes
         repr_code = self._generate_repr(class_name, qualified_name)
@@ -2202,6 +4306,10 @@ class NanobindEmitterV2:
 
         # Close class definition
         lines.append("        ;")
+
+        # Emit post-class code (e.g., nested enum bindings)
+        for pc in post_class_code:
+            lines.append(pc)
 
         return "\n".join(lines)
 
@@ -2251,7 +4359,7 @@ class NanobindEmitterV2:
         is_scoped = getattr(enum_decl, 'is_scoped', False)
 
         lines = [f"    // {enum_name} enum (auto-generated from pxd)"]
-        lines.append(f'    nb::enum_<{qualified_name}>(m, "{enum_name}")')
+        lines.append(f'    nb::enum_<{qualified_name}>(m, "{enum_name}", nb::is_arithmetic())')
 
         for value in enum_decl.values:
             lines.append(f'        .value("{value.name}", {qualified_name}::{value.name})')
@@ -2356,6 +4464,12 @@ class NanobindEmitterV2:
             "DocumentIdentifier", "MetaInfoDescription"
         }
 
+        # Classes with private std::vector<> as first base — the memory layout
+        # has std::vector before any public bases, so nanobind's static_cast
+        # upcast to the first PUBLIC base gives a wrong pointer offset
+        if len(base_classes) > 0 and base_classes[0].startswith('std::'):
+            return []
+
         # For multiple inheritance, check if first base has non-virtual destructor
         if len(base_classes) > 1:
             first_base = base_classes[0]
@@ -2441,17 +4555,26 @@ class NanobindEmitterV2:
             "FeatureMap",       # MetaInfoInterface + ...
             "ConsensusMap",     # MetaInfoInterface + ...
             "ExperimentalSettings",  # MetaInfoInterface + DocumentIdentifier
+            "Precursor",        # Peak1D + CVTermList
+            "Product",          # Peak1D
+            "MSSpectrum",       # private std::vector<Peak1D> + SpectrumSettings
+            "MSChromatogram",   # private std::vector<ChromatogramPeak> + ChromatogramSettings
         }
 
         # Check if this class needs explicit inherited methods
         needs_explicit = False
 
-        # Case 1: Class has multiple inheritance with non-virtual first base
-        if len(base_classes) > 1:
-            first_base = base_classes[0]
-            first_base_name = first_base.split('::')[-1] if '::' in first_base else first_base
-            if first_base_name in NONVIRTUAL_DESTRUCTOR_CLASSES:
-                needs_explicit = True
+        # Case 0: Class has std:: first base (private vector)
+        if len(base_classes) > 0 and base_classes[0].startswith('std::'):
+            needs_explicit = True
+
+        # Case 1: Class has any base with non-virtual destructor
+        if not needs_explicit:
+            for base in base_classes:
+                base_name = base.split('::')[-1] if '::' in base else base
+                if base_name in NONVIRTUAL_DESTRUCTOR_CLASSES:
+                    needs_explicit = True
+                    break
 
         # Case 2: Class inherits from a class that has skipped base
         if not needs_explicit:
@@ -2467,6 +4590,7 @@ class NanobindEmitterV2:
         methods = []
 
         # Determine which method sets to include based on inheritance chain
+        needs_peak1d = False
         needs_peak2d = False
         needs_metainfo = False
         needs_uniqueid = False
@@ -2475,6 +4599,8 @@ class NanobindEmitterV2:
         # Check direct bases
         for base in base_classes:
             base_name = base.split('::')[-1] if '::' in base else base
+            if base_name in {"Peak1D", "Precursor", "Product"}:
+                needs_peak1d = True
             if base_name in {"Peak2D", "RichPeak2D", "BaseFeature", "Feature", "ConsensusFeature", "FeatureHandle"}:
                 needs_peak2d = True
             if base_name in {"MetaInfoInterface", "RichPeak2D", "BaseFeature", "Feature",
@@ -2487,6 +4613,8 @@ class NanobindEmitterV2:
                 needs_docid = True
 
         # Also check for the specific classes
+        if class_name in {"Precursor", "Product"}:
+            needs_peak1d = True
         if class_name in {"RichPeak2D", "BaseFeature", "Feature", "ConsensusFeature", "FeatureHandle"}:
             needs_peak2d = True
         if class_name in {"RichPeak2D", "BaseFeature", "Feature", "ConsensusFeature",
@@ -2497,6 +4625,17 @@ class NanobindEmitterV2:
             needs_uniqueid = True
         if class_name in {"ExperimentalSettings", "FeatureMap", "ConsensusMap"}:
             needs_docid = True
+
+        # Peak1D methods (getMZ, setMZ, getIntensity, setIntensity)
+        if needs_peak1d:
+            methods.extend([
+                f'.def("getMZ", []({qualified_name}& self) {{ return self.getMZ(); }}, "Returns the m/z")',
+                f'.def("setMZ", []({qualified_name}& self, double mz) {{ self.setMZ(mz); }}, "mz"_a, "Sets the m/z")',
+                f'.def("getIntensity", []({qualified_name}& self) {{ return self.getIntensity(); }}, "Returns the intensity")',
+                f'.def("setIntensity", []({qualified_name}& self, float intensity) {{ self.setIntensity(intensity); }}, "intensity"_a, "Sets the intensity")',
+                f'.def("getPos", []({qualified_name}& self) {{ return self.getPos(); }}, "Returns the position (m/z)")',
+                f'.def("setPos", []({qualified_name}& self, double pos) {{ self.setPos(pos); }}, "pos"_a, "Sets the position (m/z)")',
+            ])
 
         # Peak2D methods
         if needs_peak2d:
@@ -2612,6 +4751,15 @@ class NanobindEmitterV2:
 
     def _generate_constructor(self, ctor: CppMethod, class_name: str = "") -> Optional[str]:
         """Generate constructor binding."""
+        # Skip constructors with char* parameters (any variant)
+        # These cause issues with nanobind's string conversion
+        # The OpenMS::String constructors work via the type caster
+        for p in ctor.parameters:
+            ptype = p.type_str.strip()
+            # Skip any char* constructor - use String versions instead
+            if "char *" in ptype or "char*" in ptype:
+                return None
+
         # Skip move constructors (&&)
         if len(ctor.parameters) == 1:
             param_type = ctor.parameters[0].type_str
@@ -2671,11 +4819,22 @@ class NanobindEmitterV2:
         if class_name in SKIP_METHODS and method.name in SKIP_METHODS[class_name]:
             return None
 
+        # Replace output parameter methods with fixed bindings (e.g., getKeys)
+        if method.name in OUTPUT_PARAM_METHODS:
+            return OUTPUT_PARAM_METHODS[method.name].format(FULL_CLASS=f"const {qualified_name}")
+
         # Auto-skip methods that use incomplete (forward-declared) types
         if getattr(method, 'uses_incomplete_type', False):
             incomplete = getattr(method, 'incomplete_types', [])
             logger.debug(f"Skipping {class_name}.{method.name} - uses incomplete types: {incomplete}")
             return None
+
+        # Skip methods with char* parameters - use OpenMS::String versions instead
+        for p in method.parameters:
+            ptype = p.type_str.strip()
+            if "char *" in ptype or "char*" in ptype:
+                logger.debug(f"Skipping {class_name}.{method.name} - has char* parameter")
+                return None
 
         # Auto-skip methods that have const/non-const overloads (detected via libclang)
         # These cause binding issues - prefer const version (handled below)
@@ -2763,6 +4922,13 @@ class NanobindEmitterV2:
                 p.type_str,
                 canonical_type=getattr(p, 'canonical_type', ''),
             )
+            # Preserve non-const references (output parameters) so mutations
+            # are visible to the caller. Without '&', nanobind copies the
+            # argument and discards changes (e.g. load() filling an MSExperiment).
+            is_ref = getattr(p, 'is_reference', False) or '&' in p.type_str
+            is_const = getattr(p, 'is_const', False) or 'const' in p.type_str
+            if is_ref and not is_const and '&' not in ptype:
+                ptype = ptype + '&'
             # Check if name is valid (not empty, not "arg*", not a C++ keyword)
             valid_name = (
                 p.name
@@ -2845,6 +5011,11 @@ class NanobindEmitterV2:
                 p.type_str,
                 canonical_type=getattr(p, 'canonical_type', ''),
             )
+            # Preserve non-const references (output parameters)
+            is_ref = getattr(p, 'is_reference', False) or '&' in p.type_str
+            is_const = getattr(p, 'is_const', False) or 'const' in p.type_str
+            if is_ref and not is_const and '&' not in ptype:
+                ptype = ptype + '&'
             # Check if name is valid (not empty, not "arg*", not a C++ keyword)
             valid_name = (
                 p.name
@@ -2967,6 +5138,13 @@ class NanobindEmitterV2:
         result = re.sub(r'libcpp_pair\[([^,]+),\s*([^\]]+)\]', r'std::pair<\1, \2>', result)
         result = re.sub(r'shared_ptr\[([^\]]+)\]', r'std::shared_ptr<\1>', result)
 
+        # libclang resolves libcpp_utf8_string to std::basic_string<char>;
+        # map it to OpenMS::String so nanobind uses our custom caster (accepts bytes & str).
+        # Only replace when it IS the type (possibly with const/ref), not inside containers.
+        result = re.sub(r'^(const\s+)?std::basic_string<char>(\s*[&*])?$',
+                         lambda m: (m.group(1) or '') + 'OpenMS::String' + (m.group(2) or ''),
+                         result)
+
         # OpenMS type aliases that need namespace
         openms_typedefs = {
             'Int': 'OpenMS::Int',
@@ -3086,7 +5264,7 @@ class NanobindEmitterV2:
         # OpenMS classes that need namespace (only add if not already namespaced)
         for typedef, qualified in openms_typedefs.items():
             # Match the type when not already qualified
-            pattern = r'\b(?<!OpenMS::)(?<!std::)' + typedef + r'\b'
+            pattern = r'\b(?<!::)(?<!OpenMS::)(?<!std::)' + typedef + r'\b'
             result = re.sub(pattern, qualified, result)
 
         # Convert DPosition2 to DPosition<2> (common alias in .pxd)

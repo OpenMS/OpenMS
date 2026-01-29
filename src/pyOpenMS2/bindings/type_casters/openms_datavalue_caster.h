@@ -10,7 +10,8 @@
 #pragma once
 
 #include <nanobind/nanobind.h>
-#include <nanobind/stl/string.h>
+// Use custom std::string caster that accepts bytes (do NOT include nanobind/stl/string.h)
+#include "std_string_bytes_caster.h"
 #include <nanobind/stl/vector.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>

@@ -131,7 +131,7 @@ class PxdParser:
             r'cdef\s+extern\s+from\s+"([^"]+)"\s+namespace\s+"([^"]+)":'
         )
         self._class_pattern = re.compile(
-            r'cdef\s+cppclass\s+(\w+)(?:\s+"([^"]+)")?(?:\[([^\]]+)\])?(?:\(([^)]+)\))?'
+            r'cdef\s+cppclass\s+(\w+)(?:\s+"([^"]+)")?(?:\[([^\]]+)\])?\s*(?:\(([^)]+)\))?'
         )
         self._method_pattern = re.compile(
             r"(\w+)\s*\(([^)]*)\)\s*(except\s*\+)?\s*(nogil)?\s*(?:#.*)?$"
@@ -146,7 +146,7 @@ class PxdParser:
         )
         self._scoped_enum_pattern = re.compile(r'cdef\s+enum\s+class\s+')
         self._wrap_directive_pattern = re.compile(
-            r"#\s*wrap-(\w+)(?::\s*(.+))?$"
+            r"#?\s*wrap-(\w+)(?::\s*(.*?))?(?=\s+wrap-|\s*$)"
         )
 
     def parse_file(self, pxd_path: Path) -> Dict[str, ClassDecl]:
@@ -324,6 +324,9 @@ class PxdParser:
         # Parse class body
         is_static_next = False
         pending_doc = []
+        pending_hash = False  # True when we saw wrap-hash: with no value, expecting continuation
+        pending_class_doc = False  # True when we saw wrap-doc: (class-level), expecting continuation
+        seen_method = False  # Track whether we've seen any method/constructor yet
 
         while i < len(lines):
             line = lines[i]
@@ -352,14 +355,60 @@ class PxdParser:
                     class_decl.is_abstract = True
                     logger.debug(f"Class {class_name} marked as abstract from pxd comment")
                 directives = self._parse_wrap_directives(stripped)
-                if WrapDirective.DOC in directives:
+
+                # Handle continuation lines for pending directives
+                if (pending_hash or pending_class_doc) and WrapDirective.DOC in directives and WrapDirective.HASH not in directives:
+                    doc_val = directives[WrapDirective.DOC].strip()
+                    if pending_hash:
+                        class_decl.wrap_hash = doc_val
+                        pending_hash = False
+                    elif pending_class_doc:
+                        pending_doc.append(doc_val)
+                elif WrapDirective.DOC in directives:
                     pending_doc.append(directives[WrapDirective.DOC])
+
+                # Apply class-level directives found inside class body
+                if WrapDirective.HASH in directives:
+                    value = directives[WrapDirective.HASH].strip()
+                    if value:
+                        class_decl.wrap_hash = value
+                    else:
+                        pending_hash = True
+                    pending_class_doc = False
+                if WrapDirective.DOC in directives and not seen_method:
+                    # wrap-doc: before any method → class-level doc
+                    value = directives[WrapDirective.DOC].strip() if WrapDirective.DOC in directives else ""
+                    if not value:
+                        pending_class_doc = True
+                if WrapDirective.MANUAL_MEMORY in directives:
+                    class_decl.wrap_manual_memory = True
+                if WrapDirective.ITER in directives:
+                    class_decl.wrap_iter = directives[WrapDirective.ITER]
                 i += 1
                 continue
+
+            # Handle multi-line method signatures (parameters spanning multiple lines)
+            if '(' in stripped and ')' not in stripped.split('#')[0]:
+                # Join continuation lines until we find the closing ')'
+                full_line = stripped
+                while i + 1 < len(lines):
+                    i += 1
+                    next_stripped = lines[i].strip()
+                    full_line += ' ' + next_stripped
+                    if ')' in next_stripped.split('#')[0]:
+                        break
+                stripped = full_line
 
             # Parse method/constructor
             method = self._parse_method_line(stripped, class_name)
             if method:
+                # On first method, flush any class-level doc from pending_doc
+                if not seen_method and pending_doc and pending_class_doc:
+                    class_decl.doc = "\n".join(pending_doc)
+                    pending_doc = []
+                    pending_class_doc = False
+                seen_method = True
+
                 method.is_static = is_static_next
                 is_static_next = False
 
