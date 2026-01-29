@@ -17,6 +17,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <fstream>
+#include <limits>
 #include <vector>
 
 ///////////////////////////
@@ -60,7 +61,6 @@ START_SECTION((void load(const String& filename, std::vector<PEFFEntry>& entries
   TEST_EQUAL(headers[0].is_decoy, false)
   TEST_EQUAL(headers[0].db_sources.size(), 1)
   TEST_EQUAL(headers[0].db_version, "1.0")
-  TEST_EQUAL(headers[0].db_date, "20240115")
   TEST_EQUAL(headers[0].number_of_entries, 3)
   TEST_EQUAL(headers[0].sequence_type, PEFFDatabaseMetadata::SequenceType::AA)
   TEST_EQUAL(headers[0].general_comments.size(), 1)
@@ -97,13 +97,13 @@ START_SECTION((void load(const String& filename, std::vector<PEFFEntry>& entries
   TEST_EQUAL(entries[0].simple_variants.size(), 1)
   TEST_EQUAL(entries[0].simple_variants[0].position, 5)
   TEST_EQUAL(entries[0].simple_variants[0].variant_aa, 'R')
-  TEST_EQUAL(entries[0].simple_variants[0].sources, "dbSNP:rs123456")
+  TEST_EQUAL(entries[0].simple_variants[0].optional_tag, "dbSNP:rs123456")
 
   // Check processed regions
   TEST_EQUAL(entries[0].processed_regions.size(), 1)
   TEST_EQUAL(entries[0].processed_regions[0].start_position, 1)
   TEST_EQUAL(entries[0].processed_regions[0].end_position, 20)
-  TEST_EQUAL(entries[0].processed_regions[0].type, "PEFF:0001021")
+  TEST_EQUAL(entries[0].processed_regions[0].accession, "PEFF:0001021")
   TEST_EQUAL(entries[0].processed_regions[0].name, "signal peptide")
 
   // Second entry with multiple protein names and complex variant
@@ -457,7 +457,7 @@ START_SECTION([PEFFVariantSimple] PEFFVariantSimple())
   PEFFVariantSimple var;
   TEST_EQUAL(var.position, 0)
   TEST_EQUAL(var.variant_aa, '\0')
-  TEST_EQUAL(var.sources, "")
+  TEST_EQUAL(var.optional_tag, "")
 }
 END_SECTION
 
@@ -467,7 +467,7 @@ START_SECTION([PEFFVariantComplex] PEFFVariantComplex())
   TEST_EQUAL(var.start_position, 0)
   TEST_EQUAL(var.end_position, 0)
   TEST_EQUAL(var.replacement, "")
-  TEST_EQUAL(var.sources, "")
+  TEST_EQUAL(var.optional_tag, "")
 }
 END_SECTION
 
@@ -476,9 +476,9 @@ START_SECTION([PEFFProcessedRegion] PEFFProcessedRegion())
   PEFFProcessedRegion reg;
   TEST_EQUAL(reg.start_position, 0)
   TEST_EQUAL(reg.end_position, 0)
-  TEST_EQUAL(reg.type, "")
+  TEST_EQUAL(reg.accession, "")
   TEST_EQUAL(reg.name, "")
-  TEST_EQUAL(reg.description, "")
+  TEST_EQUAL(reg.optional_tag, "")
 }
 END_SECTION
 
@@ -513,29 +513,29 @@ START_SECTION(test_annotation_identifiers)
   // First entry - check annotation IDs on modifications
   TEST_EQUAL(entries[0].identifier, "test:P12345")
   TEST_EQUAL(entries[0].modifications.size(), 2)
-  TEST_EQUAL(entries[0].modifications[0].annotation_id, "0")
+  TEST_EQUAL(entries[0].modifications[0].annotation_id, 0)
   TEST_EQUAL(entries[0].modifications[0].position, 10)
   TEST_EQUAL(entries[0].modifications[0].accession, "MOD:00046")
-  TEST_EQUAL(entries[0].modifications[1].annotation_id, "1")
+  TEST_EQUAL(entries[0].modifications[1].annotation_id, 1)
   TEST_EQUAL(entries[0].modifications[1].position, 25)
   TEST_EQUAL(entries[0].modifications[1].accession, "UNIMOD:35")
 
   // Check annotation ID on simple variant
   TEST_EQUAL(entries[0].simple_variants.size(), 1)
-  TEST_EQUAL(entries[0].simple_variants[0].annotation_id, "2")
+  TEST_EQUAL(entries[0].simple_variants[0].annotation_id, 2)
   TEST_EQUAL(entries[0].simple_variants[0].position, 5)
   TEST_EQUAL(entries[0].simple_variants[0].variant_aa, 'R')
 
   // Check annotation ID on processed region
   TEST_EQUAL(entries[0].processed_regions.size(), 1)
-  TEST_EQUAL(entries[0].processed_regions[0].annotation_id, "3")
+  TEST_EQUAL(entries[0].processed_regions[0].annotation_id, 3)
   TEST_EQUAL(entries[0].processed_regions[0].start_position, 1)
   TEST_EQUAL(entries[0].processed_regions[0].end_position, 20)
 
   // Second entry - check annotation ID on complex variant
   TEST_EQUAL(entries[1].identifier, "test:P12346")
   TEST_EQUAL(entries[1].complex_variants.size(), 1)
-  TEST_EQUAL(entries[1].complex_variants[0].annotation_id, "4")
+  TEST_EQUAL(entries[1].complex_variants[0].annotation_id, 4)
   TEST_EQUAL(entries[1].complex_variants[0].start_position, 5)
   TEST_EQUAL(entries[1].complex_variants[0].end_position, 10)
   TEST_EQUAL(entries[1].complex_variants[0].replacement, "LONGER")
@@ -604,12 +604,12 @@ START_SECTION(test_mixed_annotation_formats)
   // Load the original test file (no annotation IDs)
   file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_test.peff"), entries, headers);
 
-  // Verify annotation IDs are empty
+  // Verify annotation IDs are not set (max value sentinel)
   TEST_EQUAL(headers[0].has_annotation_identifiers, false)
-  TEST_EQUAL(entries[0].modifications[0].annotation_id, "")
-  TEST_EQUAL(entries[0].modifications[1].annotation_id, "")
-  TEST_EQUAL(entries[0].simple_variants[0].annotation_id, "")
-  TEST_EQUAL(entries[0].processed_regions[0].annotation_id, "")
+  TEST_EQUAL(entries[0].modifications[0].annotation_id, std::numeric_limits<UInt>::max())
+  TEST_EQUAL(entries[0].modifications[1].annotation_id, std::numeric_limits<UInt>::max())
+  TEST_EQUAL(entries[0].simple_variants[0].annotation_id, std::numeric_limits<UInt>::max())
+  TEST_EQUAL(entries[0].processed_regions[0].annotation_id, std::numeric_limits<UInt>::max())
 }
 END_SECTION
 
@@ -675,21 +675,21 @@ START_SECTION(test_uniprot_format)
   // Third entry - check stop codon variant (*) and bracketed sources
   TEST_EQUAL(entries[2].identifier, "sp:P00761")
   TEST_EQUAL(entries[2].processed_regions.size(), 2)
-  TEST_EQUAL(entries[2].processed_regions[0].type, "PEFF:0001021")  // signal peptide
-  TEST_EQUAL(entries[2].processed_regions[1].type, "PEFF:0001020")  // mature protein
+  TEST_EQUAL(entries[2].processed_regions[0].accession, "PEFF:0001021")  // signal peptide
+  TEST_EQUAL(entries[2].processed_regions[1].accession, "PEFF:0001020")  // mature protein
   TEST_EQUAL(entries[2].simple_variants.size(), 2)
   TEST_EQUAL(entries[2].simple_variants[1].variant_aa, '*')  // Stop codon
-  TEST_EQUAL(entries[2].simple_variants[1].sources, "[ESP][ExAC]")  // Bracketed sources
+  TEST_EQUAL(entries[2].simple_variants[1].optional_tag, "[ESP][ExAC]")  // Bracketed sources
 
   // Fourth entry - check DisulfideBond
   TEST_EQUAL(entries[3].identifier, "sp:NX_P01308-1")
   TEST_EQUAL(entries[3].disulfide_bonds.size(), 3)
   TEST_EQUAL(entries[3].disulfide_bonds[0].id1, "1")
   TEST_EQUAL(entries[3].disulfide_bonds[0].id2, "2")
-  TEST_EQUAL(entries[3].disulfide_bonds[0].description, "between chains")
+  TEST_EQUAL(entries[3].disulfide_bonds[0].optional_tag, "between chains")
   TEST_EQUAL(entries[3].disulfide_bonds[2].id1, "5")
   TEST_EQUAL(entries[3].disulfide_bonds[2].id2, "6")
-  TEST_EQUAL(entries[3].disulfide_bonds[2].description, "A chain only")
+  TEST_EQUAL(entries[3].disulfide_bonds[2].optional_tag, "A chain only")
 }
 END_SECTION
 
@@ -730,7 +730,7 @@ START_SECTION([PEFFDisulfideBond] PEFFDisulfideBond())
   PEFFDisulfideBond bond;
   TEST_EQUAL(bond.id1, "")
   TEST_EQUAL(bond.id2, "")
-  TEST_EQUAL(bond.description, "")
+  TEST_EQUAL(bond.optional_tag, "")
 }
 END_SECTION
 
@@ -744,10 +744,10 @@ START_SECTION(test_p53_uniprot)
 
   file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_P53_uniprot.peff"), entries, headers);
 
-  // UniProt format has 2 header blocks (first is empty, second has data)
-  TEST_EQUAL(headers.size(), 2)
-  TEST_EQUAL(headers[1].db_name, "UniProt")
-  TEST_EQUAL(headers[1].general_comments.size(), 2)
+  // File description block (version) is merged into the database block
+  TEST_EQUAL(headers.size(), 1)
+  TEST_EQUAL(headers[0].db_name, "UniProt")
+  TEST_EQUAL(headers[0].general_comments.size(), 2)
 
   // Check P53 entry
   TEST_EQUAL(entries.size(), 1)
@@ -765,7 +765,7 @@ START_SECTION(test_p53_uniprot)
   // Check first variant - stop codon at position 2
   TEST_EQUAL(entries[0].simple_variants[0].position, 2)
   TEST_EQUAL(entries[0].simple_variants[0].variant_aa, '*')
-  TEST_EQUAL(entries[0].simple_variants[0].sources.hasSubstring("ExAC"), true)
+  TEST_EQUAL(entries[0].simple_variants[0].optional_tag.hasSubstring("ExAC"), true)
 
   // Check sequence length matches annotation
   TEST_EQUAL(entries[0].sequence.size(), 393)
@@ -1364,7 +1364,7 @@ START_SECTION(test_disulfide_bond_annotation_id)
   entry.sequence = "PEPTIDE";
   entry.sequence_length = 7;
 
-  PEFFDisulfideBond bond("1", "2", "between chains", "5");
+  PEFFDisulfideBond bond("1", "2", "between chains", 5);
   entry.disulfide_bonds.push_back(bond);
 
   PEFFDatabaseMetadata header;
@@ -1387,10 +1387,10 @@ START_SECTION(test_disulfide_bond_annotation_id)
   file.load(tmp_filename, entries2, headers2);
 
   TEST_EQUAL(entries2[0].disulfide_bonds.size(), 1)
-  TEST_EQUAL(entries2[0].disulfide_bonds[0].annotation_id, "5")
+  TEST_EQUAL(entries2[0].disulfide_bonds[0].annotation_id, 5)
   TEST_EQUAL(entries2[0].disulfide_bonds[0].id1, "1")
   TEST_EQUAL(entries2[0].disulfide_bonds[0].id2, "2")
-  TEST_EQUAL(entries2[0].disulfide_bonds[0].description, "between chains")
+  TEST_EQUAL(entries2[0].disulfide_bonds[0].optional_tag, "between chains")
 }
 END_SECTION
 

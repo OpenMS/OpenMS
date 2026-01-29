@@ -25,16 +25,29 @@ namespace OpenMS
 
   namespace
   {
+    /// Sentinel value for "annotation ID not set"
+    constexpr UInt ANNOT_ID_NOT_SET = std::numeric_limits<UInt>::max();
+
     /// Extract optional annotation ID prefix from a field (format: "id:value" or just "value")
-    /// Returns pair of (annotation_id, remaining_value). annotation_id is empty if not present.
-    std::pair<String, String> extractAnnotationId(const String& field)
+    /// Returns pair of (annotation_id, remaining_value). annotation_id is ANNOT_ID_NOT_SET if not present.
+    std::pair<UInt, String> extractAnnotationId(const String& field)
     {
       size_t colon_pos = field.find(':');
       if (colon_pos != String::npos)
       {
-        return {field.substr(0, colon_pos), field.substr(colon_pos + 1)};
+        String id_str = field.substr(0, colon_pos);
+        // Check if the prefix is a non-negative integer (annotation ID)
+        bool is_numeric = !id_str.empty();
+        for (size_t i = 0; i < id_str.size() && is_numeric; ++i)
+        {
+          if (!std::isdigit(id_str[i])) is_numeric = false;
+        }
+        if (is_numeric)
+        {
+          return {static_cast<UInt>(id_str.toInt()), field.substr(colon_pos + 1)};
+        }
       }
-      return {"", field};
+      return {ANNOT_ID_NOT_SET, field};
     }
 
     /// Split a string by pipe character, respecting backslash escapes.
@@ -188,9 +201,9 @@ namespace OpenMS
 
       // Create description
       String desc = String(sequence[var.position - 1]) + String(var.position) + String(var.variant_aa);
-      if (!var.sources.empty())
+      if (!var.optional_tag.empty())
       {
-        desc += " (" + var.sources + ")";
+        desc += " (" + var.optional_tag + ")";
       }
 
       try
@@ -222,9 +235,9 @@ namespace OpenMS
 
         // Create description
         String desc = String(var.start_position) + "-" + String(var.end_position) + ">" + var.replacement;
-        if (!var.sources.empty())
+        if (!var.optional_tag.empty())
         {
-          desc += " (" + var.sources + ")";
+          desc += " (" + var.optional_tag + ")";
         }
 
         try
@@ -240,15 +253,15 @@ namespace OpenMS
     }
   }
 
-  AASequence PEFFEntry::getProcessedSequence(const String& region_type) const
+  AASequence PEFFEntry::getProcessedSequence(const String& region_accession) const
   {
-    // Find the first processed region of the given type
+    // Find the first processed region of the given accession
     for (const auto& region : processed_regions)
     {
-      if (region.type == region_type)
+      if (region.accession == region_accession)
       {
         // For signal peptides (PEFF:0001021), return the mature protein (after the signal)
-        if (region_type == "PEFF:0001021" || region.name == "signal peptide")
+        if (region_accession == "PEFF:0001021" || region.name == "signal peptide")
         {
           if (region.end_position < sequence.size())
           {
@@ -420,9 +433,9 @@ namespace OpenMS
                 description += ";";
               }
               description += String(ref_peptide[local_pos]) + String(var->position) + String(var->variant_aa);
-              if (!var->sources.empty())
+              if (!var->optional_tag.empty())
               {
-                description += "(" + var->sources + ")";
+                description += "(" + var->optional_tag + ")";
               }
 
               // Apply the substitution
@@ -762,9 +775,9 @@ namespace OpenMS
 
             if (!variant_desc.empty()) variant_desc += ";";
             variant_desc += String(ref_peptide_str[local_pos]) + String(var->position) + String(var->variant_aa);
-            if (!var->sources.empty())
+            if (!var->optional_tag.empty())
             {
-              variant_desc += "(" + var->sources + ")";
+              variant_desc += "(" + var->optional_tag + ")";
             }
 
             variant_peptide_str[local_pos] = var->variant_aa;
@@ -925,11 +938,19 @@ namespace OpenMS
     entries_read_ = 0;
 
     // Parse header section
+    // PEFF has two block types:
+    // 1. File Description Block: # PEFF N.N, optional GeneralComment lines, ends with # //
+    // 2. Database Description Block: starts with # DbName=, has mandatory keys, ends with # //
+    // When we encounter # // for a block with no DbName, we treat it as a file description block
+    // and carry its data (version, general_comments) into the next database block.
     std::streambuf* sb = infile_.rdbuf();
     std::string line;
     bool in_header = true;
     PEFFDatabaseMetadata current_header;
     bool has_header = false;
+    // File-level data from the file description block (no DbName)
+    String file_version;
+    std::vector<String> file_comments;
 
     while (in_header && sb->sgetc() != std::streambuf::traits_type::eof())
     {
@@ -960,13 +981,32 @@ namespace OpenMS
 
         if (is_db_separator)
         {
-          // The # // line marks end of header section for current database
-          // Push the current header if we have one
+          // The # // line marks end of a block
           if (has_header)
           {
-            headers_.push_back(current_header);
-            current_header = PEFFDatabaseMetadata();
-            has_header = false;
+            if (current_header.db_name.empty() && headers_.empty())
+            {
+              // This is the file description block (no DbName) — save its data for the next block
+              file_version = current_header.version;
+              file_comments = current_header.general_comments;
+              current_header = PEFFDatabaseMetadata();
+              has_header = false;
+            }
+            else
+            {
+              // This is a database description block — merge file-level data if available
+              if (!file_version.empty())
+              {
+                current_header.version = file_version;
+              }
+              if (!file_comments.empty() && current_header.general_comments.empty())
+              {
+                current_header.general_comments = file_comments;
+              }
+              headers_.push_back(current_header);
+              current_header = PEFFDatabaseMetadata();
+              has_header = false;
+            }
           }
         }
         else
@@ -981,6 +1021,15 @@ namespace OpenMS
         // Don't push again if we already pushed on # //
         if (has_header)
         {
+          // Merge file-level data
+          if (!file_version.empty())
+          {
+            current_header.version = file_version;
+          }
+          if (!file_comments.empty() && current_header.general_comments.empty())
+          {
+            current_header.general_comments = file_comments;
+          }
           headers_.push_back(current_header);
         }
       }
@@ -1060,6 +1109,13 @@ namespace OpenMS
     entry.identifier = id_;
     entry.sequence = seq_;
     entry.sequence_length = seq_.size();
+
+    // Extract prefix from identifier (format: Prefix:DbUniqueId)
+    size_t colon_pos = id_.find(':');
+    if (colon_pos != std::string::npos)
+    {
+      entry.prefix = id_.substr(0, colon_pos);
+    }
 
     // Parse annotations from description
     parseAnnotations_(String(description_), entry);
@@ -1431,10 +1487,6 @@ namespace OpenMS
     {
       header.db_version = value;
     }
-    else if (key == "DbDate")
-    {
-      header.db_date = value;
-    }
     else if (key == "NumberOfEntries")
     {
       header.number_of_entries = value.toInt();
@@ -1485,6 +1537,22 @@ namespace OpenMS
     {
       header.optional_tag_defs.push_back(value);
     }
+    else if (key == "CustomKeyDef")
+    {
+      // Format: CustomKeyDef=KeyName:description (simple form)
+      PEFFCustomKeyDef ckd;
+      size_t colon_pos = value.find(':');
+      if (colon_pos != String::npos)
+      {
+        ckd.key_name = value.substr(0, colon_pos);
+        ckd.description = value.substr(colon_pos + 1);
+      }
+      else
+      {
+        ckd.key_name = value;
+      }
+      header.custom_key_defs.push_back(ckd);
+    }
     else if (key == "HasAnnotationIdentifiers")
     {
       header.has_annotation_identifiers = (value.toLower() == "true" || value == "1");
@@ -1492,6 +1560,11 @@ namespace OpenMS
     else if (key == "ProteoformDb" || key == "ProteoformDB" || key == "IsProteoformDB")
     {
       header.is_proteoform_db = (value.toLower() == "true" || value == "1");
+    }
+    else
+    {
+      // Store unrecognized keys for round-trip preservation (e.g., DbDate from UniProt)
+      header.unrecognized_keys[key] = value;
     }
   }
 
@@ -1685,10 +1758,10 @@ namespace OpenMS
 
           // Expand comma-separated positions (spec sections 3.3.10-3.3.12)
           // Check the original tuple for comma-separated positions
-          std::vector<String> parts = splitByPipeEscapeAware(mod_str);
-          if (!parts.empty())
+          std::vector<String> parts_check = splitByPipeEscapeAware(mod_str);
+          if (!parts_check.empty())
           {
-            auto [annotation_id, pos_field] = extractAnnotationId(parts[0]);
+            auto [annot_id, pos_field] = extractAnnotationId(parts_check[0]);
             if (pos_field.find(',') != String::npos)
             {
               std::vector<String> positions;
@@ -1696,7 +1769,7 @@ namespace OpenMS
               for (const String& pos_str : positions)
               {
                 PEFFModification expanded_mod = mod;
-                expanded_mod.annotation_id = annotation_id;
+                expanded_mod.annotation_id = annot_id;
                 if (pos_str == "?" || pos_str.empty())
                 {
                   expanded_mod.position = 0;
@@ -1847,8 +1920,8 @@ namespace OpenMS
 
   PEFFModification PEFFFile::parseModification_(const String& tuple)
   {
-    // Format: pos|accession|name|evidence  (evidence is optional)
-    // With annotation IDs: annotationID:pos|accession|name|evidence
+    // Format: pos|accession|name|evidence|OptionalTag  (evidence, OptionalTag optional)
+    // With annotation IDs: annotationID:pos|accession|name|evidence|OptionalTag
     // Position can be ? for unknown position
     PEFFModification mod;
 
@@ -1908,6 +1981,12 @@ namespace OpenMS
       {
         mod.evidence = parts[3];
       }
+
+      // OptionalTag
+      if (parts.size() >= 5)
+      {
+        mod.optional_tag = parts[4];
+      }
     }
 
     return mod;
@@ -1915,8 +1994,8 @@ namespace OpenMS
 
   PEFFVariantSimple PEFFFile::parseVariantSimple_(const String& tuple)
   {
-    // Format: pos|aa|sources (sources optional)
-    // With annotation IDs: annotationID:pos|aa|sources
+    // Format: pos|aa|OptionalTag (OptionalTag optional)
+    // With annotation IDs: annotationID:pos|aa|OptionalTag
     PEFFVariantSimple var;
 
     std::vector<String> parts = splitByPipeEscapeAware(tuple);
@@ -1930,7 +2009,7 @@ namespace OpenMS
 
       if (parts.size() >= 3)
       {
-        var.sources = parts[2];
+        var.optional_tag = parts[2];
       }
     }
 
@@ -1939,8 +2018,8 @@ namespace OpenMS
 
   PEFFVariantComplex PEFFFile::parseVariantComplex_(const String& tuple)
   {
-    // Format: start|end|replacement|sources (sources optional)
-    // With annotation IDs: annotationID:start|end|replacement|sources
+    // Format: start|end|replacement|OptionalTag (OptionalTag optional)
+    // With annotation IDs: annotationID:start|end|replacement|OptionalTag
     PEFFVariantComplex var;
 
     std::vector<String> parts = splitByPipeEscapeAware(tuple);
@@ -1955,7 +2034,7 @@ namespace OpenMS
 
       if (parts.size() >= 4)
       {
-        var.sources = parts[3];
+        var.optional_tag = parts[3];
       }
     }
 
@@ -1964,8 +2043,8 @@ namespace OpenMS
 
   PEFFProcessedRegion PEFFFile::parseProcessedRegion_(const String& tuple)
   {
-    // Format: start|end|type|name|desc (name and desc optional)
-    // With annotation IDs: annotationID:start|end|type|name|desc
+    // Format: start|end|accession|name|OptionalTag (name and OptionalTag optional)
+    // With annotation IDs: annotationID:start|end|accession|name|OptionalTag
     PEFFProcessedRegion reg;
 
     std::vector<String> parts = splitByPipeEscapeAware(tuple);
@@ -1976,7 +2055,7 @@ namespace OpenMS
       reg.annotation_id = annotation_id;
       reg.start_position = start_field.toInt();
       reg.end_position = parts[1].toInt();
-      reg.type = parts[2];
+      reg.accession = parts[2];
 
       if (parts.size() >= 4)
       {
@@ -1985,7 +2064,7 @@ namespace OpenMS
 
       if (parts.size() >= 5)
       {
-        reg.description = parts[4];
+        reg.optional_tag = parts[4];
       }
     }
 
@@ -2005,7 +2084,7 @@ namespace OpenMS
 
     if (pipe_pos != String::npos)
     {
-      bond.description = tuple.substr(pipe_pos + 1);
+      bond.optional_tag = tuple.substr(pipe_pos + 1);
     }
 
     // Extract annotation ID prefix from the IDs portion
@@ -2028,8 +2107,42 @@ namespace OpenMS
   {
     std::ostringstream out;
 
+    // Validate mandatory fields on write
+    if (header.db_name.empty())
+    {
+      OPENMS_LOG_WARN << "PEFF: Required key 'DbName' is empty on write.\n";
+    }
+    if (header.prefix.empty())
+    {
+      OPENMS_LOG_WARN << "PEFF: Required key 'Prefix' is empty on write.\n";
+    }
+    if (header.db_version.empty())
+    {
+      OPENMS_LOG_WARN << "PEFF: Required key 'DbVersion' is empty on write.\n";
+    }
+    if (header.db_sources.empty())
+    {
+      OPENMS_LOG_WARN << "PEFF: Required key 'DbSource' is missing on write.\n";
+    }
+    if (header.number_of_entries == 0)
+    {
+      OPENMS_LOG_WARN << "PEFF: Required key 'NumberOfEntries' is zero on write.\n";
+    }
+
+    // File Description Block
     out << "# PEFF " << header.version << "\n";
 
+    for (const String& comment : header.general_comments)
+    {
+      if (!comment.empty())
+      {
+        out << "# GeneralComment=" << comment << "\n";
+      }
+    }
+
+    out << "# //\n";
+
+    // Database Description Block
     if (!header.db_name.empty())
     {
       out << "# DbName=" << header.db_name << "\n";
@@ -2057,11 +2170,6 @@ namespace OpenMS
       out << "# DbVersion=" << header.db_version << "\n";
     }
 
-    if (!header.db_date.empty())
-    {
-      out << "# DbDate=" << header.db_date << "\n";
-    }
-
     if (header.number_of_entries > 0)
     {
       out << "# NumberOfEntries=" << header.number_of_entries << "\n";
@@ -2072,11 +2180,6 @@ namespace OpenMS
     if (!header.conversion.empty())
     {
       out << "# Conversion=" << header.conversion << "\n";
-    }
-
-    for (const String& comment : header.general_comments)
-    {
-      out << "# GeneralComment=" << comment << "\n";
     }
 
     for (const auto& [key, desc] : header.specific_keys)
@@ -2094,6 +2197,16 @@ namespace OpenMS
       out << "# OptionalTagDef=" << tag_def << "\n";
     }
 
+    for (const auto& ckd : header.custom_key_defs)
+    {
+      out << "# CustomKeyDef=" << ckd.key_name;
+      if (!ckd.description.empty())
+      {
+        out << ":" << ckd.description;
+      }
+      out << "\n";
+    }
+
     if (header.is_proteoform_db)
     {
       out << "# ProteoformDb=true\n";
@@ -2102,6 +2215,12 @@ namespace OpenMS
     if (header.has_annotation_identifiers)
     {
       out << "# HasAnnotationIdentifiers=true\n";
+    }
+
+    // Write unrecognized keys (round-trip preservation)
+    for (const auto& [key, value] : header.unrecognized_keys)
+    {
+      out << "# " << key << "=" << value << "\n";
     }
 
     out << "# //\n";
@@ -2113,7 +2232,7 @@ namespace OpenMS
   {
     std::ostringstream out;
 
-    // Start with identifier
+    // Start with >Prefix:DbUniqueId (or just >identifier if no prefix)
     out << ">" << entry.identifier;
 
     // Build description with annotations
@@ -2211,7 +2330,7 @@ namespace OpenMS
         for (const PEFFModification* mod : mods)
         {
           desc << "(";
-          if (!mod->annotation_id.empty())
+          if (mod->annotation_id != std::numeric_limits<UInt>::max())
           {
             desc << mod->annotation_id << ":";
           }
@@ -2224,13 +2343,17 @@ namespace OpenMS
             desc << mod->position;
           }
           desc << "|" << mod->accession;
-          if (!mod->name.empty() || !mod->evidence.empty())
+          if (!mod->name.empty() || !mod->evidence.empty() || !mod->optional_tag.empty())
           {
             desc << "|" << mod->name;
           }
-          if (!mod->evidence.empty())
+          if (!mod->evidence.empty() || !mod->optional_tag.empty())
           {
             desc << "|" << mod->evidence;
+          }
+          if (!mod->optional_tag.empty())
+          {
+            desc << "|" << mod->optional_tag;
           }
           desc << ")";
         }
@@ -2259,15 +2382,14 @@ namespace OpenMS
       for (const PEFFVariantSimple& var : entry.simple_variants)
       {
         desc << "(";
-        // Include annotation ID if present
-        if (!var.annotation_id.empty())
+        if (var.annotation_id != std::numeric_limits<UInt>::max())
         {
           desc << var.annotation_id << ":";
         }
         desc << var.position << "|" << var.variant_aa;
-        if (!var.sources.empty())
+        if (!var.optional_tag.empty())
         {
-          desc << "|" << var.sources;
+          desc << "|" << var.optional_tag;
         }
         desc << ")";
       }
@@ -2280,15 +2402,14 @@ namespace OpenMS
       for (const PEFFVariantComplex& var : entry.complex_variants)
       {
         desc << "(";
-        // Include annotation ID if present
-        if (!var.annotation_id.empty())
+        if (var.annotation_id != std::numeric_limits<UInt>::max())
         {
           desc << var.annotation_id << ":";
         }
         desc << var.start_position << "|" << var.end_position << "|" << var.replacement;
-        if (!var.sources.empty())
+        if (!var.optional_tag.empty())
         {
-          desc << "|" << var.sources;
+          desc << "|" << var.optional_tag;
         }
         desc << ")";
       }
@@ -2301,20 +2422,19 @@ namespace OpenMS
       for (const PEFFProcessedRegion& reg : entry.processed_regions)
       {
         desc << "(";
-        // Include annotation ID if present
-        if (!reg.annotation_id.empty())
+        if (reg.annotation_id != std::numeric_limits<UInt>::max())
         {
           desc << reg.annotation_id << ":";
         }
-        desc << reg.start_position << "|" << reg.end_position << "|" << reg.type;
-        // Always emit name separator if name or description is present (preserve field positions)
-        if (!reg.name.empty() || !reg.description.empty())
+        desc << reg.start_position << "|" << reg.end_position << "|" << reg.accession;
+        // Always emit name separator if name or optional_tag is present (preserve field positions)
+        if (!reg.name.empty() || !reg.optional_tag.empty())
         {
           desc << "|" << reg.name;  // May be empty placeholder
         }
-        if (!reg.description.empty())
+        if (!reg.optional_tag.empty())
         {
-          desc << "|" << reg.description;
+          desc << "|" << reg.optional_tag;
         }
         desc << ")";
       }
@@ -2327,14 +2447,14 @@ namespace OpenMS
       for (const PEFFDisulfideBond& bond : entry.disulfide_bonds)
       {
         desc << "(";
-        if (!bond.annotation_id.empty())
+        if (bond.annotation_id != std::numeric_limits<UInt>::max())
         {
           desc << bond.annotation_id << ":";
         }
         desc << bond.id1 << "," << bond.id2;
-        if (!bond.description.empty())
+        if (!bond.optional_tag.empty())
         {
-          desc << "|" << bond.description;
+          desc << "|" << bond.optional_tag;
         }
         desc << ")";
       }

@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <fstream>
+#include <limits>
 #include <map>
 #include <vector>
 
@@ -33,13 +34,14 @@ namespace OpenMS
     String accession;         ///< "MOD:00046", "UNIMOD:35", or custom
     String name;              ///< Human-readable name
     String evidence;          ///< Optional evidence tag
-    String annotation_id;     ///< Optional annotation identifier (when HasAnnotationIdentifiers=true)
+    String optional_tag;      ///< Optional tag (last component of annotation tuple)
+    UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier (when HasAnnotationIdentifiers=true), max() = not set
 
     enum class Type { PSI_MOD, UNIMOD, GENERIC };
     Type type{Type::GENERIC};
 
     PEFFModification() = default;
-    PEFFModification(Size pos, const String& acc, const String& n, const String& ev = "", const String& aid = "")
+    PEFFModification(Size pos, const String& acc, const String& n, const String& ev = "", UInt aid = std::numeric_limits<UInt>::max())
       : position(pos), accession(acc), name(n), evidence(ev), annotation_id(aid)
     {
       if (accession.hasPrefix("MOD:"))
@@ -56,7 +58,7 @@ namespace OpenMS
     {
       return position == rhs.position && accession == rhs.accession &&
              name == rhs.name && evidence == rhs.evidence && type == rhs.type &&
-             annotation_id == rhs.annotation_id;
+             optional_tag == rhs.optional_tag && annotation_id == rhs.annotation_id;
     }
   };
 
@@ -69,17 +71,17 @@ namespace OpenMS
   {
     Size position{0};         ///< 1-based position
     char variant_aa{'\0'};    ///< Variant amino acid
-    String sources;           ///< Source references (dbSNP, COSMIC, etc.)
-    String annotation_id;     ///< Optional annotation identifier (when HasAnnotationIdentifiers=true)
+    String optional_tag;      ///< Optional tag (last component of annotation tuple)
+    UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier, max() = not set
 
     PEFFVariantSimple() = default;
-    PEFFVariantSimple(Size pos, char aa, const String& src = "", const String& aid = "")
-      : position(pos), variant_aa(aa), sources(src), annotation_id(aid) {}
+    PEFFVariantSimple(Size pos, char aa, const String& tag = "", UInt aid = std::numeric_limits<UInt>::max())
+      : position(pos), variant_aa(aa), optional_tag(tag), annotation_id(aid) {}
 
     bool operator==(const PEFFVariantSimple& rhs) const
     {
       return position == rhs.position && variant_aa == rhs.variant_aa &&
-             sources == rhs.sources && annotation_id == rhs.annotation_id;
+             optional_tag == rhs.optional_tag && annotation_id == rhs.annotation_id;
     }
   };
 
@@ -93,17 +95,17 @@ namespace OpenMS
     Size start_position{0};   ///< 1-based start position
     Size end_position{0};     ///< 1-based end position
     String replacement;       ///< Replacement sequence (empty = deletion)
-    String sources;           ///< Source references
-    String annotation_id;     ///< Optional annotation identifier (when HasAnnotationIdentifiers=true)
+    String optional_tag;      ///< Optional tag (last component of annotation tuple)
+    UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier, max() = not set
 
     PEFFVariantComplex() = default;
-    PEFFVariantComplex(Size start, Size end, const String& repl, const String& src = "", const String& aid = "")
-      : start_position(start), end_position(end), replacement(repl), sources(src), annotation_id(aid) {}
+    PEFFVariantComplex(Size start, Size end, const String& repl, const String& tag = "", UInt aid = std::numeric_limits<UInt>::max())
+      : start_position(start), end_position(end), replacement(repl), optional_tag(tag), annotation_id(aid) {}
 
     bool operator==(const PEFFVariantComplex& rhs) const
     {
       return start_position == rhs.start_position && end_position == rhs.end_position &&
-             replacement == rhs.replacement && sources == rhs.sources &&
+             replacement == rhs.replacement && optional_tag == rhs.optional_tag &&
              annotation_id == rhs.annotation_id;
     }
   };
@@ -117,19 +119,19 @@ namespace OpenMS
   {
     Size start_position{0};   ///< 1-based start position
     Size end_position{0};     ///< 1-based end position
-    String type;              ///< PEFF CV term (e.g., "PEFF:0001021")
+    String accession;         ///< PEFF CV accession (e.g., "PEFF:0001021")
     String name;              ///< Optional name (e.g., "signal peptide")
-    String description;       ///< Optional description
-    String annotation_id;     ///< Optional annotation identifier (when HasAnnotationIdentifiers=true)
+    String optional_tag;      ///< Optional tag (last component of annotation tuple)
+    UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier, max() = not set
 
     PEFFProcessedRegion() = default;
-    PEFFProcessedRegion(Size start, Size end, const String& t, const String& n = "", const String& desc = "", const String& aid = "")
-      : start_position(start), end_position(end), type(t), name(n), description(desc), annotation_id(aid) {}
+    PEFFProcessedRegion(Size start, Size end, const String& acc, const String& n = "", const String& tag = "", UInt aid = std::numeric_limits<UInt>::max())
+      : start_position(start), end_position(end), accession(acc), name(n), optional_tag(tag), annotation_id(aid) {}
 
     bool operator==(const PEFFProcessedRegion& rhs) const
     {
       return start_position == rhs.start_position && end_position == rhs.end_position &&
-             type == rhs.type && name == rhs.name && description == rhs.description &&
+             accession == rhs.accession && name == rhs.name && optional_tag == rhs.optional_tag &&
              annotation_id == rhs.annotation_id;
     }
   };
@@ -143,16 +145,16 @@ namespace OpenMS
   {
     String id1;                  ///< First annotation ID or position
     String id2;                  ///< Second annotation ID or position
-    String description;          ///< Optional description (e.g., "between chains")
-    String annotation_id;        ///< Optional annotation identifier (when HasAnnotationIdentifiers=true)
+    String optional_tag;         ///< Optional tag (e.g., "between chains")
+    UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier, max() = not set
 
     PEFFDisulfideBond() = default;
-    PEFFDisulfideBond(const String& i1, const String& i2, const String& desc = "", const String& aid = "")
-      : id1(i1), id2(i2), description(desc), annotation_id(aid) {}
+    PEFFDisulfideBond(const String& i1, const String& i2, const String& tag = "", UInt aid = std::numeric_limits<UInt>::max())
+      : id1(i1), id2(i2), optional_tag(tag), annotation_id(aid) {}
 
     bool operator==(const PEFFDisulfideBond& rhs) const
     {
-      return id1 == rhs.id1 && id2 == rhs.id2 && description == rhs.description &&
+      return id1 == rhs.id1 && id2 == rhs.id2 && optional_tag == rhs.optional_tag &&
              annotation_id == rhs.annotation_id;
     }
   };
@@ -163,6 +165,7 @@ namespace OpenMS
   struct OPENMS_DLLAPI PEFFEntry
   {
     // Basic fields
+    String prefix;             ///< Database prefix from description line (e.g., "sp" from ">sp:P12345")
     String identifier;
     String sequence;
 
@@ -199,7 +202,8 @@ namespace OpenMS
 
     bool operator==(const PEFFEntry& rhs) const
     {
-      return identifier == rhs.identifier &&
+      return prefix == rhs.prefix &&
+             identifier == rhs.identifier &&
              sequence == rhs.sequence &&
              protein_names == rhs.protein_names &&
              gene_name == rhs.gene_name &&
@@ -263,10 +267,10 @@ namespace OpenMS
       Applies the first processed region of the given type to extract
       the processed sequence segment.
 
-      @param region_type PEFF CV term for the region type (e.g., "PEFF:0001021" for signal peptide)
+      @param region_accession PEFF CV accession for the region type (e.g., "PEFF:0001021" for signal peptide)
       @return Processed AASequence, or empty if region not found
     */
-    AASequence getProcessedSequence(const String& region_type = "PEFF:0001021") const;
+    AASequence getProcessedSequence(const String& region_accession = "PEFF:0001021") const;
 
     /**
       @brief Generate all variant and/or modification peptides by digesting with a given protease.
@@ -343,6 +347,26 @@ namespace OpenMS
   };
 
   /**
+    @brief Represents a custom key definition from the PEFF header.
+  */
+  struct OPENMS_DLLAPI PEFFCustomKeyDef
+  {
+    String key_name;
+    String description;
+    String concept_curie;
+    String regexp;
+    std::vector<String> field_names;
+    std::vector<String> field_types;
+
+    bool operator==(const PEFFCustomKeyDef& rhs) const
+    {
+      return key_name == rhs.key_name && description == rhs.description &&
+             concept_curie == rhs.concept_curie && regexp == rhs.regexp &&
+             field_names == rhs.field_names && field_types == rhs.field_types;
+    }
+  };
+
+  /**
     @brief Metadata from a PEFF database header section.
 
     The header section contains lines starting with # that describe the database.
@@ -356,7 +380,6 @@ namespace OpenMS
     bool is_decoy{false};
     std::vector<String> db_sources;
     String db_version;
-    String db_date;                      ///< YYYYMMDD format
     Size number_of_entries{0};
 
     enum class SequenceType { AA, NA };
@@ -367,8 +390,11 @@ namespace OpenMS
     std::map<String, String> specific_keys;    ///< SpecificKey definitions (key -> description)
     std::map<String, String> specific_values;  ///< SpecificValue definitions (key -> type)
     std::vector<String> optional_tag_defs;
+    std::vector<PEFFCustomKeyDef> custom_key_defs;  ///< CustomKeyDef definitions
     bool has_annotation_identifiers{false};    ///< Whether entries use annotation identifiers
     bool is_proteoform_db{false};              ///< Whether this is a proteoform database (ProteoformDb)
+
+    std::map<String, String> unrecognized_keys;  ///< Unrecognized header keys (preserved for round-trip)
 
     PEFFDatabaseMetadata() = default;
 
@@ -381,7 +407,6 @@ namespace OpenMS
              is_decoy == rhs.is_decoy &&
              db_sources == rhs.db_sources &&
              db_version == rhs.db_version &&
-             db_date == rhs.db_date &&
              number_of_entries == rhs.number_of_entries &&
              sequence_type == rhs.sequence_type &&
              general_comments == rhs.general_comments &&
@@ -389,8 +414,10 @@ namespace OpenMS
              specific_keys == rhs.specific_keys &&
              specific_values == rhs.specific_values &&
              optional_tag_defs == rhs.optional_tag_defs &&
+             custom_key_defs == rhs.custom_key_defs &&
              has_annotation_identifiers == rhs.has_annotation_identifiers &&
-             is_proteoform_db == rhs.is_proteoform_db;
+             is_proteoform_db == rhs.is_proteoform_db &&
+             unrecognized_keys == rhs.unrecognized_keys;
     }
   };
 
