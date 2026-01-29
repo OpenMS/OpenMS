@@ -135,7 +135,8 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    accession: Modification accession (MOD:xxxxx, UNIMOD:xx, or custom)
         #    name: Human-readable name
         #    evidence: Optional evidence tag
-        #    annotation_id: Optional annotation identifier
+        #    optional_tag: Optional tag (last component of annotation tuple)
+        #    annotation_id: Optional annotation identifier (UInt, max value = not set)
         #    type: Modification type (PSI_MOD, UNIMOD, or GENERIC)
 
         PEFFModification() except + nogil
@@ -145,7 +146,8 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         String accession
         String name
         String evidence
-        String annotation_id
+        String optional_tag
+        UInt annotation_id
         ModificationType type
 
 
@@ -158,16 +160,16 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #  Attributes:
         #    position: 1-based position
         #    variant_aa: Variant amino acid character
-        #    sources: Source references (dbSNP, COSMIC, etc.)
-        #    annotation_id: Optional annotation identifier
+        #    optional_tag: Optional tag (last component of annotation tuple)
+        #    annotation_id: Optional annotation identifier (UInt, max value = not set)
 
         PEFFVariantSimple() except + nogil
         PEFFVariantSimple(PEFFVariantSimple) except + nogil
 
         Size position
         char variant_aa
-        String sources
-        String annotation_id
+        String optional_tag
+        UInt annotation_id
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
@@ -180,8 +182,8 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    start_position: 1-based start position
         #    end_position: 1-based end position
         #    replacement: Replacement sequence (empty = deletion)
-        #    sources: Source references
-        #    annotation_id: Optional annotation identifier
+        #    optional_tag: Optional tag (last component of annotation tuple)
+        #    annotation_id: Optional annotation identifier (UInt, max value = not set)
 
         PEFFVariantComplex() except + nogil
         PEFFVariantComplex(PEFFVariantComplex) except + nogil
@@ -189,8 +191,8 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         Size start_position
         Size end_position
         String replacement
-        String sources
-        String annotation_id
+        String optional_tag
+        UInt annotation_id
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
@@ -202,20 +204,20 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #  Attributes:
         #    start_position: 1-based start position
         #    end_position: 1-based end position
-        #    type: PEFF CV term (e.g., PEFF:0001021)
+        #    accession: PEFF CV accession (e.g., PEFF:0001021)
         #    name: Optional name
-        #    description: Optional description
-        #    annotation_id: Optional annotation identifier
+        #    optional_tag: Optional tag (last component of annotation tuple)
+        #    annotation_id: Optional annotation identifier (UInt, max value = not set)
 
         PEFFProcessedRegion() except + nogil
         PEFFProcessedRegion(PEFFProcessedRegion) except + nogil
 
         Size start_position
         Size end_position
-        String type
+        String accession
         String name
-        String description
-        String annotation_id
+        String optional_tag
+        UInt annotation_id
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
@@ -225,27 +227,53 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #  Represents a disulfide bond annotation in PEFF
         #
         #  Attributes:
-        #    id1: First annotation ID or position
-        #    id2: Second annotation ID or position
-        #    description: Optional description (e.g., "between chains")
+        #    id1: First cysteine reference (AnnotationIdentifier)
+        #    id2: Second cysteine reference (AnnotationIdentifier)
+        #    optional_tag: Optional tag (e.g., "between chains")
+        #    annotation_id: Optional annotation identifier (UInt, max value = not set)
 
         PEFFDisulfideBond() except + nogil
         PEFFDisulfideBond(PEFFDisulfideBond) except + nogil
 
         String id1
         String id2
+        String optional_tag
+        UInt annotation_id
+
+
+cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
+
+    cdef cppclass PEFFCustomKeyDef:
+        # wrap-doc:
+        #  Represents a custom key definition from the PEFF header
+        #
+        #  Attributes:
+        #    key_name: Custom key name
+        #    description: Description of the key
+
+        PEFFCustomKeyDef() except + nogil
+        PEFFCustomKeyDef(PEFFCustomKeyDef) except + nogil
+
+        String key_name
         String description
-        String annotation_id
+        String concept_curie
+        String regexp
+        libcpp_vector[String] field_names
+        libcpp_vector[String] field_types
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
 
     cdef cppclass PEFFEntry:
         # wrap-doc:
-        #  Represents a single entry in a PEFF file with all annotations
+        #  Represents a single entry in a PEFF file with all annotations.
+        #
+        #  Each entry corresponds to one description line and sequence.
+        #  The description line format is: >Prefix:DbUniqueId \\key=value ...
         #
         #  Attributes:
-        #    identifier: Protein identifier
+        #    prefix: Database prefix from description line
+        #    identifier: Protein identifier (Prefix:DbUniqueId)
         #    sequence: Amino acid sequence
         #    protein_names: List of protein names
         #    gene_name: Gene name
@@ -261,6 +289,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         PEFFEntry() except + nogil
         PEFFEntry(PEFFEntry) except + nogil
 
+        String prefix
         String identifier
         String sequence
         libcpp_vector[String] protein_names
@@ -309,12 +338,12 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         AASequence getProcessedSequence() except + nogil
             # wrap-doc:
             #  Get processed sequence (e.g., mature protein without signal peptide).
-            #  Uses default region type "PEFF:0001021" (signal peptide).
+            #  Uses default region accession "PEFF:0001021" (signal peptide).
 
-        AASequence getProcessedSequence(String region_type) except + nogil
+        AASequence getProcessedSequence(String region_accession) except + nogil
             # wrap-doc:
-            #  Get processed sequence for the given region type.
-            #  :param region_type: PEFF CV term (e.g., "PEFF:0001021" for signal peptide)
+            #  Get processed sequence for the given region accession.
+            #  :param region_accession: PEFF CV accession (e.g., "PEFF:0001021" for signal peptide)
 
         void digestWithVariants(
             const ProteaseDigestion& digestor,
@@ -382,7 +411,6 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    is_decoy: Whether this is a decoy database
         #    db_sources: List of database sources
         #    db_version: Database version
-        #    db_date: Database date (YYYYMMDD)
         #    number_of_entries: Number of entries
         #    sequence_type: Sequence type (AA or NA)
         #    general_comments: List of general comments
@@ -390,6 +418,8 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    specific_keys: Custom key definitions
         #    specific_values: Custom value type definitions
         #    has_annotation_identifiers: Whether entries use annotation identifiers
+        #    is_proteoform_db: Whether this is a proteoform database
+        #    unrecognized_keys: Unrecognized header keys preserved for round-trip
 
         PEFFDatabaseMetadata() except + nogil
         PEFFDatabaseMetadata(PEFFDatabaseMetadata) except + nogil
@@ -401,7 +431,6 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         bool is_decoy
         libcpp_vector[String] db_sources
         String db_version
-        String db_date
         Size number_of_entries
         SequenceType sequence_type
         libcpp_vector[String] general_comments
@@ -409,5 +438,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         libcpp_map[String, String] specific_keys
         libcpp_map[String, String] specific_values
         libcpp_vector[String] optional_tag_defs
+        libcpp_vector[PEFFCustomKeyDef] custom_key_defs
         bool has_annotation_identifiers
         bool is_proteoform_db
+        libcpp_map[String, String] unrecognized_keys
