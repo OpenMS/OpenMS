@@ -14,7 +14,7 @@
 namespace OpenMS
 {
   DefaultChromHandler::DefaultChromHandler()
-    : srm_(new MRMChromHandler()), dia_(new DIAChromHandler())
+    : mrm_(new MRMChromHandler()), dia_(new DIAChromHandler())
   {
   }
 
@@ -30,22 +30,22 @@ namespace OpenMS
     bool load_into_memory)
   {
     // Decide whether inputs are chromatogram-only (SRM/MRM) or spectral (DIA)
-    bool srm_mode = true;
+    bool mrm_mode = true;
     for (const auto & sm : swath_maps)
     {
       if (sm.ms1 || (sm.sptr && sm.sptr->getNrSpectra() > 0))
       {
-        srm_mode = false;
+        mrm_mode = false;
         break;
       }
     }
 
-    if (srm_mode)
+    if (mrm_mode)
     {
       OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating iRT collection to SRM/MRM handler" << std::endl;
       try
       {
-        return srm_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
+        return mrm_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
       }
       catch (const Exception::IllegalArgument& e)
       {
@@ -82,22 +82,22 @@ namespace OpenMS
     const ChromExtractParams & cp,
     const Param & mrm_mapping_param)
   {
-    bool srm_mode = true;
+    bool mrm_mode = true;
     for (const auto & sm : swath_maps)
     {
       if (sm.ms1 || sm.sptr->getNrSpectra() > 0)
       {
-        srm_mode = false;
+        mrm_mode = false;
         break;
       }
     }
 
-    if (srm_mode)
+    if (mrm_mode)
     {
       OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating transition extraction to SRM/MRM handler" << std::endl;
       try
       {
-        return srm_->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
+        return mrm_->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
       }
       catch (const Exception::IllegalArgument& e)
       {

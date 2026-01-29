@@ -38,7 +38,7 @@ namespace OpenMS
       const Param & mrm_mapping_param) override;
 
   private:
-    std::unique_ptr<MRMChromHandler> srm_;
+    std::unique_ptr<MRMChromHandler> mrm_;
     std::unique_ptr<DIAChromHandler> dia_;
   };
 

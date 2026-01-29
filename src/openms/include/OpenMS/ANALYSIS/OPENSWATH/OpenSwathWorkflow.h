@@ -84,7 +84,7 @@ protected:
       use_ms1_ion_mobility_(false),
       prm_(false),
       pasef_(false),
-      srm_(false),
+      mrm_(false),
       threads_outer_loop_(-1)
     {
     }
@@ -95,7 +95,7 @@ protected:
      *  @param[in] use_ms1_ion_mobility Use ion mobility extraction on MS1 traces?
      *  @param[out] prm Is data acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows?
      *  @param[in] pasef Is this diaPASEF data?
-     *  @param[in] srm Is this SRM/MRM data?
+     *  @param[in] mrm Is this SRM/MRM data?
      *  @param[in] threads_outer_loop How many threads should be used for the outer
      *  loop (-1 will use all threads in the outer loop)
      *
@@ -105,12 +105,12 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, bool srm, int threads_outer_loop) :
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, bool mrm, int threads_outer_loop) :
       use_ms1_traces_(use_ms1_traces),
       use_ms1_ion_mobility_(use_ms1_ion_mobility),
       prm_(prm),
       pasef_(pasef),
-      srm_(srm),
+      mrm_(mrm),
       threads_outer_loop_(threads_outer_loop)
     {
     }
@@ -203,7 +203,7 @@ protected:
      * If set to true, indicates that all swath_maps contain only chromatograms
      * (no spectra) and the workflow should use SRM/MRM-specific processing.
     */
-    bool srm_;
+    bool mrm_;
 
     /** @brief How many threads should be used for the outer loop
      *
@@ -438,7 +438,7 @@ protected:
      *  @param[in] use_ms1_ion_mobility Whether to use ion mobility extraction on MS1 traces
      *  @param[out] prm Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
      *  @param[in] pasef Is this diaPASEF data?
-     *  @param[in] srm Is this SRM/MRM data?
+     *  @param[in] mrm Is this SRM/MRM data?
      *  @param[in] threads_outer_loop How many threads should be used for the outer
      *  loop (-1 will use all threads in the outer loop)
      *
@@ -448,8 +448,8 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, bool srm, int threads_outer_loop) :
-    OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, srm, threads_outer_loop)
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, bool mrm, int threads_outer_loop) :
+    OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, mrm, threads_outer_loop)
     {
     }
 

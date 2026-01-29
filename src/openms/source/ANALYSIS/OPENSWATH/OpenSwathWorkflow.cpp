@@ -403,7 +403,7 @@ namespace OpenMS
   {
     bool ms1_only = (swath_maps.size() == 1 && swath_maps[0].ms1);
 
-    if (srm_)
+    if (mrm_)
     {
       this->startProgress(0, 1, "Extraction and Scoring");
       std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
@@ -919,7 +919,7 @@ namespace OpenMS
 
         if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          if (srm_) // in SRM/MRM mode, we can skip missing chromatograms, because it's unlikely that we will map all transitions to the already targeted extracted chromatograms
+          if (mrm_) // in SRM/MRM mode, we can skip missing chromatograms, because it's unlikely that we will map all transitions to the already targeted extracted chromatograms
           {
             OPENMS_LOG_DEBUG << "Did not find chromatogram for transition " << transition->getNativeID()
                              << "; skipping this transition." << std::endl;
@@ -1009,7 +1009,7 @@ namespace OpenMS
       }
       if (!has_detecting_chrom)
       {
-        if (srm_)
+        if (mrm_)
         {
           OPENMS_LOG_DEBUG << "No detecting chromatograms for assay " << id
                            << "; skipping this assay." << std::endl;

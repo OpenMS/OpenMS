@@ -1165,12 +1165,12 @@ protected:
 
       // Detect SRM/MRM mode: check if all swath_maps are chromatogram-only (no spectra, not MS1)
       
-      bool srm_mode = true;
+      bool mrm_mode = true;
       for (const auto& sm : swath_maps)
       {
         if (sm.ms1 || sm.sptr->getNrSpectra() > 0)
         {
-          srm_mode = false;
+          mrm_mode = false;
           break;
         }
       }
@@ -1266,7 +1266,7 @@ protected:
                      /*applicable=*/true,
                      /*commit=*/use_est_window_choices.rt);
 
-        if (!srm_mode)
+        if (!mrm_mode)
         {
           // MS2 m/z (ppm)
           apply_window("MS2 m/z (ppm)",
@@ -1391,7 +1391,7 @@ protected:
                     /*applicable=*/true,
                     /*commit=*/use_est_window_choices.rt);
 
-        if (!srm_mode)
+        if (!mrm_mode)
         {
           TransformationDescription im_trafo_inv = im_trafo;
           im_trafo_inv.invert();
@@ -1488,7 +1488,7 @@ protected:
       sql_cons2->setRunId(cur_run);
     }
 
-    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, srm_mode, outer_loop_threads);
+    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
     wf.setLogType(log_type_);
 
     // perform extraction for this file's swath maps
