@@ -77,7 +77,7 @@ http://openswath.org/ for additional documentation.
 It executes the following steps in order, which is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow":
 
 <ul>
-  <li>Reading of input files, which can be provided as one single mzML or multiple "split" mzMLs (one per SWATH)</li>
+  <li>Reading of input SRM/MRM/PRM/DIA(PASEF) mzML files</li>
   <li>Computing the retention time transformation, mass-to-charge and ion mobility correction using calibrant peptides</li>
   <li>Reading of the transition list</li>
   <li>Extracting the specified transitions</li>
@@ -88,35 +88,48 @@ It executes the following steps in order, which is implemented in @ref OpenMS::O
 
 See below or have a look at the INI file (via "OpenSwathWorkflow -write_ini myini.ini") for available parameters and more functionality.
 
-<h3>Input: SWATH maps and assay library (transition list) </h3>
-SWATH maps can be provided as mzML files, either as single file directly from
-the machine (this assumes that the SWATH method has 1 MS1 and then n MS2
-spectra which are ordered the same way for each cycle). E.g. a valid method
-would be MS1, MS2 [400-425], MS2 [425-450], MS1, MS2 [400-425], MS2 [425-450]
-while an invalid method would be MS1, MS2 [400-425], MS2 [425-450], MS1, MS2
-[425-450], MS2 [400-425] where MS2 [xx-yy] indicates an MS2 scan with an
-isolation window starting at xx and ending at yy. OpenSwathWorkflow will try
-to read the SWATH windows from the data, if this is not possible please
-provide a tab-separated list with the correct windows using the
--swath_windows_file parameter (this is recommended). Note that the software
-expects extraction windows (e.g. which peptides to extract from
-which window) which cannot have overlaps, otherwise peptides will be
-extracted from two different windows.
+<h3>Input</h3>
 
-Alternatively, a set of split files (n+1 mzML files) can be provided, each
-containing one SWATH map (or MS1 map).
+<h4>DIA (including diaPASEF)</h4>
+DIA data (commonly referred to as SWATH) can be provided as full-scan mzML
+files produced by the instrument. In single-file mode the tool expects the
+acquisition to contain consistent cycles of MS1 and MS2 spectra (for example:
+MS1, MS2 [400-425], MS2 [425-450], MS1, MS2 [400-425], MS2 [425-450]). Each
+MS2 window is identified by its isolation lower/upper bounds. OpenSwathWorkflow
+will attempt to read the SWATH windows from the file; if this is not possible
+please supply a tab-separated SWATH windows file via the
+`-swath_windows_file` parameter. Note: extraction windows must not overlap —
+overlapping windows lead to peptides being extracted from more than one
+window and produce ambiguous assignments.
 
-Since the file size can become rather large, it is recommended to not load the
-whole file into memory but rather cache it somewhere on the disk using a
-fast-access data format. This can be specified using the -readOptions cacheWorkingInMemory
-parameter (this is recommended!).
+Split-file input is supported via the `-split_file_input` flag: in this mode
+each SWATH window (and optionally the MS1 map) may be provided as a separate
+mzML file (n+1 files). This is useful for very large datasets or when the
+instrument exports individual window files.
+
+Since files can be large, it is recommended to avoid loading whole datasets
+into memory; use the `-readOptions` (for example `cacheWorkingInMemory`) to
+cache or reduce data in advance.
+
+<h4>PRM</h4>
+PRM (parallel reaction monitoring) is a targeted MS2 acquisition mode. PRM
+data typically contains MS2 traces targeted to specific precursors and may
+have windows that overlap or differ in ordering from classic SWATH runs.
+When analyzing PRM-like data consider using the `-matching_window_only` option
+to restrict extraction to the best-matching window for each assay. PRM
+datasets can be provided as single-file mzMLs or as split files as described
+above.
+
+<h4>SRM / MRM (targeted chromatogram input)</h4>
+SRM/MRM are supported as targeted chromatogram input. These inputs often consist of chromatogram-only mzMLfiles (exported XICs) rather than full spectra. The targeted data loader in OpenMS will read chromatogram-only mzMLs and attempt to map chromatograms to assays using the supplied transition list. When providing pre-extracted chromatograms, note that MS1 extraction (`-enable_ms1`) does not apply — the tool will operate on the supplied chromatograms and use the mapping logic to associate traces with transitions.
+
 
 The assay library (transition list) is provided through the @p -tr parameter and can be in one of the following formats:
 
   <ul>
-    <li> @ref OpenMS::TraMLFile "TraML" </li>
+    <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" (Recommended) </li>
     <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
-    <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
+    <li> @ref OpenMS::TraMLFile "TraML" </li>
     <li> SpectraST MRM transition lists </li>
     <li> Skyline transition lists </li>
     <li> Spectronaut transition lists </li>
