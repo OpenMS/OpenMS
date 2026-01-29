@@ -1934,6 +1934,10 @@ SPECIAL_METHODS = {
         .def_static("fromString", [](const std::string& s) {
             return OpenMS::AASequence::fromString(OpenMS::String(s));
         }, "sequence"_a, "Create AASequence from string")''',
+        "fromStringPermissive": '''
+        .def_static("fromStringPermissive", [](const std::string& s, bool permissive) {
+            return OpenMS::AASequence::fromString(OpenMS::String(s), permissive);
+        }, "sequence"_a, "permissive"_a = true, "Create AASequence from string (permissive mode)")''',
     },
     "Param": {
         "getValue": '''
