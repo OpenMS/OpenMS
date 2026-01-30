@@ -108,7 +108,7 @@ add_custom_command(
     DEPENDS
         # Generator implementation files
         ${PYOPENMS2_GENERATOR_DIR}/pxd_parser.py
-        ${PYOPENMS2_GENERATOR_DIR}/nanobind_emitter_v2.py
+        ${PYOPENMS2_GENERATOR_DIR}/nanobind_emitter.py
         ${PYOPENMS2_GENERATOR_DIR}/cpp_parser.py
         ${PYOPENMS2_GENERATOR_DIR}/type_registry.py
         ${PYOPENMS2_GENERATOR_DIR}/addon_processor.py

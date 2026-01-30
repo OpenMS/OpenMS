@@ -941,6 +941,8 @@ class CppHeaderParser:
                     name = decl.spelling
                     if name in _KNOWN_COMPLETE_TEMPLATES:
                         return None
+                if decl.spelling in _KNOWN_COMPLETE_TYPES:
+                    return None
                 return decl.spelling
 
         return None
@@ -1067,6 +1069,21 @@ _KNOWN_COMPLETE_TEMPLATES = {
     "DPosition",      # DPosition<1>, DPosition<2> have type casters
     "DRange",         # DRange<1>, DRange<2>
     "Matrix",         # Matrix<double> wrapped as MatrixDouble
+}
+
+# Non-template nested types that libclang marks as incomplete (forward-declared)
+# but are actually fully defined and usable.
+_KNOWN_COMPLETE_TYPES = {
+    "CV",                    # TargetedExperimentHelper::CV
+    "RetentionTime",         # TargetedExperimentHelper::RetentionTime
+    "Protein",               # TargetedExperimentHelper::Protein
+    "Peptide",               # TargetedExperimentHelper::Peptide
+    "Compound",              # TargetedExperimentHelper::Compound
+    "Contact",               # TargetedExperimentHelper::Contact
+    "Publication",           # TargetedExperimentHelper::Publication
+    "Instrument",            # TargetedExperimentHelper::Instrument
+    "Interpretation",        # TargetedExperimentHelper::Interpretation
+    "TraMLProduct",          # TargetedExperimentHelper::TraMLProduct
 }
 
 # Mapping from Cython/pxd type names to C++ types for fallback classes
@@ -1398,6 +1415,32 @@ def merge_with_pxd(
         # Filter constructors from C++ info
         constructors = [c for c in cpp_class.constructors if c.access == "public"]
 
+        # If libclang found only parameterized constructors but pxd declares
+        # a default constructor, add implicit default (compiler-generated).
+        # Only do this when the class has no user-declared constructors that
+        # would suppress the implicit default — i.e. libclang found constructors
+        # but they are ALL copy/move constructors (no user-declared "real" ctors).
+        if constructors and not any(len(c.parameters) == 0 for c in constructors):
+            pxd_has_default = any(len(c.parameters) == 0 for c in pxd_class.constructors)
+            has_deleted_default = getattr(cpp_class, 'has_deleted_default_constructor', False)
+            has_private_ctor = getattr(cpp_class, 'has_private_constructor', False)
+            # Check if all public constructors are copy/move constructors
+            # (single parameter of same class type). If so, the compiler still
+            # generates an implicit default constructor.
+            all_copy_move = all(
+                len(c.parameters) == 1 and cpp_class.name in c.parameters[0].type_str
+                for c in constructors
+            )
+            if (pxd_has_default and not has_deleted_default and not has_private_ctor
+                    and not cpp_class.is_abstract and all_copy_move):
+                constructors.append(CppMethod(
+                    name=cpp_class.name,
+                    return_type="",
+                    parameters=[],
+                    access="public",
+                    is_constructor=True,
+                ))
+
         # If no constructors from libclang, fall back to .pxd constructors
         if not constructors and pxd_class.constructors:
             for pxd_ctor in pxd_class.constructors:
@@ -1454,7 +1497,7 @@ def pxd_to_merged(pxd_classes: Dict[str, "ClassDecl"]) -> Dict[str, MergedClass]
     """
     Convert .pxd class declarations to MergedClass format without C++ parsing.
 
-    This allows using NanobindEmitterV2 even without libclang, using type
+    This allows using NanobindEmitter even without libclang, using type
     information from the .pxd files directly.
 
     Parameters
@@ -1465,7 +1508,7 @@ def pxd_to_merged(pxd_classes: Dict[str, "ClassDecl"]) -> Dict[str, MergedClass]
     Returns
     -------
     dict
-        MergedClass objects suitable for NanobindEmitterV2.
+        MergedClass objects suitable for NanobindEmitter.
     """
     merged = {}
 
