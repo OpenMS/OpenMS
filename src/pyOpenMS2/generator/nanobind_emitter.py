@@ -1138,7 +1138,7 @@ VECTOR_BASED_CLASSES = {
 # Methods to skip for vector-based classes (inherited from private std::vector base)
 # We provide lambda implementations instead via CONTAINER_CLASSES/__len__
 VECTOR_INHERITED_METHODS = {
-    "size", "reserve", "resize", "push_back", "pop_back", "clear",
+    "size", "push_back", "pop_back",
     "empty", "front", "back", "begin", "end", "cbegin", "cend",
     "at", "operator[]", "data", "capacity", "max_size", "shrink_to_fit",
     "insert", "erase", "emplace", "emplace_back", "assign", "swap",
@@ -1462,7 +1462,15 @@ SPECIAL_METHODS = {
         .def("calculateTIC", [](const OpenMS::MSSpectrum& self) -> double {
             return static_cast<double>(self.calculateTIC());
         }, "Returns the total ion current (sum of all peak intensities)")''',
-        # reserve, resize auto-generated
+        # reserve, resize: inherited from private std::vector base, not visible to libclang
+        "reserve": '''
+        .def("reserve", [](OpenMS::MSSpectrum& self, size_t n) {
+            self.reserve(n);
+        }, "n"_a, "Reserves space for n peaks in the underlying container")''',
+        "resize": '''
+        .def("resize", [](OpenMS::MSSpectrum& self, size_t n) {
+            self.resize(n);
+        }, "n"_a, "Resizes the spectrum to contain n peaks")''',
     },
     "MSChromatogram": {
         "get_peaks": '''
