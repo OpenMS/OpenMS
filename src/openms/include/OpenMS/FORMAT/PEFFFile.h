@@ -33,7 +33,6 @@ namespace OpenMS
     Size position{0};         ///< 1-based position, 0 = unknown position (?)
     String accession;         ///< "MOD:00046", "UNIMOD:35", or custom
     String name;              ///< Human-readable name
-    String evidence;          ///< Optional evidence tag
     String optional_tag;      ///< Optional tag (last component of annotation tuple)
     UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier (when HasAnnotationIdentifiers=true), max() = not set
 
@@ -41,8 +40,8 @@ namespace OpenMS
     Type type{Type::GENERIC};
 
     PEFFModification() = default;
-    PEFFModification(Size pos, const String& acc, const String& n, const String& ev = "", UInt aid = std::numeric_limits<UInt>::max())
-      : position(pos), accession(acc), name(n), evidence(ev), annotation_id(aid)
+    PEFFModification(Size pos, const String& acc, const String& n, const String& tag = "", UInt aid = std::numeric_limits<UInt>::max())
+      : position(pos), accession(acc), name(n), optional_tag(tag), annotation_id(aid)
     {
       if (accession.hasPrefix("MOD:"))
       {
@@ -57,7 +56,7 @@ namespace OpenMS
     bool operator==(const PEFFModification& rhs) const
     {
       return position == rhs.position && accession == rhs.accession &&
-             name == rhs.name && evidence == rhs.evidence && type == rhs.type &&
+             name == rhs.name && type == rhs.type &&
              optional_tag == rhs.optional_tag && annotation_id == rhs.annotation_id;
     }
   };
@@ -481,6 +480,23 @@ namespace OpenMS
                const PEFFDatabaseMetadata& header) const;
 
     /**
+      @brief Stores entries to a PEFF file with multiple database headers.
+
+      Writes a single file description block followed by one sequence database
+      description block per provided header, then all entries.
+
+      @param filename The output file path
+      @param entries The entries to store
+      @param headers The database metadata headers (one per database in file)
+
+      @exception Exception::UnableToCreateFile is thrown if the file cannot be created.
+      @exception Exception::InvalidParameter is thrown if headers is empty.
+    */
+    void store(const String& filename,
+               const std::vector<PEFFEntry>& entries,
+               const std::vector<PEFFDatabaseMetadata>& headers) const;
+
+    /**
       @brief Prepares a PEFF file for streamed reading using readNext().
 
       @param filename The PEFF file to read
@@ -519,6 +535,20 @@ namespace OpenMS
       @exception Exception::UnableToCreateFile is thrown if the file cannot be created.
     */
     void writeStart(const String& filename, const PEFFDatabaseMetadata& header);
+
+    /**
+      @brief Prepares a PEFF file for streamed writing using writeNext(), with multiple headers.
+
+      Writes a single file description block followed by one database description block
+      per header.
+
+      @param filename The output file path
+      @param headers The database metadata headers (one per database in file)
+
+      @exception Exception::UnableToCreateFile is thrown if the file cannot be created.
+      @exception Exception::InvalidParameter is thrown if headers is empty.
+    */
+    void writeStart(const String& filename, const std::vector<PEFFDatabaseMetadata>& headers);
 
     /**
       @brief Writes the next PEFF entry to the file.
@@ -573,6 +603,9 @@ namespace OpenMS
 
     /// Format the header section for output
     String formatHeader_(const PEFFDatabaseMetadata& header) const;
+
+    /// Format the header section for output (multiple database blocks)
+    String formatHeader_(const std::vector<PEFFDatabaseMetadata>& headers) const;
 
     /// Format a single entry for output
     String formatEntry_(const PEFFEntry& entry) const;

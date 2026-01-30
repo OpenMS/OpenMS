@@ -14,8 +14,10 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 
 #include <algorithm>
+#include <cctype>
 #include <limits>
 #include <map>
+#include <regex>
 #include <set>
 #include <sstream>
 
@@ -96,6 +98,378 @@ namespace OpenMS
           result += '\\';
         }
         result += c;
+      }
+      return result;
+    }
+
+    bool isXsdInteger_(const String& s)
+    {
+      if (s.empty()) return false;
+      size_t i = 0;
+      if (s[0] == '+' || s[0] == '-')
+      {
+        i = 1;
+      }
+      if (i >= s.size()) return false;
+      for (; i < s.size(); ++i)
+      {
+        if (!std::isdigit(static_cast<unsigned char>(s[i]))) return false;
+      }
+      return true;
+    }
+
+    bool isUnsignedInteger_(const String& s)
+    {
+      if (s.empty()) return false;
+      for (Size i = 0; i < s.size(); ++i)
+      {
+        if (!std::isdigit(static_cast<unsigned char>(s[i]))) return false;
+      }
+      return true;
+    }
+
+    bool isXsdDecimal_(const String& s)
+    {
+      if (s.empty()) return false;
+      size_t i = 0;
+      if (s[0] == '+' || s[0] == '-')
+      {
+        i = 1;
+      }
+      if (i >= s.size()) return false;
+
+      bool saw_digit = false;
+      bool saw_dot = false;
+      for (; i < s.size(); ++i)
+      {
+        const char c = s[i];
+        if (std::isdigit(static_cast<unsigned char>(c)))
+        {
+          saw_digit = true;
+          continue;
+        }
+        if (c == '.' && !saw_dot)
+        {
+          saw_dot = true;
+          continue;
+        }
+        return false;
+      }
+      return saw_digit;
+    }
+
+    bool isXsdBoolean_(const String& s)
+    {
+      String lower(s);
+      lower.toLower();
+      return lower == "true" || lower == "false" || lower == "1" || lower == "0";
+    }
+
+    bool isXsdDate_(const String& s)
+    {
+      // xsd:date is ISO 8601-ish. We accept YYYY-MM-DD with optional timezone.
+      // We deliberately do not validate month/day ranges here.
+      if (s.size() < 10) return false;
+      size_t i = 0;
+      if (s[0] == '-')
+      {
+        i = 1;
+      }
+      if (i + 10 > s.size()) return false;
+
+      auto is_digit = [&s](const size_t p) -> bool
+      {
+        return std::isdigit(static_cast<unsigned char>(s[p])) != 0;
+      };
+
+      if (!(is_digit(i + 0) && is_digit(i + 1) && is_digit(i + 2) && is_digit(i + 3))) return false;
+      if (s[i + 4] != '-') return false;
+      if (!(is_digit(i + 5) && is_digit(i + 6))) return false;
+      if (s[i + 7] != '-') return false;
+      if (!(is_digit(i + 8) && is_digit(i + 9))) return false;
+
+      // Optional timezone
+      if (i + 10 == s.size()) return true;
+      const size_t tz = i + 10;
+      if (s[tz] == 'Z') return (tz + 1 == s.size());
+      if (s[tz] != '+' && s[tz] != '-') return false;
+      if (tz + 6 != s.size()) return false;
+      if (!(is_digit(tz + 1) && is_digit(tz + 2))) return false;
+      if (s[tz + 3] != ':') return false;
+      if (!(is_digit(tz + 4) && is_digit(tz + 5))) return false;
+      return true;
+    }
+
+    bool isXsdTime_(const String& s)
+    {
+      // xsd:time is ISO 8601-ish. We accept hh:mm:ss(.fff)? with optional timezone.
+      // We deliberately do not validate hour/min/sec ranges here.
+      if (s.size() < 8) return false;
+
+      auto is_digit = [&s](const size_t p) -> bool
+      {
+        return std::isdigit(static_cast<unsigned char>(s[p])) != 0;
+      };
+
+      if (!(is_digit(0) && is_digit(1))) return false;
+      if (s[2] != ':') return false;
+      if (!(is_digit(3) && is_digit(4))) return false;
+      if (s[5] != ':') return false;
+      if (!(is_digit(6) && is_digit(7))) return false;
+
+      size_t pos = 8;
+      // Optional fractional seconds
+      if (pos < s.size() && s[pos] == '.')
+      {
+        ++pos;
+        if (pos >= s.size()) return false;
+        bool saw_digit = false;
+        while (pos < s.size() && std::isdigit(static_cast<unsigned char>(s[pos])))
+        {
+          saw_digit = true;
+          ++pos;
+        }
+        if (!saw_digit) return false;
+      }
+
+      if (pos == s.size()) return true;
+
+      // Optional timezone
+      if (s[pos] == 'Z') return (pos + 1 == s.size());
+      if (s[pos] != '+' && s[pos] != '-') return false;
+      if (pos + 6 != s.size()) return false;
+      if (!(is_digit(pos + 1) && is_digit(pos + 2))) return false;
+      if (s[pos + 3] != ':') return false;
+      if (!(is_digit(pos + 4) && is_digit(pos + 5))) return false;
+      return true;
+    }
+
+    bool validateCustomKeyFieldType_(const String& field_type, const String& value)
+    {
+      String type(field_type);
+      type.trim();
+      const String type_lower = type.toLower();
+
+      if (type_lower.empty()) return true;
+      if (type_lower == "string") return true;
+      if (type_lower == "integer") return isXsdInteger_(value);
+      if (type_lower == "decimal") return isXsdDecimal_(value);
+      if (type_lower == "boolean") return isXsdBoolean_(value);
+      if (type_lower == "date") return isXsdDate_(value);
+      if (type_lower == "time") return isXsdTime_(value);
+
+      if (type_lower.hasPrefix("enumeration(") && type.hasSuffix(")"))
+      {
+        const size_t lparen = type.find('(');
+        const size_t rparen = type.rfind(')');
+        if (lparen == String::npos || rparen == String::npos || rparen <= lparen + 1) return false;
+
+        const String inside = type.substr(lparen + 1, rparen - lparen - 1);
+        std::vector<String> options;
+        inside.split('|', options);
+        for (String opt : options)
+        {
+          opt.trim();
+          if (opt == value) return true;
+        }
+        return false;
+      }
+
+      // Unknown type: do not validate.
+      return true;
+    }
+
+    /// Split a CustomKeyDef "(defKey=value|...)" string into defKey=value segments.
+    /// Respects quoted values and nested parentheses (e.g., enumeration(...) in FieldTypes).
+    std::vector<String> splitCustomKeyDefSegments_(const String& str)
+    {
+      std::vector<String> result;
+      String current;
+      bool in_quotes = false;
+      int paren_depth = 0;
+
+      for (size_t i = 0; i < str.size(); ++i)
+      {
+        const char c = str[i];
+
+        // Keep escapes verbatim, but ensure we don't treat escaped characters as syntax.
+        if (c == '\\' && i + 1 < str.size())
+        {
+          current += c;
+          current += str[i + 1];
+          ++i;
+          continue;
+        }
+
+        if (c == '"')
+        {
+          in_quotes = !in_quotes;
+          current += c;
+          continue;
+        }
+
+        if (!in_quotes)
+        {
+          if (c == '(')
+          {
+            ++paren_depth;
+          }
+          else if (c == ')' && paren_depth > 0)
+          {
+            --paren_depth;
+          }
+          else if (c == '|' && paren_depth == 0)
+          {
+            result.push_back(current);
+            current.clear();
+            continue;
+          }
+        }
+
+        current += c;
+      }
+
+      result.push_back(current);
+      return result;
+    }
+
+    /// Unquote a CustomKeyDef string value like "text", unescaping \" inside.
+    String unquoteCustomKeyDefValue_(const String& value)
+    {
+      String trimmed(value);
+      trimmed.trim();
+      if (trimmed.size() >= 2 && trimmed[0] == '"' && trimmed[trimmed.size() - 1] == '"')
+      {
+        String inner = trimmed.substr(1, trimmed.size() - 2);
+        String result;
+        result.reserve(inner.size());
+        for (size_t i = 0; i < inner.size(); ++i)
+        {
+          if (inner[i] == '\\' && i + 1 < inner.size() && inner[i + 1] == '"')
+          {
+            result += '"';
+            ++i;
+          }
+          else
+          {
+            result += inner[i];
+          }
+        }
+        return result;
+      }
+      return trimmed;
+    }
+
+    std::vector<String> splitCommaSeparatedList_(const String& value)
+    {
+      std::vector<String> items;
+      std::vector<String> parts;
+      value.split(',', parts);
+      for (String& p : parts)
+      {
+        p.trim();
+        if (!p.empty())
+        {
+          items.push_back(p);
+        }
+      }
+      return items;
+    }
+
+    PEFFCustomKeyDef parseCustomKeyDef_(const String& value)
+    {
+      PEFFCustomKeyDef ckd;
+      String trimmed(value);
+      trimmed.trim();
+
+      // Spec format: CustomKeyDef=(defKey=value|defKey=value|...)
+      if (trimmed.size() >= 2 && trimmed[0] == '(' && trimmed[trimmed.size() - 1] == ')')
+      {
+        String inner = trimmed.substr(1, trimmed.size() - 2);
+        std::vector<String> segments = splitCustomKeyDefSegments_(inner);
+        for (String& segment : segments)
+        {
+          segment.trim();
+          if (segment.empty())
+          {
+            continue;
+          }
+
+          size_t eq_pos = segment.find('=');
+          if (eq_pos == String::npos)
+          {
+            OPENMS_LOG_WARN << "PEFF: CustomKeyDef segment is missing '=': '" << segment << "'.\n";
+            continue;
+          }
+
+          String def_key = segment.substr(0, eq_pos);
+          def_key.trim();
+          String def_value = segment.substr(eq_pos + 1);
+          def_value.trim();
+
+          if (def_key == "KeyName")
+          {
+            ckd.key_name = def_value;
+          }
+          else if (def_key == "Description")
+          {
+            ckd.description = unquoteCustomKeyDefValue_(def_value);
+          }
+          else if (def_key == "ConceptCURIE")
+          {
+            ckd.concept_curie = def_value;
+          }
+          else if (def_key == "RegExp")
+          {
+            ckd.regexp = unquoteCustomKeyDefValue_(def_value);
+          }
+          else if (def_key == "FieldNames")
+          {
+            ckd.field_names = splitCommaSeparatedList_(def_value);
+          }
+          else if (def_key == "FieldTypes")
+          {
+            ckd.field_types = splitCommaSeparatedList_(def_value);
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "PEFF: Unknown CustomKeyDef attribute '" << def_key << "'.\n";
+          }
+        }
+      }
+      else
+      {
+        // Legacy/simple format (historical): CustomKeyDef=KeyName:description
+        size_t colon_pos = trimmed.find(':');
+        if (colon_pos != String::npos)
+        {
+          ckd.key_name = trimmed.substr(0, colon_pos);
+          ckd.description = trimmed.substr(colon_pos + 1);
+        }
+        else
+        {
+          ckd.key_name = trimmed;
+        }
+      }
+
+      if (ckd.key_name.empty())
+      {
+        OPENMS_LOG_WARN << "PEFF: CustomKeyDef is missing required KeyName.\n";
+      }
+      return ckd;
+    }
+
+    String escapeCustomKeyDefQuotedValue_(const String& value)
+    {
+      String result;
+      result.reserve(value.size());
+      for (size_t i = 0; i < value.size(); ++i)
+      {
+        if (value[i] == '"')
+        {
+          result += '\\';
+        }
+        result += value[i];
       }
       return result;
     }
@@ -925,6 +1299,28 @@ namespace OpenMS
     endProgress();
   }
 
+  void PEFFFile::store(const String& filename,
+                       const std::vector<PEFFEntry>& entries,
+                       const std::vector<PEFFDatabaseMetadata>& headers) const
+  {
+    if (headers.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "PEFF: store() requires at least one database header");
+    }
+
+    startProgress(0, entries.size(), "Writing PEFF file");
+    PEFFFile f;
+    f.writeStart(filename, headers);
+    for (const PEFFEntry& entry : entries)
+    {
+      f.writeNext(entry);
+      nextProgress();
+    }
+    f.writeEnd();
+    endProgress();
+  }
+
   void PEFFFile::readStart(const String& filename)
   {
     if (!File::exists(filename))
@@ -1280,6 +1676,32 @@ namespace OpenMS
     outfile_ << formatHeader_(header);
   }
 
+  void PEFFFile::writeStart(const String& filename, const std::vector<PEFFDatabaseMetadata>& headers)
+  {
+    if (headers.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "PEFF: writeStart() requires at least one database header");
+    }
+
+    if (!FileHandler::hasValidExtension(filename, FileTypes::PEFF))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                          "invalid file extension; expected '" +
+                                          FileTypes::typeToName(FileTypes::PEFF) + "'");
+    }
+
+    outfile_.open(filename.c_str(), ofstream::out | ofstream::binary);
+
+    if (!outfile_.good())
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
+
+    // Write header
+    outfile_ << formatHeader_(headers);
+  }
+
   void PEFFFile::writeNext(const PEFFEntry& entry)
   {
     outfile_ << formatEntry_(entry);
@@ -1556,19 +1978,7 @@ namespace OpenMS
     }
     else if (key == "CustomKeyDef")
     {
-      // Format: CustomKeyDef=KeyName:description (simple form)
-      PEFFCustomKeyDef ckd;
-      size_t colon_pos = value.find(':');
-      if (colon_pos != String::npos)
-      {
-        ckd.key_name = value.substr(0, colon_pos);
-        ckd.description = value.substr(colon_pos + 1);
-      }
-      else
-      {
-        ckd.key_name = value;
-      }
-      header.custom_key_defs.push_back(ckd);
+      header.custom_key_defs.push_back(parseCustomKeyDef_(value));
     }
     else if (key == "HasAnnotationIdentifiers")
     {
@@ -1594,28 +2004,45 @@ namespace OpenMS
 
     // Split by backslash to find annotation blocks
     // We need to find unescaped backslashes (annotation separators)
-    // In PEFF, \\ is an escaped backslash within a value, not a separator
-    std::vector<String> parts;
+    // In PEFF, \\ \| \( \) are escapes within a value, not separators
     size_t pos = 0;
     size_t prev = 0;
 
     // First part before any backslash is not an annotation
     // Find first unescaped backslash
-    pos = String::npos;
-    for (size_t i = 0; i < description.size(); ++i)
+    auto is_key_start = [](const char c) -> bool
     {
-      if (description[i] == '\\')
+      return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
+    };
+    auto is_escape_sequence = [&description](const size_t i) -> bool
+    {
+      if (i + 1 >= description.size()) return false;
+      const char next = description[i + 1];
+      return next == '\\' || next == '|' || next == '(' || next == ')';
+    };
+    auto find_next_key_sep = [&description, &is_key_start, &is_escape_sequence](const size_t from) -> size_t
+    {
+      for (size_t i = from; i < description.size(); ++i)
       {
-        // Check if this is an escaped backslash (preceded by another backslash)
-        // For annotation splitting, a backslash followed by a capital letter is a key separator
-        // A backslash followed by another backslash, |, (, ) is an escape sequence within a value
-        if (i + 1 < description.size() && std::isupper(description[i + 1]))
+        if (description[i] != '\\' || i + 1 >= description.size())
         {
-          pos = i;
-          break;
+          continue;
+        }
+        if (is_escape_sequence(i))
+        {
+          ++i; // skip escaped char
+          continue;
+        }
+        if (is_key_start(description[i + 1]))
+        {
+          return i;
         }
       }
-    }
+      return String::npos;
+    };
+
+    pos = String::npos;
+    pos = find_next_key_sep(0);
     if (pos == String::npos)
     {
       // No annotations, entire description could be protein name
@@ -1636,6 +2063,43 @@ namespace OpenMS
       entry.protein_names.push_back(before_annotations);
     }
 
+    // Determine corresponding database header (by Prefix) for CustomKeyDef validation.
+    const PEFFDatabaseMetadata* header_for_entry = nullptr;
+    if (!headers_.empty())
+    {
+      if (!entry.prefix.empty())
+      {
+        for (const auto& h : headers_)
+        {
+          if (h.prefix == entry.prefix)
+          {
+            header_for_entry = &h;
+            break;
+          }
+        }
+      }
+      if (header_for_entry == nullptr && headers_.size() == 1)
+      {
+        header_for_entry = &headers_.front();
+      }
+    }
+
+    const Size seq_len = entry.sequence.size();
+    const bool is_nucleotide_db = (header_for_entry != nullptr &&
+                                   header_for_entry->sequence_type == PEFFDatabaseMetadata::SequenceType::NA);
+
+    auto is_valid_variant_code = [is_nucleotide_db](const char c) -> bool
+    {
+      if (c == '*') return true;
+      if (!std::isalpha(static_cast<unsigned char>(c))) return false;
+      if (!is_nucleotide_db) return true;
+
+      const char up = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+      // IUPAC nucleotide ambiguity codes.
+      const std::string allowed = "ACGTURYSWKMBDHVN";
+      return allowed.find(up) != std::string::npos;
+    };
+
     // Parse each annotation
     std::set<String> seen_keys; // Fix #7: track seen keys for duplicate detection
     prev = pos;
@@ -1644,16 +2108,9 @@ namespace OpenMS
       // Skip the backslash
       prev++;
 
-      // Find the next annotation backslash (backslash followed by uppercase letter) or end
+      // Find the next annotation backslash (key separator) or end
       pos = String::npos;
-      for (size_t i = prev; i < description.size(); ++i)
-      {
-        if (description[i] == '\\' && i + 1 < description.size() && std::isupper(description[i + 1]))
-        {
-          pos = i;
-          break;
-        }
-      }
+      pos = find_next_key_sep(prev);
       if (pos == String::npos)
       {
         pos = description.size();
@@ -1753,9 +2210,84 @@ namespace OpenMS
       }
       else if (key == "ModRes" || key == "ModResPsi" || key == "ModResUnimod")
       {
+        if (is_nucleotide_db)
+        {
+          OPENMS_LOG_WARN << "PEFF: " << key << " annotations are not applicable to nucleotide databases (entry '"
+                          << entry.identifier << "').\n";
+        }
+
         std::vector<String> mods = parseParenList_(value);
         for (const String& mod_str : mods)
         {
+          // Basic structural checks per spec sections 3.3.10-3.3.12.
+          const std::vector<String> parts_check = splitByPipeEscapeAware(mod_str);
+          if (parts_check.size() < 3)
+          {
+            OPENMS_LOG_WARN << "PEFF: " << key << " tuple must have at least 3 fields (position|accession|name) in entry '"
+                            << entry.identifier << "'.\n";
+          }
+          else if (parts_check[2].empty())
+          {
+            OPENMS_LOG_WARN << "PEFF: " << key << " tuple is missing required name field in entry '"
+                            << entry.identifier << "'.\n";
+          }
+          if ((key == "ModResPsi" || key == "ModResUnimod") && parts_check.size() >= 2 && parts_check[1].empty())
+          {
+            OPENMS_LOG_WARN << "PEFF: " << key << " tuple is missing required accession field in entry '"
+                            << entry.identifier << "'.\n";
+          }
+
+          if (parts_check.size() >= 2 && !parts_check[1].empty())
+          {
+            if (key == "ModResPsi" && !parts_check[1].hasPrefix("MOD:"))
+            {
+              OPENMS_LOG_WARN << "PEFF: " << key << " accession should start with 'MOD:' in entry '"
+                              << entry.identifier << "'.\n";
+            }
+            else if (key == "ModResUnimod" && !parts_check[1].hasPrefix("UNIMOD:"))
+            {
+              OPENMS_LOG_WARN << "PEFF: " << key << " accession should start with 'UNIMOD:' in entry '"
+                              << entry.identifier << "'.\n";
+            }
+          }
+
+          // Validate position(s) if present and known.
+          if (!parts_check.empty())
+          {
+            auto [annot_id, pos_field] = extractAnnotationId(parts_check[0]);
+            (void)annot_id;
+
+            std::vector<String> pos_tokens;
+            if (pos_field.find(',') != String::npos)
+            {
+              pos_field.split(',', pos_tokens);
+            }
+            else
+            {
+              pos_tokens.push_back(pos_field);
+            }
+
+            for (const String& tok : pos_tokens)
+            {
+              if (tok == "?" || tok.empty())
+              {
+                continue; // unknown position allowed
+              }
+              if (!isUnsignedInteger_(tok) || tok == "0")
+              {
+                OPENMS_LOG_WARN << "PEFF: " << key << " position must be a positive integer or '?' in entry '"
+                                << entry.identifier << "'.\n";
+                continue;
+              }
+              const Size p = static_cast<Size>(tok.toInt());
+              if (seq_len > 0 && p > seq_len)
+              {
+                OPENMS_LOG_WARN << "PEFF: " << key << " position " << p << " exceeds sequence length "
+                                << seq_len << " in entry '" << entry.identifier << "'.\n";
+              }
+            }
+          }
+
           PEFFModification mod = parseModification_(mod_str);
           // Override type based on key name if accession didn't determine it
           if (key == "ModResPsi")
@@ -1773,18 +2305,22 @@ namespace OpenMS
             OPENMS_LOG_WARN << "PEFF: Modification with accession '" << mod.accession << "' is missing required name field." << "\n";
           }
 
-          // Expand comma-separated positions (spec sections 3.3.10-3.3.12)
-          // Check the original tuple for comma-separated positions
-          std::vector<String> parts_check = splitByPipeEscapeAware(mod_str);
-          if (!parts_check.empty())
-          {
-            auto [annot_id, pos_field] = extractAnnotationId(parts_check[0]);
-            if (pos_field.find(',') != String::npos)
+	          // Expand comma-separated positions (spec sections 3.3.10-3.3.12)
+	          // Check the original tuple for comma-separated positions
+	          if (!parts_check.empty())
+	          {
+	            auto [annot_id, pos_field] = extractAnnotationId(parts_check[0]);
+	            if (pos_field.find(',') != String::npos)
             {
               std::vector<String> positions;
               pos_field.split(',', positions);
               for (const String& pos_str : positions)
               {
+                if (!(pos_str == "?" || pos_str.empty()) && (!isUnsignedInteger_(pos_str) || pos_str == "0"))
+                {
+                  OPENMS_LOG_WARN << "PEFF: " << key << " position must be a positive integer or '?' in entry '"
+                                  << entry.identifier << "'.\n";
+                }
                 PEFFModification expanded_mod = mod;
                 expanded_mod.annotation_id = annot_id;
                 if (pos_str == "?" || pos_str.empty())
@@ -1795,12 +2331,23 @@ namespace OpenMS
                 {
                   expanded_mod.position = pos_str.toInt();
                 }
+                if (expanded_mod.position > 0 && seq_len > 0 && expanded_mod.position > seq_len)
+                {
+                  OPENMS_LOG_WARN << "PEFF: " << key << " position " << expanded_mod.position
+                                  << " exceeds sequence length " << seq_len
+                                  << " in entry '" << entry.identifier << "'.\n";
+                }
                 entry.modifications.push_back(expanded_mod);
               }
               continue; // Skip the default push_back below
             }
           }
 
+          if (mod.position > 0 && seq_len > 0 && mod.position > seq_len)
+          {
+            OPENMS_LOG_WARN << "PEFF: " << key << " position " << mod.position << " exceeds sequence length "
+                            << seq_len << " in entry '" << entry.identifier << "'.\n";
+          }
           entry.modifications.push_back(mod);
         }
       }
@@ -1809,15 +2356,42 @@ namespace OpenMS
         std::vector<String> variants = parseParenList_(value);
         for (const String& var : variants)
         {
+          const std::vector<String> parts_check = splitByPipeEscapeAware(var);
+          if (parts_check.size() >= 2 && parts_check[1].size() != 1)
+          {
+            OPENMS_LOG_WARN << "PEFF: VariantSimple newAminoAcid must be exactly 1 character in entry '"
+                            << entry.identifier << "'.\n";
+          }
+          if (!parts_check.empty())
+          {
+            auto [annot_id, pos_field] = extractAnnotationId(parts_check[0]);
+            (void)annot_id;
+            if (!isUnsignedInteger_(pos_field) || pos_field == "0")
+            {
+              OPENMS_LOG_WARN << "PEFF: VariantSimple position must be a positive integer in entry '"
+                              << entry.identifier << "'.\n";
+            }
+          }
+
           PEFFVariantSimple parsed = parseVariantSimple_(var);
           // Fix #9: Validate VariantSimple (spec section 3.3.8)
           if (parsed.position == 0)
           {
             OPENMS_LOG_WARN << "PEFF: VariantSimple position must be > 0 in entry '" << entry.identifier << "'.\n";
           }
+          if (seq_len > 0 && parsed.position > seq_len)
+          {
+            OPENMS_LOG_WARN << "PEFF: VariantSimple position " << parsed.position << " exceeds sequence length "
+                            << seq_len << " in entry '" << entry.identifier << "'.\n";
+          }
           if (parsed.variant_aa == '\0')
           {
             OPENMS_LOG_WARN << "PEFF: VariantSimple variant_aa must not be empty in entry '" << entry.identifier << "'.\n";
+          }
+          else if (!is_valid_variant_code(parsed.variant_aa))
+          {
+            OPENMS_LOG_WARN << "PEFF: VariantSimple newAminoAcid '" << parsed.variant_aa
+                            << "' is not valid in entry '" << entry.identifier << "'.\n";
           }
           entry.simple_variants.push_back(parsed);
         }
@@ -1827,6 +2401,23 @@ namespace OpenMS
         std::vector<String> variants = parseParenList_(value);
         for (const String& var : variants)
         {
+          const std::vector<String> parts_check = splitByPipeEscapeAware(var);
+          if (parts_check.size() < 3)
+          {
+            OPENMS_LOG_WARN << "PEFF: VariantComplex tuple must have at least 3 fields (start|end|newSequence) in entry '"
+                            << entry.identifier << "'.\n";
+          }
+          if (parts_check.size() >= 2)
+          {
+            auto [annot_id, start_field] = extractAnnotationId(parts_check[0]);
+            (void)annot_id;
+            if (!isUnsignedInteger_(start_field) || start_field == "0" || !isUnsignedInteger_(parts_check[1]) || parts_check[1] == "0")
+            {
+              OPENMS_LOG_WARN << "PEFF: VariantComplex positions must be positive integers in entry '"
+                              << entry.identifier << "'.\n";
+            }
+          }
+
           PEFFVariantComplex parsed = parseVariantComplex_(var);
           // Fix #10: Validate VariantComplex (spec section 3.3.9)
           // Single AA substitution is illegal as VariantComplex — must use VariantSimple
@@ -1836,15 +2427,99 @@ namespace OpenMS
                             << " with single AA replacement must be encoded as VariantSimple in entry '"
                             << entry.identifier << "'.\n";
           }
+          if (parsed.start_position == 0 || parsed.end_position == 0)
+          {
+            OPENMS_LOG_WARN << "PEFF: VariantComplex positions must be > 0 in entry '" << entry.identifier << "'.\n";
+          }
+          if (parsed.start_position > parsed.end_position)
+          {
+            OPENMS_LOG_WARN << "PEFF: VariantComplex startPosition must be <= endPosition in entry '"
+                            << entry.identifier << "'.\n";
+          }
+          if (seq_len > 0 && (parsed.start_position > seq_len || parsed.end_position > seq_len))
+          {
+            OPENMS_LOG_WARN << "PEFF: VariantComplex positions exceed sequence length " << seq_len
+                            << " in entry '" << entry.identifier << "'.\n";
+          }
+          if (!parsed.replacement.empty())
+          {
+            for (Size i = 0; i < parsed.replacement.size(); ++i)
+            {
+              const char c = parsed.replacement[i];
+              if (!is_valid_variant_code(c))
+              {
+                OPENMS_LOG_WARN << "PEFF: VariantComplex newSequence contains invalid character '" << c
+                                << "' in entry '" << entry.identifier << "'.\n";
+                break;
+              }
+            }
+          }
           entry.complex_variants.push_back(parsed);
         }
+      }
+      else if (key == "Variant")
+      {
+        // Deprecated in favor of VariantSimple and VariantComplex (spec section 3.3.7).
+        OPENMS_LOG_WARN << "PEFF: Deprecated key 'Variant' encountered in entry '" << entry.identifier
+                        << "'. Readers should use VariantSimple/VariantComplex.\n";
+        entry.custom_annotations[key] = value;
       }
       else if (key == "Processed")
       {
         std::vector<String> regions = parseParenList_(value);
         for (const String& reg : regions)
         {
-          entry.processed_regions.push_back(parseProcessedRegion_(reg));
+          const std::vector<String> parts_check = splitByPipeEscapeAware(reg);
+          if (parts_check.size() >= 2)
+          {
+            auto [annot_id, start_field] = extractAnnotationId(parts_check[0]);
+            (void)annot_id;
+            if (!isUnsignedInteger_(start_field) || start_field == "0" || !isUnsignedInteger_(parts_check[1]) || parts_check[1] == "0")
+            {
+              OPENMS_LOG_WARN << "PEFF: Processed positions must be positive integers in entry '"
+                              << entry.identifier << "'.\n";
+            }
+          }
+          if (parts_check.size() < 4)
+          {
+            OPENMS_LOG_WARN << "PEFF: Processed tuple must have at least 4 fields (start|end|accession|name) in entry '"
+                            << entry.identifier << "'.\n";
+          }
+          else
+          {
+            if (parts_check[2].empty())
+            {
+              OPENMS_LOG_WARN << "PEFF: Processed tuple is missing required accession field in entry '"
+                              << entry.identifier << "'.\n";
+            }
+            if (parts_check[3].empty())
+            {
+              OPENMS_LOG_WARN << "PEFF: Processed tuple is missing required name field in entry '"
+                              << entry.identifier << "'.\n";
+            }
+          }
+
+          PEFFProcessedRegion parsed = parseProcessedRegion_(reg);
+          if (parsed.start_position == 0 || parsed.end_position == 0)
+          {
+            OPENMS_LOG_WARN << "PEFF: Processed positions must be > 0 in entry '" << entry.identifier << "'.\n";
+          }
+          if (parsed.start_position > parsed.end_position)
+          {
+            OPENMS_LOG_WARN << "PEFF: Processed startPosition must be <= endPosition in entry '"
+                            << entry.identifier << "'.\n";
+          }
+          if (seq_len > 0 && (parsed.start_position > seq_len || parsed.end_position > seq_len))
+          {
+            OPENMS_LOG_WARN << "PEFF: Processed positions exceed sequence length " << seq_len
+                            << " in entry '" << entry.identifier << "'.\n";
+          }
+          if (!parsed.accession.empty() && !parsed.accession.hasPrefix("PEFF:"))
+          {
+            OPENMS_LOG_WARN << "PEFF: Processed accession should start with 'PEFF:' in entry '"
+                            << entry.identifier << "'.\n";
+          }
+          entry.processed_regions.push_back(parsed);
         }
       }
       else if (key == "DisulfideBond")
@@ -1866,6 +2541,85 @@ namespace OpenMS
       else
       {
         // Custom annotation
+        if (header_for_entry != nullptr)
+        {
+          // Validate value against CustomKeyDef if present.
+          const PEFFCustomKeyDef* ckd = nullptr;
+          for (const auto& def : header_for_entry->custom_key_defs)
+          {
+            if (def.key_name == key)
+            {
+              ckd = &def;
+              break;
+            }
+          }
+
+          if (ckd != nullptr)
+          {
+            const Size expected_fields = !ckd->field_names.empty() ? ckd->field_names.size() : ckd->field_types.size();
+            if (!ckd->field_names.empty() && !ckd->field_types.empty() && ckd->field_names.size() != ckd->field_types.size())
+            {
+              OPENMS_LOG_WARN << "PEFF: CustomKeyDef for '" << key
+                              << "' has mismatched FieldNames/FieldTypes lengths.\n";
+            }
+
+            bool last_is_optional_tag = false;
+            if (!ckd->field_names.empty() && !ckd->field_names.back().empty())
+            {
+              last_is_optional_tag = (ckd->field_names.back() == "OptionalTag");
+            }
+
+            bool has_regex = !ckd->regexp.empty();
+            bool regex_valid = false;
+            std::regex re;
+            if (has_regex)
+            {
+              try
+              {
+                re = std::regex(ckd->regexp.c_str());
+                regex_valid = true;
+              }
+              catch (const std::regex_error&)
+              {
+                OPENMS_LOG_WARN << "PEFF: CustomKeyDef RegExp for '" << key << "' is not a valid C++ regex.\n";
+              }
+            }
+
+            const std::vector<String> items = parseParenList_(value);
+            for (const String& item : items)
+            {
+              if (has_regex && regex_valid && !std::regex_match(item.c_str(), re))
+              {
+                OPENMS_LOG_WARN << "PEFF: Value of custom key '" << key << "' does not match RegExp in entry '"
+                                << entry.identifier << "'.\n";
+              }
+
+              const std::vector<String> components = splitByPipeEscapeAware(item);
+              if (expected_fields > 0)
+              {
+                const bool ok_count = (components.size() == expected_fields) ||
+                                      (last_is_optional_tag && components.size() + 1 == expected_fields);
+                if (!ok_count)
+                {
+                  OPENMS_LOG_WARN << "PEFF: Custom key '" << key << "' has " << components.size()
+                                  << " component(s), expected " << expected_fields
+                                  << " in entry '" << entry.identifier << "'.\n";
+                }
+              }
+
+              const Size check_fields = std::min(components.size(), ckd->field_types.size());
+              for (Size i = 0; i < check_fields; ++i)
+              {
+                if (!validateCustomKeyFieldType_(ckd->field_types[i], components[i]))
+                {
+                  OPENMS_LOG_WARN << "PEFF: Custom key '" << key << "' field " << (i + 1)
+                                  << " does not match type '" << ckd->field_types[i]
+                                  << "' in entry '" << entry.identifier << "'.\n";
+                }
+              }
+            }
+          }
+        }
         entry.custom_annotations[key] = value;
       }
     }
@@ -1937,8 +2691,8 @@ namespace OpenMS
 
   PEFFModification PEFFFile::parseModification_(const String& tuple)
   {
-    // Format: pos|accession|name|evidence|OptionalTag  (evidence, OptionalTag optional)
-    // With annotation IDs: annotationID:pos|accession|name|evidence|OptionalTag
+    // Format: pos|accession|name|OptionalTag  (OptionalTag optional)
+    // With annotation IDs: annotationID:pos|accession|name|OptionalTag
     // Position can be ? for unknown position
     PEFFModification mod;
 
@@ -1993,16 +2747,15 @@ namespace OpenMS
         mod.name = parts[2];
       }
 
-      // Evidence
+      // OptionalTag
       if (parts.size() >= 4)
       {
-        mod.evidence = parts[3];
+        mod.optional_tag = parts[3];
       }
-
-      // OptionalTag
-      if (parts.size() >= 5)
+      if (parts.size() > 4)
       {
-        mod.optional_tag = parts[4];
+        OPENMS_LOG_WARN << "PEFF: Modification tuple has more than 4 fields; treating last field as OptionalTag.\n";
+        mod.optional_tag = parts.back();
       }
     }
 
@@ -2120,34 +2873,162 @@ namespace OpenMS
     return bond;
   }
 
+  namespace
+  {
+    void appendDatabaseDescriptionBlock_(std::ostringstream& out, const PEFFDatabaseMetadata& header)
+    {
+      // Validate mandatory fields on write (spec section 3.3.1)
+      if (header.db_name.empty())
+      {
+        OPENMS_LOG_WARN << "PEFF: Required key 'DbName' is empty on write.\n";
+      }
+      if (header.prefix.empty())
+      {
+        OPENMS_LOG_WARN << "PEFF: Required key 'Prefix' is empty on write.\n";
+      }
+      if (header.db_version.empty())
+      {
+        OPENMS_LOG_WARN << "PEFF: Required key 'DbVersion' is empty on write.\n";
+      }
+      if (header.db_sources.empty())
+      {
+        OPENMS_LOG_WARN << "PEFF: Required key 'DbSource' is missing on write.\n";
+      }
+      if (header.number_of_entries == 0)
+      {
+        OPENMS_LOG_WARN << "PEFF: Required key 'NumberOfEntries' is zero on write.\n";
+      }
+
+      // Database Description Block
+      if (!header.db_name.empty())
+      {
+        out << "# DbName=" << header.db_name << "\n";
+      }
+
+      if (!header.prefix.empty())
+      {
+        out << "# Prefix=" << header.prefix << "\n";
+      }
+
+      if (!header.db_description.empty())
+      {
+        out << "# DbDescription=" << header.db_description << "\n";
+      }
+
+      out << "# Decoy=" << (header.is_decoy ? "true" : "false") << "\n";
+
+      for (const String& source : header.db_sources)
+      {
+        out << "# DbSource=" << source << "\n";
+      }
+
+      if (!header.db_version.empty())
+      {
+        out << "# DbVersion=" << header.db_version << "\n";
+      }
+
+      if (header.number_of_entries > 0)
+      {
+        out << "# NumberOfEntries=" << header.number_of_entries << "\n";
+      }
+
+      out << "# SequenceType=" << (header.sequence_type == PEFFDatabaseMetadata::SequenceType::AA ? "AA" : "NA") << "\n";
+
+      if (!header.conversion.empty())
+      {
+        out << "# Conversion=" << header.conversion << "\n";
+      }
+
+      for (const auto& [key, desc] : header.specific_keys)
+      {
+        out << "# SpecificKey=" << key << ":" << desc << "\n";
+      }
+
+      for (const auto& [key, type_def] : header.specific_values)
+      {
+        out << "# SpecificValue=" << key << ":" << type_def << "\n";
+      }
+
+      for (const String& tag_def : header.optional_tag_defs)
+      {
+        out << "# OptionalTagDef=" << tag_def << "\n";
+      }
+
+      for (const auto& ckd : header.custom_key_defs)
+      {
+        out << "# CustomKeyDef=(";
+        out << "KeyName=" << ckd.key_name;
+        if (!ckd.description.empty())
+        {
+          out << "|Description=\"" << escapeCustomKeyDefQuotedValue_(ckd.description) << "\"";
+        }
+        if (!ckd.concept_curie.empty())
+        {
+          out << "|ConceptCURIE=" << ckd.concept_curie;
+        }
+        if (!ckd.regexp.empty())
+        {
+          out << "|RegExp=\"" << escapeCustomKeyDefQuotedValue_(ckd.regexp) << "\"";
+        }
+        if (!ckd.field_names.empty())
+        {
+          out << "|FieldNames=";
+          for (Size i = 0; i < ckd.field_names.size(); ++i)
+          {
+            if (i > 0)
+            {
+              out << ",";
+            }
+            out << ckd.field_names[i];
+          }
+        }
+        if (!ckd.field_types.empty())
+        {
+          out << "|FieldTypes=";
+          for (Size i = 0; i < ckd.field_types.size(); ++i)
+          {
+            if (i > 0)
+            {
+              out << ",";
+            }
+            out << ckd.field_types[i];
+          }
+        }
+        out << ")\n";
+      }
+
+      if (header.is_proteoform_db)
+      {
+        out << "# ProteoformDb=true\n";
+      }
+
+      if (header.has_annotation_identifiers)
+      {
+        out << "# HasAnnotationIdentifiers=true\n";
+      }
+
+      // Write unrecognized keys (round-trip preservation)
+      for (const auto& [key, value] : header.unrecognized_keys)
+      {
+        out << "# " << key << "=" << value << "\n";
+      }
+
+      out << "# //\n";
+    }
+  } // anonymous namespace
+
   String PEFFFile::formatHeader_(const PEFFDatabaseMetadata& header) const
   {
     std::ostringstream out;
 
-    // Validate mandatory fields on write
-    if (header.db_name.empty())
-    {
-      OPENMS_LOG_WARN << "PEFF: Required key 'DbName' is empty on write.\n";
-    }
-    if (header.prefix.empty())
-    {
-      OPENMS_LOG_WARN << "PEFF: Required key 'Prefix' is empty on write.\n";
-    }
-    if (header.db_version.empty())
-    {
-      OPENMS_LOG_WARN << "PEFF: Required key 'DbVersion' is empty on write.\n";
-    }
-    if (header.db_sources.empty())
-    {
-      OPENMS_LOG_WARN << "PEFF: Required key 'DbSource' is missing on write.\n";
-    }
-    if (header.number_of_entries == 0)
-    {
-      OPENMS_LOG_WARN << "PEFF: Required key 'NumberOfEntries' is zero on write.\n";
-    }
-
     // File Description Block
-    out << "# PEFF " << header.version << "\n";
+    String version = header.version;
+    if (version.empty())
+    {
+      OPENMS_LOG_WARN << "PEFF: Missing PEFF version on write; defaulting to 1.0.\n";
+      version = "1.0";
+    }
+    out << "# PEFF " << version << "\n";
 
     for (const String& comment : header.general_comments)
     {
@@ -2159,88 +3040,70 @@ namespace OpenMS
 
     out << "# //\n";
 
-    // Database Description Block
-    if (!header.db_name.empty())
+    appendDatabaseDescriptionBlock_(out, header);
+
+    return out.str();
+  }
+
+  String PEFFFile::formatHeader_(const std::vector<PEFFDatabaseMetadata>& headers) const
+  {
+    std::ostringstream out;
+    if (headers.empty())
     {
-      out << "# DbName=" << header.db_name << "\n";
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "PEFF: formatHeader() requires at least one database header");
     }
 
-    if (!header.prefix.empty())
+    String version;
+    for (const auto& h : headers)
     {
-      out << "# Prefix=" << header.prefix << "\n";
-    }
-
-    if (!header.db_description.empty())
-    {
-      out << "# DbDescription=" << header.db_description << "\n";
-    }
-
-    out << "# Decoy=" << (header.is_decoy ? "true" : "false") << "\n";
-
-    for (const String& source : header.db_sources)
-    {
-      out << "# DbSource=" << source << "\n";
-    }
-
-    if (!header.db_version.empty())
-    {
-      out << "# DbVersion=" << header.db_version << "\n";
-    }
-
-    if (header.number_of_entries > 0)
-    {
-      out << "# NumberOfEntries=" << header.number_of_entries << "\n";
-    }
-
-    out << "# SequenceType=" << (header.sequence_type == PEFFDatabaseMetadata::SequenceType::AA ? "AA" : "NA") << "\n";
-
-    if (!header.conversion.empty())
-    {
-      out << "# Conversion=" << header.conversion << "\n";
-    }
-
-    for (const auto& [key, desc] : header.specific_keys)
-    {
-      out << "# SpecificKey=" << key << ":" << desc << "\n";
-    }
-
-    for (const auto& [key, type_def] : header.specific_values)
-    {
-      out << "# SpecificValue=" << key << ":" << type_def << "\n";
-    }
-
-    for (const String& tag_def : header.optional_tag_defs)
-    {
-      out << "# OptionalTagDef=" << tag_def << "\n";
-    }
-
-    for (const auto& ckd : header.custom_key_defs)
-    {
-      out << "# CustomKeyDef=" << ckd.key_name;
-      if (!ckd.description.empty())
+      if (!h.version.empty())
       {
-        out << ":" << ckd.description;
+        version = h.version;
+        break;
       }
-      out << "\n";
     }
-
-    if (header.is_proteoform_db)
+    if (version.empty())
     {
-      out << "# ProteoformDb=true\n";
+      OPENMS_LOG_WARN << "PEFF: Missing PEFF version on write; defaulting to 1.0.\n";
+      version = "1.0";
     }
 
-    if (header.has_annotation_identifiers)
+    for (const auto& h : headers)
     {
-      out << "# HasAnnotationIdentifiers=true\n";
+      if (!h.version.empty() && h.version != version)
+      {
+        OPENMS_LOG_WARN << "PEFF: Multiple PEFF version values provided; writing '" << version << "'.\n";
+        break;
+      }
     }
 
-    // Write unrecognized keys (round-trip preservation)
-    for (const auto& [key, value] : header.unrecognized_keys)
+    // Merge GeneralComment lines (file description block only).
+    std::set<String> seen_comments;
+    std::vector<String> comments;
+    for (const auto& h : headers)
     {
-      out << "# " << key << "=" << value << "\n";
+      for (const String& c : h.general_comments)
+      {
+        if (c.empty()) continue;
+        if (seen_comments.insert(c).second)
+        {
+          comments.push_back(c);
+        }
+      }
     }
 
+    out << "# PEFF " << version << "\n";
+    for (const String& comment : comments)
+    {
+      out << "# GeneralComment=" << comment << "\n";
+    }
     out << "# //\n";
+
+    for (const auto& h : headers)
+    {
+      appendDatabaseDescriptionBlock_(out, h);
+    }
 
     return out.str();
   }
@@ -2360,13 +3223,9 @@ namespace OpenMS
             desc << mod->position;
           }
           desc << "|" << escape_peff(mod->accession);
-          if (!mod->name.empty() || !mod->evidence.empty() || !mod->optional_tag.empty())
+          if (!mod->name.empty() || !mod->optional_tag.empty())
           {
             desc << "|" << escape_peff(mod->name);
-          }
-          if (!mod->evidence.empty() || !mod->optional_tag.empty())
-          {
-            desc << "|" << escape_peff(mod->evidence);
           }
           if (!mod->optional_tag.empty())
           {
@@ -2490,7 +3349,9 @@ namespace OpenMS
     // Custom annotations
     for (const auto& [key, value] : entry.custom_annotations)
     {
-      desc << " \\" << key << "=" << escape_peff(value);
+      // Values are stored in PEFF-encoded form (including escapes and item parentheses),
+      // so we write them verbatim to preserve semantics and round-trip.
+      desc << " \\" << key << "=" << value;
     }
 
     out << desc.str() << "\n";

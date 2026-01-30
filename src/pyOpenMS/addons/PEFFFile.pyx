@@ -5,12 +5,12 @@
 
 def get_modifications_dict(self):
     """Return modifications as dict for DataFrame creation."""
-    data = {'position': [], 'accession': [], 'name': [], 'evidence': []}
+    data = {'position': [], 'accession': [], 'name': [], 'optional_tag': []}
     for mod in self.modifications:
         data['position'].append(mod.position)
         data['accession'].append(mod.accession)
         data['name'].append(mod.name)
-        data['evidence'].append(mod.evidence)
+        data['optional_tag'].append(mod.optional_tag)
     return data
 
 

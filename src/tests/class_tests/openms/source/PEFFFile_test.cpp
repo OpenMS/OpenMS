@@ -433,18 +433,18 @@ START_SECTION([PEFFModification] PEFFModification())
   TEST_EQUAL(mod.position, 0)
   TEST_EQUAL(mod.accession, "")
   TEST_EQUAL(mod.name, "")
-  TEST_EQUAL(mod.evidence, "")
+  TEST_EQUAL(mod.optional_tag, "")
   TEST_EQUAL(mod.type, PEFFModification::Type::GENERIC)
 }
 END_SECTION
 
-START_SECTION([PEFFModification] PEFFModification(Size pos, const String& acc, const String& n, const String& ev))
+START_SECTION([PEFFModification] PEFFModification(Size pos, const String& acc, const String& n, const String& tag))
 {
   PEFFModification mod(10, "UNIMOD:35", "Oxidation", "experimental");
   TEST_EQUAL(mod.position, 10)
   TEST_EQUAL(mod.accession, "UNIMOD:35")
   TEST_EQUAL(mod.name, "Oxidation")
-  TEST_EQUAL(mod.evidence, "experimental")
+  TEST_EQUAL(mod.optional_tag, "experimental")
   TEST_EQUAL(mod.type, PEFFModification::Type::UNIMOD)
 
   PEFFModification mod2(5, "MOD:00046", "Phospho");
@@ -722,6 +722,111 @@ START_SECTION(test_uniprot_roundtrip)
     TEST_EQUAL(entries[i].alt_accessions.size(), entries2[i].alt_accessions.size())
     TEST_EQUAL(entries[i].disulfide_bonds.size(), entries2[i].disulfide_bonds.size())
   }
+}
+END_SECTION
+
+START_SECTION(test_custom_key_def_parsing_and_roundtrip)
+{
+  vector<PEFFEntry> entries, entries2;
+  vector<PEFFDatabaseMetadata> headers, headers2;
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  PEFFFile file;
+
+  file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_customkeydef.peff"), entries, headers);
+  TEST_EQUAL(headers.size(), 1)
+  TEST_EQUAL(headers[0].custom_key_defs.size(), 2)
+
+  const PEFFCustomKeyDef& ckd = headers[0].custom_key_defs[0];
+  TEST_EQUAL(ckd.key_name, "SecondaryStructure")
+  TEST_EQUAL(ckd.description, "Secondary structure information")
+  TEST_EQUAL(ckd.concept_curie, "BAO:0000014")
+  TEST_EQUAL(ckd.regexp, "([0-9]+)\\|([0-9]+)\\|([A-Za-z]+:[0-9]+)?\\|(.*) \\|?(.+)?")
+  TEST_EQUAL(ckd.field_names.size(), 5)
+  TEST_EQUAL(ckd.field_names[0], "StartPosition")
+  TEST_EQUAL(ckd.field_names[4], "OptionalTag")
+  TEST_EQUAL(ckd.field_types.size(), 5)
+  TEST_EQUAL(ckd.field_types[0], "integer")
+  TEST_EQUAL(ckd.field_types[4], "string")
+
+  const PEFFCustomKeyDef& ckd2 = headers[0].custom_key_defs[1];
+  TEST_EQUAL(ckd2.key_name, "EnumTest")
+  TEST_EQUAL(ckd2.description, "Enumeration test")
+  TEST_EQUAL(ckd2.field_names.size(), 1)
+  TEST_EQUAL(ckd2.field_names[0], "Kind")
+  TEST_EQUAL(ckd2.field_types.size(), 1)
+  TEST_EQUAL(ckd2.field_types[0], "enumeration(alpha|beta|gamma)")
+
+  file.store(tmp_filename, entries, headers[0]);
+  file.load(tmp_filename, entries2, headers2);
+
+  TEST_EQUAL(headers2.size(), 1)
+  TEST_EQUAL(headers2[0].custom_key_defs.size(), headers[0].custom_key_defs.size())
+  for (Size i = 0; i < headers[0].custom_key_defs.size(); ++i)
+  {
+    TEST_EQUAL(headers2[0].custom_key_defs[i] == headers[0].custom_key_defs[i], true)
+  }
+
+  // Ensure stored output uses spec-style CustomKeyDef=(...) format.
+  bool found_custom_key_def = false;
+  std::ifstream in(tmp_filename.c_str());
+  std::string line;
+  while (std::getline(in, line))
+  {
+    if (line.rfind("# CustomKeyDef=(", 0) == 0)
+    {
+      found_custom_key_def = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_custom_key_def, true)
+}
+END_SECTION
+
+START_SECTION(test_custom_key_def_usage_roundtrip)
+{
+  vector<PEFFEntry> entries, entries2;
+  vector<PEFFDatabaseMetadata> headers, headers2;
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  PEFFFile file;
+
+  file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_customkeydef_usage.peff"), entries, headers);
+  TEST_EQUAL(headers.size(), 1)
+  TEST_EQUAL(headers[0].custom_key_defs.size(), 2)
+
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].custom_annotations.count("SecondaryStructure"), 1)
+  TEST_EQUAL(entries[0].custom_annotations.at("SecondaryStructure"),
+             "(1|2|ncithesaurus:C47937|Helix|Abcg2\\|meta\\\\x10)")
+  TEST_EQUAL(entries[0].custom_annotations.count("EnumTest"), 1)
+  TEST_EQUAL(entries[0].custom_annotations.at("EnumTest"), "alpha")
+
+  file.store(tmp_filename, entries, headers[0]);
+  file.load(tmp_filename, entries2, headers2);
+
+  TEST_EQUAL(entries2.size(), 1)
+  TEST_EQUAL(entries2[0].custom_annotations.count("SecondaryStructure"), 1)
+  TEST_EQUAL(entries2[0].custom_annotations.at("SecondaryStructure"),
+             entries[0].custom_annotations.at("SecondaryStructure"))
+  TEST_EQUAL(entries2[0].custom_annotations.count("EnumTest"), 1)
+  TEST_EQUAL(entries2[0].custom_annotations.at("EnumTest"),
+             entries[0].custom_annotations.at("EnumTest"))
+
+  // Ensure custom annotation value is written without escaping structural pipes/parentheses.
+  bool found_secondary_structure = false;
+  std::ifstream in(tmp_filename.c_str());
+  std::string line;
+  while (std::getline(in, line))
+  {
+    if (line.find("\\SecondaryStructure=") != std::string::npos)
+    {
+      found_secondary_structure = true;
+      TEST_EQUAL(line.find("\\SecondaryStructure=(1|2|ncithesaurus:C47937|Helix|Abcg2\\|meta\\\\x10)") != std::string::npos, true)
+      break;
+    }
+  }
+  TEST_EQUAL(found_secondary_structure, true)
 }
 END_SECTION
 
@@ -1288,6 +1393,44 @@ START_SECTION(test_modification_type_roundtrip)
 }
 END_SECTION
 
+START_SECTION(test_modification_optional_tag_roundtrip)
+{
+  // Spec section 3.3.10-3.3.12: ModRes* format is (position|accession|name|OptionalTag).
+  vector<PEFFEntry> entries, entries2;
+  vector<PEFFDatabaseMetadata> headers, headers2;
+  PEFFFile file;
+
+  file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_mod_optionaltag.peff"), entries, headers);
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].modifications.size(), 1)
+  TEST_EQUAL(entries[0].modifications[0].optional_tag, "invitro")
+
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  file.store(tmp_filename, entries, headers[0]);
+  file.load(tmp_filename, entries2, headers2);
+
+  TEST_EQUAL(entries2.size(), 1)
+  TEST_EQUAL(entries2[0].modifications.size(), 1)
+  TEST_EQUAL(entries2[0].modifications[0].optional_tag, "invitro")
+
+  // Ensure stored output uses the 4th field for the optional tag (no empty placeholder field).
+  bool found_modres = false;
+  std::ifstream in(tmp_filename.c_str());
+  std::string line;
+  while (std::getline(in, line))
+  {
+    if (line.find("\\ModResUnimod=") != std::string::npos)
+    {
+      found_modres = true;
+      TEST_EQUAL(line.find("|Phospho|invitro)") != std::string::npos, true)
+      break;
+    }
+  }
+  TEST_EQUAL(found_modres, true)
+}
+END_SECTION
+
 START_SECTION(test_proteoform_db_header)
 {
   // Test Fix #4: ProteoformDb header field
@@ -1391,6 +1534,76 @@ START_SECTION(test_disulfide_bond_annotation_id)
   TEST_EQUAL(entries2[0].disulfide_bonds[0].id1, "1")
   TEST_EQUAL(entries2[0].disulfide_bonds[0].id2, "2")
   TEST_EQUAL(entries2[0].disulfide_bonds[0].optional_tag, "between chains")
+}
+END_SECTION
+
+START_SECTION(test_multi_database_store_roundtrip)
+{
+  PEFFDatabaseMetadata db1;
+  db1.version = "1.0";
+  db1.db_name = "Database1";
+  db1.prefix = "db1";
+  db1.db_version = "1.0";
+  db1.db_sources.push_back("test");
+  db1.number_of_entries = 1;
+
+  PEFFDatabaseMetadata db2;
+  db2.version = "1.0";
+  db2.db_name = "Database2";
+  db2.prefix = "db2";
+  db2.is_decoy = true;
+  db2.db_version = "2.0";
+  db2.db_sources.push_back("test");
+  db2.number_of_entries = 1;
+
+  PEFFEntry e1;
+  e1.identifier = "db1:P00001";
+  e1.sequence = "SEQUENCEONE";
+  e1.sequence_length = 10;
+  e1.protein_names = {"Protein from DB1"};
+
+  PEFFEntry e2;
+  e2.identifier = "db2:P00002";
+  e2.sequence = "SEQUENCETWO";
+  e2.sequence_length = 10;
+  e2.protein_names = {"Protein from DB2"};
+
+  vector<PEFFEntry> entries = {e1, e2};
+  vector<PEFFDatabaseMetadata> headers = {db1, db2};
+
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  PEFFFile file;
+  file.store(tmp_filename, entries, headers);
+
+  vector<PEFFEntry> entries2;
+  vector<PEFFDatabaseMetadata> headers2;
+  file.load(tmp_filename, entries2, headers2);
+
+  TEST_EQUAL(headers2.size(), 2)
+  TEST_EQUAL(headers2[0].prefix, "db1")
+  TEST_EQUAL(headers2[0].db_name, "Database1")
+  TEST_EQUAL(headers2[0].is_decoy, false)
+  TEST_EQUAL(headers2[1].prefix, "db2")
+  TEST_EQUAL(headers2[1].db_name, "Database2")
+  TEST_EQUAL(headers2[1].is_decoy, true)
+
+  TEST_EQUAL(entries2.size(), 2)
+  TEST_EQUAL(entries2[0].identifier, "db1:P00001")
+  TEST_EQUAL(entries2[1].identifier, "db2:P00002")
+
+  // Only one PEFF version line should be written.
+  std::ifstream in(tmp_filename.c_str());
+  std::string line;
+  Size peff_lines = 0;
+  while (std::getline(in, line))
+  {
+    if (line.rfind("# PEFF ", 0) == 0)
+    {
+      ++peff_lines;
+    }
+  }
+  TEST_EQUAL(peff_lines, 1)
 }
 END_SECTION
 

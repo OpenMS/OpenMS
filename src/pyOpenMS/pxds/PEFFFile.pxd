@@ -134,7 +134,6 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    position: 1-based position (0 = unknown)
         #    accession: Modification accession (MOD:xxxxx, UNIMOD:xx, or custom)
         #    name: Human-readable name
-        #    evidence: Optional evidence tag
         #    optional_tag: Optional tag (last component of annotation tuple)
         #    annotation_id: Optional annotation identifier (UInt, max value = not set)
         #    type: Modification type (PSI_MOD, UNIMOD, or GENERIC)
@@ -145,7 +144,6 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         Size position
         String accession
         String name
-        String evidence
         String optional_tag
         UInt annotation_id
         ModificationType type
