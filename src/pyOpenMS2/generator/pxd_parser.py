@@ -80,6 +80,14 @@ class EnumValue:
 
 
 @dataclass
+class MemberVariable:
+    """A public member variable declaration."""
+
+    name: str
+    type_str: str
+
+
+@dataclass
 class EnumDecl:
     """An enum declaration."""
 
@@ -111,6 +119,8 @@ class ClassDecl:
     wrap_manual_memory: bool = False
     wrap_iter: Optional[str] = None
     attached_enums: List[str] = field(default_factory=list)
+    member_variables: List[MemberVariable] = field(default_factory=list)
+    cpp_qualified_name: Optional[str] = None  # Full C++ name from pxd "..." syntax (e.g., "OpenMS::PeakIntegrator::PeakArea")
 
 
 class PxdParser:
@@ -220,7 +230,7 @@ class PxdParser:
                 # Parse class body
                 class_decl, end_idx = self._parse_class_body(
                     lines, i, class_name, current_namespace, current_header,
-                    template_args, base_classes
+                    template_args, base_classes, cpp_qualified_name=cpp_qualified_name
                 )
 
                 if class_decl:
@@ -274,6 +284,7 @@ class PxdParser:
         header_file: str,
         template_args: List[str],
         base_classes: List[str],
+        cpp_qualified_name: Optional[str] = None,
     ) -> Tuple[Optional[ClassDecl], int]:
         """Parse the body of a class declaration."""
         self._current_class = class_name
@@ -284,6 +295,7 @@ class PxdParser:
             header_file=header_file,
             template_args=template_args,
             base_classes=base_classes,
+            cpp_qualified_name=cpp_qualified_name,
         )
 
         # Get indentation level of class definition
@@ -351,9 +363,14 @@ class PxdParser:
             # Check for wrap directives (including doc continuation)
             if stripped.startswith("#"):
                 # Check for ABSTRACT class comment (fallback when libclang can't parse)
+                # Only match if the comment refers to THIS class (contains the class name)
+                # or is a standalone directive like "# ABSTRACT CLASS"
                 if "ABSTRACT" in stripped.upper() and "class" in stripped.lower():
-                    class_decl.is_abstract = True
-                    logger.debug(f"Class {class_name} marked as abstract from pxd comment")
+                    upper = stripped.upper()
+                    # Match "# ABSTRACT CLASS" pattern or class name mentioned
+                    if class_name.upper() in upper or re.match(r'^#\s*ABSTRACT\s+CLASS', upper):
+                        class_decl.is_abstract = True
+                        logger.debug(f"Class {class_name} marked as abstract from pxd comment")
                 directives = self._parse_wrap_directives(stripped)
 
                 # Handle continuation lines for pending directives
@@ -465,6 +482,12 @@ class PxdParser:
                     class_decl.constructors.append(method)
                 else:
                     class_decl.methods.append(method)
+            else:
+                # Try to parse as a member variable: "type_name var_name"
+                # Must not contain parentheses (methods), "cdef", "ctypedef", "enum", "pass"
+                member_var = self._parse_member_variable(stripped)
+                if member_var:
+                    class_decl.member_variables.append(member_var)
 
             i += 1
 
@@ -551,6 +574,28 @@ class PxdParser:
             i += 1
 
         return enum_decl, i
+
+    def _parse_member_variable(self, line: str) -> Optional[MemberVariable]:
+        """Parse a member variable declaration like 'double area' or 'libcpp_string id'."""
+        # Remove trailing comments
+        comment_idx = line.find("#")
+        clean = line[:comment_idx].strip() if comment_idx >= 0 else line.strip()
+        if not clean:
+            return None
+        # Skip keywords and lines with parens (methods), colons (cdef/ctypedef), etc.
+        if "(" in clean or ")" in clean:
+            return None
+        if clean.startswith(("cdef ", "ctypedef ", "enum ", "pass", "cppclass ", "@")):
+            return None
+        # Match: type_tokens... var_name
+        # e.g., "double area", "libcpp_vector[Peak1D] peaks", "Int nn_threshold"
+        parts = clean.rsplit(None, 1)
+        if len(parts) == 2:
+            type_str, var_name = parts
+            # var_name must be a simple identifier
+            if re.match(r"^[a-zA-Z_]\w*$", var_name) and not re.match(r"^[a-zA-Z_]\w*$", clean):
+                return MemberVariable(name=var_name, type_str=type_str)
+        return None
 
     def _parse_method_line(self, line: str, class_name: str) -> Optional[Method]:
         """Parse a method declaration line."""
