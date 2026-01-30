@@ -231,23 +231,38 @@ foreach(addon_file ${ADDON_FILES})
     )
 endforeach()
 
-# Install Python package files
+# Install Python package files (including stubs and PEP 561 marker)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pyopenms/
     DESTINATION pyopenms
-    FILES_MATCHING PATTERN "*.py"
+    FILES_MATCHING
+        PATTERN "*.py"
+        PATTERN "*.pyi"
+        PATTERN "py.typed"
 )
 
 # --------------------------------------------------------------------------
 # Stub generation
 # --------------------------------------------------------------------------
 if(PYOPENMS2_GENERATE_STUBS)
+    # Collect all module targets as dependencies
+    set(_STUB_DEPS _pyopenms2)
+    foreach(i RANGE 1 ${PY_NUM_MODULES})
+        list(APPEND _STUB_DEPS "_pyopenms2_${i}")
+    endforeach()
+
     add_custom_target(pyopenms2_stubs
         COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen
                 -m pyopenms
-                -o ${CMAKE_CURRENT_BINARY_DIR}/pyopenms
+                -r                          # recurse into _pyopenms2_N submodules
+                -P                          # include private _pyopenms2_* members
+                -O ${CMAKE_CURRENT_BINARY_DIR}/pyopenms  # stubs go alongside .so and .py files
+                -M ${CMAKE_CURRENT_BINARY_DIR}/pyopenms/py.typed  # PEP 561 marker
+                -p ${CMAKE_CURRENT_SOURCE_DIR}/stubs.patch       # fix singleton types etc.
+        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/fix_stubs.py
+                ${CMAKE_CURRENT_BINARY_DIR}/pyopenms   # post-process: fix keywords, NDArray types
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        DEPENDS _pyopenms2
-        COMMENT "Generating .pyi stub files"
+        DEPENDS ${_STUB_DEPS}
+        COMMENT "Generating .pyi stub files for pyopenms"
     )
 endif()
 
