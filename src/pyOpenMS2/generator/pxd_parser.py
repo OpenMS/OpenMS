@@ -429,7 +429,8 @@ class PxdParser:
                 continue
 
             # Handle multi-line method signatures (parameters spanning multiple lines)
-            if '(' in stripped and ')' not in stripped.split('#')[0]:
+            code_part = stripped.split('#')[0]
+            if '(' in code_part and ')' not in code_part:
                 # Join continuation lines until we find the closing ')'
                 full_line = stripped
                 while i + 1 < len(lines):

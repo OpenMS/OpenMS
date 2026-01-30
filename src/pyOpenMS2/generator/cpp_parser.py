@@ -998,6 +998,7 @@ class MergedClass:
     doc: str = ""
     enums: List[Any] = field(default_factory=list)  # EnumDecl from pxd_parser
     template_instances: Dict[str, List[str]] = field(default_factory=dict)  # instance_name -> [template_args]
+    pxd_template_params: List[str] = field(default_factory=list)  # Template param names from .pxd
     member_variables: List[Any] = field(default_factory=list)  # MemberVariable from pxd_parser
 
     @property
@@ -1223,6 +1224,7 @@ def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Op
         doc=getattr(pxd_class, 'doc', ''),
         enums=getattr(pxd_class, 'enums', []),
         template_instances=getattr(pxd_class, 'template_instances', {}),
+        pxd_template_params=getattr(pxd_class, 'template_args', []),
         member_variables=[
             type('MemberVariable', (), {'name': mv.name, 'type_str': _convert_pxd_type(mv.type_str)})()
             for mv in getattr(pxd_class, 'member_variables', [])
@@ -1304,6 +1306,16 @@ def merge_with_pxd(
             continue
 
         cpp_class = cpp_classes[class_name]
+
+        # For FALLBACK_TO_PXD classes that libclang found but with no methods
+        # (e.g., template classes where libclang can't enumerate methods),
+        # use the pxd fallback which has complete method declarations.
+        if class_name in FALLBACK_TO_PXD and not cpp_class.methods:
+            logger.info(f"Class {class_name} using .pxd fallback (libclang found 0 methods)")
+            fallback = _create_fallback_merged_class(class_name, pxd_class)
+            if fallback:
+                merged[class_name] = fallback
+            continue
 
         # Build method allowlist from .pxd with directives
         # Include methods from base class pxds (wrap-inherits)
@@ -1410,6 +1422,7 @@ def merge_with_pxd(
             doc=getattr(pxd_class, 'doc', ''),
             enums=pxd_enums,
             template_instances=getattr(pxd_class, 'template_instances', {}),
+            pxd_template_params=getattr(pxd_class, 'template_args', []),
         )
         merged[class_name] = merged_class
 

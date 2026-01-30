@@ -1214,6 +1214,30 @@ SPECIAL_METHODS = {
         "getPeptideByRef": '''
         .def("getPeptideByRef", [](OpenSwath::LightTargetedExperiment& self, const std::string& ref) { return self.getPeptideByRef(ref); }, "ref"_a)''',
     },
+    "DBoundingBox2": {
+        "minPosition": '''
+        .def("minPosition", [](const OpenMS::DBoundingBox<2>& self) {
+            auto p = self.minPosition();
+            nb::list result;
+            result.append(p[0]);
+            result.append(p[1]);
+            return result;
+        })''',
+        "maxPosition": '''
+        .def("maxPosition", [](const OpenMS::DBoundingBox<2>& self) {
+            auto p = self.maxPosition();
+            nb::list result;
+            result.append(p[0]);
+            result.append(p[1]);
+            return result;
+        })''',
+    },
+    "LogMzPeak": {
+        "__init__peak": '''
+        .def("__init__", [](OpenMS::FLASHHelperClasses::LogMzPeak* self, const OpenMS::Peak1D& peak, bool positive) {
+            new (self) OpenMS::FLASHHelperClasses::LogMzPeak(peak, positive);
+        }, "peak"_a, "positive"_a)''',
+    },
     "PrecalAveragine": {
         "__init__5args": '''
         .def("__init__", [](OpenMS::FLASHHelperClasses::PrecalculatedAveragine* self, double min_mass, double max_mass, double delta, OpenMS::CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine) {
@@ -3920,13 +3944,14 @@ class NanobindEmitterV2:
         if self.core_only and class_name not in CORE_CLASSES:
             return None
 
+        # Handle template classes with wrap-instances (before SKIP_CLASSES check,
+        # since the template base may be skipped but instances should be generated)
+        if merged_class.template_instances and merged_class.cpp_class.is_template:
+            return self._generate_template_instances(merged_class, module_class_names)
+
         # Skip problematic classes and types with casters
         if class_name in SKIP_CLASSES or class_name in get_caster_owned_types():
             return None
-
-        # Handle template classes with wrap-instances
-        if merged_class.template_instances and merged_class.cpp_class.is_template:
-            return self._generate_template_instances(merged_class, module_class_names)
 
         # Skip nested classes (but allow nested namespaces like OpenMS::DataArrays)
         # Nested classes have :: in the class name itself, not just in the namespace
@@ -4489,15 +4514,64 @@ class NanobindEmitterV2:
             "int": "int",
             "unsigned int": "unsigned int",
             "bool": "bool",
+            "size_t": "size_t",
+            "Size": "size_t",
+            "Int": "OpenMS::Int",
+            "UInt": "OpenMS::UInt",
+            "String": "OpenMS::String",
             "MSSpectrum": "OpenMS::MSSpectrum",
             "MSChromatogram": "OpenMS::MSChromatogram",
+            "MRMFeature": "OpenMS::MRMFeature",
             "ReactionMonitoringTransition": "OpenMS::ReactionMonitoringTransition",
             "LightTransition": "OpenSwath::LightTransition",
             "RansacModelLinear": "OpenMS::Math::RansacModelLinear",
             "RansacModelQuadratic": "OpenMS::Math::RansacModelQuadratic",
+            "Param": "OpenMS::Param",
+            "UInt64": "OpenMS::UInt64",
+            "Int64": "OpenMS::Int64",
+            "Matrix": "OpenMS::Matrix",
+            "Peak1D": "OpenMS::Peak1D",
+            "Peak2D": "OpenMS::Peak2D",
+            "ChromatogramPeak": "OpenMS::ChromatogramPeak",
         }
 
+        def _convert_template_type(type_str: str, param_map: dict) -> str:
+            """Convert a pxd type to C++ type with template substitution."""
+            import re
+            result = type_str.strip()
+            # Apply template parameter substitution using word boundaries
+            # to avoid partial matches (e.g., 'Key' matching inside 'KeyType')
+            for pn, ca in sorted(param_map.items(), key=lambda x: -len(x[0])):
+                result = re.sub(r'\b' + re.escape(pn) + r'\b', ca, result)
+            # Handle libcpp containers
+            m = re.match(r'libcpp_vector\[\s*(.+)\s*\]', result)
+            if m:
+                inner = _convert_template_type(m.group(1), param_map)
+                return f"std::vector<{inner}>"
+            m = re.match(r'libcpp_pair\[\s*(.+?)\s*,\s*(.+)\s*\]', result)
+            if m:
+                return f"std::pair<{_convert_template_type(m.group(1), param_map)}, {_convert_template_type(m.group(2), param_map)}>"
+            m = re.match(r'libcpp_set\[\s*(.+)\s*\]', result)
+            if m:
+                return f"std::set<{_convert_template_type(m.group(1), param_map)}>"
+            if result in ("libcpp_utf8_string", "libcpp_string", "libcpp_utf8_output_string"):
+                return "std::string"
+            # Handle generic pxd ClassName[Args] -> C++ ClassName<Args>
+            m = re.match(r'(\w+)\[(.+)\]', result)
+            if m:
+                cls_name = m.group(1)
+                inner_args = [_convert_template_type(a.strip(), param_map)
+                              for a in m.group(2).split(',')]
+                cpp_cls = PXD_TO_CPP_TYPE.get(cls_name, cls_name)
+                return f"{cpp_cls}<{', '.join(inner_args)}>"
+            # Direct mapping
+            bare = result.replace("const ", "").rstrip(" &*").strip()
+            if bare in PXD_TO_CPP_TYPE:
+                result = result.replace(bare, PXD_TO_CPP_TYPE[bare])
+            return result
+
         template_params = merged_class.cpp_class.template_params
+        pxd_template_params = getattr(merged_class, 'pxd_template_params', [])
 
         for instance_name, instance_args in merged_class.template_instances.items():
             # Skip instances that are in SKIP_CLASSES
@@ -4513,9 +4587,14 @@ class NanobindEmitterV2:
             cpp_type_str = f"{namespace}::{class_name}<{', '.join(cpp_args)}>"
 
             # Build template param -> arg mapping for type substitution
+            # Use both libclang and pxd template param names (they may differ,
+            # e.g., libclang has 'Key' while pxd has 'KeyType')
             param_map = {}
             if len(template_params) == len(instance_args):
                 for param, arg in zip(template_params, instance_args):
+                    param_map[param] = PXD_TO_CPP_TYPE.get(arg, arg)
+            if pxd_template_params and len(pxd_template_params) == len(instance_args):
+                for param, arg in zip(pxd_template_params, instance_args):
                     param_map[param] = PXD_TO_CPP_TYPE.get(arg, arg)
 
             lines.append(f'    nb::class_<{cpp_type_str}>(m, "{instance_name}")')
@@ -4525,6 +4604,24 @@ class NanobindEmitterV2:
 
             # Generate copy constructor
             lines.append(f"        .def(nb::init<const {cpp_type_str}&>())")
+
+            # Generate parameterized constructors
+            for ctor in merged_class.constructors:
+                params = ctor.parameters
+                if not params:
+                    continue  # default ctor already emitted
+                # Skip copy constructors (including template forms like "MRMTransitionGroup[T1, T2] &")
+                if len(params) == 1:
+                    bare = params[0].type_str.replace("const ", "").rstrip(" &*").strip()
+                    if bare == class_name or bare.endswith(f"::{class_name}") or bare.startswith(f"{class_name}["):
+                        continue
+                # Substitute template params
+                ctor_types = []
+                for p in params:
+                    p_type = _convert_template_type(p.type_str, param_map)
+                    ctor_types.append(p_type)
+                type_list = ", ".join(ctor_types)
+                lines.append(f"        .def(nb::init<{type_list}>())")
 
             # Generate methods from the template class
             for merged_method in merged_class.methods:
@@ -4543,25 +4640,20 @@ class NanobindEmitterV2:
                 if method_name in SPECIAL_METHODS.get(instance_name, {}):
                     continue
 
-                # Substitute template params in return type and parameter types
-                ret_type = method.return_type or "void"
-                for param_name, cpp_arg in param_map.items():
-                    ret_type = ret_type.replace(param_name, cpp_arg)
+                # Substitute template params and convert pxd types to C++
+                ret_type = _convert_template_type(method.return_type or "void", param_map)
 
                 params_code = []
                 param_names = []
                 for p in method.parameters:
-                    p_type = p.type_str
-                    for param_name, cpp_arg in param_map.items():
-                        p_type = p_type.replace(param_name, cpp_arg)
+                    p_type = _convert_template_type(p.type_str, param_map)
                     params_code.append(f"{p_type} {p.name}")
                     param_names.append(p.name)
 
-                # Build lambda
-                if method.is_const:
-                    self_param = f"const {cpp_type_str}& self"
-                else:
-                    self_param = f"{cpp_type_str}& self"
+                # Build lambda — always use non-const self for template instances
+                # because pxd const inference is unreliable (e.g., getTransitionsMuteable
+                # is inferred as const because it starts with "get")
+                self_param = f"{cpp_type_str}& self"
 
                 if params_code:
                     lambda_params = f"{self_param}, {', '.join(params_code)}"
@@ -4583,10 +4675,20 @@ class NanobindEmitterV2:
                     f'        .def("{python_name}", []({lambda_params}) {{ {body}; }}{named_args})'
                 )
 
+            # Add member variable bindings
+            for mv in getattr(merged_class, 'member_variables', []):
+                lines.append(f'        .def_rw("{mv.name}", &{cpp_type_str}::{mv.name})')
+
             # Add __len__ if size() method exists
             has_size = any(m.cpp_method.name == "size" for m in merged_class.methods if not m.wrap_ignore)
             if has_size:
                 lines.append(f'        .def("__len__", []({cpp_type_str}& self) {{ return self.size(); }})')
+
+            # Add special methods for this instance
+            if instance_name in SPECIAL_METHODS:
+                for method_name, method_code in SPECIAL_METHODS[instance_name].items():
+                    if method_name != "__post_class__":
+                        lines.append(method_code)
 
             lines.append("        ;")
             lines.append("")
