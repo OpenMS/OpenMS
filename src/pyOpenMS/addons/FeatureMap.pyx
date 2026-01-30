@@ -116,8 +116,6 @@ import numpy as np
             >>> fmap.df_columns()
             ['feature_id', 'peptide_sequence', 'charge', 'rt', 'mz', ...]
         
-        Note:
-            - 'feature_id' is of type uint64 to support reliable merging.
         """
         cols = ['feature_id']
 
@@ -164,10 +162,6 @@ import numpy as np
         Generates a pandas DataFrame with information contained in the FeatureMap.
 
         Optionally the feature meta values and information for the assigned PeptideHit can be exported.
-
-        .. note::
-            - **Breaking Change**: `feature_id` column is now `uint64` (previously string/object) to support reliable merging.
-            - String columns are now `object` dtype (instead of fixed-length `Uxx`) to prevent truncation.
 
         :param columns: List of column names to include. If None,
                         includes all columns. Use df_columns() to discover available columns.
@@ -285,7 +279,7 @@ import numpy as np
                         elif not isinstance(spec_id, str):
                             spec_id = str(spec_id)
                     else:
-                        spec_id = 'None'
+                        spec_id = None
                     hits = pep[0].getHits()
                     if len(hits) > 0:
                         besthit = hits[0]
@@ -294,7 +288,7 @@ import numpy as np
                         pep_values = (None, None, ID_filename, spec_id)
                 else:
                     # Use 'None' string for ID_native_id for consistency with object dtype
-                    pep_values = (None, None, None, 'None')
+                    pep_values = (None, None, None, None)
             else:
                 pep_values = ()
 
@@ -309,13 +303,14 @@ import numpy as np
                     ('mz_start', np.dtype('double')), ('mz_end', np.dtype('double')), ('quality', 'f'), ('intensity', 'f')]
 
         for meta_value in meta_values:
-            # Handle both bytes (current) and str (future autowrap changes)
+            # Simplify to basic decoding if bytes, assumption is usually bytes from OpenMS
             if isinstance(meta_value, bytes):
-                key = meta_value
                 col_name = meta_value.decode()
+                key = meta_value
             else:
                 col_name = str(meta_value)
                 key = col_name.encode()
+
             if key in common_meta_value_types:
                 mddtypes.append((col_name, common_meta_value_types[key]))
             else:
@@ -404,13 +399,7 @@ import numpy as np
                     hit.setMetaValue('feature_id', f.getUniqueId())
                     hit.setMetaValue('ID_filename', self._get_prot_id_filename_from_pep_id(pep))
                     if f.metaValueExists('spectrum_native_id'):
-                        native_id = f.getMetaValue('spectrum_native_id')
-                        # Normalize to string to avoid mixed bytes/str types
-                        if isinstance(native_id, bytes):
-                            native_id = native_id.decode('utf-8')
-                        elif not isinstance(native_id, str):
-                            native_id = str(native_id)
-                        hit.setMetaValue('ID_native_id', native_id)
+                        hit.setMetaValue('ID_native_id', f.getMetaValue('spectrum_native_id'))
                     # No else clause needed - downstream code handles missing metavalues
                     hits.append(hit)
                 pep.setHits(hits)
