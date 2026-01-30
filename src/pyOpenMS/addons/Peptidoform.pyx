@@ -261,6 +261,7 @@
             RuntimeError: If spectrum generation fails (e.g., unresolved modifications)
 
         Example:
+
             >>> pf = Peptidoform.fromString("PEPTIDE")
             >>> if pf.canGenerateSpectrum():
             ...     spec = pf.generateSpectrum(1, 2, "by", add_metainfo=True)
