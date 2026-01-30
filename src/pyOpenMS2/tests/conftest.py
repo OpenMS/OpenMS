@@ -21,7 +21,7 @@ def _has_compiled_extensions(path: Path) -> bool:
 
 def _setup_pyopenms():
     """Ensure the built pyopenms is used by pre-loading it into sys.modules."""
-    build_path = Path("/home/sachsenb/Development/tmp/OpenMS-build/pyOpenMS2-build")
+    build_path = Path("/home/sachsenb/Development/tmp/OpenMS/OpenMS-build/pyOpenMS2-build")
 
     if not build_path.exists() or not _has_compiled_extensions(build_path):
         raise ImportError(
