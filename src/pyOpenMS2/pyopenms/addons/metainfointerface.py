@@ -8,26 +8,6 @@ to populate the passed list correctly.
 
 from . import addon
 
-# List of all classes that inherit MetaInfoInterface and need getKeys fixed
-_META_INFO_CLASSES = [
-    "MetaInfoInterface",
-    "MSSpectrum", "MSChromatogram", "MSExperiment", "Mobilogram",
-    "Feature", "ConsensusFeature", "FeatureMap", "ConsensusMap",
-    "PeptideHit", "PeptideIdentification", "ProteinHit", "ProteinIdentification",
-    "Peak1D", "Peak2D", "ChromatogramPeak", "MobilityPeak1D",
-    "Precursor", "Product", "Acquisition", "AcquisitionInfo",
-    "InstrumentSettings", "SourceFile", "ContactPerson",
-    "DataProcessing", "Software", "IonSource", "IonDetector", "MassAnalyzer",
-    "Instrument", "Sample", "Digestion", "Gradient", "HPLC",
-    "ScanWindow",
-    "SpectrumSettings", "ChromatogramSettings",
-    "CVTermList",
-    "TargetedExperiment",
-    "Identification", "SpectrumIdentification",
-    "TransformationDescription",
-]
-
-
 def _make_getkeys_fix(cls_name):
     """Create a getKeys function that populates the output list."""
     @addon(cls_name)
@@ -44,7 +24,6 @@ def _make_getkeys_fix(cls_name):
             # The C++ binding doesn't modify the list, so we need an alternative approach
             # Unfortunately there's no direct way to get all keys from MetaInfoInterface
             # without the output parameter working. We'll need to patch this at the C++ level.
-            pass
         except Exception:
             pass
     return getKeys

@@ -7,7 +7,7 @@ This file contains pure Python helper methods including DataFrame export.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Tuple
 
 import numpy as np
 

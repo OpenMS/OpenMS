@@ -214,6 +214,12 @@ configure_file(
     COPYONLY
 )
 
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/pyopenms/_dataframes_compat.py
+    ${CMAKE_CURRENT_BINARY_DIR}/pyopenms/_dataframes_compat.py
+    COPYONLY
+)
+
 # Copy addons
 file(GLOB ADDON_FILES "${CMAKE_CURRENT_SOURCE_DIR}/pyopenms/addons/*.py")
 foreach(addon_file ${ADDON_FILES})

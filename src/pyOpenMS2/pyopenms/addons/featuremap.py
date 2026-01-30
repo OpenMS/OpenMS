@@ -6,6 +6,11 @@ from . import addon
 
 
 @addon("FeatureMap")
+def __repr__(self) -> str:
+    return f"FeatureMap(num_features={len(self)})"
+
+
+@addon("FeatureMap")
 def df_columns(self, columns='default', export_peptide_identifications=True):
     """Returns a list of column names that to_df() would produce."""
     cols = ['feature_id']
@@ -58,14 +63,6 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
         meta_values = list(meta_values_set)
     elif not meta_values:
         meta_values = []
-
-    common_meta_value_types = {
-        'label': 'U50', 'spectrum_index': 'i', 'score_fit': 'f',
-        'score_correlation': 'f', 'FWHM': 'f', 'spectrum_native_id': 'U100',
-        'max_height': 'f', 'num_of_masstraces': 'i', 'masstrace_intensity': 'f',
-        'Group': 'U50', 'is_ungrouped_monoisotopic': 'i', 'leftWidth': 'f',
-        'rightWidth': 'f', 'total_xic': 'f', 'PeptideRef': 'U100', 'peak_apices_sum': 'f'
-    }
 
     rows = []
     for f in self:

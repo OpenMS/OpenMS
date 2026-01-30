@@ -85,6 +85,22 @@ class CppParameter:
 
 
 @dataclass
+class CppField:
+    """A C++ class public data member."""
+    name: str
+    type_str: str  # Full C++ type string
+    canonical_type: str = ""
+    is_const: bool = False
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "CppField":
+        return cls(**d)
+
+
+@dataclass
 class CppMethod:
     """A C++ class method."""
     name: str
@@ -99,6 +115,11 @@ class CppMethod:
     is_destructor: bool = False
     is_deleted: bool = False  # = delete
     is_defaulted: bool = False  # = default
+    is_copy_constructor: bool = False
+    is_move_constructor: bool = False
+    is_operator: bool = False
+    operator_symbol: str = ""  # e.g. "==", "+", "[]"
+    is_conversion_function: bool = False
     access: str = "public"  # public, protected, private
     uses_incomplete_type: bool = False  # Uses forward-declared/incomplete types
     incomplete_types: List[str] = field(default_factory=list)  # Names of incomplete types used
@@ -140,6 +161,9 @@ class CppClass:
     has_deleted_default_constructor: bool = False
     has_deleted_copy_constructor: bool = False
     has_private_constructor: bool = False  # All constructors are private/protected
+    operators: List[CppMethod] = field(default_factory=list)  # Operator overloads
+    conversion_functions: List[CppMethod] = field(default_factory=list)  # operator bool(), etc.
+    public_fields: List["CppField"] = field(default_factory=list)  # Public data members
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary for JSON caching."""
@@ -161,6 +185,9 @@ class CppClass:
             'has_deleted_default_constructor': self.has_deleted_default_constructor,
             'has_deleted_copy_constructor': self.has_deleted_copy_constructor,
             'has_private_constructor': self.has_private_constructor,
+            'operators': [m.to_dict() for m in self.operators],
+            'conversion_functions': [m.to_dict() for m in self.conversion_functions],
+            'public_fields': [f.to_dict() for f in self.public_fields],
         }
 
     @classmethod
@@ -184,6 +211,9 @@ class CppClass:
             has_deleted_default_constructor=d.get('has_deleted_default_constructor', False),
             has_deleted_copy_constructor=d.get('has_deleted_copy_constructor', False),
             has_private_constructor=d.get('has_private_constructor', False),
+            operators=[CppMethod.from_dict(m) for m in d.get('operators', [])],
+            conversion_functions=[CppMethod.from_dict(m) for m in d.get('conversion_functions', [])],
+            public_fields=[CppField.from_dict(f) for f in d.get('public_fields', [])],
         )
 
     def find_method(self, name: str, param_count: Optional[int] = None) -> Optional[CppMethod]:
@@ -229,7 +259,7 @@ class CppHeaderParser:
     """
 
     # Cache format version - bump this when dataclass structure changes
-    CACHE_VERSION = 5  # Bumped for struct default public access fix
+    CACHE_VERSION = 7  # Bumped for public field detection
 
     def __init__(
         self,
@@ -758,11 +788,23 @@ class CppHeaderParser:
             if child.kind == CursorKind.CONSTRUCTOR:
                 ctor = self._process_method(child, is_constructor=True)
                 ctor.access = current_access
+                # Detect copy/move constructors
+                if child.is_copy_constructor():
+                    ctor.is_copy_constructor = True
+                if child.is_move_constructor():
+                    ctor.is_move_constructor = True
                 all_constructors.append(ctor)
                 if current_access == "public":
                     has_any_public_constructor = True
                     if not ctor.is_deleted:
                         cpp_class.constructors.append(ctor)
+
+            elif child.kind == CursorKind.CONVERSION_FUNCTION:
+                conv = self._process_method(child)
+                conv.access = current_access
+                conv.is_conversion_function = True
+                if current_access == "public" and not conv.is_deleted:
+                    cpp_class.conversion_functions.append(conv)
 
             elif child.kind == CursorKind.DESTRUCTOR:
                 # Check for pure virtual destructor (makes class abstract)
@@ -772,12 +814,31 @@ class CppHeaderParser:
             elif child.kind == CursorKind.CXX_METHOD:
                 method = self._process_method(child)
                 method.access = current_access
+                # Detect operators
+                if method.name.startswith("operator"):
+                    method.is_operator = True
+                    # Extract operator symbol (e.g. "operator==" -> "==")
+                    method.operator_symbol = method.name[len("operator"):].strip()
                 # Check for pure virtual (makes class abstract)
                 if method.is_pure_virtual:
                     cpp_class.is_abstract = True
                 # Only add public methods to binding list
                 if current_access == "public":
                     cpp_class.methods.append(method)
+                    if method.is_operator and not method.is_deleted:
+                        cpp_class.operators.append(method)
+
+            # Handle public data members (fields)
+            elif child.kind == CursorKind.FIELD_DECL:
+                if current_access == "public":
+                    field_type = child.type
+                    cpp_field = CppField(
+                        name=child.spelling,
+                        type_str=field_type.spelling,
+                        canonical_type=field_type.get_canonical().spelling,
+                        is_const="const" in field_type.spelling,
+                    )
+                    cpp_class.public_fields.append(cpp_field)
 
             # Handle nested classes and structs
             elif child.kind in (CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL):
@@ -797,8 +858,11 @@ class CppHeaderParser:
             # Check for deleted default constructor (no parameters)
             if len(ctor.parameters) == 0 and ctor.is_deleted:
                 cpp_class.has_deleted_default_constructor = True
-            # Check for deleted copy constructor (single const ref parameter of same type)
-            if len(ctor.parameters) == 1 and ctor.is_deleted:
+            # Check for deleted copy constructor - use libclang detection first,
+            # fall back to heuristic
+            if ctor.is_copy_constructor and (ctor.is_deleted or ctor.access in ("private", "protected")):
+                cpp_class.has_deleted_copy_constructor = True
+            elif len(ctor.parameters) == 1 and ctor.is_deleted:
                 param_type = ctor.parameters[0].type_str
                 if "const" in param_type and "&" in param_type:
                     cpp_class.has_deleted_copy_constructor = True

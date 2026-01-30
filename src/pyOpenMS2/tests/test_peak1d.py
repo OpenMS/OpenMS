@@ -3,7 +3,6 @@ Tests for Peak1D class bindings.
 """
 
 import pytest
-import numpy as np
 
 
 def test_peak1d_creation():
