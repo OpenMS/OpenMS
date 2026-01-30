@@ -9,14 +9,38 @@ pyOpenMS2 is the nanobind-based replacement for pyOpenMS (which uses autowrap/Cy
 - **Addon system** (`pyopenms/addons/`) injects Python methods into wrapped classes at import time
 - **Generated bindings** (`bindings/`) contain the nanobind C++ wrapper code
 
-## Quick Commands
+## Build Setup
+
+pyOpenMS2 is a **separate CMake project** (`src/pyOpenMS2/CMakeLists.txt`), not a target in the main OpenMS build. It finds OpenMS via `find_package(OpenMS)` and must be configured and built independently.
+
+### Initial configuration
+
+```bash
+# From the repo root (assuming OpenMS is already built in ../OpenMS-build):
+cmake -S src/pyOpenMS2 -B OpenMS-build/pyOpenMS2-build \
+  -DOpenMS_DIR=OpenMS-build \
+  -DCMAKE_BUILD_TYPE=Release
+```
+
+`-DOpenMS_DIR` points to the OpenMS build tree, which contains `OpenMSConfig.cmake`. CMake uses this to resolve `find_package(OpenMS)` and automatically propagates include directories and link libraries.
+
+### How OpenMS headers are found
+
+1. `find_package(OpenMS)` loads `OpenMSConfig.cmake` from the OpenMS build tree
+2. This defines the `OpenMS` and `OpenSwathAlgo` targets with `INTERFACE_INCLUDE_DIRECTORIES` pointing to both:
+   - **Source tree**: `src/openms/include` (hand-written headers)
+   - **Build tree**: `OpenMS-build/src/openms/include` (generated headers like `OpenMS/config.h`)
+3. `target_link_libraries(... PRIVATE OpenMS)` in `CMakeLists.txt` propagates these include dirs to all module targets
+4. The generator also receives these dirs via `get_target_property(... INTERFACE_INCLUDE_DIRECTORIES)` for libclang parsing
+
+### Quick commands
 
 ```bash
 # Build
-cmake --build OpenMS-build --target pyopenms2 -j$(nproc)
+cmake --build OpenMS-build/pyOpenMS2-build -j$(nproc)
 
 # Test
-PYTHONPATH=OpenMS-build/pyOpenMS2 python3 -m pytest src/pyOpenMS2/tests/ -v
+PYTHONPATH=OpenMS-build/pyOpenMS2-build python3 -m pytest src/pyOpenMS2/tests/ -v
 
 # Run generator only (dry-run)
 cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir ../pyOpenMS/addons --output-dir generated --dry-run --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include
@@ -27,6 +51,7 @@ cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir 
 
 ## Build Gotchas
 
+- **Separate CMake project**: pyOpenMS2 is NOT a target in the main OpenMS build. Use `cmake --build OpenMS-build/pyOpenMS2-build`, not `cmake --build OpenMS-build --target pyopenms2`.
 - **Generator needs both include dirs**: `--openms-include-dir` must include both the source tree (`src/openms/include`) and the build tree (`OpenMS-build/src/openms/include`). The build tree contains generated headers like `OpenMS/config.h`. Without it, libclang fails to parse most headers (42 classes instead of 772+).
 - **CMake handles this automatically** via `INTERFACE_INCLUDE_DIRECTORIES` on the OpenMS target. The issue only arises when running the generator manually.
 - **Feature parity testing**: Run old pyOpenMS tests against the pyOpenMS2 build with `PYTHONPATH=OpenMS-build/pyOpenMS2-build python3 -m pytest src/pyOpenMS/tests/unittests/ -v`. This requires a shim that redirects `import pyopenms` to pyOpenMS2.
@@ -38,7 +63,7 @@ cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir 
 | `pxd_parser.py` | Parses .pxd files, extracts class/method declarations and wrap- directives |
 | `cpp_parser.py` | Uses libclang to parse C++ headers for accurate type information |
 | `type_registry.py` | Maps C++ types to Python types, tracks custom casters needed |
-| `nanobind_emitter_v2.py` | Generates nanobind C++ binding code using libclang-merged info |
+| `nanobind_emitter.py` | Generates nanobind C++ binding code using libclang-merged info |
 | `addon_processor.py` | Classifies addons as pure Python vs C++ required |
 
 ## Type Casters

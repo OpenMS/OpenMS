@@ -129,9 +129,6 @@ SKIP_METHODS = {
     "Residue": {
         "getModification",  # Returns pointer
     },
-    "DataProcessing": {
-        "getProcessingActions",  # Returns set
-    },
     "Mobilogram": {
         "getFloatDataArrays", "setFloatDataArrays",
         "getIntegerDataArrays", "setIntegerDataArrays",
@@ -226,9 +223,6 @@ SKIP_METHODS = {
         "setPublications",  # TargetedExperimentHelper::Publication namespace
         "getPublications",  # TargetedExperimentHelper::Publication namespace
         "addPublication",  # TargetedExperimentHelper::Publication namespace
-        "setCVs",  # TargetedExperimentHelper::CV namespace
-        "getCVs",  # TargetedExperimentHelper::CV namespace
-        "addCV",  # TargetedExperimentHelper::CV namespace
         "setInterpretations",  # TargetedExperimentHelper::Interpretation namespace
         "getInterpretations",  # TargetedExperimentHelper::Interpretation namespace
     },
@@ -2381,16 +2375,6 @@ SPECIAL_METHODS = {
             self.filterPeakSpectrumForTopNInSlidingWindow(spectrum);
         }, "spectrum"_a, "Sliding window version (slower)")''',
     },
-    "TargetedExperiment": {
-        "setCVs": '''
-        .def("setCVs", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::CV>& cvs) {
-            self.setCVs(cvs);
-        }, "cvs"_a, "Set CVs")''',
-        "getCVs": '''
-        .def("getCVs", [](const OpenMS::TargetedExperiment& self) {
-            return self.getCVs();
-        }, "Get CVs")''',
-    },
     "TransformationModelLinear": {
         "getDefaultParameters": '''
         .def_static("getDefaultParameters", [](OpenMS::Param& params) {
@@ -2423,12 +2407,6 @@ SPECIAL_METHODS = {
            "Deisotope and single charge a spectrum")''',
     },
     # NOTE: TransformationDescription SPECIAL_METHODS consolidated below
-    "DataProcessing": {
-        "setProcessingActions": '''
-        .def("setProcessingActions", [](OpenMS::DataProcessing& self, const std::set<OpenMS::DataProcessing::ProcessingAction>& actions) {
-            self.setProcessingActions(actions);
-        }, "actions"_a, "Set processing actions")''',
-    },
     "ModificationsDB": {
         "getInstance": '''
         .def_static("getInstance", []() -> const OpenMS::ModificationsDB* {
@@ -3520,7 +3498,7 @@ class ModuleContent:
     post_class_enums: List[str]  # Enums that need to be bound after classes exist
 
 
-class NanobindEmitterV2:
+class NanobindEmitter:
     """
     Generates nanobind C++ binding code from merged C++/pxd declarations.
     Uses accurate C++ type information from libclang.
@@ -5232,6 +5210,7 @@ class NanobindEmitterV2:
             'AcquisitionMode': 'OpenMS::IonDetector::AcquisitionMode',
             'DecoyType': 'OpenMS::TargetedExperimentHelper::RetentionTime::RTType',
             'TermSpecificity': 'OpenMS::ResidueModification::TermSpecificity',
+            'ProcessingAction': 'OpenMS::DataProcessing::ProcessingAction',
         }
         for enum_type, qualified in enum_types.items():
             pattern = r'\b(?<!OpenMS::)(?<!::)' + enum_type + r'\b'

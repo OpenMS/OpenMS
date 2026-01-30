@@ -6,8 +6,6 @@ and emits nanobind C++ code.
 """
 
 import pytest
-from pathlib import Path
-import tempfile
 import textwrap
 
 
@@ -253,19 +251,19 @@ class TestAddonProcessor:
             assert name in processor.PERFORMANCE_CRITICAL_METHODS
 
 
-class TestNanobindEmitterV2:
-    """Tests for NanobindEmitterV2."""
+class TestNanobindEmitter:
+    """Tests for NanobindEmitter."""
 
     def test_emitter_creation(self):
         """Test that emitter can be created."""
-        from generator.nanobind_emitter_v2 import NanobindEmitterV2
+        from generator.nanobind_emitter import NanobindEmitter
 
-        emitter = NanobindEmitterV2(num_modules=8)
+        emitter = NanobindEmitter(num_modules=8)
         assert emitter.num_modules == 8
 
     def test_caster_owned_types_detection(self):
         """Test auto-detection of caster-owned types."""
-        from generator.nanobind_emitter_v2 import get_caster_owned_types
+        from generator.nanobind_emitter import get_caster_owned_types
 
         types = get_caster_owned_types()
         # Should detect types from type_casters/*.h
@@ -274,10 +272,10 @@ class TestNanobindEmitterV2:
 
     def test_container_detection(self):
         """Test AST-based container detection."""
-        from generator.nanobind_emitter_v2 import NanobindEmitterV2
+        from generator.nanobind_emitter import NanobindEmitter
         from generator.cpp_parser import CppClass, CppMethod, MergedClass, MergedMethod
 
-        emitter = NanobindEmitterV2()
+        emitter = NanobindEmitter()
 
         # Create a mock container class
         cpp_class = CppClass(
