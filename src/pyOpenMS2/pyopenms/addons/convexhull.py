@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 import numpy as np
-from . import addon
 
 
 def _setup_convexhull(cls):
