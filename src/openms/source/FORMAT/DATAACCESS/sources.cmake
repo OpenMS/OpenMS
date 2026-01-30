@@ -3,6 +3,7 @@ set(directory source/FORMAT/DATAACCESS)
 
 ### list all filenames of the directory here
 set(sources_list
+  MSChromatogramParquetConsumer.cpp
   MSDataWritingConsumer.cpp
   MSDataTransformingConsumer.cpp
   MSDataAggregatingConsumer.cpp
@@ -28,4 +29,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT\\DATACCESS" FILES ${sources})
-

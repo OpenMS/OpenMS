@@ -282,8 +282,8 @@ protected:
     registerStringOption_("out_features_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_features_type", out_feature_formats);
 
-    registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
-    setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
+    registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML), sqMass (SQLite format) or xic (Parquet)", false, true);
+    setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass,xic"));
 
     // additional QC data
     registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
@@ -797,6 +797,17 @@ protected:
     String swath_windows_file = getStringOption_("swath_windows_file");
 
     String out_chrom = getStringOption_("out_chrom");
+    if (!out_chrom.empty())
+    {
+      const FileTypes::Type out_chrom_type = FileHandler::getType(out_chrom);
+#ifndef WITH_PARQUET
+      if (out_chrom_type == FileTypes::CHROMPARQUET)
+      {
+        writeLogError_("Error: OpenMS was built without Parquet support, cannot write chrom_parquet output.");
+        return PARSE_ERROR;
+      }
+#endif
+    }
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
@@ -1578,7 +1589,7 @@ protected:
       String extension = out_chrom.substr(out_chrom.find_last_of('.'));
       out_chrom_current = file_basename + "_" + base_name + extension;
     }
-    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, run_id);
+    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, run_id, current_run_files[0]);
 
     // Create a run id per unique input filename and register it in the OSW
     UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();

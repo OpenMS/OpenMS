@@ -17,6 +17,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
@@ -243,16 +244,29 @@ namespace OpenMS
                           const std::shared_ptr<ExperimentalSettings>& exp_meta,
                           const OpenSwath::LightTargetedExperiment& transition_exp,
                           const String& out_chrom,
-                          const UInt64 run_id)
+                          const UInt64 run_id,
+                          const String& source_file)
   {
     if (!out_chrom.empty())
     {
-      String tmp = out_chrom;
-      if (tmp.toLower().hasSuffix(".sqmass"))
+      const FileTypes::Type out_chrom_type = FileHandler::getType(out_chrom);
+      if (out_chrom_type == FileTypes::SQMASS)
       {
         bool full_meta = false; // can lead to very large files in memory
         bool lossy_compression = true;
         *chromatogramConsumer = new MSDataSqlConsumer(out_chrom, run_id, 500, full_meta, lossy_compression);
+      }
+      else if (out_chrom_type == FileTypes::CHROMPARQUET)
+      {
+#ifndef WITH_PARQUET
+        throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "OpenMS was built without Parquet support");
+#else
+        auto * chromConsumer = new MSChromatogramParquetConsumer(out_chrom, run_id, source_file, transition_exp);
+        Size expected_chromatograms = transition_exp.transitions.size();
+        chromConsumer->setExpectedSize(0, expected_chromatograms);
+        *chromatogramConsumer = chromConsumer;
+#endif
       }
       else
       {
