@@ -270,7 +270,7 @@ import numpy as np
                 if pep.size() > 0:
                     ID_filename = self._get_prot_id_filename_from_pep_id(pep[0])
                     # Check if spectrum_native_id meta value exists before accessing
-                    # Use 'None' string (not Python None) for missing values to maintain backward compatibility
+                    # Use Python None for missing values (object dtype supports None natively)
                     if f.metaValueExists('spectrum_native_id'):
                         spec_id = f.getMetaValue('spectrum_native_id')
                         # Handle both bytes (current) and str (future autowrap changes)
@@ -287,7 +287,7 @@ import numpy as np
                     else:
                         pep_values = (None, None, ID_filename, spec_id)
                 else:
-                    # Use 'None' string for ID_native_id for consistency with object dtype
+                    # Use Python None for missing values with object dtype
                     pep_values = (None, None, None, None)
             else:
                 pep_values = ()
