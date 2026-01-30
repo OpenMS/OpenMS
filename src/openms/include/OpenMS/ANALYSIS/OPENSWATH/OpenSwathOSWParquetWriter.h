@@ -26,9 +26,7 @@ namespace OpenMS
       This writer mirrors the OSW SQLite tables in Parquet:
       - runs.parquet
       - features.parquet
-      - feature_ms1.parquet
       - feature_precursor.parquet
-      - feature_ms2.parquet
       - feature_transition.parquet (including UIS rows when present)
 
       The output is a directory or zip archive with the following layout:
@@ -42,9 +40,7 @@ namespace OpenMS
           ├── runs.parquet
           └── run_id=<id>/
               ├── features.parquet
-              ├── feature_ms1.parquet
               ├── feature_precursor.parquet
-              ├── feature_ms2.parquet
               └── feature_transition.parquet
       @endcode
 

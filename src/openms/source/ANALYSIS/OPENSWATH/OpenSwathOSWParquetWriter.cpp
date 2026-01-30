@@ -294,9 +294,7 @@ namespace OpenMS
     struct RunCounts
     {
       int64_t features = 0;
-      int64_t feature_ms1 = 0;
       int64_t feature_precursor = 0;
-      int64_t feature_ms2 = 0;
       int64_t feature_transition = 0;
     };
 
@@ -389,9 +387,7 @@ namespace OpenMS
           << "    \"counts\": {\n"
           << "      \"runs\": " << runs.size() << ",\n"
           << "      \"features\": " << total_counts.features << ",\n"
-          << "      \"feature_ms1\": " << total_counts.feature_ms1 << ",\n"
           << "      \"feature_precursor\": " << total_counts.feature_precursor << ",\n"
-          << "      \"feature_ms2\": " << total_counts.feature_ms2 << ",\n"
           << "      \"feature_transition\": " << total_counts.feature_transition << "\n"
           << "    }\n"
           << "  },\n"
@@ -410,9 +406,7 @@ namespace OpenMS
         out << "    {\"id\": " << run.run_id
             << ", \"filename\": \"" << jsonEscape_(run.filename) << "\""
             << ", \"counts\": {\"features\": " << counts.features
-            << ", \"feature_ms1\": " << counts.feature_ms1
             << ", \"feature_precursor\": " << counts.feature_precursor
-            << ", \"feature_ms2\": " << counts.feature_ms2
             << ", \"feature_transition\": " << counts.feature_transition << "}}";
         if (i + 1 < runs.size())
         {
@@ -578,28 +572,24 @@ namespace OpenMS
     arrow::DoubleBuilder exp_im_left_builder;
     arrow::DoubleBuilder exp_im_right_builder;
 
-    arrow::Int64Builder ms1_feature_id_builder;
-    arrow::Int64Builder ms1_run_id_builder;
     arrow::DoubleBuilder ms1_area_builder;
     arrow::DoubleBuilder ms1_apex_builder;
     arrow::DoubleBuilder ms1_exp_im_builder;
     arrow::DoubleBuilder ms1_delta_im_builder;
-    arrow::DoubleBuilder ms1_var_massdev_builder;
-    arrow::DoubleBuilder ms1_var_im_ms1_delta_builder;
-    arrow::DoubleBuilder ms1_var_mi_builder;
-    arrow::DoubleBuilder ms1_var_mi_contrast_builder;
-    arrow::DoubleBuilder ms1_var_mi_combined_builder;
-    arrow::DoubleBuilder ms1_var_iso_corr_builder;
-    arrow::DoubleBuilder ms1_var_iso_overlap_builder;
-    arrow::DoubleBuilder ms1_var_xcorr_coelution_builder;
-    arrow::DoubleBuilder ms1_var_xcorr_coelution_contrast_builder;
-    arrow::DoubleBuilder ms1_var_xcorr_coelution_combined_builder;
-    arrow::DoubleBuilder ms1_var_xcorr_shape_builder;
-    arrow::DoubleBuilder ms1_var_xcorr_shape_contrast_builder;
-    arrow::DoubleBuilder ms1_var_xcorr_shape_combined_builder;
+    arrow::DoubleBuilder var_ms1_massdev_builder;
+    arrow::DoubleBuilder var_ms1_im_ms1_delta_builder;
+    arrow::DoubleBuilder var_ms1_mi_builder;
+    arrow::DoubleBuilder var_ms1_mi_contrast_builder;
+    arrow::DoubleBuilder var_ms1_mi_combined_builder;
+    arrow::DoubleBuilder var_ms1_iso_corr_builder;
+    arrow::DoubleBuilder var_ms1_iso_overlap_builder;
+    arrow::DoubleBuilder var_ms1_xcorr_coelution_builder;
+    arrow::DoubleBuilder var_ms1_xcorr_coelution_contrast_builder;
+    arrow::DoubleBuilder var_ms1_xcorr_coelution_combined_builder;
+    arrow::DoubleBuilder var_ms1_xcorr_shape_builder;
+    arrow::DoubleBuilder var_ms1_xcorr_shape_contrast_builder;
+    arrow::DoubleBuilder var_ms1_xcorr_shape_combined_builder;
 
-    arrow::Int64Builder ms2_feature_id_builder;
-    arrow::Int64Builder ms2_run_id_builder;
     arrow::DoubleBuilder ms2_area_builder;
     arrow::DoubleBuilder ms2_total_area_builder;
     arrow::DoubleBuilder ms2_apex_builder;
@@ -608,35 +598,35 @@ namespace OpenMS
     arrow::DoubleBuilder ms2_exp_im_right_builder;
     arrow::DoubleBuilder ms2_delta_im_builder;
     arrow::DoubleBuilder ms2_total_mi_builder;
-    arrow::DoubleBuilder ms2_var_bseries_builder;
-    arrow::DoubleBuilder ms2_var_dotprod_builder;
-    arrow::DoubleBuilder ms2_var_intensity_builder;
-    arrow::DoubleBuilder ms2_var_iso_corr_builder;
-    arrow::DoubleBuilder ms2_var_iso_overlap_builder;
-    arrow::DoubleBuilder ms2_var_library_corr_builder;
-    arrow::DoubleBuilder ms2_var_library_dotprod_builder;
-    arrow::DoubleBuilder ms2_var_library_manhattan_builder;
-    arrow::DoubleBuilder ms2_var_library_rmsd_builder;
-    arrow::DoubleBuilder ms2_var_library_rootmeansquare_builder;
-    arrow::DoubleBuilder ms2_var_library_sangle_builder;
-    arrow::DoubleBuilder ms2_var_log_sn_builder;
-    arrow::DoubleBuilder ms2_var_manhattan_builder;
-    arrow::DoubleBuilder ms2_var_massdev_builder;
-    arrow::DoubleBuilder ms2_var_massdev_weighted_builder;
-    arrow::DoubleBuilder ms2_var_mi_builder;
-    arrow::DoubleBuilder ms2_var_mi_weighted_builder;
-    arrow::DoubleBuilder ms2_var_mi_ratio_builder;
-    arrow::DoubleBuilder ms2_var_norm_rt_builder;
-    arrow::DoubleBuilder ms2_var_xcorr_coelution_builder;
-    arrow::DoubleBuilder ms2_var_xcorr_coelution_weighted_builder;
-    arrow::DoubleBuilder ms2_var_xcorr_shape_builder;
-    arrow::DoubleBuilder ms2_var_xcorr_shape_weighted_builder;
-    arrow::DoubleBuilder ms2_var_yseries_builder;
-    arrow::DoubleBuilder ms2_var_elution_model_fit_builder;
-    arrow::DoubleBuilder ms2_var_im_xcorr_shape_builder;
-    arrow::DoubleBuilder ms2_var_im_xcorr_coelution_builder;
-    arrow::DoubleBuilder ms2_var_im_delta_builder;
-    arrow::DoubleBuilder ms2_var_im_log_intensity_builder;
+    arrow::DoubleBuilder var_ms2_bseries_builder;
+    arrow::DoubleBuilder var_ms2_dotprod_builder;
+    arrow::DoubleBuilder var_ms2_intensity_builder;
+    arrow::DoubleBuilder var_ms2_iso_corr_builder;
+    arrow::DoubleBuilder var_ms2_iso_overlap_builder;
+    arrow::DoubleBuilder var_ms2_library_corr_builder;
+    arrow::DoubleBuilder var_ms2_library_dotprod_builder;
+    arrow::DoubleBuilder var_ms2_library_manhattan_builder;
+    arrow::DoubleBuilder var_ms2_library_rmsd_builder;
+    arrow::DoubleBuilder var_ms2_library_rootmeansquare_builder;
+    arrow::DoubleBuilder var_ms2_library_sangle_builder;
+    arrow::DoubleBuilder var_ms2_log_sn_builder;
+    arrow::DoubleBuilder var_ms2_manhattan_builder;
+    arrow::DoubleBuilder var_ms2_massdev_builder;
+    arrow::DoubleBuilder var_ms2_massdev_weighted_builder;
+    arrow::DoubleBuilder var_ms2_mi_builder;
+    arrow::DoubleBuilder var_ms2_mi_weighted_builder;
+    arrow::DoubleBuilder var_ms2_mi_ratio_builder;
+    arrow::DoubleBuilder var_ms2_norm_rt_builder;
+    arrow::DoubleBuilder var_ms2_xcorr_coelution_builder;
+    arrow::DoubleBuilder var_ms2_xcorr_coelution_weighted_builder;
+    arrow::DoubleBuilder var_ms2_xcorr_shape_builder;
+    arrow::DoubleBuilder var_ms2_xcorr_shape_weighted_builder;
+    arrow::DoubleBuilder var_ms2_yseries_builder;
+    arrow::DoubleBuilder var_ms2_elution_model_fit_builder;
+    arrow::DoubleBuilder var_ms2_im_xcorr_shape_builder;
+    arrow::DoubleBuilder var_ms2_im_xcorr_coelution_builder;
+    arrow::DoubleBuilder var_ms2_im_delta_builder;
+    arrow::DoubleBuilder var_ms2_im_log_intensity_builder;
 
     arrow::Int64Builder ft_feature_id_builder;
     arrow::Int64Builder ft_run_id_builder;
@@ -720,68 +710,85 @@ namespace OpenMS
       appendFeatureScore_(exp_im_left_builder, feature, "im_drift_left", "exp_im_leftwidth");
       appendFeatureScore_(exp_im_right_builder, feature, "im_drift_right", "exp_im_rightwidth");
 
-      if (feature.metaValueExists("var_ms1_ppm_diff"))
+      const bool has_ms1 = feature.metaValueExists("var_ms1_ppm_diff");
+      if (has_ms1)
       {
-        appendOrThrow_(ms1_feature_id_builder.Append(feature_id), "feature_id");
-        appendOrThrow_(ms1_run_id_builder.Append(run_id_clean), "run_id");
-        appendOptionalFloat_(ms1_area_builder, extractMetaDouble_(feature, "ms1_area_intensity", value), value, "area_intensity");
-        appendOptionalFloat_(ms1_apex_builder, extractMetaDouble_(feature, "ms1_apex_intensity", value), value, "apex_intensity");
-        appendOptionalFloat_(ms1_exp_im_builder, extractMetaDouble_(feature, "im_ms1_drift", value), value, "exp_im");
-        appendOptionalFloat_(ms1_delta_im_builder, extractMetaDouble_(feature, "im_ms1_delta", value), value, "delta_im");
-        appendOptionalFloat_(ms1_var_massdev_builder, extractMetaDouble_(feature, "var_ms1_ppm_diff", value), value, "var_massdev_score");
-        appendOptionalFloat_(ms1_var_im_ms1_delta_builder, extractMetaDouble_(feature, "var_im_ms1_delta_score", value), value, "var_im_ms1_delta_score");
-        appendOptionalFloat_(ms1_var_mi_builder, extractMetaDouble_(feature, "var_ms1_mi_score", value), value, "var_mi_score");
-        appendOptionalFloat_(ms1_var_mi_contrast_builder, extractMetaDouble_(feature, "var_ms1_mi_contrast_score", value), value, "var_mi_contrast_score");
-        appendOptionalFloat_(ms1_var_mi_combined_builder, extractMetaDouble_(feature, "var_ms1_mi_combined_score", value), value, "var_mi_combined_score");
-        appendOptionalFloat_(ms1_var_iso_corr_builder, extractMetaDouble_(feature, "var_ms1_isotope_correlation", value), value, "var_isotope_correlation_score");
-        appendOptionalFloat_(ms1_var_iso_overlap_builder, extractMetaDouble_(feature, "var_ms1_isotope_overlap", value), value, "var_isotope_overlap_score");
-        appendOptionalFloat_(ms1_var_xcorr_coelution_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution", value), value, "var_xcorr_coelution");
-        appendOptionalFloat_(ms1_var_xcorr_coelution_contrast_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution_contrast", value), value, "var_xcorr_coelution_contrast");
-        appendOptionalFloat_(ms1_var_xcorr_coelution_combined_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution_combined", value), value, "var_xcorr_coelution_combined");
-        appendOptionalFloat_(ms1_var_xcorr_shape_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape", value), value, "var_xcorr_shape");
-        appendOptionalFloat_(ms1_var_xcorr_shape_contrast_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape_contrast", value), value, "var_xcorr_shape_contrast");
-        appendOptionalFloat_(ms1_var_xcorr_shape_combined_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape_combined", value), value, "var_xcorr_shape_combined");
+        appendOptionalFloat_(ms1_area_builder, extractMetaDouble_(feature, "ms1_area_intensity", value), value, "ms1_area_intensity");
+        appendOptionalFloat_(ms1_apex_builder, extractMetaDouble_(feature, "ms1_apex_intensity", value), value, "ms1_apex_intensity");
+        appendOptionalFloat_(ms1_exp_im_builder, extractMetaDouble_(feature, "im_ms1_drift", value), value, "ms1_exp_im");
+        appendOptionalFloat_(ms1_delta_im_builder, extractMetaDouble_(feature, "im_ms1_delta", value), value, "ms1_delta_im");
+        appendOptionalFloat_(var_ms1_massdev_builder, extractMetaDouble_(feature, "var_ms1_ppm_diff", value), value, "var_ms1_massdev_score");
+        appendOptionalFloat_(var_ms1_im_ms1_delta_builder, extractMetaDouble_(feature, "var_im_ms1_delta_score", value), value, "var_ms1_im_ms1_delta_score");
+        appendOptionalFloat_(var_ms1_mi_builder, extractMetaDouble_(feature, "var_ms1_mi_score", value), value, "var_ms1_mi_score");
+        appendOptionalFloat_(var_ms1_mi_contrast_builder, extractMetaDouble_(feature, "var_ms1_mi_contrast_score", value), value, "var_ms1_mi_contrast_score");
+        appendOptionalFloat_(var_ms1_mi_combined_builder, extractMetaDouble_(feature, "var_ms1_mi_combined_score", value), value, "var_ms1_mi_combined_score");
+        appendOptionalFloat_(var_ms1_iso_corr_builder, extractMetaDouble_(feature, "var_ms1_isotope_correlation", value), value, "var_ms1_isotope_correlation_score");
+        appendOptionalFloat_(var_ms1_iso_overlap_builder, extractMetaDouble_(feature, "var_ms1_isotope_overlap", value), value, "var_ms1_isotope_overlap_score");
+        appendOptionalFloat_(var_ms1_xcorr_coelution_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution", value), value, "var_ms1_xcorr_coelution");
+        appendOptionalFloat_(var_ms1_xcorr_coelution_contrast_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution_contrast", value), value, "var_ms1_xcorr_coelution_contrast");
+        appendOptionalFloat_(var_ms1_xcorr_coelution_combined_builder, extractMetaDouble_(feature, "var_ms1_xcorr_coelution_combined", value), value, "var_ms1_xcorr_coelution_combined");
+        appendOptionalFloat_(var_ms1_xcorr_shape_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape", value), value, "var_ms1_xcorr_shape");
+        appendOptionalFloat_(var_ms1_xcorr_shape_contrast_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape_contrast", value), value, "var_ms1_xcorr_shape_contrast");
+        appendOptionalFloat_(var_ms1_xcorr_shape_combined_builder, extractMetaDouble_(feature, "var_ms1_xcorr_shape_combined", value), value, "var_ms1_xcorr_shape_combined");
+      }
+      else
+      {
+        appendOrThrow_(ms1_area_builder.AppendNull(), "ms1_area_intensity");
+        appendOrThrow_(ms1_apex_builder.AppendNull(), "ms1_apex_intensity");
+        appendOrThrow_(ms1_exp_im_builder.AppendNull(), "ms1_exp_im");
+        appendOrThrow_(ms1_delta_im_builder.AppendNull(), "ms1_delta_im");
+        appendOrThrow_(var_ms1_massdev_builder.AppendNull(), "var_ms1_massdev_score");
+        appendOrThrow_(var_ms1_im_ms1_delta_builder.AppendNull(), "var_ms1_im_ms1_delta_score");
+        appendOrThrow_(var_ms1_mi_builder.AppendNull(), "var_ms1_mi_score");
+        appendOrThrow_(var_ms1_mi_contrast_builder.AppendNull(), "var_ms1_mi_contrast_score");
+        appendOrThrow_(var_ms1_mi_combined_builder.AppendNull(), "var_ms1_mi_combined_score");
+        appendOrThrow_(var_ms1_iso_corr_builder.AppendNull(), "var_ms1_isotope_correlation_score");
+        appendOrThrow_(var_ms1_iso_overlap_builder.AppendNull(), "var_ms1_isotope_overlap_score");
+        appendOrThrow_(var_ms1_xcorr_coelution_builder.AppendNull(), "var_ms1_xcorr_coelution");
+        appendOrThrow_(var_ms1_xcorr_coelution_contrast_builder.AppendNull(), "var_ms1_xcorr_coelution_contrast");
+        appendOrThrow_(var_ms1_xcorr_coelution_combined_builder.AppendNull(), "var_ms1_xcorr_coelution_combined");
+        appendOrThrow_(var_ms1_xcorr_shape_builder.AppendNull(), "var_ms1_xcorr_shape");
+        appendOrThrow_(var_ms1_xcorr_shape_contrast_builder.AppendNull(), "var_ms1_xcorr_shape_contrast");
+        appendOrThrow_(var_ms1_xcorr_shape_combined_builder.AppendNull(), "var_ms1_xcorr_shape_combined");
       }
 
-      appendOrThrow_(ms2_feature_id_builder.Append(feature_id), "feature_id");
-      appendOrThrow_(ms2_run_id_builder.Append(run_id_clean), "run_id");
-      appendOptionalFloat_(ms2_area_builder, true, feature.getIntensity(), "area_intensity");
-      appendOptionalFloat_(ms2_total_area_builder, extractMetaDouble_(feature, "total_xic", value), value, "total_area_intensity");
-      appendOptionalFloat_(ms2_apex_builder, extractMetaDouble_(feature, "peak_apices_sum", value), value, "apex_intensity");
-      appendOptionalFloat_(ms2_exp_im_builder, extractMetaDouble_(feature, "im_drift", value), value, "exp_im");
-      appendOptionalFloat_(ms2_exp_im_left_builder, extractMetaDouble_(feature, "im_drift_left", value), value, "exp_im_leftwidth");
-      appendOptionalFloat_(ms2_exp_im_right_builder, extractMetaDouble_(feature, "im_drift_right", value), value, "exp_im_rightwidth");
-      appendOptionalFloat_(ms2_delta_im_builder, extractMetaDouble_(feature, "im_delta", value), value, "delta_im");
-      appendOptionalFloat_(ms2_total_mi_builder, extractMetaDouble_(feature, "total_mi", value), value, "total_mi");
-      appendOptionalFloat_(ms2_var_bseries_builder, extractMetaDouble_(feature, "var_bseries_score", value), value, "var_bseries_score");
-      appendOptionalFloat_(ms2_var_dotprod_builder, extractMetaDouble_(feature, "var_dotprod_score", value), value, "var_dotprod_score");
-      appendOptionalFloat_(ms2_var_intensity_builder, extractMetaDouble_(feature, "var_intensity_score", value), value, "var_intensity_score");
-      appendOptionalFloat_(ms2_var_iso_corr_builder, extractMetaDouble_(feature, "var_isotope_correlation_score", value), value, "var_isotope_correlation_score");
-      appendOptionalFloat_(ms2_var_iso_overlap_builder, extractMetaDouble_(feature, "var_isotope_overlap_score", value), value, "var_isotope_overlap_score");
-      appendOptionalFloat_(ms2_var_library_corr_builder, extractMetaDouble_(feature, "var_library_corr", value), value, "var_library_corr");
-      appendOptionalFloat_(ms2_var_library_dotprod_builder, extractMetaDouble_(feature, "var_library_dotprod", value), value, "var_library_dotprod");
-      appendOptionalFloat_(ms2_var_library_manhattan_builder, extractMetaDouble_(feature, "var_library_manhattan", value), value, "var_library_manhattan");
-      appendOptionalFloat_(ms2_var_library_rmsd_builder, extractMetaDouble_(feature, "var_library_rmsd", value), value, "var_library_rmsd");
-      appendOptionalFloat_(ms2_var_library_rootmeansquare_builder, extractMetaDouble_(feature, "var_library_rootmeansquare", value), value, "var_library_rootmeansquare");
-      appendOptionalFloat_(ms2_var_library_sangle_builder, extractMetaDouble_(feature, "var_library_sangle", value), value, "var_library_sangle");
-      appendOptionalFloat_(ms2_var_log_sn_builder, extractMetaDouble_(feature, "var_log_sn_score", value), value, "var_log_sn_score");
-      appendOptionalFloat_(ms2_var_manhattan_builder, extractMetaDouble_(feature, "var_manhatt_score", value), value, "var_manhattan_score");
-      appendOptionalFloat_(ms2_var_massdev_builder, extractMetaDouble_(feature, "var_massdev_score", value), value, "var_massdev_score");
-      appendOptionalFloat_(ms2_var_massdev_weighted_builder, extractMetaDouble_(feature, "var_massdev_score_weighted", value), value, "var_massdev_score_weighted");
-      appendOptionalFloat_(ms2_var_mi_builder, extractMetaDouble_(feature, "var_mi_score", value), value, "var_mi_score");
-      appendOptionalFloat_(ms2_var_mi_weighted_builder, extractMetaDouble_(feature, "var_mi_weighted_score", value), value, "var_mi_weighted_score");
-      appendOptionalFloat_(ms2_var_mi_ratio_builder, extractMetaDouble_(feature, "var_mi_ratio_score", value), value, "var_mi_ratio_score");
-      appendOptionalFloat_(ms2_var_norm_rt_builder, extractMetaDouble_(feature, "var_norm_rt_score", value), value, "var_norm_rt_score");
-      appendOptionalFloat_(ms2_var_xcorr_coelution_builder, extractMetaDouble_(feature, "var_xcorr_coelution", value), value, "var_xcorr_coelution");
-      appendOptionalFloat_(ms2_var_xcorr_coelution_weighted_builder, extractMetaDouble_(feature, "var_xcorr_coelution_weighted", value), value, "var_xcorr_coelution_weighted");
-      appendOptionalFloat_(ms2_var_xcorr_shape_builder, extractMetaDouble_(feature, "var_xcorr_shape", value), value, "var_xcorr_shape");
-      appendOptionalFloat_(ms2_var_xcorr_shape_weighted_builder, extractMetaDouble_(feature, "var_xcorr_shape_weighted", value), value, "var_xcorr_shape_weighted");
-      appendOptionalFloat_(ms2_var_yseries_builder, extractMetaDouble_(feature, "var_yseries_score", value), value, "var_yseries_score");
-      appendOptionalFloat_(ms2_var_elution_model_fit_builder, extractMetaDouble_(feature, "var_elution_model_fit_score", value), value, "var_elution_model_fit_score");
-      appendOptionalFloat_(ms2_var_im_xcorr_shape_builder, extractMetaDouble_(feature, "var_im_xcorr_shape", value), value, "var_im_xcorr_shape");
-      appendOptionalFloat_(ms2_var_im_xcorr_coelution_builder, extractMetaDouble_(feature, "var_im_xcorr_coelution", value), value, "var_im_xcorr_coelution");
-      appendOptionalFloat_(ms2_var_im_delta_builder, extractMetaDouble_(feature, "var_im_delta_score", value), value, "var_im_delta_score");
-      appendOptionalFloat_(ms2_var_im_log_intensity_builder, extractMetaDouble_(feature, "im_log_intensity", value), value, "var_im_log_intensity");
+      appendOptionalFloat_(ms2_area_builder, true, feature.getIntensity(), "ms2_area_intensity");
+      appendOptionalFloat_(ms2_total_area_builder, extractMetaDouble_(feature, "total_xic", value), value, "ms2_total_area_intensity");
+      appendOptionalFloat_(ms2_apex_builder, extractMetaDouble_(feature, "peak_apices_sum", value), value, "ms2_apex_intensity");
+      appendOptionalFloat_(ms2_exp_im_builder, extractMetaDouble_(feature, "im_drift", value), value, "ms2_exp_im");
+      appendOptionalFloat_(ms2_exp_im_left_builder, extractMetaDouble_(feature, "im_drift_left", value), value, "ms2_exp_im_leftwidth");
+      appendOptionalFloat_(ms2_exp_im_right_builder, extractMetaDouble_(feature, "im_drift_right", value), value, "ms2_exp_im_rightwidth");
+      appendOptionalFloat_(ms2_delta_im_builder, extractMetaDouble_(feature, "im_delta", value), value, "ms2_delta_im");
+      appendOptionalFloat_(ms2_total_mi_builder, extractMetaDouble_(feature, "total_mi", value), value, "ms2_total_mi");
+      appendOptionalFloat_(var_ms2_bseries_builder, extractMetaDouble_(feature, "var_bseries_score", value), value, "var_ms2_bseries_score");
+      appendOptionalFloat_(var_ms2_dotprod_builder, extractMetaDouble_(feature, "var_dotprod_score", value), value, "var_ms2_dotprod_score");
+      appendOptionalFloat_(var_ms2_intensity_builder, extractMetaDouble_(feature, "var_intensity_score", value), value, "var_ms2_intensity_score");
+      appendOptionalFloat_(var_ms2_iso_corr_builder, extractMetaDouble_(feature, "var_isotope_correlation_score", value), value, "var_ms2_isotope_correlation_score");
+      appendOptionalFloat_(var_ms2_iso_overlap_builder, extractMetaDouble_(feature, "var_isotope_overlap_score", value), value, "var_ms2_isotope_overlap_score");
+      appendOptionalFloat_(var_ms2_library_corr_builder, extractMetaDouble_(feature, "var_library_corr", value), value, "var_ms2_library_corr");
+      appendOptionalFloat_(var_ms2_library_dotprod_builder, extractMetaDouble_(feature, "var_library_dotprod", value), value, "var_ms2_library_dotprod");
+      appendOptionalFloat_(var_ms2_library_manhattan_builder, extractMetaDouble_(feature, "var_library_manhattan", value), value, "var_ms2_library_manhattan");
+      appendOptionalFloat_(var_ms2_library_rmsd_builder, extractMetaDouble_(feature, "var_library_rmsd", value), value, "var_ms2_library_rmsd");
+      appendOptionalFloat_(var_ms2_library_rootmeansquare_builder, extractMetaDouble_(feature, "var_library_rootmeansquare", value), value, "var_ms2_library_rootmeansquare");
+      appendOptionalFloat_(var_ms2_library_sangle_builder, extractMetaDouble_(feature, "var_library_sangle", value), value, "var_ms2_library_sangle");
+      appendOptionalFloat_(var_ms2_log_sn_builder, extractMetaDouble_(feature, "var_log_sn_score", value), value, "var_ms2_log_sn_score");
+      appendOptionalFloat_(var_ms2_manhattan_builder, extractMetaDouble_(feature, "var_manhatt_score", value), value, "var_ms2_manhattan_score");
+      appendOptionalFloat_(var_ms2_massdev_builder, extractMetaDouble_(feature, "var_massdev_score", value), value, "var_ms2_massdev_score");
+      appendOptionalFloat_(var_ms2_massdev_weighted_builder, extractMetaDouble_(feature, "var_massdev_score_weighted", value), value, "var_ms2_massdev_score_weighted");
+      appendOptionalFloat_(var_ms2_mi_builder, extractMetaDouble_(feature, "var_mi_score", value), value, "var_ms2_mi_score");
+      appendOptionalFloat_(var_ms2_mi_weighted_builder, extractMetaDouble_(feature, "var_mi_weighted_score", value), value, "var_ms2_mi_weighted_score");
+      appendOptionalFloat_(var_ms2_mi_ratio_builder, extractMetaDouble_(feature, "var_mi_ratio_score", value), value, "var_ms2_mi_ratio_score");
+      appendOptionalFloat_(var_ms2_norm_rt_builder, extractMetaDouble_(feature, "var_norm_rt_score", value), value, "var_ms2_norm_rt_score");
+      appendOptionalFloat_(var_ms2_xcorr_coelution_builder, extractMetaDouble_(feature, "var_xcorr_coelution", value), value, "var_ms2_xcorr_coelution");
+      appendOptionalFloat_(var_ms2_xcorr_coelution_weighted_builder, extractMetaDouble_(feature, "var_xcorr_coelution_weighted", value), value, "var_ms2_xcorr_coelution_weighted");
+      appendOptionalFloat_(var_ms2_xcorr_shape_builder, extractMetaDouble_(feature, "var_xcorr_shape", value), value, "var_ms2_xcorr_shape");
+      appendOptionalFloat_(var_ms2_xcorr_shape_weighted_builder, extractMetaDouble_(feature, "var_xcorr_shape_weighted", value), value, "var_ms2_xcorr_shape_weighted");
+      appendOptionalFloat_(var_ms2_yseries_builder, extractMetaDouble_(feature, "var_yseries_score", value), value, "var_ms2_yseries_score");
+      appendOptionalFloat_(var_ms2_elution_model_fit_builder, extractMetaDouble_(feature, "var_elution_model_fit_score", value), value, "var_ms2_elution_model_fit_score");
+      appendOptionalFloat_(var_ms2_im_xcorr_shape_builder, extractMetaDouble_(feature, "var_im_xcorr_shape", value), value, "var_ms2_im_xcorr_shape");
+      appendOptionalFloat_(var_ms2_im_xcorr_coelution_builder, extractMetaDouble_(feature, "var_im_xcorr_coelution", value), value, "var_ms2_im_xcorr_coelution");
+      appendOptionalFloat_(var_ms2_im_delta_builder, extractMetaDouble_(feature, "var_im_delta_score", value), value, "var_ms2_im_delta_score");
+      appendOptionalFloat_(var_ms2_im_log_intensity_builder, extractMetaDouble_(feature, "im_log_intensity", value), value, "var_ms2_im_log_intensity");
 
       auto masserror_ppm = getSeparateScore_(feature, "masserror_ppm");
       const auto& subordinates = feature.getSubordinates();
@@ -867,12 +874,11 @@ namespace OpenMS
           {
             continue;
           }
-
           appendOrThrow_(fp_feature_id_builder.Append(feature_id), "feature_id");
           appendOrThrow_(fp_run_id_builder.Append(run_id_clean), "run_id");
-          appendOrThrow_(fp_isotope_builder.Append(static_cast<int32_t>(isotope_value)), "isotope");
-          appendOptionalFloat_(fp_area_builder, true, sub_it.getIntensity(), "area_intensity");
-          appendOptionalFloat_(fp_apex_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "apex_intensity");
+          appendOrThrow_(fp_isotope_builder.Append(static_cast<int32_t>(isotope_value)), "precursor_isotope");
+          appendOptionalFloat_(fp_area_builder, true, sub_it.getIntensity(), "precursor_area_intensity");
+          appendOptionalFloat_(fp_apex_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "precursor_apex_intensity");
         }
       }
 
@@ -1123,7 +1129,61 @@ namespace OpenMS
         arrow::field("left_width", arrow::float64()),
         arrow::field("right_width", arrow::float64()),
         arrow::field("exp_im_leftwidth", arrow::float64()),
-        arrow::field("exp_im_rightwidth", arrow::float64())
+        arrow::field("exp_im_rightwidth", arrow::float64()),
+        arrow::field("ms1_area_intensity", arrow::float64()),
+        arrow::field("ms1_apex_intensity", arrow::float64()),
+        arrow::field("ms1_exp_im", arrow::float64()),
+        arrow::field("ms1_delta_im", arrow::float64()),
+        arrow::field("var_ms1_massdev_score", arrow::float64()),
+        arrow::field("var_ms1_im_ms1_delta_score", arrow::float64()),
+        arrow::field("var_ms1_mi_score", arrow::float64()),
+        arrow::field("var_ms1_mi_contrast_score", arrow::float64()),
+        arrow::field("var_ms1_mi_combined_score", arrow::float64()),
+        arrow::field("var_ms1_isotope_correlation_score", arrow::float64()),
+        arrow::field("var_ms1_isotope_overlap_score", arrow::float64()),
+        arrow::field("var_ms1_xcorr_coelution", arrow::float64()),
+        arrow::field("var_ms1_xcorr_coelution_contrast", arrow::float64()),
+        arrow::field("var_ms1_xcorr_coelution_combined", arrow::float64()),
+        arrow::field("var_ms1_xcorr_shape", arrow::float64()),
+        arrow::field("var_ms1_xcorr_shape_contrast", arrow::float64()),
+        arrow::field("var_ms1_xcorr_shape_combined", arrow::float64()),
+        arrow::field("ms2_area_intensity", arrow::float64()),
+        arrow::field("ms2_total_area_intensity", arrow::float64()),
+        arrow::field("ms2_apex_intensity", arrow::float64()),
+        arrow::field("ms2_exp_im", arrow::float64()),
+        arrow::field("ms2_exp_im_leftwidth", arrow::float64()),
+        arrow::field("ms2_exp_im_rightwidth", arrow::float64()),
+        arrow::field("ms2_delta_im", arrow::float64()),
+        arrow::field("ms2_total_mi", arrow::float64()),
+        arrow::field("var_ms2_bseries_score", arrow::float64()),
+        arrow::field("var_ms2_dotprod_score", arrow::float64()),
+        arrow::field("var_ms2_intensity_score", arrow::float64()),
+        arrow::field("var_ms2_isotope_correlation_score", arrow::float64()),
+        arrow::field("var_ms2_isotope_overlap_score", arrow::float64()),
+        arrow::field("var_ms2_library_corr", arrow::float64()),
+        arrow::field("var_ms2_library_dotprod", arrow::float64()),
+        arrow::field("var_ms2_library_manhattan", arrow::float64()),
+        arrow::field("var_ms2_library_rmsd", arrow::float64()),
+        arrow::field("var_ms2_library_rootmeansquare", arrow::float64()),
+        arrow::field("var_ms2_library_sangle", arrow::float64()),
+        arrow::field("var_ms2_log_sn_score", arrow::float64()),
+        arrow::field("var_ms2_manhattan_score", arrow::float64()),
+        arrow::field("var_ms2_massdev_score", arrow::float64()),
+        arrow::field("var_ms2_massdev_score_weighted", arrow::float64()),
+        arrow::field("var_ms2_mi_score", arrow::float64()),
+        arrow::field("var_ms2_mi_weighted_score", arrow::float64()),
+        arrow::field("var_ms2_mi_ratio_score", arrow::float64()),
+        arrow::field("var_ms2_norm_rt_score", arrow::float64()),
+        arrow::field("var_ms2_xcorr_coelution", arrow::float64()),
+        arrow::field("var_ms2_xcorr_coelution_weighted", arrow::float64()),
+        arrow::field("var_ms2_xcorr_shape", arrow::float64()),
+        arrow::field("var_ms2_xcorr_shape_weighted", arrow::float64()),
+        arrow::field("var_ms2_yseries_score", arrow::float64()),
+        arrow::field("var_ms2_elution_model_fit_score", arrow::float64()),
+        arrow::field("var_ms2_im_xcorr_shape", arrow::float64()),
+        arrow::field("var_ms2_im_xcorr_coelution", arrow::float64()),
+        arrow::field("var_ms2_im_delta_score", arrow::float64()),
+        arrow::field("var_ms2_im_log_intensity", arrow::float64())
       });
       auto features_table = arrow::Table::Make(features_schema, {
         finishArray_(feature_id_builder, "feature_id"),
@@ -1136,168 +1196,64 @@ namespace OpenMS
         finishArray_(left_width_builder, "left_width"),
         finishArray_(right_width_builder, "right_width"),
         finishArray_(exp_im_left_builder, "exp_im_leftwidth"),
-        finishArray_(exp_im_right_builder, "exp_im_rightwidth")
+        finishArray_(exp_im_right_builder, "exp_im_rightwidth"),
+        finishArray_(ms1_area_builder, "ms1_area_intensity"),
+        finishArray_(ms1_apex_builder, "ms1_apex_intensity"),
+        finishArray_(ms1_exp_im_builder, "ms1_exp_im"),
+        finishArray_(ms1_delta_im_builder, "ms1_delta_im"),
+        finishArray_(var_ms1_massdev_builder, "var_ms1_massdev_score"),
+        finishArray_(var_ms1_im_ms1_delta_builder, "var_ms1_im_ms1_delta_score"),
+        finishArray_(var_ms1_mi_builder, "var_ms1_mi_score"),
+        finishArray_(var_ms1_mi_contrast_builder, "var_ms1_mi_contrast_score"),
+        finishArray_(var_ms1_mi_combined_builder, "var_ms1_mi_combined_score"),
+        finishArray_(var_ms1_iso_corr_builder, "var_ms1_isotope_correlation_score"),
+        finishArray_(var_ms1_iso_overlap_builder, "var_ms1_isotope_overlap_score"),
+        finishArray_(var_ms1_xcorr_coelution_builder, "var_ms1_xcorr_coelution"),
+        finishArray_(var_ms1_xcorr_coelution_contrast_builder, "var_ms1_xcorr_coelution_contrast"),
+        finishArray_(var_ms1_xcorr_coelution_combined_builder, "var_ms1_xcorr_coelution_combined"),
+        finishArray_(var_ms1_xcorr_shape_builder, "var_ms1_xcorr_shape"),
+        finishArray_(var_ms1_xcorr_shape_contrast_builder, "var_ms1_xcorr_shape_contrast"),
+        finishArray_(var_ms1_xcorr_shape_combined_builder, "var_ms1_xcorr_shape_combined"),
+        finishArray_(ms2_area_builder, "ms2_area_intensity"),
+        finishArray_(ms2_total_area_builder, "ms2_total_area_intensity"),
+        finishArray_(ms2_apex_builder, "ms2_apex_intensity"),
+        finishArray_(ms2_exp_im_builder, "ms2_exp_im"),
+        finishArray_(ms2_exp_im_left_builder, "ms2_exp_im_leftwidth"),
+        finishArray_(ms2_exp_im_right_builder, "ms2_exp_im_rightwidth"),
+        finishArray_(ms2_delta_im_builder, "ms2_delta_im"),
+        finishArray_(ms2_total_mi_builder, "ms2_total_mi"),
+        finishArray_(var_ms2_bseries_builder, "var_ms2_bseries_score"),
+        finishArray_(var_ms2_dotprod_builder, "var_ms2_dotprod_score"),
+        finishArray_(var_ms2_intensity_builder, "var_ms2_intensity_score"),
+        finishArray_(var_ms2_iso_corr_builder, "var_ms2_isotope_correlation_score"),
+        finishArray_(var_ms2_iso_overlap_builder, "var_ms2_isotope_overlap_score"),
+        finishArray_(var_ms2_library_corr_builder, "var_ms2_library_corr"),
+        finishArray_(var_ms2_library_dotprod_builder, "var_ms2_library_dotprod"),
+        finishArray_(var_ms2_library_manhattan_builder, "var_ms2_library_manhattan"),
+        finishArray_(var_ms2_library_rmsd_builder, "var_ms2_library_rmsd"),
+        finishArray_(var_ms2_library_rootmeansquare_builder, "var_ms2_library_rootmeansquare"),
+        finishArray_(var_ms2_library_sangle_builder, "var_ms2_library_sangle"),
+        finishArray_(var_ms2_log_sn_builder, "var_ms2_log_sn_score"),
+        finishArray_(var_ms2_manhattan_builder, "var_ms2_manhattan_score"),
+        finishArray_(var_ms2_massdev_builder, "var_ms2_massdev_score"),
+        finishArray_(var_ms2_massdev_weighted_builder, "var_ms2_massdev_score_weighted"),
+        finishArray_(var_ms2_mi_builder, "var_ms2_mi_score"),
+        finishArray_(var_ms2_mi_weighted_builder, "var_ms2_mi_weighted_score"),
+        finishArray_(var_ms2_mi_ratio_builder, "var_ms2_mi_ratio_score"),
+        finishArray_(var_ms2_norm_rt_builder, "var_ms2_norm_rt_score"),
+        finishArray_(var_ms2_xcorr_coelution_builder, "var_ms2_xcorr_coelution"),
+        finishArray_(var_ms2_xcorr_coelution_weighted_builder, "var_ms2_xcorr_coelution_weighted"),
+        finishArray_(var_ms2_xcorr_shape_builder, "var_ms2_xcorr_shape"),
+        finishArray_(var_ms2_xcorr_shape_weighted_builder, "var_ms2_xcorr_shape_weighted"),
+        finishArray_(var_ms2_yseries_builder, "var_ms2_yseries_score"),
+        finishArray_(var_ms2_elution_model_fit_builder, "var_ms2_elution_model_fit_score"),
+        finishArray_(var_ms2_im_xcorr_shape_builder, "var_ms2_im_xcorr_shape"),
+        finishArray_(var_ms2_im_xcorr_coelution_builder, "var_ms2_im_xcorr_coelution"),
+        finishArray_(var_ms2_im_delta_builder, "var_ms2_im_delta_score"),
+        finishArray_(var_ms2_im_log_intensity_builder, "var_ms2_im_log_intensity")
       });
       write_tasks.emplace_back(std::async(std::launch::async, [features_table, run_path]() {
         writeParquetTable_(features_table, run_path + "/features.parquet");
-      }));
-    }
-
-    if (ms1_feature_id_builder.length() > 0)
-    {
-      auto ms1_schema = arrow::schema({
-        arrow::field("feature_id", arrow::int64()),
-        arrow::field("run_id", arrow::int64()),
-        arrow::field("area_intensity", arrow::float64()),
-        arrow::field("apex_intensity", arrow::float64()),
-        arrow::field("exp_im", arrow::float64()),
-        arrow::field("delta_im", arrow::float64()),
-        arrow::field("var_massdev_score", arrow::float64()),
-        arrow::field("var_im_ms1_delta_score", arrow::float64()),
-        arrow::field("var_mi_score", arrow::float64()),
-        arrow::field("var_mi_contrast_score", arrow::float64()),
-        arrow::field("var_mi_combined_score", arrow::float64()),
-        arrow::field("var_isotope_correlation_score", arrow::float64()),
-        arrow::field("var_isotope_overlap_score", arrow::float64()),
-        arrow::field("var_xcorr_coelution", arrow::float64()),
-        arrow::field("var_xcorr_coelution_contrast", arrow::float64()),
-        arrow::field("var_xcorr_coelution_combined", arrow::float64()),
-        arrow::field("var_xcorr_shape", arrow::float64()),
-        arrow::field("var_xcorr_shape_contrast", arrow::float64()),
-        arrow::field("var_xcorr_shape_combined", arrow::float64())
-      });
-      auto ms1_table = arrow::Table::Make(ms1_schema, {
-        finishArray_(ms1_feature_id_builder, "feature_id"),
-        finishArray_(ms1_run_id_builder, "run_id"),
-        finishArray_(ms1_area_builder, "area_intensity"),
-        finishArray_(ms1_apex_builder, "apex_intensity"),
-        finishArray_(ms1_exp_im_builder, "exp_im"),
-        finishArray_(ms1_delta_im_builder, "delta_im"),
-        finishArray_(ms1_var_massdev_builder, "var_massdev_score"),
-        finishArray_(ms1_var_im_ms1_delta_builder, "var_im_ms1_delta_score"),
-        finishArray_(ms1_var_mi_builder, "var_mi_score"),
-        finishArray_(ms1_var_mi_contrast_builder, "var_mi_contrast_score"),
-        finishArray_(ms1_var_mi_combined_builder, "var_mi_combined_score"),
-        finishArray_(ms1_var_iso_corr_builder, "var_isotope_correlation_score"),
-        finishArray_(ms1_var_iso_overlap_builder, "var_isotope_overlap_score"),
-        finishArray_(ms1_var_xcorr_coelution_builder, "var_xcorr_coelution"),
-        finishArray_(ms1_var_xcorr_coelution_contrast_builder, "var_xcorr_coelution_contrast"),
-        finishArray_(ms1_var_xcorr_coelution_combined_builder, "var_xcorr_coelution_combined"),
-        finishArray_(ms1_var_xcorr_shape_builder, "var_xcorr_shape"),
-        finishArray_(ms1_var_xcorr_shape_contrast_builder, "var_xcorr_shape_contrast"),
-        finishArray_(ms1_var_xcorr_shape_combined_builder, "var_xcorr_shape_combined")
-      });
-      write_tasks.emplace_back(std::async(std::launch::async, [ms1_table, run_path]() {
-        writeParquetTable_(ms1_table, run_path + "/feature_ms1.parquet");
-      }));
-    }
-
-    if (fp_feature_id_builder.length() > 0)
-    {
-      auto fp_schema = arrow::schema({
-        arrow::field("feature_id", arrow::int64()),
-        arrow::field("run_id", arrow::int64()),
-        arrow::field("isotope", arrow::int32()),
-        arrow::field("area_intensity", arrow::float64()),
-        arrow::field("apex_intensity", arrow::float64())
-      });
-      auto fp_table = arrow::Table::Make(fp_schema, {
-        finishArray_(fp_feature_id_builder, "feature_id"),
-        finishArray_(fp_run_id_builder, "run_id"),
-        finishArray_(fp_isotope_builder, "isotope"),
-        finishArray_(fp_area_builder, "area_intensity"),
-        finishArray_(fp_apex_builder, "apex_intensity")
-      });
-      write_tasks.emplace_back(std::async(std::launch::async, [fp_table, run_path]() {
-        writeParquetTable_(fp_table, run_path + "/feature_precursor.parquet");
-      }));
-    }
-
-    {
-      auto ms2_schema = arrow::schema({
-        arrow::field("feature_id", arrow::int64()),
-        arrow::field("run_id", arrow::int64()),
-        arrow::field("area_intensity", arrow::float64()),
-        arrow::field("total_area_intensity", arrow::float64()),
-        arrow::field("apex_intensity", arrow::float64()),
-        arrow::field("exp_im", arrow::float64()),
-        arrow::field("exp_im_leftwidth", arrow::float64()),
-        arrow::field("exp_im_rightwidth", arrow::float64()),
-        arrow::field("delta_im", arrow::float64()),
-        arrow::field("total_mi", arrow::float64()),
-        arrow::field("var_bseries_score", arrow::float64()),
-        arrow::field("var_dotprod_score", arrow::float64()),
-        arrow::field("var_intensity_score", arrow::float64()),
-        arrow::field("var_isotope_correlation_score", arrow::float64()),
-        arrow::field("var_isotope_overlap_score", arrow::float64()),
-        arrow::field("var_library_corr", arrow::float64()),
-        arrow::field("var_library_dotprod", arrow::float64()),
-        arrow::field("var_library_manhattan", arrow::float64()),
-        arrow::field("var_library_rmsd", arrow::float64()),
-        arrow::field("var_library_rootmeansquare", arrow::float64()),
-        arrow::field("var_library_sangle", arrow::float64()),
-        arrow::field("var_log_sn_score", arrow::float64()),
-        arrow::field("var_manhattan_score", arrow::float64()),
-        arrow::field("var_massdev_score", arrow::float64()),
-        arrow::field("var_massdev_score_weighted", arrow::float64()),
-        arrow::field("var_mi_score", arrow::float64()),
-        arrow::field("var_mi_weighted_score", arrow::float64()),
-        arrow::field("var_mi_ratio_score", arrow::float64()),
-        arrow::field("var_norm_rt_score", arrow::float64()),
-        arrow::field("var_xcorr_coelution", arrow::float64()),
-        arrow::field("var_xcorr_coelution_weighted", arrow::float64()),
-        arrow::field("var_xcorr_shape", arrow::float64()),
-        arrow::field("var_xcorr_shape_weighted", arrow::float64()),
-        arrow::field("var_yseries_score", arrow::float64()),
-        arrow::field("var_elution_model_fit_score", arrow::float64()),
-        arrow::field("var_im_xcorr_shape", arrow::float64()),
-        arrow::field("var_im_xcorr_coelution", arrow::float64()),
-        arrow::field("var_im_delta_score", arrow::float64()),
-        arrow::field("var_im_log_intensity", arrow::float64())
-      });
-      auto ms2_table = arrow::Table::Make(ms2_schema, {
-        finishArray_(ms2_feature_id_builder, "feature_id"),
-        finishArray_(ms2_run_id_builder, "run_id"),
-        finishArray_(ms2_area_builder, "area_intensity"),
-        finishArray_(ms2_total_area_builder, "total_area_intensity"),
-        finishArray_(ms2_apex_builder, "apex_intensity"),
-        finishArray_(ms2_exp_im_builder, "exp_im"),
-        finishArray_(ms2_exp_im_left_builder, "exp_im_leftwidth"),
-        finishArray_(ms2_exp_im_right_builder, "exp_im_rightwidth"),
-        finishArray_(ms2_delta_im_builder, "delta_im"),
-        finishArray_(ms2_total_mi_builder, "total_mi"),
-        finishArray_(ms2_var_bseries_builder, "var_bseries_score"),
-        finishArray_(ms2_var_dotprod_builder, "var_dotprod_score"),
-        finishArray_(ms2_var_intensity_builder, "var_intensity_score"),
-        finishArray_(ms2_var_iso_corr_builder, "var_isotope_correlation_score"),
-        finishArray_(ms2_var_iso_overlap_builder, "var_isotope_overlap_score"),
-        finishArray_(ms2_var_library_corr_builder, "var_library_corr"),
-        finishArray_(ms2_var_library_dotprod_builder, "var_library_dotprod"),
-        finishArray_(ms2_var_library_manhattan_builder, "var_library_manhattan"),
-        finishArray_(ms2_var_library_rmsd_builder, "var_library_rmsd"),
-        finishArray_(ms2_var_library_rootmeansquare_builder, "var_library_rootmeansquare"),
-        finishArray_(ms2_var_library_sangle_builder, "var_library_sangle"),
-        finishArray_(ms2_var_log_sn_builder, "var_log_sn_score"),
-        finishArray_(ms2_var_manhattan_builder, "var_manhattan_score"),
-        finishArray_(ms2_var_massdev_builder, "var_massdev_score"),
-        finishArray_(ms2_var_massdev_weighted_builder, "var_massdev_score_weighted"),
-        finishArray_(ms2_var_mi_builder, "var_mi_score"),
-        finishArray_(ms2_var_mi_weighted_builder, "var_mi_weighted_score"),
-        finishArray_(ms2_var_mi_ratio_builder, "var_mi_ratio_score"),
-        finishArray_(ms2_var_norm_rt_builder, "var_norm_rt_score"),
-        finishArray_(ms2_var_xcorr_coelution_builder, "var_xcorr_coelution"),
-        finishArray_(ms2_var_xcorr_coelution_weighted_builder, "var_xcorr_coelution_weighted"),
-        finishArray_(ms2_var_xcorr_shape_builder, "var_xcorr_shape"),
-        finishArray_(ms2_var_xcorr_shape_weighted_builder, "var_xcorr_shape_weighted"),
-        finishArray_(ms2_var_yseries_builder, "var_yseries_score"),
-        finishArray_(ms2_var_elution_model_fit_builder, "var_elution_model_fit_score"),
-        finishArray_(ms2_var_im_xcorr_shape_builder, "var_im_xcorr_shape"),
-        finishArray_(ms2_var_im_xcorr_coelution_builder, "var_im_xcorr_coelution"),
-        finishArray_(ms2_var_im_delta_builder, "var_im_delta_score"),
-        finishArray_(ms2_var_im_log_intensity_builder, "var_im_log_intensity")
-      });
-      write_tasks.emplace_back(std::async(std::launch::async, [ms2_table, run_path]() {
-        writeParquetTable_(ms2_table, run_path + "/feature_ms2.parquet");
       }));
     }
 
@@ -1399,6 +1355,27 @@ namespace OpenMS
       }));
     }
 
+    if (fp_feature_id_builder.length() > 0)
+    {
+      auto fp_schema = arrow::schema({
+        arrow::field("feature_id", arrow::int64()),
+        arrow::field("run_id", arrow::int64()),
+        arrow::field("precursor_isotope", arrow::int32()),
+        arrow::field("precursor_area_intensity", arrow::float64()),
+        arrow::field("precursor_apex_intensity", arrow::float64())
+      });
+      auto fp_table = arrow::Table::Make(fp_schema, {
+        finishArray_(fp_feature_id_builder, "feature_id"),
+        finishArray_(fp_run_id_builder, "run_id"),
+        finishArray_(fp_isotope_builder, "precursor_isotope"),
+        finishArray_(fp_area_builder, "precursor_area_intensity"),
+        finishArray_(fp_apex_builder, "precursor_apex_intensity")
+      });
+      write_tasks.emplace_back(std::async(std::launch::async, [fp_table, run_path]() {
+        writeParquetTable_(fp_table, run_path + "/feature_precursor.parquet");
+      }));
+    }
+
     waitForWriteTasks_(write_tasks);
 
     const String runs_parquet = runs_dir + "/runs.parquet";
@@ -1412,16 +1389,12 @@ namespace OpenMS
       const String current_run_path = runs_dir + "/run_id=" + String(run.run_id);
       RunCounts counts;
       counts.features = getParquetRowCount_(current_run_path + "/features.parquet");
-      counts.feature_ms1 = getParquetRowCount_(current_run_path + "/feature_ms1.parquet");
       counts.feature_precursor = getParquetRowCount_(current_run_path + "/feature_precursor.parquet");
-      counts.feature_ms2 = getParquetRowCount_(current_run_path + "/feature_ms2.parquet");
       counts.feature_transition = getParquetRowCount_(current_run_path + "/feature_transition.parquet");
       run_counts.push_back(counts);
 
       total_counts.features += counts.features;
-      total_counts.feature_ms1 += counts.feature_ms1;
       total_counts.feature_precursor += counts.feature_precursor;
-      total_counts.feature_ms2 += counts.feature_ms2;
       total_counts.feature_transition += counts.feature_transition;
     }
 
