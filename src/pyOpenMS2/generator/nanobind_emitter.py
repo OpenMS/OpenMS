@@ -1379,22 +1379,7 @@ SPECIAL_METHODS = {
         }, "Returns the number of peaks")''',
         # clear auto-generated (declared directly on MSSpectrum, not inherited)
         # __getitem__ auto-generated from vector<Peak1D> base
-        "getMinMZ": '''
-        .def("getMinMZ", [](const OpenMS::MSSpectrum& self) {
-            return self.getMinMZ();
-        }, "Returns the minimum m/z value")''',
-        "getMaxMZ": '''
-        .def("getMaxMZ", [](const OpenMS::MSSpectrum& self) {
-            return self.getMaxMZ();
-        }, "Returns the maximum m/z value")''',
-        "getMinIntensity": '''
-        .def("getMinIntensity", [](const OpenMS::MSSpectrum& self) {
-            return self.getMinIntensity();
-        }, "Returns the minimum intensity")''',
-        "getMaxIntensity": '''
-        .def("getMaxIntensity", [](const OpenMS::MSSpectrum& self) {
-            return self.getMaxIntensity();
-        }, "Returns the maximum intensity")''',
+        # getMinMZ, getMaxMZ, getMinIntensity, getMaxIntensity auto-generated
         "get_mz_array": '''
         .def("get_mz_array", [](const OpenMS::MSSpectrum& self) {
             size_t n = self.size();
@@ -1466,41 +1451,18 @@ SPECIAL_METHODS = {
         .def("setStringDataArrays", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::DataArrays::StringDataArray>& arrays) {
             self.setStringDataArrays(arrays);
         }, "arrays"_a, "Set the string data arrays")''',
-        "getType": '''
-        .def("getType", [](const OpenMS::MSSpectrum& self, bool query_data) {
-            return self.getType(query_data);
-        }, "query_data"_a = false, "Returns the spectrum type (centroided, profile, etc.)")''',
-        "setType": '''
-        .def("setType", [](OpenMS::MSSpectrum& self, OpenMS::SpectrumSettings::SpectrumType type) {
-            self.setType(type);
-        }, "type"_a, "Set the spectrum type")''',
+        # getType, setType auto-generated
         "get_drift_time_unit": '''
         .def("get_drift_time_unit", [](const OpenMS::MSSpectrum& self) -> std::optional<OpenMS::DriftTimeUnit> {
             if (!self.containsIMData()) return std::nullopt;
             return self.getDriftTimeUnit();
         }, "Returns drift time unit if ion mobility data exists, else None")''',
-        "findNearest": '''
-        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz) {
-            return self.findNearest(mz);
-        }, "mz"_a, "Returns the index of the closest peak in m/z")
-        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz, double tolerance) {
-            return self.findNearest(mz, tolerance);
-        }, "mz"_a, "tolerance"_a, "Returns the index of the closest peak within +/- tolerance (-1 if none)")
-        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz, double tolerance_left, double tolerance_right) {
-            return self.findNearest(mz, tolerance_left, tolerance_right);
-        }, "mz"_a, "tolerance_left"_a, "tolerance_right"_a, "Returns the index of the closest peak within asymmetric tolerance (-1 if none)")''',
+        # findNearest (3 overloads) auto-generated
         "calculateTIC": '''
         .def("calculateTIC", [](const OpenMS::MSSpectrum& self) -> double {
             return static_cast<double>(self.calculateTIC());
         }, "Returns the total ion current (sum of all peak intensities)")''',
-        "reserve": '''
-        .def("reserve", [](OpenMS::MSSpectrum& self, size_t n) {
-            self.reserve(n);
-        }, "n"_a, "Reserves space for n peaks in the underlying container")''',
-        "resize": '''
-        .def("resize", [](OpenMS::MSSpectrum& self, size_t n) {
-            self.resize(n);
-        }, "n"_a, "Resizes the spectrum to contain n peaks")''',
+        # reserve, resize auto-generated
     },
     "MSChromatogram": {
         "get_peaks": '''
@@ -1744,56 +1706,12 @@ SPECIAL_METHODS = {
             self.clear();
         }, "Clear the array")''',
     },
-    "MSExperiment": {
-        "getSpectra": '''
-        .def("getSpectra", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSSpectrum>& {
-            return self.getSpectra();
-        }, nb::rv_policy::reference_internal, "Returns reference to spectra vector")''',
-        "getChromatograms": '''
-        .def("getChromatograms", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram>& {
-            return self.getChromatograms();
-        }, nb::rv_policy::reference_internal, "Returns reference to chromatograms vector")''',
-        "getSpectrum": '''
-        .def("getSpectrum", [](OpenMS::MSExperiment& self, size_t index) -> OpenMS::MSSpectrum& {
-            return self.getSpectrum(index);
-        }, "index"_a, nb::rv_policy::reference_internal, "Returns reference to spectrum at index")''',
-        "getChromatogram": '''
-        .def("getChromatogram", [](OpenMS::MSExperiment& self, size_t index) -> OpenMS::MSChromatogram& {
-            return self.getChromatogram(index);
-        }, "index"_a, nb::rv_policy::reference_internal, "Returns reference to chromatogram at index")''',
-        # addSpectrum, addChromatogram, getNrSpectra, getNrChromatograms, size
-        # auto-generated by regular method generator
-        # __getitem__ auto-generated from operator[] detection
-        # __iter__ auto-generated from begin()/end() methods
-    },
-    "PeptideIdentification": {
-        "getHits": '''
-        .def("getHits", [](OpenMS::PeptideIdentification& self) -> std::vector<OpenMS::PeptideHit>& {
-            return self.getHits();
-        }, nb::rv_policy::reference_internal, "Returns reference to peptide hits")''',
-        "setHits": '''
-        .def("setHits", [](OpenMS::PeptideIdentification& self, const std::vector<OpenMS::PeptideHit>& hits) {
-            self.setHits(hits);
-        }, "hits"_a, "Set the peptide hits")''',
-        "insertHit": '''
-        .def("insertHit", [](OpenMS::PeptideIdentification& self, const OpenMS::PeptideHit& hit) {
-            self.insertHit(hit);
-        }, "hit"_a, "Insert a peptide hit")''',
-    },
-    "ProteinIdentification": {
-        "getHits": '''
-        .def("getHits", [](OpenMS::ProteinIdentification& self) -> std::vector<OpenMS::ProteinHit>& {
-            return self.getHits();
-        }, nb::rv_policy::reference_internal, "Returns reference to protein hits")''',
-        "setHits": '''
-        .def("setHits", [](OpenMS::ProteinIdentification& self, const std::vector<OpenMS::ProteinHit>& hits) {
-            self.setHits(hits);
-        }, "hits"_a, "Set the protein hits")''',
-        "insertHit": '''
-        .def("insertHit", [](OpenMS::ProteinIdentification& self, const OpenMS::ProteinHit& hit) {
-            self.insertHit(hit);
-        }, "hit"_a, "Insert a protein hit")''',
-    },
+    # MSExperiment: getSpectra, getChromatograms, getSpectrum, getChromatogram
+    # auto-generated (mutable ref dedup prefers non-const version)
+    # PeptideIdentification: getHits, setHits, insertHit auto-generated
+    # (mutable ref dedup prefers non-const getHits)
+    # ProteinIdentification: getHits, setHits, insertHit auto-generated
+    # (mutable ref dedup prefers non-const getHits)
     # Feature: getSubordinates, setSubordinates, getPeptideIdentifications,
     # setPeptideIdentifications auto-generated by regular method generator
     "FeatureMap": {
@@ -1841,37 +1759,10 @@ SPECIAL_METHODS = {
         .def("__init__", [](OpenMS::AASequence* self, const std::string& s) {
             new (self) OpenMS::AASequence(OpenMS::String(s));
         }, "sequence"_a, "Create AASequence from string (e.g., 'PEPTIDE')")''',
-        "size": '''
-        .def("size", [](const OpenMS::AASequence& self) {
-            return self.size();
-        }, "Returns the number of residues")''',
-        # __len__ auto-generated from size() method
-        "toString": '''
-        .def("toString", [](const OpenMS::AASequence& self) {
-            return self.toString();
-        }, "Returns string representation")''',
-        "toUnmodifiedString": '''
-        .def("toUnmodifiedString", [](const OpenMS::AASequence& self) {
-            return self.toUnmodifiedString();
-        }, "Returns unmodified string representation")''',
-        "getMonoWeight": '''
-        .def("getMonoWeight", [](const OpenMS::AASequence& self) {
-            return self.getMonoWeight();
-        }, "Returns monoisotopic weight")''',
-        "fromString": '''
-        .def_static("fromString", [](const std::string& s) {
-            return OpenMS::AASequence::fromString(OpenMS::String(s));
-        }, "sequence"_a, "Create AASequence from string")''',
-        "fromStringPermissive": '''
-        .def_static("fromStringPermissive", [](const std::string& s, bool permissive) {
-            return OpenMS::AASequence::fromString(OpenMS::String(s), permissive);
-        }, "sequence"_a, "permissive"_a = true, "Create AASequence from string (permissive mode)")''',
+        # size, toString, toUnmodifiedString, getMonoWeight, fromString, fromStringPermissive auto-generated
     },
     "Param": {
-        "getValue": '''
-        .def("getValue", [](const OpenMS::Param& self, const OpenMS::String& key) {
-            return self.getValue(key);
-        }, "key"_a, "Returns the value for a key")''',
+        # getValue auto-generated
         "setValue": '''
         .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value, const OpenMS::String& description, const std::vector<std::string>& tags) {
             self.setValue(key, value, description, tags);
@@ -1882,22 +1773,7 @@ SPECIAL_METHODS = {
         .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value) {
             self.setValue(key, value);
         }, "key"_a, "value"_a, "Set a value for a key")''',
-        "exists": '''
-        .def("exists", [](const OpenMS::Param& self, const OpenMS::String& key) {
-            return self.exists(key);
-        }, "key"_a, "Check if a key exists")''',
-        "size": '''
-        .def("size", [](const OpenMS::Param& self) {
-            return self.size();
-        }, "Returns the number of parameters")''',
-        "empty": '''
-        .def("empty", [](const OpenMS::Param& self) {
-            return self.empty();
-        }, "Check if empty")''',
-        "clear": '''
-        .def("clear", [](OpenMS::Param& self) {
-            self.clear();
-        }, "Clear all parameters")''',
+        # exists, size, empty, clear auto-generated
     },
     "MzMLFile": {
         "load": '''
@@ -2138,14 +2014,7 @@ SPECIAL_METHODS = {
             }
             return max_mob;
         }, "Get maximum mobility value")''',
-        "getMinIntensity": '''
-        .def("getMinIntensity", [](const OpenMS::Mobilogram& self) -> double {
-            return self.getMinIntensity();
-        }, "Get minimum intensity")''',
-        "getMaxIntensity": '''
-        .def("getMaxIntensity", [](const OpenMS::Mobilogram& self) -> double {
-            return self.getMaxIntensity();
-        }, "Get maximum intensity")''',
+        # getMinIntensity, getMaxIntensity auto-generated
     },
     "File": {
         "exists": '''
@@ -4731,9 +4600,18 @@ class NanobindEmitter:
                 const_versions = [m for m in same_sig_overloads if m.cpp_method.is_const]
                 non_const_versions = [m for m in same_sig_overloads if not m.cpp_method.is_const]
                 if const_versions and non_const_versions:
-                    # This is a const/non-const pair with same params - skip non-const
-                    if not method.is_const:
-                        return None
+                    # Check if non-const version returns a mutable reference
+                    non_const_ret = non_const_versions[0].cpp_method.return_type or ""
+                    is_mutable_ref = ('&' in non_const_ret and 'const' not in non_const_ret
+                                      and '&&' not in non_const_ret)
+                    if is_mutable_ref:
+                        # Prefer non-const (mutable ref return) - skip const version
+                        if method.is_const:
+                            return None
+                    else:
+                        # Prefer const version (current behavior) - skip non-const
+                        if not method.is_const:
+                            return None
             # Otherwise: different parameter signatures — emit all, nanobind dispatches
 
         # Phase 2: Detect output parameter pattern
