@@ -100,6 +100,7 @@ namespace OpenMS
       int64_t product_decoy = 0;
       int64_t transition_ordinal = 0;
       String transition_type;
+      String annotation;
     };
 
     int64_t parseOrAssignId_(const String& text, int64_t& next_id)
@@ -117,6 +118,31 @@ namespace OpenMS
       {
         return next_id++;
       }
+    }
+
+    String buildAnnotation_(const String& transition_type, int64_t ordinal, int64_t charge)
+    {
+      if (transition_type.empty() || ordinal < 0)
+      {
+        return "";
+      }
+      String annotation = transition_type + String(ordinal);
+      if (charge > 0)
+      {
+        annotation += "^" + String(charge);
+      }
+      return annotation;
+    }
+
+    String buildPrecursorAnnotation_(const String& native_id)
+    {
+      const String tag = "_Precursor_i";
+      const Size pos = native_id.rfind(tag);
+      if (pos != String::npos)
+      {
+        return native_id.substr(pos + 1);
+      }
+      return "";
     }
 #endif
   } // namespace
@@ -170,6 +196,7 @@ namespace OpenMS
 
       if (is_precursor)
       {
+        const String precursor_annotation = buildPrecursorAnnotation_(native_id);
         const String group_id = OpenSwathHelper::computeTransitionGroupId(native_id);
         auto comp_it = compound_info_.find(group_id);
         if (comp_it != compound_info_.end())
@@ -194,6 +221,7 @@ namespace OpenMS
         appendOrThrow_(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
         appendOrThrow_(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
         appendOrThrow_(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
+        appendOptionalString_(annotation_builder_, precursor_annotation, "ANNOTATION");
       }
       else
       {
@@ -211,6 +239,7 @@ namespace OpenMS
           appendOptionalInt_(product_decoy_builder_, true, tr.product_decoy, "PRODUCT_DECOY");
           appendOptionalInt_(transition_ordinal_builder_, tr.transition_ordinal >= 0, tr.transition_ordinal, "TRANSITION_ORDINAL");
           appendOptionalString_(transition_type_builder_, tr.transition_type, "TRANSITION_TYPE");
+          appendOptionalString_(annotation_builder_, tr.annotation, "ANNOTATION");
         }
         else
         {
@@ -224,6 +253,7 @@ namespace OpenMS
           appendOrThrow_(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
           appendOrThrow_(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
           appendOrThrow_(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
+          appendOrThrow_(annotation_builder_.AppendNull(), "ANNOTATION");
         }
       }
 
@@ -250,6 +280,7 @@ namespace OpenMS
         product_decoy_builder_.Reserve(expectedChromatograms);
         transition_ordinal_builder_.Reserve(expectedChromatograms);
         transition_type_builder_.Reserve(expectedChromatograms);
+        annotation_builder_.Reserve(expectedChromatograms);
         native_id_builder_.Reserve(expectedChromatograms);
         rt_data_builder_.Reserve(expectedChromatograms);
         intensity_data_builder_.Reserve(expectedChromatograms);
@@ -354,6 +385,7 @@ namespace OpenMS
         info.product_decoy = is_decoy ? 1 : 0;
         info.transition_ordinal = transition.fragment_nr;
         info.transition_type = transition.getFragmentType();
+        info.annotation = buildAnnotation_(info.transition_type, info.transition_ordinal, info.product_charge);
 
         transition_info_.emplace(transition_name, std::move(info));
       }
@@ -436,6 +468,7 @@ namespace OpenMS
         arrow::field("PRODUCT_DECOY", arrow::int64()),
         arrow::field("TRANSITION_ORDINAL", arrow::int64()),
         arrow::field("TRANSITION_TYPE", arrow::utf8()),
+        arrow::field("ANNOTATION", arrow::utf8()),
         arrow::field("NATIVE_ID", arrow::utf8()),
         arrow::field("RT_DATA", arrow::binary()),
         arrow::field("INTENSITY_DATA", arrow::binary()),
@@ -457,6 +490,7 @@ namespace OpenMS
         finishArray_(product_decoy_builder_, "PRODUCT_DECOY"),
         finishArray_(transition_ordinal_builder_, "TRANSITION_ORDINAL"),
         finishArray_(transition_type_builder_, "TRANSITION_TYPE"),
+        finishArray_(annotation_builder_, "ANNOTATION"),
         finishArray_(native_id_builder_, "NATIVE_ID"),
         finishArray_(rt_data_builder_, "RT_DATA"),
         finishArray_(intensity_data_builder_, "INTENSITY_DATA"),
@@ -496,6 +530,7 @@ namespace OpenMS
     arrow::Int64Builder product_decoy_builder_;
     arrow::Int64Builder transition_ordinal_builder_;
     arrow::StringBuilder transition_type_builder_;
+    arrow::StringBuilder annotation_builder_;
     arrow::StringBuilder native_id_builder_;
     arrow::BinaryBuilder rt_data_builder_;
     arrow::BinaryBuilder intensity_data_builder_;
