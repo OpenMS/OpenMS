@@ -156,7 +156,7 @@
         Args:
             min_charge: Minimum fragment ion charge state (default: 1)
             max_charge: Maximum fragment ion charge state (default: 1)
-            ion_types: Ion types to generate - 'a','b','c','x','y','z' for ion series, 'M' for precursor, 'I' for immonium. E.g. "by" or "abyM" (default: "by")
+            ion_types: Ion types to generate, e.g. "by" (default) or "abyM". Use a/b/c/x/y/z for ion series, M for precursor, I for immonium.
             add_losses: If True, include neutral loss peaks (H2O, NH3) (default: False)
             add_metainfo: If True, include ion annotations in spectrum (default: True)
 

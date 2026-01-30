@@ -109,6 +109,8 @@ MzIdentMLFile.h
 TraMLFile.h
 XMassFile.h
 XQuestResultXMLFile.h
+MRMFile.h
+TargetedDataFileLoader.h
 ZlibCompression.h
 )
 

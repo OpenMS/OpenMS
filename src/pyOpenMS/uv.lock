@@ -1181,7 +1181,7 @@ provides-extras = ["dataframes", "arrow", "all"]
 [package.metadata.requires-dev]
 build = [
     { name = "auditwheel", marker = "sys_platform == 'linux'" },
-    { name = "autowrap", specifier = ">=0.24.0" },
+    { name = "autowrap", specifier = ">=0.27.0" },
     { name = "cython", specifier = ">=3.1.0" },
     { name = "delocate", marker = "sys_platform == 'darwin'" },
     { name = "delvewheel", marker = "sys_platform == 'win32'" },
@@ -1190,7 +1190,7 @@ build = [
 ]
 dev = [
     { name = "auditwheel", marker = "sys_platform == 'linux'" },
-    { name = "autowrap", specifier = ">=0.24.0" },
+    { name = "autowrap", specifier = ">=0.27.0" },
     { name = "cython", specifier = ">=3.1.0" },
     { name = "delocate", marker = "sys_platform == 'darwin'" },
     { name = "delvewheel", marker = "sys_platform == 'win32'" },
