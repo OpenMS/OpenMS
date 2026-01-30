@@ -15,7 +15,11 @@ namespace OpenMS
   class String;
 
   /**
-    @brief Base class for all classes that want to report their progress.
+    @brief Provides progress logging functionality.
+
+    Classes that want to report progress should hold a ProgressLogger as a
+    member (typically @c prog_log_) and expose it via @c getProgressLogger()
+    accessors. See FeatureFinderIdentificationAlgorithm for an example.
 
     Per default the progress log is disabled. Use setLogType to enable it.
 

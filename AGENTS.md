@@ -348,7 +348,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 
 - `OPENMS_DLLAPI` on all non-template exported classes/structs/functions/vars; not on templates; include in friend operator declarations.
 - Use OpenMS logging macros and `OpenMS::LogStream`; avoid `std::cout/err` directly.
-- Use `ProgressLogger` in tools for progress reporting.
+- Use `ProgressLogger` as a composed member (`prog_log_`) for progress reporting; expose via `getProgressLogger()` accessors. External callers use `obj.getProgressLogger().setLogType()`.
 - Avoid `std::endl` for performance; prefer `\n`.
 - Prefer `OpenMS::String` for numeric formatting and parsing (precision and speed).
 - Use `Size`/`SignedSize` for STL `.size()` values.
