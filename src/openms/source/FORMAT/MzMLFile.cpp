@@ -241,15 +241,15 @@ namespace OpenMS
         UInt lvl = s.getMSLevel();
         switch (s.getType(true))
         {
-          case (MSSpectrum::SpectrumType::CENTROID):
+          case (SpectrumSettings::SpectrumType::CENTROID):
             ++ret[lvl].count_centroided;
             --first_n_spectra_only_remaining;
             break;
-          case (MSSpectrum::SpectrumType::PROFILE):
+          case (SpectrumSettings::SpectrumType::PROFILE):
             ++ret[lvl].count_profile;
             --first_n_spectra_only_remaining;
             break;
-          case (MSSpectrum::SpectrumType::UNKNOWN):  // this can only happen for spectra with very few peaks (or completely empty spectra)
+          case (SpectrumSettings::SpectrumType::UNKNOWN):  // this can only happen for spectra with very few peaks (or completely empty spectra)
             ++ret[lvl].count_unknown;
             break;
           default:

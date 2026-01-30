@@ -17,7 +17,7 @@ namespace OpenMS
     if (clear_spectrum) output.clear(true);
 
     // copy the spectrum meta data
-    output.SpectrumSettings::operator=(input);
+    output.setSpectrumSettings(input.getSpectrumSettings());
     output.setRT(input.getRT());
     output.setDriftTime(input.getDriftTime());
     output.setDriftTimeUnit(input.getDriftTimeUnit());

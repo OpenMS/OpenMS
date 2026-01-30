@@ -209,8 +209,7 @@ namespace OpenMS
 
     // copy meta data of the input chromatogram
     picked_chrom.clear(true);
-    picked_chrom.ChromatogramSettings::operator=(chromatogram);
-    picked_chrom.MetaInfoInterface::operator=(chromatogram);
+    picked_chrom.setChromatogramSettings(chromatogram.getChromatogramSettings());
     picked_chrom.setName(chromatogram.getName());
 
     std::vector<double> time;

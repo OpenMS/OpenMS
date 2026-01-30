@@ -175,7 +175,7 @@ namespace OpenMS
     if (options_.hasMZRange() || options_.hasIntensityRange())
     {
       MSSpectrum filtered;
-      filtered.SpectrumSettings::operator=(spectrum);
+      filtered.setSpectrumSettings(spectrum.getSpectrumSettings());
       filtered.reserve(spectrum.size());
 
       for (const auto& peak : spectrum)
@@ -210,7 +210,7 @@ namespace OpenMS
     if (options_.hasRTRange() || options_.hasIntensityRange())
     {
       MSChromatogram filtered;
-      filtered.ChromatogramSettings::operator=(chromatogram);
+      filtered.setChromatogramSettings(chromatogram.getChromatogramSettings());
       filtered.reserve(chromatogram.size());
 
       for (const auto& peak : chromatogram)

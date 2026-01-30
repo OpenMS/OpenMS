@@ -989,13 +989,13 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     //NOTE: If it does not work, use this code to find out where the difference is
     TEST_EQUAL(exp.size() == exp_original.size(), true)
     TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original), true)
-    TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]), true)
+    TEST_EQUAL(exp[0].getSpectrumSettings() == exp_original[0].getSpectrumSettings(), true)
     TEST_EQUAL(exp[0] == exp_original[0], true)
-    TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]), true)
+    TEST_EQUAL(exp[1].getSpectrumSettings() == exp_original[1].getSpectrumSettings(), true)
     TEST_EQUAL(exp[1] == exp_original[1], true)
-    TEST_EQUAL(exp[2].SpectrumSettings::operator==(exp_original[2]), true)
+    TEST_EQUAL(exp[2].getSpectrumSettings() == exp_original[2].getSpectrumSettings(), true)
     TEST_EQUAL(exp[2] == exp_original[2], true)
-    TEST_EQUAL(exp[3].SpectrumSettings::operator==(exp_original[3]), true)
+    TEST_EQUAL(exp[3].getSpectrumSettings() == exp_original[3].getSpectrumSettings(), true)
     TEST_EQUAL(exp[3] == exp_original[3], true)
     TEST_EQUAL(exp.getChromatograms().size(), exp_original.getChromatograms().size());
     TEST_EQUAL(exp.getChromatograms() == exp_original.getChromatograms(), true);

@@ -98,8 +98,7 @@ namespace OpenMS
   {
     // copy meta data of the input chromatogram
     output.clear(true);
-    output.ChromatogramSettings::operator=(input);
-    output.MetaInfoInterface::operator=(input);
+    output.setChromatogramSettings(input.getChromatogramSettings());
     output.setName(input.getName());
 
     pick_(input, output, boundaries, check_spacings);
