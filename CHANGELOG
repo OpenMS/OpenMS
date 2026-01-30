@@ -77,6 +77,9 @@ PyOpenMS:
     - Mass calculation: getMonoWeight(), getMZ(), canCalculateMass()
     - JSON serialization: toJSON()/fromJSON() for AST persistence
     - Pythonic API: __str__, __repr__, __len__ on Peptidoform and PeptidoformIon
+  - USI support: Python bindings for Universal Spectrum Identifier (#8684)
+    - USI class with constructor from string, tryParse(), isValidUSI()
+    - PeptideIdentification.buildUSI() for generating USIs
 
 TOPP tools:
   Changes:
@@ -95,6 +98,7 @@ TOPP tools:
     OpenSwathWorkflow:
       - Priority peptide sampling for iRT calibration (#8373)
       - Decoy generation speed optimizations (#8569)
+      - Added SRM support (#8700)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
     FileMerger:
@@ -124,6 +128,14 @@ OpenMS Library:
       - JSON serialization for AST persistence and interoperability
       - Theoretical spectrum generation via tryGenerateSpectrum() for single-chain and cross-linked peptides
         Uses TheoreticalSpectrumGenerator for linear peptides, TheoreticalSpectrumGeneratorXLMS for cross-links
+    - MzPAF: HUPO-PSI mzPAF (Peak Annotation Format) parser and serializer (#8686). Parse fragment ion annotations: MzPAF::parse("y4-H2O^2/3.2ppm*0.75"). pyOpenMS bindings included
+    - USI: Universal Spectrum Identifier support per HUPO-PSI standard (#8684)
+      - USI class for parsing and building USI strings (mzspec:collection:msrun:index_type:index[:interpretation])
+      - Static methods: tryParse() (non-throwing), isValidUSI(), createFromScanNumber(), createFromNativeID()
+      - Uses SpectrumNativeIDParser for robust scan number extraction from vendor formats
+      - PeptideIdentification.buildUSI() for generating USIs from identification results
+      - TextExporter USI output with optional dataset_id/ms_run parameters
+      - pyOpenMS bindings included
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)

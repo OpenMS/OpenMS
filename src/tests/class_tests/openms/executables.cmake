@@ -121,6 +121,7 @@ set(metadata_executables_list
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   SpectrumSettings_test
+  USI_test
   )
 
 set(system_executables_list
@@ -248,11 +249,13 @@ set(format_executables_list
   SequestOutfile_test
   SpecArrayFile_test
   SqMassFile_test
+  MRMFile_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
   SwathWindowLoader_test
   TextFile_test
+  TargetedDataFileLoader_test
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
@@ -411,6 +414,7 @@ set(chemistry_executables_list
   ModificationDefinitionsSet_test
   ModificationsDB_test
   ModifiedNASequenceGenerator_test
+  MzPAF_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
   ProFormaParser_test
@@ -499,6 +503,10 @@ set(analysis_executables_list
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
   MRMMapping_test
+  MRMChromHandler_test
+  DefaultChromHandler_test
+  DIAChromHandler_test
+  ChromatogramProcessor_test
   MRMScoring_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test

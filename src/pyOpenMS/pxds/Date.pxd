@@ -17,3 +17,15 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Date.h>" namespace "OpenMS":
 
         # Sets the undefined date: 00/00/0000
         void clear() except + nogil 
+
+        # Comparison operators
+        bool operator==(const Date & rhs) except + nogil 
+        bool operator!=(const Date & rhs) except + nogil 
+        bool operator<(const Date & rhs) except + nogil 
+
+        # Accessor methods
+        bool isValid() except + nogil 
+        bool isNull() except + nogil 
+        int year() except + nogil 
+        int month() except + nogil 
+        int day() except + nogil 

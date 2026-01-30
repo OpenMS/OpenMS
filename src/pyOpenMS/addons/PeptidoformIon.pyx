@@ -8,7 +8,7 @@
 
         Parse a ProForma string into a PeptidoformIon object.
 
-        This is a convenience method that wraps ProFormaParser.parseIon().
+        This is a convenience method that wraps ProForma.parseIon().
 
         Args:
             proforma_string: A ProForma notation string with optional charge
@@ -25,11 +25,11 @@
             >>> str(pfi)
             'PEPTIDE/2'
         """
-        return ProFormaParser.parseIon(proforma_string)
+        return ProForma.parseIon(proforma_string)
 
     def toString(self, mode=None):
         """
-        toString(self, mode: ProFormaWriteMode = None) -> str
+        toString(self, mode: WriteMode = None) -> str
 
         Convert this PeptidoformIon back to ProForma string notation.
 
@@ -40,9 +40,9 @@
             str: The ProForma string representation
         """
         if mode is None:
-            mode = ProFormaWriteMode.LOSSLESS
-        # Use the C++ ProFormaParser::toString(PeptidoformIon, mode) via toStringIon binding
-        return ProFormaParser.toStringIon(self, mode)
+            mode = ProForma.WriteMode.LOSSLESS
+        # Use the C++ ProForma::toString(PeptidoformIon, mode) via toStringIon binding
+        return ProForma.toStringIon(self, mode)
 
     def getMonoWeight(self):
         """
@@ -53,7 +53,7 @@
         Returns:
             float: The monoisotopic mass
         """
-        return ProFormaParser.getMonoWeightIon(self)
+        return ProForma.getMonoWeightIon(self)
 
     def canCalculateMass(self):
         """
@@ -64,7 +64,7 @@
         Returns:
             bool: True if mass calculation is possible
         """
-        return ProFormaParser.canCalculateMassIon(self)
+        return ProForma.canCalculateMassIon(self)
 
     def getMassCalculationIssues(self):
         """
@@ -75,7 +75,7 @@
         Returns:
             list: List of ConversionIssue objects describing problems
         """
-        return ProFormaParser.getMassCalculationIssuesIon(self)
+        return ProForma.getMassCalculationIssuesIon(self)
 
     def getMZ(self):
         """
@@ -89,7 +89,7 @@
         Raises:
             RuntimeError: If no charge state is specified
         """
-        return ProFormaParser.getMZ(self)
+        return ProForma.getMZ(self)
 
     def toJSON(self):
         """
@@ -100,7 +100,7 @@
         Returns:
             str: JSON string of the peptidoform ion AST
         """
-        return ProFormaParser.peptidoformIonToJSON(self)
+        return ProForma.peptidoformIonToJSON(self)
 
     @staticmethod
     def fromJSON(str json_str):
@@ -115,7 +115,7 @@
         Returns:
             PeptidoformIon: The deserialized peptidoform ion
         """
-        return ProFormaParser.peptidoformIonFromJSON(json_str)
+        return ProForma.peptidoformIonFromJSON(json_str)
 
     def canGenerateSpectrum(self):
         """
@@ -131,7 +131,7 @@
             >>> pfi.canGenerateSpectrum()
             True
         """
-        return ProFormaParser.canGenerateSpectrumIon(self)
+        return ProForma.canGenerateSpectrumIon(self)
 
     def getSpectrumGenerationIssues(self):
         """
@@ -142,7 +142,7 @@
         Returns:
             list: List of ConversionIssue objects (empty if spectrum can be generated)
         """
-        return ProFormaParser.getSpectrumGenerationIssuesIon(self)
+        return ProForma.getSpectrumGenerationIssuesIon(self)
 
     def generateSpectrum(self, int min_charge=1, int max_charge=1, str ion_types="by", bool add_losses=False, bool add_metainfo=True):
         """
@@ -180,7 +180,7 @@
             >>> if pfi.canGenerateSpectrum():
             ...     spec = pfi.generateSpectrum(1, 2, "aby")
         """
-        return ProFormaParser.generateSpectrumIon(self, min_charge, max_charge, ion_types.encode('utf-8'), add_losses, add_metainfo)
+        return ProForma.generateSpectrumIon(self, min_charge, max_charge, ion_types.encode('utf-8'), add_losses, add_metainfo)
 
     def __len__(self):
         """
@@ -192,14 +192,14 @@
         """
         Return the ProForma string representation (lossless mode).
         """
-        return self.toString(ProFormaWriteMode.LOSSLESS)
+        return self.toString(ProForma.WriteMode.LOSSLESS)
 
     def __repr__(self):
         """
         Return a detailed string representation for debugging.
         """
         try:
-            seq_str = self.toString(ProFormaWriteMode.LOSSLESS)
+            seq_str = self.toString(ProForma.WriteMode.LOSSLESS)
             if len(seq_str) > 50:
                 seq_str = seq_str[:47] + "..."
 

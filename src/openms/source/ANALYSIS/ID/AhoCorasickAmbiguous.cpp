@@ -284,8 +284,8 @@ namespace OpenMS
   Index ACTrie::add_(const Index index, const AA label)
   {
     if (vec_index2children_naive_.size() <= index())
-    { // double...
-      vec_index2children_naive_.resize(vec_index2children_naive_.size() * 2);
+    { // doubling is not enough
+      vec_index2children_naive_.resize(std::bit_ceil(index() + 1));  // +1 since bit_ceil(x)^2 == x iff x is a power of 2 (i.e. no resize takes place)
     }
     Index ch = findChildNaive_(index, label);
     if (ch.isInvalid())

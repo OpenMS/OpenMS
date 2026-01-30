@@ -6,6 +6,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/USI.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
@@ -251,18 +253,18 @@ namespace OpenMS
   {
     multimap<String, std::pair<Size, Size>> customID_to_cpepID{};
 
-    ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
+    IdentifierMSRunMapper mapping(cmap.getProteinIdentifications());
     //Iterates of the vector of PeptideIdentification to build the UID
     //and the pep_index
-    auto lamda = [](const PeptideIdentificationList &cpep_ids,
-                    const map<String, StringList> &identifier_to_msrunpath,
-                    multimap<String, std::pair<Size, Size>> &customID_to_cpepID,
-                    const Size &cf_index) {
+    auto lambda = [](const PeptideIdentificationList &cpep_ids,
+                     const IdentifierMSRunMapper& id_mapping,
+                     multimap<String, std::pair<Size, Size>> &customID_to_cpepID,
+                     const Size &cf_index) {
         Size pep_index = 0;
         for (const PeptideIdentification &cpep_id : cpep_ids)
         {
           std::pair<Size, Size> index = {cf_index, pep_index};
-          auto uid = buildUIDFromPepID(cpep_id, identifier_to_msrunpath);
+          auto uid = buildUIDFromPepID(cpep_id, id_mapping);
           customID_to_cpepID.insert(make_pair(uid, index));
           ++pep_index;
         }
@@ -272,16 +274,16 @@ namespace OpenMS
     //An occurrence is described as a pair of an index of the ConsensusFeature and the PeptideIdentification
     for (Size i = 0; i < cmap.size(); ++i)
     {
-      lamda(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID, i);
+      lambda(cmap[i].getPeptideIdentifications(), mapping, customID_to_cpepID, i);
     }
     //all unassigned PeptideIdentifications get -1 for the ConsensusFeature index
-    lamda(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID, -1);
+    lambda(cmap.getUnassignedPeptideIdentifications(), mapping, customID_to_cpepID, -1);
 
     return customID_to_cpepID;
   }
 
   String PeptideIdentification::buildUIDFromPepID(const PeptideIdentification &pep_id,
-                                                  const std::map<String, StringList> &fidentifier_to_msrunpath)
+                                                  const IdentifierMSRunMapper& mapping)
   {
     if (!pep_id.metaValueExists("spectrum_reference"))
     {
@@ -289,10 +291,10 @@ namespace OpenMS
                                           "Spectrum reference missing at PeptideIdentification.");
     }
     String UID;
-    const auto &ms_run_path = fidentifier_to_msrunpath.at(pep_id.getIdentifier());
-    if (ms_run_path.size() == 1)
+    const StringList& ms_run_paths = mapping.getMSRunPaths(pep_id.getIdentifier());
+    if (ms_run_paths.size() == 1)
     {
-      UID = ms_run_path[0] + '|' + pep_id.getSpectrumReference();
+      UID = ms_run_paths[0] + '|' + pep_id.getSpectrumReference();
     }
     else if (pep_id.metaValueExists("map_index"))
     {
@@ -306,4 +308,65 @@ namespace OpenMS
     }
     return UID;
   }
+
+  USI PeptideIdentification::buildUSI(const String& ms_run_name,
+                                      const String& dataset_id,
+                                      bool include_interpretation) const
+  {
+    // Get the spectrum reference (native ID)
+    String spec_ref = getSpectrumReference();
+
+    // Try to extract scan number from native ID
+    auto scan_num = USI::extractScanNumberFromNativeID(spec_ref);
+
+    // Build interpretation string if requested and hits are available
+    // Note: The first hit is used as the interpretation. For best results,
+    // call sort() before this method to ensure the best-scoring hit is first.
+    String interpretation;
+    if (include_interpretation && !hits_.empty())
+    {
+      const PeptideHit& first_hit = hits_.front();
+      ProForma::PeptidoformIon ion;
+      ion.chains.emplace_back(ProForma::fromAASequence(first_hit.getSequence()));
+      if (first_hit.getCharge() != 0)
+      {
+        ion.charge = first_hit.getCharge();
+      }
+      interpretation = ProForma::toString(ion);
+    }
+
+    if (scan_num.has_value())
+    {
+      // Use scan number if extraction succeeded
+      return USI(dataset_id, ms_run_name, USI::IndexType::SCAN, String(scan_num.value()), interpretation);
+    }
+    else if (!spec_ref.empty())
+    {
+      // Fall back to nativeId if scan number extraction failed
+      return USI(dataset_id, ms_run_name, USI::IndexType::NATIVEID, spec_ref, interpretation);
+    }
+    else
+    {
+      // Return invalid/empty USI if no spectrum reference is available
+      return USI();
+    }
+  }
+
+  USI PeptideIdentification::buildUSI(const IdentifierMSRunMapper& mapping,
+                                      const String& dataset_id,
+                                      bool include_interpretation) const
+  {
+    // Get the primary MS run path for this identification using the mapping
+    String ms_run_path = mapping.getPrimaryMSRunPath(*this);
+    if (ms_run_path.empty())
+    {
+      return USI(); // Invalid USI if mapping not found
+    }
+
+    // Extract basename from the resolved path
+    String ms_run_name = USI::extractBasename(ms_run_path);
+
+    return buildUSI(ms_run_name, dataset_id, include_interpretation);
+  }
+
 } // namespace OpenMS
