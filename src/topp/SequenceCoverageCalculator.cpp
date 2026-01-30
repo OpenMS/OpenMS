@@ -6,21 +6,20 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/SequenceCoverage.h>
-
-#include <unordered_map>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <numeric>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
@@ -28,7 +27,8 @@ using namespace std;
 
 @brief Prints information about idXML files.
 
-@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref
+TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_SequenceCoverageCalculator.cli
@@ -39,12 +39,10 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPSequenceCoverageCalculator :
-  public TOPPBase
+class TOPPSequenceCoverageCalculator : public TOPPBase
 {
 public:
-  TOPPSequenceCoverageCalculator() :
-    TOPPBase("SequenceCoverageCalculator", "Annotates coverage information to idXML files.")
+  TOPPSequenceCoverageCalculator(): TOPPBase("SequenceCoverageCalculator", "Annotates coverage information to idXML files.")
   {
   }
 
@@ -61,9 +59,9 @@ protected:
 
   struct CoverageInfo
   {
-    double coverage{};  // fraction of sequence covered by peptides
-    Size count{};       // number of unique peptides
-    Size mod_count{};   // number of unique modified peptides
+    double coverage {}; // fraction of sequence covered by peptides
+    Size count {};      // number of unique peptides
+    Size mod_count {};  // number of unique modified peptides
   };
 
   ExitCodes outputTo_(ostream& os, String out)
@@ -106,19 +104,19 @@ protected:
     os << "proteinID\tcoverage (%)\tunique hits\n";
     for (Size j = 0; j < proteins.size(); ++j)
     {
-        AASequence protein_seq = AASequence::fromString(proteins[j].sequence);
-        std::vector<AASequence> peptides;
+      AASequence protein_seq = AASequence::fromString(proteins[j].sequence);
+      std::vector<AASequence> peptides;
       temp_unique_peptides.clear();
       temp_modified_unique_peptides.clear();
 
       for (Size i = 0; i < identifications.size(); ++i)
       {
-        if (!identifications[i].empty())
+        if (! identifications[i].empty())
         {
           if (identifications[i].getHits().size() > 1)
           {
             OPENMS_LOG_ERROR << "Spectrum with more than one identification found, which is not allowed.\n"
-                      << "Use the IDFilter with the -best_hits option to filter for best hits." << endl;
+                             << "Use the IDFilter with the -best_hits option to filter for best hits." << endl;
             return ILLEGAL_PARAMETERS;
           }
 
@@ -128,7 +126,7 @@ protected:
 
           if (temp_hits.size() == 1)
           {
-              peptides.push_back(temp_hits[0].getSequence());
+            peptides.push_back(temp_hits[0].getSequence());
             ++spectrum_count;
             if (unique_peptides.find(temp_hits[0].getSequence().toString()) == unique_peptides.end())
             {
@@ -138,41 +136,38 @@ protected:
             {
               temp_unique_peptides.insert(make_pair(temp_hits[0].getSequence().toUnmodifiedString(), 0));
             }
-            if (temp_modified_unique_peptides.find(temp_hits[0].getSequence().toUnmodifiedString()) == temp_modified_unique_peptides.end())
-            {
-              temp_modified_unique_peptides.insert(make_pair(temp_hits[0].getSequence().toString(), 0));
-            }
+            const AASequence& seq = temp_hits[0].getSequence();
+            if (seq.isModified()) { temp_modified_unique_peptides.emplace(seq.toString(), 0); }
           }
         }
       }
-/* << proteins[j].sequence << endl;
-                for (Size k = 0; k < coverage.size(); ++k)
-                {
-                    os << coverage[k];
-                }
-                os << endl;
-*/
+      /* << proteins[j].sequence << endl;
+                      for (Size k = 0; k < coverage.size(); ++k)
+                      {
+                          os << coverage[k];
+                      }
+                      os << endl;
+      */
       // statistics[j] = make_pair(,
       // accumulate(coverage.begin(), coverage.end(), 0) / proteins[j].sequence.size());
-        double coverage_percent =
-          SequenceCoverage::getCoverage(protein_seq, peptides);
+      double coverage_percent = SequenceCoverage::getCoverage(protein_seq, peptides);
 
-        statistics[j] = coverage_percent / 100.0;
-        
+      statistics[j] = coverage_percent / 100.0;
+
       counts[j] = temp_unique_peptides.size();
       mod_counts[j] = temp_modified_unique_peptides.size();
 
       // details for this protein
       if (counts[j] > 0)
       {
-        prot2cov[proteins[j].identifier] = { statistics[j], counts[j], mod_counts[j] };
+        prot2cov[proteins[j].identifier] = {statistics[j], counts[j], mod_counts[j]};
         os << proteins[j].identifier << "\t" << statistics[j] * 100 << "\t" << counts[j] << "\n";
       }
 
-// os << statistics[j] << endl;
+      // os << statistics[j] << endl;
     }
 
-// os << "Sum of coverage is " << accumulate(statistics.begin(), statistics.end(), 0.) << endl;
+    // os << "Sum of coverage is " << accumulate(statistics.begin(), statistics.end(), 0.) << endl;
 
     // update meta values in protein_identifications
     for (auto& prot_id : protein_identifications)
@@ -190,8 +185,9 @@ protected:
     FileHandler().storeIdentifications(out, protein_identifications, identifications, {FileTypes::IDXML});
 
     os << "Average coverage per protein is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
-    os << "Average number of peptides per protein is " << (((double) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
-    os << "Average number of un/modified peptides per protein is " << (((double) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
+    os << "Average number of peptides per protein is " << (((double)accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
+    os << "Average number of un/modified peptides per protein is "
+       << (((double)accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
     os << "Number of identified spectra: " << spectrum_count << endl;
     os << "Number of unique identified peptides: " << unique_peptides.size() << endl;
 
@@ -213,9 +209,11 @@ protected:
         ++it3;
       }
     }
-    os << "Average coverage per found protein (" << statistics.size() << ") is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
-    os << "Average number of peptides per found protein is " << (((double) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
-    os << "Average number of un/modified peptides per protein is " << (((double) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
+    os << "Average coverage per found protein (" << statistics.size() << ") is "
+       << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
+    os << "Average number of peptides per found protein is " << (((double)accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
+    os << "Average number of un/modified peptides per protein is "
+       << (((double)accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
 
     return EXECUTION_OK;
   }
@@ -225,7 +223,6 @@ protected:
     String out = getStringOption_("out");
     return outputTo_(getGlobalLogInfo(), out);
   }
-
 };
 
 
