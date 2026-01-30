@@ -91,7 +91,7 @@ public:
     void add(MSSpectrum & spectrum)
     {
       //spectrum settings
-      add(static_cast<SpectrumSettings &>(spectrum));
+      add(spectrum.getSpectrumSettings());
 
       //MetaInfoDescriptions
       for (Size i = 0; i < spectrum.getFloatDataArrays().size(); ++i)

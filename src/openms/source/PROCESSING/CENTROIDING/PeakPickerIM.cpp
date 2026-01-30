@@ -951,7 +951,7 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "--- Centroided frame has  " << centroided_frame.size() << " --- peaks.\n";
 #endif
       // Copy only SpectrumSettings from the input into the centroided result
-      static_cast<SpectrumSettings&>(centroided_frame) = static_cast<const SpectrumSettings&>(spectrum);
+      centroided_frame.getSpectrumSettings() = spectrum.getSpectrumSettings();
       centroided_frame.setMSLevel(spectrum.getMSLevel());
       centroided_frame.setName(spectrum.getName());
       centroided_frame.setRT(spectrum.getRT());

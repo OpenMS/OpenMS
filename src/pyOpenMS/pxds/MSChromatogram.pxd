@@ -5,14 +5,21 @@ from String cimport *
 from RangeManager cimport *
 from MetaInfoDescription cimport *
 from DataArrays cimport *
+from DataValue cimport *
+from InstrumentSettings cimport *
+from SourceFile cimport *
+from Precursor cimport *
+from Product cimport *
+from AcquisitionInfo cimport *
+from DataProcessing cimport *
+from MetaInfoInterface cimport *
 
 # this class has addons, see the ./addons folder
 
 cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
-    cdef cppclass MSChromatogram (ChromatogramSettings, RangeManagerRtInt):
+    cdef cppclass MSChromatogram (RangeManagerRtInt):
         # wrap-inherits:
-        #  ChromatogramSettings
         #  RangeManagerRtInt
         #  
         # wrap-doc:
@@ -93,3 +100,32 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         void setFloatDataArrays(libcpp_vector[FloatDataArray] fda) except + nogil  # wrap-doc:Sets the float meta data arrays
         void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) except + nogil  # wrap-doc:Sets the integer meta data arrays
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) except + nogil  # wrap-doc:Sets the string meta data arrays
+
+        # ChromatogramSettings forwarding methods (previously inherited)
+        Product getProduct() except + nogil  # wrap-doc:Returns the product ion
+        void setProduct(Product p) except + nogil  # wrap-doc:Sets the product ion
+        String getNativeID() except + nogil  # wrap-doc:Returns the native identifier
+        void setNativeID(String native_id) except + nogil  # wrap-doc:Sets the native identifier
+        String getComment() except + nogil  # wrap-doc:Returns the free-text comment
+        void setComment(String comment) except + nogil  # wrap-doc:Sets the free-text comment
+        InstrumentSettings getInstrumentSettings() except + nogil  # wrap-doc:Returns the instrument settings
+        void setInstrumentSettings(InstrumentSettings instrument_settings) except + nogil  # wrap-doc:Sets the instrument settings
+        AcquisitionInfo getAcquisitionInfo() except + nogil  # wrap-doc:Returns the acquisition info
+        void setAcquisitionInfo(AcquisitionInfo acquisition_info) except + nogil  # wrap-doc:Sets the acquisition info
+        SourceFile getSourceFile() except + nogil  # wrap-doc:Returns the source file
+        void setSourceFile(SourceFile source_file) except + nogil  # wrap-doc:Sets the source file
+        Precursor getPrecursor() except + nogil  # wrap-doc:Returns the precursor
+        void setPrecursor(Precursor precursor) except + nogil  # wrap-doc:Sets the precursor
+        libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() except + nogil  # wrap-doc:Returns the description of the applied processing
+        void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ]) except + nogil  # wrap-doc:Sets the description of the applied processing
+        void setChromatogramType(ChromatogramType type) except + nogil  # wrap-doc:Sets the chromatogram type
+        ChromatogramType getChromatogramType() except + nogil  # wrap-doc:Get the chromatogram type
+
+        # MetaInfoInterface forwarding methods (previously inherited via ChromatogramSettings)
+        bool isMetaEmpty() except + nogil  # wrap-doc:Returns if the MetaInfo is empty
+        void clearMetaInfo() except + nogil  # wrap-doc:Removes all meta values
+        void getKeys(libcpp_vector[String] & keys) except + nogil  # wrap-doc:Fills the given vector with a list of all keys for which a value is set
+        DataValue getMetaValue(String) except + nogil  # wrap-doc:Returns the value corresponding to a string, or DataValue::EMPTY if not found
+        void setMetaValue(String, DataValue) except + nogil  # wrap-doc:Sets the DataValue corresponding to a name
+        bool metaValueExists(String) except + nogil  # wrap-doc:Returns whether an entry with the given name exists
+        void removeMetaValue(String) except + nogil  # wrap-doc:Removes the DataValue corresponding to `name` if it exists

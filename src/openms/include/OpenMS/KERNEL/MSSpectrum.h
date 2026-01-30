@@ -39,10 +39,70 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI MSSpectrum final :
     private std::vector<Peak1D>,
-    public RangeManagerContainer<RangeMZ, RangeIntensity, RangeMobility>,
-    public SpectrumSettings
+    public RangeManagerContainer<RangeMZ, RangeIntensity, RangeMobility>
   {
 public:
+
+    ///@name SpectrumSettings accessors (composition replaces inheritance)
+    ///@{
+    const SpectrumSettings& getSpectrumSettings() const { return spectrum_settings_; }
+    SpectrumSettings& getSpectrumSettings() { return spectrum_settings_; }
+    void setSpectrumSettings(const SpectrumSettings& settings) { spectrum_settings_ = settings; }
+
+    /// Implicit conversions to SpectrumSettings
+    operator const SpectrumSettings&() const { return spectrum_settings_; }
+    operator SpectrumSettings&() { return spectrum_settings_; }
+
+    /// Implicit conversions to MetaInfoInterface
+    operator const MetaInfoInterface&() const { return spectrum_settings_; }
+    operator MetaInfoInterface&() { return spectrum_settings_; }
+
+    // Forwarding methods for SpectrumSettings
+    SpectrumSettings::SpectrumType getType() const { return spectrum_settings_.getType(); }
+    void setType(SpectrumSettings::SpectrumType type) { spectrum_settings_.setType(type); }
+    IMFormat getIMFormat() const { return spectrum_settings_.getIMFormat(); }
+    void setIMFormat(const IMFormat& im_type) { spectrum_settings_.setIMFormat(im_type); }
+    const String& getNativeID() const { return spectrum_settings_.getNativeID(); }
+    void setNativeID(const String& native_id) { spectrum_settings_.setNativeID(native_id); }
+    const String& getComment() const { return spectrum_settings_.getComment(); }
+    void setComment(const String& comment) { spectrum_settings_.setComment(comment); }
+    const InstrumentSettings& getInstrumentSettings() const { return spectrum_settings_.getInstrumentSettings(); }
+    InstrumentSettings& getInstrumentSettings() { return spectrum_settings_.getInstrumentSettings(); }
+    void setInstrumentSettings(const InstrumentSettings& instrument_settings) { spectrum_settings_.setInstrumentSettings(instrument_settings); }
+    const AcquisitionInfo& getAcquisitionInfo() const { return spectrum_settings_.getAcquisitionInfo(); }
+    AcquisitionInfo& getAcquisitionInfo() { return spectrum_settings_.getAcquisitionInfo(); }
+    void setAcquisitionInfo(const AcquisitionInfo& acquisition_info) { spectrum_settings_.setAcquisitionInfo(acquisition_info); }
+    const SourceFile& getSourceFile() const { return spectrum_settings_.getSourceFile(); }
+    SourceFile& getSourceFile() { return spectrum_settings_.getSourceFile(); }
+    void setSourceFile(const SourceFile& source_file) { spectrum_settings_.setSourceFile(source_file); }
+    const std::vector<Precursor>& getPrecursors() const { return spectrum_settings_.getPrecursors(); }
+    std::vector<Precursor>& getPrecursors() { return spectrum_settings_.getPrecursors(); }
+    void setPrecursors(const std::vector<Precursor>& precursors) { spectrum_settings_.setPrecursors(precursors); }
+    const std::vector<Product>& getProducts() const { return spectrum_settings_.getProducts(); }
+    std::vector<Product>& getProducts() { return spectrum_settings_.getProducts(); }
+    void setProducts(const std::vector<Product>& products) { spectrum_settings_.setProducts(products); }
+    void setDataProcessing(const std::vector<DataProcessingPtr>& data_processing) { spectrum_settings_.setDataProcessing(data_processing); }
+    std::vector<DataProcessingPtr>& getDataProcessing() { return spectrum_settings_.getDataProcessing(); }
+    const std::vector<std::shared_ptr<const DataProcessing>> getDataProcessing() const { return spectrum_settings_.getDataProcessing(); }
+    void unify(const SpectrumSettings& rhs) { spectrum_settings_.unify(rhs); }
+
+    // Forwarding methods for MetaInfoInterface
+    const DataValue& getMetaValue(const String& name) const { return spectrum_settings_.getMetaValue(name); }
+    DataValue getMetaValue(const String& name, const DataValue& default_value) const { return spectrum_settings_.getMetaValue(name, default_value); }
+    const DataValue& getMetaValue(UInt index) const { return spectrum_settings_.getMetaValue(index); }
+    DataValue getMetaValue(UInt index, const DataValue& default_value) const { return spectrum_settings_.getMetaValue(index, default_value); }
+    bool metaValueExists(const String& name) const { return spectrum_settings_.metaValueExists(name); }
+    bool metaValueExists(UInt index) const { return spectrum_settings_.metaValueExists(index); }
+    void setMetaValue(const String& name, const DataValue& value) { spectrum_settings_.setMetaValue(name, value); }
+    void setMetaValue(UInt index, const DataValue& value) { spectrum_settings_.setMetaValue(index, value); }
+    void removeMetaValue(const String& name) { spectrum_settings_.removeMetaValue(name); }
+    void removeMetaValue(UInt index) { spectrum_settings_.removeMetaValue(index); }
+    void addMetaValues(const MetaInfoInterface& from) { spectrum_settings_.addMetaValues(from); }
+    void getKeys(std::vector<String>& keys) const { spectrum_settings_.getKeys(keys); }
+    void getKeys(std::vector<UInt>& keys) const { spectrum_settings_.getKeys(keys); }
+    bool isMetaEmpty() const { return spectrum_settings_.isMetaEmpty(); }
+    void clearMetaInfo() { spectrum_settings_.clearMetaInfo(); }
+    ///@}
 
     /// Comparator for the retention time.
     struct OPENMS_DLLAPI RTLess
@@ -610,7 +670,6 @@ public:
       @return The spectrum type (centroided, profile or unknown)
     */
     SpectrumSettings::SpectrumType getType(const bool query_data) const;
-    using SpectrumSettings::getType; // expose base class function
 
     /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
     /// The function works correctly, even if the spectrum is unsorted.
@@ -624,6 +683,9 @@ public:
     PeakType::IntensityType calculateTIC() const;
 
 protected:
+    /// Spectrum settings (metadata)
+    SpectrumSettings spectrum_settings_;
+
     /// Retention time
     double retention_time_ = -1;
 
@@ -654,7 +716,7 @@ protected:
     os << "-- MSSPECTRUM BEGIN --" << std::endl;
 
     // spectrum settings
-    os << static_cast<const SpectrumSettings&>(spec);
+    os << spec.getSpectrumSettings();
 
     // peaklist
     for (MSSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)

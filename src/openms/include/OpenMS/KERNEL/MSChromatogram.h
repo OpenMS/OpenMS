@@ -25,11 +25,68 @@ namespace OpenMS
 
   class OPENMS_DLLAPI MSChromatogram :
     private std::vector<ChromatogramPeak>,
-    public RangeManagerContainer<RangeRT, RangeIntensity>,
-    public ChromatogramSettings
+    public RangeManagerContainer<RangeRT, RangeIntensity>
   {
 
 public:
+
+    ///@name ChromatogramSettings accessors (composition replaces inheritance)
+    ///@{
+    const ChromatogramSettings& getChromatogramSettings() const { return chromatogram_settings_; }
+    ChromatogramSettings& getChromatogramSettings() { return chromatogram_settings_; }
+    void setChromatogramSettings(const ChromatogramSettings& settings) { chromatogram_settings_ = settings; }
+
+    /// Implicit conversions to ChromatogramSettings
+    operator const ChromatogramSettings&() const { return chromatogram_settings_; }
+    operator ChromatogramSettings&() { return chromatogram_settings_; }
+
+    /// Implicit conversions to MetaInfoInterface
+    operator const MetaInfoInterface&() const { return chromatogram_settings_; }
+    operator MetaInfoInterface&() { return chromatogram_settings_; }
+
+    // Forwarding methods for ChromatogramSettings
+    ChromatogramSettings::ChromatogramType getChromatogramType() const { return chromatogram_settings_.getChromatogramType(); }
+    void setChromatogramType(ChromatogramSettings::ChromatogramType type) { chromatogram_settings_.setChromatogramType(type); }
+    const String& getNativeID() const { return chromatogram_settings_.getNativeID(); }
+    void setNativeID(const String& native_id) { chromatogram_settings_.setNativeID(native_id); }
+    const String& getComment() const { return chromatogram_settings_.getComment(); }
+    void setComment(const String& comment) { chromatogram_settings_.setComment(comment); }
+    const InstrumentSettings& getInstrumentSettings() const { return chromatogram_settings_.getInstrumentSettings(); }
+    InstrumentSettings& getInstrumentSettings() { return chromatogram_settings_.getInstrumentSettings(); }
+    void setInstrumentSettings(const InstrumentSettings& instrument_settings) { chromatogram_settings_.setInstrumentSettings(instrument_settings); }
+    const AcquisitionInfo& getAcquisitionInfo() const { return chromatogram_settings_.getAcquisitionInfo(); }
+    AcquisitionInfo& getAcquisitionInfo() { return chromatogram_settings_.getAcquisitionInfo(); }
+    void setAcquisitionInfo(const AcquisitionInfo& acquisition_info) { chromatogram_settings_.setAcquisitionInfo(acquisition_info); }
+    const SourceFile& getSourceFile() const { return chromatogram_settings_.getSourceFile(); }
+    SourceFile& getSourceFile() { return chromatogram_settings_.getSourceFile(); }
+    void setSourceFile(const SourceFile& source_file) { chromatogram_settings_.setSourceFile(source_file); }
+    const Precursor& getPrecursor() const { return chromatogram_settings_.getPrecursor(); }
+    Precursor& getPrecursor() { return chromatogram_settings_.getPrecursor(); }
+    void setPrecursor(const Precursor& precursor) { chromatogram_settings_.setPrecursor(precursor); }
+    const Product& getProduct() const { return chromatogram_settings_.getProduct(); }
+    Product& getProduct() { return chromatogram_settings_.getProduct(); }
+    void setProduct(const Product& product) { chromatogram_settings_.setProduct(product); }
+    void setDataProcessing(const std::vector<DataProcessingPtr>& data_processing) { chromatogram_settings_.setDataProcessing(data_processing); }
+    std::vector<DataProcessingPtr>& getDataProcessing() { return chromatogram_settings_.getDataProcessing(); }
+    const std::vector<std::shared_ptr<const DataProcessing>> getDataProcessing() const { return chromatogram_settings_.getDataProcessing(); }
+
+    // Forwarding methods for MetaInfoInterface
+    const DataValue& getMetaValue(const String& name) const { return chromatogram_settings_.getMetaValue(name); }
+    DataValue getMetaValue(const String& name, const DataValue& default_value) const { return chromatogram_settings_.getMetaValue(name, default_value); }
+    const DataValue& getMetaValue(UInt index) const { return chromatogram_settings_.getMetaValue(index); }
+    DataValue getMetaValue(UInt index, const DataValue& default_value) const { return chromatogram_settings_.getMetaValue(index, default_value); }
+    bool metaValueExists(const String& name) const { return chromatogram_settings_.metaValueExists(name); }
+    bool metaValueExists(UInt index) const { return chromatogram_settings_.metaValueExists(index); }
+    void setMetaValue(const String& name, const DataValue& value) { chromatogram_settings_.setMetaValue(name, value); }
+    void setMetaValue(UInt index, const DataValue& value) { chromatogram_settings_.setMetaValue(index, value); }
+    void removeMetaValue(const String& name) { chromatogram_settings_.removeMetaValue(name); }
+    void removeMetaValue(UInt index) { chromatogram_settings_.removeMetaValue(index); }
+    void addMetaValues(const MetaInfoInterface& from) { chromatogram_settings_.addMetaValues(from); }
+    void getKeys(std::vector<String>& keys) const { chromatogram_settings_.getKeys(keys); }
+    void getKeys(std::vector<UInt>& keys) const { chromatogram_settings_.getKeys(keys); }
+    bool isMetaEmpty() const { return chromatogram_settings_.isMetaEmpty(); }
+    void clearMetaInfo() { chromatogram_settings_.clearMetaInfo(); }
+    ///@}
 
     /// Comparator for the precursor m/z time.
     struct OPENMS_DLLAPI MZLess
@@ -413,6 +470,9 @@ public:
     void mergePeaks(MSChromatogram& other, bool add_meta=false);
 
 protected:
+
+    /// Chromatogram settings (metadata)
+    ChromatogramSettings chromatogram_settings_;
 
     /// Name
     String name_;

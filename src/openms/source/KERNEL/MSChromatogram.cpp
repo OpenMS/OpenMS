@@ -18,7 +18,7 @@ std::ostream& OpenMS::operator<<(std::ostream& os, const MSChromatogram& chrom)
   os << "-- MSCHROMATOGRAM BEGIN --" << std::endl;
 
   //chromatogram settings
-  os << static_cast<const ChromatogramSettings&>(chrom);
+  os << chrom.getChromatogramSettings();
 
   //data list
   for (const ChromatogramPeak& pe : chrom)
@@ -45,7 +45,7 @@ MSChromatogram &MSChromatogram::operator=(const MSChromatogram &source)
 
   RangeManagerType::operator=(source);
   ContainerType::operator=(source);
-  ChromatogramSettings::operator=(source);
+  chromatogram_settings_ = source.chromatogram_settings_;
 
   name_ = source.name_;
   float_data_arrays_ = source.float_data_arrays_;
@@ -59,7 +59,7 @@ bool MSChromatogram::operator==(const MSChromatogram &rhs) const
 {
   //name_ can differ => it is not checked; also ranges are not checked
   return std::operator==(*this, rhs) &&
-         ChromatogramSettings::operator==(rhs) &&
+         chromatogram_settings_ == rhs.chromatogram_settings_ &&
          float_data_arrays_ == rhs.float_data_arrays_ &&
          string_data_arrays_ == rhs.string_data_arrays_ &&
          integer_data_arrays_ == rhs.integer_data_arrays_;
@@ -395,7 +395,7 @@ void MSChromatogram::clear(bool clear_meta_data)
   if (clear_meta_data)
   {
     clearRanges();
-    this->ChromatogramSettings::operator=(ChromatogramSettings()); // no "clear" method
+    chromatogram_settings_ = ChromatogramSettings(); // no "clear" method
     name_.clear();
     float_data_arrays_.clear();
     string_data_arrays_.clear();

@@ -103,7 +103,7 @@ namespace OpenMS
 
   SpectrumSettings::SpectrumType MSSpectrum::getType(const bool query_data) const
   {
-    SpectrumSettings::SpectrumType t = SpectrumSettings::getType();
+    SpectrumSettings::SpectrumType t = spectrum_settings_.getType();
     // easy case: type is known
     if (t != SpectrumSettings::SpectrumType::UNKNOWN)
     {
@@ -178,7 +178,7 @@ namespace OpenMS
       string_data_arrays_.shrink_to_fit();
       integer_data_arrays_.shrink_to_fit();
 
-      this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
+      spectrum_settings_ = SpectrumSettings(); // no "clear" method
       retention_time_ = -1.0;
       drift_time_ = IMTypes::DRIFTTIME_NOT_SET;
       drift_time_unit_ = DriftTimeUnit::NONE;
@@ -480,7 +480,7 @@ namespace OpenMS
   #pragma clang diagnostic ignored "-Wfloat-equal"
 #endif
     return std::operator==(*this, rhs) &&
-           SpectrumSettings::operator==(rhs) &&
+           spectrum_settings_ == rhs.spectrum_settings_ &&
            retention_time_ == rhs.retention_time_ &&
            drift_time_ == rhs.drift_time_ &&
            drift_time_unit_ == rhs.drift_time_unit_ &&
@@ -501,7 +501,7 @@ namespace OpenMS
       return *this;
     }
     ContainerType::operator=(source);
-    SpectrumSettings::operator=(source);
+    spectrum_settings_ = source.spectrum_settings_;
     RangeManagerType::operator=(source);
 
     retention_time_ = source.retention_time_;
@@ -527,7 +527,7 @@ namespace OpenMS
 
   MSSpectrum &MSSpectrum::operator=(const SpectrumSettings &source)
   {
-    SpectrumSettings::operator=(source);
+    spectrum_settings_ = source;
     return *this;
   }
 

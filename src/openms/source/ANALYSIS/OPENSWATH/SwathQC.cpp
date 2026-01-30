@@ -71,11 +71,11 @@ namespace OpenSwath
       PeakPickerHiRes pp;
       auto t = spec.getType(true);
       MSSpectrum tmp;
-      if (t == MSSpectrum::SpectrumSettings::SpectrumType::PROFILE) 
+      if (t == SpectrumSettings::SpectrumType::PROFILE) 
       {
         pp.pick(spec, tmp);
       }
-      else if (t == MSSpectrum::SpectrumSettings::SpectrumType::CENTROID)
+      else if (t == SpectrumSettings::SpectrumType::CENTROID)
       {
         tmp = spec; // make a copy, since deisotopeAndSingleCharge() will modify 
       }

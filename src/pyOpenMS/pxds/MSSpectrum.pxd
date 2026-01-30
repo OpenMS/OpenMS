@@ -5,14 +5,21 @@ from RangeManager cimport *
 from DataArrays cimport *
 from SpectrumSettings cimport *
 from IMTypes cimport *
+from DataValue cimport *
+from InstrumentSettings cimport *
+from SourceFile cimport *
+from Precursor cimport *
+from Product cimport *
+from AcquisitionInfo cimport *
+from DataProcessing cimport *
+from MetaInfoInterface cimport *
 
 # this class has addons, see the ./addons folder (../addons/MSSpectrum.pyx)
 
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
-    cdef cppclass MSSpectrum(SpectrumSettings, RangeManagerMzInt):
+    cdef cppclass MSSpectrum(RangeManagerMzInt):
         # wrap-inherits:
-        #  SpectrumSettings
         #  RangeManagerMzInt
         #  
         # wrap-doc:
@@ -138,3 +145,33 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) except + nogil  # wrap-doc:Sets the additional string data arrays to store e.g. meta data
 
         SpectrumType getType(bool query_data) except + nogil  # wrap-doc:Returns the spectrum type (centroided, profile or unknown). If SpectrumSettings and DataProcessing information are not sufficient and query_data is True, the data will be queried (potentially expensive)
+
+        # SpectrumSettings forwarding methods (previously inherited)
+        void unify(SpectrumSettings) except + nogil
+        SpectrumType getType() except + nogil  # wrap-doc:Returns the spectrum type (centroided (PEAKS) or profile data (RAW))
+        void setType(SpectrumType) except + nogil  # wrap-doc:Sets the spectrum type
+        String getNativeID() except + nogil  # wrap-doc:Returns the native identifier for the spectrum, used by the acquisition software
+        void setNativeID(String) except + nogil  # wrap-doc:Sets the native identifier for the spectrum, used by the acquisition software
+        String getComment() except + nogil  # wrap-doc:Returns the free-text comment
+        void setComment(String) except + nogil  # wrap-doc:Sets the free-text comment
+        InstrumentSettings getInstrumentSettings() except + nogil  # wrap-doc:Returns the instrument settings of the current spectrum
+        void setInstrumentSettings(InstrumentSettings) except + nogil  # wrap-doc:Sets the instrument settings of the current spectrum
+        AcquisitionInfo getAcquisitionInfo() except + nogil  # wrap-doc:Returns the acquisition info
+        void setAcquisitionInfo(AcquisitionInfo) except + nogil  # wrap-doc:Sets the acquisition info
+        SourceFile getSourceFile() except + nogil  # wrap-doc:Returns the source file
+        void setSourceFile(SourceFile) except + nogil  # wrap-doc:Sets the source file
+        libcpp_vector[Precursor] getPrecursors() except + nogil  # wrap-doc:Returns the precursors
+        void setPrecursors(libcpp_vector[Precursor]) except + nogil  # wrap-doc:Sets the precursors
+        libcpp_vector[Product] getProducts() except + nogil  # wrap-doc:Returns the products
+        void setProducts(libcpp_vector[Product]) except + nogil  # wrap-doc:Sets the products
+        libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() except + nogil  # wrap-doc:Returns the description of the applied processing
+        void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ]) except + nogil  # wrap-doc:Sets the description of the applied processing
+
+        # MetaInfoInterface forwarding methods (previously inherited via SpectrumSettings)
+        bool isMetaEmpty() except + nogil  # wrap-doc:Returns if the MetaInfo is empty
+        void clearMetaInfo() except + nogil  # wrap-doc:Removes all meta values
+        void getKeys(libcpp_vector[String] & keys) except + nogil  # wrap-doc:Fills the given vector with a list of all keys for which a value is set
+        DataValue getMetaValue(String) except + nogil  # wrap-doc:Returns the value corresponding to a string, or DataValue::EMPTY if not found
+        void setMetaValue(String, DataValue) except + nogil  # wrap-doc:Sets the DataValue corresponding to a name
+        bool metaValueExists(String) except + nogil  # wrap-doc:Returns whether an entry with the given name exists
+        void removeMetaValue(String) except + nogil  # wrap-doc:Removes the DataValue corresponding to `name` if it exists
