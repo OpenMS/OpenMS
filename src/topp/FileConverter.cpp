@@ -342,7 +342,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
       Internal::CachedMzMLHandler cacher;
-      cacher.setLogType(log_type_);
+      cacher.getProgressLogger().setLogType(log_type_);
       PeakMap tmp_exp;
 
       FileHandler().loadExperiment(in_meta, exp, {FileTypes::MZML}, log_type_);
@@ -400,14 +400,14 @@ protected:
         if (in_type == FileTypes::MZML)
         {
           MzMLFile mzmlfile;
-          mzmlfile.setLogType(log_type_);
+          mzmlfile.getProgressLogger().setLogType(log_type_);
           mzmlfile.transform(in, &consumer, skip_full_count);
           return EXECUTION_OK;
         }
         else if (in_type == FileTypes::MZXML)
         {
           MzXMLFile mzxmlfile;
-          mzxmlfile.setLogType(log_type_);
+          mzxmlfile.getProgressLogger().setLogType(log_type_);
           mzxmlfile.transform(in, &consumer, skip_full_count);
           return EXECUTION_OK;
         }
@@ -421,7 +421,7 @@ protected:
           return ILLEGAL_PARAMETERS;
         }
         Internal::CachedMzMLHandler cacher;
-        cacher.setLogType(log_type_);
+        cacher.getProgressLogger().setLogType(log_type_);
         PeakMap exp_meta;
 
         MSDataCachedConsumer consumer(out);
@@ -522,7 +522,7 @@ protected:
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  FORMAT_CONVERSION));
       DTA2DFile f;
-      f.setLogType(log_type_);
+      f.getProgressLogger().setLogType(log_type_);
       ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
       if (TIC_DTA2D)
       {
@@ -543,7 +543,7 @@ protected:
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  FORMAT_CONVERSION));
       MascotGenericFile f;
-      f.setLogType(log_type_);
+      f.getProgressLogger().setLogType(log_type_);
       f.store(out, exp, getFlag_("MGF_compact"));
     }
     else if (out_type == FileTypes::MSP)

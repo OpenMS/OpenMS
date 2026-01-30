@@ -178,8 +178,7 @@ private:
     @ingroup Analysis_ID
   */
   class OPENMS_DLLAPI AccurateMassSearchEngine :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 public:
 
@@ -356,6 +355,16 @@ private:
     String database_location_;
 
     bool keep_unidentified_masses_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 }

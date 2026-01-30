@@ -57,9 +57,14 @@ For reading there are 2 options
 /// @cond TOPPCLASSES
 
 class TOPPOpenSwathMzMLFileCacher
-  : public TOPPBase,
-    public ProgressLogger
+  : public TOPPBase
 {
+protected:
+  ProgressLogger prog_log_;
+public:
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
  public:
 
   TOPPOpenSwathMzMLFileCacher()
@@ -197,7 +202,7 @@ class TOPPOpenSwathMzMLFileCacher
       {
         MapType exp;
         MzMLFile f;
-        f.setLogType(log_type_);
+        f.getProgressLogger().setLogType(log_type_);
 
         MSDataCachedConsumer consumer(out_cached, true);
         PeakFileOptions opt = f.getOptions();
@@ -206,7 +211,7 @@ class TOPPOpenSwathMzMLFileCacher
         f.transform(in, &consumer, exp, false, false);
 
         Internal::CachedMzMLHandler cacher;
-        cacher.setLogType(log_type_);
+        cacher.getProgressLogger().setLogType(log_type_);
         cacher.writeMetadata(exp, out_meta, true);
       }
       else
@@ -214,7 +219,7 @@ class TOPPOpenSwathMzMLFileCacher
         MapType exp;
         Internal::CachedMzMLHandler cacher;
 
-        cacher.setLogType(log_type_);
+        cacher.getProgressLogger().setLogType(log_type_);
 
         FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
         cacher.writeMemdump(exp, out_cached);
@@ -227,7 +232,7 @@ class TOPPOpenSwathMzMLFileCacher
       Internal::CachedMzMLHandler cacher;
       MapType exp_reading;
 
-      cacher.setLogType(log_type_);
+      cacher.getProgressLogger().setLogType(log_type_);
 
       FileHandler().loadExperiment(in,meta_exp, {FileTypes::MZML}, log_type_);
       cacher.readMemdump(exp_reading, in_cached);

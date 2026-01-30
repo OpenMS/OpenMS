@@ -136,7 +136,7 @@ public:
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
+    mz_data_file.getProgressLogger().setLogType(log_type_);
     mz_data_file.transform(in, &sgolayConsumer);
 
     return EXECUTION_OK;
@@ -155,7 +155,7 @@ public:
     writeDebug_("Parameters passed to filter", filter_param, 3);
 
     SavitzkyGolayFilter sgolay;
-    sgolay.setLogType(log_type_);
+    sgolay.getProgressLogger().setLogType(log_type_);
     sgolay.setParameters(filter_param);
 
     if (process_option == "lowmemory")

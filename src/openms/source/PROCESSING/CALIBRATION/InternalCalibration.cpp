@@ -24,7 +24,6 @@ namespace OpenMS
 {
 
   InternalCalibration::InternalCalibration()
-    : ProgressLogger()
   {
   }
 
@@ -296,7 +295,7 @@ namespace OpenMS
       exp.sortSpectra(true);
     }
 
-    startProgress(0, exp.size(), "Applying calibration to data");
+    prog_log_.startProgress(0, exp.size(), "Applying calibration to data");
 
     std::vector<MZTrafoModel> tms; // each spectrum gets its own model (params are cheap to store)
     std::map<Size, Size> invalid_models; // indices from tms[] -> exp[]; where model creation failed (e..g, not enough calibration points)
@@ -320,7 +319,7 @@ namespace OpenMS
       Size i(0), i_mslvl(0);
       for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it, ++i)
       {
-        setProgress(i);
+        prog_log_.setProgress(i);
 
         // skip this MS level?
         if (!(ListUtils::contains(target_mslvl, it->getMSLevel()) ||     // scan m/z needs correction
@@ -399,7 +398,7 @@ namespace OpenMS
         }
       }
     }
-    endProgress();
+    prog_log_.endProgress();
 
     // check if Rscript is available
     if (!file_models_plot.empty() || !file_residuals_plot.empty())

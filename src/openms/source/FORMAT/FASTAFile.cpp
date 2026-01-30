@@ -167,7 +167,7 @@ namespace OpenMS
   void FASTAFile::readStartWithProgress(const String& filename, const String& progress_label)
   {
     readStart(filename);
-    startProgress(0, fileSize_, progress_label);
+    prog_log_.startProgress(0, fileSize_, progress_label);
   }
 
   bool FASTAFile::readNext(FASTAEntry &protein)
@@ -200,7 +200,7 @@ namespace OpenMS
     protein.description = std::move(description_);
     protein.sequence = std::move(seq_);
 
-    setProgress(infile_.tellg());
+    prog_log_.setProgress(infile_.tellg());
 
     return true;
   }
@@ -209,12 +209,12 @@ namespace OpenMS
   {
     if (readNext(protein))
     {
-      setProgress(position());
+      prog_log_.setProgress(position());
       return true;
     }
     else
     {
-      endProgress(); 
+      prog_log_.endProgress(); 
       return false;
     }
   }
@@ -242,7 +242,7 @@ namespace OpenMS
 
   void FASTAFile::load(const String &filename, vector<FASTAEntry> &data) const
   {
-    startProgress(0, 1, "Loading FASTA file");
+    prog_log_.startProgress(0, 1, "Loading FASTA file");
     data.clear();
     FASTAEntry p;
     FASTAFile f;
@@ -251,7 +251,7 @@ namespace OpenMS
     {
       data.push_back(std::move(p));
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void FASTAFile::writeStart(const String &filename)
@@ -299,16 +299,16 @@ namespace OpenMS
 
   void FASTAFile::store(const String &filename, const vector<FASTAEntry> &data) const
   {
-    startProgress(0, data.size(), "Writing FASTA file");
+    prog_log_.startProgress(0, data.size(), "Writing FASTA file");
     FASTAFile f;
     f.writeStart(filename);
     for (const FASTAFile::FASTAEntry& it : data)
     {
       f.writeNext(it);
-      nextProgress();
+      prog_log_.nextProgress();
     }
     f.writeEnd(); // close file
-    endProgress();
+    prog_log_.endProgress();
   }
 
 }// namespace OpenMS

@@ -48,8 +48,7 @@ namespace OpenMS
    * - Can make use of OpenMP to parallelize over connected components.
    */
   class OPENMS_DLLAPI BayesianProteinInferenceAlgorithm :
-      public DefaultParamHandler,
-      public ProgressLogger
+      public DefaultParamHandler
   {
   public:
     /// Constructor @todo is there a better way to pass the debug level from TOPPBase?
@@ -144,6 +143,16 @@ namespace OpenMS
     #ifdef INFERENCE_BENCH
     std::vector<std::pair<double,Size>> debug_times_;
     #endif
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 }

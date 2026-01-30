@@ -29,8 +29,7 @@ namespace OpenMS
     @ingroup FileIO
   */
   class OPENMS_DLLAPI MzMLFile :
-    public Internal::XMLFile,
-    public ProgressLogger
+    public Internal::XMLFile
   {
 public:
     ///Default constructor
@@ -203,6 +202,16 @@ private:
 
     /// Location of indexed mzML schema
     String indexed_schema_location_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 } // namespace OpenMS

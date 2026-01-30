@@ -36,8 +36,7 @@ namespace Internal
     @ingroup FileIO
   */
   class OPENMS_DLLAPI ConsensusXMLHandler :
-    public Internal::XMLHandler,
-    public ProgressLogger
+    public Internal::XMLHandler
   {
 public:
     ///Constructor
@@ -117,6 +116,16 @@ protected:
     ProteinIdentification::SearchParameters search_param_;
 
     UInt progress_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 } // namespace Internal
 } // namespace OpenMS

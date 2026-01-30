@@ -134,7 +134,7 @@ public:
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
+    mz_data_file.getProgressLogger().setLogType(log_type_);
     mz_data_file.transform(in, &gaussConsumer);
 
     return EXECUTION_OK;
@@ -153,7 +153,7 @@ public:
     writeDebug_("Parameters passed to filter", filter_param, 3);
 
     GaussFilter gauss;
-    gauss.setLogType(log_type_);
+    gauss.getProgressLogger().setLogType(log_type_);
     gauss.setParameters(filter_param);
 
     if (process_option == "lowmemory")

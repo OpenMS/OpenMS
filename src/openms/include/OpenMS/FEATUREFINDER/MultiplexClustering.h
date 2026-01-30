@@ -34,9 +34,8 @@ namespace OpenMS
      * @see MultiplexFiltering
      * @see LocalClustering
      */
-    class OPENMS_DLLAPI MultiplexClustering :
-        public ProgressLogger
-    {        
+    class OPENMS_DLLAPI MultiplexClustering
+    {
         public:
         /**
          * @brief cluster centre, cluster bounding box, grid index
@@ -131,7 +130,15 @@ namespace OpenMS
          */
         //unused
         //double rt_minimum_;
-        
+
+    public:
+        /// Non-mutable access to the progress logger
+        const ProgressLogger& getProgressLogger() const { return prog_log_; }
+        /// Mutable access to the progress logger
+        ProgressLogger& getProgressLogger() { return prog_log_; }
+
+    protected:
+        ProgressLogger prog_log_;
    };
   
 }

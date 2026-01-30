@@ -124,7 +124,7 @@ protected:
     tm.setCoefficients(offset, slope, power);
 
     InternalCalibration ic;
-    ic.setLogType(log_type_);
+    ic.getProgressLogger().setLogType(log_type_);
     ic.applyTransformation(exp, ms_level, tm);
 
     //-------------------------------------------------------------

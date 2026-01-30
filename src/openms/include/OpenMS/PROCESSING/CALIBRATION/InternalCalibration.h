@@ -31,7 +31,6 @@ namespace OpenMS
   */
  
   class OPENMS_DLLAPI InternalCalibration
-    : public ProgressLogger
   {
   public:
 
@@ -39,7 +38,7 @@ namespace OpenMS
     InternalCalibration();
 
     /// Destructor
-    ~InternalCalibration() override{}
+    ~InternalCalibration() = default;
 
     /// helper class, describing a lock mass
     struct LockMass
@@ -271,6 +270,15 @@ namespace OpenMS
 
   private:
     CalibrationData cal_data_;
+
+  public:
+    /// Non-mutable access to the progress logger
+    const ProgressLogger& getProgressLogger() const { return prog_log_; }
+    /// Mutable access to the progress logger
+    ProgressLogger& getProgressLogger() { return prog_log_; }
+
+  protected:
+    ProgressLogger prog_log_;
   }; // class InternalCalibration
   
 } // namespace OpenMS

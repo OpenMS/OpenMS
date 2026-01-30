@@ -74,7 +74,7 @@ namespace OpenMS
 
     Internal::ConsensusXMLHandler handler(consensus_map, filename);
     handler.setOptions(options_);
-    handler.setLogType(getLogType());
+    handler.getProgressLogger().setLogType(prog_log_.getLogType());
     save_(filename, &handler);
   }
 
@@ -88,7 +88,7 @@ namespace OpenMS
 
     Internal::ConsensusXMLHandler handler(consensus_map, filename);
     handler.setOptions(options_);
-    handler.setLogType(getLogType());
+    handler.getProgressLogger().setLogType(prog_log_.getLogType());
     parse_(filename, &handler);
 
     if (!consensus_map.isMapConsistent(&getGlobalLogWarn())) // a warning is printed to LOG_WARN during isMapConsistent()

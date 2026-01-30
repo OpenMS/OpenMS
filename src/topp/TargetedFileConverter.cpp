@@ -137,7 +137,7 @@ protected:
       {
         Param reader_parameters = getParam_().copy("algorithm:", true);
         TransitionTSVFile tsv_reader;
-        tsv_reader.setLogType(log_type_);
+        tsv_reader.getProgressLogger().setLogType(log_type_);
         tsv_reader.setParameters(reader_parameters);
         tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, light_exp);
       }
@@ -145,7 +145,7 @@ protected:
       {
         TransitionPQPFile pqp_reader;
         Param reader_parameters = getParam_().copy("algorithm:", true);
-        pqp_reader.setLogType(log_type_);
+        pqp_reader.getProgressLogger().setLogType(log_type_);
         pqp_reader.setParameters(reader_parameters);
         // Light path uses TRAML_ID (legacy_traml_id=true) to preserve original string identifiers
         pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp, true);
@@ -154,13 +154,13 @@ protected:
       if (out_type == FileTypes::TSV)
       {
         TransitionTSVFile tsv_writer;
-        tsv_writer.setLogType(log_type_);
+        tsv_writer.getProgressLogger().setLogType(log_type_);
         tsv_writer.convertLightTargetedExperimentToTSV(out.c_str(), light_exp);
       }
       else if (out_type == FileTypes::PQP)
       {
         TransitionPQPFile pqp_writer;
-        pqp_writer.setLogType(log_type_);
+        pqp_writer.getProgressLogger().setLogType(log_type_);
         pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_exp);
       }
     }
@@ -173,7 +173,7 @@ protected:
       {
         Param reader_parameters = getParam_().copy("algorithm:", true);
         TransitionTSVFile tsv_reader;
-        tsv_reader.setLogType(log_type_);
+        tsv_reader.getProgressLogger().setLogType(log_type_);
         tsv_reader.setParameters(reader_parameters);
         tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, targeted_exp);
         tsv_reader.validateTargetedExperiment(targeted_exp);
@@ -182,7 +182,7 @@ protected:
       {
         TransitionPQPFile pqp_reader;
         Param reader_parameters = getParam_().copy("algorithm:", true);
-        pqp_reader.setLogType(log_type_);
+        pqp_reader.getProgressLogger().setLogType(log_type_);
         pqp_reader.setParameters(reader_parameters);
         pqp_reader.convertPQPToTargetedExperiment(in.c_str(), targeted_exp, legacy_traml_id);
         pqp_reader.validateTargetedExperiment(targeted_exp);
@@ -195,13 +195,13 @@ protected:
       if (out_type == FileTypes::TSV)
       {
         TransitionTSVFile tsv_writer;
-        tsv_writer.setLogType(log_type_);
+        tsv_writer.getProgressLogger().setLogType(log_type_);
         tsv_writer.convertTargetedExperimentToTSV(out.c_str(), targeted_exp);
       }
       else if (out_type == FileTypes::PQP)
       {
         TransitionPQPFile pqp_writer;
-        pqp_writer.setLogType(log_type_);
+        pqp_writer.getProgressLogger().setLogType(log_type_);
         pqp_writer.convertTargetedExperimentToPQP(out.c_str(), targeted_exp);
       }
       else if (out_type == FileTypes::TRAML)

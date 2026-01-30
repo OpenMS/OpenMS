@@ -46,8 +46,7 @@ namespace OpenMS
       @ingroup Quantitation
     */
     class OPENMS_DLLAPI MassTraceDetection :
-            public DefaultParamHandler,
-            public ProgressLogger
+            public DefaultParamHandler
     {
     public:
         /// Trace termination criteria enum for performance optimization
@@ -203,5 +202,14 @@ namespace OpenMS
         mutable int fwhm_meta_idx_ = -1;
         mutable int ion_mobility_idx_ = -1;
         mutable int im_fwhm_idx_ = -1;
+
+    public:
+        /// Non-mutable access to the progress logger
+        const ProgressLogger& getProgressLogger() const { return prog_log_; }
+        /// Mutable access to the progress logger
+        ProgressLogger& getProgressLogger() { return prog_log_; }
+
+    protected:
+        ProgressLogger prog_log_;
     };
 }

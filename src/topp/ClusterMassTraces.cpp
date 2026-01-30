@@ -51,10 +51,14 @@ On the clustered fragments in an MS2 map, one can then (optionally) do
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 class TOPPClusterMassTraces
-  : public TOPPBase, 
-    public ProgressLogger
-
+  : public TOPPBase
 {
+protected:
+  ProgressLogger prog_log_;
+public:
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
 
   // Docu
   //
@@ -90,7 +94,7 @@ class TOPPClusterMassTraces
   ExitCodes main_(int , const char**) override
   {
 
-    setLogType(log_type_); 
+    prog_log_.setLogType(log_type_); 
 
     String infile = getStringOption_("in");
     String out = getStringOption_("out");
@@ -119,7 +123,7 @@ class TOPPClusterMassTraces
     std::cout << "Input map " << infile <<" has size: " << masstrace_map.size() << std::endl;
 
     OpenMS::MasstraceCorrelator mtcorr;
-    mtcorr.setLogType(log_type_); 
+    mtcorr.getProgressLogger().setLogType(log_type_); 
     mtcorr.createPseudoSpectra(masstrace_map, pseudo_spectra, min_peak_nr,
         min_pearson_correlation_, max_lag_, max_rt_apex_difference_/* , max_intensity_cutoff_ */);
     pseudo_spectra.sortSpectra();

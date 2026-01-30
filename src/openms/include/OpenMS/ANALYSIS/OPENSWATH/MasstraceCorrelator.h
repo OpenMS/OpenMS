@@ -25,8 +25,7 @@ namespace OpenMS
 
    */
   class OPENMS_DLLAPI MasstraceCorrelator : 
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 
   public:
@@ -132,6 +131,16 @@ namespace OpenMS
                           std::vector<double>& vec2,
                           double mindiff,
                           double padEnds = true);
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 }
 

@@ -127,7 +127,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
     MorphologicalFilter morph_filter;
-    morph_filter.setLogType(log_type_);
+    morph_filter.getProgressLogger().setLogType(log_type_);
 
     Param parameters;
     parameters.setValue("struc_elem_length", getDoubleOption_("struc_elem_length"));

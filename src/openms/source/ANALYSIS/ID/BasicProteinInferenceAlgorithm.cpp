@@ -23,8 +23,7 @@ namespace OpenMS
   using Internal::IDBoostGraph;
 
   BasicProteinInferenceAlgorithm::BasicProteinInferenceAlgorithm():
-      DefaultParamHandler("BasicProteinInferenceAlgorithm"),
-      ProgressLogger()
+      DefaultParamHandler("BasicProteinInferenceAlgorithm")
   {
     //TODO allow min_unique_peptides_per_protein (not the same as "use_shared = F" if you want to score the shared ones)
     defaults_.setValue("min_peptides_per_protein", 1,

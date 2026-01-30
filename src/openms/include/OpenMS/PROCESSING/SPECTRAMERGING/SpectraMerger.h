@@ -42,7 +42,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI SpectraMerger :
-    public DefaultParamHandler, public ProgressLogger
+    public DefaultParamHandler
   {
 
 protected:
@@ -789,12 +789,12 @@ protected:
       unsigned progress = 0;
       std::stringstream progress_message;
       progress_message << "averaging profile spectra of MS level " << ms_level;
-      startProgress(0, spectra_to_average_over.size(), progress_message.str());
+      prog_log_.startProgress(0, spectra_to_average_over.size(), progress_message.str());
 
       // loop over blocks
       for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
-        setProgress(++progress);
+        prog_log_.setProgress(++progress);
 
         // loop over spectra in blocks
         std::vector<double> mz_positions_all; // m/z positions from all spectra
@@ -861,7 +861,7 @@ protected:
         exp_tmp.addSpectrum(std::move(average_spec));
       }
 
-      endProgress();
+      prog_log_.endProgress();
 
       // loop over blocks
       int n(0);
@@ -985,5 +985,15 @@ protected:
         ++n;
       }
     }
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 }

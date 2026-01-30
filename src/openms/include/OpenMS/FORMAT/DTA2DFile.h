@@ -37,8 +37,7 @@ namespace OpenMS
 
     @ingroup FileIO
   */
-  class OPENMS_DLLAPI DTA2DFile :
-    public ProgressLogger
+  class OPENMS_DLLAPI DTA2DFile
   {
 private:
     PeakFileOptions options_;
@@ -50,7 +49,7 @@ public:
     /// Default constructor
     DTA2DFile();
     /// Destructor
-    ~DTA2DFile() override;
+    ~DTA2DFile();
     //@}
 
     /// Mutable access to the options for loading/storing
@@ -71,7 +70,7 @@ public:
     template <typename MapType>
     void load(const String& filename, MapType& map)
     {
-      startProgress(0, 0, "loading DTA2D file");
+      prog_log_.startProgress(0, 0, "loading DTA2D file");
 
       //try to open file
       std::ifstream is(filename.c_str());
@@ -213,7 +212,7 @@ public:
           {
             map.addSpectrum(spec);
           }
-          setProgress(0);
+          prog_log_.setProgress(0);
           spec.clear(true);
           spec.setRT(rt);
           spec.setNativeID(String("index=") + native_id);
@@ -243,7 +242,7 @@ public:
 
       is.close();
       map.updateRanges();
-      endProgress();
+      prog_log_.endProgress();
     }
 
     /**
@@ -257,7 +256,7 @@ public:
     template <typename MapType>
     void store(const String& filename, const MapType& map) const
     {
-      startProgress(0, map.size(), "storing DTA2D file");
+      prog_log_.startProgress(0, map.size(), "storing DTA2D file");
 
       std::ofstream os(filename.c_str());
       if (!os)
@@ -273,7 +272,7 @@ public:
       UInt count = 0;
       for (typename MapType::const_iterator spec = map.begin(); spec != map.end(); ++spec)
       {
-        setProgress(count++);
+        prog_log_.setProgress(count++);
         for (typename MapType::SpectrumType::ConstIterator it = spec->begin(); it != spec->end(); ++it)
         {
           // Write rt, m/z and intensity.
@@ -282,7 +281,7 @@ public:
 
       }
       os.close();
-      endProgress();
+      prog_log_.endProgress();
     }
 
     /**
@@ -296,7 +295,7 @@ public:
     template <typename MapType>
     void storeTIC(const String& filename, const MapType& map) const
     {
-      startProgress(0, map.size(), "storing DTA2D file");
+      prog_log_.startProgress(0, map.size(), "storing DTA2D file");
 
       std::ofstream os(filename.c_str());
       if (!os)
@@ -315,8 +314,18 @@ public:
       }
 
       os.close();
-      endProgress();
+      prog_log_.endProgress();
     }
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

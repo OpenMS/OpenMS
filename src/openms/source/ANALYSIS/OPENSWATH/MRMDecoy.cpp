@@ -25,8 +25,7 @@ namespace OpenMS
 {
 
   MRMDecoy::MRMDecoy() :
-    DefaultParamHandler("MRMDecoy"),
-    ProgressLogger()
+    DefaultParamHandler("MRMDecoy")
   {
     defaults_.setValue("non_shuffle_pattern", "KRP", "Residues to not shuffle (keep at a constant position when shuffling). Default is 'KPR' to not shuffle lysine, arginine and proline.");
 
@@ -547,10 +546,10 @@ namespace OpenMS
     // (pseudo-reverse, reverse or shuffle). Then set the peptides and proteins of the decoy
     // experiment.
     Size progress = 0;
-    startProgress(0, selection_list.size(), "Generating decoy peptides");
+    prog_log_.startProgress(0, selection_list.size(), "Generating decoy peptides");
     for (const auto& pep_idx : selection_list)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
 
@@ -621,7 +620,7 @@ namespace OpenMS
 
       peptides.push_back(peptide);
     }
-    endProgress();
+    prog_log_.endProgress();
     dec.setPeptides(peptides); // temporary set peptides, overwrite later again!
 
     // hash of the peptide reference containing all transitions
@@ -632,11 +631,11 @@ namespace OpenMS
     }
 
     progress = 0;
-    startProgress(0, peptide_trans_map.size(), "Generating decoy transitions");
+    prog_log_.startProgress(0, peptide_trans_map.size(), "Generating decoy transitions");
     for (MRMDecoy::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
          pep_it != peptide_trans_map.end(); ++pep_it)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       String peptide_ref = pep_it->first;
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
@@ -706,7 +705,7 @@ namespace OpenMS
       } // end loop over transitions
 
     } // end loop over peptides
-    endProgress();
+    prog_log_.endProgress();
 
     decoy_transitions.erase(std::remove_if(
                             decoy_transitions.begin(), decoy_transitions.end(),
@@ -831,11 +830,11 @@ namespace OpenMS
 
     // Go through all compounds and generate decoys
     Size progress = 0;
-    startProgress(0, selection_list.size(), "Generating decoy peptides (Light)");
+    prog_log_.startProgress(0, selection_list.size(), "Generating decoy peptides (Light)");
 
     for (const auto& idx : selection_list)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       OpenSwath::LightCompound decoy_compound = exp.compounds[idx];
       const std::string original_id = decoy_compound.id;
@@ -970,7 +969,7 @@ namespace OpenMS
 
       decoy_compounds.push_back(decoy_compound);
     }
-    endProgress();
+    prog_log_.endProgress();
 
     // Build decoy compound map
     std::map<std::string, const OpenSwath::LightCompound*> decoy_compound_map;
@@ -987,11 +986,11 @@ namespace OpenMS
     }
 
     progress = 0;
-    startProgress(0, peptide_trans_map.size(), "Generating decoy transitions (Light)");
+    prog_log_.startProgress(0, peptide_trans_map.size(), "Generating decoy transitions (Light)");
 
     for (const auto& pep_it : peptide_trans_map)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       const std::string& peptide_ref = pep_it.first;
       std::string decoy_peptide_ref = decoy_tag + peptide_ref;
@@ -1117,7 +1116,7 @@ namespace OpenMS
         }
       }
     }
-    endProgress();
+    prog_log_.endProgress();
 
     // Filter out excluded peptides from transitions
     decoy_transitions.erase(

@@ -38,11 +38,16 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureLinkerBase :
-  public TOPPBase, 
-  public ProgressLogger
+  public TOPPBase
 {
 
+protected:
+  ProgressLogger prog_log_;
+
 public:
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
   TOPPFeatureLinkerBase(String name, String description, bool official = true) :
     TOPPBase(name, description, official)
   {
@@ -166,8 +171,8 @@ protected:
       f.setFeatOptions(param);
 
       Size progress = 0;
-      setLogType(ProgressLogger::CMD);
-      startProgress(0, ins.size(), "reading input");
+      prog_log_.setLogType(ProgressLogger::CMD);
+      prog_log_.startProgress(0, ins.size(), "reading input");
       for (Size i = 0; i < ins.size(); ++i)
       {
         FeatureMap tmp;
@@ -224,9 +229,9 @@ protected:
         maps[i] = tmp;
         maps[i].updateRanges();
 
-        setProgress(progress++);
+        prog_log_.setProgress(progress++);
       }
-      endProgress();
+      prog_log_.endProgress();
 
       // exception for "labeled" algorithms: copy file descriptions
       if (labeled)

@@ -28,7 +28,7 @@ namespace OpenMS
       @ingroup SpectraClustering
   */
   class OPENMS_DLLAPI AverageLinkage :
-    public ClusterFunctor, public ProgressLogger
+    public ClusterFunctor
   {
 public:
 
@@ -56,6 +56,16 @@ public:
         @see ClusterFunctor , BinaryTreeNode
     */
     void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const override;
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

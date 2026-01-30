@@ -155,7 +155,7 @@ protected:
     Param param_pi = indexer.getParameters();
     param_pi.update(param, false, false, false, false, getGlobalLogDebug()); // suppress param. update message
     indexer.setParameters(param_pi);
-    indexer.setLogType(this->log_type_);
+    indexer.getProgressLogger().setLogType(this->log_type_);
     FASTAContainer<TFI_File> proteins(db_name);
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
 

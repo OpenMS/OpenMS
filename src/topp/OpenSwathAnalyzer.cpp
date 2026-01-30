@@ -181,7 +181,7 @@ protected:
     {
       MRMFeatureFinderScoring featureFinder;
       featureFinder.setParameters(feature_finder_param);
-      featureFinder.setLogType(log_type_);
+      featureFinder.getProgressLogger().setLogType(log_type_);
       featureFinder.setStrictFlag(!nostrict);
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
@@ -207,7 +207,7 @@ protected:
       cout << "Loading file " << file_list[i] << endl;
 
       // no progress log on the console in parallel
-      featureFinder.setLogType(log_type_);
+      featureFinder.getProgressLogger().setLogType(log_type_);
 
       FileHandler().loadExperiment(file_list[i], *swath_map.get(), {FileTypes::MZML}, log_type_);
 

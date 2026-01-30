@@ -28,8 +28,7 @@ namespace OpenMS
 {
 
   MapAlignmentAlgorithmTreeGuided::MapAlignmentAlgorithmTreeGuided() :
-          DefaultParamHandler("MapAlignmentAlgorithmTreeGuided"),
-          ProgressLogger()
+          DefaultParamHandler("MapAlignmentAlgorithmTreeGuided")
   {
     defaults_.insert("model:", MapAlignerBase::getModelDefaults("b_spline"));
     defaults_.setValue("model_type", "b_spline", "Options to control the modeling of retention time transformations from data");

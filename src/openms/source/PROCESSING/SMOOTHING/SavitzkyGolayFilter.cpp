@@ -15,7 +15,6 @@
 namespace OpenMS
 {
   SavitzkyGolayFilter::SavitzkyGolayFilter() :
-    ProgressLogger(),
     DefaultParamHandler("SavitzkyGolayFilter"),
     coeffs_()
   {

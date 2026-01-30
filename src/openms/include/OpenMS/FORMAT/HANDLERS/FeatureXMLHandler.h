@@ -40,8 +40,7 @@ namespace OpenMS
     @ingroup FileIO
   */
   class OPENMS_DLLAPI FeatureXMLHandler :
-    public Internal::XMLHandler,
-    public ProgressLogger
+    public Internal::XMLHandler
   {
 
 public:
@@ -160,6 +159,16 @@ protected:
     std::map<String, String> id_identifier_;
     /// Temporary search parameters file
     ProteinIdentification::SearchParameters search_param_;
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

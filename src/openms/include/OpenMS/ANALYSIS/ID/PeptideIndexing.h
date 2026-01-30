@@ -86,7 +86,7 @@ namespace OpenMS
 */
 
  class OPENMS_DLLAPI PeptideIndexing :
-    public DefaultParamHandler, public ProgressLogger
+    public DefaultParamHandler
   {
 public:
     /// name of enzyme/specificity which signals that the enzyme/specificity should be taken from meta information
@@ -196,6 +196,16 @@ public:
 
     Int aaa_max_{0};
     Int mm_max_{0};
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
  };
 }
 

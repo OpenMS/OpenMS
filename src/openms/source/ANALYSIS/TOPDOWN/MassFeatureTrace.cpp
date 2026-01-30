@@ -95,7 +95,7 @@ namespace OpenMS
     mtdet.setParameters(mtd_param);
     std::vector<MassTrace> m_traces;
 
-    mtdet.setLogType(ProgressLogger::NONE);
+    mtdet.getProgressLogger().setLogType(ProgressLogger::NONE);
     mtdet.run(map, m_traces); // m_traces : output of this function
     int charge_range = max_abs_charge - min_abs_charge + 1;
 

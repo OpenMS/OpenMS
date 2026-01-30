@@ -26,13 +26,13 @@ namespace OpenMS
 
   void TraMLFile::load(const String & filename, TargetedExperiment & exp)
   {
-    Internal::TraMLHandler handler(exp, filename, schema_version_, *this);
+    Internal::TraMLHandler handler(exp, filename, schema_version_, prog_log_);
     parse_(filename, &handler);
   }
 
   void TraMLFile::store(const String & filename, const TargetedExperiment & exp) const
   {
-    Internal::TraMLHandler handler(exp, filename, schema_version_, *this);
+    Internal::TraMLHandler handler(exp, filename, schema_version_, prog_log_);
     save_(filename, &handler);
   }
 

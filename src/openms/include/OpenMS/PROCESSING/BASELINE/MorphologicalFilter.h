@@ -129,11 +129,11 @@ namespace OpenMS
 
       @ingroup SignalProcessing
   */
-  class OPENMS_DLLAPI MorphologicalFilter : public ProgressLogger, public DefaultParamHandler
+  class OPENMS_DLLAPI MorphologicalFilter : public DefaultParamHandler
   {
   public:
     /// Constructor
-    MorphologicalFilter() : ProgressLogger(), DefaultParamHandler("MorphologicalFilter"), struct_size_in_datapoints_(0)
+    MorphologicalFilter() : DefaultParamHandler("MorphologicalFilter"), struct_size_in_datapoints_(0)
     {
       // structuring element
       defaults_.setValue("struc_elem_length", 3.0, "Length of the structuring element. This should be wider than the expected peak width.");
@@ -303,13 +303,13 @@ namespace OpenMS
     */
     void filterExperiment(PeakMap& exp)
     {
-      startProgress(0, exp.size(), "filtering baseline");
+      prog_log_.startProgress(0, exp.size(), "filtering baseline");
       for (UInt i = 0; i < exp.size(); ++i)
       {
         filter(exp[i]);
-        setProgress(i);
+        prog_log_.setProgress(i);
       }
-      endProgress();
+      prog_log_.endProgress();
     }
 
   protected:
@@ -579,6 +579,16 @@ namespace OpenMS
   private:
     /// copy constructor not implemented
     MorphologicalFilter(const MorphologicalFilter& source);
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 } // namespace OpenMS

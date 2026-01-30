@@ -54,8 +54,7 @@ namespace OpenMS
 
  */
   class OPENMS_DLLAPI MRMDecoy :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 
 public:
@@ -328,5 +327,15 @@ protected:
     String keep_const_pattern_;
     bool keepN_;
     bool keepC_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 }

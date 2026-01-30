@@ -13,8 +13,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MS2File::MS2File() :
-    ProgressLogger()
+  MS2File::MS2File()
   {
   }
 

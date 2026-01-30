@@ -36,7 +36,7 @@ namespace OpenMS
     const String& readoptions)
   {
     int progress = 0;
-    startProgress(0, file_list.size(), "Loading data");
+    prog_log_.startProgress(0, file_list.size(), "Loading data");
 
     std::vector<OpenSwath::SwathMap> swath_maps(file_list.size());
 #ifdef _OPENMP
@@ -110,10 +110,10 @@ namespace OpenMS
       {
         OPENMS_LOG_DEBUG << "Adding Swath file " << file_list[i] << " with " << swath_map.lower << " to " << swath_map.upper << '\n';
         swath_maps[i] = swath_map;
-        setProgress(progress++);
+        prog_log_.setProgress(progress++);
       }
     }
-    endProgress();
+    prog_log_.endProgress();
     return swath_maps;
   }
 
@@ -127,7 +127,7 @@ namespace OpenMS
     std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << '\n';
     String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
 
-    startProgress(0, 1, "Loading metadata file " + file);
+    prog_log_.startProgress(0, 1, "Loading metadata file " + file);
     std::shared_ptr<PeakMap> exp_stripped = populateMetaData_(file);
     exp_meta = exp_stripped;
 
@@ -140,10 +140,10 @@ namespace OpenMS
     countScansInSwath_(exp_stripped->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
     std::cout << "Determined there to be " << swath_counter.size()
               << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
-    endProgress();
+    prog_log_.endProgress();
 
     std::shared_ptr<FullSwathFileConsumer> dataConsumer;
-    startProgress(0, 1, "Loading data file " + file);
+    prog_log_.startProgress(0, 1, "Loading data file " + file);
     if (readoptions == "normal")
     {
       dataConsumer = std::make_shared<RegularSwathFileConsumer>(known_window_boundaries);
@@ -183,7 +183,7 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "Finished parsing Swath file \n";
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
-    endProgress();
+    prog_log_.endProgress();
     return swath_maps;
   }
 
@@ -196,7 +196,7 @@ namespace OpenMS
     std::cout << "Loading mzXML file " << file << " using readoptions " << readoptions << '\n';
     String tmp_fname = "openswath_tmpfile";
 
-    startProgress(0, 1, "Loading metadata file " + file);
+    prog_log_.startProgress(0, 1, "Loading metadata file " + file);
     std::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
     FileHandler f;
     f.getOptions().setAlwaysAppendData(true);
@@ -212,10 +212,10 @@ namespace OpenMS
     countScansInSwath_(experiment_metadata->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
     std::cout << "Determined there to be " << swath_counter.size() <<
       " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
-    endProgress();
+    prog_log_.endProgress();
 
     FullSwathFileConsumer* dataConsumer;
-    startProgress(0, 1, "Loading data file " + file);
+    prog_log_.startProgress(0, 1, "Loading data file " + file);
     if (readoptions == "normal")
     {
       dataConsumer = new RegularSwathFileConsumer(known_window_boundaries);
@@ -241,14 +241,14 @@ namespace OpenMS
     dataConsumer->retrieveSwathMaps(swath_maps);
     delete dataConsumer;
 
-    endProgress();
+    prog_log_.endProgress();
     return swath_maps;
   }
 
   /// Loads a Swath run from a single sqMass file
   std::vector<OpenSwath::SwathMap> SwathFile::loadSqMass(const String& file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */)
   {
-    startProgress(0, 1, "Loading sqmass data file " + file);
+    prog_log_.startProgress(0, 1, "Loading sqmass data file " + file);
 
     OpenMS::Internal::MzMLSqliteSwathHandler sql_mass_reader(file);
     std::vector<OpenSwath::SwathMap> swath_maps = sql_mass_reader.readSwathWindows();
@@ -268,7 +268,7 @@ namespace OpenMS
     ms1_map.sptr = sptr;
     ms1_map.ms1 = true;
     swath_maps.push_back(ms1_map);
-    endProgress();
+    prog_log_.endProgress();
 
     std::cout << "Determined there to be " << swath_maps.size() <<
       " SWATH windows and in total " << indices.size() << " MS1 spectra\n";

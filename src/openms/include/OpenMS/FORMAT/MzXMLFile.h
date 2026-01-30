@@ -24,8 +24,7 @@ namespace OpenMS
       @ingroup FileIO
   */
   class OPENMS_DLLAPI MzXMLFile :
-    public Internal::XMLFile,
-    public ProgressLogger
+    public Internal::XMLFile
   {
 	typedef PeakMap MapType;
 
@@ -107,6 +106,16 @@ protected:
 private:
 
     PeakFileOptions options_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 } // namespace OpenMS
 

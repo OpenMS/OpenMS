@@ -35,8 +35,7 @@ namespace OpenMS
       @ingroup FileIO
   */
   class OPENMS_DLLAPI TraMLFile :
-    public Internal::XMLFile,
-    public ProgressLogger
+    public Internal::XMLFile
   {
 public:
     ///Default constructor
@@ -71,6 +70,16 @@ public:
     bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings);
 
 private:
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

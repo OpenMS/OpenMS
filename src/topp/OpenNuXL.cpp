@@ -4837,7 +4837,7 @@ static void scoreXLIons_(
           // load MS2 map
           PeakMap spectra;
           MzMLFile f;
-          f.setLogType(log_type_);
+          f.getProgressLogger().setLogType(log_type_);
           PeakFileOptions options;
           options.clearMSLevels();
           options.addMSLevel(2);
@@ -4974,7 +4974,7 @@ static void scoreXLIons_(
 
       if (pcrecalibration)
       {
-        ic.setLogType(log_type_);
+        ic.getProgressLogger().setLogType(log_type_);
         ic.fillCalibrants(pep_ids, precursor_mass_tolerance);
         if (global_fragment_error != 0)
         {
@@ -5167,7 +5167,7 @@ static void scoreXLIons_(
     // load MS2 map
     PeakMap spectra;
     MzMLFile f;
-    f.setLogType(log_type_);
+    f.getProgressLogger().setLogType(log_type_);
 
     map<String, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 

@@ -51,8 +51,7 @@ namespace OpenMS
     @ingroup MapAlignment
   */
   class OPENMS_DLLAPI MapAlignmentAlgorithmIdentification :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 public:
     /// Default constructor
@@ -95,7 +94,7 @@ public:
                Int reference_index = -1)
     {
       checkParameters_(data.size());
-      startProgress(0, 3, "aligning maps");
+      prog_log_.startProgress(0, 3, "aligning maps");
 
       reference_index_ = reference_index;
       // is reference one of the input files?
@@ -122,13 +121,13 @@ public:
         }
         all_sorted &= getRetentionTimes_(data[i], rt_data[j++]);
       }
-      setProgress(1);
+      prog_log_.setProgress(1);
 
       computeTransformations_(rt_data, transformations, all_sorted);
-      setProgress(2);
+      prog_log_.setProgress(2);
 
-      setProgress(3);
-      endProgress();
+      prog_log_.setProgress(3);
+      prog_log_.endProgress();
     }
 
 protected:
@@ -341,6 +340,16 @@ private:
 
     ///Assignment operator intentionally not implemented -> private
     MapAlignmentAlgorithmIdentification& operator=(const MapAlignmentAlgorithmIdentification&);
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

@@ -264,7 +264,6 @@ namespace OpenMS
 
   AccurateMassSearchEngine::AccurateMassSearchEngine() :
     DefaultParamHandler("AccurateMassSearchEngine"),
-    ProgressLogger(),
     is_initialized_(false)
   {
     defaults_.setValue("mass_error_value", 5.0, "Tolerance allowed for accurate mass search.");

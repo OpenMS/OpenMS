@@ -205,14 +205,14 @@ namespace OpenMS::Internal
 
     // write features with their corresponding attributes
     os << "\t<featureList count=\"" << feature_map.size() << "\">\n";
-    startProgress(0, feature_map.size(), "Storing featureXML file");
+    prog_log_.startProgress(0, feature_map.size(), "Storing featureXML file");
     for (Size s = 0; s < feature_map.size(); s++)
     {
       writeFeature_(file_, os, feature_map[s], "f_", feature_map[s].getUniqueId(), 0);
-      setProgress(s);
+      prog_log_.setProgress(s);
       // writeFeature_(file_, os, feature_map[s], "f_", s, 0);
     }
-    endProgress();
+    prog_log_.endProgress();
 
     os << "\t</featureList>\n";
     os << "</featureMap>\n";
@@ -309,7 +309,7 @@ namespace OpenMS::Internal
         throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       map_->reserve(std::min(Size(1e5), count)); // reserve vector for faster push_back, but with upper boundary of 1e5 (as >1e5 is most likely an invalid feature count)
-      startProgress(0, count, "Loading featureXML file");
+      prog_log_.startProgress(0, count, "Loading featureXML file");
     }
     else if (tag == "quality" || tag == "hposition" || tag == "position")
     {
@@ -828,7 +828,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "featureList")
     {
-      endProgress();
+      prog_log_.endProgress();
     }
   }
 
@@ -1037,7 +1037,7 @@ namespace OpenMS::Internal
     {
       if (create)
       {
-        setProgress(map_->size());
+        prog_log_.setProgress(map_->size());
         map_->push_back(Feature());
         current_feature_ = &map_->back();
         last_meta_ =  &map_->back();

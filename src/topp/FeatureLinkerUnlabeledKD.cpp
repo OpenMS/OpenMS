@@ -88,7 +88,7 @@ public:
   TOPPFeatureLinkerUnlabeledKD() :
     TOPPFeatureLinkerBase("FeatureLinkerUnlabeledKD", "Groups corresponding features from multiple maps.")
   {
-    setLogType(CMD);
+    prog_log_.setLogType(ProgressLogger::CMD);
   }
 
 protected:

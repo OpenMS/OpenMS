@@ -31,8 +31,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI QcMLFile :
     public Internal::XMLHandler,
-    public Internal::XMLFile,
-    public ProgressLogger
+    public Internal::XMLFile
   {
 public:
     /// Representation of a quality parameter
@@ -201,6 +200,16 @@ protected:
     std::set<String> names_;
     std::vector<QualityParameter> qps_;
     std::vector<Attachment> ats_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 } // namespace OpenMS

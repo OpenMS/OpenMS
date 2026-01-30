@@ -81,9 +81,9 @@ namespace OpenMS
     const double scaling_cutoff_stdev_multiplier = 1.5; // MAGIC ALERT: multiplier for stdev in cutoff for outliers
     const UInt loops_mean_stdev_cutoff = 3; // MAGIC ALERT: number of loops in stdev cutoff for outliers
 
-    startProgress(0, 100, "shift pose clustering");
+    prog_log_.startProgress(0, 100, "shift pose clustering");
     UInt actual_progress = 0;
-    setProgress(++actual_progress);
+    prog_log_.setProgress(++actual_progress);
 
     // Optionally, we will write dumps of the hash table buckets.
     bool do_dump_buckets = false;
@@ -93,7 +93,7 @@ namespace OpenMS
       do_dump_buckets = true;
       dump_buckets_basename = param_.getValue("dump_buckets").toString();
     }
-    setProgress(++actual_progress);
+    prog_log_.setProgress(++actual_progress);
 
     // Even more optionally, we will write dumps of the hashed pairs.
     bool do_dump_pairs = false;
@@ -103,7 +103,7 @@ namespace OpenMS
       do_dump_pairs = true;
       dump_pairs_basename = param_.getValue("dump_pairs").toString();
     }
-    setProgress(++actual_progress);
+    prog_log_.setProgress(++actual_progress);
 
     //**************************************************************************
     // Select the most abundant data points only.  After that, disallow modifications
@@ -122,17 +122,17 @@ namespace OpenMS
         model_map_ini.resize(num_used_points);
       }
       model_map_ini.sortByComparator(Peak2D::MZLess());
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
       if (scene_map_ini.size() > num_used_points)
       {
         scene_map_ini.sortByIntensity(true);
         scene_map_ini.resize(num_used_points);
       }
       scene_map_ini.sortByComparator(Peak2D::MZLess());
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
       // Note: model_map_ini and scene_map_ini will not be used further below
     }
-    setProgress((actual_progress = 10));
+    prog_log_.setProgress((actual_progress = 10));
 
     //**************************************************************************
     // Preprocessing
@@ -181,7 +181,7 @@ namespace OpenMS
       shift_hash_.getData().resize(shift_buckets_num);
       shift_hash_.setMapping(shift_bucket_size, shift_buckets_num_half, 0);
     }
-    setProgress(++actual_progress);
+    prog_log_.setProgress(++actual_progress);
 
     //**************************************************************************
     // compute the ratio of the total intensities of both maps, for normalization
@@ -193,17 +193,17 @@ namespace OpenMS
       {
         total_int_model_map += model_map[i].getIntensity();
       }
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
       double total_int_scene_map = 0;
       for (Size i = 0; i < scene_map.size(); ++i)
       {
         total_int_scene_map += scene_map[i].getIntensity();
       }
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
       // ... and finally ...
       total_intensity_ratio = total_int_model_map / total_int_scene_map;
     } while (false);   // (the extra syntax helps with code folding in eclipse!)
-    setProgress((actual_progress = 20));
+    prog_log_.setProgress((actual_progress = 20));
 
     /// The serial number is incremented for each invocation of this, to avoid overwriting of hash table dumps.
     static Int dump_buckets_serial = 0;
@@ -239,12 +239,12 @@ namespace OpenMS
         dump_pairs_file.open(dump_pairs_filename.c_str());
         dump_pairs_file << "#" << ' ' << "i" << ' ' << "k" << std::endl;
       }
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
 
       // first point in model map
       for (Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i)
       {
-        setProgress(actual_progress + float(i) / model_map_size * 10.f);
+        prog_log_.setProgress(actual_progress + float(i) / model_map_size * 10.f);
 
         // Adjust window around i in model map
         while (i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
@@ -298,7 +298,7 @@ namespace OpenMS
       } // i
     } while (false);   // end of hashing (the extra syntax helps with code folding in eclipse!)
 
-    setProgress((actual_progress = 30));
+    prog_log_.setProgress((actual_progress = 30));
 
     ///////////////////////////////////////////////////////////////////
     // work on shift_hash_
@@ -336,7 +336,7 @@ namespace OpenMS
       }
 
       ++filtering_stage;
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
 
       // apply tophat filter to histogram
       MorphologicalFilter morph_filter;
@@ -362,7 +362,7 @@ namespace OpenMS
         }
         dump_buckets_file << '\n';
       }
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
 
       ++filtering_stage;
 
@@ -392,7 +392,7 @@ namespace OpenMS
           }
         }
       } while (false);
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
 
       // apply freq_cutoff, setting smaller values to zero
       for (Size index = 0; index < shift_hash_.getData().size(); ++index)
@@ -402,7 +402,7 @@ namespace OpenMS
           shift_hash_.getData()[index] = 0;
         }
       }
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
 
       // optionally, dump after noise filtering using freq_cutoff
       if (do_dump_buckets)
@@ -416,7 +416,7 @@ namespace OpenMS
         }
         dump_buckets_file << '\n';
       }
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
 
       // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
       {
@@ -445,14 +445,14 @@ namespace OpenMS
                               << data_range_end << std::endl;
           }
         }
-        setProgress(++actual_progress);
+        prog_log_.setProgress(++actual_progress);
       }
       if (do_dump_buckets)
       {
         dump_buckets_file << "# EOF" << std::endl;
         dump_buckets_file.close();
       }
-      setProgress(80);
+      prog_log_.setProgress(80);
 
     } while (false);
 
@@ -471,7 +471,7 @@ namespace OpenMS
 
     VV_(intercept);
 
-    setProgress(++actual_progress);
+    prog_log_.setProgress(++actual_progress);
 
     // set trafo
     {
@@ -484,8 +484,8 @@ namespace OpenMS
       transformation = trafo;
     }
 
-    setProgress(++actual_progress);
-    endProgress();
+    prog_log_.setProgress(++actual_progress);
+    prog_log_.endProgress();
 
     return;
   } // run()

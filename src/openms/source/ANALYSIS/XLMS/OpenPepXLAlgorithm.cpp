@@ -157,7 +157,7 @@ using namespace OpenMS;
   OpenPepXLAlgorithm::ExitCodes OpenPepXLAlgorithm::run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra)
   {
     ProgressLogger progresslogger;
-    progresslogger.setLogType(this->getLogType());
+    progresslogger.setLogType(prog_log_.getLogType());
 
     // preprocess parameters for convenience
     if (fragment_mass_tolerance_xlinks_ < fragment_mass_tolerance_)

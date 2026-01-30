@@ -454,7 +454,7 @@ namespace OpenMS
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages", "false"); // disabled in OpenSWATH
 
     feat_finder_.setParameters(params);
-    feat_finder_.setLogType(ProgressLogger::NONE);
+    feat_finder_.getProgressLogger().setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
     // to use MS1 Swath scores:
     feat_finder_.setMS1Map(SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(std::make_shared<MSExperiment>(ms_data_)));
@@ -796,7 +796,7 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "#Transitions: " << library_.getTransitions().size() << endl;
 
       ChromatogramExtractor extractor;
-      // extractor.setLogType(ProgressLogger::NONE);
+      // extractor.getProgressLogger().setLogType(ProgressLogger::NONE);
       {
         vector<OpenSwath::ChromatogramPtr> chrom_temp;
         vector<ChromatogramExtractor::ExtractionCoordinates> coords;

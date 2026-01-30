@@ -1107,7 +1107,7 @@ protected:
 
         FeatureMap feature_map;
         FileHandler f;
-        //f.setLogType(log_type_);
+        //f.getProgressLogger().setLogType(log_type_);
         // this does not work yet implicitly - not supported by FeatureXMLFile
         f.getFeatOptions().setRTRange(DRange<1>(rt_l, rt_u));
         f.getFeatOptions().setMZRange(DRange<1>(mz_l, mz_u));
@@ -1176,7 +1176,7 @@ protected:
 
         ConsensusMap consensus_map;
         FileHandler f;
-        //f.setLogType(log_type_);
+        //f.getProgressLogger().setLogType(log_type_);
         f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
         f.getOptions().setMZRange(DRange<1>(mz_l, mz_u));
         f.getOptions().setIntensityRange(DRange<1>(it_l, it_u));

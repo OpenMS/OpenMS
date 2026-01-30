@@ -106,7 +106,7 @@ namespace OpenMS
   }
 
   SpectraMerger::SpectraMerger(const SpectraMerger & source) :
-    DefaultParamHandler(source), ProgressLogger() //we probably want a new ProgressLogger when we copy
+    DefaultParamHandler(source) //we probably want a new ProgressLogger when we copy
   {
   }
 

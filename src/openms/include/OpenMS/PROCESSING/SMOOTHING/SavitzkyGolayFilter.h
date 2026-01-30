@@ -74,7 +74,6 @@ namespace OpenMS
     @ingroup SignalProcessing
   */
   class OPENMS_DLLAPI SavitzkyGolayFilter :
-    public ProgressLogger,
     public DefaultParamHandler
   {
 public:
@@ -202,18 +201,18 @@ public:
     void filterExperiment(PeakMap & map)
     {
       Size progress = 0;
-      startProgress(0, map.size() + map.getChromatograms().size(), "smoothing data");
+      prog_log_.startProgress(0, map.size() + map.getChromatograms().size(), "smoothing data");
       for (Size i = 0; i < map.size(); ++i)
       {
         filter(map[i]);
-        setProgress(++progress);
+        prog_log_.setProgress(++progress);
       }
       for (Size i = 0; i < map.getChromatograms().size(); ++i)
       {
         filter(map.getChromatogram(i));
-        setProgress(++progress);
+        prog_log_.setProgress(++progress);
       }
-      endProgress();
+      prog_log_.endProgress();
     }
 
 protected:
@@ -228,6 +227,16 @@ protected:
 
     // Docu in base class
     void updateMembers_() override;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 } // namespace OpenMS

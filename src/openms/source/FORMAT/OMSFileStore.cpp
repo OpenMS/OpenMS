@@ -50,9 +50,9 @@ namespace OpenMS::Internal
     }
   }
 
-  OMSFileStore::OMSFileStore(const String& filename, LogType log_type)
+  OMSFileStore::OMSFileStore(const String& filename, ProgressLogger::LogType log_type)
   {
-    setLogType(log_type);
+    prog_log_.setLogType(log_type);
     File::remove(filename); // nuke the file (SQLite cannot overwrite it)
     db_ = make_unique<SQLite::Database>(filename, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE); // throws on error
     // foreign key constraints are disabled by default - turn them on:
@@ -1110,33 +1110,33 @@ namespace OpenMS::Internal
 
   void OMSFileStore::store(const IdentificationData& id_data)
   {
-    startProgress(0, 13, "Writing identification data to file");
+    prog_log_.startProgress(0, 13, "Writing identification data to file");
     // generally, create tables only if we have data to write - no empty ones!
     auto body = [&]() {
       storeVersionAndDate_();
-      nextProgress(); // 1
+      prog_log_.nextProgress(); // 1
       storeInputFiles_(id_data);
-      nextProgress(); // 2
+      prog_log_.nextProgress(); // 2
       storeScoreTypes_(id_data);
-      nextProgress(); // 3
+      prog_log_.nextProgress(); // 3
       storeProcessingSoftwares_(id_data);
-      nextProgress(); // 4
+      prog_log_.nextProgress(); // 4
       storeDBSearchParams_(id_data);
-      nextProgress(); // 5
+      prog_log_.nextProgress(); // 5
       storeProcessingSteps_(id_data);
-      nextProgress(); // 6
+      prog_log_.nextProgress(); // 6
       storeObservations_(id_data);
-      nextProgress(); // 7
+      prog_log_.nextProgress(); // 7
       storeParentSequences_(id_data);
-      nextProgress(); // 8
+      prog_log_.nextProgress(); // 8
       storeParentGroupSets_(id_data);
-      nextProgress(); // 9
+      prog_log_.nextProgress(); // 9
       storeIdentifiedCompounds_(id_data);
-      nextProgress(); // 10
+      prog_log_.nextProgress(); // 10
       storeIdentifiedSequences_(id_data);
-      nextProgress(); // 11
+      prog_log_.nextProgress(); // 11
       storeAdducts_(id_data);
-      nextProgress(); // 12
+      prog_log_.nextProgress(); // 12
       storeObservationMatches_(id_data);
     };
 
@@ -1150,7 +1150,7 @@ namespace OpenMS::Internal
     {
       body();
     }
-    endProgress();
+    prog_log_.endProgress();
     // @TODO: store input match groups
   }
 
@@ -1345,7 +1345,7 @@ namespace OpenMS::Internal
     for (const Feature& feat : features)
     {
       storeFeatureAndSubordinates_(feat, feature_id, -1);
-      nextProgress();
+      prog_log_.nextProgress();
     }
   }
 
@@ -1444,14 +1444,14 @@ namespace OpenMS::Internal
     {
       store(features.getIdentificationData());
     }
-    startProgress(0, features.size() + 2, "Writing feature data to file");
+    prog_log_.startProgress(0, features.size() + 2, "Writing feature data to file");
     storeMapMetaData_(features);
-    nextProgress();
+    prog_log_.nextProgress();
     storeDataProcessing_(features.getDataProcessing());
-    nextProgress();
+    prog_log_.nextProgress();
     storeFeatures_(features);
     transaction.commit();
-    endProgress();
+    prog_log_.endProgress();
   }
 
 
@@ -1567,7 +1567,7 @@ namespace OpenMS::Internal
         query_ratio->bind(":description", ListUtils::concatenate(ratio.description_, ","));
         execWithExceptionAndReset(*query_ratio, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
-      nextProgress();
+      prog_log_.nextProgress();
       ++feature_id;
     }
   }
@@ -1584,15 +1584,15 @@ namespace OpenMS::Internal
     {
       store(consensus.getIdentificationData());
     }
-    startProgress(0, consensus.size() + 3, "Writing consensus feature data to file");
+    prog_log_.startProgress(0, consensus.size() + 3, "Writing consensus feature data to file");
     storeMapMetaData_(consensus, consensus.getExperimentType());
-    nextProgress();
+    prog_log_.nextProgress();
     storeConsensusColumnHeaders_(consensus);
-    nextProgress();
+    prog_log_.nextProgress();
     storeDataProcessing_(consensus.getDataProcessing());
-    nextProgress();
+    prog_log_.nextProgress();
     storeConsensusFeatures_(consensus);
     transaction.commit();
-    endProgress();
+    prog_log_.endProgress();
   }
 }

@@ -375,10 +375,10 @@ namespace OpenMS
 
     // Step 1: Generate target in silico peptide map containing theoretical transitions
     Size progress = 0;
-    startProgress(0, exp.getPeptides().size(), "Generation of target in silico peptide map");
+    prog_log_.startProgress(0, exp.getPeptides().size(), "Generation of target in silico peptide map");
     for (size_t i = 0; i < exp.getPeptides().size(); ++i)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
 
       TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
       OpenMS::AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
@@ -432,7 +432,7 @@ namespace OpenMS
         }
       }
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void MRMAssay::generateDecoySequences_(const SequenceMapT& TargetSequenceMap,
@@ -449,13 +449,13 @@ namespace OpenMS
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
 
     Size progress = 0;
-    startProgress(0, TargetSequenceMap.size(), "Target-decoy mapping");
+    prog_log_.startProgress(0, TargetSequenceMap.size(), "Target-decoy mapping");
     std::string decoy_peptide_string;
 
     // Iterate over swathes
     for (const auto& sm_it : TargetSequenceMap)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
       // Iterate over each unmodified peptide sequence in current SWATH
       for (const auto& ta_it : sm_it.second)
       {
@@ -497,7 +497,7 @@ namespace OpenMS
         }
       }
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void MRMAssay::generateDecoyInSilicoMap_(const OpenMS::TargetedExperiment& exp,
@@ -518,10 +518,10 @@ namespace OpenMS
 
     // Step 2b: Generate decoy in silico peptide map containing theoretical transitions
     Size progress = 0;
-    startProgress(0, exp.getPeptides().size(), "Generation of decoy in silico peptide map");
+    prog_log_.startProgress(0, exp.getPeptides().size(), "Generation of decoy in silico peptide map");
     for (size_t i = 0; i < exp.getPeptides().size(); ++i)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
 
       TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
       int precursor_charge = 1;
@@ -580,7 +580,7 @@ namespace OpenMS
         }
       }
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
  void MRMAssay::generateTargetAssays_(const OpenMS::TargetedExperiment& exp,
@@ -595,13 +595,13 @@ namespace OpenMS
 
     // Step 3: Generate target identification transitions
     Size progress = 0;
-    startProgress(0, TargetPeptideMap.size(), "Generation of target identification transitions");
+    prog_log_.startProgress(0, TargetPeptideMap.size(), "Generation of target identification transitions");
 
     // Iterate over all target peptides
     int transition_index = 0;
     for (const auto& pep_it : TargetPeptideMap)
     { 
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
 
       TargetedExperiment::Peptide peptide = exp.getPeptideByRef(pep_it.first);
       int precursor_charge = 1;
@@ -650,7 +650,7 @@ namespace OpenMS
       }
       OPENMS_LOG_DEBUG << "[uis] Peptide " << peptide.id << '\n';
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
  void MRMAssay::generateDecoyAssays_(const OpenMS::TargetedExperiment& exp,
@@ -667,13 +667,13 @@ namespace OpenMS
 
     // Step 4: Generate decoy identification transitions
     Size progress = 0;
-    startProgress(0, DecoyPeptideMap.size(), "Generation of decoy identification transitions");
+    prog_log_.startProgress(0, DecoyPeptideMap.size(), "Generation of decoy identification transitions");
 
     // Iterate over all decoy peptides
     int transition_index = 0;
     for (const auto & decoy_pep_it : DecoyPeptideMap)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
       const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(decoy_pep_it.first);
       int precursor_charge = 1;
       if (target_peptide.hasCharge()) 
@@ -736,7 +736,7 @@ namespace OpenMS
         transition_index++;
       }
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void MRMAssay::reannotateTransitions(OpenMS::TargetedExperiment& exp,
@@ -762,7 +762,7 @@ namespace OpenMS
     }
 
     Size progress = 0;
-    startProgress(0, exp.getTransitions().size(), "Annotating transitions");
+    prog_log_.startProgress(0, exp.getTransitions().size(), "Annotating transitions");
     for (MRMAssay::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
          pep_it != peptide_trans_map.end(); ++pep_it)
     {
@@ -785,7 +785,7 @@ namespace OpenMS
 
       for (Size i = 0; i < pep_it->second.size(); i++)
       {
-        setProgress(++progress);
+        prog_log_.setProgress(++progress);
         ReactionMonitoringTransition tr = *(pep_it->second[i]);
 
         // Annotate transition from theoretical ion series
@@ -826,7 +826,7 @@ namespace OpenMS
         transitions.push_back(tr);
       }
     }
-    endProgress();
+    prog_log_.endProgress();
 
     exp.setTransitions(std::move(transitions));
   }
@@ -842,10 +842,10 @@ namespace OpenMS
     transitions.reserve(exp.getTransitions().size());
 
     Size progress = 0;
-    startProgress(0, exp.getTransitions().size(), "Restricting transitions");
+    prog_log_.startProgress(0, exp.getTransitions().size(), "Restricting transitions");
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
       ReactionMonitoringTransition tr = exp.getTransitions()[i];
 
       const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
@@ -886,7 +886,7 @@ namespace OpenMS
     }
 
     exp.setTransitions(std::move(transitions));
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void MRMAssay::detectingTransitions(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
@@ -913,11 +913,11 @@ namespace OpenMS
     proteins.reserve(exp.getProteins().size());
 
     Size progress = 0;
-    startProgress(0, TransitionsMap.size() + exp.getPeptides().size() + exp.getProteins().size(), "Select detecting transitions");
+    prog_log_.startProgress(0, TransitionsMap.size() + exp.getPeptides().size() + exp.getProteins().size(), "Select detecting transitions");
     for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
       // Ensure that all precursors have the minimum number of transitions
       if (m->second.size() >= (Size)min_transitions)
       {
@@ -971,7 +971,7 @@ namespace OpenMS
 
     for (const auto& peptide : exp.getPeptides())
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       // Check if peptide has any transitions left
       if (peptide_ids.find(peptide.id) != peptide_ids.end())
@@ -990,7 +990,7 @@ namespace OpenMS
 
     for (const auto& protein : exp.getProteins())
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       // Check if protein has any peptides left
       if (ProteinList.find(protein.id) != ProteinList.end())
@@ -1007,7 +1007,7 @@ namespace OpenMS
     exp.setPeptides(std::move(peptides));
     exp.setProteins(std::move(proteins));
 
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void MRMAssay::uisTransitions(OpenMS::TargetedExperiment& exp,
@@ -1277,7 +1277,7 @@ namespace OpenMS
     }
 
     Size progress = 0;
-    startProgress(0, exp.transitions.size(), "Annotating transitions (Light)");
+    prog_log_.startProgress(0, exp.transitions.size(), "Annotating transitions (Light)");
 
     for (auto& pep_it : peptide_trans_map)
     {
@@ -1290,7 +1290,7 @@ namespace OpenMS
         // Skip non-peptide compounds (metabolomics) - just keep transitions as-is
         for (auto* tr : pep_it.second)
         {
-          setProgress(++progress);
+          prog_log_.setProgress(++progress);
           transitions.push_back(*tr);
         }
         continue;
@@ -1307,7 +1307,7 @@ namespace OpenMS
         // Can't parse sequence, keep transitions as-is
         for (auto* tr : pep_it.second)
         {
-          setProgress(++progress);
+          prog_log_.setProgress(++progress);
           transitions.push_back(*tr);
         }
         continue;
@@ -1326,7 +1326,7 @@ namespace OpenMS
 
       for (auto* tr : pep_it.second)
       {
-        setProgress(++progress);
+        prog_log_.setProgress(++progress);
 
         // Annotate transition from theoretical ion series
         std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr->product_mz, product_mz_threshold);
@@ -1389,7 +1389,7 @@ namespace OpenMS
         transitions.push_back(new_tr);
       }
     }
-    endProgress();
+    prog_log_.endProgress();
 
     exp.transitions = std::move(transitions);
   }
@@ -1412,11 +1412,11 @@ namespace OpenMS
     }
 
     Size progress = 0;
-    startProgress(0, exp.transitions.size(), "Restricting transitions (Light)");
+    prog_log_.startProgress(0, exp.transitions.size(), "Restricting transitions (Light)");
 
     for (const auto& tr : exp.transitions)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       // Check if product m/z falls into swath from precursor m/z and if yes, skip
       if (!swathes.empty())
@@ -1440,7 +1440,7 @@ namespace OpenMS
     }
 
     exp.transitions = std::move(transitions);
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void MRMAssay::detectingTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
@@ -1467,11 +1467,11 @@ namespace OpenMS
     proteins.reserve(exp.proteins.size());
 
     Size progress = 0;
-    startProgress(0, transitions_map.size() + exp.compounds.size() + exp.proteins.size(), "Select detecting transitions (Light)");
+    prog_log_.startProgress(0, transitions_map.size() + exp.compounds.size() + exp.proteins.size(), "Select detecting transitions (Light)");
 
     for (auto& m : transitions_map)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       // Ensure that all precursors have the minimum number of transitions
       if (m.second.size() >= static_cast<size_t>(min_transitions))
@@ -1520,7 +1520,7 @@ namespace OpenMS
 
     for (const auto& compound : exp.compounds)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       if (peptide_ids.find(compound.id) != peptide_ids.end())
       {
@@ -1534,7 +1534,7 @@ namespace OpenMS
 
     for (const auto& protein : exp.proteins)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       if (protein_list.find(protein.id) != protein_list.end())
       {
@@ -1546,7 +1546,7 @@ namespace OpenMS
     exp.compounds = std::move(compounds);
     exp.proteins = std::move(proteins);
 
-    endProgress();
+    prog_log_.endProgress();
   }
 
   // =====================================================================
@@ -1645,11 +1645,11 @@ namespace OpenMS
     OpenMS::MRMIonSeries mrmis;
 
     Size progress = 0;
-    startProgress(0, exp.compounds.size(), "Generation of target in silico peptide map (Light)");
+    prog_log_.startProgress(0, exp.compounds.size(), "Generation of target in silico peptide map (Light)");
 
     for (const auto& compound : exp.compounds)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
 
       // Skip non-peptide compounds (metabolites)
       if (!compound.isPeptide())
@@ -1716,7 +1716,7 @@ namespace OpenMS
         }
       }
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void MRMAssay::generateDecoyInSilicoMapLight_(const OpenSwath::LightTargetedExperiment& exp,
@@ -1736,11 +1736,11 @@ namespace OpenMS
     OpenMS::MRMIonSeries mrmis;
 
     Size progress = 0;
-    startProgress(0, exp.compounds.size(), "Generation of decoy in silico peptide map (Light)");
+    prog_log_.startProgress(0, exp.compounds.size(), "Generation of decoy in silico peptide map (Light)");
 
     for (const auto& compound : exp.compounds)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
 
       // Skip non-peptide compounds (metabolites)
       if (!compound.isPeptide())
@@ -1826,7 +1826,7 @@ namespace OpenMS
       decoy_compound.sequence = alternative_peptide_sequences.empty() ? decoy_it->second : alternative_peptide_sequences[0].toString();
       TargetDecoyMap[compound.id] = decoy_compound;
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void MRMAssay::generateTargetAssaysLight_(const OpenSwath::LightTargetedExperiment& exp,
@@ -1845,13 +1845,13 @@ namespace OpenMS
     }
 
     Size progress = 0;
-    startProgress(0, TargetPeptideMap.size(), "Generation of target identification transitions (Light)");
+    prog_log_.startProgress(0, TargetPeptideMap.size(), "Generation of target identification transitions (Light)");
 
     size_t transition_idx = transitions.size();
 
     for (const auto& pep_it : TargetPeptideMap)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
 
       const String& peptide_id = pep_it.first;
       auto comp_it = compound_map.find(peptide_id);
@@ -1953,7 +1953,7 @@ namespace OpenMS
         transitions.push_back(std::move(tr));
       }
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void MRMAssay::generateDecoyAssaysLight_(const OpenSwath::LightTargetedExperiment& exp,
@@ -1974,13 +1974,13 @@ namespace OpenMS
     }
 
     Size progress = 0;
-    startProgress(0, DecoyPeptideMap.size(), "Generation of decoy identification transitions (Light)");
+    prog_log_.startProgress(0, DecoyPeptideMap.size(), "Generation of decoy identification transitions (Light)");
 
     size_t transition_idx = transitions.size();
 
     for (const auto& pep_it : DecoyPeptideMap)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
 
       // DecoyPeptideMap keys are TARGET compound ids (same as heavy version)
       const String& target_id = pep_it.first;
@@ -2117,7 +2117,7 @@ namespace OpenMS
         transitions.push_back(std::move(tr));
       }
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void MRMAssay::uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp,

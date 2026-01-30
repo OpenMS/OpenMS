@@ -53,8 +53,7 @@ namespace OpenMS
    *       Make it keep the best PSMs though.
    */
   class OPENMS_DLLAPI IDMergerAlgorithm:
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
   public:
     /**
@@ -274,5 +273,15 @@ namespace OpenMS
 
     /// Flag indicating whether the identifier should be fixed (i.e., not contain a timestamp)
     bool fixed_identifier_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 } // namespace OpenMS

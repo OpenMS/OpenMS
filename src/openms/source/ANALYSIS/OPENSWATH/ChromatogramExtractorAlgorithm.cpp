@@ -272,10 +272,10 @@ namespace OpenMS
     }
 
     //go through all spectra
-    startProgress(0, input_size, "Extracting chromatograms");
+    prog_log_.startProgress(0, input_size, "Extracting chromatograms");
     for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
     {
-      setProgress(scan_idx);
+      prog_log_.setProgress(scan_idx);
 
       OpenSwath::SpectrumPtr sptr = input->getSpectrumById(scan_idx);
       OpenSwath::SpectrumMeta s_meta = input->getSpectrumMetaById(scan_idx);
@@ -349,7 +349,7 @@ namespace OpenMS
         output[k]->getIntensityArray()->data.push_back(integrated_intensity);
       }
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   int ChromatogramExtractorAlgorithm::getFilterNr_(const String& filter)

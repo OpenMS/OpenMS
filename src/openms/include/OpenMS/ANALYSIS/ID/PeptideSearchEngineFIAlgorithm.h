@@ -50,8 +50,7 @@ namespace OpenMS
   - Experimental; interfaces and behavior may change
 */
 class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
-  public DefaultParamHandler,
-  public ProgressLogger
+  public DefaultParamHandler
 {
   public:
     PeptideSearchEngineFIAlgorithm(); 
@@ -201,6 +200,16 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
                ? (precursor_mass_tolerance_ > 1000.0)
                : (precursor_mass_tolerance_ > 1.0);
     }
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
 };
 
 } // namespace

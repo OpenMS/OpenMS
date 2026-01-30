@@ -29,8 +29,7 @@ namespace OpenMS
    * (data-independent acquisition or DIA) experiment.
    *
   */
-  class OPENMS_DLLAPI ChromatogramExtractorAlgorithm :
-    public ProgressLogger
+  class OPENMS_DLLAPI ChromatogramExtractorAlgorithm
   {
 
 public:
@@ -158,6 +157,16 @@ public:
 private:
 
     int getFilterNr_(const String& filter);
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

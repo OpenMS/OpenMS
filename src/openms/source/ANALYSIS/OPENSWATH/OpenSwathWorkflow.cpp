@@ -123,7 +123,7 @@ namespace OpenMS
     const Param& calibration_param,
     const bool pasef)
   {
-    this->startProgress(0, 1, "Retention time normalization");
+    prog_log_.startProgress(0, 1, "Retention time normalization");
 
     bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
     if (estimateBestPeptides)
@@ -307,7 +307,7 @@ namespace OpenMS
     String model_type = irt_detection_param.getValue("alignmentMethod").toString();
     trafo_out.fitModel(model_type, model_params);
 
-    this->endProgress();
+    prog_log_.endProgress();
     return trafo_out;
   }
 
@@ -405,7 +405,7 @@ namespace OpenMS
 
     if (mrm_)
     {
-      this->startProgress(0, 1, "Extraction and Scoring");
+      prog_log_.startProgress(0, 1, "Extraction and Scoring");
       std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
       std::vector<MSChromatogram> filtered_chroms = provider->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
 
@@ -416,7 +416,7 @@ namespace OpenMS
       std::vector<MSChromatogram> empty_ms1_chromatograms;
 
       writeOutFeaturesAndChroms_(filtered_chroms, empty_ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
-      this->endProgress();
+      prog_log_.endProgress();
       return;
     }
 
@@ -426,7 +426,7 @@ namespace OpenMS
 
     OPENMS_LOG_INFO << "Will analyze " << transition_exp.transitions.size() << " transitions in total." << std::endl;
     int progress = 0;
-    this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
+    prog_log_.startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
     ChromExtractParams ms1_cp(cp_ms1);
@@ -731,10 +731,10 @@ namespace OpenMS
       } // continue 1 (no continue due to OpenMP)
 
       #pragma omp critical (progress)
-      this->setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
     }
-    this->endProgress();
+    prog_log_.endProgress();
 
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP

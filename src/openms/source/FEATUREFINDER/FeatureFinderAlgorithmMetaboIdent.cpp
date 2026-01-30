@@ -325,7 +325,7 @@ namespace OpenMS
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:method",
                     "corrected");
     feat_finder_.setParameters(params);
-    feat_finder_.setLogType(ProgressLogger::NONE);
+    feat_finder_.getProgressLogger().setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
 
     //-------------------------------------------------------------
@@ -341,7 +341,7 @@ namespace OpenMS
 
     OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
     ChromatogramExtractor extractor;
-    // extractor.setLogType(ProgressLogger::NONE);
+    // extractor.getProgressLogger().setLogType(ProgressLogger::NONE);
     vector<OpenSwath::ChromatogramPtr> chrom_temp;
     vector<ChromatogramExtractor::ExtractionCoordinates> coords;
     extractor.prepare_coordinates(chrom_temp, coords, library_,

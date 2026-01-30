@@ -35,8 +35,7 @@ namespace OpenMS
 
   @ingroup FileIO
   */
-  class OPENMS_DLLAPI MS2File :
-    public ProgressLogger
+  class OPENMS_DLLAPI MS2File
   {
 public:
 
@@ -44,12 +43,12 @@ public:
     MS2File();
 
     /// constructor
-    ~MS2File() override;
+    ~MS2File();
 
     template <typename MapType>
     void load(const String & filename, MapType & exp)
     {
-      //startProgress(0,0,"loading DTA2D file");
+      //prog_log_.startProgress(0,0,"loading DTA2D file");
 
       if (!File::exists(filename))
       {
@@ -166,6 +165,16 @@ public:
     }
 
 protected:
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

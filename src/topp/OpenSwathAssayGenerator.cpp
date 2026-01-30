@@ -266,7 +266,7 @@ protected:
       {
         Param reader_parameters = getParam_().copy("algorithm:", true);
         TransitionTSVFile tsv_reader;
-        tsv_reader.setLogType(log_type_);
+        tsv_reader.getProgressLogger().setLogType(log_type_);
         tsv_reader.setParameters(reader_parameters);
         tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, light_exp);
       }
@@ -274,13 +274,13 @@ protected:
       {
         TransitionPQPFile pqp_reader;
         Param reader_parameters = getParam_().copy("algorithm:", true);
-        pqp_reader.setLogType(log_type_);
+        pqp_reader.getProgressLogger().setLogType(log_type_);
         pqp_reader.setParameters(reader_parameters);
         pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp);
       }
 
       MRMAssay assays;
-      assays.setLogType(ProgressLogger::CMD);
+      assays.getProgressLogger().setLogType(ProgressLogger::CMD);
 
       OPENMS_LOG_INFO << "Annotating transitions (Light)" << std::endl;
       assays.reannotateTransitionsLight(light_exp, precursor_mz_threshold, product_mz_threshold,
@@ -324,13 +324,13 @@ protected:
       if (out_type == FileTypes::TSV)
       {
         TransitionTSVFile tsv_writer;
-        tsv_writer.setLogType(log_type_);
+        tsv_writer.getProgressLogger().setLogType(log_type_);
         tsv_writer.convertLightTargetedExperimentToTSV(out.c_str(), light_exp);
       }
       else if (out_type == FileTypes::PQP)
       {
         TransitionPQPFile pqp_writer;
-        pqp_writer.setLogType(log_type_);
+        pqp_writer.getProgressLogger().setLogType(log_type_);
         pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_exp);
       }
     }
@@ -345,7 +345,7 @@ protected:
         const char* tr_file = in.c_str();
         Param reader_parameters = getParam_().copy("algorithm:", true);
         TransitionTSVFile tsv_reader = TransitionTSVFile();
-        tsv_reader.setLogType(log_type_);
+        tsv_reader.getProgressLogger().setLogType(log_type_);
         tsv_reader.setParameters(reader_parameters);
         tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
         tsv_reader.validateTargetedExperiment(targeted_exp);
@@ -355,7 +355,7 @@ protected:
         const char* tr_file = in.c_str();
         TransitionPQPFile pqp_reader = TransitionPQPFile();
         Param reader_parameters = getParam_().copy("algorithm:", true);
-        pqp_reader.setLogType(log_type_);
+        pqp_reader.getProgressLogger().setLogType(log_type_);
         pqp_reader.setParameters(reader_parameters);
         pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp);
         pqp_reader.validateTargetedExperiment(targeted_exp);
@@ -366,7 +366,7 @@ protected:
       }
 
       MRMAssay assays = MRMAssay();
-      assays.setLogType(ProgressLogger::CMD);
+      assays.getProgressLogger().setLogType(ProgressLogger::CMD);
 
       OPENMS_LOG_INFO << "Annotating transitions" << std::endl;
       assays.reannotateTransitions(targeted_exp, precursor_mz_threshold, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_detection_specific_losses, enable_detection_unspecific_losses);
@@ -406,14 +406,14 @@ protected:
       {
         const char* tr_file = out.c_str();
         TransitionTSVFile tsv_reader = TransitionTSVFile();
-        tsv_reader.setLogType(log_type_);
+        tsv_reader.getProgressLogger().setLogType(log_type_);
         tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_exp);
       }
       else if (out_type == FileTypes::PQP)
       {
         const char * tr_file = out.c_str();
         TransitionPQPFile pqp_reader = TransitionPQPFile();
-        pqp_reader.setLogType(log_type_);
+        pqp_reader.getProgressLogger().setLogType(log_type_);
         pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_exp);
       }
       else if (out_type == FileTypes::TRAML)

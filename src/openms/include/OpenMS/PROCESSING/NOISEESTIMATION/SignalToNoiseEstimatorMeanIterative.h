@@ -252,7 +252,7 @@ protected:
       double noise;      // noise value of a datapoint
 
       ///start progress estimation
-      SignalToNoiseEstimator<Container>::startProgress(0, c.size(), "noise estimation of data");
+      this->prog_log_.startProgress(0, c.size(), "noise estimation of data");
 
       // MAIN LOOP
       while (window_pos_center != scan_last_)
@@ -339,11 +339,11 @@ protected:
         ++window_pos_center;
         ++window_count;
         // update progress
-        SignalToNoiseEstimator<Container>::setProgress(window_count);
+        this->prog_log_.setProgress(window_count);
 
       }   // end while
 
-      SignalToNoiseEstimator<Container>::endProgress();
+      this->prog_log_.endProgress();
 
       sparse_window_percent = sparse_window_percent * 100 / window_count;
       // warn if percentage of sparse windows is above 20%

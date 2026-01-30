@@ -60,8 +60,7 @@ namespace OpenMS
 {
 
   MRMFeatureFinderScoring::MRMFeatureFinderScoring() :
-    DefaultParamHandler("MRMFeatureFinderScoring"),
-    ProgressLogger()
+    DefaultParamHandler("MRMFeatureFinderScoring")
   {
     defaults_.setValue("stop_report_after_feature", -1, "Stop reporting after feature (ordered by quality; -1 means do not stop).");
     defaults_.setValue("rt_extraction_window", -1.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 500 means to extract around +/- 500 s of the expected elution). For this to work, the TraML input file needs to contain normalized RT values.");
@@ -237,11 +236,11 @@ namespace OpenMS
     trgroup_picker.setParameters(trgroup_picker_param);
 
     Size progress = 0;
-    startProgress(0, transition_group_map.size(), "picking peaks");
+    prog_log_.startProgress(0, transition_group_map.size(), "picking peaks");
     for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
 
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
       MRMTransitionGroupType& transition_group = trgroup_it->second;
       if (transition_group.getChromatograms().empty() || transition_group.getTransitions().empty())
       {
@@ -251,7 +250,7 @@ namespace OpenMS
       trgroup_picker.pickTransitionGroup(transition_group);
       scorePeakgroups(trgroup_it->second, trafo, swath_maps, output);
     }
-    endProgress();
+    prog_log_.endProgress();
 
     //output.sortByPosition(); // if the exact same order is needed
     return;
@@ -1119,7 +1118,7 @@ namespace OpenMS
     // Iterate through all transitions and store the transition with the
     // corresponding chromatogram in the corresponding transition group
     Size progress = 0;
-    startProgress(0, nr_chromatograms, "Mapping transitions to chromatograms ");
+    prog_log_.startProgress(0, nr_chromatograms, "Mapping transitions to chromatograms ");
     for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
     {
       // get the current transition and try to find the corresponding chromatogram
@@ -1195,9 +1194,9 @@ namespace OpenMS
       transition_group.addTransition(*transition, transition->getNativeID());
       transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
 
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
     }
-    endProgress();
+    prog_log_.endProgress();
 
     // The assumption is that for each transition that is in the TargetedExperiment we have exactly one chromatogram
     for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)

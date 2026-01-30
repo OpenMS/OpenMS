@@ -154,7 +154,7 @@ protected:
 
 
     GNPSMGFFile gnps;
-    gnps.setLogType(log_type_);
+    gnps.getProgressLogger().setLogType(log_type_);
     gnps.setParameters(getParam_()); // copy tool parameter to library class/algorithm
     gnps.store(consensus_file_path, mzml_file_paths, out);
 

@@ -152,14 +152,14 @@ namespace OpenMS
   {
     // progress logger
     unsigned progress = 0;
-    startProgress(0, filter_results.size(), "clustering filtered LC-MS data");
+    prog_log_.startProgress(0, filter_results.size(), "clustering filtered LC-MS data");
       
     std::vector<std::map<int, GridBasedCluster> > cluster_results;
 
     // loop over patterns i.e. cluster each of the corresponding filter results
     for (unsigned i = 0; i < filter_results.size(); ++i)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
         
       GridBasedClustering<MultiplexDistance> clustering(MultiplexDistance(rt_scaling_), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
       clustering.cluster();
@@ -167,7 +167,7 @@ namespace OpenMS
       cluster_results.push_back(clustering.getResults());
     }
 
-    endProgress();
+    prog_log_.endProgress();
 
     return cluster_results;
   }

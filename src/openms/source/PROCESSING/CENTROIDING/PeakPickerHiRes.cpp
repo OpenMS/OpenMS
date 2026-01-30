@@ -23,8 +23,7 @@ using namespace std;
 namespace OpenMS
 {
   PeakPickerHiRes::PeakPickerHiRes() :
-    DefaultParamHandler("PeakPickerHiRes"),
-    ProgressLogger()
+    DefaultParamHandler("PeakPickerHiRes")
   {
     // set default parameter values
     defaults_.setValue("signal_to_noise", 0.0, "Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!)");
@@ -493,7 +492,7 @@ namespace OpenMS
     output.resize(input.size());
 
     Size progress = 0;
-    startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
+    prog_log_.startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
 
     // MSLevel -> stats
     map<int, SpectraPickInfo> pick_info;
@@ -539,7 +538,7 @@ namespace OpenMS
         }
         pick_info[input[scan_idx].getMSLevel()].picked += was_picked;
         ++pick_info[input[scan_idx].getMSLevel()].total;
-        setProgress(++progress);
+        prog_log_.setProgress(++progress);
       }
     }
 
@@ -551,9 +550,9 @@ namespace OpenMS
       pick(input.getChromatograms()[i], chromatogram, boundaries_c);
       output.addChromatogram(chromatogram);
       boundaries_chrom.push_back(boundaries_c);
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
     }
-    endProgress();
+    prog_log_.endProgress();
 
     OPENMS_LOG_INFO << "#Spectra that needed to and could be picked by MS-level:\n";
     for (const auto& info : pick_info)
@@ -573,7 +572,7 @@ namespace OpenMS
     static_cast<ExperimentalSettings &>(output) = *input.getExperimentalSettings();
 
     Size progress = 0;
-    startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
+    prog_log_.startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
 
     // resize output with respect to input
     output.resize(input.size());
@@ -617,7 +616,7 @@ namespace OpenMS
 
           pick(s, output[scan_idx]);
         }
-        setProgress(++progress);
+        prog_log_.setProgress(++progress);
       }
     }
 
@@ -626,9 +625,9 @@ namespace OpenMS
       MSChromatogram chromatogram;
       pick(input.getChromatogram(i), chromatogram);
       output.addChromatogram(chromatogram);
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
     }
-    endProgress();
+    prog_log_.endProgress();
 
     return;
   }

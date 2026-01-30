@@ -260,7 +260,7 @@ protected:
 
       // Setup FeatureFinder for this group
       FeatureFinderAlgorithmPicked ff;
-      //ff.setLogType(log_type_); TODO
+      //ff.getProgressLogger().setLogType(log_type_); TODO
 
       // A map for features from this group
       FeatureMap features_cv;

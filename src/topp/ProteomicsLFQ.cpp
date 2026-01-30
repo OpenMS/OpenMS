@@ -326,7 +326,7 @@ protected:
     // Centroiding of MS1
     //-------------------------------------------------------------
     PeakPickerHiRes pp;
-    pp.setLogType(log_type_);
+    pp.getProgressLogger().setLogType(log_type_);
     pp.setParameters(pp_param);
     pp.pickExperiment(ms_raw, ms_centroided, true);
       
@@ -389,14 +389,14 @@ protected:
           Param ma_param = mat_param.copy("align_algorithm:", true);
           writeDebug_("Parameters passed to MapAlignerIdentification", ma_param, 3);
           MapAlignmentAlgorithmIdentification aligner;
-          aligner.setLogType(log_type_);
+          aligner.getProgressLogger().setLogType(log_type_);
           aligner.setParameters(ma_param);
           aligner.align(feature_maps, transformations, reference_index);
         }
         else //tree-guided
         {
           MapAlignmentAlgorithmTreeGuided aligner;
-          aligner.setLogType(log_type_);
+          aligner.getProgressLogger().setLogType(log_type_);
           aligner.setParameters(mat_param);
           aligner.align(feature_maps, transformations);
         }

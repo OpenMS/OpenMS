@@ -119,7 +119,7 @@ protected:
     MapAlignmentAlgorithmPoseClustering algorithm;
     Param algo_params = getParam_().copy("algorithm:", true);
     algorithm.setParameters(algo_params);
-    algorithm.setLogType(log_type_);
+    algorithm.getProgressLogger().setLogType(log_type_);
 
     StringList in_files = getStringList_("in");
     if (in_files.size() == 1)

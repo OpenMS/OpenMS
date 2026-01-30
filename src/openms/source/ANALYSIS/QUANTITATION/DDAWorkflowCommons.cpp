@@ -136,7 +136,7 @@ namespace OpenMS
         const String & id_file_abs_path )
     {
         InternalCalibration ic;
-        // ic.setLogType(log_type_);
+        // ic.getProgressLogger().setLogType(log_type_);
         ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
         if (ic.getCalibrationPoints().size() <= 1) return;
 

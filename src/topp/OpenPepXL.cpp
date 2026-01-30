@@ -205,7 +205,7 @@ protected:
     Param algo_param = search_algorithm.getParameters();
     algo_param.update(this_param, false, false, false, false, getGlobalLogDebug()); // suppress param. update message
     search_algorithm.setParameters(algo_param);
-    search_algorithm.setLogType(this->log_type_);
+    search_algorithm.getProgressLogger().setLogType(this->log_type_);
 
     ProteinIdentification::SearchParameters search_params;
     search_params.db = in_fasta;

@@ -22,7 +22,6 @@ namespace OpenMS
 {
 
   FeatureGroupingAlgorithmKD::FeatureGroupingAlgorithmKD() :
-    ProgressLogger(),
     feature_distance_(FeatureDistance())
   {
     setName("FeatureGroupingAlgorithmKD");
@@ -79,7 +78,7 @@ namespace OpenMS
     defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp:enabled' is set to 'true')");
 
     defaultsToParam_();
-    setLogType(CMD);
+    prog_log_.setLogType(ProgressLogger::CMD);
   }
 
   FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD() = default;
@@ -167,7 +166,7 @@ namespace OpenMS
     if (align)
     {
       Size progress = 0;
-      startProgress(0, partition_boundaries.size(), "computing RT transformations");
+      prog_log_.startProgress(0, partition_boundaries.size(), "computing RT transformations");
       for (size_t j = 0; j < partition_boundaries.size()-1; j++)
       {
         double partition_start = partition_boundaries[j];
@@ -193,7 +192,7 @@ namespace OpenMS
         // set up kd-tree
         KDTreeFeatureMaps kd_data(tmp_input_maps, param_);
         aligner.addRTFitData(kd_data);
-        setProgress(progress++);
+        prog_log_.setProgress(progress++);
       }
 
       // fit LOWESS on RT fit data collected across all partitions
@@ -207,12 +206,12 @@ namespace OpenMS
         return;
       }
 
-      endProgress();
+      prog_log_.endProgress();
     }
 
     // ------------ run alignment + feature linking on individual partitions ------------
     Size progress = 0;
-    startProgress(0, partition_boundaries.size(), "linking features");
+    prog_log_.startProgress(0, partition_boundaries.size(), "linking features");
     for (size_t j = 0; j < partition_boundaries.size()-1; j++)
     {
       double partition_start = partition_boundaries[j];
@@ -246,9 +245,9 @@ namespace OpenMS
 
       // link features
       runClustering_(kd_data, out);
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
     }
-    endProgress();
+    prog_log_.endProgress();
     
     postprocess_(input_maps, out);
   }

@@ -62,8 +62,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI MRMFeatureFinderScoring :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 
 public:
@@ -297,6 +296,16 @@ private:
 
     // data
     OpenSwath::SpectrumAccessPtr ms1_map_;
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 }

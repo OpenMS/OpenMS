@@ -55,7 +55,7 @@ namespace OpenMS
 
       This class encapsulates the SQLite database in a .oms file and allows to write data to it.
     */
-    class OMSFileStore: public ProgressLogger
+    class OMSFileStore
     {
     public:
        ///< Type used for database keys
@@ -72,7 +72,7 @@ namespace OpenMS
 
         @throw Exception::FailedAPICall Database cannot be opened
       */
-      OMSFileStore(const String& filename, LogType log_type);
+      OMSFileStore(const String& filename, ProgressLogger::LogType log_type);
 
       /*!
         @brief Destructor
@@ -295,6 +295,15 @@ namespace OpenMS
       std::map<const IdentificationData::ObservationMatch*, Key> observation_match_keys_;
       // for feature/consensus maps:
       std::map<const DataProcessing*, Key> feat_processing_keys_;
+
+    public:
+      /// Non-mutable access to the progress logger
+      const ProgressLogger& getProgressLogger() const { return prog_log_; }
+      /// Mutable access to the progress logger
+      ProgressLogger& getProgressLogger() { return prog_log_; }
+
+    protected:
+      ProgressLogger prog_log_;
     };
   }
 }

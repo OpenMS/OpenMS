@@ -96,7 +96,7 @@ namespace OpenMS
   {
     // progress logger
     unsigned progress = 0;
-    startProgress(0, patterns_.size() * exp_spline_profile_.size(), "filtering LC-MS data");
+    prog_log_.startProgress(0, patterns_.size() * exp_spline_profile_.size(), "filtering LC-MS data");
 
     // list of filter results for each peak pattern
     std::vector<MultiplexFilteredMSExperiment> filter_results;
@@ -141,7 +141,7 @@ namespace OpenMS
           continue;
         }
         
-        setProgress(++progress);
+        prog_log_.setProgress(++progress);
         
         MSExperiment::ConstIterator it_rt_picked_band_begin = exp_centroided_white_.RTBegin(rt - rt_band_/2);
         MSExperiment::ConstIterator it_rt_picked_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
@@ -250,7 +250,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "\nThe filtering step of the algorithm took " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";
 #endif
 
-    endProgress();
+    prog_log_.endProgress();
 
     return filter_results;
   }

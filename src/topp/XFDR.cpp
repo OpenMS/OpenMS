@@ -113,7 +113,7 @@ protected:
     Param algo_param = fdr_algorithm.getParameters();
     algo_param.update(this_param, false, getGlobalLogDebug()); // suppress param. update message
     fdr_algorithm.setParameters(algo_param);
-    fdr_algorithm.setLogType(this->log_type_);
+    fdr_algorithm.getProgressLogger().setLogType(this->log_type_);
 
     // TODO use this code? or just run the function?
     XFDRAlgorithm::ExitCodes class_arg_validation_code = fdr_algorithm.validateClassArguments();

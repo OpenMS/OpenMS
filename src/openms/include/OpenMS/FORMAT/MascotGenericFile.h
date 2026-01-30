@@ -35,7 +35,6 @@ namespace OpenMS
     @ingroup FileIO
   */
   class OPENMS_DLLAPI MascotGenericFile :
-    public ProgressLogger,
     public DefaultParamHandler
   {
 public:
@@ -77,7 +76,7 @@ public:
       std::ifstream is(filename.c_str());
       // get size of file
       is.seekg(0, std::ios::end);
-      startProgress(0, is.tellg(), "loading MGF");
+      prog_log_.startProgress(0, is.tellg(), "loading MGF");
       is.seekg(0, std::ios::beg);
 
       UInt spectrum_number(0);
@@ -90,11 +89,11 @@ public:
       while (getNextSpectrum_(is, spectrum, line_number, spectrum_number))
       {
         exp.addSpectrum(spectrum);
-        setProgress(is.tellg());
+        prog_log_.setProgress(is.tellg());
         ++spectrum_number;
       } // next spectrum
       exp.updateRanges();
-      endProgress();
+      prog_log_.endProgress();
     }
 
     /**
@@ -369,6 +368,16 @@ protected:
 
       return false; // found end of file
     }
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 } // namespace OpenMS

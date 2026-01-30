@@ -38,23 +38,23 @@ namespace OpenMS::Internal
     int file_identifier = CACHED_MZML_FILE_IDENTIFIER;
     ofs.write((char*)&file_identifier, sizeof(file_identifier));
 
-    startProgress(0, exp.size() + exp.getChromatograms().size(), "storing binary data");
+    prog_log_.startProgress(0, exp.size() + exp.getChromatograms().size(), "storing binary data");
     for (Size i = 0; i < exp.size(); i++)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
       writeSpectrum_(exp[i], ofs);
     }
 
     for (Size i = 0; i < exp.getChromatograms().size(); i++)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
       writeChromatogram_(exp.getChromatograms()[i], ofs);
     }
 
     ofs.write((char*)&exp_size, sizeof(exp_size));
     ofs.write((char*)&chrom_size, sizeof(chrom_size));
     ofs.close();
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void CachedMzMLHandler::readMemdump(MapType& exp_reading, const String& filename) const
@@ -94,10 +94,10 @@ namespace OpenMS::Internal
     ifs.seekg(sizeof(file_identifier), ifs.beg); // set file pointer to beginning (after identifier), start reading
 
     exp_reading.reserve(exp_size);
-    startProgress(0, exp_size + chrom_size, "reading binary data");
+    prog_log_.startProgress(0, exp_size + chrom_size, "reading binary data");
     for (Size i = 0; i < exp_size; i++)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
       SpectrumType spectrum;
       readSpectrum(spectrum, ifs);
       exp_reading.addSpectrum(spectrum);
@@ -105,7 +105,7 @@ namespace OpenMS::Internal
     std::vector<ChromatogramType> chromatograms;
     for (Size i = 0; i < chrom_size; i++)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
       ChromatogramType chromatogram;
       readChromatogram(chromatogram, ifs);
       chromatograms.push_back(chromatogram);
@@ -113,7 +113,7 @@ namespace OpenMS::Internal
     exp_reading.setChromatograms(chromatograms);
 
     ifs.close();
-    endProgress();
+    prog_log_.endProgress();
   }
 
   const std::vector<std::streampos>& CachedMzMLHandler::getSpectraIndex() const
@@ -172,10 +172,10 @@ namespace OpenMS::Internal
     ifs.read((char*)&chrom_size, sizeof(chrom_size));
     ifs.seekg(sizeof(file_identifier), ifs.beg); // set file pointer to beginning (after identifier), start reading
 
-    startProgress(0, exp_size + chrom_size, "Creating index for binary spectra");
+    prog_log_.startProgress(0, exp_size + chrom_size, "Creating index for binary spectra");
     for (Size i = 0; i < exp_size; i++)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
 
       Size spec_size;
       Size float_arr;
@@ -197,7 +197,7 @@ namespace OpenMS::Internal
 
     for (Size i = 0; i < chrom_size; i++)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
 
       Size ch_size;
       Size float_arr;
@@ -218,7 +218,7 @@ namespace OpenMS::Internal
     }
 
     ifs.close();
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void CachedMzMLHandler::writeMetadata(MapType exp, const String& out_meta, bool addCacheMetaValue)

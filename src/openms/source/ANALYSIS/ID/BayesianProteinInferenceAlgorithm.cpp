@@ -502,7 +502,6 @@ namespace OpenMS
 
   BayesianProteinInferenceAlgorithm::BayesianProteinInferenceAlgorithm(unsigned int debug_lvl) :
       DefaultParamHandler("BayesianProteinInferenceAlgorithm"),
-      ProgressLogger(),
       debug_lvl_(debug_lvl)
   {
     // set default parameter values

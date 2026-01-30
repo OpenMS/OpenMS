@@ -16,8 +16,7 @@ namespace OpenMS
 {
 
   MapAlignmentAlgorithmPoseClustering::MapAlignmentAlgorithmPoseClustering() :
-    DefaultParamHandler("MapAlignmentAlgorithmPoseClustering"), 
-    ProgressLogger(), max_num_peaks_considered_(0)
+    DefaultParamHandler("MapAlignmentAlgorithmPoseClustering"), max_num_peaks_considered_(0)
   {
     defaults_.insert("superimposer:", PoseClusteringAffineSuperimposer().getParameters());
     defaults_.insert("pairfinder:", StablePairFinder().getParameters());
@@ -30,10 +29,10 @@ namespace OpenMS
   void MapAlignmentAlgorithmPoseClustering::updateMembers_()
   {
     superimposer_.setParameters(param_.copy("superimposer:", true));
-    superimposer_.setLogType(getLogType());
+    superimposer_.getProgressLogger().setLogType(prog_log_.getLogType());
 
     pairfinder_.setParameters(param_.copy("pairfinder:", true));
-    pairfinder_.setLogType(getLogType());
+    pairfinder_.getProgressLogger().setLogType(prog_log_.getLogType());
 
     max_num_peaks_considered_ = param_.getValue("max_num_peaks_considered");
   }

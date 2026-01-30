@@ -23,15 +23,14 @@
 namespace OpenMS
 {
 
-  class OPENMS_DLLAPI ConfidenceScoring :
-      public ProgressLogger
+  class OPENMS_DLLAPI ConfidenceScoring
   {
   public:
 
       /// Constructor
       explicit ConfidenceScoring(bool test_mode_ = false);
 
-      ~ConfidenceScoring() override {}
+      ~ConfidenceScoring() = default;
 
   protected:
 
@@ -170,7 +169,7 @@ namespace OpenMS
 
         // log scoring progress:
         OPENMS_LOG_DEBUG << "Scoring features..." << std::endl;
-        startProgress(0, features.size(), "scoring features");
+        prog_log_.startProgress(0, features.size(), "scoring features");
 
         for (FeatureMap::Iterator feat_it = features.begin(); 
              feat_it != features.end(); ++feat_it)
@@ -178,11 +177,21 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << "Feature " << feat_it - features.begin() + 1 
                     << " (ID '" << feat_it->getUniqueId() << "')"<< std::endl;
           scoreFeature_(*feat_it);
-          setProgress(feat_it - features.begin());
+          prog_log_.setProgress(feat_it - features.begin());
         }
-        endProgress();
+        prog_log_.endProgress();
 
       }
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

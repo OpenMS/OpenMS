@@ -330,8 +330,14 @@ void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
 
 
 class TOPPOpenSwathFeatureXMLToTSV
-: public TOPPBase, public ProgressLogger
+: public TOPPBase
 {
+protected:
+  ProgressLogger prog_log_;
+public:
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
 public:
 
   TOPPOpenSwathFeatureXMLToTSV() :
@@ -364,13 +370,13 @@ protected:
   {
 
     Size progress = 0;
-    startProgress(0, feature_map.size(), "writing out features");
+    prog_log_.startProgress(0, feature_map.size(), "writing out features");
     for (Feature& feature : feature_map)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
       write_out_body_(os, &feature, transition_exp, meta_value_names, run_id, short_format, feature_map.getIdentifier(), filename);
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   ExitCodes main_(int, const char **) override
@@ -382,22 +388,22 @@ protected:
     String best_scoring = getStringOption_("best_scoring_peptide");
     bool short_format = getFlag_("short_format");
 
-    setLogType(log_type_);
+    prog_log_.setLogType(log_type_);
 
     TargetedExperiment transition_exp;
     FileHandler().loadTransitions(tr_file, transition_exp, {FileTypes::TRAML});
 
-    startProgress(0, transition_exp.getTransitions().size(), "indexing transitions peaks");
+    prog_log_.startProgress(0, transition_exp.getTransitions().size(), "indexing transitions peaks");
     for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
       const ReactionMonitoringTransition *transition = &transition_exp.getTransitions()[i];
 
       {
         peptide_transition_map[transition->getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
       }
     }
-    endProgress();
+    prog_log_.endProgress();
 
     std::ofstream os(out.c_str());
     //set high precision for writing of floating point numbers

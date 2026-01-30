@@ -252,7 +252,7 @@ namespace OpenMS
   }
 
   QcMLFile::QcMLFile() :
-    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO keep version up-to-date
+    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7") //TODO keep version up-to-date
   {
   }
 
@@ -799,14 +799,14 @@ namespace OpenMS
     String tmp_str;
     if (tag_ == "qcML")
     {
-      startProgress(0, 0, "loading qcML file");
+      prog_log_.startProgress(0, 0, "loading qcML file");
       progress_ = 0;
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
     }
     else if (tag_ == "runQuality")
     {
       run_id_ = attributeAsString_(attributes, "ID"); //TODO!
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       qps_.clear();
       ats_.clear();
       qp_ = QualityParameter();
@@ -856,7 +856,7 @@ namespace OpenMS
     }
     else if (tag_ == "setQuality")
     {
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       run_id_ = attributeAsString_(attributes, "ID"); //TODO!
       qps_.clear();
       ats_.clear();
@@ -1965,9 +1965,9 @@ namespace OpenMS
 
   void QcMLFile::store(const String& filename) const 
   {
-    //~ startProgress(0, 0, "storing qcML file");
+    //~ prog_log_.startProgress(0, 0, "storing qcML file");
     //~ progress_ = 0;
-    //~ setProgress(++progress_);
+    //~ prog_log_.setProgress(++progress_);
 
     //~ file should either contain the complete stylesheet injection (including the stylesheet file preamble, the DOCTYPE definition and the stylesheet itself) or be empty
     std::string xslt = "";
@@ -1995,7 +1995,7 @@ namespace OpenMS
 
     os.precision(writtenDigits<double>(0.0));
 
-    //~ setProgress(++progress_);
+    //~ prog_log_.setProgress(++progress_);
     //header & xslt
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";

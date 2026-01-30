@@ -68,7 +68,7 @@ protected:
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     SwathFile swath_file;
-    swath_file.setLogType(log_type_);
+    swath_file.getProgressLogger().setLogType(log_type_);
 
     FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_in);
     if (in_file_type == FileTypes::MZML)

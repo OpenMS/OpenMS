@@ -38,8 +38,7 @@ namespace OpenMS
    * (this is not for everyday use).
    *
    */
-  class OPENMS_DLLAPI SwathFile :
-    public ProgressLogger
+  class OPENMS_DLLAPI SwathFile
   {
 public:
 
@@ -94,6 +93,16 @@ protected:
                             std::vector<int>& swath_counter, int& nr_ms1_spectra, 
                             std::vector<OpenSwath::SwathMap>& known_window_boundaries,
                             double TOLERANCE=1e-6);
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 }

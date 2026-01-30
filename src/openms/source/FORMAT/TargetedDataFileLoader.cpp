@@ -38,7 +38,7 @@ std::vector<::OpenSwath::SwathMap> TargetedDataFileLoader::loadFile(const String
     // If probing fails, fall back to SwathFile loader
     OPENMS_LOG_DEBUG << "TargetedDataFileLoader: probe failed for " << file << ", falling back to SwathFile::loadMzML" << std::endl;
     SwathFile sw;
-    sw.setLogType(ProgressLogger::LogType::NONE);
+    sw.getProgressLogger().setLogType(ProgressLogger::LogType::NONE);
     return sw.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer);
   }
 
@@ -51,7 +51,7 @@ std::vector<::OpenSwath::SwathMap> TargetedDataFileLoader::loadFile(const String
 
   // Otherwise use SwathFile loader
   SwathFile sw;
-  sw.setLogType(ProgressLogger::LogType::NONE);
+  sw.getProgressLogger().setLogType(ProgressLogger::LogType::NONE);
   return sw.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer);
 }
 

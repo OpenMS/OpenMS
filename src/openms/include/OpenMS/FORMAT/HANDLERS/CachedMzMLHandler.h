@@ -36,8 +36,7 @@ namespace Internal
     for the file).
 
   */
-  class OPENMS_DLLAPI CachedMzMLHandler :
-    public ProgressLogger
+  class OPENMS_DLLAPI CachedMzMLHandler
   {
     typedef int IntType;
     typedef double DoubleType;
@@ -60,7 +59,7 @@ public:
     CachedMzMLHandler();
 
     /// Default destructor
-    ~CachedMzMLHandler() override;
+    ~CachedMzMLHandler();
 
     /// Assignment operator
     CachedMzMLHandler& operator=(const CachedMzMLHandler& rhs);
@@ -195,6 +194,16 @@ protected:
     /// Members
     std::vector<std::streampos> spectra_index_;
     std::vector<std::streampos> chrom_index_;
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 }

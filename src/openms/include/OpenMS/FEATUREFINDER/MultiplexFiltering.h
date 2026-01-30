@@ -44,8 +44,7 @@ namespace OpenMS
    * @see MultiplexFilteringCentroided
    * @see MultiplexFilteringProfile
    */
-  class OPENMS_DLLAPI MultiplexFiltering :
-    public ProgressLogger
+  class OPENMS_DLLAPI MultiplexFiltering
   {
 public:
     /**
@@ -254,6 +253,16 @@ protected:
      */
 
     String averagine_type_;
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

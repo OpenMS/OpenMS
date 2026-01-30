@@ -153,8 +153,7 @@ public:
     @ingroup Quantitation
   */
   class OPENMS_DLLAPI FeatureFindingMetabo :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 public:
     /// Default constructor
@@ -332,6 +331,16 @@ private:
 
     bool remove_single_traces_;
     std::vector<const Element*> elements_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 }

@@ -124,8 +124,7 @@ namespace OpenMS
   } SpectralMatchScoreGreater;
 
   class OPENMS_DLLAPI MetaboliteSpectralMatching :
-  public DefaultParamHandler,
-  public ProgressLogger
+  public DefaultParamHandler
   {
   public:
     /// Default constructor
@@ -179,6 +178,16 @@ namespace OpenMS
     String report_mode_;
 
     bool merge_spectra_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 }

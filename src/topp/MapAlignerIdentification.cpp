@@ -287,7 +287,7 @@ private:
     MapAlignmentAlgorithmIdentification algorithm;
     Param algo_params = getParam_().copy("algorithm:", true);
     algorithm.setParameters(algo_params);
-    algorithm.setLogType(log_type_);
+    algorithm.getProgressLogger().setLogType(log_type_);
 
     Int reference_index = getReference_(algorithm);
 

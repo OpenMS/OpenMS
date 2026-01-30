@@ -33,8 +33,7 @@ namespace OpenMS
     features are are the indices in the input map vector.
   */
   class OPENMS_DLLAPI BaseGroupFinder :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 public:
     /// Default constructor
@@ -68,6 +67,16 @@ private:
 
     /// Assignment operator intentionally not implemented
     BaseGroupFinder & operator=(const BaseGroupFinder &);
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

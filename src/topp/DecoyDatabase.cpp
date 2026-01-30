@@ -313,7 +313,7 @@ protected:
       {
         const auto x_residue = *ResidueDB::getInstance()->getResidue('X');
         FASTAFile fasta_in;
-        fasta_in.setLogType(log_type_);
+        fasta_in.getProgressLogger().setLogType(log_type_);
         fasta_in.readStartWithProgress(in[i], "Finding Neighbors in '" + in[i] + "'");
         FASTAFile::FASTAEntry entry;
         vector<AASequence> digested_candidate_peptides;

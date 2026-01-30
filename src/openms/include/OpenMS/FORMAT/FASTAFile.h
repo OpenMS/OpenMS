@@ -31,7 +31,7 @@ namespace OpenMS
       one single FASTAFile instance.
     */
 
-    class OPENMS_DLLAPI FASTAFile : public ProgressLogger
+    class OPENMS_DLLAPI FASTAFile
     {
     public:
         /**
@@ -93,7 +93,7 @@ namespace OpenMS
         FASTAFile() = default;
 
         /// Destructor
-        ~FASTAFile() override = default;
+        ~FASTAFile() = default;
 
         /**
           @brief Prepares a FASTA file given by @p filename for streamed reading using readNext().
@@ -178,6 +178,15 @@ namespace OpenMS
         std::string seq_;           ///< sequence of currently read protein
         std::string id_;            ///< identifier of currently read protein
         std::string description_;   ///< description of currently read protein
+
+    public:
+        /// Non-mutable access to the progress logger
+        const ProgressLogger& getProgressLogger() const { return prog_log_; }
+        /// Mutable access to the progress logger
+        ProgressLogger& getProgressLogger() { return prog_log_; }
+
+    protected:
+        ProgressLogger prog_log_;
     };
 
 } // namespace OpenMS

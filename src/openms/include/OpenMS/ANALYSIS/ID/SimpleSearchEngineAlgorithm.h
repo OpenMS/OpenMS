@@ -20,8 +20,7 @@ namespace OpenMS
 {
 
 class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
-  public DefaultParamHandler,
-  public ProgressLogger
+  public DefaultParamHandler
 {
   public:
     SimpleSearchEngineAlgorithm(); 
@@ -122,6 +121,16 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     String peptide_motif_;
 
     Size report_top_hits_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
 };
 
 } // namespace

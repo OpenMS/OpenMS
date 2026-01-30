@@ -177,7 +177,7 @@ protected:
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
+    mz_data_file.getProgressLogger().setLogType(log_type_);
     mz_data_file.transform(in, &pp_consumer);
 
     return EXECUTION_OK;
@@ -197,7 +197,7 @@ protected:
     writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3);
 
     PeakPickerHiRes pp;
-    pp.setLogType(log_type_);
+    pp.getProgressLogger().setLogType(log_type_);
     pp.setParameters(pepi_param);
 
     if (process_option == "lowmemory")

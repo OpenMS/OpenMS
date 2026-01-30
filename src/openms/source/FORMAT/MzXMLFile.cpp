@@ -44,14 +44,14 @@ namespace OpenMS
     map.setLoadedFileType(filename);
     map.setLoadedFilePath(filename);
 
-    Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
+    Internal::MzXMLHandler handler(map, filename, schema_version_, prog_log_);
     handler.setOptions(options_);
     parse_(filename, &handler);
   }
 
   void MzXMLFile::store(const String & filename, const MapType & map) const
   {
-    Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
+    Internal::MzXMLHandler handler(map, filename, schema_version_, prog_log_);
     handler.setOptions(options_);
     save_(filename, &handler);
   }
@@ -64,7 +64,7 @@ namespace OpenMS
     // Second pass through the data, now read the spectra!
     {
       MapType dummy;
-      Internal::MzXMLHandler handler(dummy, filename_in, getVersion(), *this);
+      Internal::MzXMLHandler handler(dummy, filename_in, getVersion(), prog_log_);
       handler.setOptions(options_);
       handler.setMSDataConsumer(consumer);
       parse_(filename_in, &handler);
@@ -79,7 +79,7 @@ namespace OpenMS
     // Second pass through the data, now read the spectra!
     {
       PeakFileOptions tmp_options(options_);
-      Internal::MzXMLHandler handler(map, filename_in, getVersion(), *this);
+      Internal::MzXMLHandler handler(map, filename_in, getVersion(), prog_log_);
       tmp_options.setAlwaysAppendData(true);
       handler.setOptions(tmp_options);
       handler.setMSDataConsumer(consumer);
@@ -94,7 +94,7 @@ namespace OpenMS
     PeakFileOptions tmp_options(options_);
     Size scount = 0, ccount = 0;
     MapType experimental_settings;
-    Internal::MzXMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
+    Internal::MzXMLHandler handler(experimental_settings, filename_in, getVersion(), prog_log_);
 
     // set temporary options for handler
     tmp_options.setMetadataOnly( skip_full_count );

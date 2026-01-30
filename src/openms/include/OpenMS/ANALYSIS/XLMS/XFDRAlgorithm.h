@@ -36,7 +36,7 @@ namespace OpenMS
   */
 
   class OPENMS_DLLAPI XFDRAlgorithm :
-  public DefaultParamHandler, public ProgressLogger
+  public DefaultParamHandler
   {
 
   public:
@@ -197,5 +197,15 @@ private:
     static const String crosslink_class_targets_;
     static const String crosslink_class_hybriddecoysintralinks_;
     static const String crosslink_class_hybriddecoysinterlinks_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 }

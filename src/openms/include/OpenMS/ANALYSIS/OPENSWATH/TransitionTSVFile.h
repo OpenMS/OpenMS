@@ -116,7 +116,6 @@ Remarks:
 
   */
   class OPENMS_DLLAPI TransitionTSVFile :
-    public ProgressLogger,
     public DefaultParamHandler
   {
 
@@ -356,6 +355,16 @@ public:
 
     /// Validate a TargetedExperiment (check that all ids are unique)
     void validateTargetedExperiment(const OpenMS::TargetedExperiment& targeted_exp);
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 }

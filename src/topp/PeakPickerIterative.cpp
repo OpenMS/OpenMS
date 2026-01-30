@@ -102,7 +102,7 @@ class TOPPPeakPickerIterative
     FileHandler().loadExperiment(in,exp, {FileTypes::MZML}, log_type_);
     PeakPickerIterative pp;
     pp.setParameters(picker_param);
-    pp.setLogType(log_type_);
+    pp.getProgressLogger().setLogType(log_type_);
     pp.pickExperiment(exp, out_exp);
 
     addDataProcessing_(out_exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));

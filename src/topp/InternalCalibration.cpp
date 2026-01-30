@@ -233,7 +233,7 @@ protected:
     mz_file.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     InternalCalibration ic;
-    ic.setLogType(log_type_);
+    ic.getProgressLogger().setLogType(log_type_);
 
     double tol_ppm = getDoubleOption_("ppm_match_tolerance");
 

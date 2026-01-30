@@ -86,7 +86,7 @@ namespace OpenMS
 */
 
   class OPENMS_DLLAPI OpenPepXLAlgorithm :
-   public DefaultParamHandler, public ProgressLogger
+   public DefaultParamHandler
   {
 public:
 
@@ -162,5 +162,15 @@ private:
     String add_c_ions_;
     String add_z_ions_;
     String add_losses_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 }

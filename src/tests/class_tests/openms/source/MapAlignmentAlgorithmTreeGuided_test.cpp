@@ -45,7 +45,7 @@ FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided
 vector<FeatureMap> maps_orig = maps;
 
 MapAlignmentAlgorithmTreeGuided aligner;
-aligner.setLogType(ProgressLogger::CMD);
+aligner.getProgressLogger().setLogType(ProgressLogger::CMD);
 Param params = aligner.getParameters();
 aligner.setParameters(params);
 

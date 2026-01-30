@@ -848,7 +848,7 @@ protected:
     {
       vector<FASTAFile::FASTAEntry> entries;
       FASTAFile file;
-      file.setLogType(log_type_);
+      file.getProgressLogger().setLogType(log_type_);
 
       SysInfo::MemUsage mu;
       // loading input
@@ -1407,7 +1407,7 @@ protected:
     {
       TargetedExperiment targeted_exp; 
       TransitionPQPFile pqp_reader;
-      pqp_reader.setLogType(log_type_);
+      pqp_reader.getProgressLogger().setLogType(log_type_);
       pqp_reader.convertPQPToTargetedExperiment(in.c_str(), targeted_exp, true);
       os << targeted_exp.getSummary();
     }

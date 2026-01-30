@@ -43,7 +43,7 @@ namespace OpenMS
   void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids,
                        PeptideIdentificationList& peptide_ids, String& document_id)
   {
-    startProgress(0, 0, "Loading idXML");
+    prog_log_.startProgress(0, 0, "Loading idXML");
     //Filename for error messages in XMLHandler
     file_ = filename;
 
@@ -69,7 +69,7 @@ namespace OpenMS
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
 
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void IdXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const String& document_id)
@@ -94,7 +94,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    startProgress(0, peptide_ids.size(), "Storing idXML");
+    prog_log_.startProgress(0, peptide_ids.size(), "Storing idXML");
 
     os.precision(writtenDigits<double>(0.0));
 
@@ -261,7 +261,7 @@ namespace OpenMS
 
       for (Size l = 0; l < peptide_ids.size(); ++l)
       {
-        setProgress(l);
+        prog_log_.setProgress(l);
 
         if (peptide_ids[l].getIdentifier() != protein_ids[i].getIdentifier())
         {
@@ -403,7 +403,7 @@ namespace OpenMS
     // close stream
     os.close();
 
-    endProgress();
+    prog_log_.endProgress();
 
     //reset members
     prot_ids_ = nullptr;

@@ -754,8 +754,8 @@ namespace OpenMS
     LinearInterpolationType_ rt_high_hash_; // rt shift estimate of map end
     UInt actual_progress = 0;
 
-    startProgress(0, 100, "affine pose clustering");
-    setProgress(++actual_progress);
+    prog_log_.startProgress(0, 100, "affine pose clustering");
+    prog_log_.setProgress(++actual_progress);
     // Optionally, we will write dumps of the hash table buckets.
     bool do_dump_buckets = false;
     String dump_buckets_basename;
@@ -764,7 +764,7 @@ namespace OpenMS
       do_dump_buckets = true;
       dump_buckets_basename = param_.getValue("dump_buckets").toString();
     }
-    setProgress(++actual_progress);
+    prog_log_.setProgress(++actual_progress);
 
     // Even more optionally, we will write dumps of the hashed pairs.
     bool do_dump_pairs = false;
@@ -774,7 +774,7 @@ namespace OpenMS
       do_dump_pairs = true;
       dump_pairs_basename = param_.getValue("dump_pairs").toString();
     }
-    setProgress(++actual_progress);
+    prog_log_.setProgress(++actual_progress);
 
     //**************************************************************************
     // Step 1: Select the most abundant data points only.
@@ -794,19 +794,19 @@ namespace OpenMS
             model_map.rend(), Peak2D::IntensityLess());
         model_map.resize(num_used_points);
       }
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
       if (scene_map.size() > num_used_points)
       {
         std::nth_element(scene_map.rbegin(), scene_map.rbegin() + (scene_map.size() - num_used_points),
             scene_map.rend(), Peak2D::IntensityLess());
         scene_map.resize(num_used_points);
       }
-      setProgress(++actual_progress);
+      prog_log_.setProgress(++actual_progress);
     }
     // sort by ascending m/z
     std::sort(model_map.begin(), model_map.end(), Peak2D::MZLess());
     std::sort(scene_map.begin(), scene_map.end(), Peak2D::MZLess());
-    setProgress((actual_progress = 10));
+    prog_log_.setProgress((actual_progress = 10));
 
     //**************************************************************************
     // Preprocessing
@@ -866,14 +866,14 @@ namespace OpenMS
                          param_.getValue("scaling_bucket_size"), param_.getValue("shift_bucket_size"),
                          rt_low, rt_high);
 
-    setProgress(++actual_progress);
+    prog_log_.setProgress(++actual_progress);
 
     //**************************************************************************
     // Step 3: compute the ratio of the total intensities of both maps, for
     //         normalization
     //**************************************************************************
     double total_intensity_ratio = computeIntensityRatio(model_map, scene_map);
-    setProgress((actual_progress = 20));
+    prog_log_.setProgress((actual_progress = 20));
 
     // The serial number is incremented for each invocation of this, to avoid
     // overwriting of hash table dumps.
@@ -908,7 +908,7 @@ namespace OpenMS
       -1, // only used in 2nd round of hashing
       -1, // only used in 2nd round of hashing
       rt_low, rt_high);
-    setProgress((actual_progress = 30));
+    prog_log_.setProgress((actual_progress = 30));
 
     ///////////////////////////////////////////////////////////////////
     // Step 4.2 Estimate the scaling factor (and potential bounds) based on the
@@ -928,7 +928,7 @@ namespace OpenMS
       scale_low_1,
       scale_high_1,
       scale_centroid_1);
-    setProgress((actual_progress = 40));
+    prog_log_.setProgress((actual_progress = 40));
 
     ///////////////////////////////////////////////////////////////////
     // Step 4.3 Second round of hashing: Estimate the shift at both ends and
@@ -948,7 +948,7 @@ namespace OpenMS
       scale_low_1,
       scale_high_1,
       rt_low, rt_high);
-    setProgress((actual_progress = 50));
+    prog_log_.setProgress((actual_progress = 50));
 
     ///////////////////////////////////////////////////////////////////
     // Step 4.4 Estimate the shift factor at start/end of the map based on the
@@ -967,7 +967,7 @@ namespace OpenMS
       dump_buckets_basename,
       rt_low_centroid,
       rt_high_centroid);
-    setProgress(80);
+    prog_log_.setProgress(80);
 
     //**************************************************************************
     // Step 5: Estimate transform
@@ -999,7 +999,7 @@ namespace OpenMS
     rt_high_image = rt_high_hash_.index2key(rt_high_max_index);
 #endif
 
-    setProgress(++actual_progress);
+    prog_log_.setProgress(++actual_progress);
 
     // 5.2 compute slope and intercept from matching high/low retention times
     {
@@ -1020,8 +1020,8 @@ namespace OpenMS
       transformation.fitModel("linear", params);       // no data, but explicit parameters
     }
 
-    setProgress(++actual_progress);
-    endProgress();
+    prog_log_.setProgress(++actual_progress);
+    prog_log_.endProgress();
   }
 
   void PoseClusteringAffineSuperimposer::run(const ConsensusMap& map_model,

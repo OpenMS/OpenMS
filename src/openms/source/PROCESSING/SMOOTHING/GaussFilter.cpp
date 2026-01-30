@@ -18,7 +18,6 @@ namespace OpenMS
 {
 
   GaussFilter::GaussFilter() :
-    ProgressLogger(),
     DefaultParamHandler("GaussFilter"),
     spacing_(0.01)
   {
@@ -195,19 +194,19 @@ namespace OpenMS
   void GaussFilter::filterExperiment(PeakMap & map)
   {
     Size progress = 0;
-    startProgress(0, map.size() + map.getChromatograms().size(), "smoothing data");
+    prog_log_.startProgress(0, map.size() + map.getChromatograms().size(), "smoothing data");
     for (Size i = 0; i < map.size(); ++i)
     {
       filter(map[i]);
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
     }
 
     for (Size i = 0; i < map.getChromatograms().size(); ++i)
     {
       filter(map.getChromatogram(i));
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
 }

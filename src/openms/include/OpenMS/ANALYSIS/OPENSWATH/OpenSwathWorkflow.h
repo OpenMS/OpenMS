@@ -68,8 +68,7 @@ namespace OpenMS
     double extra_rt_extract;
   };
 
-  class OPENMS_DLLAPI OpenSwathWorkflowBase :
-    public ProgressLogger
+  class OPENMS_DLLAPI OpenSwathWorkflowBase
   {
 
 protected:
@@ -598,6 +597,16 @@ protected:
     void copyBatchTransitions_(const std::vector<OpenSwath::LightCompound>& used_compounds,
       const std::vector<OpenSwath::LightTransition>& all_transitions,
       std::vector<OpenSwath::LightTransition>& output);
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 }
 

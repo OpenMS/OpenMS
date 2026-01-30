@@ -95,7 +95,7 @@ namespace OpenMS
   void MzMLFile::loadSize(const String& filename, Size& scount, Size& ccount)
   {
     PeakMap dummy;
-    Internal::MzMLHandler handler(dummy, filename, getVersion(), *this);
+    Internal::MzMLHandler handler(dummy, filename, getVersion(), prog_log_);
     handler.setOptions(options_);
     if (options_.hasFilters())
     {
@@ -132,7 +132,7 @@ namespace OpenMS
   {
     map.reset();
 
-    Internal::MzMLHandler handler(map, "memory", getVersion(), *this);
+    Internal::MzMLHandler handler(map, "memory", getVersion(), prog_log_);
     handler.setOptions(options_);
     parseBuffer_(buffer, &handler);
     map.updateRanges();
@@ -146,7 +146,7 @@ namespace OpenMS
     map.setLoadedFileType(filename);
     map.setLoadedFilePath(filename);
 
-    Internal::MzMLHandler handler(map, filename, getVersion(), *this);
+    Internal::MzMLHandler handler(map, filename, getVersion(), prog_log_);
     handler.setOptions(options_);
     safeParse_(filename, &handler);
     map.updateRanges();
@@ -154,14 +154,14 @@ namespace OpenMS
 
   void MzMLFile::store(const String& filename, const PeakMap& map) const
   {
-    Internal::MzMLHandler handler(map, filename, getVersion(), *this);
+    Internal::MzMLHandler handler(map, filename, getVersion(), prog_log_);
     handler.setOptions(options_);
     save_(filename, &handler);
   }
 
   void MzMLFile::storeBuffer(std::string& output, const PeakMap& map) const
   {
-    Internal::MzMLHandler handler(map, "dummy", getVersion(), *this);
+    Internal::MzMLHandler handler(map, "dummy", getVersion(), prog_log_);
     handler.setOptions(options_);
     {
       std::stringstream os;
@@ -183,7 +183,7 @@ namespace OpenMS
     // Second pass through the data, now read the spectra!
     {
       PeakMap dummy;
-      Internal::MzMLHandler handler(dummy, filename_in, getVersion(), *this);
+      Internal::MzMLHandler handler(dummy, filename_in, getVersion(), prog_log_);
       handler.setOptions(options_);
       handler.setMSDataConsumer(consumer);
       safeParse_(filename_in, &handler);
@@ -200,7 +200,7 @@ namespace OpenMS
     // Second pass through the data, now read the spectra!
     {
       PeakFileOptions tmp_options(options_);
-      Internal::MzMLHandler handler(map, filename_in, getVersion(), *this);
+      Internal::MzMLHandler handler(map, filename_in, getVersion(), prog_log_);
       tmp_options.setAlwaysAppendData(true);
       handler.setOptions(tmp_options);
       handler.setMSDataConsumer(consumer);
@@ -215,7 +215,7 @@ namespace OpenMS
     PeakFileOptions tmp_options(options_);
     Size scount = 0, ccount = 0;
     PeakMap experimental_settings;
-    Internal::MzMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
+    Internal::MzMLHandler handler(experimental_settings, filename_in, getVersion(), prog_log_);
 
     // set temporary options for handler
     tmp_options.setMetadataOnly( skip_full_count );

@@ -37,8 +37,7 @@ namespace OpenMS
     (Rosenberger et al. 2017; PMID 28604659).
 
   */
-  class OPENMS_DLLAPI MRMAssay :
-    public ProgressLogger
+  class OPENMS_DLLAPI MRMAssay
   {
 
 public:
@@ -47,7 +46,7 @@ public:
     MRMAssay(); // empty, no members
 
     /// Destructor
-    ~MRMAssay() override;
+    ~MRMAssay();
     //@}
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
@@ -563,6 +562,16 @@ protected:
                                    const TargetDecoyMapLightT& TargetDecoyMap,
                                    const IonMapT& DecoyIonMap,
                                    const IonMapT& TargetIonMap);
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 }

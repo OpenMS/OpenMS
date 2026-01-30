@@ -294,7 +294,7 @@ public:
       // Create algorithm instance for this group
       FeatureFinderMultiplexAlgorithm algorithm_cv;
       algorithm_cv.setParameters(params);
-      algorithm_cv.setLogType(this->log_type_);
+      algorithm_cv.getProgressLogger().setLogType(this->log_type_);
       algorithm_cv.run(faims_group, true);
 
       // Annotate features with FAIMS CV (if FAIMS data) and add to combined results

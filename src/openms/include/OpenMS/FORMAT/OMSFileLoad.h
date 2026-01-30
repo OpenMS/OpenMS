@@ -31,7 +31,7 @@ namespace OpenMS
 
       This class encapsulates the SQLite database stored in a .oms file and allows to load data from it.
     */
-    class OMSFileLoad: public ProgressLogger
+    class OMSFileLoad
     {
     public:
       using Key = OMSFileStore::Key; ///< Type used for database keys
@@ -46,7 +46,7 @@ namespace OpenMS
 
         @throw Exception::FailedAPICall Database cannot be opened
       */
-      OMSFileLoad(const String& filename, LogType log_type);
+      OMSFileLoad(const String& filename, ProgressLogger::LogType log_type);
 
       /*!
         @brief Destructor
@@ -200,6 +200,15 @@ namespace OpenMS
       // mapping: table name -> ordering critera (for JSON export)
       // @TODO: could use 'unordered_map' here, but would need to specify hash function for 'QString'
       static std::map<QString, QString> export_order_by_;
+
+    public:
+      /// Non-mutable access to the progress logger
+      const ProgressLogger& getProgressLogger() const { return prog_log_; }
+      /// Mutable access to the progress logger
+      ProgressLogger& getProgressLogger() { return prog_log_; }
+
+    protected:
+      ProgressLogger prog_log_;
     };
   }
 }

@@ -38,14 +38,13 @@ namespace OpenMS
   @ingroup FileIO
 */
 
-  class OPENMS_DLLAPI XMassFile :
-    public ProgressLogger
+  class OPENMS_DLLAPI XMassFile
   {
 public:
     /// Default constructor
     XMassFile();
     /// Destructor
-    ~XMassFile() override;
+    ~XMassFile();
 
     /**
         @brief Loads a spectrum from a XMass file.
@@ -227,6 +226,16 @@ public:
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 } // namespace OpenMS

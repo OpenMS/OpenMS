@@ -172,7 +172,7 @@ protected:
       // Create the consumer, set output file name, transform
       TICConsumer consumer;
       MzMLFile mzml;
-      mzml.setLogType(log_type_);
+      mzml.getProgressLogger().setLogType(log_type_);
 
       PeakFileOptions opt = mzml.getOptions();
       opt.setFillData(load_data); // whether to actually load any data
@@ -193,7 +193,7 @@ protected:
       std::cout << "Read method: regular" << std::endl;
 
       MzMLFile mzml;
-      mzml.setLogType(log_type_);
+      mzml.getProgressLogger().setLogType(log_type_);
       PeakFileOptions opt = mzml.getOptions();
       opt.setFillData(load_data); // whether to actually load any data
       opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
@@ -297,7 +297,7 @@ protected:
       String in_meta = split_out[0] + ".mzML";
 
       MzMLFile f;
-      f.setLogType(log_type_);
+      f.getProgressLogger().setLogType(log_type_);
 
       Internal::CachedMzMLHandler cache;
       cache.createMemdumpIndex(in);
@@ -348,7 +348,7 @@ protected:
       String in_meta = split_out[0] + ".mzML";
 
       MzMLFile f;
-      f.setLogType(log_type_);
+      f.getProgressLogger().setLogType(log_type_);
 
       Internal::CachedMzMLHandler cache;
       cache.createMemdumpIndex(in);

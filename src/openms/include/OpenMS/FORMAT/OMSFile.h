@@ -21,14 +21,14 @@ namespace OpenMS
 
       OMS files are SQLite databases consisting of several tables.
   */
-  class OPENMS_DLLAPI OMSFile: public ProgressLogger
+  class OPENMS_DLLAPI OMSFile
   {
   public:
     /// Constructor (with option to set log type)
-    explicit OMSFile(LogType log_type = LogType::NONE):
+    explicit OMSFile(ProgressLogger::LogType log_type = ProgressLogger::LogType::NONE):
       log_type_(log_type)
     {
-      setLogType(log_type);
+      prog_log_.setLogType(log_type);
     }
 
     /** @brief Write out an IdentificationData object to SQL-based OMS file
@@ -81,6 +81,16 @@ namespace OpenMS
     void exportToJSON(const String& filename_in, const String& filename_out);
 
   protected:
-    LogType log_type_;
+    ProgressLogger::LogType log_type_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 } // namespace OpenMS

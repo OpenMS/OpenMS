@@ -43,7 +43,7 @@ IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_test_2.idXML"),	proteins, peptides[1]);
 
 MapAlignmentAlgorithmIdentification aligner;
-aligner.setLogType(ProgressLogger::CMD);
+aligner.getProgressLogger().setLogType(ProgressLogger::CMD);
 Param params = aligner.getParameters();
 params.setValue("peptide_score_threshold", 0.0);
 aligner.setParameters(params);

@@ -53,8 +53,7 @@ namespace OpenMS
 
     @ingroup FileIO
   */
-  class OPENMS_DLLAPI QuantmsIO :
-    public ProgressLogger
+  class OPENMS_DLLAPI QuantmsIO
   {
   public:
     /// Default constructor
@@ -107,6 +106,16 @@ namespace OpenMS
                const PeptideIdentificationList& peptide_identifications,
                bool export_all_psms,
                const std::set<String>& meta_value_keys);
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

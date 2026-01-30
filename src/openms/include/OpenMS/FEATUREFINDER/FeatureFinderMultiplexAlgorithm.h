@@ -57,7 +57,7 @@ Using linear regression we can determine the relative amounts of labelled and un
   */
 
 class OPENMS_DLLAPI FeatureFinderMultiplexAlgorithm :
-  public DefaultParamHandler, public ProgressLogger
+  public DefaultParamHandler
 {
 public:
   /// default constructor
@@ -163,6 +163,13 @@ protected:
    * @param[in] cluster_results    clusters of filter results
    */
   void generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results);
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
 
 };
 

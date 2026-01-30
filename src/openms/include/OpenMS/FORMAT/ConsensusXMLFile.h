@@ -30,8 +30,7 @@ namespace OpenMS
     @ingroup FileIO
   */
   class OPENMS_DLLAPI ConsensusXMLFile :
-    public Internal::XMLFile,
-    public ProgressLogger
+    public Internal::XMLFile
   {
 public:
     ///Default constructor
@@ -67,6 +66,16 @@ protected:
 
     /// Options that can be set
     PeakFileOptions options_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 } // namespace OpenMS
 

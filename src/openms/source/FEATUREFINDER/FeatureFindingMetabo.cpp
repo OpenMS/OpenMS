@@ -245,7 +245,7 @@ namespace OpenMS
   }
 
   FeatureFindingMetabo::FeatureFindingMetabo() :
-    DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
+    DefaultParamHandler("FeatureFindingMetabo")
   {
     defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", {"advanced"}); // 5.0
     defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", {"advanced"}); // 6.5
@@ -284,7 +284,7 @@ namespace OpenMS
 
     defaultsToParam_();
 
-    this->setLogType(CMD);
+    prog_log_.setLogType(ProgressLogger::CMD);
   }
 
   FeatureFindingMetabo::~FeatureFindingMetabo()
@@ -866,7 +866,7 @@ namespace OpenMS
     // mass traces must be sorted by their centroid MZ
     std::sort(input_mtraces.begin(), input_mtraces.end(), CmpMassTraceByMZ());
 
-    this->startProgress(0, input_mtraces.size(), "assembling mass traces to features");
+    prog_log_.startProgress(0, input_mtraces.size(), "assembling mass traces to features");
 
     // *********************************************************** //
     // Step 1 initialize SVM model for isotope ratio filtering
@@ -900,7 +900,7 @@ namespace OpenMS
 #endif
     for (SignedSize i = 0; i < (SignedSize)input_mtraces.size(); ++i)
     {
-      IF_MASTERTHREAD this->setProgress(progress);
+      IF_MASTERTHREAD prog_log_.setProgress(progress);
 #ifdef _OPENMP
 #pragma omp atomic
 #endif
@@ -929,7 +929,7 @@ namespace OpenMS
       }
       findLocalFeatures_(local_traces, total_intensity, feat_hypos);
     }
-    this->endProgress();
+    prog_log_.endProgress();
 
     // sort feature candidates by their score
     std::sort(feat_hypos.begin(), feat_hypos.end(), CmpHypothesesByScore());

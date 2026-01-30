@@ -86,7 +86,7 @@ protected:
     @ingroup FeatureFinder
   */
   class OPENMS_DLLAPI FeatureFinderAlgorithmPicked :
-    public DefaultParamHandler, public ProgressLogger
+    public DefaultParamHandler
   {
 public:
     /// @name Type definitions
@@ -358,6 +358,16 @@ private:
     FeatureFinderAlgorithmPicked& operator=(const FeatureFinderAlgorithmPicked&);
     /// Not implemented
     FeatureFinderAlgorithmPicked(const FeatureFinderAlgorithmPicked&);
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 } // namespace OpenMS

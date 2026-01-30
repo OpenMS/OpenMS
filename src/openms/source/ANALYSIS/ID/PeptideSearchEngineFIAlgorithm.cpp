@@ -50,8 +50,7 @@ using namespace std;
 namespace OpenMS
 {
   PeptideSearchEngineFIAlgorithm::PeptideSearchEngineFIAlgorithm() :
-    DefaultParamHandler("PeptideSearchEngineFIAlgorithm"),
-    ProgressLogger()
+    DefaultParamHandler("PeptideSearchEngineFIAlgorithm")
   {
     defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
 
@@ -490,9 +489,9 @@ if (!pi.getHits().empty())
     f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
     spectra.sortSpectra(true);
 
-    startProgress(0, 1, "Filtering spectra...");
+    prog_log_.startProgress(0, 1, "Filtering spectra...");
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
-    endProgress();
+    prog_log_.endProgress();
 
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
@@ -511,7 +510,7 @@ if (!pi.getHits().empty())
     // generate decoy protein sequences by reversing them
     if (decoys_)
     {
-      startProgress(0, 1, "Generate decoys...");
+      prog_log_.startProgress(0, 1, "Generate decoys...");
       DecoyGenerator decoy_generator;
 
       // append decoy proteins
@@ -528,20 +527,20 @@ if (!pi.getHits().empty())
       // many targets have the same score as their decoy. (As we always take the first best scoring one)
       Math::RandomShuffler shuffler;
       shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
-      endProgress();
+      prog_log_.endProgress();
     }
     
     // build fragment index
     //TODO: Pass all the other parameters from this class to FragmentIndex
     //TODO: Can we do it with p.setValue or is there a more sophisticated way?
-    startProgress(0, 1, "Building fragment index...");    
+    prog_log_.startProgress(0, 1, "Building fragment index...");    
     FragmentIndex fragment_index_;
     auto this_params = getParameters();
     fragment_index_.setParameters(this_params);
     fragment_index_.build(fasta_db);
-    endProgress();
+    prog_log_.endProgress();
 
-    startProgress(0, spectra.size(), "Scoring peptide models against spectra...");
+    prog_log_.startProgress(0, spectra.size(), "Scoring peptide models against spectra...");
     size_t count_spectra{};
     
     // Compute open search mode once before parallel region
@@ -559,7 +558,7 @@ if (!pi.getHits().empty())
 
       IF_MASTERTHREAD
       {
-        setProgress(count_spectra);
+        prog_log_.setProgress(count_spectra);
       }
 
       const MSSpectrum& exp_spectrum = spectra[scan_index];
@@ -633,12 +632,12 @@ if (!pi.getHits().empty())
       }
     }
 
-    endProgress();
+    prog_log_.endProgress();
 
     ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
     ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
-    startProgress(0, 1, "Post-processing PSMs...");
+    prog_log_.startProgress(0, 1, "Post-processing PSMs...");
     PeptideSearchEngineFIAlgorithm::postProcessHits_(spectra,
       annotated_hits,
       protein_ids,
@@ -659,13 +658,13 @@ if (!pi.getHits().empty())
       enzyme_,
       in_db
       );
-    endProgress();
+    prog_log_.endProgress();
 
     // Perform modification analysis for open search results
     if (open_search)
     {
       OPENMS_LOG_INFO << "[PDBS-FI] Performing open search modification analysis..." << std::endl;
-      startProgress(0, 1, "Analyzing modification patterns...");
+      prog_log_.startProgress(0, 1, "Analyzing modification patterns...");
       
       OpenSearchModificationAnalysis mod_analyzer;
       
@@ -695,7 +694,7 @@ if (!pi.getHits().empty())
       OPENMS_LOG_INFO << "[PDBS-FI] Found " << modification_summaries.size()
                       << " modification patterns in open search results." << std::endl;
       
-      endProgress();
+      prog_log_.endProgress();
     }
 
     // add meta data on spectra file

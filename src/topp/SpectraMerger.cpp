@@ -113,7 +113,7 @@ protected:
     //-------------------------------------------------------------
 
     SpectraMerger merger;
-    merger.setLogType(log_type_);
+    merger.getProgressLogger().setLogType(log_type_);
     merger.setParameters(getParam_().copy("algorithm:", true));
     if (merging_method == "precursor_method")
     {

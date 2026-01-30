@@ -62,14 +62,14 @@ namespace OpenMS
     map.setLoadedFileType(filename);
     map.setLoadedFilePath(filename);
 
-    Internal::MzDataHandler handler(map, filename, schema_version_, *this);
+    Internal::MzDataHandler handler(map, filename, schema_version_, prog_log_);
     handler.setOptions(options_);
     parse_(filename, &handler);
   }
 
   void MzDataFile::store(const String & filename, const PeakMap & map) const
   {
-    Internal::MzDataHandler handler(map, filename, schema_version_, *this);
+    Internal::MzDataHandler handler(map, filename, schema_version_, prog_log_);
     handler.setOptions(options_);
     save_(filename, &handler);
   }

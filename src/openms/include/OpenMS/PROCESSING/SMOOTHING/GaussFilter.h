@@ -42,7 +42,6 @@ namespace OpenMS
 //#define DEBUG_FILTERING
 
   class OPENMS_DLLAPI GaussFilter :
-    public ProgressLogger,
     public DefaultParamHandler
   {
 public:
@@ -83,6 +82,16 @@ protected:
 
     // Docu in base class
     void updateMembers_() override;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 } // namespace OpenMS

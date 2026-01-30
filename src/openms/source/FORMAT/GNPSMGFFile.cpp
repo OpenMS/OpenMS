@@ -25,8 +25,7 @@ using namespace std;
 namespace OpenMS
 {
   GNPSMGFFile::GNPSMGFFile() :
-    DefaultParamHandler("GNPSMGFFile"),
-    ProgressLogger()
+    DefaultParamHandler("GNPSMGFFile")
   {
     defaults_.setValue("output_type", "most_intense", "specificity of mgf output information");
     defaults_.setValidStrings("output_type", {"merged_spectra","most_intense"});
@@ -261,11 +260,11 @@ namespace OpenMS
     //-------------------------------------------------------------
     // write output (+ merge computations)
     //-------------------------------------------------------------
-    startProgress(0, consensus_map.size(), "parsing features and ms2 identifications...");
+    prog_log_.startProgress(0, consensus_map.size(), "parsing features and ms2 identifications...");
 
     for (Size cons_i = 0; cons_i < consensus_map.size(); ++cons_i)
     {
-      setProgress(cons_i);
+      prog_log_.setProgress(cons_i);
 
       const ConsensusFeature& feature = consensus_map[cons_i];
 

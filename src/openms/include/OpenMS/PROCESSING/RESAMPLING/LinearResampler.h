@@ -33,8 +33,7 @@ namespace OpenMS
       @htmlinclude OpenMS_LinearResampler.parameters
   */
   class OPENMS_DLLAPI LinearResampler :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 
 public:
@@ -119,13 +118,13 @@ public:
     */
     void rasterExperiment(PeakMap& exp)
     {
-      startProgress(0, exp.size(), "resampling of data");
+      prog_log_.startProgress(0, exp.size(), "resampling of data");
       for (Size i = 0; i < exp.size(); ++i)
       {
         raster(exp[i]);
-        setProgress(i);
+        prog_log_.setProgress(i);
       }
-      endProgress();
+      prog_log_.endProgress();
     }
 
 protected:
@@ -137,6 +136,16 @@ protected:
     {
       spacing_ =  param_.getValue("spacing");
     }
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

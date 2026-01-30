@@ -28,8 +28,7 @@ namespace OpenMS
     elements of the maps as near as possible to each other.
   */
   class OPENMS_DLLAPI BaseSuperimposer :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 
 public:
@@ -57,6 +56,16 @@ private:
 
     /// Assignment operator intentionally not implemented
     BaseSuperimposer& operator=(const BaseSuperimposer&);
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

@@ -26,8 +26,7 @@ namespace OpenMS
 
 
   MasstraceCorrelator::MasstraceCorrelator()
-  : DefaultParamHandler("MRMFeatureFinderScoring"),
-    ProgressLogger()
+  : DefaultParamHandler("MRMFeatureFinderScoring")
   {   
 
     defaults_.setValue("sgolay_frame_length",15,"The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
@@ -146,10 +145,10 @@ namespace OpenMS
     std::vector< double >& rt_cache)
   {
 
-    startProgress(0, map.size(), "create consensus map cache");
+    prog_log_.startProgress(0, map.size(), "create consensus map cache");
     for (Size i = 0; i < map.size(); ++i)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
 
       const ConsensusFeature::HandleSetType* f1_features = &map[i].getFeatures();
 
@@ -175,7 +174,7 @@ namespace OpenMS
       max_intensities.emplace_back(max_mz, max_int);
       rt_cache.push_back(map[i].getRT());
     }
-    endProgress();
+    prog_log_.endProgress();
   
   }
 
@@ -212,10 +211,10 @@ namespace OpenMS
 
     std::map<int, int> used_already;
     // go through all consensus features in the map and use 
-    startProgress(0, map.size(), "correlating masstraces ");
+    prog_log_.startProgress(0, map.size(), "correlating masstraces ");
     for (Size i = 0; i < map.size(); ++i)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
 
       if (used_already.find(i) != used_already.end()) 
       {
@@ -306,7 +305,7 @@ namespace OpenMS
       }
 
     }
-    endProgress();
+    prog_log_.endProgress();
 
 #ifdef DEBUG_MASSTRACES
     cout << "Nr operations " << opcounts << " / nr comparisons " << comparisons << " / full evaluations " << nr_full_evals << " :: nr spectra  " << pseudo_spectra.size() << endl;

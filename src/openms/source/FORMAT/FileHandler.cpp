@@ -695,7 +695,7 @@ namespace OpenMS
       {
         DTA2DFile f;
         f.getOptions() = options_;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, exp);
       }
       break;
@@ -704,7 +704,7 @@ namespace OpenMS
       {
         MzXMLFile f;
         f.getOptions() = options_;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, exp);
       }
       break;
@@ -713,7 +713,7 @@ namespace OpenMS
       {
         MzDataFile f;
         f.getOptions() = options_;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, exp);
       }
       break;
@@ -722,7 +722,7 @@ namespace OpenMS
       {
         MzMLFile f;
         f.getOptions() = options_;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, exp);
         ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true);
       }
@@ -731,7 +731,7 @@ namespace OpenMS
       case FileTypes::MGF: 
       {
         MascotGenericFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, exp);
       }
       break;
@@ -739,7 +739,7 @@ namespace OpenMS
       case FileTypes::MS2: 
       {
         MS2File f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, exp);
       }
       break;
@@ -835,7 +835,7 @@ namespace OpenMS
       {
         DTA2DFile f;
         f.getOptions() = options_;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.store(filename, exp);
       }
       break;
@@ -843,7 +843,7 @@ namespace OpenMS
       case FileTypes::MGF: 
       {
         MascotGenericFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.store(filename, exp);
       }
       break;
@@ -860,7 +860,7 @@ namespace OpenMS
       {
         MzXMLFile f;
         f.getOptions() = options_;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         if (!exp.getChromatograms().empty())
         {
           PeakMap exp2 = exp;
@@ -886,7 +886,7 @@ namespace OpenMS
       {
         MzDataFile f;
         f.getOptions() = options_;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         if (!exp.getChromatograms().empty())
         {
           PeakMap exp2 = exp;
@@ -904,7 +904,7 @@ namespace OpenMS
       {
         MzMLFile f;
         f.getOptions() = options_;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.store(filename, exp);
       }
       break;
@@ -934,7 +934,7 @@ namespace OpenMS
       case FileTypes::FEATUREXML: 
       {
         FeatureXMLFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.getOptions() = f_options_;
         f.load(filename, map);
       }
@@ -961,7 +961,7 @@ namespace OpenMS
       case FileTypes::OMS: 
       {
         OMSFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, map);
       }
       break;
@@ -996,7 +996,7 @@ namespace OpenMS
       case FileTypes::FEATUREXML:
       {
         FeatureXMLFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.getOptions() = f_options_;
         f.store(filename, map);
       }
@@ -1018,7 +1018,7 @@ namespace OpenMS
       case FileTypes::OMS:
       {
         OMSFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.store(filename, map);
       }
       break;
@@ -1062,7 +1062,7 @@ namespace OpenMS
       {
         ConsensusXMLFile f;
         f.getOptions() = options_;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, map);
       }
       break;
@@ -1077,7 +1077,7 @@ namespace OpenMS
       case FileTypes::OMS: 
       {
         OMSFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, map);
       }
       break;
@@ -1109,7 +1109,7 @@ namespace OpenMS
       case FileTypes::CONSENSUSXML:
       {
         ConsensusXMLFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.store(filename, map);
       }
       break;
@@ -1124,7 +1124,7 @@ namespace OpenMS
       case FileTypes::OMS:
       {
         OMSFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.store(filename, map);
       }
       break;
@@ -1154,7 +1154,7 @@ namespace OpenMS
       case FileTypes::IDXML:
       {
         IdXMLFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, additional_proteins, additional_peptides);
       }
       break;
@@ -1162,7 +1162,7 @@ namespace OpenMS
       case FileTypes::MZIDENTML:
       {
         MzIdentMLFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, additional_proteins, additional_peptides);
       }
       break;
@@ -1170,7 +1170,7 @@ namespace OpenMS
       case FileTypes::OMS:
       {
         OMSFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         IdentificationData idd;
         f.load(filename, idd);
         IdentificationDataConverter::exportIDs(idd, additional_proteins, additional_peptides);
@@ -1180,7 +1180,7 @@ namespace OpenMS
       case FileTypes::XQUESTXML:
       {
       XQuestResultXMLFile f;
-      f.setLogType(log);
+      f.getProgressLogger().setLogType(log);
       f.load(filename, additional_peptides, additional_proteins);
       }
       break;
@@ -1234,7 +1234,7 @@ namespace OpenMS
       case FileTypes::IDXML:
       {
         IdXMLFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.store(filename, additional_proteins, additional_peptides);
       }
       break;
@@ -1242,7 +1242,7 @@ namespace OpenMS
       case FileTypes::MZIDENTML:
       {
         MzIdentMLFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.store(filename, additional_proteins, additional_peptides);
       }
       break;
@@ -1250,7 +1250,7 @@ namespace OpenMS
       case FileTypes::OMS:
       {
         OMSFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         IdentificationData idd;
         IdentificationDataConverter::importIDs(idd, additional_proteins, additional_peptides);
         f.store(filename, idd);
@@ -1260,7 +1260,7 @@ namespace OpenMS
       case FileTypes::XQUESTXML:
       {
       XQuestResultXMLFile f;
-      f.setLogType(log);
+      f.getProgressLogger().setLogType(log);
       f.store(filename, additional_proteins, additional_peptides);
       }
       break;
@@ -1289,7 +1289,7 @@ namespace OpenMS
       case FileTypes::TRAML:
       {
         TraMLFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.load(filename, library);
       }
       break;
@@ -1321,7 +1321,7 @@ namespace OpenMS
       case FileTypes::TRAML:
       {
         TraMLFile f;
-        f.setLogType(log);
+        f.getProgressLogger().setLogType(log);
         f.store(filename, library);
       }
       break;

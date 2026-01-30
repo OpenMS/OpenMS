@@ -48,8 +48,7 @@ using namespace std;
 namespace OpenMS
 {
   SimpleSearchEngineAlgorithm::SimpleSearchEngineAlgorithm() :
-    DefaultParamHandler("SimpleSearchEngineAlgorithm"),
-    ProgressLogger()
+    DefaultParamHandler("SimpleSearchEngineAlgorithm")
   {
     defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
 
@@ -453,7 +452,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     // load MS2 map
     PeakMap spectra;
     FileHandler f;
-    //f.setLogType(log_type_);
+    //f.getProgressLogger().setLogType(log_type_);
 
     PeakFileOptions options;
     options.clearMSLevels();
@@ -462,9 +461,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
     spectra.sortSpectra(true);
 
-    startProgress(0, 1, "Filtering spectra...");
+    prog_log_.startProgress(0, 1, "Filtering spectra...");
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
-    endProgress();
+    prog_log_.endProgress();
 
     // build multimap of precursor mass to scan index
     auto multimap_mass_2_scan_index = mapPrecursorMassesToScans(precursor_min_charge_, precursor_max_charge_, precursor_isotopes_, peptide_min_size_, spectra);
@@ -495,7 +494,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     // generate decoy protein sequences by reversing them
     if (decoys_)
     {
-      startProgress(0, 1, "Generate decoys...");
+      prog_log_.startProgress(0, 1, "Generate decoys...");
       DecoyGenerator decoy_generator;
 
       // append decoy proteins
@@ -512,12 +511,12 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       // many targets have the same score as their decoy. (As we always take the first best scoring one)
       Math::RandomShuffler shuffler;
       shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
-      endProgress();
+      prog_log_.endProgress();
     }
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_);
     digestor.setMissedCleavages(peptide_missed_cleavages_);
-    startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
+    prog_log_.startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     set<StringView> processed_petides;
@@ -533,7 +532,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
       IF_MASTERTHREAD
       {
-        setProgress(count_proteins);
+        prog_log_.setProgress(count_proteins);
       }
 
       vector<StringView> current_digest;
@@ -659,13 +658,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         }
       }
     }
-    endProgress();
+    prog_log_.endProgress();
 
     OPENMS_LOG_INFO << "Proteins: " << count_proteins << endl;
     OPENMS_LOG_INFO << "Peptides: " << count_peptides << endl;
     OPENMS_LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
 
-    startProgress(0, 1, "Post-processing PSMs...");
+    prog_log_.startProgress(0, 1, "Post-processing PSMs...");
     SimpleSearchEngineAlgorithm::postProcessHits_(spectra, 
       annotated_hits, 
       protein_ids, 
@@ -686,7 +685,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       enzyme_,
       in_db
       );
-    endProgress();
+    prog_log_.endProgress();
 
     // add meta data on spectra file
     protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);

@@ -40,8 +40,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI IdXMLFile :
     protected Internal::XMLHandler,
-    public Internal::XMLFile,
-    public ProgressLogger
+    public Internal::XMLFile
   {
 public:
     // both ConsensusXMLFile and FeatureXMLFile use some protected IdXML helper functions to parse identifications without code duplication
@@ -158,6 +157,16 @@ protected:
     /// true if a prot id is contained in the current run
     bool prot_id_in_run_;
     //@}
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 } // namespace OpenMS

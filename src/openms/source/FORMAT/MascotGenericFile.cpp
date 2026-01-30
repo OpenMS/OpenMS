@@ -31,7 +31,7 @@ namespace OpenMS
 {
 
   MascotGenericFile::MascotGenericFile() :
-    ProgressLogger(), DefaultParamHandler("MascotGenericFile"), mod_group_map_()
+    DefaultParamHandler("MascotGenericFile"), mod_group_map_()
   {
     defaults_.setValue("database", "MSDB", "Name of the sequence database");
     defaults_.setValue("search_type", "MIS", "Name of the search type for the query", {"advanced"});
@@ -444,10 +444,10 @@ namespace OpenMS
     }
 
 
-    this->startProgress(0, experiment.size(), "storing mascot generic file");
+    prog_log_.startProgress(0, experiment.size(), "storing mascot generic file");
     for (Size i = 0; i < experiment.size(); i++)
     {
-      this->setProgress(i);
+      prog_log_.setProgress(i);
       if (experiment[i].getMSLevel() == 2)
       {
         writeSpectrum(os, experiment[i], filtered_filename, native_id_type_accession);
@@ -462,7 +462,7 @@ namespace OpenMS
     {
       os << enc.second;
     }
-    this->endProgress();
+    prog_log_.endProgress();
   }
 
 } // namespace OpenMS

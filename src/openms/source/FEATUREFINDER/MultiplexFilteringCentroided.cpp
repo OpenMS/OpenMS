@@ -35,7 +35,7 @@ namespace OpenMS
   {
     // progress logger
     unsigned progress = 0;
-    startProgress(0, patterns_.size() * exp_centroided_.size(), "filtering LC-MS data");
+    prog_log_.startProgress(0, patterns_.size() * exp_centroided_.size(), "filtering LC-MS data");
     
     // list of filter results for each peak pattern
     vector<MultiplexFilteredMSExperiment> filter_results;
@@ -67,7 +67,7 @@ namespace OpenMS
           continue;
         }
 
-        setProgress(++progress);
+        prog_log_.setProgress(++progress);
 
         double rt = it_rt.getRT();
         size_t idx_rt = &it_rt - &exp_centroided_white_[0];
@@ -115,7 +115,7 @@ namespace OpenMS
       filter_results.push_back(result);
     }
     
-    endProgress();
+    prog_log_.endProgress();
     
     return filter_results;
   }

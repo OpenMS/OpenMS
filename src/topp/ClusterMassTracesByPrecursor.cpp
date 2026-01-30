@@ -61,9 +61,13 @@ using namespace std;
 using namespace OpenMS;
 
 class TOPPCorrelateMasstraces
-  : public TOPPBase, 
-    public ProgressLogger
+  : public TOPPBase
 {
+protected:
+  ProgressLogger prog_log_;
+public:
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  ProgressLogger& getProgressLogger() { return prog_log_; }
 
  public:
 
@@ -101,7 +105,7 @@ class TOPPCorrelateMasstraces
 
   ExitCodes main_(int , const char**) override
   {
-    setLogType(log_type_); 
+    prog_log_.setLogType(log_type_); 
 
     String ms1 = getStringOption_("in_ms1");
     String in_swath =  getStringOption_("in_swath");
@@ -206,10 +210,10 @@ class TOPPCorrelateMasstraces
     // Go through all precursors and find suitable MS2 signals which could
     // potentially belong to this precursor.
     //
-    startProgress(0, MS1_feature_map.size(), "assigning precursor to fragment ions");
+    prog_log_.startProgress(0, MS1_feature_map.size(), "assigning precursor to fragment ions");
     for (Size i=0; i<MS1_feature_map.size(); ++i)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
       if (mz_cache_ms1[i] < swath_lower || mz_cache_ms1[i] > swath_upper) continue;
       ms1_assignment_map[i].clear();
 
@@ -284,7 +288,7 @@ class TOPPCorrelateMasstraces
 #endif
 
     }
-    endProgress();
+    prog_log_.endProgress();
 
     // Stats
     Size cnt_ms2_used = 0;
@@ -307,10 +311,10 @@ class TOPPCorrelateMasstraces
     // i) just assign them to all potentially matching spectra
     // ii) assign a fragment ion only to a single precursor
     int cnt = 0;
-    startProgress(0, MS2_feature_map.size(), "assigning the unused fragments ");
+    prog_log_.startProgress(0, MS2_feature_map.size(), "assigning the unused fragments ");
     for (Size j=0; j<MS2_feature_map.size() && unassigned; ++j)
     {
-      setProgress(j);
+      prog_log_.setProgress(j);
       if (ms2feature_used[j]) continue;
       cnt++;
 
@@ -325,16 +329,16 @@ class TOPPCorrelateMasstraces
         ms1_assignment_map[i].push_back(j);
       }
     }
-    endProgress();
+    prog_log_.endProgress();
     cout << "There were " << cnt << " (out of " << MS2_feature_map.size() << " ) unused fragment ions that were assigned to all spectra within RT range." << endl;
 
     // -----------------------------------
     // Step 3 - create spectra and assign precursor and fragments to spectra
     cnt = 0;
-    startProgress(0, MS1_feature_map.size(), "create the spectra and assign the fragments ");
+    prog_log_.startProgress(0, MS1_feature_map.size(), "create the spectra and assign the fragments ");
     for (Size i=0; i<MS1_feature_map.size(); ++i)
     {
-      setProgress(i);
+      prog_log_.setProgress(i);
       if (mz_cache_ms1[i] < swath_lower || mz_cache_ms1[i] > swath_upper) continue;
 
       MSSpectrum spectrum;
@@ -381,7 +385,7 @@ class TOPPCorrelateMasstraces
 #endif
       }
     }
-    endProgress();
+    prog_log_.endProgress();
     cout << "There were " << cnt << " precursor ions with more than " << min_nr_ions << " fragment ion assigned." << endl;
   }
 

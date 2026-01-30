@@ -34,10 +34,15 @@ using namespace OpenMS;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPOpenSwathRewriteToFeatureXML : 
-  public TOPPBase, 
-  public ProgressLogger
+class TOPPOpenSwathRewriteToFeatureXML :
+  public TOPPBase
 {
+protected:
+  ProgressLogger prog_log_;
+public:
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
  public:
 
   TOPPOpenSwathRewriteToFeatureXML()

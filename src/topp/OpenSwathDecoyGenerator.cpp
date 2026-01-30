@@ -209,7 +209,7 @@ protected:
       {
         Param reader_parameters = getParam_().copy("algorithm:", true);
         TransitionTSVFile tsv_reader;
-        tsv_reader.setLogType(log_type_);
+        tsv_reader.getProgressLogger().setLogType(log_type_);
         tsv_reader.setParameters(reader_parameters);
         tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, light_exp);
       }
@@ -217,13 +217,13 @@ protected:
       {
         TransitionPQPFile pqp_reader;
         Param reader_parameters = getParam_().copy("algorithm:", true);
-        pqp_reader.setLogType(log_type_);
+        pqp_reader.getProgressLogger().setLogType(log_type_);
         pqp_reader.setParameters(reader_parameters);
         pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp);
       }
 
       MRMDecoy decoys;
-      decoys.setLogType(ProgressLogger::CMD);
+      decoys.getProgressLogger().setLogType(ProgressLogger::CMD);
 
       OPENMS_LOG_INFO << "Generate decoys (Light)" << std::endl;
       decoys.generateDecoysLight(light_exp, light_decoy, method,
@@ -274,13 +274,13 @@ protected:
       if (out_type == FileTypes::TSV)
       {
         TransitionTSVFile tsv_writer;
-        tsv_writer.setLogType(log_type_);
+        tsv_writer.getProgressLogger().setLogType(log_type_);
         tsv_writer.convertLightTargetedExperimentToTSV(out.c_str(), light_merged);
       }
       else if (out_type == FileTypes::PQP)
       {
         TransitionPQPFile pqp_writer;
-        pqp_writer.setLogType(log_type_);
+        pqp_writer.getProgressLogger().setLogType(log_type_);
         pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_merged);
       }
     }
@@ -298,7 +298,7 @@ protected:
           const char* tr_file = in.c_str();
           Param reader_parameters = getParam_().copy("algorithm:", true);
           TransitionTSVFile tsv_reader = TransitionTSVFile();
-          tsv_reader.setLogType(log_type_);
+          tsv_reader.getProgressLogger().setLogType(log_type_);
           tsv_reader.setParameters(reader_parameters);
           tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
           tsv_reader.validateTargetedExperiment(targeted_exp);
@@ -308,7 +308,7 @@ protected:
           const char* tr_file = in.c_str();
           TransitionPQPFile pqp_reader = TransitionPQPFile();
           Param reader_parameters = getParam_().copy("algorithm:", true);
-          pqp_reader.setLogType(log_type_);
+          pqp_reader.getProgressLogger().setLogType(log_type_);
           pqp_reader.setParameters(reader_parameters);
           pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp);
           pqp_reader.validateTargetedExperiment(targeted_exp);
@@ -319,7 +319,7 @@ protected:
         }
 
         MRMDecoy decoys = MRMDecoy();
-        decoys.setLogType(ProgressLogger::CMD);
+        decoys.getProgressLogger().setLogType(ProgressLogger::CMD);
 
         OPENMS_LOG_INFO << "Generate decoys" << std::endl;
         decoys.generateDecoys(targeted_exp, targeted_decoy, method,
@@ -360,14 +360,14 @@ protected:
       {
         const char* tr_file = out.c_str();
         TransitionTSVFile tsv_reader = TransitionTSVFile();
-        tsv_reader.setLogType(log_type_);
+        tsv_reader.getProgressLogger().setLogType(log_type_);
         tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_merged);
       }
       else if (out_type == FileTypes::PQP)
       {
         const char * tr_file = out.c_str();
         TransitionPQPFile pqp_reader = TransitionPQPFile();
-        pqp_reader.setLogType(log_type_);
+        pqp_reader.getProgressLogger().setLogType(log_type_);
         pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_merged);
       }
       else if (out_type == FileTypes::TRAML)

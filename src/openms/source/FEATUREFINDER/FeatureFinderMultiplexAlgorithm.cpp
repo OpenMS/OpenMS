@@ -716,12 +716,12 @@ namespace OpenMS
   {
     // progress logger
     unsigned progress = 0;
-    startProgress(0, patterns.size(), "constructing maps");
+    prog_log_.startProgress(0, patterns.size(), "constructing maps");
 
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
-      setProgress(++progress);
+      prog_log_.setProgress(++progress);
 
       // loop over clusters
       for (const auto& cluster_pair : cluster_results[pattern])
@@ -869,7 +869,7 @@ namespace OpenMS
 
     }
 
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool progress)
@@ -965,7 +965,7 @@ namespace OpenMS
     {
       PeakPickerHiRes picker;
       Param param = picker.getParameters();
-      picker.setLogType(getLogType());
+      picker.getProgressLogger().setLogType(prog_log_.getLogType());
       param.setValue("ms_levels", ListUtils::create<Int>("1"));
       param.setValue("signal_to_noise", 0.0); // signal-to-noise estimation switched off
       picker.setParameters(param);
@@ -1013,14 +1013,14 @@ namespace OpenMS
        * filter for peak patterns
        */
       MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
-      filtering.setLogType(getLogType());
+      filtering.getProgressLogger().setLogType(prog_log_.getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
 
       /**
        * cluster filter results
        */
       MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"));
-      clustering.setLogType(getLogType());
+      clustering.getProgressLogger().setLogType(prog_log_.getLogType());
       std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
 
       /**
@@ -1037,7 +1037,7 @@ namespace OpenMS
        * filter for peak patterns
        */
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
-      filtering.setLogType(getLogType());
+      filtering.getProgressLogger().setLogType(prog_log_.getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
       exp_blacklist_ = filtering.getBlacklist();
 
@@ -1045,7 +1045,7 @@ namespace OpenMS
        * cluster filter results
        */
       MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"));
-      clustering.setLogType(getLogType());
+      clustering.getProgressLogger().setLogType(prog_log_.getLogType());
       std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
 
       /**

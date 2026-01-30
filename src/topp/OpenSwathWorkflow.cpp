@@ -1353,7 +1353,7 @@ protected:
         OPENMS_LOG_INFO << "Performing additional iRT nonlinear transform" << "..." << std::endl;
 
         OpenSwathCalibrationWorkflow wf;
-        wf.setLogType(log_type_);
+        wf.getProgressLogger().setLogType(log_type_);
         std::vector<OpenMS::MSChromatogram> chroms;
         wf.simpleExtractChromatograms_(
           swath_maps,
@@ -1502,7 +1502,7 @@ protected:
     }
 
     OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
-    wf.setLogType(log_type_);
+    wf.getProgressLogger().setLogType(log_type_);
 
     // perform extraction for this file's swath maps
     wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,

@@ -589,7 +589,7 @@ namespace OpenMS
     resolveMixedSequenceGroups_(transition_list);
 
     Size progress = 0;
-    startProgress(0, transition_list.size(), "conversion to internal data representation");
+    prog_log_.startProgress(0, transition_list.size(), "conversion to internal data representation");
     for (auto tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
     {
       ReactionMonitoringTransition rm_trans;
@@ -635,9 +635,9 @@ namespace OpenMS
         }
       }
 
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
     }
-    endProgress();
+    prog_log_.endProgress();
 
     exp.setCompounds(compounds);
     exp.setPeptides(peptides);
@@ -701,7 +701,7 @@ namespace OpenMS
       while (TextFile::getLine(count_stream, count_line)) { ++total_lines; }
       if (total_lines > 0) --total_lines; // subtract header
     }
-    startProgress(0, total_lines, "streaming TSV to LightTargetedExperiment");
+    prog_log_.startProgress(0, total_lines, "streaming TSV to LightTargetedExperiment");
 
     // Single TSVTransition buffer - reused for each line
     TSVTransition mytransition;
@@ -885,7 +885,7 @@ namespace OpenMS
 
       if (skip_transition)
       {
-        setProgress(progress++);
+        prog_log_.setProgress(progress++);
         continue;
       }
 
@@ -1027,9 +1027,9 @@ namespace OpenMS
         }
       }
 
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
     }
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void TransitionTSVFile::resolveMixedSequenceGroups_(std::vector<TransitionTSVFile::TSVTransition>& transition_list) const
@@ -1714,13 +1714,13 @@ namespace OpenMS
     std::vector<TSVTransition> mytransitions;
 
     Size progress = 0;
-    startProgress(0, targeted_exp.getTransitions().size(), "writing OpenSWATH Transition List TSV file");
+    prog_log_.startProgress(0, targeted_exp.getTransitions().size(), "writing OpenSWATH Transition List TSV file");
     for (const auto& tr : targeted_exp.getTransitions())
     {
       mytransitions.push_back(convertTransition_(&tr, targeted_exp));
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
     }
-    endProgress();
+    prog_log_.endProgress();
 
     // start writing
     std::ofstream os(filename);
@@ -1838,11 +1838,11 @@ namespace OpenMS
     os << '\n';
 
     Size progress = 0;
-    startProgress(0, targeted_exp.transitions.size(), "writing OpenSWATH Transition List TSV file");
+    prog_log_.startProgress(0, targeted_exp.transitions.size(), "writing OpenSWATH Transition List TSV file");
 
     for (const auto& tr : targeted_exp.transitions)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
 
       // Get associated compound
       const OpenSwath::LightCompound* compound = nullptr;
@@ -1992,7 +1992,7 @@ namespace OpenMS
 
       os << line << '\n';
     }
-    endProgress();
+    prog_log_.endProgress();
     os.close();
   }
 

@@ -23,8 +23,7 @@ namespace OpenMS
       @ingroup FileIO
   */
   class OPENMS_DLLAPI MRMFeatureQCFile :
-    private CsvFile,
-    public ProgressLogger
+    private CsvFile
   {
 public:
   /// Default constructor
@@ -168,6 +167,16 @@ protected:
     const String& header,
     const String& default_value
   ) const;
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

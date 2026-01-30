@@ -170,7 +170,7 @@ protected:
                               const String& input_file, const String& output_file)
   {
     MzMLFile mzml;
-    mzml.setLogType(log_type_);
+    mzml.getProgressLogger().setLogType(log_type_);
 
     // Step 1: Detect IMFormat by reading only the first spectrum (minimal I/O)
     IMFormat im_format = IMFormat::NONE;

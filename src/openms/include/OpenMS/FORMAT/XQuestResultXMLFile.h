@@ -28,8 +28,7 @@ namespace OpenMS
     @ingroup FileIO
   */
   class OPENMS_DLLAPI XQuestResultXMLFile :
-    public Internal::XMLFile,
-    public ProgressLogger
+    public Internal::XMLFile
   {
 public:
     XQuestResultXMLFile();
@@ -124,5 +123,15 @@ private:
     int n_hits_; ///< Total number of hits within the result file
     double min_score_; ///< Minimum score encountered in file
     double max_score_; ///< Maximum score encountered in file
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 } // namespace OpenMS

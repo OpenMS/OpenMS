@@ -69,8 +69,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI PeakPickerIterative :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 
 private:
@@ -86,8 +85,7 @@ public:
 
     /// Constructor
     PeakPickerIterative() :
-      DefaultParamHandler("PeakPickerIterative"),
-      ProgressLogger()
+      DefaultParamHandler("PeakPickerIterative")
     {
       defaults_.setValue("signal_to_noise_", 1.0, "Signal to noise value, each peak is required to be above this value (turn off by setting it to 0.0)");
       defaults_.setValue("peak_width", 0.0, "Expected peak width half width in Dalton - peaks will be extended until this half width is reached (even if the intensitity is increasing). In conjunction with check_width_internally it will also be used to remove peaks whose spacing is larger than this value.");
@@ -381,7 +379,7 @@ public:
       bool clear_meta_data = param_.getValue("clear_meta_data").toBool();
 
       Size progress = 0;
-      startProgress(0, input.size(), "picking peaks");
+      prog_log_.startProgress(0, input.size(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
         if (ms1_only && (input[scan_idx].getMSLevel() != 1))
@@ -393,10 +391,20 @@ public:
           pick(input[scan_idx], output[scan_idx]);
           if (clear_meta_data) {output[scan_idx].getFloatDataArrays().clear();}
         }
-        setProgress(progress++);
+        prog_log_.setProgress(progress++);
       }
-      endProgress();
+      prog_log_.endProgress();
     }
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 

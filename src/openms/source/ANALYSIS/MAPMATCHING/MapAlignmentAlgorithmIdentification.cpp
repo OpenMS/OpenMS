@@ -18,8 +18,7 @@ namespace OpenMS
 {
 
   MapAlignmentAlgorithmIdentification::MapAlignmentAlgorithmIdentification() :
-    DefaultParamHandler("MapAlignmentAlgorithmIdentification"),
-    ProgressLogger(), reference_index_(-1), reference_(), min_run_occur_(0), min_score_(0.)
+    DefaultParamHandler("MapAlignmentAlgorithmIdentification"), reference_index_(-1), reference_(), min_run_occur_(0), min_score_(0.)
   {
     defaults_.setValue("score_type", "", "Name of the score type to use for ranking and filtering (.oms input only). If left empty, a score type is picked automatically.");
 

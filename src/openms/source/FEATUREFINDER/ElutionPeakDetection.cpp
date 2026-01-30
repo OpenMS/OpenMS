@@ -23,7 +23,7 @@
 namespace OpenMS
 {
   ElutionPeakDetection::ElutionPeakDetection() :
-    DefaultParamHandler("ElutionPeakDetection"), ProgressLogger()
+    DefaultParamHandler("ElutionPeakDetection")
   {
     defaults_.setValue("chrom_fwhm", 5.0, "Expected full-width-at-half-maximum of chromatographic peaks (in seconds).");
     defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
@@ -40,7 +40,7 @@ namespace OpenMS
     defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
 
     defaultsToParam_();
-    this->setLogType(CMD);
+    prog_log_.setLogType(ProgressLogger::CMD);
   }
 
   ElutionPeakDetection::~ElutionPeakDetection() = default;
@@ -322,14 +322,14 @@ namespace OpenMS
     // make sure that single_mtraces is empty
     single_mtraces.clear();
 
-    this->startProgress(0, mt_vec.size(), "elution peak detection");
+    prog_log_.startProgress(0, mt_vec.size(), "elution peak detection");
     Size progress(0);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
     for (SignedSize i = 0; i < (SignedSize) mt_vec.size(); ++i)
     {
-      IF_MASTERTHREAD this->setProgress(progress);
+      IF_MASTERTHREAD prog_log_.setProgress(progress);
 
 #ifdef _OPENMP
 #pragma omp atomic
@@ -340,7 +340,7 @@ namespace OpenMS
       detectElutionPeaks_(mt_vec[i], single_mtraces);
     }
 
-    this->endProgress();
+    prog_log_.endProgress();
 
     return;
   }

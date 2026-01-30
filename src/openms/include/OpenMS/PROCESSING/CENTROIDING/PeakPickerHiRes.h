@@ -54,8 +54,7 @@ namespace OpenMS
     @ingroup PeakPicking
   */
   class OPENMS_DLLAPI PeakPickerHiRes :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 public:
     /// Constructor
@@ -198,6 +197,14 @@ protected:
     // docu in base class
     void updateMembers_() override;
 
+  public:
+    /// Non-mutable access to the progress logger
+    const ProgressLogger& getProgressLogger() const { return prog_log_; }
+    /// Mutable access to the progress logger
+    ProgressLogger& getProgressLogger() { return prog_log_; }
+
+  protected:
+    ProgressLogger prog_log_;
   }; // end PeakPickerHiRes
 
 } // namespace OpenMS

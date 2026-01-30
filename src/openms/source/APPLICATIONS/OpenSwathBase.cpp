@@ -47,7 +47,7 @@ namespace OpenMS
                        Interfaces::IMSDataConsumer* plugin_consumer)
   {
     SwathFile swath_file;
-    swath_file.setLogType(log_type_);
+    swath_file.getProgressLogger().setLogType(log_type_);
 
     if (split_file)
     {
@@ -389,7 +389,7 @@ namespace OpenMS
 
       // perform extraction
       OpenSwathCalibrationWorkflow wf;
-      wf.setLogType(log_type_);
+      wf.getProgressLogger().setLogType(log_type_);
       TransformationDescription im_trafo;
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, im_trafo, min_rsq, min_coverage, feature_finder_param, cp_irt,
                       irt_detection_param, calibration_param, mrm_mapping_param, irt_mzml_out, debug_level, pasef, load_into_memory);

@@ -166,7 +166,7 @@ public:
     }
 
     ConfidenceScoring scoring(test_mode_);
-    scoring.setLogType(log_type_);
+    scoring.getProgressLogger().setLogType(log_type_);
     scoring.initialize(library_, n_decoys_, n_transitions_, rt_trafo_);
     scoring.initializeGlm(getDoubleOption_("GLM:intercept"), getDoubleOption_("GLM:delta_rt"), getDoubleOption_("GLM:dist_int"));
     scoring.scoreMap(features);

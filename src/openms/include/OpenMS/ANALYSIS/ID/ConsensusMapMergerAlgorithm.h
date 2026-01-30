@@ -35,8 +35,7 @@ namespace OpenMS
    *     to be used in, according to the mapping.
    */
   class OPENMS_DLLAPI ConsensusMapMergerAlgorithm:
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
   public:
     ConsensusMapMergerAlgorithm ();
@@ -85,6 +84,16 @@ namespace OpenMS
     }
     using hash_type = std::size_t (*)(const ProteinHit&);
     using equal_type = bool (*)(const ProteinHit&, const ProteinHit&);
+
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
 
   };
 } // namespace OpenMS

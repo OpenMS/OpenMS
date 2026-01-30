@@ -255,7 +255,7 @@ namespace OpenMS
 
 
   MetaboliteSpectralMatching::MetaboliteSpectralMatching() :
-    DefaultParamHandler("MetaboliteSpectralMatching"), ProgressLogger()
+    DefaultParamHandler("MetaboliteSpectralMatching")
   {
     defaults_.setValue("prec_mass_error_value", 100.0, "Error allowed for precursor ion mass.");
     defaults_.setValue("frag_mass_error_value", 500.0, "Error allowed for product ions.");
@@ -274,7 +274,7 @@ namespace OpenMS
 
     defaultsToParam_();
 
-    this->setLogType(CMD);
+    prog_log_.setLogType(ProgressLogger::CMD);
   }
 
 

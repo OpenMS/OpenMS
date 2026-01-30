@@ -96,8 +96,7 @@ private:
   * all properties B different.
   */
   template <typename Metric>
-  class GridBasedClustering :
-    public ProgressLogger
+  class GridBasedClustering
   {
 public:
     /**
@@ -161,14 +160,14 @@ public:
       // NOTE: for some reason, gcc7 chokes if we remove the OpenMS::String
       // below, so lets just not change it.
       Size clusters_start = clusters_.size();
-      startProgress(0, clusters_start, OpenMS::String("clustering"));
+      prog_log_.startProgress(0, clusters_start, OpenMS::String("clustering"));
 
       MinimumDistance zero_distance(-1, -1, 0);
 
       // combine clusters until all have been moved to the final list
       while (!clusters_.empty())
       {
-        setProgress(clusters_start - clusters_.size());
+        prog_log_.setProgress(clusters_start - clusters_.size());
 
         MultisetIterator smallest_distance_it = distances_.lower_bound(zero_distance);
 
@@ -262,7 +261,7 @@ public:
         }
       }
 
-      endProgress();
+      prog_log_.endProgress();
     }
 
     /**
@@ -660,5 +659,15 @@ private:
       // remove from distances_
       distances_.erase(it);
     }
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 }

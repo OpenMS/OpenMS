@@ -29,7 +29,7 @@ namespace OpenMS
 
   template <typename Container = MSSpectrum>
   class SignalToNoiseEstimator :
-    public DefaultParamHandler, public ProgressLogger
+    public DefaultParamHandler
   {
 public:
 
@@ -44,15 +44,13 @@ public:
 
     /// Constructor
     inline SignalToNoiseEstimator() :
-      DefaultParamHandler("SignalToNoiseEstimator"),
-      ProgressLogger()
+      DefaultParamHandler("SignalToNoiseEstimator")
     {
     }
 
     /// Copy constructor
     inline SignalToNoiseEstimator(const SignalToNoiseEstimator & source) :
       DefaultParamHandler(source),
-      ProgressLogger(source),
       stn_estimates_(source.stn_estimates_)
     {}
 
@@ -62,7 +60,6 @@ public:
       if (&source == this) return *this;
 
       DefaultParamHandler::operator=(source);
-      ProgressLogger::operator=(source);
       stn_estimates_ = source.stn_estimates_;
       return *this;
     }
@@ -144,6 +141,16 @@ protected:
 
     /// stores the noise estimate for each peak
     std::vector<double> stn_estimates_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
   /// Picks @p n_scans from the given @p ms_level randomly and returns either average intensity at a certain @p percentile.

@@ -42,10 +42,10 @@ namespace OpenMS::Internal
   };
 
 
-  OMSFileLoad::OMSFileLoad(const String& filename, LogType log_type):
+  OMSFileLoad::OMSFileLoad(const String& filename, ProgressLogger::LogType log_type):
     db_(make_unique<SQLite::Database>(filename))
   {
-    setLogType(log_type);
+    prog_log_.setLogType(log_type);
 
     // read version number:
     try
@@ -759,31 +759,31 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::load(IdentificationData& id_data)
   {
-    startProgress(0, 12, "Reading identification data from file");
+    prog_log_.startProgress(0, 12, "Reading identification data from file");
     loadInputFiles_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadScoreTypes_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadProcessingSoftwares_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadDBSearchParams_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadProcessingSteps_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadObservations_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadParentSequences_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadParentGroupSets_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadIdentifiedCompounds_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadIdentifiedSequences_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadAdducts_(id_data);
-    nextProgress();
+    prog_log_.nextProgress();
     loadObservationMatches_(id_data);
-    endProgress();
+    prog_log_.endProgress();
     // @TODO: load input match groups
   }
 
@@ -996,13 +996,13 @@ namespace OpenMS::Internal
   void OMSFileLoad::load(FeatureMap& features)
   {
     load(features.getIdentificationData()); // load IDs, if any
-    startProgress(0, 3, "Reading feature data from file");
+    prog_log_.startProgress(0, 3, "Reading feature data from file");
     loadMapMetaData_(features);
-    nextProgress();
+    prog_log_.nextProgress();
     loadDataProcessing_(features.getDataProcessing());
-    nextProgress();
+    prog_log_.nextProgress();
     loadFeatures_(features);
-    endProgress();
+    prog_log_.endProgress();
   }
 
 
@@ -1089,15 +1089,15 @@ namespace OpenMS::Internal
   void OMSFileLoad::load(ConsensusMap& consensus)
   {
     load(consensus.getIdentificationData()); // load IDs, if any
-    startProgress(0, 4, "Reading feature data from file");
+    prog_log_.startProgress(0, 4, "Reading feature data from file");
     loadMapMetaData_(consensus);
-    nextProgress();
+    prog_log_.nextProgress();
     loadConsensusColumnHeaders_(consensus);
-    nextProgress();
+    prog_log_.nextProgress();
     loadDataProcessing_(consensus.getDataProcessing());
-    nextProgress();
+    prog_log_.nextProgress();
     loadConsensusFeatures_(consensus);
-    endProgress();
+    prog_log_.endProgress();
   }
 
 

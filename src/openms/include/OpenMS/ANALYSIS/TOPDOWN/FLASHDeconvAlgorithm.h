@@ -31,7 +31,7 @@ namespace OpenMS
   @ingroup Topdown
 */
 
-  class OPENMS_DLLAPI FLASHDeconvAlgorithm : public DefaultParamHandler, public ProgressLogger
+  class OPENMS_DLLAPI FLASHDeconvAlgorithm : public DefaultParamHandler
   {
   public:
     /// default constructor
@@ -170,5 +170,15 @@ namespace OpenMS
 
     /// filter low intensity peaks
     static void filterLowPeaks_(MSExperiment& map);
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 } // namespace OpenMS

@@ -15,8 +15,7 @@
 namespace OpenMS
 {
   class OPENMS_DLLAPI GNPSMGFFile : 
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
     public:
       // default c'tor
@@ -40,5 +39,15 @@ namespace OpenMS
 
       static constexpr int DEF_PEPT_CUTOFF = 5;
       static constexpr int DEF_MSMAP_CACHE = 50;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 }

@@ -34,8 +34,7 @@ namespace OpenMS
    * Supports multiple runs but goes through them one by one iterating over the full PeptideIdentification vector.
    */
   class OPENMS_DLLAPI BasicProteinInferenceAlgorithm :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
     public:
 
@@ -146,5 +145,15 @@ namespace OpenMS
     /// get lambda function to aggregate scores
     typedef double (*fptr)(double, double);
     fptr aggFunFromEnum_(const BasicProteinInferenceAlgorithm::AggregationMethod& agg_method, bool higher_better) const;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 } //namespace OpenMS

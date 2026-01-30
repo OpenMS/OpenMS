@@ -249,7 +249,7 @@ protected:
       opt.setMSLevels(ms_levels);
     }
 
-    mzml.setLogType(log_type_);
+    mzml.getProgressLogger().setLogType(log_type_);
     mzml.setOptions(opt);
     mzml.load(in_file, map);
 

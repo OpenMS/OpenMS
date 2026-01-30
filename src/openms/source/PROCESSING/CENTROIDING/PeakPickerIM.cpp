@@ -1249,7 +1249,7 @@ namespace OpenMS
       param.setValue("trace_termination_criterion", "outlier");
       param.setValue("trace_termination_outlier", 1);
 
-      mte.setLogType(ProgressLogger::NONE);
+      mte.getProgressLogger().setLogType(ProgressLogger::NONE);
       mte.setParameters(param);
       vector<MassTrace> output_mt;
       mte.run(frame_as_spectra, output_mt);

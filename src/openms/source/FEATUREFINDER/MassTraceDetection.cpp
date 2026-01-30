@@ -20,7 +20,7 @@
 namespace OpenMS
 {
     MassTraceDetection::MassTraceDetection() :
-            DefaultParamHandler("MassTraceDetection"), ProgressLogger()
+            DefaultParamHandler("MassTraceDetection")
     {
       defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
       defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
@@ -44,7 +44,7 @@ namespace OpenMS
 
       defaultsToParam_();
 
-      this->setLogType(CMD);
+      prog_log_.setLogType(ProgressLogger::CMD);
     }
 
     MassTraceDetection::~MassTraceDetection() = default;
@@ -463,7 +463,7 @@ namespace OpenMS
                     ion_mobility_idx_, has_centroid_im_,
                     im_fwhm_idx_, has_fwhm_im_);
 
-      this->startProgress(0, total_peak_count, "mass trace detection");
+      prog_log_.startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);
 
       for (auto m_it = chrom_apices.crbegin(); m_it != chrom_apices.crend(); ++m_it)
@@ -654,13 +654,13 @@ namespace OpenMS
           found_masstraces.push_back(new_trace);
 
           peaks_detected += new_trace.getSize();
-          this->setProgress(peaks_detected);
+          prog_log_.setProgress(peaks_detected);
 
           // check if we already reached the (optional) maximum number of traces
           if (max_traces > 0 && found_masstraces.size() == max_traces) { break; }
         }
       }
-      this->endProgress();
+      prog_log_.endProgress();
     }
 
 

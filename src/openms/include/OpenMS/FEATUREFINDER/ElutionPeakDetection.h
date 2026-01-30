@@ -48,7 +48,7 @@ namespace OpenMS
     @ingroup Quantitation
   */
   class OPENMS_DLLAPI ElutionPeakDetection :
-    public DefaultParamHandler, public ProgressLogger
+    public DefaultParamHandler
   {
 public:
     /// Default Constructor
@@ -139,6 +139,16 @@ private:
 
     /// Main function to do the work
     void detectElutionPeaks_(MassTrace&, std::vector<MassTrace>&);
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 
 } // namespace OpenMS

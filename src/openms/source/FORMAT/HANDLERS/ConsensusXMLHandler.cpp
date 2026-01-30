@@ -24,7 +24,7 @@ namespace OpenMS::Internal
 {
   ConsensusXMLHandler::ConsensusXMLHandler(ConsensusMap& map, const String& filename) :
     XMLHandler("", "1.7"),
-    ProgressLogger(),
+
     act_cons_element_(),
     last_meta_(nullptr)
   {
@@ -34,7 +34,7 @@ namespace OpenMS::Internal
 
   ConsensusXMLHandler::ConsensusXMLHandler(const ConsensusMap& map, const String& filename) :
     XMLHandler("", "1.7"),
-    ProgressLogger(),
+
     act_cons_element_(),
     last_meta_(nullptr)
   {
@@ -122,7 +122,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "consensusXML")
     {
-      endProgress();
+      prog_log_.endProgress();
     }
   }
 
@@ -139,7 +139,7 @@ namespace OpenMS::Internal
     String tmp_str;
     if (tag == "map")
     {
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       Size last_map = attributeAsInt_(attributes, "id");
       last_meta_ = &consensus_map_->getColumnHeaders()[last_map];
       consensus_map_->getColumnHeaders()[last_map].filename = attributeAsString_(attributes, "name");
@@ -163,7 +163,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "consensusElement")
     {
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       act_cons_element_ = ConsensusFeature();
       last_meta_ = &act_cons_element_;
       // quality
@@ -244,9 +244,9 @@ namespace OpenMS::Internal
     }
     else if (tag == "consensusXML")
     {
-      startProgress(0, 0, "loading consensusXML file");
+      prog_log_.startProgress(0, 0, "loading consensusXML file");
       progress_ = 0;
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       //check file version against schema version
       String file_version = "";
       optionalAttributeAsString_(file_version, attributes, "version");
@@ -324,7 +324,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "IdentificationRun")
     {
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       prot_id_.setSearchEngine(attributeAsString_(attributes, "search_engine"));
       prot_id_.setSearchEngineVersion(attributeAsString_(attributes, "search_engine_version"));
       prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes, "date")));
@@ -414,7 +414,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "ProteinHit")
     {
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       prot_hit_ = ProteinHit();
       String accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
@@ -475,7 +475,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "PeptideHit")
     {
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       pep_hit_ = PeptideHit();
       peptide_evidences_ = vector<PeptideEvidence>();
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
@@ -573,7 +573,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "dataProcessing")
     {
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       DataProcessing tmp;
       tmp.setCompletionTime(asDateTime_(attributeAsString_(attributes, "completion_time")));
       consensus_map_->getDataProcessing().push_back(std::move(tmp));
@@ -601,15 +601,15 @@ namespace OpenMS::Internal
   {
     const ConsensusMap& consensus_map = *(cconsensus_map_);
 
-    startProgress(0, 0, "storing consensusXML file");
+    prog_log_.startProgress(0, 0, "storing consensusXML file");
     progress_ = 0;
-    setProgress(++progress_);
+    prog_log_.setProgress(++progress_);
 
-    setProgress(++progress_);
+    prog_log_.setProgress(++progress_);
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://www.openms.de/xml-stylesheet/ConsensusXML.xsl\" ?>\n";
 
-    setProgress(++progress_);
+    prog_log_.setProgress(++progress_);
     os << "<consensusXML version=\"" << version_ << "\"";
     // file id
     if (!consensus_map.getIdentifier().empty())
@@ -630,7 +630,7 @@ namespace OpenMS::Internal
 
     // user param
     writeUserParam_("UserParam", os, consensus_map, 1);
-    setProgress(++progress_);
+    prog_log_.setProgress(++progress_);
 
     // write data processing
     for (Size i = 0; i < consensus_map.getDataProcessing().size(); ++i)
@@ -645,7 +645,7 @@ namespace OpenMS::Internal
       writeUserParam_("UserParam", os, processing, 2);
       os << "\t</dataProcessing>\n";
     }
-    setProgress(++progress_);
+    prog_log_.setProgress(++progress_);
 
     // write identification run
     UInt prot_count = 0;
@@ -655,7 +655,7 @@ namespace OpenMS::Internal
 
     for (UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i)
     {
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       const ProteinIdentification& current_prot_id = consensus_map.getProteinIdentifications()[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
@@ -758,7 +758,7 @@ namespace OpenMS::Internal
     os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
     for (ConsensusMap::ColumnHeaders::const_iterator it = description_vector.begin(); it != description_vector.end(); ++it)
     {
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       os << "\t\t<map id=\"" << it->first;
       os << "\" name=\"" << it->second.filename;
       if (UniqueIdInterface::isValid(it->second.unique_id))
@@ -776,7 +776,7 @@ namespace OpenMS::Internal
     os << "\t<consensusElementList>\n";
     for (Size i = 0; i < consensus_map.size(); ++i)
     {
-      setProgress(++progress_);
+      prog_log_.setProgress(++progress_);
       // write a consensusElement
       const ConsensusFeature& elem = consensus_map[i];
       os << "\t\t<consensusElement id=\"e_" << elem.getUniqueId() << "\" quality=\"" << precisionWrapper(elem.getQuality()) << "\"";
@@ -822,7 +822,7 @@ namespace OpenMS::Internal
     //Clear members
     identifier_id_.clear();
     accession_to_id_.clear();
-    endProgress();
+    prog_log_.endProgress();
   }
 
   void ConsensusXMLHandler::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name,

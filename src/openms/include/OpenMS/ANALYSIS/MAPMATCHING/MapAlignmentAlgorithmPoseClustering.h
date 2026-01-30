@@ -42,8 +42,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI MapAlignmentAlgorithmPoseClustering :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 public:
     /// Default constructor
@@ -82,6 +81,16 @@ private:
     MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering&);
     /// Assignment operator intentionally not implemented -> private
     MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering&);
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
+protected:
+  ProgressLogger prog_log_;
+
   };
 } // namespace OpenMS
 
