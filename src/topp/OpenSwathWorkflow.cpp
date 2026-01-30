@@ -52,6 +52,7 @@
 
 #include <cassert>
 #include <limits>
+#include <memory>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
 
@@ -1144,13 +1145,6 @@ protected:
       }
     }
 
-    if (out_features_type == FileTypes::OSWPARQUET && run_groups.size() > 1)
-    {
-      writeLogError_("Error: osw_parquet output currently supports only single-run output. "
-                     "Please run OpenSwathWorkflow separately per input file or use split_file_input.");
-      return PARSE_ERROR;
-    }
-
     ///////////////////////////////////
     // Iterate over each run group and process individually
     ///////////////////////////////////
@@ -1162,15 +1156,27 @@ protected:
     String osw_out_filename = write_osw ? out_features : "";
     OpenSwathOSWWriter oswwriter(osw_out_filename, enable_uis_scoring);
 
+#ifdef WITH_PARQUET
+    String parquet_dir = out_features;
+    bool parquet_zip_output = false;
+    std::unique_ptr<File::TempDir> parquet_temp_dir;
+    OpenSwathOSWParquetWriter parquet_writer;
+    if (write_parquet)
+    {
+      parquet_zip_output = out_features.hasSuffix(".osw_parquet");
+      if (parquet_zip_output)
+      {
+        parquet_temp_dir = std::make_unique<File::TempDir>();
+        parquet_dir = parquet_temp_dir->getPath() + "/osw_parquet";
+      }
+    }
+#endif
+
     // Write DB schema once (only for first file)
     if (write_osw)
     {
       oswwriter.writeHeader();
     }
-
-    UInt64 parquet_run_id = 0;
-    String parquet_input_filename;
-    bool parquet_run_set = false;
 
     Size run_index = 0;
     for (const StringList& current_run_files : run_groups)
@@ -1600,54 +1606,38 @@ protected:
       sql_cons2->setRunId(cur_run);
     }
 
-    if (write_parquet)
-    {
-      parquet_run_id = cur_run;
-      parquet_input_filename = current_run_files[0];
-      parquet_run_set = true;
-    }
+    FeatureMap run_featureFile;
+    FeatureMap& active_feature_map = write_parquet ? run_featureFile : out_featureFile;
 
     OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
     wf.setLogType(log_type_);
 
     // perform extraction for this file's swath maps
     wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-                         out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param);
+                         active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param);
 
     //// Write out data
 
     delete chromatogramConsumer;
 
+    if (write_parquet)
+    {
+#ifdef WITH_PARQUET
+      parquet_writer.write(parquet_dir, transition_exp, active_feature_map,
+                           cur_run, current_run_files[0], enable_uis_scoring);
+#endif
+    }
+
     OPENMS_LOG_INFO << std::endl;
     ++run_index;
     } // end for each run
 
-    if (write_parquet)
-    {
 #ifdef WITH_PARQUET
-      if (!parquet_run_set)
-      {
-        writeLogError_("Error: No runs were processed, cannot write osw_parquet output.");
-        return PARSE_ERROR;
-      }
-
-      OpenSwathOSWParquetWriter parquet_writer;
-      const bool zip_output = out_features.hasSuffix(".osw_parquet");
-      File::TempDir temp_dir;
-      String parquet_dir = out_features;
-      if (zip_output)
-      {
-        parquet_dir = temp_dir.getPath() + "/osw_parquet";
-      }
-
-      parquet_writer.write(parquet_dir, transition_exp, out_featureFile,
-                           parquet_run_id, parquet_input_filename, enable_uis_scoring);
-      if (zip_output)
-      {
-        zipParquetOutput_(parquet_dir, out_features);
-      }
-#endif
+    if (write_parquet && parquet_zip_output)
+    {
+      zipParquetOutput_(parquet_dir, out_features);
     }
+#endif
 
     if ( out_features_type == FileTypes::FEATUREXML )
     {

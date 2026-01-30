@@ -26,6 +26,7 @@
 #endif
 
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 #include <map>
 #include <sstream>
@@ -638,6 +639,10 @@ namespace OpenMS
     auto transition_intensity_col = getColumn_(transitions_table, "library_intensity");
     auto transition_decoy_col = getColumn_(transitions_table, "decoy");
 
+    std::unordered_set<std::string> used_transition_names;
+    used_transition_names.reserve(transitions_table->num_rows());
+    bool warned_duplicate_transition = false;
+
     for (int64_t row = 0; row < transitions_table->num_rows(); ++row)
     {
       const int64_t precursor_id = getInt64_(transition_precursor_id_col, row, 0, false);
@@ -650,7 +655,22 @@ namespace OpenMS
 
       const int64_t transition_id = getInt64_(transition_id_col, row, 0, false);
       const std::string traml_id = getString_(transition_traml_id_col, row);
-      const std::string transition_name = traml_id.empty() ? String(transition_id) : String(traml_id);
+      std::string transition_name = traml_id.empty() ? String(transition_id) : String(traml_id);
+      if (!used_transition_names.insert(transition_name).second)
+      {
+        if (!warned_duplicate_transition)
+        {
+          OPENMS_LOG_WARN << "Duplicate transition nativeID detected in Parquet library. "
+                          << "Falling back to transition_id for uniqueness." << std::endl;
+          warned_duplicate_transition = true;
+        }
+        transition_name = String(transition_id);
+        if (!used_transition_names.insert(transition_name).second)
+        {
+          transition_name += "_" + std::to_string(row);
+          used_transition_names.insert(transition_name);
+        }
+      }
       const std::string fragment_type = getString_(fragment_type_col, row);
       const std::string annotation = getString_(fragment_annotation_col, row);
 

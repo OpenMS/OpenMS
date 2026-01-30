@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
@@ -30,7 +31,11 @@
 #endif
 #include <arrow/api.h>
 #include <arrow/io/api.h>
+#include <arrow/io/file.h>
+#include <arrow/table.h>
 #include <parquet/arrow/writer.h>
+#include <parquet/arrow/reader.h>
+#include <parquet/file_reader.h>
 #endif
 
 namespace OpenMS
@@ -227,7 +232,145 @@ namespace OpenMS
       }
     }
 
-    String writeMetadata_(const String& base_dir, UInt64 run_id, const String& input_filename)
+    std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+    {
+      auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
+      if (!infile_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to open parquet file", filename);
+      }
+      std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+
+      auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
+      if (!reader_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to create parquet reader", filename);
+      }
+      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
+
+      std::shared_ptr<arrow::Table> table;
+      auto read_status = reader->ReadTable(&table);
+      if (!read_status.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to read parquet table", filename);
+      }
+
+      auto combined = table->CombineChunks(arrow::default_memory_pool());
+      if (!combined.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to combine parquet chunks", filename);
+      }
+
+      return *combined;
+    }
+
+    std::shared_ptr<arrow::Array> getColumn_(const std::shared_ptr<arrow::Table>& table,
+                                             const std::string& name)
+    {
+      auto column = table->GetColumnByName(name);
+      if (!column)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Missing required column '" + name + "'");
+      }
+      if (column->num_chunks() == 0)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Column has no chunks", name);
+      }
+      return column->chunk(0);
+    }
+
+    struct RunEntry
+    {
+      int64_t run_id = 0;
+      String filename;
+    };
+
+    struct RunCounts
+    {
+      int64_t features = 0;
+      int64_t feature_ms1 = 0;
+      int64_t feature_precursor = 0;
+      int64_t feature_ms2 = 0;
+      int64_t feature_transition = 0;
+    };
+
+    int64_t getParquetRowCount_(const String& filename)
+    {
+      if (!File::exists(filename))
+      {
+        return 0;
+      }
+      std::unique_ptr<parquet::ParquetFileReader> reader = parquet::ParquetFileReader::OpenFile(std::string(filename), false);
+      return reader->metadata()->num_rows();
+    }
+
+    std::vector<RunEntry> readRuns_(const String& runs_parquet)
+    {
+      std::vector<RunEntry> runs;
+      if (!File::exists(runs_parquet))
+      {
+        return runs;
+      }
+
+      auto runs_table = readParquetTable_(runs_parquet);
+      auto run_id_array = std::static_pointer_cast<arrow::Int64Array>(getColumn_(runs_table, "run_id"));
+      auto filename_array = std::static_pointer_cast<arrow::StringArray>(getColumn_(runs_table, "filename"));
+
+      const int64_t num_rows = runs_table->num_rows();
+      runs.reserve(num_rows);
+      for (int64_t row = 0; row < num_rows; ++row)
+      {
+        RunEntry entry;
+        entry.run_id = run_id_array->Value(row);
+        entry.filename = filename_array->GetString(row);
+        runs.push_back(entry);
+      }
+
+      return runs;
+    }
+
+    std::string jsonEscape_(const String& input)
+    {
+      std::string output;
+      output.reserve(input.size());
+      for (Size i = 0; i < input.size(); ++i)
+      {
+        const char c = input[i];
+        switch (c)
+        {
+          case '\\': output += "\\\\"; break;
+          case '"': output += "\\\""; break;
+          case '\n': output += "\\n"; break;
+          case '\r': output += "\\r"; break;
+          case '\t': output += "\\t"; break;
+          default:
+            if (static_cast<unsigned char>(c) < 0x20)
+            {
+              const char hex[] = "0123456789abcdef";
+              output += "\\u00";
+              output += hex[(c >> 4) & 0x0f];
+              output += hex[c & 0x0f];
+            }
+            else
+            {
+              output += c;
+            }
+            break;
+        }
+      }
+      return output;
+    }
+
+    void writeMetadata_(const String& base_dir,
+                        const std::vector<RunEntry>& runs,
+                        const std::vector<RunCounts>& run_counts,
+                        const RunCounts& total_counts)
     {
       const String metadata_path = base_dir + "/metadata.json";
       std::ofstream out(metadata_path.c_str(), std::ios::out | std::ios::trunc);
@@ -240,10 +383,45 @@ namespace OpenMS
           << "  \"openms\": {\n"
           << "    \"schema_version\": 1,\n"
           << "    \"generator\": \"OpenSwathOSWParquetWriter\",\n"
-          << "    \"run\": {\"id\": " << run_id << ", \"filename\": \"" << input_filename << "\"}\n"
-          << "  }\n"
+          << "    \"openms_version\": \"" << jsonEscape_(VersionInfo::getVersion()) << "\",\n"
+          << "    \"build_time\": \"" << jsonEscape_(VersionInfo::getTime()) << "\",\n"
+          << "    \"tool\": {\"name\": \"OpenSwathWorkflow\", \"version\": \"" << jsonEscape_(VersionInfo::getVersion()) << "\"},\n"
+          << "    \"counts\": {\n"
+          << "      \"runs\": " << runs.size() << ",\n"
+          << "      \"features\": " << total_counts.features << ",\n"
+          << "      \"feature_ms1\": " << total_counts.feature_ms1 << ",\n"
+          << "      \"feature_precursor\": " << total_counts.feature_precursor << ",\n"
+          << "      \"feature_ms2\": " << total_counts.feature_ms2 << ",\n"
+          << "      \"feature_transition\": " << total_counts.feature_transition << "\n"
+          << "    }\n"
+          << "  },\n"
+          << "  \"runs\": [\n";
+
+      if (runs.size() != run_counts.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Run count metadata mismatch", String(run_counts.size()));
+      }
+
+      for (Size i = 0; i < runs.size(); ++i)
+      {
+        const RunEntry& run = runs[i];
+        const RunCounts& counts = run_counts[i];
+        out << "    {\"id\": " << run.run_id
+            << ", \"filename\": \"" << jsonEscape_(run.filename) << "\""
+            << ", \"counts\": {\"features\": " << counts.features
+            << ", \"feature_ms1\": " << counts.feature_ms1
+            << ", \"feature_precursor\": " << counts.feature_precursor
+            << ", \"feature_ms2\": " << counts.feature_ms2
+            << ", \"feature_transition\": " << counts.feature_transition << "}}";
+        if (i + 1 < runs.size())
+        {
+          out << ",";
+        }
+        out << "\n";
+      }
+      out << "  ]\n"
           << "}\n";
-      return metadata_path;
     }
 
     void waitForWriteTasks_(std::vector<std::future<void>>& tasks)
@@ -271,26 +449,44 @@ namespace OpenMS
     const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
     const String base_dir = output_path;
 
-    if (File::exists(base_dir))
-    {
-      File::removeDirRecursively(base_dir);
-    }
-    File::makeDir(base_dir);
-
-    const String library_tmp_dir = base_dir + "/library_tmp";
     const String library_dir = base_dir + "/library";
     const String runs_dir = base_dir + "/runs";
-    File::makeDir(library_tmp_dir);
-    File::makeDir(library_dir);
-    File::makeDir(runs_dir);
+    if (!File::exists(base_dir))
+    {
+      File::makeDir(base_dir);
+    }
+    if (!File::exists(runs_dir))
+    {
+      File::makeDir(runs_dir);
+    }
 
-    writeMetadata_(base_dir, run_id_clean, input_filename);
-
-    TransitionParquetFile().convertLightTargetedExperimentToParquet(library_tmp_dir, assay_library);
-    File::copyDirRecursively(String(library_tmp_dir + "/library").toQString(), library_dir.toQString());
-    File::removeDirRecursively(library_tmp_dir);
+    const String precursors_path = library_dir + "/precursors.parquet";
+    const String transitions_path = library_dir + "/transitions.parquet";
+    const bool library_ready = File::exists(precursors_path) && File::exists(transitions_path);
+    if (!library_ready)
+    {
+      const String library_tmp_dir = base_dir + "/library_tmp";
+      if (File::exists(library_tmp_dir))
+      {
+        File::removeDirRecursively(library_tmp_dir);
+      }
+      if (File::exists(library_dir))
+      {
+        File::removeDirRecursively(library_dir);
+      }
+      File::makeDir(library_tmp_dir);
+      File::makeDir(library_dir);
+      TransitionParquetFile().convertLightTargetedExperimentToParquet(library_tmp_dir, assay_library);
+      File::copyDirRecursively(String(library_tmp_dir + "/library").toQString(), library_dir.toQString());
+      File::removeDirRecursively(library_tmp_dir);
+    }
 
     const String run_path = runs_dir + "/run_id=" + String(run_id_clean);
+    if (File::exists(run_path))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Run output directory already exists", run_path);
+    }
     File::makeDir(run_path);
 
     std::unordered_map<String, int64_t> compound_to_precursor;
@@ -342,7 +538,32 @@ namespace OpenMS
         finishArray_(run_id_builder, "run_id"),
         finishArray_(filename_builder, "filename")
       });
-      writeParquetTable_(runs_table, runs_dir + "/runs.parquet");
+      const String runs_parquet = runs_dir + "/runs.parquet";
+      if (File::exists(runs_parquet))
+      {
+        auto existing_table = readParquetTable_(runs_parquet);
+        auto existing_run_ids = std::static_pointer_cast<arrow::Int64Array>(getColumn_(existing_table, "run_id"));
+        const int64_t existing_rows = existing_table->num_rows();
+        for (int64_t row = 0; row < existing_rows; ++row)
+        {
+          if (existing_run_ids->Value(row) == static_cast<int64_t>(run_id_clean))
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Run id already present in runs.parquet", String(run_id_clean));
+          }
+        }
+        auto combined_result = arrow::ConcatenateTables({existing_table, runs_table});
+        if (!combined_result.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to append runs table", combined_result.status().ToString());
+        }
+        writeParquetTable_(combined_result.ValueOrDie(), runs_parquet);
+      }
+      else
+      {
+        writeParquetTable_(runs_table, runs_parquet);
+      }
     }
 
     arrow::Int64Builder feature_id_builder;
@@ -1179,6 +1400,32 @@ namespace OpenMS
     }
 
     waitForWriteTasks_(write_tasks);
+
+    const String runs_parquet = runs_dir + "/runs.parquet";
+    auto runs = readRuns_(runs_parquet);
+    std::vector<RunCounts> run_counts;
+    run_counts.reserve(runs.size());
+
+    RunCounts total_counts;
+    for (const auto& run : runs)
+    {
+      const String current_run_path = runs_dir + "/run_id=" + String(run.run_id);
+      RunCounts counts;
+      counts.features = getParquetRowCount_(current_run_path + "/features.parquet");
+      counts.feature_ms1 = getParquetRowCount_(current_run_path + "/feature_ms1.parquet");
+      counts.feature_precursor = getParquetRowCount_(current_run_path + "/feature_precursor.parquet");
+      counts.feature_ms2 = getParquetRowCount_(current_run_path + "/feature_ms2.parquet");
+      counts.feature_transition = getParquetRowCount_(current_run_path + "/feature_transition.parquet");
+      run_counts.push_back(counts);
+
+      total_counts.features += counts.features;
+      total_counts.feature_ms1 += counts.feature_ms1;
+      total_counts.feature_precursor += counts.feature_precursor;
+      total_counts.feature_ms2 += counts.feature_ms2;
+      total_counts.feature_transition += counts.feature_transition;
+    }
+
+    writeMetadata_(base_dir, runs, run_counts, total_counts);
 #endif
   }
 
