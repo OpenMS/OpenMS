@@ -192,8 +192,6 @@ namespace OpenMS
       appendOrThrow_(run_id_builder_.Append(static_cast<int64_t>(run_id_)), "RUN_ID");
       appendOptionalString_(source_file_builder_, source_file_, "SOURCE_FILE");
       appendOrThrow_(ms_level_builder_.Append(ms_level), "MS_LEVEL");
-      appendOptionalString_(native_id_builder_, native_id, "NATIVE_ID");
-
       if (is_precursor)
       {
         const String precursor_annotation = buildPrecursorAnnotation_(native_id);
@@ -281,7 +279,6 @@ namespace OpenMS
         transition_ordinal_builder_.Reserve(expectedChromatograms);
         transition_type_builder_.Reserve(expectedChromatograms);
         annotation_builder_.Reserve(expectedChromatograms);
-        native_id_builder_.Reserve(expectedChromatograms);
         rt_data_builder_.Reserve(expectedChromatograms);
         intensity_data_builder_.Reserve(expectedChromatograms);
         rt_compression_builder_.Reserve(expectedChromatograms);
@@ -469,7 +466,6 @@ namespace OpenMS
         arrow::field("TRANSITION_ORDINAL", arrow::int64()),
         arrow::field("TRANSITION_TYPE", arrow::utf8()),
         arrow::field("ANNOTATION", arrow::utf8()),
-        arrow::field("NATIVE_ID", arrow::utf8()),
         arrow::field("RT_DATA", arrow::binary()),
         arrow::field("INTENSITY_DATA", arrow::binary()),
         arrow::field("RT_COMPRESSION", arrow::int64()),
@@ -491,7 +487,6 @@ namespace OpenMS
         finishArray_(transition_ordinal_builder_, "TRANSITION_ORDINAL"),
         finishArray_(transition_type_builder_, "TRANSITION_TYPE"),
         finishArray_(annotation_builder_, "ANNOTATION"),
-        finishArray_(native_id_builder_, "NATIVE_ID"),
         finishArray_(rt_data_builder_, "RT_DATA"),
         finishArray_(intensity_data_builder_, "INTENSITY_DATA"),
         finishArray_(rt_compression_builder_, "RT_COMPRESSION"),
@@ -531,7 +526,6 @@ namespace OpenMS
     arrow::Int64Builder transition_ordinal_builder_;
     arrow::StringBuilder transition_type_builder_;
     arrow::StringBuilder annotation_builder_;
-    arrow::StringBuilder native_id_builder_;
     arrow::BinaryBuilder rt_data_builder_;
     arrow::BinaryBuilder intensity_data_builder_;
     arrow::Int64Builder rt_compression_builder_;
