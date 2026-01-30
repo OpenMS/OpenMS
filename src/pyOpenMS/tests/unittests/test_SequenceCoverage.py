@@ -6,7 +6,7 @@ class TestSequenceCoverage(unittest.TestCase):
 
     def test_partial_coverage(self):
         """Partial sequence coverage is computed correctly"""
-        protein = oms.AASequence.fromString("PEPTIDEPEPTIDE")
+        protein = oms.AASequence.fromString("PEPTIDEAAAAAA")
         peptides = [
             oms.AASequence.fromString("PEPTIDE")
         ]
