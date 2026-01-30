@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
-from .cpp_parser import CppMethod, MergedClass, MergedMethod
+from .cpp_parser import CppMethod, MergedClass, MergedMethod, _PXD_TO_CPP_TYPE
 
 logger = logging.getLogger(__name__)
 
@@ -512,6 +512,28 @@ SKIP_METHODS = {
 # - Qt base classes: auto-skipped in _get_bound_base_classes (QDate, QString, QObject, etc.)
 #
 # STILL NEED MANUAL LISTING:
+# Pxd-to-C++ type mapping for template instance generation.
+# Extends _PXD_TO_CPP_TYPE from cpp_parser with OpenMS class types needed
+# for template parameter substitution (e.g., MSChromatogram -> OpenMS::MSChromatogram).
+_TEMPLATE_PXD_TO_CPP = {
+    **_PXD_TO_CPP_TYPE,
+    "String": "OpenMS::String",
+    "MSSpectrum": "OpenMS::MSSpectrum",
+    "MSChromatogram": "OpenMS::MSChromatogram",
+    "MRMFeature": "OpenMS::MRMFeature",
+    "ReactionMonitoringTransition": "OpenMS::ReactionMonitoringTransition",
+    "LightTransition": "OpenSwath::LightTransition",
+    "RansacModelLinear": "OpenMS::Math::RansacModelLinear",
+    "RansacModelQuadratic": "OpenMS::Math::RansacModelQuadratic",
+    "Param": "OpenMS::Param",
+    "Int64": "OpenMS::Int64",
+    "Matrix": "OpenMS::Matrix",
+    "Peak1D": "OpenMS::Peak1D",
+    "Peak2D": "OpenMS::Peak2D",
+    "ChromatogramPeak": "OpenMS::ChromatogramPeak",
+}
+
+
 # - Classes where libclang can't parse the header (missing includes, etc.)
 # - Complex template instantiations
 # - Parameter type mismatches between pxd and C++
@@ -1214,6 +1236,8 @@ SPECIAL_METHODS = {
         "getPeptideByRef": '''
         .def("getPeptideByRef", [](OpenSwath::LightTargetedExperiment& self, const std::string& ref) { return self.getPeptideByRef(ref); }, "ref"_a)''',
     },
+    # Compat shim: old pyOpenMS returned lists for DPosition<2>, nanobind type
+    # caster returns tuples. Return lists here for backwards compatibility.
     "DBoundingBox2": {
         "minPosition": '''
         .def("minPosition", [](const OpenMS::DBoundingBox<2>& self) {
@@ -4508,36 +4532,8 @@ class NanobindEmitterV2:
         namespace = merged_class.namespace
 
         # Type mapping from pxd type names to C++ types
-        PXD_TO_CPP_TYPE = {
-            "double": "double",
-            "float": "float",
-            "int": "int",
-            "unsigned int": "unsigned int",
-            "bool": "bool",
-            "size_t": "size_t",
-            "Size": "size_t",
-            "Int": "OpenMS::Int",
-            "UInt": "OpenMS::UInt",
-            "String": "OpenMS::String",
-            "MSSpectrum": "OpenMS::MSSpectrum",
-            "MSChromatogram": "OpenMS::MSChromatogram",
-            "MRMFeature": "OpenMS::MRMFeature",
-            "ReactionMonitoringTransition": "OpenMS::ReactionMonitoringTransition",
-            "LightTransition": "OpenSwath::LightTransition",
-            "RansacModelLinear": "OpenMS::Math::RansacModelLinear",
-            "RansacModelQuadratic": "OpenMS::Math::RansacModelQuadratic",
-            "Param": "OpenMS::Param",
-            "UInt64": "OpenMS::UInt64",
-            "Int64": "OpenMS::Int64",
-            "Matrix": "OpenMS::Matrix",
-            "Peak1D": "OpenMS::Peak1D",
-            "Peak2D": "OpenMS::Peak2D",
-            "ChromatogramPeak": "OpenMS::ChromatogramPeak",
-        }
-
         def _convert_template_type(type_str: str, param_map: dict) -> str:
             """Convert a pxd type to C++ type with template substitution."""
-            import re
             result = type_str.strip()
             # Apply template parameter substitution using word boundaries
             # to avoid partial matches (e.g., 'Key' matching inside 'KeyType')
@@ -4557,17 +4553,18 @@ class NanobindEmitterV2:
             if result in ("libcpp_utf8_string", "libcpp_string", "libcpp_utf8_output_string"):
                 return "std::string"
             # Handle generic pxd ClassName[Args] -> C++ ClassName<Args>
-            m = re.match(r'(\w+)\[(.+)\]', result)
+            # (only non-libcpp names; libcpp_* already handled above)
+            m = re.match(r'(?!libcpp_)(\w+)\[(.+)\]', result)
             if m:
                 cls_name = m.group(1)
                 inner_args = [_convert_template_type(a.strip(), param_map)
                               for a in m.group(2).split(',')]
-                cpp_cls = PXD_TO_CPP_TYPE.get(cls_name, cls_name)
+                cpp_cls = _TEMPLATE_PXD_TO_CPP.get(cls_name, cls_name)
                 return f"{cpp_cls}<{', '.join(inner_args)}>"
             # Direct mapping
             bare = result.replace("const ", "").rstrip(" &*").strip()
-            if bare in PXD_TO_CPP_TYPE:
-                result = result.replace(bare, PXD_TO_CPP_TYPE[bare])
+            if bare in _TEMPLATE_PXD_TO_CPP:
+                result = result.replace(bare, _TEMPLATE_PXD_TO_CPP[bare])
             return result
 
         template_params = merged_class.cpp_class.template_params
@@ -4581,7 +4578,7 @@ class NanobindEmitterV2:
             # Build C++ type args
             cpp_args = []
             for arg in instance_args:
-                cpp_type = PXD_TO_CPP_TYPE.get(arg, arg)
+                cpp_type = _TEMPLATE_PXD_TO_CPP.get(arg, arg)
                 cpp_args.append(cpp_type)
 
             cpp_type_str = f"{namespace}::{class_name}<{', '.join(cpp_args)}>"
@@ -4592,10 +4589,10 @@ class NanobindEmitterV2:
             param_map = {}
             if len(template_params) == len(instance_args):
                 for param, arg in zip(template_params, instance_args):
-                    param_map[param] = PXD_TO_CPP_TYPE.get(arg, arg)
+                    param_map[param] = _TEMPLATE_PXD_TO_CPP.get(arg, arg)
             if pxd_template_params and len(pxd_template_params) == len(instance_args):
                 for param, arg in zip(pxd_template_params, instance_args):
-                    param_map[param] = PXD_TO_CPP_TYPE.get(arg, arg)
+                    param_map[param] = _TEMPLATE_PXD_TO_CPP.get(arg, arg)
 
             lines.append(f'    nb::class_<{cpp_type_str}>(m, "{instance_name}")')
 
