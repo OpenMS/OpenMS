@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from .pxd_parser import PxdParser
-from .nanobind_emitter_v2 import NanobindEmitterV2
+from .nanobind_emitter import NanobindEmitter
 from .type_registry import TypeRegistry
 from .addon_processor import AddonProcessor
 
@@ -281,7 +281,7 @@ def main(args: Optional[List[str]] = None) -> int:
     # Generate bindings
     core_only = opts.core_only and not opts.all_classes
     logger.info(f"Generating nanobind C++ bindings (core_only={core_only})...")
-    emitter = NanobindEmitterV2(num_modules=opts.num_modules, core_only=core_only)
+    emitter = NanobindEmitter(num_modules=opts.num_modules, core_only=core_only)
 
     try:
         emitter.emit(merged_classes, opts.output_dir)

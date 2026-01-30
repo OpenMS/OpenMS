@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from generator.cpp_parser import CLANG_AVAILABLE, CppHeaderParser, merge_with_pxd
 from generator.pxd_parser import PxdParser
 from generator.type_registry import TypeRegistry
-from generator.nanobind_emitter_v2 import NanobindEmitterV2
+from generator.nanobind_emitter import NanobindEmitter
 
 
 def main():
@@ -106,7 +106,7 @@ def main():
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    emitter = NanobindEmitterV2(num_modules=8)
+    emitter = NanobindEmitter(num_modules=8)
     emitter.emit(merged, output_dir)
 
     print(f"  Generated files in {output_dir}:")
