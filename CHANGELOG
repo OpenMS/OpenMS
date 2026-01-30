@@ -82,6 +82,12 @@ PyOpenMS:
   - USI support: Python bindings for Universal Spectrum Identifier (#8684)
     - USI class with constructor from string, tryParse(), isValidUSI()
     - PeptideIdentification.buildUSI() for generating USIs
+  - PEFF support: Full Python bindings for PSI Extended FASTA Format (#8690)
+    - PEFFFile class for reading/writing PEFF files with batch and streaming APIs
+    - PEFFEntry with rich annotations: modifications, variants, processed regions
+    - PEFFDatabaseMetadata for header information
+    - Conversion methods: toFASTAEntry(), fromFASTAEntry(), toProForma()
+    - Sequence accessors: getSequence(), getModifiedSequence(), getVariantSequences(), getProcessedSequence()
 
 TOPP tools:
   Changes:
