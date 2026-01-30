@@ -998,6 +998,7 @@ class MergedClass:
     doc: str = ""
     enums: List[Any] = field(default_factory=list)  # EnumDecl from pxd_parser
     template_instances: Dict[str, List[str]] = field(default_factory=dict)  # instance_name -> [template_args]
+    member_variables: List[Any] = field(default_factory=list)  # MemberVariable from pxd_parser
 
     @property
     def name(self) -> str:
@@ -1046,6 +1047,82 @@ class MergedClass:
         return self.cpp_class.has_private_constructor
 
 
+# Mapping from Cython/pxd type names to C++ types for fallback classes
+_PXD_TO_CPP_TYPE = {
+    "libcpp_utf8_string": "std::string",
+    "libcpp_string": "std::string",
+    "libcpp_utf8_output_string": "std::string",
+    "bool": "bool",
+    "int": "int",
+    "long": "long",
+    "float": "float",
+    "double": "double",
+    "size_t": "size_t",
+    "UInt": "OpenMS::UInt",
+    "UInt32": "OpenMS::UInt32",
+    "UInt64": "OpenMS::UInt64",
+    "Int": "OpenMS::Int",
+    "Size": "size_t",
+    "SignedSize": "ptrdiff_t",
+}
+
+
+def _convert_pxd_type(type_str: str) -> str:
+    """Convert a pxd type string to a C++ type string for fallback classes."""
+    if not type_str:
+        return type_str
+
+    result = type_str.strip()
+
+    # Handle const and reference modifiers
+    is_const = result.startswith("const ")
+    if is_const:
+        result = result[6:]
+    has_ref = result.endswith("&")
+    if has_ref:
+        result = result[:-1].strip()
+    has_ptr = result.endswith("*")
+    if has_ptr:
+        result = result[:-1].strip()
+
+    # Direct type mapping
+    if result in _PXD_TO_CPP_TYPE:
+        result = _PXD_TO_CPP_TYPE[result]
+    # Handle libcpp_vector[T] -> std::vector<T>
+    elif result.startswith("libcpp_vector["):
+        inner = result[len("libcpp_vector["):-1]
+        inner = _convert_pxd_type(inner)
+        result = f"std::vector<{inner}>"
+    elif result.startswith("libcpp_pair["):
+        inner = result[len("libcpp_pair["):-1]
+        parts = [_convert_pxd_type(p.strip()) for p in inner.split(",", 1)]
+        result = f"std::pair<{', '.join(parts)}>"
+    elif result.startswith("libcpp_set["):
+        inner = result[len("libcpp_set["):-1]
+        inner = _convert_pxd_type(inner)
+        result = f"std::set<{inner}>"
+    elif result.startswith("libcpp_map["):
+        inner = result[len("libcpp_map["):-1]
+        parts = [_convert_pxd_type(p.strip()) for p in inner.split(",", 1)]
+        result = f"std::map<{', '.join(parts)}>"
+    elif result.startswith("shared_ptr["):
+        inner = result[len("shared_ptr["):-1]
+        inner = _convert_pxd_type(inner)
+        result = f"std::shared_ptr<{inner}>"
+    # Note: Don't auto-qualify unrecognized types here — the emitter's
+    # _normalize_type handles namespace resolution with full context.
+
+    # Reconstruct with modifiers
+    if is_const:
+        result = f"const {result}"
+    if has_ref:
+        result = f"{result} &"
+    if has_ptr:
+        result = f"{result} *"
+
+    return result
+
+
 def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Optional[MergedClass]:
     """
     Create a MergedClass from .pxd info alone (fallback for when libclang fails).
@@ -1054,9 +1131,15 @@ def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Op
     need to be added via SPECIAL_METHODS in the emitter.
     """
     # Create a minimal CppClass from .pxd info
+    # Use the cpp_qualified_name from pxd if available (e.g., "OpenMS::PeakIntegrator::PeakArea")
+    # otherwise fall back to namespace::class_name
+    if pxd_class.cpp_qualified_name:
+        qualified_name = pxd_class.cpp_qualified_name
+    else:
+        qualified_name = f"{pxd_class.namespace}::{class_name}"
     cpp_class = CppClass(
         name=class_name,
-        qualified_name=f"{pxd_class.namespace}::{class_name}",
+        qualified_name=qualified_name,
         namespace=pxd_class.namespace,
         header_file=pxd_class.header_file.strip("<>") if pxd_class.header_file else "",
         base_classes=pxd_class.base_classes,
@@ -1073,14 +1156,14 @@ def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Op
         # Skip ignored methods
         if pxd_m.wrap_ignore:
             continue
-        # Create basic CppMethod from .pxd
+        # Create basic CppMethod from .pxd (converting pxd types to C++ types)
         cpp_method = CppMethod(
             name=pxd_m.name,
-            return_type=pxd_m.return_type or "void",
+            return_type=_convert_pxd_type(pxd_m.return_type or "void"),
             parameters=[
                 CppParameter(
                     name=p.name or f"arg{i}",
-                    type_str=getattr(p, 'type_str', getattr(p, 'type', 'void')),
+                    type_str=_convert_pxd_type(getattr(p, 'type_str', getattr(p, 'type', 'void'))),
                     default_value=getattr(p, 'default_value', getattr(p, 'default', None))
                 )
                 for i, p in enumerate(pxd_m.parameters)
@@ -1106,8 +1189,8 @@ def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Op
             parameters=[
                 CppParameter(
                     name=p.name or f"arg{i}",
-                    type_str=p.type_str,
-                    canonical_type=p.type_str,
+                    type_str=_convert_pxd_type(p.type_str),
+                    canonical_type=_convert_pxd_type(p.type_str),
                     is_const="const" in p.type_str,
                     is_reference="&" in p.type_str,
                     is_pointer="*" in p.type_str,
@@ -1139,6 +1222,11 @@ def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Op
         wrap_manual_memory=getattr(pxd_class, 'wrap_manual_memory', False),
         doc=getattr(pxd_class, 'doc', ''),
         enums=getattr(pxd_class, 'enums', []),
+        template_instances=getattr(pxd_class, 'template_instances', {}),
+        member_variables=[
+            type('MemberVariable', (), {'name': mv.name, 'type_str': _convert_pxd_type(mv.type_str)})()
+            for mv in getattr(pxd_class, 'member_variables', [])
+        ],
     )
 
 
@@ -1176,6 +1264,32 @@ def merge_with_pxd(
     # cannot use simple .pxd fallback - they need typedef/using mappings.
     FALLBACK_TO_PXD = {
         "Mobilogram",  # Complex RangeManagerContainer template inheritance
+        # Nested classes (pxd name != C++ flattened name)
+        "ColumnHeader",                  # ConsensusMap::ColumnHeader
+        "ExtractionCoordinates",         # ChromatogramExtractorAlgorithm::ExtractionCoordinates
+        "MRMFQC_ComponentQCs",           # MRMFeatureQC::ComponentQCs
+        "MRMFQC_ComponentGroupQCs",      # MRMFeatureQC::ComponentGroupQCs
+        "MRMFQC_ComponentGroupPairQCs",  # MRMFeatureQC::ComponentGroupPairQCs
+        "SelectorParameters",            # MRMFeatureSelector::SelectorParameters
+        "PI_PeakArea",                   # PeakIntegrator::PeakArea
+        "PI_PeakBackground",             # PeakIntegrator::PeakBackground
+        "PI_PeakShapeMetrics",           # PeakIntegrator::PeakShapeMetrics
+        # Template classes (may not match in libclang by name)
+        "Matrix",                        # OpenMS::Matrix<T> (template)
+        "BilinearInterpolation",         # OpenMS::Math::BilinearInterpolation<K,V> (template)
+        "MRMTransitionGroup",            # OpenMS::MRMTransitionGroup<C,T> (template)
+        # Template specialization with cpp name alias
+        "DBoundingBox2",                 # OpenMS::DBoundingBox<2>
+        # Non-OpenMS namespace classes (OpenSwath, FLASHHelperClasses)
+        "LightTransition",               # OpenSwath::LightTransition
+        "LightModification",             # OpenSwath::LightModification
+        "LightCompound",                 # OpenSwath::LightCompound
+        "LightProtein",                  # OpenSwath::LightProtein
+        "LightTargetedExperiment",       # OpenSwath::LightTargetedExperiment
+        "LogMzPeak",                     # FLASHHelperClasses::LogMzPeak
+        "PrecalAveragine",               # FLASHHelperClasses::PrecalculatedAveragine
+        "MassFeature_FDHS",              # FLASHHelperClasses::MassFeature
+        "IsobaricQuantities",            # FLASHHelperClasses::IsobaricQuantities
     }
 
     for class_name, pxd_class in pxd_classes.items():

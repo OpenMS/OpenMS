@@ -543,25 +543,18 @@ SKIP_CLASSES = {
     # Classes with template parameters or complex constructors
     "OpenSwathWorkflowSonar",
     "OpenSwathWorkflow",
-    "MRMTransitionGroup",
     "LightMRMTransitionGroup",
 
     # Template classes
-    "Matrix",                       # HANDWRITTEN_CLASS - MatrixDouble in SPECIAL_METHODS
     "MassDecomposer",               # template class - ABSTRACT, wrap-ignore in pxd
 
     # Classes with type alias issues
     "OSW_ChromExtractParams",
 
-    # Classes with external type issues (types from other libraries not bound)
-    "IonMobilityScoring",           # Uses OpenSwath::LightTransition (not bound)
+    # Classes with external type issues
+    "IonMobilityScoring",           # Complex OpenSwath type dependencies
 
     # Classes provided as HANDWRITTEN_CLASSES (skip auto-generation)
-    "LightTargetedExperiment",      # HANDWRITTEN_CLASS - OpenSwath type
-    "LightTransition",              # HANDWRITTEN_CLASS - OpenSwath type
-    "LightCompound",                # HANDWRITTEN_CLASS - OpenSwath type
-    "LightProtein",                 # HANDWRITTEN_CLASS - OpenSwath type
-    "LightModification",            # HANDWRITTEN_CLASS - OpenSwath type
     "OSSpectrum",                   # HANDWRITTEN_CLASS - OpenSwath data structure
     "OSChromatogram",               # HANDWRITTEN_CLASS - OpenSwath data structure
     "OSBinaryDataArray",            # HANDWRITTEN_CLASS - OpenSwath data structure
@@ -575,13 +568,10 @@ SKIP_CLASSES = {
     "SpectrumAccessOpenMS",         # HANDWRITTEN_CLASS
     "SpectrumAccessOpenMSInMemory", # HANDWRITTEN_CLASS
     "SwathMap",                     # HANDWRITTEN_CLASS
-    "ExtractionCoordinates",        # HANDWRITTEN_CLASS - nested type
     "DIAScoring",                   # HANDWRITTEN_CLASS
     "MRMFeatureFinderScoring",      # HANDWRITTEN_CLASS
     "OpenSwathScoring",             # HANDWRITTEN_CLASS
-    "ColumnHeader",                 # HANDWRITTEN_CLASS - ConsensusMap nested type
     "MRMFeature",                   # HANDWRITTEN_CLASS
-    "MRMTransitionGroupCP",         # HANDWRITTEN_CLASS - template specialization
 
     # No .pxd file in autowrap — not exposed
     "MSSim",
@@ -598,7 +588,6 @@ SKIP_CLASSES = {
     "SteinScottImproveScore",       # No wrap-instances in pxd, no .pxd file
     "IMSWeights",                   # Not found in C++ headers (nested/helper class)
     "IntegerMassDecomposer",        # Uses IMSWeights which isn't bound
-    "BilinearInterpolation",        # HANDWRITTEN_CLASS - template handled manually in pilot_classes.cpp
 
     # Incomplete types in members/parameters
     "CVMappingFile",                # Uses CVReference/CVMappingTerm (incomplete types)
@@ -701,6 +690,25 @@ ADDITIONAL_INCLUDES = {
     "InstrumentSettings": ["<OpenMS/METADATA/InstrumentSettings.h>"],
     "Mobilogram": ["<OpenMS/KERNEL/Mobilogram.h>", "<OpenMS/KERNEL/MobilityPeak1D.h>", "<OpenMS/METADATA/DataArrays.h>"],
     "BilinearInterpolation": ["<OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>"],
+    "PrecalAveragine": ["<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>", "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>"],
+    "LogMzPeak": ["<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>", "<OpenMS/KERNEL/Peak1D.h>"],
+    "MassFeature_FDHS": ["<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>"],
+    "IsobaricQuantities": ["<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>"],
+    "LightTransition": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    "LightModification": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    "LightCompound": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    "LightProtein": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    "LightTargetedExperiment": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    "ColumnHeader": ["<OpenMS/KERNEL/ConsensusMap.h>"],
+    "ExtractionCoordinates": ["<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>"],
+    "MRMFQC_ComponentQCs": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>"],
+    "MRMFQC_ComponentGroupQCs": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>"],
+    "MRMFQC_ComponentGroupPairQCs": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>"],
+    "SelectorParameters": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>"],
+    "PI_PeakArea": ["<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>"],
+    "PI_PeakBackground": ["<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>"],
+    "PI_PeakShapeMetrics": ["<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>"],
+    "DBoundingBox2": ["<OpenMS/DATASTRUCTURES/DBoundingBox.h>"],
     "MSNumpressCoder": ["<OpenMS/FORMAT/MSNumpressCoder.h>"],
     "MultipleTesting": ["<OpenMS/MATH/STATISTICS/MultipleTesting.h>"],
     "File": ["<OpenMS/SYSTEM/File.h>"],
@@ -1146,6 +1154,21 @@ CORE_CLASSES = {
     # - SpectrumNativeIDParser: static
     # - Weights: specialized struct
     # - Biosaur2Algorithm: if it has issues
+
+    # === Previously HANDWRITTEN_CLASSES, now auto-generated ===
+    # Template specializations
+    "BilinearInterpolation",  # OpenMS::Math::BilinearInterpolation<double,double>
+    "DBoundingBox2",          # OpenMS::DBoundingBox<2>
+    # Nested classes (via FALLBACK_TO_PXD)
+    "ColumnHeader",           # ConsensusMap::ColumnHeader
+    "ExtractionCoordinates",  # ChromatogramExtractorAlgorithm::ExtractionCoordinates
+    "MRMFQC_ComponentQCs", "MRMFQC_ComponentGroupQCs", "MRMFQC_ComponentGroupPairQCs",
+    "SelectorParameters",     # MRMFeatureSelector::SelectorParameters
+    "PI_PeakArea", "PI_PeakBackground", "PI_PeakShapeMetrics",
+    # Non-OpenMS namespace classes (via FALLBACK_TO_PXD)
+    "LightTransition", "LightModification", "LightCompound", "LightProtein",
+    "LightTargetedExperiment",
+    "LogMzPeak", "PrecalAveragine", "MassFeature_FDHS", "IsobaricQuantities",
 }
 
 # FALLBACK: Classes that inherit from std::vector
@@ -1185,6 +1208,22 @@ OUTPUT_PARAM_METHODS = {
 # Special method implementations for critical classes
 # These are C++ lambdas that implement Python methods
 SPECIAL_METHODS = {
+    "LightTargetedExperiment": {
+        "getCompoundByRef": '''
+        .def("getCompoundByRef", [](OpenSwath::LightTargetedExperiment& self, const std::string& ref) { return self.getCompoundByRef(ref); }, "ref"_a)''',
+        "getPeptideByRef": '''
+        .def("getPeptideByRef", [](OpenSwath::LightTargetedExperiment& self, const std::string& ref) { return self.getPeptideByRef(ref); }, "ref"_a)''',
+    },
+    "PrecalAveragine": {
+        "__init__5args": '''
+        .def("__init__", [](OpenMS::FLASHHelperClasses::PrecalculatedAveragine* self, double min_mass, double max_mass, double delta, OpenMS::CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine) {
+            new (self) OpenMS::FLASHHelperClasses::PrecalculatedAveragine(min_mass, max_mass, delta, generator, use_RNA_averagine);
+        }, "min_mass"_a, "max_mass"_a, "delta"_a, "generator"_a, "use_RNA_averagine"_a)''',
+        "__init__6args": '''
+        .def("__init__", [](OpenMS::FLASHHelperClasses::PrecalculatedAveragine* self, double min_mass, double max_mass, double delta, OpenMS::CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine, double decoy_iso_distance) {
+            new (self) OpenMS::FLASHHelperClasses::PrecalculatedAveragine(min_mass, max_mass, delta, generator, use_RNA_averagine, decoy_iso_distance);
+        }, "min_mass"_a, "max_mass"_a, "delta"_a, "generator"_a, "use_RNA_averagine"_a, "decoy_iso_distance"_a)''',
+    },
     "Software": {
         "__init__default": '''
         .def(nb::init<>(), "Default constructor")''',
@@ -3015,305 +3054,6 @@ NESTED_CLASS_BINDINGS = {
 # generation pipeline (e.g., template specializations, complex nested types).
 # These are assigned to modules by hash of class name.
 HANDWRITTEN_CLASSES = {
-    "MatrixDouble": {
-        "binding": '''
-    using MatrixD = OpenMS::Matrix<double>;
-    nb::class_<MatrixD>(m, "MatrixDouble")
-        .def(nb::init<>())
-        .def(nb::init<const MatrixD&>())
-        .def("__init__", [](MatrixD* self, size_t rows, size_t cols, double value) {
-            new (self) MatrixD(rows, cols, value);
-        }, "rows"_a, "cols"_a, "value"_a)
-        .def("getValue", [](const MatrixD& self, size_t i, size_t j) { return self.getValue(i, j); }, "i"_a, "j"_a)
-        .def("setValue", &MatrixD::setValue, "i"_a, "j"_a, "value"_a)
-        .def("rows", &MatrixD::rows)
-        .def("cols", &MatrixD::cols)
-        .def("size", &MatrixD::size)
-        .def("resize", [](MatrixD& self, size_t rows, size_t cols) { self.resize(rows, cols); }, "rows"_a, "cols"_a)
-        ;''',
-        "includes": ["<OpenMS/DATASTRUCTURES/Matrix.h>"],
-    },
-    "BilinearInterpolation": {
-        "binding": '''
-    using BLI = OpenMS::Math::BilinearInterpolation<double, double>;
-    nb::class_<BLI>(m, "BilinearInterpolation")
-        .def(nb::init<>())
-        .def(nb::init<const BLI&>())
-        .def("value", &BLI::value, "arg_pos_0"_a, "arg_pos_1"_a, "Performs bilinear interpolation")
-        .def("addValue", &BLI::addValue, "arg_pos_0"_a, "arg_pos_1"_a, "arg_value"_a, "Performs bilinear resampling")
-        .def("getData", [](const BLI& self) -> const OpenMS::Matrix<double>& { return self.getData(); }, nb::rv_policy::reference_internal)
-        .def("setData", [](BLI& self, const OpenMS::Matrix<double>& data) { self.setData(data); }, "data"_a)
-        .def("empty", &BLI::empty)
-        .def("key2index_0", &BLI::key2index_0, "pos"_a)
-        .def("index2key_0", &BLI::index2key_0, "pos"_a)
-        .def("key2index_1", &BLI::key2index_1, "pos"_a)
-        .def("index2key_1", &BLI::index2key_1, "pos"_a)
-        .def("getScale_0", &BLI::getScale_0)
-        .def("setScale_0", &BLI::setScale_0, "scale"_a)
-        .def("getScale_1", &BLI::getScale_1)
-        .def("setScale_1", &BLI::setScale_1, "scale"_a)
-        .def("getOffset_0", &BLI::getOffset_0)
-        .def("setOffset_0", &BLI::setOffset_0, "offset"_a)
-        .def("getOffset_1", &BLI::getOffset_1)
-        .def("setOffset_1", &BLI::setOffset_1, "offset"_a)
-        .def("setMapping_0", nb::overload_cast<double const&, double const&, double const&>(&BLI::setMapping_0), "scale"_a, "inside"_a, "outside"_a)
-        .def("setMapping_0", nb::overload_cast<double const&, double const&, double const&, double const&>(&BLI::setMapping_0), "inside_low"_a, "outside_low"_a, "inside_high"_a, "outside_high"_a)
-        .def("setMapping_1", nb::overload_cast<double const&, double const&, double const&>(&BLI::setMapping_1), "scale"_a, "inside"_a, "outside"_a)
-        .def("setMapping_1", nb::overload_cast<double const&, double const&, double const&, double const&>(&BLI::setMapping_1), "inside_low"_a, "outside_low"_a, "inside_high"_a, "outside_high"_a)
-        .def("getInsideReferencePoint_0", &BLI::getInsideReferencePoint_0)
-        .def("getInsideReferencePoint_1", &BLI::getInsideReferencePoint_1)
-        .def("getOutsideReferencePoint_0", &BLI::getOutsideReferencePoint_0)
-        .def("getOutsideReferencePoint_1", &BLI::getOutsideReferencePoint_1)
-        .def("supportMin_0", &BLI::supportMin_0)
-        .def("supportMin_1", &BLI::supportMin_1)
-        .def("supportMax_0", &BLI::supportMax_0)
-        .def("supportMax_1", &BLI::supportMax_1)
-        ;''',
-        "includes": [
-            "<OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>",
-            "<OpenMS/DATASTRUCTURES/Matrix.h>",
-        ],
-    },
-    "LogMzPeak": {
-        "binding": '''
-    using LMP = OpenMS::FLASHHelperClasses::LogMzPeak;
-    nb::class_<LMP>(m, "LogMzPeak")
-        .def(nb::init<>())
-        .def(nb::init<const LMP&>())
-        .def("__init__", [](LMP* self, const OpenMS::Peak1D& peak, bool positive) {
-            new (self) LMP(peak, positive);
-        }, "peak"_a, "positive"_a)
-        .def("getUnchargedMass", &LMP::getUnchargedMass)
-        .def("__lt__", [](const LMP& self, const LMP& other) { return self < other; })
-        .def("__gt__", [](const LMP& self, const LMP& other) { return self > other; })
-        .def("__eq__", [](const LMP& self, const LMP& other) { return self == other; })
-        .def_rw("mz", &LMP::mz)
-        .def_rw("intensity", &LMP::intensity)
-        .def_rw("logMz", &LMP::logMz)
-        .def_rw("mass", &LMP::mass)
-        .def_rw("abs_charge", &LMP::abs_charge)
-        .def_rw("is_positive", &LMP::is_positive)
-        .def_rw("isotopeIndex", &LMP::isotopeIndex)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>", "<OpenMS/KERNEL/Peak1D.h>"],
-    },
-    "PrecalAveragine": {
-        "binding": '''
-    using PCA = OpenMS::FLASHHelperClasses::PrecalculatedAveragine;
-    nb::class_<PCA>(m, "PrecalAveragine")
-        .def(nb::init<>())
-        .def(nb::init<const PCA&>())
-        .def("__init__", [](PCA* self, double min_mass, double max_mass, double delta,
-             OpenMS::CoarseIsotopePatternGenerator& gen, bool use_RNA) {
-            new (self) PCA(min_mass, max_mass, delta, gen, use_RNA);
-        }, "min_mass"_a, "max_mass"_a, "delta"_a, "generator"_a, "use_RNA_averagine"_a)
-        .def("__init__", [](PCA* self, double min_mass, double max_mass, double delta,
-             OpenMS::CoarseIsotopePatternGenerator& gen, bool use_RNA, double decoy_dist) {
-            new (self) PCA(min_mass, max_mass, delta, gen, use_RNA, decoy_dist);
-        }, "min_mass"_a, "max_mass"_a, "delta"_a, "generator"_a, "use_RNA_averagine"_a, "decoy_iso_distance"_a)
-        .def("get", &PCA::get, "mass"_a)
-        .def("getMaxIsotopeIndex", &PCA::getMaxIsotopeIndex)
-        .def("setMaxIsotopeIndex", &PCA::setMaxIsotopeIndex, "index"_a)
-        .def("getLeftCountFromApex", &PCA::getLeftCountFromApex, "mass"_a)
-        .def("getRightCountFromApex", &PCA::getRightCountFromApex, "mass"_a)
-        .def("getApexIndex", &PCA::getApexIndex, "mass"_a)
-        .def("getLastIndex", &PCA::getLastIndex, "mass"_a)
-        .def("getAverageMassDelta", &PCA::getAverageMassDelta, "mass"_a)
-        .def("getMostAbundantMassDelta", &PCA::getMostAbundantMassDelta, "mass"_a)
-        .def("getSNRMultiplicationFactor", &PCA::getSNRMultiplicationFactor, "mass"_a)
-        ;''',
-        "includes": [
-            "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>",
-            "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>",
-        ],
-    },
-    "MassFeature_FDHS": {
-        "binding": '''
-    using MF = OpenMS::FLASHHelperClasses::MassFeature;
-    nb::class_<MF>(m, "MassFeature_FDHS")
-        .def(nb::init<>())
-        .def(nb::init<const MF&>())
-        .def("__lt__", [](const MF& self, const MF& other) { return self < other; })
-        .def("__gt__", [](const MF& self, const MF& other) { return self > other; })
-        .def("__eq__", [](const MF& self, const MF& other) { return self == other; })
-        .def_rw("index", &MF::index)
-        .def_rw("per_charge_intensity", &MF::per_charge_intensity)
-        .def_rw("per_isotope_intensity", &MF::per_isotope_intensity)
-        .def_rw("iso_offset", &MF::iso_offset)
-        .def_rw("scan_number", &MF::scan_number)
-        .def_rw("min_scan_number", &MF::min_scan_number)
-        .def_rw("max_scan_number", &MF::max_scan_number)
-        .def_rw("rep_charge", &MF::rep_charge)
-        .def_rw("avg_mass", &MF::avg_mass)
-        .def_rw("min_charge", &MF::min_charge)
-        .def_rw("max_charge", &MF::max_charge)
-        .def_rw("charge_count", &MF::charge_count)
-        .def_rw("isotope_score", &MF::isotope_score)
-        .def_rw("qscore", &MF::qscore)
-        .def_rw("rep_mz", &MF::rep_mz)
-        .def_rw("is_decoy", &MF::is_decoy)
-        .def_rw("ms_level", &MF::ms_level)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>"],
-    },
-    "IsobaricQuantities": {
-        "binding": '''
-    using IQ = OpenMS::FLASHHelperClasses::IsobaricQuantities;
-    nb::class_<IQ>(m, "IsobaricQuantities")
-        .def(nb::init<>())
-        .def(nb::init<const IQ&>())
-        .def("empty", &IQ::empty)
-        .def_rw("scan", &IQ::scan)
-        .def_rw("rt", &IQ::rt)
-        .def_rw("precursor_mz", &IQ::precursor_mz)
-        .def_rw("precursor_mass", &IQ::precursor_mass)
-        .def_rw("quantities", &IQ::quantities)
-        .def_rw("merged_quantities", &IQ::merged_quantities)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>"],
-    },
-    "DBoundingBox2": {
-        "binding": '''
-    using DBB2 = OpenMS::DBoundingBox<2>;
-    nb::class_<DBB2>(m, "DBoundingBox2")
-        .def(nb::init<>())
-        .def("minPosition", [](const DBB2& self) {
-            auto p = self.minPosition();
-            nb::list result;
-            result.append(p[0]);
-            result.append(p[1]);
-            return result;
-        }, "Returns the minimum position")
-        .def("maxPosition", [](const DBB2& self) {
-            auto p = self.maxPosition();
-            nb::list result;
-            result.append(p[0]);
-            result.append(p[1]);
-            return result;
-        }, "Returns the maximum position")
-        ;''',
-        "includes": ["<OpenMS/DATASTRUCTURES/DBoundingBox.h>"],
-    },
-    "MRMFQC_ComponentQCs": {
-        "binding": '''
-    using CQ = OpenMS::MRMFeatureQC::ComponentQCs;
-    nb::class_<CQ>(m, "MRMFQC_ComponentQCs")
-        .def(nb::init<>())
-        .def_rw("component_name", &CQ::component_name)
-        .def_rw("retention_time_l", &CQ::retention_time_l)
-        .def_rw("retention_time_u", &CQ::retention_time_u)
-        .def_rw("intensity_l", &CQ::intensity_l)
-        .def_rw("intensity_u", &CQ::intensity_u)
-        .def_rw("overall_quality_l", &CQ::overall_quality_l)
-        .def_rw("overall_quality_u", &CQ::overall_quality_u)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>"],
-    },
-    "MRMFQC_ComponentGroupQCs": {
-        "binding": '''
-    using CGQ = OpenMS::MRMFeatureQC::ComponentGroupQCs;
-    nb::class_<CGQ>(m, "MRMFQC_ComponentGroupQCs")
-        .def(nb::init<>())
-        .def_rw("component_group_name", &CGQ::component_group_name)
-        .def_rw("retention_time_l", &CGQ::retention_time_l)
-        .def_rw("retention_time_u", &CGQ::retention_time_u)
-        .def_rw("intensity_l", &CGQ::intensity_l)
-        .def_rw("intensity_u", &CGQ::intensity_u)
-        .def_rw("overall_quality_l", &CGQ::overall_quality_l)
-        .def_rw("overall_quality_u", &CGQ::overall_quality_u)
-        .def_rw("n_heavy_l", &CGQ::n_heavy_l)
-        .def_rw("n_heavy_u", &CGQ::n_heavy_u)
-        .def_rw("n_light_l", &CGQ::n_light_l)
-        .def_rw("n_light_u", &CGQ::n_light_u)
-        .def_rw("n_detecting_l", &CGQ::n_detecting_l)
-        .def_rw("n_detecting_u", &CGQ::n_detecting_u)
-        .def_rw("n_quantifying_l", &CGQ::n_quantifying_l)
-        .def_rw("n_quantifying_u", &CGQ::n_quantifying_u)
-        .def_rw("n_identifying_l", &CGQ::n_identifying_l)
-        .def_rw("n_identifying_u", &CGQ::n_identifying_u)
-        .def_rw("n_transitions_l", &CGQ::n_transitions_l)
-        .def_rw("n_transitions_u", &CGQ::n_transitions_u)
-        .def_rw("ion_ratio_pair_name_1", &CGQ::ion_ratio_pair_name_1)
-        .def_rw("ion_ratio_pair_name_2", &CGQ::ion_ratio_pair_name_2)
-        .def_rw("ion_ratio_l", &CGQ::ion_ratio_l)
-        .def_rw("ion_ratio_u", &CGQ::ion_ratio_u)
-        .def_rw("ion_ratio_feature_name", &CGQ::ion_ratio_feature_name)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>"],
-    },
-    "MRMFQC_ComponentGroupPairQCs": {
-        "binding": '''
-    using CGPQ = OpenMS::MRMFeatureQC::ComponentGroupPairQCs;
-    nb::class_<CGPQ>(m, "MRMFQC_ComponentGroupPairQCs")
-        .def(nb::init<>())
-        .def_rw("component_group_name", &CGPQ::component_group_name)
-        .def_rw("resolution_pair_name", &CGPQ::resolution_pair_name)
-        .def_rw("resolution_l", &CGPQ::resolution_l)
-        .def_rw("resolution_u", &CGPQ::resolution_u)
-        .def_rw("rt_diff_l", &CGPQ::rt_diff_l)
-        .def_rw("rt_diff_u", &CGPQ::rt_diff_u)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>"],
-    },
-    "SelectorParameters": {
-        "binding": '''
-    using SP = OpenMS::MRMFeatureSelector::SelectorParameters;
-    nb::class_<SP>(m, "SelectorParameters")
-        .def(nb::init<>())
-        .def_rw("nn_threshold", &SP::nn_threshold)
-        .def_rw("locality_weight", &SP::locality_weight)
-        .def_rw("select_transition_group", &SP::select_transition_group)
-        .def_rw("segment_window_length", &SP::segment_window_length)
-        .def_rw("segment_step_length", &SP::segment_step_length)
-        .def_rw("optimal_threshold", &SP::optimal_threshold)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>"],
-    },
-    "PI_PeakArea": {
-        "binding": '''
-    using PPA = OpenMS::PeakIntegrator::PeakArea;
-    nb::class_<PPA>(m, "PI_PeakArea")
-        .def(nb::init<>())
-        .def_rw("area", &PPA::area)
-        .def_rw("height", &PPA::height)
-        .def_rw("apex_pos", &PPA::apex_pos)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>"],
-    },
-    "PI_PeakBackground": {
-        "binding": '''
-    using PPB = OpenMS::PeakIntegrator::PeakBackground;
-    nb::class_<PPB>(m, "PI_PeakBackground")
-        .def(nb::init<>())
-        .def_rw("area", &PPB::area)
-        .def_rw("height", &PPB::height)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>"],
-    },
-    "PI_PeakShapeMetrics": {
-        "binding": '''
-    using PPSM = OpenMS::PeakIntegrator::PeakShapeMetrics;
-    nb::class_<PPSM>(m, "PI_PeakShapeMetrics")
-        .def(nb::init<>())
-        .def_rw("width_at_5", &PPSM::width_at_5)
-        .def_rw("width_at_10", &PPSM::width_at_10)
-        .def_rw("width_at_50", &PPSM::width_at_50)
-        .def_rw("start_position_at_5", &PPSM::start_position_at_5)
-        .def_rw("start_position_at_10", &PPSM::start_position_at_10)
-        .def_rw("start_position_at_50", &PPSM::start_position_at_50)
-        .def_rw("end_position_at_5", &PPSM::end_position_at_5)
-        .def_rw("end_position_at_10", &PPSM::end_position_at_10)
-        .def_rw("end_position_at_50", &PPSM::end_position_at_50)
-        .def_rw("total_width", &PPSM::total_width)
-        .def_rw("tailing_factor", &PPSM::tailing_factor)
-        .def_rw("asymmetry_factor", &PPSM::asymmetry_factor)
-        .def_rw("slope_of_baseline", &PPSM::slope_of_baseline)
-        .def_rw("baseline_delta_2_height", &PPSM::baseline_delta_2_height)
-        .def_rw("points_across_baseline", &PPSM::points_across_baseline)
-        .def_rw("points_across_half_height", &PPSM::points_across_half_height)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>"],
-    },
     "OSBinaryDataArray": {
         "binding": '''
     using OSBDA = OpenSwath::OSBinaryDataArray;
@@ -3443,107 +3183,6 @@ HANDWRITTEN_CLASSES = {
         }, "arrays"_a, "Set all data arrays")
         ;''',
         "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>"],
-    },
-    "LightTransition": {
-        "binding": '''
-    using LT = OpenSwath::LightTransition;
-    nb::class_<LT>(m, "LightTransition")
-        .def(nb::init<>())
-        .def(nb::init<const LT&>())
-        .def("getProductChargeState", &LT::getProductChargeState)
-        .def("isProductChargeStateSet", &LT::isProductChargeStateSet)
-        .def("getNativeID", &LT::getNativeID)
-        .def("getPeptideRef", &LT::getPeptideRef)
-        .def("getLibraryIntensity", &LT::getLibraryIntensity)
-        .def("setLibraryIntensity", &LT::setLibraryIntensity, "l"_a)
-        .def("getProductMZ", &LT::getProductMZ)
-        .def("getPrecursorMZ", &LT::getPrecursorMZ)
-        .def("isPrecursorImSet", &LT::isPrecursorImSet)
-        .def("getPrecursorIM", &LT::getPrecursorIM)
-        .def("getCompoundRef", &LT::getCompoundRef)
-        .def("getDecoy", &LT::getDecoy)
-        .def("setDecoy", &LT::setDecoy, "d"_a)
-        .def("getFragmentType", &LT::getFragmentType)
-        .def("setFragmentType", &LT::setFragmentType, "s"_a)
-        .def("getAnnotation", &LT::getAnnotation)
-        .def("setDetectingTransition", &LT::setDetectingTransition, "d"_a)
-        .def("isDetectingTransition", &LT::isDetectingTransition)
-        .def("setQuantifyingTransition", &LT::setQuantifyingTransition, "q"_a)
-        .def("isQuantifyingTransition", &LT::isQuantifyingTransition)
-        .def("setIdentifyingTransition", &LT::setIdentifyingTransition, "i"_a)
-        .def("isIdentifyingTransition", &LT::isIdentifyingTransition)
-        .def_rw("fragment_nr", &LT::fragment_nr)
-        .def_rw("peptidoforms", &LT::peptidoforms)
-        ;''',
-        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
-    },
-    "LightModification": {
-        "binding": '''
-    using LM = OpenSwath::LightModification;
-    nb::class_<LM>(m, "LightModification")
-        .def(nb::init<>())
-        .def(nb::init<const LM&>())
-        .def_rw("location", &LM::location)
-        .def_rw("unimod_id", &LM::unimod_id)
-        ;''',
-        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
-    },
-    "LightCompound": {
-        "binding": '''
-    using LC = OpenSwath::LightCompound;
-    nb::class_<LC>(m, "LightCompound")
-        .def(nb::init<>())
-        .def(nb::init<const LC&>())
-        .def_rw("rt", &LC::rt)
-        .def_rw("drift_time", &LC::drift_time)
-        .def_rw("charge", &LC::charge)
-        .def_rw("sequence", &LC::sequence)
-        .def_rw("protein_refs", &LC::protein_refs)
-        .def_rw("peptide_group_label", &LC::peptide_group_label)
-        .def_rw("gene_name", &LC::gene_name)
-        .def_rw("id", &LC::id)
-        .def_rw("sum_formula", &LC::sum_formula)
-        .def_rw("compound_name", &LC::compound_name)
-        .def_rw("label_type", &LC::label_type)
-        .def_rw("smiles", &LC::smiles)
-        .def_rw("adducts", &LC::adducts)
-        .def_rw("modifications", &LC::modifications)
-        .def("setDriftTime", &LC::setDriftTime, "d"_a)
-        .def("getDriftTime", &LC::getDriftTime)
-        .def("getChargeState", &LC::getChargeState)
-        .def("isPeptide", &LC::isPeptide)
-        .def("setChargeState", &LC::setChargeState, "ch"_a)
-        ;''',
-        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
-    },
-    "LightProtein": {
-        "binding": '''
-    using LP = OpenSwath::LightProtein;
-    nb::class_<LP>(m, "LightProtein")
-        .def(nb::init<>())
-        .def(nb::init<const LP&>())
-        .def_rw("id", &LP::id)
-        .def_rw("sequence", &LP::sequence)
-        .def_rw("uniprot_id", &LP::uniprot_id)
-        ;''',
-        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
-    },
-    "LightTargetedExperiment": {
-        "binding": '''
-    using LTE = OpenSwath::LightTargetedExperiment;
-    nb::class_<LTE>(m, "LightTargetedExperiment")
-        .def(nb::init<>())
-        .def(nb::init<const LTE&>())
-        .def_rw("transitions", &LTE::transitions)
-        .def_rw("compounds", &LTE::compounds)
-        .def_rw("proteins", &LTE::proteins)
-        .def("getTransitions", [](const LTE& self) { return self.getTransitions(); })
-        .def("getCompounds", [](const LTE& self) { return self.getCompounds(); })
-        .def("getProteins", [](const LTE& self) { return self.getProteins(); })
-        .def("getCompoundByRef", [](LTE& self, const std::string& ref) { return self.getCompoundByRef(ref); }, "ref"_a)
-        .def("getPeptideByRef", [](LTE& self, const std::string& ref) { return self.getPeptideByRef(ref); }, "ref"_a)
-        ;''',
-        "includes": ["<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
     },
     "IsobaricChannelInformation": {
         "binding": '''
@@ -3730,20 +3369,6 @@ HANDWRITTEN_CLASSES = {
                       "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>"],
     },
     # ExtractionCoordinates (nested in ChromatogramExtractorAlgorithm)
-    "ExtractionCoordinates": {
-        "binding": '''
-    nb::class_<OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates>(m, "ExtractionCoordinates")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates&>())
-        .def_rw("mz", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::mz)
-        .def_rw("mz_precursor", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::mz_precursor)
-        .def_rw("rt_start", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::rt_start)
-        .def_rw("rt_end", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::rt_end)
-        .def_rw("ion_mobility", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::ion_mobility)
-        .def_rw("id", &OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates::id)
-        ;''',
-        "includes": ["<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>"],
-    },
     # DIAScoring
     "DIAScoring": {
         "binding": '''
@@ -3801,38 +3426,6 @@ HANDWRITTEN_CLASSES = {
                       "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>"],
     },
     # MRMTransitionGroupCP (template specialization)
-    "MRMTransitionGroupCP": {
-        "binding": '''
-    using MRMGroup = OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>;
-    nb::class_<MRMGroup>(m, "MRMTransitionGroupCP")
-        .def(nb::init<>())
-        .def(nb::init<const MRMGroup&>())
-        .def("size", &MRMGroup::size)
-        .def("getTransitionGroupID", &MRMGroup::getTransitionGroupID)
-        .def("setTransitionGroupID", &MRMGroup::setTransitionGroupID, "id"_a)
-        .def("getTransitions", [](const MRMGroup& self) { return self.getTransitions(); })
-        .def("addTransition", &MRMGroup::addTransition, "transition"_a, "key"_a)
-        .def("getTransition", [](MRMGroup& self, const OpenMS::String& key) -> const OpenMS::ReactionMonitoringTransition& { return self.getTransition(key); }, "key"_a, nb::rv_policy::reference_internal)
-        .def("hasTransition", &MRMGroup::hasTransition, "key"_a)
-        .def("getChromatograms", [](const MRMGroup& self) { return self.getChromatograms(); })
-        .def("addChromatogram", &MRMGroup::addChromatogram, "chromatogram"_a, "key"_a)
-        .def("getChromatogram", [](const MRMGroup& self, const OpenMS::String& key) -> const OpenMS::MSChromatogram& { return self.getChromatogram(key); }, "key"_a, nb::rv_policy::reference_internal)
-        .def("hasChromatogram", &MRMGroup::hasChromatogram, "key"_a)
-        .def("getPrecursorChromatograms", [](const MRMGroup& self) { return self.getPrecursorChromatograms(); })
-        .def("addPrecursorChromatogram", &MRMGroup::addPrecursorChromatogram, "chromatogram"_a, "key"_a)
-        .def("getPrecursorChromatogram", [](const MRMGroup& self, const OpenMS::String& key) -> const OpenMS::MSChromatogram& { return self.getPrecursorChromatogram(key); }, "key"_a, nb::rv_policy::reference_internal)
-        .def("hasPrecursorChromatogram", &MRMGroup::hasPrecursorChromatogram, "key"_a)
-        .def("getFeatures", [](const MRMGroup& self) { return self.getFeatures(); })
-        .def("addFeature", [](MRMGroup& self, const OpenMS::MRMFeature& feature) { self.addFeature(feature); }, "feature"_a)
-        .def("getBestFeature", [](const MRMGroup& self) -> const OpenMS::MRMFeature& { return self.getBestFeature(); }, nb::rv_policy::reference_internal)
-        .def("isInternallyConsistent", &MRMGroup::isInternallyConsistent)
-        .def("chromatogramIdsMatch", &MRMGroup::chromatogramIdsMatch)
-        ;''',
-        "includes": ["<OpenMS/KERNEL/MRMTransitionGroup.h>",
-                      "<OpenMS/KERNEL/MSChromatogram.h>",
-                      "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>",
-                      "<OpenMS/KERNEL/MRMFeature.h>"],
-    },
     # MRMFeatureFinderScoring
     "MRMFeatureFinderScoring": {
         "binding": '''
@@ -3855,18 +3448,6 @@ HANDWRITTEN_CLASSES = {
                       "<OpenMS/KERNEL/MSExperiment.h>",
                       "<OpenMS/KERNEL/FeatureMap.h>",
                       "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>"],
-    },
-    "ColumnHeader": {
-        "binding": '''
-    nb::class_<OpenMS::ConsensusMap::ColumnHeader, OpenMS::MetaInfoInterface>(m, "ColumnHeader")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::ConsensusMap::ColumnHeader&>())
-        .def_rw("filename", &OpenMS::ConsensusMap::ColumnHeader::filename)
-        .def_rw("label", &OpenMS::ConsensusMap::ColumnHeader::label)
-        .def_rw("size", &OpenMS::ConsensusMap::ColumnHeader::size)
-        .def_rw("unique_id", &OpenMS::ConsensusMap::ColumnHeader::unique_id)
-        ;''',
-        "includes": ["<OpenMS/KERNEL/ConsensusMap.h>"],
     },
     "OpenSwathScoring": {
         "binding": '''
@@ -4419,6 +4000,10 @@ class NanobindEmitterV2:
         inherited_methods = self._get_explicit_inherited_methods(merged_class, qualified_name)
         for method_line in inherited_methods:
             lines.append(f"        {method_line}")
+
+        # Add member variable bindings (public fields from pxd)
+        for mv in getattr(merged_class, 'member_variables', []):
+            lines.append(f'        .def_rw("{mv.name}", &{qualified_name}::{mv.name})')
 
         # Add hash support
         if merged_class.wrap_hash:
@@ -5022,6 +4607,16 @@ class NanobindEmitterV2:
             if "char *" in ptype or "char*" in ptype:
                 return None
 
+        # Skip constructors with non-const reference parameters (nb::init can't handle them)
+        # These need manual lambda wrappers via SPECIAL_METHODS
+        for p in ctor.parameters:
+            ptype = p.type_str.strip()
+            if "&" in ptype and "&&" not in ptype and "const" not in ptype:
+                # Non-const ref — check it's not a copy constructor param
+                bare = ptype.rstrip(" &").strip()
+                if bare != ctor.name and not bare.endswith(f"::{ctor.name}"):
+                    return None
+
         # Skip move constructors (&&)
         if len(ctor.parameters) == 1:
             param_type = ctor.parameters[0].type_str
@@ -5053,10 +4648,14 @@ class NanobindEmitterV2:
             )
             # Detect if this is a copy constructor parameter
             # .pxd files may use "ClassName", "ClassName &", or "const ClassName &"
+            # For fallback classes, type may be qualified (e.g., "OpenMS::ColumnHeader")
+            bare_type = p.type_str.replace("const ", "").rstrip(" &*").strip()
             is_copy_param = (
                 ctor.name == p.type_str or
                 ctor.name == p.type_str.rstrip(" &") or
-                p.type_str.startswith(f"const {ctor.name}")
+                p.type_str.startswith(f"const {ctor.name}") or
+                bare_type.endswith(f"::{ctor.name}") or
+                bare_type == ctor.name
             ) and "&&" not in p.type_str
 
             if is_copy_param:
@@ -5437,7 +5036,8 @@ class NanobindEmitterV2:
             'TransitionTSVFile': 'OpenMS::TransitionTSVFile',
             'TransitionPQPFile': 'OpenMS::TransitionPQPFile',
             'TargetedExperiment': 'OpenMS::TargetedExperiment',
-            'LightTargetedExperiment': 'OpenMS::LightTargetedExperiment',
+            'LightTargetedExperiment': 'OpenSwath::LightTargetedExperiment',
+            'LightModification': 'OpenSwath::LightModification',
             'ReactionMonitoringTransition': 'OpenMS::ReactionMonitoringTransition',
             'IncludeExcludeTarget': 'OpenMS::IncludeExcludeTarget',
             'TargetedExperimentHelper': 'OpenMS::TargetedExperimentHelper',
@@ -5484,6 +5084,9 @@ class NanobindEmitterV2:
             'LightProtein': 'OpenSwath::LightProtein',
             'LightPeptide': 'OpenSwath::LightPeptide',
             'ChromExtractParams': 'OpenMS::ChromExtractParams',
+            # FLASHHelperClasses types used in constructors/parameters
+            'CoarseIsotopePatternGenerator': 'OpenMS::CoarseIsotopePatternGenerator',
+            'IsotopeDistribution': 'OpenMS::IsotopeDistribution',
         }
 
         # OpenMS classes that need namespace (only add if not already namespaced)
