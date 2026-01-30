@@ -5431,33 +5431,6 @@ class NanobindEmitter:
                 # Then replace any remaining unqualified forms
                 result = re.sub(r'\b' + nested + r'\b', actual, result)
 
-        # Handle enum types that need full qualification
-        enum_types = {
-            'SpectrumType': 'OpenMS::SpectrumSettings::SpectrumType',
-            'SpectrumLevel': 'OpenMS::SpectrumLevel',
-            'IMFormat': 'OpenMS::IMFormat',
-            'DriftTimeUnit': 'OpenMS::DriftTimeUnit',
-            'PeakType': 'OpenMS::Peak1D::PeakType',
-            'DataType': 'OpenMS::DataValue::DataType',
-            'Polarity': 'OpenMS::IonSource::Polarity',
-            'InletType': 'OpenMS::IonSource::InletType',
-            'IonizationMethod': 'OpenMS::IonSource::IonizationMethod',
-            'AnalyzerType': 'OpenMS::MassAnalyzer::AnalyzerType',
-            'ResolutionMethod': 'OpenMS::MassAnalyzer::ResolutionMethod',
-            'ResolutionType': 'OpenMS::MassAnalyzer::ResolutionType',
-            'ScanDirection': 'OpenMS::MassAnalyzer::ScanDirection',
-            'ScanLaw': 'OpenMS::MassAnalyzer::ScanLaw',
-            'ReflectronState': 'OpenMS::MassAnalyzer::ReflectronState',
-            'Type': 'OpenMS::IonDetector::Type',
-            'AcquisitionMode': 'OpenMS::IonDetector::AcquisitionMode',
-            'DecoyType': 'OpenMS::TargetedExperimentHelper::RetentionTime::RTType',
-            'TermSpecificity': 'OpenMS::ResidueModification::TermSpecificity',
-            'ProcessingAction': 'OpenMS::DataProcessing::ProcessingAction',
-        }
-        for enum_type, qualified in enum_types.items():
-            pattern = r'\b(?<!OpenMS::)(?<!::)' + enum_type + r'\b'
-            result = re.sub(pattern, qualified, result)
-
         # Strip reference qualifiers unless we're preserving them for static_cast
         if not preserve_reference:
             result = result.replace("const ", "").replace(" const", "")
