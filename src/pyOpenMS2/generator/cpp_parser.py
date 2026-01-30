@@ -920,6 +920,8 @@ class CppHeaderParser:
         """Check if a type is incomplete (forward-declared).
 
         Returns the type name if incomplete, None otherwise.
+        Template specializations of known wrapped types (e.g., DBoundingBox<2>)
+        are not considered incomplete.
         """
         # Get the underlying type for pointers/references
         pointee = clang_type
@@ -931,6 +933,14 @@ class CppHeaderParser:
         if decl and decl.kind in (CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL):
             # Check if it's a forward declaration (not a definition)
             if not decl.is_definition():
+                # Template specializations of known wrapped types appear
+                # "incomplete" to libclang but are fully usable since the
+                # template itself is defined.  Only whitelist types we know
+                # have complete definitions and nanobind type casters.
+                if pointee.get_num_template_arguments() > 0:
+                    name = decl.spelling
+                    if name in _KNOWN_COMPLETE_TEMPLATES:
+                        return None
                 return decl.spelling
 
         return None
@@ -1047,6 +1057,17 @@ class MergedClass:
     def has_private_constructor(self) -> bool:
         return self.cpp_class.has_private_constructor
 
+
+# Template classes that libclang marks as "incomplete" (forward-declared)
+# for implicit specializations, but are fully defined and have nanobind
+# type casters or bindings.  Methods using these as return/parameter types
+# should NOT be skipped.
+_KNOWN_COMPLETE_TEMPLATES = {
+    "DBoundingBox",   # DBoundingBox<2> wrapped as DBoundingBox2
+    "DPosition",      # DPosition<1>, DPosition<2> have type casters
+    "DRange",         # DRange<1>, DRange<2>
+    "Matrix",         # Matrix<double> wrapped as MatrixDouble
+}
 
 # Mapping from Cython/pxd type names to C++ types for fallback classes
 _PXD_TO_CPP_TYPE = {
