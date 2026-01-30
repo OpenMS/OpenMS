@@ -6,6 +6,11 @@ from . import addon
 
 
 @addon("MSExperiment")
+def __repr__(self) -> str:
+    return f"MSExperiment(num_spectra={self.getNrSpectra()}, num_chromatograms={self.getNrChromatograms()})"
+
+
+@addon("MSExperiment")
 def getMSLevels(self):
     """Returns a list of unique MS levels in the experiment."""
     levels = set()

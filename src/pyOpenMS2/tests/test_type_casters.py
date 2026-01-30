@@ -58,23 +58,60 @@ class TestStringCaster:
 class TestDataValueCaster:
     """Tests for OpenMS::DataValue type caster."""
 
-    # Note: These tests require DataValue class to be wrapped
-    # Placeholder for when DataValue binding is available
-
-    @pytest.mark.skip(reason="DataValue class not yet bound")
     def test_datavalue_from_int(self):
         """Test DataValue from Python int."""
-        pass
+        from pyopenms import DataValue
+        dv = DataValue(42)
+        assert dv.toInt() == 42
+        assert dv.valueType() == DataValue.INT_VALUE
+        assert not dv.isEmpty()
 
-    @pytest.mark.skip(reason="DataValue class not yet bound")
     def test_datavalue_from_float(self):
         """Test DataValue from Python float."""
-        pass
+        from pyopenms import DataValue
+        dv = DataValue(3.14)
+        assert abs(dv.toDouble() - 3.14) < 1e-10
+        assert dv.valueType() == DataValue.DOUBLE_VALUE
+        assert not dv.isEmpty()
 
-    @pytest.mark.skip(reason="DataValue class not yet bound")
     def test_datavalue_from_string(self):
         """Test DataValue from Python string."""
-        pass
+        from pyopenms import DataValue
+        dv = DataValue("hello")
+        assert dv.toString() == "hello"
+        assert dv.valueType() == DataValue.STRING_VALUE
+        assert not dv.isEmpty()
+
+    def test_datavalue_empty(self):
+        """Test empty DataValue."""
+        from pyopenms import DataValue
+        dv = DataValue()
+        assert dv.isEmpty()
+        assert dv.valueType() == DataValue.EMPTY_VALUE
+
+    def test_datavalue_int_list(self):
+        """Test DataValue from int list."""
+        from pyopenms import DataValue
+        dv = DataValue([1, 2, 3])
+        assert dv.toIntList() == [1, 2, 3]
+        assert dv.valueType() == DataValue.INT_LIST
+
+    def test_datavalue_double_list(self):
+        """Test DataValue from float list."""
+        from pyopenms import DataValue
+        dv = DataValue([1.0, 2.5])
+        result = dv.toDoubleList()
+        assert len(result) == 2
+        assert abs(result[0] - 1.0) < 1e-10
+        assert abs(result[1] - 2.5) < 1e-10
+        assert dv.valueType() == DataValue.DOUBLE_LIST
+
+    def test_datavalue_string_list(self):
+        """Test DataValue from string list."""
+        from pyopenms import DataValue
+        dv = DataValue(["a", "b", "c"])
+        assert dv.toStringList() == ["a", "b", "c"]
+        assert dv.valueType() == DataValue.STRING_LIST
 
 
 class TestDPositionCaster:

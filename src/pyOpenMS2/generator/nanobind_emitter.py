@@ -110,7 +110,6 @@ SKIP_METHODS = {
         "fillCalibrants",  # 7 parameters + self = 8, hits nanobind limit
     },
     "ModificationsDB": {
-        "getInstance",  # Singleton pattern - needs wrap-manual-memory
         "getAllSearchModifications",  # Complex return type
         "getModification",  # Overloaded
         "addModification",  # Takes unique_ptr
@@ -126,9 +125,7 @@ SKIP_METHODS = {
         "getIsotopeDistribution",  # Takes IsotopePatternGenerator
         "getConditionalFragmentIsotopeDist",  # Takes CoarseIsotopePatternGenerator
     },
-    "Residue": {
-        "getModification",  # Returns pointer
-    },
+    "Residue": set(),  # getModification pointer return now auto-handled
     "Mobilogram": {
         "getFloatDataArrays", "setFloatDataArrays",
         "getIntegerDataArrays", "setIntegerDataArrays",
@@ -173,13 +170,15 @@ SKIP_METHODS = {
     "MzIdentMLFile": {
         "load", "store",  # Complex signature with PeptideIdentificationList
     },
+    "XQuestResultXMLFile": {
+        "load", "store",  # Complex signature with PeptideIdentificationList
+    },
     "DataFilters": {
         "passes",  # Multiple overloads including Feature/ConsensusFeature (forward-declared)
     },
     "ProteinIdentification": {
         "computeCoverage",  # Takes ConsensusMap/PeptideIdentificationList - complex types
         "setPrimaryMSRunPath",  # Overloaded with MSExperiment parameter
-        "getPrimaryMSRunPath",  # Output parameter
         "setSearchParameters", "getSearchParameters",  # SearchParameters nested type
         "insertProteinGroup", "insertIndistinguishableProteins",  # ProteinGroup nested type
     },
@@ -192,9 +191,7 @@ SKIP_METHODS = {
     # === High-priority classes being unblocked from SKIP_CLASSES ===
     "IDFilter": {
         "countHits",  # Overloaded (PeptideIdentificationList vs ProteinIdentification vector)
-        "getBestHit",  # Output parameter
         "updateProteinGroups",  # ProteinGroup nested type
-        "extractPeptideSequences",  # Output parameter (set<String>&)
     },
     "FalseDiscoveryRate": {
         "applyBasic",  # ScoreToTgtDecLabelPairs unknown type
@@ -230,15 +227,11 @@ SKIP_METHODS = {
         "align",  # pxd type mismatch
         "setReference",  # pxd type mismatch
     },
-    "MapAlignmentTransformer": {
-        "transformRetentionTimes",  # Overloaded
-    },
+    "MapAlignmentTransformer": set(),  # transformRetentionTimes overload now auto-handled
     "TransformationDescription": {
         "fitModel",  # Lambda analysis / complex param types
     },
-    "TransformationModelLinear": {
-        "getDefaultParameters",  # Static method with output params
-    },
+    "TransformationModelLinear": set(),  # getDefaultParameters output param now auto-handled
     "InstrumentSettings": {
         "getScanWindows",  # ScanWindow incomplete type
         "setScanWindows",  # ScanWindow incomplete type
@@ -260,9 +253,6 @@ SKIP_METHODS = {
         "setPrediction",  # Lambda analysis
     },
     "PeakIntegrator": {
-        "integratePeak",  # Overloaded (chrom vs spectrum)
-        "estimateBackground",  # Overloaded
-        "calculatePeakShapeMetrics",  # Overloaded
         "getDefaultParameters",  # Output parameter
     },
     "MRMFeatureQC": {
@@ -274,11 +264,7 @@ SKIP_METHODS = {
         "digest",  # pxd type mismatch
         "digestUnmodified",  # pxd type mismatch
     },
-    "ProteaseDB": {
-        "getInstance",  # Singleton
-        "getAllNames",  # Output parameter
-        "getEnzyme",  # Returns pointer
-    },
+    "ProteaseDB": set(),  # getInstance now auto-generated, getEnzyme pointer now auto-handled
     "ElementDB": {
         "getElement",  # Overloaded, returns pointer - SPECIAL_METHODS uses suffixed keys
         "hasElement",  # Overloaded - SPECIAL_METHODS uses suffixed keys
@@ -302,23 +288,16 @@ SKIP_METHODS = {
         "toLfdrTransform",  # Uses LfdrTransform enum
     },
     # === Batch unblock: FLASHDeconv, FileHandler, IMTypes, etc. ===
-    "IMTypes": {
-        "determineIMFormat",  # Overloaded (MSExperiment vs MSSpectrum)
-    },
+    "IMTypes": set(),  # determineIMFormat overload now auto-handled
     "DeconvolvedSpectrum": {
         "setCharges",  # pxd type mismatch: vector<int> vs actual type
-        "getChargeRange",  # output parameter
     },
     "FLASHDeconvAlgorithm": {
         "performSpectrumDeconvolution",  # Complex parameter types
         "calculateAveragine",  # Complex parameter types
     },
-    "SpectralDeconvolution": {
-        "getIsotopeCosineAndIsoOffset",  # output reference parameter
-    },
+    "SpectralDeconvolution": set(),  # getIsotopeCosineAndIsoOffset output param now auto-handled
     "PeakGroup": {
-        "getAbundance",  # Overloaded
-        "getMonoMass",  # Overloaded
         "getRepAbundance",  # pxd type mismatch
     },
     # === Unblocked classes: OnDiscMSExperiment, IndexedMzMLFileLoader, ExperimentalDesign, AcquisitionInfo, ExperimentalSettings ===
@@ -328,9 +307,7 @@ SKIP_METHODS = {
         "getSpectrumById",  # Returns shared_ptr<Spectrum> (interface type)
         "getChromatogramById",  # Returns shared_ptr<Chromatogram> (interface type)
     },
-    "IndexedMzMLFileLoader": {
-        "store",  # Overloaded (OnDiscMSExperiment& vs MSExperiment&)
-    },
+    "IndexedMzMLFileLoader": set(),  # store overload now auto-handled
     "ExperimentalDesign": {
         "getMSFileSection",  # Uses ExperimentalDesign_MSFileSectionEntry (unbound nested type)
         "setMSFileSection",  # Uses ExperimentalDesign_MSFileSectionEntry (unbound nested type)
@@ -344,50 +321,21 @@ SKIP_METHODS = {
         "operator[]",  # Returns Acquisition& by index - needs special handling
     },
     # === Batch 2: More high-value classes unblocked from SKIP_CLASSES ===
-    "MzTabFile": {
-        "store",  # Overloaded (MzTab vs other)
-        "load",  # Overloaded
-    },
-    "ControlledVocabulary": {
-        "getAllChildTerms",  # Output parameter: set<String>&
-    },
-    "RNaseDB": {
-        "getInstance",  # Singleton - returns pointer
-        "getAllNames",  # Output parameter
-        "getEnzyme",  # Returns pointer
-        "getEnzymeByRegEx",  # Returns pointer
-    },
-    "Biosaur2Algorithm": {
-        "setMSData",  # Overloaded (const ref vs move)
-        "getMSData",  # Overloaded (const vs non-const)
-    },
-    "FeatureFinderAlgorithmMetaboIdent": {
-        "setMSData",  # Overloaded
-    },
+    "MzTabFile": set(),  # store/load overloads now auto-handled
+    "ControlledVocabulary": set(),  # getAllChildTerms output param now auto-handled
+    "RNaseDB": set(),  # getInstance now auto-generated
+    "Biosaur2Algorithm": set(),  # setMSData/getMSData overloads now auto-handled
+    "FeatureFinderAlgorithmMetaboIdent": set(),  # setMSData overload now auto-handled
     "FeatureFinderIdentificationAlgorithm": {
-        "run",  # Overloaded (multiple signatures with different params)
-        "setMSData",  # Overloaded
-        "getMSData",  # Returns by value in pxd but ref in C++
-        "getChromatograms",  # Returns by value in pxd but ref in C++
-        "getLibrary",  # Returns by value in pxd but ref in C++
         "getProgressLogger",  # wrap-ignored
     },
     "MascotGenericFile": {
         "updateMembers_",  # Protected method
     },
-    "XQuestScores": {
-        "preScore",  # Overloaded (4-param vs 2-param)
-    },
-    "ExperimentalDesignFile": {
-        "load",  # Static overloaded method
-    },
-    "IDConflictResolverAlgorithm": {
-        "resolve",  # Overloaded (FeatureMap vs ConsensusMap)
-        "resolveBetweenFeatures",  # Overloaded (FeatureMap vs ConsensusMap)
-    },
-    "SpectrumLookup": {
-        "extractScanNumber",  # Overloaded static method
-    },
+    "XQuestScores": set(),  # preScore overload now auto-handled
+    "ExperimentalDesignFile": {"load"},  # TextFile overload uses unbound type
+    "IDConflictResolverAlgorithm": set(),  # resolve/resolveBetweenFeatures overloads now auto-handled
+    "SpectrumLookup": set(),  # extractScanNumber overload now auto-handled
     "RNaseDigestion": {
         "digest",  # Overloaded (with/without length params) + NASequence type
     },
@@ -399,19 +347,10 @@ SKIP_METHODS = {
     "AccurateMassSearchResult": {
         "setIndividualIntensities",  # pxd type mismatch
     },
-    "TransitionPQPFile": {
-        "convertPQPToTargetedExperiment",  # Overloaded (TargetedExperiment vs Light)
-        "convertTSVToTargetedExperiment",  # Overloaded (TargetedExperiment vs Light)
-    },
-    "TransitionTSVFile": {
-        "convertTSVToTargetedExperiment",  # Overloaded (TargetedExperiment vs Light)
-    },
-    "NonNegativeLeastSquaresSolver": {
-        "solve",  # Overloaded
-    },
-    "IncludeExcludeTarget": {
-        "replaceCVTerms",  # Overloaded (vector vs map variant)
-    },
+    "TransitionPQPFile": set(),  # overloads now auto-handled
+    "TransitionTSVFile": set(),  # overload now auto-handled
+    "NonNegativeLeastSquaresSolver": set(),  # solve overload now auto-handled
+    "IncludeExcludeTarget": set(),  # replaceCVTerms overload now auto-handled
     "SeedListGenerator": {
         "generateSeedList",  # Overloaded (3 variants, one uses nested map[UInt64, ...])
         "convertSeedList",  # Overloaded (two variants)
@@ -424,10 +363,9 @@ SKIP_METHODS = {
     },
     "QcMLFile": {
         "map2csv",  # Nested map<String, map<String, String>>
-        "removeAttachment",  # Overloaded (vector vs single)
     },
     "PeptideAndProteinQuant": {
-        "readQuantData",  # Overloaded (FeatureMap vs ConsensusMap vs identifications)
+        "readQuantData",  # Output param overloads have same Python signature after wrapping
     },
     "KDTreeFeatureMaps": {
         "addMaps",  # Overloaded (FeatureMap vs ConsensusMap)
@@ -730,6 +668,7 @@ ADDITIONAL_INCLUDES = {
     "File": ["<OpenMS/SYSTEM/File.h>"],
     "PepXMLFile": ["<OpenMS/FORMAT/PepXMLFile.h>", "<OpenMS/METADATA/ProteinIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
     "MzIdentMLFile": ["<OpenMS/FORMAT/MzIdentMLFile.h>", "<OpenMS/METADATA/ProteinIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
+    "XQuestResultXMLFile": ["<OpenMS/FORMAT/XQuestResultXMLFile.h>", "<OpenMS/METADATA/ProteinIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
     "DRange1": ["<OpenMS/DATASTRUCTURES/DRange.h>"],
     "DRange2": ["<OpenMS/DATASTRUCTURES/DRange.h>"],
     "DataFilters": ["<OpenMS/PROCESSING/MISC/DataFilters.h>", "<OpenMS/KERNEL/Feature.h>", "<OpenMS/KERNEL/ConsensusFeature.h>"],
@@ -1221,6 +1160,24 @@ OUTPUT_PARAM_METHODS = {
         }}, "keys"_a, "Fills the given list with all meta value keys")''',
 }
 
+# Primitive types for which reference returns are copied by value automatically
+_PRIMITIVE_TYPES = {
+    'int', 'unsigned int', 'long', 'unsigned long', 'long long',
+    'unsigned long long', 'float', 'double', 'long double', 'bool',
+    'char', 'unsigned char', 'short', 'unsigned short', 'size_t',
+    'ptrdiff_t', 'int32_t', 'int64_t', 'uint32_t', 'uint64_t',
+}
+
+# Types with nanobind type casters that copy the value into a Python object.
+# Returning a const-ref to these is equivalent to return-by-value, so
+# rv_policy::reference_internal must NOT be applied (it would reference a temporary).
+_TYPE_CASTER_TYPES = {
+    'std::string', 'std::basic_string<char>',
+    'OpenMS::String', 'String',
+    'OpenMS::DataValue', 'DataValue',
+    'OpenMS::ParamValue', 'ParamValue',
+}
+
 # Special method implementations for critical classes
 # These are C++ lambdas that implement Python methods
 SPECIAL_METHODS = {
@@ -1271,10 +1228,7 @@ SPECIAL_METHODS = {
         .def(nb::init<>(), "Default constructor")''',
     },
     "RibonucleotideDB": {
-        "getInstance": '''
-        .def_static("getInstance", []() -> OpenMS::RibonucleotideDB* {
-            return OpenMS::RibonucleotideDB::getInstance();
-        }, nb::rv_policy::reference, "Returns the singleton instance")''',
+        # getInstance now auto-generated by singleton detection (Phase 6)
         "getRibonucleotide": '''
         .def("getRibonucleotide", [](OpenMS::RibonucleotideDB& self, const OpenMS::String& code) -> const OpenMS::Ribonucleotide* {
             return self.getRibonucleotide(code);
@@ -1336,10 +1290,7 @@ SPECIAL_METHODS = {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, "i"_a, nb::rv_policy::reference_internal)''',
-        "__len__": '''
-        .def("__len__", [](const OpenMS::AcquisitionInfo& self) -> size_t {
-            return self.size();
-        })''',
+        # __len__ auto-generated from size() method
         "__setitem__": '''
         .def("__setitem__", [](OpenMS::AcquisitionInfo& self, size_t i, const OpenMS::Acquisition& acq) {
             if (i >= self.size()) throw nb::index_error();
@@ -1413,11 +1364,7 @@ SPECIAL_METHODS = {
         .def("clear", [](OpenMS::MSSpectrum& self, bool clear_meta_data) {
             self.clear(clear_meta_data);
         }, "clear_meta_data"_a = true, "Remove all peaks (and optionally metadata)")''',
-        "__getitem__": '''
-        .def("__getitem__", [](OpenMS::MSSpectrum& self, size_t i) -> OpenMS::Peak1D& {
-            if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)''',
+        # __getitem__ auto-generated from vector<Peak1D> base
         "getMinMZ": '''
         .def("getMinMZ", [](const OpenMS::MSSpectrum& self) {
             return self.getMinMZ();
@@ -1820,19 +1767,13 @@ SPECIAL_METHODS = {
         .def("size", [](const OpenMS::MSExperiment& self) {
             return self.size();
         }, "Returns the number of spectra")''',
-        "__len__": '''
-        .def("__len__", [](const OpenMS::MSExperiment& self) {
-            return self.size();
-        })''',
+        # __len__ auto-generated from size() method
         "__getitem__": '''
         .def("__getitem__", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         })''',
-        "__iter__": '''
-        .def("__iter__", [](OpenMS::MSExperiment& self) {
-            return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "MSExperiment_iter", self.begin(), self.end());
-        })''',
+        # __iter__ auto-generated from begin()/end() methods
     },
     "PeptideIdentification": {
         "getHits": '''
@@ -1903,19 +1844,13 @@ SPECIAL_METHODS = {
         .def("size", [](const OpenMS::FeatureMap& self) {
             return self.size();
         }, "Returns the number of features")''',
-        "__len__": '''
-        .def("__len__", [](const OpenMS::FeatureMap& self) {
-            return self.size();
-        })''',
+        # __len__ auto-generated from size() method
         "__getitem__": '''
         .def("__getitem__", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         })''',
-        "__iter__": '''
-        .def("__iter__", [](OpenMS::FeatureMap& self) {
-            return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "FeatureMap_iter", self.begin(), self.end());
-        })''',
+        # __iter__ auto-generated from begin()/end() methods
         "push_back": '''
         .def("push_back", [](OpenMS::FeatureMap& self, const OpenMS::Feature& f) {
             self.push_back(f);
@@ -1958,19 +1893,13 @@ SPECIAL_METHODS = {
         .def("size", [](const OpenMS::ConsensusMap& self) {
             return self.size();
         }, "Returns the number of consensus features")''',
-        "__len__": '''
-        .def("__len__", [](const OpenMS::ConsensusMap& self) {
-            return self.size();
-        })''',
+        # __len__ auto-generated from size() method
         "__getitem__": '''
         .def("__getitem__", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         })''',
-        "__iter__": '''
-        .def("__iter__", [](OpenMS::ConsensusMap& self) {
-            return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "ConsensusMap_iter", self.begin(), self.end());
-        })''',
+        # __iter__ auto-generated from begin()/end() methods
         "push_back": '''
         .def("push_back", [](OpenMS::ConsensusMap& self, const OpenMS::ConsensusFeature& f) {
             self.push_back(f);
@@ -1995,10 +1924,7 @@ SPECIAL_METHODS = {
         .def("size", [](const OpenMS::AASequence& self) {
             return self.size();
         }, "Returns the number of residues")''',
-        "__len__": '''
-        .def("__len__", [](const OpenMS::AASequence& self) {
-            return self.size();
-        })''',
+        # __len__ auto-generated from size() method
         "toString": '''
         .def("toString", [](const OpenMS::AASequence& self) {
             return self.toString();
@@ -2126,19 +2052,13 @@ SPECIAL_METHODS = {
         .def("size", [](const OpenMS::PeptideIdentificationList& self) {
             return self.size();
         }, "Returns the number of peptide identifications")''',
-        "__len__": '''
-        .def("__len__", [](const OpenMS::PeptideIdentificationList& self) {
-            return self.size();
-        })''',
+        # __len__ auto-generated from size() method
         "__getitem__": '''
         .def("__getitem__", [](OpenMS::PeptideIdentificationList& self, size_t i) -> OpenMS::PeptideIdentification& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, nb::rv_policy::reference_internal)''',
-        "__iter__": '''
-        .def("__iter__", [](OpenMS::PeptideIdentificationList& self) {
-            return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "PeptideIdentificationList_iter", self.begin(), self.end());
-        })''',
+        # __iter__ auto-generated from begin()/end() methods
         "push_back": '''
         .def("push_back", [](OpenMS::PeptideIdentificationList& self, const OpenMS::PeptideIdentification& id) {
             self.push_back(id);
@@ -2190,24 +2110,29 @@ SPECIAL_METHODS = {
             self.store(filename, proteins, peptide_list);
         }, "filename"_a, "proteins"_a, "peptides"_a, "Store to an mzIdentML file")''',
     },
+    "XQuestResultXMLFile": {
+        "load": '''
+        .def("_load_internal", [](OpenMS::XQuestResultXMLFile& self, const OpenMS::String& filename) {
+            OpenMS::PeptideIdentificationList peptides;
+            std::vector<OpenMS::ProteinIdentification> proteins;
+            self.load(filename, peptides, proteins);
+            std::vector<OpenMS::PeptideIdentification> peptide_vec(peptides.begin(), peptides.end());
+            return nb::make_tuple(proteins, peptide_vec);
+        }, "filename"_a, "Load an xQuest result XML file, returns tuple (proteins, peptides)")''',
+        "store": '''
+        .def("_store_internal", [](const OpenMS::XQuestResultXMLFile& self, const OpenMS::String& filename,
+                         std::vector<OpenMS::ProteinIdentification> proteins,
+                         const std::vector<OpenMS::PeptideIdentification>& peptides) {
+            OpenMS::PeptideIdentificationList peptide_list(peptides);
+            self.store(filename, proteins, peptide_list);
+        }, "filename"_a, "proteins"_a, "peptides"_a, "Store to an xQuest result XML file")''',
+    },
     "Mobilogram": {
         "size": '''
         .def("size", [](const OpenMS::Mobilogram& self) {
             return self.size();
         }, "Returns the number of peaks")''',
-        "__len__": '''
-        .def("__len__", [](const OpenMS::Mobilogram& self) {
-            return self.size();
-        })''',
-        "__getitem__": '''
-        .def("__getitem__", [](OpenMS::Mobilogram& self, size_t i) -> OpenMS::MobilityPeak1D& {
-            if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)''',
-        "__iter__": '''
-        .def("__iter__", [](OpenMS::Mobilogram& self) {
-            return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "Mobilogram_iter", self.begin(), self.end());
-        })''',
+        # __len__, __getitem__, __iter__ auto-generated from vector base and begin()/end()
         "push_back": '''
         .def("push_back", [](OpenMS::Mobilogram& self, const OpenMS::MobilityPeak1D& p) {
             self.push_back(p);
@@ -2408,10 +2333,7 @@ SPECIAL_METHODS = {
     },
     # NOTE: TransformationDescription SPECIAL_METHODS consolidated below
     "ModificationsDB": {
-        "getInstance": '''
-        .def_static("getInstance", []() -> const OpenMS::ModificationsDB* {
-            return OpenMS::ModificationsDB::getInstance();
-        }, nb::rv_policy::reference, "Get the singleton instance of ModificationsDB")''',
+        # getInstance now auto-generated by singleton detection (Phase 6)
         "searchModifications": '''
         .def("searchModifications", [](const OpenMS::ModificationsDB& self, const OpenMS::String& mod_name, const OpenMS::String& residue, int term_spec) {
             std::set<const OpenMS::ResidueModification*> mods;
@@ -2428,20 +2350,14 @@ SPECIAL_METHODS = {
         }, "Get the number of modifications")''',
     },
     "ProteaseDB": {
-        "getInstance": '''
-        .def_static("getInstance", []() -> const OpenMS::ProteaseDB* {
-            return OpenMS::ProteaseDB::getInstance();
-        }, nb::rv_policy::reference, "Get the singleton instance of ProteaseDB")''',
+        # getInstance now auto-generated by singleton detection (Phase 6)
         "hasEnzyme": '''
         .def("hasEnzyme", [](const OpenMS::ProteaseDB& self, const OpenMS::String& name) {
             return self.hasEnzyme(name);
         }, "name"_a, "Check if an enzyme with the given name exists")''',
     },
     "RNaseDB": {
-        "getInstance": '''
-        .def_static("getInstance", []() -> const OpenMS::RNaseDB* {
-            return OpenMS::RNaseDB::getInstance();
-        }, nb::rv_policy::reference, "Get the singleton instance of RNaseDB")''',
+        # getInstance now auto-generated by singleton detection (Phase 6)
         "hasEnzyme": '''
         .def("hasEnzyme", [](const OpenMS::RNaseDB& self, const OpenMS::String& name) {
             return self.hasEnzyme(name);
@@ -2464,10 +2380,7 @@ SPECIAL_METHODS = {
         }, "Get all enzyme names")''',
     },
     "CrossLinksDB": {
-        "getInstance": '''
-        .def_static("getInstance", []() -> const OpenMS::CrossLinksDB* {
-            return OpenMS::CrossLinksDB::getInstance();
-        }, nb::rv_policy::reference, "Get the singleton instance of CrossLinksDB")''',
+        # getInstance now auto-generated by singleton detection (Phase 6)
         "getNumberOfModifications": '''
         .def("getNumberOfModifications", [](const OpenMS::CrossLinksDB& self) {
             return self.getNumberOfModifications();
@@ -2664,19 +2577,9 @@ SPECIAL_METHODS = {
             return self.getQuantMethods();
         }, "Get the quantitation methods")''',
     },
-    "Peptide": {
-        "protein_refs": '''
-        .def_rw("protein_refs", &OpenMS::TargetedExperimentHelper::Peptide::protein_refs)''',
-        "id_field": '''
-        .def_rw("id", &OpenMS::TargetedExperimentHelper::Peptide::id)''',
-        "sequence_field": '''
-        .def_rw("sequence", &OpenMS::TargetedExperimentHelper::Peptide::sequence)''',
-    },
+    # Peptide: public fields now auto-generated from libclang (Phase 5)
     "ElementDB": {
-        "getInstance": '''
-        .def_static("getInstance", []() -> OpenMS::ElementDB* {
-            return OpenMS::ElementDB::getInstance();
-        }, nb::rv_policy::reference, "Get the singleton instance of ElementDB")''',
+        # getInstance now auto-generated by singleton detection (Phase 6)
         "getElement_name": '''
         .def("getElement", [](const OpenMS::ElementDB& self, const std::string& name) -> const OpenMS::Element* {
             return self.getElement(name);
@@ -2753,16 +2656,7 @@ SPECIAL_METHODS = {
             }
         }, "result"_a, "Get available model types (fills list)")''',
     },
-    "Pi0Result": {
-        "pi0": '''
-        .def_rw("pi0", &OpenMS::Math::Pi0Result::pi0)''',
-        "pi0_lambda": '''
-        .def_rw("pi0_lambda", &OpenMS::Math::Pi0Result::pi0_lambda)''',
-        "lambda_": '''
-        .def_rw("lambda_", &OpenMS::Math::Pi0Result::lambda_)''',
-        "pi0_smooth": '''
-        .def_rw("pi0_smooth", &OpenMS::Math::Pi0Result::pi0_smooth)''',
-    },
+    # Pi0Result: public fields now auto-generated from libclang (Phase 5)
     "MultipleTesting": {
         "pi0Est": '''
         .def_static("pi0Est", [](const std::vector<double>& p_values,
@@ -3970,13 +3864,14 @@ class NanobindEmitter:
             logger.debug(f"Class {class_name} has deleted default constructor - will skip default ctor only")
 
         # Skip classes with only private/protected constructors (singletons, etc.)
-        # Exception: allow if class has SPECIAL_METHODS (e.g. singleton getInstance)
+        # Exception: allow if class has SPECIAL_METHODS or is a singleton (getInstance pattern)
+        is_singleton = self._is_singleton(merged_class)
         if merged_class.has_private_constructor:
-            if class_name not in SPECIAL_METHODS:
+            if class_name not in SPECIAL_METHODS and not is_singleton:
                 logger.debug(f"Skipping class with private constructors: {class_name}")
                 return None
             else:
-                logger.debug(f"Class {class_name} has private constructors but has SPECIAL_METHODS - binding anyway")
+                logger.debug(f"Class {class_name} has private constructors but has SPECIAL_METHODS/singleton - binding anyway")
 
         # Handle base classes - nanobind supports multiple inheritance
         # We can only specify base classes that are also bound to nanobind AND
@@ -4027,6 +3922,20 @@ class NanobindEmitter:
         for mv in getattr(merged_class, 'member_variables', []):
             lines.append(f'        .def_rw("{mv.name}", &{qualified_name}::{mv.name})')
 
+        # Phase 5: Auto-generate public field bindings from libclang
+        pxd_field_names = {mv.name for mv in getattr(merged_class, 'member_variables', [])}
+        special_field_names = set(SPECIAL_METHODS.get(class_name, {}).keys())
+        skip_field_names = SKIP_METHODS.get(class_name, set())
+        for cpp_field in getattr(merged_class.cpp_class, 'public_fields', []):
+            if cpp_field.name in pxd_field_names:
+                continue  # Already emitted from pxd
+            if cpp_field.name in special_field_names or cpp_field.name in skip_field_names:
+                continue
+            if cpp_field.is_const:
+                lines.append(f'        .def_ro("{cpp_field.name}", &{qualified_name}::{cpp_field.name})')
+            else:
+                lines.append(f'        .def_rw("{cpp_field.name}", &{qualified_name}::{cpp_field.name})')
+
         # Add hash support
         if merged_class.wrap_hash:
             lines.append(f'        .def("__hash__", [](const {qualified_name}& self) {{ return std::hash<{qualified_name}>{{}}(self); }})')
@@ -4046,16 +3955,23 @@ class NanobindEmitter:
         vector_elem_type = self._get_vector_element_type(merged_class)
         is_vector_based = vector_elem_type is not None
 
+        # Collect which dunders SPECIAL_METHODS will provide (to avoid duplicates)
+        special_dunders = set()
+        if class_name in SPECIAL_METHODS:
+            for method_name in SPECIAL_METHODS[class_name]:
+                if method_name.startswith("__") and method_name.endswith("__"):
+                    special_dunders.add(method_name)
+
         # Add iterator support (detected from begin/end methods or wrap-iter directive)
-        if has_iterator:
+        if has_iterator and "__iter__" not in special_dunders:
             lines.append(f'        .def("__iter__", []({qualified_name}& self) {{ return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "{class_name}_iter", self.begin(), self.end()); }})')
 
         # Add __len__ for container classes (detected from size() method)
-        if has_size:
+        if has_size and "__len__" not in special_dunders:
             lines.append(f'        .def("__len__", []({qualified_name}& self) {{ return self.size(); }})')
 
         # Add __getitem__ for vector-based classes (detected from std::vector inheritance)
-        if is_vector_based:
+        if is_vector_based and "__getitem__" not in special_dunders:
             lines.append(f'        .def("__getitem__", []({qualified_name}& self, size_t i) -> {vector_elem_type}& {{ ')
             lines.append(f'            if (i >= self.size()) throw nb::index_error();')
             lines.append(f'            return self[i];')
@@ -4070,10 +3986,14 @@ class NanobindEmitter:
                 else:
                     lines.append(method_code)
 
-        # Add __repr__ for key classes
-        repr_code = self._generate_repr(class_name, qualified_name)
-        if repr_code:
-            lines.append(repr_code)
+        # __repr__ is now provided by Python addons (pyopenms/addons/)
+
+        # Auto-generate conversion operators (operator bool -> __bool__, etc.)
+        self._generate_conversion_operators(lines, merged_class, qualified_name)
+
+        # Auto-generate singleton getInstance if detected and not in SPECIAL_METHODS
+        if is_singleton and not (class_name in SPECIAL_METHODS and "getInstance" in SPECIAL_METHODS[class_name]):
+            lines.append(f'        .def_static("getInstance", []() -> {qualified_name}* {{ return {qualified_name}::getInstance(); }}, nb::rv_policy::reference, "Returns the singleton instance")')
 
         # Close class definition
         lines.append("        ;")
@@ -4083,6 +4003,54 @@ class NanobindEmitter:
             lines.append(pc)
 
         return "\n".join(lines)
+
+    def _generate_conversion_operators(self, lines: list, merged_class: MergedClass, qualified_name: str):
+        """Auto-generate Python dunders from C++ conversion operators."""
+        conversion_fns = getattr(merged_class.cpp_class, 'conversion_functions', [])
+        if not conversion_fns:
+            return
+
+        # Map C++ conversion function return types to Python dunders
+        type_to_dunder = {
+            "bool": "__bool__",
+            "_Bool": "__bool__",
+            "int": "__int__",
+            "long": "__int__",
+            "long long": "__int__",
+            "unsigned int": "__int__",
+            "size_t": "__int__",
+            "double": "__float__",
+            "float": "__float__",
+            "std::string": "__str__",
+            "std::basic_string<char>": "__str__",
+        }
+
+        for conv in conversion_fns:
+            ret_type = conv.return_type.strip()
+            # Also check canonical type
+            canonical = getattr(conv, 'canonical_return_type', ret_type).strip()
+            dunder = type_to_dunder.get(ret_type) or type_to_dunder.get(canonical)
+            if dunder:
+                lines.append(f'        .def("{dunder}", []({qualified_name}& self) {{ return static_cast<{ret_type}>(self); }})')
+
+    def _is_singleton(self, merged_class: MergedClass) -> bool:
+        """Detect singleton pattern: private constructor + public static getInstance.
+
+        Checks both merged methods (pxd-filtered) and raw C++ methods (bypasses
+        wrap-ignore on getInstance).
+        """
+        if not merged_class.has_private_constructor:
+            return False
+        # Check merged methods (pxd-allowed)
+        for m in merged_class.methods:
+            cpp = m.cpp_method
+            if cpp.name == "getInstance" and cpp.is_static:
+                return True
+        # Also check raw C++ methods (bypasses pxd wrap-ignore on getInstance)
+        for cpp_m in merged_class.cpp_class.methods:
+            if cpp_m.name == "getInstance" and cpp_m.is_static:
+                return True
+        return False
 
     def _has_method(self, merged_class: MergedClass, method_name: str) -> bool:
         """Check if a class has a specific method by name."""
@@ -4415,81 +4383,8 @@ class NanobindEmitter:
 
         return methods
 
-    def _generate_repr(self, class_name: str, qualified_name: str) -> Optional[str]:
-        """Generate __repr__ method for a class."""
-        # Define repr formats for key classes
-        repr_formats = {
-            "Peak1D": f'''        .def("__repr__", []({qualified_name}& self) {{
-            return "<Peak1D mz=" + std::to_string(self.getMZ()) + " intensity=" + std::to_string(self.getIntensity()) + ">";
-        }})''',
-            "Peak2D": f'''        .def("__repr__", []({qualified_name}& self) {{
-            return "<Peak2D rt=" + std::to_string(self.getRT()) + " mz=" + std::to_string(self.getMZ()) + " intensity=" + std::to_string(self.getIntensity()) + ">";
-        }})''',
-            "ChromatogramPeak": f'''        .def("__repr__", []({qualified_name}& self) {{
-            return "<ChromatogramPeak rt=" + std::to_string(self.getRT()) + " intensity=" + std::to_string(self.getIntensity()) + ">";
-        }})''',
-            "MSSpectrum": f'''        .def("__repr__", []({qualified_name}& self) {{
-            std::ostringstream oss;
-            oss << "<MSSpectrum ms_level=" << self.getMSLevel()
-                << " rt=" << std::fixed << std::setprecision(2) << self.getRT()
-                << " num_peaks=" << self.size() << ">";
-            return oss.str();
-        }})''',
-            "MSChromatogram": f'''        .def("__repr__", []({qualified_name}& self) {{
-            std::ostringstream oss;
-            oss << "<MSChromatogram native_id='" << self.getNativeID()
-                << "' num_peaks=" << self.size() << ">";
-            return oss.str();
-        }})''',
-            "MSExperiment": f'''        .def("__repr__", []({qualified_name}& self) {{
-            std::ostringstream oss;
-            oss << "<MSExperiment num_spectra=" << self.getNrSpectra()
-                << " num_chromatograms=" << self.getNrChromatograms() << ">";
-            return oss.str();
-        }})''',
-            "Feature": f'''        .def("__repr__", []({qualified_name}& self) {{
-            std::ostringstream oss;
-            oss << "<Feature rt=" << std::fixed << std::setprecision(2) << self.getRT()
-                << " mz=" << std::setprecision(4) << self.getMZ()
-                << " intensity=" << std::setprecision(0) << self.getIntensity()
-                << " charge=" << self.getCharge() << ">";
-            return oss.str();
-        }})''',
-            "FeatureMap": f'''        .def("__repr__", []({qualified_name}& self) {{
-            std::ostringstream oss;
-            oss << "<FeatureMap num_features=" << self.size() << ">";
-            return oss.str();
-        }})''',
-            "ConsensusFeature": f'''        .def("__repr__", []({qualified_name}& self) {{
-            std::ostringstream oss;
-            oss << "<ConsensusFeature rt=" << std::fixed << std::setprecision(2) << self.getRT()
-                << " mz=" << std::setprecision(4) << self.getMZ()
-                << " intensity=" << std::setprecision(0) << self.getIntensity()
-                << " size=" << self.size() << ">";
-            return oss.str();
-        }})''',
-            "ConsensusMap": f'''        .def("__repr__", []({qualified_name}& self) {{
-            std::ostringstream oss;
-            oss << "<ConsensusMap num_consensus_features=" << self.size() << ">";
-            return oss.str();
-        }})''',
-        }
-        return repr_formats.get(class_name)
-
-    # Classes with private or deleted copy constructors - skip copy ctor binding
-    PRIVATE_COPY_CTOR_CLASSES = {
-        "ElementDB", "ModificationsDB", "CrossLinksDB", "EnzymesDB", "RibonucleotideDB",
-        "ProteaseDB", "RNaseDB", "ResidueDB",  # Singleton databases
-        "ProgressLogger",  # Non-copyable
-        "UniqueIdGenerator",  # Protected/private constructors
-        "IsobaricQuantitationMethod",  # Abstract class
-        "GridBasedCluster",  # Complex constructors with nested types
-        # XMLHandler-derived (non-copyable base)
-        "TransformationXMLFile", "QcMLFile",
-        # Private copy ctors
-        "CVMappingFile", "LPWrapper", "FeatureGroupingAlgorithmUnlabeled",
-        "SemanticValidator",
-    }
+    # Copy constructor skipping is now handled via AST detection
+    # (has_deleted_copy_constructor from cpp_parser.py)
 
     def _generate_template_instances(
         self, merged_class: MergedClass, module_class_names: Optional[Set[str]] = None
@@ -4702,9 +4597,12 @@ class NanobindEmitter:
                 param_type.startswith(f"const {ctor.name}")  # Const ref: ClassName(const ClassName &)
             )
 
-            # Skip copy constructors for classes with private copy ctors
-            if is_copy_ctor and class_name in self.PRIVATE_COPY_CTOR_CLASSES:
-                return None
+            # Skip copy constructors for classes with deleted/private copy ctors
+            # Detected from AST (has_deleted_copy_constructor) or copy ctor attributes
+            if is_copy_ctor:
+                merged = getattr(self, '_current_merged_class', None)
+                if merged and merged.has_deleted_copy_constructor:
+                    return None
 
         if not ctor.parameters:
             # Skip default constructor if it's deleted
@@ -4770,10 +4668,22 @@ class NanobindEmitter:
             return None
 
         # Skip methods with char* parameters - use OpenMS::String versions instead
+        # Also skip methods with C++ iterator parameters. nanobind has no type
+        # caster for accepting iterators (e.g. __gnu_cxx::__normal_iterator) as
+        # function arguments — only for *exposing* them via nb::make_iterator.
+        # The non-iterator overloads (taking double/index boundaries) are the
+        # Python-appropriate API. If a specific iterator overload is needed, add
+        # an index-based wrapper to SPECIAL_METHODS, e.g.:
+        #   .def("method", [](Class& self, Container& c, size_t left, size_t right) {
+        #       return self.method(c, c.begin() + left, c.begin() + right);
+        #   })
         for p in method.parameters:
             ptype = p.type_str.strip()
             if "char *" in ptype or "char*" in ptype:
                 logger.debug(f"Skipping {class_name}.{method.name} - has char* parameter")
+                return None
+            if "iterator" in ptype.lower() or "__gnu_cxx" in ptype:
+                logger.debug(f"Skipping {class_name}.{method.name} - has iterator parameter: {ptype}")
                 return None
 
         # Auto-skip methods that have const/non-const overloads (detected via libclang)
@@ -4863,20 +4773,33 @@ class NanobindEmitter:
         overloads = [m for m in merged_class.methods if m.cpp_method.name == method.name]
         is_overloaded = len(overloads) > 1
 
-        # For const/non-const overloads with same signature, prefer const version
+        # For const/non-const overloads with identical parameter types, keep only const version.
+        # For overloads with different parameter types/counts, emit ALL of them — nanobind
+        # handles dispatch at runtime based on argument types.
         if is_overloaded:
-            # Check if this is a const/non-const pair (same params, different const-ness)
-            same_params_overloads = [
-                m for m in overloads
-                if len(m.cpp_method.parameters) == len(method.parameters)
-            ]
-            if len(same_params_overloads) == 2:
-                const_versions = [m for m in same_params_overloads if m.cpp_method.is_const]
-                non_const_versions = [m for m in same_params_overloads if not m.cpp_method.is_const]
+            # Group overloads by parameter signature (count + types)
+            def _param_sig(m):
+                return tuple(p.type_str for p in m.cpp_method.parameters)
+
+            my_sig = _param_sig(merged_method)
+            same_sig_overloads = [m for m in overloads if _param_sig(m) == my_sig]
+
+            if len(same_sig_overloads) == 2:
+                const_versions = [m for m in same_sig_overloads if m.cpp_method.is_const]
+                non_const_versions = [m for m in same_sig_overloads if not m.cpp_method.is_const]
                 if const_versions and non_const_versions:
-                    # This is a const/non-const pair - skip the non-const version
+                    # This is a const/non-const pair with same params - skip non-const
                     if not method.is_const:
                         return None
+            # Otherwise: different parameter signatures — emit all, nanobind dispatches
+
+        # Phase 2: Detect output parameter pattern
+        # void f(T& out) or void f(const X& in, T& out) where non-const ref params are outputs
+        output_param_result = self._try_generate_output_param_wrapper(
+            method, qualified_name, method_name, merged_method.doc, merged_class
+        )
+        if output_param_result is not None:
+            return output_param_result
 
         # Build lambda parameters
         params_decl, params_call, param_names_arg = self._build_lambda_params(method)
@@ -4895,13 +4818,187 @@ class NanobindEmitter:
             lambda_sig = f"[]({self_decl})"
             call_expr = f"self.{method.name}()"
 
+        # Phase 3 & 4: Detect return type policies
+        ret_type = method.return_type or ""
+        canonical_ret = getattr(method, 'canonical_return_type', ret_type)
+        rv_policy = ""
+        explicit_return_type = ""
+
+        # Phase 3: Pointer return → rv_policy::reference or reference_internal
+        if '*' in ret_type and 'shared_ptr' not in ret_type:
+            if 'const' in ret_type:
+                rv_policy = ", nb::rv_policy::reference"
+            else:
+                rv_policy = ", nb::rv_policy::reference_internal"
+
+        # Phase 4: Reference return → rv_policy::reference_internal with explicit return type
+        elif '&' in ret_type and '&&' not in ret_type:
+            # Strip the return type to check if it's a primitive
+            bare_ret = ret_type.replace('const ', '').replace('&', '').strip()
+            canonical_bare = canonical_ret.replace('const ', '').replace('&', '').strip()
+            if (bare_ret not in _PRIMITIVE_TYPES and canonical_bare not in _PRIMITIVE_TYPES
+                    and bare_ret not in _TYPE_CASTER_TYPES and canonical_bare not in _TYPE_CASTER_TYPES):
+                rv_policy = ", nb::rv_policy::reference_internal"
+                # Lambda must have explicit return type for references
+                norm_ret = self._normalize_type(ret_type, preserve_reference=True, canonical_type=canonical_ret)
+                # Ensure the return type has a reference
+                if '&' not in norm_ret:
+                    if 'const' in ret_type:
+                        norm_ret = f"const {norm_ret}&"
+                    else:
+                        norm_ret = f"{norm_ret}&"
+                explicit_return_type = f" -> {norm_ret}"
+
         # Build def call
-        result = f'.def("{method_name}", {lambda_sig} {{ return {call_expr}; }}'
+        if explicit_return_type:
+            result = f'.def("{method_name}", {lambda_sig}{explicit_return_type} {{ return {call_expr}; }}'
+        else:
+            result = f'.def("{method_name}", {lambda_sig} {{ return {call_expr}; }}'
         if param_names_arg:
             result += f", {', '.join(param_names_arg)}"
+        if rv_policy:
+            result += rv_policy
         if merged_method.doc:
             doc = self._escape_string(merged_method.doc)
             result += f', "{doc}"'
+        result += ")"
+
+        return result
+
+    def _try_generate_output_param_wrapper(
+        self,
+        method: CppMethod,
+        qualified_name: str,
+        method_name: str,
+        doc: str = "",
+        merged_class: Optional[MergedClass] = None,
+    ) -> Optional[str]:
+        """Try to generate an output parameter wrapper for void methods.
+
+        Detects pattern: void f(T& out) or void f(const X& in, T& out)
+        where non-const reference params are output-only.
+
+        Returns the binding code if output param pattern is detected, None otherwise.
+        """
+        ret_type = (method.return_type or "").strip()
+        canonical_ret = getattr(method, 'canonical_return_type', ret_type).strip()
+
+        # Only applies to void methods
+        if ret_type != "void" and canonical_ret != "void":
+            return None
+
+        # Find non-const reference parameters (output params)
+        output_params = []
+        input_params = []
+        for p in method.parameters:
+            is_ref = getattr(p, 'is_reference', False) or '&' in p.type_str
+            is_const = getattr(p, 'is_const', False) or 'const' in p.type_str
+            if is_ref and not is_const:
+                output_params.append(p)
+            else:
+                input_params.append(p)
+
+        # Must have at least one output param
+        if not output_params:
+            return None
+
+        # Conservative: only auto-detect when ALL non-const ref params are outputs
+        # and there's at least one such param
+        # Skip if too many output params (complex case, leave to SPECIAL_METHODS)
+        if len(output_params) > 2:
+            return None
+
+        # Check for ambiguous overloads: if other overloads of the same method
+        # would produce the same Python signature after output param removal, skip
+        if merged_class is not None:
+            overloads = [m for m in merged_class.methods if m.cpp_method.name == method.name]
+            if len(overloads) > 1:
+                # Count how many overloads would have the same input param count
+                my_input_count = len(input_params)
+                same_input_count = 0
+                for m in overloads:
+                    other = m.cpp_method
+                    other_inputs = sum(
+                        1 for p in other.parameters
+                        if (getattr(p, 'is_const', False) or 'const' in p.type_str)
+                        or not (getattr(p, 'is_reference', False) or '&' in p.type_str)
+                    )
+                    if other_inputs == my_input_count:
+                        same_input_count += 1
+                if same_input_count > 1:
+                    # Multiple overloads would have same Python signature — skip
+                    return None
+
+        # Build the wrapper
+        const_qual = "const " if method.is_const else ""
+        self_decl = f"{const_qual}{qualified_name}& self"
+
+        # Build input param declarations and call args
+        input_decls = []
+        input_args = []
+        call_args = []
+        for p in method.parameters:
+            is_ref = getattr(p, 'is_reference', False) or '&' in p.type_str
+            is_const = getattr(p, 'is_const', False) or 'const' in p.type_str
+            ptype = self._normalize_type(
+                p.type_str,
+                canonical_type=getattr(p, 'canonical_type', ''),
+            )
+            valid_name = (
+                p.name and not p.name.startswith("arg") and p.name not in CPP_KEYWORDS
+            )
+            pname = p.name if valid_name else f"p{len(input_decls) + len(call_args)}"
+
+            if is_ref and not is_const:
+                # Output param: declare local variable, pass to method
+                # Strip reference from type for local variable declaration
+                local_type = ptype.replace('&', '').strip()
+                call_args.append(("output", pname, local_type))
+            else:
+                # Input param: include in lambda signature
+                if is_ref and '&' not in ptype:
+                    ptype = f"const {ptype}&" if is_const else f"{ptype}&"
+                input_decls.append(f"{ptype} {pname}")
+                if valid_name:
+                    input_args.append(f'"{p.name}"_a')
+                call_args.append(("input", pname, ptype))
+
+        # Build the lambda body
+        local_vars = []
+        method_call_args = []
+        return_vars = []
+        for kind, name, type_str in call_args:
+            if kind == "output":
+                local_vars.append(f"{type_str} {name}")
+                method_call_args.append(name)
+                return_vars.append(name)
+            else:
+                method_call_args.append(name)
+
+        # Build lambda
+        if input_decls:
+            lambda_params = f"{self_decl}, {', '.join(input_decls)}"
+        else:
+            lambda_params = self_decl
+
+        body_parts = []
+        for lv in local_vars:
+            body_parts.append(f"{lv};")
+        body_parts.append(f"self.{method.name}({', '.join(method_call_args)});")
+
+        if len(return_vars) == 1:
+            body_parts.append(f"return {return_vars[0]};")
+        else:
+            # Multiple output params → return as tuple
+            body_parts.append(f"return std::make_tuple({', '.join(return_vars)});")
+
+        body = " ".join(body_parts)
+        result = f'.def("{method_name}", []({lambda_params}) {{ {body} }}'
+        if input_args:
+            result += f", {', '.join(input_args)}"
+        if doc:
+            escaped_doc = self._escape_string(doc)
+            result += f', "{escaped_doc}"'
         result += ")"
 
         return result
@@ -4924,6 +5021,12 @@ class NanobindEmitter:
         if len(method.parameters) > 8:
             return None
 
+        # Detect output parameter pattern for static methods
+        output_result = self._try_generate_static_output_param_wrapper(
+            method, qualified_name, method_name, doc
+        )
+        if output_result is not None:
+            return output_result
 
         # Build lambda parameters
         params_decl, params_call, param_names_arg = self._build_lambda_params(method)
@@ -4936,12 +5039,114 @@ class NanobindEmitter:
             lambda_sig = "[]()"
             call_expr = f"{qualified_name}::{method.name}()"
 
+        # Detect return type policies for static methods
+        ret_type = method.return_type or ""
+        rv_policy = ""
+
+        if '*' in ret_type and 'shared_ptr' not in ret_type:
+            if 'const' in ret_type:
+                rv_policy = ", nb::rv_policy::reference"
+            else:
+                rv_policy = ", nb::rv_policy::reference"
+
         # Build def_static call
         result = f'.def_static("{method_name}", {lambda_sig} {{ return {call_expr}; }}'
         # Only add arg annotations if ALL parameters have valid names
         # (nanobind requires either all or none)
         if param_names_arg and len(param_names_arg) == len(method.parameters):
             result += f", {', '.join(param_names_arg)}"
+        if rv_policy:
+            result += rv_policy
+        if doc:
+            escaped_doc = self._escape_string(doc)
+            result += f', "{escaped_doc}"'
+        result += ")"
+
+        return result
+
+    def _try_generate_static_output_param_wrapper(
+        self,
+        method: CppMethod,
+        qualified_name: str,
+        method_name: str,
+        doc: str = "",
+    ) -> Optional[str]:
+        """Try to generate output param wrapper for static void methods."""
+        ret_type = (method.return_type or "").strip()
+        canonical_ret = getattr(method, 'canonical_return_type', ret_type).strip()
+
+        if ret_type != "void" and canonical_ret != "void":
+            return None
+
+        output_params = []
+        input_params = []
+        for p in method.parameters:
+            is_ref = getattr(p, 'is_reference', False) or '&' in p.type_str
+            is_const = getattr(p, 'is_const', False) or 'const' in p.type_str
+            if is_ref and not is_const:
+                output_params.append(p)
+            else:
+                input_params.append(p)
+
+        if not output_params or len(output_params) > 2:
+            return None
+
+        input_decls = []
+        input_args = []
+        call_args = []
+        for p in method.parameters:
+            is_ref = getattr(p, 'is_reference', False) or '&' in p.type_str
+            is_const = getattr(p, 'is_const', False) or 'const' in p.type_str
+            ptype = self._normalize_type(
+                p.type_str,
+                canonical_type=getattr(p, 'canonical_type', ''),
+            )
+            valid_name = (
+                p.name and not p.name.startswith("arg") and p.name not in CPP_KEYWORDS
+            )
+            pname = p.name if valid_name else f"p{len(input_decls) + len(call_args)}"
+
+            if is_ref and not is_const:
+                local_type = ptype.replace('&', '').strip()
+                call_args.append(("output", pname, local_type))
+            else:
+                if is_ref and '&' not in ptype:
+                    ptype = f"const {ptype}&" if is_const else f"{ptype}&"
+                input_decls.append(f"{ptype} {pname}")
+                if valid_name:
+                    input_args.append(f'"{p.name}"_a')
+                call_args.append(("input", pname, ptype))
+
+        local_vars = []
+        method_call_args = []
+        return_vars = []
+        for kind, name, type_str in call_args:
+            if kind == "output":
+                local_vars.append(f"{type_str} {name}")
+                method_call_args.append(name)
+                return_vars.append(name)
+            else:
+                method_call_args.append(name)
+
+        if input_decls:
+            lambda_params = ', '.join(input_decls)
+        else:
+            lambda_params = ""
+
+        body_parts = []
+        for lv in local_vars:
+            body_parts.append(f"{lv};")
+        body_parts.append(f"{qualified_name}::{method.name}({', '.join(method_call_args)});")
+
+        if len(return_vars) == 1:
+            body_parts.append(f"return {return_vars[0]};")
+        else:
+            body_parts.append(f"return std::make_tuple({', '.join(return_vars)});")
+
+        body = " ".join(body_parts)
+        result = f'.def_static("{method_name}", []({lambda_params}) {{ {body} }}'
+        if input_args:
+            result += f", {', '.join(input_args)}"
         if doc:
             escaped_doc = self._escape_string(doc)
             result += f', "{escaped_doc}"'

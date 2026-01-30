@@ -6,6 +6,11 @@ from . import addon
 
 
 @addon("MSChromatogram")
+def __repr__(self) -> str:
+    return f"MSChromatogram(native_id='{self.getNativeID()}', num_peaks={len(self)})"
+
+
+@addon("MSChromatogram")
 def df_columns(self, columns='default', export_meta_values=True):
     """Returns a list of column names that to_df() would produce."""
     cols = ['rt', 'intensity', 'precursor_mz', 'precursor_charge',
