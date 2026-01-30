@@ -184,7 +184,7 @@ namespace OpenMS
     sqlite3_stmt * cntstmt;
     sqlite3_stmt * stmt;
 
-    startProgress(0, 1, "reading PQP file (SQL warmup)");
+    prog_log_.startProgress(0, 1, "reading PQP file (SQL warmup)");
 
     // Open database
     SqliteConnector conn(filename);
@@ -202,14 +202,14 @@ namespace OpenMS
     // Execute SQL select statement
     SqliteConnector::prepareStatement(db, &stmt, query_info.select_sql);
     sqlite3_step(stmt);
-    endProgress();
+    prog_log_.endProgress();
 
     Size progress = 0;
-    startProgress(0, num_transitions, "reading PQP file");
+    prog_log_.startProgress(0, num_transitions, "reading PQP file");
     // Convert SQLite data to TSVTransition data structure
     while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
       TSVTransition mytransition;
 
       Sql::extractValue<double>(&mytransition.precursor, stmt, 0);
@@ -251,7 +251,7 @@ namespace OpenMS
       transition_list.push_back(mytransition);
       sqlite3_step( stmt );
     }
-    endProgress();
+    prog_log_.endProgress();
 
     sqlite3_finalize(stmt);
   }
@@ -266,7 +266,7 @@ namespace OpenMS
     sqlite3_stmt * cntstmt;
     sqlite3_stmt * stmt;
 
-    startProgress(0, 1, "reading PQP file (SQL warmup)");
+    prog_log_.startProgress(0, 1, "reading PQP file (SQL warmup)");
 
     // Open database
     SqliteConnector conn(filename);
@@ -284,15 +284,15 @@ namespace OpenMS
     // Execute SQL select statement
     SqliteConnector::prepareStatement(db, &stmt, query_info.select_sql);
     sqlite3_step(stmt);
-    endProgress();
+    prog_log_.endProgress();
 
     Size progress = 0;
-    startProgress(0, num_transitions, "streaming PQP to LightTargetedExperiment");
+    prog_log_.startProgress(0, num_transitions, "streaming PQP to LightTargetedExperiment");
 
     // Stream SQL results directly to LightTargetedExperiment
     while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
     {
-      setProgress(progress++);
+      prog_log_.setProgress(progress++);
 
       // Extract values directly into variables
       double precursor_mz = 0, product_mz = 0, rt_calibrated = 0, library_intensity = 0, drift_time = -1;
@@ -454,7 +454,7 @@ namespace OpenMS
 
       sqlite3_step(stmt);
     }
-    endProgress();
+    prog_log_.endProgress();
 
     sqlite3_finalize(stmt);
   }

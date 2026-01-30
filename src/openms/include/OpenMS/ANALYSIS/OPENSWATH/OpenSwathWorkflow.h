@@ -215,6 +215,14 @@ protected:
      **/
     int threads_outer_loop_;
 
+    ProgressLogger prog_log_;
+
+public:
+  /// Non-mutable access to the progress logger
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  /// Mutable access to the progress logger
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+
 };
 
   /**
@@ -597,15 +605,6 @@ protected:
     void copyBatchTransitions_(const std::vector<OpenSwath::LightCompound>& used_compounds,
       const std::vector<OpenSwath::LightTransition>& all_transitions,
       std::vector<OpenSwath::LightTransition>& output);
-
-public:
-  /// Non-mutable access to the progress logger
-  const ProgressLogger& getProgressLogger() const { return prog_log_; }
-  /// Mutable access to the progress logger
-  ProgressLogger& getProgressLogger() { return prog_log_; }
-
-protected:
-  ProgressLogger prog_log_;
 
   };
 }
