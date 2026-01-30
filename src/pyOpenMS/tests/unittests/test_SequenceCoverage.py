@@ -4,6 +4,17 @@ import pyopenms as oms
 
 class TestSequenceCoverage(unittest.TestCase):
 
+    def test_peptide_multiple_occurrences(self):
+        """Test peptide mapping multiple times covers all occurrences"""
+        protein = oms.AASequence.fromString("PEPTIDEPEPTIDE")
+        peptides = [
+            oms.AASequence.fromString("PEPTIDE")
+        ]
+        
+        # PEPTIDE occurs twice and covers the entire protein
+        coverage = oms.SequenceCoverage.getCoverage(protein, peptides)
+        self.assertAlmostEqual(coverage, 100.0, places=6)
+
     def test_partial_coverage(self):
         """Partial sequence coverage is computed correctly"""
         protein = oms.AASequence.fromString("PEPTIDEAAAAAA")
@@ -11,7 +22,7 @@ class TestSequenceCoverage(unittest.TestCase):
             oms.AASequence.fromString("PEPTIDE")
         ]
 
-        # PEPTIDE covers 7 of 14 amino acids
+        # PEPTIDE covers 7 of 14 amino acids (Single occurence)
         coverage = oms.SequenceCoverage.getCoverage(protein, peptides)
         self.assertAlmostEqual(coverage, 50.0, places=6)
 
