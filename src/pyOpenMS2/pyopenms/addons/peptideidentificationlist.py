@@ -36,7 +36,6 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
 
     # get type of all metavalues
     for k in metavals:
-        k_bytes = k.encode('utf-8') if isinstance(k, str) else k
         k_str = k.decode('utf-8') if isinstance(k, bytes) else k
         if k_str == "target_decoy":
             types.append('?')
@@ -79,11 +78,8 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
     def extract(pep, pep_idx):
         hits = pep.getHits()
         if not hits:
-            if export_unidentified:
-                return (pep.getIdentifier(), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int],
-                        default_missing_values[str], default_missing_values[str], default_missing_values[str], pep_idx, default_missing_values[int], *dmv)
-            else:
-                return
+            return (pep.getIdentifier(), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int],
+                    default_missing_values[str], default_missing_values[str], default_missing_values[str], pep_idx, default_missing_values[int], *dmv)
 
         besthit = hits[0]
         ret = [pep.getIdentifier(), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()]
@@ -108,7 +104,12 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
                 ret.append(dmv[idx])
         return tuple(ret)
 
-    return pd.DataFrame(np.fromiter((extract(pep, pep_idx) for pep_idx, pep in enumerate(self)), dtype=dt, count=count))
+    if export_unidentified:
+        rows = (extract(pep, pep_idx) for pep_idx, pep in enumerate(self))
+    else:
+        rows = (extract(pep, pep_idx) for pep_idx, pep in enumerate(self) if pep.getHits())
+
+    return pd.DataFrame(np.fromiter(rows, dtype=dt, count=count))
 
 
 @addon("PeptideIdentificationList")

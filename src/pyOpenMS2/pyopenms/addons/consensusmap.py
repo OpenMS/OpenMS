@@ -5,6 +5,11 @@ from . import addon
 
 
 @addon("ConsensusMap")
+def __repr__(self) -> str:
+    return f"ConsensusMap(num_consensus_features={len(self)})"
+
+
+@addon("ConsensusMap")
 def df_columns(self, columns='default'):
     """Returns a list of column names that to_df() would produce."""
     cols = ['sequence', 'charge', 'rt', 'mz', 'quality']
