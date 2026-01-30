@@ -249,11 +249,13 @@ set(format_executables_list
   SequestOutfile_test
   SpecArrayFile_test
   SqMassFile_test
+  MRMFile_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
   SwathWindowLoader_test
   TextFile_test
+  TargetedDataFileLoader_test
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
@@ -502,6 +504,10 @@ set(analysis_executables_list
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
   MRMMapping_test
+  MRMChromHandler_test
+  DefaultChromHandler_test
+  DIAChromHandler_test
+  ChromatogramProcessor_test
   MRMScoring_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test

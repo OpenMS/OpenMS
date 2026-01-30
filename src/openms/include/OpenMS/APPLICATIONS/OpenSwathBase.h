@@ -100,6 +100,7 @@ namespace OpenMS
      * @param[in] file_list The input file(s)
      * @param[out] exp_meta The output (meta data about experiment)
      * @param[out] swath_maps The output (ptr to raw data)
+     * @param[out] swath_map_sources The source files corresponding to each swath map. This is used to track when multiple experiment input files are provided.
      * @param[in] split_file If loading a single file that contains a single SWATH window
      * @param[in] tmp Temporary directory
      * @param[in] readoptions Description on how to read the data ("normal", "cache")
@@ -117,6 +118,7 @@ namespace OpenMS
     bool loadSwathFiles(const StringList& file_list,
                         std::shared_ptr<ExperimentalSettings >& exp_meta,
                         std::vector< OpenSwath::SwathMap >& swath_maps,
+                        std::vector<String> & swath_map_sources,
                         const bool split_file,
                         const String& tmp,
                         const String& readoptions,
@@ -181,6 +183,7 @@ namespace OpenMS
      * @param[in] cp_irt Parameter set for the chromatogram extraction
      * @param[in] irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
      * @param[in] calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
+     * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
      * @param[in] debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      * @param[in] pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor centered around IM) is chosen.
      * @param[in] load_into_memory Whether to cache the current SWATH map in memory
@@ -205,6 +208,7 @@ namespace OpenMS
                                          const ChromExtractParams& cp_irt,
                                          const Param& irt_detection_param,
                                          const Param& calibration_param,
+                                         const Param& mrm_mapping_param,
                                          Size debug_level,
                                          bool pasef,
                                          bool load_into_memory,
@@ -218,6 +222,7 @@ namespace OpenMS
                          const String& readoptions,
                          std::shared_ptr<ExperimentalSettings > & exp_meta,
                          std::vector< OpenSwath::SwathMap > & swath_maps,
+                         std::vector<String> & swath_map_sources,
                          Interfaces::IMSDataConsumer* plugin_consumer);
   }; // end TOPPOpenSwathBase
 } //  end NS OpenMS
