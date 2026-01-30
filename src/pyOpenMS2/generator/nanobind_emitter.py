@@ -1178,6 +1178,23 @@ _TYPE_CASTER_TYPES = {
     'OpenMS::ParamValue', 'ParamValue',
 }
 
+# Method name prefixes that indicate output-parameter semantics (void f(T& out)).
+# Only void methods matching these prefixes will have non-const ref params
+# auto-wrapped as return values. Methods like merge(T&) or update(T&) are
+# input-output and must NOT be default-constructed by the wrapper.
+_OUTPUT_METHOD_PREFIXES = (
+    'get', 'extract', 'fill', 'compute', 'calculate', 'collect',
+    'retrieve', 'fetch', 'load', 'read', 'find', 'lookup',
+)
+
+# Public field type patterns that nanobind cannot handle.
+_UNBINDABLE_FIELD_PATTERNS = (
+    'std::function', 'std::unique_ptr', 'std::weak_ptr',
+    '(*)', 'void (*', 'void(*',
+    'std::mutex', 'std::atomic', 'std::thread',
+    'std::condition_variable', 'boost::',
+)
+
 # Special method implementations for critical classes
 # These are C++ lambdas that implement Python methods
 SPECIAL_METHODS = {
@@ -3931,6 +3948,12 @@ class NanobindEmitter:
                 continue  # Already emitted from pxd
             if cpp_field.name in special_field_names or cpp_field.name in skip_field_names:
                 continue
+            # Skip fields with types that nanobind cannot handle
+            field_type = cpp_field.type_str
+            canonical_field = cpp_field.canonical_type or field_type
+            if any(pat in field_type or pat in canonical_field
+                   for pat in _UNBINDABLE_FIELD_PATTERNS):
+                continue
             if cpp_field.is_const:
                 lines.append(f'        .def_ro("{cpp_field.name}", &{qualified_name}::{cpp_field.name})')
             else:
@@ -3993,7 +4016,14 @@ class NanobindEmitter:
 
         # Auto-generate singleton getInstance if detected and not in SPECIAL_METHODS
         if is_singleton and not (class_name in SPECIAL_METHODS and "getInstance" in SPECIAL_METHODS[class_name]):
-            lines.append(f'        .def_static("getInstance", []() -> {qualified_name}* {{ return {qualified_name}::getInstance(); }}, nb::rv_policy::reference, "Returns the singleton instance")')
+            # Read the actual return type from the C++ method to preserve const-correctness
+            singleton_ret = f"{qualified_name}*"
+            for cpp_m in merged_class.cpp_class.methods:
+                if cpp_m.name == "getInstance" and cpp_m.is_static:
+                    if cpp_m.return_type and 'const' in cpp_m.return_type:
+                        singleton_ret = f"const {qualified_name}*"
+                    break
+            lines.append(f'        .def_static("getInstance", []() -> {singleton_ret} {{ return {qualified_name}::getInstance(); }}, nb::rv_policy::reference, "Returns the singleton instance")')
 
         # Close class definition
         lines.append("        ;")
@@ -4824,12 +4854,12 @@ class NanobindEmitter:
         rv_policy = ""
         explicit_return_type = ""
 
-        # Phase 3: Pointer return → rv_policy::reference or reference_internal
+        # Phase 3: Pointer return → rv_policy::reference_internal
+        # For instance methods, the returned pointer's lifetime is tied to `self`,
+        # so we use reference_internal regardless of const to prevent the parent
+        # from being garbage-collected while the returned object is alive.
         if '*' in ret_type and 'shared_ptr' not in ret_type:
-            if 'const' in ret_type:
-                rv_policy = ", nb::rv_policy::reference"
-            else:
-                rv_policy = ", nb::rv_policy::reference_internal"
+            rv_policy = ", nb::rv_policy::reference_internal"
 
         # Phase 4: Reference return → rv_policy::reference_internal with explicit return type
         elif '&' in ret_type and '&&' not in ret_type:
@@ -4885,6 +4915,10 @@ class NanobindEmitter:
 
         # Only applies to void methods
         if ret_type != "void" and canonical_ret != "void":
+            return None
+
+        # Only auto-wrap methods whose name strongly suggests output semantics.
+        if not any(method.name.startswith(p) for p in _OUTPUT_METHOD_PREFIXES):
             return None
 
         # Find non-const reference parameters (output params)
@@ -5043,11 +5077,10 @@ class NanobindEmitter:
         ret_type = method.return_type or ""
         rv_policy = ""
 
+        # Static methods have no `self` to tie lifetime to, so always use
+        # rv_policy::reference for pointer returns (caller must manage lifetime).
         if '*' in ret_type and 'shared_ptr' not in ret_type:
-            if 'const' in ret_type:
-                rv_policy = ", nb::rv_policy::reference"
-            else:
-                rv_policy = ", nb::rv_policy::reference"
+            rv_policy = ", nb::rv_policy::reference"
 
         # Build def_static call
         result = f'.def_static("{method_name}", {lambda_sig} {{ return {call_expr}; }}'
@@ -5076,6 +5109,10 @@ class NanobindEmitter:
         canonical_ret = getattr(method, 'canonical_return_type', ret_type).strip()
 
         if ret_type != "void" and canonical_ret != "void":
+            return None
+
+        # Only auto-wrap methods whose name strongly suggests output semantics.
+        if not any(method.name.startswith(p) for p in _OUTPUT_METHOD_PREFIXES):
             return None
 
         output_params = []
