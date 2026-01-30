@@ -3775,16 +3775,61 @@ class NanobindEmitter:
         # by libclang, so we check multiple sources: cpp_class.operators, merged methods,
         # and the pxd-declared method list (which always includes operator[] if declared).
         if has_size and not is_vector_based and "__getitem__" not in special_dunders:
+            # Find operator[] and its return type from multiple sources:
+            # 1. Direct operators on the class (libclang)
+            # 2. Merged methods from pxd (may include inherited operator[])
+            # 3. CONTAINER_CLASSES fallback (ExposedVector<T> base)
+            bracket_op = None
+            for m in getattr(merged_class.cpp_class, 'operators', []):
+                if m.name == "operator[]" and not m.is_const:
+                    bracket_op = m
+                    break
+            if bracket_op is None:
+                for m in getattr(merged_class.cpp_class, 'operators', []):
+                    if m.name == "operator[]":
+                        bracket_op = m
+                        break
+            # Also check merged methods (pxd-declared operator[] with return type)
+            if bracket_op is None:
+                for m in merged_class.methods:
+                    if m.cpp_method.name == "operator[]" and not m.cpp_method.is_const:
+                        bracket_op = m.cpp_method
+                        break
+                if bracket_op is None:
+                    for m in merged_class.methods:
+                        if m.cpp_method.name == "operator[]":
+                            bracket_op = m.cpp_method
+                            break
             has_bracket = (
-                any(m.name == "operator[]" for m in getattr(merged_class.cpp_class, 'operators', []))
-                or any(m.cpp_method.name == "operator[]" for m in merged_class.methods)
+                bracket_op is not None
                 or class_name in CONTAINER_CLASSES  # ExposedVector<T> base provides operator[]
             )
             if has_bracket:
-                lines.append(f'        .def("__getitem__", []({qualified_name}& self, size_t i) {{ ')
-                lines.append(f'            if (i >= self.size()) throw nb::index_error();')
-                lines.append(f'            return self[i];')
-                lines.append(f'        }})')
+                # Determine if operator[] returns a reference (use reference_internal)
+                ret = bracket_op.return_type if bracket_op else None
+                # For ExposedVector-based CONTAINER_CLASSES without a detected operator[],
+                # infer the element type from the class (operator[] returns T&)
+                if ret is None and class_name in CONTAINER_CLASSES:
+                    elem_type = self._get_exposed_vector_element_type(class_name)
+                    if elem_type:
+                        ret = f"{elem_type} &"
+                is_ref_return = (ret and '&' in ret and '&&' not in ret
+                                 and ret.replace('const ', '').replace('&', '').strip() not in _PRIMITIVE_TYPES
+                                 and ret.replace('const ', '').replace('&', '').strip() not in _TYPE_CASTER_TYPES)
+                if is_ref_return:
+                    norm_ret = self._normalize_type(ret, preserve_reference=True,
+                                                     canonical_type=getattr(bracket_op, 'canonical_return_type', ret))
+                    if '&' not in norm_ret:
+                        norm_ret = f"{norm_ret}&"
+                    lines.append(f'        .def("__getitem__", []({qualified_name}& self, size_t i) -> {norm_ret} {{ ')
+                    lines.append(f'            if (i >= self.size()) throw nb::index_error();')
+                    lines.append(f'            return self[i];')
+                    lines.append(f'        }}, nb::rv_policy::reference_internal)')
+                else:
+                    lines.append(f'        .def("__getitem__", []({qualified_name}& self, size_t i) {{ ')
+                    lines.append(f'            if (i >= self.size()) throw nb::index_error();')
+                    lines.append(f'            return self[i];')
+                    lines.append(f'        }})')
 
         # Add special methods for this class (get_peaks, set_peaks, etc.)
         post_class_code = []
@@ -3961,6 +4006,20 @@ class NanobindEmitter:
             "StringDataArray": "OpenMS::String",
         }
         return element_types.get(class_name)
+
+    def _get_exposed_vector_element_type(self, class_name: str) -> Optional[str]:
+        """Get element type for ExposedVector-based container classes.
+
+        These classes use composition (ExposedVector<T>) rather than std::vector
+        inheritance, so _get_vector_element_type won't detect them. Their operator[]
+        returns T& but isn't visible to libclang as a direct method.
+        """
+        exposed_vector_types = {
+            "MSExperiment": "OpenMS::MSSpectrum",
+            "FeatureMap": "OpenMS::Feature",
+            "ConsensusMap": "OpenMS::ConsensusFeature",
+        }
+        return exposed_vector_types.get(class_name)
 
     def _get_bound_base_classes(
         self, merged_class: MergedClass, module_class_names: Optional[Set[str]] = None
@@ -4351,10 +4410,31 @@ class NanobindEmitter:
 
                 named_args = ''.join(f', "{p.name}"_a' for p in method.parameters)
 
+                # Detect rv_policy for reference/pointer returns (same logic as regular methods)
+                rv_policy = ""
+                explicit_return_type = ""
+                if ret_type != "void":
+                    if '*' in ret_type and 'shared_ptr' not in ret_type:
+                        rv_policy = ", nb::rv_policy::reference_internal"
+                    elif '&' in ret_type and '&&' not in ret_type:
+                        bare_ret = ret_type.replace('const ', '').replace('&', '').strip()
+                        if bare_ret not in _PRIMITIVE_TYPES and bare_ret not in _TYPE_CASTER_TYPES:
+                            rv_policy = ", nb::rv_policy::reference_internal"
+                            # Lambda needs explicit return type for references
+                            norm_ret = ret_type.strip()
+                            if '&' not in norm_ret:
+                                norm_ret = f"{norm_ret}&"
+                            explicit_return_type = f" -> {norm_ret}"
+
                 python_name = merged_method.wrap_as or method_name
-                lines.append(
-                    f'        .def("{python_name}", []({lambda_params}) {{ {body}; }}{named_args})'
-                )
+                if explicit_return_type:
+                    lines.append(
+                        f'        .def("{python_name}", []({lambda_params}){explicit_return_type} {{ {body}; }}{named_args}{rv_policy})'
+                    )
+                else:
+                    lines.append(
+                        f'        .def("{python_name}", []({lambda_params}) {{ {body}; }}{named_args}{rv_policy})'
+                    )
 
             # Add member variable bindings
             for mv in getattr(merged_class, 'member_variables', []):
@@ -5003,13 +5083,25 @@ class NanobindEmitter:
                 self._has_size_method(merged_class)
                 or (merged_class.name in CONTAINER_CLASSES)
             )
+            # Detect if operator[] returns a non-primitive reference
+            ret_type = method.return_type or ""
+            needs_ref_policy = (
+                '&' in ret_type and '&&' not in ret_type
+                and 'const' not in ret_type
+            )
+            if needs_ref_policy:
+                bare_ret = ret_type.replace('&', '').strip()
+                if bare_ret in _PRIMITIVE_TYPES or bare_ret in _TYPE_CASTER_TYPES:
+                    needs_ref_policy = False
+            rv_suffix = ", nb::rv_policy::reference_internal" if needs_ref_policy else ""
+            ret_arrow = f" -> {ret_type}" if needs_ref_policy else ""
             if has_size:
                 return (
-                    f'.def("__getitem__", []({qualified_name}& self, size_t i) {{ '
+                    f'.def("__getitem__", []({qualified_name}& self, size_t i){ret_arrow} {{ '
                     f'if (i >= self.size()) throw nb::index_error(); '
-                    f'return self[i]; }})'
+                    f'return self[i]; }}{rv_suffix})'
                 )
-            return f'.def("__getitem__", []({qualified_name}& self, size_t i) {{ return self[i]; }})'
+            return f'.def("__getitem__", []({qualified_name}& self, size_t i){ret_arrow} {{ return self[i]; }}{rv_suffix})'
         elif op_name in ["==", "!=", "<", "<=", ">", ">="]:
             return f'.def(nb::self {op_name} nb::self)'
         elif op_name in ["+", "-", "*", "/"]:
