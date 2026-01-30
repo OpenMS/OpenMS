@@ -17,12 +17,12 @@ class TestSequenceCoverage(unittest.TestCase):
 
     def test_partial_coverage(self):
         """Partial sequence coverage is computed correctly"""
-        protein = oms.AASequence.fromString("PEPTIDEAAAAAA")
+        protein = oms.AASequence.fromString("PEPTIDEAAAAAAA")
         peptides = [
             oms.AASequence.fromString("PEPTIDE")
         ]
 
-        # PEPTIDE covers 7 of 14 amino acids (Single occurence)
+        # PEPTIDE covers 7 of 14 amino acids (single occurrence)
         coverage = oms.SequenceCoverage.getCoverage(protein, peptides)
         self.assertAlmostEqual(coverage, 50.0, places=6)
 
