@@ -12,14 +12,14 @@ Usage:
 """
 
 from .pxd_parser import PxdParser
-from .nanobind_emitter_v2 import NanobindEmitterV2
+from .nanobind_emitter import NanobindEmitter
 from .type_registry import TypeRegistry
 from .addon_processor import AddonProcessor
 from .cpp_parser import CppHeaderParser, MergedClass, MergedMethod
 
 __all__ = [
     "PxdParser",
-    "NanobindEmitterV2",
+    "NanobindEmitter",
     "TypeRegistry",
     "AddonProcessor",
     "CppHeaderParser",
