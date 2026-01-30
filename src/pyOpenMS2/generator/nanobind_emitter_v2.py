@@ -2861,12 +2861,7 @@ SPECIAL_METHODS = {
             [](OpenMS::MRMFeatureQC& self) -> std::vector<OpenMS::MRMFeatureQC::ComponentGroupPairQCs>& { return self.component_group_pair_qcs; },
             [](OpenMS::MRMFeatureQC& self, std::vector<OpenMS::MRMFeatureQC::ComponentGroupPairQCs> v) { self.component_group_pair_qcs = std::move(v); })''',
     },
-    "ConvexHull2D": {
-        "getBoundingBox": '''
-        .def("getBoundingBox", [](const OpenMS::ConvexHull2D& self) {
-            return self.getBoundingBox();
-        }, "Returns the bounding box")''',
-    },
+    # ConvexHull2D.getBoundingBox: auto-generated (template incomplete type fix)
     "PeakIntegrator": {
         "integratePeak_chrom": '''
         .def("integratePeak", [](OpenMS::PeakIntegrator& self, const OpenMS::MSChromatogram& chrom, double left, double right) {
