@@ -163,6 +163,29 @@ def to_arrow(self, data='spectra', format='long', columns=None,
     if max_mz is None:
         max_mz = float('inf')
 
+    # Try zero-copy C++ path first (available when built with WITH_PARQUET)
+    try:
+        from pyopenms._arrow_zerocopy import spectra_to_arrow, chromatograms_to_arrow
+        _use_zerocopy = True
+    except ImportError:
+        _use_zerocopy = False
+
+    if _use_zerocopy:
+        result = {}
+        if data in ('spectra', 'both'):
+            result['spectra'] = spectra_to_arrow(
+                self, format=format, ms_levels=ms_levels,
+                min_rt=min_rt, max_rt=max_rt, min_mz=min_mz, max_mz=max_mz,
+                columns=columns, include_precursor_info=include_precursor_info,
+                include_ion_mobility=include_ion_mobility)
+        if data in ('chromatograms', 'both'):
+            result['chromatograms'] = chromatograms_to_arrow(
+                self, format=format, min_rt=min_rt, max_rt=max_rt, columns=columns)
+        if data == 'both':
+            return result
+        return result.get('spectra') or result.get('chromatograms')
+
+    # Fall back to pure Python implementation
     result = {}
 
     if data in ('spectra', 'both'):
