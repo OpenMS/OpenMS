@@ -200,6 +200,41 @@ install(TARGETS _pyopenms2
 )
 
 # --------------------------------------------------------------------------
+# Arrow zero-copy export (only when OpenMS was built with Parquet/Arrow)
+# --------------------------------------------------------------------------
+# Check for WITH_PARQUET: try target property first, then fall back to cache variable
+get_target_property(_OPENMS_DEFS ${OPENMS_TARGET} INTERFACE_COMPILE_DEFINITIONS)
+set(_HAS_PARQUET FALSE)
+if(_OPENMS_DEFS)
+    foreach(_def ${_OPENMS_DEFS})
+        if(_def MATCHES "^WITH_PARQUET")
+            set(_HAS_PARQUET TRUE)
+        endif()
+    endforeach()
+endif()
+# Fall back: check if WITH_PARQUET was set in the OpenMS build cache
+if(NOT _HAS_PARQUET AND WITH_PARQUET)
+    set(_HAS_PARQUET TRUE)
+endif()
+if(_HAS_PARQUET)
+    message(STATUS "pyOpenMS2: Building _arrow_zerocopy module (WITH_PARQUET detected)")
+    nanobind_add_module(_arrow_zerocopy
+        NB_DOMAIN pyopenms
+        ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
+    )
+    target_link_libraries(_arrow_zerocopy PRIVATE ${OPENMS_TARGET} ${OPENSWATHALGO_TARGET})
+    target_include_directories(_arrow_zerocopy PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/bindings/type_casters
+    )
+    set_target_properties(_arrow_zerocopy PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/pyopenms"
+    )
+    install(TARGETS _arrow_zerocopy LIBRARY DESTINATION pyopenms)
+else()
+    message(STATUS "pyOpenMS2: Skipping _arrow_zerocopy module (WITH_PARQUET not found)")
+endif()
+
+# --------------------------------------------------------------------------
 # Python package files
 # --------------------------------------------------------------------------
 configure_file(
