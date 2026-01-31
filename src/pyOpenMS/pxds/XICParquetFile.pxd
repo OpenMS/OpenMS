@@ -37,6 +37,42 @@ cdef extern from "<OpenMS/FORMAT/XICParquetFile.h>" namespace "OpenMS":
         DoubleVector rt  # wrap-ignore
         DoubleVector intensity  # wrap-ignore
 
+    cdef cppclass XICRunInfo:
+        # wrap-ignore
+        Int64 run_id
+        String source_file
+
+    cdef cppclass XICAnalyte:
+        # wrap-ignore
+        bool has_precursor_id
+        Int64 precursor_id
+        String modified_sequence
+        bool has_precursor_charge
+        Int64 precursor_charge
+        bool has_precursor_decoy
+        Int64 precursor_decoy
+
+        bool has_transition_id
+        Int64 transition_id
+        bool has_product_charge
+        Int64 product_charge
+        bool has_transition_ordinal
+        Int64 transition_ordinal
+        bool has_detecting_transition
+        Int64 detecting_transition
+        bool has_product_decoy
+        Int64 product_decoy
+        String transition_type
+        String annotation
+
+        vector[Int64] transition_ids
+        vector[Int64] product_charges
+        vector[Int64] transition_ordinals
+        vector[Int64] detecting_transitions
+        vector[Int64] product_decoys
+        vector[String] transition_types
+        vector[String] annotations
+
     cdef cppclass XICParquetFile:
         XICParquetFile(String filename) except + nogil
             # wrap-doc:
@@ -72,3 +108,17 @@ cdef extern from "<OpenMS/FORMAT/XICParquetFile.h>" namespace "OpenMS":
             #  :param ms_level: Optional MS level (-1 to ignore)
             #  :param run_id: Optional run id (-1 to ignore)
             #  :param filter: Optional filter expression string
+
+        void getRuns(vector[XICRunInfo]& output) const  # wrap-ignore
+            # wrap-doc:
+            #  Return unique run metadata (run_id, source_file).
+
+        void getAnalytes(vector[XICAnalyte]& output,
+                         const StringList& columns,
+                         bool nest_transitions) const  # wrap-ignore
+            # wrap-doc:
+            #  Return unique analyte metadata.
+
+        void getColumns(StringList& output) const  # wrap-ignore
+            # wrap-doc:
+            #  Return parquet schema column names.

@@ -83,6 +83,42 @@ START_SECTION(void getChromatograms_multi_file)
 }
 END_SECTION
 
+START_SECTION(void getRuns(std::vector<XICRunInfo>& output) const)
+{
+#ifdef WITH_PARQUET
+  XICParquetFile xic(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
+  std::vector<XICRunInfo> runs;
+  xic.getRuns(runs);
+  TEST_EQUAL(runs.size(), 1)
+  TEST_NOT_EQUAL(runs[0].run_id, 0)
+#endif
+}
+END_SECTION
+
+START_SECTION(void getAnalytes(std::vector<XICAnalyte>& output, bool) const)
+{
+#ifdef WITH_PARQUET
+  XICParquetFile xic(OPENMS_GET_TEST_DATA_PATH("XICParquetFile_1_input.xic"));
+
+  std::vector<XICAnalyte> analytes_exploded;
+  std::vector<String> columns;
+  xic.getAnalytes(analytes_exploded, columns, false);
+  TEST_EQUAL(analytes_exploded.size(), 18)
+
+  std::vector<XICAnalyte> analytes_nested;
+  xic.getAnalytes(analytes_nested, columns, true);
+  TEST_EQUAL(analytes_nested.size(), 7)
+
+  Size transition_count = 0;
+  for (const auto& a : analytes_nested)
+  {
+    transition_count += a.transition_ids.size();
+  }
+  TEST_EQUAL(transition_count, analytes_exploded.size())
+#endif
+}
+END_SECTION
+
 START_SECTION(void load_invalid_path)
 {
 #ifdef WITH_PARQUET

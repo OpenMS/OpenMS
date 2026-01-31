@@ -92,6 +92,56 @@ namespace OpenMS
     };
 
     /**
+      @brief Unique run information (run_id, source_file).
+    */
+    struct XICRunInfo
+    {
+      Int64 run_id{0};
+      String source_file;
+    };
+
+    /**
+      @brief Analyte metadata container.
+
+      If @p nest_transitions is false in getAnalytes(), transition-level fields
+      are stored in the scalar members (transition_id, product_charge, etc.).
+      If @p nest_transitions is true, transition-level fields are stored in the
+      vector members (transition_ids, product_charges, etc.), with one entry
+      per unique transition belonging to the precursor.
+    */
+    struct XICAnalyte
+    {
+      bool has_precursor_id{false};
+      Int64 precursor_id{0};
+      String modified_sequence;
+      bool has_precursor_charge{false};
+      Int64 precursor_charge{0};
+      bool has_precursor_decoy{false};
+      Int64 precursor_decoy{0};
+
+      bool has_transition_id{false};
+      Int64 transition_id{0};
+      bool has_product_charge{false};
+      Int64 product_charge{0};
+      bool has_transition_ordinal{false};
+      Int64 transition_ordinal{0};
+      bool has_detecting_transition{false};
+      Int64 detecting_transition{0};
+      bool has_product_decoy{false};
+      Int64 product_decoy{0};
+      String transition_type;
+      String annotation;
+
+      std::vector<Int64> transition_ids;
+      std::vector<Int64> product_charges;
+      std::vector<Int64> transition_ordinals;
+      std::vector<Int64> detecting_transitions;
+      std::vector<Int64> product_decoys;
+      std::vector<String> transition_types;
+      std::vector<String> annotations;
+    };
+
+    /**
       @brief Construct from a single .xic file.
 
       @param[in] filename Path to an OpenSWATH chromatogram parquet file.
@@ -146,6 +196,37 @@ namespace OpenMS
                           Int64 run_id = -1,
                           const String& filter = "") const;
 
+    /**
+      @brief Return unique run metadata (run_id, source_file).
+
+      This method never decodes RT/intensity arrays and always returns distinct
+      rows.
+    */
+    void getRuns(std::vector<XICRunInfo>& output) const;
+
+    /**
+      @brief Return unique analyte metadata.
+
+      If @p nest_transitions is false, each row represents a unique
+      precursor-transition pair. If @p nest_transitions is true, each row
+      represents a unique precursor with transition-level fields aggregated
+      into vectors.
+
+      This method never decodes RT/intensity arrays and always returns distinct
+      entries.
+
+      @param[out] output Output analyte metadata
+      @param[in] nest_transitions Aggregate transition fields per precursor
+    */
+    void getAnalytes(std::vector<XICAnalyte>& output,
+                     const std::vector<String>& columns,
+                     bool nest_transitions = true) const;
+
+    /**
+      @brief Return the parquet schema column names.
+    */
+    void getColumns(std::vector<String>& output) const;
+
   private:
     String filename_;
     std::vector<String> filenames_;
@@ -153,4 +234,8 @@ namespace OpenMS
 
   /// Convenience alias for the nested XIC chromatogram type.
   typedef XICParquetFile::XICChromatogram XICChromatogram;
+  /// Convenience alias for the nested run info type.
+  typedef XICParquetFile::XICRunInfo XICRunInfo;
+  /// Convenience alias for the nested analyte type.
+  typedef XICParquetFile::XICAnalyte XICAnalyte;
 } // namespace OpenMS

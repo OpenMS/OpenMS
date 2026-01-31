@@ -2,7 +2,10 @@ from libcpp.vector cimport vector as libcpp_vector
 from libc.stdint cimport int64_t
 from cython.operator cimport dereference as deref
 from String cimport String
+from StringList cimport StringList
 from XICParquetFile cimport XICChromatogram as _XICChromatogram
+from XICParquetFile cimport XICAnalyte as _XICAnalyte
+from XICParquetFile cimport XICRunInfo as _XICRunInfo
 import numpy as np
 
 
@@ -237,6 +240,229 @@ import numpy as np
             else:
                 clean[k] = list(v)
         return pd.DataFrame(clean)
+
+    def get_analyte_dict(self, nest_transitions=True, columns=None):
+        """
+        get_analyte_dict(self, nest_transitions: bool = True,
+                         columns: Optional[List[str]] = None) -> Dict[str, np.ndarray]
+
+        Return unique analyte metadata as a dict of numpy arrays.
+
+        If nest_transitions=False, each row represents a unique precursor-transition
+        pair with scalar transition fields. If nest_transitions=True, each row
+        represents a unique precursor and transition fields are lists.
+
+        :param nest_transitions: Aggregate transition fields per precursor.
+        :type nest_transitions: bool
+        :param columns: Optional list of column names to return. If None,
+                        uses the default analyte columns.
+        :type columns: Optional[List[str]]
+
+        :return: Dict of numpy arrays keyed by column name.
+        :rtype: Dict[str, np.ndarray]
+
+        Example::
+
+            analytes = xic.get_analyte_dict()
+            analytes_nested = xic.get_analyte_dict(nest_transitions=True)
+            analytes_subset = xic.get_analyte_dict(columns=["precursor_id", "modified_sequence"])
+        """
+        cdef libcpp_vector[_XICAnalyte] analytes
+        cdef StringList cols_cpp
+        cdef list cols_norm = []
+        cdef object s
+        if columns is not None:
+            if not isinstance(columns, (list, tuple)):
+                raise TypeError("columns must be a list/tuple of str/bytes/String")
+            for entry in columns:
+                if isinstance(entry, bytes):
+                    s = entry.decode()
+                    cols_norm.append(s.lower())
+                elif isinstance(entry, str):
+                    s = entry
+                    cols_norm.append(s.lower())
+                elif isinstance(entry, String):
+                    s = str(entry)
+                    cols_norm.append(s.lower())
+                else:
+                    raise TypeError("columns must be str/bytes/String")
+                cols_cpp.push_back(deref((convString(s)).get()))
+        self.inst.get().getAnalytes(analytes, cols_cpp, <bint>nest_transitions)
+
+        cdef list precursor_id_list = []
+        cdef list modified_sequence_list = []
+        cdef list precursor_charge_list = []
+        cdef list precursor_decoy_list = []
+        cdef list transition_id_list = []
+        cdef list product_charge_list = []
+        cdef list transition_ordinal_list = []
+        cdef list detecting_transition_list = []
+        cdef list product_decoy_list = []
+        cdef list transition_type_list = []
+        cdef list annotation_list = []
+
+        cdef size_t i, j
+        cdef list t_ids = []
+        cdef list p_charges = []
+        cdef list t_ordinals = []
+        cdef list d_transitions = []
+        cdef list p_decoys = []
+        cdef list t_types = []
+        cdef list annots = []
+        cdef _XICAnalyte analyte
+        for i in range(analytes.size()):
+            analyte = analytes[i]
+            precursor_id_list.append(analyte.precursor_id if analyte.has_precursor_id else None)
+            modified_sequence_list.append(convOutputString(analyte.modified_sequence))
+            precursor_charge_list.append(analyte.precursor_charge if analyte.has_precursor_charge else None)
+            precursor_decoy_list.append(analyte.precursor_decoy if analyte.has_precursor_decoy else None)
+
+            if not nest_transitions:
+                transition_id_list.append(analyte.transition_id if analyte.has_transition_id else None)
+                product_charge_list.append(analyte.product_charge if analyte.has_product_charge else None)
+                transition_ordinal_list.append(analyte.transition_ordinal if analyte.has_transition_ordinal else None)
+                detecting_transition_list.append(analyte.detecting_transition if analyte.has_detecting_transition else None)
+                product_decoy_list.append(analyte.product_decoy if analyte.has_product_decoy else None)
+                transition_type_list.append(convOutputString(analyte.transition_type))
+                annotation_list.append(convOutputString(analyte.annotation))
+            else:
+                t_ids = []
+                p_charges = []
+                t_ordinals = []
+                d_transitions = []
+                p_decoys = []
+                t_types = []
+                annots = []
+                for j in range(analyte.transition_ids.size()):
+                    t_ids.append(analyte.transition_ids[j] if analyte.transition_ids[j] >= 0 else None)
+                for j in range(analyte.product_charges.size()):
+                    p_charges.append(analyte.product_charges[j] if analyte.product_charges[j] >= 0 else None)
+                for j in range(analyte.transition_ordinals.size()):
+                    t_ordinals.append(analyte.transition_ordinals[j] if analyte.transition_ordinals[j] >= 0 else None)
+                for j in range(analyte.detecting_transitions.size()):
+                    d_transitions.append(analyte.detecting_transitions[j] if analyte.detecting_transitions[j] >= 0 else None)
+                for j in range(analyte.product_decoys.size()):
+                    p_decoys.append(analyte.product_decoys[j] if analyte.product_decoys[j] >= 0 else None)
+                for j in range(analyte.transition_types.size()):
+                    t_types.append(convOutputString(analyte.transition_types[j]))
+                for j in range(analyte.annotations.size()):
+                    annots.append(convOutputString(analyte.annotations[j]))
+
+                transition_id_list.append(t_ids)
+                product_charge_list.append(p_charges)
+                transition_ordinal_list.append(t_ordinals)
+                detecting_transition_list.append(d_transitions)
+                product_decoy_list.append(p_decoys)
+                transition_type_list.append(t_types)
+                annotation_list.append(annots)
+
+        data = {
+            "precursor_id": np.array(precursor_id_list, dtype=object),
+            "modified_sequence": np.array(modified_sequence_list, dtype=object),
+            "precursor_charge": np.array(precursor_charge_list, dtype=object),
+            "precursor_decoy": np.array(precursor_decoy_list, dtype=object),
+            "transition_id": np.array(transition_id_list, dtype=object),
+            "product_charge": np.array(product_charge_list, dtype=object),
+            "transition_ordinal": np.array(transition_ordinal_list, dtype=object),
+            "detecting_transition": np.array(detecting_transition_list, dtype=object),
+            "product_decoy": np.array(product_decoy_list, dtype=object),
+            "transition_type": np.array(transition_type_list, dtype=object),
+            "annotation": np.array(annotation_list, dtype=object),
+        }
+        if columns is not None:
+            return {k: v for k, v in data.items() if k in cols_norm}
+        return data
+
+    def get_analyte_df(self, nest_transitions=True, columns=None):
+        """
+        get_analyte_df(self, nest_transitions: bool = True,
+                       columns: Optional[List[str]] = None) -> pandas.DataFrame
+
+        Return unique analyte metadata as a pandas DataFrame.
+
+        :param nest_transitions: Aggregate transition fields per precursor.
+        :type nest_transitions: bool
+        :param columns: Optional list of column names to return.
+        :type columns: Optional[List[str]]
+
+        :return: DataFrame with analyte metadata.
+        :rtype: pandas.DataFrame
+
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            df = xic.get_analyte_df()
+            df_nested = xic.get_analyte_df(nest_transitions=True)
+            df_subset = xic.get_analyte_df(columns=["precursor_id", "modified_sequence"])
+        """
+        try:
+            import pandas as pd
+        except ImportError as e:
+            raise ImportError("pandas is required for this method. Install with `pip install pandas`.") from e
+        data = self.get_analyte_dict(nest_transitions=nest_transitions, columns=columns)
+        return pd.DataFrame({k: list(v) for k, v in data.items()})
+
+    def get_run_dict(self):
+        """
+        get_run_dict(self) -> Dict[str, np.ndarray]
+
+        Return unique run metadata as a dict of numpy arrays.
+
+        :return: Dict with run_id and source_file arrays.
+        :rtype: Dict[str, np.ndarray]
+
+        Example::
+
+            runs = xic.get_run_dict()
+        """
+        cdef libcpp_vector[_XICRunInfo] runs
+        self.inst.get().getRuns(runs)
+
+        cdef list run_id_list = []
+        cdef list source_file_list = []
+        cdef size_t i
+        cdef _XICRunInfo run
+        for i in range(runs.size()):
+            run = runs[i]
+            run_id_list.append(run.run_id)
+            source_file_list.append(convOutputString(run.source_file))
+
+        return {
+            "run_id": np.array(run_id_list, dtype=np.int64),
+            "source_file": np.array(source_file_list, dtype=object),
+        }
+
+    def get_run_df(self):
+        """
+        get_run_df(self) -> pandas.DataFrame
+
+        Return unique run metadata as a pandas DataFrame.
+
+        :return: DataFrame with run_id and source_file.
+        :rtype: pandas.DataFrame
+
+        :raises ImportError: If pandas is not installed
+        """
+        try:
+            import pandas as pd
+        except ImportError as e:
+            raise ImportError("pandas is required for this method. Install with `pip install pandas`.") from e
+        data = self.get_run_dict()
+        return pd.DataFrame(data)
+
+    def df_columns(self):
+        """
+        df_columns(self) -> List[str]
+
+        Return the parquet schema column names.
+
+        :return: List of column names.
+        :rtype: List[str]
+        """
+        cdef StringList cols
+        self.inst.get().getColumns(cols)
+        return [convOutputString(cols[i]) for i in range(cols.size())]
 
     def to_arrow(self, explode=False):
         """

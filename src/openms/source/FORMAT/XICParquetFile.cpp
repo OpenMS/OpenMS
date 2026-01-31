@@ -76,6 +76,98 @@ namespace OpenMS
       return *combined;
     }
 
+    /// Read the parquet schema from a single file.
+    std::shared_ptr<arrow::Schema> readParquetSchema_(const String& filename)
+    {
+      auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
+      if (!infile_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to open parquet file", filename);
+      }
+      std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+
+      auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
+      if (!reader_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to create parquet reader", filename);
+      }
+      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
+
+      std::shared_ptr<arrow::Schema> schema;
+      auto status = reader->GetSchema(&schema);
+      if (!status.ok() || !schema)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to read parquet schema", filename);
+      }
+      return schema;
+    }
+
+    /// Read selected columns from a parquet file into an Arrow table.
+    std::shared_ptr<arrow::Table> readParquetTableColumns_(const String& filename,
+                                                           const std::vector<String>& columns)
+    {
+      auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
+      if (!infile_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to open parquet file", filename);
+      }
+      std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+
+      auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
+      if (!reader_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to create parquet reader", filename);
+      }
+      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
+
+      std::shared_ptr<arrow::Schema> schema;
+      auto schema_status = reader->GetSchema(&schema);
+      if (!schema_status.ok() || !schema)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to read parquet schema", filename);
+      }
+
+      std::vector<int> column_indices;
+      column_indices.reserve(columns.size());
+      for (const auto& name : columns)
+      {
+        const int idx = schema->GetFieldIndex(std::string(name));
+        if (idx >= 0)
+        {
+          column_indices.push_back(idx);
+        }
+      }
+      if (column_indices.empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "No requested columns found in parquet file '" +
+                                            filename + "'");
+      }
+
+      std::shared_ptr<arrow::Table> table;
+      auto read_status = reader->ReadTable(column_indices, &table);
+      if (!read_status.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to read parquet table", filename);
+      }
+
+      auto combined = table->CombineChunks(arrow::default_memory_pool());
+      if (!combined.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to combine parquet chunks", filename);
+      }
+
+      return *combined;
+    }
+
     /// Concatenate multiple Arrow tables (multiple input files).
     std::shared_ptr<arrow::Table> concatenateTables_(const std::vector<std::shared_ptr<arrow::Table>>& tables)
     {
@@ -115,6 +207,19 @@ namespace OpenMS
       for (const auto& filename : filenames)
       {
         tables.push_back(readParquetTable_(filename));
+      }
+      return concatenateTables_(tables);
+    }
+
+    /// Read and concatenate selected columns from multiple parquet files.
+    std::shared_ptr<arrow::Table> readParquetTableColumns_(const std::vector<String>& filenames,
+                                                           const std::vector<String>& columns)
+    {
+      std::vector<std::shared_ptr<arrow::Table>> tables;
+      tables.reserve(filenames.size());
+      for (const auto& filename : filenames)
+      {
+        tables.push_back(readParquetTableColumns_(filename, columns));
       }
       return concatenateTables_(tables);
     }
@@ -560,6 +665,26 @@ namespace OpenMS
 
       expr.conditions.swap(kept);
       expr.connectors.swap(new_connectors);
+    }
+
+    /// Append an integer part to a composite key.
+    void appendKeyPart_(std::ostringstream& oss, bool has_value, Int64 value)
+    {
+      if (has_value)
+      {
+        oss << value;
+      }
+      else
+      {
+        oss << "NULL";
+      }
+      oss << '|';
+    }
+
+    /// Append a string part to a composite key.
+    void appendKeyPart_(std::ostringstream& oss, const String& value)
+    {
+      oss << value << '|';
     }
 
     /// Build a single Arrow condition expression from one clause.
@@ -1019,6 +1144,414 @@ namespace OpenMS
       decodeBinary_(intensity_data, intensity_compression, chrom.intensity);
 
       output.push_back(std::move(chrom));
+    }
+#endif
+  }
+
+  void XICParquetFile::getRuns(std::vector<XICRunInfo>& output) const
+  {
+#ifndef WITH_PARQUET
+    (void)output;
+    throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "OpenMS was built without Parquet support");
+#else
+    output.clear();
+
+    const std::vector<String> columns = {"RUN_ID", "SOURCE_FILE"};
+    auto table = readParquetTableColumns_(filenames_, columns);
+
+    auto run_id_col = getColumn_(table, "RUN_ID");
+    auto source_file_col = getColumn_(table, "SOURCE_FILE", false);
+
+    std::unordered_set<std::string> seen;
+    const int64_t rows = table->num_rows();
+    output.reserve(rows);
+
+    for (int64_t row = 0; row < rows; ++row)
+    {
+      XICRunInfo info;
+      info.run_id = std::static_pointer_cast<arrow::Int64Array>(run_id_col)->Value(row);
+      getOptionalString_(source_file_col, row, info.source_file);
+
+      std::ostringstream oss;
+      appendKeyPart_(oss, true, info.run_id);
+      appendKeyPart_(oss, info.source_file);
+      if (seen.insert(oss.str()).second)
+      {
+        output.push_back(std::move(info));
+      }
+    }
+#endif
+  }
+
+  void XICParquetFile::getAnalytes(std::vector<XICAnalyte>& output,
+                                   const std::vector<String>& columns,
+                                   bool nest_transitions) const
+  {
+#ifndef WITH_PARQUET
+    (void)output;
+    (void)columns;
+    (void)nest_transitions;
+    throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "OpenMS was built without Parquet support");
+#else
+    output.clear();
+
+    const std::vector<String> default_columns = {
+      "PRECURSOR_ID",
+      "MODIFIED_SEQUENCE",
+      "PRECURSOR_CHARGE",
+      "PRECURSOR_DECOY",
+      "TRANSITION_ID",
+      "PRODUCT_CHARGE",
+      "TRANSITION_ORDINAL",
+      "DETECTING_TRANSITION",
+      "PRODUCT_DECOY",
+      "TRANSITION_TYPE",
+      "ANNOTATION"
+    };
+    const std::vector<String>& requested_columns = columns.empty() ? default_columns : columns;
+
+    std::shared_ptr<arrow::Schema> schema = readParquetSchema_(filenames_.front());
+    std::unordered_set<String> schema_columns;
+    schema_columns.reserve(schema->num_fields());
+    for (const auto& field : schema->fields())
+    {
+      schema_columns.insert(upper_(String(field->name())));
+    }
+
+    std::unordered_set<String> allowed_columns = {
+      "PRECURSOR_ID",
+      "MODIFIED_SEQUENCE",
+      "PRECURSOR_CHARGE",
+      "PRECURSOR_DECOY",
+      "TRANSITION_ID",
+      "PRODUCT_CHARGE",
+      "TRANSITION_ORDINAL",
+      "DETECTING_TRANSITION",
+      "PRODUCT_DECOY",
+      "TRANSITION_TYPE",
+      "ANNOTATION"
+    };
+
+    std::vector<String> normalized_columns;
+    normalized_columns.reserve(requested_columns.size());
+    for (const auto& name : requested_columns)
+    {
+      const String upper_name = upper_(name);
+      if (allowed_columns.find(upper_name) == allowed_columns.end())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Unsupported analyte column", name);
+      }
+      if (schema_columns.find(upper_name) == schema_columns.end())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Column not found in parquet schema", name);
+      }
+      normalized_columns.push_back(upper_name);
+    }
+
+    std::unordered_set<String> requested_set;
+    requested_set.reserve(normalized_columns.size());
+    for (const auto& name : normalized_columns)
+    {
+      requested_set.insert(name);
+    }
+
+    auto want = [&](const String& name) -> bool
+    {
+      return requested_set.find(name) != requested_set.end();
+    };
+
+    auto table = readParquetTableColumns_(filenames_, normalized_columns);
+
+    auto precursor_id_col = getColumn_(table, "PRECURSOR_ID", want("PRECURSOR_ID"));
+    auto modified_sequence_col = getColumn_(table, "MODIFIED_SEQUENCE", want("MODIFIED_SEQUENCE"));
+    auto precursor_charge_col = getColumn_(table, "PRECURSOR_CHARGE", want("PRECURSOR_CHARGE"));
+    auto precursor_decoy_col = getColumn_(table, "PRECURSOR_DECOY", want("PRECURSOR_DECOY"));
+    auto transition_id_col = getColumn_(table, "TRANSITION_ID", want("TRANSITION_ID"));
+    auto product_charge_col = getColumn_(table, "PRODUCT_CHARGE", want("PRODUCT_CHARGE"));
+    auto transition_ordinal_col = getColumn_(table, "TRANSITION_ORDINAL", want("TRANSITION_ORDINAL"));
+    auto detecting_transition_col = getColumn_(table, "DETECTING_TRANSITION", want("DETECTING_TRANSITION"));
+    auto product_decoy_col = getColumn_(table, "PRODUCT_DECOY", want("PRODUCT_DECOY"));
+    auto transition_type_col = getColumn_(table, "TRANSITION_TYPE", want("TRANSITION_TYPE"));
+    auto annotation_col = getColumn_(table, "ANNOTATION", want("ANNOTATION"));
+
+    const int64_t rows = table->num_rows();
+    output.reserve(rows);
+
+    if (!nest_transitions)
+    {
+      std::unordered_set<std::string> seen;
+      for (int64_t row = 0; row < rows; ++row)
+      {
+        XICAnalyte analyte;
+
+        if (want("PRECURSOR_ID"))
+        {
+          analyte.has_precursor_id = getOptionalInt_(precursor_id_col, row, analyte.precursor_id);
+        }
+        if (want("MODIFIED_SEQUENCE"))
+        {
+          getOptionalString_(modified_sequence_col, row, analyte.modified_sequence);
+        }
+        if (want("PRECURSOR_CHARGE"))
+        {
+          analyte.has_precursor_charge = getOptionalInt_(precursor_charge_col, row, analyte.precursor_charge);
+        }
+        if (want("PRECURSOR_DECOY"))
+        {
+          analyte.has_precursor_decoy = getOptionalInt_(precursor_decoy_col, row, analyte.precursor_decoy);
+        }
+
+        if (want("TRANSITION_ID"))
+        {
+          analyte.has_transition_id = getOptionalInt_(transition_id_col, row, analyte.transition_id);
+        }
+        if (want("PRODUCT_CHARGE"))
+        {
+          analyte.has_product_charge = getOptionalInt_(product_charge_col, row, analyte.product_charge);
+        }
+        if (want("TRANSITION_ORDINAL"))
+        {
+          analyte.has_transition_ordinal = getOptionalInt_(transition_ordinal_col, row, analyte.transition_ordinal);
+        }
+        if (want("DETECTING_TRANSITION"))
+        {
+          analyte.has_detecting_transition = getOptionalInt_(detecting_transition_col, row, analyte.detecting_transition);
+        }
+        if (want("PRODUCT_DECOY"))
+        {
+          analyte.has_product_decoy = getOptionalInt_(product_decoy_col, row, analyte.product_decoy);
+        }
+        if (want("TRANSITION_TYPE"))
+        {
+          getOptionalString_(transition_type_col, row, analyte.transition_type);
+        }
+        if (want("ANNOTATION"))
+        {
+          getOptionalString_(annotation_col, row, analyte.annotation);
+        }
+
+        std::ostringstream oss;
+        if (want("PRECURSOR_ID"))
+        {
+          appendKeyPart_(oss, analyte.has_precursor_id, analyte.precursor_id);
+        }
+        if (want("MODIFIED_SEQUENCE"))
+        {
+          appendKeyPart_(oss, analyte.modified_sequence);
+        }
+        if (want("PRECURSOR_CHARGE"))
+        {
+          appendKeyPart_(oss, analyte.has_precursor_charge, analyte.precursor_charge);
+        }
+        if (want("PRECURSOR_DECOY"))
+        {
+          appendKeyPart_(oss, analyte.has_precursor_decoy, analyte.precursor_decoy);
+        }
+        if (want("TRANSITION_ID"))
+        {
+          appendKeyPart_(oss, analyte.has_transition_id, analyte.transition_id);
+        }
+        if (want("PRODUCT_CHARGE"))
+        {
+          appendKeyPart_(oss, analyte.has_product_charge, analyte.product_charge);
+        }
+        if (want("TRANSITION_ORDINAL"))
+        {
+          appendKeyPart_(oss, analyte.has_transition_ordinal, analyte.transition_ordinal);
+        }
+        if (want("DETECTING_TRANSITION"))
+        {
+          appendKeyPart_(oss, analyte.has_detecting_transition, analyte.detecting_transition);
+        }
+        if (want("PRODUCT_DECOY"))
+        {
+          appendKeyPart_(oss, analyte.has_product_decoy, analyte.product_decoy);
+        }
+        if (want("TRANSITION_TYPE"))
+        {
+          appendKeyPart_(oss, analyte.transition_type);
+        }
+        if (want("ANNOTATION"))
+        {
+          appendKeyPart_(oss, analyte.annotation);
+        }
+
+        if (seen.insert(oss.str()).second)
+        {
+          output.push_back(std::move(analyte));
+        }
+      }
+      return;
+    }
+
+    std::unordered_map<std::string, Size> precursor_index;
+    std::unordered_map<std::string, std::unordered_set<std::string>> transition_seen;
+
+    for (int64_t row = 0; row < rows; ++row)
+    {
+      XICAnalyte analyte;
+      analyte.has_precursor_id = getOptionalInt_(precursor_id_col, row, analyte.precursor_id);
+      getOptionalString_(modified_sequence_col, row, analyte.modified_sequence);
+      analyte.has_precursor_charge = getOptionalInt_(precursor_charge_col, row, analyte.precursor_charge);
+      analyte.has_precursor_decoy = getOptionalInt_(precursor_decoy_col, row, analyte.precursor_decoy);
+
+      std::ostringstream precursor_key;
+      if (want("PRECURSOR_ID"))
+      {
+        appendKeyPart_(precursor_key, analyte.has_precursor_id, analyte.precursor_id);
+      }
+      if (want("MODIFIED_SEQUENCE"))
+      {
+        appendKeyPart_(precursor_key, analyte.modified_sequence);
+      }
+      if (want("PRECURSOR_CHARGE"))
+      {
+        appendKeyPart_(precursor_key, analyte.has_precursor_charge, analyte.precursor_charge);
+      }
+      if (want("PRECURSOR_DECOY"))
+      {
+        appendKeyPart_(precursor_key, analyte.has_precursor_decoy, analyte.precursor_decoy);
+      }
+      const std::string precursor_key_str = precursor_key.str();
+
+      Size index = 0;
+      auto it = precursor_index.find(precursor_key_str);
+      if (it == precursor_index.end())
+      {
+        output.push_back(std::move(analyte));
+        index = output.size() - 1;
+        precursor_index[precursor_key_str] = index;
+      }
+      else
+      {
+        index = it->second;
+      }
+
+      Int64 transition_id = 0;
+      bool has_transition_id = false;
+      Int64 product_charge = 0;
+      bool has_product_charge = false;
+      Int64 transition_ordinal = 0;
+      bool has_transition_ordinal = false;
+      Int64 detecting_transition = 0;
+      bool has_detecting_transition = false;
+      Int64 product_decoy = 0;
+      bool has_product_decoy = false;
+      String transition_type;
+      String annotation;
+
+      if (want("TRANSITION_ID"))
+      {
+        has_transition_id = getOptionalInt_(transition_id_col, row, transition_id);
+      }
+      if (want("PRODUCT_CHARGE"))
+      {
+        has_product_charge = getOptionalInt_(product_charge_col, row, product_charge);
+      }
+      if (want("TRANSITION_ORDINAL"))
+      {
+        has_transition_ordinal = getOptionalInt_(transition_ordinal_col, row, transition_ordinal);
+      }
+      if (want("DETECTING_TRANSITION"))
+      {
+        has_detecting_transition = getOptionalInt_(detecting_transition_col, row, detecting_transition);
+      }
+      if (want("PRODUCT_DECOY"))
+      {
+        has_product_decoy = getOptionalInt_(product_decoy_col, row, product_decoy);
+      }
+      if (want("TRANSITION_TYPE"))
+      {
+        getOptionalString_(transition_type_col, row, transition_type);
+      }
+      if (want("ANNOTATION"))
+      {
+        getOptionalString_(annotation_col, row, annotation);
+      }
+
+      std::ostringstream transition_key;
+      if (want("TRANSITION_ID"))
+      {
+        appendKeyPart_(transition_key, has_transition_id, transition_id);
+      }
+      if (want("PRODUCT_CHARGE"))
+      {
+        appendKeyPart_(transition_key, has_product_charge, product_charge);
+      }
+      if (want("TRANSITION_ORDINAL"))
+      {
+        appendKeyPart_(transition_key, has_transition_ordinal, transition_ordinal);
+      }
+      if (want("DETECTING_TRANSITION"))
+      {
+        appendKeyPart_(transition_key, has_detecting_transition, detecting_transition);
+      }
+      if (want("PRODUCT_DECOY"))
+      {
+        appendKeyPart_(transition_key, has_product_decoy, product_decoy);
+      }
+      if (want("TRANSITION_TYPE"))
+      {
+        appendKeyPart_(transition_key, transition_type);
+      }
+      if (want("ANNOTATION"))
+      {
+        appendKeyPart_(transition_key, annotation);
+      }
+      const std::string transition_key_str = transition_key.str();
+
+      if (transition_seen[precursor_key_str].insert(transition_key_str).second)
+      {
+        if (want("TRANSITION_ID"))
+        {
+          output[index].transition_ids.push_back(has_transition_id ? transition_id : -1);
+        }
+        if (want("PRODUCT_CHARGE"))
+        {
+          output[index].product_charges.push_back(has_product_charge ? product_charge : -1);
+        }
+        if (want("TRANSITION_ORDINAL"))
+        {
+          output[index].transition_ordinals.push_back(has_transition_ordinal ? transition_ordinal : -1);
+        }
+        if (want("DETECTING_TRANSITION"))
+        {
+          output[index].detecting_transitions.push_back(has_detecting_transition ? detecting_transition : -1);
+        }
+        if (want("PRODUCT_DECOY"))
+        {
+          output[index].product_decoys.push_back(has_product_decoy ? product_decoy : -1);
+        }
+        if (want("TRANSITION_TYPE"))
+        {
+          output[index].transition_types.push_back(transition_type);
+        }
+        if (want("ANNOTATION"))
+        {
+          output[index].annotations.push_back(annotation);
+        }
+      }
+    }
+#endif
+  }
+
+  void XICParquetFile::getColumns(std::vector<String>& output) const
+  {
+#ifndef WITH_PARQUET
+    (void)output;
+    throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "OpenMS was built without Parquet support");
+#else
+    output.clear();
+    std::shared_ptr<arrow::Schema> schema = readParquetSchema_(filenames_.front());
+    output.reserve(schema->num_fields());
+    for (const auto& field : schema->fields())
+    {
+      output.emplace_back(field->name());
     }
 #endif
   }
