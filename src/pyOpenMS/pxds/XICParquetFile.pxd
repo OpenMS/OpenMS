@@ -2,6 +2,7 @@ from libcpp.vector cimport vector
 from libcpp cimport bool
 
 from String cimport String
+from StringList cimport StringList
 from Types cimport Int64
 
 ctypedef vector[double] DoubleVector
@@ -40,8 +41,12 @@ cdef extern from "<OpenMS/FORMAT/XICParquetFile.h>" namespace "OpenMS":
         XICParquetFile(String filename) except + nogil
             # wrap-doc:
             #  Reader for OpenSWATH chromatogram Parquet files (.xic).
+        XICParquetFile(const StringList& filenames) except + nogil
+            # wrap-doc:
+            #  Reader for multiple OpenSWATH chromatogram Parquet files (.xic).
 
         const String& getFilename() const
+        const StringList& getFilenames() const
 
         void load(vector[XICChromatogram]& output) const  # wrap-ignore
             # wrap-doc:

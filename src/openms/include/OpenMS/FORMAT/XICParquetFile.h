@@ -52,10 +52,12 @@ namespace OpenMS
     };
 
     explicit XICParquetFile(const String& filename);
+    explicit XICParquetFile(const std::vector<String>& filenames);
     XICParquetFile(const XICParquetFile& rhs) = default;
     XICParquetFile& operator=(const XICParquetFile& rhs) = default;
 
     const String& getFilename() const;
+    const std::vector<String>& getFilenames() const;
 
     /// Load all chromatograms from the file.
     void load(std::vector<XICChromatogram>& output) const;
@@ -85,6 +87,7 @@ namespace OpenMS
 
   private:
     String filename_;
+    std::vector<String> filenames_;
   };
 
   /// Convenience alias for the nested XIC chromatogram type.

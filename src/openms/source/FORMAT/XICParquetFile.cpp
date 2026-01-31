@@ -75,6 +75,46 @@ namespace OpenMS
       return *combined;
     }
 
+    std::shared_ptr<arrow::Table> concatenateTables_(const std::vector<std::shared_ptr<arrow::Table>>& tables)
+    {
+      if (tables.empty())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "No parquet tables provided", "");
+      }
+      if (tables.size() == 1)
+      {
+        return tables.front();
+      }
+
+      auto concat_result = arrow::ConcatenateTables(tables);
+      if (!concat_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to concatenate parquet tables", concat_result.status().ToString());
+      }
+
+      auto combined = (*concat_result)->CombineChunks(arrow::default_memory_pool());
+      if (!combined.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to combine parquet chunks", combined.status().ToString());
+      }
+
+      return *combined;
+    }
+
+    std::shared_ptr<arrow::Table> readParquetTable_(const std::vector<String>& filenames)
+    {
+      std::vector<std::shared_ptr<arrow::Table>> tables;
+      tables.reserve(filenames.size());
+      for (const auto& filename : filenames)
+      {
+        tables.push_back(readParquetTable_(filename));
+      }
+      return concatenateTables_(tables);
+    }
+
     std::shared_ptr<arrow::Array> getColumn_(const std::shared_ptr<arrow::Table>& table,
                                              const std::string& name,
                                              bool required = true)
@@ -610,7 +650,7 @@ namespace OpenMS
     }
 
 #ifdef WITH_ARROW_DATASET
-    std::shared_ptr<arrow::Table> readParquetTableDataset_(const String& filename,
+    std::shared_ptr<arrow::Table> readParquetTableDataset_(const std::vector<String>& filenames,
                                                            const String& filter,
                                                            const std::unordered_map<String, ColumnType>& column_types)
     {
@@ -618,19 +658,25 @@ namespace OpenMS
       auto format = std::make_shared<arrow::dataset::ParquetFileFormat>();
       arrow::dataset::FileSystemFactoryOptions options;
 
+      std::vector<std::string> paths;
+      paths.reserve(filenames.size());
+      for (const auto& filename : filenames)
+      {
+        paths.emplace_back(std::string(filename));
+      }
       auto factory_result = arrow::dataset::FileSystemDatasetFactory::Make(
-        filesystem, std::vector<std::string>{std::string(filename)}, format, options);
+        filesystem, paths, format, options);
       if (!factory_result.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to create dataset factory", filename);
+                                      "Failed to create dataset factory", "dataset");
       }
 
       auto dataset_result = (*factory_result)->Finish();
       if (!dataset_result.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to create dataset", filename);
+                                      "Failed to create dataset", "dataset");
       }
       std::shared_ptr<arrow::dataset::Dataset> dataset = *dataset_result;
 
@@ -648,7 +694,7 @@ namespace OpenMS
         }
         if (parsed.conditions.empty())
         {
-          return readParquetTable_(filename);
+          return readParquetTable_(filenames);
         }
         arrow::compute::Expression expr = buildFilterExpression_(parsed);
         auto status = builder->Filter(expr);
@@ -663,20 +709,20 @@ namespace OpenMS
       if (!scanner_result.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to create dataset scanner", filename);
+                                      "Failed to create dataset scanner", "dataset");
       }
       auto table_result = (*scanner_result)->ToTable();
       if (!table_result.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to read parquet table via dataset scanner", filename);
+                                      "Failed to read parquet table via dataset scanner", "dataset");
       }
 
       auto combined = (*table_result)->CombineChunks(arrow::default_memory_pool());
       if (!combined.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to combine parquet chunks", filename);
+                                      "Failed to combine parquet chunks", combined.status().ToString());
       }
       return *combined;
     }
@@ -771,11 +817,35 @@ namespace OpenMS
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
     }
+    filenames_.push_back(filename_);
+  }
+
+  XICParquetFile::XICParquetFile(const std::vector<String>& filenames)
+    : filenames_(filenames)
+  {
+    if (filenames_.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "No parquet files provided", "");
+    }
+    for (const auto& filename : filenames_)
+    {
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+    }
+    filename_ = filenames_.front();
   }
 
   const String& XICParquetFile::getFilename() const
   {
     return filename_;
+  }
+
+  const std::vector<String>& XICParquetFile::getFilenames() const
+  {
+    return filenames_;
   }
 
   void XICParquetFile::load(std::vector<XICChromatogram>& output) const
@@ -808,7 +878,7 @@ namespace OpenMS
 #else
     output.clear();
 
-    auto table = readParquetTable_(filename_);
+    auto table = readParquetTable_(filenames_);
 
     std::unordered_map<String, ColumnType> column_types = {
       {"RUN_ID", ColumnType::INT},
@@ -835,7 +905,7 @@ namespace OpenMS
     {
       try
       {
-        table = readParquetTableDataset_(filename_, filter, column_types);
+        table = readParquetTableDataset_(filenames_, filter, column_types);
         used_dataset = true;
       }
       catch (const std::exception& e)

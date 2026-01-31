@@ -1,9 +1,33 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libc.stdint cimport int64_t
 from cython.operator cimport dereference as deref
+from String cimport String
 from XICParquetFile cimport XICChromatogram as _XICChromatogram
 import numpy as np
 
+
+    def __init__(self, filename):
+        """
+        Initialize from a single filename or a list/tuple of filenames.
+        """
+        filenames = None
+        if isinstance(filename, (str, bytes, String)):
+            self._init_0(filename)
+            return
+        if isinstance(filename, (list, tuple)):
+            filenames = []
+            for entry in filename:
+                if isinstance(entry, bytes):
+                    filenames.append(entry)
+                elif isinstance(entry, str):
+                    filenames.append(entry.encode())
+                elif isinstance(entry, String):
+                    filenames.append(str(entry).encode())
+                else:
+                    raise TypeError("filenames must be str/bytes/String")
+            self._init_1(filenames)
+            return
+        raise TypeError("filename must be str/bytes/String or a list/tuple of those")
 
     def get_data_dict(self, explode=False, precursor_id=-1, transition_id=-1, modified_sequence="", precursor_charge=-1,
                       product_charge=-1, ms_level=-1, run_id=-1, filter=""):
