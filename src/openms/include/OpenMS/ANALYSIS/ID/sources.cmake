@@ -32,7 +32,6 @@ IDRipper.h
 IDScoreGetterSetter.h
 IDScoreSwitcherAlgorithm.h
 IonIdentityMolecularNetworking.h
-MessagePasserFactory.h
 MetaboliteSpectralMatching.h
 PeptideSearchEngineFIAlgorithm.h
 MorpheusScore.h

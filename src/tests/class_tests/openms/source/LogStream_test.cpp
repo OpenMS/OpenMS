@@ -54,13 +54,29 @@ START_TEST(LogStream, "$Id$")
 
 START_SECTION(([EXTRA] OpenMP - test))
 {
-  // just see if this crashes with OpenMP
-  ostringstream stream_by_logger;
-  OpenMS_Log_debug.insert(stream_by_logger);
-  OpenMS_Log_debug.remove(cout);
-  OpenMS_Log_info.insert(stream_by_logger);
-  OpenMS_Log_info.remove(cout);
+  // Test thread-local logging with OpenMP.
+  // Note: Thread-local streams COPY the stream_list_ from global at initialization,
+  // so we can't easily add a capture stream and expect thread-local loggers to use it.
+  // Instead, we just verify that parallel logging doesn't crash or corrupt data.
 
+  // Test 1: Basic parallel logging to cout (default stream)
+  {
+    const int num_iterations = 100;
+
+    #ifdef _OPENMP
+    omp_set_num_threads(4);
+    #pragma omp parallel for
+    #endif
+    for (int i = 0; i < num_iterations; ++i)
+    {
+      // Each thread uses its own thread-local LogStream
+      OPENMS_LOG_INFO << "iteration_" << i << endl;
+    }
+    // If we get here without crashing, the test passes
+    TEST_EQUAL(true, true)
+  }
+
+  // Test 2: High-volume logging stress test
   {
     // create a long string that is of similar length as the buffer length to
     // ensure buffering and flushing works correctly LogStream.cpp even in a
@@ -79,13 +95,9 @@ START_SECTION(([EXTRA] OpenMP - test))
       OPENMS_LOG_INFO << "1\n";
       OPENMS_LOG_INFO << "2" << endl;
     }
+    // If we get here without crashing, the test passes
+    TEST_EQUAL(true, true)
   }
-
-  // remove logger after testing
-  OpenMS_Log_debug.remove(stream_by_logger);
-  OpenMS_Log_info.remove(stream_by_logger);
-
-  NOT_TESTABLE;
 }
 END_SECTION
 
@@ -185,6 +197,67 @@ START_SECTION((void remove(std::ostream &s)))
   l1.remove(s);
 	l1 << "BLA2"<<endl;
   TEST_EQUAL(s.str(),"to_stream\n");
+}
+END_SECTION
+
+START_SECTION(([EXTRA] LogSinkGuard - RAII removal and re-insertion))
+{
+  // Test 1: Normal scope exit - guard removes on construction, re-inserts on destruction
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream s;
+    l1.insert(s);
+    l1 << "before_guard" << endl;
+    TEST_EQUAL(s.str(), "before_guard\n")
+
+    {
+      LogSinkGuard guard(l1, s); // guard removes s immediately
+      l1 << "while_guarded" << endl;
+      TEST_EQUAL(s.str(), "before_guard\n") // no change, stream was removed by guard
+    } // guard destructor re-inserts s
+
+    l1 << "after_guard" << endl;
+    TEST_EQUAL(s.str(), "before_guard\nafter_guard\n") // stream is back
+  }
+
+  // Test 2: Exception safety - stream should be re-inserted even on exception
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream s;
+    l1.insert(s);
+
+    try
+    {
+      LogSinkGuard guard(l1, s); // guard removes s
+      l1 << "in_try" << endl;
+      throw std::runtime_error("test exception");
+    }
+    catch (const std::exception&)
+    {
+      // guard destructor should have run, re-inserting s
+    }
+
+    l1 << "after_exception" << endl;
+    TEST_EQUAL(s.str(), "after_exception\n") // stream was re-inserted despite exception
+  }
+
+  // Test 3: Multiple guards on same stream (nested removal/insertion)
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream s;
+    l1.insert(s);
+
+    {
+      LogSinkGuard guard1(l1, s); // guard1 removes s
+      {
+        LogSinkGuard guard2(l1, s); // guard2 removes s (already removed - no-op)
+        l1 << "deeply_removed" << endl;
+      } // guard2 re-inserts s
+      l1 << "once_reinserted" << endl;
+    } // guard1 re-inserts s (already present - safe/idempotent)
+    l1 << "final" << endl;
+    TEST_EQUAL(s.str(), "once_reinserted\nfinal\n")
+  }
 }
 END_SECTION
 
@@ -374,15 +447,19 @@ END_SECTION
 
 START_SECTION(([EXTRA] Macro test - OPENMS_LOG_FATAL_ERROR))
 {
-  // remove cout/cerr streams from global instances
+  // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
-  OpenMS_Log_fatal.remove(cerr);
+  // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
   ostringstream stream_by_logger;
   {
-    OpenMS_Log_fatal.insert(stream_by_logger);
+    getThreadLocalLogFatal().rdbuf()->clearCache();  // outputs to old streams, then clears
+    getThreadLocalLogFatal().removeAllStreams();
+    getThreadLocalLogFatal().insert(stream_by_logger);
 
     OPENMS_LOG_FATAL_ERROR << "1\n";
     OPENMS_LOG_FATAL_ERROR << "2" << endl;
+
+    getThreadLocalLogFatal().remove(stream_by_logger);
   }
 
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
@@ -398,17 +475,21 @@ END_SECTION
 
 START_SECTION(([EXTRA] Macro test - OPENMS_LOG_ERROR))
 {
-  // remove cout/cerr streams from global instances
+  // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
-  OpenMS_Log_error.remove(cerr);
+  // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
-    OpenMS_Log_error.insert(s);
+    getThreadLocalLogError().rdbuf()->clearCache();  // outputs to old streams, then clears
+    getThreadLocalLogError().removeAllStreams();
+    getThreadLocalLogError().insert(s);
 
     OPENMS_LOG_ERROR << "1\n";
     OPENMS_LOG_ERROR << "2" << endl;
+
+    getThreadLocalLogError().remove(s);
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general_red.txt"))
 }
@@ -416,17 +497,21 @@ END_SECTION
 
 START_SECTION(([EXTRA] Macro test - OPENMS_LOG_WARN))
 {
-  // remove cout/cerr streams from global instances
+  // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
-  OpenMS_Log_warn.remove(cout);
+  // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
-    OpenMS_Log_warn.insert(s);
+    getThreadLocalLogWarn().rdbuf()->clearCache();  // outputs to old streams, then clears
+    getThreadLocalLogWarn().removeAllStreams();
+    getThreadLocalLogWarn().insert(s);
 
     OPENMS_LOG_WARN << "1\n";
     OPENMS_LOG_WARN << "2" << endl;
+
+    getThreadLocalLogWarn().remove(s);
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general_yellow.txt"))
 }
@@ -434,22 +519,21 @@ END_SECTION
 
 START_SECTION(([EXTRA] Macro test - OPENMS_LOG_INFO))
 {
-  // remove cout/cerr streams from global instances
+  // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
-  OpenMS_Log_info.remove(cout);
-
-  // clear cache to avoid pollution of the test output
-  // by previous tests
-  OpenMS_Log_info.rdbuf()->clearCache();
-
+  // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
-    OpenMS_Log_info.insert(s);
+    getThreadLocalLogInfo().rdbuf()->clearCache();  // outputs to old streams, then clears
+    getThreadLocalLogInfo().removeAllStreams();
+    getThreadLocalLogInfo().insert(s);
 
     OPENMS_LOG_INFO << "1\n";
     OPENMS_LOG_INFO << "2" << endl;
+
+    getThreadLocalLogInfo().remove(s);
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
@@ -457,20 +541,19 @@ END_SECTION
 
 START_SECTION(([EXTRA] Macro test - OPENMS_LOG_DEBUG))
 {
-  // remove cout/cerr streams from global instances
+  // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
-  OpenMS_Log_debug.remove(cout);
-
-  // clear cache to avoid pollution of the test output
-  // by previous tests
-  OpenMS_Log_debug.rdbuf()->clearCache();
-
+  // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
   ostringstream stream_by_logger;
   {
-    OpenMS_Log_debug.insert(stream_by_logger);
+    getThreadLocalLogDebug().rdbuf()->clearCache();  // outputs to old streams, then clears
+    getThreadLocalLogDebug().removeAllStreams();
+    getThreadLocalLogDebug().insert(stream_by_logger);
 
     OPENMS_LOG_DEBUG << "1\n";
     OPENMS_LOG_DEBUG << "2" << endl;
+
+    getThreadLocalLogDebug().remove(stream_by_logger);
   }
 
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');

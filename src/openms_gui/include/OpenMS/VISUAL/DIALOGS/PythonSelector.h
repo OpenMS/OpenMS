@@ -40,8 +40,8 @@ namespace OpenMS
 
     signals:
       /// emitted whenever the line-edit has new values for the current python executable
-      /// @param last_known_python_exe The currently best guess where python can be found
-      /// @param valid_python Is the python executable given in @p last_known_python_exe callable?
+      /// @param[in] last_known_python_exe The currently best guess where python can be found
+      /// @param[in] valid_python Is the python executable given in @p last_known_python_exe callable?
       void valueChanged(QString last_known_python_exe, bool valid_python);
       
     

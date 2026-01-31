@@ -12,7 +12,7 @@ set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/bld")
 set(CTEST_CMAKE_GENERATOR "Ninja")
 
 set(CONFIGURE_OPTIONS)
-set(VARS_TO_LOAD PACKAGE_TYPE SEARCH_ENGINES_DIRECTORY SIGNING_IDENTITY SIGNING_EMAIL)
+set(VARS_TO_LOAD PACKAGE_TYPE SEARCH_ENGINES_DIRECTORY SIGNING_IDENTITY SIGNING_EMAIL CPACK_PRODUCTBUILD_IDENTITY_NAME USE_EXTERNAL_JSON USE_EXTERNAL_SQLITECPP USE_EXTERNAL_SIMDE)
 foreach(VAR ${VARS_TO_LOAD})
   if(DEFINED ENV{${VAR}})
     list(APPEND CONFIGURE_OPTIONS "-D${VAR}=$ENV{${VAR}}")
@@ -36,6 +36,12 @@ ctest_start(Nightly GROUP Package)
 # we assume the configuration is correct for this. So please no KNIME, PYOPENMS, STYLE or COVERAGE.
 
 ctest_configure(OPTIONS "${CONFIGURE_OPTIONS}" RETURN_VALUE _reconfig_package_ret_val)
+
+# Check if configuration failed (e.g., due to FATAL_ERROR in package scripts)
+if(NOT _reconfig_package_ret_val EQUAL 0)
+  message(FATAL_ERROR "CMake configuration for packaging failed with return code: ${_reconfig_package_ret_val}")
+endif()
+
 ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "dist" NUMBER_ERRORS _build_errors)
 ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
 

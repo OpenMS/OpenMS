@@ -120,7 +120,7 @@ namespace OpenMS
           {
             if (fda[idx].size() != spec.size())
             {
-              throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spec.size());
+              throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spec.size(), "FloatDataArray size does not match spectrum size");
             }
             ++valid_count;
           }
@@ -200,6 +200,7 @@ namespace OpenMS
 
       Size total_peak_count(0);
       std::vector<Size> spec_offsets;
+      spec_offsets.reserve(input_exp.size() + 1); // Pre-allocate for performance
       spec_offsets.push_back(0);
 
       Size spectra_count(0);

@@ -25,18 +25,13 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace
             double im_extraction_window,
             String filter) except + nogil
 
-# COMMENT: wrap static methods
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace "OpenMS::ChromatogramExtractor":
-        
         # static members
+        @staticmethod
         void prepare_coordinates(
             libcpp_vector[ shared_ptr[OSChromatogram] ] & output_chromatograms,
             libcpp_vector[ ExtractionCoordinates ] & extraction_coordinates,
             TargetedExperiment & targeted,
             double rt_extraction_window,
             bool ms1,
-            int ms1_isotopes) except + nogil # wrap-attach:ChromatogramExtractor
-        
-
-
+            int ms1_isotopes) except + nogil
 

@@ -75,9 +75,9 @@ namespace OpenMS
     
     /**
       @brief Extends the ranges with the ranges of another range manager
-      
-      @param other The other range manager to extend from
-      @param ms_level The MS level for which to extend the ranges (0 for global ranges)
+
+      @param[in] other The other range manager to extend from
+      @param[in] ms_level The MS level for which to extend the ranges (0 for global ranges)
     */
     void extend(const BaseType& other, UInt ms_level = 0)
     {
@@ -86,8 +86,8 @@ namespace OpenMS
     
     /**
       @brief Gets the ranges for a specific MS level
-      
-      @param ms_level The MS level for which to retrieve the ranges
+
+      @param[in] ms_level The MS level for which to retrieve the ranges
       @return The ranges for the specified MS level
       @throw Exception::InvalidValue if no ranges exist for the specified MS level
     */
@@ -117,9 +117,9 @@ namespace OpenMS
 
     /**
       @brief Extends the RT range with an MS level parameter
-      
-      @param rt The RT value to extend with
-      @param ms_level The MS level for which to extend the RT range (0 for global range)
+
+      @param[in] rt The RT value to extend with
+      @param[in] ms_level The MS level for which to extend the RT range (0 for global range)
     */
     void extendRT(double rt, UInt ms_level = 0)
     {
@@ -128,9 +128,9 @@ namespace OpenMS
 
     /**
       @brief Extends the m/z range with an MS level parameter
-      
-      @param mz The m/z value to extend with
-      @param ms_level The MS level for which to extend the m/z range (0 for global range)
+
+      @param[in] mz The m/z value to extend with
+      @param[in] ms_level The MS level for which to extend the m/z range (0 for global range)
     */
     void extendMZ(double mz, UInt ms_level = 0)
     {
@@ -139,9 +139,9 @@ namespace OpenMS
 
     /**
       @brief Extends the ranges with the ranges of a spectrum using an MS level parameter
-      
-      @param spectrum The spectrum whose ranges to extend from
-      @param ms_level The MS level for which to extend the ranges (0 for global ranges)
+
+      @param[in] spectrum The spectrum whose ranges to extend from
+      @param[in] ms_level The MS level for which to extend the ranges (0 for global ranges)
     */
     void extendUnsafe(const MSSpectrum& spectrum, UInt ms_level = 0)
     {

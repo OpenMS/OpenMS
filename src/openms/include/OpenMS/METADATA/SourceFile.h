@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -22,7 +23,7 @@ namespace OpenMS
   {
 public:
     ///Type of the checksum
-    enum ChecksumType
+    enum class ChecksumType
     {
       UNKNOWN_CHECKSUM, ///< Unknown checksum type
       SHA1, ///< Secure Hash Algorithm-1
@@ -31,7 +32,10 @@ public:
     };
 
     /// Names of checksum types
-    static const std::string NamesOfChecksumType[SIZE_OF_CHECKSUMTYPE];
+    static const std::string NamesOfChecksumType[static_cast<size_t>(ChecksumType::SIZE_OF_CHECKSUMTYPE)];
+
+    /// returns all checksum type names known to OpenMS
+    static StringList getAllNamesOfChecksumType();
 
     /// Constructor
     SourceFile();

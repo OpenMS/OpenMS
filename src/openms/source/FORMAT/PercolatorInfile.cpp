@@ -34,7 +34,8 @@ namespace OpenMS
   }
 
   // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
-  String PercolatorInfile::getScanIdentifier(const PeptideIdentification& pid, size_t index)
+  String PercolatorInfile::getScanIdentifier(
+    const PeptideIdentification& pid, size_t index)
   {
     // MSGF+ uses this field, is empty if not specified
     String scan_identifier = pid.getSpectrumReference();
@@ -240,11 +241,11 @@ namespace OpenMS
       //  by this loosely defined format.
       const String& sSpecId = row[to_idx.at("SpecId")];
 
+      double IM = 0.0;
       if (auto it = to_idx.find("ion_mobility"); it != to_idx.end())
       {
-        const String& sIM = row[it->second];
-        const double IM = sIM.toDouble();   
-        if (!pids.empty())  pids.back().setMetaValue(Constants::UserParam::IM, IM);
+        const String& sIM = row[it->second]; // read IM from e.g. Sage output
+        IM = sIM.toDouble();  
       }
       // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs,
       //  so it writes the full ID as string
@@ -256,7 +257,11 @@ namespace OpenMS
         pids.back().setScoreType(score_name);
         pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
         pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0); // search engines typically write minutes (e.g., sage)
-        pids.back().setMetaValue("PinSpecId", sSpecId);  
+        pids.back().setMetaValue("PinSpecId", sSpecId);
+        if (IM > 0.0) // Sage might annotate 0.0 if no IM is present
+        {
+          pids.back().setMetaValue(Constants::UserParam::IM, IM);
+        }
         // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
         // we use it as spectrum_reference. Since it can be integer only or the complete
         // vendor ID, you will need a lookup in case of number only later!!

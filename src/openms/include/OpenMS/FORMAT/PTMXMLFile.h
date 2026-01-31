@@ -33,8 +33,8 @@ public:
     /**
         @brief Loads the information of a PTMXML file
 
-        @param filename The name of the file
-        @param ptm_informations the PTM information from the file are stored herein
+        @param[in] filename The name of the file
+        @param[out] ptm_informations the PTM information from the file are stored herein
         @throw FileNotFound is thrown if the given file could not be found
         @throw ParseError is thrown if the given file could not be parsed
         The information is read in and stored in the corresponding variables

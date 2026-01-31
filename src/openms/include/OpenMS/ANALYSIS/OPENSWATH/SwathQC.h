@@ -44,9 +44,9 @@ namespace OpenSwath
 
     /**
       @brief CTor with arguments
-      
-      @param cd_spectra Number of MS spectra to inspect for charge distribution estimation
-      @param decon_ms1_mz_tol m/z tolerance for isotope deconvolution
+
+      @param[in] cd_spectra Number of MS spectra to inspect for charge distribution estimation
+      @param[in] decon_ms1_mz_tol m/z tolerance for isotope deconvolution
     */
     SwathQC(const size_t cd_spectra, const double decon_ms1_mz_tol);
 

@@ -48,9 +48,9 @@ public:
 
     /**	@brief Converts the forward and reverse identification into probabilities
 
-              @param prob_ids Output of the algorithm which includes identifications with probability based scores
-              @param fwd_ids Input parameter which represents the identifications of the forward search
-              @param rev_ids Input parameter which represents the identifications of the reversed search
+              @param[out] prob_ids Output of the algorithm which includes identifications with probability based scores
+              @param[in] fwd_ids Input parameter which represents the identifications of the forward search
+              @param[in] rev_ids Input parameter which represents the identifications of the reversed search
       */
     void apply(PeptideIdentificationList & prob_ids,
                const PeptideIdentificationList & fwd_ids,

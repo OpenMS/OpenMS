@@ -229,12 +229,12 @@ namespace OpenMS
       // do not set '-out_osw' because we might have multiple -in's and have to iterate manually
 
       // call update(); do NOT write directly to swath_param_ using 'setValue(name, value)' because that will loose the description and the tags, i.e. input-file etc. We need this information though!
-      swath_param_.update(tmp, false, false, true, true, OpenMS_Log_warn);
+      swath_param_.update(tmp, false, false, true, true, getGlobalLogWarn());
     }
 
     void SwathTabWidget::updateWidgetsfromSwathParam_()
     {
-      swath_param_wizard_.update(swath_param_, false, false, true, false, OpenMS_Log_warn);
+      swath_param_wizard_.update(swath_param_, false, false, true, false, getGlobalLogWarn());
       ui->list_editor->load(swath_param_wizard_);
     }
 

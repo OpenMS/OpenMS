@@ -47,6 +47,9 @@ namespace OpenMS
     defaults_.setValue("report_FWHM_unit", "relative", "Unit of FWHM. Either absolute in the unit of input, e.g. 'm/z' for spectra, or relative as ppm (only sensible for spectra, not chromatograms).");
     defaults_.setValidStrings("report_FWHM_unit", {"relative","absolute"});
 
+    defaults_.setValue("allow_missing_flank", "false", "Allow peaks without flanking data points on both sides. This is useful for TimsTOF data where profile peaks may be missing the leading or trailing edge.", {"advanced"});
+    defaults_.setValidStrings("allow_missing_flank", {"true","false"});
+
     // parameters for STN estimator
     defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum >().getDefaults());
 
@@ -79,7 +82,7 @@ namespace OpenMS
   {
     // copy meta data of the input spectrum
     copySpectrumMeta(input, output);
-    output.setType(SpectrumSettings::CENTROID);
+    output.setType(SpectrumSettings::SpectrumType::CENTROID);
 
     int im_data_index = -1;
     if (input.containsIMData())
@@ -167,6 +170,7 @@ namespace OpenMS
       double central_peak_mz = input[i].getPos(), central_peak_int = input[i].getIntensity();
       double left_neighbor_mz = input[i - 1].getPos(), left_neighbor_int = input[i - 1].getIntensity();
       double right_neighbor_mz = input[i + 1].getPos(), right_neighbor_int = input[i + 1].getIntensity();
+      bool has_left_neighbor = false, has_right_neighbor = false;
 
       // do not interpolate when the left or right support is a zero-data-point
       if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon())
@@ -184,6 +188,9 @@ namespace OpenMS
         left_to_central = central_peak_mz - left_neighbor_mz;
         central_to_right = right_neighbor_mz - central_peak_mz;
         min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
+        // if left or right neighbor is more than min space from core peak, we consider them missing
+        has_left_neighbor = left_to_central < spacing_difference_ * min_spacing;
+        has_right_neighbor = central_to_right < spacing_difference_ * min_spacing;
       }
 
       double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
@@ -195,14 +202,16 @@ namespace OpenMS
       }
 
       // look for peak cores meeting MZ and intensity/SNT criteria
-      if ((central_peak_int > left_neighbor_int) && 
-        (central_peak_int > right_neighbor_int) && 
-        (act_snt >= signal_to_noise_) && 
-        (act_snt_l1 >= signal_to_noise_) && 
-        (act_snt_r1 >= signal_to_noise_) &&
-        (!check_spacings || 
-        ((left_to_central < spacing_difference_ * min_spacing) && 
-          (central_to_right < spacing_difference_ * min_spacing))))
+      // When allow_missing_flank_ is false (default): require both neighbors (AND)
+      // When allow_missing_flank_ is true: allow peaks with only one neighbor (OR) - useful for TimsTOF data
+      bool spacing_ok = !check_spacings ||
+          (allow_missing_flank_ ? (has_left_neighbor || has_right_neighbor) : (has_left_neighbor && has_right_neighbor));
+      if ((central_peak_int > left_neighbor_int) &&
+          (central_peak_int > right_neighbor_int) &&
+          (act_snt >= signal_to_noise_) &&
+          (act_snt_l1 >= signal_to_noise_) &&
+          (act_snt_r1 >= signal_to_noise_) &&
+          spacing_ok)
       {
         // special case: if a peak core is surrounded by more intense
         // satellite peaks (indicates oscillation rather than
@@ -217,15 +226,18 @@ namespace OpenMS
         }
 
         // checking signal-to-noise?
+        bool has_left_neighbor_l2 = left_neighbor_mz - input[i - 2].getPos() < spacing_difference_ * min_spacing;
+        bool has_right_neighbor_r2 = input[i + 2].getPos() - right_neighbor_mz < spacing_difference_ * min_spacing;
+
+        bool spacing_ok_l2r2 = !check_spacings ||
+            (allow_missing_flank_ ? (has_left_neighbor_l2 || has_right_neighbor_r2) : (has_left_neighbor_l2 && has_right_neighbor_r2));
         if ((i > 1) &&
           (i + 2 < input.size()) &&
           (left_neighbor_int < input[i - 2].getIntensity()) &&
           (right_neighbor_int < input[i + 2].getIntensity()) &&
           (act_snt_l2 >= signal_to_noise_) &&
           (act_snt_r2 >= signal_to_noise_) &&
-          (!check_spacings ||
-          ((left_neighbor_mz - input[i - 2].getPos() < spacing_difference_ * min_spacing) && 
-            (input[i + 2].getPos() - right_neighbor_mz < spacing_difference_ * min_spacing))))
+          spacing_ok_l2r2)
         {
           ++i;
           continue;
@@ -235,14 +247,16 @@ namespace OpenMS
         double weighted_im = 0;
 
         peak_raw_data[central_peak_mz] = central_peak_int;
-        peak_raw_data[left_neighbor_mz] = left_neighbor_int;
-        peak_raw_data[right_neighbor_mz] = right_neighbor_int;
+        // if we determined there are no flanking peaks, do not add neighbors from missing side
+        if (!check_spacings || has_left_neighbor) {peak_raw_data[left_neighbor_mz] = left_neighbor_int;}
+        if (!check_spacings || has_right_neighbor) {peak_raw_data[right_neighbor_mz] = right_neighbor_int;}
 
         if (has_im)
         {
           weighted_im += input.getFloatDataArrays()[im_data_index][i] * input[i].getIntensity();
-          weighted_im += input.getFloatDataArrays()[im_data_index][i-1] * input[i-1].getIntensity();
-          weighted_im += input.getFloatDataArrays()[im_data_index][i+1] * input[i+1].getIntensity();
+          // if no left or right neighbor, do not include ion mobility from missing side
+          if (!check_spacings || has_left_neighbor) {weighted_im += input.getFloatDataArrays()[im_data_index][i-1] * input[i-1].getIntensity();}
+          if (!check_spacings || has_right_neighbor) {weighted_im += input.getFloatDataArrays()[im_data_index][i + 1] * input[i + 1].getIntensity();}
         }
 
         // peak core found, now extend it
@@ -342,6 +356,20 @@ namespace OpenMS
 
         // calculate maximum by evaluating the spline's 1st derivative
         // (bisection method)
+        // Since we included situations where left or right neighbors could be missing,
+        // we can either create a 'phantom' neighbor peak of equal distance from central mz to existing neighbor mz
+        // but how to handle ion mobility array? spline_bisection expects "peak_spline" to have the same mz range
+        // Introducing a 'phantom' peak extending past 'peak_spline' range will throw an error.
+        // We have to add a proper peak to peak_spline and have to decide what ion mobility value to assign to it.
+
+        // If a neighbor is missing, use central peak mz for spline bisection bounds
+        // Only apply when check_spacings is true, otherwise has_left/right_neighbor are uninitialized (false)
+        if (check_spacings)
+        {
+          left_neighbor_mz = (has_left_neighbor) ? left_neighbor_mz : central_peak_mz;
+          right_neighbor_mz = (has_right_neighbor) ? right_neighbor_mz : central_peak_mz;
+        }
+
         double max_peak_mz = central_peak_mz;
         double max_peak_int = central_peak_int;
         double threshold = 1e-6;
@@ -479,7 +507,7 @@ namespace OpenMS
         if (ms_levels_.empty()) 
         {
           SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType(true); // uses meta-info and inspects data if needed
-          if (spectrum_type == SpectrumSettings::CENTROID)
+          if (spectrum_type == SpectrumSettings::SpectrumType::CENTROID)
           {
             output[scan_idx] = input[scan_idx];
           }
@@ -500,7 +528,7 @@ namespace OpenMS
         {
           std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
           SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType(true); // uses meta-info and inspects data if needed
-          if (spectrum_type == SpectrumSettings::CENTROID && check_spectrum_type)
+          if (spectrum_type == SpectrumSettings::SpectrumType::CENTROID && check_spectrum_type)
           {
             throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
           }
@@ -561,7 +589,7 @@ namespace OpenMS
 
           // determine type of spectral data (profile or centroided)
           SpectrumSettings::SpectrumType spectrumType = s.getType();
-          if (spectrumType == SpectrumSettings::CENTROID)
+          if (spectrumType == SpectrumSettings::SpectrumType::CENTROID)
           {
             output[scan_idx] = input[scan_idx];
           }
@@ -582,7 +610,7 @@ namespace OpenMS
           // determine type of spectral data (profile or centroided)
           SpectrumSettings::SpectrumType spectrum_type = s.getType();
 
-          if (spectrum_type == SpectrumSettings::CENTROID && check_spectrum_type)
+          if (spectrum_type == SpectrumSettings::SpectrumType::CENTROID && check_spectrum_type)
           {
             throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
           }
@@ -623,6 +651,7 @@ namespace OpenMS
     ms_levels_ = getParameters().getValue("ms_levels");
     report_FWHM_ = getParameters().getValue("report_FWHM").toBool();
     report_FWHM_as_ppm_ = getParameters().getValue("report_FWHM_unit")!="absolute";
+    allow_missing_flank_ = getParameters().getValue("allow_missing_flank").toBool();
   }
 
 }

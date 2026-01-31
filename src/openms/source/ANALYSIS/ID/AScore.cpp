@@ -11,8 +11,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-
-#include <boost/math/special_functions/binomial.hpp>
+#include <OpenMS/MATH/MathFunctions.h>
 
 using namespace std;
 
@@ -193,34 +192,8 @@ namespace OpenMS
     OPENMS_PRECONDITION(n <= N, "The number of matched ions (n) can be at most as large as the number of trials (N).");
     OPENMS_PRECONDITION(p >= 0 && p <= 1.0, "p must be a probability [0,1].");
 
-    // return bad p value if none has been matched (see Beausoleil et al.)
-    if (n == 0) return 1.0;
-
-    double score = 0.0;
-    // score = sum_{k=n..N}(\choose{N}{k}p^k(1-p)^{N-k})
-    for (Size k = n; k <= N; ++k)
-    {
-      double coeff = 0;
-
-      try
-      {
-        coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
-      }
-      catch (std::overflow_error const& /*e*/)
-      {
-        // not sure if a warning is appropriate here, since if it happens, it will happen very often for the same spectrum and flood the stdout
-//        std::cout << "Warning: Binomial coefficient for AScore has overflowed! Setting value to the maximal double value." << std::endl;
-//        std::cout << "binomial_coefficient was called with N = " << N << " and k = " << k << std::endl;
-        coeff = std::numeric_limits<double>::max();
-      }
-
-      double pow1 = pow((double)p, (int)k);
-      double pow2 = pow(double(1 - p), double(N - k));
-
-      score += coeff * pow1 * pow2;
-    }
-
-    return score;
+    // Use the numerically stable implementation from MathFunctions
+    return Math::binomial_cdf_complement(N, n, p);
   }
 
   void AScore::determineHighestScoringPermutations_(const std::vector<std::vector<double>>& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const vector<vector<Size>>& permutations, std::multimap<double, Size>& ranking) const

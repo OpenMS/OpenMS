@@ -105,7 +105,7 @@ namespace OpenMS
   {
     SpectrumSettings::SpectrumType t = SpectrumSettings::getType();
     // easy case: type is known
-    if (t != SpectrumSettings::UNKNOWN)
+    if (t != SpectrumSettings::SpectrumType::UNKNOWN)
     {
       return t;
     }
@@ -115,7 +115,7 @@ namespace OpenMS
     {
       if (dp->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
       {
-        return SpectrumSettings::CENTROID;
+        return SpectrumSettings::SpectrumType::CENTROID;
       }
     }
 
@@ -123,7 +123,7 @@ namespace OpenMS
     {
       return PeakTypeEstimator::estimateType(begin(), end());
     }
-    return SpectrumSettings::UNKNOWN;
+    return SpectrumSettings::SpectrumType::UNKNOWN;
   }
 
   MSSpectrum::ConstIterator MSSpectrum::getBasePeak() const
@@ -475,8 +475,10 @@ namespace OpenMS
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const
   {
     //name_ can differ => it is not checked, range is not checked
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
     return std::operator==(*this, rhs) &&
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
@@ -487,7 +489,9 @@ namespace OpenMS
            string_data_arrays_ == rhs.string_data_arrays_ &&
            integer_data_arrays_ == rhs.integer_data_arrays_;
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
   }
 
   MSSpectrum &MSSpectrum::operator=(const MSSpectrum &source)

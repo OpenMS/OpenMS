@@ -342,8 +342,8 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "Running " << adapter_name << "..." << endl << endl;
     const auto& rt = ep.run(adapter_name.toQString(), QStringList() << "-ini" << ini_path.toQString(), tmp_dir.getPath().toQString(), true);
     if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
-    { // error occured
-      OPENMS_LOG_ERROR << "An error occured while running " << adapter_name << "." << endl;
+    { // error occurred
+      OPENMS_LOG_ERROR << "An error occurred while running " << adapter_name << "." << endl;
       OPENMS_LOG_ERROR << "Standard output: " << proc_stdout << endl;
       OPENMS_LOG_ERROR << "Standard error: " << proc_stderr << endl;
       throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + String(static_cast<Int>(rt)));
@@ -365,7 +365,7 @@ namespace OpenMS
     OPENMS_LOG_INFO.insert(cout); // revert logging change
     if (indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK)
     {
-      OPENMS_LOG_ERROR << "An error occured while trying to index the search results." << endl;
+      OPENMS_LOG_ERROR << "An error occurred while trying to index the search results." << endl;
       throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + String(static_cast<Int>(indexer_exit)));
     }
 

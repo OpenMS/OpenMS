@@ -35,10 +35,10 @@ public:
     /**
       @brief Constructor
 
-      @param file_out Output filename; will be overwritten if exists
-      @param sep Separator string (typically comma, semicolon, or tab)
-      @param replacement If @p quoting is @p NONE, used to replace occurrences of @p sep within strings before writing them
-      @param quoting Quoting method for strings (see @p String::quote)
+      @param[out] file_out Output filename; will be overwritten if exists
+      @param[in] sep Separator string (typically comma, semicolon, or tab)
+      @param[in] replacement If @p quoting is @p NONE, used to replace occurrences of @p sep within strings before writing them
+      @param[in] quoting Quoting method for strings (see @p String::quote)
     */
     SVOutStream(const String& file_out,
                 const String& sep = "\t",
@@ -48,10 +48,10 @@ public:
     /**
       @brief Constructor
 
-      @param out Output stream to write to (open file or @p cout)
-      @param sep Separator string (typically comma, semicolon, or tab)
-      @param replacement If @p quoting is @p NONE, used to replace occurrences of @p sep within strings before writing them
-      @param quoting Quoting method for strings (see @p String::quote)
+      @param[out] out Output stream to write to (open file or @p cout)
+      @param[in] sep Separator string (typically comma, semicolon, or tab)
+      @param[in] replacement If @p quoting is @p NONE, used to replace occurrences of @p sep within strings before writing them
+      @param[in] quoting Quoting method for strings (see @p String::quote)
     */
     SVOutStream(std::ostream& out,
                 const String& sep = "\t",

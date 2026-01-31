@@ -116,12 +116,12 @@ public:
 
         /**
          * @brief Detailed constructor of the cluster body
-         * @param center_point Pointer to the center point
-         * @param num_maps Number of input maps
-         * @param max_distance Maximum allowed distance of two points
-         * @param x_coord The x-coordinate in the grid cell
-         * @param y_coord The y-coordinate in the grid cell
-         * @param id Unique ID of this cluster
+         * @param[in] center_point Pointer to the center point
+         * @param[in] num_maps Number of input maps
+         * @param[in] max_distance Maximum allowed distance of two points
+         * @param[in] x_coord The x-coordinate in the grid cell
+         * @param[in] y_coord The y-coordinate in the grid cell
+         * @param[in] id Unique ID of this cluster
          */
         BulkData(const OpenMS::GridFeature* const center_point, 
                 Size num_maps, double max_distance,
@@ -173,8 +173,8 @@ public:
 
     /**
      * @brief Detailed constructor of the cluster head
-     * @param data Pointer to internal data
-     * @param use_IDs Use peptide annotations?
+     * @param[in] data Pointer to internal data
+     * @param[in] use_IDs Use peptide annotations?
      */
 
     QTCluster(BulkData* const data, bool use_IDs);
@@ -232,8 +232,8 @@ public:
     /**
      * @brief Adds a new element/neighbor to the cluster
      * @note There is no check whether the element/neighbor already exists in the cluster!
-     * @param element The element to be added
-     * @param distance Distance of the element to the center point
+     * @param[in] element The element to be added
+     * @param[in] distance Distance of the element to the center point
      */
     void add(const GridFeature* const element, double distance);
 
@@ -243,7 +243,7 @@ public:
     /**
      * @brief Updates the cluster after the indicated data points are removed
      *
-     * @param removed The datapoints to be removed from the cluster
+     * @param[in] removed The datapoints to be removed from the cluster
      *
      * @return Whether the cluster composition has changed due to the update
      */

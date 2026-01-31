@@ -72,10 +72,10 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * Populates protein and peptide identifications, including search meta data, PSM hits,
      * and search engine annotations. Parameters are taken from this instance (DefaultParamHandler).
      *
-     * @param in_mzML Input path to the mzML file containing MS/MS spectra to search.
-     * @param in_db   Input path to the protein sequence database in FASTA format.
-     * @param prot_ids Output container receiving search meta data and protein-level information.
-     * @param pep_ids  Output container receiving spectrum-level peptide identifications (PSMs).
+     * @param[in] in_mzML Input path to the mzML file containing MS/MS spectra to search.
+     * @param[in] in_db   Input path to the protein sequence database in FASTA format.
+     * @param[out] prot_ids Output container receiving search meta data and protein-level information.
+     * @param[out] pep_ids  Output container receiving spectrum-level peptide identifications (PSMs).
      *
      * @return ExitCodes indicating success (EXECUTION_OK) or the encountered error condition.
      *
@@ -128,22 +128,22 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * PeptideIdentification objects, adding requested PSM annotations and
      * populating protein-level search metadata.
      *
-     * @param exp Input MS experiment providing spectra/metadata for annotation.
-     * @param annotated_hits Per-spectrum candidate hits (trimmed to @p top_hits in-place).
-     * @param protein_ids Output container for protein-level identification and search metadata.
-     * @param peptide_ids Output container for spectrum-level peptide identifications (PSMs).
-     * @param top_hits Number of top-scoring hits to retain per spectrum (report_top_hits_).
-     * @param modifications_fixed Fixed modifications (by name) used during the search.
-     * @param modifications_variable Variable modifications (by name) used during the search.
-     * @param peptide_missed_cleavages Allowed missed cleavages in digestion.
-     * @param precursor_mass_tolerance Precursor mass tolerance value.
-     * @param fragment_mass_tolerance Fragment mass tolerance value.
-     * @param precursor_mass_tolerance_unit_ppm Precursor tolerance unit ("true"->ppm, "false"->Da).
-     * @param fragment_mass_tolerance_unit_ppm Fragment tolerance unit ("true"->ppm, "false"->Da).
-     * @param precursor_min_charge Minimum precursor charge considered.
-     * @param precursor_max_charge Maximum precursor charge considered.
-     * @param enzyme Digestion enzyme name.
-     * @param database_name Database file name used for the search (stored in protein_ids).
+     * @param[in] exp Input MS experiment providing spectra/metadata for annotation.
+     * @param[in,out] annotated_hits Per-spectrum candidate hits (trimmed to @p top_hits in-place).
+     * @param[out] protein_ids Output container for protein-level identification and search metadata.
+     * @param[out] peptide_ids Output container for spectrum-level peptide identifications (PSMs).
+     * @param[in] top_hits Number of top-scoring hits to retain per spectrum (report_top_hits_).
+     * @param[in] modifications_fixed Fixed modifications (by name) used during the search.
+     * @param[in] modifications_variable Variable modifications (by name) used during the search.
+     * @param[in] peptide_missed_cleavages Allowed missed cleavages in digestion.
+     * @param[in] precursor_mass_tolerance Precursor mass tolerance value.
+     * @param[in] fragment_mass_tolerance Fragment mass tolerance value.
+     * @param[in] precursor_mass_tolerance_unit_ppm Precursor tolerance unit ("true"->ppm, "false"->Da).
+     * @param[in] fragment_mass_tolerance_unit_ppm Fragment tolerance unit ("true"->ppm, "false"->Da).
+     * @param[in] precursor_min_charge Minimum precursor charge considered.
+     * @param[in] precursor_max_charge Maximum precursor charge considered.
+     * @param[in] enzyme Digestion enzyme name.
+     * @param[out] database_name Database file name used for the search (stored in protein_ids).
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<PeptideSearchEngineFIAlgorithm::AnnotatedHit_> >& annotated_hits,

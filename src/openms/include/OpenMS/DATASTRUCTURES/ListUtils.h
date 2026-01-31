@@ -64,7 +64,7 @@ private:
       /**
         @brief Returns true if \| @p value - @p target \| \< @p tolerance.
 
-        @param value The value to test.
+        @param[in] value The value to test.
         @return true if \| @p value - @p target \| \< @p tolerance, false otherwise.
       */
       inline bool operator()(const double& value) const
@@ -85,8 +85,8 @@ public:
       @note If converted to vector<String> the strings are not trimmed.
       @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
 
-      @param str The string that should be split and converted to a list.
-      @param splitter The separator to look for in @p str
+      @param[in] str The string that should be split and converted to a list.
+      @param[in] splitter The separator to look for in @p str
       @return A vector containing the elements of the string converted into type T.
     */
     template <typename T>
@@ -103,7 +103,7 @@ public:
       @note The strings are trimmed before conversion.
       @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
 
-      @param s The vector of strings that should be converted.
+      @param[in] s The vector of strings that should be converted.
       @return A vector containing the elements of input vector converted into type T.
     */
     template <typename T>
@@ -113,7 +113,7 @@ public:
     /**
   @brief Converts a vector of T's to a vector of Strings.
 
-  @param s The vector of T's that should be converted.
+  @param[in] s The vector of T's that should be converted.
   @return A vector containing the elements of input vector converted into Strings.
 */
     template <typename T>
@@ -128,8 +128,8 @@ public:
     /**
       @brief Checks whether the element @p elem is contained in the given container.
 
-      @param container The container to check.
-      @param elem The element to check whether it is in the container or not.
+      @param[in] container The container to check.
+      @param[in] elem The element to check whether it is in the container or not.
 
       @return True if @p elem is contained in @p container, false otherwise.
     */
@@ -142,9 +142,9 @@ public:
     /**
       @brief Checks whether the element @p elem is contained in the given container of floating point numbers.
 
-      @param container The container of doubles to check.
-      @param elem The element to check whether it is in the container or not.
-      @param tolerance The allowed tolerance for the double.
+      @param[in] container The container of doubles to check.
+      @param[in] elem The element to check whether it is in the container or not.
+      @param[in] tolerance The allowed tolerance for the double.
 
       @return True if @p elem is contained in @p container, false otherwise.
     */
@@ -158,9 +158,9 @@ public:
     /**
     @brief Checks whether the String @p elem is contained in the given container (potentially case insensitive)
 
-    @param container The container of String to check.
-    @param elem The element to check whether it is in the container or not.
-    @param case_sensitive Do the comparison case sensitive or insensitive
+    @param[in] container The container of String to check.
+    @param[in] elem The element to check whether it is in the container or not.
+    @param[in] case_sensitive Do the comparison case sensitive or insensitive
 
     @return True if @p elem is contained in @p container, false otherwise.
     */
@@ -177,8 +177,8 @@ public:
     /**
       @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
 
-      @param container The container to concatenate;
-      @param glue The string to add in between elements.
+      @param[in] container The container to concatenate;
+      @param[in] glue The string to add in between elements.
     */
     template <typename T>
     static String concatenate(const std::vector<T>& container, const String& glue = "")
@@ -189,8 +189,8 @@ public:
     /**
       @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
 
-      @param container The container to concatenate; must have begin() and end() iterator.
-      @param glue The string to add in between elements.
+      @param[in] container The container to concatenate; must have begin() and end() iterator.
+      @param[in] glue The string to add in between elements.
     */
     template <typename T>
     static String concatenate(const T& container, const String& glue = "")

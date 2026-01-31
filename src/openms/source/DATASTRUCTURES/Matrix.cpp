@@ -3,13 +3,16 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 namespace OpenMS
 {
-  Matrix<int>    default_matrix_int;
-  Matrix<double> default_matrix_double;
+  // Explicit template instantiations to ensure symbols exist in the library.
+  // This compiles the template code for these types into libOpenMS.so.
+  template class Matrix<int>;
+  template class Matrix<double>;
+  template class Matrix<float>;
 }

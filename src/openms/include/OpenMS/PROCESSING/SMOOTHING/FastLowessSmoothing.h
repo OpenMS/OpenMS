@@ -39,14 +39,14 @@ namespace OpenMS
       @brief Computes a lowess smoothing fit on the input vectors
 
       This is a fast implementation of a lowess fit that is based on the original
-      Fortran code by W. S. Cleveland and it uses some optimizations. 
+      Fortran code by W. S. Cleveland and it uses some optimizations.
 
-      @param x The input vector in the first dimension
-      @param y The input vector in the second dimension
-      @param f Fraction of datapoints to use for each local regression (the span, recommended value: 2/3) 
-      @param nsteps The number of robustifying iterations (recommended value: 3)
-      @param delta nonnegative parameter which may be used to save computations (recommended value: 0.01 * range of x)
-      @param result Result of fit
+      @param[in] x The input vector in the first dimension
+      @param[in] y The input vector in the second dimension
+      @param[in] f Fraction of datapoints to use for each local regression (the span, recommended value: 2/3)
+      @param[in] nsteps The number of robustifying iterations (recommended value: 3)
+      @param[in] delta nonnegative parameter which may be used to save computations (recommended value: 0.01 * range of x)
+      @param[out] result Result of fit
 
       \pre The size of the vectors x and y needs to be equal
       \pre The vector needs to have at least 2 elements
@@ -76,14 +76,14 @@ namespace OpenMS
     /**
       @brief Computes a lowess smoothing fit on the input vectors with the recommended values
 
-      @param x The input vector in the first dimension
-      @param y The input vector in the second dimension
-      @param result Result of fit
+      @param[in] x The input vector in the first dimension
+      @param[in] y The input vector in the second dimension
+      @param[out] result Result of fit
 
       \pre The size of the vectors x and y needs to be equal
       \pre The vector needs to have at least 2 elements
       \pre The vector x needs to be sorted
-      
+
     */
     int OPENMS_DLLAPI lowess(const std::vector<double>& x, const std::vector<double>& y,
                std::vector<double>& result);

@@ -14,8 +14,8 @@ class TestSpectrumAccessOpenMS(unittest.TestCase):
         pyopenms.MzMLFile().load(self.filename, exp)
         saccess = pyopenms.SpectrumAccessOpenMS(exp)
         spectrum = saccess.getSpectrumById(0)
-        mz = spectrum.getMZArray()
-        intensity = spectrum.getIntensityArray()
+        mz = spectrum.get_mz_array()
+        intensity = spectrum.get_intensity_array()
 
         self.assertAlmostEqual(mz[0], 350.0000305)
         self.assertAlmostEqual(intensity[0], 0.0)
@@ -37,8 +37,8 @@ class TestSpectrumAccessOpenMSInMemory(unittest.TestCase):
         saccess = pyopenms.SpectrumAccessOpenMSInMemory(saccess_)
 
         spectrum = saccess.getSpectrumById(0)
-        mz = spectrum.getMZArray()
-        intensity = spectrum.getIntensityArray()
+        mz = spectrum.get_mz_array()
+        intensity = spectrum.get_intensity_array()
 
         self.assertAlmostEqual(mz[0], 350.0000305)
         self.assertAlmostEqual(intensity[0], 0.0)
@@ -76,8 +76,8 @@ class TestSpectrumAccessSwathMap(unittest.TestCase):
         assert data is not None
 
         spectrum = data.getSpectrumById(0)
-        mz = spectrum.getMZArray()
-        intensity = spectrum.getIntensityArray()
+        mz = spectrum.get_mz_array()
+        intensity = spectrum.get_intensity_array()
 
         self.assertAlmostEqual(mz[0], 350.0000305)
         self.assertAlmostEqual(intensity[0], 0.0)
@@ -107,8 +107,8 @@ class TestSpectrumAccessSwathMap(unittest.TestCase):
         assert data is not None
 
         spectrum = data.getSpectrumById(0)
-        mz = spectrum.getMZArray()
-        intensity = spectrum.getIntensityArray()
+        mz = spectrum.get_mz_array()
+        intensity = spectrum.get_intensity_array()
 
         self.assertAlmostEqual(mz[0], 350.0000305)
         self.assertAlmostEqual(intensity[0], 0.0)

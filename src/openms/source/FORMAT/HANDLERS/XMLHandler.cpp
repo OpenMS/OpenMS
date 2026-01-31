@@ -222,7 +222,7 @@ namespace OpenMS::Internal
         // values used in wrong places and wrong value types
         if (!value.empty())
         {
-          if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
+          if (term.xref_type == ControlledVocabulary::CVTerm::XRefType::NONE)
           {
             // Quality CV does not state value type :(
             if (!accession.hasPrefix("PATO:"))
@@ -235,15 +235,15 @@ namespace OpenMS::Internal
             switch (term.xref_type)
             {
               // string value can be anything
-              case ControlledVocabulary::CVTerm::XSD_STRING:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_STRING:
                 break;
 
               // int value => try casting
-              case ControlledVocabulary::CVTerm::XSD_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER:
                 try
                 {
                   cv_value = value.toInt();
@@ -256,7 +256,7 @@ namespace OpenMS::Internal
                 break;
 
               // double value => try casting
-              case ControlledVocabulary::CVTerm::XSD_DECIMAL:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL:
                 try
                 {
                   cv_value = value.toDouble();
@@ -269,7 +269,7 @@ namespace OpenMS::Internal
                 break;
 
               // date string => try conversion
-              case ControlledVocabulary::CVTerm::XSD_DATE:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_DATE:
                 try
                 {
                   DateTime tmp;
@@ -282,7 +282,7 @@ namespace OpenMS::Internal
                 }
                 break;
               
-              case ControlledVocabulary::CVTerm::XSD_BOOLEAN:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN:
                 try
                 {
                   cv_value = String(value).toLower();
@@ -303,7 +303,7 @@ namespace OpenMS::Internal
           }
         }
         // no value, although there should be a numerical value
-        else if (term.xref_type != ControlledVocabulary::CVTerm::NONE && term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING && // should be numerical
+        else if (term.xref_type != ControlledVocabulary::CVTerm::XRefType::NONE && term.xref_type != ControlledVocabulary::CVTerm::XRefType::XSD_STRING && // should be numerical
                  !cv.isChildOf(accession, "MS:1000513") // here the value type relates to the binary data array, not the 'value=' attribute!
         )
         {

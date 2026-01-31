@@ -29,9 +29,9 @@ namespace OpenMS
     /**
        @brief Write CWL file
 
-       @param filename The name of the file the param data structure should be stored in.
-       @param param The param data structure that should be stored.
-       @param tool_info Additional information about the Tool for which the param data should be stored.
+       @param[out] filename The name of the file the param data structure should be stored in.
+       @param[in] param The param data structure that should be stored.
+       @param[out] tool_info Additional information about the Tool for which the param data should be stored.
 
        @exception std::ios::failure is thrown if the file could not be created
      */
@@ -40,9 +40,9 @@ namespace OpenMS
     /**
        @brief Write CWL to output stream.
 
-       @param os_ptr The stream to which the param data should be written.
-       @param param The param data structure that should be writte to stream.
-       @param tool_info Additional information about the Tool for which the param data should be written.
+       @param[out] os_ptr The stream to which the param data should be written.
+       @param[out] param The param data structure that should be writte to stream.
+       @param[out] tool_info Additional information about the Tool for which the param data should be written.
      */
     void writeCWLToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const;
   };

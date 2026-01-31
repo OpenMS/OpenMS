@@ -101,7 +101,7 @@ namespace OpenMS
       db_version(),
       taxonomy(),
       charges(),
-      mass_type(MONOISOTOPIC),
+      mass_type(PeakMassType::MONOISOTOPIC),
       fixed_modifications(),
       variable_modifications(),
       missed_cleavages(0),
@@ -915,6 +915,17 @@ namespace OpenMS
     higher_score_better_ = p.higher_score_better_;
     protein_significance_threshold_ = p.protein_significance_threshold_;
     MetaInfoInterface::operator=(static_cast<MetaInfoInterface>(p));
+  }
+
+  StringList ProteinIdentification::getAllNamesOfPeakMassType()
+  {
+    StringList names;
+    names.reserve(static_cast<size_t>(PeakMassType::SIZE_OF_PEAKMASSTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(PeakMassType::SIZE_OF_PEAKMASSTYPE); ++i)
+    {
+      names.push_back(NamesOfPeakMassType[i]);
+    }
+    return names;
   }
 
 } // namespace OpenMS

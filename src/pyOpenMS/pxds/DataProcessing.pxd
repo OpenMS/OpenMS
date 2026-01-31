@@ -4,6 +4,7 @@ from String cimport *
 from Software cimport *
 from DateTime cimport *
 from MetaInfoInterface cimport *
+from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
 
@@ -22,6 +23,15 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
 
         DateTime getCompletionTime()  except + nogil 
         void setCompletionTime(DateTime t) except + nogil 
+
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfProcessingAction() except + nogil  # wrap-doc:Returns all processing action names known to OpenMS
+
+        @staticmethod
+        libcpp_utf8_output_string processingActionToString(ProcessingAction action) except + nogil  # wrap-doc:Convert a ProcessingAction enum to String. Throws Exception::InvalidValue if action is SIZE_OF_PROCESSINGACTION
+
+        @staticmethod
+        ProcessingAction toProcessingAction(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string to ProcessingAction enum. Throws Exception::InvalidValue if name is not found
 
     ctypedef shared_ptr[DataProcessing] DataProcessingPtr
 
@@ -52,4 +62,5 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS::DataPro
         CONVERSION_MZXML,               #< Conversion to mzXML format
         CONVERSION_DTA,                 #< Conversion to DTA format
         IDENTIFICATION,                 #< Identification
+        ION_MOBILITY_BINNING,           #< Ion mobility binning (merging of spectra with similar IM values)
         SIZE_OF_PROCESSINGACTION

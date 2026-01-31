@@ -409,11 +409,11 @@ namespace OpenMS
   class OPENMS_DLLAPI ACTrie
   {
   public:
-    /** 
+    /**
       @brief Default C'tor which just creates a root node
 
-      @param max_aaa Maximum number of ambiguous amino acids (B,J,Z,X) allowed in a hit
-      @param max_mm Maximum number of mismatched amino acids allowed in a hit
+      @param[in] max_aaa Maximum number of ambiguous amino acids (B,J,Z,X) allowed in a hit
+      @param[in] max_mm Maximum number of mismatched amino acids allowed in a hit
     */
     ACTrie(uint32_t max_aaa = 0, uint32_t max_mm = 0);
 
@@ -488,8 +488,8 @@ namespace OpenMS
     /**
       @brief Add all hits occurring in node @p i (including all its suffix hits)
 
-      @param i The ACNode where a needle ends (also all its suffices are checked)
-      @param text_pos current position in query (i.e. end of matched hit)
+      @param[in] i The ACNode where a needle ends (also all its suffices are checked)
+      @param[in] text_pos current position in query (i.e. end of matched hit)
       @param[out] hits Result vector which will be expanded with hits (if any)
       @return true if hits were found
     **/

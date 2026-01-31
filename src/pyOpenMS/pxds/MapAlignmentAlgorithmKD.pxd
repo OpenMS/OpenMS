@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>" names
             #  and based on these, LOWESS transformations are computed for each input map such that the average
             #  deviation from the mean retention time within all CCCs is minimized
 
-        # private
+        #  private
         MapAlignmentAlgorithmKD() except + nogil  # wrap-ignore
         MapAlignmentAlgorithmKD(Size num_maps, Param & param) except + nogil 
 

@@ -105,20 +105,20 @@ namespace OpenMS
       
       Param param_pi = indexer.getParameters();
       // copy search engine specific default parameter for peptide indexing into param_pi
-      param_pi.update(param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
+      param_pi.update(param, false, false, false, false, getGlobalLogDebug()); // suppress param. update message
       indexer.setParameters(param_pi);
       indexer.setLogType(this->log_type_);
       FASTAContainer<TFI_File> proteins(getDBFilename());
       PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, protein_identifications, peptide_identifications);
 
-      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+      if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
+          (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
       {
-        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+        if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
         {
-          return INPUT_FILE_EMPTY;       
+          return INPUT_FILE_EMPTY;
         }
-        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
         {
           return UNEXPECTED_RESULT;
         }

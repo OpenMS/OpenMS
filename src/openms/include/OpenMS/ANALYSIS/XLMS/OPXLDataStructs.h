@@ -14,6 +14,8 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <functional>
 //#include <numeric>
 
 namespace OpenMS
@@ -295,3 +297,39 @@ namespace OpenMS
 
   }; // class
 } // namespace OpenMS
+
+namespace std
+{
+  /// @brief std::hash specialization for ProteinProteinCrossLink
+  template<>
+  struct hash<OpenMS::OPXLDataStructs::ProteinProteinCrossLink>
+  {
+    std::size_t operator()(const OpenMS::OPXLDataStructs::ProteinProteinCrossLink& link) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash pointers (alpha and beta) - these are compared by pointer value in operator==
+      OpenMS::hash_combine(seed, OpenMS::hash_int(reinterpret_cast<std::uintptr_t>(link.alpha)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(reinterpret_cast<std::uintptr_t>(link.beta)));
+
+      // Hash cross_link_position (pair of SignedSize)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(link.cross_link_position.first));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(link.cross_link_position.second));
+
+      // Hash cross_linker_mass (double)
+      OpenMS::hash_combine(seed, OpenMS::hash_float(link.cross_linker_mass));
+
+      // Hash cross_linker_name (String, which is std::string)
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(link.cross_linker_name));
+
+      // Hash term_spec_alpha and term_spec_beta (enums)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(link.term_spec_alpha)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(link.term_spec_beta)));
+
+      // Hash precursor_correction (int)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(link.precursor_correction));
+
+      return seed;
+    }
+  };
+} // namespace std

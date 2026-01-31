@@ -58,13 +58,13 @@ namespace OpenMS
   {
     public:
       /* @brief generate all combinations of precursor adducts
-         @param target_nucleotides the list of nucleotides: e.g., "U", "C", "G", "A" or "U", "T", "G", "A"
-         @param can_xl the set of cross-linkable nucleotides
-         @param mappings
-         @param modifications additional losses associated with the precursor adduct: e.g., "-H2O"
-         @param sequence_restriction only precursor adducts that are substrings of this NA sequence are generated
-         @param cysteine_adduct special DTT adduct
-         @param max_length maximum oligo length
+         @param[in] target_nucleotides the list of nucleotides: e.g., "U", "C", "G", "A" or "U", "T", "G", "A"
+         @param[in] can_xl the set of cross-linkable nucleotides
+         @param[in] mappings
+         @param[in] modifications additional losses associated with the precursor adduct: e.g., "-H2O"
+         @param[in] sequence_restriction only precursor adducts that are substrings of this NA sequence are generated
+         @param[in] cysteine_adduct special DTT adduct
+         @param[in] max_length maximum oligo length
       */
       static NuXLModificationMassesResult initModificationMassesNA(const StringList& target_nucleotides,
                                                                      const StringList& nt_groups,

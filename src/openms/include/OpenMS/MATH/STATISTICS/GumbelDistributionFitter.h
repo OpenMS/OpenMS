@@ -63,7 +63,7 @@ public:
       /**
           @brief Fits a gumbel distribution to the given data points
 
-          @param points Input parameter which represents the point used for the fitting
+          @param[in,out] points Input parameter which represents the point used for the fitting
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
@@ -73,8 +73,8 @@ public:
           @brief Fits a gumbel distribution to the given data x values. Fills a
           weighted histogram first and generates y values.
 
-          @param x Input x values
-          @param w Input weights
+          @param[in] x Input x values
+          @param[in] w Input weights
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */

@@ -18,6 +18,7 @@ ExtendedIsotopeModel.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
 FeatureFinderIdentificationAlgorithm.h
+Biosaur2Algorithm.h
 FeatureFinderAlgorithmMetaboIdent.h
 FeatureFinderMultiplexAlgorithm.h
 FeatureFindingMetabo.h

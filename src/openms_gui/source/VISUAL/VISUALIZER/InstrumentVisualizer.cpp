@@ -46,11 +46,11 @@ namespace OpenMS
 
     if (!isEditable())
     {
-      fillComboBox_(ion_optics_, &temp_.NamesOfIonOpticsType[temp_.getIonOptics()], 1);
+      fillComboBox_(ion_optics_, &temp_.NamesOfIonOpticsType[static_cast<size_t>(temp_.getIonOptics())], 1);
     }
     else
     {
-      fillComboBox_(ion_optics_, temp_.NamesOfIonOpticsType, Instrument::SIZE_OF_IONOPTICSTYPE);
+      fillComboBox_(ion_optics_, temp_.NamesOfIonOpticsType, static_cast<int>(Instrument::IonOpticsType::SIZE_OF_IONOPTICSTYPE));
     }
   }
 

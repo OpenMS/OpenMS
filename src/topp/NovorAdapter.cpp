@@ -336,7 +336,7 @@ protected:
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = "denovo";
-    search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     
     // if a parameter file is used the modifications need to be parsed from the novor output csv
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");

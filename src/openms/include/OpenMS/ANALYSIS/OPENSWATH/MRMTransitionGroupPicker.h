@@ -1046,16 +1046,16 @@ protected:
       only be populated between the boundaries given. The output container
       will contain peaks with mz / RT values but all intensity values will be zero.
 
-      @param ref_chromatogram Reference chromatogram containing mz / RT values (possibly beyond the desired range)
-      @param master_peak_container Output container to be populated
-      @param left_boundary Left boundary of values the container should be populated with
-      @param right_boundary Right boundary of values the container should be populated with
+      @param[in] ref_chromatogram Reference chromatogram containing mz / RT values (possibly beyond the desired range)
+      @param[out] master_peak_container Output container to be populated
+      @param[in] left_boundary Left boundary of values the container should be populated with
+      @param[in] right_boundary Right boundary of values the container should be populated with
 
     */
     template <typename PeakContainerT>
     void prepareMasterContainer_(const PeakContainerT& ref_chromatogram,
-                                 PeakContainerT& master_peak_container, 
-                                 double left_boundary, 
+                                 PeakContainerT& master_peak_container,
+                                 double left_boundary,
                                  double right_boundary)
     {
       OPENMS_PRECONDITION(master_peak_container.empty(), "Master peak container must be empty")
@@ -1083,17 +1083,17 @@ protected:
     /**
       @brief Resample a container at the positions indicated by the master peak container
 
-      @param chromatogram Container with the input data
-      @param master_peak_container Container with the mz / RT values at which to resample
-      @param left_boundary Left boundary of values the container should be resampled
-      @param right_boundary Right boundary of values the container should be resampled
+      @param[in] chromatogram Container with the input data
+      @param[in] master_peak_container Container with the mz / RT values at which to resample
+      @param[in] left_boundary Left boundary of values the container should be resampled
+      @param[in] right_boundary Right boundary of values the container should be resampled
 
       @return A container which contains the data from the input chromatogram resampled at the positions of the master container
     */
     template <typename PeakContainerT>
     PeakContainerT resampleChromatogram_(const PeakContainerT& chromatogram,
-                                    const PeakContainerT& master_peak_container, 
-                                    double left_boundary, 
+                                    const PeakContainerT& master_peak_container,
+                                    double left_boundary,
                                     double right_boundary)
     {
       // get the start / end point of this chromatogram => then add one more

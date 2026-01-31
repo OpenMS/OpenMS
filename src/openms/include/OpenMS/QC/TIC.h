@@ -53,9 +53,9 @@ namespace OpenMS
 
     All MS1 TICs within a bin are summed up.
 
-    @param exp Peak map to compute the MS1 tick from
-    @param bin_size RT bin size in seconds
-    @param ms_level MS level of spectra for calculation
+    @param[in] exp Peak map to compute the MS1 tick from
+    @param[in] bin_size RT bin size in seconds
+    @param[in] ms_level MS level of spectra for calculation
     @return result struct with with computed QC metrics: intensities, RTs (in seconds), area under TIC, 10x MS1 signal fall, 10x MS1 signal jump
 
     **/

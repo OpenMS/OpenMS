@@ -47,7 +47,7 @@ public:
         If there is an error occurred while reading data from InputSource,
         @c IOException is thrown.
 
-        @param fname The name of the input source.
+        @param[in] fname The name of the input source.
        */
       void load(const std::string & fname);
 
@@ -61,7 +61,7 @@ public:
       /**
         Parses the the given input source @c is .
 
-        @param is The InputSource
+        @param[in] is The InputSource
        */
       virtual void parse(InputSource & is) = 0;
 
