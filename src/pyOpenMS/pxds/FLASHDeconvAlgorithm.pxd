@@ -3,16 +3,14 @@ from MSExperiment cimport *
 from MSSpectrum cimport *
 from Matrix cimport *
 from DefaultParamHandler cimport *
-from ProgressLogger cimport *
 from DeconvolvedSpectrum cimport *
 from FLASHHelperClasses cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>" namespace "OpenMS":
 
-    cdef cppclass FLASHDeconvAlgorithm(DefaultParamHandler,ProgressLogger):
+    cdef cppclass FLASHDeconvAlgorithm(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        #   ProgressLogger
         # wrap-doc:
         #  FLASHDeconv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset.
         #  From MSSpectrum, this class outputs DeconvolvedSpectrum.

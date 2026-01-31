@@ -1,7 +1,6 @@
 from MSExperiment cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
-from ProgressLogger cimport *
 from TargetedExperiment cimport *
 from TransformationDescription cimport *
 from libcpp cimport bool
@@ -9,10 +8,8 @@ from ChromatogramExtractorAlgorithm cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace "OpenMS":
 
-    cdef cppclass ChromatogramExtractor(ProgressLogger):
-        # wrap-inherits:
-        #   ProgressLogger
-    
+    cdef cppclass ChromatogramExtractor:
+
         ChromatogramExtractor() except + nogil  # compiler
         ChromatogramExtractor(ChromatogramExtractor &) except + nogil  # compiler
 

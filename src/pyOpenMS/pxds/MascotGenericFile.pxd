@@ -2,14 +2,12 @@ from Types cimport *
 from libcpp.pair cimport pair as libcpp_pair
 from String cimport *
 from MSExperiment cimport *
-from ProgressLogger cimport *
 from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/FORMAT/MascotGenericFile.h>" namespace "OpenMS":
     
-    cdef cppclass MascotGenericFile(ProgressLogger, DefaultParamHandler) :
+    cdef cppclass MascotGenericFile(DefaultParamHandler) :
         # wrap-inherits:
-        #  ProgressLogger
         #  DefaultParamHandler
         MascotGenericFile() except + nogil 
         MascotGenericFile(MascotGenericFile &) except + nogil 

@@ -552,7 +552,7 @@ namespace OpenMS
             sub_item->setData(ClmnChrom::RT_END, Qt::DisplayRole, current_chromatogram.back().getRT());
           }
 
-          sub_item->setText(ClmnChrom::CHROM_TYPE, MSChromatogram::ChromatogramNames[static_cast<size_t>(current_chromatogram.getChromatogramType())]);
+          sub_item->setText(ClmnChrom::CHROM_TYPE, ChromatogramSettings::ChromatogramNames[static_cast<size_t>(current_chromatogram.getChromatogramType())]);
         }
         if (one_selected && multiple_select)
         {

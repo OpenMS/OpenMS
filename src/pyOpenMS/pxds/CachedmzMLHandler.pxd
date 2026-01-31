@@ -3,16 +3,13 @@ from MSSpectrum  cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from String cimport *
-from ProgressLogger cimport *
 from streampos cimport *
 
 cdef extern from "<OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>" namespace "OpenMS::Internal":
 
     # Do not use this class directly, rather use SpectrumAccessOpenMSCached
 
-    cdef cppclass CachedMzMLHandler(ProgressLogger):
-        # wrap-inherits:
-        #  ProgressLogger
+    cdef cppclass CachedMzMLHandler:
 
         CachedMzMLHandler() except + nogil  # wrap-doc:An internal class that handles single spectra and chromatograms
         CachedMzMLHandler(CachedMzMLHandler &) except + nogil  # compiler

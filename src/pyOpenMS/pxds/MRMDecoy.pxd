@@ -1,13 +1,10 @@
 from Types cimport *
 from String cimport *
-from ProgressLogger cimport *
 from TargetedExperiment cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
 
-    cdef cppclass MRMDecoy(ProgressLogger):
-        # wrap-inherits:
-        #   ProgressLogger
+    cdef cppclass MRMDecoy:
 
         MRMDecoy() except + nogil 
         MRMDecoy(MRMDecoy &) except + nogil  # compiler

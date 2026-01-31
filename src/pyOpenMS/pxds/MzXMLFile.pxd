@@ -2,16 +2,12 @@ from MSExperiment  cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from String cimport *
-from ProgressLogger cimport *
 from PeakFileOptions cimport *
 from IMSDataConsumer cimport *
 
 cdef extern from "<OpenMS/FORMAT/MzXMLFile.h>" namespace "OpenMS":
 
-    cdef cppclass MzXMLFile(ProgressLogger):
-        # wrap-inherits:
-        #  ProgressLogger
-        #  
+    cdef cppclass MzXMLFile:
         # wrap-doc:
         #  File adapter for MzXML files
         #  

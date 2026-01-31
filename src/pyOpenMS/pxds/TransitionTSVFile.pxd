@@ -1,4 +1,3 @@
-from ProgressLogger cimport *
 from libcpp.map cimport map as libcpp_map
 from libcpp cimport bool
 from Types cimport *
@@ -9,9 +8,7 @@ from LightTargetedExperiment cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>" namespace "OpenMS":
 
-    cdef cppclass TransitionTSVFile(ProgressLogger):
-        # wrap-inherits:
-        #   ProgressLogger
+    cdef cppclass TransitionTSVFile:
 
         TransitionTSVFile() except + nogil 
         TransitionTSVFile(TransitionTSVFile &) except + nogil  # compiler

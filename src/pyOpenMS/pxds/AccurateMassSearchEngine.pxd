@@ -8,16 +8,14 @@ from FeatureMap cimport *
 from MzTab cimport *
 from DefaultParamHandler cimport *
 from String cimport *
-from ProgressLogger cimport *
 from AccurateMassSearchResult cimport *
 from EmpiricalFormula cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "OpenMS":
 
-    cdef cppclass AccurateMassSearchEngine(DefaultParamHandler,ProgressLogger) :
+    cdef cppclass AccurateMassSearchEngine(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        #  ProgressLogger
         AccurateMassSearchEngine() except + nogil 
         AccurateMassSearchEngine(AccurateMassSearchEngine &) except + nogil 
 

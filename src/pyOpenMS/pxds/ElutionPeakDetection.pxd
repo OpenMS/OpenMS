@@ -5,7 +5,6 @@ from ChromatogramPeak cimport *
 from MassTrace cimport *
 
 from DefaultParamHandler cimport *
-from ProgressLogger cimport *
 
 from Types cimport *
 
@@ -13,9 +12,8 @@ from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/FEATUREFINDER/ElutionPeakDetection.h>" namespace "OpenMS":
 
-    cdef cppclass ElutionPeakDetection(ProgressLogger, DefaultParamHandler):
+    cdef cppclass ElutionPeakDetection(DefaultParamHandler):
         # wrap-inherits:
-        #   ProgressLogger
         #   DefaultParamHandler
 
         ElutionPeakDetection() except + nogil 

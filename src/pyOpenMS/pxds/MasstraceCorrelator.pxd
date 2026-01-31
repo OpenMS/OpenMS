@@ -2,7 +2,6 @@ from Types cimport *
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp.vector cimport vector as libcpp_vector
 from DefaultParamHandler cimport *
-from ProgressLogger cimport *
 from ConsensusMap cimport *
 from MSExperiment cimport *
 
@@ -12,10 +11,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>" namespace "
     
     ctypedef libcpp_vector[libcpp_pair[double,double ] ] MasstracePointsType
 
-    cdef cppclass MasstraceCorrelator(DefaultParamHandler,ProgressLogger) :
+    cdef cppclass MasstraceCorrelator(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        #  ProgressLogger
         MasstraceCorrelator() except + nogil 
         MasstraceCorrelator(MasstraceCorrelator &) except + nogil  # compiler
 

@@ -3,14 +3,12 @@ from DefaultParamHandler cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 from String cimport *
-from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>" namespace "OpenMS":
  
-    cdef cppclass PeptideSearchEngineFIAlgorithm(DefaultParamHandler, ProgressLogger):
+    cdef cppclass PeptideSearchEngineFIAlgorithm(DefaultParamHandler):
         # wrap-inherits:
         #  DefaultParamHandler
-        #  ProgressLogger
         # wrap-doc:
         #  Fragment-index-based peptide database search algorithm (experimental).
         #  Provides a self-contained search engine that matches MS/MS spectra against a protein

@@ -6,15 +6,12 @@ from SpectrumAccessOpenMSCached cimport *
 from SpectrumAccessOpenMSInMemory cimport *
 from SpectrumAccessQuadMZTransforming cimport *
 from ISpectrumAccess cimport *
-from ProgressLogger cimport *
 
 # typedef std::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" namespace "OpenMS":
 
-    cdef cppclass ChromatogramExtractorAlgorithm(ProgressLogger):
-        # wrap-inherits:
-        #   ProgressLogger
+    cdef cppclass ChromatogramExtractorAlgorithm:
 
         ChromatogramExtractorAlgorithm() except + nogil 
         ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm &) except + nogil  # compiler

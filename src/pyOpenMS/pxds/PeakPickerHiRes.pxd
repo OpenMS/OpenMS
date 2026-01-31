@@ -4,14 +4,12 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from Param cimport *
 from DefaultParamHandler cimport *
-from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>" namespace "OpenMS":
 
-    cdef cppclass PeakPickerHiRes(DefaultParamHandler, ProgressLogger):
+    cdef cppclass PeakPickerHiRes(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        #   ProgressLogger
 
         PeakPickerHiRes() except + nogil 
         PeakPickerHiRes(PeakPickerHiRes &) except + nogil  # compiler

@@ -64,7 +64,7 @@ namespace OpenMS
   {
     TargetedExperiment te;
     TransitionPQPFile tr_file;
-    tr_file.setLogType(ProgressLogger::GUI);
+    tr_file.getProgressLogger().setLogType(ProgressLogger::GUI);
     tr_file.convertPQPToTargetedExperiment(pqp_file.toStdString().c_str(), te, true);
     //OpenSwath::LightTargetedExperiment transition_exp;
     //OpenSwathDataAccessHelper::convertTargetedExp(te, transition_exp);

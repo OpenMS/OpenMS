@@ -4,14 +4,11 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from String cimport *
 from StringList cimport *
-from ProgressLogger cimport *
 from PeakFileOptions cimport *
 
 cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
 
-    cdef cppclass MzDataFile(ProgressLogger):
-        # wrap-inherits:
-        #  ProgressLogger
+    cdef cppclass MzDataFile:
 
         MzDataFile() except + nogil  # wrap-doc:File adapter for MzData files
         MzDataFile(MzDataFile &) except + nogil 

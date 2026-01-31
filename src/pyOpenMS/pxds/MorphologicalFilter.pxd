@@ -1,4 +1,3 @@
-from ProgressLogger cimport *
 from DefaultParamHandler cimport *
 from MSExperiment cimport *
 from MSSpectrum cimport *
@@ -7,10 +6,9 @@ from ChromatogramPeak cimport *
 
 cdef extern from "<OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>" namespace "OpenMS":
 
-    cdef cppclass MorphologicalFilter(DefaultParamHandler,ProgressLogger):
+    cdef cppclass MorphologicalFilter(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        #   ProgressLogger
 
         MorphologicalFilter() except + nogil 
         # private

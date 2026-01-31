@@ -8,7 +8,6 @@ from TargetedExperiment cimport *
 from LightTargetedExperiment cimport *
 from TransformationDescription cimport *
 from DefaultParamHandler cimport *
-from ProgressLogger cimport *
 from SpectrumAccessOpenMS cimport *
 from ISpectrumAccess cimport *
 from MRMTransitionGroup cimport *
@@ -24,10 +23,9 @@ from SpectrumAccessOpenMSCached cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespace "OpenMS":
 
-    cdef cppclass MRMFeatureFinderScoring(DefaultParamHandler, ProgressLogger):
+    cdef cppclass MRMFeatureFinderScoring(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        #   ProgressLogger
 
         MRMFeatureFinderScoring() except + nogil 
         # copy constructor of 'MRMFeatureFinderScoring' is implicitly deleted because field 'diascoring_' has an inaccessible copy constructor
