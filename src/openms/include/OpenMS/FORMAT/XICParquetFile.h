@@ -51,6 +51,9 @@ namespace OpenMS
     `.cpp` file (e.g., dataset scan vs. compute filter fallback and filter
     parsing). Keeping the helpers in the implementation file avoids exposing
     Arrow types in the public header.
+
+    @note The .xic schema is defined by MSChromatogramParquetConsumer.
+    @see OpenMS::MSChromatogramParquetConsumer
   */
   class OPENMS_DLLAPI XICParquetFile
   {
