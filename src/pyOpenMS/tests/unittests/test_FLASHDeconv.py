@@ -1094,11 +1094,9 @@ class TestFLASHDeconvAlgorithm(unittest.TestCase):
         self.assertIsNotNone(defaults)
 
     def test_progress_logger_interface(self):
-        """Test ProgressLogger interface."""
+        """Test that ProgressLogger is no longer directly inherited (uses composition now)."""
         algo = pyopenms.FLASHDeconvAlgorithm()
-
-        algo.setLogType(pyopenms.LogType.NONE)
-        self.assertEqual(algo.getLogType(), pyopenms.LogType.NONE)
+        self.assertFalse(hasattr(algo, 'setLogType'))
 
     def test_get_tolerances(self):
         """Test getTolerances method."""

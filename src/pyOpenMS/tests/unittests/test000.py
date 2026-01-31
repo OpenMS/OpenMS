@@ -4905,14 +4905,12 @@ def testMxxxFile():
     mse.addSpectrum(s)
 
     fh = pyopenms.MzDataFile()
-    _testProgressLogger(fh)
     fh.store("test.mzData", mse)
     fh.load("test.mzData", mse)
 
     fh.setOptions(fh.getOptions())
 
     fh = pyopenms.MzMLFile()
-    _testProgressLogger(fh)
     fh.store("test.mzML", mse)
     fh.load("test.mzML", mse)
     fh.setOptions(fh.getOptions())
@@ -4926,7 +4924,6 @@ def testMxxxFile():
     assert mse2.size() == 1
 
     fh = pyopenms.MzXMLFile()
-    _testProgressLogger(fh)
     fh.store("test.mzXML", mse)
     fh.load("test.mzXML", mse)
     fh.setOptions(fh.getOptions())
