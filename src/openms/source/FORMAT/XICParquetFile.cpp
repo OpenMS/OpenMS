@@ -39,6 +39,7 @@ namespace OpenMS
   namespace
   {
 #ifdef WITH_PARQUET
+    /// Read a single parquet file into an Arrow table.
     std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
     {
       auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
@@ -75,6 +76,7 @@ namespace OpenMS
       return *combined;
     }
 
+    /// Concatenate multiple Arrow tables (multiple input files).
     std::shared_ptr<arrow::Table> concatenateTables_(const std::vector<std::shared_ptr<arrow::Table>>& tables)
     {
       if (tables.empty())
@@ -87,6 +89,7 @@ namespace OpenMS
         return tables.front();
       }
 
+      // Concatenate multiple file tables into a single logical view.
       auto concat_result = arrow::ConcatenateTables(tables);
       if (!concat_result.ok())
       {
@@ -104,6 +107,7 @@ namespace OpenMS
       return *combined;
     }
 
+    /// Read and concatenate multiple parquet files.
     std::shared_ptr<arrow::Table> readParquetTable_(const std::vector<String>& filenames)
     {
       std::vector<std::shared_ptr<arrow::Table>> tables;
@@ -115,6 +119,7 @@ namespace OpenMS
       return concatenateTables_(tables);
     }
 
+    /// Fetch a named column (first chunk) or throw if required and missing.
     std::shared_ptr<arrow::Array> getColumn_(const std::shared_ptr<arrow::Table>& table,
                                              const std::string& name,
                                              bool required = true)
@@ -137,6 +142,7 @@ namespace OpenMS
       return column->chunk(0);
     }
 
+    /// Read optional Int64 value at row; returns false if null or absent.
     bool getOptionalInt_(const std::shared_ptr<arrow::Array>& array, int64_t row, Int64& value)
     {
       if (!array || array->IsNull(row))
@@ -148,6 +154,7 @@ namespace OpenMS
       return true;
     }
 
+    /// Read optional String value at row; returns false if null or absent.
     bool getOptionalString_(const std::shared_ptr<arrow::Array>& array, int64_t row, String& value)
     {
       if (!array || array->IsNull(row))
@@ -159,6 +166,7 @@ namespace OpenMS
       return true;
     }
 
+    /// Read a binary cell as a String view.
     String getBinaryView_(const std::shared_ptr<arrow::Array>& array, int64_t row)
     {
       auto typed = std::static_pointer_cast<arrow::BinaryArray>(array);
@@ -166,6 +174,7 @@ namespace OpenMS
       return String(view.data(), static_cast<Int>(view.size()));
     }
 
+    /// Decode RT/intensity arrays stored as compressed binary blobs.
     void decodeBinary_(const String& data, Int64 compression, std::vector<double>& output)
     {
       output.clear();
@@ -261,6 +270,7 @@ namespace OpenMS
       std::vector<String> connectors; // "AND" / "OR"
     };
 
+    /// Uppercase helper for column normalization.
     String upper_(const String& input)
     {
       String out = input;
@@ -271,6 +281,7 @@ namespace OpenMS
       return out;
     }
 
+    /// Tokenize a filter string into operators/identifiers/values.
     std::vector<String> tokenize_(const String& expr)
     {
       std::vector<String> tokens;
@@ -385,6 +396,7 @@ namespace OpenMS
       return tokens;
     }
 
+    /// Parse filter text into a structured expression.
     FilterExpression parseFilter_(const String& filter,
                                   const std::unordered_map<String, ColumnType>& column_types)
     {
@@ -449,6 +461,7 @@ namespace OpenMS
       return expr;
     }
 
+    /// Initialize Arrow compute once per process.
     void ensureComputeInitialized_()
     {
       static std::once_flag init_flag;
@@ -463,6 +476,7 @@ namespace OpenMS
       });
     }
 
+    /// Map upper-case column names to their schema names.
     std::unordered_map<String, String> buildSchemaNameMap_(const std::shared_ptr<arrow::Schema>& schema)
     {
       std::unordered_map<String, String> name_map;
@@ -478,6 +492,7 @@ namespace OpenMS
       return name_map;
     }
 
+    /// Join columns for diagnostics/log output.
     String joinColumns_(const std::vector<String>& columns)
     {
       std::ostringstream oss;
@@ -489,6 +504,7 @@ namespace OpenMS
       return String(oss.str());
     }
 
+    /// Normalize column names to schema and drop unsupported columns.
     void normalizeAndPruneColumns_(FilterExpression& expr,
                                    const std::shared_ptr<arrow::Schema>& schema,
                                    std::vector<String>& dropped_columns)
@@ -500,6 +516,8 @@ namespace OpenMS
       }
 
       auto name_map = buildSchemaNameMap_(schema);
+      // Unsupported columns that cannot be filtered on.
+      // RT and INTENSITY are stored as binary blobs in parquet, so we cannot filter on them here. Filtering on these can only be done after decoding.
       const std::unordered_set<String> unsupported = {"RT", "INTENSITY"};
 
       std::vector<Condition> kept;
@@ -544,6 +562,7 @@ namespace OpenMS
       expr.connectors.swap(new_connectors);
     }
 
+    /// Build a single Arrow condition expression from one clause.
     arrow::compute::Expression buildConditionExpression_(const Condition& cond)
     {
       auto field = arrow::compute::field_ref(std::string(cond.column));
@@ -620,6 +639,7 @@ namespace OpenMS
       return arrow::compute::literal(false);
     }
 
+    /// Combine conditions into a single Arrow expression.
     arrow::compute::Expression buildFilterExpression_(const FilterExpression& expr)
     {
       if (expr.conditions.empty())
@@ -650,10 +670,12 @@ namespace OpenMS
     }
 
 #ifdef WITH_ARROW_DATASET
+    /// Read parquet files via Arrow Dataset with predicate pushdown.
     std::shared_ptr<arrow::Table> readParquetTableDataset_(const std::vector<String>& filenames,
                                                            const String& filter,
                                                            const std::unordered_map<String, ColumnType>& column_types)
     {
+      // Arrow Dataset enables predicate pushdown across multiple parquet files.
       auto filesystem = std::make_shared<arrow::fs::LocalFileSystem>();
       auto format = std::make_shared<arrow::dataset::ParquetFileFormat>();
       arrow::dataset::FileSystemFactoryOptions options;
@@ -696,6 +718,7 @@ namespace OpenMS
         {
           return readParquetTable_(filenames);
         }
+        // Convert the parsed filter into an Arrow expression for pushdown.
         arrow::compute::Expression expr = buildFilterExpression_(parsed);
         auto status = builder->Filter(expr);
         if (!status.ok())
@@ -728,6 +751,7 @@ namespace OpenMS
     }
 #endif
 
+    /// Read parquet files via Arrow Dataset with predicate pushdown.
     std::shared_ptr<arrow::Table> applyArrowFilter_(const std::shared_ptr<arrow::Table>& table,
                                                     const String& filter,
                                                     const std::unordered_map<String, ColumnType>& column_types)
@@ -751,6 +775,7 @@ namespace OpenMS
         return table;
       }
 
+      // Execute the expression in memory when dataset pushdown is unavailable.
       arrow::compute::Expression expr = buildFilterExpression_(parsed);
       auto bound_result = expr.Bind(*table->schema());
       if (!bound_result.ok())
@@ -905,6 +930,7 @@ namespace OpenMS
     {
       try
       {
+        // Prefer dataset pushdown when available; fall back to compute filtering on failure.
         table = readParquetTableDataset_(filenames_, filter, column_types);
         used_dataset = true;
       }

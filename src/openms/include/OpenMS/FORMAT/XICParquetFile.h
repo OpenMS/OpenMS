@@ -17,10 +17,30 @@ namespace OpenMS
 {
   /**
     @brief Reader for OpenSWATH chromatogram Parquet files (.xic).
+
+    Supports loading single or multiple files and filtering on metadata
+    columns (e.g., precursor id, transition id, annotations). Filters are
+    applied before decoding RT/intensity binary arrays.
+
+    @section XICParquetFile_Internal Internal processing notes
+    The implementation uses an Arrow-based pipeline:
+    - If Arrow Dataset is available, filters are translated into Arrow
+      expressions and pushed down via dataset scanning.
+    - If dataset filtering is unavailable or fails, the same filter expression
+      is evaluated in-memory using Arrow compute.
+    - RT/intensity binary arrays are decoded only after filtering.
+
+    These steps are implemented in helper functions in the corresponding
+    `.cpp` file (e.g., dataset scan vs. compute filter fallback and filter
+    parsing). Keeping the helpers in the implementation file avoids exposing
+    Arrow types in the public header.
   */
   class OPENMS_DLLAPI XICParquetFile
   {
   public:
+    /**
+      @brief Lightweight chromatogram container for XIC parquet rows.
+    */
     struct XICChromatogram
     {
       Int64 run_id{0};
@@ -51,15 +71,35 @@ namespace OpenMS
       std::vector<double> intensity;
     };
 
+    /**
+      @brief Construct from a single .xic file.
+
+      @param[in] filename Path to an OpenSWATH chromatogram parquet file.
+    */
     explicit XICParquetFile(const String& filename);
+
+    /**
+      @brief Construct from multiple .xic files.
+
+      @param[in] filenames Paths to OpenSWATH chromatogram parquet files.
+    */
     explicit XICParquetFile(const std::vector<String>& filenames);
     XICParquetFile(const XICParquetFile& rhs) = default;
     XICParquetFile& operator=(const XICParquetFile& rhs) = default;
 
+    /**
+      @brief Return the primary filename.
+
+      For multi-file instances this is the first file in the list.
+    */
     const String& getFilename() const;
+
+    /**
+      @brief Return all filenames associated with this instance.
+    */
     const std::vector<String>& getFilenames() const;
 
-    /// Load all chromatograms from the file.
+    /// Load all chromatograms from the file(s).
     void load(std::vector<XICChromatogram>& output) const;
 
     /**
@@ -73,7 +113,8 @@ namespace OpenMS
       @param[in] product_charge Optional product charge filter (-1 to ignore)
       @param[in] ms_level Optional MS level filter (-1 to ignore)
       @param[in] run_id Optional run_id filter (-1 to ignore)
-      @param[in] filter Optional filter expression on columns (e.g., "PRECURSOR_ID=1 OR TRANSITION_ID in [2,3]")
+      @param[in] filter Optional filter expression on columns
+        (e.g., "PRECURSOR_ID=1 OR TRANSITION_ID in [2,3]")
     */
     void getChromatograms(std::vector<XICChromatogram>& output,
                           Int64 precursor_id = -1,
