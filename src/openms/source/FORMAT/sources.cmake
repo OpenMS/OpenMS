@@ -68,6 +68,7 @@ ParamCTDFile.cpp
 ParamCWLFile.cpp
 ParamJSONFile.cpp
 ParamXMLFile.cpp
+PEFFFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp
 PepNovoInfile.cpp
