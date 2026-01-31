@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/XICParquetFile.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -16,6 +17,7 @@
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/compute/api.h>
+#include <arrow/compute/initialize.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/reader.h>
 #endif
@@ -26,7 +28,11 @@
 
 #include <cstring>
 #include <cctype>
+#include <exception>
+#include <mutex>
+#include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -306,6 +312,28 @@ namespace OpenMS
           continue;
         }
 
+        if (c == '&' || c == '|')
+        {
+          if (!current.empty())
+          {
+            tokens.push_back(current);
+            current.clear();
+          }
+          String op;
+          op += c;
+          if (i + 1 < expr.size())
+          {
+            const char next = expr[i + 1];
+            if (next == c)
+            {
+              op += next;
+              ++i;
+            }
+          }
+          tokens.push_back(op);
+          continue;
+        }
+
         current += c;
       }
 
@@ -365,15 +393,115 @@ namespace OpenMS
         if (i < tokens.size())
         {
           String connector = upper_(tokens[i]);
-          if (connector == "AND" || connector == "OR")
+          if (connector == "AND" || connector == "&&" || connector == "&")
           {
-            expr.connectors.push_back(connector);
+            expr.connectors.push_back("AND");
+            ++i;
+          }
+          else if (connector == "OR" || connector == "||" || connector == "|")
+          {
+            expr.connectors.push_back("OR");
             ++i;
           }
         }
       }
 
       return expr;
+    }
+
+    void ensureComputeInitialized_()
+    {
+      static std::once_flag init_flag;
+      std::call_once(init_flag, []()
+      {
+        auto status = arrow::compute::Initialize();
+        if (!status.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to initialize Arrow compute", status.ToString());
+        }
+      });
+    }
+
+    std::unordered_map<String, String> buildSchemaNameMap_(const std::shared_ptr<arrow::Schema>& schema)
+    {
+      std::unordered_map<String, String> name_map;
+      if (!schema)
+      {
+        return name_map;
+      }
+      name_map.reserve(schema->num_fields());
+      for (const auto& field : schema->fields())
+      {
+        name_map[upper_(String(field->name()))] = String(field->name());
+      }
+      return name_map;
+    }
+
+    String joinColumns_(const std::vector<String>& columns)
+    {
+      std::ostringstream oss;
+      for (Size i = 0; i < columns.size(); ++i)
+      {
+        if (i > 0) oss << ", ";
+        oss << columns[i];
+      }
+      return String(oss.str());
+    }
+
+    void normalizeAndPruneColumns_(FilterExpression& expr,
+                                   const std::shared_ptr<arrow::Schema>& schema,
+                                   std::vector<String>& dropped_columns)
+    {
+      dropped_columns.clear();
+      if (expr.conditions.empty())
+      {
+        return;
+      }
+
+      auto name_map = buildSchemaNameMap_(schema);
+      const std::unordered_set<String> unsupported = {"RT", "INTENSITY"};
+
+      std::vector<Condition> kept;
+      kept.reserve(expr.conditions.size());
+      std::vector<String> new_connectors;
+      new_connectors.reserve(expr.connectors.size());
+
+      for (Size i = 0; i < expr.conditions.size(); ++i)
+      {
+        Condition cond = expr.conditions[i];
+        const String original = cond.column;
+        auto it = name_map.find(upper_(cond.column));
+        if (it != name_map.end())
+        {
+          cond.column = it->second;
+        }
+
+        const bool unsupported_col = unsupported.count(upper_(cond.column)) > 0;
+        const bool exists_in_schema = name_map.find(upper_(cond.column)) != name_map.end();
+        if (unsupported_col || !exists_in_schema)
+        {
+          dropped_columns.push_back(original);
+          continue;
+        }
+
+        if (!kept.empty())
+        {
+          const Size prev_index = i - 1;
+          if (prev_index < expr.connectors.size())
+          {
+            new_connectors.push_back(expr.connectors[prev_index]);
+          }
+          else
+          {
+            new_connectors.push_back("AND");
+          }
+        }
+        kept.push_back(cond);
+      }
+
+      expr.conditions.swap(kept);
+      expr.connectors.swap(new_connectors);
     }
 
     arrow::compute::Expression buildConditionExpression_(const Condition& cond)
@@ -509,13 +637,25 @@ namespace OpenMS
       auto builder = std::make_shared<arrow::dataset::ScannerBuilder>(dataset);
       if (!filter.empty())
       {
+        ensureComputeInitialized_();
         FilterExpression parsed = parseFilter_(filter, column_types);
+        std::vector<String> dropped;
+        normalizeAndPruneColumns_(parsed, dataset->schema(), dropped);
+        if (!dropped.empty())
+        {
+          OPENMS_LOG_WARN << "Dropping unsupported filter columns: "
+                          << joinColumns_(dropped) << '\n';
+        }
+        if (parsed.conditions.empty())
+        {
+          return readParquetTable_(filename);
+        }
         arrow::compute::Expression expr = buildFilterExpression_(parsed);
         auto status = builder->Filter(expr);
         if (!status.ok())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Failed to bind dataset filter expression", filter);
+                                        "Failed to bind dataset filter expression", status.ToString());
         }
       }
 
@@ -551,7 +691,15 @@ namespace OpenMS
         return table;
       }
 
+      ensureComputeInitialized_();
       FilterExpression parsed = parseFilter_(filter, column_types);
+      std::vector<String> dropped;
+      normalizeAndPruneColumns_(parsed, table->schema(), dropped);
+      if (!dropped.empty())
+      {
+        OPENMS_LOG_WARN << "Dropping unsupported filter columns: "
+                        << joinColumns_(dropped) << '\n';
+      }
       if (parsed.conditions.empty())
       {
         return table;
@@ -562,7 +710,7 @@ namespace OpenMS
       if (!bound_result.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to bind filter expression", filter);
+                                      "Failed to bind filter expression", bound_result.status().ToString());
       }
       arrow::compute::Expression bound_expr = *bound_result;
 
@@ -685,8 +833,22 @@ namespace OpenMS
 #ifdef WITH_ARROW_DATASET
     if (!filter.empty())
     {
-      table = readParquetTableDataset_(filename_, filter, column_types);
-      used_dataset = true;
+      try
+      {
+        table = readParquetTableDataset_(filename_, filter, column_types);
+        used_dataset = true;
+      }
+      catch (const std::exception& e)
+      {
+        OPENMS_LOG_WARN << "Arrow Dataset filter failed, falling back to compute filter: "
+                        << e.what() << '\n';
+        used_dataset = false;
+      }
+      catch (...)
+      {
+        OPENMS_LOG_WARN << "Arrow Dataset filter failed, falling back to compute filter.\n";
+        used_dataset = false;
+      }
     }
 #endif
     if (!used_dataset)
