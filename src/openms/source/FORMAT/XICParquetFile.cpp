@@ -15,8 +15,13 @@
 
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
+#include <arrow/compute/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/reader.h>
+#endif
+#ifdef WITH_ARROW_DATASET
+#include <arrow/dataset/api.h>
+#include <arrow/filesystem/api.h>
 #endif
 
 #include <cstring>
@@ -371,106 +376,242 @@ namespace OpenMS
       return expr;
     }
 
-    bool matchCondition_(const Condition& cond,
-                         int64_t int_value,
-                         bool has_value,
-                         const String& str_value,
-                         bool has_str)
+    arrow::compute::Expression buildConditionExpression_(const Condition& cond)
     {
-      if (cond.type == ColumnType::INT)
-      {
-        if (!has_value)
-        {
-          return false;
-        }
-        if (cond.op == "IN")
-        {
-          for (const auto& value : cond.values)
-          {
-            if (value.toInt64() == int_value) return true;
-          }
-          return false;
-        }
-        if (cond.values.empty()) return false;
-        Int64 rhs = cond.values.front().toInt64();
-        if (cond.op == "=") return int_value == rhs;
-        if (cond.op == "!=") return int_value != rhs;
-        if (cond.op == "<") return int_value < rhs;
-        if (cond.op == "<=") return int_value <= rhs;
-        if (cond.op == ">") return int_value > rhs;
-        if (cond.op == ">=") return int_value >= rhs;
-        return false;
-      }
-      else
-      {
-        if (!has_str)
-        {
-          return false;
-        }
-        if (cond.op == "IN")
-        {
-          for (const auto& value : cond.values)
-          {
-            if (str_value == value) return true;
-          }
-          return false;
-        }
-        if (cond.values.empty()) return false;
-        const String& rhs = cond.values.front();
-        if (cond.op == "=") return str_value == rhs;
-        if (cond.op == "!=") return str_value != rhs;
-        return false;
-      }
-    }
+      auto field = arrow::compute::field_ref(std::string(cond.column));
 
-    bool evaluateFilter_(const FilterExpression& expr,
-                         const std::unordered_map<String, std::pair<Int64, bool>>& int_values,
-                         const std::unordered_map<String, std::pair<String, bool>>& str_values)
-    {
-      if (expr.conditions.empty())
+      if (cond.op == "IN")
       {
-        return true;
-      }
-
-      bool result = true;
-      for (Size i = 0; i < expr.conditions.size(); ++i)
-      {
-        const Condition& cond = expr.conditions[i];
-        bool cond_result = false;
         if (cond.type == ColumnType::INT)
         {
-          auto it = int_values.find(cond.column);
-          if (it != int_values.end())
+          arrow::Int64Builder builder;
+          for (const auto& value : cond.values)
           {
-            cond_result = matchCondition_(cond, it->second.first, it->second.second, "", false);
+            auto status = builder.Append(value.toInt64());
+            if (!status.ok())
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to build INT64 value set", status.ToString());
+            }
           }
+          std::shared_ptr<arrow::Array> value_set;
+          auto status = builder.Finish(&value_set);
+          if (!status.ok())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Failed to finalize INT64 value set", status.ToString());
+          }
+          auto options = std::make_shared<arrow::compute::SetLookupOptions>(arrow::Datum(value_set));
+          return arrow::compute::call("is_in", {field}, options);
         }
         else
         {
-          auto it = str_values.find(cond.column);
-          if (it != str_values.end())
+          arrow::StringBuilder builder;
+          for (const auto& value : cond.values)
           {
-            cond_result = matchCondition_(cond, 0, false, it->second.first, it->second.second);
+            auto status = builder.Append(std::string(value));
+            if (!status.ok())
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to build STRING value set", status.ToString());
+            }
           }
+          std::shared_ptr<arrow::Array> value_set;
+          auto status = builder.Finish(&value_set);
+          if (!status.ok())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Failed to finalize STRING value set", status.ToString());
+          }
+          auto options = std::make_shared<arrow::compute::SetLookupOptions>(arrow::Datum(value_set));
+          return arrow::compute::call("is_in", {field}, options);
         }
+      }
 
-        if (i == 0)
+      if (cond.values.empty())
+      {
+        return arrow::compute::literal(false);
+      }
+
+      arrow::compute::Expression literal;
+      if (cond.type == ColumnType::INT)
+      {
+        literal = arrow::compute::literal(static_cast<int64_t>(cond.values.front().toInt64()));
+      }
+      else
+      {
+        literal = arrow::compute::literal(std::string(cond.values.front()));
+      }
+
+      if (cond.op == "=") return arrow::compute::equal(field, literal);
+      if (cond.op == "!=") return arrow::compute::not_equal(field, literal);
+      if (cond.op == "<") return arrow::compute::less(field, literal);
+      if (cond.op == "<=") return arrow::compute::less_equal(field, literal);
+      if (cond.op == ">") return arrow::compute::greater(field, literal);
+      if (cond.op == ">=") return arrow::compute::greater_equal(field, literal);
+      return arrow::compute::literal(false);
+    }
+
+    arrow::compute::Expression buildFilterExpression_(const FilterExpression& expr)
+    {
+      if (expr.conditions.empty())
+      {
+        return arrow::compute::literal(true);
+      }
+
+      std::vector<arrow::compute::Expression> cond_exprs;
+      cond_exprs.reserve(expr.conditions.size());
+      for (const auto& cond : expr.conditions)
+      {
+        cond_exprs.push_back(buildConditionExpression_(cond));
+      }
+
+      arrow::compute::Expression result = cond_exprs.front();
+      for (Size i = 1; i < cond_exprs.size(); ++i)
+      {
+        if (i - 1 < expr.connectors.size() && expr.connectors[i - 1] == "OR")
         {
-          result = cond_result;
+          result = arrow::compute::or_(result, cond_exprs[i]);
         }
-        else if (i - 1 < expr.connectors.size())
+        else
         {
-          if (expr.connectors[i - 1] == "AND")
-          {
-            result = result && cond_result;
-          }
-          else
-          {
-            result = result || cond_result;
-          }
+          result = arrow::compute::and_(result, cond_exprs[i]);
         }
       }
       return result;
+    }
+
+#ifdef WITH_ARROW_DATASET
+    std::shared_ptr<arrow::Table> readParquetTableDataset_(const String& filename,
+                                                           const String& filter,
+                                                           const std::unordered_map<String, ColumnType>& column_types)
+    {
+      auto filesystem = std::make_shared<arrow::fs::LocalFileSystem>();
+      auto format = std::make_shared<arrow::dataset::ParquetFileFormat>();
+      arrow::dataset::FileSystemFactoryOptions options;
+
+      auto factory_result = arrow::dataset::FileSystemDatasetFactory::Make(
+        filesystem, std::vector<std::string>{std::string(filename)}, format, options);
+      if (!factory_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to create dataset factory", filename);
+      }
+
+      auto dataset_result = (*factory_result)->Finish();
+      if (!dataset_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to create dataset", filename);
+      }
+      std::shared_ptr<arrow::dataset::Dataset> dataset = *dataset_result;
+
+      auto builder = std::make_shared<arrow::dataset::ScannerBuilder>(dataset);
+      if (!filter.empty())
+      {
+        FilterExpression parsed = parseFilter_(filter, column_types);
+        arrow::compute::Expression expr = buildFilterExpression_(parsed);
+        auto status = builder->Filter(expr);
+        if (!status.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to bind dataset filter expression", filter);
+        }
+      }
+
+      auto scanner_result = builder->Finish();
+      if (!scanner_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to create dataset scanner", filename);
+      }
+      auto table_result = (*scanner_result)->ToTable();
+      if (!table_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to read parquet table via dataset scanner", filename);
+      }
+
+      auto combined = (*table_result)->CombineChunks(arrow::default_memory_pool());
+      if (!combined.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to combine parquet chunks", filename);
+      }
+      return *combined;
+    }
+#endif
+
+    std::shared_ptr<arrow::Table> applyArrowFilter_(const std::shared_ptr<arrow::Table>& table,
+                                                    const String& filter,
+                                                    const std::unordered_map<String, ColumnType>& column_types)
+    {
+      if (filter.empty())
+      {
+        return table;
+      }
+
+      FilterExpression parsed = parseFilter_(filter, column_types);
+      if (parsed.conditions.empty())
+      {
+        return table;
+      }
+
+      arrow::compute::Expression expr = buildFilterExpression_(parsed);
+      auto bound_result = expr.Bind(*table->schema());
+      if (!bound_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to bind filter expression", filter);
+      }
+      arrow::compute::Expression bound_expr = *bound_result;
+
+      arrow::TableBatchReader reader(*table);
+      std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+      std::shared_ptr<arrow::RecordBatch> batch;
+
+      while (true)
+      {
+        auto read_status = reader.ReadNext(&batch);
+        if (!read_status.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to read record batch", filter);
+        }
+        if (!batch)
+        {
+          break;
+        }
+
+        auto mask_result = arrow::compute::ExecuteScalarExpression(
+          bound_expr, *batch->schema(), arrow::Datum(batch));
+        if (!mask_result.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to evaluate filter expression", filter);
+        }
+
+        auto filtered_result = arrow::compute::Filter(arrow::Datum(batch), *mask_result);
+        if (!filtered_result.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to apply filter expression", filter);
+        }
+
+        const auto& filtered_batch = filtered_result->record_batch();
+        if (filtered_batch && filtered_batch->num_rows() > 0)
+        {
+          batches.push_back(filtered_batch);
+        }
+      }
+
+      auto table_result = arrow::Table::FromRecordBatches(table->schema(), batches);
+      if (!table_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to build filtered table", filter);
+      }
+      return *table_result;
     }
 #endif
   } // namespace
@@ -521,25 +662,6 @@ namespace OpenMS
 
     auto table = readParquetTable_(filename_);
 
-    auto run_id_col = getColumn_(table, "RUN_ID");
-    auto source_file_col = getColumn_(table, "SOURCE_FILE", false);
-    auto ms_level_col = getColumn_(table, "MS_LEVEL", false);
-    auto precursor_id_col = getColumn_(table, "PRECURSOR_ID");
-    auto transition_id_col = getColumn_(table, "TRANSITION_ID", false);
-    auto modified_sequence_col = getColumn_(table, "MODIFIED_SEQUENCE", false);
-    auto precursor_charge_col = getColumn_(table, "PRECURSOR_CHARGE", false);
-    auto product_charge_col = getColumn_(table, "PRODUCT_CHARGE", false);
-    auto detecting_transition_col = getColumn_(table, "DETECTING_TRANSITION", false);
-    auto precursor_decoy_col = getColumn_(table, "PRECURSOR_DECOY", false);
-    auto product_decoy_col = getColumn_(table, "PRODUCT_DECOY", false);
-    auto transition_ordinal_col = getColumn_(table, "TRANSITION_ORDINAL", false);
-    auto transition_type_col = getColumn_(table, "TRANSITION_TYPE", false);
-    auto annotation_col = getColumn_(table, "ANNOTATION", false);
-    auto rt_data_col = getColumn_(table, "RT_DATA");
-    auto intensity_data_col = getColumn_(table, "INTENSITY_DATA");
-    auto rt_compression_col = getColumn_(table, "RT_COMPRESSION");
-    auto intensity_compression_col = getColumn_(table, "INTENSITY_COMPRESSION");
-
     std::unordered_map<String, ColumnType> column_types = {
       {"RUN_ID", ColumnType::INT},
       {"MS_LEVEL", ColumnType::INT},
@@ -559,7 +681,37 @@ namespace OpenMS
       {"ANNOTATION", ColumnType::STRING}
     };
 
-    FilterExpression parsed_filter = parseFilter_(filter, column_types);
+    bool used_dataset = false;
+#ifdef WITH_ARROW_DATASET
+    if (!filter.empty())
+    {
+      table = readParquetTableDataset_(filename_, filter, column_types);
+      used_dataset = true;
+    }
+#endif
+    if (!used_dataset)
+    {
+      table = applyArrowFilter_(table, filter, column_types);
+    }
+
+    auto run_id_col = getColumn_(table, "RUN_ID");
+    auto source_file_col = getColumn_(table, "SOURCE_FILE", false);
+    auto ms_level_col = getColumn_(table, "MS_LEVEL", false);
+    auto precursor_id_col = getColumn_(table, "PRECURSOR_ID");
+    auto transition_id_col = getColumn_(table, "TRANSITION_ID", false);
+    auto modified_sequence_col = getColumn_(table, "MODIFIED_SEQUENCE", false);
+    auto precursor_charge_col = getColumn_(table, "PRECURSOR_CHARGE", false);
+    auto product_charge_col = getColumn_(table, "PRODUCT_CHARGE", false);
+    auto detecting_transition_col = getColumn_(table, "DETECTING_TRANSITION", false);
+    auto precursor_decoy_col = getColumn_(table, "PRECURSOR_DECOY", false);
+    auto product_decoy_col = getColumn_(table, "PRODUCT_DECOY", false);
+    auto transition_ordinal_col = getColumn_(table, "TRANSITION_ORDINAL", false);
+    auto transition_type_col = getColumn_(table, "TRANSITION_TYPE", false);
+    auto annotation_col = getColumn_(table, "ANNOTATION", false);
+    auto rt_data_col = getColumn_(table, "RT_DATA");
+    auto intensity_data_col = getColumn_(table, "INTENSITY_DATA");
+    auto rt_compression_col = getColumn_(table, "RT_COMPRESSION");
+    auto intensity_compression_col = getColumn_(table, "INTENSITY_COMPRESSION");
 
     const int64_t rows = table->num_rows();
     output.reserve(rows);
@@ -589,26 +741,6 @@ namespace OpenMS
         chrom.ms_level = ms_level_value;
       }
 
-      std::unordered_map<String, std::pair<Int64, bool>> int_values = {
-        {"RUN_ID", {chrom.run_id, true}},
-        {"MS_LEVEL", {chrom.ms_level, ms_level_col != nullptr}},
-        {"PRECURSOR_ID", {chrom.precursor_id, chrom.has_precursor_id}},
-        {"TRANSITION_ID", {chrom.transition_id, chrom.has_transition_id}},
-        {"PRECURSOR_CHARGE", {chrom.precursor_charge, chrom.has_precursor_charge}},
-        {"PRODUCT_CHARGE", {chrom.product_charge, chrom.has_product_charge}},
-        {"DETECTING_TRANSITION", {chrom.detecting_transition, chrom.has_detecting_transition}},
-        {"PRECURSOR_DECOY", {chrom.precursor_decoy, chrom.has_precursor_decoy}},
-        {"PRODUCT_DECOY", {chrom.product_decoy, chrom.has_product_decoy}},
-        {"TRANSITION_ORDINAL", {chrom.transition_ordinal, chrom.has_transition_ordinal}}
-      };
-
-      std::unordered_map<String, std::pair<String, bool>> str_values = {
-        {"SOURCE_FILE", {chrom.source_file, !chrom.source_file.empty()}},
-        {"MODIFIED_SEQUENCE", {chrom.modified_sequence, !chrom.modified_sequence.empty()}},
-        {"TRANSITION_TYPE", {chrom.transition_type, !chrom.transition_type.empty()}},
-        {"ANNOTATION", {chrom.annotation, !chrom.annotation.empty()}}
-      };
-
       if (precursor_id >= 0 && (!chrom.has_precursor_id || chrom.precursor_id != precursor_id)) continue;
       if (transition_id >= 0 && (!chrom.has_transition_id || chrom.transition_id != transition_id)) continue;
       if (!modified_sequence.empty() && chrom.modified_sequence != modified_sequence) continue;
@@ -616,7 +748,6 @@ namespace OpenMS
       if (product_charge >= 0 && (!chrom.has_product_charge || chrom.product_charge != product_charge)) continue;
       if (ms_level >= 0 && chrom.ms_level != ms_level) continue;
       if (run_id >= 0 && chrom.run_id != run_id) continue;
-      if (!evaluateFilter_(parsed_filter, int_values, str_values)) continue;
 
       Int64 rt_compression = 0;
       Int64 intensity_compression = 0;
