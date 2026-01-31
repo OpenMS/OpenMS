@@ -22,6 +22,23 @@ namespace OpenMS
     columns (e.g., precursor id, transition id, annotations). Filters are
     applied before decoding RT/intensity binary arrays.
 
+    @section XICParquetFile_FilterSyntax Filter syntax
+    The @p filter argument in getChromatograms() accepts simple boolean
+    expressions over column names. Supported operators are:
+    - Comparison: =, ==, !=, <, <=, >, >=
+    - Set membership: in [v1, v2, ...]
+    - Boolean: AND/OR (also accepts &&, ||, &, |)
+
+    Values can be integers or strings; strings may be unquoted if they contain
+    no spaces or commas (e.g., annotation=y3^1), otherwise use quotes.
+
+    Supported filter columns (case-insensitive):
+    RUN_ID, SOURCE_FILE, MS_LEVEL, PRECURSOR_ID, TRANSITION_ID,
+    MODIFIED_SEQUENCE, PRECURSOR_CHARGE, PRODUCT_CHARGE, DETECTING_TRANSITION,
+    PRECURSOR_DECOY, PRODUCT_DECOY, TRANSITION_ORDINAL, TRANSITION_TYPE,
+    ANNOTATION. RT and INTENSITY are not filterable because they are stored
+    as compressed binary arrays.
+
     @section XICParquetFile_Internal Internal processing notes
     The implementation uses an Arrow-based pipeline:
     - If Arrow Dataset is available, filters are translated into Arrow

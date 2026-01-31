@@ -8,7 +8,17 @@ import numpy as np
 
     def __init__(self, filename):
         """
+        __init__(self, filename: Union[str, bytes, String, List[Union[str, bytes, String]]]) -> None
+
         Initialize from a single filename or a list/tuple of filenames.
+
+        :param filename: Path to a .xic file or a list/tuple of paths.
+        :type filename: Union[str, bytes, String, List[Union[str, bytes, String]]]
+
+        Example::
+
+            xic = XICParquetFile("file.xic")
+            xic_multi = XICParquetFile(["file1.xic", "file2.xic"])
         """
         filenames = None
         if isinstance(filename, (str, bytes, String)):
@@ -32,10 +42,40 @@ import numpy as np
     def get_data_dict(self, explode=False, precursor_id=-1, transition_id=-1, modified_sequence="", precursor_charge=-1,
                       product_charge=-1, ms_level=-1, run_id=-1, filter=""):
         """
+        get_data_dict(self, explode: bool = False, precursor_id: int = -1, transition_id: int = -1,
+                      modified_sequence: str = "", precursor_charge: int = -1, product_charge: int = -1,
+                      ms_level: int = -1, run_id: int = -1, filter: str = "") -> Dict[str, np.ndarray]
+
         Return chromatogram data as a dict of numpy arrays.
 
         If explode=True, returns long format with rt/intensity rows.
         Otherwise, rt and intensity are stored as object arrays of lists.
+
+        :param explode: If True, return long format with one row per RT/intensity.
+        :type explode: bool
+        :param precursor_id: Optional precursor id (-1 to ignore).
+        :type precursor_id: int
+        :param transition_id: Optional transition id (-1 to ignore).
+        :type transition_id: int
+        :param modified_sequence: Optional modified sequence filter (empty to ignore).
+        :type modified_sequence: str
+        :param precursor_charge: Optional precursor charge filter (-1 to ignore).
+        :type precursor_charge: int
+        :param product_charge: Optional product charge filter (-1 to ignore).
+        :type product_charge: int
+        :param ms_level: Optional MS level filter (-1 to ignore).
+        :type ms_level: int
+        :param run_id: Optional run id filter (-1 to ignore).
+        :type run_id: int
+        :param filter: Optional filter expression string.
+        :type filter: str
+
+        :return: Dict of numpy arrays keyed by column name.
+        :rtype: Dict[str, np.ndarray]
+
+        Example::
+
+            data = xic.get_data_dict(precursor_id=1318, explode=True)
         """
         cdef libcpp_vector[_XICChromatogram] chroms
         self.inst.get().getChromatograms(chroms,
@@ -126,21 +166,98 @@ import numpy as np
             "intensity": np.array(intensity_list, dtype=object),
         }
 
-    def to_pandas(self, explode=False, **kwargs):
+    def to_df(self, explode=False):
         """
+        to_df(self, explode: bool = False) -> pandas.DataFrame
+
         Return chromatogram data as a pandas DataFrame.
 
         If explode=True, returns long format with rt/intensity rows.
+
+        :param explode: If True, return long format with one row per RT/intensity.
+        :type explode: bool
+
+        :return: DataFrame with chromatogram data.
+        :rtype: pandas.DataFrame
+
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            df = xic.to_df()
+            df_long = xic.to_df(explode=True)
         """
         try:
             import pandas as pd
         except ImportError as e:
             raise ImportError("pandas is required for this method. Install with `pip install pandas`.") from e
-        return pd.DataFrame(self.get_data_dict(explode=explode, **kwargs))
+        return pd.DataFrame(self.get_data_dict(explode=explode))
+
+    def to_arrow(self, explode=False):
+        """
+        to_arrow(self: XICParquetFile, explode: bool = False) -> pa.Table
+
+        Returns an Apache Arrow Table representation of the chromatograms.
+
+        If explode=True, returns long format with rt/intensity rows.
+
+        :param explode: If True, return long format with one row per RT/intensity.
+        :type explode: bool
+
+        :return: Arrow Table with chromatogram data.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            table = xic.to_arrow()
+            table_long = xic.to_arrow(explode=True)
+        """
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
+        return pa.Table.from_pydict(self.get_data_dict(explode=explode))
 
     def get_chromatograms(self, explode=True, **kwargs):
         """
+        get_chromatograms(self, explode: bool = True, **kwargs) -> pandas.DataFrame
+
         Return filtered chromatograms as a pandas DataFrame (exploded by default).
+
+        :param explode: If True, return long format with one row per RT/intensity.
+        :type explode: bool
+        :param kwargs: Filter parameters accepted by get_data_dict():
+            - precursor_id: Optional precursor id (-1 to ignore)
+            - transition_id: Optional transition id (-1 to ignore)
+            - modified_sequence: Optional modified sequence filter (empty to ignore)
+            - precursor_charge: Optional precursor charge filter (-1 to ignore)
+            - product_charge: Optional product charge filter (-1 to ignore)
+            - ms_level: Optional MS level filter (-1 to ignore)
+            - run_id: Optional run id filter (-1 to ignore)
+            - filter: Optional filter expression string
+        :type kwargs: dict
+
+        :return: DataFrame with chromatogram data.
+        :rtype: pandas.DataFrame
+
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            df = xic.get_chromatograms(filter="precursor_id=1318")
+            df_long = xic.get_chromatograms(filter="precursor_id=1318", explode=True)
+            df = xic.get_chromatograms(filter="precursor_id=1318 & annotation=y3^1")
+            df = xic.get_chromatograms(filter="precursor_id=1318 && ms_level=2")
+            df = xic.get_chromatograms(filter="precursor_id in [1318, 1319]")
+
+        Note:
+            RT and INTENSITY columns are ignored in filter expressions because
+            they are stored as compressed binary blobs in the parquet files.
         """
         try:
             import pandas as pd
