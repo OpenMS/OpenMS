@@ -64,6 +64,7 @@ OMSFileStore.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
+XICParquetFile.cpp
 ParamCTDFile.cpp
 ParamCWLFile.cpp
 ParamJSONFile.cpp

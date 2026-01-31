@@ -76,6 +76,7 @@ OMSFileStore.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
+XICParquetFile.h
 ParamCTDFile.h
 ParamXMLFile.h
 PTMXMLFile.h
