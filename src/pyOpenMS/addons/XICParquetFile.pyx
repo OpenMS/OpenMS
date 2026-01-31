@@ -226,7 +226,17 @@ import numpy as np
             import pandas as pd
         except ImportError as e:
             raise ImportError("pandas is required for this method. Install with `pip install pandas`.") from e
-        return pd.DataFrame(self.get_data_dict(explode=explode))
+        data = self.get_data_dict(explode=explode)
+        if explode:
+            return pd.DataFrame(data)
+        # Convert to plain Python lists to avoid pandas inferring 2D arrays.
+        clean = {}
+        for k, v in data.items():
+            if hasattr(v, "ndim") and v.ndim > 1:
+                clean[k] = [row for row in v]
+            else:
+                clean[k] = list(v)
+        return pd.DataFrame(clean)
 
     def to_arrow(self, explode=False):
         """
@@ -298,4 +308,14 @@ import numpy as np
             import pandas as pd
         except ImportError as e:
             raise ImportError("pandas is required for this method. Install with `pip install pandas`.") from e
-        return pd.DataFrame(self.get_data_dict(explode=explode, **kwargs))
+        data = self.get_data_dict(explode=explode, **kwargs)
+        if explode:
+            return pd.DataFrame(data)
+        # Convert to plain Python lists to avoid pandas inferring 2D arrays.
+        clean = {}
+        for k, v in data.items():
+            if hasattr(v, "ndim") and v.ndim > 1:
+                clean[k] = [row for row in v]
+            else:
+                clean[k] = list(v)
+        return pd.DataFrame(clean)
