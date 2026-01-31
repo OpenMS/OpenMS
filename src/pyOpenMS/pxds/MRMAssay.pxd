@@ -1,14 +1,11 @@
 from Types cimport *
 from TargetedExperiment cimport *
-from ProgressLogger cimport *
 from MRMIonSeries cimport *
 from ModificationsDB cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
     
-    cdef cppclass MRMAssay(ProgressLogger) :
-        # wrap-inherits:
-        #  ProgressLogger
+    cdef cppclass MRMAssay:
 
         MRMAssay() except + nogil 
         MRMAssay(MRMAssay &) except + nogil  # compiler

@@ -9,15 +9,13 @@ from MSExperiment cimport *
 from Param cimport *
 from Peak1D cimport *
 from PeptideIdentification cimport *
-from ProgressLogger cimport *
 from TransformationDescription cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>" namespace "OpenMS":
 
-    cdef cppclass MapAlignmentAlgorithmIdentification(DefaultParamHandler, ProgressLogger):
+    cdef cppclass MapAlignmentAlgorithmIdentification(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        #   ProgressLogger
 
         MapAlignmentAlgorithmIdentification() except + nogil 
         # private

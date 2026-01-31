@@ -6,15 +6,13 @@ from ChromatogramPeak cimport *
 from MassTrace cimport *
 
 from DefaultParamHandler cimport *
-from ProgressLogger cimport *
 
 from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/FEATUREFINDER/MassTraceDetection.h>" namespace "OpenMS":
 
-    cdef cppclass MassTraceDetection(ProgressLogger, DefaultParamHandler):
+    cdef cppclass MassTraceDetection(DefaultParamHandler):
         # wrap-inherits:
-        #   ProgressLogger
         #   DefaultParamHandler
 
         MassTraceDetection() except + nogil 

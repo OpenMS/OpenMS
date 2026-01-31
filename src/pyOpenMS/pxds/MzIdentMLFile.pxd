@@ -5,13 +5,10 @@ from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 
 from String cimport *
-from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
 
-    cdef cppclass MzIdentMLFile(ProgressLogger):
-        # wrap-inherits:
-        #  ProgressLogger
+    cdef cppclass MzIdentMLFile:
 
         MzIdentMLFile() except + nogil
         MzIdentMLFile(MzIdentMLFile &) except + nogil

@@ -4,14 +4,12 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from Param cimport *
 from DefaultParamHandler cimport *
-from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>" namespace "OpenMS":
 
-    cdef cppclass LinearResampler(DefaultParamHandler, ProgressLogger):
+    cdef cppclass LinearResampler(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        #   ProgressLogger
         # wrap-doc:
         #  Annotates and filters transitions in a TargetedExperiment
         #  

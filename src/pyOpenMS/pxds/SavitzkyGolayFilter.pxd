@@ -1,4 +1,3 @@
-from ProgressLogger cimport *
 from DefaultParamHandler cimport *
 from MSExperiment cimport *
 from MSSpectrum cimport *
@@ -7,10 +6,9 @@ from ChromatogramPeak cimport *
 
 cdef extern from "<OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>" namespace "OpenMS":
 
-    cdef cppclass SavitzkyGolayFilter(DefaultParamHandler,ProgressLogger):
+    cdef cppclass SavitzkyGolayFilter(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        #   ProgressLogger
 
         SavitzkyGolayFilter() except + nogil 
         SavitzkyGolayFilter(SavitzkyGolayFilter &) except + nogil  # compiler

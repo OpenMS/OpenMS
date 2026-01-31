@@ -1,5 +1,4 @@
 from Types cimport *
-from ProgressLogger cimport *
 from XMLHandler cimport *
 from XMLFile cimport *
 from String cimport *
@@ -8,11 +7,10 @@ from Attachment cimport *
 
 cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
     
-    cdef cppclass QcMLFile(XMLHandler,XMLFile,ProgressLogger) :
+    cdef cppclass QcMLFile(XMLHandler,XMLFile) :
         # wrap-inherits:
         #  XMLHandler
         #  XMLFile
-        #  ProgressLogger
         # wrap-doc:
         #  File adapter for QcML files used to load and store QcML files
         #  

@@ -1,4 +1,3 @@
-from ProgressLogger cimport *
 from DefaultParamHandler cimport *
 from MSSpectrum cimport *
 from Peak1D cimport *
@@ -10,9 +9,8 @@ from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "OpenMS":
 
-    cdef cppclass MetaboliteSpectralMatching(ProgressLogger, DefaultParamHandler):
+    cdef cppclass MetaboliteSpectralMatching(DefaultParamHandler):
         # wrap-inherits:
-        #   ProgressLogger
         #   DefaultParamHandler
 
         MetaboliteSpectralMatching() except + nogil

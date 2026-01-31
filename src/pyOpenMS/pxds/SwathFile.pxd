@@ -8,10 +8,8 @@ from StringList cimport *
 from ExperimentalSettings cimport *
 
 cdef extern from "<OpenMS/FORMAT/SwathFile.h>" namespace "OpenMS":
-    
-    cdef cppclass SwathFile(ProgressLogger) :
-        # wrap-inherits:
-        #  ProgressLogger
+
+    cdef cppclass SwathFile:
         SwathFile() except + nogil  # compiler
         SwathFile(SwathFile &) except + nogil  # compiler
 

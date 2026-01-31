@@ -2,7 +2,6 @@ from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from ConsensusMap cimport *
 from DefaultParamHandler cimport *
-from ProgressLogger cimport *
 from ProteinIdentification cimport *
 from ProteinIdentification cimport *
 from PeptideIdentificationList cimport *
@@ -10,10 +9,9 @@ from PeptideHit cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespace "OpenMS":
 
-    cdef cppclass BasicProteinInferenceAlgorithm(DefaultParamHandler,ProgressLogger) :
+    cdef cppclass BasicProteinInferenceAlgorithm(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        #  ProgressLogger
         #
         # wrap-doc:
         #  Algorithm class that implements simple protein inference by aggregation of peptide scores.

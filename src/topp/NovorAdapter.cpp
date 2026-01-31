@@ -216,7 +216,7 @@ protected:
 
       auto f = [&ofs, &in, &mgf, &count_written](const MSSpectrum& spec)
       {
-        if (spec.getType(true) == MSSpectrum::SpectrumType::CENTROID)
+        if (spec.getType(true) == SpectrumSettings::SpectrumType::CENTROID)
         {
           mgf.writeSpectrum(ofs, spec, in, "UNKNOWN");
           ++count_written;

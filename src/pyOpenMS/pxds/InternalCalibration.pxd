@@ -5,15 +5,12 @@ from MSExperiment cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from PeptideIdentification cimport *
-from ProgressLogger cimport *
 from Types cimport *
 from Precursor cimport *
 
 cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS":
 
-    cdef cppclass InternalCalibration(ProgressLogger):
-        # wrap-inherits:
-        #   ProgressLogger
+    cdef cppclass InternalCalibration:
 
         InternalCalibration()      except + nogil  # wrap-doc:A mass recalibration method using linear/quadratic interpolation (robust/weighted) of given reference masses
         InternalCalibration(InternalCalibration &) except + nogil  # compiler

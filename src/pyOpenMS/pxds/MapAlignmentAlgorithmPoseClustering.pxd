@@ -4,15 +4,13 @@ from Feature cimport *
 from FeatureMap cimport *
 from MSExperiment cimport *
 from Peak1D cimport *
-from ProgressLogger cimport *
 from TransformationDescription cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>" namespace "OpenMS":
 
-    cdef cppclass MapAlignmentAlgorithmPoseClustering(DefaultParamHandler, ProgressLogger):
+    cdef cppclass MapAlignmentAlgorithmPoseClustering(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        #   ProgressLogger
 
         MapAlignmentAlgorithmPoseClustering() except + nogil 
 

@@ -5,14 +5,12 @@ from libcpp.vector cimport vector as libcpp_vector
 from DefaultParamHandler cimport *
 from ExperimentalDesign cimport *
 from PeptideIdentification cimport *
-from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" namespace "OpenMS":
 
-    cdef cppclass BayesianProteinInferenceAlgorithm(DefaultParamHandler,ProgressLogger) :
+    cdef cppclass BayesianProteinInferenceAlgorithm(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        #  ProgressLogger
         #
         # wrap-doc:
         #  Performs a Bayesian protein inference on Protein/Peptide identifications or ConsensusMap.

@@ -3,14 +3,12 @@ from DefaultParamHandler cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 from String cimport *
-from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>" namespace "OpenMS":
- 
-    cdef cppclass SimpleSearchEngineAlgorithm(DefaultParamHandler, ProgressLogger):
+
+    cdef cppclass SimpleSearchEngineAlgorithm(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        #   ProgressLogger
 
         SimpleSearchEngineAlgorithm() except + nogil  # compiler
         SimpleSearchEngineAlgorithm(SimpleSearchEngineAlgorithm &) except + nogil  #  compiler

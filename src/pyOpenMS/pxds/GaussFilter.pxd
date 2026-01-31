@@ -1,4 +1,3 @@
-from ProgressLogger cimport *
 from DefaultParamHandler cimport *
 from MSExperiment cimport *
 from MSSpectrum cimport *
@@ -8,10 +7,9 @@ from ChromatogramPeak cimport *
 
 cdef extern from "<OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>" namespace "OpenMS":
 
-    cdef cppclass GaussFilter(DefaultParamHandler,ProgressLogger):
+    cdef cppclass GaussFilter(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        #   ProgressLogger
 
         GaussFilter() except + nogil  # wrap-doc:This class represents a Gaussian lowpass-filter which works on uniform as well as on non-uniform profile data
         GaussFilter(GaussFilter &) except + nogil  # compiler
