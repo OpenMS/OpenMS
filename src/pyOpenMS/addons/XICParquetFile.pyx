@@ -39,6 +39,41 @@ import numpy as np
             return
         raise TypeError("filename must be str/bytes/String or a list/tuple of those")
 
+    def __len__(self):
+        """
+        __len__(self: XICParquetFile) -> int
+
+        Return the number of files associated with this instance.
+        """
+        try:
+            return len(self.getFilenames())
+        except Exception:
+            return 0
+
+    def __repr__(self):
+        """
+        __repr__(self: XICParquetFile) -> str
+
+        Return a detailed string representation.
+        """
+        try:
+            files = self.getFilenames()
+            files = [f.decode() if isinstance(f, (bytes, bytearray)) else str(f) for f in files]
+            return "XICParquetFile(n_files=%d, files=%r)" % (len(files), files)
+        except Exception:
+            return "XICParquetFile(<unavailable>)"
+
+    def __str__(self):
+        """
+        __str__(self: XICParquetFile) -> str
+        
+        Return a concise string representation.
+        """
+        try:
+            return "XICParquetFile(n_files=%d)" % len(self.getFilenames())
+        except Exception:
+            return "XICParquetFile(n_files=?)"
+
     def get_data_dict(self, explode=False, precursor_id=-1, transition_id=-1, modified_sequence="", precursor_charge=-1,
                       product_charge=-1, ms_level=-1, run_id=-1, filter=""):
         """
