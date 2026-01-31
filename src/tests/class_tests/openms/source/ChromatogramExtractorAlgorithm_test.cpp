@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -139,7 +140,7 @@ START_SECTION([EXTRA] void extractChromatograms(const OpenSwath::SpectrumAccessP
       fda.push_back(100 + k *10);
       std::cout << " ion mobility  " << 100 + k*10 << " : " << p << std::endl;
     }
-    fda.setName("Ion Mobility");
+    fda.setName(Constants::UserParam::ION_MOBILITY);
     s.getFloatDataArrays().push_back(fda);
     exp->addSpectrum(s);
   }

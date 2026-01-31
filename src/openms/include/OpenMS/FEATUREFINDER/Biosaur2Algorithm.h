@@ -131,14 +131,14 @@ public:
   /**
     @brief Set the MS data used for feature detection (copy version)
 
-    @param ms_data Input MS experiment containing centroided or profile MS1 spectra
+    @param[in] ms_data Input MS experiment containing centroided or profile MS1 spectra
   */
   void setMSData(const MSExperiment& ms_data);
 
   /**
     @brief Set the MS data used for feature detection (move version)
 
-    @param ms_data Input MS experiment containing centroided or profile MS1 spectra (will be moved)
+    @param[in] ms_data Input MS experiment containing centroided or profile MS1 spectra (will be moved)
   */
   void setMSData(MSExperiment&& ms_data);
 
@@ -162,7 +162,7 @@ public:
     This is a convenience overload that discards the intermediate hills and peptide feature vectors.
     Use this when you only need the final FeatureMap output.
 
-    @param feature_map Output FeatureMap that will receive the detected features and meta information
+    @param[out] feature_map Output FeatureMap that will receive the detected features and meta information
 
     @note The input MS data must be set via setMSData() before calling this method
   */
@@ -181,9 +181,9 @@ public:
     7. Detects isotope patterns and assembles peptide features
     8. Converts features to OpenMS FeatureMap format
 
-    @param feature_map Output FeatureMap that receives the detected features and meta information
-    @param hills Output container for all detected hills that survived filtering steps. Useful for diagnostics and quality control.
-    @param peptide_features Output container storing intermediate peptide feature representations before conversion to FeatureMap entries
+    @param[out] feature_map Output FeatureMap that receives the detected features and meta information
+    @param[out] hills Output container for all detected hills that survived filtering steps. Useful for diagnostics and quality control.
+    @param[out] peptide_features Output container storing intermediate peptide feature representations before conversion to FeatureMap entries
 
     @note The input MS data must be set via setMSData() before calling this method
     @note All spectra with MS level != 1 will be removed from the internal MS data
@@ -199,8 +199,8 @@ public:
     The TSV file format matches the output of the reference Python implementation, allowing
     for easy comparison and downstream processing with Biosaur2-compatible tools.
 
-    @param features Peptide features to export (typically obtained from run())
-    @param filename Destination file path for the TSV output
+    @param[in] features Peptide features to export (typically obtained from run())
+    @param[in] filename Destination file path for the TSV output
   */
   void writeTSV(const std::vector<PeptideFeature>& features, const String& filename) const;
 
@@ -210,8 +210,8 @@ public:
     This method writes detailed information about each detected hill to a TSV file,
     which is useful for debugging, quality control, and understanding the feature detection process.
 
-    @param hills Hills to export (typically obtained from run())
-    @param filename Destination file path for the TSV output
+    @param[in] hills Hills to export (typically obtained from run())
+    @param[in] filename Destination file path for the TSV output
   */
   void writeHills(const std::vector<Hill>& hills, const String& filename) const;
 
@@ -260,8 +260,8 @@ private:
   /**
     @brief Calculate the mass accuracy (ppm) between two m/z values
 
-    @param mz1 First m/z value
-    @param mz2 Second m/z value (reference)
+    @param[in] mz1 First m/z value
+    @param[in] mz2 Second m/z value (reference)
     @return Mass difference in parts per million (ppm)
   */
   double calculatePPM_(double mz1, double mz2) const;
@@ -269,7 +269,7 @@ private:
   /**
     @brief Calculate the median of a vector of values
 
-    @param values Input values
+    @param[in] values Input values
     @return Median value, or 0.0 if input is empty
   */
   double calculateMedian_(const std::vector<double>& values) const;
@@ -309,8 +309,8 @@ private:
 
     Uses zero-padding at boundaries to match NumPy's 'same' convolution mode.
 
-    @param data Input data to be smoothed
-    @param window Half-width of the filter kernel (total kernel size = 2*window + 1)
+    @param[in] data Input data to be smoothed
+    @param[in] window Half-width of the filter kernel (total kernel size = 2*window + 1)
     @return Filtered data of the same length as input
   */
   std::vector<double> meanFilter_(const std::vector<double>& data, Size window) const;
@@ -320,8 +320,8 @@ private:
 
     Creates a histogram of mass errors and identifies the peak to determine systematic shift and spread.
 
-    @param mass_errors Collection of mass errors (in ppm)
-    @param bin_width Width of histogram bins (default: 0.05 ppm)
+    @param[in] mass_errors Collection of mass errors (in ppm)
+    @param[in] bin_width Width of histogram bins (default: 0.05 ppm)
     @return Pair of (shift, sigma) where shift is the systematic error and sigma is the spread
   */
   std::pair<double, double> calibrateMass_(const std::vector<double>& mass_errors, double bin_width = 0.05) const;
@@ -345,14 +345,14 @@ private:
     For TOF instruments, applies a specialized filtering step to reduce noise by considering
     local intensity distributions.
 
-    @param exp MS experiment to be filtered (modified in place)
+    @param[in] exp MS experiment to be filtered (modified in place)
   */
   void processTOF_(MSExperiment& exp) const;
 
   /**
     @brief Centroid profile spectra using PeakPickerHiRes
 
-    @param exp MS experiment to be centroided (modified in place)
+    @param[in,out] exp MS experiment to be centroided (modified in place)
   */
   void centroidProfileSpectra_(MSExperiment& exp) const;
 
@@ -362,9 +362,9 @@ private:
     Performs 2D clustering of peaks in the m/z and ion mobility dimensions to reduce data complexity
     for ion mobility-enabled instruments.
  
-    @param exp MS experiment to be centroided (modified in place)
-    @param mz_step m/z binning width for clustering
-    @param pasef_tolerance Ion mobility accuracy (in IM units) used to cluster peaks in the IM dimension
+    @param[in,out] exp MS experiment to be centroided (modified in place)
+    @param[out] mz_step m/z binning width for clustering
+    @param[in] pasef_tolerance Ion mobility accuracy (in IM units) used to cluster peaks in the IM dimension
   */
   void centroidPASEFData_(MSExperiment& exp, double mz_step, double pasef_tolerance) const;
 
@@ -374,13 +374,13 @@ private:
     Scans through the experiment and groups peaks with similar m/z values across consecutive scans
     into hills. Optionally collects mass differences for subsequent calibration.
  
-    @param exp Input MS experiment
-    @param htol_ppm Mass tolerance in ppm for linking peaks into hills
-    @param min_intensity Minimum intensity threshold for peaks
-    @param min_mz Minimum m/z value to consider
-    @param max_mz Maximum m/z value to consider
-    @param use_im Whether to use ion-mobility information during hill linking (2D m/z–IM hills)
-    @param hill_mass_diffs Optional output container for mass differences (for calibration)
+    @param[in,out] exp Input MS experiment
+    @param[in] htol_ppm Mass tolerance in ppm for linking peaks into hills
+    @param[in] min_intensity Minimum intensity threshold for peaks
+    @param[in] min_mz Minimum m/z value to consider
+    @param[in] max_mz Maximum m/z value to consider
+    @param[in] use_im Whether to use ion-mobility information during hill linking (2D m/z–IM hills)
+    @param[out] hill_mass_diffs Optional output container for mass differences (for calibration)
     @return Vector of detected hills
   */
   std::vector<Hill> detectHills_(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, bool use_im, std::vector<double>* hill_mass_diffs = nullptr) const;
@@ -412,8 +412,8 @@ private:
   /**
     @brief Filter and process hills by applying length constraints and computing summary statistics
 
-    @param hills Input hills
-    @param min_length Minimum number of scans required for a hill to be retained
+    @param[in] hills Input hills
+    @param[in] min_length Minimum number of scans required for a hill to be retained
     @return Filtered hills with computed statistics (median m/z, apex RT/intensity, etc.)
   */
   std::vector<Hill> processHills_(const std::vector<Hill>& hills, Size min_length) const;
@@ -424,9 +424,9 @@ private:
     Identifies local minima in the intensity profile and splits hills where the valley factor
     criterion is satisfied, effectively separating features that were initially grouped together.
 
-    @param hills Input hills to be split
-    @param hvf Hill valley factor threshold (ratio of valley to neighboring peaks)
-    @param min_length Minimum length required for split segments to be retained
+    @param[in,out] hills Input hills to be split
+    @param[in] hvf Hill valley factor threshold (ratio of valley to neighboring peaks)
+    @param[in] min_length Minimum length required for split segments to be retained
     @return Hills after splitting, with valley-separated segments as independent hills
   */
   std::vector<Hill> splitHills_(const std::vector<Hill>& hills, double hvf, Size min_length) const;
@@ -437,9 +437,9 @@ private:
     Checks if there are significant valleys within the isotope traces that suggest the pattern
     should be cut short.
 
-    @param isotopes Isotope candidates to evaluate
-    @param hills All available hills
-    @param ivf Isotope valley factor threshold
+    @param[in] isotopes Isotope candidates to evaluate
+    @param[in] hills All available hills
+    @param[in] ivf Isotope valley factor threshold
     @return Recommended number of isotopes to retain (may be shorter than input)
   */
   Size checkIsotopeValleySplit_(const std::vector<IsotopeCandidate>& isotopes, const std::vector<Hill>& hills, double ivf) const;
@@ -451,11 +451,11 @@ private:
     states and derives per-isotope shift/sigma estimates (in ppm). The results are
     primarily diagnostic and mirror the behaviour of the reference Biosaur2 code.
 
-    @param hills Input hills sorted by m/z
-    @param itol_ppm Isotope mass tolerance in ppm
-    @param min_charge Minimum charge state to consider
-    @param max_charge Maximum charge state to consider
-    @param enable_isotope_calib Whether isotope calibration is enabled
+    @param[in] hills Input hills sorted by m/z
+    @param[in] itol_ppm Isotope mass tolerance in ppm
+    @param[in] min_charge Minimum charge state to consider
+    @param[in] max_charge Maximum charge state to consider
+    @param[in] enable_isotope_calib Whether isotope calibration is enabled
     @return Map from isotope index (1..9) to (shift, sigma) in ppm
   */
   std::map<int, std::pair<double, double>> performInitialIsotopeCalibration_(const std::vector<Hill>& hills,
@@ -470,10 +470,10 @@ private:
     Populates a binned m/z lookup and per-hill ion-mobility bins that accelerate
     subsequent isotope candidate searches.
 
-    @param hills Input hills
-    @param use_im Whether ion mobility is used for gating
-    @param hills_mz_fast Output map from m/z bin to hills overlapping that bin
-    @param hill_im_bins Output ion-mobility bin per hill (0 if IM is not used or not available)
+    @param[in] hills Input hills
+    @param[in] use_im Whether ion mobility is used for gating
+    @param[in] hills_mz_fast Output map from m/z bin to hills overlapping that bin
+    @param[in] hill_im_bins Output ion-mobility bin per hill (0 if IM is not used or not available)
     @return m/z step size used for binning (0 if no binning is possible)
   */
   double buildFastMzLookup_(const std::vector<Hill>& hills,
@@ -488,16 +488,16 @@ private:
     for matching isotope hills, evaluates RT profile correlation and averagine agreement,
     and returns all viable pattern candidates.
 
-    @param hills Input hills
-    @param itol_ppm Isotope mass tolerance in ppm
-    @param min_charge Minimum charge state to consider
-    @param max_charge Maximum charge state to consider
-    @param ivf Isotope valley factor controlling truncation at valleys
-    @param mz_step m/z step size returned by @ref buildFastMzLookup_
-    @param hills_mz_fast Fast m/z lookup map
-    @param hill_idx_to_index Lookup from hill index to position in @p hills
-    @param hill_im_bins Ion-mobility bins per hill
-    @param use_im Whether to use ion-mobility gating
+    @param[in] hills Input hills
+    @param[in] itol_ppm Isotope mass tolerance in ppm
+    @param[in] min_charge Minimum charge state to consider
+    @param[in] max_charge Maximum charge state to consider
+    @param[in] ivf Isotope valley factor controlling truncation at valleys
+    @param[in] mz_step m/z step size returned by @ref buildFastMzLookup_
+    @param[out] hills_mz_fast Fast m/z lookup map
+    @param[in] hill_idx_to_index Lookup from hill index to position in @p hills
+    @param[out] hill_im_bins Ion-mobility bins per hill
+    @param[in] use_im Whether to use ion-mobility gating
     @return Vector of initial isotope pattern candidates
   */
   std::vector<PatternCandidate> generateIsotopeCandidates_(const std::vector<Hill>& hills,
@@ -517,9 +517,9 @@ private:
     Discards isotope hills whose apex RT deviates by more than @ref hrttol_ seconds
     from the monoisotopic hill apex.
 
-    @param candidates Input candidates (unchanged)
-    @param hills All hills
-    @param hill_idx_to_index Lookup from hill index to position in @p hills
+    @param[in] candidates Input candidates (unchanged)
+    @param[in] hills All hills
+    @param[in] hill_idx_to_index Lookup from hill index to position in @p hills
     @return RT-filtered candidates (identical to input if RT gating is disabled)
   */
   std::vector<PatternCandidate> applyRtFiltering_(const std::vector<PatternCandidate>& candidates,
@@ -532,9 +532,9 @@ private:
     Aggregates mass errors from all candidates and derives per-isotope shift/sigma
     estimates to be used for subsequent filtering.
 
-    @param candidates Initial (optionally RT-filtered) pattern candidates
-    @param itol_ppm Isotope mass tolerance in ppm
-    @param enable_isotope_calib Whether isotope calibration is enabled
+    @param[in] candidates Initial (optionally RT-filtered) pattern candidates
+    @param[in] itol_ppm Isotope mass tolerance in ppm
+    @param[in] enable_isotope_calib Whether isotope calibration is enabled
     @return Map from isotope index (1..9) to (shift, sigma) in ppm
   */
   std::map<int, std::pair<double, double>> refineIsotopeCalibration_(const std::vector<PatternCandidate>& candidates,
@@ -547,11 +547,11 @@ private:
     Applies mass error windows based on the refined calibration and recomputes the
     isotope-intensity cosine correlation, truncating patterns as necessary.
 
-    @param candidates Input pattern candidates
-    @param hills All hills
-    @param hill_idx_to_index Lookup from hill index to position in @p hills
-    @param isotope_calib_map_ready Per-isotope calibration parameters
-    @param enable_isotope_calib Whether isotope calibration is enabled
+    @param[in,out] candidates Input pattern candidates
+    @param[in] hills All hills
+    @param[in] hill_idx_to_index Lookup from hill index to position in @p hills
+    @param[in] isotope_calib_map_ready Per-isotope calibration parameters
+    @param[in] enable_isotope_calib Whether isotope calibration is enabled
     @return Filtered pattern candidates suitable for final greedy selection
   */
   std::vector<PatternCandidate> filterByCalibration_(const std::vector<PatternCandidate>& candidates,
@@ -567,11 +567,11 @@ private:
     hills, performs final averagine/cosine checks and converts surviving patterns into
     @ref PeptideFeature entries.
 
-    @param filtered_ready Pattern candidates after calibration-based filtering
-    @param hills All hills
-    @param negative_mode Whether negative ion mode is enabled
-    @param iuse Number of isotopes to use for intensity calculation
-    @param itol_ppm Isotope mass tolerance in ppm (for debug sanity checks)
+    @param[in] filtered_ready Pattern candidates after calibration-based filtering
+    @param[in] hills All hills
+    @param[in] negative_mode Whether negative ion mode is enabled
+    @param[in] iuse Number of isotopes to use for intensity calculation
+    @param[in] itol_ppm Isotope mass tolerance in ppm (for debug sanity checks)
     @return Final list of peptide features with non-overlapping isotope patterns
   */
   std::vector<PeptideFeature> selectNonOverlappingPatterns_(const std::vector<PatternCandidate>& filtered_ready,
@@ -587,15 +587,15 @@ private:
     mass differences and charge states. Evaluates isotope candidates using cosine correlation
     and mass accuracy, then assembles complete peptide features.
  
-    @param hills Input hills (will be modified to mark used hills)
-    @param itol_ppm Mass tolerance in ppm for isotope matching
-    @param min_charge Minimum charge state to consider
-    @param max_charge Maximum charge state to consider
-    @param negative_mode Whether to use negative ion mode (affects mass calculations)
-    @param ivf Isotope valley factor for splitting patterns
-    @param iuse Number of isotopes to use for intensity calculation (0=mono only, -1=all, etc.)
-    @param enable_isotope_calib Whether to apply automatic mass calibration for isotopes
-    @param use_im Whether to use ion-mobility information when scoring and grouping isotope patterns
+    @param[in] hills Input hills (will be modified to mark used hills)
+    @param[in] itol_ppm Mass tolerance in ppm for isotope matching
+    @param[in] min_charge Minimum charge state to consider
+    @param[in] max_charge Maximum charge state to consider
+    @param[in] negative_mode Whether to use negative ion mode (affects mass calculations)
+    @param[in] ivf Isotope valley factor for splitting patterns
+    @param[in] iuse Number of isotopes to use for intensity calculation (0=mono only, -1=all, etc.)
+    @param[in] enable_isotope_calib Whether to apply automatic mass calibration for isotopes
+    @param[in] use_im Whether to use ion-mobility information when scoring and grouping isotope patterns
     @return Vector of detected peptide features
   */
   std::vector<PeptideFeature> detectIsotopePatterns_(std::vector<Hill>& hills, double itol_ppm, int min_charge, int max_charge, bool negative_mode, double ivf, int iuse, bool enable_isotope_calib, bool use_im) const;
@@ -608,8 +608,8 @@ private:
     The representation of convex hulls (full mass-trace hulls vs. a single RT–m/z bounding box)
     is controlled via the @em convex_hulls parameter.
 
-    @param features Input peptide features
-    @param hills All hills (needed to construct convex hulls)
+    @param[in] features Input peptide features
+    @param[in] hills All hills (needed to construct convex hulls)
     @return FeatureMap containing the converted features
   */
   FeatureMap convertToFeatureMap_(const std::vector<PeptideFeature>& features,
@@ -622,14 +622,14 @@ private:
     corresponding monoisotopic hill. Intended for diagnosing pathological
     isotope linking behaviour in complex data (e.g. FAIMS).
 
-    @param stage_label Text label indicating the call site (e.g. \"detectIsotopePatterns_\" or \"convertToFeatureMap_\")
-    @param mono_mz_center Intensity-weighted mean m/z of the monoisotopic hill
-    @param mono_rt_apex RT apex of the monoisotopic hill
-    @param mono_hill_idx Hill index of the monoisotopic hill
-    @param charge Charge state of the feature
-    @param itol_ppm Isotope mass tolerance used at the call site (ppm)
-    @param iso_hill Isotope hill to check
-    @param isotope_number Ordinal isotope index (1=first isotope, ...)
+    @param[in] stage_label Text label indicating the call site (e.g. \"detectIsotopePatterns_\" or \"convertToFeatureMap_\")
+    @param[in] mono_mz_center Intensity-weighted mean m/z of the monoisotopic hill
+    @param[in] mono_rt_apex RT apex of the monoisotopic hill
+    @param[in] mono_hill_idx Hill index of the monoisotopic hill
+    @param[in] charge Charge state of the feature
+    @param[in] itol_ppm Isotope mass tolerance used at the call site (ppm)
+    @param[in] iso_hill Isotope hill to check
+    @param[in] isotope_number Ordinal isotope index (1=first isotope, ...)
   */
   void debugCheckIsotopeConsistency_(const char* stage_label,
                                      double mono_mz_center,
@@ -646,10 +646,10 @@ private:
     Evaluates similarity of intensity profiles between two hills by computing the cosine of the
     angle between their intensity vectors (considering only overlapping scan indices).
 
-    @param intensities1 First intensity trace
-    @param scans1 Scan indices for first trace
-    @param intensities2 Second intensity trace
-    @param scans2 Scan indices for second trace
+    @param[in] intensities1 First intensity trace
+    @param[in] scans1 Scan indices for first trace
+    @param[in] intensities2 Second intensity trace
+    @param[in] scans2 Scan indices for second trace
     @return Cosine correlation coefficient [0, 1], where 1 indicates perfect correlation
   */
   double cosineCorrelation_(const std::vector<double>& intensities1, const std::vector<Size>& scans1,
@@ -661,7 +661,7 @@ private:
     The Python reference implementation gracefully degrades when ion mobility arrays are missing.
     This method implements the same behavior by returning false to allow processing without IM data.
  
-    @param spectrum Spectrum to check
+    @param[in] spectrum Spectrum to check
     @return Currently always returns false (missing IM is not an error)
   */
   bool shouldThrowForMissingIM_(const MSSpectrum& spectrum) const;
@@ -672,11 +672,11 @@ private:
     Performs the complete feature detection pipeline (optional PASEF centroiding, hill detection,
     isotope pattern detection) for a single FAIMS CV group or non-FAIMS data.
 
-    @param faims_cv FAIMS compensation voltage for this group (NaN for non-FAIMS)
-    @param group_exp MS experiment for this group (modified in place)
-    @param original_paseftol Original PASEF tolerance setting
-    @param hills_out Output container for hills detected in this group
-    @param features_out Output container for peptide features detected in this group
+    @param[in] faims_cv FAIMS compensation voltage for this group (NaN for non-FAIMS)
+    @param[in,out] group_exp MS experiment for this group (modified in place)
+    @param[in] original_paseftol Original PASEF tolerance setting
+    @param[out] hills_out Output container for hills detected in this group
+    @param[out] features_out Output container for peptide features detected in this group
   */
   void processFAIMSGroup_(double faims_cv,
                           MSExperiment& group_exp,

@@ -640,7 +640,7 @@ protected:
     {
       consensus = new ConsensusIDAlgorithmRanks();
     }
-    algo_params.update(getParam_(), false, OpenMS_Log_debug); // update general params.
+    algo_params.update(getParam_(), false, getGlobalLogDebug()); // update general params.
     consensus->setParameters(algo_params);
 
     //----------------------------------------------------------------

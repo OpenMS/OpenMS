@@ -162,12 +162,12 @@ protected:
     setValidFormats_("cal:lock_fail_out", {"mzML"});
     registerFlag_("cal:lock_require_mono", "Require all lock masses to be monoisotopic, i.e. not the iso1, iso2 etc ('charge' column is used to determine the spacing). Peaks which are not mono-isotopic are not used.");
     registerFlag_("cal:lock_require_iso", "Require all lock masses to have at least the +1 isotope. Peaks without isotope pattern are not used.");
-    registerStringOption_("cal:model_type", 
+    registerStringOption_("cal:model_type",
                           "<model>",
-                          MZTrafoModel::enumToName(MZTrafoModel::LINEAR_WEIGHTED),
+                          MZTrafoModel::enumToName(MZTrafoModel::MODELTYPE::LINEAR_WEIGHTED),
                           "Type of function to be fitted to the calibration points.",
                           false);
-    setValidStrings_("cal:model_type", MZTrafoModel::names_of_modeltype, MZTrafoModel::SIZE_OF_MODELTYPE);
+    setValidStrings_("cal:model_type", MZTrafoModel::names_of_modeltype, static_cast<int>(MZTrafoModel::MODELTYPE::SIZE_OF_MODELTYPE));
 
     addEmptyLine_();
     

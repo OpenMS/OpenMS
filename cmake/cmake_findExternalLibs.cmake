@@ -164,8 +164,40 @@ endif()
 #------------------------------------------------------------------------------
  # Apache Arrow and Parquet
  if (WITH_PARQUET)
+   # Workaround for Arrow 23+ CMake configuration issue where CURL dependency
+   # is not properly exported. See: https://github.com/apache/arrow/issues/48885
+   find_package(CURL QUIET)
    find_package(Arrow CONFIG REQUIRED)
    find_package(Parquet CONFIG REQUIRED)
+   
+   # Determine Arrow target based on ARROW_USE_STATIC preference
+   if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+   elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+   elseif(TARGET Arrow::arrow_static)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+   elseif(TARGET Arrow::arrow_shared)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+   else()
+     message(FATAL_ERROR "No suitable Arrow target found")
+   endif()
+   
+   # Determine Parquet target based on ARROW_USE_STATIC preference
+   if(ARROW_USE_STATIC AND TARGET Parquet::parquet_static)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
+   elseif(NOT ARROW_USE_STATIC AND TARGET Parquet::parquet_shared)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
+   elseif(TARGET Parquet::parquet_static)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
+   elseif(TARGET Parquet::parquet_shared)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
+   else()
+     message(FATAL_ERROR "No suitable Parquet target found")
+   endif()
+   
+   message(STATUS "Using Arrow target: ${OPENMS_ARROW_TARGET}")
+   message(STATUS "Using Parquet target: ${OPENMS_PARQUET_TARGET}")
  endif()
 
 #------------------------------------------------------------------------------

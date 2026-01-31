@@ -42,6 +42,9 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         void setIntensityRange(DRange1 & range_) except + nogil  # wrap-doc:Restricts the range of intensity values for peaks to load
         bool hasIntensityRange() except + nogil  # wrap-doc:Returns true if an intensity range has been set
         DRange1 getIntensityRange() except + nogil  # wrap-doc:Returns the intensity range
+        void setPrecursorMZRange(DRange1 & range_) except + nogil  # wrap-doc:Restricts the range of precursor m/z values for MS2+ spectra to load
+        bool hasPrecursorMZRange() except + nogil  # wrap-doc:Returns true if a precursor m/z range has been set
+        DRange1 getPrecursorMZRange() except + nogil  # wrap-doc:Returns the precursor m/z range
 
         Size getMaxDataPoolSize() except + nogil  # wrap-doc:Returns maximal size of the data pool
         void setMaxDataPoolSize(Size s) except + nogil  # wrap-doc:Sets maximal size of the data pool

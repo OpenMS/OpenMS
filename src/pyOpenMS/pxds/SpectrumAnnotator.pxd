@@ -38,3 +38,13 @@ cdef extern from "<OpenMS/CHEMISTRY/SpectrumAnnotator.h>" namespace "OpenMS":
                 #  :param spec: A PeakSpectrum containing the peaks from which the `pi` identifications are made
                 #  :param tg: A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
                 #  :param sa: A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
+
+        void addPeakAnnotationsToPeptideHit(PeptideHit & ph, MSSpectrum & spec, TheoreticalSpectrumGenerator & tg, SpectrumAlignment & sa, bool include_unmatched_peaks) except + nogil 
+        # wrap-doc:
+                #  Adds peak annotations to the `ph` PeptideHit
+                #  
+                #  :param ph: A PeptideHit whose PeakAnnotations vector will be filled with the ion matches
+                #  :param spec: A PeakSpectrum containing the peaks from which the `ph` identifications are made
+                #  :param tg: A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
+                #  :param sa: A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
+                #  :param include_unmatched_peaks: If true, all spectrum peaks will be included in the PeakAnnotations vector. Unmatched peaks will have empty annotation strings. If false, only matched peaks are included.

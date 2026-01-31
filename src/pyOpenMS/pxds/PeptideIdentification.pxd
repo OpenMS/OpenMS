@@ -6,12 +6,16 @@ from String cimport *
 from Types cimport *
 from MetaInfoInterface cimport *
 from PeptideHit cimport *
+from USI cimport *
+from IdentifierMSRunMapper cimport *
 
 cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
 
     cdef cppclass PeptideIdentification(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  std
         # wrap-doc:
         #  Represents peptide identification results for a single spectrum or feature
         #  
@@ -123,6 +127,18 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
             #  
             #  :param identifier: Unique identifier string
 
+        String getSpectrumReference() except + nogil
+            # wrap-doc:
+            #  Get the spectrum reference (native ID) for this identification.
+            #
+            #  :return: Spectrum reference string (native ID)
+
+        void setSpectrumReference(const String& ref) except + nogil
+            # wrap-doc:
+            #  Set the spectrum reference (native ID) for this identification.
+            #
+            #  :param ref: Spectrum reference string (native ID)
+
         bool       hasMZ() except + nogil 
             # wrap-doc:
             #  Checks if m/z value is set
@@ -170,5 +186,41 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
 
         libcpp_vector[PeptideHit] getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) except + nogil  # wrap-doc:Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
 
- 
+        USI buildUSI(const String& ms_run_name,
+                     const String& dataset_id,
+                     bool include_interpretation) except + nogil
+            # wrap-doc:
+            #  Build a Universal Spectrum Identifier (USI) for this identification.
+            #
+            #  The USI format follows PSI-MS MS:1003063:
+            #    mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
+            #
+            #  If include_interpretation is True, the first peptide hit is used
+            #  as ProForma proteoform-ion interpretation (best hit after sort()).
+            #
+            #  :param ms_run_name: MS run file name
+            #  :param dataset_id: ProteomeXchange dataset id (default: "local")
+            #  :param include_interpretation: Include ProForma interpretation from best hit
+            #  :return: USI object (may be invalid if spectrum reference is missing)
+
+        USI buildUSI(const IdentifierMSRunMapper & mapping,
+                     const String& dataset_id,
+                     bool include_interpretation) except + nogil
+            # wrap-doc:
+            #  Build USI with automatic source file resolution for merged files.
+            #
+            #  Uses id_merge_index metadata to select the correct file from the mapping.
+            #
+            #  Example:
+            #
+            #  .. code-block:: python
+            #
+            #     mapper = oms.IdentifierMSRunMapper(protein_ids)
+            #     usi = pep_id.buildUSI(mapper, "PXD000561", True)
+            #
+            #  :param mapping: IdentifierMSRunMapper object built from ProteinIdentifications
+            #  :param dataset_id: ProteomeXchange dataset id (default: "local")
+            #  :param include_interpretation: Include ProForma interpretation from best hit
+            #  :return: USI object (may be invalid if mapping is missing)
+
 

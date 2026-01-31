@@ -36,8 +36,8 @@ public:
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
 
-    @param features Features to work on
-    @param keep_matching Keeps all IDs that match the modified sequence of the best
+    @param[in] features Features to work on
+    @param[in,out] keep_matching Keeps all IDs that match the modified sequence of the best
     hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
   **/
   static void resolve(FeatureMap& features, bool keep_matching = false);
@@ -46,8 +46,8 @@ public:
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
     
-    @param features Features to work on
-    @param keep_matching Keeps all IDs that match the modified sequence of the best
+    @param[in] features Features to work on
+    @param[in,out] keep_matching Keeps all IDs that match the modified sequence of the best
     hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
   **/
   static void resolve(ConsensusMap& features, bool keep_matching = false);

@@ -59,15 +59,15 @@ public:
       /**
         Constructor with weights.
 
-        @param weights Weights over which values/masses to be decomposed.
+        @param[in] weights Weights over which values/masses to be decomposed.
       */
       explicit RealMassDecomposer(const Weights & weights);
 
       /**
         Gets all decompositions for a @c mass with an @c error allowed.
 
-        @param mass Mass to be decomposed.
-        @param error Error allowed between given and result decomposition.
+        @param[in] mass Mass to be decomposed.
+        @param[out] error Error allowed between given and result decomposition.
         @return All possible decompositions for a given mass and error.
       */
       decompositions_type getDecompositions(double mass, double error);
@@ -79,8 +79,8 @@ public:
        allowed. It's similar to the @c getDecompositions(double,double) function
        but less space consuming, since doesn't use container to store decompositions.
 
-       @param mass Mass to be decomposed.
-       @param error Error allowed between given and result decomposition.
+       @param[in] mass Mass to be decomposed.
+       @param[out] error Error allowed between given and result decomposition.
        @return Number of all decompositions for a given mass and error.
       */
       number_of_decompositions_type getNumberOfDecompositions(double mass, double error);

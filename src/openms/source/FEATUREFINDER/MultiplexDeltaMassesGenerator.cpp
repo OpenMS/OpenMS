@@ -79,6 +79,8 @@ namespace OpenMS
     boost::replace_all(temp_labels_string, "{}", "no_label");
     boost::split(temp_samples, temp_labels_string, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
 
+    samples_labels_.reserve(temp_samples.size()); // Pre-allocate for performance
+
     for (String::size_type i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())
@@ -356,7 +358,7 @@ namespace OpenMS
     if (delta_masses_list_.empty())
     {
       // Even in the case of a singlet search, there should be one mass shift (zero mass shift) in the list.
-      throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
+      throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0, "delta_masses_list_ must not be empty");
     }
 
     unsigned n = delta_masses_list_[0].getDeltaMasses().size();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets

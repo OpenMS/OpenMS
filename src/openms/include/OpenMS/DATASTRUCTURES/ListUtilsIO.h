@@ -22,8 +22,8 @@ namespace OpenMS
   /**
     @brief Output stream operator for std::vectors.
 
-    @param os The target stream.
-    @param v The vector to write to stream.
+    @param[in,out] os The target stream.
+    @param[in] v The vector to write to stream.
   */
   template <typename T>
   inline std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)

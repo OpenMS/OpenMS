@@ -11,12 +11,14 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS::Chromat
 cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
 
     cdef cppclass ChromatogramPeak:
+        # wrap-hash:
+        #  std
 
         ChromatogramPeak() except + nogil  # wrap-doc:A 1-dimensional raw data point or peak for chromatograms
         ChromatogramPeak(ChromatogramPeak &) except + nogil
-        ChromatogramPeak(PositionType retention_time, IntensityType intensity) except + nogil  # wrap-ignore
-        bool operator==(ChromatogramPeak) except + nogil 
-        bool operator!=(ChromatogramPeak) except + nogil 
+        ChromatogramPeak(PositionType retention_time, IntensityType intensity) except + nogil  # wrap-doc:Constructor with RT and intensity
+        bool operator==(ChromatogramPeak) except + nogil
+        bool operator!=(ChromatogramPeak) except + nogil
 
         # We will not catch C++ exceptions for get/set methods for performance
         # reasons (no memory allocation is involved).
@@ -24,8 +26,8 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
         IntensityType getIntensity() except + nogil  # wrap-doc:Returns the intensity
         void setIntensity(IntensityType) except + nogil  # wrap-doc:Sets the intensity
 
-        DPosition1 getPosition() except + nogil  # wrap-ignore
-        void setPosition(DPosition1) except + nogil  # wrap-ignore
+        DPosition1 getPosition() except + nogil  # wrap-doc:Returns the position (RT)
+        void setPosition(DPosition1) except + nogil  # wrap-doc:Sets the position (RT)
 
         CoordinateType getRT() except + nogil  # wrap-doc:Returns the retention time
         void setRT(CoordinateType) except + nogil  # wrap-doc:Sets retention time

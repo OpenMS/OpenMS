@@ -56,12 +56,12 @@ namespace OpenMS
     
     /**
      * @brief constructor
-     * 
-     * @param labels    string describing the labels used in each sample. [...] specifies the labels for a single sample. For example
+     *
+     * @param[in] labels    string describing the labels used in each sample. [...] specifies the labels for a single sample. For example
      * For example, [][Lys8,Arg10] describes a standard SILAC experiment. In the "light" sample, none of the amino acids are labelled [].
      * In the "heavy" sample, lysines and arginines are isotopically labelled [Lys8,Arg10].
-     * @param missed_cleavages    maximum number of missed cleavages due to incomplete digestion
-     * @param label_mass_shift    name of labels (e.g. Lys8) and their corresponding mass shifts (e.g. 8.0141988132)
+     * @param[in] missed_cleavages    maximum number of missed cleavages due to incomplete digestion
+     * @param[in] label_mass_shift    name of labels (e.g. Lys8) and their corresponding mass shifts (e.g. 8.0141988132)
      */
     MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
      
@@ -73,24 +73,25 @@ namespace OpenMS
 
     /**
      * @brief write the list of labels for each of the sample
-     * 
+     *
      * For example in a standard SILAC experiment, sample 1 (light) is unlabelled and sample 2 (heavy) contains Lys8 and Arg 10 labels.
-     * sample 1:    no_label    
+     * sample 1:    no_label
      * sample 2:    Lys8    Arg10
+     * @param[out] stream    output stream
      */
     void printSamplesLabelsList(std::ostream &stream) const;
     
     /**
      * @brief write the list of all mass patterns
-     * 
+     *
      * For example in a standard SILAC experiment allowing for one missed cleavage, five mass shift patterns are possible.
-     * mass shift 1:    0 (no_label)    8.0142 (Lys8)    
-     * mass shift 2:    0 (no_label)    10.0083 (Arg10)    
-     * mass shift 3:    0 (no_label)    16.0284 (Lys8,Lys8)    
-     * mass shift 4:    0 (no_label)    18.0225 (Arg10,Lys8)    
-     * mass shift 5:    0 (no_label)    20.0165 (Arg10,Arg10)   
-     * 
-     * @param stream    output stream 
+     * mass shift 1:    0 (no_label)    8.0142 (Lys8)
+     * mass shift 2:    0 (no_label)    10.0083 (Arg10)
+     * mass shift 3:    0 (no_label)    16.0284 (Lys8,Lys8)
+     * mass shift 4:    0 (no_label)    18.0225 (Arg10,Lys8)
+     * mass shift 5:    0 (no_label)    20.0165 (Arg10,Arg10)
+     *
+     * @param[out] stream    output stream
      */
     void printDeltaMassesList(std::ostream &stream) const;
     
@@ -124,23 +125,23 @@ namespace OpenMS
     
     /**
      * @brief returns the short label string
-     * 
-     * @param label    long label, UniMod name as it appears in peptide sequences, e.g. "Label:13C(6)15N(4)"
+     *
+     * @param[in] label    long label, UniMod name as it appears in peptide sequences, e.g. "Label:13C(6)15N(4)"
      */
     String getLabelShort(const String& label);
     
     /**
      * @brief returns the long label string
-     * 
-     * @param label    short label, as it appears in the "labels" parameter, e.g. "Arg10"
+     *
+     * @param[in] label    short label, as it appears in the "labels" parameter, e.g. "Arg10"
      */
     String getLabelLong(const String& label);
     
     /**
      * @brief extract the label set from the sequence
      *
-     * @param sequence    amino acid sequence
-     * 
+     * @param[in] sequence    amino acid sequence
+     *
      * For example, the sequence VLSEEEIDDNFK(Label:13C(6)15N(2))AQR(Label:13C(6)15N(4))
      * contains a set of two labels, Lys8 and Arg10.
      */

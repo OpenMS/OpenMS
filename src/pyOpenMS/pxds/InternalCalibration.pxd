@@ -102,7 +102,7 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespa
 
         bool calibrate(MSExperiment,
                        libcpp_vector[int],
-                       MZTrafoModel_MODELTYPE,
+                       MODELTYPE,
                        double rt_chunk,
                        bool use_RANSAC,
                        double post_ppm_median,
@@ -135,16 +135,17 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespa
                 #  :param rscript_executable: Full path to the Rscript executable
                 #  :return: true upon successful calibration
 
+        @staticmethod
+        void applyTransformation(libcpp_vector[Precursor]& pcs,
+                                 MZTrafoModel& trafo) except + nogil
 
-## wrap static methods
-cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
+        @staticmethod
+        void applyTransformation(MSSpectrum & spec, IntList& target_mslvl,
+                                 MZTrafoModel & trafo) except + nogil
 
-    void applyTransformation(libcpp_vector[Precursor]& pcs,
-                             MZTrafoModel& trafo) except + nogil  # wrap-attach:InternalCalibration
-    void applyTransformation(MSSpectrum & spec, IntList& target_mslvl,
-                             MZTrafoModel & trafo) except + nogil  # wrap-attach:InternalCalibration
-    void applyTransformation(MSExperiment & exp,
-                             IntList& target_mslvl, MZTrafoModel& trafo) except + nogil  # wrap-attach:InternalCalibration
+        @staticmethod
+        void applyTransformation(MSExperiment & exp,
+                                 IntList& target_mslvl, MZTrafoModel& trafo) except + nogil
 
 cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
 

@@ -57,7 +57,7 @@ namespace OpenMS
   {
     public:
       /// adds a new layer and makes it the current layer
-      /// @param new_layer Takes ownership of the layer!
+      /// @param[in] new_layer Takes ownership of the layer!
       void addLayer(LayerDataBaseUPtr new_layer);
 
       const LayerDataBase& getLayer(const Size index) const;
@@ -194,7 +194,7 @@ namespace OpenMS
 
         Sets the enclosing spectrum widget. Call this from your
         PlotWidget derived class.
-        @param widget the spectrum widget
+        @param[in] widget the spectrum widget
     */
     inline void setPlotWidget(PlotWidget* widget)
     {
@@ -240,7 +240,7 @@ namespace OpenMS
 
         Sets the intensity mode and calls intensityModeChange_()
 
-        @param mod the new intensity mode
+        @param[in] mod the new intensity mode
 
         @see intensityModeChange_()
     */
@@ -399,11 +399,11 @@ namespace OpenMS
     /**
       @brief Add a peak data layer
 
-      @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
-      @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
-      @param filename This @em absolute filename is used to monitor changes in the file and reload the data
-      @param caption The caption of the layer (shown in the layer window)
-      @param use_noise_cutoff Add a noise filter which removes low-intensity peaks
+      @param[in] map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
+      @param[in] od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
+      @param[in] filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param[in] caption The caption of the layer (shown in the layer window)
+      @param[in] use_noise_cutoff Add a noise filter which removes low-intensity peaks
 
       @return If a new layer was created
     */
@@ -416,10 +416,10 @@ namespace OpenMS
     /**
       @brief Add a chrom data layer
 
-      @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
-      @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
-      @param filename This @em absolute filename is used to monitor changes in the file and reload the data
-      @param caption The caption of the layer (shown in the layer window)
+      @param[in] map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
+      @param[in] od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
+      @param[in] filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param[in] caption The caption of the layer (shown in the layer window)
 
       @return If a new layer was created
     */
@@ -429,9 +429,9 @@ namespace OpenMS
     /**
         @brief Add a feature data layer
 
-        @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
-        @param filename This @em absolute filename is used to monitor changes in the file and reload the data
-        @param caption The caption of the layer (shown in the layer window)
+        @param[in] map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
+        @param[in] filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param[in] caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
@@ -440,9 +440,9 @@ namespace OpenMS
     /**
         @brief Add a consensus feature data layer
 
-        @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
-        @param filename This @em absolute filename is used to monitor changes in the file and reload the data
-        @param caption The caption of the layer (shown in the layer window)
+        @param[in] map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
+        @param[in] filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param[in] caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
@@ -452,11 +452,11 @@ namespace OpenMS
     /**
         @brief Add an identification data layer
 
-        @param peptides Input list of peptides, which has to be mutable and will be empty after adding. 
+        @param[in] peptides Input list of peptides, which has to be mutable and will be empty after adding. 
                Swapping is used to insert the data. It can be performed in constant time and does not double
                the required memory.
-        @param filename This @em absolute filename is used to monitor changes in the file and reload the data
-        @param caption The caption of the layer (shown in the layer window)
+        @param[in] filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param[in] caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
@@ -522,8 +522,8 @@ namespace OpenMS
     /**
         @brief Shows a dialog with the meta data
 
-        @param modifiable indicates if the data can be modified.
-        @param index If given, the meta data of the corresponding element (spectrum, feature, consensus feature) is shown instead of the layer meta data.
+        @param[in,out] modifiable indicates if the data can be modified.
+        @param[in] index If given, the meta data of the corresponding element (spectrum, feature, consensus feature) is shown instead of the layer meta data.
     */
     virtual void showMetaData(bool modifiable = false, Int index = -1);
 
@@ -532,16 +532,16 @@ namespace OpenMS
     /**
         @brief change the visibility of a layer
 
-        @param i the index of the layer
-        @param b true if layer is supposed to be visible
+        @param[in] i the index of the layer
+        @param[in] b true if layer is supposed to be visible
     */
     void changeVisibility(Size i, bool b);
 
     /**
         @brief change if the defined data filters are used
 
-        @param i the index of the layer
-        @param b true if layer is supposed to be visible
+        @param[in] i the index of the layer
+        @param[in] b true if layer is supposed to be visible
     */
     void changeLayerFilterState(Size i, bool b);
 
@@ -549,7 +549,7 @@ namespace OpenMS
         @brief Whether or not to show grid lines
 
         Sets whether grid lines are shown or not.
-        @param show Boolean variable deciding whether or not to show the grid lines.
+        @param[in] show Boolean variable deciding whether or not to show the grid lines.
     */
     void showGridLines(bool show);
 
@@ -558,7 +558,7 @@ namespace OpenMS
 
         Sets the visible area to the initial value, such that all data is shown.
 
-        @param repaint If @em true a repaint is forced. Otherwise only the new area is set.
+        @param[in] repaint If @em true a repaint is forced. Otherwise only the new area is set.
     */
     virtual void resetZoom(bool repaint = true);
 
@@ -567,7 +567,7 @@ namespace OpenMS
 
         Sets the visible area to a new value and emits visibleAreaChanged() if the area is different from the old one.
 
-        @param area the new visible area
+        @param[in] area the new visible area
     */
     void setVisibleArea(const VisibleArea& area);
 
@@ -576,7 +576,7 @@ namespace OpenMS
 
         Sets the visible area to a new value and emits visibleAreaChanged() if the area is different from the old one.
 
-        @param area the new visible area
+        @param[in] area the new visible area
     */
     void setVisibleArea(const RangeAllType& area);
 
@@ -585,28 +585,28 @@ namespace OpenMS
 
         Sets the visible area to a new value and emits visibleAreaChanged() if the area is different from the old one.
 
-        @param area the new visible area
+        @param[in] area the new visible area
     */
     void setVisibleArea(const AreaXYType& area);
 
     /**
      * @brief Set only the visible area for the x axis; other axes are untouched.
-     * @param min 
-     * @param max 
+     * @param[in] min 
+     * @param[in] max 
     */
     void setVisibleAreaX(double min, double max);
 
     /**
      * @brief Set only the visible area for the y axis; other axes are untouched.
-     * @param min
-     * @param max
+     * @param[in] min
+     * @param[in] max
      */
     void setVisibleAreaY(double min, double max);
 
     /**
         @brief Saves the current layer data.
 
-        @param visible If true, only the visible data is stored. Otherwise the whole data is stored.
+        @param[out] visible If true, only the visible data is stored. Otherwise the whole data is stored.
     */
     void saveCurrentLayer(bool visible);
 
@@ -666,7 +666,7 @@ namespace OpenMS
         @brief Change of the visible area
 
         Signal emitted whenever the visible area changes.
-        @param area The new visible area.
+        @param[in] area The new visible area.
     */
     void visibleAreaChanged(const VisibleArea& area);
 
@@ -712,7 +712,7 @@ protected:
     virtual bool finishAdding_() = 0;
 
     /// remove already added layer which did not pass final checks in finishAdding_()
-    /// @param error_message Optional error message to show as messagebox
+    /// @param[in] error_message Optional error message to show as messagebox
     void popIncompleteLayer_(const QString& error_message = "");
 
     ///@name reimplemented QT events
@@ -738,9 +738,9 @@ protected:
         Changes the visible area, adjusts the zoom stack and notifies interested clients about the change.
         If the area is outside the overall data range, the new area is pushed back into the overall range.
 
-        @param new_area The new visible area.
-        @param repaint If @em true, a complete repaint is forced.
-        @param add_to_stack If @em true the new area is to add to the zoom_stack_.
+        @param[in] new_area The new visible area.
+        @param[in] repaint If @em true, a complete repaint is forced.
+        @param[in] add_to_stack If @em true the new area is to add to the zoom_stack_.
     */
     virtual void changeVisibleArea_(VisibleArea new_area, bool repaint = true, bool add_to_stack = false);
 
@@ -789,8 +789,8 @@ protected:
 
         Translates widget coordinates to chart coordinates.
 
-        @param x the widget coordinate x
-        @param y the widget coordinate y
+        @param[in] x the widget coordinate x
+        @param[in] y the widget coordinate y
         @return chart coordinates
     */
     inline PointXYType widgetToData_(double x, double y)
@@ -861,7 +861,7 @@ protected:
 
         This method is reimplemented in the 3D view to update the OpenGL widget.
 
-        @param caller_name Name of the calling function (use OPENMS_PRETTY_FUNCTION).
+        @param[in] caller_name Name of the calling function (use OPENMS_PRETTY_FUNCTION).
     */
     virtual void update_(const char* caller_name);
 

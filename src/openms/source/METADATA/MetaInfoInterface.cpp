@@ -14,12 +14,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  MetaInfoInterface::MetaInfoInterface() :
-    meta_(nullptr)
-  {
-  }
-
   /// Copy constructor
   MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface& rhs) :
     meta_(nullptr)
@@ -249,15 +243,29 @@ namespace OpenMS
 
   void MetaInfoInterface::addMetaValues(const MetaInfoInterface& from)
   {
-    if (from.meta_ == nullptr)
+    if (from.meta_ == nullptr || from.meta_->empty())
     {
-      return; // nothing to copy
+      return;
     }
-    if (meta_ == nullptr)
-    {
-      meta_ = new MetaInfo();
-    }
-    *meta_ += *from.meta_;
+    createIfNotExists_();
+    *meta_ += *(from.meta_);
+  }
+
+  MetaInfoInterface::MetaInfoConstIterator MetaInfoInterface::metaBegin() const
+  {
+    static const MetaInfo empty;
+    return meta_ ? meta_->begin() : empty.begin();
+  }
+
+  MetaInfoInterface::MetaInfoConstIterator MetaInfoInterface::metaEnd() const
+  {
+    static const MetaInfo empty;
+    return meta_ ? meta_->end() : empty.end();
+  }
+
+  Size MetaInfoInterface::metaSize() const
+  {
+    return meta_ ? meta_->size() : 0;
   }
 
 } //namespace

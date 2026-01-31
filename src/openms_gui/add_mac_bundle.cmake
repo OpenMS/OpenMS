@@ -95,19 +95,23 @@ macro(add_mac_app_bundle _name)
 							DESTINATION "${_name}.app/Contents/Resources/"
 							RENAME "qt.conf"
 							COMPONENT Applications)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QCocoaIntegrationPlugin"
+      # Get the actual plugin files, resolving symlinks
+      get_target_property(_cocoa_plugin_path "Qt6::QCocoaIntegrationPlugin" LOCATION)
+      get_filename_component(_cocoa_plugin_path "${_cocoa_plugin_path}" REALPATH)
+      install(FILES "${_cocoa_plugin_path}"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
-              RUNTIME_DEPENDENCY_SET OPENMS_DEPS
               COMPONENT Dependencies)
-			install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QMacStylePlugin"
-							DESTINATION "${INSTALL_PLUGIN_DIR}/styles"
-							RUNTIME_DEPENDENCY_SET OPENMS_DEPS
-							COMPONENT Dependencies)
+      
+      get_target_property(_macstyle_plugin_path "Qt6::QMacStylePlugin" LOCATION)
+      get_filename_component(_macstyle_plugin_path "${_macstyle_plugin_path}" REALPATH)
+      install(FILES "${_macstyle_plugin_path}"
+              DESTINATION "${INSTALL_PLUGIN_DIR}/styles"
+              COMPONENT Dependencies)
 			# Instead of softlinking, it is recommended by Apple to use RPATHs
       #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_LIB_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/Frameworks)"
 			#				COMPONENT Applications)
       #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_PLUGIN_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/PlugIns)"
-		  # 			COMPONENT Applications)
+	  		  # 			COMPONENT Applications)
 			install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/MacOS/ -e @rpath/ -n -c)"
 							COMPONENT Applications)
     else() # dmg
@@ -139,7 +143,7 @@ message('\${sign_check_out}')" COMPONENT Applications)
 
 				if("${PACKAGE_TYPE}" STREQUAL "dmg")
 				 install(CODE "
-execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
+execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
 message('\${notarize_out}')" COMPONENT Applications)
 
 				 install(CODE "

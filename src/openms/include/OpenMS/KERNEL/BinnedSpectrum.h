@@ -27,9 +27,9 @@ namespace OpenMS
   /**
     @brief This is a binned representation of a PeakSpectrum
 
-    @param sz the size of the bins and
-    @param sp number of neighboring bins to both sides affected by a peak contribution
-    @param ps the PeakSpectrum, used to calculate the binned spectrum
+    @param[in] sz the size of the bins and
+    @param[in] sp number of neighboring bins to both sides affected by a peak contribution
+    @param[in] ps the PeakSpectrum, used to calculate the binned spectrum
 
     sz denotes the size of a bin in @p Th, thereby deciding the number of bins (all of size sz) the spectrum is discretized to.
     Each bin will represent a certain @p Th range and the peaks will be put in the respective bins and sum up inside.

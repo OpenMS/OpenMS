@@ -13,6 +13,9 @@
 #include <OpenMS/METADATA/Product.h>
 ///////////////////////////
 
+#include <unordered_set>
+#include <unordered_map>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -142,6 +145,45 @@ START_SECTION((bool operator!= (const Product& rhs) const))
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
 	TEST_FALSE(tmp == tmp2);
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<Product>))
+{
+  // Test that equal products have equal hashes
+  Product p1;
+  p1.setMZ(100.5);
+  p1.setIsolationWindowLowerOffset(10.0);
+  p1.setIsolationWindowUpperOffset(20.0);
+
+  Product p2;
+  p2.setMZ(100.5);
+  p2.setIsolationWindowLowerOffset(10.0);
+  p2.setIsolationWindowUpperOffset(20.0);
+
+  TEST_EQUAL(std::hash<Product>{}(p1), std::hash<Product>{}(p2))
+
+  // Test that different products have different hashes (not guaranteed, but highly likely)
+  Product p3;
+  p3.setMZ(200.5);
+  p3.setIsolationWindowLowerOffset(10.0);
+  p3.setIsolationWindowUpperOffset(20.0);
+
+  TEST_NOT_EQUAL(std::hash<Product>{}(p1), std::hash<Product>{}(p3))
+
+  // Test use in unordered_set
+  std::unordered_set<Product> product_set;
+  product_set.insert(p1);
+  product_set.insert(p2);  // duplicate, should not increase size
+  product_set.insert(p3);
+  TEST_EQUAL(product_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<Product, std::string> product_map;
+  product_map[p1] = "first";
+  product_map[p3] = "third";
+  TEST_EQUAL(product_map[p2], "first")  // p2 equals p1
+  TEST_EQUAL(product_map.size(), 2)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

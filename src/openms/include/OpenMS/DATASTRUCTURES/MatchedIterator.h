@@ -60,9 +60,9 @@ namespace OpenMS
 
         For each element in the reference container the closest peak in the target will be searched. If no match is found within the tolerance window, the peak will be skipped over.
 
-        @param ref For each element in this reference container the closest peak in the target will be searched
-        @param target Target container
-        @param tolerance Maximal distance between a valid matching pair in reference and target (unit is according to TRAIT::getDiffAbsolute(), i.e. could be ppm, Da, seconds, ...)
+        @param[in] ref For each element in this reference container the closest peak in the target will be searched
+        @param[in] target Target container
+        @param[in] tolerance Maximal distance between a valid matching pair in reference and target (unit is according to TRAIT::getDiffAbsolute(), i.e. could be ppm, Da, seconds, ...)
       */
       explicit MatchedIterator(const CONT_T& ref, const CONT_T& target, float tolerance)
         : MatchedIterator(ref.begin(), ref.end(), target.begin(), target.end(), tolerance)
@@ -74,11 +74,11 @@ namespace OpenMS
 
       For each element in the reference container the closest peak in the target will be searched. If no match is found within the tolerance window, the peak will be skipped over.
 
-      @param ref_begin Begin range of reference container
-      @param ref_end End range of reference container
-      @param tgt_begin Begin range of reference container
-      @param tgt_end End range of reference container
-      @param tolerance Maximal distance between a valid matching pair in reference and target (unit is according to TRAIT::getDiffAbsolute(), i.e. could be ppm, Da, seconds, ...)
+      @param[in] ref_begin Begin range of reference container
+      @param[in] ref_end End range of reference container
+      @param[in] tgt_begin Begin range of reference container
+      @param[in] tgt_end End range of reference container
+      @param[in] tolerance Maximal distance between a valid matching pair in reference and target (unit is according to TRAIT::getDiffAbsolute(), i.e. could be ppm, Da, seconds, ...)
       */
       explicit MatchedIterator(const CONST_CONT_IT ref_begin, const CONST_CONT_IT ref_end,
                                const CONST_CONT_IT tgt_begin, const CONST_CONT_IT tgt_end,

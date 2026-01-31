@@ -20,13 +20,10 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>" namespace
         void compute(FeatureMap & input, FeatureMap & output, ConsensusMap & cmap1, ConsensusMap & cmap2) except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>" namespace "OpenMS::FeatureDeconvolution":
-    
-    cdef enum CHARGEMODE_FD "OpenMS::FeatureDeconvolution::CHARGEMODE":
+
+    cdef enum class CHARGEMODE "OpenMS::FeatureDeconvolution::CHARGEMODE":
         #wrap-attach:
         #   FeatureDeconvolution
-        # todo -- are these really unique ??  prob not! all become __CHARGEMODE
-        # TODO wrap-instances:
-        #   CHARGEMODE := CHARGEMODE_FD
         QFROMFEATURE
         QHEURISTIC
         QALL

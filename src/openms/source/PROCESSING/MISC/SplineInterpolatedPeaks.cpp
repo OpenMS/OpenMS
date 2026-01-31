@@ -171,7 +171,7 @@ namespace OpenMS
   {
     if (packages_.empty())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0, "packages_ must not be empty");
     }
     return Navigator(&packages_, pos_max_, scaling);
   }

@@ -68,8 +68,8 @@ namespace OpenMS
       matches a specified ScoreType. It performs a case-insensitive comparison and optionally removes the "_score"
       suffix if present.
 
-      @param score_name The name of the score to check.
-      @param type The ScoreType to compare against.
+      @param[in] score_name The name of the score to check.
+      @param[in] type The ScoreType to compare against.
       @return True if the score name matches the given ScoreType, false otherwise.
     */
     bool isScoreType(const String& score_name, const ScoreType& type) const
@@ -90,7 +90,7 @@ namespace OpenMS
       ScoreType enum value. It handles various common representations of score types, including those
       with or without the "_score" suffix, and ignores case and special characters like '-', '_', and ' '.
 
-      @param score_type The string representation of the score type.
+      @param[out] score_type The string representation of the score type.
       @return The corresponding ScoreType enum value.
       @throws Exception::MissingInformation If the provided score_type string does not match any known
                                             score type.
@@ -133,7 +133,7 @@ namespace OpenMS
     /**
       @brief Determines whether a higher score type is better given a ScoreType enum.
 
-      @param score_type The score type to check.
+      @param[out] score_type The score type to check.
       @return True if a higher score type is better, false otherwise.
     */
     bool isScoreTypeHigherBetter(ScoreType score_type)
@@ -165,8 +165,8 @@ namespace OpenMS
        and if not, searches for scores of that type in the meta values of the first hit.
 
        @tparam IDType The type of the identification object (e.g., PeptideIdentification, ProteinIdentification)
-       @param id The identification object to analyze for scores
-       @param score_type The ScoreType to search for (e.g., ScoreType::PEP, ScoreType::QVAL, etc.)
+       @param[in] id The identification object to analyze for scores
+       @param[in] score_type The ScoreType to search for (e.g., ScoreType::PEP, ScoreType::QVAL, etc.)
        @return ScoreSearchResult containing whether main score is of the requested type and its name.
 
        @note This method only checks the first hit for meta values, similar to other methods in this class.
@@ -351,9 +351,9 @@ namespace OpenMS
 
       Overload for PeptideIdentificationList to avoid template deduction issues.
 
-      @param pep_ids The PeptideIdentificationList whose scores need to be switched.
-      @param type The desired general score type to switch to.
-      @param counter A reference to a counter that will be incremented for each peptide identification processed.
+      @param[in,out] pep_ids The PeptideIdentificationList whose scores need to be switched.
+      @param[in] type The desired general score type to switch to.
+      @param[in] counter A reference to a counter that will be incremented for each peptide identification processed.
     */
     void switchToGeneralScoreType(PeptideIdentificationList& pep_ids, ScoreType type, Size& counter)
     {
@@ -368,10 +368,10 @@ namespace OpenMS
       deduces a fitting score and score direction to be switched to.
       Then tries to switch all hits.
 
-      @param cmap The ConsensusMap containing peptide identifications whose scores need to be switched.
-      @param type The desired general score type to switch to.
-      @param counter A reference to a counter that will be incremented for each peptide identification processed.
-      @param unassigned_peptides_too A boolean flag indicating whether to include unassigned peptides in the score switching process. Default is true.
+      @param[in,out] cmap The ConsensusMap containing peptide identifications whose scores need to be switched.
+      @param[in] type The desired general score type to switch to.
+      @param[in] counter A reference to a counter that will be incremented for each peptide identification processed.
+      @param[in] unassigned_peptides_too A boolean flag indicating whether to include unassigned peptides in the score switching process. Default is true.
       @throws Exception::MissingInformation If the first encountered ID does not have the requested score type.
     */
     void switchToGeneralScoreType(ConsensusMap& cmap, ScoreType type, Size& counter, bool unassigned_peptides_too = true)
@@ -429,10 +429,10 @@ namespace OpenMS
    whether a higher score is considered better. It uses the first PeptideIdentification in the vector to make this
    determination, assuming that all identifications in the vector have the same score type and orientation.
 
-   @param pep_ids The vector of PeptideIdentification objects to inspect.
-   @param name Output parameter to store the determined overall score type.
-   @param higher_better Output parameter to store whether a higher score is considered better.
-   @param score_type Output parameter to store the determined score type.
+   @param[in] pep_ids The vector of PeptideIdentification objects to inspect.
+   @param[out] name Output parameter to store the determined overall score type.
+   @param[out] higher_better Output parameter to store whether a higher score is considered better.
+   @param[in] score_type Output parameter to store the determined score type.
    @note This method assumes that all PeptideIdentification objects in the input vector have the same score type and orientation.
   */
   void determineScoreNameOrientationAndType(
@@ -469,11 +469,11 @@ namespace OpenMS
    to determine the score type and orientation. If no assigned peptide identifications are found, it optionally
    considers unassigned peptide identifications.
 
-   @param cmap The ConsensusMap to inspect.
-   @param name Output parameter to store the determined overall score type.
-   @param higher_better Output parameter to store whether a higher score is considered better.
-   @param score_type Output parameter to store the determined score type.
-   @param include_unassigned If true, unassigned peptide identifications are considered if no assigned ones are found. Default is true.
+   @param[in] cmap The ConsensusMap to inspect.
+   @param[out] name Output parameter to store the determined overall score type.
+   @param[out] higher_better Output parameter to store whether a higher score is considered better.
+   @param[in] score_type Output parameter to store the determined score type.
+   @param[in] include_unassigned If true, unassigned peptide identifications are considered if no assigned ones are found. Default is true.
   */
   void determineScoreNameOrientationAndType(const ConsensusMap& cmap, 
     String& name,
@@ -535,9 +535,9 @@ namespace OpenMS
      * taken from the algorithm's parameters. If the requested score is already set as the
      * main score, the function returns without making any changes.
      *
-     * @param cmap The ConsensusMap containing peptide identifications whose scores need to be switched.
-     * @param counter A reference to a counter that will be incremented for each peptide identification processed.
-     * @param unassigned_peptides_too A boolean flag indicating whether to include unassigned peptides in the score switching process. Default is true.
+     * @param[in] cmap The ConsensusMap containing peptide identifications whose scores need to be switched.
+     * @param[in] counter A reference to a counter that will be incremented for each peptide identification processed.
+     * @param[in] unassigned_peptides_too A boolean flag indicating whether to include unassigned peptides in the score switching process. Default is true.
      */
     void switchScores(ConsensusMap& cmap, Size& counter, bool unassigned_peptides_too = true)
     {
@@ -569,8 +569,8 @@ namespace OpenMS
      * taken from the algorithm's parameters. If the requested score is already set as the
      * main score, the function returns without making any changes.
      *
-     * @param pep_ids The peptide identifications whose scores need to be switched.
-     * @param counter A reference to a counter that will be incremented for each peptide identification processed.     
+     * @param[in] pep_ids The peptide identifications whose scores need to be switched.
+     * @param[in] counter A reference to a counter that will be incremented for each peptide identification processed.     
      */
     void switchScores(PeptideIdentificationList& pep_ids, Size& counter)
     {
@@ -617,9 +617,9 @@ namespace OpenMS
    * score type. It determines the original score properties, checks if a switch is necessary
    * based on the requested score type, and performs the switch if required.
    *
-   * @param cmap The ConsensusMap object whose score types are to be switched.
-   * @param requested_score_type_as_string The desired score type as a string (e.g., "RAW", "PEP", "q-value").
-   * @param include_unassigned Optional flag indicating whether to include unassigned IDs in the score switch. Defaults to true.
+   * @param[in] cmap The ConsensusMap object whose score types are to be switched.
+   * @param[in] requested_score_type_as_string The desired score type as a string (e.g., "RAW", "PEP", "q-value").
+   * @param[in] include_unassigned Optional flag indicating whether to include unassigned IDs in the score switch. Defaults to true.
    *
    * @return An IDSwitchResult structure containing information about the score switch operation, including the original and requested score names, types, and whether a switch was performed.
    */
@@ -683,8 +683,8 @@ namespace OpenMS
    * these attributes based on the requested score type. If a different score type is requested,
    * it performs the switch and updates the relevant score information.
    *
-   * @param pep_ids A vector of PeptideIdentification objects to be processed.
-   * @param requested_score_type_as_string The desired score type as a string (e.g., "RAW", "PEP", "q-value").
+   * @param[in] pep_ids A vector of PeptideIdentification objects to be processed.
+   * @param[in] requested_score_type_as_string The desired score type as a string (e.g., "RAW", "PEP", "q-value").
    * @return IDSwitchResult A struct containing details about the original and requested score types,
    *                        whether a switch was performed, and the number of IDs updated.
    */
@@ -745,9 +745,9 @@ namespace OpenMS
    * This function checks if the scores have been switched and, if so, it switches them back to the original score type.
    * It updates the ConsensusMap by switching the scores, optionally including unassigned PSMs.
    *
-   * @param cmap The ConsensusMap object whose scores will be modified.
-   * @param isr The IDSwitchResult containing information about the score switch.
-   * @param include_unassigned A boolean flag indicating whether to include unassigned PSMs in the score switching process. Defaults to true.
+   * @param[in] cmap The ConsensusMap object whose scores will be modified.
+   * @param[out] isr The IDSwitchResult containing information about the score switch.
+   * @param[in] include_unassigned A boolean flag indicating whether to include unassigned PSMs in the score switching process. Defaults to true.
    */
   static void switchBackScoreType(ConsensusMap& cmap, IDSwitchResult isr, bool include_unassigned = true)
   {
@@ -774,8 +774,8 @@ namespace OpenMS
    * using the provided IDSwitchResult. It updates the peptide identifications accordingly and logs the number
    * of PSMs (Peptide-Spectrum Matches) that were reverted.
    *
-   * @param pep_ids A vector of PeptideIdentification objects to be updated.
-   * @param isr An IDSwitchResult object containing information about the score switch state and original score details.
+   * @param[in] pep_ids A vector of PeptideIdentification objects to be updated.
+   * @param[out] isr An IDSwitchResult object containing information about the score switch state and original score details.
    */
   static void switchBackScoreType(PeptideIdentificationList& pep_ids, IDSwitchResult isr)
   {

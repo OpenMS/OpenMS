@@ -8,18 +8,22 @@ from DataProcessing cimport *
 from Product cimport *
 from AcquisitionInfo cimport *
 from MetaInfoInterface cimport *
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
 
     cdef cppclass SpectrumSettings(MetaInfoInterface):
         # wrap-inherits:
         #  MetaInfoInterface
+        # wrap-hash:
+        #  std
 
-        SpectrumSettings() except + nogil 
+        SpectrumSettings() except + nogil
         SpectrumSettings(SpectrumSettings &) except + nogil 
 
         void unify(SpectrumSettings) except + nogil 
-        int  getType() except + nogil  # wrap-doc:Returns the spectrum type (centroided (PEAKS) or profile data (RAW))
+        SpectrumType getType() except + nogil  # wrap-doc:Returns the spectrum type (centroided (PEAKS) or profile data (RAW))
         void setType(SpectrumType) except + nogil  # wrap-doc:Sets the spectrum type
         String getNativeID() except + nogil  # wrap-doc:Returns the native identifier for the spectrum, used by the acquisition software
         void setNativeID(String) except + nogil  # wrap-doc:Sets the native identifier for the spectrum, used by the acquisition software
@@ -49,7 +53,12 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS::SpectrumSettings":
 
-    cdef enum SpectrumType:
+    cdef enum class SpectrumType "OpenMS::SpectrumSettings::SpectrumType":
         # wrap-attach:
         #    SpectrumSettings
         UNKNOWN, CENTROID, PROFILE, SIZE_OF_SPECTRUMTYPE
+
+    # Static methods for enum-to-string conversion
+    libcpp_utf8_output_string spectrumTypeToString(SpectrumType type) except + nogil  # wrap-attach:SpectrumSettings wrap-doc:Convert a SpectrumType enum to String. Throws Exception::InvalidValue if type is SIZE_OF_SPECTRUMTYPE
+
+    SpectrumType toSpectrumType(const libcpp_utf8_string& name) except + nogil  # wrap-attach:SpectrumSettings wrap-doc:Convert a string to SpectrumType enum. Throws Exception::InvalidValue if name is not a valid spectrum type

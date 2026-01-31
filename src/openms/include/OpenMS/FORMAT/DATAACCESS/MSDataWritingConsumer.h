@@ -71,7 +71,7 @@ namespace OpenMS
       /**
         @brief Constructor
 
-        @param filename Filename for the output mzML
+        @param[out] filename Filename for the output mzML
       */
       explicit MSDataWritingConsumer(const String& filename);
 
@@ -83,7 +83,7 @@ namespace OpenMS
       /**
         @brief Set experimental settings for the whole file
 
-        @param exp Experimental settings to be used for this file (from this
+        @param[in] exp Experimental settings to be used for this file (from this
           and the first spectrum/chromatogram, the class will deduce most of
           the header of the mzML file)
       */
@@ -96,8 +96,8 @@ namespace OpenMS
         tag in the mzML file. Therefore, these will contain wrong numbers if
         the expected size is not set correctly.
 
-        @param expectedSpectra Number of spectra expected
-        @param expectedChromatograms Number of chromatograms expected
+        @param[in] expectedSpectra Number of spectra expected
+        @param[in] expectedChromatograms Number of chromatograms expected
       */
       void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) override;
 
@@ -107,7 +107,7 @@ namespace OpenMS
         The spectrum will be processed using the processSpectrum_ method of the
         current implementation and then written to the mzML file.
 
-        @param s The spectrum to be written to mzML
+        @param[out] s The spectrum to be written to mzML
       */
       void consumeSpectrum(SpectrumType & s) override;
 
@@ -117,7 +117,7 @@ namespace OpenMS
         The chromatogram will be processed using the processChromatogram_
         method of the current implementation and then written to the mzML file.
 
-        @param c The chromatogram to be written to mzML
+        @param[out] c The chromatogram to be written to mzML
       */
       void consumeChromatogram(ChromatogramType & c) override;
       //@}
@@ -128,7 +128,7 @@ namespace OpenMS
         The provided DataProcessing object will be added to each chromatogram
         and spectrum written to to the mzML file.
 
-        @param d The DataProcessing object to be added
+        @param[in] d The DataProcessing object to be added
       */
       virtual void addDataProcessing(DataProcessing d);
 

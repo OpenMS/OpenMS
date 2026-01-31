@@ -173,8 +173,8 @@ public:
   /**
    * @brief Write feature map to featureXML file.
    *
-   * @param filename    name of featureXML file
-   * @param map    feature map for output
+   * @param[in] filename    name of featureXML file
+   * @param[out] map    feature map for output
    */
   void writeFeatureMap_(const String& filename, FeatureMap& map) const
   {
@@ -184,8 +184,8 @@ public:
   /**
    * @brief Write consensus map to consensusXML file.
    *
-   * @param filename    name of consensusXML file
-   * @param map    consensus map for output
+   * @param[in] filename    name of consensusXML file
+   * @param[out] map    consensus map for output
    */
   void writeConsensusMap_(const String& filename, ConsensusMap& map) const
   {
@@ -199,8 +199,8 @@ public:
   /**
    * @brief Write blacklist to mzML file.
    *
-   * @param filename    name of mzML file
-   * @param blacklist    blacklist for output
+   * @param[in] filename    name of mzML file
+   * @param[out] blacklist    blacklist for output
    */
   void writeBlacklist_(const String& filename, const MSExperiment& blacklist) const
   {
@@ -211,7 +211,7 @@ public:
    * @brief determine the number of samples
    * for example n=2 for SILAC, or n=1 for simple feature detection
    *
-   * @param labels    string describing the labels
+   * @param[in] labels    string describing the labels
    */
   static size_t numberOfSamples(String labels)
   {

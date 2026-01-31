@@ -99,13 +99,13 @@ protected:
 
   /**
    * @brief Process a single PeakMap (or FAIMS CV group) through the full FFMetabo pipeline
-   * @param ms_peakmap Input peak map (will be modified - sorted)
-   * @param common_param Common parameters
-   * @param mtd_param MassTraceDetection parameters
-   * @param epd_param ElutionPeakDetection parameters
-   * @param ffm_param FeatureFindingMetabo parameters
-   * @param feat_map Output feature map
-   * @param feat_chromatograms Output chromatograms (if enabled)
+   * @param[in,out] ms_peakmap Input peak map (will be modified - sorted)
+   * @param[in] common_param Common parameters
+   * @param[in] mtd_param MassTraceDetection parameters
+   * @param[in] epd_param ElutionPeakDetection parameters
+   * @param[in] ffm_param FeatureFindingMetabo parameters
+   * @param[out] feat_map Output feature map
+   * @param[out] feat_chromatograms Output chromatograms (if enabled)
    * @return True on success, false on error
    */
   bool processOneGroup_(PeakMap& ms_peakmap,
@@ -293,7 +293,7 @@ protected:
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = ms_peakmap[0].getType();
 
-    if (spectrum_type == SpectrumSettings::PROFILE)
+    if (spectrum_type == SpectrumSettings::SpectrumType::PROFILE)
     {
       if (!getFlag_("force"))
       {
@@ -428,7 +428,7 @@ protected:
       StringList sl_pols;
       for (const auto& pol : polarities)
       {
-        sl_pols.push_back(String(IonSource::NamesOfPolarity[pol]));
+        sl_pols.push_back(IonSource::polarityToString(pol));
       }
       feat_map[0].setMetaValue("scan_polarity", ListUtils::concatenate(sl_pols, ";"));
     }

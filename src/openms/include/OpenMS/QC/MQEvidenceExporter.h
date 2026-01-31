@@ -49,15 +49,15 @@ private:
       If the feature has no PepID's or the corresponding CF has no PepIDs,
       no row will be exported
 
-    @param f Feature to extract evidence data
-    @param cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
-    @param c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
-    @param raw_file is specifying the raw_file the feature belongs to
-    @param UIDs UIDs of all PeptideIdentifications of the ConsensusMap
-    @param mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
+    @param[in] f Feature to extract evidence data
+    @param[in] cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
+    @param[in] c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
+    @param[in] raw_file is specifying the raw_file the feature belongs to
+    @param[in] UIDs UIDs of all PeptideIdentifications of the ConsensusMap
+    @param[in] mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
            from PeptideIdenfitication::buildUIDfromAllPepIds
-    @param exp MS Experiment holds evidence data to extract
-    @param prot_map Mapping a protein_accession to its description(proteinname, genename...)
+    @param[in] exp MS Experiment holds evidence data to extract
+    @param[in] prot_map Mapping a protein_accession to its description(proteinname, genename...)
   */
   void exportRowFromFeature_(
     const OpenMS::Feature& f,
@@ -79,7 +79,7 @@ public:
 
     @throw Exception::FileNotWritable if evidence.txt could not be created
 
-    @param path that is the path where evidence.txt has to be stored
+    @param[in] path that is the path where evidence.txt has to be stored
 
   */
   explicit MQEvidence(const OpenMS::String& path);
@@ -97,10 +97,10 @@ public:
     @throw Exception::FileNotWritable if evidence.txt is not writable
     @throw Exception::MissingInformation if Feature_map has no corresponding ConsensusFeature
 
-    @param feature_map which contains Features to extract evidence data
-    @param cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
-    @param exp MS Experiment holds evidence data to extract
-    @param prot_map Mapping a protein_accession to its description(proteinname, genename...)
+    @param[in] feature_map which contains Features to extract evidence data
+    @param[in] cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
+    @param[in] exp MS Experiment holds evidence data to extract
+    @param[in] prot_map Mapping a protein_accession to its description(proteinname, genename...)
   */
   void exportFeatureMap(
     const OpenMS::FeatureMap& feature_map,

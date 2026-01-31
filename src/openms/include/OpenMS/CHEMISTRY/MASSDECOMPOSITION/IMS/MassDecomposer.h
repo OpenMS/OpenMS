@@ -31,8 +31,8 @@ namespace OpenMS
       Those problems are solved in integer arithmetic, i.e. only exact
       solutions are found with no error allowed.
 
-      @param ValueType Type of values to be decomposed.
-      @param DecompositionValueType Type of decomposition elements.
+      @param[in] ValueType Type of values to be decomposed.
+      @param[in] DecompositionValueType Type of decomposition elements.
 
       @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
     */
@@ -69,7 +69,7 @@ public:
       /**
         Returns true if the decomposition for the given @c mass exists, otherwise - false.
 
-        @param mass Mass to be checked on decomposing.
+        @param[in] mass Mass to be checked on decomposing.
         @return true, if the decomposition for @c mass exist, otherwise - false.
       */
       virtual bool exist(value_type mass) = 0;
@@ -77,7 +77,7 @@ public:
       /**
         Returns one possible decomposition of the given @c mass.
 
-        @param mass Mass to be decomposed.
+        @param[in] mass Mass to be decomposed.
         @return The decomposition of the @c mass, if one exists, otherwise - an empty container.
       */
       virtual decomposition_type getDecomposition(value_type mass) = 0;
@@ -85,7 +85,7 @@ public:
       /**
         Returns all possible decompositions for the given @c mass.
 
-        @param mass Mass to be decomposed.
+        @param[in] mass Mass to be decomposed.
         @return All possible decompositions of the @c mass, if there are any exist,
         otherwise - an empty container.
       */
@@ -94,7 +94,7 @@ public:
       /**
         Returns the number of possible decompositions for the given @c mass.
         *
-        @param mass Mass to be decomposed.
+        @param[in] mass Mass to be decomposed.
         @return The number of possible decompositions for the @c mass.
       */
       virtual decomposition_value_type getNumberOfDecompositions(value_type mass) = 0;

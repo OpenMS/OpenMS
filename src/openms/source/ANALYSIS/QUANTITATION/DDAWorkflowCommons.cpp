@@ -143,13 +143,13 @@ namespace OpenMS
         // choose calibration model based on number of calibration points
 
         // there seem to be some problems with the QUADRATIC model that we first need to investigate
-        //MZTrafoModel::MODELTYPE md = (ic.getCalibrationPoints().size() == 2) ? MZTrafoModel::LINEAR : MZTrafoModel::QUADRATIC;
-        //bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
-        
-        MZTrafoModel::MODELTYPE md = MZTrafoModel::LINEAR;
+        //MZTrafoModel::MODELTYPE md = (ic.getCalibrationPoints().size() == 2) ? MZTrafoModel::MODELTYPE::LINEAR : MZTrafoModel::MODELTYPE::QUADRATIC;
+        //bool use_RANSAC = (md == MZTrafoModel::MODELTYPE::LINEAR || md == MZTrafoModel::MODELTYPE::QUADRATIC);
+
+        MZTrafoModel::MODELTYPE md = MZTrafoModel::MODELTYPE::LINEAR;
         bool use_RANSAC = true;
 
-        Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
+        Size RANSAC_initial_points = (md == MZTrafoModel::MODELTYPE::LINEAR) ? 2 : 3;
         Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
         MZTrafoModel::setRANSACParams(p);
         // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.

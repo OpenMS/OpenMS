@@ -122,7 +122,7 @@ protected:
     setValidFormats_("out", {"idXML","consensusXML"});
 
     registerTOPPSubsection_("precursor", "Filtering by precursor attributes (RT, m/z, charge, length)");
-    registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
+    registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract [s].", false);
     registerStringOption_("precursor:mz", "[min]:[max]", ":", "Mass-to-charge range to extract.", false);
     registerStringOption_("precursor:length", "[min]:[max]", ":", "Keep only peptide hits with a sequence length in this range.", false);
     registerStringOption_("precursor:charge", "[min]:[max]", ":", "Keep only peptide hits with charge states in this range.", false);
@@ -807,7 +807,7 @@ protected:
     {
       OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
     }
-    IDFilter::updateProteinReferences(peptides, proteins, rm_pep);
+    IDFilter::removeDanglingProteinReferences(peptides, proteins, rm_pep);
 
     IDFilter::removeEmptyIdentifications(peptides);
     // we want to keep "empty" protein IDs because they contain search meta data

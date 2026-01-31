@@ -155,23 +155,60 @@
  To add a test:
 
  <ol>
- <li>Add the class test to <code>src/tests/class_tests/<sub-project>/</code> (e.g., <code>src/tests/class_tests/openms/source/NewFileFormat_test.cpp</code>).</li>
+ <li>Create a new test file in <code>src/tests/class_tests/<sub-project>/</code> (e.g., <code>src/tests/class_tests/openms/source/NewFileFormat_test.cpp</code>).</li>
  <li>Add the test to the <code>executables.cmake</code> file in the test folder.</li>
  <li>Put new files under version control <code>git add</code></li>
  </ol>
 
- A test template for your specific class can be generated using the <code>create_test.php</code> script found in tools/.
+ <b>Test file structure:</b>
 
- To generate a test template:
+ Each test file should follow this basic structure:
+ @code{.cpp}
+ // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+ // SPDX-License-Identifier: BSD-3-Clause
+ // --------------------------------------------------------------------------
+ // $Maintainer: Your Name $
+ // $Authors: Your Name $
+ // --------------------------------------------------------------------------
 
- <ol>
- <li>Make sure you generate XML files containing the class information <code>make xml</code>.</li>
- <li>Call:</li>
- @code{.sh}
- php tools/create_test.php /BUILD_DIRECTORY/ /PATH_TO_HEADER/MyClass.h \
-  "FIRSTNAME LASTNAME" > ./src/tests/class_tests/openms/source/MyClass_test.cpp
+ #include <OpenMS/CONCEPT/ClassTest.h>
+ #include <OpenMS/test_config.h>
+
+ ///////////////////////////
+ #include <OpenMS/PATH/TO/MyClass.h>
+ ///////////////////////////
+
+ using namespace OpenMS;
+ using namespace std;
+
+ START_TEST(MyClass, "$Id$")
+
+ /////////////////////////////////////////////////////////////
+ /////////////////////////////////////////////////////////////
+
+ MyClass* ptr = nullptr;
+ MyClass* null_ptr = nullptr;
+ START_SECTION(MyClass())
+ {
+   ptr = new MyClass();
+   TEST_NOT_EQUAL(ptr, null_ptr)
+ }
+ END_SECTION
+
+ START_SECTION(~MyClass())
+ {
+   delete ptr;
+ }
+ END_SECTION
+
+ // Add more test sections for each method...
+
+ /////////////////////////////////////////////////////////////
+ /////////////////////////////////////////////////////////////
+ END_TEST
  @endcode
- </ol>
+
+ Look at existing test files in <code>src/tests/class_tests/openms/source/</code> for more examples.
 
  @subsection how_to_add_a_new_gui_test How to add a new GUI test for a class
 

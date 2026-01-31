@@ -82,9 +82,9 @@ namespace OpenMS
     /**
        @brief Load data and train a model.
 
-       @param predictors Mapping from predictor name to vector of predictor values (for different observations). All vectors should have the same length; values will be changed by scaling.
-       @param outcomes Mapping from observation index to class label or regression value in the training set.
-       @param classification true (default) if SVM classification should be used, SVR otherwise
+       @param[in,out] predictors Mapping from predictor name to vector of predictor values (for different observations). All vectors should have the same length; values will be changed by scaling.
+       @param[in] outcomes Mapping from observation index to class label or regression value in the training set.
+       @param[in] classification true (default) if SVM classification should be used, SVR otherwise
 
        @throw Exception::IllegalArgument if @p predictors is empty
        @throw Exception::InvalidValue if an invalid index is used in @p outcomes
@@ -95,8 +95,8 @@ namespace OpenMS
     /**
        @brief Predict class labels or regression values (and probabilities).
 
-       @param predictions Output vector of prediction results (same order as @p indexes).
-       @param indexes Vector of observation indexes for which predictions are desired. If empty (default), predictions are made for all observations.
+       @param[out] predictions Output vector of prediction results (same order as @p indexes).
+       @param[in] indexes Vector of observation indexes for which predictions are desired. If empty (default), predictions are made for all observations.
 
        @throw Exception::Precondition if no model has been trained
        @throw Exception::InvalidValue if an invalid index is used in @p indexes
@@ -108,8 +108,8 @@ namespace OpenMS
     /**
        @brief Predict class labels or regression values (and probabilities).
 
-       @param predictors Mapping from predictor name to vector of predictor values (for different observations). All vectors should have the same length; values will be changed by scaling applied to training data in setup.
-       @param predictions Output vector of prediction results (same order as @p indexes).
+       @param[in,out] predictors Mapping from predictor name to vector of predictor values (for different observations). All vectors should have the same length; values will be changed by scaling applied to training data in setup.
+       @param[out] predictions Output vector of prediction results (same order as @p indexes).
        
        @throw Exception::Precondition if no model has been trained
        @throw Exception::InvalidValue if an invalid index is used in @p indexes

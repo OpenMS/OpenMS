@@ -38,8 +38,8 @@ namespace OpenMS
      @brief Calculates retention time after map alignment
             and sets meta values "rt_raw" and "rt_align" in all PepIDs (on features and all unassigned PepIDs)
 
-     @param fm: FeatureMap to receive the new metavalues
-     @param trafo: Transformation information to get needed data from
+     @param[in,out] fm FeatureMap to receive the new metavalues
+     @param[in] trafo Transformation information to get needed data from
     **/
     void compute(FeatureMap& fm, const TransformationDescription& trafo) const;
 
@@ -47,8 +47,8 @@ namespace OpenMS
     @brief Calculates retention time after map alignment
     and sets meta values "rt_raw" and "rt_align" in all PepIDs
 
-    @param ids: PepIDs to receive the new metavalues
-    @param trafo: Transformation information to get needed data from
+    @param[in,out] ids PepIDs to receive the new metavalues
+    @param[in] trafo Transformation information to get needed data from
     **/
     void compute(PeptideIdentificationList& ids, const TransformationDescription& trafo) const;
 

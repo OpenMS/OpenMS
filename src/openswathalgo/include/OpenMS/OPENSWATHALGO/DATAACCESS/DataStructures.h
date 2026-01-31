@@ -141,6 +141,13 @@ public:
       return binaryDataArrayPtrs;
     }
 
+    /// set all binary data arrays
+    /// @param[in] val Vector of binary data arrays to be set
+    void setDataArrays(std::vector<BinaryDataArrayPtr>& val)
+    {
+      binaryDataArrayPtrs = val;
+    }
+
   };
   typedef OSChromatogram Chromatogram;
   typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
@@ -269,6 +276,13 @@ public:
     std::vector<BinaryDataArrayPtr> & getDataArrays()
     {
       return binaryDataArrayPtrs;
+    }
+
+    /// set all binary data arrays
+    /// @param[in] val Vector of binary data arrays to be set
+    void setDataArrays(std::vector<BinaryDataArrayPtr>& val)
+    {
+      binaryDataArrayPtrs = val;
     }
 
   };

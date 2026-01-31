@@ -155,8 +155,8 @@ protected:
 
 
     /** Calculate signal-to-noise values for all data points given, by using a sliding window approach
-     
-        @param c Raw data, usually an MSSpectrum
+
+        @param[in] c Raw data, usually an MSSpectrum
         @exception Throws Exception::InvalidValue
     */
     void computeSTN_(const Container& c) override
