@@ -109,16 +109,16 @@ cdef extern from "<OpenMS/FORMAT/XICParquetFile.h>" namespace "OpenMS":
             #  :param run_id: Optional run id (-1 to ignore)
             #  :param filter: Optional filter expression string
 
-        void getRuns(vector[XICRunInfo]& output) const  # wrap-ignore
+        void getRuns(vector[XICRunInfo]& output) const except +  # wrap-ignore
             # wrap-doc:
             #  Return unique run metadata (run_id, source_file).
 
         void getAnalytes(vector[XICAnalyte]& output,
                          const StringList& columns,
-                         bool nest_transitions) const  # wrap-ignore
+                         bool nest_transitions) const except +  # wrap-ignore
             # wrap-doc:
             #  Return unique analyte metadata.
 
-        void getColumns(StringList& output) const  # wrap-ignore
+        void getColumns(StringList& output) const except +  # wrap-ignore
             # wrap-doc:
             #  Return parquet schema column names.
