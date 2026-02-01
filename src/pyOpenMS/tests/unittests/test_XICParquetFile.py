@@ -57,8 +57,8 @@ def test_xic_analyte_dict_default_nested():
     exploded = xic.get_analyte_dict(nest_transitions=False)
     assert len(nested["precursor_id"]) > 0
     assert len(exploded["precursor_id"]) >= len(nested["precursor_id"])
-    # nested transition fields should be lists
-    assert isinstance(nested["transition_id"][0], list)
+    # nested transition fields should be list-like (list or array)
+    assert hasattr(nested["transition_id"][0], "__iter__")
 
 
 def test_xic_analyte_columns_subset():
@@ -79,10 +79,10 @@ def test_xic_to_df_summary_and_exploded():
     df_exploded = xic.to_df(explode=True)
     assert len(df_summary) > 0
     assert len(df_exploded) >= len(df_summary)
-    assert isinstance(df_summary.iloc[0]["rt"], list)
-    assert isinstance(df_summary.iloc[0]["intensity"], list)
-    assert not isinstance(df_exploded.iloc[0]["rt"], list)
-    assert not isinstance(df_exploded.iloc[0]["intensity"], list)
+    assert hasattr(df_summary.iloc[0]["rt"], "__iter__")
+    assert hasattr(df_summary.iloc[0]["intensity"], "__iter__")
+    assert not hasattr(df_exploded.iloc[0]["rt"], "__iter__")
+    assert not hasattr(df_exploded.iloc[0]["intensity"], "__iter__")
 
 
 def test_xic_get_chromatograms_summary_and_exploded():
@@ -93,7 +93,7 @@ def test_xic_get_chromatograms_summary_and_exploded():
     df_exploded = xic.get_chromatograms(filter=f"precursor_id={precursor_id}", explode=True)
     assert len(df_summary) > 0
     assert len(df_exploded) >= len(df_summary)
-    assert isinstance(df_summary.iloc[0]["rt"], list)
-    assert isinstance(df_summary.iloc[0]["intensity"], list)
-    assert not isinstance(df_exploded.iloc[0]["rt"], list)
-    assert not isinstance(df_exploded.iloc[0]["intensity"], list)
+    assert hasattr(df_summary.iloc[0]["rt"], "__iter__")
+    assert hasattr(df_summary.iloc[0]["intensity"], "__iter__")
+    assert not hasattr(df_exploded.iloc[0]["rt"], "__iter__")
+    assert not hasattr(df_exploded.iloc[0]["intensity"], "__iter__")
