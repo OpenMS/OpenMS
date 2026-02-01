@@ -216,6 +216,7 @@ namespace OpenMS
       entries.
 
       @param[out] output Output analyte metadata
+      @param[in] columns Optional list of analyte columns to return (empty for defaults)
       @param[in] nest_transitions Aggregate transition fields per precursor
     */
     void getAnalytes(std::vector<XICAnalyte>& output,
