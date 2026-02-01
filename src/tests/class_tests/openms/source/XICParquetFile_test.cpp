@@ -11,6 +11,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/FORMAT/XICParquetFile.h>
+#include <OpenMS/FORMAT/ParquetFilter.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -59,6 +60,13 @@ START_SECTION(void getChromatograms(std::vector<XICChromatogram>&, Int64, Int64,
   xic.getChromatograms(chroms_filtered, -1, -1, "", -1, -1, -1, -1, "precursor_id=2");
   TEST_EQUAL(chroms_filtered.size() > 0, true)
   TEST_EQUAL(chroms_filtered.size() <= chroms_all.size(), true)
+
+  ParquetFilter typed_filter;
+  typed_filter.eq("PRECURSOR_ID", 2);
+  std::vector<XICChromatogram> chroms_typed;
+  xic.getChromatograms(chroms_typed, typed_filter);
+  TEST_EQUAL(chroms_typed.size() > 0, true)
+  TEST_EQUAL(chroms_typed.size() <= chroms_all.size(), true)
 
   // Invalid filter syntax should throw a parse/bind error
   std::vector<XICChromatogram> chroms_invalid_filter;

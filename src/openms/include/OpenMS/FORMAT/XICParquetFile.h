@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/ParquetFilter.h>
 
 #include <vector>
 
@@ -197,6 +198,15 @@ namespace OpenMS
                           const String& filter = "") const;
 
     /**
+      @brief Return chromatograms using a typed filter expression.
+
+      @param[out] output Output chromatograms
+      @param[in] filter Typed filter builder expression
+    */
+    void getChromatograms(std::vector<XICChromatogram>& output,
+                          const ParquetFilter& filter) const;
+
+    /**
       @brief Return unique run metadata (run_id, source_file).
 
       This method never decodes RT/intensity arrays and always returns distinct
@@ -229,6 +239,17 @@ namespace OpenMS
     void getColumns(std::vector<String>& output) const;
 
   private:
+    void getChromatograms_(std::vector<XICChromatogram>& output,
+                           const FilterExpression& extra_filter,
+                           Int64 precursor_id,
+                           Int64 transition_id,
+                           const String& modified_sequence,
+                           Int64 precursor_charge,
+                           Int64 product_charge,
+                           Int64 ms_level,
+                           Int64 run_id,
+                           const String& filter) const;
+
     String filename_;
     std::vector<String> filenames_;
   };

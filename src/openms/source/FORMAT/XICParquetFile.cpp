@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ParquetFilter.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -365,26 +366,6 @@ namespace OpenMS
       }
     }
 
-    enum class ColumnType
-    {
-      INT,
-      STRING
-    };
-
-    struct Condition
-    {
-      String column;
-      String op;
-      std::vector<String> values;
-      ColumnType type{ColumnType::INT};
-    };
-
-    struct FilterExpression
-    {
-      std::vector<Condition> conditions;
-      std::vector<String> connectors; // "AND" / "OR"
-    };
-
     /// Uppercase helper for column normalization.
     String upper_(const String& input)
     {
@@ -580,6 +561,25 @@ namespace OpenMS
       }
 
       return expr;
+    }
+
+    FilterExpression buildFilterFromArgs_(Int64 precursor_id,
+                                          Int64 transition_id,
+                                          const String& modified_sequence,
+                                          Int64 precursor_charge,
+                                          Int64 product_charge,
+                                          Int64 ms_level,
+                                          Int64 run_id)
+    {
+      ParquetFilter builder;
+      if (precursor_id >= 0) builder.eq("PRECURSOR_ID", precursor_id);
+      if (transition_id >= 0) builder.eq("TRANSITION_ID", transition_id);
+      if (!modified_sequence.empty()) builder.eq("MODIFIED_SEQUENCE", modified_sequence);
+      if (precursor_charge >= 0) builder.eq("PRECURSOR_CHARGE", precursor_charge);
+      if (product_charge >= 0) builder.eq("PRODUCT_CHARGE", product_charge);
+      if (ms_level >= 0) builder.eq("MS_LEVEL", ms_level);
+      if (run_id >= 0) builder.eq("RUN_ID", run_id);
+      return builder.expression();
     }
 
     /// Initialize Arrow compute once per process.
@@ -1080,9 +1080,10 @@ namespace OpenMS
 #ifdef WITH_ARROW_DATASET
     /// Read parquet files via Arrow Dataset with predicate pushdown.
     std::shared_ptr<arrow::Table> readParquetTableDataset_(const std::vector<String>& filenames,
-                                                           const String& filter,
-                                                           const std::unordered_map<String, ColumnType>& column_types)
+                                                           const FilterExpression& parsed,
+                                                           const String& filter_context)
     {
+      (void)filter_context;
       // Arrow Dataset enables predicate pushdown across multiple parquet files.
       auto filesystem = std::make_shared<arrow::fs::LocalFileSystem>();
       auto format = std::make_shared<arrow::dataset::ParquetFileFormat>();
@@ -1111,23 +1112,23 @@ namespace OpenMS
       std::shared_ptr<arrow::dataset::Dataset> dataset = *dataset_result;
 
       auto builder = std::make_shared<arrow::dataset::ScannerBuilder>(dataset);
-      if (!filter.empty())
+      if (!parsed.conditions.empty())
       {
         ensureComputeInitialized_();
-        FilterExpression parsed = parseFilter_(filter, column_types);
+        FilterExpression pruned = parsed;
         std::vector<String> dropped;
-        normalizeAndPruneColumns_(parsed, dataset->schema(), dropped);
+        normalizeAndPruneColumns_(pruned, dataset->schema(), dropped);
         if (!dropped.empty())
         {
           OPENMS_LOG_WARN << "Dropping unsupported filter columns: "
                           << joinColumns_(dropped) << '\n';
         }
-        if (parsed.conditions.empty())
+        if (pruned.conditions.empty())
         {
           return readParquetTable_(filenames);
         }
         // Convert the parsed filter into an Arrow expression for pushdown.
-        arrow::compute::Expression expr = buildFilterExpression_(parsed);
+        arrow::compute::Expression expr = buildFilterExpression_(pruned);
         auto status = builder->Filter(expr);
         if (!status.ok())
         {
@@ -1161,36 +1162,36 @@ namespace OpenMS
 
     /// Read parquet files via Arrow Dataset with predicate pushdown.
     std::shared_ptr<arrow::Table> applyArrowFilter_(const std::shared_ptr<arrow::Table>& table,
-                                                    const String& filter,
-                                                    const std::unordered_map<String, ColumnType>& column_types)
+                                                    const FilterExpression& parsed,
+                                                    const String& filter_context)
     {
-      if (filter.empty())
-      {
-        return table;
-      }
-
-      ensureComputeInitialized_();
-      FilterExpression parsed = parseFilter_(filter, column_types);
-      std::vector<String> dropped;
-      normalizeAndPruneColumns_(parsed, table->schema(), dropped);
-      if (!dropped.empty())
-      {
-        OPENMS_LOG_WARN << "Dropping unsupported filter columns: "
-                        << joinColumns_(dropped) << '\n';
-      }
       if (parsed.conditions.empty())
       {
         return table;
       }
 
+      ensureComputeInitialized_();
+      FilterExpression pruned = parsed;
+      std::vector<String> dropped;
+      normalizeAndPruneColumns_(pruned, table->schema(), dropped);
+      if (!dropped.empty())
+      {
+        OPENMS_LOG_WARN << "Dropping unsupported filter columns: "
+                        << joinColumns_(dropped) << '\n';
+      }
+      if (pruned.conditions.empty())
+      {
+        return table;
+      }
+
       // Execute the expression in memory when dataset pushdown is unavailable.
-      arrow::compute::Expression expr = buildFilterExpression_(parsed);
+      arrow::compute::Expression expr = buildFilterExpression_(pruned);
       auto bound_result = expr.Bind(*table->schema());
       if (!bound_result.ok())
       {
         OPENMS_LOG_WARN << "Arrow compute filter unavailable, falling back to manual filter: "
                         << bound_result.status().ToString() << '\n';
-        return applyManualFilter_(table, parsed, filter);
+        return applyManualFilter_(table, pruned, filter_context);
       }
       arrow::compute::Expression bound_expr = *bound_result;
 
@@ -1204,7 +1205,7 @@ namespace OpenMS
         if (!read_status.ok())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Failed to read record batch", filter);
+                                        "Failed to read record batch", filter_context);
         }
         if (!batch)
         {
@@ -1217,7 +1218,7 @@ namespace OpenMS
         {
           OPENMS_LOG_WARN << "Arrow compute filter failed, falling back to manual filter: "
                           << mask_result.status().ToString() << '\n';
-          return applyManualFilter_(table, parsed, filter);
+          return applyManualFilter_(table, pruned, filter_context);
         }
 
         auto filtered_result = arrow::compute::Filter(arrow::Datum(batch), *mask_result);
@@ -1225,7 +1226,7 @@ namespace OpenMS
         {
           OPENMS_LOG_WARN << "Arrow compute filter failed, falling back to manual filter: "
                           << filtered_result.status().ToString() << '\n';
-          return applyManualFilter_(table, parsed, filter);
+          return applyManualFilter_(table, pruned, filter_context);
         }
 
         const auto& filtered_batch = filtered_result->record_batch();
@@ -1239,7 +1240,7 @@ namespace OpenMS
       if (!table_result.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to build filtered table", filter);
+                                      "Failed to build filtered table", filter_context);
       }
       return *table_result;
     }
@@ -1289,18 +1290,20 @@ namespace OpenMS
     getChromatograms(output);
   }
 
-  void XICParquetFile::getChromatograms(std::vector<XICChromatogram>& output,
-                                        Int64 precursor_id,
-                                        Int64 transition_id,
-                                        const String& modified_sequence,
-                                        Int64 precursor_charge,
-                                        Int64 product_charge,
-                                        Int64 ms_level,
-                                        Int64 run_id,
-                                        const String& filter) const
+  void XICParquetFile::getChromatograms_(std::vector<XICChromatogram>& output,
+                                         const FilterExpression& extra_filter,
+                                         Int64 precursor_id,
+                                         Int64 transition_id,
+                                         const String& modified_sequence,
+                                         Int64 precursor_charge,
+                                         Int64 product_charge,
+                                         Int64 ms_level,
+                                         Int64 run_id,
+                                         const String& filter) const
   {
 #ifndef WITH_PARQUET
     (void)output;
+    (void)extra_filter;
     (void)precursor_id;
     (void)transition_id;
     (void)modified_sequence;
@@ -1335,14 +1338,27 @@ namespace OpenMS
       {"ANNOTATION", ColumnType::STRING}
     };
 
+    FilterExpression args_filter = buildFilterFromArgs_(precursor_id,
+                                                       transition_id,
+                                                       modified_sequence,
+                                                       precursor_charge,
+                                                       product_charge,
+                                                       ms_level,
+                                                       run_id);
+    FilterExpression string_filter = parseFilter_(filter, column_types);
+    FilterExpression combined_filter = ParquetFilter::merge(args_filter, string_filter, "AND");
+    combined_filter = ParquetFilter::merge(combined_filter, extra_filter, "AND");
+
+    const String filter_context = filter.empty() ? String("<typed/args filter>") : filter;
+
     bool used_dataset = false;
 #ifdef WITH_ARROW_DATASET
-    if (!filter.empty())
+    if (!combined_filter.conditions.empty())
     {
       try
       {
         // Prefer dataset pushdown when available; fall back to compute filtering on failure.
-        table = readParquetTableDataset_(filenames_, filter, column_types);
+        table = readParquetTableDataset_(filenames_, combined_filter, filter_context);
         used_dataset = true;
       }
       catch (const std::exception& e)
@@ -1360,7 +1376,7 @@ namespace OpenMS
 #endif
     if (!used_dataset)
     {
-      table = applyArrowFilter_(table, filter, column_types);
+      table = applyArrowFilter_(table, combined_filter, filter_context);
     }
 
     auto run_id_col = getColumn_(table, "RUN_ID");
@@ -1466,8 +1482,29 @@ namespace OpenMS
       {
         output.push_back(std::move(info));
       }
-    }
+  }
 #endif
+  }
+
+  void XICParquetFile::getChromatograms(std::vector<XICChromatogram>& output,
+                                        Int64 precursor_id,
+                                        Int64 transition_id,
+                                        const String& modified_sequence,
+                                        Int64 precursor_charge,
+                                        Int64 product_charge,
+                                        Int64 ms_level,
+                                        Int64 run_id,
+                                        const String& filter) const
+  {
+    FilterExpression empty_filter;
+    getChromatograms_(output, empty_filter, precursor_id, transition_id, modified_sequence,
+                      precursor_charge, product_charge, ms_level, run_id, filter);
+  }
+
+  void XICParquetFile::getChromatograms(std::vector<XICChromatogram>& output,
+                                        const ParquetFilter& filter) const
+  {
+    getChromatograms_(output, filter.expression(), -1, -1, "", -1, -1, -1, -1, "");
   }
 
   void XICParquetFile::getAnalytes(std::vector<XICAnalyte>& output,
