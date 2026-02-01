@@ -21,6 +21,10 @@
 #include <limits>
 #include <unordered_set>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS
 {
   /// Constructor
@@ -255,6 +259,173 @@ namespace OpenMS
         }
       }
     }
+
+  void MSExperiment::rasterize2D(
+    float* output,
+    Size rt_bins,
+    Size mz_bins,
+    CoordinateType min_rt,
+    CoordinateType max_rt,
+    CoordinateType min_mz,
+    CoordinateType max_mz,
+    UInt ms_level,
+    RasterAggregation aggregation) const
+  {
+    OPENMS_PRECONDITION(output != nullptr, "Output buffer must not be nullptr!")
+    OPENMS_PRECONDITION(rt_bins > 0, "Number of RT bins must be positive!")
+    OPENMS_PRECONDITION(mz_bins > 0, "Number of m/z bins must be positive!")
+    OPENMS_PRECONDITION(min_rt < max_rt, "min_rt must be less than max_rt!")
+    OPENMS_PRECONDITION(min_mz < max_mz, "min_mz must be less than max_mz!")
+
+    const Size total_pixels = rt_bins * mz_bins;
+
+    // Zero-initialize the output buffer
+    std::fill(output, output + total_pixels, 0.0f);
+
+    // If experiment is empty, return early
+    if (spectra_.empty())
+    {
+      return;
+    }
+
+    // Precompute bin sizes for mapping coordinates to pixel indices
+    const double rt_range = max_rt - min_rt;
+    const double mz_range = max_mz - min_mz;
+    const double rt_scale = static_cast<double>(rt_bins) / rt_range;
+    const double mz_scale = static_cast<double>(mz_bins) / mz_range;
+
+    // Find spectra in RT range using binary search (leveraging sortedness)
+    auto rt_begin_it = RTBegin(min_rt);
+    auto rt_end_it = RTEnd(max_rt);
+    
+    // Create a view of spectra with matching MS level in RT range
+    std::vector<std::reference_wrapper<const MSSpectrum>> spectra_view;
+    spectra_view.reserve(std::distance(rt_begin_it, rt_end_it));
+    
+    for (auto it = rt_begin_it; it != rt_end_it; ++it)
+    {
+      if (it->getMSLevel() == ms_level)
+      {
+        spectra_view.push_back(std::cref(*it));
+      }
+    }
+
+    // Early exit if no matching spectra
+    if (spectra_view.empty())
+    {
+      return;
+    }
+
+    // Determine number of threads
+    int num_threads = 1;
+    #ifdef _OPENMP
+    #pragma omp parallel
+    {
+      #pragma omp single
+      num_threads = omp_get_num_threads();
+    }
+    #endif
+
+    // Allocate thread-local accumulation buffers to avoid contention
+    std::vector<std::vector<float>> thread_buffers(num_threads);
+    for (auto& buf : thread_buffers)
+    {
+      buf.resize(total_pixels, 0.0f);
+    }
+
+    // Process spectra in parallel using thread-local buffers
+    #pragma omp parallel for schedule(dynamic)
+    for (Int64 spec_idx = 0; spec_idx < static_cast<Int64>(spectra_view.size()); ++spec_idx)
+    {
+      int thread_id = 0;
+      #ifdef _OPENMP
+      thread_id = omp_get_thread_num();
+      #endif
+      
+      float* local_buffer = thread_buffers[thread_id].data();
+      const MSSpectrum& spec = spectra_view[spec_idx].get();
+      
+      // Compute RT bin for this spectrum
+      const double rt = spec.getRT();
+      const Int64 rt_bin = static_cast<Int64>((rt - min_rt) * rt_scale);
+      
+      // Skip if RT is out of bounds (shouldn't happen due to RTBegin/RTEnd, but be safe)
+      if (rt_bin < 0 || rt_bin >= static_cast<Int64>(rt_bins))
+      {
+        continue;
+      }
+
+      // Use binary search to find peaks in m/z range (leveraging sortedness of peaks)
+      auto mz_begin_it = spec.MZBegin(min_mz);
+      auto mz_end_it = spec.MZEnd(max_mz);
+
+      // Process peaks within m/z range
+      if (aggregation == RasterAggregation::SUM)
+      {
+        #pragma omp simd
+        for (auto peak_it = mz_begin_it; peak_it != mz_end_it; ++peak_it)
+        {
+          const double mz = peak_it->getMZ();
+          const Int64 mz_bin = static_cast<Int64>((mz - min_mz) * mz_scale);
+          
+          // Bounds check (edge case: mz exactly at max_mz)
+          if (mz_bin >= 0 && mz_bin < static_cast<Int64>(mz_bins))
+          {
+            const Size pixel_idx = static_cast<Size>(mz_bin) * rt_bins + static_cast<Size>(rt_bin);
+            local_buffer[pixel_idx] += peak_it->getIntensity();
+          }
+        }
+      }
+      else // MAX aggregation
+      {
+        for (auto peak_it = mz_begin_it; peak_it != mz_end_it; ++peak_it)
+        {
+          const double mz = peak_it->getMZ();
+          const Int64 mz_bin = static_cast<Int64>((mz - min_mz) * mz_scale);
+          
+          if (mz_bin >= 0 && mz_bin < static_cast<Int64>(mz_bins))
+          {
+            const Size pixel_idx = static_cast<Size>(mz_bin) * rt_bins + static_cast<Size>(rt_bin);
+            const float intensity = peak_it->getIntensity();
+            if (intensity > local_buffer[pixel_idx])
+            {
+              local_buffer[pixel_idx] = intensity;
+            }
+          }
+        }
+      }
+    }
+
+    // Merge thread-local buffers into output
+    if (aggregation == RasterAggregation::SUM)
+    {
+      // Sum reduction: add all thread buffers
+      for (int t = 0; t < num_threads; ++t)
+      {
+        const float* thread_buf = thread_buffers[t].data();
+        #pragma omp simd
+        for (Size i = 0; i < total_pixels; ++i)
+        {
+          output[i] += thread_buf[i];
+        }
+      }
+    }
+    else // MAX aggregation
+    {
+      // Max reduction: take maximum across all thread buffers
+      for (int t = 0; t < num_threads; ++t)
+      {
+        const float* thread_buf = thread_buffers[t].data();
+        for (Size i = 0; i < total_pixels; ++i)
+        {
+          if (thread_buf[i] > output[i])
+          {
+            output[i] = thread_buf[i];
+          }
+        }
+      }
+    }
+  }
 
   void MSExperiment::reserveSpaceSpectra(Size s)
   {

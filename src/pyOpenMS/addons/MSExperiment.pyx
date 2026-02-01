@@ -51,7 +51,7 @@ from libc.stdint cimport uintptr_t
         cdef libcpp_vector[float] mz
         cdef libcpp_vector[float] inty
         exp_.get2DPeakData(min_rt, max_rt, min_mz, max_mz, ms_level, rt, mz, inty)
-       
+
         cdef ArrayWrapperFloat rt_wrap = ArrayWrapperFloat()
         cdef ArrayWrapperFloat mz_wrap = ArrayWrapperFloat()
         cdef ArrayWrapperFloat inty_wrap = ArrayWrapperFloat()
@@ -60,7 +60,7 @@ from libc.stdint cimport uintptr_t
         inty_wrap.set_data(inty)
 
         return (np.asarray(rt_wrap), np.asarray(mz_wrap), np.asarray(inty_wrap))
-    
+
     def get2DPeakDataIM(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
         """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty, np.array[float] ion_mobility] get2DPeakDataIM(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""
         cdef _MSExperiment * exp_ = self.inst.get()
@@ -102,7 +102,7 @@ from libc.stdint cimport uintptr_t
         cdef libcpp_vector[float] inty
         cdef libcpp_vector[float] ion_mobility
         exp_.get2DPeakDataIM(min_rt, max_rt, min_mz, max_mz, ms_level, rt, mz, inty, ion_mobility)
-       
+
         cdef ArrayWrapperFloat rt_wrap = ArrayWrapperFloat()
         cdef ArrayWrapperFloat mz_wrap = ArrayWrapperFloat()
         cdef ArrayWrapperFloat inty_wrap = ArrayWrapperFloat()
@@ -128,7 +128,7 @@ from libc.stdint cimport uintptr_t
         """Cython signature: `MSChromatogram getChromatogram(size_t id_)`"""
         assert isinstance(id_, int), 'arg id_ wrong type'
         assert id_ < self.getNrChromatograms(), 'Requested chromatogram %s does not exist, there are only %s chromatograms' % (id_, self.getNrChromatograms() )
-    
+
         cdef _MSChromatogram * _r = new _MSChromatogram(self.inst.get().getChromatogram((<size_t>id_)))
         cdef MSChromatogram py_result = MSChromatogram.__new__(MSChromatogram)
         py_result.inst = shared_ptr[_MSChromatogram](_r)
@@ -138,7 +138,7 @@ from libc.stdint cimport uintptr_t
         """Cython signature: `MSSpectrum getSpectrum(size_t id_)`"""
         assert isinstance(id_, int), 'arg id_ wrong type'
         assert id_ < self.getNrSpectra(), 'Requested spectrum %s does not exist, there are only %s spectra' % (id_, self.getNrSpectra() )
-    
+
         cdef _MSSpectrum * _r = new _MSSpectrum(self.inst.get().getSpectrum((<size_t>id_)))
         cdef MSSpectrum py_result = MSSpectrum.__new__(MSSpectrum)
         py_result.inst = shared_ptr[_MSSpectrum](_r)
@@ -151,7 +151,7 @@ from libc.stdint cimport uintptr_t
     def __str__(self):
         """
         __str__(self: MSExperiment) -> str
-        
+
         Return a string representation of the MSExperiment object.
         Delegates to __repr__ for consistency.
         """
@@ -160,7 +160,7 @@ from libc.stdint cimport uintptr_t
     def __repr__(self):
         """
         __repr__(self: MSExperiment) -> str
-        
+
         Return a string representation of the MSExperiment object.
 
         Returns key properties in a readable format:
@@ -1182,3 +1182,78 @@ from libc.stdint cimport uintptr_t
             stacklevel=2
         )
         return self.df_columns(*args, **kwargs)
+
+    def rasterize2D(MSExperiment self,
+                    np.ndarray[np.float32_t, ndim=2, mode="c"] output not None,
+                    double min_rt, double max_rt,
+                    double min_mz, double max_mz,
+                    unsigned int ms_level,
+                    str aggregation="sum"):
+        """
+        Rasterize peak data from spectra into a 2D intensity matrix for visualization.
+
+        This method creates a 2D heatmap/image representation of the MS data by binning peak
+        intensities into a regular grid of pixels. It is optimized for high performance with
+        multithreading (OpenMP) and SIMD vectorization.
+
+        The output array has shape [mz_bins, rt_bins] where:
+        - Rows correspond to m/z bins (y-axis in visualization)
+        - Columns correspond to RT bins (x-axis in visualization)
+        - Values are aggregated intensities (sum or max)
+
+        Parameters
+        ----------
+        output : numpy.ndarray
+            Pre-allocated 2D float32 array with shape (mz_bins, rt_bins) to store the
+            aggregated intensity values. Will be filled in-place and zero-initialized.
+        min_rt : float
+            Minimum RT value for the output range.
+        max_rt : float
+            Maximum RT value for the output range.
+        min_mz : float
+            Minimum m/z value for the output range.
+        max_mz : float
+            Maximum m/z value for the output range.
+        ms_level : int
+            MS level of spectra to include (e.g., 1 for MS1, 2 for MS2).
+        aggregation : str, optional
+            Aggregation mode: "sum" (default) or "max".
+
+        Returns
+        -------
+        None
+            The output array is modified in-place.
+
+        Notes
+        -----
+        - The experiment should be sorted by RT and m/z (call sortSpectra(True) if needed)
+          for optimal performance and correct results.
+        - This method uses per-thread accumulation buffers to avoid contention.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pyopenms import MSExperiment, MzMLFile
+        >>> exp = MSExperiment()
+        >>> MzMLFile().load("data.mzML", exp)
+        >>> exp.updateRanges()
+        >>> rt_bins, mz_bins = 800, 600
+        >>> output = np.zeros((mz_bins, rt_bins), dtype=np.float32)
+        >>> exp.rasterize2D(output, exp.getMinRT(), exp.getMaxRT(),
+        ...                 exp.getMinMZ(), exp.getMaxMZ(), 1, "sum")
+        >>> # output now contains the rasterized intensity matrix
+        """
+        cdef _MSExperiment * exp_ = self.inst.get()
+        cdef Size rt_bins = output.shape[1]
+        cdef Size mz_bins = output.shape[0]
+        cdef float* output_ptr = &output[0, 0]
+
+        cdef RasterAggregation agg_mode
+        if aggregation.lower() == "sum":
+            agg_mode = RasterAggregation.SUM
+        elif aggregation.lower() == "max":
+            agg_mode = RasterAggregation.MAX
+        else:
+            raise ValueError(f"Invalid aggregation mode '{aggregation}'. Must be 'sum' or 'max'.")
+
+        exp_.rasterize2D(output_ptr, rt_bins, mz_bins, min_rt, max_rt, min_mz, max_mz, ms_level, agg_mode)
