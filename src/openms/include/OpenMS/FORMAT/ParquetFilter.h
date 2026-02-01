@@ -78,48 +78,89 @@ namespace OpenMS
     ParquetFilter() = default;
     ParquetFilter(const ParquetFilter&) = default;
 
+    /**
+      @brief Combine the next condition with logical AND.
+    */
     ParquetFilter& andNext()
     {
       next_connector_ = "AND";
       return *this;
     }
 
+    /**
+      @brief Combine the next condition with logical OR.
+    */
     ParquetFilter& orNext()
     {
       next_connector_ = "OR";
       return *this;
     }
 
+    /**
+      @brief Add an equality condition for an integer column.
+      @param column Column name.
+      @param value Integer value to compare.
+    */
     ParquetFilter& eq(const String& column, Int64 value)
     {
       return addCondition_(column, "=", ColumnType::INT, {String(value)});
     }
 
+    /**
+      @brief Add an inequality condition for an integer column.
+      @param column Column name.
+      @param value Integer value to compare.
+    */
     ParquetFilter& ne(const String& column, Int64 value)
     {
       return addCondition_(column, "!=", ColumnType::INT, {String(value)});
     }
 
+    /**
+      @brief Add a less-than condition for an integer column.
+      @param column Column name.
+      @param value Integer value to compare.
+    */
     ParquetFilter& lt(const String& column, Int64 value)
     {
       return addCondition_(column, "<", ColumnType::INT, {String(value)});
     }
 
+    /**
+      @brief Add a less-than-or-equal condition for an integer column.
+      @param column Column name.
+      @param value Integer value to compare.
+    */
     ParquetFilter& le(const String& column, Int64 value)
     {
       return addCondition_(column, "<=", ColumnType::INT, {String(value)});
     }
 
+    /**
+      @brief Add a greater-than condition for an integer column.
+      @param column Column name.
+      @param value Integer value to compare.
+    */
     ParquetFilter& gt(const String& column, Int64 value)
     {
       return addCondition_(column, ">", ColumnType::INT, {String(value)});
     }
 
+    /**
+      @brief Add a greater-than-or-equal condition for an integer column.
+      @param column Column name.
+      @param value Integer value to compare.
+    */
     ParquetFilter& ge(const String& column, Int64 value)
     {
       return addCondition_(column, ">=", ColumnType::INT, {String(value)});
     }
 
+    /**
+      @brief Add an IN condition for an integer column.
+      @param column Column name.
+      @param values Integer values to compare.
+    */
     ParquetFilter& in(const String& column, const std::vector<Int64>& values)
     {
       std::vector<String> str_values;
@@ -131,36 +172,71 @@ namespace OpenMS
       return addCondition_(column, "IN", ColumnType::INT, str_values);
     }
 
+    /**
+      @brief Add an equality condition for a string column.
+      @param column Column name.
+      @param value String value to compare.
+    */
     ParquetFilter& eq(const String& column, const String& value)
     {
       return addCondition_(column, "=", ColumnType::STRING, {value});
     }
 
+    /**
+      @brief Add an inequality condition for a string column.
+      @param column Column name.
+      @param value String value to compare.
+    */
     ParquetFilter& ne(const String& column, const String& value)
     {
       return addCondition_(column, "!=", ColumnType::STRING, {value});
     }
 
+    /**
+      @brief Add a less-than condition for a string column.
+      @param column Column name.
+      @param value String value to compare.
+    */
     ParquetFilter& lt(const String& column, const String& value)
     {
       return addCondition_(column, "<", ColumnType::STRING, {value});
     }
 
+    /**
+      @brief Add a less-than-or-equal condition for a string column.
+      @param column Column name.
+      @param value String value to compare.
+    */
     ParquetFilter& le(const String& column, const String& value)
     {
       return addCondition_(column, "<=", ColumnType::STRING, {value});
     }
 
+    /**
+      @brief Add a greater-than condition for a string column.
+      @param column Column name.
+      @param value String value to compare.
+    */
     ParquetFilter& gt(const String& column, const String& value)
     {
       return addCondition_(column, ">", ColumnType::STRING, {value});
     }
 
+    /**
+      @brief Add a greater-than-or-equal condition for a string column.
+      @param column Column name.
+      @param value String value to compare.
+    */
     ParquetFilter& ge(const String& column, const String& value)
     {
       return addCondition_(column, ">=", ColumnType::STRING, {value});
     }
 
+    /**
+      @brief Add an IN condition for a string column.
+      @param column Column name.
+      @param values String values to compare.
+    */
     ParquetFilter& in(const String& column, const std::vector<String>& values)
     {
       return addCondition_(column, "IN", ColumnType::STRING, values);
