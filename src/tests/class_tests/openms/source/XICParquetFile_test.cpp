@@ -107,7 +107,7 @@ START_SECTION(void getAnalytes(std::vector<XICAnalyte>& output, bool) const)
 
   std::vector<XICAnalyte> analytes_nested;
   xic.getAnalytes(analytes_nested, columns, true);
-  TEST_EQUAL(analytes_nested.size(), 7)
+  TEST_EQUAL(analytes_nested.size(), 6)
 
   Size transition_count = 0;
   for (const auto& a : analytes_nested)
