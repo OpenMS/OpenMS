@@ -18,7 +18,6 @@
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/compute/api.h>
-#include <arrow/compute/initialize.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/reader.h>
 #endif
@@ -30,7 +29,6 @@
 #include <cstring>
 #include <cctype>
 #include <exception>
-#include <mutex>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -608,21 +606,6 @@ namespace OpenMS
       return builder.expression();
     }
 
-    /// Initialize Arrow compute once per process.
-    void ensureComputeInitialized_()
-    {
-      static std::once_flag init_flag;
-      std::call_once(init_flag, []()
-      {
-        auto status = arrow::compute::Initialize();
-        if (!status.ok())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Failed to initialize Arrow compute", status.ToString());
-        }
-      });
-    }
-
     /// Map upper-case column names to their schema names.
     std::unordered_map<String, String> buildSchemaNameMap_(const std::shared_ptr<arrow::Schema>& schema)
     {
@@ -1140,7 +1123,6 @@ namespace OpenMS
       auto builder = std::make_shared<arrow::dataset::ScannerBuilder>(dataset);
       if (!parsed.conditions.empty())
       {
-        ensureComputeInitialized_();
         FilterExpression pruned = parsed;
         std::vector<String> dropped;
         normalizeAndPruneColumns_(pruned, dataset->schema(), dropped);
@@ -1196,7 +1178,6 @@ namespace OpenMS
         return table;
       }
 
-      ensureComputeInitialized_();
       FilterExpression pruned = parsed;
       std::vector<String> dropped;
       normalizeAndPruneColumns_(pruned, table->schema(), dropped);
