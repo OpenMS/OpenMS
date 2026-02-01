@@ -6,6 +6,8 @@ from StringList cimport StringList
 from XICParquetFile cimport XICChromatogram as _XICChromatogram
 from XICParquetFile cimport XICAnalyte as _XICAnalyte
 from XICParquetFile cimport XICRunInfo as _XICRunInfo
+from ParquetFilter cimport ParquetFilter as _ParquetFilter
+from ._pyopenms_1 cimport ParquetFilter as _PyParquetFilter
 import numpy as np
 
 
@@ -125,6 +127,96 @@ import numpy as np
                                          <int64_t>ms_level,
                                          <int64_t>run_id,
                                          deref((convString(filter)).get()))
+
+        cdef list run_id_list = []
+        cdef list source_file_list = []
+        cdef list ms_level_list = []
+        cdef list precursor_id_list = []
+        cdef list transition_id_list = []
+        cdef list modified_sequence_list = []
+        cdef list precursor_charge_list = []
+        cdef list product_charge_list = []
+        cdef list detecting_transition_list = []
+        cdef list precursor_decoy_list = []
+        cdef list product_decoy_list = []
+        cdef list transition_ordinal_list = []
+        cdef list transition_type_list = []
+        cdef list annotation_list = []
+        cdef list rt_list = []
+        cdef list intensity_list = []
+
+        cdef size_t i, j
+        cdef _XICChromatogram chrom
+        for i in range(chroms.size()):
+            chrom = chroms[i]
+            if explode:
+                if chrom.rt.size() == 0:
+                    continue
+                for j in range(chrom.rt.size()):
+                    run_id_list.append(chrom.run_id)
+                    source_file_list.append(convOutputString(chrom.source_file))
+                    ms_level_list.append(chrom.ms_level)
+                    precursor_id_list.append(chrom.precursor_id if chrom.has_precursor_id else None)
+                    transition_id_list.append(chrom.transition_id if chrom.has_transition_id else None)
+                    modified_sequence_list.append(convOutputString(chrom.modified_sequence))
+                    precursor_charge_list.append(chrom.precursor_charge if chrom.has_precursor_charge else None)
+                    product_charge_list.append(chrom.product_charge if chrom.has_product_charge else None)
+                    detecting_transition_list.append(chrom.detecting_transition if chrom.has_detecting_transition else None)
+                    precursor_decoy_list.append(chrom.precursor_decoy if chrom.has_precursor_decoy else None)
+                    product_decoy_list.append(chrom.product_decoy if chrom.has_product_decoy else None)
+                    transition_ordinal_list.append(chrom.transition_ordinal if chrom.has_transition_ordinal else None)
+                    transition_type_list.append(convOutputString(chrom.transition_type))
+                    annotation_list.append(convOutputString(chrom.annotation))
+                    rt_list.append(chrom.rt[j])
+                    intensity_list.append(chrom.intensity[j])
+            else:
+                run_id_list.append(chrom.run_id)
+                source_file_list.append(convOutputString(chrom.source_file))
+                ms_level_list.append(chrom.ms_level)
+                precursor_id_list.append(chrom.precursor_id if chrom.has_precursor_id else None)
+                transition_id_list.append(chrom.transition_id if chrom.has_transition_id else None)
+                modified_sequence_list.append(convOutputString(chrom.modified_sequence))
+                precursor_charge_list.append(chrom.precursor_charge if chrom.has_precursor_charge else None)
+                product_charge_list.append(chrom.product_charge if chrom.has_product_charge else None)
+                detecting_transition_list.append(chrom.detecting_transition if chrom.has_detecting_transition else None)
+                precursor_decoy_list.append(chrom.precursor_decoy if chrom.has_precursor_decoy else None)
+                product_decoy_list.append(chrom.product_decoy if chrom.has_product_decoy else None)
+                transition_ordinal_list.append(chrom.transition_ordinal if chrom.has_transition_ordinal else None)
+                transition_type_list.append(convOutputString(chrom.transition_type))
+                annotation_list.append(convOutputString(chrom.annotation))
+                rt_list.append([chrom.rt[k] for k in range(chrom.rt.size())])
+                intensity_list.append([chrom.intensity[k] for k in range(chrom.intensity.size())])
+
+        return {
+            "run_id": np.array(run_id_list, dtype=np.int64),
+            "source_file": np.array(source_file_list, dtype=object),
+            "ms_level": np.array(ms_level_list, dtype=np.int64),
+            "precursor_id": np.array(precursor_id_list, dtype=object),
+            "transition_id": np.array(transition_id_list, dtype=object),
+            "modified_sequence": np.array(modified_sequence_list, dtype=object),
+            "precursor_charge": np.array(precursor_charge_list, dtype=object),
+            "product_charge": np.array(product_charge_list, dtype=object),
+            "detecting_transition": np.array(detecting_transition_list, dtype=object),
+            "precursor_decoy": np.array(precursor_decoy_list, dtype=object),
+            "product_decoy": np.array(product_decoy_list, dtype=object),
+            "transition_ordinal": np.array(transition_ordinal_list, dtype=object),
+            "transition_type": np.array(transition_type_list, dtype=object),
+            "annotation": np.array(annotation_list, dtype=object),
+            "rt": np.array(rt_list, dtype=object),
+            "intensity": np.array(intensity_list, dtype=object),
+        }
+
+    def _get_data_dict_from_parquet_filter(self, parquet_filter, explode=False):
+        """
+        Internal helper to fetch chromatograms using a typed ParquetFilter.
+        """
+        if parquet_filter is None:
+            return self.get_data_dict(explode=explode)
+        cdef libcpp_vector[_XICChromatogram] chroms
+        try:
+            self.inst.get().getChromatograms(chroms, deref((<_PyParquetFilter>parquet_filter).inst.get()))
+        except AttributeError:
+            raise TypeError("parquet_filter must be a ParquetFilter instance")
 
         cdef list run_id_list = []
         cdef list source_file_list = []
@@ -494,54 +586,16 @@ import numpy as np
             )
         return pa.Table.from_pydict(self.get_data_dict(explode=explode))
 
-    def get_chromatograms(self, explode=True, **kwargs):
+    def query_chromatograms(self):
         """
-        get_chromatograms(self, explode: bool = True, **kwargs) -> pandas.DataFrame
+        query_chromatograms(self) -> XICParquetFile._ChromatogramQuery
 
-        Return filtered chromatograms as a pandas DataFrame (exploded by default).
-
-        :param explode: If True, return long format with one row per RT/intensity.
-        :type explode: bool
-        :param kwargs: Filter parameters accepted by get_data_dict():
-            - precursor_id: Optional precursor id (-1 to ignore)
-            - transition_id: Optional transition id (-1 to ignore)
-            - modified_sequence: Optional modified sequence filter (empty to ignore)
-            - precursor_charge: Optional precursor charge filter (-1 to ignore)
-            - product_charge: Optional product charge filter (-1 to ignore)
-            - ms_level: Optional MS level filter (-1 to ignore)
-            - run_id: Optional run id filter (-1 to ignore)
-            - filter: Optional filter expression string
-        :type kwargs: dict
-
-        :return: DataFrame with chromatogram data.
-        :rtype: pandas.DataFrame
-
-        :raises ImportError: If pandas is not installed
+        Return a chainable chromatogram query builder.
 
         Example::
 
-            df = xic.get_chromatograms(filter="precursor_id=1318")
-            df_long = xic.get_chromatograms(filter="precursor_id=1318", explode=True)
-            df = xic.get_chromatograms(filter="precursor_id=1318 & annotation=y3^1")
-            df = xic.get_chromatograms(filter="precursor_id=1318 && ms_level=2")
-            df = xic.get_chromatograms(filter="precursor_id in [1318, 1319]")
-
-        Note:
-            RT and INTENSITY columns are ignored in filter expressions because
-            they are stored as compressed binary blobs in the parquet files.
+            q = xic.query_chromatograms()
+            df = q.filter_precursor_id(1381).filter_annotation("y3^1").to_df(explode=False)
         """
-        try:
-            import pandas as pd
-        except ImportError as e:
-            raise ImportError("pandas is required for this method. Install with `pip install pandas`.") from e
-        data = self.get_data_dict(explode=explode, **kwargs)
-        if explode:
-            return pd.DataFrame(data)
-        # Convert to plain Python lists to avoid pandas inferring 2D arrays.
-        clean = {}
-        for k, v in data.items():
-            if hasattr(v, "ndim") and v.ndim > 1:
-                clean[k] = [row for row in v]
-            else:
-                clean[k] = list(v)
-        return pd.DataFrame(clean)
+        from ._parquet_query import ChromatogramQuery
+        return ChromatogramQuery(self)

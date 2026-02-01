@@ -4,6 +4,7 @@ from libcpp cimport bool
 from String cimport String
 from StringList cimport StringList
 from Types cimport Int64
+from ParquetFilter cimport ParquetFilter
 
 ctypedef vector[double] DoubleVector
 
@@ -91,12 +92,12 @@ cdef extern from "<OpenMS/FORMAT/XICParquetFile.h>" namespace "OpenMS":
         void getChromatograms(vector[XICChromatogram]& output,
                               Int64 precursor_id,
                               Int64 transition_id,
-                              String modified_sequence,
+                              const String& modified_sequence,
                               Int64 precursor_charge,
                               Int64 product_charge,
                               Int64 ms_level,
                               Int64 run_id,
-                              String filter) const  # wrap-ignore
+                              const String& filter) const  # wrap-ignore
             # wrap-doc:
             #  Load chromatograms with optional filtering.
             #  
@@ -108,6 +109,11 @@ cdef extern from "<OpenMS/FORMAT/XICParquetFile.h>" namespace "OpenMS":
             #  :param ms_level: Optional MS level (-1 to ignore)
             #  :param run_id: Optional run id (-1 to ignore)
             #  :param filter: Optional filter expression string
+
+        void getChromatograms(vector[XICChromatogram]& output,
+                              const ParquetFilter& filter) const  # wrap-ignore
+            # wrap-doc:
+            #  Load chromatograms using a typed parquet filter.
 
         void getRuns(vector[XICRunInfo]& output) except +  # wrap-ignore
             # wrap-doc:

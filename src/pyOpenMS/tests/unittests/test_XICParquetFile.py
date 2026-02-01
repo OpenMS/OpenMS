@@ -85,15 +85,23 @@ def test_xic_to_df_summary_and_exploded():
     assert not hasattr(df_exploded.iloc[0]["intensity"], "__iter__")
 
 
-def test_xic_get_chromatograms_summary_and_exploded():
+def test_xic_query_builder_summary_and_exploded():
     xic = _get_xic()
     analytes = xic.get_analyte_dict(columns=["PRECURSOR_ID"], nest_transitions=False)
     precursor_id = analytes["precursor_id"][0]
-    df_summary = xic.get_chromatograms(filter=f"precursor_id={precursor_id}", explode=False)
-    df_exploded = xic.get_chromatograms(filter=f"precursor_id={precursor_id}", explode=True)
+    df_summary = xic.query_chromatograms().filter_precursor_id(precursor_id).to_df(explode=False)
+    df_exploded = xic.query_chromatograms().filter_precursor_id(precursor_id).to_df(explode=True)
     assert len(df_summary) > 0
     assert len(df_exploded) >= len(df_summary)
     assert hasattr(df_summary.iloc[0]["rt"], "__iter__")
     assert hasattr(df_summary.iloc[0]["intensity"], "__iter__")
     assert not hasattr(df_exploded.iloc[0]["rt"], "__iter__")
     assert not hasattr(df_exploded.iloc[0]["intensity"], "__iter__")
+
+
+def test_xic_query_builder():
+    xic = _get_xic()
+    analytes = xic.get_analyte_dict(columns=["PRECURSOR_ID"], nest_transitions=False)
+    precursor_id = analytes["precursor_id"][0]
+    df = xic.query_chromatograms().filter_precursor_id(precursor_id).to_df(explode=False)
+    assert len(df) > 0

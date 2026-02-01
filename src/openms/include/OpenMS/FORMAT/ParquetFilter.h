@@ -75,6 +75,9 @@ namespace OpenMS
   class ParquetFilter
   {
   public:
+    ParquetFilter() = default;
+    ParquetFilter(const ParquetFilter&) = default;
+
     ParquetFilter& andNext()
     {
       next_connector_ = "AND";
