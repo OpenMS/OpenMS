@@ -1571,6 +1571,10 @@ protected:
         }
 
         ofstream outstr(out.c_str());
+        if (!outstr)
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
+        }
         SVOutStream output(outstr, sep, replacement, quoting_method);
         output.modifyStrings(false);
 
