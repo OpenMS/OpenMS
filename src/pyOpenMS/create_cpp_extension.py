@@ -92,6 +92,12 @@ if __name__ == '__main__':
     print("WITH_PARQUET is disabled, excluding Arrow*/Parquet* pxds from wrapping")
 
   addons = glob.glob(PYOPENMS_SRC_DIR + "/addons/*.pyx")
+  if not WITH_PARQUET:
+    def _is_parquet_addon(name):
+      return 'Parquet' in name
+
+    addons = [a for a in addons if not _is_parquet_addon(os.path.basename(a))]
+    print("WITH_PARQUET is disabled, excluding Parquet* addons from wrapping")
   converters = [j(PYOPENMS_SRC_DIR, "converters")]
 
   persisted_data_path = "include_dir.bin"
