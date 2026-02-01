@@ -162,15 +162,23 @@ namespace OpenMS
       @brief Return the primary filename.
 
       For multi-file instances this is the first file in the list.
+
+      @return Primary filename.
     */
     const String& getFilename() const;
 
     /**
       @brief Return all filenames associated with this instance.
+
+      @return All filenames associated with this instance.
     */
     const std::vector<String>& getFilenames() const;
 
-    /// Load all chromatograms from the file(s).
+    /**
+      @brief Load all chromatograms from the file(s).
+
+      @param[out] output Output chromatograms.
+    */
     void load(std::vector<XICChromatogram>& output) const;
 
     /**
@@ -235,6 +243,8 @@ namespace OpenMS
 
     /**
       @brief Return the parquet schema column names.
+
+      @param[out] output Column names.
     */
     void getColumns(std::vector<String>& output) const;
 
