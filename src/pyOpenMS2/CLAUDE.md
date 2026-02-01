@@ -46,7 +46,7 @@ PYTHONPATH=OpenMS-build/pyOpenMS2-build python3 -m pytest src/pyOpenMS2/tests/ -
 cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir ../pyOpenMS/addons --output-dir generated --dry-run --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include
 
 # Generate bindings
-cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir ../pyOpenMS/addons --output-dir bindings/generated --num-modules 8 --all-classes --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include
+cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir ../pyOpenMS/addons --output-dir bindings/generated --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include
 ```
 
 ## Build Gotchas
@@ -100,15 +100,15 @@ Performance-critical methods (`get_peaks`, `set_peaks`) are implemented in C++.
 | Binary size | Large | Small (5-10x smaller) |
 | Addons | Cython .pyx files | Pure Python + C++ lambdas |
 | Type conversion | autowrap converters | nanobind type casters |
-| Multi-module | 8 .so files | 8 .so files (same) |
+| Multi-module | 8 .so files | 10 domain .so files |
 
 ## Module Split
 
-Bindings are split across 8 modules for parallel compilation and memory management:
-- `_pyopenms2_1.so` through `_pyopenms2_8.so`
-- `_pyopenms2.so` (main entry that imports all)
+Bindings are split across 10 domain-based modules for parallel compilation and navigability:
+- `_pyopenms2_kernel.so`, `_pyopenms2_metadata.so`, `_pyopenms2_chemistry.so`, etc.
+- `_pyopenms2.so` (main entry, placeholder)
 
-Classes are distributed using hash-based assignment for even split.
+Classes are assigned to domains based on their OpenMS header path (e.g., `OpenMS/KERNEL/Peak1D.h` → `kernel`).
 
 ## NB_DOMAIN
 
