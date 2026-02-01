@@ -79,6 +79,7 @@ OSWFile.h
 XICParquetFile.h
 ParamCTDFile.h
 ParamXMLFile.h
+PEFFFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
 PepNovoInfile.h

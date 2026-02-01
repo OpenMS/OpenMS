@@ -35,6 +35,8 @@ TOPP tools:
         at the end of commands to override hardcoded defaults. A warning is issued when duplicates are detected.
         Example: tool -param default -param override  # Now uses 'override' (previously used 'default')
       - Improved error messages for command-line parameter errors (#8670)
+    MetaProSIP:
+      - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
 
 PyOpenMS:
@@ -80,6 +82,12 @@ PyOpenMS:
   - USI support: Python bindings for Universal Spectrum Identifier (#8684)
     - USI class with constructor from string, tryParse(), isValidUSI()
     - PeptideIdentification.buildUSI() for generating USIs
+  - PEFF support: Full Python bindings for PSI Extended FASTA Format (#8690)
+    - PEFFFile class for reading/writing PEFF files with batch and streaming APIs
+    - PEFFEntry with rich annotations: modifications, variants, processed regions
+    - PEFFDatabaseMetadata for header information
+    - Conversion methods: toFASTAEntry(), fromFASTAEntry(), toProForma()
+    - Sequence accessors: getSequence(), getModifiedSequence(), getVariantSequences(), getProcessedSequence()
   - XICParquetFile: Python bindings with multi-file support and filtering for reading XIC data from Parquet files (#8725)
 
 TOPP tools:
