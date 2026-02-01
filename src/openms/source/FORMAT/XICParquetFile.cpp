@@ -225,7 +225,7 @@ namespace OpenMS
       return concatenateTables_(tables);
     }
 
-    /// Fetch a named column (first chunk) or throw if required and missing.
+    /// Fetch a named column or throw if required and missing.
     std::shared_ptr<arrow::Array> getColumn_(const std::shared_ptr<arrow::Table>& table,
                                              const std::string& name,
                                              bool required = true)
@@ -245,7 +245,17 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Column has no chunks", name);
       }
-      return column->chunk(0);
+      if (column->num_chunks() == 1)
+      {
+        return column->chunk(0);
+      }
+      auto combined = arrow::Concatenate(column->chunks(), arrow::default_memory_pool());
+      if (!combined.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to combine column chunks", combined.status().ToString());
+      }
+      return *combined;
     }
 
     /// Read optional Int64 value at row; returns false if null or absent.
@@ -515,6 +525,15 @@ namespace OpenMS
         String column = upper_(tokens[i++]);
         if (i >= tokens.size()) break;
         String op = upper_(tokens[i++]);
+        if (op == "==")
+        {
+          op = "=";
+        }
+        if (op != "=" && op != "!=" && op != "<" && op != "<=" && op != ">" && op != ">=" && op != "IN")
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Unsupported filter operator", op);
+        }
 
         Condition cond;
         cond.column = column;
@@ -533,14 +552,21 @@ namespace OpenMS
             }
             ++i;
           }
+          if (cond.values.empty())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "IN operator expects at least one value", filter);
+          }
           if (i < tokens.size() && tokens[i] == "]") ++i;
         }
         else
         {
-          if (i < tokens.size())
+          if (i >= tokens.size())
           {
-            cond.values.push_back(tokens[i++]);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Missing filter value for operator", op);
           }
+          cond.values.push_back(tokens[i++]);
         }
 
         expr.conditions.push_back(cond);
@@ -1242,7 +1268,13 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to build filtered table", filter_context);
       }
-      return *table_result;
+      auto combined = (*table_result)->CombineChunks(arrow::default_memory_pool());
+      if (!combined.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to combine filtered chunks", combined.status().ToString());
+      }
+      return *combined;
     }
 #endif
   } // namespace
@@ -1317,7 +1349,7 @@ namespace OpenMS
 #else
     output.clear();
 
-    auto table = readParquetTable_(filenames_);
+    std::shared_ptr<arrow::Table> table;
 
     std::unordered_map<String, ColumnType> column_types = {
       {"RUN_ID", ColumnType::INT},
@@ -1374,6 +1406,10 @@ namespace OpenMS
       }
     }
 #endif
+    if (!table)
+    {
+      table = readParquetTable_(filenames_);
+    }
     if (!used_dataset)
     {
       table = applyArrowFilter_(table, combined_filter, filter_context);

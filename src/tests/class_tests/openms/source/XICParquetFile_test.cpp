@@ -61,6 +61,10 @@ START_SECTION(void getChromatograms(std::vector<XICChromatogram>&, Int64, Int64,
   TEST_EQUAL(chroms_filtered.size() > 0, true)
   TEST_EQUAL(chroms_filtered.size() <= chroms_all.size(), true)
 
+  std::vector<XICChromatogram> chroms_filtered_eqeq;
+  xic.getChromatograms(chroms_filtered_eqeq, -1, -1, "", -1, -1, -1, -1, "precursor_id==2");
+  TEST_EQUAL(chroms_filtered_eqeq.size(), chroms_filtered.size())
+
   ParquetFilter typed_filter;
   typed_filter.eq("PRECURSOR_ID", 2);
   std::vector<XICChromatogram> chroms_typed;
@@ -72,6 +76,10 @@ START_SECTION(void getChromatograms(std::vector<XICChromatogram>&, Int64, Int64,
   std::vector<XICChromatogram> chroms_invalid_filter;
   TEST_EXCEPTION(Exception::InvalidValue,
                  xic.getChromatograms(chroms_invalid_filter, -1, -1, "", -1, -1, -1, -1, "precursor_id=="))
+
+  std::vector<XICChromatogram> chroms_invalid_in;
+  TEST_EXCEPTION(Exception::InvalidValue,
+                 xic.getChromatograms(chroms_invalid_in, -1, -1, "", -1, -1, -1, -1, "precursor_id IN []"))
 #endif
 }
 END_SECTION

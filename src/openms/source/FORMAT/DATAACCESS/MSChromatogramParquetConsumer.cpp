@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
+#include <exception>
 #include <memory>
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
@@ -35,6 +36,15 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       String("Failed to append value for ") + column, status.ToString());
+      }
+    }
+
+    void reserveOrThrow_(const arrow::Status& status, const char* column)
+    {
+      if (!status.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      String("Failed to reserve capacity for ") + column, status.ToString());
       }
     }
 
@@ -180,6 +190,7 @@ namespace OpenMS
       {
         OPENMS_LOG_ERROR << "Failed to write chromatogram parquet file '" << filename_
                          << "': " << e.what() << "\n";
+        std::terminate();
       }
 #endif
     }
@@ -274,24 +285,24 @@ namespace OpenMS
 #ifdef WITH_PARQUET
       if (expectedChromatograms > 0)
       {
-        run_id_builder_.Reserve(expectedChromatograms);
-        source_file_builder_.Reserve(expectedChromatograms);
-        ms_level_builder_.Reserve(expectedChromatograms);
-        precursor_id_builder_.Reserve(expectedChromatograms);
-        transition_id_builder_.Reserve(expectedChromatograms);
-        modified_sequence_builder_.Reserve(expectedChromatograms);
-        precursor_charge_builder_.Reserve(expectedChromatograms);
-        product_charge_builder_.Reserve(expectedChromatograms);
-        detecting_transition_builder_.Reserve(expectedChromatograms);
-        precursor_decoy_builder_.Reserve(expectedChromatograms);
-        product_decoy_builder_.Reserve(expectedChromatograms);
-        transition_ordinal_builder_.Reserve(expectedChromatograms);
-        transition_type_builder_.Reserve(expectedChromatograms);
-        annotation_builder_.Reserve(expectedChromatograms);
-        rt_data_builder_.Reserve(expectedChromatograms);
-        intensity_data_builder_.Reserve(expectedChromatograms);
-        rt_compression_builder_.Reserve(expectedChromatograms);
-        intensity_compression_builder_.Reserve(expectedChromatograms);
+        reserveOrThrow_(run_id_builder_.Reserve(expectedChromatograms), "RUN_ID");
+        reserveOrThrow_(source_file_builder_.Reserve(expectedChromatograms), "SOURCE_FILE");
+        reserveOrThrow_(ms_level_builder_.Reserve(expectedChromatograms), "MS_LEVEL");
+        reserveOrThrow_(precursor_id_builder_.Reserve(expectedChromatograms), "PRECURSOR_ID");
+        reserveOrThrow_(transition_id_builder_.Reserve(expectedChromatograms), "TRANSITION_ID");
+        reserveOrThrow_(modified_sequence_builder_.Reserve(expectedChromatograms), "MODIFIED_SEQUENCE");
+        reserveOrThrow_(precursor_charge_builder_.Reserve(expectedChromatograms), "PRECURSOR_CHARGE");
+        reserveOrThrow_(product_charge_builder_.Reserve(expectedChromatograms), "PRODUCT_CHARGE");
+        reserveOrThrow_(detecting_transition_builder_.Reserve(expectedChromatograms), "DETECTING_TRANSITION");
+        reserveOrThrow_(precursor_decoy_builder_.Reserve(expectedChromatograms), "PRECURSOR_DECOY");
+        reserveOrThrow_(product_decoy_builder_.Reserve(expectedChromatograms), "PRODUCT_DECOY");
+        reserveOrThrow_(transition_ordinal_builder_.Reserve(expectedChromatograms), "TRANSITION_ORDINAL");
+        reserveOrThrow_(transition_type_builder_.Reserve(expectedChromatograms), "TRANSITION_TYPE");
+        reserveOrThrow_(annotation_builder_.Reserve(expectedChromatograms), "ANNOTATION");
+        reserveOrThrow_(rt_data_builder_.Reserve(expectedChromatograms), "RT_DATA");
+        reserveOrThrow_(intensity_data_builder_.Reserve(expectedChromatograms), "INTENSITY_DATA");
+        reserveOrThrow_(rt_compression_builder_.Reserve(expectedChromatograms), "RT_COMPRESSION");
+        reserveOrThrow_(intensity_compression_builder_.Reserve(expectedChromatograms), "INTENSITY_COMPRESSION");
       }
 #endif
     }

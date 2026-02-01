@@ -51,9 +51,11 @@ namespace OpenMS
 
       <table>
         <tr> <th BGCOLOR="#EBEBEB">Column</th> <th BGCOLOR="#EBEBEB">Value</th> <th BGCOLOR="#EBEBEB">Description</th> </tr>
-        <tr> <td>RT_COMPRESSION</td> <td>1</td> <td>No compression (raw doubles)</td> </tr>
+        <tr> <td>RT_COMPRESSION</td> <td>0</td> <td>No compression (raw doubles)</td> </tr>
+        <tr> <td>RT_COMPRESSION</td> <td>1</td> <td>Zlib-compressed raw doubles</td> </tr>
         <tr> <td>RT_COMPRESSION</td> <td>5</td> <td>MSNumpress (linear) with lossy compression</td> </tr>
-        <tr> <td>INTENSITY_COMPRESSION</td> <td>1</td> <td>No compression (raw doubles)</td> </tr>
+        <tr> <td>INTENSITY_COMPRESSION</td> <td>0</td> <td>No compression (raw doubles)</td> </tr>
+        <tr> <td>INTENSITY_COMPRESSION</td> <td>1</td> <td>Zlib-compressed raw doubles</td> </tr>
         <tr> <td>INTENSITY_COMPRESSION</td> <td>6</td> <td>MSNumpress (short logged float) with lossy compression</td> </tr>
       </table>
   */
