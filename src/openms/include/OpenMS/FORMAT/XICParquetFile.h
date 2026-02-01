@@ -215,6 +215,15 @@ namespace OpenMS
                           const ParquetFilter& filter) const;
 
     /**
+      @brief Return chromatograms using a typed filter builder.
+
+      @param[out] output Output chromatograms
+      @param[in] filter Typed filter builder
+    */
+    void getChromatograms(std::vector<XICChromatogram>& output,
+                          const ParquetFilterBuilder& filter) const;
+
+    /**
       @brief Return unique run metadata (run_id, source_file).
 
       This method never decodes RT/intensity arrays and always returns distinct

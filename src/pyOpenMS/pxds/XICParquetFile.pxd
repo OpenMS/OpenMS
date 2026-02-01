@@ -4,7 +4,7 @@ from libcpp cimport bool
 from String cimport String
 from StringList cimport StringList
 from Types cimport Int64
-from ParquetFilter cimport ParquetFilter
+from ParquetFilter cimport ParquetFilter, ParquetFilterBuilder
 
 ctypedef vector[double] DoubleVector
 
@@ -114,6 +114,11 @@ cdef extern from "<OpenMS/FORMAT/XICParquetFile.h>" namespace "OpenMS":
                               const ParquetFilter& filter) const  # wrap-ignore
             # wrap-doc:
             #  Load chromatograms using a typed parquet filter.
+
+        void getChromatograms(vector[XICChromatogram]& output,
+                              const ParquetFilterBuilder& filter) const  # wrap-ignore
+            # wrap-doc:
+            #  Load chromatograms using a typed parquet filter builder.
 
         void getRuns(vector[XICRunInfo]& output) except +  # wrap-ignore
             # wrap-doc:

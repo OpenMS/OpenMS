@@ -42,6 +42,8 @@ def doCythonCompile(arg):
     modname, autowrap_include_dirs = arg
     m_filename = "pyopenms/%s.pyx" % modname
     print ("Cython compile", m_filename)
+    if PYOPENMS_SRC_DIR not in autowrap_include_dirs:
+        autowrap_include_dirs.append(PYOPENMS_SRC_DIR)
     autowrap.Main.run_cython(inc_dirs=autowrap_include_dirs, extra_opts={}, out=m_filename, warn_level=2)
 
 if __name__ == '__main__':

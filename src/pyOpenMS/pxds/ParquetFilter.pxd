@@ -1,5 +1,4 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.memory cimport shared_ptr
 from libc.stdint cimport int64_t
 from String cimport String
 
@@ -29,5 +28,28 @@ cdef extern from "<OpenMS/FORMAT/ParquetFilter.h>" namespace "OpenMS":
 
         bint empty() const
 
-cdef class PyParquetFilter:
-    cdef shared_ptr[ParquetFilter] inst
+    cdef cppclass ParquetFilterBuilder:
+        ParquetFilterBuilder() except +
+        ParquetFilterBuilder(const ParquetFilterBuilder&) except +
+
+        ParquetFilterBuilder& andNext()
+        ParquetFilterBuilder& orNext()
+
+        ParquetFilterBuilder& eq(const String& column, int64_t value)
+        ParquetFilterBuilder& ne(const String& column, int64_t value)
+        ParquetFilterBuilder& lt(const String& column, int64_t value)
+        ParquetFilterBuilder& le(const String& column, int64_t value)
+        ParquetFilterBuilder& gt(const String& column, int64_t value)
+        ParquetFilterBuilder& ge(const String& column, int64_t value)
+        ParquetFilterBuilder& in_ "in"(const String& column, const libcpp_vector[int64_t]& values)
+
+        ParquetFilterBuilder& eq(const String& column, const String& value)
+        ParquetFilterBuilder& ne(const String& column, const String& value)
+        ParquetFilterBuilder& lt(const String& column, const String& value)
+        ParquetFilterBuilder& le(const String& column, const String& value)
+        ParquetFilterBuilder& gt(const String& column, const String& value)
+        ParquetFilterBuilder& ge(const String& column, const String& value)
+        ParquetFilterBuilder& in_ "in"(const String& column, const libcpp_vector[String]& values)
+
+        const ParquetFilter& filter() const
+        bint empty() const

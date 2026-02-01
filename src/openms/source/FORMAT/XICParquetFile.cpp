@@ -1543,6 +1543,12 @@ namespace OpenMS
     getChromatograms_(output, filter.expression(), -1, -1, "", -1, -1, -1, -1, "");
   }
 
+  void XICParquetFile::getChromatograms(std::vector<XICChromatogram>& output,
+                                        const ParquetFilterBuilder& filter) const
+  {
+    getChromatograms(output, filter.filter());
+  }
+
   void XICParquetFile::getAnalytes(std::vector<XICAnalyte>& output,
                                    const std::vector<String>& columns,
                                    bool nest_transitions) const

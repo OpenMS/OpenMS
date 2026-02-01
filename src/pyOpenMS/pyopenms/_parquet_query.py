@@ -4,6 +4,11 @@ This module defines a small abstract query interface and a concrete
 ChromatogramQuery for XICParquetFile. The builders are pure Python to
 avoid Cython class placement limitations while still using the C++
 ParquetFilter under the hood for predicate pushdown.
+
+Why this exists:
+  - Keeps a stable, Python-friendly chaining API (filter_* methods).
+  - Delegates predicate construction to the C++ ParquetFilterBuilder via
+    `pyopenms._parquet_filter`, enabling pushdown without string-encoded filters.
 """
 
 from abc import ABC, abstractmethod
@@ -29,8 +34,8 @@ class ParquetQuery(ABC):
         self._typed_has_condition = False
         if self._typed is None:
             try:
-                from . import PyParquetFilter
-                self._typed = PyParquetFilter()
+                from . import _parquet_filter
+                self._typed = _parquet_filter.ParquetFilterBuilder()
             except Exception:
                 self._typed = None
 

@@ -6,8 +6,8 @@ from StringList cimport StringList
 from XICParquetFile cimport XICChromatogram as _XICChromatogram
 from XICParquetFile cimport XICAnalyte as _XICAnalyte
 from XICParquetFile cimport XICRunInfo as _XICRunInfo
-from ParquetFilter cimport ParquetFilter as _ParquetFilter
-from ParquetFilter cimport PyParquetFilter as _PyParquetFilter
+from pyopenms._parquet_filter cimport ParquetFilterBuilder as _PyParquetFilter
+from ._pyopenms_1 cimport convString, convOutputString
 import numpy as np
 
 
@@ -216,7 +216,7 @@ import numpy as np
         try:
             self.inst.get().getChromatograms(chroms, deref((<_PyParquetFilter>parquet_filter).inst.get()))
         except AttributeError:
-            raise TypeError("parquet_filter must be a ParquetFilter instance")
+            raise TypeError("parquet_filter must be a ParquetFilterBuilder instance")
 
         cdef list run_id_list = []
         cdef list source_file_list = []
