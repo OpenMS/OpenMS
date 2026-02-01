@@ -1518,7 +1518,7 @@ namespace OpenMS
       {
         output.push_back(std::move(info));
       }
-  }
+    }
 #endif
   }
 
