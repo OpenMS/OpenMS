@@ -16,13 +16,13 @@ from libcpp.string cimport string as libcpp_utf8_string
 
 # this class has addons, see the ./addons folder
 
-cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS::MSExperiment":
+cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS::MSExperiment::RasterAggregation":
 
     cdef enum RasterAggregation "OpenMS::MSExperiment::RasterAggregation":
         # wrap-attach:
         #   MSExperiment
-        SUM
-        MAX
+        SUM "OpenMS::MSExperiment::RasterAggregation::SUM"
+        MAX "OpenMS::MSExperiment::RasterAggregation::MAX"
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 

@@ -1248,11 +1248,11 @@ from libc.stdint cimport uintptr_t
         cdef Size mz_bins = output.shape[0]
         cdef float* output_ptr = &output[0, 0]
 
-        cdef RasterAggregation agg_mode
+        cdef _MSExperiment.RasterAggregation agg_mode
         if aggregation.lower() == "sum":
-            agg_mode = RasterAggregation.SUM
+            agg_mode = _MSExperiment.RasterAggregation.SUM
         elif aggregation.lower() == "max":
-            agg_mode = RasterAggregation.MAX
+            agg_mode = _MSExperiment.RasterAggregation.MAX
         else:
             raise ValueError(f"Invalid aggregation mode '{aggregation}'. Must be 'sum' or 'max'.")
 
