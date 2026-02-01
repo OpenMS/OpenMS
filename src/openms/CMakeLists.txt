@@ -60,6 +60,8 @@ set(OPENMS_DEP_LIBRARIES
   XercesC::XercesC
   Qt6::Core
   Qt6::Network
+  # Ensure Arrow compute symbols are available at final link (needed by XICParquet).
+  $<$<BOOL:${WITH_PARQUET}>:${OPENMS_ARROW_COMPUTE_TARGET}>
   # Needed when Arrow Dataset (pushdown) is enabled; avoids missing libxml2 symbols at runtime.
   $<$<BOOL:${OPENMS_ARROW_DATASET_TARGET}>:LibXml2::LibXml2>
 )
