@@ -55,8 +55,11 @@ set(RUNTIME_DEP_SEARCH_DIRS ${DEP_BIN_DIRS} ${DEP_LIB_DIRS})
 
 if(WITH_PARQUET)
   # Ensure Arrow/Parquet shared libs are discoverable during install() dependency collection.
-  # Needed so OpenMS/pyOpenMS wheels and installers bundle Arrow runtime deps (e.g., libarrow_compute)
-  # when OpenMS links against Arrow Compute/Dataset. Without this, wheels fail to import at runtime.
+  # This feeds RUNTIME_DEP_SEARCH_DIRS so install(RUNTIME_DEPENDENCY_SET ...) can locate Arrow libs
+  # that are not always in the main build tree. It is required for packaging (CPack installers and
+  # pyOpenMS wheels) to bundle Arrow runtime deps like libarrow_compute/libarrow_dataset, which are
+  # loaded by OpenMS/pyOpenMS at runtime. Without these search paths, the install step can miss those
+  # shared libs and the resulting binaries/wheels fail to link or import on user machines.
   foreach(_arrow_dep IN ITEMS OPENMS_ARROW_TARGET OPENMS_ARROW_COMPUTE_TARGET OPENMS_PARQUET_TARGET OPENMS_ARROW_DATASET_TARGET)
     if(DEFINED ${_arrow_dep} AND NOT "${${_arrow_dep}}" STREQUAL "")
       if(TARGET ${${_arrow_dep}})

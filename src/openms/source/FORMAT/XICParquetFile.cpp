@@ -811,6 +811,272 @@ namespace OpenMS
       return result;
     }
 
+    struct ManualCondition
+    {
+      Condition cond;
+      int index{-1};
+      std::vector<Int64> int_values;
+    };
+
+    bool getIntValueFromArray_(const std::shared_ptr<arrow::Array>& array, int64_t row, Int64& value)
+    {
+      if (!array || array->IsNull(row))
+      {
+        return false;
+      }
+
+      switch (array->type_id())
+      {
+        case arrow::Type::INT64:
+          value = static_cast<arrow::Int64Array*>(array.get())->Value(row);
+          return true;
+        case arrow::Type::INT32:
+          value = static_cast<arrow::Int32Array*>(array.get())->Value(row);
+          return true;
+        case arrow::Type::INT16:
+          value = static_cast<arrow::Int16Array*>(array.get())->Value(row);
+          return true;
+        case arrow::Type::INT8:
+          value = static_cast<arrow::Int8Array*>(array.get())->Value(row);
+          return true;
+        case arrow::Type::UINT64:
+          value = static_cast<arrow::UInt64Array*>(array.get())->Value(row);
+          return true;
+        case arrow::Type::UINT32:
+          value = static_cast<arrow::UInt32Array*>(array.get())->Value(row);
+          return true;
+        case arrow::Type::UINT16:
+          value = static_cast<arrow::UInt16Array*>(array.get())->Value(row);
+          return true;
+        case arrow::Type::UINT8:
+          value = static_cast<arrow::UInt8Array*>(array.get())->Value(row);
+          return true;
+        case arrow::Type::BOOL:
+          value = static_cast<arrow::BooleanArray*>(array.get())->Value(row) ? 1 : 0;
+          return true;
+        default:
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Unsupported integer column type", String(array->type()->ToString()));
+      }
+    }
+
+    bool getStringValueFromArray_(const std::shared_ptr<arrow::Array>& array, int64_t row, String& value)
+    {
+      if (!array || array->IsNull(row))
+      {
+        return false;
+      }
+
+      switch (array->type_id())
+      {
+        case arrow::Type::STRING:
+          value = static_cast<arrow::StringArray*>(array.get())->GetString(row);
+          return true;
+        case arrow::Type::LARGE_STRING:
+          value = static_cast<arrow::LargeStringArray*>(array.get())->GetString(row);
+          return true;
+        default:
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Unsupported string column type", String(array->type()->ToString()));
+      }
+    }
+
+    bool evaluateCondition_(const ManualCondition& cond,
+                            const std::shared_ptr<arrow::RecordBatch>& batch,
+                            int64_t row)
+    {
+      if (!batch || cond.index < 0 || cond.index >= batch->num_columns())
+      {
+        return false;
+      }
+
+      const auto& array = batch->column(cond.index);
+      if (cond.cond.type == ColumnType::INT)
+      {
+        Int64 lhs = 0;
+        if (!getIntValueFromArray_(array, row, lhs))
+        {
+          return false;
+        }
+
+        if (cond.cond.op == "IN")
+        {
+          for (const auto& rhs : cond.int_values)
+          {
+            if (lhs == rhs) return true;
+          }
+          return false;
+        }
+
+        if (cond.int_values.empty())
+        {
+          return false;
+        }
+        const Int64 rhs = cond.int_values.front();
+        if (cond.cond.op == "=") return lhs == rhs;
+        if (cond.cond.op == "!=") return lhs != rhs;
+        if (cond.cond.op == "<") return lhs < rhs;
+        if (cond.cond.op == "<=") return lhs <= rhs;
+        if (cond.cond.op == ">") return lhs > rhs;
+        if (cond.cond.op == ">=") return lhs >= rhs;
+      }
+      else
+      {
+        String lhs;
+        if (!getStringValueFromArray_(array, row, lhs))
+        {
+          return false;
+        }
+
+        if (cond.cond.op == "IN")
+        {
+          for (const auto& rhs : cond.cond.values)
+          {
+            if (lhs == rhs) return true;
+          }
+          return false;
+        }
+
+        if (cond.cond.values.empty())
+        {
+          return false;
+        }
+        const String& rhs = cond.cond.values.front();
+        if (cond.cond.op == "=") return lhs == rhs;
+        if (cond.cond.op == "!=") return lhs != rhs;
+        if (cond.cond.op == "<") return lhs < rhs;
+        if (cond.cond.op == "<=") return lhs <= rhs;
+        if (cond.cond.op == ">") return lhs > rhs;
+        if (cond.cond.op == ">=") return lhs >= rhs;
+      }
+
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Unsupported filter operator", cond.cond.op);
+    }
+
+    bool evaluateFilterExpression_(const std::vector<ManualCondition>& conditions,
+                                   const std::vector<String>& connectors,
+                                   const std::shared_ptr<arrow::RecordBatch>& batch,
+                                   int64_t row)
+    {
+      if (conditions.empty())
+      {
+        return true;
+      }
+
+      bool result = evaluateCondition_(conditions.front(), batch, row);
+      for (Size i = 1; i < conditions.size(); ++i)
+      {
+        const String connector = (i - 1 < connectors.size()) ? connectors[i - 1] : "AND";
+        const bool next = evaluateCondition_(conditions[i], batch, row);
+        if (connector == "OR")
+        {
+          result = result || next;
+        }
+        else
+        {
+          result = result && next;
+        }
+      }
+      return result;
+    }
+
+    std::shared_ptr<arrow::Table> applyManualFilter_(const std::shared_ptr<arrow::Table>& table,
+                                                     const FilterExpression& parsed,
+                                                     const String& filter)
+    {
+      std::vector<ManualCondition> conditions;
+      conditions.reserve(parsed.conditions.size());
+
+      auto schema = table->schema();
+      for (const auto& cond : parsed.conditions)
+      {
+        ManualCondition manual;
+        manual.cond = cond;
+        manual.index = schema->GetFieldIndex(std::string(cond.column));
+        if (manual.index < 0)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Column not found in parquet schema", cond.column);
+        }
+        if (cond.type == ColumnType::INT)
+        {
+          manual.int_values.reserve(cond.values.size());
+          for (const auto& value : cond.values)
+          {
+            try
+            {
+              manual.int_values.push_back(value.toInt64());
+            }
+            catch (const std::exception&)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Invalid integer filter value", value);
+            }
+          }
+        }
+        conditions.push_back(std::move(manual));
+      }
+
+      arrow::TableBatchReader reader(*table);
+      std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+      std::shared_ptr<arrow::RecordBatch> batch;
+
+      while (true)
+      {
+        auto read_status = reader.ReadNext(&batch);
+        if (!read_status.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to read record batch", filter);
+        }
+        if (!batch)
+        {
+          break;
+        }
+
+        const int64_t num_rows = batch->num_rows();
+        for (int64_t row = 0; row < num_rows; ++row)
+        {
+          if (evaluateFilterExpression_(conditions, parsed.connectors, batch, row))
+          {
+            batches.push_back(batch->Slice(row, 1));
+          }
+        }
+      }
+
+      if (batches.empty())
+      {
+        std::vector<std::shared_ptr<arrow::Array>> empty_columns;
+        empty_columns.reserve(schema->num_fields());
+        for (const auto& field : schema->fields())
+        {
+          auto array_result = arrow::MakeArrayOfNull(field->type(), 0);
+          if (!array_result.ok())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Failed to create empty column", array_result.status().ToString());
+          }
+          empty_columns.push_back(*array_result);
+        }
+        return arrow::Table::Make(schema, empty_columns);
+      }
+
+      auto table_result = arrow::Table::FromRecordBatches(schema, batches);
+      if (!table_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to build filtered table", filter);
+      }
+      auto combined = (*table_result)->CombineChunks(arrow::default_memory_pool());
+      if (!combined.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to combine filtered chunks", combined.status().ToString());
+      }
+      return *combined;
+    }
+
 #ifdef WITH_ARROW_DATASET
     /// Read parquet files via Arrow Dataset with predicate pushdown.
     std::shared_ptr<arrow::Table> readParquetTableDataset_(const std::vector<String>& filenames,
@@ -922,8 +1188,9 @@ namespace OpenMS
       auto bound_result = expr.Bind(*table->schema());
       if (!bound_result.ok())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to bind filter expression", bound_result.status().ToString());
+        OPENMS_LOG_WARN << "Arrow compute filter unavailable, falling back to manual filter: "
+                        << bound_result.status().ToString() << '\n';
+        return applyManualFilter_(table, parsed, filter);
       }
       arrow::compute::Expression bound_expr = *bound_result;
 
@@ -948,15 +1215,17 @@ namespace OpenMS
           bound_expr, *batch->schema(), arrow::Datum(batch));
         if (!mask_result.ok())
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Failed to evaluate filter expression", filter);
+          OPENMS_LOG_WARN << "Arrow compute filter failed, falling back to manual filter: "
+                          << mask_result.status().ToString() << '\n';
+          return applyManualFilter_(table, parsed, filter);
         }
 
         auto filtered_result = arrow::compute::Filter(arrow::Datum(batch), *mask_result);
         if (!filtered_result.ok())
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Failed to apply filter expression", filter);
+          OPENMS_LOG_WARN << "Arrow compute filter failed, falling back to manual filter: "
+                          << filtered_result.status().ToString() << '\n';
+          return applyManualFilter_(table, parsed, filter);
         }
 
         const auto& filtered_batch = filtered_result->record_batch();
