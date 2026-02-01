@@ -299,6 +299,11 @@ namespace OpenMS
       {
         case 0: // no compression
         {
+          if (data.size() % sizeof(double) != 0)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Invalid RT/intensity data size (not divisible by 8)", String(data.size()));
+          }
           const size_t count = data.size() / sizeof(double);
           output.resize(count);
           std::memcpy(output.data(), data.c_str(), count * sizeof(double));
@@ -308,6 +313,11 @@ namespace OpenMS
         {
           String decoded;
           ZlibCompression::uncompressString(data, decoded);
+          if (decoded.size() % sizeof(double) != 0)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Invalid decompressed RT/intensity data size", String(decoded.size()));
+          }
           const size_t count = decoded.size() / sizeof(double);
           output.resize(count);
           std::memcpy(output.data(), decoded.c_str(), count * sizeof(double));
