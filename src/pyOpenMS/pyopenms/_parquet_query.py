@@ -29,8 +29,8 @@ class ParquetQuery(ABC):
         self._typed_has_condition = False
         if self._typed is None:
             try:
-                from . import ParquetFilter
-                self._typed = ParquetFilter()
+                from . import PyParquetFilter
+                self._typed = PyParquetFilter()
             except Exception:
                 self._typed = None
 

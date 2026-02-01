@@ -1,4 +1,5 @@
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.memory cimport shared_ptr
 from libc.stdint cimport int64_t
 from String cimport String
 
@@ -27,3 +28,6 @@ cdef extern from "<OpenMS/FORMAT/ParquetFilter.h>" namespace "OpenMS":
         ParquetFilter& in_ "in"(const String& column, const libcpp_vector[String]& values)
 
         bint empty() const
+
+cdef class PyParquetFilter:
+    cdef shared_ptr[ParquetFilter] inst

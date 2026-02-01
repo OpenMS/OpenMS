@@ -7,6 +7,7 @@ from XICParquetFile cimport XICChromatogram as _XICChromatogram
 from XICParquetFile cimport XICAnalyte as _XICAnalyte
 from XICParquetFile cimport XICRunInfo as _XICRunInfo
 from ParquetFilter cimport ParquetFilter as _ParquetFilter
+from ParquetFilter cimport PyParquetFilter as _PyParquetFilter
 import numpy as np
 
 
