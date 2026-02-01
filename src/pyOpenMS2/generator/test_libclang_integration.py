@@ -106,7 +106,7 @@ def main():
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    emitter = NanobindEmitter(num_modules=8)
+    emitter = NanobindEmitter()
     emitter.emit(merged, output_dir)
 
     print(f"  Generated files in {output_dir}:")
