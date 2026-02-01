@@ -279,7 +279,7 @@ import numpy as np
                         elif not isinstance(spec_id, str):
                             spec_id = str(spec_id)
                     else:
-                        spec_id = 'None'
+                        spec_id = None
                     hits = pep[0].getHits()
                     if len(hits) > 0:
                         besthit = hits[0]
@@ -287,8 +287,8 @@ import numpy as np
                     else:
                         pep_values = (None, None, ID_filename, spec_id)
                 else:
-                    # Use string 'None' for missing values to match test expectations
-                    pep_values = (None, None, None, 'None')
+                    # Use Python None for missing values (object dtype supports None natively)
+                    pep_values = (None, None, None, None)
             else:
                 pep_values = ()
 
