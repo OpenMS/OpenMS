@@ -83,6 +83,12 @@ namespace OpenMS
     /// @brief Consume a chromatogram and append it to the parquet output.
     void consumeChromatogram(ChromatogramType& c) override;
     /**
+      @brief Finalize and write the parquet file.
+
+      Call this explicitly to surface write errors during normal control flow.
+    */
+    void finalize();
+    /**
       @brief Reserve storage for expected data sizes.
 
       @param expectedSpectra Expected number of spectra (ignored).

@@ -181,16 +181,14 @@ namespace OpenMS
     ~MSChromatogramParquetConsumerImpl()
     {
 #ifdef WITH_PARQUET
-      if (wrote_) return;
       try
       {
-        write_();
+        finalize();
       }
       catch (const Exception::BaseException& e)
       {
         OPENMS_LOG_ERROR << "Failed to write chromatogram parquet file '" << filename_
                          << "': " << e.what() << "\n";
-        std::terminate();
       }
 #endif
     }
@@ -311,6 +309,17 @@ namespace OpenMS
     {
     }
 
+    void finalize()
+    {
+#ifdef WITH_PARQUET
+      if (wrote_)
+      {
+        return;
+      }
+      write_();
+#endif
+    }
+
   private:
     String filename_;
     UInt64 run_id_{0};
@@ -319,6 +328,7 @@ namespace OpenMS
 #ifdef WITH_PARQUET
     void buildTransitionMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
     {
+      // Build lookup tables for precursor- and transition-level metadata.
       int64_t next_precursor_id = 1;
       int64_t next_transition_id = 1;
 
@@ -410,6 +420,7 @@ namespace OpenMS
 
     void encodeChromatogram_(const MSChromatogramParquetConsumer::ChromatogramType& c)
     {
+      // Marshal chromatogram data into RT/intensity arrays for encoding.
       std::vector<double> rt_data;
       std::vector<double> intensity_data;
       rt_data.reserve(c.size());
@@ -436,6 +447,7 @@ namespace OpenMS
       }
       if (use_lossy_compression)
       {
+        // MSNumpress encodes doubles to byte strings, then zlib compresses.
         MSNumpressCoder::NumpressConfig npconfig_mz;
         npconfig_mz.estimate_fixed_point = true;
         npconfig_mz.numpressErrorTolerance = -1.0;
@@ -457,6 +469,7 @@ namespace OpenMS
       }
       else
       {
+        // Raw doubles are zlib-compressed without MSNumpress.
         std::string rt_bytes(reinterpret_cast<const char*>(rt_data.data()), rt_data.size() * sizeof(double));
         ZlibCompression::compressString(rt_bytes, rt_encoded);
         std::string int_bytes(reinterpret_cast<const char*>(intensity_data.data()), intensity_data.size() * sizeof(double));
@@ -471,6 +484,7 @@ namespace OpenMS
 
     void write_()
     {
+      // Build Arrow schema for the chromatogram table.
       auto schema = arrow::schema({
         arrow::field("RUN_ID", arrow::int64()),
         arrow::field("SOURCE_FILE", arrow::utf8()),
@@ -492,6 +506,7 @@ namespace OpenMS
         arrow::field("INTENSITY_COMPRESSION", arrow::int64())
       });
 
+      // Finalize builders into arrays and assemble the table.
       auto table = arrow::Table::Make(schema, {
         finishArray_(run_id_builder_, "RUN_ID"),
         finishArray_(source_file_builder_, "SOURCE_FILE"),
@@ -513,6 +528,7 @@ namespace OpenMS
         finishArray_(intensity_compression_builder_, "INTENSITY_COMPRESSION")
       });
 
+      // Open output file and write the parquet table.
       auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename_));
       if (!outfile_result.ok())
       {
@@ -587,6 +603,11 @@ namespace OpenMS
   {
     (void)exp;
     impl_->setExperimentalSettings(exp);
+  }
+
+  void MSChromatogramParquetConsumer::finalize()
+  {
+    impl_->finalize();
   }
 
 } // namespace OpenMS
