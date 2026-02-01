@@ -1713,6 +1713,7 @@ protected:
                  << "rt_count" << "intensity_count"
                  << "rt_min" << "rt_max" << "intensity_min" << "intensity_max" << nl;
         }
+        output.modifyStrings(true);
 
         for (const auto& c : chroms)
         {
