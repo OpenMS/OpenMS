@@ -57,6 +57,8 @@ else()
   #------------------------------------------------------------------------------
   if(NOT TARGET OpenMS)
     # Standalone build - find installed/built OpenMS
+    # Ensure Arrow targets are available if OpenMS was built with Parquet support.
+    find_package(Arrow QUIET)
     find_package(OpenMS REQUIRED)
     # TODO the following is just a fallback.
     # CF_OPENMS_PACKAGE_VERSION is what is written into pyopenms/_version.py
