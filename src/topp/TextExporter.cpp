@@ -1713,6 +1713,12 @@ protected:
         for (const auto& c : chroms)
         {
           const Size n_points = c.rt.size();
+          if (c.intensity.size() != n_points)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "RT/intensity size mismatch in chromatogram",
+                                          String(n_points) + " vs " + String(c.intensity.size()));
+          }
           if (explode)
           {
             for (Size i = 0; i < n_points; ++i)
