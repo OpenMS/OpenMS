@@ -499,7 +499,11 @@ namespace OpenMS
         throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
       }
       auto outfile = outfile_result.ValueOrDie();
-      auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024);
+      parquet::WriterProperties::Builder builder;
+      builder.compression(parquet::Compression::ZSTD);
+      builder.compression_level(11);
+      auto props = builder.build();
+      auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024, props);
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
