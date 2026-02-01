@@ -59,6 +59,8 @@ else()
     # Standalone build - find installed/built OpenMS
     # Ensure Arrow targets are available if OpenMS was built with Parquet support.
     find_package(Arrow QUIET)
+    # OpenMS may export LibXml2 in its interface if Arrow Dataset was enabled.
+    find_package(LibXml2 QUIET)
     find_package(OpenMS REQUIRED)
     # TODO the following is just a fallback.
     # CF_OPENMS_PACKAGE_VERSION is what is written into pyopenms/_version.py
@@ -412,64 +414,66 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
     )
 
     #------------------------------------------------------------------------------
-    # Parquet filter builder module
+    # Parquet filter builder module (only when WITH_PARQUET is enabled)
     #------------------------------------------------------------------------------
-    message(STATUS "Building Parquet filter builder module for pyOpenMS")
+    if(WITH_PARQUET)
+      message(STATUS "Building Parquet filter builder module for pyOpenMS")
 
-    configure_file(
-      ${PROJECT_SOURCE_DIR}/pyopenms/_parquet_filter.pyx
-      ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
-      COPYONLY
-    )
-
-    add_custom_command(
-      OUTPUT ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
-      COMMAND ${Python_EXECUTABLE} -m cython --cplus
-        -I ${PROJECT_SOURCE_DIR}/pxds
+      configure_file(
+        ${PROJECT_SOURCE_DIR}/pyopenms/_parquet_filter.pyx
         ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
-        -o ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
-      DEPENDS ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
-      COMMENT "Cythonizing _parquet_filter.pyx"
-      WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
-    )
-
-    Python_add_library(parquet_filter MODULE
-      ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
-      WITH_SOABI
-    )
-    target_link_libraries(parquet_filter PRIVATE OpenMS)
-    target_compile_definitions(parquet_filter PRIVATE
-      WITH_PARQUET=1
-    )
-    target_include_directories(parquet_filter SYSTEM PRIVATE
-      ${AUTOWRAP_INCLUDE_DIR}
-      ${PYOPENMS_BUILD_DIR}/extra_includes
-    )
-    target_compile_options(parquet_filter PRIVATE ${EXTRA_WARNINGS})
-    set_target_properties(parquet_filter PROPERTIES
-      OUTPUT_NAME _parquet_filter
-      LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
-      RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
-    )
-    if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
-      set_target_properties(parquet_filter PROPERTIES
-        INSTALL_RPATH "${PY_RPATH}"
-        BUILD_WITH_INSTALL_RPATH 1
-        BUILD_WITH_INSTALL_NAME_DIR 1
+        COPYONLY
       )
-    else()
+
+      add_custom_command(
+        OUTPUT ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
+        COMMAND ${Python_EXECUTABLE} -m cython --cplus
+          -I ${PROJECT_SOURCE_DIR}/pxds
+          ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
+          -o ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
+        DEPENDS ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
+        COMMENT "Cythonizing _parquet_filter.pyx"
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+      )
+
+      Python_add_library(parquet_filter MODULE
+        ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
+        WITH_SOABI
+      )
+      target_link_libraries(parquet_filter PRIVATE OpenMS)
+      target_compile_definitions(parquet_filter PRIVATE
+        WITH_PARQUET=1
+      )
+      target_include_directories(parquet_filter SYSTEM PRIVATE
+        ${AUTOWRAP_INCLUDE_DIR}
+        ${PYOPENMS_BUILD_DIR}/extra_includes
+      )
+      target_compile_options(parquet_filter PRIVATE ${EXTRA_WARNINGS})
       set_target_properties(parquet_filter PROPERTIES
-        INSTALL_RPATH_USE_LINK_PATH TRUE
-        INSTALL_NAME_DIR ""
+        OUTPUT_NAME _parquet_filter
+        LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
+      )
+      if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
+        set_target_properties(parquet_filter PROPERTIES
+          INSTALL_RPATH "${PY_RPATH}"
+          BUILD_WITH_INSTALL_RPATH 1
+          BUILD_WITH_INSTALL_NAME_DIR 1
+        )
+      else()
+        set_target_properties(parquet_filter PROPERTIES
+          INSTALL_RPATH_USE_LINK_PATH TRUE
+          INSTALL_NAME_DIR ""
+        )
+      endif()
+      add_dependencies(parquet_filter compile_pxds)
+
+      install(TARGETS parquet_filter
+        COMPONENT python_modules
+        LIBRARY DESTINATION pyopenms
+        RUNTIME DESTINATION pyopenms
       )
     endif()
-    add_dependencies(parquet_filter compile_pxds)
-
-    install(TARGETS parquet_filter
-      COMPONENT python_modules
-      LIBRARY DESTINATION pyopenms
-      RUNTIME DESTINATION pyopenms
-    )
   endif()
 
   #------------------------------------------------------------------------------

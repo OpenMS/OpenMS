@@ -85,8 +85,11 @@ if __name__ == '__main__':
 
   # Filter out Arrow/Parquet-dependent pxd files when WITH_PARQUET is disabled
   if not WITH_PARQUET:
-    pxd_files = [f for f in pxd_files if not os.path.basename(f).startswith('Arrow')]
-    print("WITH_PARQUET is disabled, excluding Arrow*.pxd files from wrapping")
+    def _is_parquet_related(name):
+      return name.startswith('Arrow') or ('Parquet' in name)
+
+    pxd_files = [f for f in pxd_files if not _is_parquet_related(os.path.basename(f))]
+    print("WITH_PARQUET is disabled, excluding Arrow*/Parquet* pxds from wrapping")
 
   addons = glob.glob(PYOPENMS_SRC_DIR + "/addons/*.pyx")
   converters = [j(PYOPENMS_SRC_DIR, "converters")]
