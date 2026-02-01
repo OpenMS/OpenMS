@@ -62,16 +62,38 @@ namespace OpenMS
   class OPENMS_DLLAPI MSChromatogramParquetConsumer : public Interfaces::IMSDataConsumer
   {
   public:
+    /**
+      @brief Construct a parquet consumer for chromatogram export.
+
+      @param filename Output parquet filename.
+      @param run_id Run identifier to store with each chromatogram.
+      @param source_file Source mzML filename to store with each chromatogram.
+      @param transition_exp Transition metadata used to annotate chromatograms.
+    */
     MSChromatogramParquetConsumer(const String& filename,
                                   UInt64 run_id,
                                   const String& source_file,
                                   const OpenSwath::LightTargetedExperiment& transition_exp);
 
+    /// @brief Destructor flushes pending data and closes the parquet writer.
     ~MSChromatogramParquetConsumer() override;
 
+    /// @brief Consume a spectrum (no-op; spectra are ignored for chromatogram export).
     void consumeSpectrum(SpectrumType& s) override;
+    /// @brief Consume a chromatogram and append it to the parquet output.
     void consumeChromatogram(ChromatogramType& c) override;
+    /**
+      @brief Reserve storage for expected data sizes.
+
+      @param expectedSpectra Expected number of spectra (ignored).
+      @param expectedChromatograms Expected number of chromatograms.
+    */
     void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) override;
+    /**
+      @brief Set experimental settings (currently unused).
+
+      @param exp Experimental settings to store for context.
+    */
     void setExperimentalSettings(const ExperimentalSettings& exp) override;
 
   private:
