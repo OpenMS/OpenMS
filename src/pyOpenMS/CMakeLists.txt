@@ -347,6 +347,18 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
   if(WITH_PARQUET)
     message(STATUS "Building Arrow zerocopy module for pyOpenMS")
 
+    # Standalone builds may not export OPENMS_ARROW_TARGET via OpenMSConfig.cmake.
+    if(NOT OPENMS_ARROW_TARGET)
+      if(TARGET Arrow::arrow_shared)
+        set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+      elseif(TARGET Arrow::arrow_static)
+        set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+      endif()
+    endif()
+    if(NOT OPENMS_ARROW_TARGET)
+      message(FATAL_ERROR "WITH_PARQUET=ON but no Arrow target is available (OPENMS_ARROW_TARGET unset, Arrow::arrow_* not found).")
+    endif()
+
     # Get Arrow include directories from the target
     get_target_property(ARROW_INCLUDE_DIRS ${OPENMS_ARROW_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
     if(NOT ARROW_INCLUDE_DIRS)
