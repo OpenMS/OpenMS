@@ -7,7 +7,6 @@ It uses accurate C++ type information from libclang for correct method signature
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import re
 from dataclasses import dataclass
@@ -70,6 +69,70 @@ def get_caster_owned_types() -> Set[str]:
     if _CASTER_OWNED_TYPES is None:
         _CASTER_OWNED_TYPES = scan_caster_files_for_types()
     return _CASTER_OWNED_TYPES
+
+
+# Map from OpenMS include subdirectory to domain module name.
+# Classes are assigned to domain files (bind_<domain>.cpp) based on their header path.
+DOMAIN_MAP = {
+    "KERNEL": "kernel",
+    "METADATA": "metadata",
+    "CHEMISTRY": "chemistry",
+    "ANALYSIS": "analysis",
+    "FEATUREFINDER": "featurefinder",
+    "FORMAT": "format",
+    "PROCESSING": "processing",
+    "DATASTRUCTURES": "datastructures",
+    "MATH": "datastructures",
+    "COMPARISON": "datastructures",
+    "CONCEPT": "datastructures",
+    "ML": "ml",
+    "SYSTEM": "misc",
+    "INTERFACES": "misc",
+    "IONMOBILITY": "misc",
+    "QC": "misc",
+    "APPLICATIONS": "misc",
+    "OPENSWATHALGO": "analysis",
+}
+
+# Ordered list of all domain names (determines file generation order)
+DOMAIN_NAMES = [
+    "kernel", "metadata", "chemistry", "analysis", "featurefinder",
+    "format", "processing", "datastructures", "ml", "misc",
+]
+
+def _get_handwritten_class_domain(hw_info: dict) -> str:
+    """Derive domain from a handwritten class's first include path."""
+    includes = hw_info.get("includes", [])
+    if includes:
+        # Strip angle brackets: "<OpenMS/KERNEL/Peak1D.h>" -> "OpenMS/KERNEL/Peak1D.h"
+        header = includes[0].strip("<>")
+        return _get_domain_from_header(header)
+    return "misc"
+
+
+def _get_domain_from_header(header_file: str) -> str:
+    """Extract domain name from an OpenMS header path.
+
+    E.g. 'OpenMS/KERNEL/Peak1D.h' -> 'kernel'
+         '/path/to/include/OpenMS/FORMAT/MzMLFile.h' -> 'format'
+    """
+    if not header_file:
+        return "misc"
+
+    # Find the OpenMS subdirectory in the path
+    # Look for pattern: OpenMS/<SUBDIR>/...
+    idx = header_file.rfind("OpenMS/")
+    if idx == -1:
+        return "misc"
+
+    after_openms = header_file[idx + len("OpenMS/"):]
+    # First path component is the subdirectory
+    parts = after_openms.split("/")
+    if len(parts) < 2:
+        return "misc"
+
+    subdir = parts[0]
+    return DOMAIN_MAP.get(subdir, "misc")
 
 
 # Methods to skip for specific classes (complex return types or signature mismatches)
@@ -637,6 +700,11 @@ ADDITIONAL_INCLUDES = {
     "Precursor": ["<OpenMS/METADATA/Precursor.h>"],
     "Product": ["<OpenMS/METADATA/Product.h>"],
     "CVTerm": ["<OpenMS/METADATA/CVTerm.h>"],
+    "IDMapper": ["<OpenMS/METADATA/AnnotatedMSRun.h>"],
+    "MRMTransitionGroup": ["<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>", "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
+    "PosteriorErrorProbabilityModel": ["<OpenMS/FORMAT/TextFile.h>"],
+    "IMTypes": ["<OpenMS/KERNEL/MSExperiment.h>", "<OpenMS/KERNEL/MSSpectrum.h>"],
+    "Tagger": ["<OpenMS/KERNEL/MSSpectrum.h>"],
     "ModificationsDB": ["<OpenMS/CHEMISTRY/ModificationsDB.h>"],
     "ResidueModification": ["<OpenMS/CHEMISTRY/ResidueModification.h>"],
     "PeptideIdentificationList": ["<OpenMS/METADATA/PeptideIdentificationList.h>", "<OpenMS/METADATA/PeptideIdentification.h>"],
@@ -748,384 +816,7 @@ ITERABLE_CLASSES = {
     "ConsensusMap", "PeakMap", "Mobilogram", "AASequence",
 }
 
-# Core classes to bind first - these are well-tested and have simple APIs
-# All other classes require more work on type normalization
-CORE_CLASSES = {
-    # === BATCH 1: Already working (50 classes) ===
-    # Basic peak types
-    "Peak1D", "Peak2D", "ChromatogramPeak", "MobilityPeak1D",
-    # Spectrum and chromatogram
-    "MSSpectrum", "MSChromatogram",
-    # Mobilogram (ion mobility)
-    "Mobilogram",
-    # Data arrays (required for MSSpectrum tests)
-    "FloatDataArray", "IntegerDataArray", "StringDataArray",
-    # Basic data types (DataValue has type caster, excluded)
-    "DateTime",
-    # MSExperiment / PeakMap
-    "MSExperiment",
-    # Identification classes
-    "PeptideIdentification", "ProteinIdentification",
-    "PeptideHit", "ProteinHit", "PeptideEvidence",
-    "PeptideIdentificationList",  # Container for peptide identifications
-    # Sequence classes
-    "AASequence", "EmpiricalFormula", "Residue",
-    # Param handling
-    "Param",
-    # Feature classes (handled via special methods to avoid overload issues)
-    "Feature", "FeatureMap",
-    "ConsensusFeature", "ConsensusMap",
-    # File I/O
-    "MzMLFile", "IdXMLFile", "FeatureXMLFile", "ConsensusXMLFile",
-    "PepXMLFile", "MzIdentMLFile",
-    # Metadata
-    "SourceFile", "Software", "ContactPerson", "Sample",
-    "Precursor", "Product",
-    "DataProcessing", "InstrumentSettings",
-    # CV terms
-    "CVTerm",
-    # ModificationsDB access
-    "ModificationsDB", "ResidueModification",
-    # Compression
-    "MSNumpressCoder",
-    # Statistics
-    "MultipleTesting",
-    # File utilities
-    "File",
-
-    # === BATCH 2: Classes A-B ===
-    "AAIndex", "AASeqWithMass", "AScore",
-    "AbsoluteQuantitation", "AbsoluteQuantitationMethod", "AbsoluteQuantitationMethodFile",
-    "AbsoluteQuantitationStandards", "AbsoluteQuantitationStandardsFile",
-    "AccurateMassSearchEngine", "AccurateMassSearchResult",
-    "Acquisition", "AcquisitionInfo",
-    "Adduct", "AdductInfo",
-    "AnnotationStatistics",
-    "Attachment",
-    "AverageLinkage",
-    "BSpline2d", "Base64", "BaseFeature",
-    "BasicProteinInferenceAlgorithm", "BayesianProteinInferenceAlgorithm",
-    "BiGaussFitter1D", "BiGaussModel",
-    "BinnedSpectrum",
-    "BuildInfo",
-
-    # === BATCH 3: Classes C ===
-    "CVMappingFile", "CVMappingRule", "CVMappingTerm", "CVMappings", "CVReference",
-    "CVTermList", "CVTermListInterface",
-    "CachedmzML", "CachedmzMLHandler",
-    "CalibrationData",
-    "ChargePair",
-    "ChromExtractParams",
-    "ChromatogramExtractor", "ChromatogramExtractorAlgorithm",
-    "ChromatogramSettings", "ChromatogramTools",
-    "ChromeleonFile",
-    "ClusterProxyKD", "ClusteringGrid",
-    "Compomer",
-    "ConfidenceScoring",
-    # ConsensusIDAlgorithm* - removed from CORE_CLASSES, they're abstract and auto-skipped
-    "ConsensusMapNormalizerAlgorithmMedian", "ConsensusMapNormalizerAlgorithmQuantile",
-    "ConsensusMapNormalizerAlgorithmThreshold",
-    "ControlledVocabulary",
-    "ConvexHull2D",
-    "CrossLinkSpectrumMatch", "CrossLinksDB",
-    "CsvFile",
-    "CubicSpline2d",
-
-    # === BATCH 4: Classes D ===
-    "DIAScoring",
-    "DTA2DFile", "DTAFile",
-    "DataFilters",
-    "Date",
-    "DeconvolvedSpectrum",
-    "DecoyGenerator",
-    "DefaultParamHandler",
-    "Deisotoper",
-    "DigestionEnzyme", "DigestionEnzymeProtein", "DigestionEnzymeRNA",
-    "DistanceMatrix",
-    "DocumentIdentifier",
-
-    # === BATCH 5: Classes E ===
-    "EDTAFile",
-    "Element", "ElementDB",
-    "ElutionModelFitter",
-    "ElutionPeakDetection",
-    "EmgFitter1D", "EmgGradientDescent", "EmgModel", "EmgScoring",
-    "EnzymaticDigestion",
-    "ExperimentalDesign", "ExperimentalDesignFile",
-    "ExperimentalSettings",
-
-    # === BATCH 6: Classes F ===
-    "FASTAFile",
-    "FIAMSDataProcessor", "FIAMSScheduler",
-    # FLASHDeconv* - removed from CORE_CLASSES, in SKIP_CLASSES due to complex parameter types
-    "FalseDiscoveryRate",
-    "FeatureDeconvolution",
-    "FeatureDistance",
-    "FeatureFileOptions",
-    "FeatureFinderAlgorithmMetaboIdent", "FeatureFinderAlgorithmPicked",
-    "FeatureFinderIdentificationAlgorithm", "FeatureFinderMultiplexAlgorithm",
-    "FeatureFindingMetabo",
-    "FeatureGroupingAlgorithm", "FeatureGroupingAlgorithmKD", "FeatureGroupingAlgorithmLabeled",
-    "FeatureGroupingAlgorithmQT", "FeatureGroupingAlgorithmUnlabeled",
-    "FeatureHandle",
-    "FeatureMapping",
-    "FeatureOverlapFilter",
-    "FileHandler", "FileTypes",
-    "Fitter1D",
-
-    # === BATCH 7: Classes G-H ===
-    "GNPSMGFFile", "GNPSMetaValueFile", "GNPSQuantificationFile",
-    "GaussFilter", "GaussFitter", "GaussTraceFitter",
-    "Gradient",
-    "GridBasedCluster",
-    "HPLC",
-    "HyperScore",
-
-    # === BATCH 8: Classes I ===
-    "IBSpectraFile",
-    "IDConflictResolverAlgorithm",
-    "IDDecoyProbability",
-    "IDFilter",
-    "IDMapper",
-    "IDRipper",
-    "ILPDCWrapper",
-    "IMSAlphabet", "IMSAlphabetTextParser",
-    "IMSElement", "IMSIsotopeDistribution",
-    "IMTypes",
-    "IncludeExcludeTarget",
-    "IndexedMzMLDecoder", "IndexedMzMLFile", "IndexedMzMLFileLoader",
-    "InspectInfile", "InspectOutfile",
-    "Instrument",
-    "InternalCalibration",
-    "InterpolationModel",
-    "IonDetector",
-    "IonIdentityMolecularNetworking",
-    "IonSource",
-    "IsobaricChannelExtractor", "IsobaricChannelInformation",
-    "IsobaricIsotopeCorrector", "IsobaricNormalizer", "IsobaricQuantifier",
-    "IsobaricQuantifierStatistics", "IsobaricQuantitationMethod",
-    "IsotopeCluster", "IsotopeDistribution",
-    "IsotopeFitter1D", "IsotopeLabelingMDVs", "IsotopeModel",
-    "ItraqConstants", "ItraqEightPlexQuantitationMethod", "ItraqFourPlexQuantitationMethod",
-
-    # === BATCH 9: Classes J-K ===
-    "JavaInfo",
-    "KDTreeFeatureMaps", "KDTreeFeatureNode",
-    "KernelDensityEstimation",
-    "KroenikFile",
-
-    # === BATCH 10: Classes L ===
-    "LPWrapper",
-    "LabeledPairFinder",
-    "LevMarqFitter1D",
-    "LightTargetedExperiment",
-    "LinearResampler", "LinearResamplerAlign",
-    "LogConfigHandler",
-    "LowessSmoothing",
-
-    # === BATCH 11: Classes M (MRM) ===
-    "MRMAssay",
-    "MRMBatchFeatureSelector",
-    "MRMDecoy",
-    "MRMFeature", "MRMFeatureFilter", "MRMFeatureFinderScoring",
-    "MRMFeaturePicker", "MRMFeaturePickerFile",
-    # "MRMFeatureQC",  # Unblocked - nested types in HANDWRITTEN_CLASSES
-    "MRMFeatureQCFile",
-    "MRMFeatureSelector",
-    "MRMIonSeries",
-    "MRMMapping",
-    "MRMRTNormalizer",
-    "MRMScoring",
-    "MRMTransitionGroup", "MRMTransitionGroupPicker",
-
-    # === BATCH 12: Classes M (MS, Map, Mass) ===
-    "MS2File",
-    "MSDataAggregatingConsumer", "MSDataCachedConsumer",
-    "MSDataSqlConsumer", "MSDataStoringConsumer", "MSDataWritingConsumer",
-    "MSPFile", "MSPGenericFile",
-    "MSstatsFile",
-    "MZTrafoModel",
-    "MapAlignmentAlgorithmIdentification", "MapAlignmentAlgorithmKD",
-    "MapAlignmentAlgorithmPoseClustering",
-    "MapAlignmentEvaluationAlgorithm", "MapAlignmentEvaluationAlgorithmPrecision",
-    "MapAlignmentEvaluationAlgorithmRecall",
-    "MapAlignmentTransformer",
-    "MascotGenericFile", "MascotXMLFile",
-    "MassAnalyzer",
-    "MassDecomposer", "MassDecomposition", "MassDecompositionAlgorithm",
-    "MassExplainer",
-    "MassTrace", "MassTraceDetection",
-    "MasstraceCorrelator",
-    "Matrix",
-
-    # === BATCH 13: Classes M (Meta, Mod, Mor, Mz) ===
-    "MetaInfo", "MetaInfoDescription", "MetaInfoInterface", "MetaInfoRegistry",
-    "MetaboTargetedAssay", "MetaboTargetedTargetDecoy",
-    "MetaboliteFeatureDeconvolution", "MetaboliteSpectralMatching",
-    "ModificationDefinition", "ModificationDefinitionsSet",
-    "ModifiedPeptideGenerator",
-    "MorpheusScore",
-    "MorphologicalFilter",
-    "MsInspectFile",
-    "MultiplexDeltaMasses", "MultiplexDeltaMassesGenerator", "MultiplexIsotopicPeakPattern",
-    "MzDataFile",
-    "MzMLSpectrumDecoder", "MzMLSqliteHandler", "MzMLValidator",
-    "MzQCFile",
-    "MzTab", "MzTabFile", "MzTabM", "MzTabMFile",
-    "MzXMLFile",
-
-    # === BATCH 14: Classes N-O ===
-    "NASequence",
-    "NLargest",
-    "NonNegativeLeastSquaresSolver",
-    "Normalizer",
-    "NucleicAcidSpectrumGenerator",
-    "OMSSACSVFile", "OMSSAXMLFile",
-    "OPXLDataStructs", "OPXLHelper", "OPXLSpectrumProcessingAlgorithms",
-    "OSChromatogramMeta", "OSSpectrumMeta",
-    "OSWFile",
-    "OnDiscMSExperiment",
-    "OpenPepXLAlgorithm",
-    "OpenSwathDataAccessHelper", "OpenSwathDataStructures",
-    "OpenSwathHelper", "OpenSwathOSWWriter", "OpenSwathScoring",
-
-    # === BATCH 15: Classes P ===
-    "PScore",
-    "ParamCTDFile", "ParamEntry", "ParamNode", "ParamValue", "ParamXMLFile",
-    "PeakFileOptions",
-    "PeakIndex",
-    # "PeakIntegrator",  # Unblocked - methods in SPECIAL_METHODS
-    "PeakPickerChromatogram", "PeakPickerHiRes", "PeakPickerIM", "PeakPickerIterative",
-    "PeakTypeEstimator", "PeakWidthEstimator",
-    "PepXMLFileMascot",
-    "PeptideAndProteinQuant",
-    "PeptideIndexing",
-    "PeptideProteinResolution",
-    "PeptideSearchEngineFIAlgorithm",
-    "PercolatorFeatureSetHelper", "PercolatorInfile", "PercolatorOutfile",
-    # PosteriorErrorProbabilityModel removed - OpenMS::Math:: namespace causes issues
-    "PrecursorCorrection", "PrecursorPurity",
-    "PreprocessedPairSpectra",
-    "ProFormaData", "ProFormaParser",
-    "ProgressLogger",
-    "ProtXMLFile",
-    "ProteaseDB", "ProteaseDigestion",
-    "ProteinInference",
-    "ProteinProteinCrossLink",
-
-    # === BATCH 16: Classes Q-R ===
-    "QTCluster", "QTClusterFinder",
-    "QcMLFile",
-    "RANSAC", "RANSACModelLinear", "RANSACModelQuadratic",
-    "RNaseDB", "RNaseDigestion",
-    "RankScaler",
-    "ReactionMonitoringTransition",
-    "RealMassDecomposer",
-    "ResidueDB",
-    "Ribonucleotide", "RibonucleotideDB",
-    "RichPeak2D",
-
-    # === BATCH 17: Classes S (Sa-Sp) ===
-    "SavitzkyGolayFilter",
-    "ScanWindow",
-    "SeedListGenerator",
-    "SemanticValidator",
-    "SequestInfile", "SequestOutfile",
-    "SignalToNoiseEstimatorMedianRapid",
-    "SimpleOpenMSSpectraFactory",
-    "SimpleSearchEngineAlgorithm",
-    "SimpleTSGXLMS",
-    "SiriusExportAlgorithm", "SiriusFragmentAnnotation", "SiriusMSFile",
-    "SpectraMerger",
-    "SpectraSTSimilarityScore",
-    "SpectralDeconvolution",
-    "SpectrumAccessOpenMS", "SpectrumAccessOpenMSCached", "SpectrumAccessOpenMSInMemory",
-    "SpectrumAccessQuadMZTransforming", "SpectrumAccessSqMass", "SpectrumAccessTransforming",
-    "SpectrumAlignment", "SpectrumAlignmentScore",
-    "SpectrumAnnotator",
-    "SpectrumLookup", "SpectrumMetaDataLookup",
-    "SpectrumSettings",
-    "SplineInterpolatedPeaks", "SplinePackage",
-
-    # === BATCH 18: Classes S (Sq-Sw) ===
-    "SqMassFile",
-    "SqrtScaler",
-    "StablePairFinder",
-    "SwathFile", "SwathFileConsumer",
-    "SwathMap", "SwathMapMassCorrection", "SwathWindowLoader",
-
-    # === BATCH 19: Classes T ===
-    "TMTEighteenPlexQuantitationMethod", "TMTElevenPlexQuantitationMethod",
-    "TMTSixPlexQuantitationMethod", "TMTSixteenPlexQuantitationMethod",
-    "TMTTenPlexQuantitationMethod",
-    "Tagger",
-    "TargetedExperiment", "TargetedExperimentHelper",
-    "TargetedSpectraExtractor",
-    "TextFile",
-    "TheoreticalSpectrumGenerator", "TheoreticalSpectrumGeneratorXLMS",
-    "ThresholdMower",
-    "TraMLFile",
-    "TransformationDescription", "TransformationModel",
-    "TransformationModelBSpline", "TransformationModelInterpolated",
-    "TransformationModelLinear", "TransformationModelLowess",
-    "TransformationXMLFile",
-    "TransitionPQPFile", "TransitionTSVFile",
-
-    # === BATCH 20: Classes U-X ===
-    "UnimodXMLFile",
-    "UniqueIdGenerator", "UniqueIdInterface",
-    "VersionInfo",
-    "WindowMower",
-    "XFDRAlgorithm",
-    "XLPrecursor", "XLPrecursorComparator",
-    "XMLFile", "XMLHandler",
-    "XQuestResultXMLFile", "XQuestScores",
-    "XTandemInfile", "XTandemXMLFile",
-
-    # Note: Excluded classes (need special handling):
-    # - BilinearInterpolation: template class
-    # - DPosition, DRange, DBoundingBox: have type casters
-    # - DataValue, ParamValue: have type casters (ParamValue included for method access)
-    # - DoubleList, IntList, StringList, StringView: basic types with casters
-    # - LinearInterpolation: template class
-    # - Normalizer: filterSpectrum is a template method
-    # - String: has type caster
-    # - Types, Math, ctime, smart_ptr, streampos: low-level/utility
-    # - AnnotatedMSRun: MSExperiment typedef
-    # - BaseGroupFinder: abstract class
-    # - ChromatogramRangeManager, SpectrumRangeManager, RangeManager: templates
-    # - ConversionHelper: static utility functions
-    # - DataArrays: namespace-like
-    # - FLASHHelperClasses: nested types
-    # - IMSAlphabetParser, IMSDataConsumer, ISpectrumAccess: abstract/interfaces
-    # - IntegerMassDecomposer: template
-    # - InterfaceDataStructures: structs/helpers
-    # - FeatureFinderAlgorithmPickedHelperStructs: helper structs
-    # - PeakGroup: complex inheritance
-    # - PythonMSDataConsumer: special Python handling
-    # - RankData: simple struct
-    # - SignalToNoiseEstimator, SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMedian: templates
-    # - SpectrumHelper: static helpers
-    # - SpectrumNativeIDParser: static
-    # - Weights: specialized struct
-    # - Biosaur2Algorithm: if it has issues
-
-    # === Previously HANDWRITTEN_CLASSES, now auto-generated ===
-    # Template specializations
-    "BilinearInterpolation",  # OpenMS::Math::BilinearInterpolation<double,double>
-    "DBoundingBox2",          # OpenMS::DBoundingBox<2>
-    # Nested classes (via FALLBACK_TO_PXD)
-    "ColumnHeader",           # ConsensusMap::ColumnHeader
-    "ExtractionCoordinates",  # ChromatogramExtractorAlgorithm::ExtractionCoordinates
-    "MRMFQC_ComponentQCs", "MRMFQC_ComponentGroupQCs", "MRMFQC_ComponentGroupPairQCs",
-    "SelectorParameters",     # MRMFeatureSelector::SelectorParameters
-    "PI_PeakArea", "PI_PeakBackground", "PI_PeakShapeMetrics",
-    # Non-OpenMS namespace classes (via FALLBACK_TO_PXD)
-    "LightTransition", "LightModification", "LightCompound", "LightProtein",
-    "LightTargetedExperiment",
-    "LogMzPeak", "PrecalAveragine", "MassFeature_FDHS", "IsobaricQuantities",
-}
-
+# 
 # FALLBACK: Classes that inherit from std::vector
 # NOTE: When libclang is used, this is detected automatically via canonical base classes.
 # The element type is also extracted from std::vector<T> inheritance.
@@ -3189,9 +2880,8 @@ class NanobindEmitter:
     Uses accurate C++ type information from libclang.
     """
 
-    def __init__(self, num_modules: int = 8, core_only: bool = True):
-        self.num_modules = num_modules
-        self.core_only = core_only  # Only bind CORE_CLASSES for now
+    def __init__(self, single_module: bool = False):
+        self.single_module = single_module
 
         # Standard includes for all modules
         self._standard_includes = {
@@ -3249,35 +2939,85 @@ class NanobindEmitter:
         """
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Distribute classes across modules
-        modules = self._distribute_classes(classes)
+        # Distribute classes across domain-based modules
+        domains = self._distribute_classes(classes)
 
-        if self.num_modules <= 1:
+        if self.single_module:
             # Single-module mode: emit everything into main_module.cpp
-            all_classes = [cls for mod in modules for cls in mod]
-            content = self._generate_module_content(all_classes, classes, module_idx=0)
+            all_classes = [cls for domain_classes in domains.values() for cls in domain_classes]
+            content = self._generate_module_content(all_classes, classes, domain_name=None)
             self._write_single_module(output_dir / "main_module.cpp", content)
         else:
-            # Multi-module mode: emit module_1.cpp .. module_N.cpp + placeholder main
-            for i, module_classes in enumerate(modules, 1):
-                content = self._generate_module_content(module_classes, classes, module_idx=i)
-                output_file = output_dir / f"module_{i}.cpp"
-                self._write_module_file(output_file, i, content)
-            self._write_main_module(output_dir / "main_module.cpp", len(modules))
+            # Multi-module mode: emit bind_<domain>.cpp files + placeholder main
+            for domain_name in DOMAIN_NAMES:
+                domain_classes = domains[domain_name]
+                content = self._generate_module_content(domain_classes, classes, domain_name=domain_name)
+                output_file = output_dir / f"bind_{domain_name}.cpp"
+                self._write_module_file(output_file, domain_name, content)
+            self._write_main_module(output_dir / "main_module.cpp")
 
     def _distribute_classes(
         self, classes: Dict[str, MergedClass]
-    ) -> List[List[MergedClass]]:
-        """Distribute classes across modules for parallel compilation.
+    ) -> Dict[str, List[MergedClass]]:
+        """Distribute classes across domain-based modules.
 
-        Classes in the same inheritance chain are kept together in the same module
-        to ensure proper nanobind base class registration during module init.
+        Each class is assigned to a domain based on its OpenMS header path
+        (e.g., OpenMS/KERNEL/Peak1D.h -> kernel). Cross-module inheritance
+        is handled by nanobind's NB_DOMAIN type sharing.
         """
-        # Build inheritance groups using union-find
-        parent: Dict[str, str] = {}  # Union-find parent pointers
+        caster_types = get_caster_owned_types()
+
+        # Collect all bindable classes (skip nested, skipped, and caster-owned)
+        bindable: Dict[str, MergedClass] = {}
+        class_domain: Dict[str, str] = {}
+
+        for merged_class in classes.values():
+            class_name = merged_class.name
+            if class_name in SKIP_CLASSES or class_name in caster_types:
+                continue
+            if "::" in class_name:
+                continue
+
+            bindable[class_name] = merged_class
+            class_domain[class_name] = _get_domain_from_header(merged_class.header_file)
+
+        # Identify classes that would be skipped (abstract or private ctor)
+        # but are needed as base classes by other bindable classes (transitively)
+        base_classes_needed: Set[str] = set()
+        changed = True
+        while changed:
+            changed = False
+            for mc in bindable.values():
+                # Skip classes that would be filtered out, unless already rescued
+                would_skip = mc.is_abstract or mc.has_private_constructor
+                if would_skip and mc.name not in base_classes_needed:
+                    continue
+                for base in getattr(mc, 'base_classes', []):
+                    base_name = _unqualified_name(base)
+                    if base.startswith('std::'):
+                        continue
+                    if base_name in bindable:
+                        base_mc = bindable[base_name]
+                        base_would_skip = base_mc.is_abstract or base_mc.has_private_constructor
+                        if base_would_skip and base_name not in base_classes_needed:
+                            base_classes_needed.add(base_name)
+                            changed = True
+
+        # Remove abstract classes that aren't needed as bases.
+        # Note: private-ctor classes are NOT filtered here because they may still
+        # be bindable (singletons, SPECIAL_METHODS). They're filtered later in
+        # _generate_class_binding with more nuanced checks.
+        bindable = {
+            name: mc for name, mc in bindable.items()
+            if not mc.is_abstract or name in base_classes_needed
+        }
+
+        # Union-find to group inheritance chains, then move entire chain
+        # to the root base class's domain. This ensures base classes are
+        # registered before derived classes within the same NB_MODULE.
+        parent: Dict[str, str] = {}
 
         def find(x: str) -> str:
-            """Find root of the set containing x."""
             if x not in parent:
                 parent[x] = x
             if parent[x] != x:
@@ -3285,119 +3025,49 @@ class NanobindEmitter:
             return parent[x]
 
         def union(x: str, y: str) -> None:
-            """Merge sets containing x and y."""
             px, py = find(x), find(y)
             if px != py:
-                # Always make the alphabetically first one the parent for determinism
-                if px < py:
-                    parent[py] = px
-                else:
-                    parent[px] = py
+                # Prefer the base class (y) as root so its domain wins
+                parent[px] = py
 
-        caster_types = get_caster_owned_types()
-
-        # First pass: Identify abstract classes that are needed as base classes
-        # These need to be bound (without constructors) before their derived classes
-        abstract_base_classes_needed: Set[str] = set()
-        for merged_class in classes.values():
-            class_name = merged_class.name
-            # Only check non-abstract CORE_CLASSES
-            if self.core_only and class_name not in CORE_CLASSES:
-                continue
-            if class_name in SKIP_CLASSES or class_name in caster_types:
-                continue
-            if "::" in class_name:
-                continue
-            if merged_class.is_abstract:
-                continue
-            # Check base classes
-            for base in getattr(merged_class, 'base_classes', []):
+        for mc in bindable.values():
+            find(mc.name)
+            for base in getattr(mc, 'base_classes', []):
                 base_name = _unqualified_name(base)
                 if base.startswith('std::'):
                     continue
-                # If base class is abstract and in CORE_CLASSES, we need it
-                if base_name in CORE_CLASSES and base_name not in SKIP_CLASSES and base_name not in caster_types:
-                    if base_name in classes:
-                        if classes[base_name].is_abstract:
-                            abstract_base_classes_needed.add(base_name)
+                if base_name in bindable:
+                    union(mc.name, base_name)  # base becomes root
 
-        # Process all classes and union related inheritance chains
-        for merged_class in classes.values():
-            class_name = merged_class.name
-
-            # Skip classes that won't be bound
-            if self.core_only and class_name not in CORE_CLASSES:
-                continue
-            if class_name in SKIP_CLASSES or class_name in caster_types:
-                continue
-            if "::" in class_name:  # Skip nested classes
-                continue
-            # Skip abstract classes UNLESS they're needed as base classes
-            if merged_class.is_abstract and class_name not in abstract_base_classes_needed:
-                continue
-
-            # Initialize this class in union-find
-            find(class_name)
-
-            # Union with base classes that will also be bound
-            for base in getattr(merged_class, 'base_classes', []):
-                base_name = _unqualified_name(base)
-
-                # Skip std:: types
-                if base.startswith('std::'):
-                    continue
-
-                # Check if base class will be bound
-                if (base_name in CORE_CLASSES and
-                    base_name not in SKIP_CLASSES and
-                    base_name not in caster_types and
-                    base_name in classes):
-                    union(class_name, base_name)
-
-        # Group classes by their root
-        groups: Dict[str, List[MergedClass]] = {}
-        for merged_class in classes.values():
-            class_name = merged_class.name
-
-            # Apply same filters as above
-            if self.core_only and class_name not in CORE_CLASSES:
-                continue
-            if class_name in SKIP_CLASSES or class_name in caster_types:
-                continue
-            if "::" in class_name:
-                continue
-            # Skip abstract classes UNLESS they're needed as base classes
-            if merged_class.is_abstract and class_name not in abstract_base_classes_needed:
-                continue
-
+        # Assign each class to the domain of its inheritance chain root
+        for class_name in bindable:
             root = find(class_name)
-            if root not in groups:
-                groups[root] = []
-            groups[root].append(merged_class)
+            class_domain[class_name] = class_domain[root]
 
-        # Distribute groups across modules, keeping each group in one module
-        modules: List[List[MergedClass]] = [[] for _ in range(self.num_modules)]
-        module_sizes = [0] * self.num_modules
-
-        # Sort groups by size (largest first) for better load balancing
-        sorted_groups = sorted(groups.values(), key=lambda g: -len(g))
-
-        for group in sorted_groups:
-            # Assign to the module with the smallest current size
-            min_idx = module_sizes.index(min(module_sizes))
-            modules[min_idx].extend(group)
-            module_sizes[min_idx] += len(group)
+        # Build domain lists
+        domains: Dict[str, List[MergedClass]] = {name: [] for name in DOMAIN_NAMES}
+        for class_name, mc in bindable.items():
+            domains[class_domain[class_name]].append(mc)
 
         # Store abstract base classes needed for use in _generate_class_bindings
-        self._abstract_base_classes_needed = abstract_base_classes_needed
+        self._base_classes_needed = base_classes_needed
+
+        # Store class->domain mapping for handwritten class assignment
+        self._class_domain = class_domain
 
         # Store the set of all class names that will be bound
         self._bound_class_names: Set[str] = set()
-        for module in modules:
-            for cls in module:
+        for domain_classes in domains.values():
+            for cls in domain_classes:
                 self._bound_class_names.add(cls.name)
 
-        return modules
+        # Log domain distribution
+        for domain_name in DOMAIN_NAMES:
+            count = len(domains[domain_name])
+            if count > 0:
+                logger.info(f"  Domain '{domain_name}': {count} classes")
+
+        return domains
 
     def _topological_sort_classes(self, classes: List[MergedClass]) -> List[MergedClass]:
         """Sort classes so that base classes come before derived classes.
@@ -3420,7 +3090,6 @@ class NanobindEmitter:
 
                 # Only track dependencies on classes we're binding in this module
                 if (base_name in class_names and
-                    base_name in CORE_CLASSES and
                     base_name not in SKIP_CLASSES and
                     base_name not in caster_types):
                     deps.add(base_name)
@@ -3459,7 +3128,7 @@ class NanobindEmitter:
         self,
         module_classes: List[MergedClass],
         all_classes: Dict[str, MergedClass],
-        module_idx: int = 1,
+        domain_name: Optional[str] = None,
     ) -> ModuleContent:
         """Generate content for a module."""
         content = ModuleContent(
@@ -3482,9 +3151,6 @@ class NanobindEmitter:
         for merged_class in module_classes:
             class_name = merged_class.name
             if class_name not in class_names_in_module:
-                continue
-            # Skip if not in core classes (in core_only mode)
-            if self.core_only and class_name not in CORE_CLASSES:
                 continue
             # Skip problematic classes
             if class_name in SKIP_CLASSES or class_name in get_caster_owned_types():
@@ -3518,39 +3184,30 @@ class NanobindEmitter:
                     continue
                 target_class = enum_class_map.get(enum_name)
                 if target_class and target_class in class_names_in_module:
-                    # In core_only mode, only add if target class is in CORE_CLASSES
-                    if not self.core_only or target_class in CORE_CLASSES:
-                        content.enum_bindings.append(enum_code)
-                        # Add includes for enums that need specific headers
-                        enum_include_map = {
-                            "Method": "<OpenMS/MATH/STATISTICS/RankData.h>",
-                            "NaNPolicy": "<OpenMS/MATH/STATISTICS/RankData.h>",
-                        }
-                        if enum_name in enum_include_map:
-                            content.includes.add(enum_include_map[enum_name])
+                    content.enum_bindings.append(enum_code)
+                    # Add includes for enums that need specific headers
+                    enum_include_map = {
+                        "Method": "<OpenMS/MATH/STATISTICS/RankData.h>",
+                        "NaNPolicy": "<OpenMS/MATH/STATISTICS/RankData.h>",
+                    }
+                    if enum_name in enum_include_map:
+                        content.includes.add(enum_include_map[enum_name])
 
         # Add nested enum bindings (SpectrumType) to the module with SpectrumSettings
         # Only add if not already auto-generated from pxd
         if "SpectrumSettings" in class_names_in_module:
-            if not self.core_only or "SpectrumSettings" in CORE_CLASSES:
-                content.includes.add("<OpenMS/METADATA/SpectrumSettings.h>")
-                if "__post_class_enums__" in SPECIAL_METHODS:
-                    for enum_name, enum_code in SPECIAL_METHODS["__post_class_enums__"].items():
-                        # Skip if this enum was already auto-generated
-                        # Extract enum name from enum_name (e.g., "SpectrumSettings_SpectrumType" -> "SpectrumType")
-                        simple_name = enum_name.split("_")[-1] if "_" in enum_name else enum_name
-                        if simple_name in generated_enum_names:
-                            logger.debug(f"Skipping hardcoded enum {enum_name} - already auto-generated")
-                            continue
-                        content.post_class_enums.append(enum_code)
+            content.includes.add("<OpenMS/METADATA/SpectrumSettings.h>")
+            if "__post_class_enums__" in SPECIAL_METHODS:
+                for enum_name, enum_code in SPECIAL_METHODS["__post_class_enums__"].items():
+                    # Skip if this enum was already auto-generated
+                    simple_name = enum_name.split("_")[-1] if "_" in enum_name else enum_name
+                    if simple_name in generated_enum_names:
+                        logger.debug(f"Skipping hardcoded enum {enum_name} - already auto-generated")
+                        continue
+                    content.post_class_enums.append(enum_code)
 
         for merged_class in sorted_module_classes:
             class_name = merged_class.name
-
-            # Check if this class will actually be bound (avoid including unnecessary headers)
-            # In core_only mode, only CORE_CLASSES are bound
-            if self.core_only and class_name not in CORE_CLASSES:
-                continue
 
             # Skip problematic classes and types with casters
             if class_name in SKIP_CLASSES or class_name in get_caster_owned_types():
@@ -3562,8 +3219,8 @@ class NanobindEmitter:
 
             # Skip abstract classes UNLESS they're needed as base classes
             if merged_class.is_abstract:
-                if not (hasattr(self, '_abstract_base_classes_needed') and
-                        class_name in self._abstract_base_classes_needed):
+                if not (hasattr(self, '_base_classes_needed') and
+                        class_name in self._base_classes_needed):
                     continue
 
             # Generate class binding first - only add headers if successful
@@ -3602,10 +3259,17 @@ class NanobindEmitter:
                         for inc in extra_includes:
                             content.includes.add(inc)
 
-        # Emit handwritten full class bindings (assigned to modules by hash)
+        # Emit handwritten full class bindings.
+        # If a handwritten class inherits from a bound class, place it in
+        # the same domain as the base (which may have been moved by union-find).
+        _hw_base_re = re.compile(r'nb::class_<[^,>]+,\s*OpenMS::(\w+)>')
+        class_domain_map = getattr(self, '_class_domain', {})
         for hw_class_name, hw_info in HANDWRITTEN_CLASSES.items():
-            hw_module = (int(hashlib.md5(hw_class_name.encode()).hexdigest(), 16) % self.num_modules) + 1
-            if hw_module == module_idx:
+            hw_domain = _get_handwritten_class_domain(hw_info)
+            m = _hw_base_re.search(hw_info.get("binding", ""))
+            if m and m.group(1) in class_domain_map:
+                hw_domain = class_domain_map[m.group(1)]
+            if hw_domain == domain_name:
                 content.class_bindings.append(hw_info["binding"])
                 for inc in hw_info.get("includes", []):
                     content.includes.add(inc)
@@ -3626,9 +3290,6 @@ class NanobindEmitter:
         class_name = merged_class.name
         qualified_name = merged_class.qualified_name
 
-        # In core_only mode, only bind CORE_CLASSES
-        if self.core_only and class_name not in CORE_CLASSES:
-            return None
 
         # Handle template classes with wrap-instances (before SKIP_CLASSES check,
         # since the template base may be skipped but instances should be generated)
@@ -3646,8 +3307,8 @@ class NanobindEmitter:
 
         # Skip abstract classes UNLESS they're needed as base classes
         is_abstract_base = (merged_class.is_abstract and
-                           hasattr(self, '_abstract_base_classes_needed') and
-                           class_name in self._abstract_base_classes_needed)
+                           hasattr(self, '_base_classes_needed') and
+                           class_name in self._base_classes_needed)
         if merged_class.is_abstract and not is_abstract_base:
             logger.debug(f"Skipping abstract class: {class_name}")
             return None
@@ -3661,8 +3322,10 @@ class NanobindEmitter:
         # Skip classes with only private/protected constructors (singletons, etc.)
         # Exception: allow if class has SPECIAL_METHODS or is a singleton (getInstance pattern)
         is_singleton = self._is_singleton(merged_class)
+        is_needed_base = (hasattr(self, '_base_classes_needed') and
+                          class_name in self._base_classes_needed)
         if merged_class.has_private_constructor:
-            if class_name not in SPECIAL_METHODS and not is_singleton:
+            if class_name not in SPECIAL_METHODS and not is_singleton and not is_needed_base:
                 logger.debug(f"Skipping class with private constructors: {class_name}")
                 return None
             else:
@@ -3687,9 +3350,9 @@ class NanobindEmitter:
             lines[-1] = lines[-1][:-1]  # Remove trailing paren
             lines[-1] += f', "{doc}")'
 
-        # Generate constructors (skip for abstract classes - they can't be instantiated)
+        # Generate constructors (skip for abstract/private-ctor base classes - they can't be instantiated)
         self._current_merged_class = merged_class
-        if not is_abstract_base:
+        if not is_abstract_base and not (is_needed_base and merged_class.has_private_constructor):
             for ctor in merged_class.constructors:
                 ctor_code = self._generate_constructor(ctor, qualified_name)
                 if ctor_code:
@@ -4047,8 +3710,8 @@ class NanobindEmitter:
         chains. Without a virtual destructor, the destruction will cause segfaults.
 
         Only returns base classes that are:
-        - In CORE_CLASSES (and not in SKIP_CLASSES or have type casters)
         - Actually being bound (in _bound_class_names)
+        - Not in SKIP_CLASSES or have type casters
 
         Cross-module inheritance is supported through NB_DOMAIN "pyopenms" as long as
         modules are imported in the correct order (base class modules before derived).
@@ -4091,8 +3754,8 @@ class NanobindEmitter:
                 logger.debug(f"Skipping Qt base class: {base_name}")
                 continue
 
-            # Check if this base class is bound (in CORE_CLASSES, not skipped, no caster)
-            if base_name in CORE_CLASSES and base_name not in SKIP_CLASSES and base_name not in caster_types:
+            # Check if this base class is bound (not skipped, no caster)
+            if base_name in self._bound_class_names and base_name not in SKIP_CLASSES and base_name not in caster_types:
                 # Also check that the base class is actually in our bound classes
                 # (i.e., it wasn't skipped due to pxd parsing errors or other issues)
                 if hasattr(self, '_bound_class_names') and base_name not in self._bound_class_names:
@@ -5407,14 +5070,14 @@ class NanobindEmitter:
         return result
 
     def _write_module_file(
-        self, output_path: Path, module_num: int, content: ModuleContent
+        self, output_path: Path, domain_name: str, content: ModuleContent
     ) -> None:
-        """Write a module C++ file as a standalone NB_MODULE."""
+        """Write a domain module C++ file as a standalone NB_MODULE."""
         lines = []
 
         # Header comment
         lines.append("// Auto-generated by pyOpenMS2 generator (v2 - libclang)")
-        lines.append(f"// Module {module_num}")
+        lines.append(f"// Domain: {domain_name}")
         lines.append("")
 
         # Includes
@@ -5428,8 +5091,8 @@ class NanobindEmitter:
         lines.append("")
 
         # Standalone NB_MODULE for this sub-module
-        lines.append(f'NB_MODULE(_pyopenms2_{module_num}, m) {{')
-        lines.append(f'    m.doc() = "pyOpenMS2 module {module_num}";')
+        lines.append(f'NB_MODULE(_pyopenms2_{domain_name}, m) {{')
+        lines.append(f'    m.doc() = "pyOpenMS2 {domain_name} bindings";')
         lines.append("")
 
         # Standalone enum bindings (must come before classes that use them)
@@ -5489,17 +5152,17 @@ class NanobindEmitter:
 
         output_path.write_text("\n".join(lines))
 
-    def _write_main_module(self, output_path: Path, num_modules: int) -> None:
+    def _write_main_module(self, output_path: Path) -> None:
         """Write the main module file.
 
         Note: With standalone NB_MODULE per sub-module, this main module is
         optional. It's kept for backward compatibility but just creates an
-        empty module - the actual classes are in _pyopenms2_N modules.
+        empty module - the actual classes are in _pyopenms2_<domain> modules.
         """
         lines = []
 
         lines.append("// Auto-generated by pyOpenMS2 generator (v2 - libclang)")
-        lines.append("// Main module - placeholder, actual bindings in _pyopenms2_N modules")
+        lines.append("// Main module - placeholder, actual bindings in _pyopenms2_<domain> modules")
         lines.append("")
         lines.append("#include <nanobind/nanobind.h>")
         lines.append("")

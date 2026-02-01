@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from .pxd_parser import PxdParser
-from .nanobind_emitter import NanobindEmitter
+from .nanobind_emitter import NanobindEmitter, DOMAIN_NAMES
 from .type_registry import TypeRegistry
 from .addon_processor import AddonProcessor
 
@@ -70,8 +70,8 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--num-modules",
         type=int,
-        default=8,
-        help="Number of modules to split bindings into",
+        default=None,
+        help="Deprecated, ignored. Modules are now split by domain.",
     )
 
     parser.add_argument(
@@ -116,14 +116,15 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--core-only",
         action="store_true",
-        default=True,
-        help="Only bind core classes (default: True)",
+        default=False,
+        help="Deprecated, ignored. All classes are always bound.",
     )
 
     parser.add_argument(
         "--all-classes",
         action="store_true",
-        help="Attempt to bind all classes (may have compile errors)",
+        default=False,
+        help="Deprecated, ignored. All classes are always bound.",
     )
 
     return parser.parse_args(args)
@@ -141,7 +142,7 @@ def main(args: Optional[List[str]] = None) -> int:
     logger.info(f"  Addons directory: {opts.addons_dir}")
     logger.info(f"  Output directory: {opts.output_dir}")
     logger.info(f"  Include directories: {opts.openms_include_dir}")
-    logger.info(f"  Number of modules: {opts.num_modules}")
+    logger.info(f"  Module split: domain-based ({len(DOMAIN_NAMES)} domains)")
     if opts.libclang_cache_dir:
         logger.info(f"  Cache directory: {opts.libclang_cache_dir}")
     logger.info(f"  Libclang batch mode: {opts.libclang_batch_mode} (size={opts.libclang_batch_size})")
@@ -279,9 +280,10 @@ def main(args: Optional[List[str]] = None) -> int:
     logger.info(f"Merged {len(merged_classes)} classes")
 
     # Generate bindings
-    core_only = opts.core_only and not opts.all_classes
-    logger.info(f"Generating nanobind C++ bindings (core_only={core_only})...")
-    emitter = NanobindEmitter(num_modules=opts.num_modules, core_only=core_only)
+    logger.info("Generating nanobind C++ bindings...")
+    if opts.num_modules is not None:
+        logger.warning("--num-modules is deprecated and ignored. Using domain-based split.")
+    emitter = NanobindEmitter()
 
     try:
         emitter.emit(merged_classes, opts.output_dir)

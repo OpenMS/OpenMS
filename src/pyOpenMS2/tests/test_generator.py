@@ -258,8 +258,8 @@ class TestNanobindEmitter:
         """Test that emitter can be created."""
         from generator.nanobind_emitter import NanobindEmitter
 
-        emitter = NanobindEmitter(num_modules=8)
-        assert emitter.num_modules == 8
+        emitter = NanobindEmitter()
+        assert emitter.single_module is False
 
     def test_caster_owned_types_detection(self):
         """Test auto-detection of caster-owned types."""
