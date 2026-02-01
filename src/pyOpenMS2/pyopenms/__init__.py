@@ -30,31 +30,22 @@ if "OPENMS_DATA_PATH" not in os.environ:
 def _import_submodules():
     """Import all nanobind submodules and merge into this namespace."""
     import importlib
-    import importlib.util
+    import pkgutil
 
-    # Dynamically discover all _pyopenms2_N modules
-    # This handles any value of PY_NUM_MODULES without hardcoding
     _imported_modules = []
-    i = 1
-    while True:
-        module_name = f"_pyopenms2_{i}"
-        # Check if module exists before trying to import
-        spec = importlib.util.find_spec(f".{module_name}", package=__name__)
-        if spec is None:
-            break  # No more modules
-        try:
-            mod = importlib.import_module(f".{module_name}", package=__name__)
-            _imported_modules.append(mod)
-            # Re-export all public symbols from each submodule
-            for name in dir(mod):
-                if not name.startswith("_"):
-                    globals()[name] = getattr(mod, name)
-        except Exception as e:
-            # Module exists but failed to load - continue to next
-            import warnings, traceback
-            warnings.warn(f"Failed to import {module_name}: {type(e).__name__}: {e}")
-            traceback.print_exc()
-        i += 1
+    # Discover all _pyopenms2_* modules (domain-based naming)
+    for finder, name, ispkg in pkgutil.iter_modules(__path__):
+        if name.startswith("_pyopenms2_"):
+            try:
+                mod = importlib.import_module(f".{name}", package=__name__)
+                _imported_modules.append(mod)
+                for attr in dir(mod):
+                    if not attr.startswith("_"):
+                        globals()[attr] = getattr(mod, attr)
+            except Exception as e:
+                import warnings, traceback
+                warnings.warn(f"Failed to import {name}: {type(e).__name__}: {e}")
+                traceback.print_exc()
 
     if not _imported_modules:
         raise ImportError(
