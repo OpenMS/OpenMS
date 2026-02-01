@@ -91,6 +91,30 @@ START_SECTION(MSChromatogramParquetConsumer_empty_chromatograms)
 }
 END_SECTION
 
+START_SECTION(MSChromatogramParquetConsumer_destructor_no_throw)
+{
+#ifdef WITH_PARQUET
+  TargetedExperiment targeted_exp;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_input.TraML"), targeted_exp);
+
+  OpenSwath::LightTargetedExperiment light_exp;
+  OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
+
+  String out = File::getTempDirectory() + "/openms_missing_dir/xic_out.xic";
+  bool caught = false;
+  try
+  {
+    MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+  }
+  catch (...)
+  {
+    caught = true;
+  }
+  TEST_EQUAL(caught, false)
+#endif
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -10,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
@@ -171,7 +172,15 @@ namespace OpenMS
     {
 #ifdef WITH_PARQUET
       if (wrote_) return;
-      write_();
+      try
+      {
+        write_();
+      }
+      catch (const Exception::BaseException& e)
+      {
+        OPENMS_LOG_ERROR << "Failed to write chromatogram parquet file '" << filename_
+                         << "': " << e.what() << "\n";
+      }
 #endif
     }
 
