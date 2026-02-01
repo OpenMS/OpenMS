@@ -53,6 +53,24 @@ list(APPEND DEP_BIN_DIRS $<TARGET_FILE_DIR:OpenMS>)
 # Combine all search directories for comprehensive dependency resolution
 set(RUNTIME_DEP_SEARCH_DIRS ${DEP_BIN_DIRS} ${DEP_LIB_DIRS})
 
+if(WITH_PARQUET)
+  # Ensure Arrow/Parquet shared libs are discoverable during install() dependency collection.
+  # Needed so OpenMS/pyOpenMS wheels and installers bundle Arrow runtime deps (e.g., libarrow_compute)
+  # when OpenMS links against Arrow Compute/Dataset. Without this, wheels fail to import at runtime.
+  foreach(_arrow_dep IN ITEMS OPENMS_ARROW_TARGET OPENMS_ARROW_COMPUTE_TARGET OPENMS_PARQUET_TARGET OPENMS_ARROW_DATASET_TARGET)
+    if(DEFINED ${_arrow_dep} AND NOT "${${_arrow_dep}}" STREQUAL "")
+      if(TARGET ${${_arrow_dep}})
+        list(APPEND RUNTIME_DEP_SEARCH_DIRS $<TARGET_FILE_DIR:${${_arrow_dep}}>)
+      else()
+        get_filename_component(_arrow_dep_dir "${${_arrow_dep}}" DIRECTORY)
+        if(_arrow_dep_dir)
+          list(APPEND RUNTIME_DEP_SEARCH_DIRS "${_arrow_dep_dir}")
+        endif()
+      endif()
+    endif()
+  endforeach()
+endif()
+
 
 ## Info on excluding dependencies:
 # PRE_EXCLUDE_REGEXES: Excludes dependencies at the beginning of the dependency analysis. 
