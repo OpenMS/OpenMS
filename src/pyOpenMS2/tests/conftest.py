@@ -15,8 +15,8 @@ def _has_compiled_extensions(path: Path) -> bool:
     pyopenms_dir = path / "pyopenms"
     if not pyopenms_dir.exists():
         return False
-    # Look for any _pyopenms2_1*.so file (handles different Python versions)
-    return bool(list(pyopenms_dir.glob("_pyopenms2_1*.so")))
+    # Look for any _pyopenms2_*.so file (handles different Python versions and domain names)
+    return bool(list(pyopenms_dir.glob("_pyopenms2_*.so")))
 
 
 def _setup_pyopenms():

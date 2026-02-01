@@ -27,7 +27,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # --------------------------------------------------------------------------
 option(PYOPENMS2_BUILD_TESTS "Build pyOpenMS2 tests" ON)
 option(PYOPENMS2_GENERATE_STUBS "Generate .pyi stub files" ON)
-set(PY_NUM_MODULES "8" CACHE STRING "Number of modules to split bindings into")
+set(PYOPENMS2_DOMAINS
+    kernel metadata chemistry analysis featurefinder
+    format processing datastructures ml misc
+)
 
 # --------------------------------------------------------------------------
 # Find dependencies
@@ -73,12 +76,11 @@ set(PYOPENMS_ADDONS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../pyOpenMS/addons")
 # Output sentinel file to track generation status
 set(PYGEN_SENTINEL "${PYOPENMS2_BINDINGS_DIR}/.generated")
 
-# Generated source files (one per module)
-set(PYOPENMS2_GENERATED_SOURCES)
-foreach(i RANGE 1 ${PY_NUM_MODULES})
-    list(APPEND PYOPENMS2_GENERATED_SOURCES "${PYOPENMS2_BINDINGS_DIR}/module_${i}.cpp")
+# Generated source files (one per domain)
+set(PYOPENMS2_GENERATED_SOURCES "${PYOPENMS2_BINDINGS_DIR}/main_module.cpp")
+foreach(domain ${PYOPENMS2_DOMAINS})
+    list(APPEND PYOPENMS2_GENERATED_SOURCES "${PYOPENMS2_BINDINGS_DIR}/bind_${domain}.cpp")
 endforeach()
-list(APPEND PYOPENMS2_GENERATED_SOURCES "${PYOPENMS2_BINDINGS_DIR}/main_module.cpp")
 
 # Get OpenMS include directories for libclang parsing
 get_target_property(OPENMS_INC_DIRS ${OPENMS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
@@ -88,10 +90,8 @@ set(GENERATOR_ARGS
     --pxd-dir "${PYOPENMS_PXD_DIR}"
     --addons-dir "${PYOPENMS_ADDONS_DIR}"
     --output-dir "${PYOPENMS2_BINDINGS_DIR}"
-    --num-modules ${PY_NUM_MODULES}
     --openms-include-dir ${OPENMS_INC_DIRS}
     --libclang-cache-dir "${CMAKE_CURRENT_BINARY_DIR}/libclang_cache"
-    --all-classes
 )
 message(STATUS "pyOpenMS2: Using libclang for accurate C++ type parsing (with caching)")
 
@@ -140,13 +140,13 @@ set(PYOPENMS2_TYPE_CASTERS
 # Build split modules for parallel compilation and memory management
 # --------------------------------------------------------------------------
 
-# Each submodule is a separate shared library
-foreach(i RANGE 1 ${PY_NUM_MODULES})
-    set(MODULE_NAME "_pyopenms2_${i}")
+# Each domain submodule is a separate shared library
+foreach(domain ${PYOPENMS2_DOMAINS})
+    set(MODULE_NAME "_pyopenms2_${domain}")
 
     nanobind_add_module(${MODULE_NAME}
         NB_DOMAIN pyopenms  # Share types across modules
-        ${PYOPENMS2_BINDINGS_DIR}/module_${i}.cpp
+        ${PYOPENMS2_BINDINGS_DIR}/bind_${domain}.cpp
     )
 
     target_include_directories(${MODULE_NAME} PRIVATE
@@ -281,8 +281,8 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pyopenms/
 if(PYOPENMS2_GENERATE_STUBS)
     # Collect all module targets as dependencies
     set(_STUB_DEPS _pyopenms2)
-    foreach(i RANGE 1 ${PY_NUM_MODULES})
-        list(APPEND _STUB_DEPS "_pyopenms2_${i}")
+    foreach(domain ${PYOPENMS2_DOMAINS})
+        list(APPEND _STUB_DEPS "_pyopenms2_${domain}")
     endforeach()
 
     add_custom_target(pyopenms2_stubs
@@ -336,7 +336,7 @@ message(STATUS "  Python:            ${Python_EXECUTABLE} (${Python_VERSION})")
 message(STATUS "  NumPy:             ${Python_NumPy_INCLUDE_DIRS}")
 message(STATUS "  nanobind:          ${nanobind_SOURCE_DIR}")
 message(STATUS "  OpenMS:            ${OpenMS_DIR}")
-message(STATUS "  Number of modules: ${PY_NUM_MODULES}")
+message(STATUS "  Domain modules:    ${PYOPENMS2_DOMAINS}")
 message(STATUS "  Use Doxygen:       ${PYOPENMS2_USE_DOXYGEN}")
 if(PYOPENMS2_USE_DOXYGEN)
     message(STATUS "  Doxygen XML dir:   ${PYOPENMS2_DOXYGEN_XML_DIR}")
