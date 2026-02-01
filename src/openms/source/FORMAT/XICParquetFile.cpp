@@ -508,6 +508,12 @@ namespace OpenMS
         tokens.push_back(current);
       }
 
+      if (in_string)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Unclosed quote in filter expression", expr);
+      }
+
       return tokens;
     }
 
