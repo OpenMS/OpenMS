@@ -1397,11 +1397,13 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "Arrow Dataset filter failed, falling back to compute filter: "
                         << e.what() << '\n';
+        table = nullptr;
         used_dataset = false;
       }
       catch (...)
       {
         OPENMS_LOG_WARN << "Arrow Dataset filter failed, falling back to compute filter.\n";
+        table = nullptr;
         used_dataset = false;
       }
     }

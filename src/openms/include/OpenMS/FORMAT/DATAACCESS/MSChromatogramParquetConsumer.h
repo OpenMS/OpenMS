@@ -65,10 +65,10 @@ namespace OpenMS
     /**
       @brief Construct a parquet consumer for chromatogram export.
 
-      @param filename Output parquet filename.
-      @param run_id Run identifier to store with each chromatogram.
-      @param source_file Source mzML filename to store with each chromatogram.
-      @param transition_exp Transition metadata used to annotate chromatograms.
+      @param[in] filename Output parquet filename.
+      @param[in] run_id Run identifier to store with each chromatogram.
+      @param[in] source_file Source mzML filename to store with each chromatogram.
+      @param[in] transition_exp Transition metadata used to annotate chromatograms.
     */
     MSChromatogramParquetConsumer(const String& filename,
                                   UInt64 run_id,
@@ -91,14 +91,14 @@ namespace OpenMS
     /**
       @brief Reserve storage for expected data sizes.
 
-      @param expectedSpectra Expected number of spectra (ignored).
-      @param expectedChromatograms Expected number of chromatograms.
+      @param[in] expectedSpectra Expected number of spectra (ignored).
+      @param[in] expectedChromatograms Expected number of chromatograms.
     */
     void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) override;
     /**
       @brief Set experimental settings (currently unused).
 
-      @param exp Experimental settings to store for context.
+      @param[in] exp Experimental settings to store for context.
     */
     void setExperimentalSettings(const ExperimentalSettings& exp) override;
 

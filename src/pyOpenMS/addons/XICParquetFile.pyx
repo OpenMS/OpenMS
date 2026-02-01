@@ -579,11 +579,11 @@ import numpy as np
         """
         try:
             import pyarrow as pa
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "pyarrow is required for to_arrow(). "
                 "Please install it with: pip install pyarrow"
-            )
+            ) from e
         return pa.Table.from_pydict(self.get_data_dict(explode=explode))
 
     def query_chromatograms(self):
