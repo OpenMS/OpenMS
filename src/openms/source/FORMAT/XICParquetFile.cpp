@@ -104,6 +104,28 @@ namespace OpenMS
       return schema;
     }
 
+    /// Read parquet schema from all files and ensure they are compatible.
+    std::shared_ptr<arrow::Schema> readParquetSchemaAllFiles_(const std::vector<String>& filenames)
+    {
+      if (filenames.empty())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "No parquet files provided for schema validation", "");
+      }
+      auto base = readParquetSchema_(filenames.front());
+      for (size_t i = 1; i < filenames.size(); ++i)
+      {
+        auto other = readParquetSchema_(filenames[i]);
+        // Use Arrow Schema equality check to ensure fields and types match.
+        if (!other->Equals(*base))
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Parquet input files have incompatible schemas: '" + filenames.front() + "' vs '" + filenames[i] + "'", "");
+        }
+      }
+      return base;
+    }
+
     /// Read selected columns from a parquet file into an Arrow table.
     std::shared_ptr<arrow::Table> readParquetTableColumns_(const String& filename,
                                                            const std::vector<String>& columns)
@@ -1424,7 +1446,13 @@ namespace OpenMS
     {
       XICChromatogram chrom;
 
-      chrom.run_id = std::static_pointer_cast<arrow::Int64Array>(run_id_col)->Value(row);
+      // Defensive: RUN_ID is a required column but individual cells may be null in malformed files.
+      // Use getOptionalInt_ and throw a descriptive error if a required cell is null.
+      if (!getOptionalInt_(run_id_col, row, chrom.run_id))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "NULL value in required RUN_ID column", String(row));
+      }
       chrom.has_precursor_id = getOptionalInt_(precursor_id_col, row, chrom.precursor_id);
       chrom.has_transition_id = getOptionalInt_(transition_id_col, row, chrom.transition_id);
       chrom.has_precursor_charge = getOptionalInt_(precursor_charge_col, row, chrom.precursor_charge);
@@ -1491,7 +1519,11 @@ namespace OpenMS
     for (int64_t row = 0; row < rows; ++row)
     {
       XICRunInfo info;
-      info.run_id = std::static_pointer_cast<arrow::Int64Array>(run_id_col)->Value(row);
+      if (!getOptionalInt_(run_id_col, row, info.run_id))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "NULL value in required RUN_ID column", String(row));
+      }
       getOptionalString_(source_file_col, row, info.source_file);
 
       std::ostringstream oss;
@@ -1560,7 +1592,7 @@ namespace OpenMS
     };
     const std::vector<String>& requested_columns = columns.empty() ? default_columns : columns;
 
-    std::shared_ptr<arrow::Schema> schema = readParquetSchema_(filenames_.front());
+  std::shared_ptr<arrow::Schema> schema = readParquetSchemaAllFiles_(filenames_);
     std::unordered_set<String> schema_columns;
     schema_columns.reserve(schema->num_fields());
     for (const auto& field : schema->fields())
@@ -1895,7 +1927,7 @@ namespace OpenMS
                                     "OpenMS was built without Parquet support");
 #else
     output.clear();
-    std::shared_ptr<arrow::Schema> schema = readParquetSchema_(filenames_.front());
+  std::shared_ptr<arrow::Schema> schema = readParquetSchemaAllFiles_(filenames_);
     output.reserve(schema->num_fields());
     for (const auto& field : schema->fields())
     {
