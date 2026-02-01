@@ -777,7 +777,8 @@ namespace OpenMS
       if (cond.op == "<=") return arrow::compute::less_equal(field, literal);
       if (cond.op == ">") return arrow::compute::greater(field, literal);
       if (cond.op == ">=") return arrow::compute::greater_equal(field, literal);
-      return arrow::compute::literal(false);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Unsupported filter operator", cond.op);
     }
 
     /// Combine conditions into a single Arrow expression.
