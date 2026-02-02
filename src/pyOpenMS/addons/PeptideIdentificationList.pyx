@@ -1,5 +1,6 @@
 cimport numpy as np
 import numpy as np
+import warnings
 
 
 
@@ -224,6 +225,10 @@ import numpy as np
         # Filter columns if specified
         if columns is not None:
             available = set(df.columns)
+            unknown = [c for c in columns if c not in available]
+            if unknown:
+                warnings.warn(f"Unknown column(s) ignored in to_df(): {unknown}. "
+                              f"Use df_columns() to see available columns.")
             requested = [c for c in columns if c in available]
             df = df[requested]
 
@@ -239,7 +244,9 @@ import numpy as np
         for column selection with the `columns` parameter.
 
         Note: Column names depend on the data (metavalues from PeptideHits),
-        so this method inspects the actual data.
+        so this method inspects the actual data. Only metavalue keys from the
+        first PeptideHit of each identification are considered; hits with
+        additional metavalues not present on the first hit will not be reflected.
 
         :param decode_ontology: Decode meta value names using the PSI-MS ontology.
                                 Default True. Should match the parameter used in to_df().
@@ -486,6 +493,12 @@ import numpy as np
                     str_data = [str(v) if v is not None else None for v in meta_data[mv]]
                     data_dict[clearname] = pa.array(str_data, type=pa.utf8())
 
+        if columns_set is not None:
+            unknown = [c for c in columns if c not in data_dict]
+            if unknown:
+                warnings.warn(f"Unknown column(s) ignored in to_arrow(): {unknown}. "
+                              f"Use df_columns() to see available columns.")
+
         return pa.Table.from_pydict(data_dict)
 
     def update_scores_from_df(self, df, main_score_name):
@@ -546,9 +559,9 @@ import numpy as np
 
     # TODO: Consider adding ontology decoding support (decode_ontology parameter) to PSM export methods
     # to decode CV term accessions (e.g., MS:1001493 -> "Posterior Error Probability")
-    def to_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, reference_file_name="", columns=None, additional_score_names=None):
+    def to_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, reference_file_name="", columns=None, additional_score_names=None, scan_format="scan"):
         """
-        to_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> pd.DataFrame
+        to_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, reference_file_name: str = "", columns: list = None, additional_score_names: list = None, scan_format: str = "scan") -> pd.DataFrame
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -590,6 +603,11 @@ import numpy as np
                                        that should be treated as scores and included in additional_scores.
         :type additional_score_names: list
 
+        :param scan_format: Controls what the ``scan`` column contains:
+                            ``"scan"`` (default) extracts the scan number from the
+                            native ID, ``"nativeId"`` uses the raw native ID string.
+        :type scan_format: str
+
         :return: DataFrame with columns: sequence, peptidoform, modifications,
                  precursor_charge, posterior_error_probability, is_decoy,
                  calculated_mz, observed_mz, additional_scores, protein_accessions,
@@ -630,7 +648,8 @@ import numpy as np
                 include_peak_annotations=include_peak_annotations,
                 reference_file_name=reference_file_name,
                 columns=columns,
-                additional_score_names=additional_score_names
+                additional_score_names=additional_score_names,
+                scan_format=scan_format
             )
         except ImportError:
             raise ImportError(
@@ -673,8 +692,9 @@ import numpy as np
         :param software_provider: Name of the software provider. Default "OpenMS".
         :type software_provider: str
 
-        :param scan_format: Format of scan identifiers: "scan", "index", or "nativeId".
-                            Default "scan".
+        :param scan_format: Controls the ``scan`` column and is recorded in file_metadata.
+                            ``"scan"`` (default) extracts the scan number from the
+                            native ID, ``"nativeId"`` uses the raw native ID string.
         :type scan_format: str
 
         Additional kwargs are passed to to_psm_df().
@@ -702,13 +722,9 @@ import numpy as np
         import uuid as _uuid
         from datetime import datetime as _datetime
 
-        df = self.to_psm_df(**kwargs)
+        df = self.to_psm_df(scan_format=scan_format, **kwargs)
 
         # Build file_metadata
-        # TODO: scan_format is currently only stored in file_metadata but does not
-        # influence the actual scan values in the PSMs. Consider either:
-        # 1. Passing scan_format to to_psm_df() to transform scan values accordingly
-        # 2. Removing the parameter and documenting the fixed scan format used
         file_metadata = {
             "qpx_version": qpx_version,
             "creator": creator,
@@ -729,9 +745,10 @@ import numpy as np
 
     def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
                       include_peak_annotations=False,
-                      reference_file_name="", columns=None, additional_score_names=None):
+                      reference_file_name="", columns=None, additional_score_names=None,
+                      scan_format="scan"):
         """
-        to_psm_arrow(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> pa.Table
+        to_psm_arrow(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, reference_file_name: str = "", columns: list = None, additional_score_names: list = None, scan_format: str = "scan") -> pa.Table
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -774,6 +791,11 @@ import numpy as np
                                        psm_metavalues. Use this parameter to specify custom score names.
         :type additional_score_names: list
 
+        :param scan_format: Controls what the ``scan`` column contains:
+                            ``"scan"`` (default) extracts the scan number from the
+                            native ID, ``"nativeId"`` uses the raw native ID string.
+        :type scan_format: str
+
         :return: Arrow Table with PSM data using native Arrow types.
                  Results are sorted by rt, observed_mz, precursor_charge, rank.
                  Empty input returns an empty table with proper schema.
@@ -806,6 +828,10 @@ import numpy as np
                 "pyarrow is required for to_psm_arrow(). "
                 "Please install it with: pip install pyarrow"
             )
+
+        if scan_format not in ("scan", "nativeId"):
+            raise ValueError(f"scan_format must be 'scan' or 'nativeId', got '{scan_format}'")
+
         from . import SpectrumLookup as _SpectrumLookup
         from . import IDScoreSwitcherAlgorithm as _IDScoreSwitcherAlgorithm
         from . import Scores as _Scores
@@ -1089,7 +1115,10 @@ import numpy as np
                 all_predicted_rt.append(predicted_rt)
                 all_reference_file.append(reference_file_name)
                 all_cv_params.append(None)
-                all_scan.append(str(scan) if scan is not None else None)
+                if scan_format == "nativeId":
+                    all_scan.append(spec_ref if spec_ref else None)
+                else:
+                    all_scan.append(str(scan) if scan is not None else None)
                 all_rt.append(rt)
                 all_ion_mobility.append(ion_mobility)
                 all_spectrum_reference.append(spec_ref)
@@ -1246,6 +1275,12 @@ import numpy as np
             data_dict["spectrum_metavalues"] = pa.array(all_spectrum_metavalues_str, type=pa.list_(metavalue_type))
 
         table = pa.Table.from_pydict(data_dict)
+
+        if columns_set is not None:
+            unknown = [c for c in columns if c not in data_dict]
+            if unknown:
+                warnings.warn(f"Unknown column(s) ignored in to_psm_arrow(): {unknown}. "
+                              f"Use psm_columns() to see available columns.")
 
         # Sort by rt, observed_mz, precursor_charge, rank for consistent ordering
         sort_cols = ["rt", "observed_mz", "precursor_charge", "rank"]

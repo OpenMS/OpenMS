@@ -11,52 +11,49 @@
 namespace OpenMS
 {
 
-  // Static member initialization
-  std::map<Scores::IDType, std::set<String>> Scores::id_type_to_str_;
-  std::map<Scores::IDType, bool> Scores::id_type_to_better_;
-  bool Scores::maps_initialized_ = false;
-
-  void Scores::initializeMaps_()
+  const Scores::Maps_& Scores::getMaps_()
   {
-    if (maps_initialized_) return;
+    static const Maps_ maps = [] {
+      Maps_ m;
+      m.type_to_str = {
+        //TODO introduce real meaningful score names for XTandem, Mascot etc. (e.g., hyperscore)
+        {IDType::RAW, {"svm", "MS:1001492", "XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh", "hyperscore", "ln(hyperscore)"}},
+        //TODO find out reasonable raw scores for SES that provide E-Values as main score or see below
+        //TODO there is no test for spectraST idXML, so I don't know its score
+        //TODO check if we should combine RAW and RAW_EVAL:
+        // What if a SE does not have an e-value score (spectrast, OMSSA, crux/sequest, myrimatch),
+        // then you need additional if's/try's
+        {IDType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257"}},
+        {IDType::PP, {"Posterior Probability"}},
+        {IDType::PEP, {"Posterior Error Probability", "pep", "PEP", "posterior_error_probability", "MS:1001493"}}, // TODO add CV terms
+        {IDType::FDR, {"FDR", "fdr", "false discovery rate"}},
+        {IDType::QVAL, {"q-value", "qvalue", "MS:1001491", "q-Value", "qval"}}
+      };
 
-    id_type_to_str_ = {
-      //TODO introduce real meaningful score names for XTandem, Mascot etc. (e.g., hyperscore)
-      {IDType::RAW, {"svm", "MS:1001492", "XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh", "hyperscore", "ln(hyperscore)"}},
-      //TODO find out reasonable raw scores for SES that provide E-Values as main score or see below
-      //TODO there is no test for spectraST idXML, so I don't know its score
-      //TODO check if we should combine RAW and RAW_EVAL:
-      // What if a SE does not have an e-value score (spectrast, OMSSA, crux/sequest, myrimatch),
-      // then you need additional if's/try's
-      {IDType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257"}},
-      {IDType::PP, {"Posterior Probability"}},
-      {IDType::PEP, {"Posterior Error Probability", "pep", "PEP", "posterior_error_probability", "MS:1001493"}}, // TODO add CV terms
-      {IDType::FDR, {"FDR", "fdr", "false discovery rate"}},
-      {IDType::QVAL, {"q-value", "qvalue", "MS:1001491", "q-Value", "qval"}}
-    };
+      m.type_to_better = {
+        {IDType::RAW, true}, //TODO this might actually not always be true
+        {IDType::RAW_EVAL, false},
+        {IDType::PP, true},
+        {IDType::PEP, false},
+        {IDType::FDR, false},
+        {IDType::QVAL, false}
+      };
 
-    id_type_to_better_ = {
-      {IDType::RAW, true}, //TODO this might actually not always be true
-      {IDType::RAW_EVAL, false},
-      {IDType::PP, true},
-      {IDType::PEP, false},
-      {IDType::FDR, false},
-      {IDType::QVAL, false}
-    };
-
-    maps_initialized_ = true;
+      return m;
+    }();
+    return maps;
   }
 
   bool Scores::isScoreType(const String& score_name, IDType type)
   {
-    initializeMaps_();
+    const auto& maps = getMaps_();
 
     String chopped = score_name;
     if (chopped.hasSuffix("_score"))
     {
       chopped = chopped.chop(6);
     }
-    const std::set<String>& possible_types = id_type_to_str_.at(type);
+    const std::set<String>& possible_types = maps.type_to_str.at(type);
     return possible_types.find(chopped) != possible_types.end();
   }
 
@@ -97,15 +94,15 @@ namespace OpenMS
 
   bool Scores::isHigherBetter(IDType type)
   {
-    initializeMaps_();
-    return id_type_to_better_.at(type);
+    const auto& maps = getMaps_();
+    return maps.type_to_better.at(type);
   }
 
   std::vector<String> Scores::getAllIDScoreNames()
   {
-    initializeMaps_();
+    const auto& maps = getMaps_();
     std::vector<String> names;
-    for (const auto& [type, name_set] : id_type_to_str_)
+    for (const auto& [type, name_set] : maps.type_to_str)
     {
       for (const auto& name : name_set)
       {
@@ -117,14 +114,14 @@ namespace OpenMS
 
   const std::set<String>& Scores::getIDNamesForType(IDType type)
   {
-    initializeMaps_();
-    return id_type_to_str_.at(type);
+    const auto& maps = getMaps_();
+    return maps.type_to_str.at(type);
   }
 
   bool Scores::findIDTypeByName(const String& name, IDType& type)
   {
-    initializeMaps_();
-    for (const auto& [scoretype, names] : id_type_to_str_)
+    const auto& maps = getMaps_();
+    for (const auto& [scoretype, names] : maps.type_to_str)
     {
       if (names.find(name) != names.end())
       {
@@ -147,10 +144,10 @@ namespace OpenMS
 
   bool Scores::isKnownScoreType(const String& score_name)
   {
-    initializeMaps_();
+    const auto& maps = getMaps_();
     String normalized = normalizeScoreName(score_name);
 
-    for (const auto& [type, names] : id_type_to_str_)
+    for (const auto& [type, names] : maps.type_to_str)
     {
       if (names.find(normalized) != names.end())
       {

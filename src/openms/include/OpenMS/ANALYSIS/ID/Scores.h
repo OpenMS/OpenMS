@@ -142,17 +142,15 @@ namespace OpenMS
     static bool isKnownScoreType(const String& score_name);
 
   private:
-    /// Initialize static maps (called once)
-    static void initializeMaps_();
+    /// Holds the static score type lookup maps (thread-safe via C++11 function-local static)
+    struct Maps_
+    {
+      std::map<IDType, std::set<String>> type_to_str;
+      std::map<IDType, bool> type_to_better;
+    };
 
-    /// a map from IDType to their names as used around OpenMS
-    static std::map<IDType, std::set<String>> id_type_to_str_;
-
-    /// a map from IDType to their ordering (higher better or not)
-    static std::map<IDType, bool> id_type_to_better_;
-
-    /// flag to track initialization
-    static bool maps_initialized_;
+    /// Returns the singleton Maps_ instance (thread-safe initialization guaranteed by C++11)
+    static const Maps_& getMaps_();
   };
 
 } // namespace OpenMS
