@@ -552,7 +552,12 @@ if (!pi.getHits().empty())
     // Create local copy of constant for OpenMP shared access
     const double proton_mass_u = Constants::PROTON_MASS_U;
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, fasta_db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u)
+    // Pre-compute modification maps once (read-only, safe to share across threads)
+    const ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+    const ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+    const bool has_modifications = !(modifications_variable_.empty() && modifications_fixed_.empty());
+
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, fasta_db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, fixed_modifications, variable_modifications, has_modifications)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
 
@@ -575,11 +580,9 @@ if (!pi.getHits().empty())
         AASequence unmod_candidate = AASequence::fromString(fasta_db[sms_pep.protein_idx].sequence.substr(candidate_snippet.first, candidate_snippet.second));
         AASequence mod_candidate;
         //reapply modifications.
-        if (!(modifications_variable_.empty() && modifications_fixed_.empty()))
+        if (has_modifications)
         {
           vector<AASequence> mod_candidates;
-          ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-          ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, unmod_candidate);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, unmod_candidate, modifications_max_variable_mods_per_peptide_, mod_candidates);
           mod_candidate = mod_candidates[sms_pep.modification_idx_];
@@ -636,9 +639,6 @@ if (!pi.getHits().empty())
     }
 
     endProgress();
-
-    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
     startProgress(0, 1, "Post-processing PSMs...");
     PeptideSearchEngineFIAlgorithm::postProcessHits_(spectra,
