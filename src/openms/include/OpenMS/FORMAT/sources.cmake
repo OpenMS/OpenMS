@@ -121,6 +121,7 @@ endif()
 
 if (WITH_PARQUET)
   list(APPEND sources_list_h ArrowExport.h)
+  list(APPEND sources_list_h ParquetFilter.h)
 endif()
 
 ### add path to the filenames
