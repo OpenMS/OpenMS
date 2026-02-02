@@ -76,7 +76,6 @@ OMSFileStore.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
-XICParquetFile.h
 ParamCTDFile.h
 ParamXMLFile.h
 PEFFFile.h
@@ -122,6 +121,7 @@ endif()
 if (WITH_PARQUET)
   list(APPEND sources_list_h ArrowExport.h)
   list(APPEND sources_list_h ParquetFilter.h)
+  list(APPEND sources_list_h XICParquetFile.h)
 endif()
 
 ### add path to the filenames
