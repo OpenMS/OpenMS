@@ -40,10 +40,10 @@ namespace OpenMS
           If there are multiple identifications for a feature with the same MS2 spectras (concatenated native ids)
           the identification with the higher SIRIUS score is chosen (currently based on the explained peak intensities).
 
-          @param sirius_workspace_subdirs Vector of paths to SIRIUS subdirectories.
-          @param score_threshold Only use spectra over a certain score threshold (0-1)
-          @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
-          @param decoy_generation Extract decoy spectra from SIRIUS subdirectories. 
+          @param[in] sirius_workspace_subdirs Vector of paths to SIRIUS subdirectories.
+          @param[in] score_threshold Only use spectra over a certain score threshold (0-1)
+          @param[in] use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
+          @param[out] decoy_generation Extract decoy spectra from SIRIUS subdirectories. 
           */
           static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, double score_threshold,
                                                                                           bool use_exact_mass, bool decoy_generation);
@@ -74,10 +74,10 @@ namespace OpenMS
           <tr><td> 56.050855 <td> 20794.85 <td> [56.049476] <td> C3H5N <td> [M + H]+
           </table>
 
-          @param path_to_sirius_workspace Path to SIRIUS workspace.
-          @param max_rank Up to which rank to extract annotations maximally. Auto-stops at last candidate.
-          @param decoy Extract annotations for decoys? Or else targets. Run twice if you want both
-          @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
+          @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
+          @param[in] max_rank Up to which rank to extract annotations maximally. Auto-stops at last candidate.
+          @param[out] decoy Extract annotations for decoys? Or else targets. Run twice if you want both
+          @param[in] use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           */
           static std::vector<MSSpectrum> extractAnnotationsFromSiriusFile(const String& path_to_sirius_workspace, Size max_rank = 1, bool decoy = false, bool use_exact_mass = false);
 
@@ -93,7 +93,7 @@ namespace OpenMS
 
           @return String native id of current SIRIUS compound
           
-          @param path_to_sirius_workspace Path to SIRIUS workspace.
+          @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
           */
           static OpenMS::String extractConcatNativeIDsFromSiriusMS_(const OpenMS::String& path_to_sirius_workspace);
 
@@ -105,7 +105,7 @@ namespace OpenMS
 
           @return String m_id of current SIRIUS compound
 
-          @param path_to_sirius_workspace Path to SIRIUS workspace.
+          @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
           */
           static OpenMS::String extractConcatMIDsFromSiriusMS_(const String& path_to_sirius_workspace);
 
@@ -115,7 +115,7 @@ namespace OpenMS
 
           @return String fid of current SIRIUS workspace
 
-          @param path_to_sirius_workspace Path to SIRIUS workspace.
+          @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
           */
           static OpenMS::String extractFeatureIDFromSiriusMS_(const String& path_to_sirius_workspace);
 
@@ -126,7 +126,7 @@ namespace OpenMS
 
           @return a map with specified rank and filename (formula_adduct.tsv) (based on the annotation)
 
-          @param path_to_sirius_workspace Path to SIRIUS workspace.
+          @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
           */
           static std::map< Size, String > extractCompoundRankingAndFilename_(const String& path_to_sirius_workspace);
 
@@ -136,7 +136,7 @@ namespace OpenMS
 
           @return a map with specified rank and score (explainedIntensity) (based on the annotation)
 
-          @param path_to_sirius_workspace Path to SIRIUS workspace.
+          @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
           */
           static std::map< Size, double > extractCompoundRankingAndScore_(const String& path_to_sirius_workspace);
 

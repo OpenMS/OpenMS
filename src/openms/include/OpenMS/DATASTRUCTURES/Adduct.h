@@ -10,7 +10,10 @@
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <functional>
 
 namespace OpenMS
 {
@@ -30,7 +33,7 @@ public:
     /// C'tor for all members
     Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label = "", UInt mol_multiplier = 1);
 
-    /// Increase amount of this adduct by factor @param m
+    /// Increase amount of this adduct by factor @param[in] m
     Adduct operator*(const Int m) const;
     /// Add two adducts amount if they are equal (defined by equal formula)
     Adduct operator+(const Adduct& rhs);
@@ -90,5 +93,25 @@ private:
   };
 
 } // namespace OpenMS
+
+// Hash function specialization for Adduct
+// Note: Only hash fields used in operator== (charge, amount, singleMass, log_prob, formula)
+// Do NOT hash rt_shift_ and label_ as they are not compared in operator==
+namespace std
+{
+  template<>
+  struct hash<OpenMS::Adduct>
+  {
+    std::size_t operator()(const OpenMS::Adduct& a) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_int(a.getCharge());
+      OpenMS::hash_combine(seed, OpenMS::hash_int(a.getAmount()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(a.getSingleMass()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(a.getLogProb()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(a.getFormula()));
+      return seed;
+    }
+  };
+} // namespace std
 
 

@@ -126,11 +126,11 @@ namespace OpenMS
          << "db=\"" << writeXMLEscape(params[i].db) << "\" "
          << "db_version=\"" << writeXMLEscape(params[i].db_version) << "\" "
          << "taxonomy=\"" << writeXMLEscape(params[i].taxonomy) << "\" ";
-      if (params[i].mass_type == ProteinIdentification::MONOISOTOPIC)
+      if (params[i].mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
       {
         os << "mass_type=\"monoisotopic\" ";
       }
-      else if (params[i].mass_type == ProteinIdentification::AVERAGE)
+      else if (params[i].mass_type == ProteinIdentification::PeakMassType::AVERAGE)
       {
         os << "mass_type=\"average\" ";
       }
@@ -476,11 +476,11 @@ namespace OpenMS
       String mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
       {
-        param_.mass_type = ProteinIdentification::MONOISOTOPIC;
+        param_.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
       }
       else if (mass_type == "average")
       {
-        param_.mass_type = ProteinIdentification::AVERAGE;
+        param_.mass_type = ProteinIdentification::PeakMassType::AVERAGE;
       }
       //enzyme
       String enzyme;

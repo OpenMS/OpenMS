@@ -36,6 +36,7 @@
 #include <fstream>
 #include <algorithm>
 #include <random>
+#include <optional>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -173,7 +174,7 @@ namespace OpenMS
 
     defaults_.setValue("EMGScoring:max_iteration", 100, "Maximum number of iterations for EMG fitting.");
     defaults_.setMinInt("EMGScoring:max_iteration", 1);
-    defaults_.setValue("EMGScoring:init_mom", "false", "Alternative initial parameters for fitting through method of moments.");
+    defaults_.setValue("EMGScoring:init_mom", "true", "Alternative initial parameters for fitting through method of moments.");
     defaults_.setValidStrings("EMGScoring:init_mom", {"true","false"});
 
     defaults_.setSectionDescription("EMGScoring", "Parameters for fitting exp. mod. Gaussians to mass traces.");
@@ -823,16 +824,13 @@ namespace OpenMS
 
       OPENMS_LOG_DEBUG << "Detecting chromatographic peaks..." << endl;
       // suppress status output from OpenSWATH, unless in debug mode:
+      std::optional<Logger::LogSinkGuard> log_guard; // RAII: re-inserts cout on scope exit (exception-safe)
       if (debug_level_ < 1)
       {
-        OpenMS_Log_info.remove(cout);
+        log_guard.emplace(getGlobalLogInfo(), cout);
       }
       feat_finder_.pickExperiment(chrom_data_, features, library_,
                                   TransformationDescription(), ms_data_);
-      if (debug_level_ < 1)
-      {
-        OpenMS_Log_info.insert(cout); // revert logging change
-      }
       chrom_data_.clear(true);
       // Accumulate library entries for output before clearing
       for (const auto& pep : library_.getPeptides())
@@ -1150,7 +1148,7 @@ namespace OpenMS
    * Note: RT region boundaries are determined from ALL IDs (including those without IM),
    * so skipping individual IDs for IM statistics does not affect RT extraction.
    *
-   * @param r RT region containing peptide identifications (per charge state)
+   * @param[in] r RT region containing peptide identifications (per charge state)
    * @return IMStats structure with median, min, and max IM values
    *         Returns {-1.0, -1.0, -1.0} only if no valid IM data is available
    *
@@ -1464,16 +1462,10 @@ namespace OpenMS
 
     for (auto& rt : rts)
     {
-      // large gap between last RT of last region and current RT? then create a new region?
-      if (rt_regions.empty() || (rt_regions.back().end < rt - rt_tolerance))
-      {
-        RTRegion region;
-        region.start = rt - rt_tolerance;
-        // TODO
-        // cppcheck-suppress uninitStructMember
-        rt_regions.push_back(region);
-      }
-      rt_regions.back().end = rt + rt_tolerance;
+        if (rt_regions.empty() || rt_regions.back().end < rt - rt_tolerance)
+            rt_regions.push_back({rt - rt_tolerance, rt + rt_tolerance, ChargeMap()});
+        else
+            rt_regions.back().end = rt + rt_tolerance;
     }
 
     // sort the peptide IDs into the regions:

@@ -25,8 +25,10 @@
 
 ///////////////////////////
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 // must be defined up here or it won't compile:
 struct IsEven
@@ -237,7 +239,7 @@ START_SECTION((static void removeUnreferencedProteins(vector<ProteinIdentificati
 }
 END_SECTION
 
-START_SECTION((static void updateProteinReferences(PeptideIdentificationList& peptides, const vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference = false)))
+START_SECTION((static void removeDanglingProteinReferences(PeptideIdentificationList& peptides, const vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference = false)))
 {
   vector<ProteinIdentification> proteins = global_proteins;
   PeptideIdentificationList peptides = global_peptides;
@@ -248,7 +250,7 @@ START_SECTION((static void updateProteinReferences(PeptideIdentificationList& pe
   TEST_EQUAL(peptide_hits[4].getPeptideEvidences().size(), 1);
   proteins[0].getHits().resize(2);
 
-  IDFilter::updateProteinReferences(peptides, proteins);
+  IDFilter::removeDanglingProteinReferences(peptides, proteins);
   TEST_EQUAL(peptide_hits.size(), 11);
   for (Size i = 0; i < peptide_hits.size(); ++i)
   {
@@ -265,7 +267,7 @@ START_SECTION((static void updateProteinReferences(PeptideIdentificationList& pe
   }
 
   // remove peptide hits without any reference to an existing proteins:
-  IDFilter::updateProteinReferences(peptides, proteins, true);
+  IDFilter::removeDanglingProteinReferences(peptides, proteins, true);
   TEST_EQUAL(peptide_hits.size(), 2);
 }
 END_SECTION
@@ -907,4 +909,6 @@ END_SECTION
 
 END_TEST
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif

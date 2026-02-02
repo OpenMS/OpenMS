@@ -33,18 +33,18 @@ public:
     /**
          @brief Returns a GridVector with ticks for linear scales.
 
-         @param x1 minimum value
-         @param x2 maximum value
-         @param grid the grid_vector to fill
+         @param[in] x1 minimum value
+         @param[in] x2 maximum value
+         @param[out] grid the grid_vector to fill
     */
     static void calcGridLines(double x1, double x2, GridVector & grid);
 
     /**
          @brief Returns a GridVector with ticks for logarithmic scales.
 
-         @param x1 minimum value
-         @param x2 maximum value
-         @param grid the grid_vector to fill
+         @param[in] x1 minimum value
+         @param[in] x2 maximum value
+         @param[out] grid the grid_vector to fill
     */
     static void calcLogGridLines(double x1, double x2, GridVector & grid);
 

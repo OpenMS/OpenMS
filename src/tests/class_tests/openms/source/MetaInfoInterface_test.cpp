@@ -357,6 +357,78 @@ START_SECTION((void swap(MetaInfoInterface&& rhs)))
 }
 END_SECTION
 
+START_SECTION((MetaInfoConstIterator metaBegin() const))
+{
+	// Test with empty meta info (null meta_)
+	MetaInfoInterface mi_empty;
+	TEST_EQUAL(mi_empty.metaBegin() == mi_empty.metaEnd(), true)
+
+	// Test with non-empty meta info
+	MetaInfoInterface mi_filled;
+	mi_filled.setMetaValue("test_key", 42);
+	TEST_EQUAL(mi_filled.metaBegin() != mi_filled.metaEnd(), true)
+	TEST_EQUAL(mi_filled.metaBegin()->second, DataValue(42))
+}
+END_SECTION
+
+START_SECTION((MetaInfoConstIterator metaEnd() const))
+	NOT_TESTABLE // tested with metaBegin()
+END_SECTION
+
+START_SECTION((Size metaSize() const))
+{
+	// Test with null meta_
+	MetaInfoInterface mi_empty;
+	TEST_EQUAL(mi_empty.metaSize(), 0)
+
+	// Test with non-null meta_
+	MetaInfoInterface mi_filled;
+	mi_filled.setMetaValue("key1", 1);
+	TEST_EQUAL(mi_filled.metaSize(), 1)
+	mi_filled.setMetaValue("key2", 2);
+	TEST_EQUAL(mi_filled.metaSize(), 2)
+	mi_filled.removeMetaValue("key1");
+	TEST_EQUAL(mi_filled.metaSize(), 1)
+	mi_filled.clearMetaInfo();
+	TEST_EQUAL(mi_filled.metaSize(), 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] Range-based for loop iteration via iterators)
+{
+	MetaInfoInterface mi_iter;
+	mi_iter.setMetaValue("a", 1);
+	mi_iter.setMetaValue("b", 2);
+	mi_iter.setMetaValue("c", 3);
+
+	int count = 0;
+	for (auto it = mi_iter.metaBegin(); it != mi_iter.metaEnd(); ++it)
+	{
+		++count;
+		TEST_EQUAL(it->second.valueType() == DataValue::INT_VALUE, true)
+	}
+	TEST_EQUAL(count, 3)
+}
+END_SECTION
+
+START_SECTION([EXTRA] addMetaValues with empty source)
+{
+	MetaInfoInterface m_base, m_empty;
+	m_base.setMetaValue("key", 1);
+
+	// Adding empty to non-empty should not change anything
+	m_base.addMetaValues(m_empty);
+	TEST_EQUAL(m_base.metaSize(), 1)
+	TEST_EQUAL(m_base.getMetaValue("key"), DataValue(1))
+
+	// Adding non-empty to empty
+	MetaInfoInterface m_new;
+	m_new.addMetaValues(m_base);
+	TEST_EQUAL(m_new.metaSize(), 1)
+	TEST_EQUAL(m_new.getMetaValue("key"), DataValue(1))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

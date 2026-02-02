@@ -11,11 +11,96 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cstdint>
+#include <functional>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
 namespace OpenSwath
 {
+
+  /// @brief Compact enum for fragment ion types (replaces string storage)
+  /// Reduces memory from ~32 bytes (std::string) to 1 byte
+  enum class FragmentIonType : uint8_t
+  {
+    Unknown = 0,
+    AIon,      ///< a-ion
+    BIon,      ///< b-ion
+    CIon,      ///< c-ion
+    XIon,      ///< x-ion
+    YIon,      ///< y-ion
+    ZIon,      ///< z-ion
+    ZPrimeIon, ///< z'-ion (z prime)
+    ZDotIon,   ///< z.-ion (z dot)
+    Precursor, ///< Precursor ion
+    BMinusH2O, ///< b-ion with water loss
+    YMinusH2O, ///< y-ion with water loss
+    BMinusNH3, ///< b-ion with ammonia loss
+    YMinusNH3, ///< y-ion with ammonia loss
+    Empty = 255 ///< No fragment type set
+  };
+
+  /// @brief Convert fragment ion type string to enum
+  /// @param s Fragment type string (e.g. "y", "b", "prec")
+  /// @return Corresponding FragmentIonType enum value
+  inline FragmentIonType stringToFragmentIonType(const std::string& s)
+  {
+    if (s.empty()) return FragmentIonType::Empty;
+    if (s == "a") return FragmentIonType::AIon;
+    if (s == "b") return FragmentIonType::BIon;
+    if (s == "c") return FragmentIonType::CIon;
+    if (s == "x") return FragmentIonType::XIon;
+    if (s == "y") return FragmentIonType::YIon;
+    if (s == "z") return FragmentIonType::ZIon;
+    if (s == "z'") return FragmentIonType::ZPrimeIon;
+    if (s == "z.") return FragmentIonType::ZDotIon;
+    if (s == "prec" || s == "precursor") return FragmentIonType::Precursor;
+    if (s == "b-H2O" || s == "b-H20") return FragmentIonType::BMinusH2O;
+    if (s == "y-H2O" || s == "y-H20") return FragmentIonType::YMinusH2O;
+    if (s == "b-NH3") return FragmentIonType::BMinusNH3;
+    if (s == "y-NH3") return FragmentIonType::YMinusNH3;
+    return FragmentIonType::Unknown;
+  }
+
+  /// @brief Convert fragment ion type enum to string
+  /// @param t FragmentIonType enum value
+  /// @return Fragment type string (e.g. "y", "b", "prec")
+  inline std::string fragmentIonTypeToString(FragmentIonType t)
+  {
+    switch (t)
+    {
+      case FragmentIonType::Empty: return "";
+      case FragmentIonType::AIon: return "a";
+      case FragmentIonType::BIon: return "b";
+      case FragmentIonType::CIon: return "c";
+      case FragmentIonType::XIon: return "x";
+      case FragmentIonType::YIon: return "y";
+      case FragmentIonType::ZIon: return "z";
+      case FragmentIonType::ZPrimeIon: return "z'";
+      case FragmentIonType::ZDotIon: return "z.";
+      case FragmentIonType::Precursor: return "prec";
+      case FragmentIonType::BMinusH2O: return "b-H2O";
+      case FragmentIonType::YMinusH2O: return "y-H2O";
+      case FragmentIonType::BMinusNH3: return "b-NH3";
+      case FragmentIonType::YMinusNH3: return "y-NH3";
+      case FragmentIonType::Unknown:
+      default: return "unknown";
+    }
+  }
+
+  /// @brief Packed boolean flags for transitions
+  /// Reduces memory from 4 bytes (4 separate bools) to 1 byte
+  struct TransitionFlags
+  {
+    uint8_t decoy : 1;
+    uint8_t detecting : 1;
+    uint8_t quantifying : 1;
+    uint8_t identifying : 1;
+    uint8_t reserved : 4;
+
+    TransitionFlags() : decoy(0), detecting(1), quantifying(1), identifying(0), reserved(0) {}
+  };
+
   struct LightTransition
   {
     std::string transition_name;
@@ -24,11 +109,45 @@ namespace OpenSwath
     double product_mz{};
     double precursor_mz{};
     double precursor_im{-1};
-    int fragment_charge{};
-    bool decoy{};
-    bool detecting_transition{};
-    bool quantifying_transition{};
-    bool identifying_transition{};
+    int8_t fragment_charge{};                    ///< Fragment charge (compact: range typically 1-8)
+    TransitionFlags flags{};                     ///< Packed boolean flags
+
+    // Additional fields for roundtrip TSV/PQP I/O
+    int16_t fragment_nr{-1};                     ///< Fragment ion ordinal (e.g. 7 for y7)
+    FragmentIonType fragment_type{FragmentIonType::Empty}; ///< Fragment ion type enum
+    std::vector<std::string> peptidoforms;       ///< Peptidoforms for IPF
+
+    // Legacy bool accessors for API compatibility
+    bool getDecoy() const { return flags.decoy; }
+    void setDecoy(bool d) { flags.decoy = d; }
+
+    // Fragment type string accessors for backward compatibility
+    std::string getFragmentType() const { return fragmentIonTypeToString(fragment_type); }
+    void setFragmentType(const std::string& s) { fragment_type = stringToFragmentIonType(s); }
+
+    /// Reconstruct annotation from fragment_type, fragment_nr, and fragment_charge
+    /// Returns string like "b8", "y6^2", "prec", or empty if no fragment info set
+    std::string getAnnotation() const
+    {
+      if (fragment_type == FragmentIonType::Empty)
+      {
+        return "";
+      }
+      if (fragment_type == FragmentIonType::Precursor)
+      {
+        return "prec";
+      }
+      std::string result = fragmentIonTypeToString(fragment_type);
+      if (fragment_nr >= 0)
+      {
+        result += std::to_string(fragment_nr);
+      }
+      if (fragment_charge > 0)
+      {
+        result += "^" + std::to_string(static_cast<int>(fragment_charge));
+      }
+      return result;
+    }
 
     int getProductChargeState() const
     {
@@ -87,32 +206,43 @@ namespace OpenSwath
 
     void setDetectingTransition (bool d)
     {
-      detecting_transition = d;
+      flags.detecting = d;
     }
 
     bool isDetectingTransition() const
     {
-      return detecting_transition;
+      return flags.detecting;
     }
 
     void setQuantifyingTransition (bool q)
     {
-      quantifying_transition = q;
+      flags.quantifying = q;
     }
 
     bool isQuantifyingTransition() const
     {
-      return quantifying_transition;
+      return flags.quantifying;
     }
 
     void setIdentifyingTransition (bool i)
     {
-      identifying_transition = i;
+      flags.identifying = i;
     }
 
     bool isIdentifyingTransition() const
     {
-      return identifying_transition;
+      return flags.identifying;
+    }
+
+    /// Equality operator - compares transition_name (consistent with hash)
+    bool operator==(const LightTransition& rhs) const
+    {
+      return transition_name == rhs.transition_name;
+    }
+
+    bool operator!=(const LightTransition& rhs) const
+    {
+      return !(*this == rhs);
     }
   };
 
@@ -120,6 +250,17 @@ namespace OpenSwath
   {
     int location;
     int unimod_id;
+
+    /// Equality operator - compares location and unimod_id (consistent with hash)
+    bool operator==(const LightModification& rhs) const
+    {
+      return location == rhs.location && unimod_id == rhs.unimod_id;
+    }
+
+    bool operator!=(const LightModification& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   // A compound is either a peptide or a metabolite
@@ -145,6 +286,11 @@ namespace OpenSwath
     // for metabolites
     std::string sum_formula;
     std::string compound_name;
+
+    // Additional fields for roundtrip TSV/PQP I/O
+    std::string label_type;                      ///< Label type (e.g. "heavy" or "light")
+    std::string smiles;                          ///< SMILES representation (metabolomics)
+    std::string adducts;                         ///< Adducts (metabolomics)
 
     // By convention, if there is no (metabolic) compound name, it is a peptide 
     bool isPeptide() const
@@ -173,12 +319,37 @@ namespace OpenSwath
     }
 
     std::vector<LightModification> modifications;
+
+    /// Equality operator - compares id (consistent with hash)
+    bool operator==(const LightCompound& rhs) const
+    {
+      return id == rhs.id;
+    }
+
+    bool operator!=(const LightCompound& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   struct LightProtein
   {
     std::string id;
     std::string sequence;
+
+    // Additional fields for roundtrip TSV/PQP I/O
+    std::string uniprot_id;                      ///< UniProt identifier
+
+    /// Equality operator - compares id (consistent with hash)
+    bool operator==(const LightProtein& rhs) const
+    {
+      return id == rhs.id;
+    }
+
+    bool operator!=(const LightProtein& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   struct LightTargetedExperiment
@@ -256,4 +427,72 @@ namespace OpenSwath
   };
 
 } //end Namespace OpenSwath
+
+// Hash function specializations for OpenSwath types
+namespace std
+{
+  /**
+   * @brief Hash function for LightTransition.
+   *
+   * Hashes based on the transition_name which serves as the unique identifier.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightTransition>
+  {
+    std::size_t operator()(const OpenSwath::LightTransition& t) const noexcept
+    {
+      return std::hash<std::string>{}(t.transition_name);
+    }
+  };
+
+  /**
+   * @brief Hash function for LightCompound.
+   *
+   * Hashes based on the id which serves as the unique identifier.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightCompound>
+  {
+    std::size_t operator()(const OpenSwath::LightCompound& c) const noexcept
+    {
+      return std::hash<std::string>{}(c.id);
+    }
+  };
+
+  /**
+   * @brief Hash function for LightProtein.
+   *
+   * Hashes based on the id which serves as the unique identifier.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightProtein>
+  {
+    std::size_t operator()(const OpenSwath::LightProtein& p) const noexcept
+    {
+      return std::hash<std::string>{}(p.id);
+    }
+  };
+
+  /**
+   * @brief Hash function for LightModification.
+   *
+   * Hashes based on location and unimod_id using a proper combining function
+   * to reduce collision probability.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightModification>
+  {
+    std::size_t operator()(const OpenSwath::LightModification& m) const noexcept
+    {
+      std::size_t seed = std::hash<int>{}(m.location);
+      // Use standard hash combine formula (from boost) for better distribution
+      seed ^= std::hash<int>{}(m.unimod_id) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+      return seed;
+    }
+  };
+} // namespace std
 

@@ -83,16 +83,16 @@ public:
     /**
         @brief Calculates how much of the dot product is dominated by a few peaks
 
-        @param dot_product if -1 this value will be calculated as well.
-        @param bin1 first spectrum in binned representation
-        @param bin2 second spectrum in binned representation
+        @param[in] dot_product if -1 this value will be calculated as well.
+        @param[in] bin1 first spectrum in binned representation
+        @param[in] bin2 second spectrum in binned representation
     */
     double dot_bias(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2, double dot_product = -1) const;
 
     /**
         @brief calculates the normalized distance between top_hit and runner_up.
-        @param top_hit is the best score for a given match.
-        @param runner_up a match with a worse score than top_hit, e.g. the second best score.
+        @param[in] top_hit is the best score for a given match.
+        @param[in] runner_up a match with a worse score than top_hit, e.g. the second best score.
 
         @return normalized distance
         @throw DividedByZero exception if top_hit is 0.
@@ -103,9 +103,9 @@ public:
 
     /**
         @brief computes the overall all score
-        @param dot_product of a match
-        @param delta_D should be calculated after all dot products for a unidentified spectrum are computed
-        @param dot_bias
+        @param[in] dot_product of a match
+        @param[in] delta_D should be calculated after all dot products for a unidentified spectrum are computed
+        @param[in] dot_bias
 
         @return the SpectraST similarity score
     */

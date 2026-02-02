@@ -51,28 +51,28 @@ namespace OpenMS
   {
     if (!isEditable())
     {
-      fillComboBox_(type_, &temp_.NamesOfAnalyzerType[temp_.getType()], 1);
-      fillComboBox_(res_method_, &temp_.NamesOfResolutionMethod[temp_.getResolutionMethod()], 1);
-      fillComboBox_(res_type_, &temp_.NamesOfResolutionType[temp_.getResolutionType()], 1);
-      fillComboBox_(scan_dir_, &temp_.NamesOfScanDirection[temp_.getScanDirection()], 1);
-      fillComboBox_(scan_law_, &temp_.NamesOfScanLaw[temp_.getScanLaw()], 1);
-      fillComboBox_(reflectron_state_, &temp_.NamesOfReflectronState[temp_.getReflectronState()], 1);
+      fillComboBox_(type_, &temp_.NamesOfAnalyzerType[static_cast<size_t>(temp_.getType())], 1);
+      fillComboBox_(res_method_, &temp_.NamesOfResolutionMethod[static_cast<size_t>(temp_.getResolutionMethod())], 1);
+      fillComboBox_(res_type_, &temp_.NamesOfResolutionType[static_cast<size_t>(temp_.getResolutionType())], 1);
+      fillComboBox_(scan_dir_, &temp_.NamesOfScanDirection[static_cast<size_t>(temp_.getScanDirection())], 1);
+      fillComboBox_(scan_law_, &temp_.NamesOfScanLaw[static_cast<size_t>(temp_.getScanLaw())], 1);
+      fillComboBox_(reflectron_state_, &temp_.NamesOfReflectronState[static_cast<size_t>(temp_.getReflectronState())], 1);
     }
     else
     {
-      fillComboBox_(type_, temp_.NamesOfAnalyzerType, MassAnalyzer::SIZE_OF_ANALYZERTYPE);
-      fillComboBox_(res_method_, temp_.NamesOfResolutionMethod, MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
-      fillComboBox_(res_type_, temp_.NamesOfResolutionType, MassAnalyzer::SIZE_OF_RESOLUTIONTYPE);
-      fillComboBox_(scan_dir_, temp_.NamesOfScanDirection, MassAnalyzer::SIZE_OF_SCANDIRECTION);
-      fillComboBox_(scan_law_, temp_.NamesOfScanLaw, MassAnalyzer::SIZE_OF_SCANLAW);
-      fillComboBox_(reflectron_state_, temp_.NamesOfReflectronState, MassAnalyzer::SIZE_OF_REFLECTRONSTATE);
+      fillComboBox_(type_, temp_.NamesOfAnalyzerType, static_cast<int>(MassAnalyzer::AnalyzerType::SIZE_OF_ANALYZERTYPE));
+      fillComboBox_(res_method_, temp_.NamesOfResolutionMethod, static_cast<int>(MassAnalyzer::ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD));
+      fillComboBox_(res_type_, temp_.NamesOfResolutionType, static_cast<int>(MassAnalyzer::ResolutionType::SIZE_OF_RESOLUTIONTYPE));
+      fillComboBox_(scan_dir_, temp_.NamesOfScanDirection, static_cast<int>(MassAnalyzer::ScanDirection::SIZE_OF_SCANDIRECTION));
+      fillComboBox_(scan_law_, temp_.NamesOfScanLaw, static_cast<int>(MassAnalyzer::ScanLaw::SIZE_OF_SCANLAW));
+      fillComboBox_(reflectron_state_, temp_.NamesOfReflectronState, static_cast<int>(MassAnalyzer::ReflectronState::SIZE_OF_REFLECTRONSTATE));
 
-      type_->setCurrentIndex(temp_.getType());
-      res_method_->setCurrentIndex(temp_.getResolutionMethod());
-      res_type_->setCurrentIndex(temp_.getResolutionType());
-      scan_dir_->setCurrentIndex(temp_.getScanDirection());
-      scan_law_->setCurrentIndex(temp_.getScanLaw());
-      reflectron_state_->setCurrentIndex(temp_.getReflectronState());
+      type_->setCurrentIndex(static_cast<int>(temp_.getType()));
+      res_method_->setCurrentIndex(static_cast<int>(temp_.getResolutionMethod()));
+      res_type_->setCurrentIndex(static_cast<int>(temp_.getResolutionType()));
+      scan_dir_->setCurrentIndex(static_cast<int>(temp_.getScanDirection()));
+      scan_law_->setCurrentIndex(static_cast<int>(temp_.getScanLaw()));
+      reflectron_state_->setCurrentIndex(static_cast<int>(temp_.getReflectronState()));
     }
 
     order_->setText(String(temp_.getOrder()).c_str());

@@ -86,6 +86,16 @@ public:
     const DRange<1> & getIntensityRange() const;
     //@}
 
+    ///@name Precursor m/z range option
+    //@{
+    ///restricts the range of precursor m/z values for MS2+ spectra to load
+    void setPrecursorMZRange(const DRange<1> & range);
+    ///returns @c true if a precursor m/z range has been set
+    bool hasPrecursorMZRange() const;
+    ///returns the precursor m/z range
+    const DRange<1> & getPrecursorMZRange() const;
+    //@}
+
     /**
         @name MS levels option
 
@@ -217,11 +227,13 @@ private:
     bool has_rt_range_ = false;
     bool has_mz_range_ = false;
     bool has_intensity_range_ = false;
+    bool has_precursor_mz_range_ = false;
     bool mz_32_bit_ = false;
     bool int_32_bit_ = true;
     DRange<1> rt_range_{};
     DRange<1> mz_range_{};
     DRange<1> intensity_range_{};
+    DRange<1> precursor_mz_range_{};
     std::vector<Int> ms_levels_{};
     bool zlib_compression_ = false;
     bool always_append_data_ = false;

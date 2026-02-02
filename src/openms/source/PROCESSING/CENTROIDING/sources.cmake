@@ -5,6 +5,7 @@ set(directory source/PROCESSING/CENTROIDING)
 set(sources_list
 PeakPickerHiRes.cpp
 PeakPickerIterative.cpp
+PeakPickerIM.cpp
 )
 
 ### add path to the filenames

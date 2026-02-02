@@ -188,7 +188,7 @@ namespace OpenMS
     std::unordered_set<String> good_ids;
     for (auto & tr : exp.getTransitions())
     {
-      if (!tr.decoy)
+      if (!tr.getDecoy())
         good_ids.insert(tr.getPeptideRef());
     }
     
@@ -215,7 +215,7 @@ namespace OpenMS
       std::unordered_map<String, double> intensity_sum;
       for (auto & tr : exp.getTransitions())
       {
-        if (!tr.decoy)
+        if (!tr.getDecoy())
         {
           intensity_sum[tr.getPeptideRef()] += tr.library_intensity;
         }
@@ -270,7 +270,7 @@ namespace OpenMS
     // First pass: sample priority peptides
     if (!priority_candidates.empty())
     {
-      OPENMS_LOG_INFO << "Sampling " << priority_candidates.size() 
+      OPENMS_LOG_DEBUG << "Sampling " << priority_candidates.size() 
                       << " priority peptides from the input experiment" << std::endl;
       
       for (Size b = 0; b < bins; ++b)
@@ -297,7 +297,7 @@ namespace OpenMS
         }
       }
       
-      OPENMS_LOG_INFO << "Successfully sampled " << picked.size() 
+      OPENMS_LOG_DEBUG << "Successfully sampled " << picked.size() 
                       << " priority peptides" << std::endl;
     }
     
@@ -305,7 +305,7 @@ namespace OpenMS
     Size total_quota = bins * peptides_per_bin;
     if (picked.size() < total_quota && !candidates.empty())
     {
-      OPENMS_LOG_INFO << "Filling remaining quota (" << (total_quota - picked.size()) 
+      OPENMS_LOG_DEBUG << "Filling remaining quota (" << (total_quota - picked.size()) 
                       << " peptides) from regular candidates" << std::endl;
       
       for (Size b = 0; b < bins; ++b)
@@ -357,7 +357,7 @@ namespace OpenMS
       pep_ids.insert(cmp.id);
     for (auto & tr : exp.getTransitions())
     {
-      if (pep_ids.count(tr.getPeptideRef()) && (!tr.decoy))
+      if (pep_ids.count(tr.getPeptideRef()) && (!tr.getDecoy()))
         out_exp.transitions.push_back(tr);
     }
 

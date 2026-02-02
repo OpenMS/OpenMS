@@ -85,10 +85,10 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
       public:
         /**
         * @brief constructor of iterator
-        * 
-        * @param packages Spline packages to be accessed
-        * @param pos_max Maximum in m/z (or RT) of the spectrum (or chromatogram)
-        * @param scaling    The step width can be scaled by this factor. Often it is advantageous to iterate
+        *
+        * @param[in] packages Spline packages to be accessed
+        * @param[in] pos_max Maximum in m/z (or RT) of the spectrum (or chromatogram)
+        * @param[in] scaling    The step width can be scaled by this factor. Often it is advantageous to iterate
         * in slightly smaller steps over the spectrum (or chromatogram).
         */
         Navigator(const std::vector<SplinePackage>* packages, double pos_max, double scaling);
@@ -155,8 +155,8 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
     *
     * Make sure that the underlying SplineInterpolatedPeaks does not run out-of-scope since the
     * Navigator relies on its data.
-    * 
-    * @param scaling    step width scaling parameter
+    *
+    * @param[in] scaling    step width scaling parameter
     *
     * @throw Exception::InvalidSize if packages is empty
     */

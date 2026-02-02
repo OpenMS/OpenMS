@@ -28,7 +28,7 @@
   </dataProcessingList>
   <run id="test_run" defaultInstrumentConfigurationRef="IC1">
     <spectrumList count="2" defaultDataProcessingRef="DP1">
-      <spectrum index="0" id="spectrum=0" defaultArrayLength="5">
+      <spectrum index="0" id="spectrum=0" defaultArrayLength="0">
         <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum"/>
         <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000130" name="positive scan"/>
@@ -53,7 +53,7 @@
           </binaryDataArray>
         </binaryDataArrayList>
       </spectrum>
-      <spectrum index="1" id="spectrum=1" defaultArrayLength="5">
+      <spectrum index="1" id="spectrum=1" defaultArrayLength="0">
         <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum"/>
         <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2"/>
         <cvParam cvRef="MS" accession="MS:1000130" name="positive scan"/>

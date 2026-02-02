@@ -62,8 +62,8 @@ public:
   /**
     @brief detailed constructor
 
-    @param dimensionsize the number of rows (and therewith cols)
-    @param value DistanceMatrix will be filled with this element (main diagonal will still "hold" only zeros)
+    @param[in] dimensionsize the number of rows (and therewith cols)
+    @param[in] value DistanceMatrix will be filled with this element (main diagonal will still "hold" only zeros)
     @throw Exception::OutOfMemory if requested dimensionsize is to big to fit into memory
   */
   DistanceMatrix(SizeType dimensionsize, Value value = Value()):
@@ -108,7 +108,7 @@ public:
   /**
     @brief copy constructor
 
-    @param source  this DistanceMatrix will be copied
+    @param[in] source  this DistanceMatrix will be copied
     @throw Exception::OutOfMemory if requested dimensionsize is to big to fit into memory
   */
   DistanceMatrix(const DistanceMatrix& source):
@@ -160,8 +160,8 @@ public:
   /**
     @brief gets a value at a given position (read only):
 
-    @param i the i-th row
-    @param j the j-th col
+    @param[in] i the i-th row
+    @param[in] j the j-th col
   */
   const ValueType operator()(SizeType i, SizeType j) const
   {
@@ -171,8 +171,8 @@ public:
   /**
     @brief gets a value at a given position (read only):
 
-    @param i the i-th row
-    @param j the j-th col
+    @param[in] i the i-th row
+    @param[in] j the j-th col
   */
   ValueType operator()(SizeType i, SizeType j)
   {
@@ -182,8 +182,8 @@ public:
   /**
     @brief gets a value at a given position:
 
-    @param i the i-th row
-    @param j the j-th col
+    @param[in] i the i-th row
+    @param[in] j the j-th col
     @throw Exception::OutOfRange if given coordinates are out of range
   */
   const ValueType getValue(SizeType i, SizeType j) const
@@ -198,8 +198,8 @@ public:
   /**
     @brief gets a value at a given position:
 
-    @param i the i-th row
-    @param j the j-th col
+    @param[in] i the i-th row
+    @param[in] j the j-th col
     @throw Exception::OutOfRange if given coordinates are out of range
   */
   ValueType getValue(SizeType i, SizeType j)
@@ -214,9 +214,9 @@ public:
   /**
     @brief sets a value at a given position:
 
-    @param i the i-th row
-    @param j the j-th col
-    @param value the set-value
+    @param[in] i the i-th row
+    @param[in] j the j-th col
+    @param[in] value the set-value
     @throw Exception::OutOfRange if given coordinates are out of range
   */
   void setValue(SizeType i, SizeType j, ValueType value)
@@ -249,9 +249,9 @@ public:
   /**
     @brief sets a value at a given position:
 
-    @param i the i-th row
-    @param j the j-th col
-    @param value the set-value
+    @param[in] i the i-th row
+    @param[in] j the j-th col
+    @param[in] value the set-value
     @throw Exception::OutOfRange if given coordinates are out of range
 
     possible invalidation of min_element_ - make sure to update before further usage of matrix
@@ -284,8 +284,8 @@ public:
   /**
     @brief resizing the container
 
-    @param dimensionsize the desired number of rows (and therewith cols)
-    @param value which the matrix will be filled with
+    @param[in] dimensionsize the desired number of rows (and therewith cols)
+    @param[in] value which the matrix will be filled with
     @throw Exception::OutOfMemory thrown if size of DistanceMatrix requested does not fit into memory
 
     invalidates all content
@@ -334,7 +334,7 @@ public:
   /**
     @brief reduces DistanceMatrix by one dimension. first the jth row, then jth column
 
-    @param j the jth row (and therewith also jth col) to be removed
+    @param[in] j the jth row (and therewith also jth col) to be removed
     @throw Exception::OutOfRange if @p j is grater than the greatest row number
 
     May invalidates min_element_, make sure to update min_element_ if necessary before used

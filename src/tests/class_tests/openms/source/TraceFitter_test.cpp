@@ -80,7 +80,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
-    void getOptimizedParameters_(const Eigen::VectorXd&) override
+    void getOptimizedParameters_(const std::vector<double>&) override
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }

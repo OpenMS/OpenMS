@@ -62,9 +62,9 @@ public:
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
-        @param filename File name of the file to be checked.
-        @param errors Errors during the validation are returned in this output parameter.
-        @param warnings Warnings during the validation are returned in this output parameter.
+        @param[in] filename File name of the file to be checked.
+        @param[out] errors Errors during the validation are returned in this output parameter.
+        @param[out] warnings Warnings during the validation are returned in this output parameter.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
     */

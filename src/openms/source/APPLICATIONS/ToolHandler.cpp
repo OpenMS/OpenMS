@@ -149,6 +149,7 @@ namespace OpenMS
     tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", cat_targeted);
     tools_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", cat_targeted);
     tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", cat_centroiding);
+    tools_map["PeakPickerIM"] = Internal::ToolDescription("PeakPickerIM", cat_centroiding);
     tools_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", cat_centroiding);
     tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", cat_ID_proc);
     tools_map["PeptideDataBaseSearchFI"] = Internal::ToolDescription("PeptideDataBaseSearchFI", cat_ID_search);

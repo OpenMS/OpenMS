@@ -41,11 +41,11 @@ namespace OpenMS
 
       @return FeatureToMs2Indices
 
-      @param spectra: Input of PeakMap/MSExperiment with spectra information
-      @param fm_info: KDTree used for query and match spectra with features
-      @param precursor_mz_tolerance: mz_tolerance used for query
-      @param precursor_rt_tolerance: rt tolerance used for query
-      @param ppm: mz tolerance window calculation in ppm or Da
+      @param[in] spectra: Input of PeakMap/MSExperiment with spectra information
+      @param[in] fm_info: KDTree used for query and match spectra with features
+      @param[in] precursor_mz_tolerance: mz_tolerance used for query
+      @param[in] precursor_rt_tolerance: rt tolerance used for query
+      @param[in] ppm: mz tolerance window calculation in ppm or Da
 
     */
     static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,

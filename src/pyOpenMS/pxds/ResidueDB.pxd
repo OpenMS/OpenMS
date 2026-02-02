@@ -3,10 +3,14 @@ from String cimport *
 from Residue cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/ResidueDB.h>" namespace "OpenMS":
-    
+
     cdef cppclass ResidueDB "OpenMS::ResidueDB":
         # wrap-manual-memory:
         #  cdef AutowrapPtrHolder[_ResidueDB] inst
+        # wrap-doc:
+        #  Database of residues (amino acids). This is a singleton class.
+        #  All unmodified residues are added to the database on construction.
+        #  Modified residues get created and added if getModifiedResidue is called.
 
         ResidueDB(ResidueDB) except + nogil  #wrap-ignore
 
@@ -17,11 +21,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueDB.h>" namespace "OpenMS":
         const Residue * getModifiedResidue(Residue * residue, const String & name) except + nogil  # wrap-doc:Returns a pointer to a modified residue given a residue and a modification name
         libcpp_set[ const Residue * ] getResidues(const String & residue_set) except + nogil  # wrap-doc:Returns a set of all residues stored in this residue db
         libcpp_set[ String ] getResidueSets() except + nogil  # wrap-doc:Returns all residue sets that are registered which this instance
-        bool hasResidue(const String & name) except + nogil  # wrap-doc:Returns true if the db contains a residue with the given name
+        bool hasResidue(const String & name) except + nogil  # wrap-doc:Returns True if the db contains a residue with the given name
         # bool hasResidue(Residue * residue) except + nogil  # does not really work as the ptr is different
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/ResidueDB.h>" namespace "OpenMS::ResidueDB":
-    
+
     ResidueDB* getInstance() except + nogil  # wrap-ignore
 

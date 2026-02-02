@@ -19,10 +19,10 @@ namespace OpenMS
     /**
       C'tor, to build a representation of an adduct.
 
-      @param name Identifier as given in the Positive/Negative-Adducts file, e.g. 'M+2K-H;1+'
-      @param adduct Formula of the adduct, e.g. '2K-H'
-      @param charge The charge (must not be 0; can be negative), e.g. 1
-      @param mol_multiplier Molecular multiplier, e.g. for charged dimers '2M+H;+1'
+      @param[in] name Identifier as given in the Positive/Negative-Adducts file, e.g. 'M+2K-H;1+'
+      @param[in] adduct Formula of the adduct, e.g. '2K-H'
+      @param[in] charge The charge (must not be 0; can be negative), e.g. 1
+      @param[in] mol_multiplier Molecular multiplier, e.g. for charged dimers '2M+H;+1'
 
     **/
     AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier = 1);
@@ -38,6 +38,7 @@ namespace OpenMS
 
     /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e. if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
     /// If the negative parts are present in @p db_entry, true is returned.
+    /// @param[in] db_entry The empirical formula to check compatibility with
     bool isCompatible(const EmpiricalFormula& db_entry) const;
 
     /// get charge of adduct
@@ -55,6 +56,7 @@ namespace OpenMS
     /// parse an adduct string containing a formula (must contain 'M') and charge, separated by ';'.
     /// e.g. M+H;1+
     /// 'M' can have multipliers, e.g. '2M + H;1+' (for a singly charged dimer)
+    /// @param[in] adduct The adduct string to parse
     static AdductInfo parseAdductString(const String& adduct);
 
     /// equality operator

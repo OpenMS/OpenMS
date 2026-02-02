@@ -24,8 +24,10 @@
 using namespace OpenMS;
 using namespace std;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunreachable-code"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wunreachable-code"
+#endif
 
 class LowlevelComparator
 {
@@ -135,7 +137,9 @@ class LowlevelComparator
  }
 };
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 
 START_TEST(ClusterHierarchical, "$Id$")
 

@@ -107,7 +107,7 @@ namespace OpenMS
 
     defaults_.setValue("EMGScoring:max_iteration", 100, "Maximum number of iterations for EMG fitting.");
     defaults_.setMinInt("EMGScoring:max_iteration", 1);
-    defaults_.setValue("EMGScoring:init_mom", "false", "Alternative initial parameters for fitting through method of moments.");
+    defaults_.setValue("EMGScoring:init_mom", "true", "Alternative initial parameters for fitting through method of moments.");
     defaults_.setValidStrings("EMGScoring:init_mom", {"true","false"});
 
     defaults_.setSectionDescription("EMGScoring", "Parameters for fitting exp. mod. Gaussians to mass traces.");
@@ -368,10 +368,9 @@ namespace OpenMS
               << " chromatogram(s)." << endl;
 
     OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    OpenMS_Log_info.remove(cout); // suppress status output from OpenSWATH
+    Logger::LogSinkGuard log_guard(getGlobalLogInfo(), cout); // suppress status output from OpenSWATH (exception-safe)
     feat_finder_.pickExperiment(chrom_data_, features, library_,
                                 TransformationDescription(), ms_data_);
-    OpenMS_Log_info.insert(cout);
     OPENMS_LOG_INFO << "Found " << features.size()
                     << " feature candidates in total." << endl;
     ms_data_.reset(); // not needed anymore, free up the memory

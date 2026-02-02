@@ -30,12 +30,20 @@ namespace OpenMS
   {
 public:
     ///state of aggregation of the sample
-    enum SampleState {SAMPLENULL, SOLID, LIQUID, GAS, SOLUTION, EMULSION, SUSPENSION, SIZE_OF_SAMPLESTATE};
+    enum class SampleState {SAMPLENULL, SOLID, LIQUID, GAS, SOLUTION, EMULSION, SUSPENSION, SIZE_OF_SAMPLESTATE};
     /// Names of sample states
-    static const std::string NamesOfSampleState[SIZE_OF_SAMPLESTATE];
+    static const std::string NamesOfSampleState[static_cast<size_t>(SampleState::SIZE_OF_SAMPLESTATE)];
 
     /// returns all sample state names known to OpenMS
     static StringList getAllNamesOfSampleState();
+
+    /// convert a SampleState enum to String
+    /// @throws Exception::InvalidValue if @p state is SIZE_OF_SAMPLESTATE
+    static const std::string& sampleStateToString(SampleState state);
+
+    /// convert an entry in NamesOfSampleState[] to SampleState enum
+    /// @throws Exception::InvalidValue if @p name is not contained in NamesOfSampleState[]
+    static SampleState toSampleState(const std::string& name);
 
     /// Default constructor
     Sample();

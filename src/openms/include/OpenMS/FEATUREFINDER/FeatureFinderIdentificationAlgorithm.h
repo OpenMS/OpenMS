@@ -279,7 +279,7 @@ protected:
    * Note: RT region boundaries are determined from ALL IDs (including those without IM),
    * so this only affects IM statistics calculation, not RT extraction.
    *
-   * @param r RT region containing peptide identifications grouped by charge state
+   * @param[in] r RT region containing peptide identifications grouped by charge state
    * @return IMStats structure with median/min/max, or {-1, -1, -1} if no valid IM data
    *
    * @see IMStats for details on the returned structure

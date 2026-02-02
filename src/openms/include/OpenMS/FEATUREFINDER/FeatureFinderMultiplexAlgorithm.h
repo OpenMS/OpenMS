@@ -103,10 +103,10 @@ protected:
   /**
    * @brief generate list of m/z shifts
    *
-   * @param charge_min    minimum charge
-   * @param charge_max    maximum charge
-   * @param peaks_per_peptide_max    maximum number of isotopes in peptide
-   * @param mass_pattern_list    mass shifts due to labelling
+   * @param[in] charge_min    minimum charge
+   * @param[in] charge_max    maximum charge
+   * @param[in] peaks_per_peptide_max    maximum number of isotopes in peptide
+   * @param[in] mass_pattern_list    mass shifts due to labelling
    *
    * @return list of m/z shifts
    */
@@ -119,14 +119,18 @@ protected:
    * are of primary interest. For that reason, we determine the ratios from interpolated chromatogram data points directly,
    * and then correct the current ones.
    *
+   * @param[in] pattern Isotopic peak pattern
+   * @param[in,out] spline_chromatograms Spline chromatograms to be used/modified
+   * @param[in] rt_peptide Retention times of peptides
+   * @param[out] intensity_peptide Corrected peptide intensities
    */
   void correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide) const;
 
   /**
    * @brief calculate peptide intensities
    *
-   * @param pattern
-   * @param satellites
+   * @param[in] pattern Isotopic peak pattern
+   * @param[in] satellites Satellite peaks
    *
    * @return vector with intensities for each of the peptides
    */
@@ -135,8 +139,8 @@ protected:
   /**
    * @brief calculate peptide intensities
    *
-   * @param pattern
-   * @param satellites
+   * @param[in] pattern Isotopic peak pattern
+   * @param[in] satellites Satellite peaks
    *
    * @return vector with intensities for each of the peptides
    */
@@ -145,18 +149,18 @@ protected:
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
    *
-   * @param patterns    patterns of isotopic peaks we have been searching for
-   * @param filter_results    filter results for each of the patterns
-   * @param cluster_results    clusters of filter results
+   * @param[in] patterns    patterns of isotopic peaks we have been searching for
+   * @param[in] filter_results    filter results for each of the patterns
+   * @param[in,out] cluster_results    clusters of filter results
    */
   void generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results);
 
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
    *
-   * @param patterns    patterns of isotopic peaks we have been searching for
-   * @param filter_results    filter results for each of the patterns
-   * @param cluster_results    clusters of filter results
+   * @param[in] patterns    patterns of isotopic peaks we have been searching for
+   * @param[in] filter_results    filter results for each of the patterns
+   * @param[in] cluster_results    clusters of filter results
    */
   void generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results);
 

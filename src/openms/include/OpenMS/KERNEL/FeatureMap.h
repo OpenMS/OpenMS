@@ -139,7 +139,7 @@ namespace OpenMS
 
       For conflicting UID's, new UID's will be assigned.
 
-      @param rhs The feature to add to this one.
+      @param[in] rhs The feature to add to this one.
     */
     FeatureMap& operator+=(const FeatureMap& rhs);
 
@@ -185,6 +185,12 @@ namespace OpenMS
     /// sets the protein identifications
     void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
+    /// finds a protein identification by its identifier (returns nullptr if not found)
+    const ProteinIdentification* findProteinIdentification(const String& identifier) const;
+
+    /// finds a protein identification by its identifier (returns nullptr if not found)
+    ProteinIdentification* findProteinIdentification(const String& identifier);
+
     /// non-mutable access to the unassigned peptide identifications
     const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;
 
@@ -217,7 +223,7 @@ namespace OpenMS
     /**
       @brief Clears all data and meta data
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data = true);
 

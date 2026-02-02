@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 
 #include <vector>
 #include <limits>
@@ -28,12 +29,41 @@ namespace OpenMS
 
     @ingroup Kernel
 
+    This class allows random access to spectra and chromatograms in indexed mzML
+    files without loading the entire file into memory.
+
+    @section OnDiscMSExperiment_filtering Filtering with PeakFileOptions
+
+    PeakFileOptions can be used to filter data when retrieving spectra/chromatograms:
+    - RT range, MS level, and precursor m/z range filters: Checked BEFORE loading peak data (skips I/O)
+    - m/z range and intensity filters: Applied AFTER loading peak data
+
+    @note Unlike in-memory loading (FileHandler), where filtered spectra are completely
+    removed from the container, OnDiscMSExperiment preserves all indices. When a spectrum
+    doesn't pass RT range or MS level filters, getSpectrum() returns the spectrum with
+    metadata but no peaks (I/O is skipped). This preserves the index mapping to the file.
+
+    Example:
+    @code
+    OnDiscMSExperiment exp;
+    exp.openFile("data.mzML");
+    exp.getOptions().setMSLevels({2});  // Only want MS2
+    exp.getOptions().setRTRange(DRange<1>(100, 200));
+
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      MSSpectrum s = exp.getSpectrum(i);
+      if (s.empty()) continue;  // Filtered out, no I/O was performed
+      // Process MS2 spectrum in RT range...
+    }
+    @endcode
+
     @note This implementation is @a not thread-safe since it keeps internally a
     single file access pointer which it moves when accessing a specific
-    data item. Please provide a separate copy to each thread, e.g. 
+    data item. Please provide a separate copy to each thread, e.g.
 
     @code
-    #pragma omp parallel for firstprivate(ondisc_map) 
+    #pragma omp parallel for firstprivate(ondisc_map)
     @endcode
 
   */
@@ -67,7 +97,8 @@ public:
     OnDiscMSExperiment(const OnDiscMSExperiment& source) :
       filename_(source.filename_),
       indexed_mzml_file_(source.indexed_mzml_file_),
-      meta_ms_experiment_(source.meta_ms_experiment_)
+      meta_ms_experiment_(source.meta_ms_experiment_),
+      options_(source.options_)
     {
     }
 
@@ -155,19 +186,14 @@ public:
     /**
       @brief returns a single spectrum
 
-      @param id The index of the spectrum
-    */
-    MSSpectrum getSpectrum(Size id)
-    {
-      if (!meta_ms_experiment_) return indexed_mzml_file_.getMSSpectrumById(int(id));
+      If PeakFileOptions has m/z or intensity range set, the spectrum will be filtered accordingly.
 
-      MSSpectrum spectrum(meta_ms_experiment_->operator[](id));
-      indexed_mzml_file_.getMSSpectrumById(int(id), spectrum);
-      return spectrum;
-    }
+      @param[in] id The index of the spectrum
+    */
+    MSSpectrum getSpectrum(Size id);
 
     /**
-      @brief returns a single spectrum
+      @brief returns a single spectrum (without applying PeakFileOptions filters)
     */
     OpenMS::Interfaces::SpectrumPtr getSpectrumById(Size id)
     {
@@ -177,28 +203,23 @@ public:
     /**
       @brief returns a single chromatogram
 
-      @param id The index of the chromatogram
-    */
-    MSChromatogram getChromatogram(Size id)
-    {
-      if (!meta_ms_experiment_) return indexed_mzml_file_.getMSChromatogramById(int(id));
+      If PeakFileOptions has RT or intensity range set, the chromatogram will be filtered accordingly.
 
-      MSChromatogram chromatogram(meta_ms_experiment_->getChromatogram(id));
-      indexed_mzml_file_.getMSChromatogramById(int(id), chromatogram);
-      return chromatogram;
-    }
+      @param[in] id The index of the chromatogram
+    */
+    MSChromatogram getChromatogram(Size id);
 
     /**
       @brief returns a single chromatogram
 
-      @param id The native identifier of the chromatogram
+      @param[in] id The native identifier of the chromatogram
     */
     MSChromatogram getChromatogramByNativeId(const std::string& id);
 
     /**
       @brief returns a single spectrum
 
-      @param id The native identifier of the spectrum
+      @param[in] id The native identifier of the spectrum
     */
     MSSpectrum getSpectrumByNativeId(const std::string& id);
 
@@ -209,6 +230,15 @@ public:
 
     /// sets whether to skip some XML checks and be fast instead
     void setSkipXMLChecks(bool skip);
+
+    /// @brief Mutable access to the options for loading/storing
+    PeakFileOptions& getOptions();
+
+    /// @brief Non-mutable access to the options for loading/storing
+    const PeakFileOptions& getOptions() const;
+
+    /// @brief set options for loading/storing
+    void setOptions(const PeakFileOptions& options);
 
 private:
 
@@ -233,6 +263,8 @@ protected:
     std::unordered_map< std::string, Size > chromatograms_native_ids_;
     /// Mapping of spectra native ids to offsets
     std::unordered_map< std::string, Size > spectra_native_ids_;
+    /// Options for loading / storing
+    PeakFileOptions options_;
   };
 
 typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;

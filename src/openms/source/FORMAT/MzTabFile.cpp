@@ -23,8 +23,10 @@
 using namespace std;
 
 // TODO fix all the shadowed "String s"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 namespace OpenMS
 {
@@ -3332,4 +3334,6 @@ namespace OpenMS
 
 }
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif

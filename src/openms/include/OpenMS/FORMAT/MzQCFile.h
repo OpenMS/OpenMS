@@ -31,16 +31,16 @@ namespace OpenMS
 
     /**
       @brief Stores QC data in mzQC file with JSON format
-      @param input_file mzML input file name
-      @param output_file mzQC output file name
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
-      @param contact_name name of the person creating the mzQC file
-      @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
-      @param description description and comments about the mzQC file contents
-      @param label unique and informative label for the run
-      @param feature_map FeatureMap from feature file (featureXML)
-      @param prot_ids protein identifications from ID file (idXML)
-      @param pep_ids protein identifications from ID file (idXML)
+      @param[in] input_file mzML input file name
+      @param[out] output_file mzQC output file name
+      @param[in] exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+      @param[in] contact_name name of the person creating the mzQC file
+      @param[in] contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
+      @param[in] description description and comments about the mzQC file contents
+      @param[in] label unique and informative label for the run
+      @param[in] feature_map FeatureMap from feature file (featureXML)
+      @param[in] prot_ids protein identifications from ID file (idXML)
+      @param[in] pep_ids protein identifications from ID file (idXML)
     */
     void store(const String& input_file,
                const String& output_file,

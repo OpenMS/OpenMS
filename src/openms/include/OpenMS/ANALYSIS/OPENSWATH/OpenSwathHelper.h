@@ -159,7 +159,7 @@ public:
       double upper, lower, center;
       OpenSwathHelper::checkSwathMap(exp, lower, upper, center);
       OpenSwathHelper::selectSwathTransitions(targeted_exp, selected_transitions, min_upper_edge_dist, lower, upper);
-      if (selected_transitions.getTransitions().size() == 0)
+      if (selected_transitions.getTransitions().empty())
       {
         std::cerr << "WARNING: For File " << exp.getLoadedFilePath()
                   << " no transition were within the precursor window of " << lower << " to " << upper
@@ -219,8 +219,8 @@ public:
       features altogether.
 
       @param[in] transition_group_map Input data containing the picked and scored map
-      @param useQualCutoff Whether to apply a quality cutoff to the data
-      @param qualCutoff What quality cutoff should be applied (all data above the cutoff will be kept)
+      @param[in] useQualCutoff Whether to apply a quality cutoff to the data
+      @param[in] qualCutoff What quality cutoff should be applied (all data above the cutoff will be kept)
 
       @return Result of the best scoring peaks (stored as map of peptide id and RT)
 

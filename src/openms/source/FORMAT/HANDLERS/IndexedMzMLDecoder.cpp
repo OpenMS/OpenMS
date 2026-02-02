@@ -110,9 +110,9 @@ namespace OpenMS
     // catch case where not enough memory is available
     if (buffer == nullptr)
     {
-      // Warning: Index takes up more than 10 % of the whole file, please check your input file." << std::endl;
-      std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl; 
-      std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length << 
+      // Warning: Index takes up more than 10 % of the whole file, please check your input file.\n";
+      std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl;
+      std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length <<
         ", consequently tried to read into memory " << readl << " bytes." << std::endl;
       return -1;
     }
@@ -167,8 +167,8 @@ namespace OpenMS
     buffer.get()[buffersize] = '\0';
 
 #ifdef DEBUG_READER
-    std::cout << " reading file " << filename  << " with size " << buffersize << std::endl;
-    std::cout << buffer << std::endl;
+    std::cout << " reading file " << filename  << " with size " << buffersize << '\n';
+    std::cout << buffer << '\n';
 #endif
 
     //-------------------------------------------------------------
@@ -324,7 +324,7 @@ namespace OpenMS
         else
         {
           std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " <<
-            "'spectrum' or 'chromatogram' below indexList but found instead '" << 
+            "'spectrum' or 'chromatogram' below indexList but found instead '" <<
             name << "'." << std::endl;
           xercesc::XMLString::release(&x_idref_tag);
           xercesc::XMLString::release(&x_name_tag);

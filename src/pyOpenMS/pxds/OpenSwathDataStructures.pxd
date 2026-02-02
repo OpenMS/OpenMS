@@ -3,21 +3,36 @@ from smart_ptr cimport shared_ptr
 
 cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace "OpenSwath":
 
+  # See ../addons/OSBinaryDataArray.pyx
   cdef cppclass OSBinaryDataArray:
         OSBinaryDataArray() except + nogil 
         OSBinaryDataArray(OSBinaryDataArray &) except + nogil  # compiler
         libcpp_vector[double] data
         libcpp_string description
+
+        libcpp_vector[double] getData(self) #wrap-ignore wrap-doc:Access to a copy of the underlying data using a numpy array
+        libcpp_vector[double] getData_mv(self) #wrap-ignore wrap-doc:Access to the underlying data using a memory view
       
   ctypedef shared_ptr[OSBinaryDataArray] OSBinaryDataArrayPtr
 
   # See ../addons/OSSpectrum.pyx
   cdef cppclass OSSpectrum:
-        OSSpectrum() except + nogil 
-        OSSpectrum(OSSpectrum &) except + nogil  # compiler
+        OSSpectrum() except + nogil
+        OSSpectrum(OSSpectrum &) except + nogil # compiler
+        
+        # Obtain a copy of the underlying data
         OSBinaryDataArrayPtr getMZArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
-        # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() except + nogil 
+        OSBinaryDataArrayPtr getDriftTimeArray() #wrap-ignore
+
+        # Obtain access to a memory view of the underlying data
+        OSBinaryDataArrayPtr getMZArray_mv() #wrap-ignore
+        OSBinaryDataArrayPtr getIntensityArray_mv() #wrap-ignore
+        OSBinaryDataArrayPtr getDriftTimeArray_mv() #wrap-ignore
+
+        libcpp_vector[ OSBinaryDataArrayPtr ] getDataArrays() #wrap-ignore
+        void setDataArrays( libcpp_vector[ OSBinaryDataArrayPtr ]) #wrap-ignore
+
         void setMZArray(OSBinaryDataArrayPtr data) #wrap-ignore
         void setIntensityArray(OSBinaryDataArrayPtr data) #wrap-ignore
 
@@ -26,11 +41,20 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
 
   # See ../addons/OSChromatogram.pyx
   cdef cppclass OSChromatogram:
-        OSChromatogram() except + nogil 
-        OSChromatogram(OSChromatogram &) except + nogil  # compiler
+        OSChromatogram() except + nogil
+        OSChromatogram(OSChromatogram &) except + nogil # compiler
+
+        # Obtain a copy of the underlying data
         OSBinaryDataArrayPtr getTimeArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
-        # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() except + nogil 
+
+        # Obtain access to a memory view of the underlying data
+        OSBinaryDataArrayPtr getTimeArray_mv() #wrap-ignore
+        OSBinaryDataArrayPtr getIntensityArray_mv() #wrap-ignore
+
+        libcpp_vector[ OSBinaryDataArrayPtr ] getDataArrays() #wrap-ignore
+        void setDataArrays( libcpp_vector[ OSBinaryDataArrayPtr ]) #wrap-ignore
+
         void setTimeArray(OSBinaryDataArrayPtr data) #wrap-ignore
         void setIntensityArray(OSBinaryDataArrayPtr data) #wrap-ignore
 

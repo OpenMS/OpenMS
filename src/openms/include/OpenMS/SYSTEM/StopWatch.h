@@ -123,7 +123,7 @@ public:
             Return <b>true</b> if two stop watches are equal, i.e. they contain exactly
             the same time intervals for clock, user and system time and have the
             same running status.
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> on equality, <b>false</b> otherwise
     */
     bool operator==(const StopWatch & stop_watch) const;
@@ -132,7 +132,7 @@ public:
             Return <b>false</b> if two stop watches differ in any way, i.e. they differ
             in either the clock, user, or system time or have a different
             running status.
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> on inequality, <b>false</b> otherwise
     */
     bool operator!=(const StopWatch & stop_watch) const;
@@ -140,7 +140,7 @@ public:
     /**	Lesser than operator.
             Return true, if the stop watch is in all timings lesser than the
             stop watch to be compared with (clock, user and system time).
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are lesser
     */
     bool operator<(const StopWatch & stop_watch) const;
@@ -148,7 +148,7 @@ public:
     /**	Lesser or equal operator.
             Return true, if the stop watch is in all timings lesser or equal than the
             stop watch to be compared with (clock, user and system time).
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are lesser or equal
     */
     bool operator<=(const StopWatch & stop_watch) const;
@@ -156,7 +156,7 @@ public:
     /**	Greater or equal operator.
             Return true, if the stop watch is in all timings greater or equal than the
             stop watch to be compared with (clock, user and system time).
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are greater or equal
     */
     bool operator>=(const StopWatch & stop_watch) const;
@@ -164,7 +164,7 @@ public:
     /**	Greater operator.
             Return true, if the stop watch is in all timings greater than the
             stop watch to be compared with (clock, user and system time).
-            @param stop_watch the stop watch to compare with
+            @param[in] stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are greater
     */
     bool operator>(const StopWatch & stop_watch) const;

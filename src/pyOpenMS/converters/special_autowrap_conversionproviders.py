@@ -4,6 +4,47 @@ from autowrap.ConversionProvider import (TypeConverterBase,
                                          mangle,
                                          StdMapConverter)
 
+class OpenMSDPosition1(TypeConverterBase):
+    """Converter for DPosition1 (1-dimensional position).
+
+    Accepts a single float/int from Python and converts to C++ DPosition<1>.
+    """
+
+    def get_base_types(self):
+        return "DPosition1",
+
+    def matches(self, cpp_type):
+        return not cpp_type.is_ptr
+
+    def matching_python_type(self, cpp_type):
+        return ""
+
+    def matching_python_type_full(self, cpp_type):
+        return "Union[int, float]"
+
+    def type_check_expression(self, cpp_type, argument_var):
+        return "isinstance(%s, (int, float))" % argument_var
+
+    def input_conversion(self, cpp_type, argument_var, arg_num):
+        dp = "_dp_%s" % arg_num
+        code = Code().add("""
+            |cdef _DPosition1 $dp
+            |$dp[0] = <double>$argument_var
+        """, locals())
+        cleanup = ""
+        if cpp_type.is_ref:
+            cleanup = Code().add("""
+            |$argument_var = $dp[0]
+            """, locals())
+        call_as = dp
+        return code, call_as, cleanup
+
+    def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
+        return Code().add("""
+                    |$output_py_var = $input_cpp_var[0]
+                """, locals())
+
+
 class OpenMSDPosition2(TypeConverterBase):
 
     def get_base_types(self):
@@ -14,7 +55,7 @@ class OpenMSDPosition2(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return ""
-    
+
     def matching_python_type_full(self, cpp_type):
         return "Union[Sequence[int], Sequence[float]]"
 

@@ -37,7 +37,7 @@ public:
         as centroided (C) vs profile (P).
         If P / (C+P) > 0.75, the spectrum is considered profile; centroided otherwise.
 
-        @note if there are less than 5 peaks in the iterator range SpectrumSettings::UNKNOWN is returned
+        @note if there are less than 5 peaks in the iterator range SpectrumSettings::SpectrumType::UNKNOWN is returned
        */
     template <typename PeakConstIterator>
     static SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end)
@@ -46,7 +46,7 @@ public:
       // abort if there are less than 5 peak in the iterator range
       if (end - begin < 5)
       {
-        return SpectrumSettings::UNKNOWN;
+        return SpectrumSettings::SpectrumType::UNKNOWN;
       }
 
       const int max_peaks = 5; // maximal number of peaks we are looking at
@@ -147,12 +147,12 @@ public:
       if (evidence_ratio > 0.75) // 80% are profile
       {
         //std::cerr << "  PROFILE\n";
-        return SpectrumSettings::PROFILE;
+        return SpectrumSettings::SpectrumType::PROFILE;
       }
       else
       { 
         //std::cerr << "  CENTROID\n";
-        return SpectrumSettings::CENTROID;
+        return SpectrumSettings::SpectrumType::CENTROID;
       }
     }
     /**
@@ -184,7 +184,7 @@ public:
                                         // abort if there are less than 5 peak in the iterator range
       if (end - begin < 5)
       {
-        return SpectrumSettings::UNKNOWN;
+        return SpectrumSettings::SpectrumType::UNKNOWN;
       }
 
       int count(0);
@@ -200,7 +200,7 @@ public:
 
       if (peak == end)
       { // only zeros
-        return SpectrumSettings::UNKNOWN;
+        return SpectrumSettings::SpectrumType::UNKNOWN;
       }
 
       double last_mz = peak->getMZ();
@@ -223,7 +223,7 @@ public:
       if (count < 4) // at least 4 distances for non-zero(!) intensity peaks
       {
         if (peak != end) return estimateType(peak, end); // try further to the right
-        else return SpectrumSettings::UNKNOWN;
+        else return SpectrumSettings::SpectrumType::UNKNOWN;
       }
 
       double q1 = Math::quantile1st(distances.begin(), distances.end(), false);
@@ -233,11 +233,11 @@ public:
 
       if ((q3-q1) < q1*5) // q1 and q3 are roughly equal
       {
-        return SpectrumSettings::PROFILE;
+        return SpectrumSettings::SpectrumType::PROFILE;
       }
       else
       {
-        return SpectrumSettings::CENTROID;
+        return SpectrumSettings::SpectrumType::CENTROID;
       }
     }*/
 

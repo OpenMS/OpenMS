@@ -265,7 +265,7 @@ protected:
         IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
       }
       //remove_psms_without_proteins
-      IDFilter::updateProteinReferences(pep_ids,
+      IDFilter::removeDanglingProteinReferences(pep_ids,
                                         prot_ids,
                                         getStringOption_("FDR:cleanup:remove_psms_without_proteins") == "true");
       //remove_spectra_without_psms
