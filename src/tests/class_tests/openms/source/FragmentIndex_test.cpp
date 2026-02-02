@@ -425,4 +425,136 @@ START_SECTION(tolerance)
 }
 END_SECTION
 
+// Open search: shift precursor m/z by a large delta and verify the peptide is still found
+START_SECTION(open_search)
+{
+  const std::vector<FASTAFile::FASTAEntry> entries {
+    {"test1", "test1",
+     "MSDEREVAEAATGEDASSPPPKTEAASDPQHPAASEGAAAAAASPPLLRCLVLTGFGGYDKVKLQSRPAAPPAPGPGQLTLRLRACGLNFADLMARQGLYDRLPPLPVTPGMEGAGVVIAVGEGVSDRKAGDRVMVLNRSGMWQE"
+     "EVTVPSVQTFLIPEAMTFEEAAALLVNYITAYMVLFDFGNLQPGHSVLVHMAAGGVGMAAVQLCRTVENVTVFGTASASKHEALKENGVTHPIDYHTTDYVDEIKKISPKGVDIVMDPLGGSDTAKGYNLLKPMGKVVTYGMANL"
+     "LTGPKRNLMALARTWWNQFSVTALQLLQANRAVCGFHLGYLDGEVELVSGVVARLLALYNQGHIKPHIDSVWPFEKVADAMKQMQEKKNVGKVLLVPGPEKEN"}};
+
+  FragmentIndex_test osTest;
+
+  auto params = osTest.getParameters();
+  params.setValue("precursor:mass_tolerance", 500.0);
+  params.setValue("precursor:mass_tolerance_unit", "Da");
+  params.setValue("precursor:open_window_lower", -200.0);
+  params.setValue("precursor:open_window_upper", 200.0);
+  params.setValue("precursor:min_charge", 1);
+  params.setValue("precursor:max_charge", 1);
+  params.setValue("fragment:min_mz", 0);
+  params.setValue("fragment:max_mz", 90000);
+  params.setValue("fragment:mass_tolerance", 0.05);
+  params.setValue("fragment:mass_tolerance_unit", "Da");
+  params.setValue("modifications:variable", std::vector<std::string> {});
+  params.setValue("modifications:fixed", std::vector<std::string> {});
+  params.setValue("scoring:max_candidates_per_spectrum", 50);
+  osTest.setParameters(params);
+
+  osTest.build(entries);
+
+  // Generate a theoretical spectrum for a known peptide
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum b_y_ions;
+  AASequence peptide = AASequence::fromString("EVAEAATGEDASSPPPK");
+  tsg.getSpectrum(b_y_ions, peptide, 1, 1);
+
+  // Shift precursor m/z by +50 Da to simulate an open search modification
+  MSSpectrum theo_spec;
+  Precursor theo_prec;
+  theo_prec.setCharge(1);
+  theo_prec.setMZ(peptide.getMZ(1) + 50.0);
+  theo_spec.setMSLevel(2);
+  theo_spec.setPrecursors({theo_prec});
+  for (const auto& peak : b_y_ions)
+  {
+    theo_spec.push_back(peak);
+  }
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  osTest.querySpectrum(theo_spec, sms);
+
+  // Verify the correct peptide is found despite the precursor mass shift
+  bool found = false;
+  for (const auto& hit : sms.hits_)
+  {
+    auto result = osTest.getPeptides()[hit.peptide_idx_];
+    if (result.sequence_.first == 5 && result.sequence_.second == peptide.size())
+    {
+      found = true;
+    }
+  }
+  TEST_TRUE(found);
+
+  // Verify trimHits filtered results (should be <= max_processed_hits)
+  TEST_TRUE(sms.hits_.size() <= 50);
+}
+END_SECTION
+
+// Explicit open search toggle: force open search with narrow precursor tolerance
+START_SECTION(open_search_explicit_toggle)
+{
+  const std::vector<FASTAFile::FASTAEntry> entries {
+    {"test1", "test1",
+     "MSDEREVAEAATGEDASSPPPKTEAASDPQHPAASEGAAAAAASPPLLRCLVLTGFGGYDKVKLQSRPAAPPAPGPGQLTLRLRACGLNFADLMARQGLYDRLPPLPVTPGMEGAGVVIAVGEGVSDRKAGDRVMVLNRSGMWQE"
+     "EVTVPSVQTFLIPEAMTFEEAAALLVNYITAYMVLFDFGNLQPGHSVLVHMAAGGVGMAAVQLCRTVENVTVFGTASASKHEALKENGVTHPIDYHTTDYVDEIKKISPKGVDIVMDPLGGSDTAKGYNLLKPMGKVVTYGMANL"
+     "LTGPKRNLMALARTWWNQFSVTALQLLQANRAVCGFHLGYLDGEVELVSGVVARLLALYNQGHIKPHIDSVWPFEKVADAMKQMQEKKNVGKVLLVPGPEKEN"}};
+
+  FragmentIndex_test toggleTest;
+
+  auto params = toggleTest.getParameters();
+  // 10 ppm would normally be closed search
+  params.setValue("precursor:mass_tolerance", 10.0);
+  params.setValue("precursor:mass_tolerance_unit", "ppm");
+  // Force open search mode
+  params.setValue("precursor:open_search", "true");
+  params.setValue("precursor:open_window_lower", -200.0);
+  params.setValue("precursor:open_window_upper", 200.0);
+  params.setValue("precursor:min_charge", 1);
+  params.setValue("precursor:max_charge", 1);
+  params.setValue("fragment:min_mz", 0);
+  params.setValue("fragment:max_mz", 90000);
+  params.setValue("fragment:mass_tolerance", 0.05);
+  params.setValue("fragment:mass_tolerance_unit", "Da");
+  params.setValue("modifications:variable", std::vector<std::string> {});
+  params.setValue("modifications:fixed", std::vector<std::string> {});
+  toggleTest.setParameters(params);
+
+  toggleTest.build(entries);
+
+  // Generate a theoretical spectrum and shift precursor by +50 Da
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum b_y_ions;
+  AASequence peptide = AASequence::fromString("EVAEAATGEDASSPPPK");
+  tsg.getSpectrum(b_y_ions, peptide, 1, 1);
+
+  MSSpectrum theo_spec;
+  Precursor theo_prec;
+  theo_prec.setCharge(1);
+  theo_prec.setMZ(peptide.getMZ(1) + 50.0);
+  theo_spec.setMSLevel(2);
+  theo_spec.setPrecursors({theo_prec});
+  for (const auto& peak : b_y_ions)
+  {
+    theo_spec.push_back(peak);
+  }
+
+  FragmentIndex::SpectrumMatchesTopN sms;
+  toggleTest.querySpectrum(theo_spec, sms);
+
+  // With open_search=true, the shifted precursor should still find the peptide
+  bool found = false;
+  for (const auto& hit : sms.hits_)
+  {
+    auto result = toggleTest.getPeptides()[hit.peptide_idx_];
+    if (result.sequence_.first == 5 && result.sequence_.second == peptide.size())
+    {
+      found = true;
+    }
+  }
+  TEST_TRUE(found);
+}
+END_SECTION
+
 END_TEST

@@ -530,9 +530,11 @@ set(analysis_executables_list
   PeptideProteinResolution_test
   PeakGroup_test
   PScore_test
+  FragmentIndex_test
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test
+  OpenSearchModificationAnalysis_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test

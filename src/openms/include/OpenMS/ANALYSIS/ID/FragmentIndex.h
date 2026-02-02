@@ -328,14 +328,18 @@ private:
     uint16_t max_fragment_charge_;  ///< The maximal possible charge of the fragments
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
     
-    /// Helper function to determine if open search should be used based on tolerance
+    /// Helper function to determine if open search should be used based on tolerance or explicit setting
     bool isOpenSearchMode_() const
     {
+      if (open_search_setting_ == "true") return true;
+      if (open_search_setting_ == "false") return false;
+      // "auto": existing heuristic
       return precursor_mz_tolerance_unit_ppm_
                ? (precursor_mz_tolerance_ > 1000.0)
                : (precursor_mz_tolerance_ > 1.0);
     }
-    
+
+    String open_search_setting_{"auto"};  ///< Explicit open search toggle: "auto", "true", "false"
     float open_precursor_window_lower_; ///< Defines the lower bound of the precursor-mass range
     float open_precursor_window_upper_; ///< Defines the upper bound of the precursor-mass range
 

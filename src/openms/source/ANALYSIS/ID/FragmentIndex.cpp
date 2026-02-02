@@ -450,12 +450,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
         queryPeaks(candidates_iso_error, spectrum, candidates_range, isotope_error, charge);
 
-        // take only top 50 hits
-        //trimHits(candidates_iso_error);
+        // take only top hits
+        trimHits(candidates_iso_error);
 
         sms += candidates_iso_error;
       }
-      //trimHits(sms);
+      trimHits(sms);
   }
 
   void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,
@@ -588,7 +588,9 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
-    // Open search window bounds (used when tolerance > 1 Da or > 1000 ppm)
+    // Open search toggle and window bounds
+    defaults_.setValue("precursor:open_search", "auto", "Enable open search mode. 'auto' uses heuristic (>1 Da or >1000 ppm), 'true' forces open search, 'false' forces closed search.");
+    defaults_.setValidStrings("precursor:open_search", {"auto", "true", "false"});
     defaults_.setValue("precursor:open_window_lower", -100.0, "lower bound of the open precursor window");
     defaults_.setValue("precursor:open_window_upper", 200.0, "upper bound of the open precursor window");
 
@@ -648,7 +650,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     max_precursor_charge_ = param_.getValue("precursor:max_charge");
     max_fragment_charge_ = param_.getValue("fragment:max_charge");
     max_processed_hits_ = param_.getValue("scoring:max_candidates_per_spectrum");
-    // Open search mode is automatically determined in isOpenSearchMode_()
+    open_search_setting_ = param_.getValue("precursor:open_search").toString();
     if (isOpenSearchMode_())
     {
       OPENMS_LOG_INFO << "[FragmentIndex] Open-search mode enabled because precursor mass tolerance ("

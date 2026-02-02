@@ -142,7 +142,9 @@ namespace OpenMS
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
-    // Open search window bounds (used when tolerance > 1 Da or > 1000 ppm)
+    // Open search toggle and window bounds
+    defaults_.setValue("precursor:open_search", "auto", "Enable open search mode. 'auto' uses heuristic (>1 Da or >1000 ppm), 'true' forces open search, 'false' forces closed search.");
+    defaults_.setValidStrings("precursor:open_search", {"auto", "true", "false"});
     defaults_.setValue("precursor:open_window_lower", -100.0, "lower bound of the open precursor window");
     defaults_.setValue("precursor:open_window_upper", 200.0, "upper bound of the open precursor window");
 
@@ -208,7 +210,7 @@ namespace OpenMS
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
 
-    // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
+    open_search_setting_ = param_.getValue("precursor:open_search").toString();
 
   }
 

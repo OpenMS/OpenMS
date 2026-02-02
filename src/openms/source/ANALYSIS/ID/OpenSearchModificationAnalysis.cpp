@@ -80,7 +80,7 @@ namespace OpenMS
     // Apply smoothing if requested
     if (use_smoothing)
     {
-      DeltaMassHistogram smoothed_hist = smoothDeltaMassHistogram_(histogram, 0.0001);
+      DeltaMassHistogram smoothed_hist = smoothDeltaMassHistogram_(histogram, 0.002);
       DeltaMassHistogram hist_maxima = findPeaksInHistogram_(smoothed_hist, 0.0, 3.0);
 
       // Update charge counts for the smoothed maxima
