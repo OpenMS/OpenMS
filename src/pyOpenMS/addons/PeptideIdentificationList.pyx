@@ -840,6 +840,7 @@ import warnings
         from . import SpectrumLookup as _SpectrumLookup
         from . import IDScoreSwitcherAlgorithm as _IDScoreSwitcherAlgorithm
         from . import Scores as _Scores
+        from . import ProForma as _ProForma
         _IDType = _Scores.IDType
 
         # Native ID type accessions for scan number extraction
@@ -1108,7 +1109,8 @@ import warnings
 
                 # Append to column lists
                 all_sequence.append(seq.toUnmodifiedString())
-                all_peptidoform.append(seq.toString())
+                pf = _ProForma.fromAASequence(seq)
+                all_peptidoform.append(_ProForma.toString(pf, _ProForma.WriteMode.CANONICAL))
                 all_modifications.append(modifications if include_modifications else None)
                 all_precursor_charge.append(charge)
                 all_pep.append(pep_value)

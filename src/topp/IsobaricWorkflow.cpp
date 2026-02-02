@@ -43,6 +43,10 @@
 
 #include <memory> // for std::unique_ptr
 
+#ifdef WITH_PARQUET
+#include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#endif
+
 using namespace OpenMS;
 using namespace std;
 
@@ -187,6 +191,11 @@ protected:
     setValidFormats_("out", {"consensusXML"});
     registerOutputFile_("out_mzTab", "<file>", "", "output mzTab file with quantitative information");
     setValidFormats_("out_mzTab", {"mzTab"});
+
+#ifdef WITH_PARQUET
+    registerOutputFile_("out_parquet", "<file>", "", "Output parquet file for feature-level quantification (QPX feature format)", false, false);
+    setValidFormats_("out_parquet", {"parquet"});
+#endif
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     //registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
     registerDoubleOption_("psm_score", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
@@ -847,6 +856,20 @@ protected:
       IDFilter::keepUniquePeptidesPerProtein(cmap.getUnassignedPeptideIdentifications());
     }
 
+
+#ifdef WITH_PARQUET
+    {
+      String out_parquet = getStringOption_("out_parquet");
+      if (!out_parquet.empty())
+      {
+        OPENMS_LOG_INFO << "Exporting feature-level Parquet file..." << std::endl;
+        if (!ConsensusMapArrowExport::exportToParquet(cmap, out_parquet))
+        {
+          OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out_parquet << std::endl;
+        }
+      }
+    }
+#endif
 
     PeptideAndProteinQuant prot_quantifier;
     prot_quantifier.setParameters(pq_param);

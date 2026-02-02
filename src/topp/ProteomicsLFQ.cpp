@@ -50,6 +50,10 @@
 
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 
+#ifdef WITH_PARQUET
+#include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#endif
+
 using namespace OpenMS;
 using namespace std;
 
@@ -158,6 +162,11 @@ protected:
 
     registerOutputFile_("out_cxml", "<file>", "", "output consensusXML file", false, false);
     setValidFormats_("out_cxml", ListUtils::create<String>("consensusXML"));
+
+#ifdef WITH_PARQUET
+    registerOutputFile_("out_parquet", "<file>", "", "Output parquet file for feature-level quantification (QPX feature format)", false, false);
+    setValidFormats_("out_parquet", ListUtils::create<String>("parquet"));
+#endif
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
@@ -1681,6 +1690,20 @@ protected:
     
     // only keep best scoring ID for each consensus feature
     IDConflictResolverAlgorithm::resolve(consensus);
+
+#ifdef WITH_PARQUET
+    {
+      String out_parquet = getStringOption_("out_parquet");
+      if (!out_parquet.empty())
+      {
+        OPENMS_LOG_INFO << "Exporting feature-level Parquet file..." << std::endl;
+        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_parquet))
+        {
+          OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out_parquet << std::endl;
+        }
+      }
+    }
+#endif
 
     //-------------------------------------------------------------
     // Peptide quantification
