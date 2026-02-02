@@ -27,6 +27,10 @@ def _xic_path():
 def _get_xic():
     import pyopenms as poms
 
+    # Check if XICParquetFile class exists (may be excluded when WITH_PARQUET=False)
+    if not hasattr(poms, 'XICParquetFile'):
+        pytest.skip("pyopenms built without parquet support")
+
     try:
         return poms.XICParquetFile(_xic_path())
     except RuntimeError as e:
