@@ -184,10 +184,15 @@ protected:
     }
     FileHandler().storeIdentifications(out, protein_identifications, identifications, {FileTypes::IDXML});
 
-    os << "Average coverage per protein is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
-    os << "Average number of peptides per protein is " << (((double)accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
-    os << "Average number of un/modified peptides per protein is "
-       << (((double)accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
+    // safe average helpers to avoid division by zero
+    auto safe_avg_double = [](const std::vector<double>& v) -> double { return v.empty() ? 0.0 : (accumulate(v.begin(), v.end(), 0.0) / v.size()); };
+    auto safe_avg_size = [](const std::vector<Size>& v) -> double {
+      return v.empty() ? 0.0 : (static_cast<double>(accumulate(v.begin(), v.end(), static_cast<Size>(0))) / v.size());
+    };
+
+    os << "Average coverage per protein is " << safe_avg_double(statistics) << endl;
+    os << "Average number of peptides per protein is " << safe_avg_size(counts) << endl;
+    os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << endl;
     os << "Number of identified spectra: " << spectrum_count << endl;
     os << "Number of unique identified peptides: " << unique_peptides.size() << endl;
 
@@ -209,11 +214,9 @@ protected:
         ++it3;
       }
     }
-    os << "Average coverage per found protein (" << statistics.size() << ") is "
-       << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
-    os << "Average number of peptides per found protein is " << (((double)accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
-    os << "Average number of un/modified peptides per protein is "
-       << (((double)accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
+    os << "Average coverage per found protein (" << statistics.size() << ") is " << safe_avg_double(statistics) << endl;
+    os << "Average number of peptides per found protein is " << safe_avg_size(counts) << endl;
+    os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << endl;
 
     return EXECUTION_OK;
   }

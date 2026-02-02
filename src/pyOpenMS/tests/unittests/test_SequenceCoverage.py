@@ -11,7 +11,7 @@ class TestSequenceCoverage(unittest.TestCase):
             oms.AASequence.fromString("PEPTIDE")
         ]
 
-        # PEPTIDE covers 7 of 14 amino acids
+        # PEPTIDE covers 7 of 13 amino acids
         coverage = oms.SequenceCoverage.getCoverage(protein, peptides)
         self.assertAlmostEqual(coverage, 53.84615384615385, places=6)
 
