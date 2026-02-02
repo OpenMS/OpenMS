@@ -448,10 +448,6 @@ class StdVectorStringConverter(TypeConverterBase):
             |   inc($it)
             """, locals())
         return code
-        
-from autowrap.Code import Code
-from autowrap.ConversionProvider import TypeConverterBase
-
 
 class OpenMSStringListConverter(StdVectorStringConverter):
     """
@@ -667,7 +663,5 @@ class CVTermMapConverter(TypeConverterBase):
             """, locals())
 
         return code
-        
-        
 
 
