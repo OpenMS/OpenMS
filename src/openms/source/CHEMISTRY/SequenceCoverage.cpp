@@ -8,7 +8,7 @@ namespace OpenMS
 
   double SequenceCoverage::getCoverage(
     const AASequence& protein,
-    const std::vector<AASequence> peptides)
+    std::vector<AASequence> & peptides)
   {
     const String protein_str = protein.toUnmodifiedString();
     const Size protein_length = protein.size();

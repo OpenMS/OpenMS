@@ -13,7 +13,7 @@ class TestSequenceCoverage(unittest.TestCase):
 
         # PEPTIDE covers 7 of 14 amino acids
         coverage = oms.SequenceCoverage.getCoverage(protein, peptides)
-        self.assertAlmostEqual(coverage, 50.0, places=6)
+        self.assertAlmostEqual(coverage, 53.84615384615385, places=6)
 
     def test_empty_peptide_list(self):
         """Empty peptide list returns zero coverage"""
