@@ -543,7 +543,11 @@ namespace OpenMS
       while (i < tokens.size())
       {
         String column = upper_(tokens[i++]);
-        if (i >= tokens.size()) break;
+        if (i >= tokens.size())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Missing filter operator for column", column);
+        }
         String op = upper_(tokens[i++]);
         if (op == "==")
         {
@@ -593,15 +597,23 @@ namespace OpenMS
         if (i < tokens.size())
         {
           String connector = upper_(tokens[i]);
+          bool consumed_connector = false;
           if (connector == "AND" || connector == "&&" || connector == "&")
           {
             expr.connectors.push_back("AND");
             ++i;
+            consumed_connector = true;
           }
           else if (connector == "OR" || connector == "||" || connector == "|")
           {
             expr.connectors.push_back("OR");
             ++i;
+            consumed_connector = true;
+          }
+          if (consumed_connector && i >= tokens.size())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Dangling connector in filter expression", filter);
           }
         }
       }
@@ -1490,6 +1502,11 @@ namespace OpenMS
 
       decodeBinary_(rt_data, rt_compression, chrom.rt);
       decodeBinary_(intensity_data, intensity_compression, chrom.intensity);
+      if (chrom.rt.size() != chrom.intensity.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "RT and intensity array size mismatch", String(row));
+      }
 
       output.push_back(std::move(chrom));
     }
