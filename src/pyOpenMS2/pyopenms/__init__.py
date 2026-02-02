@@ -11,7 +11,7 @@ import os
 import sys
 from pathlib import Path
 
-__version__ = "3.4.0"
+__version__ = "3.6.0"
 
 # Set up OpenMS data path if not already set
 if "OPENMS_DATA_PATH" not in os.environ:
