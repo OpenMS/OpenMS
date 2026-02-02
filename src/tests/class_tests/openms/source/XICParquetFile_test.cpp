@@ -39,7 +39,7 @@ START_SECTION(void load(std::vector<XICChromatogram>& output) const)
 #else
   XICParquetFile xic("dummy.xic");
   std::vector<XICChromatogram> chroms;
-  TEST_EXCEPTION(Exception::MissingFeature, xic.load(chroms))
+  TEST_EXCEPTION(Exception::NotImplemented, xic.load(chroms))
 #endif
 }
 END_SECTION

@@ -181,8 +181,7 @@ namespace OpenMS
     {
 #ifndef WITH_PARQUET
       (void)transition_exp;
-      throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "OpenMS was built without Parquet support");
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
       buildTransitionMaps_(transition_exp);
 #endif

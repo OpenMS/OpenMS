@@ -61,7 +61,7 @@ START_SECTION(MSChromatogramParquetConsumer_basic)
   TEST_EQUAL(chroms[0].intensity.empty(), false)
 #else
   OpenSwath::LightTargetedExperiment light_exp;
-  TEST_EXCEPTION(Exception::MissingFeature, MSChromatogramParquetConsumer("dummy.xic", 1, "x", light_exp))
+  TEST_EXCEPTION(Exception::NotImplemented, MSChromatogramParquetConsumer("dummy.xic", 1, "x", light_exp))
 #endif
 }
 END_SECTION

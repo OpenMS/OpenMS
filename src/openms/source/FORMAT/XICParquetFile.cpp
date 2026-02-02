@@ -1347,8 +1347,7 @@ namespace OpenMS
     (void)ms_level;
     (void)run_id;
     (void)filter;
-    throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "OpenMS was built without Parquet support");
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
     output.clear();
 
@@ -1501,8 +1500,7 @@ namespace OpenMS
   {
 #ifndef WITH_PARQUET
     (void)output;
-    throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "OpenMS was built without Parquet support");
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
     output.clear();
 
@@ -1572,8 +1570,7 @@ namespace OpenMS
     (void)output;
     (void)columns;
     (void)nest_transitions;
-    throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "OpenMS was built without Parquet support");
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
     output.clear();
 
@@ -1923,8 +1920,7 @@ namespace OpenMS
   {
 #ifndef WITH_PARQUET
     (void)output;
-    throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "OpenMS was built without Parquet support");
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
     output.clear();
   std::shared_ptr<arrow::Schema> schema = readParquetSchemaAllFiles_(filenames_);

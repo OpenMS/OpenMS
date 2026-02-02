@@ -258,8 +258,7 @@ namespace OpenMS
       else if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
 #ifndef WITH_PARQUET
-        throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "OpenMS was built without Parquet support");
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
         auto * chromConsumer = new MSChromatogramParquetConsumer(out_chrom, run_id, source_file, transition_exp);
         Size expected_chromatograms = transition_exp.transitions.size();
