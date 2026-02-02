@@ -107,7 +107,7 @@ public:
         add(spectrum.getStringDataArrays()[i]);
       }
 
-      add(static_cast<MetaInfoInterface &>(spectrum));
+      add(static_cast<MetaInfoInterface &>(spectrum.getSpectrumSettings()));
 
       treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
     }

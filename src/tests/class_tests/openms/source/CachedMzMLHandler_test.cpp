@@ -200,8 +200,8 @@ START_SECTION(( void writeMetadata(MapType exp, String out_meta, bool addCacheMe
   cache.writeMetadata(exp, tmp_filename, false);
   MzMLFile().load(tmp_filename, meta_exp);
   TEST_EQUAL( (ExperimentalSettings)(meta_exp), (ExperimentalSettings)(exp) )
-  TEST_EQUAL( (SpectrumSettings)(meta_exp.getSpectrum(0)), (SpectrumSettings)(exp.getSpectrum(0)) )
-  TEST_EQUAL( (ChromatogramSettings)(meta_exp.getChromatogram(0)), (ChromatogramSettings)(exp.getChromatogram(0)) )
+  TEST_EQUAL( meta_exp.getSpectrum(0).getSpectrumSettings(), exp.getSpectrum(0).getSpectrumSettings() )
+  TEST_EQUAL( meta_exp.getChromatogram(0).getChromatogramSettings(), exp.getChromatogram(0).getChromatogramSettings() )
 
   // without adding the cache value, the meta data except the "cache" meta value should be equal
   cache.writeMetadata(exp, tmp_filename, true);
