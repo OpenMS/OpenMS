@@ -1574,3 +1574,31 @@ def test_to_psm_arrow_additional_score_names_parameter():
 
     scores = df.iloc[0]["additional_scores"]
     assert any(s["score_name"] == "custom_rescore" for s in scores)
+
+
+def test_scan_format_native_id():
+    """Test scan_format='nativeId' puts raw native ID in scan column."""
+    pep_ids = create_test_data()
+
+    # Default scan_format="scan" extracts scan numbers
+    df_scan = pep_ids.to_psm_df()
+    assert df_scan.iloc[0]["scan"] == "1234"
+
+    # scan_format="nativeId" uses raw native ID string
+    df_native = pep_ids.to_psm_df(scan_format="nativeId")
+    assert df_native.iloc[0]["scan"] == "controllerType=0 controllerNumber=1 scan=1234"
+
+    # Also works via to_psm_arrow
+    table = pep_ids.to_psm_arrow(scan_format="nativeId")
+    assert table.column("scan")[0].as_py() == "controllerType=0 controllerNumber=1 scan=1234"
+
+
+def test_scan_format_invalid():
+    """Test that invalid scan_format raises ValueError."""
+    pep_ids = create_test_data()
+
+    with pytest.raises(ValueError, match="scan_format must be"):
+        pep_ids.to_psm_arrow(scan_format="invalid")
+
+    with pytest.raises(ValueError, match="scan_format must be"):
+        pep_ids.to_psm_df(scan_format="index")

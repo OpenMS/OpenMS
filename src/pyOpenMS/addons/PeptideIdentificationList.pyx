@@ -606,6 +606,8 @@ import warnings
         :param scan_format: Controls what the ``scan`` column contains:
                             ``"scan"`` (default) extracts the scan number from the
                             native ID, ``"nativeId"`` uses the raw native ID string.
+                            The column is always string-typed (``pa.utf8()``) regardless
+                            of the format, for consistency across both modes.
         :type scan_format: str
 
         :return: DataFrame with columns: sequence, peptidoform, modifications,
@@ -695,6 +697,7 @@ import warnings
         :param scan_format: Controls the ``scan`` column and is recorded in file_metadata.
                             ``"scan"`` (default) extracts the scan number from the
                             native ID, ``"nativeId"`` uses the raw native ID string.
+                            The column is always string-typed for consistency.
         :type scan_format: str
 
         Additional kwargs are passed to to_psm_df().
@@ -794,6 +797,8 @@ import warnings
         :param scan_format: Controls what the ``scan`` column contains:
                             ``"scan"`` (default) extracts the scan number from the
                             native ID, ``"nativeId"`` uses the raw native ID string.
+                            The column is always string-typed (``pa.utf8()``) regardless
+                            of the format, for consistency across both modes.
         :type scan_format: str
 
         :return: Arrow Table with PSM data using native Arrow types.
@@ -1296,9 +1301,10 @@ import warnings
                     row_group_size=None, write_statistics=True,
                     export_all_hits=True, include_modifications=True,
                     include_peak_annotations=False,
-                    reference_file_name="", columns=None, additional_score_names=None):
+                    reference_file_name="", columns=None, additional_score_names=None,
+                    scan_format="scan"):
         """
-        to_parquet(self: PeptideIdentificationList, path: str, compression: str = 'zstd', compression_level: int = None, row_group_size: int = None, write_statistics: bool = True, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> None
+        to_parquet(self: PeptideIdentificationList, path: str, compression: str = 'zstd', compression_level: int = None, row_group_size: int = None, write_statistics: bool = True, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, reference_file_name: str = "", columns: list = None, additional_score_names: list = None, scan_format: str = "scan") -> None
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -1356,6 +1362,13 @@ import warnings
                                        See to_psm_df() for details.
         :type additional_score_names: list
 
+        :param scan_format: Controls what the ``scan`` column contains:
+                            ``"scan"`` (default) extracts the scan number from the
+                            native ID, ``"nativeId"`` uses the raw native ID string.
+                            The column is always string-typed (``pa.utf8()``) regardless
+                            of the format, for consistency across both modes.
+        :type scan_format: str
+
         :raises ImportError: If pyarrow is not installed
 
         Example::
@@ -1402,7 +1415,8 @@ import warnings
             include_peak_annotations=include_peak_annotations,
             reference_file_name=reference_file_name,
             columns=columns,
-            additional_score_names=additional_score_names
+            additional_score_names=additional_score_names,
+            scan_format=scan_format
         )
 
         # Map compression string to pyarrow compression
