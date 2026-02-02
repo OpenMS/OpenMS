@@ -116,7 +116,7 @@ protected:
           if (identifications[i].getHits().size() > 1)
           {
             OPENMS_LOG_ERROR << "Spectrum with more than one identification found, which is not allowed.\n"
-                             << "Use the IDFilter with the -best_hits option to filter for best hits." << endl;
+                             << "Use the IDFilter with the -best_hits option to filter for best hits." << "\n";
             return ILLEGAL_PARAMETERS;
           }
 
@@ -160,7 +160,7 @@ protected:
       // details for this protein
       if (counts[j] > 0)
       {
-        prot2cov[proteins[j].identifier] = { statistics[j], counts[j], mod_counts[j] };
+        prot2cov[proteins[j].identifier] = {statistics[j], counts[j], mod_counts[j]};
         os << proteins[j].identifier << "\t" << statistics[j] * 100 << "\t" << counts[j] << "\n";
       }
 
@@ -190,11 +190,11 @@ protected:
       return v.empty() ? 0.0 : (static_cast<double>(accumulate(v.begin(), v.end(), static_cast<Size>(0))) / v.size());
     };
 
-    os << "Average coverage per protein is " << safe_avg_double(statistics) << endl;
-    os << "Average number of peptides per protein is " << safe_avg_size(counts) << endl;
-    os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << endl;
-    os << "Number of identified spectra: " << spectrum_count << endl;
-    os << "Number of unique identified peptides: " << unique_peptides.size() << endl;
+    os << "Average coverage per protein is " << safe_avg_double(statistics) << "\n";
+    os << "Average number of peptides per protein is " << safe_avg_size(counts) << "\n";
+    os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << "\n";
+    os << "Number of identified spectra: " << spectrum_count << "\n";
+    os << "Number of unique identified peptides: " << unique_peptides.size() << "\n";
 
     vector<double>::iterator it = statistics.begin();
     vector<Size>::iterator it2 = counts.begin();
@@ -214,9 +214,9 @@ protected:
         ++it3;
       }
     }
-    os << "Average coverage per found protein (" << statistics.size() << ") is " << safe_avg_double(statistics) << endl;
-    os << "Average number of peptides per found protein is " << safe_avg_size(counts) << endl;
-    os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << endl;
+    os << "Average coverage per found protein (" << statistics.size() << ") is " << safe_avg_double(statistics) << "\n";
+    os << "Average number of peptides per found protein is " << safe_avg_size(counts) << "\n";
+    os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << "\n";
 
     return EXECUTION_OK;
   }
