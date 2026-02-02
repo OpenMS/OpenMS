@@ -13,7 +13,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # Project name and version
 project(pyOpenMS2
-    VERSION 3.4.0
+    VERSION 3.6.0
     LANGUAGES CXX
     DESCRIPTION "Python bindings for OpenMS using nanobind"
 )
@@ -27,6 +27,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # --------------------------------------------------------------------------
 option(PYOPENMS2_BUILD_TESTS "Build pyOpenMS2 tests" ON)
 option(PYOPENMS2_GENERATE_STUBS "Generate .pyi stub files" ON)
+option(NO_DEPENDENCIES "Skip bundling shared library dependencies (for wheel repair tools)" OFF)
+option(PYOPENMS_PREPARE_WHEEL_REPAIR "Set RPATH for wheel repair tools (auditwheel/delocate)" OFF)
 set(PYOPENMS2_DOMAINS
     kernel metadata chemistry analysis featurefinder
     format processing datastructures ml misc
@@ -170,6 +172,7 @@ foreach(domain ${PYOPENMS2_DOMAINS})
     # Install
     install(TARGETS ${MODULE_NAME}
         LIBRARY DESTINATION pyopenms
+        COMPONENT python_modules
     )
 endforeach()
 
@@ -197,6 +200,7 @@ set_target_properties(_pyopenms2 PROPERTIES
 
 install(TARGETS _pyopenms2
     LIBRARY DESTINATION pyopenms
+    COMPONENT python_modules
 )
 
 # --------------------------------------------------------------------------
@@ -229,7 +233,7 @@ if(_HAS_PARQUET)
     set_target_properties(_arrow_zerocopy PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/pyopenms"
     )
-    install(TARGETS _arrow_zerocopy LIBRARY DESTINATION pyopenms)
+    install(TARGETS _arrow_zerocopy LIBRARY DESTINATION pyopenms COMPONENT python_modules)
 else()
     message(STATUS "pyOpenMS2: Skipping _arrow_zerocopy module (WITH_PARQUET not found)")
 endif()
@@ -269,6 +273,7 @@ endforeach()
 # Install Python package files (including stubs and PEP 561 marker)
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pyopenms/
     DESTINATION pyopenms
+    COMPONENT python_modules
     FILES_MATCHING
         PATTERN "*.py"
         PATTERN "*.pyi"
