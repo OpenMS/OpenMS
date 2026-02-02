@@ -523,7 +523,7 @@ def test_psm_df_qpx_columns():
 
     # Check cv_params column (always None from OpenMS)
     assert "cv_params" in df.columns
-    assert df.iloc[0]["cv_params"] is None
+    assert pd.isna(df.iloc[0]["cv_params"])
 
 
 def test_psm_df_spectrum_reference():
