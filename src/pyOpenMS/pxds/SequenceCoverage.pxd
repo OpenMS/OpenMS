@@ -1,5 +1,5 @@
-from libcpp.vector cimport vector as libcpp_vector
 from AASequence cimport AASequence
+from AASequenceList cimport AASequenceList
 
 # Bindings for the OpenMS SequenceCoverage utility.
 # This exposes sequence coverage calculation for proteins and peptides.
@@ -17,5 +17,5 @@ cdef extern from "<OpenMS/CHEMISTRY/SequenceCoverage.h>" namespace "OpenMS":
         @staticmethod
         double getCoverage(
             const AASequence& protein,
-            libcpp_vector[AASequence] & peptides
+            const AASequenceList& peptides
         ) except + nogil

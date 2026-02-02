@@ -448,6 +448,81 @@ class StdVectorStringConverter(TypeConverterBase):
             |   inc($it)
             """, locals())
         return code
+        
+from autowrap.Code import Code
+from autowrap.ConversionProvider import TypeConverterBase
+
+
+class OpenMSAASequenceVectorConverter(TypeConverterBase):
+    """
+    Converter for std::vector<OpenMS::AASequence>
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    # 🔑 THIS IS THE CRITICAL FIX
+    def get_base_types(self):
+        return ("vector", "libcpp_vector")
+
+    def matches(self, cpp_type):
+        if cpp_type.is_ptr:
+            return False
+
+        if not cpp_type.template_args:
+            return False
+
+        inner = cpp_type.template_args[0]
+        return inner.base_type == "AASequence"
+
+    def matching_python_type(self, cpp_type):
+        return "list"
+
+    def matching_python_type_full(self, cpp_type):
+        return "List[AASequence]"
+
+    def type_check_expression(self, cpp_type, argument_var):
+        return (
+            f"isinstance({argument_var}, list) and "
+            f"all(isinstance(x, AASequence) for x in {argument_var})"
+        )
+
+    def input_conversion(self, cpp_type, argument_var, arg_num):
+        vec = f"_aaseq_vec_{arg_num}"
+        item = f"_aaseq_item_{arg_num}"
+
+        code = Code().add(f"""
+            |cdef libcpp_vector[_AASequence] {vec}
+            |cdef AASequence {item}
+            |for {item} in {argument_var}:
+            |    {vec}.push_back(deref({item}.inst.get()))
+        """)
+
+        cleanup = ""
+        if cpp_type.is_ref and not cpp_type.is_const:
+            cleanup = Code().add(f"""
+                |{argument_var}.clear()
+                |cdef int i
+                |for i in range({vec}.size()):
+                |    tmp = AASequence.__new__(AASequence)
+                |    tmp.inst = shared_ptr[_AASequence](new _AASequence({vec}[i]))
+                |    {argument_var}.append(tmp)
+            """)
+
+        return code, vec, cleanup
+
+    def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
+        it = f"_it_{output_py_var}"
+        return Code().add(f"""
+            |{output_py_var} = []
+            |cdef libcpp_vector[_AASequence].iterator {it} = {input_cpp_var}.begin()
+            |while {it} != {input_cpp_var}.end():
+            |    tmp = AASequence.__new__(AASequence)
+            |    tmp.inst = shared_ptr[_AASequence](new _AASequence(deref({it})))
+            |    {output_py_var}.append(tmp)
+            |    inc({it})
+        """)
+        
 
 class OpenMSStringListConverter(StdVectorStringConverter):
     """
@@ -663,5 +738,7 @@ class CVTermMapConverter(TypeConverterBase):
             """, locals())
 
         return code
+        
+        
 
 
