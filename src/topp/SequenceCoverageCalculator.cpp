@@ -160,7 +160,7 @@ protected:
       // details for this protein
       if (counts[j] > 0)
       {
-        prot2cov[proteins[j].identifier] = {statistics[j], counts[j], mod_counts[j]};
+        prot2cov[proteins[j].identifier] = { statistics[j], counts[j], mod_counts[j] };
         os << proteins[j].identifier << "\t" << statistics[j] * 100 << "\t" << counts[j] << "\n";
       }
 
