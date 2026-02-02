@@ -167,6 +167,7 @@
             RuntimeError: If spectrum generation fails
 
         Example:
+
             >>> # Single peptide
             >>> pfi = PeptidoformIon.fromString("PEPTIDE/2")
             >>> if pfi.canGenerateSpectrum():
