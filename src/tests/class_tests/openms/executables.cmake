@@ -121,6 +121,7 @@ set(metadata_executables_list
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   SpectrumSettings_test
+  USI_test
   )
 
 set(system_executables_list
@@ -233,6 +234,7 @@ set(format_executables_list
   ParamCTDFile_test
   ParamJSONFile_test
   ParamXMLFile_test
+  PEFFFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
   PepNovoInfile_test
@@ -248,11 +250,13 @@ set(format_executables_list
   SequestOutfile_test
   SpecArrayFile_test
   SqMassFile_test
+  MRMFile_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
   SwathWindowLoader_test
   TextFile_test
+  TargetedDataFileLoader_test
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
@@ -288,6 +292,7 @@ set(math_executables_list
   BasicStatistics_test
   BilinearInterpolation_test
   BSpline2d_test
+  BSplineSmoothingSpline_test
   CubicSpline2d_test
   EmgGradientDescent_test
   GammaDistributionFitter_test
@@ -296,14 +301,17 @@ set(math_executables_list
   GridSearch_test
   CrossValidation_test
   Histogram_test
+  KernelDensityEstimation_test
   LinearInterpolation_test
   LinearRegression_test
   MathFunctions_test
+  MultipleTesting_test
   #MSNumpress_test
   NNLS_test
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
   QuadraticRegression_test
+  RankData_test
   RANSAC_test
   RANSACModel_test
   RANSACModelLinear_test
@@ -407,8 +415,10 @@ set(chemistry_executables_list
   ModificationDefinitionsSet_test
   ModificationsDB_test
   ModifiedNASequenceGenerator_test
+  MzPAF_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
+  ProFormaParser_test
   ProteaseDB_test
   ProteaseDigestion_test
   RNaseDigestion_test
@@ -494,6 +504,10 @@ set(analysis_executables_list
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
   MRMMapping_test
+  MRMChromHandler_test
+  DefaultChromHandler_test
+  DIAChromHandler_test
+  ChromatogramProcessor_test
   MRMScoring_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test

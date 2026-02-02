@@ -78,6 +78,7 @@ OMSSAXMLFile.h
 OSWFile.h
 ParamCTDFile.h
 ParamXMLFile.h
+PEFFFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
 PepNovoInfile.h
@@ -108,6 +109,8 @@ MzIdentMLFile.h
 TraMLFile.h
 XMassFile.h
 XQuestResultXMLFile.h
+MRMFile.h
+TargetedDataFileLoader.h
 ZlibCompression.h
 )
 

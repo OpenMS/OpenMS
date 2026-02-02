@@ -968,6 +968,11 @@ namespace OpenMS::Internal
       createIndices_();
     }
 
+    void MzMLSqliteHandler::setRunId(const UInt64 run_id)
+    {
+      run_id_ = Internal::SqliteHelper::clearSignBit(run_id);
+    }
+
     void MzMLSqliteHandler::createIndices_()
     {
       // Create SQL structure

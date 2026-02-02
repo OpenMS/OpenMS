@@ -68,6 +68,7 @@ ParamCTDFile.cpp
 ParamCWLFile.cpp
 ParamJSONFile.cpp
 ParamXMLFile.cpp
+PEFFFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp
 PepNovoInfile.cpp
@@ -97,6 +98,8 @@ XQuestResultXMLFile.cpp
 XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
+MRMFile.cpp
+TargetedDataFileLoader.cpp
 )
 
 if (WITH_HDF5)

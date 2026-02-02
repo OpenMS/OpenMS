@@ -155,8 +155,11 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         void setProteinIdentifications(libcpp_vector[ProteinIdentification]) except + nogil
             # wrap-doc:
             #  Sets the protein identifications for this map
-            #  
+            #
             #  :param protein_ids: Protein identification results to associate with this map
+
+        # findProteinIdentification returns pointer - wrapped via addon
+        # ProteinIdentification* findProteinIdentification(const String& identifier) except + nogil
 
         PeptideIdentificationList getUnassignedPeptideIdentifications() except + nogil
             # wrap-doc:

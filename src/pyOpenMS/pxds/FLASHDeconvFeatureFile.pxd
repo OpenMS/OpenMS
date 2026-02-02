@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/FORMAT/FLASHDeconvFeatureFile.h>" namespace "OpenMS":
 
     cdef cppclass FLASHDeconvFeatureFile:
         # wrap-doc:
-        #  FLASHDeconv feature level output *.tsv, *.ms1ft (for Promex), *.feature (for TopPIC) file formats.
+        #  FLASHDeconv feature level output (.tsv, .ms1ft for Promex, .feature for TopPIC) file formats.
         #  This class provides static methods for writing mass feature data.
         #  Note: Methods taking std::ostream are not directly exposed. Use file-based workflows.
 

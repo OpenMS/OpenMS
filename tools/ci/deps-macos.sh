@@ -71,7 +71,8 @@ brew install \
   qtbase \
   apache-arrow \
   zstd \
-  bash
+  bash \
+  uv
 
 # GUI dependencies (can be skipped for non-GUI builds):
 if [ "$SKIP_GUI_DEPS" = false ]; then

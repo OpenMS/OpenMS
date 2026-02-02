@@ -35,6 +35,8 @@ TOPP tools:
         at the end of commands to override hardcoded defaults. A warning is issued when duplicates are detected.
         Example: tool -param default -param override  # Now uses 'override' (previously used 'default')
       - Improved error messages for command-line parameter errors (#8670)
+    MetaProSIP:
+      - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
 
 PyOpenMS:
@@ -70,6 +72,22 @@ PyOpenMS:
   - Fix: getAAFrequencies() loop bug in AASequence addon (#8502)
   - Fix: Duplicate functions removed from IdXMLFile.pxd (#8551)
   - Test: Docstring format validation tests added (#8674)
+  - ProForma v2 support: Full Python bindings for ProFormaParser (#8648)
+    - Parse ProForma strings: Peptidoform.fromString(), PeptidoformIon.fromString()
+    - Serialize back: toString() with LOSSLESS/CANONICAL modes
+    - Convert to/from AASequence with configurable policies (FAIL_ON_LOSS, DROP_UNLOCALISED, BEST_EFFORT)
+    - Mass calculation: getMonoWeight(), getMZ(), canCalculateMass()
+    - JSON serialization: toJSON()/fromJSON() for AST persistence
+    - Pythonic API: __str__, __repr__, __len__ on Peptidoform and PeptidoformIon
+  - USI support: Python bindings for Universal Spectrum Identifier (#8684)
+    - USI class with constructor from string, tryParse(), isValidUSI()
+    - PeptideIdentification.buildUSI() for generating USIs
+  - PEFF support: Full Python bindings for PSI Extended FASTA Format (#8690)
+    - PEFFFile class for reading/writing PEFF files with batch and streaming APIs
+    - PEFFEntry with rich annotations: modifications, variants, processed regions
+    - PEFFDatabaseMetadata for header information
+    - Conversion methods: toFASTAEntry(), fromFASTAEntry(), toProForma()
+    - Sequence accessors: getSequence(), getModifiedSequence(), getVariantSequences(), getProcessedSequence()
 
 TOPP tools:
   Changes:
@@ -88,6 +106,7 @@ TOPP tools:
     OpenSwathWorkflow:
       - Priority peptide sampling for iRT calibration (#8373)
       - Decoy generation speed optimizations (#8569)
+      - Added SRM support (#8700)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
     FileMerger:
@@ -95,6 +114,10 @@ TOPP tools:
 
 OpenMS Library:
   Added:
+    - Statistical functions ported from PyProphet (#8524)
+      - KernelDensityEstimation: FFT-based kernel density estimation using Silverman's algorithm
+      - RankData: Rank computation with multiple tie-handling methods (average, min, max, dense, ordinal)
+      - MultipleTesting: FDR control and multiple testing corrections (computeModelFDR, pEmp, qValue, pi0est, lfdr, pNorm)
     - PeakFileOptions: setPrecursorMZRange()/getPrecursorMZRange() for precursor m/z range filtering (#8526)
     - OnDiscMSExperiment: Full PeakFileOptions support with filtering (#8512)
     - ParamIterator: STL-compatible iterator type aliases (iterator_category, value_type, etc.) (#8362)
@@ -104,6 +127,23 @@ OpenMS Library:
     - iRT/CiRT transition files in share/OpenMS/CHEMISTRY/ (#8372)
     - SpectrumNativeIDParser class for parsing spectrum native IDs (extractScanNumber, getRegExFromNativeID, isNativeID) (#8633)
     - ArrowExport helper for exporting MSExperiment to Apache Arrow/Parquet formats with configurable layouts and compression (#8655)
+    - ProFormaParser: Full ProForma v2 notation parser with AST representation (#8648)
+      - Recursive descent parser for peptidoforms with modifications, cross-links, and chimeric spectra
+      - Supports all ProForma v2 features: CV accessions (UNIMOD, MOD, RESID, XLMOD, GNO), mass deltas, formulas, glycans, info tags
+      - Bidirectional conversion: parse() and toString() with LOSSLESS/CANONICAL write modes
+      - AASequence integration: toAASequence()/fromAASequence() with configurable conversion policies
+      - Mass calculation: getMonoWeight(), getMZ() for peptidoforms and ions
+      - JSON serialization for AST persistence and interoperability
+      - Theoretical spectrum generation via tryGenerateSpectrum() for single-chain and cross-linked peptides
+        Uses TheoreticalSpectrumGenerator for linear peptides, TheoreticalSpectrumGeneratorXLMS for cross-links
+    - MzPAF: HUPO-PSI mzPAF (Peak Annotation Format) parser and serializer (#8686). Parse fragment ion annotations: MzPAF::parse("y4-H2O^2/3.2ppm*0.75"). pyOpenMS bindings included
+    - USI: Universal Spectrum Identifier support per HUPO-PSI standard (#8684)
+      - USI class for parsing and building USI strings (mzspec:collection:msrun:index_type:index[:interpretation])
+      - Static methods: tryParse() (non-throwing), isValidUSI(), createFromScanNumber(), createFromNativeID()
+      - Uses SpectrumNativeIDParser for robust scan number extraction from vendor formats
+      - PeptideIdentification.buildUSI() for generating USIs from identification results
+      - TextExporter USI output with optional dataset_id/ms_run parameters
+      - pyOpenMS bindings included
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
