@@ -12,7 +12,8 @@
 
 ## pyOpenMS
 
-See `src/pyOpenMS/CLAUDE.md` for Python binding development.
+See `src/pyOpenMS/CLAUDE.md` for Python binding development using cython.
+See `src/pyOpenMS2/CLAUDE.md` for experimental Python binding development using nanobind.
 
 Quick commands:
 - Build: `cmake --build OpenMS-build --target pyopenms -j$(nproc)`
