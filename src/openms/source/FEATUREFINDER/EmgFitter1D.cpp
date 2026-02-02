@@ -35,7 +35,18 @@ namespace OpenMS
     EmgFitter1D::CoordinateType h = x_map(0);
     EmgFitter1D::CoordinateType w = x_map(1);
     EmgFitter1D::CoordinateType s = x_map(2);
-    EmgFitter1D::CoordinateType z = x_map(3);  // retention time parameter
+
+    // Sigmoid reparameterization: x_map(3) is unconstrained, but z is bounded to [rt_min_, rt_max_]
+    EmgFitter1D::CoordinateType z;
+    if (use_sigmoid_)
+    {
+      double sig = 1.0 / (1.0 + exp(-x_map(3)));
+      z = rt_min_ + (rt_max_ - rt_min_) * sig;
+    }
+    else
+    {
+      z = x_map(3);
+    }
 
     EmgFitter1D::CoordinateType Yi = 0.0;
     double prefix = (h * w / s) * sqrt2pi;
@@ -53,22 +64,6 @@ namespace OpenMS
 
       fvec_map(i) = Yi - set[i].getIntensity();
     }
-
-    // Virtual boundary penalty: adds a residual that penalizes RT outside data range
-    // This prevents the optimizer from shifting the peak center outside the observed data
-    // The penalty is scaled by peak height to be comparable to the data residuals
-    double boundary_penalty = 0.0;
-    if (z < rt_min_)
-    {
-      // Penalty proportional to distance below minimum, scaled by height
-      boundary_penalty = h * (rt_min_ - z);
-    }
-    else if (z > rt_max_)
-    {
-      // Penalty proportional to distance above maximum, scaled by height
-      boundary_penalty = h * (z - rt_max_);
-    }
-    fvec(n) = boundary_penalty;
 
     return 0;
   }
@@ -89,7 +84,20 @@ namespace OpenMS
     EmgFitter1D::CoordinateType s = x_map(2);
     EmgFitter1D::CoordinateType s2 = s*s;
     EmgFitter1D::CoordinateType s3 = s2 * s;
-    EmgFitter1D::CoordinateType z = x_map(3);  // retention time parameter
+
+    // Sigmoid reparameterization: compute z and chain rule factor
+    EmgFitter1D::CoordinateType z;
+    double dz_dinternal = 1.0; // chain rule factor for J(:, 3)
+    if (use_sigmoid_)
+    {
+      double sig = 1.0 / (1.0 + exp(-x_map(3)));
+      z = rt_min_ + (rt_max_ - rt_min_) * sig;
+      dz_dinternal = (rt_max_ - rt_min_) * sig * (1.0 - sig);
+    }
+    else
+    {
+      z = x_map(3);
+    }
 
     EmgFitter1D::CoordinateType diff, exp1, exp2, exp3 = 0.0;
     EmgFitter1D::CoordinateType derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
@@ -113,43 +121,14 @@ namespace OpenMS
       // f'(s)
       derivative_symmetry = -h * w / s2 * sqrt2pi * exp1 / exp2 + h * w / s * sqrt2pi * (-(w * w) / s3 + diff / s2) * exp1 / exp2 + (emg_const * h * w2) / s3 * sqrt2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
 
-      // f'(z)
-      derivative_retention = h * w / s2 * sqrt2pi * exp1 / exp2 - (emg_const * h) / s * sqrt2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
+      // f'(z) w.r.t. the internal parameter (chain rule applied for sigmoid)
+      derivative_retention = (h * w / s2 * sqrt2pi * exp1 / exp2 - (emg_const * h) / s * sqrt2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2)) * dz_dinternal;
 
       // set the jacobian matrix
       J_map(i, 0) = derivative_height;
       J_map(i, 1) = derivative_width;
       J_map(i, 2) = derivative_symmetry;
       J_map(i, 3) = derivative_retention;
-    }
-
-    // Jacobian for boundary penalty residual
-    // penalty = h * |z - boundary| when outside range, 0 otherwise
-    // d(penalty)/dh = |z - boundary| (sign depends on which boundary)
-    // d(penalty)/dw = 0
-    // d(penalty)/ds = 0
-    // d(penalty)/dz = h or -h (depending on which boundary violated)
-    if (z < rt_min_)
-    {
-      J(n, 0) = rt_min_ - z;   // d/dh
-      J(n, 1) = 0.0;           // d/dw
-      J(n, 2) = 0.0;           // d/ds
-      J(n, 3) = -h;            // d/dz (penalty = h*(rt_min_ - z), so d/dz = -h)
-    }
-    else if (z > rt_max_)
-    {
-      J(n, 0) = z - rt_max_;   // d/dh
-      J(n, 1) = 0.0;           // d/dw
-      J(n, 2) = 0.0;           // d/ds
-      J(n, 3) = h;             // d/dz (penalty = h*(z - rt_max_), so d/dz = h)
-    }
-    else
-    {
-      // No boundary violation, zero Jacobian for penalty term
-      J(n, 0) = 0.0;
-      J(n, 1) = 0.0;
-      J(n, 2) = 0.0;
-      J(n, 3) = 0.0;
     }
 
     return 0;
@@ -231,16 +210,29 @@ namespace OpenMS
     // Clamp initial RT guess to data range to start optimization within valid bounds
     x_init[3] = std::clamp(retention_, rt_min, rt_max);
 
+    // Determine if sigmoid reparameterization is applicable
+    const bool use_sigmoid = (rt_max - rt_min) > 1e-10;
+
     if (!symmetric_)
     {
-        // Pass data range bounds to functor for virtual boundary constraints
-        // This prevents the optimizer from reporting RT outside the observed data range
+        if (use_sigmoid)
+        {
+          // Convert initial RT to internal (unconstrained) space via logit transform
+          const double eps = 1e-6;
+          double t = (x_init[3] - rt_min) / (rt_max - rt_min);
+          t = std::clamp(t, eps, 1.0 - eps);
+          x_init[3] = log(t / (1.0 - t));  // logit
+        }
+
         EgmFitterFunctor functor(4, &d, rt_min, rt_max);
         optimize_(x_init, functor);
 
-        // Hard clamp: ensure RT stays within bounds even if optimizer slightly exceeds
-        // The penalty guides optimization, but clamping guarantees the constraint
-        x_init[3] = std::clamp(x_init[3], rt_min, rt_max);
+        if (use_sigmoid)
+        {
+          // Convert back from internal space to RT via sigmoid
+          double sig = 1.0 / (1.0 + exp(-x_init[3]));
+          x_init[3] = rt_min + (rt_max - rt_min) * sig;
+        }
     }
 
     // Set optimized parameters

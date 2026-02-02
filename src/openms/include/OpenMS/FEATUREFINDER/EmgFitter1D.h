@@ -54,7 +54,7 @@ protected:
       public LevMarqFitter1D::GenericFunctor
     {
 public:
-      /// Constructor with optional boundary constraints for retention time
+      /// Constructor with optional boundary constraints for retention time (sigmoid reparameterization)
       /// @param dimensions Number of parameters to optimize
       /// @param data Pointer to the data structure
       /// @param rt_min Minimum retention time bound (default: -infinity, no constraint)
@@ -63,10 +63,11 @@ public:
                        CoordinateType rt_min = -std::numeric_limits<CoordinateType>::infinity(),
                        CoordinateType rt_max = std::numeric_limits<CoordinateType>::infinity()) :
         LevMarqFitter1D::GenericFunctor(dimensions,
-                                        static_cast<int>(data->n) + 1), // +1 for boundary penalty residual
+                                        static_cast<int>(data->n)),
         m_data(data),
         rt_min_(rt_min),
-        rt_max_(rt_max)
+        rt_max_(rt_max),
+        use_sigmoid_(std::isfinite(rt_min) && std::isfinite(rt_max) && (rt_max - rt_min) > 1e-10)
       {}
 
       int operator()(const double* x, double* fvec) const override;
@@ -75,8 +76,9 @@ public:
 
 protected:
       const EmgFitter1D::Data* m_data;
-      CoordinateType rt_min_;  ///< Minimum RT bound (default -inf = no constraint)
-      CoordinateType rt_max_;  ///< Maximum RT bound (default +inf = no constraint)
+      CoordinateType rt_min_;  ///< Minimum RT bound for sigmoid transform
+      CoordinateType rt_max_;  ///< Maximum RT bound for sigmoid transform
+      bool use_sigmoid_;       ///< Whether to use sigmoid reparameterization
       static const EmgFitter1D::CoordinateType c;
       static const EmgFitter1D::CoordinateType sqrt2pi;
       static const EmgFitter1D::CoordinateType emg_const;
