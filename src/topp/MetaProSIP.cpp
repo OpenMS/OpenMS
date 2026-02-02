@@ -81,7 +81,7 @@ level using the median of all peptide RIAs. Protein-level RIAs are further summa
 
 The group-centric report is organized hierarchically with three levels:
 
-<b>Group level</b> (one row per group):
+<b>Group level</b> (two-row block per group: a header row labeled "Group N", followed by a data row with counts/medians):
 | Column | Description |
 |--------|-------------|
 | Group N | Group identifier (1-based) |
