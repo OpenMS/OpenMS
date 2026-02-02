@@ -320,6 +320,12 @@ import numpy as np
 
         df = pd.DataFrame(mdarr).set_index('feature_id')
 
+        # Convert NaN to None for object-typed columns
+        # np.fromiter() converts Python None to np.nan, so we restore proper None values
+        object_cols = df.select_dtypes(include=['object']).columns
+        for col in object_cols:
+            df[col] = df[col].where(df[col].notna(), None)
+
         # Filter columns if requested
         if columns is not None:
             available_cols = [c for c in columns if c in df.columns or c == 'feature_id']
