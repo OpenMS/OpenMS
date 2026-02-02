@@ -134,7 +134,7 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
     extractor.extractChromatograms(expptr, output_chromatograms, coordinates, 
         extract_window, ppm, extraction_function);
 
-    extractor.return_chromatogram(output_chromatograms, coordinates, transitions, (*exp)[0], chromatograms, false);
+    extractor.return_chromatogram(output_chromatograms, coordinates, transitions, (*exp)[0].getSpectrumSettings(), chromatograms, false);
   }
 
   TEST_EQUAL(chromatograms.size(), 3)

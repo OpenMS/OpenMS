@@ -177,8 +177,8 @@ START_SECTION(( const MSExperiment& getMetaData() const ))
   for (int i = 0; i < 4; i++)
   {
     // identical except DataProcessing
-    SpectrumSettings tmp1 = cache_example.getMetaData()[i];
-    SpectrumSettings tmp2 = exp.getSpectrum(i);
+    SpectrumSettings tmp1 = cache_example.getMetaData()[i].getSpectrumSettings();
+    SpectrumSettings tmp2 = exp.getSpectrum(i).getSpectrumSettings();
     tmp1.getDataProcessing().clear();
     tmp2.getDataProcessing().clear();
     TEST_TRUE(tmp1 == tmp2)
@@ -188,8 +188,8 @@ START_SECTION(( const MSExperiment& getMetaData() const ))
   for (int i = 0; i < 2; i++)
   {
     // identical except DataProcessing
-    ChromatogramSettings tmp1 = cache_example.getMetaData().getChromatograms()[i];
-    ChromatogramSettings tmp2 = exp.getChromatogram(i);
+    ChromatogramSettings tmp1 = cache_example.getMetaData().getChromatograms()[i].getChromatogramSettings();
+    ChromatogramSettings tmp2 = exp.getChromatogram(i).getChromatogramSettings();
     tmp1.getDataProcessing().clear();
     tmp2.getDataProcessing().clear();
     TEST_TRUE(tmp1 == tmp2)
