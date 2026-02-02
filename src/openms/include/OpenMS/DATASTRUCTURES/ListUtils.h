@@ -12,6 +12,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <cmath>
 #include <iterator>
@@ -48,6 +49,15 @@ namespace OpenMS
 
     @ingroup Datastructures
   */
+
+  /**
+    @brief Vector of AASequence.
+
+    @ingroup Datastructures
+  */
+  typedef std::vector<AASequence> AASequenceList;
+
+
   class OPENMS_DLLAPI ListUtils
   {
 private:

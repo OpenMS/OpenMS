@@ -9,6 +9,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <vector>
 
@@ -33,7 +34,7 @@ namespace OpenMS
     */
     static double getCoverage(
       const AASequence& protein,
-      const std::vector<AASequence>& peptides
+      const AASequenceList& peptides
     );
   };
 
