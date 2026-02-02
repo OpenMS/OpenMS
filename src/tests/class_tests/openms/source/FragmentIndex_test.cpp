@@ -425,6 +425,67 @@ START_SECTION(tolerance)
 }
 END_SECTION
 
+// Verify modification_idx_ correctness when mass filter skips some variants.
+// With min_mass > unmodified mass of DFDMDMDM (~1019 Da), variant 0 is filtered out.
+// Surviving oxidized variants must have modification_idx_ values that correctly
+// index into ModifiedPeptideGenerator output.
+START_SECTION(modification_idx_with_mass_filter)
+{
+  const std::vector<FASTAFile::FASTAEntry> entries0 {{"t", "t", "ARGEPADSSRKDFDMDMDM"}, {"t2", "t2", "HALLORTSCHSM"}};
+
+  FragmentIndex_test modIdxTest;
+  auto params = modIdxTest.getParameters();
+  params.setValue("enzyme", "Trypsin");
+  params.setValue("peptide:missed_cleavages", 0);
+  // Set min_mass high enough to exclude unmodified DFDMDMDM (~1019 Da)
+  // but keep oxidized variants (~1035+ Da)
+  params.setValue("peptide:min_mass", 1030);
+  params.setValue("peptide:max_mass", 5000);
+  params.setValue("peptide:min_size", 6);
+  params.setValue("peptide:max_size", 100);
+  params.setValue("modifications:variable", std::vector<std::string> {"Oxidation (M)"});
+  params.setValue("modifications:fixed", std::vector<std::string> {"Carbamidomethyl (C)"});
+  modIdxTest.setParameters(params);
+  modIdxTest.build(entries0);
+
+  // Reconstruct modifications the same way the search engine does
+  const StringList mods_fixed {"Carbamidomethyl (C)"};
+  const StringList mods_variable {"Oxidation (M)"};
+  const auto fixed_modifications = ModifiedPeptideGenerator::getModifications(mods_fixed);
+  const auto variable_modifications = ModifiedPeptideGenerator::getModifications(mods_variable);
+
+  const auto& peptides = modIdxTest.getPeptides();
+  bool found_filtered_variant = false;
+
+  for (const auto& pep : peptides)
+  {
+    // Only check the DFDMDMDM peptide (protein 0, position 11, length 8)
+    if (pep.protein_idx != 0 || pep.sequence_.first != 11 || pep.sequence_.second != 8)
+      continue;
+
+    // Variant 0 (unmodified) should have been filtered out by min_mass
+    TEST_TRUE(pep.modification_idx_ > 0);
+    found_filtered_variant = true;
+
+    // Reconstruct the modified peptide using the stored modification_idx_
+    AASequence unmod = AASequence::fromString(
+      entries0[pep.protein_idx].sequence.substr(pep.sequence_.first, pep.sequence_.second));
+    std::vector<AASequence> mod_candidates;
+    AASequence mod_pep(unmod);
+    ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_pep);
+    ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_pep, 2, mod_candidates);
+
+    // The stored modification_idx_ must be a valid index
+    TEST_TRUE(pep.modification_idx_ < mod_candidates.size());
+
+    // The reconstructed mass must match the stored precursor_mz_
+    float reconstructed_mz = mod_candidates[pep.modification_idx_].getMZ(1);
+    TEST_REAL_SIMILAR(reconstructed_mz, pep.precursor_mz_);
+  }
+  TEST_TRUE(found_filtered_variant);
+}
+END_SECTION
+
 // Open search: shift precursor m/z by a large delta and verify the peptide is still found
 START_SECTION(open_search)
 {

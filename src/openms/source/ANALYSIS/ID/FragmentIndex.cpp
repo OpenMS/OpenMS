@@ -30,6 +30,10 @@
 #include <OpenMS/QC/QCBase.h>
 #include <functional>
 
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+
 
 using namespace std;
 
@@ -70,9 +74,9 @@ namespace OpenMS
   void FragmentIndex::generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
 
-      fi_peptides_.reserve(fasta_entries.size() * 5 * modifications_variable_.size()); //TODO: Calculate the average cleavage site number for the most important model organisms
       ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
       ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+      const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
       size_t skipped_peptides = 0;
 
       ProteaseDigestion digestor;
@@ -80,11 +84,28 @@ namespace OpenMS
       digestor.setMissedCleavages(missed_cleavages_);
 
       std::cout << "Generating peptides..." << std::endl;
-      
-      vector<pair<size_t, size_t>> digested_peptides; // every thread gets it own copy that is only cleared, not destructed (prevents frequent reallocations)
+
+      // Determine number of threads for per-thread buffers
+      int num_threads = 1;
+      #ifdef _OPENMP
+      #pragma omp parallel
+      {
+        #pragma omp single
+        num_threads = omp_get_num_threads();
+      }
+      #endif
+      std::vector<std::vector<Peptide>> thread_peptides(num_threads);
+
+      vector<pair<size_t, size_t>> digested_peptides;
       #pragma omp parallel for private(digested_peptides)
       for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
       {
+        #ifdef _OPENMP
+        auto& local_peptides = thread_peptides[omp_get_thread_num()];
+        #else
+        auto& local_peptides = thread_peptides[0];
+        #endif
+
         digested_peptides.clear();
         const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
         /// DIGEST (if bottom-up)
@@ -104,7 +125,7 @@ namespace OpenMS
           AASequence unmod_peptide = AASequence::fromString(protein.sequence.substr(digested_peptide.first, digested_peptide.second));
           float unmodified_mz = unmod_peptide.getMZ(1);
 
-          if (!(modifications_fixed_.empty() && modifications_variable_.empty()))
+          if (has_modifications)
           {
             vector<AASequence> modified_peptides;
             AASequence mod_peptide = AASequence(unmod_peptide); // copy the peptide
@@ -112,40 +133,46 @@ namespace OpenMS
             ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, mod_peptide);
             ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, mod_peptide, max_variable_mods_per_peptide_, modified_peptides);
 
-            UInt32 modification_idx = 0;
-            for (const AASequence& modified_peptide : modified_peptides)
+            for (UInt32 modification_idx = 0; modification_idx < (UInt32)modified_peptides.size(); ++modification_idx)
             {
-              float modified_mz = modified_peptide.getMZ(1);
-              if (modified_mz < peptide_min_mass_ || modified_mz > peptide_max_mass_) // exclude peptides that are not in the min-max window
+              float modified_mz = modified_peptides[modification_idx].getMZ(1);
+              if (modified_mz < peptide_min_mass_ || modified_mz > peptide_max_mass_)
               {
-                continue;   //TODO: Integrate this check in ModPepGen from #6859
+                continue;
               }
-              #pragma omp critical (FIIndex)
-              {
-                fi_peptides_.emplace_back(static_cast<UInt32>(protein_idx),
-                                        modification_idx,
-                                        std::make_pair(static_cast<uint16_t>(digested_peptide.first),
-                                                       static_cast<uint16_t>(digested_peptide.second)),
-                                        modified_mz);
-                ++modification_idx;
-              }
+              local_peptides.emplace_back(static_cast<UInt32>(protein_idx),
+                                          modification_idx,
+                                          std::make_pair(static_cast<uint16_t>(digested_peptide.first),
+                                                         static_cast<uint16_t>(digested_peptide.second)),
+                                          modified_mz);
             }
           }
           else
           {
             if (peptide_min_mass_ <= unmodified_mz && unmodified_mz <= peptide_max_mass_)
             {
-              #pragma omp critical (FIIndex)
-              {
-                fi_peptides_.emplace_back(static_cast<UInt32>(protein_idx), 0,
-                                        std::make_pair(static_cast<uint16_t>(digested_peptide.first),
-                                                       static_cast<uint16_t>(digested_peptide.second)),
-                                        unmodified_mz);
-              }
+              local_peptides.emplace_back(static_cast<UInt32>(protein_idx), 0,
+                                          std::make_pair(static_cast<uint16_t>(digested_peptide.first),
+                                                         static_cast<uint16_t>(digested_peptide.second)),
+                                          unmodified_mz);
             }
           }
         }
       }
+
+      // Merge thread-local buffers
+      size_t total_peptides = 0;
+      for (const auto& buf : thread_peptides) total_peptides += buf.size();
+      fi_peptides_.reserve(total_peptides);
+      for (auto& buf : thread_peptides)
+      {
+        fi_peptides_.insert(fi_peptides_.end(),
+                            std::make_move_iterator(buf.begin()),
+                            std::make_move_iterator(buf.end()));
+        buf.clear();
+        buf.shrink_to_fit();
+      }
+
       if (skipped_peptides > 0)
       {
         OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unkown AA \n";
@@ -161,9 +188,6 @@ namespace OpenMS
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-      // reserve some memory for fi_fragments_: Each Peptide can approx give rise to up to #AA*2 fragments
-      fi_fragments_.reserve(fi_peptides_.size() * 2 * peptide_min_length_); //TODO: Does this make senese?
-
       // get the spectrum generator and set the ion-types
       //TheoreticalSpectrumGenerator tsg;
       //SimpleTSGXLMS tsg;
@@ -195,9 +219,25 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Generating fragments..." << std::endl;
 
+      int num_threads_build = 1;
+      #ifdef _OPENMP
+      #pragma omp parallel
+      {
+        #pragma omp single
+        num_threads_build = omp_get_num_threads();
+      }
+      #endif
+      std::vector<std::vector<Fragment>> thread_fragments(num_threads_build);
+
      #pragma omp parallel for private(mod_peptides, b_y_ions)
       for(SignedSize peptide_idx = 0; peptide_idx < (SignedSize)fi_peptides_.size(); peptide_idx++)
       {
+        #ifdef _OPENMP
+        auto& local_fragments = thread_fragments[omp_get_thread_num()];
+        #else
+        auto& local_fragments = thread_fragments[0];
+        #endif
+
         const Peptide& pep = fi_peptides_[peptide_idx];
         mod_peptides.clear();
         b_y_ions.clear();
@@ -217,11 +257,22 @@ namespace OpenMS
 
         for (const float& frag : b_y_ions)
         {
-          if (fragment_min_mz_ > frag || frag > fragment_max_mz_  ) continue;
+          if (fragment_min_mz_ > frag || frag > fragment_max_mz_) continue;
+          local_fragments.emplace_back(static_cast<UInt32>(peptide_idx), frag);
+        }
+      }
 
-         #pragma omp critical (CreateFragment)
-          fi_fragments_.emplace_back(static_cast<UInt32>(peptide_idx),(float) frag);
-        }        
+      // Merge thread-local fragment buffers
+      size_t total_fragments = 0;
+      for (const auto& buf : thread_fragments) total_fragments += buf.size();
+      fi_fragments_.reserve(total_fragments);
+      for (auto& buf : thread_fragments)
+      {
+        fi_fragments_.insert(fi_fragments_.end(),
+                             std::make_move_iterator(buf.begin()),
+                             std::make_move_iterator(buf.end()));
+        buf.clear();
+        buf.shrink_to_fit();
       }
 
       std::cout << "Sorting fragments..." << std::endl;
@@ -236,25 +287,26 @@ namespace OpenMS
       bucketsize_ = sqrt(fi_fragments_.size()); //Todo: MSFragger uses a different approach, which might be better
       OPENMS_LOG_INFO << "Creating DB with bucket_size " << bucketsize_ << endl;
 
-      /// 2.) next sort after precursor mass and save the min_mz of each bucket
+      /// 2.) Pre-compute bucket min m/z values (already in order since fragments are globally sorted)
+      size_t num_buckets = (fi_fragments_.size() + bucketsize_ - 1) / bucketsize_;
+      bucket_min_mz_.resize(num_buckets);
+      for (size_t b = 0; b < num_buckets; ++b)
+      {
+        bucket_min_mz_[b] = fi_fragments_[b * bucketsize_].fragment_mz_;
+      }
+
+      /// Sort each bucket by peptide_idx (buckets are independent, so parallel is safe)
       #pragma omp parallel for
       for (SignedSize i = 0; i < (SignedSize)fi_fragments_.size(); i += bucketsize_)
       {
-
-        #pragma omp critical
-        bucket_min_mz_.emplace_back(fi_fragments_[i].fragment_mz_);
-
         auto bucket_start = fi_fragments_.begin() + i;
-        auto bucket_end = (i + bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : bucket_start + bucketsize_;
+        auto bucket_end = (i + (SignedSize)bucketsize_) > (SignedSize)fi_fragments_.size() ? fi_fragments_.end() : bucket_start + bucketsize_;
 
-//TODO: is this thread safe????
         sort(bucket_start, bucket_end, [](const Fragment& a, const Fragment& b) {
-          return a.peptide_idx_ < b.peptide_idx_; // we don´t need a tie, because the idx are unique
+          return a.peptide_idx_ < b.peptide_idx_;
         });
       }
       OPENMS_LOG_INFO << "Sorting by bucket min m/z:" << bucketsize_ << endl;
-      //Resort in case the parallelization block above messed something up TODO: check if this can happen
-      std::sort( bucket_min_mz_.begin(), bucket_min_mz_.end());
       is_build_ = true;
       OPENMS_LOG_INFO << "Fragment index built!" << endl;
   }
