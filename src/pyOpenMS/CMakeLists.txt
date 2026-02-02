@@ -214,8 +214,11 @@ else()
   # Convert CMake boolean to Python boolean for env.py
   if(WITH_PARQUET)
     set(_PY_WITH_PARQUET "True")
+    message(STATUS "pyOpenMS: WITH_PARQUET=ON, including Parquet-related bindings")
+    message(STATUS "pyOpenMS: OPENMS_ARROW_TARGET=${OPENMS_ARROW_TARGET}")
   else()
     set(_PY_WITH_PARQUET "False")
+    message(STATUS "pyOpenMS: WITH_PARQUET=OFF, excluding Parquet-related bindings")
   endif()
 
   file(WRITE ${PYOPENMS_BUILD_DIR}/env.py
