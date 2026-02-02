@@ -190,7 +190,7 @@ protected:
       return v.empty() ? 0.0 : (static_cast<double>(accumulate(v.begin(), v.end(), static_cast<Size>(0))) / v.size());
     };
 
-    os << "Average coverage per protein is " << safe_avg_double(statistics) << "\n";
+    os << "Average coverage per protein is " << safe_avg_double(statistics) * 100 << "\n";
     os << "Average number of peptides per protein is " << safe_avg_size(counts) << "\n";
     os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << "\n";
     os << "Number of identified spectra: " << spectrum_count << "\n";
@@ -214,7 +214,7 @@ protected:
         ++it3;
       }
     }
-    os << "Average coverage per found protein (" << statistics.size() << ") is " << safe_avg_double(statistics) << "\n";
+    os << "Average coverage per found protein (" << statistics.size() << ") is " << safe_avg_double(statistics) * 100 << "\n";
     os << "Average number of peptides per found protein is " << safe_avg_size(counts) << "\n";
     os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << "\n";
 
