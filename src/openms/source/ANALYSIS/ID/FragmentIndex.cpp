@@ -269,10 +269,13 @@ namespace OpenMS
       return make_pair(std::distance(fi_peptides_.begin(), left_it), std::distance(fi_peptides_.begin(), right_it));
   }
 
-  vector<FragmentIndex::Hit> FragmentIndex::query(const OpenMS::Peak1D& peak,
-                                                  const pair<size_t, size_t>& peptide_idx_range,
-                                                  uint16_t peak_charge)
+  void FragmentIndex::query(const OpenMS::Peak1D& peak,
+                            const pair<size_t, size_t>& peptide_idx_range,
+                            uint16_t peak_charge,
+                            vector<FragmentIndex::Hit>& hits)
   {
+      hits.clear();
+
       float adjusted_mass = peak.getMZ() * (float)peak_charge -((peak_charge-1) * Constants::PROTON_MASS_U);
 
       float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;
@@ -283,10 +286,6 @@ namespace OpenMS
       if (left_it != bucket_min_mz_.begin()) --left_it;
 
       auto in_range_buckets = make_pair(std::distance(bucket_min_mz_.begin(), left_it), std::distance(bucket_min_mz_.begin(), right_it));
-
-      vector<FragmentIndex::Hit> hits;
-      hits.reserve(peptide_idx_range.second - peptide_idx_range.first);
-
 
       for (UInt32 j = in_range_buckets.first; j < in_range_buckets.second; j++)
       {
@@ -311,8 +310,6 @@ namespace OpenMS
           ++left_iter;
         }
       }
-
-      return hits;
   }
 
   void FragmentIndex::queryPeaks(SpectrumMatchesTopN& candidates, const MSSpectrum& spectrum,
@@ -322,13 +319,13 @@ namespace OpenMS
   {
 
 
+      vector<Hit> query_hits;
+      uint16_t actual_max = std::min(precursor_charge, max_fragment_charge_);
       for (const Peak1D& peak : spectrum)
       {
-        vector<Hit> query_hits;
-        uint16_t actual_max = std::min(precursor_charge, max_fragment_charge_);
         for (uint16_t fragment_charge = 1; fragment_charge <= actual_max; fragment_charge++)
         {
-          query_hits = query(peak, candidates_range, fragment_charge);
+          query(peak, candidates_range, fragment_charge, query_hits);
 
           for (const auto& hit : query_hits)
           {

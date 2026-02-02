@@ -208,11 +208,12 @@ namespace OpenMS
      * @param[in] peak The queried peak
      * @param[in] peptide_idx_range The range of precursors/peptides the peptide could potentially belongs to
      * @param[in] peak_charge The charge of the peak. Is used to calculate the mass from the mz
-     * @return a vector of Hits(matching peptide_idx_range and matching fragment_mz_) containing the idx of the hitted peptide and the mass of the hit
+     * @param[out] hits Output vector of matching hits (cleared before use; caller should reuse to avoid allocations)
      */
-    std::vector<Hit> query(const Peak1D& peak,
-                           const std::pair<size_t,size_t>& peptide_idx_range,
-                           uint16_t peak_charge);
+    void query(const Peak1D& peak,
+               const std::pair<size_t,size_t>& peptide_idx_range,
+               uint16_t peak_charge,
+               std::vector<Hit>& hits);
 
     /**
      * @brief: queries one complete experimental spectra against the Database. Loops over all precursor charges
