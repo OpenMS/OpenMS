@@ -49,13 +49,6 @@ public:
     SpectrumSettings& getSpectrumSettings() { return spectrum_settings_; }
     void setSpectrumSettings(const SpectrumSettings& settings) { spectrum_settings_ = settings; }
 
-    /// Implicit conversions to SpectrumSettings
-    operator const SpectrumSettings&() const { return spectrum_settings_; }
-    operator SpectrumSettings&() { return spectrum_settings_; }
-
-    /// Implicit conversions to MetaInfoInterface
-    operator const MetaInfoInterface&() const { return spectrum_settings_; }
-    operator MetaInfoInterface&() { return spectrum_settings_; }
 
     // Forwarding methods for SpectrumSettings
     SpectrumSettings::SpectrumType getType() const { return spectrum_settings_.getType(); }

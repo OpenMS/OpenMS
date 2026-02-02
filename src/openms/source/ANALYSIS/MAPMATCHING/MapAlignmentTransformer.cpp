@@ -38,7 +38,7 @@ namespace OpenMS
          mse_iter != msexp.end(); ++mse_iter)
     {
       double rt = mse_iter->getRT();
-      if (store_original_rt) storeOriginalRT_(*mse_iter, rt);
+      if (store_original_rt) storeOriginalRT_(mse_iter->getSpectrumSettings(), rt);
       mse_iter->setRT(trafo.apply(rt));
     }
 

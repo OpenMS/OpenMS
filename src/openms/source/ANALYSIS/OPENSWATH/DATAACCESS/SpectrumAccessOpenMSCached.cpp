@@ -111,7 +111,7 @@ namespace OpenMS
 
   SpectrumSettings SpectrumAccessOpenMSCached::getSpectraMetaInfo(int id) const
   {
-    return meta_ms_experiment_[id];
+    return meta_ms_experiment_[id].getSpectrumSettings();
   }
 
   size_t SpectrumAccessOpenMSCached::getNrChromatograms() const
@@ -123,7 +123,7 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
     OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of spectra");
-    return meta_ms_experiment_.getChromatograms()[id];
+    return meta_ms_experiment_.getChromatograms()[id].getChromatogramSettings();
   }
 
   std::string SpectrumAccessOpenMSCached::getChromatogramNativeID(int id) const

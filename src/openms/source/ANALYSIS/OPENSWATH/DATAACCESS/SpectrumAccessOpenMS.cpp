@@ -168,7 +168,7 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
     OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of spectra");
-    return ms_experiment_->getChromatograms()[id];
+    return ms_experiment_->getChromatograms()[id].getChromatogramSettings();
   }
 
   std::string SpectrumAccessOpenMS::getChromatogramNativeID(int id) const
@@ -187,7 +187,7 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
     OPENMS_PRECONDITION(id < (int)getNrSpectra(), "Id cannot be larger than number of spectra");
-    return (*ms_experiment_)[id];
+    return (*ms_experiment_)[id].getSpectrumSettings();
   }
 
 } //end namespace OpenMS

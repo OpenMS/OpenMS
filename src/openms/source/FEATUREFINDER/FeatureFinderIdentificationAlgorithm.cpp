@@ -815,7 +815,7 @@ namespace OpenMS
                                         mz_window_ppm_, "tophat");
         }
 
-        extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
+        extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0].getSpectrumSettings(),
                                       chrom_data_.getChromatograms(), false);
       }
 

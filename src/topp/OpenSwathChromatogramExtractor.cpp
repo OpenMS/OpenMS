@@ -279,7 +279,7 @@ protected:
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)
         {
           // Remove potential meta value indicating cached data
-          SpectrumSettings exp_settings = (*exp)[0];
+          SpectrumSettings exp_settings = (*exp)[0].getSpectrumSettings();
           for (Size j = 0; j < exp_settings.getDataProcessing().size(); j++)
           {
             if (exp_settings.getDataProcessing()[j]->metaValueExists("cached_data"))

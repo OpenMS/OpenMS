@@ -361,7 +361,7 @@ namespace OpenMS
       extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
                                      mz_window_ppm_, "tophat");
     }
-    extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
+    extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0].getSpectrumSettings(),
                                   chrom_data_.getChromatograms(), false);
 
     OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()

@@ -962,32 +962,32 @@ namespace OpenMS::Internal
         }
 
         // convert meta values to tags
-        if (!writeAttributeIfExists_(os, spec, "lowest observed m/z", "lowMz") &&
+        if (!writeAttributeIfExists_(os, spec.getSpectrumSettings(), "lowest observed m/z", "lowMz") &&
             options_.getForceMQCompatability())
         {
           if (!spec.isSorted()) error(STORE, "Spectrum is not sorted by m/z! Please sort before storing!");
           writeKeyValue(os, "lowMz", spec.empty() ? 0 : spec.begin()->getMZ());
         }
-        if (!writeAttributeIfExists_(os, spec, "highest observed m/z", "highMz") &&
+        if (!writeAttributeIfExists_(os, spec.getSpectrumSettings(), "highest observed m/z", "highMz") &&
             options_.getForceMQCompatability()) 
         {
           if (!spec.isSorted()) error(STORE, "Spectrum is not sorted by m/z! Please sort before storing!");
           writeKeyValue(os, "highMz", spec.empty() ? 0 : spec.rbegin()->getMZ());
         }
         
-        if (!writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz"))
+        if (!writeAttributeIfExists_(os, spec.getSpectrumSettings(), "base peak m/z", "basePeakMz"))
         { // base peak mz (used by some programs like MAVEN), according to xsd: "m/z of the base peak (most intense peak)"
           auto it = spec.getBasePeak();
           writeKeyValue(os, "basePeakMz", (it != spec.end() ? it->getMZ() : 0.0));
         }
 
-        if (!writeAttributeIfExists_(os, spec, "base peak intensity", "basePeakIntensity") &&
+        if (!writeAttributeIfExists_(os, spec.getSpectrumSettings(), "base peak intensity", "basePeakIntensity") &&
             options_.getForceMQCompatability())
         {
           auto it = spec.getBasePeak();
           writeKeyValue(os, "basePeakIntensity", (it != spec.end() ? it->getIntensity() : 0.0));
         }
-        if (!writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent") &&
+        if (!writeAttributeIfExists_(os, spec.getSpectrumSettings(), "total ion current", "totIonCurrent") &&
             options_.getForceMQCompatability())
         {
           writeKeyValue(os, "totIonCurrent", spec.calculateTIC());
@@ -1074,7 +1074,7 @@ namespace OpenMS::Internal
           os << " xsi:nil=\"true\" />\n";
         }
 
-        writeUserParam_(os, spec, ms_level + 2);
+        writeUserParam_(os, spec.getSpectrumSettings(), ms_level + 2);
         if (!spec.getComment().empty())
         {
           os << String(ms_level + 2, '\t') << "<comment>" << spec.getComment() << "</comment>\n";

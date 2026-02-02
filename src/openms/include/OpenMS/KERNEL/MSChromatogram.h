@@ -36,13 +36,6 @@ public:
     ChromatogramSettings& getChromatogramSettings() { return chromatogram_settings_; }
     void setChromatogramSettings(const ChromatogramSettings& settings) { chromatogram_settings_ = settings; }
 
-    /// Implicit conversions to ChromatogramSettings
-    operator const ChromatogramSettings&() const { return chromatogram_settings_; }
-    operator ChromatogramSettings&() { return chromatogram_settings_; }
-
-    /// Implicit conversions to MetaInfoInterface
-    operator const MetaInfoInterface&() const { return chromatogram_settings_; }
-    operator MetaInfoInterface&() { return chromatogram_settings_; }
 
     // Forwarding methods for ChromatogramSettings
     ChromatogramSettings::ChromatogramType getChromatogramType() const { return chromatogram_settings_.getChromatogramType(); }

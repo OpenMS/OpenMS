@@ -812,7 +812,7 @@ protected:
         MapType exp_tmp;
         for (MapType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
         {
-          if (checkMetaOk(*it, meta_info)) exp_tmp.addSpectrum(*it);
+          if (checkMetaOk(it->getSpectrumSettings(), meta_info)) exp_tmp.addSpectrum(*it);
         }
         exp.clear(false);
         exp.getSpectra().insert(exp.begin(), exp_tmp.begin(), exp_tmp.end());

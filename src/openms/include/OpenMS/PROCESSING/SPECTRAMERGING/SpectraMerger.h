@@ -629,7 +629,7 @@ protected:
         // block elements
         for (auto sit = it->second.begin(); sit != it->second.end(); ++sit)
         {
-          consensus_spec.unify(exp[*sit]); // append meta info
+          consensus_spec.unify(exp[*sit].getSpectrumSettings()); // append meta info
           merged_indices.insert(*sit);
 
           rt_average += exp[*sit].getRT();
