@@ -3,7 +3,6 @@ set(directory source/FORMAT/DATAACCESS)
 
 ### list all filenames of the directory here
 set(sources_list
-  MSChromatogramParquetConsumer.cpp
   MSDataWritingConsumer.cpp
   MSDataTransformingConsumer.cpp
   MSDataAggregatingConsumer.cpp
@@ -17,6 +16,10 @@ set(sources_list
   SiriusFragmentAnnotation.cpp
   SwathFileConsumer.cpp
 )
+
+if (WITH_PARQUET)
+  list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
+endif()
 
 ### add path to the filenames
 set(sources)

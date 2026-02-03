@@ -16,7 +16,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <cstdint>
-#include <memory>
 #include <vector>
 #include <string>
 
@@ -24,12 +23,6 @@
 // Full definitions are in <arrow/c/abi.h>, included only in ArrowExport.cpp
 struct ArrowSchema;
 struct ArrowArray;
-
-// Forward declarations - avoid exposing Arrow types in header
-namespace arrow
-{
-  class Table;
-}
 
 namespace OpenMS
 {
@@ -194,51 +187,6 @@ class OPENMS_DLLAPI ArrowExport
 {
 public:
   /**
-    @brief Export MSExperiment spectra to Apache Arrow Table
-
-    Exports spectra data from an MSExperiment to an Arrow Table.
-
-    Long format schema (one row per peak):
-      - mz (float64): Peak m/z value (64-bit for mass accuracy)
-      - intensity (float32): Peak intensity (32-bit sufficient for dynamic range)
-      - rt (float32): Retention time in seconds
-      - ion_mobility (float32, nullable): Ion mobility value if present
-      - spectrum_index (uint32): Index of spectrum in MSExperiment
-      - ms_level (uint8): MS level (1, 2, ...) - small integer, no encoding benefit
-      - native_id (utf8 string): Native spectrum identifier
-      - precursor_mz (float64, nullable): Precursor m/z (null for MS1)
-      - precursor_charge (int16, nullable): Precursor charge
-      - precursor_intensity (float32, nullable): Precursor intensity
-      - isolation_lower (float64, nullable): Isolation window lower offset
-      - isolation_upper (float64, nullable): Isolation window upper offset
-
-    Semi-wide format schema (one row per spectrum):
-      - spectrum_index (uint32): Index of spectrum in MSExperiment
-      - rt (float32): Retention time in seconds
-      - ms_level (uint8): MS level
-      - native_id (utf8 string): Native spectrum identifier
-      - mz (list<float64>): Array of m/z values
-      - intensity (list<float32>): Array of intensity values
-      - ion_mobility (list<float32>, nullable): Array of ion mobility values
-      - precursor_mz (float64, nullable): Precursor m/z (null for MS1)
-      - precursor_charge (int16, nullable): Precursor charge
-      - precursor_intensity (float32, nullable): Precursor intensity
-      - isolation_lower (float64, nullable): Isolation window lower offset
-      - isolation_upper (float64, nullable): Isolation window upper offset
-
-    @param[in] exp The MSExperiment to export
-    @param[in] config Export configuration (filtering, format, column selection)
-    @return Shared pointer to Arrow Table, or nullptr on error
-
-    @note Errors are logged via OPENMS_LOG_ERROR before returning nullptr.
-    @note Empty experiments return a valid table with zero rows and the full schema.
-  */
-  static std::shared_ptr<arrow::Table> exportSpectraToArrow(
-    const MSExperiment& exp,
-    const ArrowSpectraExportConfig& config = ArrowSpectraExportConfig{});
-
-
-  /**
     @brief Get available column names for spectra Arrow export
 
     Returns the list of column names that would be included in the export
@@ -251,36 +199,6 @@ public:
   static std::vector<std::string> getSpectraArrowColumnNames(
     const MSExperiment& exp,
     const ArrowSpectraExportConfig& config = ArrowSpectraExportConfig{});
-
-
-  /**
-    @brief Export MSExperiment chromatograms to Apache Arrow Table
-
-    Exports chromatogram data from an MSExperiment to an Arrow Table.
-
-    Long format schema (one row per time point):
-      - rt (float64): Retention time
-      - intensity (float32): Signal intensity
-      - chromatogram_index (uint32): Index of chromatogram in MSExperiment
-      - native_id (string): Chromatogram identifier
-      - precursor_mz (float64): Q1 m/z (precursor mass)
-      - product_mz (float64): Q3 m/z (product mass for SRM)
-
-    Semi-wide format schema (one row per chromatogram):
-      - chromatogram_index (uint32): Index of chromatogram
-      - native_id (string): Chromatogram identifier
-      - rt (list<float64>): Array of retention times
-      - intensity (list<float32>): Array of intensities
-      - precursor_mz (float64): Q1 m/z
-      - product_mz (float64): Q3 m/z
-
-    @param[in] exp The MSExperiment to export
-    @param[in] config Export configuration
-    @return Shared pointer to Arrow Table, or nullptr on error
-  */
-  static std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
-    const MSExperiment& exp,
-    const ArrowChromatogramExportConfig& config = ArrowChromatogramExportConfig{});
 
 
   /**
@@ -343,7 +261,33 @@ public:
     - Fast partial reads (only requested columns/row groups are loaded)
     - Wide ecosystem support (DuckDB, Polars, pandas, Spark, R arrow)
 
-    The schema matches exportSpectraToArrow() output.
+    Long format schema (one row per peak):
+      - mz (float64): Peak m/z value (64-bit for mass accuracy)
+      - intensity (float32): Peak intensity (32-bit sufficient for dynamic range)
+      - rt (float32): Retention time in seconds
+      - ion_mobility (float32, nullable): Ion mobility value if present
+      - spectrum_index (uint32): Index of spectrum in MSExperiment
+      - ms_level (uint8): MS level (1, 2, ...) - small integer, no encoding benefit
+      - native_id (utf8 string): Native spectrum identifier
+      - precursor_mz (float64, nullable): Precursor m/z (null for MS1)
+      - precursor_charge (int16, nullable): Precursor charge
+      - precursor_intensity (float32, nullable): Precursor intensity
+      - isolation_lower (float64, nullable): Isolation window lower offset
+      - isolation_upper (float64, nullable): Isolation window upper offset
+
+    Semi-wide format schema (one row per spectrum):
+      - spectrum_index (uint32): Index of spectrum in MSExperiment
+      - rt (float32): Retention time in seconds
+      - ms_level (uint8): MS level
+      - native_id (utf8 string): Native spectrum identifier
+      - mz (list<float64>): Array of m/z values
+      - intensity (list<float32>): Array of intensity values
+      - ion_mobility (list<float32>, nullable): Array of ion mobility values
+      - precursor_mz (float64, nullable): Precursor m/z (null for MS1)
+      - precursor_charge (int16, nullable): Precursor charge
+      - precursor_intensity (float32, nullable): Precursor intensity
+      - isolation_lower (float64, nullable): Isolation window lower offset
+      - isolation_upper (float64, nullable): Isolation window upper offset
 
     Performance notes:
     - ZSTD compression gives best size/speed tradeoff for MS data

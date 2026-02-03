@@ -21,9 +21,60 @@
 
 #include <arrow/api.h>
 #include <arrow/type.h>
+#include <arrow/c/bridge.h>
 
 using namespace OpenMS;
 using namespace std;
+
+/////////////////////////////////////////////////////////////
+// Helper functions to convert C Data Interface to Arrow Table
+/////////////////////////////////////////////////////////////
+
+std::shared_ptr<arrow::Table> exportSpectraViaInterface(
+  const MSExperiment& exp,
+  const ArrowSpectraExportConfig& config)
+{
+  ArrowSchema schema;
+  ArrowArray array;
+
+  if (!ArrowExport::exportSpectraToArrowCDataInterface(exp, config, &schema, &array))
+  {
+    return nullptr;
+  }
+
+  // Import as RecordBatch
+  auto batch_result = arrow::ImportRecordBatch(&array, &schema);
+  if (!batch_result.ok())
+  {
+    return nullptr;
+  }
+
+  // Convert to Table
+  return arrow::Table::FromRecordBatches({batch_result.ValueOrDie()}).ValueOrDie();
+}
+
+std::shared_ptr<arrow::Table> exportChromatogramsViaInterface(
+  const MSExperiment& exp,
+  const ArrowChromatogramExportConfig& config)
+{
+  ArrowSchema schema;
+  ArrowArray array;
+
+  if (!ArrowExport::exportChromatogramsToArrowCDataInterface(exp, config, &schema, &array))
+  {
+    return nullptr;
+  }
+
+  // Import as RecordBatch
+  auto batch_result = arrow::ImportRecordBatch(&array, &schema);
+  if (!batch_result.ok())
+  {
+    return nullptr;
+  }
+
+  // Convert to Table
+  return arrow::Table::FromRecordBatches({batch_result.ValueOrDie()}).ValueOrDie();
+}
 
 /////////////////////////////////////////////////////////////
 // Helper function to create a test MSExperiment
@@ -85,12 +136,12 @@ START_TEST(ArrowExport, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION(exportSpectraToArrow - empty experiment)
+START_SECTION(exportSpectraToArrowCDataInterface - empty experiment)
 {
   MSExperiment exp = createEmptyExperiment();
   ArrowSpectraExportConfig config;
 
-  auto table = ArrowExport::exportSpectraToArrow(exp, config);
+  auto table = exportSpectraViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
@@ -99,13 +150,13 @@ START_SECTION(exportSpectraToArrow - empty experiment)
 }
 END_SECTION
 
-START_SECTION(exportSpectraToArrow - long format basic)
+START_SECTION(exportSpectraToArrowCDataInterface - long format basic)
 {
   MSExperiment exp = createTestExperiment();
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::Long;
 
-  auto table = ArrowExport::exportSpectraToArrow(exp, config);
+  auto table = exportSpectraViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Total peaks: 3 (MS1) + 2 (MS2) + 2 (MS1) = 7
@@ -136,14 +187,14 @@ START_SECTION(exportSpectraToArrow - long format basic)
 }
 END_SECTION
 
-START_SECTION(exportSpectraToArrow - long format with MS level filter)
+START_SECTION(exportSpectraToArrowCDataInterface - long format with MS level filter)
 {
   MSExperiment exp = createTestExperiment();
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::Long;
   config.ms_levels = {1}; // Only MS1
 
-  auto table = ArrowExport::exportSpectraToArrow(exp, config);
+  auto table = exportSpectraViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Only MS1 peaks: 3 + 2 = 5
@@ -151,7 +202,7 @@ START_SECTION(exportSpectraToArrow - long format with MS level filter)
 }
 END_SECTION
 
-START_SECTION(exportSpectraToArrow - long format with RT filter)
+START_SECTION(exportSpectraToArrowCDataInterface - long format with RT filter)
 {
   MSExperiment exp = createTestExperiment();
   ArrowSpectraExportConfig config;
@@ -159,7 +210,7 @@ START_SECTION(exportSpectraToArrow - long format with RT filter)
   config.min_rt = 100.0;
   config.max_rt = 110.0;
 
-  auto table = ArrowExport::exportSpectraToArrow(exp, config);
+  auto table = exportSpectraViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Spectra in RT range: ms1 (3 peaks) + ms2 (2 peaks) = 5
@@ -167,7 +218,7 @@ START_SECTION(exportSpectraToArrow - long format with RT filter)
 }
 END_SECTION
 
-START_SECTION(exportSpectraToArrow - long format with m/z filter)
+START_SECTION(exportSpectraToArrowCDataInterface - long format with m/z filter)
 {
   MSExperiment exp = createTestExperiment();
   ArrowSpectraExportConfig config;
@@ -175,7 +226,7 @@ START_SECTION(exportSpectraToArrow - long format with m/z filter)
   config.min_mz = 150.0;
   config.max_mz = 250.0;
 
-  auto table = ArrowExport::exportSpectraToArrow(exp, config);
+  auto table = exportSpectraViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Peaks in m/z range: 200.0 (ms1), 150.0+250.0 (ms2), 150.0+250.0 (ms1_2) = 5
@@ -183,14 +234,14 @@ START_SECTION(exportSpectraToArrow - long format with m/z filter)
 }
 END_SECTION
 
-START_SECTION(exportSpectraToArrow - long format with column selection)
+START_SECTION(exportSpectraToArrowCDataInterface - long format with column selection)
 {
   MSExperiment exp = createTestExperiment();
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::Long;
   config.columns = {"mz", "intensity", "rt"};
 
-  auto table = ArrowExport::exportSpectraToArrow(exp, config);
+  auto table = exportSpectraViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_columns(), 3)
@@ -201,14 +252,14 @@ START_SECTION(exportSpectraToArrow - long format with column selection)
 }
 END_SECTION
 
-START_SECTION(exportSpectraToArrow - long format no precursor info)
+START_SECTION(exportSpectraToArrowCDataInterface - long format no precursor info)
 {
   MSExperiment exp = createTestExperiment();
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::Long;
   config.include_precursor_info = false;
 
-  auto table = ArrowExport::exportSpectraToArrow(exp, config);
+  auto table = exportSpectraViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   auto schema = table->schema();
@@ -218,13 +269,13 @@ START_SECTION(exportSpectraToArrow - long format no precursor info)
 }
 END_SECTION
 
-START_SECTION(exportSpectraToArrow - semi-wide format basic)
+START_SECTION(exportSpectraToArrowCDataInterface - semi-wide format basic)
 {
   MSExperiment exp = createTestExperiment();
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::SemiWide;
 
-  auto table = ArrowExport::exportSpectraToArrow(exp, config);
+  auto table = exportSpectraViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // One row per spectrum
@@ -244,14 +295,14 @@ START_SECTION(exportSpectraToArrow - semi-wide format basic)
 }
 END_SECTION
 
-START_SECTION(exportSpectraToArrow - semi-wide format with MS level filter)
+START_SECTION(exportSpectraToArrowCDataInterface - semi-wide format with MS level filter)
 {
   MSExperiment exp = createTestExperiment();
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::SemiWide;
   config.ms_levels = {2}; // Only MS2
 
-  auto table = ArrowExport::exportSpectraToArrow(exp, config);
+  auto table = exportSpectraViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 1)
@@ -294,19 +345,19 @@ END_SECTION
 // Chromatogram export tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(exportChromatogramsToArrow - empty chromatograms)
+START_SECTION(exportChromatogramsToArrowCDataInterface - empty chromatograms)
 {
   MSExperiment exp;
   ArrowChromatogramExportConfig config;
 
-  auto table = ArrowExport::exportChromatogramsToArrow(exp, config);
+  auto table = exportChromatogramsViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
 }
 END_SECTION
 
-START_SECTION(exportChromatogramsToArrow - long format)
+START_SECTION(exportChromatogramsToArrowCDataInterface - long format)
 {
   MSExperiment exp;
 
@@ -332,7 +383,7 @@ START_SECTION(exportChromatogramsToArrow - long format)
   ArrowChromatogramExportConfig config;
   config.format = ArrowExportFormat::Long;
 
-  auto table = ArrowExport::exportChromatogramsToArrow(exp, config);
+  auto table = exportChromatogramsViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Total points: 3 + 2 = 5
@@ -347,7 +398,7 @@ START_SECTION(exportChromatogramsToArrow - long format)
 }
 END_SECTION
 
-START_SECTION(exportChromatogramsToArrow - semi-wide format)
+START_SECTION(exportChromatogramsToArrowCDataInterface - semi-wide format)
 {
   MSExperiment exp;
 
@@ -360,7 +411,7 @@ START_SECTION(exportChromatogramsToArrow - semi-wide format)
   ArrowChromatogramExportConfig config;
   config.format = ArrowExportFormat::SemiWide;
 
-  auto table = ArrowExport::exportChromatogramsToArrow(exp, config);
+  auto table = exportChromatogramsViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 1) // One row per chromatogram
@@ -371,7 +422,7 @@ START_SECTION(exportChromatogramsToArrow - semi-wide format)
 }
 END_SECTION
 
-START_SECTION(exportChromatogramsToArrow - with RT filter)
+START_SECTION(exportChromatogramsToArrowCDataInterface - with RT filter)
 {
   MSExperiment exp;
 
@@ -387,7 +438,7 @@ START_SECTION(exportChromatogramsToArrow - with RT filter)
   config.min_rt = 15.0;
   config.max_rt = 25.0;
 
-  auto table = ArrowExport::exportChromatogramsToArrow(exp, config);
+  auto table = exportChromatogramsViaInterface(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Only point at RT=20.0 should be included

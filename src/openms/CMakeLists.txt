@@ -62,15 +62,6 @@ set(OPENMS_DEP_LIBRARIES
   Qt6::Network
 )
 
-if (WITH_PARQUET)
-  # Ensure Arrow compute symbols are available at final link (needed by XICParquet).
-  list(APPEND OPENMS_DEP_LIBRARIES ${OPENMS_ARROW_COMPUTE_TARGET})
-endif()
-if (OPENMS_ARROW_DATASET_TARGET)
-  # Needed when Arrow Dataset (pushdown) is enabled; avoids missing libxml2 symbols at runtime.
-  list(APPEND OPENMS_DEP_LIBRARIES LibXml2::LibXml2)
-endif()
-
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 ## Note: Eigen3::Eigen is PRIVATE because Eigen types are not exposed in the public API
 ## Note: Evergreen is PRIVATE because it's only used internally by BayesianProteinInferenceAlgorithm

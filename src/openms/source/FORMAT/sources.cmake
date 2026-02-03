@@ -64,7 +64,6 @@ OMSFileStore.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
-XICParquetFile.cpp
 ParamCTDFile.cpp
 ParamCWLFile.cpp
 ParamJSONFile.cpp
@@ -111,6 +110,7 @@ if (WITH_PARQUET)
   list(APPEND sources_list ArrowExport.cpp)
   list(APPEND sources_list ParquetFilter.cpp)
   list(APPEND sources_list QuantmsIO.cpp)
+  list(APPEND sources_list XICParquetFile.cpp)
 endif()
 
 ### add path to the filenames
