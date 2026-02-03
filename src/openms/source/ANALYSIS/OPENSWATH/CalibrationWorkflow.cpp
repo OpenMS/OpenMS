@@ -85,13 +85,13 @@ namespace OpenMS
     defaults_.setMaxFloat("nonlinear:span", 2.0);
     
     // === Window estimation parameters ===
-    defaults_.setValue("windows:estimate_rt", "false", "Estimate RT extraction windows from calibration");
+    defaults_.setValue("windows:estimate_rt", "true", "Estimate RT extraction windows from calibration");
     defaults_.setValidStrings("windows:estimate_rt", {"true", "false"});
     
-    defaults_.setValue("windows:estimate_mz", "false", "Estimate m/z extraction windows from calibration");
+    defaults_.setValue("windows:estimate_mz", "true", "Estimate m/z extraction windows from calibration");
     defaults_.setValidStrings("windows:estimate_mz", {"true", "false"});
     
-    defaults_.setValue("windows:estimate_im", "false", "Estimate ion mobility extraction windows from calibration");
+    defaults_.setValue("windows:estimate_im", "true", "Estimate ion mobility extraction windows from calibration");
     defaults_.setValidStrings("windows:estimate_im", {"true", "false"});
     
     defaults_.setValue("windows:rt_percentile", 95.0, "Percentile for RT window estimation (80.0-99.9)");
@@ -105,6 +105,10 @@ namespace OpenMS
     defaults_.setValue("windows:im_percentile", 95.0, "Percentile for IM window estimation (80.0-99.9)");
     defaults_.setMinFloat("windows:im_percentile", 80.0);
     defaults_.setMaxFloat("windows:im_percentile", 99.9);
+    
+    // Window padding factors
+    defaults_.setValue("windows:rt_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated RT window by. For example, a factor of 1.3 will add a 30% padding to the estimated RT window, so if the estimated RT window is 144, then 43 will be added for a total estimated RT window of 187 seconds. A factor of 1.0 will not add any padding to the estimated window.");
+    defaults_.setMinFloat("windows:rt_estimation_padding_factor", 1.0);
     
     // === Quality control parameters ===
     defaults_.setValue("qc:fail_on_insufficient_peptides", "true", "Fail if insufficient peptides found");
