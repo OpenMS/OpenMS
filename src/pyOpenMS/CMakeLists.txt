@@ -264,8 +264,11 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
   #------------------------------------------------------------------------------
   set(PYGEN_SENTINEL "${PYOPENMS_BUILD_DIR}/.cpp_extension_generated")
 
+  # Note: All generated outputs must be listed in a single add_custom_command.
+  # Using a separate add_custom_command with DEPENDS but no COMMAND breaks on
+  # Windows/MSBuild, which generates empty .rule files that never produce outputs.
   add_custom_command(
-    OUTPUT ${PYGEN_SENTINEL}
+    OUTPUT ${PYGEN_SENTINEL} ${PYCPPFILES} ${PYPYXFILES} ${PYGEN_EXTRA_FILES}
     # Fake dependency on OpenMS to trigger rebuild when headers change
     # TODO: Should depend on .pxd files instead for more accurate rebuilds
     DEPENDS OpenMS
@@ -274,12 +277,6 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
     COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
     USES_TERMINAL
-  )
-
-  add_custom_command(
-    OUTPUT ${PYCPPFILES} ${PYPYXFILES} ${PYGEN_EXTRA_FILES}
-    DEPENDS ${PYGEN_SENTINEL}
-    COMMENT "Generated files depend on successful code generation"
   )
 
   add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
