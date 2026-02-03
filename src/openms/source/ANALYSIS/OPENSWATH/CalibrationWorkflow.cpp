@@ -87,6 +87,9 @@ namespace OpenMS
     defaults_.setMinFloat("nonlinear:span", 0.2);
     defaults_.setMaxFloat("nonlinear:span", 2.0);
     
+    defaults_.setValue("nonlinear:outlier_detection", "iter_residual", "Outlier detection method for nonlinear calibration");
+    defaults_.setValidStrings("nonlinear:outlier_detection", {"iter_residual", "iter_jackknife", "ransac", "none"});
+    
     // === Window estimation parameters ===
     defaults_.setValue("windows:estimate_rt", "true", "Estimate RT extraction windows from calibration");
     defaults_.setValidStrings("windows:estimate_rt", {"true", "false"});
@@ -216,6 +219,10 @@ namespace OpenMS
       OpenSwathCalibrationWorkflow calibration_wf;
       calibration_wf.setLogType(getLogType());
       
+      // Setup linear parameters with our outlier detection method
+      Param linear_params = irt_detection_param;
+      linear_params.setValue("outlierMethod", linear_outlier_detection_);
+      
       TransformationDescription im_trafo;
       result.rt_trafo = calibration_wf.performRTNormalization(
         irt_experiments.linear_irt, 
@@ -225,7 +232,7 @@ namespace OpenMS
         min_coverage_,
         feature_finder_param,
         cp_irt,
-        irt_detection_param,
+        linear_params,
         calibration_param,
         mrm_mapping_param,
         irt_mzml_out,
@@ -284,6 +291,7 @@ namespace OpenMS
     linear_calibration_param.setValue("mz_correction_function", "none");
     Param linear_detection_param = irt_detection_param;
     linear_detection_param.setValue("alignmentMethod", "linear");
+    linear_detection_param.setValue("outlierMethod", linear_outlier_detection_);
     
     CalibrationResult linear_result = performLinearCalibration_(
       swath_maps, transition_exp, irt_experiments,
@@ -319,7 +327,8 @@ namespace OpenMS
     
     // Setup nonlinear parameters
     Param nl_params = irt_detection_param;
-    nl_params.setValue("estimateBestPeptides", "true"); // Enable outlier detection
+    nl_params.setValue("estimateBestPeptides", "true"); // Enable outlier detection for nonlinear
+    nl_params.setValue("outlierMethod", nonlinear_outlier_detection_); // Use nonlinear-specific outlier method
     
     TransformationDescription im_trafo;
     TransformationDescription nonlinear_trafo = nonlinear_wf.doDataNormalization_(
@@ -763,6 +772,7 @@ namespace OpenMS
     nonlinear_method_ = param_.getValue("nonlinear:method").toString();
     nonlinear_asymmetric_ = param_.getValue("nonlinear:asymmetric").toBool();
     nonlinear_span_ = (double)param_.getValue("nonlinear:span");
+    nonlinear_outlier_detection_ = param_.getValue("nonlinear:outlier_detection").toString();
     
     // === Window estimation parameters ===
     windows_estimate_rt_ = param_.getValue("windows:estimate_rt").toBool();

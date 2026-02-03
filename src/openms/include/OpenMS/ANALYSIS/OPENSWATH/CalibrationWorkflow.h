@@ -265,6 +265,7 @@ namespace OpenMS
     String nonlinear_method_;                   ///< Nonlinear method name
     bool nonlinear_asymmetric_;                 ///< Use asymmetric nonlinear fit
     double nonlinear_span_;                     ///< Span parameter for nonlinear
+    String nonlinear_outlier_detection_;        ///< Nonlinear outlier detection method
     
     // === Window Estimation Parameters ===
     bool windows_estimate_rt_;                  ///< Estimate RT windows
