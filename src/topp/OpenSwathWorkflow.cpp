@@ -973,6 +973,11 @@ protected:
     for (const StringList& current_run_files : run_groups)
     {
       OPENMS_LOG_INFO << "Processing Run " << (run_index + 1) << "/" << run_groups.size() << ": " << ListUtils::concatenate(current_run_files, ", ") << std::endl;
+      
+      // Create fresh copies of extraction parameters for each run to avoid parameter carry-over
+      ChromExtractParams cp_current = cp;
+      ChromExtractParams cp_ms1_current = cp_ms1;
+      ChromExtractParams cp_irt_current = cp_irt;
       ///////////////////////////////////
       // Load the SWATH files (if split data, otherwise load single experiment mzML)
       ///////////////////////////////////
@@ -1059,9 +1064,9 @@ protected:
 
       Param irt_detection_param = getParam_().copy("Calibration:RTNormalization:", true);
       Param calibration_param = getParam_().copy("Calibration:MassIMCorrection:", true);
-      calibration_param.setValue("mz_extraction_window", cp_irt.mz_extraction_window);
-      calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
-      calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
+      calibration_param.setValue("mz_extraction_window", cp_irt_current.mz_extraction_window);
+      calibration_param.setValue("mz_extraction_window_ppm", cp_irt_current.ppm ? "true" : "false");
+      calibration_param.setValue("im_extraction_window", cp_irt_current.im_extraction_window);
       calibration_param.setValue("mz_correction_function", mz_correction_function);
 
       // Detect SRM/MRM mode: check if all swath_maps are chromatogram-only (no spectra, not MS1)
@@ -1134,11 +1139,11 @@ protected:
         auto calibration_result = calibration_wf.performCalibration(
           swath_maps,         // SWATH data maps  
           transition_exp,     // Target transition experiment (may be modified for IM)
-          cp,                 // Extraction parameters (may be updated with estimates)
-          cp_ms1,             // MS1 extraction parameters (may be updated)
+          cp_current,         // Extraction parameters (may be updated with estimates)
+          cp_ms1_current,     // MS1 extraction parameters (may be updated)
           irt_experiments,    // Pre-prepared iRT experiments
           feature_finder_param,      // Feature finder parameters
-          cp_irt,             // iRT extraction parameters
+          cp_irt_current,     // iRT extraction parameters
           irt_detection_param, // iRT detection parameters
           calibration_param,  // Calibration parameters (m/z, IM correction)
           irt_mrm_map_param,  // MRM mapping parameters
@@ -1201,7 +1206,7 @@ protected:
     wf.setLogType(log_type_);
 
     // perform extraction for this file's swath maps
-    wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
+    wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param, transition_exp,
                          out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param);
 
     //// Write out data
