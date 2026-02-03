@@ -184,10 +184,25 @@ namespace OpenMS
     */
     ParquetFilter& in(const String& column, const std::vector<String>& values);
 
+    /**
+      @brief Return the filter expression.
+      @return The constructed filter expression.
+    */
     const FilterExpression& expression() const;
 
+    /**
+      @brief Check if the filter is empty (has no conditions).
+      @return True if the filter has no conditions.
+    */
     bool empty() const;
 
+    /**
+      @brief Merge two filter expressions with a connector.
+      @param[in] lhs Left-hand side filter expression.
+      @param[in] rhs Right-hand side filter expression.
+      @param[in] connector Logical connector ("AND" or "OR").
+      @return Combined filter expression.
+    */
     static FilterExpression merge(const FilterExpression& lhs,
                                   const FilterExpression& rhs,
                                   const String& connector = "AND");

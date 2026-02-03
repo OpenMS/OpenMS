@@ -1940,7 +1940,7 @@ namespace OpenMS
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
     output.clear();
-  std::shared_ptr<arrow::Schema> schema = readParquetSchemaAllFiles_(filenames_);
+    std::shared_ptr<arrow::Schema> schema = readParquetSchemaAllFiles_(filenames_);
     output.reserve(schema->num_fields());
     for (const auto& field : schema->fields())
     {
