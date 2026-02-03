@@ -31,6 +31,32 @@ namespace OpenMS {
 
   /****************************************************************************/
   /**
+   * Clean conversion from PPM to m/z.
+   */
+  class MzDiff {
+  public:
+    MzDiff(const Param& params)
+        : mz(params.getValue("distance_MZ:max_difference")),
+          is_ppm(params.getValue("distance_MZ:unit") == "ppm")
+    { };
+
+    /// Return the maximum allowed difference in m/z which may be
+    /// based on the given m/z value if the stored m/z difference is
+    /// actually in PPM.
+    double mz_diff(const double relative) {
+      if (is_ppm) {
+        return relative * 1e-6 * mz;
+      } else {
+        return mz;
+      }
+    };
+  private:
+    double mz;
+    bool is_ppm;
+  };
+
+  /****************************************************************************/
+  /**
    * Information about a Feature and which FeatureMap and mzML file it
    * came from.  This is similar to a FeatureHandle but with
    * additional information.
@@ -171,7 +197,7 @@ namespace OpenMS {
   class PipEchoImpl {
   public:
     /// Construct a new implementation object.
-    PipEchoImpl(const Param& params);
+    PipEchoImpl(const Param& params, const std::pair<double, double>& mz_range);
 
     /// Separate donors from acceptors.
     void partition_features(const std::vector<FeatureMap>&,
@@ -195,7 +221,11 @@ namespace OpenMS {
     void generate_consensus_map(DonorMap&, AcceptorMap&, ConsensusMap&);
   public:
     /// Max allowed m/z difference between donor and acceptor.
-    double mz_dal_max_diff;
+    MzDiff mz_max_diff;
+
+    /// Grid center for the m/z dimension.  This is used to decide
+    /// which features are close to one another.
+    double mz_grid_center;
 
     /// Max allowed RT difference between donor and acceptor.
     double rt_sec_max_window;
@@ -204,7 +234,7 @@ namespace OpenMS {
     std::string path_from_feature_map(const FeatureMap&);
     bool is_donor_feature(const Feature&);
 
-    std::optional<Window> initial_window();
+    std::optional<Window> initial_window(const Donor& donor);
     std::optional<Window> next_window(const std::optional<Window>&);
   };
 
@@ -257,6 +287,25 @@ namespace OpenMS {
     }
 
     feature.sortPeptideIdentifications();
+  }
+
+  /****************************************************************************/
+  /// Find the largest m/z value among all maps.
+  std::pair<double,double> mz_range(const std::vector<FeatureMap>& feature_maps) {
+    double mz_min = std::numeric_limits<double>::max();
+    double mz_max = std::numeric_limits<double>::lowest();
+
+    for (auto &map : feature_maps) {
+      // NOTE: map.getMaxMZ() always throws an exception, even if
+      // updateRanges was called on the map before calling getMaxMZ.
+      // Therefore we need to walk the map manually :(
+      for (auto& feature : map) {
+        mz_min = std::min(mz_min, feature.getMZ());
+        mz_max = std::max(mz_max, feature.getMZ());
+      }
+    }
+
+    return std::make_pair(mz_min, mz_max);
   }
 
   /****************************************************************************/
@@ -330,9 +379,9 @@ namespace OpenMS {
     ConsensusMap& consensus_map
   )
   {
-    PipEchoImpl impl(param_);
-    AcceptorMap acceptors({impl.rt_sec_max_window, impl.mz_dal_max_diff});
-    DonorMap donors({impl.rt_sec_max_window, impl.mz_dal_max_diff});
+    PipEchoImpl impl(param_, mz_range(feature_maps));
+    AcceptorMap acceptors({impl.rt_sec_max_window, impl.mz_grid_center});
+    DonorMap donors({impl.rt_sec_max_window, impl.mz_grid_center});
 
     impl.partition_features(feature_maps, donors, acceptors);
     impl.link_donors_and_acceptors(donors, acceptors);
@@ -342,20 +391,18 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  PipEchoImpl::PipEchoImpl(const Param& params)
-  : mz_dal_max_diff(params.getValue("distance_MZ:max_difference")),
+  PipEchoImpl::PipEchoImpl(const Param& params, const std::pair<double, double>& mz_range)
+  : mz_max_diff(params),
+    mz_grid_center(0.5), // FIXME: Can this be calculated?
+    //mz_grid_center(mz_range.second * 1e-6 * 10.0), // 10 PPM of max m/z
     rt_sec_max_window(params.getValue("distance_RT:max_difference"))
   {
-    if (params.getValue("distance_MZ:unit") == "ppm") {
-      // FIXME: implement this!
-      throw(Exception::NotImplemented(__FILE__,
-                                      __LINE__,
-                                      OPENMS_PRETTY_FUNCTION));
-    }
-
     OPENMS_LOG_INFO << "PIP-ECHO("
-                    << rt_sec_max_window << ", "
-                    << mz_dal_max_diff << ")"
+                    << mz_range.first << ", "
+                    << mz_range.second << ", "
+                    << mz_grid_center << ", "
+                    << mz_max_diff.mz_diff(mz_range.second - mz_range.first) << ", "
+                    << rt_sec_max_window << ")"
                     << std::endl;
   }
 
@@ -410,7 +457,7 @@ namespace OpenMS {
     for (auto& donor : donors.storage) {
       logger.setProgress(++progress);
 
-      for (auto window=initial_window(); window.has_value();
+      for (auto window=initial_window(*donor); window.has_value();
            window = next_window(window))
         {
           const auto target = find_acceptor_for(acceptors, *donor, *window);
@@ -658,10 +705,12 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  std::optional<Window> PipEchoImpl::initial_window() {
+  std::optional<Window> PipEchoImpl::initial_window(const Donor& donor) {
+    double mz_diff = mz_max_diff.mz_diff(donor.feature.getMZ());
+
     return Window{
       rt_sec_max_window,
-      mz_dal_max_diff,
+      mz_diff,
       1};
   }
 
