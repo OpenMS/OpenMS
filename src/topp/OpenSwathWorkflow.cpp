@@ -1090,19 +1090,14 @@ protected:
       if (!trafo_in.empty())
       {
         // Load existing RT transformation file
-        OPENMS_LOG_INFO << "Loading existing RT transformation from: " << trafo_in << std::endl;
         TransformationXMLFile trafo_file;
         trafo_file.load(trafo_in, trafo_rtnorm, false);
-        OPENMS_LOG_INFO << "Loaded RT transformation with " << trafo_rtnorm.getDataPoints().size() << " data points" << std::endl;
         
         // Note: When using existing RT transformation, no m/z or IM calibration is performed
-        OPENMS_LOG_INFO << "Using existing RT transformation - skipping m/z and ion mobility calibration" << std::endl;
+        OPENMS_LOG_WARN << "Using existing RT transformation - which has no m/z and ion mobility calibration" << std::endl;
       }
       else
-      {
-        // Perform RT, m/z and IM calibration using modular CalibrationWorkflow
-        OPENMS_LOG_INFO << "No existing RT transformation provided - performing calibration" << std::endl;
-        
+      {      
         // Setup CalibrationWorkflow configuration from TOPP parameters
         CalibrationWorkflow calibration_wf;
         
@@ -1156,12 +1151,6 @@ protected:
         
         // Extract results
         trafo_rtnorm = calibration_result.rt_trafo;
-        
-        // Handle MRM mode - skip m/z and IM window application in SRM/MRM
-        if (mrm_mode)
-        {
-          OPENMS_LOG_INFO << "SRM/MRM mode detected - skipping m/z and ion mobility window estimation" << std::endl;
-        }
       }
 
     ///////////////////////////////////
