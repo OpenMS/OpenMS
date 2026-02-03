@@ -164,8 +164,8 @@ protected:
     setValidFormats_("out_cxml", ListUtils::create<String>("consensusXML"));
 
 #ifdef WITH_PARQUET
-    registerOutputFile_("out_parquet", "<file>", "", "Output parquet file for feature-level quantification (QPX feature format)", false, false);
-    setValidFormats_("out_parquet", ListUtils::create<String>("parquet"));
+    registerOutputFile_("out_feature_qpx", "<file>", "", "Output parquet file for feature-level quantification (QPX feature format)", false, false);
+    setValidFormats_("out_feature_qpx", ListUtils::create<String>("parquet"));
 #endif
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
@@ -1693,13 +1693,14 @@ protected:
 
 #ifdef WITH_PARQUET
     {
-      String out_parquet = getStringOption_("out_parquet");
-      if (!out_parquet.empty())
+      String out_feature_qpx = getStringOption_("out_feature_qpx");
+      if (!out_feature_qpx.empty())
       {
         OPENMS_LOG_INFO << "Exporting feature-level Parquet file..." << std::endl;
-        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_parquet))
+        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_feature_qpx))
         {
-          OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out_parquet << std::endl;
+          OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out_feature_qpx << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
         }
       }
     }

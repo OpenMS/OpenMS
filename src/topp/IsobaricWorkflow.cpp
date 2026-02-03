@@ -193,8 +193,8 @@ protected:
     setValidFormats_("out_mzTab", {"mzTab"});
 
 #ifdef WITH_PARQUET
-    registerOutputFile_("out_parquet", "<file>", "", "Output parquet file for feature-level quantification (QPX feature format)", false, false);
-    setValidFormats_("out_parquet", {"parquet"});
+    registerOutputFile_("out_feature_qpx", "<file>", "", "Output parquet file for feature-level quantification (QPX feature format)", false, false);
+    setValidFormats_("out_feature_qpx", {"parquet"});
 #endif
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     //registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
@@ -859,13 +859,14 @@ protected:
 
 #ifdef WITH_PARQUET
     {
-      String out_parquet = getStringOption_("out_parquet");
-      if (!out_parquet.empty())
+      String out_feature_qpx = getStringOption_("out_feature_qpx");
+      if (!out_feature_qpx.empty())
       {
         OPENMS_LOG_INFO << "Exporting feature-level Parquet file..." << std::endl;
-        if (!ConsensusMapArrowExport::exportToParquet(cmap, out_parquet))
+        if (!ConsensusMapArrowExport::exportToParquet(cmap, out_feature_qpx))
         {
-          OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out_parquet << std::endl;
+          OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out_feature_qpx << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
         }
       }
     }

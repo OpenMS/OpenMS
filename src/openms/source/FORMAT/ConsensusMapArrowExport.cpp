@@ -15,6 +15,7 @@
 #include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -33,27 +34,18 @@ namespace OpenMS
 
 namespace // anonymous
 {
-  /// Try to extract a scan number from a native ID string using known CV accessions.
+  /// Try to extract a scan number from a native ID string.
+  /// Uses SpectrumNativeIDParser to auto-detect the native ID format.
   /// Returns -1 on failure.
   Int extractScan(const String& native_id)
   {
-    static const std::vector<String> accessions = {
-      "MS:1000768", "MS:1000769", "MS:1000771", "MS:1001508",
-      "MS:1000774", "MS:1000777", "MS:1001530",
-    };
-    for (const auto& acc : accessions)
+    std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
+    if (regex_str.empty())
     {
-      try
-      {
-        Int scan = SpectrumLookup::extractScanNumber(native_id, acc);
-        if (scan >= 0) return scan;
-      }
-      catch (...)
-      {
-        // accession didn't match this native ID format, try next
-      }
+      return -1;
     }
-    return -1;
+    boost::regex scan_regex(regex_str);
+    return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regex, true);
   }
 } // anonymous namespace
 
