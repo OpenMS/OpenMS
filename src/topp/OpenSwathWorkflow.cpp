@@ -391,31 +391,16 @@ protected:
     }
     else if (name == "Calibration")
     {
-      Param p;
-
-      p.setValue("irt_bins", 100, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')");
-      p.setMinInt("irt_bins", 5);
-      p.setValue("irt_peptides_per_bin",  5, "Peptides sampled per bin. (When `auto_irt` is set to 'true')");
-      p.setMinInt("irt_peptides_per_bin", 1);
-      p.setValue("irt_seed",  5489, "RNG seed (0 = non‐deterministic). (When `auto_irt` is set to 'true')");
-      p.setMinInt("irt_seed", 0);
-
-      p.setValue("irt_bins_nonlinear",  2000, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')");
-      p.setMinInt("irt_bins_nonlinear", 5);
-      p.setValue("irt_peptides_per_bin_nonlinear",  50, "Peptides sampled per bin for additional nonlinear calibration. If 0, nonlinear calibration will not be performed. (When `auto_irt` is set to 'true')");
-      p.setMinInt("irt_peptides_per_bin_nonlinear", 0);
-
-      // one of the following two needs to be set
-      p.setValue("tr_irt", "", "transition file ('TraML') for linear iRTs. Takes precedent even when `auto_rt` is set to 'true'");
-
-      // one of the following two needs to be set
-      p.setValue("tr_irt_nonlinear", "", "additional nonlinear transition file ('TraML'). Takes precedent even when `auto_rt` is set to 'true'");
-
-      // priority peptides for sampling
+      // Use CalibrationWorkflow's defaults and add OpenSwathWorkflow-specific parameters
+      CalibrationWorkflow cal_wf;
+      Param p = cal_wf.getDefaults();
+      
+      // Add OpenSwathWorkflow-specific iRT file parameters that aren't in CalibrationWorkflow
+      p.setValue("tr_irt", "", "transition file ('TraML') for linear iRTs. Takes precedent even when `auto_irt` is set to 'true'");
+      p.setValue("tr_irt_nonlinear", "", "additional nonlinear transition file ('TraML'). Takes precedent even when `auto_irt` is set to 'true'");
       p.setValue("tr_irt_priority_sampling", "", "Optional custom transition file (TSV format only) containing additional priority peptides for iRT sampling. These peptides will be prioritized alongside the built-in irtkit and cirtkit peptides when `auto_irt` is enabled. Useful for including project-specific or custom iRT peptides.");
-
       p.setValue("rt_norm", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.");
-
+      
       return p;
     }
     else if (name == "Calibration:RTNormalization")
@@ -1214,70 +1199,73 @@ protected:
         
         // Setup CalibrationWorkflow configuration from TOPP parameters
         CalibrationWorkflow calibration_wf;
-        CalibrationWorkflow::CalibrationConfig config = CalibrationWorkflow::getDefaultConfig();
         
-        // Map TOPP parameters to CalibrationConfig
-        config.linear_irt_file = irt_tr_file;
-        config.nonlinear_irt_file = nonlinear_irt_tr_file;
-        config.full_transition_exp = transition_exp;
+        // Configure CalibrationWorkflow parameters
+        Param cal_params;
         
-        // Convert priority peptides to vector<String> format expected by CalibrationConfig
-        config.priority_peptides.clear();
-        config.priority_peptides.reserve(priority_peptides.size());
-        for (const auto& peptide : priority_peptides)
-        {
-          config.priority_peptides.push_back(String(peptide));
-        }
+        // Static iRT file parameters
+        cal_params.setValue("files:linear_irt_file", irt_tr_file);
+        cal_params.setValue("files:nonlinear_irt_file", nonlinear_irt_tr_file);
         
-        // Quality control parameters
-        config.min_rsq = min_rsq;
-        config.min_coverage = min_coverage;
+        // Auto-iRT parameters
+        cal_params.setValue("auto_irt:enabled", auto_irt ? "true" : "false");
+        cal_params.setValue("auto_irt:irt_bins", irt_bins_lin);
+        cal_params.setValue("auto_irt:irt_peptides_per_bin", irt_pep_lin);
+        cal_params.setValue("auto_irt:irt_seed", irt_seed);
+        cal_params.setValue("auto_irt:irt_bins_nonlinear", irt_bins_nl);
+        cal_params.setValue("auto_irt:irt_peptides_per_bin_nonlinear", irt_pep_nl);
+        cal_params.setValue("auto_irt:linear_top_fraction", 0.4);
+        cal_params.setValue("auto_irt:nonlinear_top_fraction", 0.7);
         
-        // Algorithm parameters
-        config.feature_finder_param = feature_finder_param;
-        config.cp_irt = cp_irt;
-        config.irt_detection_param = irt_detection_param;
-        config.calibration_param = calibration_param;
-        config.mrm_mapping_param = irt_mrm_map_param;
+        // Linear calibration parameters
+        cal_params.setValue("linear:enabled", "true");
+        cal_params.setValue("linear:min_rsq", min_rsq);
         
-        // Acquisition settings
-        config.pasef = pasef;
-        config.load_into_memory = load_into_memory;
-        config.debug_level = debug_level;
+        // Nonlinear calibration parameters (enable if nonlinear peptides configured)
+        bool enable_nonlinear = (irt_pep_nl > 0);
+        cal_params.setValue("nonlinear:enabled", enable_nonlinear ? "true" : "false");
         
-        // Output files
-        config.irt_trafo_out = irt_trafo_out;
-        config.irt_mzml_out = irt_mzml_out;
+        // Window estimation parameters
+        cal_params.setValue("windows:estimate_rt", use_est_window_choices.rt ? "true" : "false");
+        cal_params.setValue("windows:estimate_mz", use_est_window_choices.mz ? "true" : "false");
+        cal_params.setValue("windows:estimate_im", use_est_window_choices.im ? "true" : "false");
         
-        // Window estimation settings
-        config.use_estimated_windows.rt = use_est_window_choices.rt;
-        config.use_estimated_windows.mz = use_est_window_choices.mz;
-        config.use_estimated_windows.im = use_est_window_choices.im;
-        config.rt_estimation_padding_factor = getDoubleOption_("rt_estimation_padding_factor");
-        config.im_estimation_padding_factor = getDoubleOption_("im_estimation_padding_factor");
-        config.mz_estimation_padding_factor = getDoubleOption_("mz_estimation_padding_factor");
-        
-        // Setup auto-iRT parameters via CalibrationWorkflow param system
-        Param auto_irt_params;
-        auto_irt_params.setValue("auto_irt:enabled", auto_irt ? "true" : "false");
-        auto_irt_params.setValue("auto_irt:irt_bins", irt_bins_lin);
-        auto_irt_params.setValue("auto_irt:irt_peptides_per_bin", irt_pep_lin);
-        auto_irt_params.setValue("auto_irt:irt_seed", irt_seed);
-        auto_irt_params.setValue("auto_irt:irt_bins_nonlinear", irt_bins_nl);
-        auto_irt_params.setValue("auto_irt:irt_peptides_per_bin_nonlinear", irt_pep_nl);
-        auto_irt_params.setValue("auto_irt:linear_top_fraction", 0.4);
-        auto_irt_params.setValue("auto_irt:nonlinear_top_fraction", 0.7);
-        calibration_wf.setParameters(auto_irt_params);
+        // Apply configuration
+        calibration_wf.setParameters(cal_params);
         calibration_wf.setLogType(log_type_);
         
-        // Single modular calibration call - handles all scenarios
+        // Determine iRT strategy based on configured parameters and multi-run context
+        IrtStrategy strategy = calibration_wf.determineIrtStrategy(
+          transition_exp, run_groups.size());
+        
+        // Prepare iRT experiments for this run
+        std::vector<String> priority_pep_strings;
+        priority_pep_strings.reserve(priority_peptides.size());
+        for (const auto& pep : priority_peptides)
+        {
+          priority_pep_strings.push_back(String(pep));
+        }
+        
+        CalibrationWorkflow::IrtExperiments irt_experiments = calibration_wf.prepareIrtExperiments(
+          strategy, transition_exp, priority_pep_strings, run_index);
+        
+        // Single modular calibration call - handles all scenarios  
         auto calibration_result = calibration_wf.performCalibration(
-          "",                 // No RT transformation file (we're performing calibration, not loading)
           swath_maps,         // SWATH data maps  
           transition_exp,     // Target transition experiment (may be modified for IM)
           cp,                 // Extraction parameters (may be updated with estimates)
           cp_ms1,             // MS1 extraction parameters (may be updated)
-          config);            // Complete calibration configuration
+          irt_experiments,    // Pre-prepared iRT experiments
+          feature_finder_param,      // Feature finder parameters
+          cp_irt,             // iRT extraction parameters
+          irt_detection_param, // iRT detection parameters
+          calibration_param,  // Calibration parameters (m/z, IM correction)
+          irt_mrm_map_param,  // MRM mapping parameters
+          pasef,              // PASEF data flag
+          load_into_memory,   // Load data into memory flag
+          irt_trafo_out,      // Transformation output file
+          irt_mzml_out        // iRT chromatograms output file
+        );
         
         // Extract results
         trafo_rtnorm = calibration_result.rt_trafo;

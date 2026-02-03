@@ -9,7 +9,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/APPLICATIONS/OpenSwathBase.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathCalibrationWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
@@ -55,6 +54,10 @@ namespace OpenMS
     defaults_.setValue("auto_irt:nonlinear_top_fraction", 0.7, "Top fraction of intense peptides to sample for nonlinear iRT");
     defaults_.setMinFloat("auto_irt:nonlinear_top_fraction", 0.01);
     defaults_.setMaxFloat("auto_irt:nonlinear_top_fraction", 1.0);
+    
+    // === Static iRT file parameters ===
+    defaults_.setValue("files:linear_irt_file", "", "Path to linear iRT transition file (TraML, TSV, or PQP)");
+    defaults_.setValue("files:nonlinear_irt_file", "", "Path to nonlinear iRT transition file (TraML, TSV, or PQP)");
     
     // === Linear calibration parameters ===
     defaults_.setValue("linear:enabled", "true", "Perform linear RT calibration");
@@ -516,7 +519,7 @@ namespace OpenMS
   }
 
 
-  CalibrationWorkflow::IrtStrategy 
+  IrtStrategy
   CalibrationWorkflow::determineIrtStrategy(
     const OpenSwath::LightTargetedExperiment& full_transition_exp,
     size_t num_runs) const
@@ -651,6 +654,7 @@ namespace OpenMS
         break;
         
       case IrtStrategy::SAMPLE_PER_RUN:
+      {
         OPENMS_LOG_INFO << "Sampling fresh iRT experiments for run " << run_index << std::endl;
         
         if (full_transition_exp.getTransitions().empty())
@@ -699,14 +703,17 @@ namespace OpenMS
         
         result.is_prepared = true;
         break;
+      }
         
       case IrtStrategy::RUN_SPECIFIC:
+      {
         OPENMS_LOG_INFO << "Loading run-specific iRT experiments for run " << run_index << std::endl;
         // TODO: Implement run-specific file loading logic
         // This would require run-specific file naming convention
         OPENMS_LOG_WARN << "RUN_SPECIFIC iRT preparation not yet implemented - using empty experiments" << std::endl;
         result.is_prepared = false;
         break;
+      }
         
       default:
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -718,6 +725,10 @@ namespace OpenMS
 
   void CalibrationWorkflow::updateMembers_()
   {
+    // === Static iRT file parameters ===
+    linear_irt_file_ = param_.getValue("files:linear_irt_file").toString();
+    nonlinear_irt_file_ = param_.getValue("files:nonlinear_irt_file").toString();
+    
     // === iRT peptide sampling parameters ===
     auto_irt_enabled_ = param_.getValue("auto_irt:enabled").toBool();
     auto_irt_irt_bins_ = (int)param_.getValue("auto_irt:irt_bins");
