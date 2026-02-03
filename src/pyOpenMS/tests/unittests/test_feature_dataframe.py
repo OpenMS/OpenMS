@@ -5,7 +5,7 @@ Tests the feature export methods:
 - to_feature_arrow(): Export features as Arrow Table
 - to_feature_df(): Export features as DataFrame
 - to_feature_parquet(): Export features to Parquet file
-- to_qpx(): Export as QPX format (dict with file_metadata and features)
+- to_feature_qpx(): Export as QPX format (dict with file_metadata and features)
 - feature_columns(): List available columns
 """
 
@@ -344,12 +344,12 @@ class TestFeatureParquet:
             os.unlink(path)
 
 
-class TestQPX:
-    """Tests for to_qpx()."""
+class TestFeatureQPX:
+    """Tests for to_feature_qpx()."""
 
     def test_structure(self):
         cmap = create_test_consensus_map()
-        result = cmap.to_qpx()
+        result = cmap.to_feature_qpx()
         assert "file_metadata" in result
         assert "features" in result
         assert result["file_metadata"]["file_type"] == "feature"
@@ -358,7 +358,7 @@ class TestQPX:
 
     def test_custom_metadata(self):
         cmap = create_test_consensus_map()
-        result = cmap.to_qpx(creator="test_tool", software_provider="TestSoft")
+        result = cmap.to_feature_qpx(creator="test_tool", software_provider="TestSoft")
         assert result["file_metadata"]["creator"] == "test_tool"
         assert result["file_metadata"]["software_provider"] == "TestSoft"
 

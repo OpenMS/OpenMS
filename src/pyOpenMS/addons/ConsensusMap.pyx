@@ -561,7 +561,6 @@ from collections import defaultdict as _defaultdict
 
         # Build protein group q-value lookup from ProteinIdentifications
         pg_qvalue_lookup = {}  # accession -> q-value
-        pg_membership = {}  # accession -> list of group accessions
         gg_accessions_lookup = {}  # accession -> list of gene accessions
         gg_names_lookup = {}  # accession -> list of gene names
 
@@ -594,9 +593,6 @@ from collections import defaultdict as _defaultdict
                 accessions = [a.decode('utf-8') if isinstance(a, bytes) else a for a in pg.accessions]
                 for acc in accessions:
                     pg_qvalue_lookup[acc] = qvalue
-                    if acc not in pg_membership:
-                        pg_membership[acc] = []
-                    pg_membership[acc].extend(accessions)
 
             # Indistinguishable proteins
             for ig in prot_id.getIndistinguishableProteins():
@@ -606,9 +602,6 @@ from collections import defaultdict as _defaultdict
                 for acc in accessions:
                     if acc not in pg_qvalue_lookup:
                         pg_qvalue_lookup[acc] = qvalue
-                    if acc not in pg_membership:
-                        pg_membership[acc] = []
-                    pg_membership[acc].extend(accessions)
 
         # Create IDScoreSwitcherAlgorithm instance
         idsa = _IDScoreSwitcherAlgorithm()
@@ -850,23 +843,31 @@ from collections import defaultdict as _defaultdict
             all_intensities.append(intensities)
             all_additional_intensities.append(None)
 
-            # protein info from best hit
+            # protein info from best hit - deduplicate while preserving order
             protein_accessions = []
+            seen_accs = set()
             if best_hit is not None:
                 evidences = best_hit.getPeptideEvidences()
-                protein_accessions = [ev.getProteinAccession() for ev in evidences]
+                for ev in evidences:
+                    acc = ev.getProteinAccession()
+                    if acc not in seen_accs:
+                        seen_accs.add(acc)
+                        protein_accessions.append(acc)
 
             all_pg_accessions.append(protein_accessions)
             all_anchor_protein.append(protein_accessions[0] if protein_accessions else None)
             all_unique.append(1 if len(protein_accessions) == 1 else 0)
 
-            # pg_global_qvalue
+            # pg_global_qvalue - use minimum q-value across all protein accessions
             pg_qval = None
             if protein_accessions:
+                min_qval = None
                 for acc in protein_accessions:
                     if acc in pg_qvalue_lookup:
-                        pg_qval = pg_qvalue_lookup[acc]
-                        break
+                        qval = pg_qvalue_lookup[acc]
+                        if min_qval is None or qval < min_qval:
+                            min_qval = qval
+                pg_qval = min_qval
             all_pg_global_qvalue.append(pg_qval)
 
             # gene info
@@ -1121,10 +1122,10 @@ from collections import defaultdict as _defaultdict
         with open(path, 'wb') as f:
             pq.write_table(table, f, **write_kwargs)
 
-    def to_qpx(self, qpx_version="1.0", creator="pyOpenMS", software_provider="OpenMS",
-                scan_format="scan", **kwargs):
+    def to_feature_qpx(self, qpx_version="1.0", creator="pyOpenMS", software_provider="OpenMS",
+                        scan_format="scan", **kwargs):
         """
-        to_qpx(self: ConsensusMap, qpx_version: str = "1.0", creator: str = "pyOpenMS", software_provider: str = "OpenMS", scan_format: str = "scan", **kwargs) -> dict
+        to_feature_qpx(self: ConsensusMap, qpx_version: str = "1.0", creator: str = "pyOpenMS", software_provider: str = "OpenMS", scan_format: str = "scan", **kwargs) -> dict
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -1169,7 +1170,7 @@ from collections import defaultdict as _defaultdict
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
-        Return list of column names that to_feature_arrow() and to_qpx() produce.
+        Return list of column names that to_feature_arrow() and to_feature_qpx() produce.
 
         :return: List of column name strings.
         :rtype: list

@@ -22,8 +22,11 @@
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
 
+#include <limits>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace OpenMS
 {
@@ -144,6 +147,68 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     fmv_struct_type, arrow::default_memory_pool(),
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{fmv_name_b, fmv_value_b, fmv_type_b});
   arrow::ListBuilder feature_metavalues_builder(arrow::default_memory_pool(), fmv_struct_b);
+
+  // Reserve capacity for all builders to avoid repeated allocations
+  // This is where most memory allocation occurs - failures here indicate OOM
+  arrow::Status status;
+  const Size num_features = cmap.size();
+
+  // Reserve for simple column builders (one value per feature)
+  status = sequence_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: sequence_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = peptidoform_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: peptidoform_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = anchor_protein_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: anchor_protein_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = reference_file_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: reference_file_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = scan_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: scan_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = score_type_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: score_type_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = spectrum_reference_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: spectrum_reference_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = scan_ref_file_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: scan_ref_file_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = cv_params_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: cv_params_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = additional_intensities_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: additional_intensities_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+
+  status = precursor_charge_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: precursor_charge_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = is_decoy_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: is_decoy_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = unique_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: unique_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+
+  status = calculated_mz_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: calculated_mz_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = observed_mz_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: observed_mz_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = rt_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = quality_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: quality_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = rt_start_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_start_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = rt_stop_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_stop_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = ion_mobility_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: ion_mobility_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = predicted_rt_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: predicted_rt_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = start_ion_mobility_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: start_ion_mobility_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = stop_ion_mobility_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: stop_ion_mobility_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+
+  status = pep_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: pep_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = score_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: score_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = pg_qvalue_builder.Reserve(num_features);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: pg_qvalue_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build column header lookup
   const auto& column_headers = cmap.getColumnHeaders();
@@ -412,7 +477,15 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     {
       spec_ref = pep_ids[0].getMetaValue("spectrum_reference").toString();
     }
-    (void)spectrum_reference_builder.Append(spec_ref);
+    // Use null for missing values (not empty string) to align with Python and semantic correctness
+    if (spec_ref.empty())
+    {
+      (void)spectrum_reference_builder.AppendNull();
+    }
+    else
+    {
+      (void)spectrum_reference_builder.Append(spec_ref);
+    }
 
     // Extract scan number from native ID
     if (!spec_ref.empty())
@@ -465,8 +538,10 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === reference_file_name, cv_params, additional_intensities (reserved) ===
-    (void)reference_file_builder.Append("");
-    (void)scan_ref_file_builder.Append("");
+    // Use null for columns that don't have meaningful values in C++ export
+    // (reference_file_name is a parameter in Python API but not in C++)
+    (void)reference_file_builder.AppendNull();
+    (void)scan_ref_file_builder.AppendNull();
     (void)cv_params_builder.AppendNull();
     (void)additional_intensities_builder.AppendNull();
 
@@ -483,12 +558,18 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     }
 
     // === Protein accessions ===
+    // Collect unique protein accessions, preserving order (first occurrence for anchor)
     std::vector<std::string> protein_accs;
+    std::unordered_set<std::string> seen_accs;
     if (best_hit)
     {
       for (const auto& ev : best_hit->getPeptideEvidences())
       {
-        protein_accs.push_back(ev.getProteinAccession());
+        const std::string& acc = ev.getProteinAccession();
+        if (seen_accs.insert(acc).second) // only add if not already seen
+        {
+          protein_accs.push_back(acc);
+        }
       }
     }
 
@@ -508,21 +589,30 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       (void)anchor_protein_builder.Append(protein_accs[0]);
     }
 
+    // unique: 1 if exactly one unique protein accession, 0 otherwise
     (void)unique_builder.Append(protein_accs.size() == 1 ? 1 : 0);
 
     // === pg_global_qvalue ===
+    // Use minimum q-value across all protein accessions (not first match which is order-dependent)
+    double min_qval = std::numeric_limits<double>::max();
     bool found_qval = false;
     for (const auto& acc : protein_accs)
     {
       auto it = pg_qvalue_lookup.find(acc);
       if (it != pg_qvalue_lookup.end())
       {
-        (void)pg_qvalue_builder.Append(it->second);
+        if (it->second < min_qval)
+        {
+          min_qval = it->second;
+        }
         found_qval = true;
-        break;
       }
     }
-    if (!found_qval)
+    if (found_qval)
+    {
+      (void)pg_qvalue_builder.Append(min_qval);
+    }
+    else
     {
       (void)pg_qvalue_builder.AppendNull();
     }
@@ -636,39 +726,72 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   std::shared_ptr<arrow::Array> arr_quality, arr_score, arr_score_type;
   std::shared_ptr<arrow::Array> arr_spectrum_ref, arr_feature_mvs;
 
-  (void)sequence_builder.Finish(&arr_sequence);
-  (void)peptidoform_builder.Finish(&arr_peptidoform);
-  (void)modifications_builder.Finish(&arr_modifications);
-  (void)precursor_charge_builder.Finish(&arr_charge);
-  (void)calculated_mz_builder.Finish(&arr_calc_mz);
-  (void)observed_mz_builder.Finish(&arr_obs_mz);
-  (void)rt_builder.Finish(&arr_rt);
-  (void)pep_builder.Finish(&arr_pep);
-  (void)is_decoy_builder.Finish(&arr_is_decoy);
-  (void)additional_scores_builder.Finish(&arr_additional_scores);
-  (void)predicted_rt_builder.Finish(&arr_predicted_rt);
-  (void)reference_file_builder.Finish(&arr_ref_file);
-  (void)cv_params_builder.Finish(&arr_cv_params);
-  (void)scan_builder.Finish(&arr_scan);
-  (void)ion_mobility_builder.Finish(&arr_ion_mobility);
-  (void)start_ion_mobility_builder.Finish(&arr_start_im);
-  (void)stop_ion_mobility_builder.Finish(&arr_stop_im);
-  (void)intensities_builder.Finish(&arr_intensities);
-  (void)additional_intensities_builder.Finish(&arr_additional_intensities);
-  (void)pg_accessions_builder.Finish(&arr_pg_acc);
-  (void)anchor_protein_builder.Finish(&arr_anchor);
-  (void)unique_builder.Finish(&arr_unique);
-  (void)pg_qvalue_builder.Finish(&arr_pg_qval);
-  (void)gg_accessions_builder.Finish(&arr_gg_acc);
-  (void)gg_names_builder.Finish(&arr_gg_names);
-  (void)scan_ref_file_builder.Finish(&arr_scan_ref_file);
-  (void)rt_start_builder.Finish(&arr_rt_start);
-  (void)rt_stop_builder.Finish(&arr_rt_stop);
-  (void)quality_builder.Finish(&arr_quality);
-  (void)score_builder.Finish(&arr_score);
-  (void)score_type_builder.Finish(&arr_score_type);
-  (void)spectrum_reference_builder.Finish(&arr_spectrum_ref);
-  (void)feature_metavalues_builder.Finish(&arr_feature_mvs);
+  status = sequence_builder.Finish(&arr_sequence);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: sequence_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = peptidoform_builder.Finish(&arr_peptidoform);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: peptidoform_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = modifications_builder.Finish(&arr_modifications);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: modifications_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = precursor_charge_builder.Finish(&arr_charge);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: precursor_charge_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = calculated_mz_builder.Finish(&arr_calc_mz);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: calculated_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = observed_mz_builder.Finish(&arr_obs_mz);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: observed_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = rt_builder.Finish(&arr_rt);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = pep_builder.Finish(&arr_pep);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: pep_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = is_decoy_builder.Finish(&arr_is_decoy);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: is_decoy_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = additional_scores_builder.Finish(&arr_additional_scores);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: additional_scores_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = predicted_rt_builder.Finish(&arr_predicted_rt);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: predicted_rt_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = reference_file_builder.Finish(&arr_ref_file);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: reference_file_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = cv_params_builder.Finish(&arr_cv_params);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: cv_params_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = scan_builder.Finish(&arr_scan);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: scan_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = ion_mobility_builder.Finish(&arr_ion_mobility);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: ion_mobility_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = start_ion_mobility_builder.Finish(&arr_start_im);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: start_ion_mobility_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = stop_ion_mobility_builder.Finish(&arr_stop_im);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: stop_ion_mobility_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = intensities_builder.Finish(&arr_intensities);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: intensities_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = additional_intensities_builder.Finish(&arr_additional_intensities);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: additional_intensities_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = pg_accessions_builder.Finish(&arr_pg_acc);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: pg_accessions_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = anchor_protein_builder.Finish(&arr_anchor);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: anchor_protein_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = unique_builder.Finish(&arr_unique);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: unique_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = pg_qvalue_builder.Finish(&arr_pg_qval);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: pg_qvalue_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = gg_accessions_builder.Finish(&arr_gg_acc);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: gg_accessions_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = gg_names_builder.Finish(&arr_gg_names);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: gg_names_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = scan_ref_file_builder.Finish(&arr_scan_ref_file);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: scan_ref_file_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = rt_start_builder.Finish(&arr_rt_start);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_start_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = rt_stop_builder.Finish(&arr_rt_stop);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: rt_stop_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = quality_builder.Finish(&arr_quality);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: quality_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = score_builder.Finish(&arr_score);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: score_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = score_type_builder.Finish(&arr_score_type);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: score_type_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = spectrum_reference_builder.Finish(&arr_spectrum_ref);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: spectrum_reference_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = feature_metavalues_builder.Finish(&arr_feature_mvs);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature_metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build schema matching the Python to_feature_arrow() column order
   auto schema = arrow::schema({

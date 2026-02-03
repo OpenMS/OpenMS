@@ -129,23 +129,14 @@ import warnings
         )
         return table.to_pandas()
 
-    def df_columns(self, decode_ontology=True):
+    def df_columns(self):
         """
-        df_columns(self: PeptideIdentificationList, decode_ontology: bool = True) -> list
+        df_columns(self: PeptideIdentificationList) -> list
 
         Returns a list of column names that to_df() would produce.
 
         Useful for discovering available columns before export, especially
         for column selection with the `columns` parameter.
-
-        Note: Column names depend on the data (metavalues from PeptideHits),
-        so this method inspects the actual data. Only metavalue keys from the
-        first PeptideHit of each identification are considered; hits with
-        additional metavalues not present on the first hit will not be reflected.
-
-        :param decode_ontology: Decode meta value names using the PSI-MS ontology.
-                                Default True. Should match the parameter used in to_df().
-        :type decode_ontology: bool
 
         :return: List of column name strings.
         :rtype: list
@@ -158,10 +149,19 @@ import warnings
             # Use for column selection
             df = peps.to_df(columns=peps.df_columns()[:5])
         """
-        # Delegate to to_arrow() to avoid duplicating metavalue discovery and ontology decoding.
-        # Uses a single-row export (export_unidentified=True ensures at least schema is present).
-        table = self.to_arrow(decode_ontology=decode_ontology, export_unidentified=True)
-        return table.column_names
+        return [
+            "id",
+            "rt",
+            "mz",
+            "score",
+            "charge",
+            "protein_accession",
+            "start",
+            "end",
+            "P_ID",
+            "PSM_ID",
+            "metavalues",  # List of {"name": str, "value": str, "type": str}
+        ]
 
     def to_arrow(self, decode_ontology=True, default_missing_values=None, export_unidentified=True, columns=None):
         """
@@ -218,35 +218,28 @@ import warnings
         if default_missing_values is None:
             default_missing_values = {type(True): False, type(1): -9999, type(1.0): np.nan, type(''): ''}
 
-        # Get all possible metavalues and their types
-        metavals = []
-        meta_types = {}  # key -> Python type
-        mainscorename = "score"
-
-        for pep in self:
-            hits = pep.getHits()
-            if hits:
-                mvs = []
-                hits[0].getKeys(mvs)
-                for mv in mvs:
-                    if mv not in meta_types:
-                        metavals.append(mv)
-                        # Determine type from first occurrence
-                        if mv == b"target_decoy":
-                            meta_types[mv] = type(True)
-                        elif hits[0].metaValueExists(mv):
-                            val = hits[0].getMetaValue(mv)
-                            meta_types[mv] = type(val)
-                mainscorename = pep.getScoreType()
-
-        # Decode metavalue names if requested
-        decodedMVs = [m.decode("utf-8") for m in metavals]
+        # Load ontology for decoding metavalue names if requested
+        cv = None
         if decode_ontology:
             cv = _ControlledVocabulary()
             cv.loadFromOBO("psims", _File.getOpenMSDataPath() + "/CV/psi-ms.obo")
-            clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
-        else:
-            clearMVs = decodedMVs
+
+        def decode_mv_name(name):
+            """Decode metavalue name using ontology if available."""
+            if cv is not None and name.startswith("MS:"):
+                return cv.getTerm(name).name
+            return name
+
+        def get_type_str(val):
+            """Get type string for a value."""
+            if type(val) is type(True):
+                return "bool"
+            elif type(val) is type(1):
+                return "int"
+            elif type(val) is type(1.0):
+                return "float"
+            else:
+                return "str"
 
         # Initialize lists for core columns
         all_id = []
@@ -259,9 +252,7 @@ import warnings
         all_end = []
         all_p_id = []
         all_psm_id = []
-
-        # Initialize lists for metavalue columns
-        meta_data = {mv: [] for mv in metavals}
+        all_metavalues = []
 
         for pep_idx, pep in enumerate(self):
             hits = pep.getHits()
@@ -278,11 +269,7 @@ import warnings
                     all_end.append(default_missing_values[type('')])
                     all_p_id.append(pep_idx)
                     all_psm_id.append(default_missing_values[type(1)])
-
-                    # Add default values for all metavalues
-                    for mv in metavals:
-                        mv_type = meta_types.get(mv, type(1.0))
-                        meta_data[mv].append(default_missing_values.get(mv_type, None))
+                    all_metavalues.append([])
                 continue
 
             besthit = hits[0]
@@ -305,20 +292,21 @@ import warnings
             all_p_id.append(pep_idx)
             all_psm_id.append(0)  # Only first hit exported
 
-            # Add metavalue columns
-            for mv in metavals:
+            # Collect metavalues as key-value pairs
+            metavalues = []
+            mvs = []
+            besthit.getKeys(mvs)
+            for mv in mvs:
                 if besthit.metaValueExists(mv):
                     val = besthit.getMetaValue(mv)
-                    if mv == b"target_decoy":
-                        if isinstance(val, bytes):
-                            meta_data[mv].append(val.startswith(b't'))
-                        else:
-                            meta_data[mv].append(str(val).startswith('t'))
-                    else:
-                        meta_data[mv].append(val)
-                else:
-                    mv_type = meta_types.get(mv, type(1.0))
-                    meta_data[mv].append(default_missing_values.get(mv_type, None))
+                    mv_name = mv.decode("utf-8") if isinstance(mv, bytes) else mv
+                    decoded_name = decode_mv_name(mv_name)
+                    metavalues.append({
+                        "name": decoded_name,
+                        "value": str(val),
+                        "value_type": get_type_str(val)
+                    })
+            all_metavalues.append(metavalues)
 
         # Build Arrow table directly using pa.Table.from_pydict
         data_dict = {}
@@ -336,8 +324,8 @@ import warnings
             data_dict["rt"] = pa.array(all_rt, type=pa.float32())
         if should_include("mz"):
             data_dict["mz"] = pa.array(all_mz, type=pa.float32())
-        if should_include(mainscorename):
-            data_dict[mainscorename] = pa.array(all_score, type=pa.float32())
+        if should_include("score"):
+            data_dict["score"] = pa.array(all_score, type=pa.float32())
         if should_include("charge"):
             data_dict["charge"] = pa.array(all_charge, type=pa.int32())
         if should_include("protein_accession"):
@@ -351,20 +339,14 @@ import warnings
         if should_include("PSM_ID"):
             data_dict["PSM_ID"] = pa.array(all_psm_id, type=pa.int32())
 
-        # Metavalue columns with appropriate types
-        for mv, clearname in zip(metavals, clearMVs):
-            if should_include(clearname):
-                mv_type = meta_types.get(mv, type(1.0))
-                if mv_type == type(True):
-                    data_dict[clearname] = pa.array(meta_data[mv], type=pa.bool_())
-                elif mv_type == type(1):
-                    data_dict[clearname] = pa.array(meta_data[mv], type=pa.int64())
-                elif mv_type == type(1.0):
-                    data_dict[clearname] = pa.array(meta_data[mv], type=pa.float64())
-                else:
-                    # Convert to string for other types
-                    str_data = [str(v) if v is not None else None for v in meta_data[mv]]
-                    data_dict[clearname] = pa.array(str_data, type=pa.utf8())
+        # Metavalues as list of structs (matches QPX schema)
+        if should_include("metavalues"):
+            metavalue_type = pa.struct([
+                ("name", pa.utf8()),
+                ("value", pa.utf8()),
+                ("value_type", pa.utf8())
+            ])
+            data_dict["metavalues"] = pa.array(all_metavalues, type=pa.list_(metavalue_type))
 
         if columns_set is not None:
             unknown = [c for c in columns if c not in data_dict]
@@ -533,10 +515,10 @@ import warnings
             )
         return table.to_pandas()
 
-    def to_qpx(self, qpx_version="1.0", creator="pyOpenMS", software_provider="OpenMS",
-                scan_format="scan", **kwargs):
+    def to_psm_qpx(self, qpx_version="1.0", creator="pyOpenMS", software_provider="OpenMS",
+                    scan_format="scan", **kwargs):
         """
-        to_qpx(self: PeptideIdentificationList, qpx_version: str = "1.0", creator: str = "pyOpenMS", software_provider: str = "OpenMS", scan_format: str = "scan", **kwargs) -> dict
+        to_psm_qpx(self: PeptideIdentificationList, qpx_version: str = "1.0", creator: str = "pyOpenMS", software_provider: str = "OpenMS", scan_format: str = "scan", **kwargs) -> dict
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -580,7 +562,7 @@ import warnings
 
         Example::
 
-            qpx_data = peps.to_qpx(reference_file_name="sample.mzML")
+            qpx_data = peps.to_psm_qpx(reference_file_name="sample.mzML")
 
             # Access file metadata
             print(qpx_data["file_metadata"]["qpx_version"])
@@ -1321,7 +1303,7 @@ import warnings
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
-        Return list of column names that to_psm_df() and to_qpx() produce.
+        Return list of column names that to_psm_df() and to_psm_qpx() produce.
 
         Useful for discovering available columns before export, especially
         for column selection with the `columns` parameter.

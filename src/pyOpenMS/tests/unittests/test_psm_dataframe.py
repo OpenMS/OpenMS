@@ -5,7 +5,7 @@ Tests the PSM export methods:
 - to_psm_df(): Export all PSMs as DataFrame
 - to_psm_arrow(): Export all PSMs as Arrow Table
 - to_parquet(): Export all PSMs to Parquet file
-- to_qpx(): Export as QPX format (dict with file_metadata and psms)
+- to_psm_qpx(): Export as QPX format (dict with file_metadata and psms)
 - psm_columns(): List available columns
 
 All PSM export methods return results sorted by:
@@ -372,10 +372,10 @@ def test_psm_df_empty_identifications():
     assert df.iloc[0]["P_ID"] == 1  # Second identification
 
 
-def test_to_qpx():
-    """Test to_qpx dict export with file_metadata and psms."""
+def test_to_psm_qpx():
+    """Test to_psm_qpx dict export with file_metadata and psms."""
     pep_ids = create_test_data()
-    qpx_data = pep_ids.to_qpx()
+    qpx_data = pep_ids.to_psm_qpx()
 
     # Check structure
     assert isinstance(qpx_data, dict)
@@ -404,18 +404,18 @@ def test_to_qpx():
     assert "cv_params" in psms[0]
 
 
-def test_to_qpx_with_params():
-    """Test to_qpx with parameters."""
+def test_to_psm_qpx_with_params():
+    """Test to_psm_qpx with parameters."""
     pep_ids = create_test_data()
-    qpx_data = pep_ids.to_qpx(export_all_hits=False)
+    qpx_data = pep_ids.to_psm_qpx(export_all_hits=False)
 
     assert len(qpx_data["psms"]) == 2
 
 
-def test_to_qpx_with_reference_file():
-    """Test to_qpx with reference_file_name parameter."""
+def test_to_psm_qpx_with_reference_file():
+    """Test to_psm_qpx with reference_file_name parameter."""
     pep_ids = create_test_data()
-    qpx_data = pep_ids.to_qpx(reference_file_name="test.mzML")
+    qpx_data = pep_ids.to_psm_qpx(reference_file_name="test.mzML")
 
     # All PSMs should have the reference_file_name
     for psm in qpx_data["psms"]:
@@ -458,10 +458,10 @@ def test_to_parquet(tmp_path):
     assert "precursor_charge" in df.columns
 
 
-def test_to_qpx_file_metadata_params():
-    """Test to_qpx file_metadata customization."""
+def test_to_psm_qpx_file_metadata_params():
+    """Test to_psm_qpx file_metadata customization."""
     pep_ids = create_test_data()
-    qpx_data = pep_ids.to_qpx(
+    qpx_data = pep_ids.to_psm_qpx(
         qpx_version="2.0",
         creator="TestCreator",
         software_provider="TestProvider",
