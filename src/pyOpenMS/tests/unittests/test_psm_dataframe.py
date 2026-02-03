@@ -554,8 +554,8 @@ def test_psm_df_sequence_formats():
     # sequence should be unmodified
     assert df.iloc[0]["sequence"] == "PEPTMIDE"
 
-    # peptidoform should contain modification
-    assert "Oxidation" in df.iloc[0]["peptidoform"]
+    # peptidoform should contain modification (ProForma uses UNIMOD accession)
+    assert "UNIMOD:35" in df.iloc[0]["peptidoform"] or "Oxidation" in df.iloc[0]["peptidoform"]
 
 
 def test_psm_df_terminal_modifications():

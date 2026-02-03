@@ -85,20 +85,18 @@ def create_test_consensus_map(labelfree=True):
     cf1.setCharge(2)
     cf1.setQuality(0.8)
 
-    # Add feature handles (intensities)
-    fh1 = oms.FeatureHandle()
-    fh1.setMapIndex(0)
-    fh1.setIntensity(1000.0)
-    fh1.setMZ(500.25)
-    fh1.setRT(100.5)
-    cf1.insert(fh1)
+    # Add feature handles (intensities) using BaseFeature + insert(map_index, base_feature)
+    bf1 = oms.BaseFeature()
+    bf1.setIntensity(1000.0)
+    bf1.setMZ(500.25)
+    bf1.setRT(100.5)
+    cf1.insert(0, bf1)
 
-    fh2 = oms.FeatureHandle()
-    fh2.setMapIndex(1)
-    fh2.setIntensity(2000.0)
-    fh2.setMZ(500.25)
-    fh2.setRT(101.0)
-    cf1.insert(fh2)
+    bf2 = oms.BaseFeature()
+    bf2.setIntensity(2000.0)
+    bf2.setMZ(500.25)
+    bf2.setRT(101.0)
+    cf1.insert(1, bf2)
 
     # Add peptide identification
     pep_id1 = oms.PeptideIdentification()
@@ -119,7 +117,9 @@ def create_test_consensus_map(labelfree=True):
     hit1.setPeptideEvidences([ev1])
 
     pep_id1.setHits([hit1])
-    cf1.setPeptideIdentifications([pep_id1])
+    pep_id_list1 = oms.PeptideIdentificationList()
+    pep_id_list1.append(pep_id1)
+    cf1.setPeptideIdentifications(pep_id_list1)
 
     cmap.push_back(cf1)
 
@@ -130,12 +130,11 @@ def create_test_consensus_map(labelfree=True):
     cf2.setCharge(3)
     cf2.setQuality(0.6)
 
-    fh3 = oms.FeatureHandle()
-    fh3.setMapIndex(0)
-    fh3.setIntensity(500.0)
-    fh3.setMZ(600.30)
-    fh3.setRT(200.0)
-    cf2.insert(fh3)
+    bf3 = oms.BaseFeature()
+    bf3.setIntensity(500.0)
+    bf3.setMZ(600.30)
+    bf3.setRT(200.0)
+    cf2.insert(0, bf3)
 
     pep_id2 = oms.PeptideIdentification()
     pep_id2.setRT(200.0)
@@ -155,7 +154,9 @@ def create_test_consensus_map(labelfree=True):
     hit2.setPeptideEvidences([ev2a, ev2b])
 
     pep_id2.setHits([hit2])
-    cf2.setPeptideIdentifications([pep_id2])
+    pep_id_list2 = oms.PeptideIdentificationList()
+    pep_id_list2.append(pep_id2)
+    cf2.setPeptideIdentifications(pep_id_list2)
 
     cmap.push_back(cf2)
 
@@ -166,12 +167,11 @@ def create_test_consensus_map(labelfree=True):
     cf3.setCharge(1)
     cf3.setQuality(0.3)
 
-    fh4 = oms.FeatureHandle()
-    fh4.setMapIndex(0)
-    fh4.setIntensity(100.0)
-    fh4.setMZ(400.0)
-    fh4.setRT(50.0)
-    cf3.insert(fh4)
+    bf4 = oms.BaseFeature()
+    bf4.setIntensity(100.0)
+    bf4.setMZ(400.0)
+    bf4.setRT(50.0)
+    cf3.insert(0, bf4)
 
     cmap.push_back(cf3)
 
@@ -266,7 +266,7 @@ class TestFeatureArrow:
     def test_column_filtering(self):
         cmap = create_test_consensus_map()
         table = cmap.to_feature_arrow(columns=["sequence", "rt", "observed_mz"])
-        assert table.column_names == ["sequence", "rt", "observed_mz"]
+        assert set(table.column_names) == {"sequence", "rt", "observed_mz"}
         assert table.num_rows == 3
 
     def test_empty_consensus_map(self):

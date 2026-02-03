@@ -590,7 +590,8 @@ from collections import defaultdict as _defaultdict
             # Protein groups with q-values
             for pg in prot_id.getProteinGroups():
                 qvalue = pg.probability
-                accessions = list(pg.accessions)
+                # pg.accessions are bytes, decode to str for lookup
+                accessions = [a.decode('utf-8') if isinstance(a, bytes) else a for a in pg.accessions]
                 for acc in accessions:
                     pg_qvalue_lookup[acc] = qvalue
                     if acc not in pg_membership:
@@ -599,7 +600,8 @@ from collections import defaultdict as _defaultdict
 
             # Indistinguishable proteins
             for ig in prot_id.getIndistinguishableProteins():
-                accessions = list(ig.accessions)
+                # ig.accessions are bytes, decode to str for lookup
+                accessions = [a.decode('utf-8') if isinstance(a, bytes) else a for a in ig.accessions]
                 qvalue = ig.probability
                 for acc in accessions:
                     if acc not in pg_qvalue_lookup:
