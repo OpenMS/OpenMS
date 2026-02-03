@@ -275,11 +275,7 @@ namespace OpenMS
     bool windows_estimate_mz_;                  ///< Estimate m/z windows
     bool windows_estimate_im_;                  ///< Estimate IM windows
     double windows_rt_percentile_;              ///< RT percentile for estimation
-    double windows_mz_percentile_;              ///< m/z percentile for estimation
-    double windows_im_percentile_;              ///< IM percentile for estimation
     double rt_estimation_padding_factor_;       ///< RT padding factor
-    double im_estimation_padding_factor_;       ///< IM padding factor
-    double mz_estimation_padding_factor_;       ///< m/z padding factor
     
     // === Quality Control Parameters ===
     bool qc_fail_on_insufficient_peptides_;     ///< Fail on insufficient peptides
