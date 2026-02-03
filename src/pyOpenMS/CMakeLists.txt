@@ -58,6 +58,11 @@ else()
   if(NOT TARGET OpenMS)
     # Standalone build - find installed/built OpenMS
     find_package(OpenMS REQUIRED)
+    # pyOpenMS builds its own Arrow-based modules (arrow_zerocopy, parquet_filter)
+    # when WITH_PARQUET is enabled, so it needs Arrow targets directly.
+    if(WITH_PARQUET)
+      find_package(Arrow QUIET)
+    endif()
     # TODO the following is just a fallback.
     # CF_OPENMS_PACKAGE_VERSION is what is written into pyopenms/_version.py
     # which is the old way of getting the version.
