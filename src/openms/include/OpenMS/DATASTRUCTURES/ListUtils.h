@@ -40,9 +40,14 @@ namespace OpenMS
    @brief Vector of String.
 
    @ingroup Datastructures
-   */
+  */
   typedef std::vector<String> StringList;
 
+  /**
+    @brief Collection of utility functions for management of vectors.
+
+    @ingroup Datastructures
+  */
 
   class OPENMS_DLLAPI ListUtils
   {
@@ -277,4 +282,3 @@ public:
   }
 
 } // namespace OpenMS
-

@@ -73,7 +73,6 @@ protected:
     vector<Size> counts;
     vector<Size> mod_counts;
     vector<PeptideHit> temp_hits;
-    vector<Size> coverage;
     Size spectrum_count = 0;
     unordered_map<String, Size> unique_peptides;
     unordered_map<String, Size> temp_unique_peptides;
@@ -141,15 +140,6 @@ protected:
           }
         }
       }
-      /* << proteins[j].sequence << endl;
-                      for (Size k = 0; k < coverage.size(); ++k)
-                      {
-                          os << coverage[k];
-                      }
-                      os << endl;
-      */
-      // statistics[j] = make_pair(,
-      // accumulate(coverage.begin(), coverage.end(), 0) / proteins[j].sequence.size());
       double coverage_percent = SequenceCoverage::getCoverage(protein_seq, peptides);
 
       statistics[j] = coverage_percent / 100.0;
@@ -192,7 +182,7 @@ protected:
 
     os << "Average coverage per protein is " << safe_avg_double(statistics) * 100 << "\n";
     os << "Average number of peptides per protein is " << safe_avg_size(counts) << "\n";
-    os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << "\n";
+    os << "Average number of unique modified peptides per protein is " << safe_avg_size(mod_counts) << "\n";
     os << "Number of identified spectra: " << spectrum_count << "\n";
     os << "Number of unique identified peptides: " << unique_peptides.size() << "\n";
 
@@ -216,7 +206,7 @@ protected:
     }
     os << "Average coverage per found protein (" << statistics.size() << ") is " << safe_avg_double(statistics) * 100 << "\n";
     os << "Average number of peptides per found protein is " << safe_avg_size(counts) << "\n";
-    os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << "\n";
+    os << "Average number of unique modified peptides per found protein is " << safe_avg_size(mod_counts) << "\n";
 
     return EXECUTION_OK;
   }
