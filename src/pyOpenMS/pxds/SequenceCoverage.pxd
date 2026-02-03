@@ -17,5 +17,5 @@ cdef extern from "<OpenMS/CHEMISTRY/SequenceCoverage.h>" namespace "OpenMS":
         @staticmethod
         double getCoverage(
             const AASequence& protein,
-            libcpp_vector[AASequence] & peptides
+            const libcpp_vector[AASequence]& peptides
         ) except + nogil

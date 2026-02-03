@@ -1,6 +1,13 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: OpenMS Development Team $
+// $Authors: Srikanth K N $
+// --------------------------------------------------------------------------
+
 #include <OpenMS/CHEMISTRY/SequenceCoverage.h>
 
-#include <string>
 #include <vector>
 
 namespace OpenMS
@@ -8,7 +15,7 @@ namespace OpenMS
 
   double SequenceCoverage::getCoverage(
     const AASequence& protein,
-    std::vector<AASequence> & peptides)
+    const std::vector<AASequence>& peptides)
   {
     const String protein_str = protein.toUnmodifiedString();
     const Size protein_length = protein.size();
