@@ -39,23 +39,6 @@ using namespace std;
 
 namespace OpenMS
 {
-    // Helper to warn once if CCS data is detected with small IM tolerances
-    static bool& getCCSWarningShown()
-    {
-      static bool shown = false;
-      return shown;
-    }
-
-    static void warnIfCCSWithSmallTolerance(DriftTimeUnit unit, double im_tolerance, const String& param_name)
-    {
-      if (unit == DriftTimeUnit::CCS && im_tolerance < 1.0 && !getCCSWarningShown())
-      {
-        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but " << param_name
-                        << " = " << im_tolerance << " appears to be set for 1/K0 data. "
-                        << "For CCS data, consider using larger values (e.g., 10-20 for clustering, 1.0 for summing)." << std::endl;
-        getCCSWarningShown() = true;
-      }
-    }
 
     double PeakPickerIM::computeOptimalSamplingRate(const vector<MSSpectrum>& spectra)
     {
@@ -254,8 +237,14 @@ namespace OpenMS
       const auto [im_data_index, im_unit] = raw_spectrum.getIMData();
       const auto& ion_mobility_array = raw_spectrum.getFloatDataArrays()[im_data_index];
 
-      // Warn if CCS data with small tolerance
-      warnIfCCSWithSmallTolerance(im_unit, sum_tolerance_im_, "sum_tolerance_im");
+      // Warn if CCS data with small tolerance (only once per PeakPickerIM instance)
+      if (im_unit == DriftTimeUnit::CCS && sum_tolerance_im_ < 1.0 && !ccs_warning_shown_)
+      {
+        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but sum_tolerance_im"
+                        << " = " << sum_tolerance_im_ << " appears to be set for 1/K0 data. "
+                        << "For CCS data, consider using larger values (e.g., 10-20 for clustering, 1.0 for summing)." << '\n';
+        ccs_warning_shown_ = true;
+      }
 
       // Vector of MSSpectra for each picked m/z peak (each spectrum is a mobilogram trace)
       vector<MSSpectrum> mobility_traces;
@@ -1011,8 +1000,14 @@ namespace OpenMS
       const auto [im_data_index, im_unit] = spectrum.getIMData();
       auto& im_data = spectrum.getFloatDataArrays()[im_data_index];
 
-      // Warn if CCS data with small tolerance
-      warnIfCCSWithSmallTolerance(im_unit, im_tolerance_cluster_, "im_tolerance_cluster");
+      // Warn if CCS data with small tolerance (only once per PeakPickerIM instance)
+      if (im_unit == DriftTimeUnit::CCS && im_tolerance_cluster_ < 1.0 && !ccs_warning_shown_)
+      {
+        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but im_tolerance_cluster"
+                        << " = " << im_tolerance_cluster_ << " appears to be set for 1/K0 data. "
+                        << "For CCS data, consider using larger values (e.g., 10-20 for clustering, 1.0 for summing)." << '\n';
+        ccs_warning_shown_ = true;
+      }
 
       struct Point {
         double mz;

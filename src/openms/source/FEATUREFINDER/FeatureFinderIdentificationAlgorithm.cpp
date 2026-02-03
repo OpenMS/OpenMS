@@ -47,25 +47,6 @@ using namespace OpenMS::Internal;
 
 namespace OpenMS
 {
-  // Helper to warn once if CCS data is detected with small IM window
-  static bool& getFFIDCCSWarningShown()
-  {
-    static bool shown = false;
-    return shown;
-  }
-
-  static void warnIfCCSWithSmallWindow(DriftTimeUnit unit, double im_window)
-  {
-    if (unit == DriftTimeUnit::CCS && im_window < 1.0 && !getFFIDCCSWarningShown())
-    {
-      OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
-                      << "IM_window = " << im_window
-                      << " appears to be set for 1/K0 data. "
-                      << "For CCS data, consider using larger values (e.g., 10-50)." << std::endl;
-      getFFIDCCSWarningShown() = true;
-    }
-  }
-
   // Helper to get IM unit from first spectrum with IM data
   static DriftTimeUnit getIMUnitFromExperiment(const PeakMap& exp)
   {
@@ -717,7 +698,13 @@ namespace OpenMS
       if (IM_window > 0.0)
       {
         DriftTimeUnit im_unit = getIMUnitFromExperiment(ms_data_);
-        warnIfCCSWithSmallWindow(im_unit, IM_window);
+        if (im_unit == DriftTimeUnit::CCS && IM_window < 1.0)
+        {
+          OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
+                          << "IM_window = " << IM_window
+                          << " appears to be set for 1/K0 data. "
+                          << "For CCS data, consider using larger values (e.g., 10-50)." << '\n';
+        }
       }
     }
     else if (im_format != IMFormat::NONE) // has IM but wrong format

@@ -22,24 +22,6 @@
 
 namespace OpenMS
 {
-    // Helper to warn once if CCS data is detected with small IM tolerance
-    static bool& getMTDCCSWarningShown()
-    {
-      static bool shown = false;
-      return shown;
-    }
-
-    static void warnIfCCSWithSmallTolerance(DriftTimeUnit unit, double im_tolerance)
-    {
-      if (unit == DriftTimeUnit::CCS && im_tolerance < 1.0 && !getMTDCCSWarningShown())
-      {
-        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
-                        << "ion_mobility_tolerance = " << im_tolerance
-                        << " appears to be set for 1/K0 data. "
-                        << "For CCS data, consider using larger values (e.g., 2-10)." << std::endl;
-        getMTDCCSWarningShown() = true;
-      }
-    }
 
     MassTraceDetection::MassTraceDetection() :
             DefaultParamHandler("MassTraceDetection"), ProgressLogger()
@@ -213,6 +195,23 @@ namespace OpenMS
     {
       // make sure the output vector is empty
       found_masstraces.clear();
+
+      // Check IM unit and warn if CCS data with small tolerance (single-threaded check at algorithm start)
+      for (const auto& spec : input_exp)
+      {
+        if (spec.containsIMData())
+        {
+          const auto [im_data_index, im_unit] = spec.getIMData();
+          if (im_unit == DriftTimeUnit::CCS && ion_mobility_tolerance_ < 1.0)
+          {
+            OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
+                            << "ion_mobility_tolerance = " << ion_mobility_tolerance_
+                            << " appears to be set for 1/K0 data. "
+                            << "For CCS data, consider using larger values (e.g., 2-10)." << '\n';
+          }
+          break; // Found IM data, no need to check further spectra
+        }
+      }
 
       // gather all peaks that are potential chromatographic peak apices
       //   - use work_exp for actual work (remove peaks below noise threshold)
@@ -519,10 +518,6 @@ namespace OpenMS
         if (has_centroid_im_)
         {
           centroid_im = work_exp[apex_scan_idx].getFloatDataArrays()[ion_mobility_idx_][apex_peak_idx];
-          // Check IM unit and warn if CCS data with small tolerance
-          DriftTimeUnit im_unit = DriftTimeUnit::NONE;
-          IMDataConverter::getIMUnit(work_exp[apex_scan_idx].getFloatDataArrays()[ion_mobility_idx_], im_unit);
-          warnIfCCSWithSmallTolerance(im_unit, ion_mobility_tolerance_);
           prev_counter_im = apex_peak.getIntensity() * centroid_im;
           prev_denom_im = apex_peak.getIntensity();
           updateIterativeWeightedMean_(work_exp[apex_scan_idx].getFloatDataArrays()[ion_mobility_idx_][apex_peak_idx],

@@ -32,25 +32,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  // Helper to warn once if CCS data is detected with small IM tolerance
-  static bool& getBiosaur2CCSWarningShown()
-  {
-    static bool shown = false;
-    return shown;
-  }
-
-  static void warnIfCCSWithSmallTolerance(DriftTimeUnit unit, double im_tolerance)
-  {
-    if (unit == DriftTimeUnit::CCS && im_tolerance < 1.0 && !getBiosaur2CCSWarningShown())
-    {
-      OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
-                      << "paseftol = " << im_tolerance
-                      << " appears to be set for 1/K0 data. "
-                      << "For CCS data, consider using larger values (e.g., 5-20)." << std::endl;
-      getBiosaur2CCSWarningShown() = true;
-    }
-  }
-
 
 Biosaur2Algorithm::Biosaur2Algorithm() :
   DefaultParamHandler("Biosaur2Algorithm")
@@ -252,6 +233,28 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   vector<FeatureMap> fmap_per_group(n_groups);
 
   const double original_paseftol = paseftol_;
+
+  // Check IM unit and warn if CCS data with small tolerance (single-threaded, before parallel loop)
+  for (const auto& group_pair : groups)
+  {
+    const MSExperiment& group_exp = group_pair.second;
+    for (const auto& spec : group_exp)
+    {
+      if (spec.containsIMData())
+      {
+        const auto [im_data_index, im_unit] = spec.getIMData();
+        if (im_unit == DriftTimeUnit::CCS && original_paseftol < 1.0)
+        {
+          OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
+                          << "paseftol = " << original_paseftol
+                          << " appears to be set for 1/K0 data. "
+                          << "For CCS data, consider using larger values (e.g., 5-20)." << '\n';
+        }
+        goto done_ccs_check; // Found IM data, no need to check further
+      }
+    }
+  }
+  done_ccs_check:
 
   // Parallelize processing across FAIMS groups. Each group is handled
   // independently using its own local hills/features containers.
@@ -944,11 +947,6 @@ void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, do
     }
 
     const double ion_mobility_step = (*it_max_im) * ion_mobility_accuracy;
-
-    // Check IM unit and warn if CCS data with small tolerance
-    DriftTimeUnit im_unit = DriftTimeUnit::NONE;
-    IMDataConverter::getIMUnit(im_array, im_unit);
-    warnIfCCSWithSmallTolerance(im_unit, ion_mobility_accuracy);
 
     if (ion_mobility_step <= 0.0)
     {
