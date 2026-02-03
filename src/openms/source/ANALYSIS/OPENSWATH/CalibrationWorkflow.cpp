@@ -25,7 +25,7 @@ namespace OpenMS
     ProgressLogger()
   {
     // === iRT peptide sampling parameters ===
-    defaults_.setValue("auto_irt:enabled", "false", "Enable automatic iRT peptide sampling for calibration");
+    defaults_.setValue("auto_irt:enabled", "true", "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files). This may be useful if standard iRTs (Biognosys iRT kit) were not spiked-in. If set to false, and no additional iRT files are provided, and no transformation is provided, then no calibration is performed.");
     defaults_.setValidStrings("auto_irt:enabled", {"true", "false"});
     
     defaults_.setValue("auto_irt:irt_bins", 100, "Number of RT bins for linear iRT sampling");

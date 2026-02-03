@@ -223,11 +223,6 @@ protected:
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,pqp"));
 
-    // iRT calibration
-    registerStringOption_("auto_irt", "<true|false>", "true",
-                          "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files). This may be useful if standard iRTs (Biognosys iRT kit) were not spiked-in. If set to false, and no additional iRT files are provided via `-tr_irt` / `-tr_irt_nonlinear`, and no transformation is provided via `-rt_norm`, then no calibration is performed.", false, true);
-    setValidStrings_("auto_irt", ListUtils::create<String>("true,false"));
-
     registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false);
     registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
@@ -294,9 +289,6 @@ protected:
     registerDoubleOption_("irt_im_extraction_window", "<double>", -1, "Ion mobility extraction window used for iRT (in 1/K0 or milliseconds depending on library). -1 means do not perform ion mobility calibration", false, true);
     registerDoubleOption_("irt_nonlinear_rt_extraction_window", "<double>", 600.0, "Only extract RT around this value for non linear iRT calibration (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false, true);
     setMinFloat_("irt_nonlinear_rt_extraction_window", -1.0); // means extract over the whole range
-
-    registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false, true);
-    registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false, true);
 
     registerFlag_("split_file_input", "The input files each contain one single SWATH (alternatively: all SWATH are in separate files)", true);
     registerFlag_("use_elution_model_score", "Turn on elution model score (EMG fit to peak)", true);
@@ -718,19 +710,18 @@ protected:
 
     String out_qc = getStringOption_("out_qc");
 
-    bool auto_irt = (getStringOption_("auto_irt") == "true");
-
     Param irt_calibration_params = getParam_().copy("Calibration:", true);
-    UInt irt_seed  = irt_calibration_params.getValue("irt_seed");
-    UInt irt_bins_lin = irt_calibration_params.getValue("irt_bins");
-    UInt irt_pep_lin  = irt_calibration_params.getValue("irt_peptides_per_bin");
-    UInt irt_bins_nl  = irt_calibration_params.getValue("irt_bins_nonlinear");
-    UInt irt_pep_nl   = irt_calibration_params.getValue("irt_peptides_per_bin_nonlinear");
+    bool auto_irt = (irt_calibration_params.getValue("auto_irt:enabled").toString() == "true");
 
+    // Extract only the parameters needed for OpenSwathWorkflow-specific validation and logic
     String irt_tr_file = irt_calibration_params.getValue("files:linear_irt_file").toString();
-    String nonlinear_irt_tr_file = irt_calibration_params.getValue("files:nonlinear_irt_file").toString();
     String priority_sampling_irt_tr_file = irt_calibration_params.getValue("tr_irt_priority_sampling").toString();
     String trafo_in = irt_calibration_params.getValue("rt_norm").toString();
+    
+    // Extract parameters needed for OpenSwathWorkflow validation logic
+    UInt irt_bins_lin = irt_calibration_params.getValue("auto_irt:irt_bins");
+    UInt irt_pep_lin  = irt_calibration_params.getValue("auto_irt:irt_peptides_per_bin");
+    
     String swath_windows_file = getStringOption_("swath_windows_file");
 
     String out_chrom = getStringOption_("out_chrom");
@@ -745,9 +736,6 @@ protected:
     int outer_loop_threads = (int)getIntOption_("outer_loop_threads");
     int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
     Size debug_level = (Size)getIntOption_("debug");
-
-    double min_rsq = getDoubleOption_("min_rsq");
-    double min_coverage = getDoubleOption_("min_coverage");
 
     Param debug_params = getParam_().copy("Debugging:", true);
 
@@ -1198,37 +1186,15 @@ protected:
         // Setup CalibrationWorkflow configuration from TOPP parameters
         CalibrationWorkflow calibration_wf;
         
-        // Configure CalibrationWorkflow parameters
-        Param cal_params;
+        // Pass the entire Calibration parameter set to CalibrationWorkflow
+        // This includes all file paths, auto-iRT settings, calibration quality settings, etc.
+        Param cal_params = irt_calibration_params;
         
-        // Static iRT file parameters
-        cal_params.setValue("files:linear_irt_file", irt_tr_file);
-        cal_params.setValue("files:nonlinear_irt_file", nonlinear_irt_tr_file);
-        
-        // Auto-iRT parameters
-        cal_params.setValue("auto_irt:enabled", auto_irt ? "true" : "false");
-        cal_params.setValue("auto_irt:irt_bins", irt_bins_lin);
-        cal_params.setValue("auto_irt:irt_peptides_per_bin", irt_pep_lin);
-        cal_params.setValue("auto_irt:irt_seed", irt_seed);
-        cal_params.setValue("auto_irt:irt_bins_nonlinear", irt_bins_nl);
-        cal_params.setValue("auto_irt:irt_peptides_per_bin_nonlinear", irt_pep_nl);
-        cal_params.setValue("auto_irt:linear_top_fraction", 0.4);
-        cal_params.setValue("auto_irt:nonlinear_top_fraction", 0.7);
-        
-        // Linear calibration parameters
-        cal_params.setValue("linear:enabled", "true");
-        cal_params.setValue("linear:min_rsq", min_rsq);
-        
-        // Nonlinear calibration parameters (enable if nonlinear peptides configured)
-        bool enable_nonlinear = (irt_pep_nl > 0);
-        cal_params.setValue("nonlinear:enabled", enable_nonlinear ? "true" : "false");
-        
-        // Window estimation parameters
+        // Override window estimation parameters from OpenSwathWorkflow's top-level settings
         cal_params.setValue("windows:estimate_rt", use_est_window_choices.rt ? "true" : "false");
         cal_params.setValue("windows:estimate_mz", use_est_window_choices.mz ? "true" : "false");
         cal_params.setValue("windows:estimate_im", use_est_window_choices.im ? "true" : "false");
         
-        // Apply configuration
         calibration_wf.setParameters(cal_params);
         calibration_wf.setLogType(log_type_);
         
