@@ -1101,9 +1101,16 @@ protected:
         // Setup CalibrationWorkflow configuration from TOPP parameters
         CalibrationWorkflow calibration_wf;
         
-        // Pass the entire Calibration parameter set to CalibrationWorkflow
-        // This includes all file paths, auto-iRT settings, calibration quality settings, etc.
-        Param cal_params = irt_calibration_params;
+        // Filter parameters to exclude MassIMCorrection and RTNormalization parameters, these are passed as their own separate parameter objects
+        // Pass everything else to CalibrationWorkflow
+        Param cal_params = irt_calibration_params.copy("", false);
+        
+        // Remove the sections that don't belong to CalibrationWorkflow
+        cal_params.remove("MassIMCorrection:");
+        cal_params.remove("RTNormalization:");
+        // Top-level parameters handled by OpenSwathWorkflow
+        cal_params.remove("rt_norm");  
+        cal_params.remove("tr_irt_priority_sampling");  
         
         calibration_wf.setParameters(cal_params);
         calibration_wf.setLogType(log_type_);
