@@ -291,7 +291,6 @@ namespace OpenMS
       @brief Perform linear-only calibration workflow.
       
       @param[in,out] swath_maps SWATH data maps
-      @param[in,out] transition_exp Target transitions  
       @param[in] irt_experiments Prepared iRT experiments
       @param[in] feature_finder_param Parameters for MRMFeatureFinderScoring
       @param[in] cp_irt Extraction parameters for iRT peptides
@@ -307,7 +306,6 @@ namespace OpenMS
     */
     CalibrationResult performLinearCalibration_(
       std::vector<OpenSwath::SwathMap>& swath_maps,
-      OpenSwath::LightTargetedExperiment& transition_exp,
       const IrtExperiments& irt_experiments,
       const Param& feature_finder_param,
       const ChromExtractParams& cp_irt,
@@ -327,7 +325,6 @@ namespace OpenMS
       using a separate set of iRT transitions.
       
       @param[in,out] swath_maps SWATH data maps
-      @param[in,out] transition_exp Target transitions
       @param[in] irt_experiments Prepared iRT experiments
       @param[in] feature_finder_param Parameters for MRMFeatureFinderScoring
       @param[in] cp_irt Extraction parameters for iRT peptides
@@ -343,7 +340,6 @@ namespace OpenMS
     */
     CalibrationResult performLinearThenNonlinearCalibration_(
       std::vector<OpenSwath::SwathMap>& swath_maps,
-      OpenSwath::LightTargetedExperiment& transition_exp,
       const IrtExperiments& irt_experiments,
       const Param& feature_finder_param,
       const ChromExtractParams& cp_irt,

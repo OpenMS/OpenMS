@@ -165,14 +165,14 @@ namespace OpenMS
 
     if (has_nonlinear_irt)
     {
-      result = performLinearThenNonlinearCalibration_(swath_maps, transition_exp, irt_experiments,
+      result = performLinearThenNonlinearCalibration_(swath_maps, irt_experiments,
                                                      feature_finder_param, cp_irt, irt_detection_param,
                                                      calibration_param, mrm_mapping_param, pasef,
                                                      load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);
     }
     else
     {
-      result = performLinearCalibration_(swath_maps, transition_exp, irt_experiments,
+      result = performLinearCalibration_(swath_maps, irt_experiments,
                                         feature_finder_param, cp_irt, irt_detection_param,
                                         calibration_param, mrm_mapping_param, pasef,
                                         load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);
@@ -203,7 +203,6 @@ namespace OpenMS
   CalibrationWorkflow::CalibrationResult
   CalibrationWorkflow::performLinearCalibration_(
     std::vector<OpenSwath::SwathMap>& swath_maps,
-    OpenSwath::LightTargetedExperiment& transition_exp,
     const IrtExperiments& irt_experiments,
     const Param& feature_finder_param,
     const ChromExtractParams& cp_irt,
@@ -284,7 +283,6 @@ namespace OpenMS
   CalibrationWorkflow::CalibrationResult
   CalibrationWorkflow::performLinearThenNonlinearCalibration_(
     std::vector<OpenSwath::SwathMap>& swath_maps,
-    OpenSwath::LightTargetedExperiment& transition_exp,
     const IrtExperiments& irt_experiments,
     const Param& feature_finder_param,
     const ChromExtractParams& cp_irt,
@@ -309,7 +307,7 @@ namespace OpenMS
     linear_detection_param.setValue("outlierMethod", linear_outlier_detection_);
     
     CalibrationResult linear_result = performLinearCalibration_(
-      swath_maps, transition_exp, irt_experiments,
+      swath_maps, irt_experiments,
       feature_finder_param, cp_irt, linear_detection_param,
       linear_calibration_param, mrm_mapping_param, pasef,
       load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);  
