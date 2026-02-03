@@ -165,7 +165,6 @@ namespace OpenMS
 
     if (has_nonlinear_irt)
     {
-      OPENMS_LOG_INFO << "Performing linear + nonlinear calibration workflow..." << std::endl;
       result = performLinearThenNonlinearCalibration_(swath_maps, transition_exp, irt_experiments,
                                                      feature_finder_param, cp_irt, irt_detection_param,
                                                      calibration_param, mrm_mapping_param, pasef,
@@ -173,7 +172,6 @@ namespace OpenMS
     }
     else
     {
-      OPENMS_LOG_INFO << "Performing linear calibration workflow..." << std::endl;
       result = performLinearCalibration_(swath_maps, transition_exp, irt_experiments,
                                         feature_finder_param, cp_irt, irt_detection_param,
                                         calibration_param, mrm_mapping_param, pasef,
@@ -183,7 +181,7 @@ namespace OpenMS
     // Apply IM correction back to the target library if needed (applies to both linear and nonlinear workflows)
     if (!result.im_trafo.getDataPoints().empty())
     {
-      OPENMS_LOG_INFO << "Applying ion mobility correction to target library..." << std::endl;
+      OPENMS_LOG_DEBUG << "Applying ion mobility correction to target library..." << std::endl;
       TransformationDescription im_trafo_inv = result.im_trafo;
       im_trafo_inv.invert();
       for (auto& compound : transition_exp.getCompounds())
@@ -228,11 +226,6 @@ namespace OpenMS
     this->startProgress(0, 1, "Linear Calibration");
 
     CalibrationResult result;
-    
-    // Perform iRT-based calibration
-    OPENMS_LOG_INFO << "Performing iRT-based linear calibration with " 
-                    << irt_experiments.linear_irt.getTransitions().size() 
-                    << " transitions..." << std::endl;
       
       // Create calibration workflow
       OpenSwathCalibrationWorkflow calibration_wf;
@@ -568,12 +561,12 @@ namespace OpenMS
     {
       if (num_runs > 1)
       {
-        OPENMS_LOG_INFO << "Static iRT files configured for " << num_runs << " runs - using STATIC_FILES strategy" << std::endl;
+        OPENMS_LOG_DEBUG << "Static iRT files configured for " << num_runs << " runs - using STATIC_FILES strategy" << std::endl;
         return IrtStrategy::STATIC_FILES;
       }
       else
       {
-        OPENMS_LOG_INFO << "Static iRT files configured for single run - using STATIC_FILES strategy" << std::endl;
+        OPENMS_LOG_DEBUG << "Static iRT files configured for single run - using STATIC_FILES strategy" << std::endl;
         return IrtStrategy::STATIC_FILES;
       }
     }
@@ -583,12 +576,12 @@ namespace OpenMS
     {
       if (num_runs > 1)
       {
-        OPENMS_LOG_INFO << "Full transition library available for " << num_runs << " runs - using SAMPLE_ONCE strategy for consistency" << std::endl;
+        OPENMS_LOG_DEBUG << "Full transition library available for " << num_runs << " runs - using SAMPLE_ONCE strategy for consistency" << std::endl;
         return IrtStrategy::SAMPLE_ONCE;
       }
       else
       {
-        OPENMS_LOG_INFO << "Full transition library available for single run - using SAMPLE_PER_RUN strategy" << std::endl;
+        OPENMS_LOG_DEBUG << "Full transition library available for single run - using SAMPLE_PER_RUN strategy" << std::endl;
         return IrtStrategy::SAMPLE_PER_RUN;
       }
     }
