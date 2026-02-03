@@ -395,9 +395,7 @@ protected:
       CalibrationWorkflow cal_wf;
       Param p = cal_wf.getDefaults();
       
-      // Add OpenSwathWorkflow-specific iRT file parameters that aren't in CalibrationWorkflow
-      p.setValue("tr_irt", "", "transition file ('TraML') for linear iRTs. Takes precedent even when `auto_irt` is set to 'true'");
-      p.setValue("tr_irt_nonlinear", "", "additional nonlinear transition file ('TraML'). Takes precedent even when `auto_irt` is set to 'true'");
+      // Add OpenSwathWorkflow-specific parameters that aren't in CalibrationWorkflow
       p.setValue("tr_irt_priority_sampling", "", "Optional custom transition file (TSV format only) containing additional priority peptides for iRT sampling. These peptides will be prioritized alongside the built-in irtkit and cirtkit peptides when `auto_irt` is enabled. Useful for including project-specific or custom iRT peptides.");
       p.setValue("rt_norm", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.");
       
@@ -729,8 +727,8 @@ protected:
     UInt irt_bins_nl  = irt_calibration_params.getValue("irt_bins_nonlinear");
     UInt irt_pep_nl   = irt_calibration_params.getValue("irt_peptides_per_bin_nonlinear");
 
-    String irt_tr_file = irt_calibration_params.getValue("tr_irt").toString();
-    String nonlinear_irt_tr_file = irt_calibration_params.getValue("tr_irt_nonlinear").toString();
+    String irt_tr_file = irt_calibration_params.getValue("files:linear_irt_file").toString();
+    String nonlinear_irt_tr_file = irt_calibration_params.getValue("files:nonlinear_irt_file").toString();
     String priority_sampling_irt_tr_file = irt_calibration_params.getValue("tr_irt_priority_sampling").toString();
     String trafo_in = irt_calibration_params.getValue("rt_norm").toString();
     String swath_windows_file = getStringOption_("swath_windows_file");
