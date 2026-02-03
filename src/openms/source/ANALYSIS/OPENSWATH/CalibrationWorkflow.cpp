@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/APPLICATIONS/OpenSwathBase.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathCalibrationWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
@@ -120,156 +121,53 @@ namespace OpenMS
 
   CalibrationWorkflow::CalibrationResult 
   CalibrationWorkflow::performCalibration(
-    const String& trafo_in,
     std::vector<OpenSwath::SwathMap>& swath_maps,
     OpenSwath::LightTargetedExperiment& transition_exp,
     ChromExtractParams& cp,
     ChromExtractParams& cp_ms1,
-    const CalibrationConfig& config)
+    const IrtExperiments& irt_experiments,
+    const Param& feature_finder_param,
+    const ChromExtractParams& cp_irt,
+    const Param& irt_detection_param,
+    const Param& calibration_param,
+    const Param& mrm_mapping_param,
+    bool pasef,
+    bool load_into_memory,
+    const String& irt_trafo_out,
+    const String& irt_mzml_out)
   {
-    // Validate configuration
-    if (!validateConfig(config, trafo_in))
+    // Validate that iRT experiments are ready
+    if (!irt_experiments.is_prepared)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Invalid calibration configuration provided.");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "iRT experiments must be prepared before calling performCalibration. Call prepareIrtExperiments() first.");
     }
 
     CalibrationResult result;
 
-    // Priority 1: Load RT transformation file if provided (rt_norm parameter)
-    if (!trafo_in.empty())
-    {
-      OPENMS_LOG_INFO << "Loading user-provided RT transformation from: " << trafo_in << std::endl;
-      try 
-      {
-        FileHandler().loadTransformations(trafo_in, result.rt_trafo, true);
-        OPENMS_LOG_INFO << "Successfully loaded RT transformation with " 
-                        << result.rt_trafo.getDataPoints().size() 
-                        << " data points" << std::endl;
-        
-        // When user provides transformation, we don't estimate windows
-        // (user is bypassing the iRT calibration entirely)
-        result.ms2_mz_window_ppm = -1.0;  // Invalid/unused
-        result.ms2_im_window = -1.0;      // Invalid/unused  
-        result.ms1_mz_window_ppm = -1.0;  // Invalid/unused
-        result.ms1_im_window = -1.0;      // Invalid/unused
-        result.estimated_rt_window = -1.0; // Invalid/unused
-        
-        OPENMS_LOG_INFO << "Skipping iRT calibration and window estimation (user-provided transformation)" << std::endl;
-        
-        // Apply estimated extraction windows if requested (though estimates will be -1)
-        applyEstimatedWindows_(result, cp, cp_ms1, config, config.pasef, 
-                              config.feature_finder_param.getValue("use_ms1_ion_mobility").toBool());
-        
-        OPENMS_LOG_INFO << "RT transformation loaded successfully." << std::endl;
-        return result;
-      }
-      catch (const Exception::BaseException& e)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  String("Failed to load RT transformation file ") + trafo_in + ": " + e.getMessage(),
-                                  trafo_in);
-      }
-    }
+    // Choose calibration workflow based on availability of nonlinear iRT data
+    bool has_nonlinear_irt = !irt_experiments.nonlinear_irt.getTransitions().empty();
 
-    // Priority 2-4: Proceed with iRT-based calibration (file-based, pre-loaded, or auto-sampled)
-    OPENMS_LOG_INFO << "No RT transformation file provided - proceeding with iRT-based calibration" << std::endl;
-
-    // Set up the actual iRT experiments to use - prioritize files over pre-loaded experiments
-    OpenSwath::LightTargetedExperiment linear_irt_exp = config.linear_irt_exp;
-    OpenSwath::LightTargetedExperiment nonlinear_irt_exp = config.nonlinear_irt_exp;
-    
-    // Load from files if provided (takes precedence over pre-loaded experiments)
-    if (!config.linear_irt_file.empty())
-    {
-      linear_irt_exp = loadIrtExperimentFromFile_(config.linear_irt_file, config.irt_tsv_reader_param, "linear");
-    }
-    if (!config.nonlinear_irt_file.empty())
-    {
-      nonlinear_irt_exp = loadIrtExperimentFromFile_(config.nonlinear_irt_file, config.irt_tsv_reader_param, "nonlinear");
-    }
-    
-    // Auto-generate iRT experiments if enabled and full experiment provided
-    if (param_.getValue("auto_irt:enabled").toBool() && 
-        !config.full_transition_exp.getTransitions().empty())
-    {
-      OPENMS_LOG_INFO << "Auto-generating iRT experiments from " 
-                      << config.full_transition_exp.getTransitions().size()
-                      << " total transitions..." << std::endl;
-      
-      // Parameters for linear iRT sampling
-      Size irt_bins = (Size)param_.getValue("auto_irt:irt_bins");
-      Size irt_peptides_per_bin = (Size)param_.getValue("auto_irt:irt_peptides_per_bin");
-      Size irt_seed = (Size)param_.getValue("auto_irt:irt_seed");
-      double linear_top_fraction = (double)param_.getValue("auto_irt:linear_top_fraction");
-      
-      // Convert vector<String> to unordered_set<string> for priority peptides
-      std::unordered_set<std::string> priority_set;
-      for (const auto& pep : config.priority_peptides) {
-        priority_set.insert(pep.c_str());
-      }
-      
-      // Generate linear iRT experiment (or enhance existing one)
-      if (linear_irt_exp.getTransitions().empty())
-      {
-        linear_irt_exp = OpenSwathHelper::sampleExperiment(
-          config.full_transition_exp,
-          irt_bins,
-          irt_peptides_per_bin,
-          irt_seed,
-          false,  // sort_by_intensity
-          linear_top_fraction,
-          priority_set);
-        
-        OPENMS_LOG_INFO << "Generated " << linear_irt_exp.getTransitions().size() 
-                        << " transitions for linear iRT calibration" << std::endl;
-      }
-      
-      // Parameters for nonlinear iRT sampling
-      Size irt_bins_nonlinear = (Size)param_.getValue("auto_irt:irt_bins_nonlinear");
-      Size irt_peptides_per_bin_nonlinear = (Size)param_.getValue("auto_irt:irt_peptides_per_bin_nonlinear");
-      double nonlinear_top_fraction = (double)param_.getValue("auto_irt:nonlinear_top_fraction");
-      
-      // Only generate nonlinear iRT if requested (peptides_per_bin > 0)
-      if (irt_peptides_per_bin_nonlinear > 0 && nonlinear_irt_exp.getTransitions().empty())
-      {
-        nonlinear_irt_exp = OpenSwathHelper::sampleExperiment(
-          config.full_transition_exp,
-          irt_bins_nonlinear,
-          irt_peptides_per_bin_nonlinear,
-          irt_seed,
-          false,  // sort_by_intensity
-          nonlinear_top_fraction,
-          priority_set);
-        
-        OPENMS_LOG_INFO << "Generated " << nonlinear_irt_exp.getTransitions().size()
-                        << " transitions for nonlinear iRT calibration" << std::endl;
-      }
-    }
-
-    // Create a working config with the final iRT experiments
-    CalibrationConfig working_config = config;
-    working_config.linear_irt_exp = linear_irt_exp;
-    working_config.nonlinear_irt_exp = nonlinear_irt_exp;
-
-    // Determine calibration strategy: linear-only vs linear+nonlinear
-    bool has_nonlinear_irt = !working_config.nonlinear_irt_exp.getTransitions().empty();
-    
     if (has_nonlinear_irt)
     {
       OPENMS_LOG_INFO << "Performing linear + nonlinear calibration workflow..." << std::endl;
-      result = performLinearThenNonlinearCalibration_("", swath_maps, 
-                                                     transition_exp, working_config);
+      result = performLinearThenNonlinearCalibration_(swath_maps, transition_exp, irt_experiments,
+                                                     feature_finder_param, cp_irt, irt_detection_param,
+                                                     calibration_param, mrm_mapping_param, pasef,
+                                                     load_into_memory, irt_trafo_out, irt_mzml_out);
     }
     else
     {
       OPENMS_LOG_INFO << "Performing linear calibration workflow..." << std::endl;
-      result = performLinearCalibration_("", swath_maps, transition_exp, working_config);
+      result = performLinearCalibration_(swath_maps, transition_exp, irt_experiments,
+                                        feature_finder_param, cp_irt, irt_detection_param,
+                                        calibration_param, mrm_mapping_param, pasef,
+                                        load_into_memory, irt_trafo_out, irt_mzml_out);
     }
     
     // Apply estimated extraction windows if requested
-    applyEstimatedWindows_(result, cp, cp_ms1, working_config, working_config.pasef, 
-                          working_config.feature_finder_param.getValue("use_ms1_ion_mobility").toBool());
+    applyEstimatedWindows_(result, cp, cp_ms1, pasef, 
+                          feature_finder_param.getValue("use_ms1_ion_mobility").toBool());
 
     OPENMS_LOG_INFO << "Calibration completed. Used " << result.num_irt_peptides_used 
                     << " iRT peptides (R²=" << result.rt_rsq << ", coverage=" 
@@ -280,21 +178,28 @@ namespace OpenMS
 
   CalibrationWorkflow::CalibrationResult
   CalibrationWorkflow::performLinearCalibration_(
-    const String& trafo_in,
     std::vector<OpenSwath::SwathMap>& swath_maps,
     OpenSwath::LightTargetedExperiment& transition_exp,
-    const CalibrationConfig& config)
+    const IrtExperiments& irt_experiments,
+    const Param& feature_finder_param,
+    const ChromExtractParams& cp_irt,
+    const Param& irt_detection_param,
+    const Param& calibration_param,
+    const Param& mrm_mapping_param,
+    bool pasef,
+    bool load_into_memory,
+    const String& irt_trafo_out,
+    const String& irt_mzml_out)
   {
     CalibrationResult result;
     
-    // Note: trafo_in is handled at the performCalibration level
-    // This method focuses on iRT-based calibration only
+    // Note: This method focuses on iRT-based calibration only
     
-    if (!config.linear_irt_exp.getTransitions().empty())
+    if (!irt_experiments.linear_irt.getTransitions().empty())
     {
       // Perform iRT-based calibration
       OPENMS_LOG_INFO << "Performing iRT-based linear calibration with " 
-                      << config.linear_irt_exp.getTransitions().size() 
+                      << irt_experiments.linear_irt.getTransitions().size() 
                       << " transitions..." << std::endl;
       
       // Create calibration workflow
@@ -303,20 +208,20 @@ namespace OpenMS
       
       TransformationDescription im_trafo;
       result.rt_trafo = calibration_wf.performRTNormalization(
-        config.linear_irt_exp, 
+        irt_experiments.linear_irt, 
         swath_maps, 
         im_trafo,
-        config.min_rsq, 
-        config.min_coverage,
-        config.feature_finder_param,
-        config.cp_irt,
-        config.irt_detection_param,
-        config.calibration_param,
-        config.mrm_mapping_param,
-        config.irt_mzml_out,
-        config.debug_level,
-        config.pasef,
-        config.load_into_memory);
+        linear_min_rsq_, 
+        min_coverage_,
+        feature_finder_param,
+        cp_irt,
+        irt_detection_param,
+        calibration_param,
+        mrm_mapping_param,
+        irt_mzml_out,
+        0,  // debug_level
+        pasef,
+        load_into_memory);
         
       // Retrieve estimated windows
       result.ms2_mz_window_ppm = calibration_wf.getEstimatedMzWindow();
@@ -326,12 +231,12 @@ namespace OpenMS
       
       // Estimate RT window from transformation
       result.estimated_rt_window = result.rt_trafo.estimateWindow(
-        0.99, true, true, config.rt_estimation_padding_factor);
+        0.99, true, true, 1.0);  // Use default padding factor
 
       // Save transformation if requested
-      if (!config.irt_trafo_out.empty())
+      if (!irt_trafo_out.empty())
       {
-        FileHandler().storeTransformations(config.irt_trafo_out, result.rt_trafo, 
+        FileHandler().storeTransformations(irt_trafo_out, result.rt_trafo, 
                                          {FileTypes::TRANSFORMATIONXML});
       }
     }
@@ -347,23 +252,34 @@ namespace OpenMS
 
   CalibrationWorkflow::CalibrationResult
   CalibrationWorkflow::performLinearThenNonlinearCalibration_(
-    const String& trafo_in,
     std::vector<OpenSwath::SwathMap>& swath_maps,
     OpenSwath::LightTargetedExperiment& transition_exp,
-    const CalibrationConfig& config)
+    const IrtExperiments& irt_experiments,
+    const Param& feature_finder_param,
+    const ChromExtractParams& cp_irt,
+    const Param& irt_detection_param,
+    const Param& calibration_param,
+    const Param& mrm_mapping_param,
+    bool pasef,
+    bool load_into_memory,
+    const String& irt_trafo_out,
+    const String& irt_mzml_out)
   {
-    // Note: trafo_in is handled at the performCalibration level
     // This method focuses on linear + nonlinear iRT-based calibration only
     
     // Step 1: Perform linear calibration (no m/z calibration to avoid double-application)
     OPENMS_LOG_INFO << "Step 1: Performing linear calibration..." << std::endl;
     
-    CalibrationConfig linear_config = config;
-    linear_config.calibration_param.setValue("mz_correction_function", "none");
-    linear_config.irt_detection_param.setValue("alignmentMethod", "linear");
+    Param linear_calibration_param = calibration_param;
+    linear_calibration_param.setValue("mz_correction_function", "none");
+    Param linear_detection_param = irt_detection_param;
+    linear_detection_param.setValue("alignmentMethod", "linear");
     
     CalibrationResult linear_result = performLinearCalibration_(
-      "", swath_maps, transition_exp, linear_config);
+      swath_maps, transition_exp, irt_experiments,
+      feature_finder_param, cp_irt, linear_detection_param,
+      linear_calibration_param, mrm_mapping_param, pasef,
+      load_into_memory, "", irt_mzml_out);  // Don't save intermediate trafo
     
     // Step 2: Perform nonlinear refinement
     OPENMS_LOG_INFO << "Step 2: Performing nonlinear calibration refinement..." << std::endl;
@@ -373,36 +289,36 @@ namespace OpenMS
     
     // Extract chromatograms for nonlinear iRT peptides using linear transformation
     std::vector<OpenMS::MSChromatogram> nl_chromatograms;
-    ChromExtractParams cp_irt_nl = config.cp_irt;
+    ChromExtractParams cp_irt_nl = cp_irt;
     // Use potentially limited RT window for nonlinear extraction
     // (this is often set in OpenSwathWorkflow via irt_nonlinear_rt_extraction_window)
     
     nonlinear_wf.simpleExtractChromatograms_(
       swath_maps,
-      config.nonlinear_irt_exp,
+      irt_experiments.nonlinear_irt,
       nl_chromatograms,
       linear_result.rt_trafo,  // Use linear result as starting point
       cp_irt_nl,
-      config.mrm_mapping_param,
-      config.pasef,
-      config.load_into_memory);
+      mrm_mapping_param,
+      pasef,
+      load_into_memory);
     
     // Setup nonlinear parameters
-    Param nl_params = config.irt_detection_param;
+    Param nl_params = irt_detection_param;
     nl_params.setValue("estimateBestPeptides", "true"); // Enable outlier detection
     
     TransformationDescription im_trafo;
     TransformationDescription nonlinear_trafo = nonlinear_wf.doDataNormalization_(
-      config.nonlinear_irt_exp,
+      irt_experiments.nonlinear_irt,
       nl_chromatograms,
       im_trafo,
       swath_maps,
-      config.min_rsq,
-      config.min_coverage,
-      config.feature_finder_param,
+      linear_min_rsq_,
+      min_coverage_,
+      feature_finder_param,
       nl_params,
-      config.calibration_param,  // Use full calibration (with m/z correction)
-      config.pasef);
+      calibration_param,  // Use full calibration (with m/z correction)
+      pasef);
 
     // Apply IM correction back to the target library if needed
     if (!im_trafo.getDataPoints().empty())
@@ -427,12 +343,12 @@ namespace OpenMS
     final_result.ms1_im_window = nonlinear_wf.getEstimatedMs1ImWindow();
     
     final_result.estimated_rt_window = final_result.rt_trafo.estimateWindow(
-      0.99, true, true, config.rt_estimation_padding_factor);
+      0.99, true, true, 1.0);  // Use default padding factor
 
     // Save nonlinear transformation if requested
-    if (!config.irt_trafo_out.empty())
+    if (!irt_trafo_out.empty())
     {
-      String nonlinear_path = config.irt_trafo_out;
+      String nonlinear_path = irt_trafo_out;
       const String ext = ".trafoXML";
       if (nonlinear_path.hasSuffix(ext))
       {
@@ -450,42 +366,39 @@ namespace OpenMS
     const CalibrationResult& result,
     ChromExtractParams& cp,
     ChromExtractParams& cp_ms1,
-    const CalibrationConfig& config,
     bool pasef,
     bool use_ms1_im) const
   {
-    const auto& est_windows = config.use_estimated_windows;
-    
     // Apply RT window
-    if (est_windows.rt && result.estimated_rt_window > 0)
+    if (windows_estimate_rt_ && result.estimated_rt_window > 0)
     {
       applyWindow_("RT", result.estimated_rt_window, cp.rt_extraction_window, 
                   cp.rt_extraction_window, true, true);
     }
     
     // Apply MS2 m/z window (only if user is using ppm)
-    if (est_windows.mz && result.ms2_mz_window_ppm > 0 && cp.ppm)
+    if (windows_estimate_mz_ && result.ms2_mz_window_ppm > 0 && cp.ppm)
     {
       applyWindow_("MS2 m/z (ppm)", result.ms2_mz_window_ppm, cp.mz_extraction_window,
                   cp.mz_extraction_window, true, true);
     }
     
     // Apply MS2 ion mobility window
-    if (est_windows.im && result.ms2_im_window > 0)
+    if (windows_estimate_im_ && result.ms2_im_window > 0)
     {
       applyWindow_("MS2 ion mobility (1/k0)", result.ms2_im_window, cp.im_extraction_window,
                   cp.im_extraction_window, pasef, true);
     }
     
     // Apply MS1 m/z window (only if user is using ppm)  
-    if (est_windows.mz && result.ms1_mz_window_ppm > 0 && cp_ms1.ppm)
+    if (windows_estimate_mz_ && result.ms1_mz_window_ppm > 0 && cp_ms1.ppm)
     {
       applyWindow_("MS1 m/z (ppm)", result.ms1_mz_window_ppm, cp_ms1.mz_extraction_window,
                   cp_ms1.mz_extraction_window, true, true);
     }
     
     // Apply MS1 ion mobility window
-    if (est_windows.im && result.ms1_im_window > 0)
+    if (windows_estimate_im_ && result.ms1_im_window > 0)
     {
       applyWindow_("MS1 ion mobility (1/k0)", result.ms1_im_window, cp_ms1.im_extraction_window,
                   cp_ms1.im_extraction_window, pasef && use_ms1_im, true);
@@ -536,110 +449,11 @@ namespace OpenMS
     return std::isfinite(v) && (v > min_positive);
   }
 
-  bool CalibrationWorkflow::validateConfig(const CalibrationConfig& config) const
-  {
-    // Basic parameter validation
-    if (config.min_rsq < 0.0 || config.min_rsq > 1.0)
-    {
-      OPENMS_LOG_ERROR << "Invalid min_rsq: " << config.min_rsq 
-                       << " (must be between 0.0 and 1.0)" << std::endl;
-      return false;
-    }
-    
-    if (config.min_coverage < 0.0 || config.min_coverage > 1.0)
-    {
-      OPENMS_LOG_ERROR << "Invalid min_coverage: " << config.min_coverage 
-                       << " (must be between 0.0 and 1.0)" << std::endl;
-      return false;
-    }
-    
-    // Check that we have some calibration method
-    bool has_linear_irt = !config.linear_irt_exp.getTransitions().empty() || !config.linear_irt_file.empty();
-    bool has_nonlinear_irt = !config.nonlinear_irt_exp.getTransitions().empty() || !config.nonlinear_irt_file.empty();
-    bool has_full_exp_for_sampling = !config.full_transition_exp.getTransitions().empty();
-    bool auto_irt_enabled = param_.getValue("auto_irt:enabled").toBool();
-    
-    if (!has_linear_irt && !has_nonlinear_irt && !(auto_irt_enabled && has_full_exp_for_sampling))
-    {
-      OPENMS_LOG_ERROR << "No calibration method available: provide iRT experiments or enable auto-iRT with full transition experiment" << std::endl;
-      return false;
-    }
-    
-    if (!has_linear_irt && has_nonlinear_irt && !(auto_irt_enabled && has_full_exp_for_sampling))
-    {
-      OPENMS_LOG_ERROR << "Cannot perform nonlinear calibration without linear iRT transitions" << std::endl;
-      return false;
-    }
-    
-    return true;
-  }
 
-  bool CalibrationWorkflow::validateConfig(const CalibrationConfig& config, const String& trafo_in) const
-  {
-    // Basic parameter validation (same as regular validateConfig)
-    if (config.min_rsq < 0.0 || config.min_rsq > 1.0)
-    {
-      OPENMS_LOG_ERROR << "Invalid min_rsq: " << config.min_rsq 
-                       << " (must be between 0.0 and 1.0)" << std::endl;
-      return false;
-    }
-    
-    if (config.min_coverage < 0.0 || config.min_coverage > 1.0)
-    {
-      OPENMS_LOG_ERROR << "Invalid min_coverage: " << config.min_coverage 
-                       << " (must be between 0.0 and 1.0)" << std::endl;
-      return false;
-    }
-    
-    // Check that we have some calibration method - now including trafo_in
-    bool has_trafo_file = !trafo_in.empty();
-    bool has_linear_irt = !config.linear_irt_exp.getTransitions().empty() || !config.linear_irt_file.empty();
-    bool has_nonlinear_irt = !config.nonlinear_irt_exp.getTransitions().empty() || !config.nonlinear_irt_file.empty();
-    bool has_full_exp_for_sampling = !config.full_transition_exp.getTransitions().empty();
-    bool auto_irt_enabled = param_.getValue("auto_irt:enabled").toBool();
-    
-    // Valid calibration methods:
-    // 1. User-provided transformation file (rt_norm)
-    // 2. iRT-based calibration (linear and/or nonlinear)  
-    // 3. Auto-iRT sampling from full experiment
-    if (!has_trafo_file && !has_linear_irt && !has_nonlinear_irt && !(auto_irt_enabled && has_full_exp_for_sampling))
-    {
-      OPENMS_LOG_ERROR << "No calibration method available: provide RT transformation file, iRT experiments, or enable auto-iRT with full transition experiment" << std::endl;
-      return false;
-    }
-    
-    // If user provides transformation file, validate it exists
-    if (has_trafo_file)
-    {
-      if (!File::exists(trafo_in))
-      {
-        OPENMS_LOG_ERROR << "RT transformation file does not exist: " << trafo_in << std::endl;
-        return false;
-      }
-      
-      // When transformation file is provided, other calibration methods are ignored
-      if (has_linear_irt || has_nonlinear_irt || (auto_irt_enabled && has_full_exp_for_sampling))
-      {
-        OPENMS_LOG_WARN << "RT transformation file provided - ignoring iRT calibration settings" << std::endl;
-      }
-    }
-    else
-    {
-      // No transformation file - validate iRT-based calibration
-      if (!has_linear_irt && has_nonlinear_irt && !(auto_irt_enabled && has_full_exp_for_sampling))
-      {
-        OPENMS_LOG_ERROR << "Cannot perform nonlinear calibration without linear iRT transitions" << std::endl;
-        return false;
-      }
-    }
-    
-    return true;
-  }
 
   OpenSwath::LightTargetedExperiment
   CalibrationWorkflow::loadIrtExperimentFromFile_(
     const String& irt_file_path,
-    const Param& irt_tsv_reader_param,
     const String& label) const
   {
     OpenSwath::LightTargetedExperiment irt_exp;
@@ -663,7 +477,7 @@ namespace OpenMS
       if (file_type == FileTypes::TSV)
       {
         TransitionTSVFile tsv_reader;
-        tsv_reader.setParameters(irt_tsv_reader_param);
+        // Use default parameters for TSV reader
         TargetedExperiment targeted_exp;
         tsv_reader.convertTSVToTargetedExperiment(irt_file_path.c_str(), file_type, targeted_exp);
         OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, irt_exp);
@@ -701,35 +515,205 @@ namespace OpenMS
     }
   }
 
-  CalibrationWorkflow::CalibrationConfig 
-  CalibrationWorkflow::getDefaultConfig()
+
+  CalibrationWorkflow::IrtStrategy 
+  CalibrationWorkflow::determineIrtStrategy(
+    const OpenSwath::LightTargetedExperiment& full_transition_exp,
+    size_t num_runs) const
   {
-    CalibrationConfig config;
+    // Priority 1: If static iRT files are configured
+    if (!linear_irt_file_.empty())
+    {
+      if (num_runs > 1)
+      {
+        OPENMS_LOG_INFO << "Static iRT files configured for " << num_runs << " runs - using STATIC_FILES strategy" << std::endl;
+        return IrtStrategy::STATIC_FILES;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "Static iRT files configured for single run - using STATIC_FILES strategy" << std::endl;
+        return IrtStrategy::STATIC_FILES;
+      }
+    }
     
-    // Quality control defaults
-    config.min_rsq = 0.95;
-    config.min_coverage = 0.6;
+    // Priority 2: If auto-iRT is enabled and we have transition library
+    if (auto_irt_enabled_ && !full_transition_exp.getTransitions().empty())
+    {
+      if (num_runs > 1)
+      {
+        OPENMS_LOG_INFO << "Full transition library available for " << num_runs << " runs - using SAMPLE_ONCE strategy for consistency" << std::endl;
+        return IrtStrategy::SAMPLE_ONCE;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "Full transition library available for single run - using SAMPLE_PER_RUN strategy" << std::endl;
+        return IrtStrategy::SAMPLE_PER_RUN;
+      }
+    }
     
-    // iRT file parameters defaults
-    config.irt_tsv_reader_param = TransitionTSVFile().getDefaults();
+    // No iRT data available - CalibrationWorkflow requires iRT data
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "CalibrationWorkflow requires iRT data. Please provide either static iRT files (linear_irt_file parameter) or enable auto_irt and provide a full transition library for auto-sampling.");
+  }
+  
+  CalibrationWorkflow::IrtExperiments 
+  CalibrationWorkflow::prepareIrtExperiments(
+    IrtStrategy strategy,
+    const OpenSwath::LightTargetedExperiment& full_transition_exp,
+    const std::vector<String>& priority_peptides,
+    size_t run_index,
+    const IrtExperiments* cached_irts)
+  {
+    IrtExperiments result;
+    result.strategy = strategy;
+    result.is_prepared = false;
     
-    // Algorithm parameters (would typically be populated from TOPP tool parameters)
-    config.feature_finder_param = MRMFeatureFinderScoring().getDefaults();
-    config.cp_irt = ChromExtractParams(); // Default extraction parameters
-    // ... other defaults would be set here
+    switch (strategy) 
+    {
+      case IrtStrategy::STATIC_FILES:
+        OPENMS_LOG_INFO << "Preparing static iRT experiments from configured files" << std::endl;
+        
+        // Load linear iRT experiment (required)
+        if (!linear_irt_file_.empty())
+        {
+          result.linear_irt = loadIrtExperimentFromFile_(linear_irt_file_, "linear");
+          OPENMS_LOG_INFO << "Loaded linear iRT experiment from file (" << result.linear_irt.getTransitions().size() << " transitions)" << std::endl;
+        }
+        else
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "STATIC_FILES strategy requires linear_irt_file parameter to be configured");
+        }
+        
+        // Load nonlinear iRT experiment (optional)
+        if (!nonlinear_irt_file_.empty())
+        {
+          result.nonlinear_irt = loadIrtExperimentFromFile_(nonlinear_irt_file_, "nonlinear");
+          OPENMS_LOG_INFO << "Loaded nonlinear iRT experiment from file (" << result.nonlinear_irt.getTransitions().size() << " transitions)" << std::endl;
+        }
+        
+        result.is_prepared = true;
+        break;
+        
+      case IrtStrategy::SAMPLE_ONCE:
+        if (cached_irts && cached_irts->is_prepared)
+        {
+          OPENMS_LOG_INFO << "Reusing cached sampled iRT experiments for run " << run_index << std::endl;
+          result = *cached_irts; // Copy the cached experiments
+        }
+        else
+        {
+          OPENMS_LOG_INFO << "Sampling iRT experiments once from transition library (run " << run_index << ")" << std::endl;
+          
+          if (full_transition_exp.getTransitions().empty())
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "SAMPLE_ONCE strategy requires full_transition_exp to be provided");
+          }
+          
+          // Convert vector<String> to unordered_set<string> for priority peptides
+          std::unordered_set<std::string> priority_set;
+          for (const auto& pep : priority_peptides) {
+            priority_set.insert(pep.c_str());
+          }
+          
+          // Generate linear iRT experiment
+          result.linear_irt = OpenSwathHelper::sampleExperiment(
+            full_transition_exp,
+            auto_irt_irt_bins_,
+            auto_irt_irt_peptides_per_bin_,
+            auto_irt_irt_seed_,
+            false,  // sort_by_intensity
+            auto_irt_linear_top_fraction_,
+            priority_set);
+          
+          OPENMS_LOG_INFO << "Generated " << result.linear_irt.getTransitions().size() 
+                          << " transitions for linear iRT calibration" << std::endl;
+          
+          // Generate nonlinear iRT experiment if requested
+          if (auto_irt_irt_peptides_per_bin_nonlinear_ > 0)
+          {
+            result.nonlinear_irt = OpenSwathHelper::sampleExperiment(
+              full_transition_exp,
+              auto_irt_irt_bins_nonlinear_,
+              auto_irt_irt_peptides_per_bin_nonlinear_,
+              auto_irt_irt_seed_,
+              false,  // sort_by_intensity
+              auto_irt_nonlinear_top_fraction_,
+              priority_set);
+            
+            OPENMS_LOG_INFO << "Generated " << result.nonlinear_irt.getTransitions().size()
+                            << " transitions for nonlinear iRT calibration" << std::endl;
+          }
+          
+          result.is_prepared = true;
+        }
+        break;
+        
+      case IrtStrategy::SAMPLE_PER_RUN:
+        OPENMS_LOG_INFO << "Sampling fresh iRT experiments for run " << run_index << std::endl;
+        
+        if (full_transition_exp.getTransitions().empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "SAMPLE_PER_RUN strategy requires full_transition_exp to be provided");
+        }
+        
+        // Convert vector<String> to unordered_set<string> for priority peptides
+        std::unordered_set<std::string> priority_set;
+        for (const auto& pep : priority_peptides) {
+          priority_set.insert(pep.c_str());
+        }
+        
+        // Use run_index as additional seed variation for per-run sampling
+        Size run_specific_seed = auto_irt_irt_seed_ + run_index;
+        
+        // Generate linear iRT experiment
+        result.linear_irt = OpenSwathHelper::sampleExperiment(
+          full_transition_exp,
+          auto_irt_irt_bins_,
+          auto_irt_irt_peptides_per_bin_,
+          run_specific_seed,
+          false,  // sort_by_intensity
+          auto_irt_linear_top_fraction_,
+          priority_set);
+        
+        OPENMS_LOG_INFO << "Generated " << result.linear_irt.getTransitions().size() 
+                        << " transitions for linear iRT calibration" << std::endl;
+        
+        // Generate nonlinear iRT experiment if requested
+        if (auto_irt_irt_peptides_per_bin_nonlinear_ > 0)
+        {
+          result.nonlinear_irt = OpenSwathHelper::sampleExperiment(
+            full_transition_exp,
+            auto_irt_irt_bins_nonlinear_,
+            auto_irt_irt_peptides_per_bin_nonlinear_,
+            run_specific_seed,
+            false,  // sort_by_intensity
+            auto_irt_nonlinear_top_fraction_,
+            priority_set);
+          
+          OPENMS_LOG_INFO << "Generated " << result.nonlinear_irt.getTransitions().size()
+                          << " transitions for nonlinear iRT calibration" << std::endl;
+        }
+        
+        result.is_prepared = true;
+        break;
+        
+      case IrtStrategy::RUN_SPECIFIC:
+        OPENMS_LOG_INFO << "Loading run-specific iRT experiments for run " << run_index << std::endl;
+        // TODO: Implement run-specific file loading logic
+        // This would require run-specific file naming convention
+        OPENMS_LOG_WARN << "RUN_SPECIFIC iRT preparation not yet implemented - using empty experiments" << std::endl;
+        result.is_prepared = false;
+        break;
+        
+      default:
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Unknown IRT strategy provided");
+    }
     
-    // Settings defaults
-    config.pasef = false;
-    config.load_into_memory = false;
-    config.debug_level = 0;
-    
-    // Window estimation defaults
-    config.use_estimated_windows = {false, false, false}; // Conservative default
-    config.rt_estimation_padding_factor = 1.3;
-    config.im_estimation_padding_factor = 1.0;
-    config.mz_estimation_padding_factor = 1.0;
-    
-    return config;
+    return result;
   }
 
   void CalibrationWorkflow::updateMembers_()
@@ -748,6 +732,9 @@ namespace OpenMS
     linear_enabled_ = param_.getValue("linear:enabled").toBool();
     linear_outlier_detection_ = param_.getValue("linear:outlier_detection").toString();
     linear_min_rsq_ = (double)param_.getValue("linear:min_rsq");
+    
+    // === Quality control parameters (from linear section for now) ===
+    min_coverage_ = 0.6; // Default minimum coverage
     
     // === Nonlinear calibration parameters ===
     nonlinear_enabled_ = param_.getValue("nonlinear:enabled").toBool();

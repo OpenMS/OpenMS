@@ -22,6 +22,25 @@
 namespace OpenMS
 {
   /**
+    @brief Strategy for obtaining iRT (indexed Retention Time) calibrant peptides across multiple runs.
+    
+    This enum defines the different approaches for providing iRT peptides
+    for retention time calibration, with consideration for multi-run consistency:
+    
+    - STATIC_FILES: Use pre-defined iRT peptide libraries from files (same for all runs). If all samples have spiked in iRTs, or common expected peptides.
+    - SAMPLE_ONCE: Sample iRT peptides once from transition library, reuse for all runs  
+    - SAMPLE_PER_RUN: Sample fresh iRT peptides independently for each run
+    - RUN_SPECIFIC: Use different iRT files per run (each run has its own iRT files). These are usually generated from accompanying pseudo-DDA spectra analysis
+  */
+  enum class IrtStrategy 
+  {
+    STATIC_FILES,     
+    SAMPLE_ONCE,        
+    SAMPLE_PER_RUN,   
+    RUN_SPECIFIC      
+  };
+
+  /**
     @brief Orchestrates calibration workflows for OpenSWATH analysis.
     
     This class provides a unified interface for performing RT, m/z, and ion mobility
@@ -46,80 +65,6 @@ namespace OpenMS
     public ProgressLogger
   {
   public:
-    
-    /// Selection flags for using auto-estimated extraction windows
-    struct EstimateWindowsChoice
-    {
-      bool rt{false};   ///< Use estimated RT extraction window
-      bool mz{false};   ///< Use estimated m/z extraction window  
-      bool im{false};   ///< Use estimated ion mobility extraction window
-    };
-    
-    /// Configuration for calibration workflow
-    struct CalibrationConfig 
-    {
-      // === iRT Experiments ===
-      /// iRT transitions for linear calibration (pre-loaded)
-      OpenSwath::LightTargetedExperiment linear_irt_exp;
-      /// iRT transitions for nonlinear calibration (pre-loaded, optional)
-      OpenSwath::LightTargetedExperiment nonlinear_irt_exp;
-      
-      // === iRT File Paths (alternative to pre-loaded experiments) ===
-      /// Path to linear iRT file (TraML/TSV/PQP format, empty = use linear_irt_exp)
-      String linear_irt_file;
-      /// Path to nonlinear iRT file (TraML/TSV/PQP format, empty = use nonlinear_irt_exp)
-      String nonlinear_irt_file;
-      /// Parameters for loading iRT files
-      Param irt_tsv_reader_param;
-      
-      // === Auto-iRT Sampling (optional) ===
-      /// Full transition experiment for auto-iRT sampling (empty = use provided iRT experiments)
-      OpenSwath::LightTargetedExperiment full_transition_exp;
-      /// Priority peptides for iRT sampling (empty = no priorities)
-      std::vector<String> priority_peptides;
-      
-      // === Quality Control Parameters ===
-      /// Minimum R-squared value for RT regression
-      double min_rsq{0.95};
-      /// Minimum coverage of chromatographic space
-      double min_coverage{0.6};
-      
-      // === Algorithm Parameters ===
-      /// Parameters for MRMFeatureFinderScoring
-      Param feature_finder_param;
-      /// Parameters for chromatogram extraction (iRT peptides)
-      ChromExtractParams cp_irt;
-      /// Parameters for iRT detection and outlier removal
-      Param irt_detection_param;
-      /// Parameters for m/z and IM calibration
-      Param calibration_param;
-      /// Parameters for MRM chromatogram mapping
-      Param mrm_mapping_param;
-      
-      // === Acquisition Settings ===
-      /// Whether data is PASEF (ion mobility) data
-      bool pasef{false};
-      /// Whether to load data into memory for processing
-      bool load_into_memory{false};
-      /// Debug level for output (0=minimal, higher=more verbose)
-      Size debug_level{0};
-      
-      // === Output Files (optional) ===
-      /// Output file for RT transformation (empty = no output)
-      String irt_trafo_out;
-      /// Output file for iRT chromatograms (empty = no output)  
-      String irt_mzml_out;
-      
-      // === Window Estimation Settings ===
-      /// Which extraction windows to auto-estimate and apply
-      EstimateWindowsChoice use_estimated_windows;
-      /// Padding factor for estimated RT windows (e.g., 1.3 = +30%)
-      double rt_estimation_padding_factor{1.3};
-      /// Padding factor for estimated IM windows
-      double im_estimation_padding_factor{1.0};
-      /// Padding factor for estimated m/z windows
-      double mz_estimation_padding_factor{1.0};
-    };
     
     /// Results from calibration workflow
     struct CalibrationResult 
@@ -148,74 +93,125 @@ namespace OpenMS
       /// Coverage fraction achieved
       double coverage_fraction{0.0};
     };
+    
+    /// Prepared iRT experiments ready for calibration
+    struct IrtExperiments
+    {
+      /// Linear iRT experiment (always required for calibration)
+      OpenSwath::LightTargetedExperiment linear_irt;
+      /// Nonlinear iRT experiment (optional, empty if not used)  
+      OpenSwath::LightTargetedExperiment nonlinear_irt;
+      /// Strategy used to prepare these experiments
+      IrtStrategy strategy{IrtStrategy::STATIC_FILES};
+      /// Whether experiments are available and ready for calibration
+      bool is_prepared{false};
+    };
 
     /// Default constructor
     CalibrationWorkflow();
     
     /// Destructor  
     ~CalibrationWorkflow() override;
+    
+    /**
+      @brief Determine the appropriate IRT strategy based on available data.
+      
+      Analyzes the available iRT data to determine which IRT strategy
+      should be used for calibration. Priority order:
+      1. If static iRT files are configured → STATIC_FILES or RUN_SPECIFIC
+      2. If full transition library is provided → SAMPLE_ONCE or SAMPLE_PER_RUN
+      3. Otherwise → throws exception (CalibrationWorkflow requires iRT data)
+      
+      @param[in] full_transition_exp Full transition experiment for auto-sampling (empty if not available)
+      @param[in] num_runs Total number of runs to process (affects strategy choice)
+      @return The determined IRT strategy
+      @throws Exception::MissingInformation if no iRT data is available
+    */
+    IrtStrategy determineIrtStrategy(
+      const OpenSwath::LightTargetedExperiment& full_transition_exp,
+      size_t num_runs = 1
+    ) const;
+    
+    /**
+      @brief Prepare iRT experiments based on the determined strategy.
+      
+      This function handles all aspects of iRT experiment preparation:
+      - Loading static iRT files  
+      - Auto-sampling from transition libraries with priority peptides
+      - Validation and quality checks
+      - Multi-run consistency management
+      
+      The prepared experiments are ready for use with performCalibration().
+      
+      @param[in] strategy The IRT strategy to use
+      @param[in] full_transition_exp Full transition experiment for auto-sampling (required for sampling strategies)
+      @param[in] priority_peptides Priority peptide sequences for sampling (empty = no priorities)
+      @param[in] run_index Current run index (0-based, for run-specific strategies) 
+      @param[in] cached_irts Previously prepared iRT experiments (for reusing sampled iRTs across runs)
+      @return Prepared iRT experiments ready for calibration
+      @throws Exception::MissingInformation if required data is not available
+      @throws Exception::InvalidParameter if configuration is invalid
+    */
+    IrtExperiments prepareIrtExperiments(
+      IrtStrategy strategy,
+      const OpenSwath::LightTargetedExperiment& full_transition_exp,
+      const std::vector<String>& priority_peptides,
+      size_t run_index = 0,
+      const IrtExperiments* cached_irts = nullptr
+    );
 
     /**
-      @brief Perform calibration workflow orchestration.
+      @brief Perform calibration workflow with pre-prepared iRT experiments.
       
-      This is the main entry point that orchestrates the entire calibration workflow.
-      It automatically chooses between linear-only or linear+nonlinear calibration
-      based on the configuration provided. This method handles both the simple
-      linear calibration case and the complex linear+nonlinear case, exactly
-      matching the logic flow in OpenSwathWorkflow.
+      This is the main calibration entry point that accepts pre-prepared iRT experiments
+      and performs RT, m/z, and ion mobility calibration. It automatically chooses 
+      between linear-only or linear+nonlinear calibration based on whether nonlinear
+      iRT experiments are provided.
       
-      @param[in] trafo_in User-provided transformation file (empty = perform calibration)
       @param[in,out] swath_maps Raw SWATH/SRM data maps (modified in-place by calibration)
       @param[in,out] transition_exp Target transition experiment (IM values may be corrected)
       @param[in,out] cp Extraction parameters (windows may be updated with estimates)
       @param[in,out] cp_ms1 MS1 extraction parameters (windows may be updated)
-      @param[in] config Calibration configuration and parameters
+      @param[in] irt_experiments Pre-prepared iRT experiments for calibration
+      @param[in] feature_finder_param Parameters for MRMFeatureFinderScoring
+      @param[in] cp_irt Extraction parameters for iRT peptides
+      @param[in] irt_detection_param Parameters for iRT detection and outlier removal
+      @param[in] calibration_param Parameters for m/z and IM calibration  
+      @param[in] mrm_mapping_param Parameters for MRM chromatogram mapping
+      @param[in] pasef Whether data is PASEF (ion mobility) data
+      @param[in] load_into_memory Whether to load data into memory for processing
+      @param[in] irt_trafo_out Output file for RT transformation (empty = no output)
+      @param[in] irt_mzml_out Output file for iRT chromatograms (empty = no output)
       
       @return Calibration results including transformations and estimated windows
       
       @throws Exception::IllegalArgument If configuration is invalid
-      @throws Exception::MissingInformation If required iRT data is missing
+      @throws Exception::MissingInformation If iRT experiments are not ready
     */
     CalibrationResult performCalibration(
-      const String& trafo_in,
       std::vector<OpenSwath::SwathMap>& swath_maps,
       OpenSwath::LightTargetedExperiment& transition_exp,
       ChromExtractParams& cp,
       ChromExtractParams& cp_ms1,
-      const CalibrationConfig& config);
+      const IrtExperiments& irt_experiments,
+      const Param& feature_finder_param,
+      const ChromExtractParams& cp_irt,
+      const Param& irt_detection_param,
+      const Param& calibration_param,
+      const Param& mrm_mapping_param,
+      bool pasef = false,
+      bool load_into_memory = false,
+      const String& irt_trafo_out = "",
+      const String& irt_mzml_out = ""
+    );
 
     /**
-      @brief Validate calibration configuration.
+      @brief Load iRT transition experiment from file.
       
-      Checks that the provided configuration is valid and all required
-      parameters are present.
-      
-      @param[in] config Configuration to validate
-      @return True if valid, false otherwise
-    */
-    bool validateConfig(const CalibrationConfig& config) const;
-    
-    /**
-      @brief Validate configuration with optional transformation file.
-      
-      Extended validation that considers both the config and an optional
-      RT transformation file. This allows validation when a user provides
-      a pre-computed transformation file (rt_norm parameter).
-      
-      @param[in] config Configuration to validate  
-      @param[in] trafo_in Path to RT transformation file (empty = not provided)
-      @return True if valid, false otherwise
-    */
-    bool validateConfig(const CalibrationConfig& config, const String& trafo_in) const;
-    
-    /**
-      @brief Load iRT transition experiment from file if path is provided.
-      
-      Helper method to load iRT experiments from file paths in CalibrationConfig.
+      Helper method to load iRT experiments from configured file paths.
       Supports TraML, TSV, and PQP formats.
       
       @param[in] irt_file_path Path to iRT file (empty = skip loading)
-      @param[in] irt_tsv_reader_param Parameters for TSV reader
       @param[in] label Label for logging (e.g., "linear", "nonlinear")
       @return Loaded iRT experiment (empty if file path was empty)
       @throws Exception::FileNotFound if file doesn't exist
@@ -223,17 +219,7 @@ namespace OpenMS
     */
     OpenSwath::LightTargetedExperiment loadIrtExperimentFromFile_(
       const String& irt_file_path,
-      const Param& irt_tsv_reader_param,
       const String& label) const;
-    
-    /**
-      @brief Get the default calibration configuration.
-      
-      Returns a default configuration that can be customized by the caller.
-      
-      @return Default calibration configuration
-    */
-    static CalibrationConfig getDefaultConfig();
 
   private:
     
@@ -250,34 +236,52 @@ namespace OpenMS
     
     /// @name Private member variables for parameter caching  
     //@{
-    bool auto_irt_enabled_;
-    int auto_irt_irt_bins_;
-    int auto_irt_irt_peptides_per_bin_;
-    int auto_irt_irt_seed_;
-    int auto_irt_irt_bins_nonlinear_;
-    int auto_irt_irt_peptides_per_bin_nonlinear_;
-    double auto_irt_linear_top_fraction_;
-    double auto_irt_nonlinear_top_fraction_;
     
-    bool linear_enabled_;
-    String linear_outlier_detection_;
-    double linear_min_rsq_;
+    // === iRT File Parameters ===
+    String linear_irt_file_;                    ///< Path to linear iRT file
+    String nonlinear_irt_file_;                 ///< Path to nonlinear iRT file
     
-    bool nonlinear_enabled_;
-    String nonlinear_method_;
-    bool nonlinear_asymmetric_;
-    double nonlinear_span_;
+    // === Quality Control Parameters ===
+    double min_rsq_;                            ///< Minimum R-squared value for RT regression
+    double min_coverage_;                       ///< Minimum coverage of chromatographic space
     
-    bool windows_estimate_rt_;
-    bool windows_estimate_mz_;
-    bool windows_estimate_im_;
-    double windows_rt_percentile_;
-    double windows_mz_percentile_;
-    double windows_im_percentile_;
+    // === Auto-iRT Sampling Parameters ===
+    bool auto_irt_enabled_;                     ///< Enable auto-iRT sampling
+    int auto_irt_irt_bins_;                     ///< Number of RT bins for linear iRT sampling
+    int auto_irt_irt_peptides_per_bin_;         ///< Peptides per bin for linear iRT
+    int auto_irt_irt_seed_;                     ///< RNG seed for sampling
+    int auto_irt_irt_bins_nonlinear_;           ///< Number of RT bins for nonlinear iRT
+    int auto_irt_irt_peptides_per_bin_nonlinear_; ///< Peptides per bin for nonlinear iRT
+    double auto_irt_linear_top_fraction_;       ///< Top fraction for linear sampling
+    double auto_irt_nonlinear_top_fraction_;    ///< Top fraction for nonlinear sampling
     
-    bool qc_fail_on_insufficient_peptides_;
-    bool qc_fail_on_poor_fit_;
-    bool qc_fail_on_low_coverage_;
+    // === Linear Calibration Parameters ===
+    bool linear_enabled_;                       ///< Enable linear calibration
+    String linear_outlier_detection_;           ///< Outlier detection method
+    double linear_min_rsq_;                     ///< Min R-squared for linear fit
+    
+    // === Nonlinear Calibration Parameters ===
+    bool nonlinear_enabled_;                    ///< Enable nonlinear calibration
+    String nonlinear_method_;                   ///< Nonlinear method name
+    bool nonlinear_asymmetric_;                 ///< Use asymmetric nonlinear fit
+    double nonlinear_span_;                     ///< Span parameter for nonlinear
+    
+    // === Window Estimation Parameters ===
+    bool windows_estimate_rt_;                  ///< Estimate RT windows
+    bool windows_estimate_mz_;                  ///< Estimate m/z windows
+    bool windows_estimate_im_;                  ///< Estimate IM windows
+    double windows_rt_percentile_;              ///< RT percentile for estimation
+    double windows_mz_percentile_;              ///< m/z percentile for estimation
+    double windows_im_percentile_;              ///< IM percentile for estimation
+    double rt_estimation_padding_factor_;       ///< RT padding factor
+    double im_estimation_padding_factor_;       ///< IM padding factor
+    double mz_estimation_padding_factor_;       ///< m/z padding factor
+    
+    // === Quality Control Parameters ===
+    bool qc_fail_on_insufficient_peptides_;     ///< Fail on insufficient peptides
+    bool qc_fail_on_poor_fit_;                  ///< Fail on poor fit quality
+    bool qc_fail_on_low_coverage_;              ///< Fail on low coverage
+    
     //@}
     
     /// @name Private implementation methods
@@ -286,18 +290,34 @@ namespace OpenMS
     /**
       @brief Perform linear-only calibration workflow.
       
-      @param[in] trafo_in User-provided transformation file
       @param[in,out] swath_maps SWATH data maps
       @param[in,out] transition_exp Target transitions  
-      @param[in] config Calibration configuration
+      @param[in] irt_experiments Prepared iRT experiments
+      @param[in] feature_finder_param Parameters for MRMFeatureFinderScoring
+      @param[in] cp_irt Extraction parameters for iRT peptides
+      @param[in] irt_detection_param Parameters for iRT detection
+      @param[in] calibration_param Parameters for calibration
+      @param[in] mrm_mapping_param Parameters for MRM mapping
+      @param[in] pasef Whether this is PASEF data
+      @param[in] load_into_memory Whether to load data into memory
+      @param[in] irt_trafo_out Output transformation file
+      @param[in] irt_mzml_out Output iRT chromatograms file
       
       @return Linear calibration results
     */
     CalibrationResult performLinearCalibration_(
-      const String& trafo_in,
       std::vector<OpenSwath::SwathMap>& swath_maps,
       OpenSwath::LightTargetedExperiment& transition_exp,
-      const CalibrationConfig& config);
+      const IrtExperiments& irt_experiments,
+      const Param& feature_finder_param,
+      const ChromExtractParams& cp_irt,
+      const Param& irt_detection_param,
+      const Param& calibration_param,
+      const Param& mrm_mapping_param,
+      bool pasef,
+      bool load_into_memory,
+      const String& irt_trafo_out,
+      const String& irt_mzml_out);
     
     /**
       @brief Perform linear + nonlinear calibration workflow.
@@ -305,18 +325,34 @@ namespace OpenMS
       First performs a linear calibration, then applies nonlinear refinement
       using a separate set of iRT transitions.
       
-      @param[in] trafo_in User-provided transformation file  
       @param[in,out] swath_maps SWATH data maps
       @param[in,out] transition_exp Target transitions
-      @param[in] config Calibration configuration
+      @param[in] irt_experiments Prepared iRT experiments
+      @param[in] feature_finder_param Parameters for MRMFeatureFinderScoring
+      @param[in] cp_irt Extraction parameters for iRT peptides
+      @param[in] irt_detection_param Parameters for iRT detection
+      @param[in] calibration_param Parameters for calibration
+      @param[in] mrm_mapping_param Parameters for MRM mapping
+      @param[in] pasef Whether this is PASEF data
+      @param[in] load_into_memory Whether to load data into memory
+      @param[in] irt_trafo_out Output transformation file
+      @param[in] irt_mzml_out Output iRT chromatograms file
       
       @return Combined calibration results
     */
     CalibrationResult performLinearThenNonlinearCalibration_(
-      const String& trafo_in,
       std::vector<OpenSwath::SwathMap>& swath_maps,
       OpenSwath::LightTargetedExperiment& transition_exp,
-      const CalibrationConfig& config);
+      const IrtExperiments& irt_experiments,
+      const Param& feature_finder_param,
+      const ChromExtractParams& cp_irt,
+      const Param& irt_detection_param,
+      const Param& calibration_param,
+      const Param& mrm_mapping_param,
+      bool pasef,
+      bool load_into_memory,
+      const String& irt_trafo_out,
+      const String& irt_mzml_out);
       
     /**
       @brief Apply estimated extraction windows to parameters.
@@ -327,7 +363,6 @@ namespace OpenMS
       @param[in] result Calibration results containing estimated windows
       @param[in,out] cp MS2 extraction parameters to update
       @param[in,out] cp_ms1 MS1 extraction parameters to update
-      @param[in] config Configuration specifying which windows to apply
       @param[in] pasef Whether this is PASEF data (for IM applicability)
       @param[in] use_ms1_im Whether MS1 uses ion mobility
     */
@@ -335,7 +370,6 @@ namespace OpenMS
       const CalibrationResult& result,
       ChromExtractParams& cp,
       ChromExtractParams& cp_ms1, 
-      const CalibrationConfig& config,
       bool pasef,
       bool use_ms1_im) const;
       
