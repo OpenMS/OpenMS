@@ -39,11 +39,9 @@ def doCythonCompile(arg):
     Perform the Cython compilation step for each module
     """
 
-    modname, autowrap_include_dirs, pyopenms_src_dir = arg
+    modname, autowrap_include_dirs = arg
     m_filename = "pyopenms/%s.pyx" % modname
     print ("Cython compile", m_filename)
-    if pyopenms_src_dir not in autowrap_include_dirs:
-        autowrap_include_dirs.append(pyopenms_src_dir)
     autowrap.Main.run_cython(inc_dirs=autowrap_include_dirs, extra_opts={}, out=m_filename, warn_level=2)
 
 if __name__ == '__main__':
@@ -218,7 +216,7 @@ if __name__ == '__main__':
       autowrap_include_dirs = doCythonCodeGeneration(modname, allDecl_mapping, instance_map, converters)
       pickle.dump(autowrap_include_dirs, open(persisted_data_path, "wb"))
 
-  argzip = [ (modname, allDecl_mapping[modname]["inc_dirs"], PYOPENMS_SRC_DIR) for modname in mnames]
+  argzip = [ (modname, allDecl_mapping[modname]["inc_dirs"]) for modname in mnames]
 
   import multiprocessing
 
