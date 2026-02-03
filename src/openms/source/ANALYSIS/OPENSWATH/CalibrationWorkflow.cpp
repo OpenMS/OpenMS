@@ -116,6 +116,12 @@ namespace OpenMS
     defaults_.setValue("windows:rt_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated RT window by. For example, a factor of 1.3 will add a 30% padding to the estimated RT window, so if the estimated RT window is 144, then 43 will be added for a total estimated RT window of 187 seconds. A factor of 1.0 will not add any padding to the estimated window.");
     defaults_.setMinFloat("windows:rt_estimation_padding_factor", 1.0);
     
+    defaults_.setValue("windows:mz_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated m/z window by. For example, a factor of 1.3 will add a 30% padding to the estimated m/z window, so if the estimated m/z window is 18 ppm, then 5.4 ppm will be added for a total estimated m/z window of 23.4 ppm. A factor of 1.0 will not add any padding to the estimated window.");
+    defaults_.setMinFloat("windows:mz_estimation_padding_factor", 1.0);
+    
+    defaults_.setValue("windows:im_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated ion mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion mobility window, so if the estimated ion mobility window is 0.03, then 0.009 will be added for a total estimated ion mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.");
+    defaults_.setMinFloat("windows:im_estimation_padding_factor", 1.0);
+    
     // === Quality control parameters ===
     defaults_.setValue("qc:fail_on_insufficient_peptides", "true", "Fail if insufficient peptides found");
     defaults_.setValidStrings("qc:fail_on_insufficient_peptides", {"true", "false"});
@@ -252,6 +258,13 @@ namespace OpenMS
       Param linear_params = irt_detection_param;
       linear_params.setValue("outlierMethod", linear_outlier_detection_);
       
+      // Configure calibration parameters with our window estimation parameters
+      Param calibration_params_configured = calibration_param;
+      calibration_params_configured.setValue("mz_estimation_padding_factor", mz_estimation_padding_factor_);
+      calibration_params_configured.setValue("im_estimation_padding_factor", im_estimation_padding_factor_);
+      calibration_params_configured.setValue("mz_estimation_percentile", windows_mz_percentile_);
+      calibration_params_configured.setValue("im_estimation_percentile", windows_im_percentile_);
+      
       TransformationDescription im_trafo;
       result.rt_trafo = calibration_wf.performRTNormalization(
         irt_experiments.linear_irt, 
@@ -262,7 +275,7 @@ namespace OpenMS
         feature_finder_param,
         cp_irt,
         linear_params,
-        calibration_param,
+        calibration_params_configured,  // Use configured calibration parameters
         mrm_mapping_param,
         irt_mzml_out,
         debug_level,
@@ -278,9 +291,12 @@ namespace OpenMS
       result.ms1_mz_window_ppm = calibration_wf.getEstimatedMs1MzWindow();
       result.ms1_im_window = calibration_wf.getEstimatedMs1ImWindow();
       
-      // Estimate RT window from transformation
+      // Estimate RT window from transformation using configured parameters
       result.estimated_rt_window = result.rt_trafo.estimateWindow(
-        0.99, true, true, 1.0);  // Use default padding factor
+        windows_rt_percentile_ / 100.0,  // Convert percentage to fraction
+        true,                           // Invert for RT units
+        true,                           // Full width
+        rt_estimation_padding_factor_); // User-configured padding
 
       // Save transformation if requested
       if (!irt_trafo_out.empty())
@@ -335,7 +351,7 @@ namespace OpenMS
     std::vector<OpenMS::MSChromatogram> nl_chromatograms;
     ChromExtractParams cp_irt_nl = cp_irt;
     // Use potentially limited RT window for nonlinear extraction
-    double nl_rt_window = getDoubleOption_("auto_irt:irt_nonlinear_rt_extraction_window");
+    double nl_rt_window = (double)param_.getValue("auto_irt:irt_nonlinear_rt_extraction_window");
     if (nl_rt_window > 0)
     {
       cp_irt_nl.rt_extraction_window = nl_rt_window;
@@ -356,6 +372,13 @@ namespace OpenMS
     nl_params.setValue("estimateBestPeptides", "true"); // Enable outlier detection for nonlinear
     nl_params.setValue("outlierMethod", nonlinear_outlier_detection_); // Use nonlinear-specific outlier method
     
+    // Configure calibration parameters with our window estimation parameters
+    Param calibration_params_configured = calibration_param;
+    calibration_params_configured.setValue("mz_estimation_padding_factor", mz_estimation_padding_factor_);
+    calibration_params_configured.setValue("im_estimation_padding_factor", im_estimation_padding_factor_);
+    calibration_params_configured.setValue("mz_estimation_percentile", windows_mz_percentile_);
+    calibration_params_configured.setValue("im_estimation_percentile", windows_im_percentile_);
+    
     TransformationDescription im_trafo;
     TransformationDescription nonlinear_trafo = nonlinear_wf.doDataNormalization_(
       irt_experiments.nonlinear_irt,
@@ -366,7 +389,7 @@ namespace OpenMS
       min_coverage_,
       feature_finder_param,
       nl_params,
-      calibration_param,  // Use full calibration (with m/z correction)
+      calibration_params_configured,  // Use configured calibration parameters with padding factors
       pasef);
 
     // Prepare final result
@@ -379,7 +402,10 @@ namespace OpenMS
     final_result.ms1_im_window = nonlinear_wf.getEstimatedMs1ImWindow();
     
     final_result.estimated_rt_window = final_result.rt_trafo.estimateWindow(
-      0.99, true, true, 1.0);  // Use default padding factor
+      windows_rt_percentile_ / 100.0,  // Convert percentage to fraction
+      true,                           // Invert for RT units  
+      true,                           // Full width
+      rt_estimation_padding_factor_); // User-configured padding
 
     // Save nonlinear transformation if requested
     if (!irt_trafo_out.empty())
@@ -794,6 +820,9 @@ namespace OpenMS
     windows_rt_percentile_ = (double)param_.getValue("windows:rt_percentile");
     windows_mz_percentile_ = (double)param_.getValue("windows:mz_percentile");
     windows_im_percentile_ = (double)param_.getValue("windows:im_percentile");
+    rt_estimation_padding_factor_ = (double)param_.getValue("windows:rt_estimation_padding_factor");
+    mz_estimation_padding_factor_ = (double)param_.getValue("windows:mz_estimation_padding_factor");
+    im_estimation_padding_factor_ = (double)param_.getValue("windows:im_estimation_padding_factor");
     
     // === Quality control parameters ===
     qc_fail_on_insufficient_peptides_ = param_.getValue("qc:fail_on_insufficient_peptides").toBool();
