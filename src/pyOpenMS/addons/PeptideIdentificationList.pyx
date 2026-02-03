@@ -227,7 +227,10 @@ import warnings
         def decode_mv_name(name):
             """Decode metavalue name using ontology if available."""
             if cv is not None and name.startswith("MS:"):
-                return cv.getTerm(name).name
+                try:
+                    return cv.getTerm(name).name
+                except Exception:
+                    return name
             return name
 
         def get_type_str(val):
@@ -325,7 +328,7 @@ import warnings
         if should_include("mz"):
             data_dict["mz"] = pa.array(all_mz, type=pa.float32())
         if should_include("score"):
-            data_dict["score"] = pa.array(all_score, type=pa.float32())
+            data_dict["score"] = pa.array(all_score, type=pa.float64())
         if should_include("charge"):
             data_dict["charge"] = pa.array(all_charge, type=pa.int32())
         if should_include("protein_accession"):

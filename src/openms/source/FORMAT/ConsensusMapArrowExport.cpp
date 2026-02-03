@@ -900,6 +900,10 @@ bool ConsensusMapArrowExport::exportToParquet(
   {
     builder.enable_statistics();
   }
+  else
+  {
+    builder.disable_statistics();
+  }
 
   auto writer_props = builder.build();
 

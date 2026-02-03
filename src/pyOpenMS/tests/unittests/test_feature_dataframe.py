@@ -10,7 +10,6 @@ Tests the feature export methods:
 """
 
 import pytest
-import numpy as np
 import os
 import tempfile
 
