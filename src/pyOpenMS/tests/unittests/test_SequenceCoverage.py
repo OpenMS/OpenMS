@@ -38,7 +38,7 @@ class TestSequenceCoverage(unittest.TestCase):
 
         coverage = oms.SequenceCoverage.getCoverage(protein, peptides)
         self.assertEqual(coverage, 100.0)
-        
+
     def test_full_coverage_with_repeated_peptide(self):
         """Repeated peptide occurrences cover the full protein"""
         protein = oms.AASequence.fromString("PEPTIDEPEPTIDE")

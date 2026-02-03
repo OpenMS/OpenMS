@@ -1,6 +1,4 @@
-#pragma once
-
-// Copyright (c) 2002-present, OpenMS Inc.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +6,10 @@
 // $Authors: Srikanth K N $
 // --------------------------------------------------------------------------
 
+#pragma once
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
+
 #include <vector>
 
 namespace OpenMS
@@ -19,6 +20,8 @@ namespace OpenMS
 
     This utility computes the fraction of amino acids in a protein sequence
     that are covered by a given set of peptide sequences.
+
+    @ingroup Chemistry
   */
   class OPENMS_DLLAPI SequenceCoverage
   {
@@ -32,7 +35,7 @@ namespace OpenMS
     */
     static double getCoverage(
       const AASequence& protein,
-      std::vector<AASequence> & peptides
+      const std::vector<AASequence>& peptides
     );
   };
 

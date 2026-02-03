@@ -1,3 +1,11 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: OpenMS Development Team $
+// $Authors: Srikanth K N $
+// --------------------------------------------------------------------------
+
 #include <OpenMS/CHEMISTRY/SequenceCoverage.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 

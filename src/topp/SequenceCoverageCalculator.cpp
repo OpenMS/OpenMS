@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <numeric>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace OpenMS;
 using namespace std;
@@ -59,9 +60,10 @@ protected:
 
   struct CoverageInfo
   {
-    double coverage {}; // fraction of sequence covered by peptides
-    Size count {};      // number of unique peptides
-    Size mod_count {};  // number of unique modified peptides
+    double coverage {};                  // fraction of sequence covered by peptides
+    Size unique_peptide_sequences {};    // unique peptide sequences (mods ignored)
+    Size unique_peptidoforms {};         // unique peptidoforms (sequence + mods; incl. unmodified)
+    Size unique_modified_peptidoforms {}; // unique modified peptidoforms
   };
 
   ExitCodes outputTo_(ostream& os, String out)
@@ -71,13 +73,9 @@ protected:
     vector<FASTAFile::FASTAEntry> proteins;
     vector<double> statistics;
     vector<Size> counts;
+    vector<Size> peptidoform_counts;
     vector<Size> mod_counts;
     vector<PeptideHit> temp_hits;
-    vector<Size> coverage;
-    Size spectrum_count = 0;
-    unordered_map<String, Size> unique_peptides;
-    unordered_map<String, Size> temp_unique_peptides;
-    unordered_map<String, Size> temp_modified_unique_peptides;
 
     protein_identifications.push_back(ProteinIdentification());
     //-------------------------------------------------------------
@@ -95,73 +93,87 @@ protected:
 
     statistics.resize(proteins.size(), 0.);
     counts.resize(proteins.size(), 0);
+    peptidoform_counts.resize(proteins.size(), 0);
     mod_counts.resize(proteins.size(), 0);
+
+    Size identified_spectra = 0;
+    unordered_set<String> unique_peptide_sequences_overall;
+    unordered_set<String> unique_peptidoforms_overall;
+    unordered_set<String> unique_modified_peptidoforms_overall;
+    for (const auto& pid : identifications)
+    {
+      const auto& hits = pid.getHits();
+      if (hits.empty())
+      {
+        continue;
+      }
+      if (hits.size() > 1)
+      {
+        OPENMS_LOG_ERROR << "Spectrum with more than one identification found, which is not allowed.\n"
+                         << "Use the IDFilter with the -best_hits option to filter for best hits."
+                         << "\n";
+        return ILLEGAL_PARAMETERS;
+      }
+
+      ++identified_spectra;
+      const AASequence& seq = hits[0].getSequence();
+      unique_peptide_sequences_overall.emplace(seq.toUnmodifiedString());
+      unique_peptidoforms_overall.emplace(seq.toString());
+      if (seq.isModified())
+      {
+        unique_modified_peptidoforms_overall.emplace(seq.toString());
+      }
+    }
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
 
     unordered_map<String, CoverageInfo> prot2cov;
-    os << "proteinID\tcoverage (%)\tunique hits\n";
+    os << "proteinID\tcoverage (%)\tunique_peptide_sequences\tunique_peptidoforms\tunique_modified_peptidoforms\n";
     for (Size j = 0; j < proteins.size(); ++j)
     {
+      const set<String> accession {proteins[j].identifier};
       AASequence protein_seq = AASequence::fromString(proteins[j].sequence);
       std::vector<AASequence> peptides;
-      temp_unique_peptides.clear();
-      temp_modified_unique_peptides.clear();
+      unordered_set<String> unique_peptide_sequences;
+      unordered_set<String> unique_peptidoforms;
+      unordered_set<String> unique_modified_peptidoforms;
 
       for (Size i = 0; i < identifications.size(); ++i)
       {
-        if (! identifications[i].empty())
+        const auto& hits = identifications[i].getHits();
+        if (hits.empty())
         {
-          if (identifications[i].getHits().size() > 1)
-          {
-            OPENMS_LOG_ERROR << "Spectrum with more than one identification found, which is not allowed.\n"
-                             << "Use the IDFilter with the -best_hits option to filter for best hits." << "\n";
-            return ILLEGAL_PARAMETERS;
-          }
+          continue;
+        }
+        temp_hits = PeptideIdentification::getReferencingHits(hits, accession);
 
-          set<String> accession;
-          accession.insert(proteins[j].identifier);
-          temp_hits = PeptideIdentification::getReferencingHits(identifications[i].getHits(), accession);
-
-          if (temp_hits.size() == 1)
+        if (temp_hits.size() == 1)
+        {
+          const AASequence& seq = temp_hits[0].getSequence();
+          peptides.push_back(seq);
+          unique_peptide_sequences.emplace(seq.toUnmodifiedString());
+          unique_peptidoforms.emplace(seq.toString());
+          if (seq.isModified())
           {
-            peptides.push_back(temp_hits[0].getSequence());
-            ++spectrum_count;
-            if (unique_peptides.find(temp_hits[0].getSequence().toString()) == unique_peptides.end())
-            {
-              unique_peptides.insert(make_pair(temp_hits[0].getSequence().toString(), 0));
-            }
-            if (temp_unique_peptides.find(temp_hits[0].getSequence().toUnmodifiedString()) == temp_unique_peptides.end())
-            {
-              temp_unique_peptides.insert(make_pair(temp_hits[0].getSequence().toUnmodifiedString(), 0));
-            }
-            const AASequence& seq = temp_hits[0].getSequence();
-            if (seq.isModified()) { temp_modified_unique_peptides.emplace(seq.toString(), 0); }
+            unique_modified_peptidoforms.emplace(seq.toString());
           }
         }
       }
-      /* << proteins[j].sequence << endl;
-                      for (Size k = 0; k < coverage.size(); ++k)
-                      {
-                          os << coverage[k];
-                      }
-                      os << endl;
-      */
-      // statistics[j] = make_pair(,
-      // accumulate(coverage.begin(), coverage.end(), 0) / proteins[j].sequence.size());
       double coverage_percent = SequenceCoverage::getCoverage(protein_seq, peptides);
 
       statistics[j] = coverage_percent / 100.0;
 
-      counts[j] = temp_unique_peptides.size();
-      mod_counts[j] = temp_modified_unique_peptides.size();
+      counts[j] = unique_peptide_sequences.size();
+      peptidoform_counts[j] = unique_peptidoforms.size();
+      mod_counts[j] = unique_modified_peptidoforms.size();
 
       // details for this protein
       if (counts[j] > 0)
       {
-        prot2cov[proteins[j].identifier] = {statistics[j], counts[j], mod_counts[j]};
-        os << proteins[j].identifier << "\t" << statistics[j] * 100 << "\t" << counts[j] << "\n";
+        prot2cov[proteins[j].identifier] = {statistics[j], counts[j], peptidoform_counts[j], mod_counts[j]};
+        os << proteins[j].identifier << "\t" << statistics[j] * 100 << "\t" << counts[j] << "\t" << peptidoform_counts[j] << "\t"
+           << mod_counts[j] << "\n";
       }
 
       // os << statistics[j] << endl;
@@ -174,11 +186,15 @@ protected:
     {
       for (auto& prot_hit : prot_id.getHits())
       {
-        if (prot2cov.find(prot_hit.getAccession()) != prot2cov.end())
+        auto it = prot2cov.find(prot_hit.getAccession());
+        if (it != prot2cov.end())
         {
-          prot_hit.setMetaValue("coverage", prot2cov[prot_hit.getAccession()].coverage);
-          prot_hit.setMetaValue("unique_peptides", prot2cov[prot_hit.getAccession()].count);
-          prot_hit.setMetaValue("unique_modified_peptides", prot2cov[prot_hit.getAccession()].mod_count);
+          const CoverageInfo& info = it->second;
+          prot_hit.setMetaValue("coverage", info.coverage);
+          prot_hit.setMetaValue("unique_peptides", info.unique_peptide_sequences);
+          prot_hit.setMetaValue("unique_peptidoforms", info.unique_peptidoforms);
+          prot_hit.setMetaValue("unique_modified_peptides", info.unique_modified_peptidoforms);
+          prot_hit.setMetaValue("unique_modified_peptidoforms", info.unique_modified_peptidoforms);
         }
       }
     }
@@ -191,13 +207,17 @@ protected:
     };
 
     os << "Average coverage per protein is " << safe_avg_double(statistics) * 100 << "\n";
-    os << "Average number of peptides per protein is " << safe_avg_size(counts) << "\n";
-    os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << "\n";
-    os << "Number of identified spectra: " << spectrum_count << "\n";
-    os << "Number of unique identified peptides: " << unique_peptides.size() << "\n";
+    os << "Average number of unique peptide sequences per protein is " << safe_avg_size(counts) << "\n";
+    os << "Average number of unique peptidoforms per protein is " << safe_avg_size(peptidoform_counts) << "\n";
+    os << "Average number of unique modified peptidoforms per protein is " << safe_avg_size(mod_counts) << "\n";
+    os << "Number of identified spectra: " << identified_spectra << "\n";
+    os << "Number of unique peptide sequences: " << unique_peptide_sequences_overall.size() << "\n";
+    os << "Number of unique peptidoforms: " << unique_peptidoforms_overall.size() << "\n";
+    os << "Number of unique modified peptidoforms: " << unique_modified_peptidoforms_overall.size() << "\n";
 
     vector<double>::iterator it = statistics.begin();
     vector<Size>::iterator it2 = counts.begin();
+    vector<Size>::iterator it_pf = peptidoform_counts.begin();
     vector<Size>::iterator it3 = mod_counts.begin();
     while (it != statistics.end())
     {
@@ -205,18 +225,21 @@ protected:
       {
         it = statistics.erase(it);
         it2 = counts.erase(it2);
+        it_pf = peptidoform_counts.erase(it_pf);
         it3 = mod_counts.erase(it3);
       }
       else
       {
         ++it;
         ++it2;
+        ++it_pf;
         ++it3;
       }
     }
     os << "Average coverage per found protein (" << statistics.size() << ") is " << safe_avg_double(statistics) * 100 << "\n";
-    os << "Average number of peptides per found protein is " << safe_avg_size(counts) << "\n";
-    os << "Average number of un/modified peptides per protein is " << safe_avg_size(mod_counts) << "\n";
+    os << "Average number of unique peptide sequences per found protein is " << safe_avg_size(counts) << "\n";
+    os << "Average number of unique peptidoforms per found protein is " << safe_avg_size(peptidoform_counts) << "\n";
+    os << "Average number of unique modified peptidoforms per found protein is " << safe_avg_size(mod_counts) << "\n";
 
     return EXECUTION_OK;
   }
