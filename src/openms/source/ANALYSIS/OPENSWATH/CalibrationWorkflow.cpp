@@ -55,6 +55,9 @@ namespace OpenMS
     defaults_.setMinFloat("auto_irt:nonlinear_top_fraction", 0.01);
     defaults_.setMaxFloat("auto_irt:nonlinear_top_fraction", 1.0);
     
+    defaults_.setValue("auto_irt:irt_nonlinear_rt_extraction_window", 600.0, "Only extract RT around this value for non linear iRT calibration (set to -1 to use whole range)");
+    defaults_.setMinFloat("auto_irt:irt_nonlinear_rt_extraction_window", -1.0);
+    
     // === Static iRT file parameters ===
     defaults_.setValue("files:linear_irt_file", "", "Path to linear iRT transition file (TraML, TSV, or PQP)");
     defaults_.setValue("files:nonlinear_irt_file", "", "Path to nonlinear iRT transition file (TraML, TSV, or PQP)");
@@ -298,7 +301,11 @@ namespace OpenMS
     std::vector<OpenMS::MSChromatogram> nl_chromatograms;
     ChromExtractParams cp_irt_nl = cp_irt;
     // Use potentially limited RT window for nonlinear extraction
-    // (this is often set in OpenSwathWorkflow via irt_nonlinear_rt_extraction_window)
+    double nl_rt_window = getDoubleOption_("auto_irt:irt_nonlinear_rt_extraction_window");
+    if (nl_rt_window > 0)
+    {
+      cp_irt_nl.rt_extraction_window = nl_rt_window;
+    }
     
     nonlinear_wf.simpleExtractChromatograms_(
       swath_maps,
