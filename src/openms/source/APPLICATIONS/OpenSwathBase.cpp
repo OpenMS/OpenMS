@@ -27,6 +27,37 @@ using namespace std;
 
 namespace OpenMS
 {
+  // Helper function to check if ion mobility data is in CCS format
+  // CCS data is not directly compatible with OpenSwath which expects 1/K0 (inverse reduced ion mobility)
+  static void warnIfCCSData(const std::vector<OpenSwath::SwathMap>& swath_maps)
+  {
+    for (const auto& swath_map : swath_maps)
+    {
+      if (swath_map.sptr && swath_map.sptr->getNrSpectra() > 0)
+      {
+        // Get the first spectrum and check its data arrays for CCS indicators
+        auto spectrum = swath_map.sptr->getSpectrumById(0);
+        if (spectrum)
+        {
+          for (const auto& arr : spectrum->getDataArrays())
+          {
+            // Check for CCS CV term (MS:1002954) or square angstrom unit (UO:0000324)
+            if (arr->description.find("MS:1002954") != std::string::npos ||
+                arr->description.find("UO:0000324") != std::string::npos ||
+                arr->description.find("collision cross section") != std::string::npos)
+            {
+              OPENMS_LOG_WARN << "Warning: Ion mobility data appears to be in CCS (Collisional Cross Section) format. "
+                              << "OpenSwath expects ion mobility in 1/K0 (inverse reduced ion mobility) units. "
+                              << "Results may be incorrect if the spectral library also uses 1/K0 units. "
+                              << "Consider converting the data or using a CCS-based spectral library." << std::endl;
+              return; // Only warn once
+            }
+          }
+        }
+        return; // Only check first map with spectra
+      }
+    }
+  }
 
   TOPPOpenSwathBase::TOPPOpenSwathBase(String name, String description, bool official, const std::vector<Citation>& citations) :
     TOPPBase(name, description, official, citations)
@@ -235,6 +266,10 @@ namespace OpenMS
         }
       }
     }
+
+    // Check if ion mobility data is in CCS format and warn user
+    warnIfCCSData(swath_maps);
+
     return true;
   }
 

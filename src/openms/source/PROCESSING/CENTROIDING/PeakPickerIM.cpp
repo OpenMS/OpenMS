@@ -18,6 +18,7 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/MATH/MISC/SplineBisection.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
@@ -38,6 +39,24 @@ using namespace std;
 
 namespace OpenMS
 {
+    // Helper to warn once if CCS data is detected with small IM tolerances
+    static bool& getCCSWarningShown()
+    {
+      static bool shown = false;
+      return shown;
+    }
+
+    static void warnIfCCSWithSmallTolerance(DriftTimeUnit unit, double im_tolerance, const String& param_name)
+    {
+      if (unit == DriftTimeUnit::CCS && im_tolerance < 1.0 && !getCCSWarningShown())
+      {
+        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but " << param_name
+                        << " = " << im_tolerance << " appears to be set for 1/K0 data. "
+                        << "For CCS data, consider using larger values (e.g., 10-20 for clustering, 1.0 for summing)." << std::endl;
+        getCCSWarningShown() = true;
+      }
+    }
+
     double PeakPickerIM::computeOptimalSamplingRate(const vector<MSSpectrum>& spectra)
     {
       vector<double> mz_diffs;
@@ -234,6 +253,10 @@ namespace OpenMS
       }
       const auto [im_data_index, im_unit] = raw_spectrum.getIMData();
       const auto& ion_mobility_array = raw_spectrum.getFloatDataArrays()[im_data_index];
+
+      // Warn if CCS data with small tolerance
+      warnIfCCSWithSmallTolerance(im_unit, sum_tolerance_im_, "sum_tolerance_im");
+
       // Vector of MSSpectra for each picked m/z peak (each spectrum is a mobilogram trace)
       vector<MSSpectrum> mobility_traces;
 
@@ -988,6 +1011,8 @@ namespace OpenMS
       const auto [im_data_index, im_unit] = spectrum.getIMData();
       auto& im_data = spectrum.getFloatDataArrays()[im_data_index];
 
+      // Warn if CCS data with small tolerance
+      warnIfCCSWithSmallTolerance(im_unit, im_tolerance_cluster_, "im_tolerance_cluster");
 
       struct Point {
         double mz;

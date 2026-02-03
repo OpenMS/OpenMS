@@ -4602,6 +4602,7 @@ static void scoreXLIons_(
       const double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
       const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
       s.setDriftTime(CCS);
+      s.setDriftTimeUnit(DriftTimeUnit::CCS);
     }
   }
 

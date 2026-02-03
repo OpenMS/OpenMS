@@ -32,6 +32,25 @@ using namespace std;
 
 namespace OpenMS
 {
+  // Helper to warn once if CCS data is detected with small IM tolerance
+  static bool& getBiosaur2CCSWarningShown()
+  {
+    static bool shown = false;
+    return shown;
+  }
+
+  static void warnIfCCSWithSmallTolerance(DriftTimeUnit unit, double im_tolerance)
+  {
+    if (unit == DriftTimeUnit::CCS && im_tolerance < 1.0 && !getBiosaur2CCSWarningShown())
+    {
+      OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
+                      << "paseftol = " << im_tolerance
+                      << " appears to be set for 1/K0 data. "
+                      << "For CCS data, consider using larger values (e.g., 5-20)." << std::endl;
+      getBiosaur2CCSWarningShown() = true;
+    }
+  }
+
 
 Biosaur2Algorithm::Biosaur2Algorithm() :
   DefaultParamHandler("Biosaur2Algorithm")
@@ -84,7 +103,7 @@ Biosaur2Algorithm::Biosaur2Algorithm() :
   defaults_.setValue("profile", "false", "Enable profile mode processing (centroid spectra using PeakPickerHiRes)");
   defaults_.setValidStrings("profile", {"true", "false"});
 
-  defaults_.setValue("paseftol", 0.05, "Ion mobility accuracy (in the same units as the ion-mobility array) for linking peaks into hills and grouping isotopes (0 = disable IM-based gating).");
+  defaults_.setValue("paseftol", 0.05, "Ion mobility accuracy for linking peaks into hills and grouping isotopes (0 = disable IM-based gating). Default is for 1/K0 units (e.g., 0.03-0.08). For CCS data, use larger values (e.g., 5-20 square angstroms).");
   defaults_.setMinFloat("paseftol", 0.0);
 
   defaults_.setValue("use_hill_calib", "false", "Enable automatic hill mass tolerance calibration");
@@ -925,6 +944,12 @@ void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, do
     }
 
     const double ion_mobility_step = (*it_max_im) * ion_mobility_accuracy;
+
+    // Check IM unit and warn if CCS data with small tolerance
+    DriftTimeUnit im_unit = DriftTimeUnit::NONE;
+    IMDataConverter::getIMUnit(im_array, im_unit);
+    warnIfCCSWithSmallTolerance(im_unit, ion_mobility_accuracy);
+
     if (ion_mobility_step <= 0.0)
     {
       return;
