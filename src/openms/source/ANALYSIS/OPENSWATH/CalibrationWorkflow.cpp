@@ -199,10 +199,6 @@ namespace OpenMS
     applyEstimatedWindows_(result, cp, cp_ms1, pasef, 
                           feature_finder_param.getValue("use_ms1_ion_mobility").toBool());
 
-    OPENMS_LOG_INFO << "Calibration completed. Used " << result.num_irt_peptides_used 
-                    << " iRT peptides (R²=" << result.rt_rsq << ", coverage=" 
-                    << result.coverage_fraction << ")" << std::endl;
-
     return result;
   }
 
@@ -228,6 +224,8 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "No linear iRT transitions available for calibration. CalibrationWorkflow requires at least linear iRT data to perform calibration.");
     }
+
+    this->startProgress(0, 1, "Linear Calibration");
 
     CalibrationResult result;
     
@@ -286,7 +284,7 @@ namespace OpenMS
         FileHandler().storeTransformations(irt_trafo_out, result.rt_trafo, 
                                          {FileTypes::TRANSFORMATIONXML});
       }
-
+    this->endProgress();
     return result;
   }
 
@@ -309,7 +307,7 @@ namespace OpenMS
     // This method focuses on linear + nonlinear iRT-based calibration only
     
     // Step 1: Perform linear calibration (no m/z calibration to avoid double-application)
-    OPENMS_LOG_INFO << "Step 1: Performing linear calibration..." << std::endl;
+    // OPENMS_LOG_INFO << "Step 1: Performing linear calibration..." << std::endl;
     
     Param linear_calibration_param = calibration_param;
     linear_calibration_param.setValue("mz_correction_function", "none");
@@ -324,7 +322,8 @@ namespace OpenMS
       load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);  
     
     // Step 2: Perform nonlinear refinement
-    OPENMS_LOG_INFO << "Step 2: Performing nonlinear calibration refinement..." << std::endl;
+    // OPENMS_LOG_INFO << "Step 2: Performing nonlinear calibration refinement..." << std::endl;
+    this->startProgress(0, 1, "Nonlinear Calibration");
     
     OpenSwathCalibrationWorkflow nonlinear_wf;
     nonlinear_wf.setLogType(getLogType());
@@ -398,6 +397,9 @@ namespace OpenMS
       FileHandler().storeTransformations(nonlinear_path, final_result.rt_trafo, 
                                        {FileTypes::TRANSFORMATIONXML});
     }
+
+
+    this->endProgress();
 
     return final_result;
   }
@@ -611,13 +613,12 @@ namespace OpenMS
     switch (strategy) 
     {
       case IrtStrategy::STATIC_FILES:
-        OPENMS_LOG_INFO << "Preparing static iRT experiments from configured files" << std::endl;
+        OPENMS_LOG_DEBUG << "Preparing static iRT experiments from configured files" << std::endl;
         
         // Load linear iRT experiment (required)
         if (!linear_irt_file_.empty())
         {
           result.linear_irt = loadIrtExperimentFromFile_(linear_irt_file_, "linear");
-          OPENMS_LOG_INFO << "Loaded linear iRT experiment from file (" << result.linear_irt.getTransitions().size() << " transitions)" << std::endl;
         }
         else
         {
@@ -629,7 +630,6 @@ namespace OpenMS
         if (!nonlinear_irt_file_.empty())
         {
           result.nonlinear_irt = loadIrtExperimentFromFile_(nonlinear_irt_file_, "nonlinear");
-          OPENMS_LOG_INFO << "Loaded nonlinear iRT experiment from file (" << result.nonlinear_irt.getTransitions().size() << " transitions)" << std::endl;
         }
         
         result.is_prepared = true;
@@ -638,12 +638,12 @@ namespace OpenMS
       case IrtStrategy::SAMPLE_ONCE:
         if (cached_irts && cached_irts->is_prepared)
         {
-          OPENMS_LOG_INFO << "Reusing cached sampled iRT experiments for run " << run_index << std::endl;
+          OPENMS_LOG_DEBUG << "Reusing cached sampled iRT experiments for run " << run_index << std::endl;
           result = *cached_irts; // Copy the cached experiments
         }
         else
         {
-          OPENMS_LOG_INFO << "Sampling iRT experiments once from transition library (run " << run_index << ")" << std::endl;
+          OPENMS_LOG_DEBUG << "Sampling iRT experiments once from transition library (run " << run_index << ")" << std::endl;
           
           if (full_transition_exp.getTransitions().empty())
           {
@@ -667,9 +667,6 @@ namespace OpenMS
             auto_irt_linear_top_fraction_,
             priority_set);
           
-          OPENMS_LOG_INFO << "Generated " << result.linear_irt.getTransitions().size() 
-                          << " transitions for linear iRT calibration" << std::endl;
-          
           // Generate nonlinear iRT experiment if requested
           if (auto_irt_irt_peptides_per_bin_nonlinear_ > 0)
           {
@@ -681,9 +678,6 @@ namespace OpenMS
               false,  // sort_by_intensity
               auto_irt_nonlinear_top_fraction_,
               priority_set);
-            
-            OPENMS_LOG_INFO << "Generated " << result.nonlinear_irt.getTransitions().size()
-                            << " transitions for nonlinear iRT calibration" << std::endl;
           }
           
           result.is_prepared = true;
@@ -692,7 +686,7 @@ namespace OpenMS
         
       case IrtStrategy::SAMPLE_PER_RUN:
       {
-        OPENMS_LOG_INFO << "Sampling fresh iRT experiments for run " << run_index << std::endl;
+        OPENMS_LOG_DEBUG << "Sampling fresh iRT experiments for run " << run_index << std::endl;
         
         if (full_transition_exp.getTransitions().empty())
         {
@@ -719,9 +713,6 @@ namespace OpenMS
           auto_irt_linear_top_fraction_,
           priority_set);
         
-        OPENMS_LOG_INFO << "Generated " << result.linear_irt.getTransitions().size() 
-                        << " transitions for linear iRT calibration" << std::endl;
-        
         // Generate nonlinear iRT experiment if requested
         if (auto_irt_irt_peptides_per_bin_nonlinear_ > 0)
         {
@@ -733,9 +724,6 @@ namespace OpenMS
             false,  // sort_by_intensity
             auto_irt_nonlinear_top_fraction_,
             priority_set);
-          
-          OPENMS_LOG_INFO << "Generated " << result.nonlinear_irt.getTransitions().size()
-                          << " transitions for nonlinear iRT calibration" << std::endl;
         }
         
         result.is_prepared = true;
@@ -744,7 +732,7 @@ namespace OpenMS
         
       case IrtStrategy::RUN_SPECIFIC:
       {
-        OPENMS_LOG_INFO << "Loading run-specific iRT experiments for run " << run_index << std::endl;
+        OPENMS_LOG_DEBUG << "Loading run-specific iRT experiments for run " << run_index << std::endl;
         // TODO: Implement run-specific file loading logic
         // This would require run-specific file naming convention
         OPENMS_LOG_WARN << "RUN_SPECIFIC iRT preparation not yet implemented - using empty experiments" << std::endl;
