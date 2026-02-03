@@ -6,7 +6,8 @@ from StringList cimport StringList
 from XICParquetFile cimport XICChromatogram as _XICChromatogram
 from XICParquetFile cimport XICAnalyte as _XICAnalyte
 from XICParquetFile cimport XICRunInfo as _XICRunInfo
-from pyopenms._parquet_filter cimport ParquetFilterBuilder as _PyParquetFilter
+from ParquetFilter cimport ParquetFilterBuilder as _CppParquetFilterBuilder
+from pyopenms._parquet_filter cimport ParquetFilterBuilder as _PyParquetFilterBuilder
 from ._pyopenms_1 cimport convString, convOutputString
 import numpy as np
 
@@ -213,10 +214,12 @@ import numpy as np
         if parquet_filter is None:
             return self.get_data_dict(explode=explode)
         cdef libcpp_vector[_XICChromatogram] chroms
-        try:
-            self.inst.get().getChromatograms(chroms, deref((<_PyParquetFilter>parquet_filter).inst.get()))
-        except AttributeError:
-            raise TypeError("parquet_filter must be a ParquetFilterBuilder instance")
+        # Cast the pointer from the standalone module's type to the pxd-declared type
+        # Both refer to the same C++ class (OpenMS::ParquetFilterBuilder)
+        cdef _CppParquetFilterBuilder* cpp_filter = <_CppParquetFilterBuilder*>(
+            (<_PyParquetFilterBuilder>parquet_filter).inst.get()
+        )
+        self.inst.get().getChromatograms(chroms, deref(cpp_filter))
 
         cdef list run_id_list = []
         cdef list source_file_list = []

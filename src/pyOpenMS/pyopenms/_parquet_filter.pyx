@@ -21,13 +21,13 @@ The resulting builder can be passed to XICParquetFile query helpers or used
 internally by higher-level Python query classes.
 """
 
-from libc.stdint cimport int64_t
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.memory cimport shared_ptr
 from cython.operator cimport dereference as deref
 
-from String cimport String as _String
-from ParquetFilter cimport ParquetFilterBuilder as _ParquetFilterBuilder
+# Import declarations from the pxd file
+from pyopenms._parquet_filter cimport (
+    _String, _ParquetFilterBuilder, ParquetFilterBuilder,
+    shared_ptr, libcpp_vector, int64_t
+)
 
 
 cdef inline _String _to_string(object value):
@@ -48,8 +48,6 @@ cdef class ParquetFilterBuilder:
     by higher-level query helpers (e.g., ChromatogramQuery). It is not tied to
     any specific `_pyopenms_*` split module.
     """
-
-    cdef shared_ptr[_ParquetFilterBuilder] inst
 
     def __cinit__(self):
         self.inst = shared_ptr[_ParquetFilterBuilder](new _ParquetFilterBuilder())

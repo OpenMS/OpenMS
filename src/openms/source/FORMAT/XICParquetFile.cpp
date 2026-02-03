@@ -62,7 +62,7 @@ namespace OpenMS
       if (!read_status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to read parquet table", filename);
+                                      "Failed to read parquet table: " + read_status.ToString(), filename);
       }
 
       auto combined = table->CombineChunks(arrow::default_memory_pool());

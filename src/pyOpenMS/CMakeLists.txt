@@ -439,14 +439,19 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
         ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
         COPYONLY
       )
+      configure_file(
+        ${PROJECT_SOURCE_DIR}/pyopenms/_parquet_filter.pxd
+        ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pxd
+        COPYONLY
+      )
 
       add_custom_command(
         OUTPUT ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
         COMMAND ${Python_EXECUTABLE} -m cython --cplus
-          -I ${PROJECT_SOURCE_DIR}/pxds
           ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
           -o ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
         DEPENDS ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
+                ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pxd
         COMMENT "Cythonizing _parquet_filter.pyx"
         WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
       )
