@@ -5193,10 +5193,14 @@ static void scoreXLIons_(
       data_dependent_features << "IM";
     }
 
-    // convert 1/k0 to CCS
+    // convert 1/k0 to CCS (skip if already CCS from newer MSConvert)
     if (IM_unit == DriftTimeUnit::VSSC)
-    {      
+    {
       convertVSSCToCCS(spectra);
+    }
+    else if (IM_unit == DriftTimeUnit::CCS)
+    {
+      OPENMS_LOG_INFO << "Ion Mobility already in CCS format, no conversion needed." << std::endl;
     }
 
     // all data dependent features (IM available or not, precursor intensities from MS1 available etc.) are known. We can define percolator features.
@@ -5955,14 +5959,15 @@ static void scoreXLIons_(
     // reload spectra from disc with same settings as before (important to keep same spectrum indices)
     spectra.clear(true);
     f.load(in_mzml, spectra);
-    spectra.sortSpectra(true);    
+    spectra.sortSpectra(true);
     //auto [IM_format, IM_unit] = getMS2IMType(spectra);
 
-    // convert 1/k0 to CCS
+    // convert 1/k0 to CCS (skip if already CCS from newer MSConvert)
     if (IM_unit == DriftTimeUnit::VSSC)
-    {      
+    {
       convertVSSCToCCS(spectra);
     }
+    // Note: if IM_unit == DriftTimeUnit::CCS, data is already in correct format
 
     preprocessSpectra_(spectra, 
     //                   fragment_mass_tolerance, 

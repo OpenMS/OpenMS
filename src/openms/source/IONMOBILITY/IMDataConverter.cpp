@@ -336,6 +336,10 @@ namespace OpenMS
       {
         unit = DriftTimeUnit::VSSC;
       }
+      else if (fda.getName().hasSubstring("MS:1002954"))
+      {
+        unit = DriftTimeUnit::CCS;
+      }
       else
       {
         unit = DriftTimeUnit::MILLISECOND;
@@ -355,6 +359,10 @@ namespace OpenMS
         else if (cv_term.units.find("UO:0000028") != cv_term.units.end())
         { // UO:0000028 ! millisecond
           unit = DriftTimeUnit::MILLISECOND;
+        }
+        else if (cv_term.units.find("UO:0000324") != cv_term.units.end())
+        { // UO:0000324 ! square angstrom (CCS)
+          unit = DriftTimeUnit::CCS;
         }
         else
         { // fallback
