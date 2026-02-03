@@ -258,7 +258,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
             {
               acc_str = "UNIMOD:" + std::to_string(mod->getUniModRecordId());
             }
-            std::string pos_str = std::string(1, residue.getOneLetterCode()) + "." + std::to_string(pos + 1);
+            std::string pos_str = std::string(residue.getOneLetterCode()) + "." + std::to_string(pos + 1);
             if (mod_map.find(name) == mod_map.end())
             {
               mod_map[name] = {acc_str, {}};

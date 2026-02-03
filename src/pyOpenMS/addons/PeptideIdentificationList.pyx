@@ -120,119 +120,14 @@ import warnings
             # Export only specific columns
             df = peps.to_df(columns=['id', 'rt', 'mz', 'charge'])
         """
-        try:
-            import pandas as pd
-        except ImportError:
-            raise ImportError(
-                "pandas is required for to_df(). "
-                "Please install it with: pip install pandas"
-            )
-        from . import ControlledVocabulary as _ControlledVocabulary
-        from . import File as _File
-
-        if default_missing_values is None:
-            # Use type() to get Python types since 'bool' conflicts with C bool in Cython
-            default_missing_values = {type(True): False, type(1): -9999, type(1.0): np.nan, type(''): ''}
-
-        switchDict = {type(True): '?', type(1): 'i', type(1.0): 'f', type(''): 'U100'}
-
-        # filter out PeptideIdentifications without PeptideHits if export_unidentified == False
-        count = self.size()
-        if not export_unidentified:
-            count = sum(len(pep.getHits()) > 0 for pep in self)
-
-        # get all possible metavalues
-        metavals = []
-        types = []
-        mainscorename = "score"
-        for pep in self:
-            hits = pep.getHits()
-            if not len(hits) == 0:
-                mvs = []
-                hits[0].getKeys(mvs)
-                metavals += mvs
-                mainscorename = pep.getScoreType()
-
-        metavals = list(set(metavals))
-
-        # get type of all metavalues
-        for k in metavals:
-            if k == b"target_decoy":
-                types.append('?')
-            else:
-                for p in self:
-                    hits = p.getHits()
-                    if not len(hits) == 0:
-                        if hits[0].metaValueExists(k):
-                            mv = hits[0].getMetaValue(k)
-                            types.append(switchDict[type(mv)])
-                            break
-
-        # get default value for each type in types to append if there are no hits in a PeptideIdentification
-        def get_key(val):
-            for key, value in switchDict.items():
-                if val == value:
-                    return key
-        dmv = [default_missing_values[get_key(t)] for t in types]
-
-        decodedMVs = [m.decode("utf-8") for m in metavals]
-        if decode_ontology:
-            cv = _ControlledVocabulary()
-            cv.loadFromOBO("psims", _File.getOpenMSDataPath() + "/CV/psi-ms.obo")
-            clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
-        else:
-            clearMVs = decodedMVs
-
-        clearcols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
-        coltypes = ['U100', 'f', 'f', 'f', 'i','U1000', 'U1000', 'U1000', 'i', 'i'] + types
-        dt = list(zip(clearcols, coltypes))
-
-        def extract(pep, pep_idx):
-            hits = pep.getHits()
-            if not hits:
-                if export_unidentified:
-                    return (pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int],
-                            default_missing_values[str], default_missing_values[str], default_missing_values[str], pep_idx, default_missing_values[int], *dmv)
-                else:
-                    return
-
-            besthit = hits[0]
-            ret = [pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()]
-            # add accession, start and end positions of peptide evidences as comma separated str (like in mzTab)
-            evs = besthit.getPeptideEvidences()
-            ret += [','.join(v) if v else default_missing_values[str] for v in ([e.getProteinAccession() for e in evs],
-                                                                                [str(e.getStart()) for e in evs],
-                                                                                [str(e.getEnd()) for e in evs])]
-
-            ret += [str(pep_idx), 0]  # we currently only export the first hit
-
-            for idx, k in enumerate(metavals):
-                if besthit.metaValueExists(k):
-                    val = besthit.getMetaValue(k)
-                    if k == b"target_decoy":
-                        if val[0] == 't':
-                            ret.append(True)
-                        else:
-                            ret.append(False)
-                    else:
-                        ret.append(val)
-                else:
-                    ret.append(dmv[idx])  # Use precomputed default for this metavalue's type
-            return tuple(ret)
-
-        df = pd.DataFrame(np.fromiter((extract(pep, pep_idx) for pep_idx, pep in enumerate(self)), dtype=dt, count=count))
-
-        # Filter columns if specified
-        if columns is not None:
-            available = set(df.columns)
-            unknown = [c for c in columns if c not in available]
-            if unknown:
-                warnings.warn(f"Unknown column(s) ignored in to_df(): {unknown}. "
-                              f"Use df_columns() to see available columns.")
-            requested = [c for c in columns if c in available]
-            df = df[requested]
-
-        return df
+        # Delegate to to_arrow() for DRY - single source of truth for data extraction
+        table = self.to_arrow(
+            decode_ontology=decode_ontology,
+            default_missing_values=default_missing_values,
+            export_unidentified=export_unidentified,
+            columns=columns
+        )
+        return table.to_pandas()
 
     def df_columns(self, decode_ontology=True):
         """
@@ -263,32 +158,10 @@ import warnings
             # Use for column selection
             df = peps.to_df(columns=peps.df_columns()[:5])
         """
-        from . import ControlledVocabulary as _ControlledVocabulary
-        from . import File as _File
-
-        # Get all possible metavalues and main score name
-        metavals = []
-        mainscorename = "score"
-        for pep in self:
-            hits = pep.getHits()
-            if hits:
-                mvs = []
-                hits[0].getKeys(mvs)
-                metavals += mvs
-                mainscorename = pep.getScoreType()
-
-        metavals = list(set(metavals))
-
-        # Decode metavalue names if requested
-        decodedMVs = [m.decode("utf-8") for m in metavals]
-        if decode_ontology:
-            cv = _ControlledVocabulary()
-            cv.loadFromOBO("psims", _File.getOpenMSDataPath() + "/CV/psi-ms.obo")
-            clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
-        else:
-            clearMVs = decodedMVs
-
-        return ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
+        # Delegate to to_arrow() to avoid duplicating metavalue discovery and ontology decoding.
+        # Uses a single-row export (export_unidentified=True ensures at least schema is present).
+        table = self.to_arrow(decode_ontology=decode_ontology, export_unidentified=True)
+        return table.column_names
 
     def to_arrow(self, decode_ontology=True, default_missing_values=None, export_unidentified=True, columns=None):
         """
@@ -991,40 +864,27 @@ import warnings
                 if include_modifications and seq.isModified():
                     mod_dict = {}
 
-                    # N-terminal modification
-                    if seq.hasNTerminalModification():
-                        mod = seq.getNTerminalModification()
-                        mod_name = seq.getNTerminalModificationName()
+                    def _add_mod(mod_dict, mod, mod_name, position_str):
                         accession = mod.getUniModRecordId() if mod else None
                         accession_str = f"UNIMOD:{accession}" if accession and accession > 0 else None
-                        position_str = "N-term.0"
                         if mod_name not in mod_dict:
                             mod_dict[mod_name] = {"name": mod_name, "accession": accession_str, "positions": []}
                         mod_dict[mod_name]["positions"].append({"position": position_str, "scores": None})
 
-                    # Residue modifications
+                    if seq.hasNTerminalModification():
+                        _add_mod(mod_dict, seq.getNTerminalModification(),
+                                 seq.getNTerminalModificationName(), "N-term.0")
+
                     for pos, residue in enumerate(seq):
                         if residue.isModified():
-                            res_mod = residue.getModification()
-                            mod_name = residue.getModificationName()
-                            accession = res_mod.getUniModRecordId() if res_mod else None
-                            accession_str = f"UNIMOD:{accession}" if accession and accession > 0 else None
-                            aa_code = residue.getOneLetterCode()
-                            position_str = f"{aa_code}.{pos + 1}"
-                            if mod_name not in mod_dict:
-                                mod_dict[mod_name] = {"name": mod_name, "accession": accession_str, "positions": []}
-                            mod_dict[mod_name]["positions"].append({"position": position_str, "scores": None})
+                            _add_mod(mod_dict, residue.getModification(),
+                                     residue.getModificationName(),
+                                     f"{residue.getOneLetterCode()}.{pos + 1}")
 
-                    # C-terminal modification
                     if seq.hasCTerminalModification():
-                        mod = seq.getCTerminalModification()
-                        mod_name = seq.getCTerminalModificationName()
-                        accession = mod.getUniModRecordId() if mod else None
-                        accession_str = f"UNIMOD:{accession}" if accession and accession > 0 else None
-                        position_str = f"C-term.{seq.size() + 1}"
-                        if mod_name not in mod_dict:
-                            mod_dict[mod_name] = {"name": mod_name, "accession": accession_str, "positions": []}
-                        mod_dict[mod_name]["positions"].append({"position": position_str, "scores": None})
+                        _add_mod(mod_dict, seq.getCTerminalModification(),
+                                 seq.getCTerminalModificationName(),
+                                 f"C-term.{seq.size() + 1}")
 
                     modifications = list(mod_dict.values())
 
