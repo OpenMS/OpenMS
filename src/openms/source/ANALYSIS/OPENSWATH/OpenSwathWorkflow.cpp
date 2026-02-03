@@ -123,8 +123,6 @@ namespace OpenMS
     const Param& calibration_param,
     const bool pasef)
   {
-    this->startProgress(0, 1, "Retention time normalization");
-
     bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
     if (estimateBestPeptides)
     {
@@ -307,7 +305,6 @@ namespace OpenMS
     String model_type = irt_detection_param.getValue("alignmentMethod").toString();
     trafo_out.fitModel(model_type, model_params);
 
-    this->endProgress();
     return trafo_out;
   }
 
