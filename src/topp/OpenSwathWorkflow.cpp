@@ -1138,7 +1138,8 @@ protected:
           pasef,              // PASEF data flag
           load_into_memory,   // Load data into memory flag
           irt_trafo_out,      // Transformation output file
-          irt_mzml_out        // iRT chromatograms output file
+          irt_mzml_out,       // iRT chromatograms output file
+          debug_level         // Debug level for iRT chromatogram output
         );
         
         // Extract results

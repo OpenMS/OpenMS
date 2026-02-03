@@ -147,13 +147,23 @@ namespace OpenMS
     bool pasef,
     bool load_into_memory,
     const String& irt_trafo_out,
-    const String& irt_mzml_out)
+    const String& irt_mzml_out,
+    Size debug_level)
   {
     // Validate that iRT experiments are ready
     if (!irt_experiments.is_prepared)
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "iRT experiments must be prepared before calling performCalibration. Call prepareIrtExperiments() first.");
+    }
+    
+    // Validate that we have linear iRT transitions (required for any calibration)
+    if (irt_experiments.linear_irt.getTransitions().empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "No linear iRT transitions available for calibration. Please check your iRT configuration: "
+                                       "either provide static iRT files via 'files:linear_irt_file' parameter, or enable 'auto_irt:enabled' "
+                                       "and ensure the transition library contains suitable peptides for sampling.");
     }
 
     CalibrationResult result;
@@ -167,7 +177,7 @@ namespace OpenMS
       result = performLinearThenNonlinearCalibration_(swath_maps, transition_exp, irt_experiments,
                                                      feature_finder_param, cp_irt, irt_detection_param,
                                                      calibration_param, mrm_mapping_param, pasef,
-                                                     load_into_memory, irt_trafo_out, irt_mzml_out);
+                                                     load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);
     }
     else
     {
@@ -175,7 +185,22 @@ namespace OpenMS
       result = performLinearCalibration_(swath_maps, transition_exp, irt_experiments,
                                         feature_finder_param, cp_irt, irt_detection_param,
                                         calibration_param, mrm_mapping_param, pasef,
-                                        load_into_memory, irt_trafo_out, irt_mzml_out);
+                                        load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);
+    }
+    
+    // Apply IM correction back to the target library if needed (applies to both linear and nonlinear workflows)
+    if (!result.im_trafo.getDataPoints().empty())
+    {
+      OPENMS_LOG_INFO << "Applying ion mobility correction to target library..." << std::endl;
+      TransformationDescription im_trafo_inv = result.im_trafo;
+      im_trafo_inv.invert();
+      for (auto& compound : transition_exp.getCompounds())
+      {
+        if (compound.drift_time > 0)
+        {
+          compound.drift_time = im_trafo_inv.apply(compound.drift_time);
+        }
+      }
     }
     
     // Apply estimated extraction windows if requested
@@ -202,18 +227,22 @@ namespace OpenMS
     bool pasef,
     bool load_into_memory,
     const String& irt_trafo_out,
-    const String& irt_mzml_out)
+    const String& irt_mzml_out,
+    Size debug_level)
   {
+    // Validate that we have linear iRT transitions (required for any calibration)
+    if (irt_experiments.linear_irt.getTransitions().empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "No linear iRT transitions available for calibration. CalibrationWorkflow requires at least linear iRT data to perform calibration.");
+    }
+
     CalibrationResult result;
     
-    // Note: This method focuses on iRT-based calibration only
-    
-    if (!irt_experiments.linear_irt.getTransitions().empty())
-    {
-      // Perform iRT-based calibration
-      OPENMS_LOG_INFO << "Performing iRT-based linear calibration with " 
-                      << irt_experiments.linear_irt.getTransitions().size() 
-                      << " transitions..." << std::endl;
+    // Perform iRT-based calibration
+    OPENMS_LOG_INFO << "Performing iRT-based linear calibration with " 
+                    << irt_experiments.linear_irt.getTransitions().size() 
+                    << " transitions..." << std::endl;
       
       // Create calibration workflow
       OpenSwathCalibrationWorkflow calibration_wf;
@@ -236,9 +265,12 @@ namespace OpenMS
         calibration_param,
         mrm_mapping_param,
         irt_mzml_out,
-        0,  // debug_level
+        debug_level,
         pasef,
         load_into_memory);
+        
+      // Store the ion mobility transformation
+      result.im_trafo = im_trafo;
         
       // Retrieve estimated windows
       result.ms2_mz_window_ppm = calibration_wf.getEstimatedMzWindow();
@@ -256,13 +288,6 @@ namespace OpenMS
         FileHandler().storeTransformations(irt_trafo_out, result.rt_trafo, 
                                          {FileTypes::TRANSFORMATIONXML});
       }
-    }
-    else
-    {
-      OPENMS_LOG_INFO << "No iRT transitions provided, using identity transformation." << std::endl;
-      // Create identity transformation
-      // result.rt_trafo = TransformationDescription(); // identity
-    }
 
     return result;
   }
@@ -280,7 +305,8 @@ namespace OpenMS
     bool pasef,
     bool load_into_memory,
     const String& irt_trafo_out,
-    const String& irt_mzml_out)
+    const String& irt_mzml_out,
+    Size debug_level)
   {
     // This method focuses on linear + nonlinear iRT-based calibration only
     
@@ -297,7 +323,7 @@ namespace OpenMS
       swath_maps, transition_exp, irt_experiments,
       feature_finder_param, cp_irt, linear_detection_param,
       linear_calibration_param, mrm_mapping_param, pasef,
-      load_into_memory, "", irt_mzml_out);  // Don't save intermediate trafo
+      load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);  
     
     // Step 2: Perform nonlinear refinement
     OPENMS_LOG_INFO << "Step 2: Performing nonlinear calibration refinement..." << std::endl;
@@ -343,23 +369,10 @@ namespace OpenMS
       calibration_param,  // Use full calibration (with m/z correction)
       pasef);
 
-    // Apply IM correction back to the target library if needed
-    if (!im_trafo.getDataPoints().empty())
-    {
-      TransformationDescription im_trafo_inv = im_trafo;
-      im_trafo_inv.invert();
-      for (auto& compound : transition_exp.getCompounds())
-      {
-        if (compound.drift_time > 0)
-        {
-          compound.drift_time = im_trafo_inv.apply(compound.drift_time);
-        }
-      }
-    }
-    
     // Prepare final result
     CalibrationResult final_result;
     final_result.rt_trafo = nonlinear_trafo;
+    final_result.im_trafo = im_trafo;  // Store the ion mobility transformation
     final_result.ms2_mz_window_ppm = nonlinear_wf.getEstimatedMzWindow();
     final_result.ms2_im_window = nonlinear_wf.getEstimatedImWindow();
     final_result.ms1_mz_window_ppm = nonlinear_wf.getEstimatedMs1MzWindow();

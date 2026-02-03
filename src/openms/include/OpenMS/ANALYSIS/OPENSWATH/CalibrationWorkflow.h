@@ -72,6 +72,8 @@ namespace OpenMS
       // === Transformation ===
       /// RT normalization transformation (fitted)
       TransformationDescription rt_trafo;
+      /// Ion mobility transformation (fitted). May be empty if no IM calibration performed.
+      TransformationDescription im_trafo;
       
       // === Estimated Extraction Windows ===
       /// MS2 m/z extraction window (full width, ppm). -1 if not computed.
@@ -202,7 +204,8 @@ namespace OpenMS
       bool pasef = false,
       bool load_into_memory = false,
       const String& irt_trafo_out = "",
-      const String& irt_mzml_out = ""
+      const String& irt_mzml_out = "",
+      Size debug_level = 0
     );
 
     /**
@@ -318,7 +321,8 @@ namespace OpenMS
       bool pasef,
       bool load_into_memory,
       const String& irt_trafo_out,
-      const String& irt_mzml_out);
+      const String& irt_mzml_out,
+      Size debug_level);
     
     /**
       @brief Perform linear + nonlinear calibration workflow.
@@ -353,7 +357,8 @@ namespace OpenMS
       bool pasef,
       bool load_into_memory,
       const String& irt_trafo_out,
-      const String& irt_mzml_out);
+      const String& irt_mzml_out,
+      Size debug_level);
       
     /**
       @brief Apply estimated extraction windows to parameters.
