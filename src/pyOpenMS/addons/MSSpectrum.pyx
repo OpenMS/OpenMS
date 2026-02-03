@@ -4,11 +4,11 @@ import numpy as np
 
 
 
-    def get_df_columns(self, columns='default', export_meta_values=True):
+    def df_columns(self, columns='default', export_meta_values=True):
         """
-        get_df_columns(self: MSSpectrum, columns: str = 'default', export_meta_values: bool = True) -> List[str]
+        df_columns(self: MSSpectrum, columns: str = 'default', export_meta_values: bool = True) -> List[str]
         
-        Returns a list of column names that get_df() would produce for this spectrum.
+        Returns a list of column names that to_df() would produce for this spectrum.
 
         Useful for discovering available columns before export, especially when
         selecting specific columns for performance optimization.
@@ -26,15 +26,15 @@ import numpy as np
         Example::
 
             >>> # See default columns
-            >>> cols = spectrum.get_df_columns()
+            >>> cols = spectrum.df_columns()
             ['mz', 'intensity', 'rt', ...]
 
             >>> # See ALL available columns including custom data arrays
-            >>> cols = spectrum.get_df_columns('all')
+            >>> cols = spectrum.df_columns('all')
             ['mz', 'intensity', ..., 'ion_mobility_unit', 'float_array:MyData']
 
             >>> # Export everything
-            >>> df = spectrum.get_df(columns=spectrum.get_df_columns('all'))
+            >>> df = spectrum.to_df(columns=spectrum.df_columns('all'))
         """
         cols = ['mz', 'intensity', 'rt', 'ms_level', 'native_id']
 
@@ -95,7 +95,7 @@ import numpy as np
         into a dictionary format suitable for conversion to a pandas DataFrame.
 
         :param columns: List of column names to include. If None, includes
-                        all default columns. Use get_df_columns('all') to see
+                        all default columns. Use df_columns('all') to see
                         all available columns including custom data arrays.
         :type columns: Optional[List[str]]
         :param export_meta_values: Whether to include meta values in the output.
@@ -130,7 +130,7 @@ import numpy as np
             >>> data = spectrum.get_data_dict(columns=['mz', 'intensity'])
 
             >>> # Get all available columns including custom data arrays
-            >>> all_cols = spectrum.get_df_columns('all')
+            >>> all_cols = spectrum.df_columns('all')
             >>> data = spectrum.get_data_dict(columns=all_cols)
         """
         # Get peak data using existing optimized method
@@ -317,9 +317,9 @@ import numpy as np
 
         return data_dict
 
-    def get_df(self, columns=None, export_meta_values=True):
+    def to_df(self, columns=None, export_meta_values=True):
         """
-        get_df(self: MSSpectrum, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pd.DataFrame
+        to_df(self: MSSpectrum, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pd.DataFrame
 
         Returns a pandas DataFrame representation of the MSSpectrum.
 
@@ -327,7 +327,7 @@ import numpy as np
         ion mobility) into a pandas DataFrame format.
 
         :param columns: List of column names to include. If None,
-                        includes all default columns. Use get_df_columns()
+                        includes all default columns. Use df_columns()
                         to discover available columns.
         :type columns: Optional[List[str]]
 
@@ -347,24 +347,24 @@ import numpy as np
         Example::
 
             # Get all default columns
-            df = spectrum.get_df()
+            df = spectrum.to_df()
 
             # Discover available columns
-            print(spectrum.get_df_columns())
+            print(spectrum.df_columns())
 
             # Get only specific columns (faster)
-            df = spectrum.get_df(columns=['mz', 'intensity'])
+            df = spectrum.to_df(columns=['mz', 'intensity'])
 
             # Get all columns including non-defaults like ion_mobility_unit
-            cols = spectrum.get_df_columns()
+            cols = spectrum.df_columns()
             cols.append('ion_mobility_unit')
-            df = spectrum.get_df(columns=cols)
+            df = spectrum.to_df(columns=cols)
         """
         try:
             import pandas as pd
         except ImportError:
             raise ImportError(
-                "pandas is required for get_df(). "
+                "pandas is required for to_df(). "
                 "Please install it with: pip install pandas"
             )
         data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
@@ -380,7 +380,7 @@ import numpy as np
         ion mobility) into an Arrow Table format for efficient data interchange.
 
         :param columns: List of column names to include. If None,
-                        includes all default columns. Use get_df_columns()
+                        includes all default columns. Use df_columns()
                         to discover available columns.
         :type columns: Optional[List[str]]
 
@@ -817,3 +817,26 @@ import numpy as np
             parts.append(f"drift_time={drift_time:.2f}")
 
         return f"MSSpectrum({', '.join(parts)})"
+
+    # Deprecated aliases for backward compatibility with pyopenms 3.5.0
+    def get_df(self, *args, **kwargs):
+        """Deprecated: Use to_df() instead."""
+        import warnings
+        warnings.warn(
+            "get_df() is deprecated and will be removed in a future version. "
+            "Use to_df() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.to_df(*args, **kwargs)
+
+    def get_df_columns(self, *args, **kwargs):
+        """Deprecated: Use df_columns() instead."""
+        import warnings
+        warnings.warn(
+            "get_df_columns() is deprecated and will be removed in a future version. "
+            "Use df_columns() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.df_columns(*args, **kwargs)

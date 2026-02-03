@@ -54,6 +54,17 @@ namespace OpenMS
     info.gene_exists = SqliteConnector::tableExists(db, "GENE");
     if (info.gene_exists)
     {
+      // Check if the GENE table actually has any data (issue #8687)
+      // An empty GENE table with INNER JOIN would return zero rows
+      sqlite3_stmt* gene_count_stmt;
+      SqliteConnector::prepareStatement(db, &gene_count_stmt, "SELECT COUNT(*) FROM GENE;");
+      sqlite3_step(gene_count_stmt);
+      int gene_count = sqlite3_column_int(gene_count_stmt, 0);
+      sqlite3_finalize(gene_count_stmt);
+      info.gene_exists = (gene_count > 0);
+    }
+    if (info.gene_exists)
+    {
       select_gene = ", GENE_AGGREGATED.GENE_NAME AS gene_name ";
       select_gene_null = ", 'NA' AS gene_name ";
       join_gene = "INNER JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \

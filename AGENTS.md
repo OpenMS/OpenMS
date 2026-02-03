@@ -21,46 +21,14 @@ cmake -DCMAKE_BUILD_TYPE=Debug ../OpenMS
 # Build everything (includes tests)
 cmake --build . -j$(nproc)
 
-# Run all tests
-ctest -j$(nproc)
-
-# Run specific test by name pattern
-ctest -R FeatureMap -j4
 
 # Run tests with verbose output
 ctest -R MyTest -V
 
-# Run style checks
-cmake --build . --target test_style
 
-# Regenerate pyOpenMS after changes
-rm pyOpenMS/.cpp_extension_generated
-cmake --build . --target pyopenms -j4
-
-# Run pyOpenMS tests
-ctest -R pyopenms
-
-# Check code formatting
-clang-format --dry-run -Werror src/openms/source/MYFILE.cpp
-```
-
-## Key Docs in This Repo
-
-- `README.md`, `CONTRIBUTING.md`, `ARCHITECTURE.MD`, `CODE_OF_CONDUCT.md`, `PULL_REQUEST_TEMPLATE.md`.
-- `src/pyOpenMS/README.md`, `src/pyOpenMS/README_WRAPPING_NEW_CLASSES`.
-- `share/OpenMS/examples/external_code/README.md`, `src/tests/external/README.md`.
-- `dockerfiles/README.md`, `cmake/MacOSX/README.md`, `tools/jenkins/README.MD`.
-- Doxygen (if built) in `OpenMS-build/doc/html/` including `index.html`, `developer_coding_conventions.html`, `developer_cpp_guide.html`, `developer_how_to_write_tests.html`, `howto_commit_messages.html`, `developer_faq.html`, `developer_tutorial.html`, `install_linux.html`, `install_mac.html`, `install_win.html`, `pyOpenMS.html`.
-
-## Repo Layout
-
-- Default build directory: `OpenMS-build/` (out-of-tree).
-- Core C++: `src/openms/`, `src/openms_gui/`, `src/openswathalgo/`, `src/topp/`.
-- Tests: `src/tests/class_tests/openms/`, `src/tests/class_tests/openms_gui/`, `src/tests/topp/`.
-- pyOpenMS: `src/pyOpenMS/` with `pxds/`, `addons/`, `pyopenms/`, `tests/`.
-## Project Stack
-
-- **Language**: C++20, Python 3.9+
+## Known build workarounds
+- **Boost static libs on macOS**: Boost's CMake config has incomplete `find_dependency()` calls for transitive dependencies. Use `-DBOOST_USE_STATIC_LIBS=OFF` to avoid linker errors. This is a 5+ year old upstream issue.
+- **CMAKE_PREFIX_PATH separators** (per [CMake docs](https://cmake.org/cmake/help/latest/variable/CMAKE_PREFIX_PATH.html)): When passing via `-D` option, use semicolons (`;`) as list separators (e.g., `-DCMAKE_PREFIX_PATH="/path/one;/path/two"`). Environment variables use OS-native separators (`:` on Unix, `;` on Windows).
 - **Build**: CMake 3.24+, out-of-tree builds in `OpenMS-build/`
 - **Testing**: CTest, GoogleTest-style macros, pytest for Python
 - **Style**: `.clang-format` in repo root, cpplint via `ENABLE_STYLE_TESTING=ON`
@@ -95,7 +63,7 @@ OpenMS/
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
-- pyOpenMS build deps: `src/pyOpenMS/requirements_bld.txt`; enable with `-DPYOPENMS=ON` and optional `-DPY_NUM_THREADS`/`-DPY_NUM_MODULES`.
+- pyOpenMS build deps: install via `uv sync --only-group build` or `pip install -e .[dev]` (see `src/pyOpenMS/pyproject.toml`); enable with `-DPYOPENMS=ON` and optional `-DPY_NUM_THREADS`/`-DPY_NUM_MODULES`.
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
 **Required dependencies:**

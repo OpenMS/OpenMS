@@ -405,11 +405,11 @@ namespace OpenMS::Internal
         String temp_string = (character_buffer_.trim());
         if (temp_string == "Monoisotopic")
         {
-          search_parameters_.mass_type = ProteinIdentification::MONOISOTOPIC;
+          search_parameters_.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
         }
         else if (temp_string == "Average")
         {
-          search_parameters_.mass_type = ProteinIdentification::AVERAGE;
+          search_parameters_.mass_type = ProteinIdentification::PeakMassType::AVERAGE;
         }
       }
       else if (tag_ == "MODS")

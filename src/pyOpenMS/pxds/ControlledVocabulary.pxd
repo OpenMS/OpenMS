@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::Con
       String description  #< Term description
       StringList synonyms  #< List of synonyms
       StringList unparsed  #< Unparsed lines from the definition file
-      XRefType_CVTerm_ControlledVocabulary xref_type  #< xref value-type for the CV-term
+      XRefType xref_type  #< xref value-type for the CV-term
       StringList xref_binary  #< xref binary-data-type for the CV-term (list of all allowed data value types for the current binary data array)
       libcpp_set[String] units  #< unit accession ids, defined by relationship has units
 
@@ -59,19 +59,21 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::Con
 
       String toXMLString(String ref, String value) except + nogil  # wrap-doc:Get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
       String toXMLString(String ref, DataValue value) except + nogil  # wrap-doc:Get mzidentml formatted string. i.e. a cvparam xml element, ref should be the name of the ControlledVocabulary (i.e. cv.name()) containing the CVTerm (e.g. PSI-MS for the psi-ms.obo - gets loaded in all cases like that??), value can be empty if not available
-      String getXRefTypeName(XRefType_CVTerm_ControlledVocabulary type) except + nogil 
+      String getXRefTypeName(XRefType type) except + nogil 
       bool isHigherBetterScore(CVTerm_ControlledVocabulary term) except + nogil 
 
 cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::ControlledVocabulary::CVTerm":
 
     # define xsd types allowed in cv term to specify their value-type
-    cdef enum XRefType_CVTerm_ControlledVocabulary "OpenMS::ControlledVocabulary::CVTerm::XRefType":
-        XSD_STRING = 0, # xsd:string A string
+    cdef enum class XRefType "OpenMS::ControlledVocabulary::CVTerm::XRefType":
+        # wrap-attach:
+        #    CVTerm_ControlledVocabulary
+        XSD_STRING, # xsd:string A string
         XSD_INTEGER, # xsd:integer Any integer
         XSD_DECIMAL, # xsd:decimal Any real number
         XSD_NEGATIVE_INTEGER, # xsd:negativeInteger Any negative integer
-        XSD_POSITIVE_INTEGER, # xsd:positiveInteger Any integer ] 0
-        XSD_NON_NEGATIVE_INTEGER, # xsd:nonNegativeInteger Any integer ]= 0
+        XSD_POSITIVE_INTEGER, # xsd:positiveInteger Any integer > 0
+        XSD_NON_NEGATIVE_INTEGER, # xsd:nonNegativeInteger Any integer >= 0
         XSD_NON_POSITIVE_INTEGER, # xsd:nonPositiveInteger Any integer < 0
         XSD_BOOLEAN, # xsd:boolean True or false
         XSD_DATE, # xsd:date An XML-Schema date

@@ -750,7 +750,7 @@ namespace OpenMS
     // filter FeatureMap to only have entries with an identification
     if (!keep_unidentified_masses_)
     {
-      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return f.getPeptideIdentifications().size() == 0; }), fmap.end());
+      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return f.getPeptideIdentifications().empty(); }), fmap.end());
     }
 
     // add dummy ProteinIdentification which is required to keep PeptideHits alive during store()

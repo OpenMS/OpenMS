@@ -230,6 +230,12 @@ public:
     /// sets the protein identifications by moving
     void setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications);
 
+    /// finds a protein identification by its identifier (returns nullptr if not found)
+    const ProteinIdentification* findProteinIdentification(const String& identifier) const;
+
+    /// finds a protein identification by its identifier (returns nullptr if not found)
+    ProteinIdentification* findProteinIdentification(const String& identifier);
+
     /// non-mutable access to the unassigned peptide identifications
     const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;
 

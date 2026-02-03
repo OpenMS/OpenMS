@@ -5206,10 +5206,10 @@ static void scoreXLIons_(
     // only executed if we have a pre-search with enough calibrants
     if (ic.getCalibrationPoints().size() > 1)
     {
-      MZTrafoModel::MODELTYPE md = MZTrafoModel::LINEAR;
+      MZTrafoModel::MODELTYPE md = MZTrafoModel::MODELTYPE::LINEAR;
       bool use_RANSAC = true;
 
-      Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
+      Size RANSAC_initial_points = (md == MZTrafoModel::MODELTYPE::LINEAR) ? 2 : 3;
       Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
       MZTrafoModel::setRANSACParams(p);
 
@@ -6032,14 +6032,14 @@ static void scoreXLIons_(
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
 
-    if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-        (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+    if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
+        (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
     {
-      if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+      if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
       {
-        return INPUT_FILE_EMPTY;       
+        return INPUT_FILE_EMPTY;
       }
-      else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+      else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
       {
         return UNEXPECTED_RESULT;
       }

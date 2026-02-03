@@ -38,16 +38,16 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>" namespace "
             #  This assumes that the consensus feature is only from one (SWATH) map
             #  This assumes that the consensus map is sorted by intensity
 
-        # void scoreHullpoints(const MasstracePointsType & hull_points1,
+        #  void scoreHullpoints(const MasstracePointsType & hull_points1,
         #                     const MasstracePointsType & hull_points2,
         #                     int lag,
         #                     double lag_intensity,
         #                     double pearson_score,
         #                     double min_corr,
         #                     int max_lag,
-        #                     double mindiff) except + nogil 
+        #                     double mindiff) except + nogil
 
-        # void createConsensusMapCache(const ConsensusMap & map_,
+        #  void createConsensusMapCache(const ConsensusMap & map_,
         #                             libcpp_vector[ MasstracePointsType ] & feature_points,
         #                             libcpp_vector[ libcpp_pair[ double, double ] ] & max_intensities,
         #                             libcpp_vector[ double ] & rt_cache) except + nogil 

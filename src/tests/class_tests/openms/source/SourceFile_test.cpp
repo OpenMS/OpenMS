@@ -83,14 +83,14 @@ END_SECTION
 
 START_SECTION(ChecksumType getChecksumType() const)
   SourceFile tmp;
-  TEST_EQUAL(tmp.getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
+  TEST_EQUAL(tmp.getChecksumType(), SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
 END_SECTION
 
 START_SECTION((void setChecksum(const String& checksum, ChecksumType type)))
   SourceFile tmp;
-  tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",SourceFile::SHA1);
+  tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",SourceFile::ChecksumType::SHA1);
   TEST_EQUAL(tmp.getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
-  TEST_EQUAL(tmp.getChecksumType(), SourceFile::SHA1);
+  TEST_EQUAL(tmp.getChecksumType(), SourceFile::ChecksumType::SHA1);
 END_SECTION
 
 START_SECTION((const String& getNativeIDType() const))
@@ -109,7 +109,7 @@ START_SECTION((SourceFile(const SourceFile& source)))
 	tmp.setFileType("CALIBRATIONINFO");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	tmp.setPathToFile("/misc/sturm/mp3/");
-	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::MD5);
+	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::ChecksumType::MD5);
 	tmp.setMetaValue("bla",4.0);
 	
 	SourceFile tmp2(tmp);
@@ -117,7 +117,7 @@ START_SECTION((SourceFile(const SourceFile& source)))
 	TEST_EQUAL(tmp2.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
 	TEST_EQUAL(tmp2.getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
-	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::MD5);
+	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::ChecksumType::MD5);
 	TEST_REAL_SIMILAR(tmp2.getMetaValue("bla"), 4.0);
 END_SECTION
 
@@ -126,7 +126,7 @@ START_SECTION((SourceFile& operator= (const SourceFile& source)))
 	tmp.setFileType("PUBLICATION");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	tmp.setPathToFile("/misc/sturm/mp3/");
-	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::MD5);
+	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::ChecksumType::MD5);
 	tmp.setMetaValue("bla",4.0);
 	
 	//normal assignment
@@ -136,7 +136,7 @@ START_SECTION((SourceFile& operator= (const SourceFile& source)))
 	TEST_EQUAL(tmp2.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
 	TEST_EQUAL(tmp2.getChecksum(),"2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
-	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::MD5);
+	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::ChecksumType::MD5);
 	TEST_REAL_SIMILAR(tmp2.getMetaValue("bla"), 4.0);
 	
 	//assignment of empty object
@@ -145,7 +145,7 @@ START_SECTION((SourceFile& operator= (const SourceFile& source)))
 	TEST_EQUAL(tmp2.getNameOfFile(),"");
 	TEST_EQUAL(tmp2.getPathToFile(),"");
 	TEST_EQUAL(tmp2.getChecksum(),"");
-	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
+	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
 	TEST_EQUAL(tmp2.metaValueExists("bla"), false);
 END_SECTION
 
@@ -162,7 +162,7 @@ START_SECTION((bool operator== (const SourceFile& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
-	tmp.setChecksum("", SourceFile::MD5);
+	tmp.setChecksum("", SourceFile::ChecksumType::MD5);
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
@@ -187,7 +187,7 @@ START_SECTION((bool operator!= (const SourceFile& rhs) const))
 	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
-	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::UNKNOWN_CHECKSUM);
+	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
 	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
@@ -201,9 +201,9 @@ END_SECTION
 
 START_SECTION((static StringList getAllNamesOfChecksumType()))
   StringList names = SourceFile::getAllNamesOfChecksumType();
-  TEST_EQUAL(names.size(), SourceFile::SIZE_OF_CHECKSUMTYPE);
-  TEST_EQUAL(names[SourceFile::SHA1], "SHA-1");
-  TEST_EQUAL(names[SourceFile::MD5], "MD5");
+  TEST_EQUAL(names.size(), static_cast<size_t>(SourceFile::ChecksumType::SIZE_OF_CHECKSUMTYPE));
+  TEST_EQUAL(names[static_cast<size_t>(SourceFile::ChecksumType::SHA1)], "SHA-1");
+  TEST_EQUAL(names[static_cast<size_t>(SourceFile::ChecksumType::MD5)], "MD5");
 END_SECTION
 
 /////////////////////////////////////////////////////////////

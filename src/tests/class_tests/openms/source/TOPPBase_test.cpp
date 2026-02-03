@@ -845,6 +845,50 @@ START_SECTION(([EXTRA] test subsection parameters))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] test duplicate parameters))
+{
+  // Test duplicate parameters - last value should win with warning
+  const char* string_cl_dup[5] = {a1, a10, a12, a10, a16}; //command line: "TOPPBaseTest -stringoption commandline -stringoption 4711"
+  TOPPBaseTest tmp_dup;
+  TOPPBase::ExitCodes ec_dup = tmp_dup.main(5, string_cl_dup);
+  TEST_EQUAL(ec_dup, TOPPBase::EXECUTION_OK)
+  // Last value should be used
+  TEST_EQUAL(tmp_dup.getStringOption("stringoption"), "4711");
+  
+  // Test duplicate int option
+  const char* string_cl_dup2[5] = {a1, a14, a9, a14, a16}; //command line: "TOPPBaseTest -intoption 5 -intoption 4711"
+  TOPPBaseTest tmp_dup2;
+  TOPPBase::ExitCodes ec_dup2 = tmp_dup2.main(5, string_cl_dup2);
+  TEST_EQUAL(ec_dup2, TOPPBase::EXECUTION_OK)
+  // Last value should be used
+  TEST_EQUAL(tmp_dup2.getIntOption("intoption"), 4711);
+  
+  // Test duplicate double option
+  const char* string_cl_dup3[5] = {a1, a15, a20, a15, a13}; //command line: "TOPPBaseTest -doubleoption 0.411 -doubleoption 4.5"
+  TOPPBaseTest tmp_dup3;
+  TOPPBase::ExitCodes ec_dup3 = tmp_dup3.main(5, string_cl_dup3);
+  TEST_EQUAL(ec_dup3, TOPPBase::EXECUTION_OK)
+  // Last value should be used
+  TEST_REAL_SIMILAR(tmp_dup3.getDoubleOption("doubleoption"), 4.5);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] test flag with trailing arguments))
+{
+  // Test flag with trailing argument - should cause error
+  const char* string_cl_flag[4] = {a1, a11, a12, test}; //command line: "TOPPBaseTest -flag commandline -test"
+  TOPPBaseTest tmp_flag;
+  TOPPBase::ExitCodes ec_flag = tmp_flag.main(4, string_cl_flag);
+  TEST_EQUAL(ec_flag, TOPPBase::ILLEGAL_PARAMETERS)
+
+  // Test flag with multiple trailing arguments
+  const char* string_cl_flag2[6] = {a1, a11, a12, a16, a13, test}; //command line: "TOPPBaseTest -flag commandline 4711 4.5 -test"
+  TOPPBaseTest tmp_flag2;
+  TOPPBase::ExitCodes ec_flag2 = tmp_flag2.main(6, string_cl_flag2);
+  TEST_EQUAL(ec_flag2, TOPPBase::ILLEGAL_PARAMETERS)
+}
+END_SECTION
+
 delete [] a7;
 delete [] a8;
 

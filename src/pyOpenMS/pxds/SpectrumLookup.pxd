@@ -34,11 +34,11 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
                 #  
                 #  :param native_id: Native ID to look up
                 #  :returns: Index of the spectrum that matched
-        
-        # This is a base class: we cannot overload methods since Cython doesn't
-        # allow inheritance of overloaded methods.
 
-        # Size findByIndex(Size index) except + nogil 
+        #  This is a base class: we cannot overload methods since Cython doesn't
+        #  allow inheritance of overloaded methods.
+
+        #  Size findByIndex(Size index) except + nogil
 
         Size findByIndex(Size index, bool count_from_one) except + nogil 
          # wrap-doc:
@@ -68,6 +68,6 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
                 #  
                 #  :param regexp: Regular expression defining the format
 
-        # # NAMESPACE # Int extractScanNumber(const String & native_id, boost::regex & scan_regexp, bool no_error) except + nogil 
+        #  # NAMESPACE # Int extractScanNumber(const String & native_id, boost::regex & scan_regexp, bool no_error) except + nogil
 
         Int extractScanNumber(const String& native_id, const String& native_id_type_accession) except + nogil 
