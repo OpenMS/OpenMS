@@ -74,6 +74,7 @@ namespace OpenMS
       MRM,                ///< SpectraST MRM List
       SQMASS,             ///< SqLite format for mass and chromatograms, see SqMassFile
       PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB, see TransitionPQPFile
+      CHROMPARQUET,       ///< OpenSWATH Parquet chromatogram output (.xic)
       MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
       PSMS,               ///< Percolator tab-delimited output (PSM level)
@@ -198,4 +199,3 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
-

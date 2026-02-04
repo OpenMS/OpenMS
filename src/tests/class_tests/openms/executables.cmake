@@ -285,7 +285,9 @@ if(WITH_HDF5)
 endif()
 
 if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test ArrowExport_test QuantmsIO_test)
+  list(APPEND format_executables_list Arrow_test ArrowExport_test QuantmsIO_test
+    MSChromatogramParquetConsumer_test
+    XICParquetFile_test)
 endif()
 
 set(math_executables_list
@@ -428,7 +430,6 @@ set(chemistry_executables_list
   Residue_test
   RibonucleotideDB_test
   Ribonucleotide_test
-  SequenceCoverage_test
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
   Tagger_test
