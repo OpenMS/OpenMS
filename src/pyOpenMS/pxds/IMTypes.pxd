@@ -16,10 +16,11 @@ cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":
 
     cdef enum DriftTimeUnit:
-        NONE,                      
-        MILLISECOND,               
-        VSSC,                      
+        NONE,
+        MILLISECOND,
+        VSSC,
         FAIMS_COMPENSATION_VOLTAGE,
+        CCS,
         SIZE_OF_DRIFTTIMEUNIT
 
     cdef enum IMFormat:

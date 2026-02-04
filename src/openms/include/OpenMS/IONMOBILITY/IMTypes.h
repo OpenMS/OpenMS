@@ -25,6 +25,7 @@ namespace OpenMS
     MILLISECOND,               ///< milliseconds
     VSSC,                      ///< volt-second per square centimeter (i.e. 1/K_0)
     FAIMS_COMPENSATION_VOLTAGE,///< compensation voltage
+    CCS,                       ///< collisional cross section (square angstrom)
     SIZE_OF_DRIFTTIMEUNIT
   };
 

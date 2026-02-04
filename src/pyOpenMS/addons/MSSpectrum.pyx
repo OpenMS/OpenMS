@@ -753,12 +753,12 @@ import numpy as np
     def get_drift_time_unit(self):
         """
         get_drift_time_unit(self: MSSpectrum) -> Optional[int]
-        
+
         Get the drift time unit for ion mobility data.
 
         Returns:
             int or None: The DriftTimeUnit enum value, or None if no IM data present.
-                        Values: 0=NONE, 1=MILLISECOND, 2=VSSC, 3=FAIMS_COMPENSATION_VOLTAGE
+                        Values: 0=NONE, 1=MILLISECOND, 2=VSSC, 3=FAIMS_COMPENSATION_VOLTAGE, 4=CCS
 
         Example:
             >>> unit = spectrum.get_drift_time_unit()
