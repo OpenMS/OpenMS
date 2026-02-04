@@ -398,9 +398,6 @@ protected:
       p.setValue("b_spline:num_nodes", 5, "Number of nodes for b spline");
       p.setMinInt("b_spline:num_nodes", 0);
 
-      p.setValue("outlierMethod", "iter_residual", "Which outlier detection method to use (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
-      p.setValidStrings("outlierMethod", {"iter_residual","iter_jackknife","ransac","none"});
-
       p.setValue("useIterativeChauvenet", "false", "Whether to use Chauvenet's criterion when using iterative methods. This should be used if the algorithm removes too many datapoints but it may lead to true outliers being retained.");
       p.setValidStrings("useIterativeChauvenet", {"true","false"});
 
