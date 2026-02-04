@@ -4386,7 +4386,8 @@ class NanobindEmitter:
         # Handle static methods
         if method.is_static:
             return self._generate_static_method(
-                method, qualified_name, method_name, doc=merged_method.doc
+                method, qualified_name, method_name, doc=merged_method.doc,
+                cpp_name=merged_method.cpp_name
             )
 
         # Regular methods
@@ -4710,6 +4711,7 @@ class NanobindEmitter:
         qualified_name: str,
         method_name: str,
         doc: str = "",
+        cpp_name: Optional[str] = None,
     ) -> Optional[str]:
         """Generate binding for a static method using lambda wrapper.
 
@@ -4717,6 +4719,9 @@ class NanobindEmitter:
         1. Proper type conversion (OpenMS::String <-> Python str, etc.)
         2. Handling overloads
         3. Consistent interface with regular methods
+
+        If cpp_name is provided (for standalone namespace functions), it is used
+        as the full qualified function name instead of qualified_name::method.name.
         """
         # nanobind doesn't support lambdas with more than 8 parameters
         if len(method.parameters) > 8:
@@ -4732,13 +4737,21 @@ class NanobindEmitter:
         # Build lambda parameters
         params_decl, params_call, param_names_arg = self._build_lambda_params(method)
 
+        # Determine the C++ function to call
+        # For standalone functions, cpp_name contains the full qualified name
+        # e.g., "OpenMS::PEFFFile::isPEFFFile"
+        if cpp_name:
+            cpp_func = cpp_name
+        else:
+            cpp_func = f"{qualified_name}::{method.name}"
+
         # Build the lambda (no 'self' for static methods)
         if params_decl:
             lambda_sig = f"[]({params_decl})"
-            call_expr = f"{qualified_name}::{method.name}({params_call})"
+            call_expr = f"{cpp_func}({params_call})"
         else:
             lambda_sig = "[]()"
-            call_expr = f"{qualified_name}::{method.name}()"
+            call_expr = f"{cpp_func}()"
 
         # Detect return type policies for static methods
         ret_type = method.return_type or ""
