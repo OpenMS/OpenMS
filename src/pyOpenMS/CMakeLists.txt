@@ -343,6 +343,30 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
   if(WITH_PARQUET)
     message(STATUS "Building Arrow zerocopy module for pyOpenMS")
 
+    # For standalone builds, OPENMS_ARROW_TARGET may not be defined (it's set in
+    # cmake_findExternalLibs.cmake during main OpenMS build but not exported).
+    # Find Arrow ourselves if needed.
+    if(NOT DEFINED OPENMS_ARROW_TARGET OR "${OPENMS_ARROW_TARGET}" STREQUAL "")
+      # Workaround for Arrow 23+ CMake configuration issue where CURL dependency
+      # is not properly exported. See: https://github.com/apache/arrow/issues/48885
+      find_package(CURL QUIET)
+      find_package(Arrow CONFIG REQUIRED)
+
+      # Determine Arrow target based on ARROW_USE_STATIC preference
+      if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
+        set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+      elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
+        set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+      elseif(TARGET Arrow::arrow_static)
+        set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+      elseif(TARGET Arrow::arrow_shared)
+        set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+      else()
+        message(FATAL_ERROR "No suitable Arrow target found for pyOpenMS arrow_zerocopy module")
+      endif()
+      message(STATUS "Found Arrow target for pyOpenMS: ${OPENMS_ARROW_TARGET}")
+    endif()
+
     # Get Arrow include directories from the target
     get_target_property(ARROW_INCLUDE_DIRS ${OPENMS_ARROW_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
     if(NOT ARROW_INCLUDE_DIRS)
