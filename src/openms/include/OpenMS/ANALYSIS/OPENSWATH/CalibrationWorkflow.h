@@ -226,14 +226,31 @@ namespace OpenMS
       const String& irt_file_path,
       const String& label) const;
 
-    /**
-      @brief Extract iRT chromatograms and perform data normalization (peak picking + RT model + m/z/IM correction).
-
-  This centralizes the calibration algorithm that used to live in the
-  OpenSwathWorkflow / OpenSwathCalibrationWorkflow implementation and
-  exposes it here on the CalibrationWorkflow to centralize calibration logic.
-
-      @return RT transformation fitted to the iRT peptides
+    /** @brief Perform RT and m/z correction of the input data using RT-normalization peptides.
+     *
+     * This function extracts the RT normalization chromatograms using
+     * simpleExtractChromatograms_() and then uses the chromatograms to find
+     * features (in doDataNormalization_()).  If desired, also m/z correction
+     * is performed using the lock masses of the given peptides. The provided
+     * raw data (swath_maps) are therefore not constant but may be changed in
+     * this function.
+     *
+     * @param[in] irt_transitions A set of transitions used for the RT normalization peptides
+     * @param[in] swath_maps The raw data (swath maps)
+     * @param[out] im_trafo Ion mobility trafo values on the RT-normalization peptides
+     * @param[in] min_rsq Minimal R^2 value that is expected for the RT regression
+     * @param[in] min_coverage Minimal coverage of the chromatographic space that needs to be achieved
+     * @param[in] feature_finder_param Parameter set for the feature finding in chromatographic dimension
+     * @param[in] cp_irt Parameter set for the chromatogram extraction
+     * @param[in] irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
+     * @param[in] calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
+     * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
+     * @param[in] debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
+     * @param[out] irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
+     *        iRT chromatograms will be stored in this file)
+     * @param[in] pasef whether the data is PASEF data (should match transitions by their IM)
+     * @param[in] load_into_memory Whether to cache the current SWATH map in memory
+     *
     */
     TransformationDescription performRTNormalization(
       const OpenSwath::LightTargetedExperiment& irt_transitions,
@@ -251,9 +268,37 @@ namespace OpenMS
       bool pasef = false,
       bool load_into_memory = false);
 
-    /**
-      @brief Core data-normalization routine (peak picking + RT fitting + m/z/IM correction).
-      @note Internal helper - kept public here for easier forwarding from legacy code.
+    /** @brief Perform retention time and m/z calibration
+     *
+     * Uses MRMRTNormalizer for RT calibration and SwathMapMassCorrection for m/z calibration.
+     *
+     * The overall execution flow is as follows:
+     *   - Estimate the retention time range of the iRT peptides over all assays (see OpenSwathHelper::estimateRTRange())
+     *   - Store the peptide retention times in an intermediate map
+     *   - Pick input chromatograms to identify RT pairs from the input data
+     *   using MRMFeatureFinderScoring, which will be used without the RT
+     *   scoring enabled
+     *   - Find most likely correct feature for each compound (see OpenSwathHelper::simpleFindBestFeature())
+     *   - Perform the outlier detection (see MRMRTNormalizer)
+     *   - Check whether the found peptides fulfill the binned coverage criteria set by the user.
+     *   - Select the "correct" peaks for m/z correction (e.g. remove those not
+     *   part of the linear regression)
+     *   - Perform m/z and IM calibration (see SwathMapMassCorrection)
+     *   - Store transformation, using the selected model
+     *
+     * @param[in] transition_exp_ The transitions for the normalization peptides
+     * @param[out] chromatograms The extracted chromatograms
+     * @param[out] im_trafo Ion mobility trafo values on the RT-normalization peptides
+     * @param[in] swath_maps The raw data (swath maps)     
+     * @param[in] min_rsq Minimal R^2 value that is expected for the RT regression
+     * @param[in] min_coverage Minimal coverage of the chromatographic space that needs to be achieved
+     * @param[in] default_ffparam Parameter set for the feature finding in chromatographic dimension
+     * @param[in] irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
+     * @param[in] calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
+     * @param[in] pasef whether this data is pasef data with potentially overlapping m/z windows (differing by IM)
+     *
+     * @note This function is based on the algorithm inside the OpenSwathRTNormalizer tool
+     *
     */
     TransformationDescription doDataNormalization_(
       const OpenSwath::LightTargetedExperiment& targeted_exp,
@@ -286,11 +331,11 @@ namespace OpenMS
     void updateMembers_() override;
     //@}
 
-  // Estimated windows stored during calibration (internal caching)
-  double estimated_mz_window_{-1.0};
-  double estimated_im_window_{-1.0};
-  double estimated_ms1_mz_window_{-1.0};
-  double estimated_ms1_im_window_{-1.0};
+    // Estimated windows stored during calibration (internal caching)
+    double estimated_mz_window_{-1.0};
+    double estimated_im_window_{-1.0};
+    double estimated_ms1_mz_window_{-1.0};
+    double estimated_ms1_im_window_{-1.0};
     
     /// @name Private member variables for parameter caching  
     //@{
@@ -428,6 +473,18 @@ namespace OpenMS
       
     /**
       @brief Validate and log an auto-estimated extraction window.
+
+      Behavior:
+        - If @p applicable is false (e.g., no IM data), logs an INFO and leaves @p dst_param unchanged.
+        - If the estimate is invalid, logs a WARN and leaves @p dst_param unchanged.
+        - If the estimate is valid and @p commit is true, logs an INFO and assigns @p dst_param = @p estimate.
+        - If the estimate is valid and @p commit is false, logs an INFO that reports the estimate and that the user value is kept.
+
+      Typical usage:
+        - RT window (seconds)
+        - MS2 m/z window (ppm)
+        - MS1 m/z window (ppm)
+        - IM window (1/k0), only when applicable (e.g., PASEF/IM data)
       
       @param[in] label Human-readable label for logging
       @param[in] estimate Estimated window value  
@@ -445,7 +502,11 @@ namespace OpenMS
       bool commit = true) const;
       
     /**
-      @brief Check if an estimated window value is valid.
+      @brief Check if an estimated extraction window value is valid.
+
+      A window is considered valid if it is finite and strictly greater than a
+      small positive threshold. This guards against denormals (e.g., ~1e-310),
+      zeros, negative values, and NaNs/Inf.
       
       @param[in] v Window value to check
       @param[in] min_positive Minimum positive threshold

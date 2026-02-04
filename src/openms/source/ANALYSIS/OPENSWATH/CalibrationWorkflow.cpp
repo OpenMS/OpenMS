@@ -230,53 +230,53 @@ namespace OpenMS
 
     CalibrationResult result;
       
-      // Setup linear parameters with our outlier detection method
-      Param linear_params = irt_detection_param;
-      linear_params.setValue("outlierMethod", linear_outlier_detection_);
+    // Setup linear parameters with our outlier detection method
+    Param linear_params = irt_detection_param;
+    linear_params.setValue("outlierMethod", linear_outlier_detection_);
 
-      // Configure calibration parameters - let SwathMapMassCorrection use its own m/z and IM parameters
-      Param calibration_params_configured = calibration_param;
+    // Configure calibration parameters - let SwathMapMassCorrection use its own m/z and IM parameters
+    Param calibration_params_configured = calibration_param;
 
-      TransformationDescription im_trafo;
-      // Call the member implementation (moved into CalibrationWorkflow)
-      result.rt_trafo = this->performRTNormalization(
-        irt_experiments.linear_irt,
-        swath_maps,
-        im_trafo,
-        linear_min_rsq_,
-        min_coverage_,
-        feature_finder_param,
-        cp_irt,
-        linear_params,
-        calibration_params_configured,
-        mrm_mapping_param,
-        irt_mzml_out,
-        debug_level,
-        pasef,
-        load_into_memory);
+    TransformationDescription im_trafo;
+    // Call the member implementation (moved into CalibrationWorkflow)
+    result.rt_trafo = this->performRTNormalization(
+      irt_experiments.linear_irt,
+      swath_maps,
+      im_trafo,
+      linear_min_rsq_,
+      min_coverage_,
+      feature_finder_param,
+      cp_irt,
+      linear_params,
+      calibration_params_configured,
+      mrm_mapping_param,
+      irt_mzml_out,
+      debug_level,
+      pasef,
+      load_into_memory);
 
-      // Store the ion mobility transformation
-      result.im_trafo = im_trafo;
+    // Store the ion mobility transformation
+    result.im_trafo = im_trafo;
 
-      // Retrieve estimated windows (set by doDataNormalization_ during performRTNormalization())
-      result.ms2_mz_window_ppm = this->estimated_mz_window_;
-      result.ms2_im_window = this->estimated_im_window_;
-      result.ms1_mz_window_ppm = this->estimated_ms1_mz_window_;
-      result.ms1_im_window = this->estimated_ms1_im_window_;
-      
-      // Estimate RT window from transformation using configured parameters
-      result.estimated_rt_window = result.rt_trafo.estimateWindow(
-        windows_rt_percentile_ / 100.0,  // Convert percentage to fraction
-        true,                           // Invert for RT units
-        true,                           // Full width
-        rt_estimation_padding_factor_); // User-configured padding
+    // Retrieve estimated windows (set by doDataNormalization_ during performRTNormalization())
+    result.ms2_mz_window_ppm = this->estimated_mz_window_;
+    result.ms2_im_window = this->estimated_im_window_;
+    result.ms1_mz_window_ppm = this->estimated_ms1_mz_window_;
+    result.ms1_im_window = this->estimated_ms1_im_window_;
+    
+    // Estimate RT window from transformation using configured parameters
+    result.estimated_rt_window = result.rt_trafo.estimateWindow(
+      windows_rt_percentile_ / 100.0,  // Convert percentage to fraction
+      true,                           // Invert for RT units
+      true,                           // Full width
+      rt_estimation_padding_factor_); // User-configured padding
 
-      // Save transformation if requested
-      if (!irt_trafo_out.empty())
-      {
-        FileHandler().storeTransformations(irt_trafo_out, result.rt_trafo, 
-                                         {FileTypes::TRANSFORMATIONXML});
-      }
+    // Save transformation if requested
+    if (!irt_trafo_out.empty())
+    {
+      FileHandler().storeTransformations(irt_trafo_out, result.rt_trafo, 
+                                        {FileTypes::TRANSFORMATIONXML});
+    }
     this->endProgress();
     return result;
   }
