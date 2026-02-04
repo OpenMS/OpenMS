@@ -71,13 +71,13 @@ namespace OpenMS
     /// Results from calibration workflow
     struct CalibrationResult 
     {
-      // === Transformation ===
+      // Transformation
       /// RT normalization transformation (fitted)
       TransformationDescription rt_trafo;
       /// Ion mobility transformation (fitted). May be empty if no IM calibration performed.
       TransformationDescription im_trafo;
       
-      // === Estimated Extraction Windows ===
+      // Estimated Extraction Windows
       /// MS2 m/z extraction window (full width, ppm). -1 if not computed.
       double ms2_mz_window_ppm{-1.0};
       /// MS2 ion mobility extraction window (full width). -1 if not applicable.
@@ -89,7 +89,7 @@ namespace OpenMS
       /// Estimated RT extraction window (full width, seconds)
       double estimated_rt_window{-1.0};
       
-      // === Quality Metrics ===
+      // Quality Metrics
       /// Number of iRT peptides used in final calibration
       Size num_irt_peptides_used{0};
       /// R-squared of final RT transformation
@@ -340,45 +340,36 @@ namespace OpenMS
     /// @name Private member variables for parameter caching  
     //@{
     
-    // === iRT File Parameters ===
-    String linear_irt_file_;                    ///< Path to linear iRT file
-    String nonlinear_irt_file_;                 ///< Path to nonlinear iRT file
+    // iRT File Parameters
+    String linear_irt_file_;
+    String nonlinear_irt_file_;
     
-    // === Quality Control Parameters ===
-    double min_rsq_;                            ///< Minimum R-squared value for RT regression
-    double min_coverage_;                       ///< Minimum coverage of chromatographic space
+    // Auto-iRT Sampling Parameters
+    bool auto_irt_enabled_;
+    int auto_irt_irt_bins_;
+    int auto_irt_irt_peptides_per_bin_;
+    int auto_irt_irt_seed_;
+    int auto_irt_irt_bins_nonlinear_;
+    int auto_irt_irt_peptides_per_bin_nonlinear_;
+    double auto_irt_linear_top_fraction_;
+    double auto_irt_nonlinear_top_fraction_;
     
-    // === Auto-iRT Sampling Parameters ===
-    bool auto_irt_enabled_;                     ///< Enable auto-iRT sampling
-    int auto_irt_irt_bins_;                     ///< Number of RT bins for linear iRT sampling
-    int auto_irt_irt_peptides_per_bin_;         ///< Peptides per bin for linear iRT
-    int auto_irt_irt_seed_;                     ///< RNG seed for sampling
-    int auto_irt_irt_bins_nonlinear_;           ///< Number of RT bins for nonlinear iRT
-    int auto_irt_irt_peptides_per_bin_nonlinear_; ///< Peptides per bin for nonlinear iRT
-    double auto_irt_linear_top_fraction_;       ///< Top fraction for linear sampling
-    double auto_irt_nonlinear_top_fraction_;    ///< Top fraction for nonlinear sampling
+    // Linear Calibration Parameters
+    String linear_outlier_detection_;
+      
+    // Nonlinear Calibration Parameters
+    String nonlinear_outlier_detection_;
     
-    // === Linear Calibration Parameters ===
-    bool linear_enabled_;                       ///< Enable linear calibration
-    String linear_outlier_detection_;           ///< Outlier detection method
-    double linear_min_rsq_;                     ///< Min R-squared for linear fit
+    // Window Estimation Parameters
+    bool windows_estimate_rt_;
+    bool windows_estimate_mz_;
+    bool windows_estimate_im_;
+    double windows_rt_percentile_;
+    double rt_estimation_padding_factor_;
     
-    // === Nonlinear Calibration Parameters ===
-    bool nonlinear_enabled_;                    ///< Enable nonlinear calibration
-    String nonlinear_method_;                   ///< Nonlinear method name
-    String nonlinear_outlier_detection_;        ///< Nonlinear outlier detection method
-    
-    // === Window Estimation Parameters ===
-    bool windows_estimate_rt_;                  ///< Estimate RT windows
-    bool windows_estimate_mz_;                  ///< Estimate m/z windows
-    bool windows_estimate_im_;                  ///< Estimate IM windows
-    double windows_rt_percentile_;              ///< RT percentile for estimation
-    double rt_estimation_padding_factor_;       ///< RT padding factor
-    
-    // === Quality Control Parameters ===
-    bool qc_fail_on_insufficient_peptides_;     ///< Fail on insufficient peptides
-    bool qc_fail_on_poor_fit_;                  ///< Fail on poor fit quality
-    bool qc_fail_on_low_coverage_;              ///< Fail on low coverage
+    // Quality Control Parameters
+    double min_rsq_;
+    double min_coverage_;
     
     //@}
     

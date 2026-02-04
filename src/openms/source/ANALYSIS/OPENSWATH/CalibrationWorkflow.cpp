@@ -68,23 +68,10 @@ namespace OpenMS
     defaults_.setValue("files:nonlinear_irt_file", "", "Path to nonlinear iRT transition file (TraML, TSV, or PQP)");
     
     // === Linear calibration parameters ===
-    defaults_.setValue("linear:enabled", "true", "Perform linear RT calibration");
-    defaults_.setValidStrings("linear:enabled", {"true", "false"});
-    
     defaults_.setValue("linear:outlier_detection", "iter_residual", "Which outlier detection method to use for linear calibration (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
     defaults_.setValidStrings("linear:outlier_detection", {"iter_residual", "iter_jackknife", "ransac", "none"});
-    
-    defaults_.setValue("linear:min_rsq", 0.95, "Minimum R-squared required for linear calibration");
-    defaults_.setMinFloat("linear:min_rsq", 0.0);
-    defaults_.setMaxFloat("linear:min_rsq", 1.0);
-    
+      
     // === Nonlinear calibration parameters ===
-    defaults_.setValue("nonlinear:enabled", "false", "Perform nonlinear RT calibration after linear");
-    defaults_.setValidStrings("nonlinear:enabled", {"true", "false"});
-    
-    defaults_.setValue("nonlinear:method", "lowess", "Nonlinear fitting method");
-    defaults_.setValidStrings("nonlinear:method", {"lowess", "bspline", "polynomial"});
-    
     defaults_.setValue("nonlinear:outlier_detection", "iter_residual", "Which outlier detection method to use for nonlinear calibration (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
     defaults_.setValidStrings("nonlinear:outlier_detection", {"iter_residual", "iter_jackknife", "ransac", "none"});
     
@@ -107,14 +94,12 @@ namespace OpenMS
     defaults_.setMinFloat("windows:rt_estimation_padding_factor", 1.0);
     
     // === Quality control parameters ===
-    defaults_.setValue("qc:fail_on_insufficient_peptides", "true", "Fail if insufficient peptides found");
-    defaults_.setValidStrings("qc:fail_on_insufficient_peptides", {"true", "false"});
-    
-    defaults_.setValue("qc:fail_on_poor_fit", "true", "Fail if calibration fit quality is poor");
-    defaults_.setValidStrings("qc:fail_on_poor_fit", {"true", "false"});
-    
-    defaults_.setValue("qc:fail_on_low_coverage", "true", "Fail if coverage fraction too low");
-    defaults_.setValidStrings("qc:fail_on_low_coverage", {"true", "false"});
+    defaults_.setValue("qc:min_rsq", 0.95, "Minimum R-squared required for RT peptides regression");
+    defaults_.setMinFloat("qc:min_rsq", 0.0);
+    defaults_.setMaxFloat("qc:min_rsq", 1.0);
+    defaults_.setValue("qc:min_coverage", 0.6, "Minimum relative amount of RT peptides to keep");
+    defaults_.setMinFloat("qc:min_coverage", 0.0);
+    defaults_.setMaxFloat("qc:min_coverage", 1.0);
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -236,7 +221,7 @@ namespace OpenMS
       irt_experiments.linear_irt,
       swath_maps,
       im_trafo,
-      linear_min_rsq_,
+      min_rsq_,
       min_coverage_,
       feature_finder_param,
       cp_irt,
@@ -338,7 +323,7 @@ namespace OpenMS
       nl_chromatograms,
       im_trafo,
       swath_maps,
-      linear_min_rsq_,
+      min_rsq_,
       min_coverage_,
       feature_finder_param,
       nl_params,
@@ -949,7 +934,7 @@ namespace OpenMS
           auto_irt_irt_bins_,
           auto_irt_irt_peptides_per_bin_,
           run_specific_seed,
-          false,  // sort_by_intensity
+          true,  // sort_by_intensity
           auto_irt_linear_top_fraction_,
           priority_set);
         
@@ -961,7 +946,7 @@ namespace OpenMS
             auto_irt_irt_bins_nonlinear_,
             auto_irt_irt_peptides_per_bin_nonlinear_,
             run_specific_seed,
-            false,  // sort_by_intensity
+            true,  // sort_by_intensity
             auto_irt_nonlinear_top_fraction_,
             priority_set);
         }
@@ -1012,16 +997,9 @@ namespace OpenMS
     auto_irt_nonlinear_top_fraction_ = (double)param_.getValue("auto_irt:nonlinear_top_fraction");
     
     // === Linear calibration parameters ===
-    linear_enabled_ = param_.getValue("linear:enabled").toBool();
     linear_outlier_detection_ = param_.getValue("linear:outlier_detection").toString();
-    linear_min_rsq_ = (double)param_.getValue("linear:min_rsq");
-    
-    // === Quality control parameters (from linear section for now) ===
-    min_coverage_ = 0.6; // Default minimum coverage
     
     // === Nonlinear calibration parameters ===
-    nonlinear_enabled_ = param_.getValue("nonlinear:enabled").toBool();
-    nonlinear_method_ = param_.getValue("nonlinear:method").toString();
     nonlinear_outlier_detection_ = param_.getValue("nonlinear:outlier_detection").toString();
     
     // === Window estimation parameters ===
@@ -1032,9 +1010,8 @@ namespace OpenMS
     rt_estimation_padding_factor_ = (double)param_.getValue("windows:rt_estimation_padding_factor");
     
     // === Quality control parameters ===
-    qc_fail_on_insufficient_peptides_ = param_.getValue("qc:fail_on_insufficient_peptides").toBool();
-    qc_fail_on_poor_fit_ = param_.getValue("qc:fail_on_poor_fit").toBool();
-    qc_fail_on_low_coverage_ = param_.getValue("qc:fail_on_low_coverage").toBool();
+    min_rsq_ = (double)param_.getValue("qc:min_rsq");
+    min_coverage_ = (double)param_.getValue("qc:min_coverage");
   }
 
 } // namespace OpenMS
