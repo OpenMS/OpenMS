@@ -62,15 +62,12 @@ namespace OpenMS {
    * additional information.
    */
   struct Peak {
-    const std::string file_name;
     const std::size_t map_index;
     const Feature& feature;
 
-    Peak(const std::string& file_name,
-         const std::size_t map_index,
+    Peak(const std::size_t map_index,
          const Feature& feature)
-    : file_name(file_name),
-      map_index(map_index),
+    : map_index(map_index),
       feature(feature)
     { };
   };
@@ -94,8 +91,7 @@ namespace OpenMS {
    */
   struct Donor : Peak {
     Donor(const Peak& peak)
-    : Peak(peak.file_name,
-           peak.map_index,
+    : Peak(peak.map_index,
            peak.feature)
     { };
   };
@@ -120,8 +116,7 @@ namespace OpenMS {
 
     /// Constructor.
     Acceptor(const Peak& peak)
-    : Peak(peak.file_name,
-           peak.map_index,
+    : Peak(peak.map_index,
            peak.feature)
     {};
 
@@ -186,9 +181,51 @@ namespace OpenMS {
   };
 
   /****************************************************************************/
+  class Run {
+  public:
+    /// Construct a new Run object.
+    Run(const std::string &file_name,
+        const double rt_window,
+        const double mz_window)
+      : donors({rt_window, mz_window}),
+        acceptors({rt_window, mz_window}),
+        file_name(file_name)
+    { }
+
+    /// Insert a donor peak.
+    void insert(const Feature& feature, const std::size_t map_index) {
+      Peak peak(map_index, feature);
+
+      if (is_donor_feature(feature)) {
+        donors.insert(Donor(peak));
+      } else {
+        acceptors.insert(Acceptor(peak));
+      }
+    }
+
+    /// Release all storage.
+    void clear() {
+      donors.clear();
+      acceptors.clear();
+    }
+
+    // Allow direct access to the grid type.
+    GridWithStorage<Donor> donors;
+    GridWithStorage<Acceptor> acceptors;
+
+    // The name of the file for this spectrum.
+    // FIXME: Remove this if we don't end up using it.
+    const std::string file_name;
+
+  private:
+    bool is_donor_feature(const Feature&);
+  };
+
+  /****************************************************************************/
   // Handy aliases.
   using DonorMap = GridWithStorage<Donor>;
   using AcceptorMap = GridWithStorage<Acceptor>;
+  using RunMap = std::map<std::string, Run>;
 
   /****************************************************************************/
   /**
@@ -201,7 +238,7 @@ namespace OpenMS {
 
     /// Separate donors from acceptors.
     void partition_features(const std::vector<FeatureMap>&,
-                            DonorMap&, AcceptorMap&);
+                            RunMap&);
 
     /// Match identified features with unidentified features.
     void link_donors_and_acceptors(const DonorMap&, AcceptorMap&);
@@ -218,7 +255,7 @@ namespace OpenMS {
     find_random_donor(const DonorMap&, const Donor&, const Window&) const;
 
     /// Fill in the final ConsensusMap.
-    void generate_consensus_map(DonorMap&, AcceptorMap&, ConsensusMap&);
+    void generate_consensus_map(RunMap&, ConsensusMap&);
   public:
     /// Max allowed m/z difference between donor and acceptor.
     MzDiff mz_max_diff;
@@ -233,6 +270,7 @@ namespace OpenMS {
   private:
     std::string path_from_feature_map(const FeatureMap&);
     bool is_donor_feature(const Feature&);
+    Run& get_run_from_file_name(RunMap&, const std::string&);
 
     std::optional<Window> initial_window(const Donor& donor);
     std::optional<Window> next_window(const std::optional<Window>&);
@@ -380,13 +418,32 @@ namespace OpenMS {
   )
   {
     PipEchoImpl impl(param_, mz_range(feature_maps));
-    AcceptorMap acceptors({impl.rt_sec_max_window, impl.mz_grid_center});
-    DonorMap donors({impl.rt_sec_max_window, impl.mz_grid_center});
+    RunMap runs;
 
-    impl.partition_features(feature_maps, donors, acceptors);
-    impl.link_donors_and_acceptors(donors, acceptors);
-    impl.generate_consensus_map(donors, acceptors, consensus_map);
+    impl.partition_features(feature_maps, runs);
 
+    auto logger = ProgressLogger();
+    std::size_t progress{};
+
+    logger.setLogType(ProgressLogger::CMD);
+    logger.startProgress(0, std::pow(runs.size(), 2),
+                         "matching donors and acceptors");
+
+    for (auto& acceptor_run : runs) {
+      AcceptorMap& acceptors = acceptor_run.second.acceptors;
+
+      for (auto& donor_run : runs) {
+        if (donor_run.first != acceptor_run.first) {
+          DonorMap& donors = donor_run.second.donors;
+          impl.link_donors_and_acceptors(donors, acceptors);
+        }
+
+        logger.setProgress(++progress);
+      }
+    }
+
+    logger.endProgress();
+    impl.generate_consensus_map(runs, consensus_map);
     postprocess_(feature_maps, consensus_map);
   }
 
@@ -408,8 +465,7 @@ namespace OpenMS {
 
   /****************************************************************************/
   void PipEchoImpl::partition_features(const std::vector<FeatureMap>& maps,
-                                       DonorMap& donors,
-                                       AcceptorMap& acceptors)
+                                       RunMap& runs)
   {
     std::size_t num_maps = maps.size();
 
@@ -422,21 +478,16 @@ namespace OpenMS {
 
       const FeatureMap& map = maps[i];
       std::string file_name = path_from_feature_map(map);
+      Run& run = get_run_from_file_name(runs, file_name);
 
       for (auto& feature : map) {
-        // We need to strip off the const-ness of the Feature so
+        // We need to strip off the const-ness of the Feature to
         // prepare it for use.  We don't really care about it being
         // const, only that we have a reference/pointer.  But a
         // FeatureMap doesn't let us have a non-const reference
         // iterator.  So, we have to cheat and cast it.
         prepare_feature(const_cast<Feature&>(feature));
-        Peak peak(file_name, i, feature);
-
-        if (is_donor_feature(feature)) {
-          donors.insert(Donor(peak));
-        } else {
-          acceptors.insert(peak);
-        }
+        run.insert(feature, i);
       }
     }
 
@@ -447,16 +498,7 @@ namespace OpenMS {
   void PipEchoImpl::link_donors_and_acceptors(const DonorMap& donors,
                                               AcceptorMap& acceptors)
   {
-    std::size_t progress{};
-    auto logger = ProgressLogger();
-
-    logger.setLogType(ProgressLogger::CMD);
-    logger.startProgress(0, donors.storage.size(),
-                         "matching donors and acceptors");
-
     for (auto& donor : donors.storage) {
-      logger.setProgress(++progress);
-
       for (auto window=initial_window(*donor); window.has_value();
            window = next_window(window))
         {
@@ -484,8 +526,6 @@ namespace OpenMS {
           }
         }
     }
-
-    logger.endProgress();
   }
 
   /****************************************************************************/
@@ -597,12 +637,11 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  void PipEchoImpl::generate_consensus_map(DonorMap& donors,
-                                           AcceptorMap& acceptors,
-                                           ConsensusMap& consensus_map)
-  {
+  void PipEchoImpl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map) {
     using IdentVal = std::set<Peak, PeakCmp>;
     using IdentMap = std::map<std::string, IdentVal>;
+
+    std::size_t acceptors_added{}, decoys_seen{};
     IdentMap ident_map;
 
     auto insert = [&](const Donor& donor, const Peak& peak) {
@@ -611,20 +650,23 @@ namespace OpenMS {
       if (!inserted) place->second.insert(peak);
     };
 
-    // Place each donor into the identity map.
-    for (auto& donor : donors.storage) {
-      insert(*donor, *donor);
-    }
-
-    std::size_t acceptors_added{}, decoys_seen{};
-
-    // Now place the acceptors in there too.
-    for (auto& acceptor : acceptors.storage) {
-      if (acceptor->target.has_value()) {
-        ++acceptors_added;
-        insert(*acceptor->target->second, *acceptor);
+    for (auto& run : runs) {
+      // Place each donor into the identity map.
+      for (auto& donor : run.second.donors.storage) {
+        insert(*donor, *donor);
       }
-      if (acceptor->decoy.has_value()) ++decoys_seen;
+
+      // Now place the acceptors in there too.
+      for (auto& acceptor : run.second.acceptors.storage) {
+        if (acceptor->target.has_value()) {
+          ++acceptors_added;
+          insert(*acceptor->target->second, *acceptor);
+        }
+        if (acceptor->decoy.has_value()) ++decoys_seen;
+      }
+
+      // Don't need this anymore.
+      //run.second.clear(); FIXME: Ug, this results in a SIGSEV :(
     }
 
     OPENMS_LOG_INFO
@@ -632,10 +674,6 @@ namespace OpenMS {
       << acceptors_added << " acceptors to the consensus_map with "
       << decoys_seen << " decoys seen"
       << std::endl;
-
-    // Don't need this anymore.
-    acceptors.clear();
-    donors.clear();
 
     // We can now turn that IdentMap into a ConsensusMap.
     for (auto& group : ident_map) {
@@ -655,8 +693,7 @@ namespace OpenMS {
 
   /****************************************************************************/
   bool Acceptor::is_donor_compatible(const Donor& donor, const Window& window) const {
-    return donor.file_name != this->file_name &&
-           donor.feature.getCharge() == this->feature.getCharge() &&
+    return donor.feature.getCharge() == this->feature.getCharge() &&
            std::fabs(donor.feature.getRT() - this->feature.getRT()) <= window.rt_tol &&
            std::fabs(donor.feature.getMZ() - this->feature.getMZ()) <= window.mz_tol;
   }
@@ -682,6 +719,11 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
+  bool Run::is_donor_feature(const Feature& feature) {
+    return feature_hit(feature).has_value();
+  }
+
+  /****************************************************************************/
   std::string PipEchoImpl::path_from_feature_map(const FeatureMap& map) {
     StringList paths;
     map.getPrimaryMSRunPath(paths);
@@ -700,8 +742,21 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  bool PipEchoImpl::is_donor_feature(const Feature& feature) {
-    return feature_hit(feature).has_value();
+  Run& PipEchoImpl::get_run_from_file_name(RunMap& runs, const std::string& file_name) {
+      auto run_it = runs.find(file_name);
+
+      if (run_it == runs.end()) {
+        const auto [it, status] =
+          runs.try_emplace(file_name,
+                           file_name,
+                           rt_sec_max_window,
+                           mz_grid_center);
+
+        assert(status);
+        run_it = it;
+      }
+
+      return run_it->second;;
   }
 
   /****************************************************************************/
