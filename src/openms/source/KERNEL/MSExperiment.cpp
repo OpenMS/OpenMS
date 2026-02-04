@@ -377,7 +377,7 @@ namespace OpenMS
       auto mz_begin_it = spec.MZBegin(min_mz);
       auto mz_end_it = spec.MZEnd(max_mz);
 
-      // Convert to index-based loop for OpenMP SIMD compatibility
+      // Convert to index-based loop for consistent processing
       const Size peak_start = static_cast<Size>(mz_begin_it - spec.begin());
       const Size peak_end = static_cast<Size>(mz_end_it - spec.begin());
 
@@ -385,7 +385,7 @@ namespace OpenMS
       const Int64 mz_bins_minus_one = static_cast<Int64>(mz_bins) - 1;
       if (aggregation == RasterAggregation::SUM)
       {
-        #pragma omp simd
+        // Note: No SIMD here - scatter-add can have multiple peaks mapping to same bin
         for (Size peak_idx = peak_start; peak_idx < peak_end; ++peak_idx)
         {
           const double mz = spec[peak_idx].getMZ();

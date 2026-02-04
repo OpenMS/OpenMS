@@ -909,6 +909,10 @@ import numpy as np
         if not output.flags['C_CONTIGUOUS']:
             raise ValueError("Output array must be C-contiguous. Use np.ascontiguousarray() to convert.")
 
+        # Validate array is writeable (required for safe C-level writes)
+        if not output.flags['WRITEABLE']:
+            raise ValueError("Output array must be writeable.")
+
         cdef _MSSpectrum * spec_ = self.inst.get()
         cdef Size im_bins = output.shape[1]
         cdef Size mz_bins = output.shape[0]
