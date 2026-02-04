@@ -1,7 +1,6 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libc.stdint cimport int64_t
 from cython.operator cimport dereference as deref
-from String cimport String
 from StringList cimport StringList
 from XICParquetFile cimport XICChromatogram as _XICChromatogram
 from XICParquetFile cimport XICAnalyte as _XICAnalyte
