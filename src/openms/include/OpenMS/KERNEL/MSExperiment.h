@@ -435,14 +435,14 @@ public:
      *
      * @param[out] output Pre-allocated buffer of size (mz_bins * rt_bins) to store the
      *                    aggregated intensity values. Must not be nullptr.
-     * @param rt_bins Number of bins along the RT axis (image width)
-     * @param mz_bins Number of bins along the m/z axis (image height)
-     * @param min_rt Minimum RT value for the output range
-     * @param max_rt Maximum RT value for the output range
-     * @param min_mz Minimum m/z value for the output range
-     * @param max_mz Maximum m/z value for the output range
-     * @param ms_level MS level of spectra to include (e.g., 1 for MS1, 2 for MS2)
-     * @param aggregation Aggregation mode: SUM (default) or MAX
+     * @param[in] rt_bins Number of bins along the RT axis (image width)
+     * @param[in] mz_bins Number of bins along the m/z axis (image height)
+     * @param[in] min_rt Minimum RT value for the output range
+     * @param[in] max_rt Maximum RT value for the output range
+     * @param[in] min_mz Minimum m/z value for the output range
+     * @param[in] max_mz Maximum m/z value for the output range
+     * @param[in] ms_level MS level of spectra to include (e.g., 1 for MS1, 2 for MS2)
+     * @param[in] aggregation RasterAggregation mode: SUM (default) or MAX
      *
     * @note The experiment should be sorted by RT and m/z (call sortSpectra(true) if needed)
     *       for optimal performance and correct results.
