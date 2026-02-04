@@ -90,6 +90,45 @@ else()
   # Find Python
   #------------------------------------------------------------------------------
   # py-build-cmake sets Python_EXECUTABLE and hints
+  # If requested, run `uv sync` first in the build dir so that uv creates
+  # a virtualenv there. This must happen before calling find_package(Python)
+  # so that CMake can pick up the created interpreter.
+  if(WITH_UV AND DEFINED UV_EXECUTABLE AND NOT DEFINED PY_BUILD_CMAKE_VERSION)
+    message(STATUS "Found uv executable: ${UV_EXECUTABLE} — ensuring .venv in ${PYOPENMS_BUILD_DIR}")
+    file(MAKE_DIRECTORY "${PYOPENMS_BUILD_DIR}")
+    if(DEFINED PYOPENMS_UV_PYTHON_VERSION AND NOT "${PYOPENMS_UV_PYTHON_VERSION}" STREQUAL "")
+      message(STATUS "Invoking uv sync with Python version: ${PYOPENMS_UV_PYTHON_VERSION}")
+      execute_process(
+        COMMAND ${UV_EXECUTABLE} sync --only-group dev --python ${PYOPENMS_UV_PYTHON_VERSION}
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+        RESULT_VARIABLE _uv_install_result
+        ERROR_VARIABLE _uv_install_error
+      )
+    else()
+      execute_process(
+        COMMAND ${UV_EXECUTABLE} sync --only-group dev
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+        RESULT_VARIABLE _uv_install_result
+        ERROR_VARIABLE _uv_install_error
+      )
+    endif()
+    if(NOT _uv_install_result EQUAL 0)
+      message(WARNING "uv sync failed: ${_uv_install_error}")
+    endif()
+
+    if(WIN32)
+      set(_py_venv_python "${PYOPENMS_BUILD_DIR}/.venv/Scripts/python.exe")
+    else()
+      set(_py_venv_python "${PYOPENMS_BUILD_DIR}/.venv/bin/python")
+    endif()
+    if(EXISTS "${_py_venv_python}")
+      set(Python_EXECUTABLE "${_py_venv_python}")
+      message(STATUS "Using venv Python at ${Python_EXECUTABLE}")
+    else()
+      message(STATUS "No venv Python found at ${_py_venv_python}; falling back to system Python discovery")
+    endif()
+  endif()
+
   find_package(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
   message(STATUS "Python found at ${Python_EXECUTABLE} with version ${Python_VERSION}")
@@ -139,48 +178,7 @@ else()
   # Use Qt6 version from the find module instead of querying qmake
   set(QT_QMAKE_VERSION_INFO "${Qt6_VERSION}")
 
-  # Optionally install build dependencies with uv into the build tree's pyOpenMS/.venv
-  # OpenMS-tree-build-system only! Skip if run with py-build-cmake called fro
-  if(WITH_UV AND DEFINED UV_EXECUTABLE AND NOT DEFINED PY_BUILD_CMAKE_VERSION)
-    message(STATUS "Found uv executable: ${UV_EXECUTABLE} — will create .venv in ${PYOPENMS_BUILD_DIR}")
-
-    # Ensure build dir exists
-    file(MAKE_DIRECTORY "${PYOPENMS_BUILD_DIR}")
-
-    message(STATUS "Installing pyOpenMS build dependencies with uv in build dir...")
-
-    if(DEFINED PYOPENMS_UV_PYTHON_VERSION AND NOT "${PYOPENMS_UV_PYTHON_VERSION}" STREQUAL "")
-      message(STATUS "Passing Python version to uv: --python ${PYOPENMS_UV_PYTHON_VERSION}")
-      execute_process(
-        COMMAND ${UV_EXECUTABLE} sync --only-group dev --python ${PYOPENMS_UV_PYTHON_VERSION}
-        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
-        RESULT_VARIABLE _uv_install_result
-        ERROR_VARIABLE _uv_install_error
-      )
-    else()
-      execute_process(
-        COMMAND ${UV_EXECUTABLE} sync --only-group dev
-        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
-        RESULT_VARIABLE _uv_install_result
-        ERROR_VARIABLE _uv_install_error
-      )
-    endif()
-
-    if(NOT _uv_install_result EQUAL 0)
-      message(WARNING "Failed to install pyOpenMS build dependencies with uv: ${_uv_install_error}")
-    endif()
-
-    if(NOT EXISTS "${PYOPENMS_BUILD_DIR}/.venv")
-      message(WARNING "uv did not create a .venv in ${PYOPENMS_BUILD_DIR}")
-    endif()
-
-    if(WIN32)
-      set(Python_EXECUTABLE "${PYOPENMS_BUILD_DIR}/.venv/Scripts/python.exe")
-    else()
-      set(Python_EXECUTABLE "${PYOPENMS_BUILD_DIR}/.venv/bin/python")
-    endif()
-  endif()
-
+  
   # Get Autowrap include dirs
   execute_process(
       COMMAND ${Python_EXECUTABLE} -c "import autowrap; print(autowrap.__path__[0] + '/data_files/autowrap/')"
