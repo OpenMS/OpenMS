@@ -972,7 +972,7 @@ protected:
     Size run_index = 0;
     for (const StringList& current_run_files : run_groups)
     {
-      OPENMS_LOG_INFO << "Processing Run " << (run_index + 1) << "/" << run_groups.size() << ": " << ListUtils::concatenate(current_run_files, ", ") << std::endl;
+      OPENMS_LOG_INFO << "Processing Run " << (run_index + 1) << "/" << run_groups.size() << std::endl;
       
       // Create fresh copies of extraction parameters for each run to avoid parameter carry-over
       ChromExtractParams cp_current = cp;
