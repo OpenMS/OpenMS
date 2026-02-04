@@ -224,6 +224,52 @@ namespace OpenMS
       const String& irt_file_path,
       const String& label) const;
 
+    /**
+      @brief Extract iRT chromatograms and perform data normalization (peak picking + RT model + m/z/IM correction).
+
+      This is the same algorithm currently implemented in OpenSwathCalibrationWorkflow
+      but exposed here on the CalibrationWorkflow to centralize calibration logic.
+
+      @return RT transformation fitted to the iRT peptides
+    */
+    TransformationDescription performRTNormalization(
+      const OpenSwath::LightTargetedExperiment& irt_transitions,
+      std::vector< OpenSwath::SwathMap > & swath_maps,
+      TransformationDescription& im_trafo,
+      double min_rsq,
+      double min_coverage,
+      const Param& feature_finder_param,
+      const ChromExtractParams& cp_irt,
+      const Param& irt_detection_param,
+      const Param& calibration_param,
+      const Param& mrm_mapping_param,
+      const String& irt_mzml_out,
+      Size debug_level,
+      bool pasef = false,
+      bool load_into_memory = false);
+
+    /**
+      @brief Core data-normalization routine (peak picking + RT fitting + m/z/IM correction).
+      @note Internal helper - kept public here for easier forwarding from legacy code.
+    */
+    TransformationDescription doDataNormalization_(
+      const OpenSwath::LightTargetedExperiment& targeted_exp,
+      const std::vector< OpenMS::MSChromatogram >& chromatograms,
+      TransformationDescription& im_trafo,
+      std::vector< OpenSwath::SwathMap > & swath_maps,
+      double min_rsq,
+      double min_coverage,
+      const Param& default_ffparam,
+      const Param& irt_detection_param,
+      const Param& calibration_param,
+      const bool pasef);
+
+    /// Accessors for estimated extraction windows (populated after calibration)
+    double getEstimatedMzWindow() const { return estimated_mz_window_; }
+    double getEstimatedImWindow() const { return estimated_im_window_; }
+    double getEstimatedMs1MzWindow() const { return estimated_ms1_mz_window_; }
+    double getEstimatedMs1ImWindow() const { return estimated_ms1_im_window_; }
+
   private:
     
     /// @name Parameter handling
@@ -236,6 +282,12 @@ namespace OpenMS
     */
     void updateMembers_() override;
     //@}
+
+  // Estimated windows stored during calibration (internal caching)
+  double estimated_mz_window_{-1.0};
+  double estimated_im_window_{-1.0};
+  double estimated_ms1_mz_window_{-1.0};
+  double estimated_ms1_im_window_{-1.0};
     
     /// @name Private member variables for parameter caching  
     //@{
