@@ -1060,6 +1060,7 @@ class MergedMethod:
     wrap_as: Optional[str] = None  # Python name if different from C++ name
     wrap_ignore: bool = False
     doc: str = ""
+    cpp_name: Optional[str] = None  # Full C++ qualified name for standalone functions
 
 
 @dataclass
@@ -1280,6 +1281,7 @@ def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Op
             wrap_as=pxd_m.wrap_as,
             wrap_ignore=pxd_m.wrap_ignore,
             doc=pxd_m.doc or "",
+            cpp_name=getattr(pxd_m, 'cpp_name', None),
         )
         merged_methods.append(merged_method)
 
@@ -1473,6 +1475,7 @@ def merge_with_pxd(
                 wrap_as=matching_pxd.wrap_as if matching_pxd else None,
                 wrap_ignore=matching_pxd.wrap_ignore if matching_pxd else False,
                 doc=matching_pxd.doc if matching_pxd else "",
+                cpp_name=getattr(matching_pxd, 'cpp_name', None) if matching_pxd else None,
             )
             merged_methods.append(merged_method)
 
@@ -1616,6 +1619,7 @@ def pxd_to_merged(pxd_classes: Dict[str, "ClassDecl"]) -> Dict[str, MergedClass]
                 wrap_as=m.wrap_as,
                 wrap_ignore=m.wrap_ignore,
                 doc=m.doc,
+                cpp_name=getattr(m, 'cpp_name', None),
             ))
 
         # Convert constructors

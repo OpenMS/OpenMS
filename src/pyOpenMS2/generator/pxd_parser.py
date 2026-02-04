@@ -68,6 +68,7 @@ class Method:
     wrap_upper_limit: Optional[str] = None
     nogil: bool = True
     except_clause: bool = True
+    cpp_name: Optional[str] = None  # C++ qualified name for standalone functions
 
 
 @dataclass
@@ -158,6 +159,11 @@ class PxdParser:
         self._wrap_directive_pattern = re.compile(
             r"#?\s*wrap-(\w+)(?::\s*(.*?))?(?=\s+wrap-|\s*$)"
         )
+        # Pattern for standalone functions with C++ alias:
+        # return_type func_name "OpenMS::Class::func_name" (params) except + nogil
+        self._standalone_func_pattern = re.compile(
+            r'^\s*(.+?)\s+(\w+)\s+"([^"]+)"\s*\(([^)]*)\)\s*(except\s*\+)?\s*(nogil)?'
+        )
 
     def parse_file(self, pxd_path: Path) -> Dict[str, ClassDecl]:
         """
@@ -180,6 +186,9 @@ class PxdParser:
 
         classes: Dict[str, ClassDecl] = {}
         enums: List[EnumDecl] = []
+        # Standalone functions to be attached to classes as static methods
+        # List of (target_class_name, method, header_file)
+        standalone_funcs: List[Tuple[str, Method, str]] = []
 
         lines = content.split("\n")
         i = 0
@@ -259,6 +268,72 @@ class PxdParser:
                 i = end_idx
                 continue
 
+            # Check for standalone function with C++ alias (namespace-level static functions)
+            # Pattern: return_type func_name "OpenMS::Class::func_name" (params) except + nogil
+            func_match = self._standalone_func_pattern.match(stripped)
+            if func_match:
+                return_type = func_match.group(1).strip()
+                func_name = func_match.group(2)
+                cpp_qualified = func_match.group(3)  # e.g., "OpenMS::PEFFFile::isPEFFFile"
+                params_str = func_match.group(4)
+
+                # Extract target class from C++ qualified name or namespace
+                # "OpenMS::PEFFFile::isPEFFFile" -> "PEFFFile"
+                # "OpenMS::PEFFEntry::fromFASTAEntry" -> "PEFFEntry"
+                target_class = None
+                if cpp_qualified:
+                    parts = cpp_qualified.split("::")
+                    if len(parts) >= 2:
+                        # Second-to-last part is the class name
+                        target_class = parts[-2]
+                if not target_class and current_namespace.startswith("OpenMS::"):
+                    # Fall back to namespace: "OpenMS::PEFFFile" -> "PEFFFile"
+                    target_class = current_namespace.split("::")[-1]
+
+                if target_class:
+                    params = self._parse_parameters(params_str)
+                    method = Method(
+                        name=func_name,
+                        return_type=return_type,
+                        parameters=params,
+                        is_static=True,
+                        nogil="nogil" in stripped,
+                        except_clause="except" in stripped,
+                        cpp_name=cpp_qualified,  # Store original C++ name for binding
+                    )
+
+                    # Parse wrap directives from this line and following lines
+                    line_directives = self._parse_wrap_directives(stripped)
+                    if WrapDirective.DOC in line_directives:
+                        method.doc = line_directives[WrapDirective.DOC]
+                    if WrapDirective.IGNORE in line_directives:
+                        method.wrap_ignore = True
+
+                    # Check for doc continuation on following lines
+                    j = i + 1
+                    doc_lines = []
+                    while j < len(lines):
+                        next_line = lines[j].strip()
+                        if next_line.startswith("#") and "wrap-doc:" not in next_line:
+                            # Continue doc from previous wrap-doc
+                            doc_content = next_line.lstrip("#").strip()
+                            if doc_content:
+                                doc_lines.append(doc_content)
+                            j += 1
+                        else:
+                            break
+                    if doc_lines:
+                        if method.doc:
+                            method.doc += "\n" + "\n".join(doc_lines)
+                        else:
+                            method.doc = "\n".join(doc_lines)
+
+                    standalone_funcs.append((target_class, method, current_header))
+                    logger.debug(f"Found standalone function {func_name} -> {target_class}.{func_name}")
+
+                i += 1
+                continue
+
             i += 1
 
         # Attach enums to classes based on wrap-attach directives or file name
@@ -272,6 +347,19 @@ class PxdParser:
                 enum_decl.attached_to = file_stem
                 classes[file_stem].enums.append(enum_decl)
                 logger.debug(f"Auto-attached enum {enum_decl.name} to class {file_stem} (by file name)")
+
+        # Attach standalone functions to classes as static methods
+        for target_class, method, header in standalone_funcs:
+            if target_class in classes:
+                classes[target_class].methods.append(method)
+                logger.debug(f"Attached standalone function {method.name} to {target_class}")
+            else:
+                # Class not found in this file - might be in another file
+                # Create a placeholder class if needed, or just log a warning
+                logger.warning(
+                    f"Target class {target_class} not found for standalone function "
+                    f"{method.name} in {pxd_path.name}"
+                )
 
         return classes
 
