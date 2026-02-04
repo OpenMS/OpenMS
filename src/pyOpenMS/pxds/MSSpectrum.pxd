@@ -8,6 +8,16 @@ from IMTypes cimport *
 
 # this class has addons, see the ./addons folder (../addons/MSSpectrum.pyx)
 
+cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS::MSSpectrum":
+
+    cdef enum class MSSpectrumRasterAggregation "OpenMS::MSSpectrum::RasterAggregation":
+        # wrap-attach:
+        #   MSSpectrum
+        # wrap-as:
+        #   RasterAggregation
+        SUM "OpenMS::MSSpectrum::RasterAggregation::SUM"
+        MAX "OpenMS::MSSpectrum::RasterAggregation::MAX"
+
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
     cdef cppclass MSSpectrum(SpectrumSettings, RangeManagerMzInt):
@@ -128,6 +138,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         void sortByIntensity(bool reverse) except + nogil  # wrap-doc:Sorts the peaks by intensity (ascending if reverse is False, descending if True)
         void sortByPosition() except + nogil  # wrap-doc:Sorts the peaks by m/z position
+        void rasterizeIMFrame(float* output, Size im_bins, Size mz_bins, double min_im, double max_im, double min_mz, double max_mz, MSSpectrumRasterAggregation aggregation) except + nogil  # wrap-ignore
 
         libcpp_vector[FloatDataArray] getFloatDataArrays() except + nogil  # wrap-doc:Returns the additional float data arrays to store e.g. meta data
         libcpp_vector[IntegerDataArray] getIntegerDataArrays() except + nogil  # wrap-doc:Returns the additional int data arrays to store e.g. meta data

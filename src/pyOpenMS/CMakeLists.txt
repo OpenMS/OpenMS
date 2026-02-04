@@ -90,6 +90,47 @@ else()
   # Find Python
   #------------------------------------------------------------------------------
   # py-build-cmake sets Python_EXECUTABLE and hints
+  # If requested, run `uv sync` first in the build dir so that uv creates
+  # a virtualenv there. This must happen before calling find_package(Python)
+  # so that CMake can pick up the created interpreter.
+  if(WITH_UV AND DEFINED UV_EXECUTABLE AND NOT DEFINED PY_BUILD_CMAKE_VERSION)
+    message(STATUS "Found uv executable: ${UV_EXECUTABLE} — ensuring .venv in ${PYOPENMS_BUILD_DIR}")
+    file(MAKE_DIRECTORY "${PYOPENMS_BUILD_DIR}")
+    # Copy pyproject.toml before uv sync so that uv can read the project configuration
+    configure_file(${PROJECT_SOURCE_DIR}/pyproject.toml ${PYOPENMS_BUILD_DIR}/pyproject.toml COPYONLY)
+    if(DEFINED PYOPENMS_UV_PYTHON_VERSION AND NOT "${PYOPENMS_UV_PYTHON_VERSION}" STREQUAL "")
+      message(STATUS "Invoking uv sync with Python version: ${PYOPENMS_UV_PYTHON_VERSION}")
+      execute_process(
+        COMMAND ${UV_EXECUTABLE} sync --only-group dev --python ${PYOPENMS_UV_PYTHON_VERSION}
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+        RESULT_VARIABLE _uv_install_result
+        ERROR_VARIABLE _uv_install_error
+      )
+    else()
+      execute_process(
+        COMMAND ${UV_EXECUTABLE} sync --only-group dev
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+        RESULT_VARIABLE _uv_install_result
+        ERROR_VARIABLE _uv_install_error
+      )
+    endif()
+    if(NOT _uv_install_result EQUAL 0)
+      message(WARNING "uv sync failed: ${_uv_install_error}")
+    endif()
+
+    if(WIN32)
+      set(_py_venv_python "${PYOPENMS_BUILD_DIR}/.venv/Scripts/python.exe")
+    else()
+      set(_py_venv_python "${PYOPENMS_BUILD_DIR}/.venv/bin/python")
+    endif()
+    if(EXISTS "${_py_venv_python}")
+      set(Python_EXECUTABLE "${_py_venv_python}")
+      message(STATUS "Using venv Python at ${Python_EXECUTABLE}")
+    else()
+      message(STATUS "No venv Python found at ${_py_venv_python}; falling back to system Python discovery")
+    endif()
+  endif()
+
   find_package(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
   message(STATUS "Python found at ${Python_EXECUTABLE} with version ${Python_VERSION}")
@@ -139,6 +180,7 @@ else()
   # Use Qt6 version from the find module instead of querying qmake
   set(QT_QMAKE_VERSION_INFO "${Qt6_VERSION}")
 
+  
   # Get Autowrap include dirs
   execute_process(
       COMMAND ${Python_EXECUTABLE} -c "import autowrap; print(autowrap.__path__[0] + '/data_files/autowrap/')"
@@ -547,7 +589,7 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
     if(APPLE)
       # macOS: Fix dependencies and codesign after copying
       add_custom_target(pyopenms_fix_deps ALL
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -f -v
+        COMMAND ${PROJECT_SOURCE_DIR}/mac_fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -r "@loader_path/" -f -v
         COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
         COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib || true
         COMMENT "Fixing deps and codesigning pyopenms binaries in build dir"
