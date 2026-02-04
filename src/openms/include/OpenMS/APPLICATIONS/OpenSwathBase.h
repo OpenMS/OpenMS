@@ -133,21 +133,23 @@ namespace OpenMS
     /**
      * @brief Prepare chromatogram output
      *
-     * Sets up the chromatogram output, either sqMass or mzML (using numpress
-     * lossy compression). This assumes that 0.05 accuracy in RT is sufficient
-     * for all purposes.
+     * Sets up the chromatogram output, either sqMass, mzML (using numpress
+     * lossy compression), or xic (Parquet). This assumes that 0.05 accuracy
+     * in RT is sufficient for all purposes.
      *
      * @param[out] chromatogramConsumer The consumer to process chromatograms
      * @param[in] exp_meta meta data about experiment
      * @param[in] transition_exp The spectral library
      * @param[in] out_chrom The output file for the chromatograms
      * @param[in] run_id Unique identifier which links the sqMass and OSW file
+     * @param[in] source_file Source file name for chromatogram provenance
      */
     void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
                             const std::shared_ptr<ExperimentalSettings>& exp_meta,
                             const OpenSwath::LightTargetedExperiment& transition_exp,
                             const String& out_chrom,
-                            const UInt64 run_id);
+                            const UInt64 run_id,
+                            const String& source_file);
 
     /**
      * @brief Loads transition list from TraML / TSV or PQP
