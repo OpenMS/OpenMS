@@ -81,12 +81,9 @@ namespace OpenMS
       pasef,
       load_into_memory);
 
-    // Propagate estimated windows back to legacy getters/setters so other
-    // components that still rely on them continue to work.
-    setEstimatedMzWindow(cal.getEstimatedMzWindow());
-    setEstimatedImWindow(cal.getEstimatedImWindow());
-    setEstimatedMs1MzWindow(cal.getEstimatedMs1MzWindow());
-    setEstimatedMs1ImWindow(cal.getEstimatedMs1ImWindow());
+  // Estimated windows are available via CalibrationWorkflow getters.
+  // Legacy setters/getters are being deprecated; callers should use
+  // CalibrationWorkflow::performCalibration / getEstimated*() instead.
 
     return trafo_out;
   }
@@ -119,10 +116,7 @@ namespace OpenMS
       calibration_param,
       pasef);
 
-    setEstimatedMzWindow(cal.getEstimatedMzWindow());
-    setEstimatedImWindow(cal.getEstimatedImWindow());
-    setEstimatedMs1MzWindow(cal.getEstimatedMs1MzWindow());
-    setEstimatedMs1ImWindow(cal.getEstimatedMs1ImWindow());
+  // See note above: legacy setters removed. Use CalibrationWorkflow getters.
 
     return trafo_out;
   }
@@ -155,45 +149,7 @@ namespace OpenMS
     ls.raster(newchrom.begin(), newchrom.end(), base_chrom.begin(), base_chrom.end());
   }
 
-  double OpenSwathCalibrationWorkflow::getEstimatedMzWindow() const
-  {
-    return estimated_mz_window_;
-  }
-
-  void OpenSwathCalibrationWorkflow::setEstimatedMzWindow(double estimatedMzWindow)
-  {
-    estimated_mz_window_ = estimatedMzWindow;
-  }
-
-  double OpenSwathCalibrationWorkflow::getEstimatedImWindow() const
-  {
-    return estimated_im_window_;
-  }
-
-  void OpenSwathCalibrationWorkflow::setEstimatedImWindow(double estimatedImWindow)
-  {
-    estimated_im_window_ = estimatedImWindow;
-  }
-  
-  double OpenSwathCalibrationWorkflow::getEstimatedMs1MzWindow() const
-  {
-    return estimated_ms1_mz_window_;
-  }
-
-  void OpenSwathCalibrationWorkflow::setEstimatedMs1MzWindow(double estimatedMs1MzWindow)
-  {
-    estimated_ms1_mz_window_ = estimatedMs1MzWindow;
-  }
-
-  double OpenSwathCalibrationWorkflow::getEstimatedMs1ImWindow() const
-  {
-    return estimated_ms1_im_window_;
-  }
-
-  void OpenSwathCalibrationWorkflow::setEstimatedMs1ImWindow(double estimatedMs1ImWindow)
-  {
-    estimated_ms1_im_window_ = estimatedMs1ImWindow;
-  }
+  /* Legacy estimated-window getters/setters removed. Use CalibrationWorkflow getters instead. */
 
   }
 

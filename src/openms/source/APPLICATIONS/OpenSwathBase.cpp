@@ -16,6 +16,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
@@ -387,18 +388,18 @@ namespace OpenMS
         }
       }
 
-      // perform extraction
-      OpenSwathCalibrationWorkflow wf;
-      wf.setLogType(log_type_);
-      TransformationDescription im_trafo;
-      trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, im_trafo, min_rsq, min_coverage, feature_finder_param, cp_irt,
-                      irt_detection_param, calibration_param, mrm_mapping_param, irt_mzml_out, debug_level, pasef, load_into_memory);
-      // Retrieve estimated mz and IM extraction windows
-      auto_mz_w = wf.getEstimatedMzWindow();
-      auto_im_w = wf.getEstimatedImWindow();
-      // Retrieve estimate MS1 mz and IM extraction windows
-      auto_ms1_mz_w = wf.getEstimatedMs1MzWindow();
-      auto_ms1_im_w = wf.getEstimatedMs1ImWindow();
+  // perform extraction using the centralized CalibrationWorkflow implementation
+  CalibrationWorkflow cal;
+  cal.setLogType(log_type_);
+  TransformationDescription im_trafo;
+  trafo_rtnorm = cal.performRTNormalization(irt_transitions, swath_maps, im_trafo, min_rsq, min_coverage, feature_finder_param, cp_irt,
+          irt_detection_param, calibration_param, mrm_mapping_param, irt_mzml_out, debug_level, pasef, load_into_memory);
+  // Retrieve estimated mz and IM extraction windows from the centralized workflow
+  auto_mz_w = cal.getEstimatedMzWindow();
+  auto_im_w = cal.getEstimatedImWindow();
+  // Retrieve estimate MS1 mz and IM extraction windows
+  auto_ms1_mz_w = cal.getEstimatedMs1MzWindow();
+  auto_ms1_im_w = cal.getEstimatedMs1ImWindow();
 
       if (! irt_trafo_out.empty()) { FileHandler().storeTransformations(irt_trafo_out, trafo_rtnorm, {FileTypes::TRANSFORMATIONXML}); }
     }
