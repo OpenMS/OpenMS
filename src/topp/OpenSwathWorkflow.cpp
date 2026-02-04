@@ -285,9 +285,6 @@ protected:
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
     setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory,workingInMemory"));
 
-    registerStringOption_("mz_correction_function", "<name>", "none", "Use the retention time normalization peptide MS2 masses to perform a mass correction (linear, weighted by intensity linear or quadratic) of all spectra.", false, true);
-    setValidStrings_("mz_correction_function", ListUtils::create<String>("none,regression_delta_ppm,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
-
     registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
@@ -573,7 +570,6 @@ protected:
     Param debug_params = getParam_().copy("Debugging:", true);
 
     String readoptions = getStringOption_("readOptions");
-    String mz_correction_function = getStringOption_("mz_correction_function");
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
     // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
@@ -675,7 +671,7 @@ protected:
     cp_irt.mz_extraction_window = getDoubleOption_("irt_mz_extraction_window");
     cp_irt.im_extraction_window = getDoubleOption_("irt_im_extraction_window");
 
-    if ( (cp_irt.im_extraction_window == -1) & (cp.im_extraction_window != -1) )
+    if ( (cp_irt.im_extraction_window == -1) && (cp.im_extraction_window != -1) )
     {
       OPENMS_LOG_WARN << "Warning: -irt_im_extraction_window is not set, this will lead to no ion mobility calibration" << std::endl;
     }
@@ -982,7 +978,6 @@ protected:
       calibration_param.setValue("mz_extraction_window", cp_irt_current.mz_extraction_window);
       calibration_param.setValue("mz_extraction_window_ppm", cp_irt_current.ppm ? "true" : "false");
       calibration_param.setValue("im_extraction_window", cp_irt_current.im_extraction_window);
-      calibration_param.setValue("mz_correction_function", mz_correction_function);
 
       // Detect SRM/MRM mode: check if all swath_maps are chromatogram-only (no spectra, not MS1)
       
@@ -1111,11 +1106,10 @@ protected:
 
     // set current run id in writer
     oswwriter.setRunId(cur_run);
-    // set current run id for sqMass writer as well
-    MSDataSqlConsumer* sql_cons2 = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
-    if (sql_cons2 != nullptr)
+    // set current run id for sqMass writer as well (reuse previous cast)
+    if (sql_cons != nullptr)
     {
-      sql_cons2->setRunId(cur_run);
+      sql_cons->setRunId(cur_run);
     }
 
     OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
