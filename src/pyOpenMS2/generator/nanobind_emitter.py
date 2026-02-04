@@ -164,6 +164,7 @@ SKIP_METHODS = {
     "AASequence": {
         "getFormula",  # Complex return type
         "begin", "end",  # Iterator types
+        "getMZ", "getMonoWeight", "getAverageWeight",  # Custom overloads in SPECIAL_METHODS
     },
     "Param": {
         "begin", "end",  # Iterator types
@@ -1458,7 +1459,32 @@ SPECIAL_METHODS = {
         .def("__init__", [](OpenMS::AASequence* self, const std::string& s) {
             new (self) OpenMS::AASequence(OpenMS::String(s));
         }, "sequence"_a, "Create AASequence from string (e.g., 'PEPTIDE')")''',
-        # size, toString, toUnmodifiedString, getMonoWeight, fromString, fromStringPermissive auto-generated
+        "fromString": '''
+        .def_static("fromString", [](const std::string& s) {
+            return OpenMS::AASequence::fromString(OpenMS::String(s));
+        }, "s"_a, "Create AASequence from string (deprecated - use AASequence(s) constructor)")''',
+        # Default overloads using ResidueType::Full (backward compatibility with pyOpenMS)
+        "getMZ": '''
+        .def("getMZ", [](const OpenMS::AASequence& self, int charge) {
+            return self.getMZ(charge, OpenMS::Residue::ResidueType::Full);
+        }, "charge"_a, "Returns the mass-to-charge ratio of the peptide")
+        .def("getMZ", [](const OpenMS::AASequence& self, int charge, OpenMS::Residue::ResidueType type) {
+            return self.getMZ(charge, type);
+        }, "charge"_a, "type"_a, "Returns the mass-to-charge ratio of the peptide with specified residue type")''',
+        "getMonoWeight": '''
+        .def("getMonoWeight", [](const OpenMS::AASequence& self) {
+            return self.getMonoWeight(OpenMS::Residue::ResidueType::Full, 0);
+        }, "Returns the monoisotopic weight of the peptide")
+        .def("getMonoWeight", [](const OpenMS::AASequence& self, OpenMS::Residue::ResidueType type, int charge) {
+            return self.getMonoWeight(type, charge);
+        }, "type"_a, "charge"_a, "Returns the monoisotopic weight of the peptide with specified residue type and charge")''',
+        "getAverageWeight": '''
+        .def("getAverageWeight", [](const OpenMS::AASequence& self) {
+            return self.getAverageWeight(OpenMS::Residue::ResidueType::Full, 0);
+        }, "Returns the average weight of the peptide")
+        .def("getAverageWeight", [](const OpenMS::AASequence& self, OpenMS::Residue::ResidueType type, int charge) {
+            return self.getAverageWeight(type, charge);
+        }, "type"_a, "charge"_a, "Returns the average weight of the peptide with specified residue type and charge")''',
     },
     "Param": {
         # getValue auto-generated
@@ -2349,6 +2375,53 @@ SPECIAL_METHODS = {
             return arr->data;
         }, "Get intensity array")''',
     },
+    # SequenceCoverage: static method taking vector<AASequence>
+    "SequenceCoverage": {
+        "getCoverage": '''
+        .def_static("getCoverage", [](const OpenMS::AASequence& protein, const std::vector<OpenMS::AASequence>& peptides) {
+            return OpenMS::SequenceCoverage::getCoverage(protein, peptides);
+        }, "protein"_a, "peptides"_a, "Compute sequence coverage percentage (0-100)")''',
+    },
+    # IDScoreSwitcherAlgorithm: template method for findScoreType and static methods
+    "IDScoreSwitcherAlgorithm": {
+        "findScoreType": '''
+        .def("findScoreType", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::PeptideIdentification& id, OpenMS::Scores::IDType score_type) {
+            return self.findScoreType(id, score_type);
+        }, "id"_a, "score_type"_a, "Search for a score type in a PeptideIdentification")''',
+        "switchToScoreType": '''
+        .def_static("switchToScoreType", nb::overload_cast<OpenMS::PeptideIdentificationList&, OpenMS::String>(&OpenMS::IDScoreSwitcherAlgorithm::switchToScoreType),
+            "pep_ids"_a, "requested_score_type_as_string"_a, "Switch the score type of peptide identifications")
+        .def_static("switchToScoreType", [](OpenMS::ConsensusMap& cmap, OpenMS::String requested_score_type, bool include_unassigned) {
+            return OpenMS::IDScoreSwitcherAlgorithm::switchToScoreType(cmap, requested_score_type, include_unassigned);
+        }, "cmap"_a, "requested_score_type_as_string"_a, "include_unassigned"_a = true, "Switch the score type of a ConsensusMap")''',
+        "switchBackScoreType": '''
+        .def_static("switchBackScoreType", nb::overload_cast<OpenMS::PeptideIdentificationList&, OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult>(&OpenMS::IDScoreSwitcherAlgorithm::switchBackScoreType),
+            "pep_ids"_a, "isr"_a, "Revert scores to original type")
+        .def_static("switchBackScoreType", [](OpenMS::ConsensusMap& cmap, OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult isr, bool include_unassigned) {
+            OpenMS::IDScoreSwitcherAlgorithm::switchBackScoreType(cmap, isr, include_unassigned);
+        }, "cmap"_a, "isr"_a, "include_unassigned"_a = true, "Revert scores of a ConsensusMap to original type")''',
+    },
+    # Scores: static utility class for score type handling
+    "Scores": {
+        "isScoreType": '''
+        .def_static("isScoreType", &OpenMS::Scores::isScoreType, "score_name"_a, "type"_a,
+            "Check if the given score name corresponds to a specific ID score type")''',
+        "parseIDType": '''
+        .def_static("parseIDType", &OpenMS::Scores::parseIDType, "score_type"_a,
+            "Convert a string representation of an ID score type to an IDType enum")''',
+        "isHigherBetter": '''
+        .def_static("isHigherBetter", &OpenMS::Scores::isHigherBetter, "type"_a,
+            "Determine whether a higher score is better for the given ID score type")''',
+        "getAllIDScoreNames": '''
+        .def_static("getAllIDScoreNames", &OpenMS::Scores::getAllIDScoreNames,
+            "Get a vector of all ID score names used in OpenMS")''',
+        "normalizeScoreName": '''
+        .def_static("normalizeScoreName", &OpenMS::Scores::normalizeScoreName, "score_name"_a,
+            "Normalize a score name by removing the '_score' suffix if present")''',
+        "isKnownScoreType": '''
+        .def_static("isKnownScoreType", &OpenMS::Scores::isKnownScoreType, "score_name"_a,
+            "Check if a score name is a known score type after normalization")''',
+    },
 }
 
 # Nested class bindings that are emitted in the same module as a parent class.
@@ -2444,6 +2517,50 @@ NESTED_CLASS_BINDINGS = {
         .def_rw("linear_fp_mass_acc", &OpenMS::MSNumpressCoder::NumpressConfig::linear_fp_mass_acc)
         ;''',
          ["<OpenMS/FORMAT/MSNumpressCoder.h>"]),
+    ],
+    "IDScoreSwitcherAlgorithm": [
+        ('''
+    nb::class_<OpenMS::IDScoreSwitcherAlgorithm::ScoreSearchResult>(m, "ScoreSearchResult")
+        .def(nb::init<>())
+        .def_rw("is_main_score_type", &OpenMS::IDScoreSwitcherAlgorithm::ScoreSearchResult::is_main_score_type,
+                "True if the main score is already of the requested score type")
+        .def_rw("score_name", &OpenMS::IDScoreSwitcherAlgorithm::ScoreSearchResult::score_name,
+                "Name of score to use (main score name or meta value name)")
+        .def("__repr__", [](const OpenMS::IDScoreSwitcherAlgorithm::ScoreSearchResult& self) {
+            std::ostringstream oss;
+            oss << "ScoreSearchResult(is_main_score_type=" << (self.is_main_score_type ? "True" : "False")
+                << ", score_name='" << self.score_name << "')";
+            return oss.str();
+        })
+        ;''',
+         ["<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>"]),
+        ('''
+    nb::class_<OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult>(m, "IDSwitchResult")
+        .def(nb::init<>())
+        .def_rw("original_score_name", &OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult::original_score_name,
+                "The name of the original score used before the switch")
+        .def_rw("original_score_higher_better", &OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult::original_score_higher_better,
+                "Whether a higher original score is better")
+        .def_rw("original_score_type", &OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult::original_score_type,
+                "The type of the original score")
+        .def_rw("requested_score_higher_better", &OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult::requested_score_higher_better,
+                "Whether a higher requested score is better")
+        .def_rw("requested_score_type", &OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult::requested_score_type,
+                "The type of the requested score")
+        .def_rw("requested_score_name", &OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult::requested_score_name,
+                "The search engine score name (e.g. 'X!Tandem_score') or score category (e.g. 'PEP')")
+        .def_rw("score_switched", &OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult::score_switched,
+                "Flag indicating whether the main score was switched")
+        .def("__repr__", [](const OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult& self) {
+            std::ostringstream oss;
+            oss << "IDSwitchResult(original_score_name='" << self.original_score_name
+                << "', original_score_higher_better=" << (self.original_score_higher_better ? "True" : "False")
+                << ", score_switched=" << (self.score_switched ? "True" : "False")
+                << ")";
+            return oss.str();
+        })
+        ;''',
+         ["<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>"]),
     ],
 }
 
