@@ -227,8 +227,9 @@ namespace OpenMS
     /**
       @brief Extract iRT chromatograms and perform data normalization (peak picking + RT model + m/z/IM correction).
 
-      This is the same algorithm currently implemented in OpenSwathCalibrationWorkflow
-      but exposed here on the CalibrationWorkflow to centralize calibration logic.
+  This centralizes the calibration algorithm that used to live in the
+  OpenSwathWorkflow / OpenSwathCalibrationWorkflow implementation and
+  exposes it here on the CalibrationWorkflow to centralize calibration logic.
 
       @return RT transformation fitted to the iRT peptides
     */

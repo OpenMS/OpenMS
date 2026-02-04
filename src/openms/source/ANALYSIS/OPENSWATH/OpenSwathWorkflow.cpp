@@ -19,11 +19,12 @@
 #include <cmath>
 #include <unordered_map>
 
-// OpenSwathCalibrationWorkflow
+
+// OpenSwathWorkflow
 namespace OpenMS
 {
-
-  OpenSwath::SpectrumAccessPtr loadMS1Map(const std::vector< OpenSwath::SwathMap > & swath_maps, bool load_into_memory)
+  // Helper: load MS1 map (returns first swath map marked as ms1)
+  OpenSwath::SpectrumAccessPtr OpenSwathWorkflow::loadMS1Map(const std::vector< OpenSwath::SwathMap > & swath_maps, bool load_into_memory)
   {
     OpenSwath::SpectrumAccessPtr ms1_map;
     // store reference to MS1 map for later -> note that this is *not* threadsafe!
@@ -35,7 +36,7 @@ namespace OpenMS
         ms1_map = swath_maps[i].sptr;
       }
     }
-    if (load_into_memory)
+    if (load_into_memory && ms1_map)
     {
       // This creates an InMemory object that keeps all data in memory
       // but provides the same access functionality to the raw data as
@@ -44,118 +45,6 @@ namespace OpenMS
     }
     return ms1_map;
   }
-
-  TransformationDescription OpenSwathCalibrationWorkflow::performRTNormalization(
-    const OpenSwath::LightTargetedExperiment& irt_transitions,
-    std::vector< OpenSwath::SwathMap > & swath_maps,
-    TransformationDescription& im_trafo,
-    double min_rsq,
-    double min_coverage,
-    const Param& feature_finder_param,
-    const ChromExtractParams& cp_irt,
-    const Param& irt_detection_param,
-    const Param& calibration_param,
-    const Param& mrm_mapping_param,
-    const String& irt_mzml_out,
-    Size debug_level,
-    bool pasef,
-    bool load_into_memory)
-  {
-    // Delegate to the centralized CalibrationWorkflow implementation to
-    // perform RT normalization and window estimation. We keep this thin
-    // wrapper to preserve the original API while centralizing logic.
-    CalibrationWorkflow cal;
-    TransformationDescription trafo_out = cal.performRTNormalization(
-      irt_transitions,
-      swath_maps,
-      im_trafo,
-      min_rsq,
-      min_coverage,
-      feature_finder_param,
-      cp_irt,
-      irt_detection_param,
-      calibration_param,
-      mrm_mapping_param,
-      irt_mzml_out,
-      debug_level,
-      pasef,
-      load_into_memory);
-
-  // Estimated windows are available via CalibrationWorkflow getters.
-  // Legacy setters/getters are being deprecated; callers should use
-  // CalibrationWorkflow::performCalibration / getEstimated*() instead.
-
-    return trafo_out;
-  }
-
-  TransformationDescription OpenSwathCalibrationWorkflow::doDataNormalization_(
-    const OpenSwath::LightTargetedExperiment& targeted_exp,
-    const std::vector< OpenMS::MSChromatogram >& chromatograms,
-    TransformationDescription& im_trafo,
-    std::vector< OpenSwath::SwathMap > & swath_maps,
-    double min_rsq,
-    double min_coverage,
-    const Param& default_ffparam,
-    const Param& irt_detection_param,
-    const Param& calibration_param,
-    const bool pasef)
-  {
-    // Thin wrapper delegating to the centralized implementation. Keep the
-    // legacy setters for backward compatibility by copying estimated values
-    // back from the CalibrationWorkflow instance.
-    CalibrationWorkflow cal;
-    TransformationDescription trafo_out = cal.doDataNormalization_(
-      targeted_exp,
-      chromatograms,
-      im_trafo,
-      swath_maps,
-      min_rsq,
-      min_coverage,
-      default_ffparam,
-      irt_detection_param,
-      calibration_param,
-      pasef);
-
-  // See note above: legacy setters removed. Use CalibrationWorkflow getters.
-
-    return trafo_out;
-  }
-
-  void OpenSwathCalibrationWorkflow::simpleExtractChromatograms_(
-    const std::vector< OpenSwath::SwathMap > & swath_maps,
-    const OpenSwath::LightTargetedExperiment& irt_transitions,
-    std::vector< OpenMS::MSChromatogram > & chromatograms,
-    const TransformationDescription& trafo,
-    const ChromExtractParams & cp,
-    const Param & mrm_mapping_param,
-    bool pasef,
-    bool load_into_memory)
-  {
-    // Use the appropriate chromatogram handler based on data type
-    std::unique_ptr<IChromatogramHandler> handler = IChromatogramHandler::createDefault();
-    std::vector<MSChromatogram> collected_chroms = handler->collectIrtChromatogramsForIrt(
-      swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
-    chromatograms.insert(chromatograms.end(), collected_chroms.begin(), collected_chroms.end());
-  }
-
-  void OpenSwathCalibrationWorkflow::addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom)
-  {
-    if (base_chrom.empty())
-    {
-      base_chrom = newchrom;
-    }
-
-    LinearResamplerAlign ls;
-    ls.raster(newchrom.begin(), newchrom.end(), base_chrom.begin(), base_chrom.end());
-  }
-
-  /* Legacy estimated-window getters/setters removed. Use CalibrationWorkflow getters instead. */
-
-  }
-
-// OpenSwathWorkflow
-namespace OpenMS
-{
 
   void OpenSwathWorkflow::performExtraction(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
@@ -961,3 +850,5 @@ namespace OpenMS
     }
   }
 }
+
+

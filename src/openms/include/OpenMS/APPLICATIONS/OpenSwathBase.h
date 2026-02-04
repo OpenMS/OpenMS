@@ -169,8 +169,9 @@ namespace OpenMS
      * extracting the transitions specified in the irt_tr_file TraML file. It
      * will also perform the m/z calibration (when an irt_tr_file is provided).
      *
-     * @note Internally, the retention time and @p m/z calibration are performed
-     * by OpenMS::OpenSwathCalibrationWorkflow::performRTNormalization
+  * @note Internally, the retention time and @p m/z calibration are performed
+  * by OpenMS::CalibrationWorkflow::performRTNormalization (see
+  * `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h`)
      *
      * @param[in] trafo_in Input trafoXML file (if not empty, transformation will be
      *                 loaded from this file)
