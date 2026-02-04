@@ -361,46 +361,64 @@ namespace OpenMS
       
       // Compute RT bin for this spectrum
       const double rt = spec.getRT();
-      const Int64 rt_bin = static_cast<Int64>((rt - min_rt) * rt_scale);
-      
-      // Skip if RT is out of bounds (shouldn't happen due to RTBegin/RTEnd, but be safe)
-      if (rt_bin < 0 || rt_bin >= static_cast<Int64>(rt_bins))
+      Int64 rt_bin = static_cast<Int64>((rt - min_rt) * rt_scale);
+
+      // Clamp to valid range: values exactly at max_rt should go in last bin
+      if (rt_bin < 0)
       {
         continue;
+      }
+      if (rt_bin >= static_cast<Int64>(rt_bins))
+      {
+        rt_bin = static_cast<Int64>(rt_bins) - 1;
       }
 
       // Use binary search to find peaks in m/z range (leveraging sortedness of peaks)
       auto mz_begin_it = spec.MZBegin(min_mz);
       auto mz_end_it = spec.MZEnd(max_mz);
 
+      // Convert to index-based loop for OpenMP SIMD compatibility
+      const Size peak_start = static_cast<Size>(mz_begin_it - spec.begin());
+      const Size peak_end = static_cast<Size>(mz_end_it - spec.begin());
+
       // Process peaks within m/z range
+      const Int64 mz_bins_minus_one = static_cast<Int64>(mz_bins) - 1;
       if (aggregation == RasterAggregation::SUM)
       {
         #pragma omp simd
-        for (auto peak_it = mz_begin_it; peak_it != mz_end_it; ++peak_it)
+        for (Size peak_idx = peak_start; peak_idx < peak_end; ++peak_idx)
         {
-          const double mz = peak_it->getMZ();
-          const Int64 mz_bin = static_cast<Int64>((mz - min_mz) * mz_scale);
-          
-          // Bounds check (edge case: mz exactly at max_mz)
-          if (mz_bin >= 0 && mz_bin < static_cast<Int64>(mz_bins))
+          const double mz = spec[peak_idx].getMZ();
+          Int64 mz_bin = static_cast<Int64>((mz - min_mz) * mz_scale);
+
+          // Clamp to valid range: values exactly at max_mz should go in last bin
+          if (mz_bin >= 0)
           {
+            if (mz_bin > mz_bins_minus_one)
+            {
+              mz_bin = mz_bins_minus_one;
+            }
             const Size pixel_idx = static_cast<Size>(mz_bin) * rt_bins + static_cast<Size>(rt_bin);
-            local_buffer[pixel_idx] += peak_it->getIntensity();
+            local_buffer[pixel_idx] += spec[peak_idx].getIntensity();
           }
         }
       }
       else // MAX aggregation
       {
-        for (auto peak_it = mz_begin_it; peak_it != mz_end_it; ++peak_it)
+        for (Size peak_idx = peak_start; peak_idx < peak_end; ++peak_idx)
         {
-          const double mz = peak_it->getMZ();
-          const Int64 mz_bin = static_cast<Int64>((mz - min_mz) * mz_scale);
-          
-          if (mz_bin >= 0 && mz_bin < static_cast<Int64>(mz_bins))
+          const double mz = spec[peak_idx].getMZ();
+          Int64 mz_bin = static_cast<Int64>((mz - min_mz) * mz_scale);
+
+          // Clamp to valid range: values exactly at max_mz should go in last bin
+          if (mz_bin >= 0)
           {
+            if (mz_bin > mz_bins_minus_one)
+            {
+              mz_bin = mz_bins_minus_one;
+            }
             const Size pixel_idx = static_cast<Size>(mz_bin) * rt_bins + static_cast<Size>(rt_bin);
-            const float intensity = peak_it->getIntensity();
+            const float intensity = spec[peak_idx].getIntensity();
             if (intensity > local_buffer[pixel_idx])
             {
               local_buffer[pixel_idx] = intensity;
