@@ -523,7 +523,7 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
     if(APPLE)
       # macOS: Fix dependencies and codesign after copying
       add_custom_target(pyopenms_fix_deps ALL
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -f -v
+        COMMAND ${PROJECT_SOURCE_DIR}/mac_fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -r "@loader_path/" -f -v
         COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
         COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib || true
         COMMENT "Fixing deps and codesigning pyopenms binaries in build dir"
