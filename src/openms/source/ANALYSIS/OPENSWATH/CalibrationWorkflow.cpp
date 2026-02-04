@@ -300,7 +300,6 @@ namespace OpenMS
     // This method focuses on linear + nonlinear iRT-based calibration only
     
     // Step 1: Perform linear calibration (no m/z calibration to avoid double-application)
-    // OPENMS_LOG_INFO << "Step 1: Performing linear calibration..." << std::endl;
     
     Param linear_calibration_param = calibration_param;
     linear_calibration_param.setValue("mz_correction_function", "none");
@@ -315,7 +314,6 @@ namespace OpenMS
       load_into_memory, irt_trafo_out, irt_mzml_out, debug_level);  
     
     // Step 2: Perform nonlinear refinement
-    // OPENMS_LOG_INFO << "Step 2: Performing nonlinear calibration refinement..." << std::endl;
     this->startProgress(0, 1, "Nonlinear Calibration");
     
     // Extract chromatograms for nonlinear iRT peptides using linear transformation
@@ -359,10 +357,10 @@ namespace OpenMS
     CalibrationResult final_result;
     final_result.rt_trafo = nonlinear_trafo;
     final_result.im_trafo = im_trafo;  // Store the ion mobility transformation
-  final_result.ms2_mz_window_ppm = this->estimated_mz_window_;
-  final_result.ms2_im_window = this->estimated_im_window_;
-  final_result.ms1_mz_window_ppm = this->estimated_ms1_mz_window_;
-  final_result.ms1_im_window = this->estimated_ms1_im_window_;
+    final_result.ms2_mz_window_ppm = this->estimated_mz_window_;
+    final_result.ms2_im_window = this->estimated_im_window_;
+    final_result.ms1_mz_window_ppm = this->estimated_ms1_mz_window_;
+    final_result.ms1_im_window = this->estimated_ms1_im_window_;
     
     final_result.estimated_rt_window = final_result.rt_trafo.estimateWindow(
       windows_rt_percentile_ / 100.0,  // Convert percentage to fraction
