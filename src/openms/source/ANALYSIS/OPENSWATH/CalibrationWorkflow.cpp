@@ -71,7 +71,7 @@ namespace OpenMS
     defaults_.setValue("linear:enabled", "true", "Perform linear RT calibration");
     defaults_.setValidStrings("linear:enabled", {"true", "false"});
     
-    defaults_.setValue("linear:outlier_detection", "iter_residual", "Outlier detection method");
+    defaults_.setValue("linear:outlier_detection", "iter_residual", "Which outlier detection method to use for linear calibration (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
     defaults_.setValidStrings("linear:outlier_detection", {"iter_residual", "iter_jackknife", "ransac", "none"});
     
     defaults_.setValue("linear:min_rsq", 0.95, "Minimum R-squared required for linear calibration");
@@ -85,14 +85,7 @@ namespace OpenMS
     defaults_.setValue("nonlinear:method", "lowess", "Nonlinear fitting method");
     defaults_.setValidStrings("nonlinear:method", {"lowess", "bspline", "polynomial"});
     
-    defaults_.setValue("nonlinear:asymmetric", "false", "Use asymmetric regression (huber loss)");
-    defaults_.setValidStrings("nonlinear:asymmetric", {"true", "false"});
-    
-    defaults_.setValue("nonlinear:span", 0.75, "Lowess span parameter (0.2-2.0)");
-    defaults_.setMinFloat("nonlinear:span", 0.2);
-    defaults_.setMaxFloat("nonlinear:span", 2.0);
-    
-    defaults_.setValue("nonlinear:outlier_detection", "iter_residual", "Outlier detection method for nonlinear calibration");
+    defaults_.setValue("nonlinear:outlier_detection", "iter_residual", "Which outlier detection method to use for nonlinear calibration (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
     defaults_.setValidStrings("nonlinear:outlier_detection", {"iter_residual", "iter_jackknife", "ransac", "none"});
     
     // === Window estimation parameters ===
@@ -1029,8 +1022,6 @@ namespace OpenMS
     // === Nonlinear calibration parameters ===
     nonlinear_enabled_ = param_.getValue("nonlinear:enabled").toBool();
     nonlinear_method_ = param_.getValue("nonlinear:method").toString();
-    nonlinear_asymmetric_ = param_.getValue("nonlinear:asymmetric").toBool();
-    nonlinear_span_ = (double)param_.getValue("nonlinear:span");
     nonlinear_outlier_detection_ = param_.getValue("nonlinear:outlier_detection").toString();
     
     // === Window estimation parameters ===
