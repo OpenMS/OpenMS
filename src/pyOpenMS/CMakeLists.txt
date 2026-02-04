@@ -139,6 +139,48 @@ else()
   # Use Qt6 version from the find module instead of querying qmake
   set(QT_QMAKE_VERSION_INFO "${Qt6_VERSION}")
 
+  # Optionally install build dependencies with uv into the build tree's pyOpenMS/.venv
+  # OpenMS-tree-build-system only! Skip if run with py-build-cmake called fro
+  if(WITH_UV AND DEFINED UV_EXECUTABLE AND NOT DEFINED PY_BUILD_CMAKE_VERSION)
+    message(STATUS "Found uv executable: ${UV_EXECUTABLE} — will create .venv in ${PYOPENMS_BUILD_DIR}")
+
+    # Ensure build dir exists
+    file(MAKE_DIRECTORY "${PYOPENMS_BUILD_DIR}")
+
+    message(STATUS "Installing pyOpenMS build dependencies with uv in build dir...")
+
+    if(DEFINED PYOPENMS_UV_PYTHON_VERSION AND NOT "${PYOPENMS_UV_PYTHON_VERSION}" STREQUAL "")
+      message(STATUS "Passing Python version to uv: --python ${PYOPENMS_UV_PYTHON_VERSION}")
+      execute_process(
+        COMMAND ${UV_EXECUTABLE} sync --only-group dev --python ${PYOPENMS_UV_PYTHON_VERSION}
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+        RESULT_VARIABLE _uv_install_result
+        ERROR_VARIABLE _uv_install_error
+      )
+    else()
+      execute_process(
+        COMMAND ${UV_EXECUTABLE} sync --only-group dev
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+        RESULT_VARIABLE _uv_install_result
+        ERROR_VARIABLE _uv_install_error
+      )
+    endif()
+
+    if(NOT _uv_install_result EQUAL 0)
+      message(WARNING "Failed to install pyOpenMS build dependencies with uv: ${_uv_install_error}")
+    endif()
+
+    if(NOT EXISTS "${PYOPENMS_BUILD_DIR}/.venv")
+      message(WARNING "uv did not create a .venv in ${PYOPENMS_BUILD_DIR}")
+    endif()
+
+    if(WIN32)
+      set(Python_EXECUTABLE "${PYOPENMS_BUILD_DIR}/.venv/Scripts/python.exe")
+    else()
+      set(Python_EXECUTABLE "${PYOPENMS_BUILD_DIR}/.venv/bin/python")
+    endif()
+  endif()
+
   # Get Autowrap include dirs
   execute_process(
       COMMAND ${Python_EXECUTABLE} -c "import autowrap; print(autowrap.__path__[0] + '/data_files/autowrap/')"
