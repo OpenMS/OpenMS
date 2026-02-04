@@ -62,7 +62,7 @@ namespace OpenMS
     /**
       @brief Lightweight chromatogram container for XIC parquet rows.
     */
-    struct XICChromatogram
+    struct OPENMS_DLLAPI XICChromatogram
     {
       Int64 run_id{0};
       String source_file;
@@ -95,7 +95,7 @@ namespace OpenMS
     /**
       @brief Unique run information (run_id, source_file).
     */
-    struct XICRunInfo
+    struct OPENMS_DLLAPI XICRunInfo
     {
       Int64 run_id{0};
       String source_file;
@@ -110,7 +110,7 @@ namespace OpenMS
       vector members (transition_ids, product_charges, etc.), with one entry
       per unique transition belonging to the precursor.
     */
-    struct XICAnalyte
+    struct OPENMS_DLLAPI XICAnalyte
     {
       bool has_precursor_id{false};
       Int64 precursor_id{0};
@@ -247,7 +247,7 @@ namespace OpenMS
       @param[in] nest_transitions Aggregate transition fields per precursor
     */
     void getAnalytes(std::vector<XICAnalyte>& output,
-                     const std::vector<String>& columns,
+                     const std::vector<String>& columns = {},
                      bool nest_transitions = true) const;
 
     /**
