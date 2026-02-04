@@ -27,6 +27,7 @@ namespace OpenMS
     This enum defines the different approaches for providing iRT peptides
     for retention time calibration, with consideration for multi-run consistency:
     
+    - NULL_TRANSFORMATION: No iRT data available or explicit skip (represents a null/no-transformation case)
     - STATIC_FILES: Use pre-defined iRT peptide libraries from files (same for all runs). If all samples have spiked in iRTs, or common expected peptides.
     - SAMPLE_ONCE: Sample iRT peptides once from transition library, reuse for all runs  
     - SAMPLE_PER_RUN: Sample fresh iRT peptides independently for each run
@@ -34,6 +35,7 @@ namespace OpenMS
   */
   enum class IrtStrategy 
   {
+    NULL_TRANSFORMATION,
     STATIC_FILES,     
     SAMPLE_ONCE,        
     SAMPLE_PER_RUN,   

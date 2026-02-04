@@ -148,19 +148,18 @@ namespace OpenMS
     Size debug_level)
   {
     // Validate that iRT experiments are ready
-    if (!irt_experiments.is_prepared)
+    if (!irt_experiments.is_prepared && irt_experiments.strategy != IrtStrategy::NULL_TRANSFORMATION)
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "iRT experiments must be prepared before calling performCalibration. Call prepareIrtExperiments() first.");
     }
     
-    // Validate that we have linear iRT transitions (required for any calibration)
-    if (irt_experiments.linear_irt.getTransitions().empty())
+    // If the prepared experiments indicate there is a NULL_TRANSFORMATION strategy, skip calibration
+    // and return a default/null calibration result (i.e., no RT transform will be applied).
+    if (irt_experiments.strategy == IrtStrategy::NULL_TRANSFORMATION)
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "No linear iRT transitions available for calibration. Please check your iRT configuration: "
-                                       "either provide static iRT files via 'files:linear_irt_file' parameter, or enable 'auto_irt:enabled' "
-                                       "and ensure the transition library contains suitable peptides for sampling.");
+      OPENMS_LOG_DEBUG << "IrtStrategy::NULL_TRANSFORMATION: skipping calibration and returning null transformation." << std::endl;
+      return CalibrationResult();
     }
 
     CalibrationResult result;
@@ -841,10 +840,10 @@ namespace OpenMS
       }
     }
     
-    // No iRT data available - CalibrationWorkflow requires iRT data
-    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "CalibrationWorkflow requires iRT data. Please provide either static iRT files (linear_irt_file parameter) or enable auto_irt and provide a full transition library for auto-sampling.");
-  }
+    // No iRT data available - return NONE strategy so callers can decide to skip calibration
+    OPENMS_LOG_DEBUG << "No iRT data available: determineIrtStrategy() -> IrtStrategy::NULL_TRANSFORMATION" << std::endl;
+    return IrtStrategy::NULL_TRANSFORMATION;
+    }
   
   CalibrationWorkflow::IrtExperiments 
   CalibrationWorkflow::prepareIrtExperiments(
@@ -984,6 +983,13 @@ namespace OpenMS
         // TODO: Implement run-specific file loading logic
         // This would require run-specific file naming convention
         OPENMS_LOG_WARN << "RUN_SPECIFIC iRT preparation not yet implemented - using empty experiments" << std::endl;
+        result.is_prepared = false;
+        break;
+      }
+
+      case IrtStrategy::NULL_TRANSFORMATION:
+      {
+        OPENMS_LOG_DEBUG << "No iRT strategy selected - skipping preparation of iRT experiments" << std::endl;
         result.is_prepared = false;
         break;
       }
