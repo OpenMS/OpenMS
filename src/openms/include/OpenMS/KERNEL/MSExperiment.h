@@ -409,7 +409,7 @@ public:
       std::vector<float>& ion_mobility) const;
 
     /**
-     * @brief Aggregation mode for rasterize2D
+     * @brief Aggregation mode for rasterization functions
      */
     enum class RasterAggregation
     {
@@ -462,10 +462,10 @@ public:
      * import numpy as np
      * rt_bins, mz_bins = 800, 600
      * output = np.zeros((mz_bins, rt_bins), dtype=np.float32)
-     * exp.rasterize2D(output, rt_bins, mz_bins, min_rt, max_rt, min_mz, max_mz, 1)
+     * exp.rasterizeRTMZ(output, rt_bins, mz_bins, min_rt, max_rt, min_mz, max_mz, 1)
      * @endcode
      */
-    void rasterize2D(
+    void rasterizeRTMZ(
       float* output,
       Size rt_bins,
       Size mz_bins,

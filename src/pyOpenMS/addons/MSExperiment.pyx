@@ -1183,7 +1183,7 @@ from libc.stdint cimport uintptr_t
         )
         return self.df_columns(*args, **kwargs)
 
-    def rasterize2D(MSExperiment self,
+    def rasterizeRTMZ(MSExperiment self,
                     np.ndarray[np.float32_t, ndim=2, mode="c"] output not None,
                     double min_rt, double max_rt,
                     double min_mz, double max_mz,
@@ -1213,7 +1213,7 @@ from libc.stdint cimport uintptr_t
         >>> rt_bins, mz_bins = 800, 600
         >>> # Prefer np.empty + C-contiguous array to avoid double zero-fill
         >>> output = np.empty((mz_bins, rt_bins), dtype=np.float32)
-        >>> exp.rasterize2D(output, exp.getMinRT(), exp.getMaxRT(),
+        >>> exp.rasterizeRTMZ(output, exp.getMinRT(), exp.getMaxRT(),
         ...                 exp.getMinMZ(), exp.getMaxMZ(), 1, "sum")
         >>> # output now contains the rasterized intensity matrix
 
@@ -1253,16 +1253,16 @@ from libc.stdint cimport uintptr_t
         cdef _MSExperiment * exp_ = self.inst.get()
         cdef Size rt_bins = output.shape[1]
         cdef Size mz_bins = output.shape[0]
-        
+
         # Get pointer to numpy array data using .data attribute which is safer
         cdef float* output_ptr = <float*>np.PyArray_DATA(output)
 
-        cdef _MSExperiment.RasterAggregation agg_mode
+        cdef _MSExperimentRasterAggregation agg_mode
         if aggregation.lower() == "sum":
-            agg_mode = _MSExperiment.RasterAggregation.SUM
+            agg_mode = _MSExperimentRasterAggregation.SUM
         elif aggregation.lower() == "max":
-            agg_mode = _MSExperiment.RasterAggregation.MAX
+            agg_mode = _MSExperimentRasterAggregation.MAX
         else:
             raise ValueError(f"Invalid aggregation mode '{aggregation}'. Must be 'sum' or 'max'.")
 
-        exp_.rasterize2D(output_ptr, rt_bins, mz_bins, min_rt, max_rt, min_mz, max_mz, ms_level, agg_mode)
+        exp_.rasterizeRTMZ(output_ptr, rt_bins, mz_bins, min_rt, max_rt, min_mz, max_mz, ms_level, agg_mode)

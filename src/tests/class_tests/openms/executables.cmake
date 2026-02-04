@@ -154,9 +154,10 @@ set(kernel_executables_list
   MRMTransitionGroup_test
   MSChromatogram_test
   MSExperiment_test
-  MSExperiment_rasterize2D_test
+  MSExperiment_rasterizeRTMZ_test
   OnDiscMSExperiment_test
   MSSpectrum_test
+  MSSpectrum_rasterizeIMFrame_test
   Peak1D_test
   Peak2D_test
   PeakIndex_test

@@ -52,12 +52,12 @@ MSExperiment createTestExperiment()
   return exp;
 }
 
-START_TEST(MSExperiment_rasterize2D, "$Id$")
+START_TEST(MSExperiment_rasterizeRTMZ, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((void rasterize2D(float* output, Size rt_bins, Size mz_bins, CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level, RasterAggregation aggregation) const))
+START_SECTION((void rasterizeRTMZ(float* output, Size rt_bins, Size mz_bins, CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level, RasterAggregation aggregation) const))
 {
   MSExperiment exp = createTestExperiment();
   
@@ -67,7 +67,7 @@ START_SECTION((void rasterize2D(float* output, Size rt_bins, Size mz_bins, Coord
     Size mz_bins = 10;
     vector<float> output(rt_bins * mz_bins, 0.0f);
     
-    exp.rasterize2D(output.data(), rt_bins, mz_bins, 
+    exp.rasterizeRTMZ(output.data(), rt_bins, mz_bins, 
                     100.0, 200.0,    // RT range
                     500.0, 600.0,    // m/z range
                     1,               // MS level
@@ -86,7 +86,7 @@ START_SECTION((void rasterize2D(float* output, Size rt_bins, Size mz_bins, Coord
     Size mz_bins = 10;
     vector<float> output(rt_bins * mz_bins, 0.0f);
     
-    exp.rasterize2D(output.data(), rt_bins, mz_bins, 
+    exp.rasterizeRTMZ(output.data(), rt_bins, mz_bins, 
                     100.0, 200.0,
                     500.0, 600.0,
                     1,
@@ -105,7 +105,7 @@ START_SECTION((void rasterize2D(float* output, Size rt_bins, Size mz_bins, Coord
     Size mz_bins = 5;
     vector<float> output(rt_bins * mz_bins, 1.0f);  // Initialize with non-zero
     
-    empty_exp.rasterize2D(output.data(), rt_bins, mz_bins,
+    empty_exp.rasterizeRTMZ(output.data(), rt_bins, mz_bins,
                          0.0, 100.0,
                          0.0, 1000.0,
                          1,
@@ -134,7 +134,7 @@ START_SECTION((void rasterize2D(float* output, Size rt_bins, Size mz_bins, Coord
     Size mz_bins = 10;
     vector<float> output(rt_bins * mz_bins, 0.0f);
     
-    single_exp.rasterize2D(output.data(), rt_bins, mz_bins,
+    single_exp.rasterizeRTMZ(output.data(), rt_bins, mz_bins,
                           0.0, 100.0,
                           400.0, 600.0,
                           1,
@@ -176,14 +176,14 @@ START_SECTION((void rasterize2D(float* output, Size rt_bins, Size mz_bins, Coord
     vector<float> output_ms2(rt_bins * mz_bins, 0.0f);
     
     // Rasterize MS1 only
-    mixed_exp.rasterize2D(output_ms1.data(), rt_bins, mz_bins,
+    mixed_exp.rasterizeRTMZ(output_ms1.data(), rt_bins, mz_bins,
                          100.0, 150.0,
                          400.0, 600.0,
                          1,
                          MSExperiment::RasterAggregation::SUM);
     
     // Rasterize MS2 only
-    mixed_exp.rasterize2D(output_ms2.data(), rt_bins, mz_bins,
+    mixed_exp.rasterizeRTMZ(output_ms2.data(), rt_bins, mz_bins,
                          100.0, 150.0,
                          400.0, 600.0,
                          2,
@@ -203,74 +203,74 @@ START_SECTION((void rasterize2D(float* output, Size rt_bins, Size mz_bins, Coord
 }
 END_SECTION
 
-START_SECTION((void rasterize2D - Exception: null pointer))
+START_SECTION((void rasterizeRTMZ - Exception: null pointer))
 {
   MSExperiment exp = createTestExperiment();
   
   // Test null pointer exception
   TEST_EXCEPTION(Exception::NullPointer,
-    exp.rasterize2D(nullptr, 10, 10, 0.0, 100.0, 0.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
+    exp.rasterizeRTMZ(nullptr, 10, 10, 0.0, 100.0, 0.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
   )
 }
 END_SECTION
 
-START_SECTION((void rasterize2D - Exception: zero rt_bins))
+START_SECTION((void rasterizeRTMZ - Exception: zero rt_bins))
 {
   MSExperiment exp = createTestExperiment();
   vector<float> output(100, 0.0f);
   
   // Test zero rt_bins
   TEST_EXCEPTION(Exception::InvalidValue,
-    exp.rasterize2D(output.data(), 0, 10, 0.0, 100.0, 0.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
+    exp.rasterizeRTMZ(output.data(), 0, 10, 0.0, 100.0, 0.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
   )
 }
 END_SECTION
 
-START_SECTION((void rasterize2D - Exception: zero mz_bins))
+START_SECTION((void rasterizeRTMZ - Exception: zero mz_bins))
 {
   MSExperiment exp = createTestExperiment();
   vector<float> output(100, 0.0f);
   
   // Test zero mz_bins
   TEST_EXCEPTION(Exception::InvalidValue,
-    exp.rasterize2D(output.data(), 10, 0, 0.0, 100.0, 0.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
+    exp.rasterizeRTMZ(output.data(), 10, 0, 0.0, 100.0, 0.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
   )
 }
 END_SECTION
 
-START_SECTION((void rasterize2D - Exception: inverted RT range))
+START_SECTION((void rasterizeRTMZ - Exception: inverted RT range))
 {
   MSExperiment exp = createTestExperiment();
   vector<float> output(100, 0.0f);
   
   // Test inverted RT range (min >= max)
   TEST_EXCEPTION(Exception::InvalidRange,
-    exp.rasterize2D(output.data(), 10, 10, 100.0, 100.0, 0.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
+    exp.rasterizeRTMZ(output.data(), 10, 10, 100.0, 100.0, 0.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
   )
   
   TEST_EXCEPTION(Exception::InvalidRange,
-    exp.rasterize2D(output.data(), 10, 10, 100.0, 50.0, 0.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
+    exp.rasterizeRTMZ(output.data(), 10, 10, 100.0, 50.0, 0.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
   )
 }
 END_SECTION
 
-START_SECTION((void rasterize2D - Exception: inverted m/z range))
+START_SECTION((void rasterizeRTMZ - Exception: inverted m/z range))
 {
   MSExperiment exp = createTestExperiment();
   vector<float> output(100, 0.0f);
   
   // Test inverted m/z range (min >= max)
   TEST_EXCEPTION(Exception::InvalidRange,
-    exp.rasterize2D(output.data(), 10, 10, 0.0, 100.0, 1000.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
+    exp.rasterizeRTMZ(output.data(), 10, 10, 0.0, 100.0, 1000.0, 1000.0, 1, MSExperiment::RasterAggregation::SUM)
   )
   
   TEST_EXCEPTION(Exception::InvalidRange,
-    exp.rasterize2D(output.data(), 10, 10, 0.0, 100.0, 1000.0, 500.0, 1, MSExperiment::RasterAggregation::SUM)
+    exp.rasterizeRTMZ(output.data(), 10, 10, 0.0, 100.0, 1000.0, 500.0, 1, MSExperiment::RasterAggregation::SUM)
   )
 }
 END_SECTION
 
-START_SECTION((void rasterize2D - Edge case: out of range))
+START_SECTION((void rasterizeRTMZ - Edge case: out of range))
 {
   MSExperiment exp = createTestExperiment();
   Size rt_bins = 10;
@@ -278,7 +278,7 @@ START_SECTION((void rasterize2D - Edge case: out of range))
   vector<float> output(rt_bins * mz_bins, 0.0f);
   
   // Request range outside experiment data
-  exp.rasterize2D(output.data(), rt_bins, mz_bins,
+  exp.rasterizeRTMZ(output.data(), rt_bins, mz_bins,
                   1000.0, 2000.0,  // RT outside data
                   500.0, 600.0,
                   1,
@@ -292,7 +292,7 @@ START_SECTION((void rasterize2D - Edge case: out of range))
 }
 END_SECTION
 
-START_SECTION((void rasterize2D - SUM vs MAX aggregation))
+START_SECTION((void rasterizeRTMZ - SUM vs MAX aggregation))
 {
   // Create experiment with overlapping peaks
   MSExperiment exp;
@@ -316,13 +316,13 @@ START_SECTION((void rasterize2D - SUM vs MAX aggregation))
   vector<float> output_sum(rt_bins * mz_bins, 0.0f);
   vector<float> output_max(rt_bins * mz_bins, 0.0f);
   
-  exp.rasterize2D(output_sum.data(), rt_bins, mz_bins,
+  exp.rasterizeRTMZ(output_sum.data(), rt_bins, mz_bins,
                   100.0, 110.0,
                   490.0, 510.0,
                   1,
                   MSExperiment::RasterAggregation::SUM);
   
-  exp.rasterize2D(output_max.data(), rt_bins, mz_bins,
+  exp.rasterizeRTMZ(output_max.data(), rt_bins, mz_bins,
                   100.0, 110.0,
                   490.0, 510.0,
                   1,

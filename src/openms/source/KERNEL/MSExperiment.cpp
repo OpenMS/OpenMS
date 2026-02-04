@@ -260,7 +260,7 @@ namespace OpenMS
       }
     }
 
-  void MSExperiment::rasterize2D(
+  void MSExperiment::rasterizeRTMZ(
     float* output,
     Size rt_bins,
     Size mz_bins,
