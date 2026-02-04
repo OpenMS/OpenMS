@@ -1089,10 +1089,22 @@ protected:
       
       if (!trafo_in.empty())
       {
-        // Load existing RT transformation file
-        TransformationXMLFile trafo_file;
-        trafo_file.load(trafo_in, trafo_rtnorm, false);
-        
+        // Load existing RT transformation file using FileHandler so any metadata is preserved
+        // and fit the selected model using the RTNormalization parameters so behavior
+        // matches the original implementation.
+        FileHandler().loadTransformations(trafo_in, trafo_rtnorm, false, {FileTypes::TRANSFORMATIONXML});
+
+        // Prepare model parameters from RTNormalization section
+        Param model_params;
+        model_params.setValue("symmetric_regression", "false");
+        // copy span and num_nodes from the RTNormalization detection params
+        model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
+        model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
+        String model_type = irt_detection_param.getValue("alignmentMethod").toString();
+
+        // Fit the model to the loaded transformation
+        trafo_rtnorm.fitModel(model_type, model_params);
+
         // Note: When using existing RT transformation, no m/z or IM calibration is performed
         OPENMS_LOG_WARN << "Using existing RT transformation - which has no m/z and ion mobility calibration" << std::endl;
       }
