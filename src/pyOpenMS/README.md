@@ -53,7 +53,7 @@ This method uses the PEP 517 build system defined in `pyproject.toml` and will:
 When developing OpenMS and pyOpenMS together, use the integrated CMake build from the same build
 directory as OpenMS.
 
-**Preqrequisites:**
+**Prerequisites:**
 
 We recommend using uv which will be looked up at CMake configure time and creates a nice venv for you
 automatically.

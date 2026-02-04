@@ -551,7 +551,7 @@ if !$bin_dir.nil?
     if fixable(content, $bin_dir)
       if (content.end_with?(".dylib") or content.end_with?(".so"))
         debug "Handle dylib #{$bin_dir + content}"
-        handleDyLib($bin_dir + content, $bin_dir)
+        handleDyLib($bin_dir + content, $bin_dir, [])
       else
         debug "Handle binary #{$bin_dir + content}"
         handleBinary($bin_dir + content)

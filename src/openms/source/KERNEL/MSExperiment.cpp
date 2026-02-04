@@ -337,11 +337,7 @@ namespace OpenMS
     // Determine number of threads
     int num_threads = 1;
     #ifdef _OPENMP
-    #pragma omp parallel
-    {
-      #pragma omp single
-      num_threads = omp_get_num_threads();
-    }
+    num_threads = omp_get_max_threads();
     #endif
 
     // Allocate thread-local accumulation buffers to avoid contention

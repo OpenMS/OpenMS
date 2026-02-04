@@ -200,13 +200,13 @@ def test_rasterize2D_exception_inverted_rt_range():
     """Test that inverted RT range raises exception."""
     exp = create_test_experiment()
     output = np.empty((10, 10), dtype=np.float32)
-    
+
     # Equal RT values
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         exp.rasterize2D(output, 100.0, 100.0, 500.0, 600.0, 1, "sum")
-    
+
     # Inverted RT range
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         exp.rasterize2D(output, 200.0, 100.0, 500.0, 600.0, 1, "sum")
 
 
@@ -214,13 +214,13 @@ def test_rasterize2D_exception_inverted_mz_range():
     """Test that inverted m/z range raises exception."""
     exp = create_test_experiment()
     output = np.zeros((10, 10), dtype=np.float32)
-    
+
     # Equal m/z values
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         exp.rasterize2D(output, 100.0, 200.0, 600.0, 600.0, 1, "sum")
-    
+
     # Inverted m/z range
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         exp.rasterize2D(output, 100.0, 200.0, 700.0, 500.0, 1, "sum")
 
 

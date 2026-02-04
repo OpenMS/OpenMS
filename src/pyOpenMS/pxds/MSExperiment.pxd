@@ -16,9 +16,9 @@ from libcpp.string cimport string as libcpp_utf8_string
 
 # this class has addons, see the ./addons folder
 
-cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS::MSExperiment::RasterAggregation":
+cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS::MSExperiment":
 
-    cdef enum RasterAggregation "OpenMS::MSExperiment::RasterAggregation":
+    cdef enum class RasterAggregation "OpenMS::MSExperiment::RasterAggregation":
         # wrap-attach:
         #   MSExperiment
         SUM "OpenMS::MSExperiment::RasterAggregation::SUM"
