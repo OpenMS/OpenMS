@@ -444,10 +444,17 @@ public:
      * @param ms_level MS level of spectra to include (e.g., 1 for MS1, 2 for MS2)
      * @param aggregation Aggregation mode: SUM (default) or MAX
      *
-     * @note The experiment should be sorted by RT and m/z (call sortSpectra(true) if needed)
-     *       for optimal performance and correct results.
-     * @note The output buffer is zero-initialized at the start of this method.
-     * @note This method is thread-safe and uses per-thread accumulation buffers to avoid
+    * @note The experiment should be sorted by RT and m/z (call sortSpectra(true) if needed)
+    *       for optimal performance and correct results.
+    * @note The output buffer is zero-initialized at the start of this method.
+    *       Callers must still ensure the buffer is pre-allocated with the
+    *       correct size and layout (mz_bins * rt_bins floats, row-major/C-order).
+    *       For best performance allocate with `numpy.empty((mz_bins, rt_bins), dtype=np.float32)`
+    *       (or ensure the array is C-contiguous and `float32`) — this avoids an
+    *       extra zero-fill on the Python side because the method overwrites and
+    *       zeroes the buffer itself on entry. Using `np.empty` is therefore safe
+    *       and recommended when callers control allocation.
+    * @note This method is thread-safe and uses per-thread accumulation buffers to avoid
      *       contention, then merges results at the end.
      *
      * Example usage with numpy (via pyOpenMS):

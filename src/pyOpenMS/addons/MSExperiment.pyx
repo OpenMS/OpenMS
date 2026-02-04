@@ -1201,6 +1201,22 @@ from libc.stdint cimport uintptr_t
         - Columns correspond to RT bins (x-axis in visualization)
         - Values are aggregated intensities (sum or max)
 
+        Examples
+        --------
+        Quick example (recommended placement):
+
+        >>> import numpy as np
+        >>> from pyopenms import MSExperiment, MzMLFile
+        >>> exp = MSExperiment()
+        >>> MzMLFile().load("data.mzML", exp)
+        >>> exp.updateRanges()
+        >>> rt_bins, mz_bins = 800, 600
+        >>> # Prefer np.empty + C-contiguous array to avoid double zero-fill
+        >>> output = np.empty((mz_bins, rt_bins), dtype=np.float32)
+        >>> exp.rasterize2D(output, exp.getMinRT(), exp.getMaxRT(),
+        ...                 exp.getMinMZ(), exp.getMaxMZ(), 1, "sum")
+        >>> # output now contains the rasterized intensity matrix
+
         Parameters
         ----------
         output : numpy.ndarray
@@ -1229,24 +1245,17 @@ from libc.stdint cimport uintptr_t
         - The experiment should be sorted by RT and m/z (call sortSpectra(True) if needed)
           for optimal performance and correct results.
         - This method uses per-thread accumulation buffers to avoid contention.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from pyopenms import MSExperiment, MzMLFile
-        >>> exp = MSExperiment()
-        >>> MzMLFile().load("data.mzML", exp)
-        >>> exp.updateRanges()
-        >>> rt_bins, mz_bins = 800, 600
-        >>> output = np.zeros((mz_bins, rt_bins), dtype=np.float32)
-        >>> exp.rasterize2D(output, exp.getMinRT(), exp.getMaxRT(),
-        ...                 exp.getMinMZ(), exp.getMaxMZ(), 1, "sum")
-        >>> # output now contains the rasterized intensity matrix
         """
+        # Validate array is C-contiguous (required for correct pointer arithmetic)
+        if not output.flags['C_CONTIGUOUS']:
+            raise ValueError("Output array must be C-contiguous. Use np.ascontiguousarray() to convert.")
+
         cdef _MSExperiment * exp_ = self.inst.get()
         cdef Size rt_bins = output.shape[1]
         cdef Size mz_bins = output.shape[0]
-        cdef float* output_ptr = &output[0, 0]
+        
+        # Get pointer to numpy array data using .data attribute which is safer
+        cdef float* output_ptr = <float*>np.PyArray_DATA(output)
 
         cdef _MSExperiment.RasterAggregation agg_mode
         if aggregation.lower() == "sum":

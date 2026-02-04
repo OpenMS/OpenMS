@@ -271,11 +271,29 @@ namespace OpenMS
     UInt ms_level,
     RasterAggregation aggregation) const
   {
-    OPENMS_PRECONDITION(output != nullptr, "Output buffer must not be nullptr!")
-    OPENMS_PRECONDITION(rt_bins > 0, "Number of RT bins must be positive!")
-    OPENMS_PRECONDITION(mz_bins > 0, "Number of m/z bins must be positive!")
-    OPENMS_PRECONDITION(min_rt < max_rt, "min_rt must be less than max_rt!")
-    OPENMS_PRECONDITION(min_mz < max_mz, "min_mz must be less than max_mz!")
+    // Runtime checks that work in Release builds (OPENMS_PRECONDITION is disabled in Release)
+    if (output == nullptr)
+    {
+      throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    if (rt_bins == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Number of RT bins must be positive", String(rt_bins));
+    }
+    if (mz_bins == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Number of m/z bins must be positive", String(mz_bins));
+    }
+    if (min_rt >= max_rt)
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    if (min_mz >= max_mz)
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
 
     const Size total_pixels = rt_bins * mz_bins;
 
