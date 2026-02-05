@@ -57,15 +57,12 @@ namespace OpenMS
     - Nonlinear calibration workflow (optional)
     - Extraction window estimation and application
     - Result aggregation and reporting
-    
-    @ingroup OpenSWATH
   */
   class OPENMS_DLLAPI CalibrationWorkflow : 
     public DefaultParamHandler,
     public ProgressLogger
   {
   public:
-    
     /// Results from calibration workflow
     struct CalibrationResult 
     {
@@ -312,7 +309,6 @@ namespace OpenMS
     double getEstimatedMs1ImWindow() const { return estimated_ms1_im_window_; }
 
   private:
-    
     /// @name Parameter handling
     //@{
     /**
