@@ -164,6 +164,12 @@ class PxdParser:
         self._standalone_func_pattern = re.compile(
             r'^\s*(.+?)\s+(\w+)\s+"([^"]+)"\s*\(([^)]*)\)\s*(except\s*\+)?\s*(nogil)?'
         )
+        # Pattern for namespace-level functions without C++ alias (using wrap-attach or namespace):
+        # return_type func_name(params) except + nogil  # wrap-attach:ClassName
+        # Note: return type can include brackets like libcpp_vector[Type]
+        self._namespace_func_pattern = re.compile(
+            r'^\s*(?!cdef\s|def\s|class\s|ctypedef\s|@|#)([A-Za-z_][\w:<>,\s\*&\[\]]*?)\s+(\w+)\s*\(([^)]*)\)\s*(except\s*\+)?\s*(nogil)?\s*(?:#.*)?$'
+        )
 
     def parse_file(self, pxd_path: Path) -> Dict[str, ClassDecl]:
         """
@@ -330,6 +336,72 @@ class PxdParser:
 
                     standalone_funcs.append((target_class, method, current_header))
                     logger.debug(f"Found standalone function {func_name} -> {target_class}.{func_name}")
+
+                i += 1
+                continue
+
+            # Check for namespace-level function without C++ alias (using wrap-attach or namespace)
+            # Pattern: return_type func_name(params) except + nogil  # wrap-attach:ClassName
+            namespace_func_match = self._namespace_func_pattern.match(stripped)
+            if namespace_func_match and current_namespace:
+                return_type = namespace_func_match.group(1).strip()
+                func_name = namespace_func_match.group(2)
+                params_str = namespace_func_match.group(3)
+
+                # Parse wrap directives from this line
+                line_directives = self._parse_wrap_directives(stripped)
+
+                # Determine target class from wrap-attach or namespace
+                target_class = None
+                if WrapDirective.ATTACH in line_directives:
+                    target_class = line_directives[WrapDirective.ATTACH].strip()
+                if not target_class and current_namespace.startswith("OpenMS::"):
+                    # Extract class from namespace: "OpenMS::ProForma" -> "ProForma"
+                    target_class = current_namespace.split("::")[-1]
+
+                if target_class:
+                    params = self._parse_parameters(params_str)
+                    # Construct fully qualified C++ name from namespace
+                    cpp_name = f"{current_namespace}::{func_name}"
+
+                    method = Method(
+                        name=func_name,
+                        return_type=return_type,
+                        parameters=params,
+                        is_static=True,
+                        nogil="nogil" in stripped,
+                        except_clause="except" in stripped,
+                        cpp_name=cpp_name,
+                    )
+
+                    if WrapDirective.DOC in line_directives:
+                        method.doc = line_directives[WrapDirective.DOC]
+                    if WrapDirective.IGNORE in line_directives:
+                        method.wrap_ignore = True
+
+                    # Check for doc continuation on following lines
+                    j = i + 1
+                    doc_lines = []
+                    while j < len(lines):
+                        next_line = lines[j].strip()
+                        if next_line.startswith("#") and "wrap-doc:" not in next_line:
+                            doc_content = next_line.lstrip("#").strip()
+                            if doc_content:
+                                doc_lines.append(doc_content)
+                            j += 1
+                        else:
+                            break
+                    if doc_lines:
+                        if method.doc:
+                            method.doc += "\n" + "\n".join(doc_lines)
+                        else:
+                            method.doc = "\n".join(doc_lines)
+
+                    standalone_funcs.append((target_class, method, current_header))
+                    logger.debug(
+                        f"Found namespace function {func_name} -> {target_class}.{func_name} "
+                        f"(from namespace {current_namespace})"
+                    )
 
                 i += 1
                 continue

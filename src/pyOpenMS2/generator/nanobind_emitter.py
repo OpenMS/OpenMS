@@ -4617,6 +4617,10 @@ class NanobindEmitter:
             if "iterator" in ptype.lower() or "__gnu_cxx" in ptype:
                 logger.debug(f"Skipping {class_name}.{method.name} - has iterator parameter: {ptype}")
                 return None
+            # Skip methods with StringView parameters - no type caster available
+            if "StringView" in ptype:
+                logger.debug(f"Skipping {class_name}.{method.name} - has StringView parameter")
+                return None
 
         # Auto-skip methods that have const/non-const overloads (detected via libclang)
         # These cause binding issues - prefer const version (handled below)
