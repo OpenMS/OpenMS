@@ -743,10 +743,8 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   return arrow::Table::Make(schema, arrays);
 }
 
-} // anonymous namespace
-
-
-std::shared_ptr<arrow::Table> ArrowExport::exportSpectraToArrow(
+// Internal function - not part of public API
+std::shared_ptr<arrow::Table> exportSpectraToArrow(
   const MSExperiment& exp,
   const ArrowSpectraExportConfig& config)
 {
@@ -763,6 +761,8 @@ std::shared_ptr<arrow::Table> ArrowExport::exportSpectraToArrow(
     return buildSemiWideFormatTable(exp, config, ms_levels_set);
   }
 }
+
+} // anonymous namespace
 
 
 std::vector<std::string> ArrowExport::getSpectraArrowColumnNames(
@@ -827,7 +827,11 @@ std::vector<std::string> ArrowExport::getSpectraArrowColumnNames(
 }
 
 
-std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
+namespace
+{
+
+// Internal function - not part of public API
+std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
   const MSExperiment& exp,
   const ArrowChromatogramExportConfig& config)
 {
@@ -992,6 +996,8 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
     return arrow::Table::Make(schema, arrays);
   }
 }
+
+} // anonymous namespace
 
 
 std::vector<std::string> ArrowExport::getChromatogramArrowColumnNames(

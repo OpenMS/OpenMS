@@ -88,6 +88,7 @@ PyOpenMS:
     - PEFFDatabaseMetadata for header information
     - Conversion methods: toFASTAEntry(), fromFASTAEntry(), toProForma()
     - Sequence accessors: getSequence(), getModifiedSequence(), getVariantSequences(), getProcessedSequence()
+  - XICParquetFile: Python bindings with multi-file support and filtering for reading XIC data from Parquet files (#8725)
 
 TOPP tools:
   Changes:
@@ -107,10 +108,13 @@ TOPP tools:
       - Priority peptide sampling for iRT calibration (#8373)
       - Decoy generation speed optimizations (#8569)
       - Added SRM support (#8700)
+      - Added Parquet chromatogram output support (#8725)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
     FileMerger:
       - Documented input/output file type combinations (#8615)
+    TextExporter:
+      - Added support for XIC Parquet files (#8725)
 
 OpenMS Library:
   Added:

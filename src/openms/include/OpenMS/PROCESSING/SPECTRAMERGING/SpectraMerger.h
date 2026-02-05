@@ -731,7 +731,7 @@ protected:
       }
 
       char buffer[200];
-      sprintf(buffer, "%d/%d (%.2f %%) of blocked spectra", (int)count_peaks_aligned,
+      std::snprintf(buffer, sizeof(buffer), "%d/%d (%.2f %%) of blocked spectra", (int)count_peaks_aligned,
               (int)count_peaks_overall, float(count_peaks_aligned) / float(count_peaks_overall) * 100.);
       OPENMS_LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
 

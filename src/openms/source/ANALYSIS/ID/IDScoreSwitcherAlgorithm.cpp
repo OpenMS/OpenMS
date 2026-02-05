@@ -41,16 +41,7 @@ namespace OpenMS
 
   std::vector<String> IDScoreSwitcherAlgorithm::getScoreNames()
   {
-    std::vector<String> names;
-    for (auto i : type_to_str_)
-    {
-      const std::set<String>& n = i.second;
-      for (auto j : n)
-      {
-        names.push_back(j);
-      }
-    }
-    return names;
+    return Scores::getAllIDScoreNames();
   }
 
 

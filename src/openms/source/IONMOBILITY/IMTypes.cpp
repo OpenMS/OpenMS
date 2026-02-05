@@ -15,7 +15,7 @@
 namespace OpenMS
 {
 
-  const std::string NamesOfDriftTimeUnit[] = {"<NONE>", "ms", "1/K0", "FAIMS_CV"};
+  const std::string NamesOfDriftTimeUnit[] = {"<NONE>", "ms", "1/K0", "FAIMS_CV", "CCS"};
   const std::string NamesOfIMFormat[] = {"none", "concatenated", "multiple_spectra", "mixed", "centroided", "unknown"};
 
 
@@ -135,6 +135,8 @@ namespace OpenMS
         return DIM_UNIT::IM_MS;
       case DriftTimeUnit::VSSC:
         return DIM_UNIT::IM_VSSC;
+      case DriftTimeUnit::CCS:
+        return DIM_UNIT::IM_CCS;
       default:
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot convert from " + driftTimeUnitToString(from) + " to a DIM_UNIT.");
     }

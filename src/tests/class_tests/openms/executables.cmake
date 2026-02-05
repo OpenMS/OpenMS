@@ -154,8 +154,10 @@ set(kernel_executables_list
   MRMTransitionGroup_test
   MSChromatogram_test
   MSExperiment_test
+  MSExperiment_rasterizeRTMZ_test
   OnDiscMSExperiment_test
   MSSpectrum_test
+  MSSpectrum_rasterizeIMFrame_test
   Peak1D_test
   Peak2D_test
   PeakIndex_test
@@ -285,7 +287,9 @@ if(WITH_HDF5)
 endif()
 
 if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test ArrowExport_test QuantmsIO_test)
+  list(APPEND format_executables_list Arrow_test ArrowExport_test QuantmsIO_test
+    MSChromatogramParquetConsumer_test
+    XICParquetFile_test)
 endif()
 
 set(math_executables_list

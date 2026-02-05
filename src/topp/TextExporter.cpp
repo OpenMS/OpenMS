@@ -12,11 +12,13 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/XICParquetFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/METADATA/USI.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -33,7 +35,7 @@ using namespace std;
 /**
 @page TOPP_TextExporter TextExporter
 
-@brief This application converts several %OpenMS XML formats (featureXML, consensusXML, and idXML) to text files.
+@brief This application converts several %OpenMS XML formats (featureXML, consensusXML, idXML, mzML) and OpenSWATH Parquet chromatogram files (.xic) to text files.
 
 <CENTER>
 <table>
@@ -78,7 +80,6 @@ Output format produced for the @p out parameter:
 - a @p MAP line contains information about a sub-map; further columns: @p id, @p filename, @p label, @p size (potentially followed by further columns containing meta data, depending on the input)
 - a @p CONSENSUS line contains data of a single consensus feature; further columns: @p rt_cf, @p mz_cf, @p intensity_cf, @p charge_cf, @p width_cf, @p quality_cf, @p rt_X0, @p mz_X0, ..., rt_X1, mz_X1, ...
 - @p "..._cf" columns refer to the consensus feature itself, @p "..._Xi" columns refer to a sub-feature from the map with ID "Xi" (no @p quality column in this case); missing sub-features are indicated by "nan" values
-- see above for the formats of @p RUN, @p PROTEIN, @p UNASSIGNEDPEPTIDE, @p PEPTIDE lines
 
 With the @p no_ids flag, only @p MAP and @p CONSENSUS lines are written.
 
@@ -116,6 +117,21 @@ With the @p id:peptides_only flag, only @p PEPTIDE lines (without the @p PEPTIDE
 With the @p id:first_dim_rt flag, the additional columns @p rt_first_dim and @p predicted_rt_first_dim are included for @p PEPTIDE lines.
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+<B>xic input (OpenSWATH Parquet chromatograms):</B>
+
+The @p xic:mode option controls the output format:
+- @p summary (default): one row per chromatogram with summary statistics.
+- @p explode: one row per RT/intensity point (long format).
+
+In both modes, the following metadata columns are exported:
+@p run_id, @p source_file (basename), @p ms_level, @p precursor_id, @p transition_id, @p modified_sequence,
+@p precursor_charge, @p product_charge, @p detecting_transition, @p precursor_decoy, @p product_decoy,
+@p transition_ordinal, @p transition_type, @p annotation.
+
+Additional columns:
+- summary mode: @p rt_count, @p intensity_count, @p rt_min, @p rt_max, @p intensity_min, @p intensity_max
+- explode mode: @p rt, @p intensity
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_TextExporter.cli
@@ -591,7 +607,7 @@ protected:
     void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "Input file ");
-      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
+      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML,xic"));
       registerOutputFile_("out", "<file>", "", "Output file.");
       setValidFormats_("out", ListUtils::create<String>("tsv,csv,txt"));
       registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension, ambiguous file extensions are interpreted as tsv", false);
@@ -643,6 +659,11 @@ protected:
       registerFlag_("consensus:sort_by_maps", "Apply a stable sort by the covered maps, lexicographically", false);
       registerFlag_("consensus:sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
       registerFlag_("consensus:add_metavalues", "Add columns for ConsensusFeature meta values.", false);
+
+      addEmptyLine_();
+      registerTOPPSubsection_("xic", "Options for OpenSWATH chromatogram parquet (.xic) input files");
+      registerStringOption_("xic:mode", "<mode>", "summary", "Output mode: 'summary' (one row per chromatogram) or 'explode' (one row per RT/intensity point)", false);
+      setValidStrings_("xic:mode", ListUtils::create<String>("summary,explode"));
     }
 
     ExitCodes main_(int, const char**) override
@@ -1550,6 +1571,10 @@ protected:
         }
 
         ofstream outstr(out.c_str());
+        if (!outstr)
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
+        }
         SVOutStream output(outstr, sep, replacement, quoting_method);
         output.modifyStrings(false);
 
@@ -1633,6 +1658,126 @@ protected:
 
         output << nl;
         outstr.close();
+      }
+      else if (in_type == FileTypes::CHROMPARQUET)
+      {
+#ifndef WITH_PARQUET
+        writeLogError_("Error: OpenMS was built without Parquet support.");
+        return INCOMPATIBLE_INPUT_DATA;
+#else
+        String mode = getStringOption_("xic:mode");
+        const bool explode = (mode == "explode");
+
+        XICParquetFile xic(in);
+        std::vector<XICChromatogram> chroms;
+        xic.getChromatograms(chroms);
+
+        if (chroms.empty())
+        {
+          writeLogWarn_("Warning: File does not contain chromatograms. No output generated!");
+          return EXECUTION_OK;
+        }
+
+        ofstream outstr(out.c_str());
+        if (!outstr)
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
+        }
+        SVOutStream output(outstr, sep, replacement, quoting_method);
+        output.modifyStrings(false);
+
+        auto writeOptionalInt = [&](bool has_value, Int64 value)
+        {
+          if (has_value)
+          {
+            output << value;
+          }
+          else
+          {
+            output << "";
+          }
+        };
+
+        if (explode)
+        {
+          output << "run_id" << "source_file" << "ms_level"
+                 << "precursor_id" << "transition_id" << "modified_sequence"
+                 << "precursor_charge" << "product_charge"
+                 << "detecting_transition" << "precursor_decoy" << "product_decoy"
+                 << "transition_ordinal" << "transition_type" << "annotation"
+                 << "rt" << "intensity" << nl;
+        }
+        else
+        {
+          output << "run_id" << "source_file" << "ms_level"
+                 << "precursor_id" << "transition_id" << "modified_sequence"
+                 << "precursor_charge" << "product_charge"
+                 << "detecting_transition" << "precursor_decoy" << "product_decoy"
+                 << "transition_ordinal" << "transition_type" << "annotation"
+                 << "rt_count" << "intensity_count"
+                 << "rt_min" << "rt_max" << "intensity_min" << "intensity_max" << nl;
+        }
+        output.modifyStrings(true);
+
+        for (const auto& c : chroms)
+        {
+          const Size n_points = c.rt.size();
+          if (c.intensity.size() != n_points)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "RT/intensity size mismatch in chromatogram",
+                                          String(n_points) + " vs " + String(c.intensity.size()));
+          }
+          if (explode)
+          {
+            for (Size i = 0; i < n_points; ++i)
+            {
+              output << c.run_id << File::basename(c.source_file) << c.ms_level;
+              writeOptionalInt(c.has_precursor_id, c.precursor_id);
+              writeOptionalInt(c.has_transition_id, c.transition_id);
+              output << c.modified_sequence;
+              writeOptionalInt(c.has_precursor_charge, c.precursor_charge);
+              writeOptionalInt(c.has_product_charge, c.product_charge);
+              writeOptionalInt(c.has_detecting_transition, c.detecting_transition);
+              writeOptionalInt(c.has_precursor_decoy, c.precursor_decoy);
+              writeOptionalInt(c.has_product_decoy, c.product_decoy);
+              writeOptionalInt(c.has_transition_ordinal, c.transition_ordinal);
+              output << c.transition_type << c.annotation;
+              output << String(c.rt[i]) << String(c.intensity[i]) << nl;
+            }
+          }
+          else
+          {
+            output << c.run_id << File::basename(c.source_file) << c.ms_level;
+            writeOptionalInt(c.has_precursor_id, c.precursor_id);
+            writeOptionalInt(c.has_transition_id, c.transition_id);
+            output << c.modified_sequence;
+            writeOptionalInt(c.has_precursor_charge, c.precursor_charge);
+            writeOptionalInt(c.has_product_charge, c.product_charge);
+            writeOptionalInt(c.has_detecting_transition, c.detecting_transition);
+            writeOptionalInt(c.has_precursor_decoy, c.precursor_decoy);
+            writeOptionalInt(c.has_product_decoy, c.product_decoy);
+            writeOptionalInt(c.has_transition_ordinal, c.transition_ordinal);
+            output << c.transition_type << c.annotation;
+            output << n_points << n_points;
+
+            if (n_points > 0)
+            {
+              const auto rt_minmax = std::minmax_element(c.rt.begin(), c.rt.end());
+              const auto int_minmax = std::minmax_element(c.intensity.begin(), c.intensity.end());
+              output << String(*rt_minmax.first) << String(*rt_minmax.second)
+                     << String(*int_minmax.first) << String(*int_minmax.second);
+            }
+            else
+            {
+              output << "" << "" << "" << "";
+            }
+            output << nl;
+          }
+        }
+
+        outstr.close();
+#endif
       }
 
       return EXECUTION_OK;

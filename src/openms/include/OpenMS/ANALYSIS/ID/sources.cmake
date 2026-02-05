@@ -42,6 +42,7 @@ PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h
 PrecursorPurity.h
 PScore.h
+Scores.h
 SimpleSearchEngineAlgorithm.h
 SiriusExportAlgorithm.h
 SiriusMSConverter.h
