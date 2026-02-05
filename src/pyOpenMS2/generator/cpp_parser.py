@@ -997,6 +997,14 @@ class CppHeaderParser:
         if decl and decl.kind in (CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL):
             # Check if it's a forward declaration (not a definition)
             if not decl.is_definition():
+                # Standard library templates are always complete - nanobind has
+                # automatic type casters for them. Check the fully qualified name.
+                type_spelling = pointee.spelling
+                if type_spelling.startswith("std::"):
+                    # Standard library type - check if template args are complete
+                    # For now, trust that std:: types are complete
+                    return None
+
                 # Template specializations of known wrapped types appear
                 # "incomplete" to libclang but are fully usable since the
                 # template itself is defined.  Only whitelist types we know
@@ -1149,6 +1157,8 @@ _KNOWN_COMPLETE_TYPES = {
     "Instrument",            # TargetedExperimentHelper::Instrument
     "Interpretation",        # TargetedExperimentHelper::Interpretation
     "TraMLProduct",          # TargetedExperimentHelper::TraMLProduct
+    "StringView",            # OpenMS::StringView (used in digestUnmodified)
+    "ConversionIssue",       # OpenMS::ProForma::ConversionIssue
 }
 
 # Mapping from Cython/pxd type names to C++ types for fallback classes
@@ -1168,6 +1178,12 @@ _PXD_TO_CPP_TYPE = {
     "Int": "OpenMS::Int",
     "Size": "size_t",
     "SignedSize": "ptrdiff_t",
+    # ProForma nested types
+    "Peptidoform": "OpenMS::ProForma::Peptidoform",
+    "PeptidoformIon": "OpenMS::ProForma::PeptidoformIon",
+    "WriteMode": "OpenMS::ProForma::WriteMode",
+    "ConversionIssue": "OpenMS::ProForma::ConversionIssue",
+    "ConversionPolicy": "OpenMS::ProForma::ConversionPolicy",
 }
 
 
@@ -1497,6 +1513,42 @@ def merge_with_pxd(
                 cpp_name=getattr(matching_pxd, 'cpp_name', None) if matching_pxd else None,
             )
             merged_methods.append(merged_method)
+
+        # Add namespace-level static functions from pxd that weren't found in C++ class
+        # These are standalone functions attached to the class via wrap-attach directive
+        merged_method_names = {m.cpp_method.name for m in merged_methods}
+        for pxd_method in pxd_class.methods:
+            # Only include static methods with cpp_name (namespace functions)
+            if (getattr(pxd_method, 'is_static', False)
+                    and getattr(pxd_method, 'cpp_name', None)
+                    and pxd_method.name not in merged_method_names):
+                # Create CppMethod from pxd Method
+                cpp_method = CppMethod(
+                    name=pxd_method.name,
+                    return_type=_convert_pxd_type(pxd_method.return_type),
+                    parameters=[
+                        CppParameter(
+                            name=p.name,
+                            type_str=_convert_pxd_type(p.type_str),
+                            canonical_type=_convert_pxd_type(p.type_str),
+                            is_const="const" in p.type_str,
+                            is_reference="&" in p.type_str,
+                            is_pointer="*" in p.type_str,
+                            default_value=p.default_value,
+                        )
+                        for p in pxd_method.parameters
+                    ],
+                    is_static=True,
+                    access="public",
+                )
+                merged_methods.append(MergedMethod(
+                    cpp_method=cpp_method,
+                    wrap_as=pxd_method.wrap_as,
+                    wrap_ignore=pxd_method.wrap_ignore,
+                    doc=pxd_method.doc,
+                    cpp_name=pxd_method.cpp_name,
+                ))
+                logger.debug(f"Added namespace function {pxd_method.name} to {class_name} (cpp_name: {pxd_method.cpp_name})")
 
         # Filter constructors from C++ info
         constructors = [c for c in cpp_class.constructors if c.access == "public"]
