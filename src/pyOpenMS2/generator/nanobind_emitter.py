@@ -860,7 +860,7 @@ OUTPUT_PARAM_METHODS = {
             self.getKeys(keys);
             py_keys.attr("clear")();
             for (const auto& k : keys) {{
-                py_keys.append(nb::cast(std::string(k)));
+                py_keys.append(nb::str(k.c_str()));
             }}
         }}, "keys"_a, "Fills the given list with all meta value keys")''',
 }
@@ -1970,7 +1970,7 @@ SPECIAL_METHODS = {
             std::vector<OpenMS::String> all_names;
             self.getAllNames(all_names);
             for (const auto& name : all_names) {
-                output.append(nb::cast(name));
+                output.append(nb::str(name.c_str()));
             }
         }, "output"_a, "Returns all enzyme names (appends to output list)")
         .def("getAllNames", [](const OpenMS::ProteaseDB& self) {
@@ -2006,7 +2006,7 @@ SPECIAL_METHODS = {
             std::vector<OpenMS::String> names;
             self.getAllNames(names);
             nb::list result;
-            for (const auto& n : names) result.append(nb::cast(n));
+            for (const auto& n : names) result.append(nb::str(n.c_str()));
             return result;
         }, "Get all enzyme names")''',
     },
@@ -2036,7 +2036,7 @@ SPECIAL_METHODS = {
             std::vector<OpenMS::String> mods;
             self.searchModificationsByDiffMonoMass(mods, mass, max_error, residue, term_spec);
             nb::list result;
-            for (const auto& m : mods) result.append(nb::cast(m));
+            for (const auto& m : mods) result.append(nb::str(m.c_str()));
             return result;
         }, "mass"_a, "max_error"_a, "residue"_a, "term_spec"_a, "Collects all modifications with delta mass inside a tolerance window")''',
         "getAllSearchModifications": '''
@@ -2044,7 +2044,7 @@ SPECIAL_METHODS = {
             std::vector<OpenMS::String> mods;
             self.getAllSearchModifications(mods);
             nb::list result;
-            for (const auto& m : mods) result.append(nb::cast(m));
+            for (const auto& m : mods) result.append(nb::str(m.c_str()));
             return result;
         }, "Collects all modifications that can be used for identification searches")''',
         "readFromOBOFile": '''
@@ -2333,7 +2333,7 @@ SPECIAL_METHODS = {
             std::vector<OpenMS::String> types;
             OpenMS::TransformationDescription::getModelTypes(types);
             for (const auto& t : types) {
-                result.append(nb::cast(t));
+                result.append(nb::str(t.c_str()));
             }
         }, "result"_a, "Get available model types (fills list)")''',
     },
