@@ -38,13 +38,16 @@ class TestTraMLFile(unittest.TestCase):
         targeted.setProteins(targeted.getProteins())
         targeted.setTransitions(targeted.getTransitions())
 
-        first_transition = targeted.getTransitions()[0] 
-        first_peptide = targeted.getPeptides()[0] 
+        first_transition = targeted.getTransitions()[0]
+        first_peptide = targeted.getPeptides()[0]
+        # Store refs before add* calls (objects may be moved/invalidated after passing to C++)
+        peptide_ref = first_transition.getPeptideRef()
+        protein_ref = first_peptide.protein_refs[0] if first_peptide.protein_refs else ""
         targeted.addTransition(first_transition)
         targeted.addPeptide(first_peptide)
 
-        self.assertTrue( targeted.getPeptideByRef(first_transition.getPeptideRef()) is not None)
-        self.assertTrue( targeted.getProteinByRef(first_peptide.protein_refs[0]) is not None)
+        self.assertTrue( targeted.getPeptideByRef(peptide_ref) is not None)
+        self.assertTrue( targeted.getProteinByRef(protein_ref) is not None)
 
 
 if __name__ == '__main__':

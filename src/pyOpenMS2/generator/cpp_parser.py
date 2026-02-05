@@ -1380,6 +1380,25 @@ def merge_with_pxd(
         "PI_PeakArea",                   # PeakIntegrator::PeakArea
         "PI_PeakBackground",             # PeakIntegrator::PeakBackground
         "PI_PeakShapeMetrics",           # PeakIntegrator::PeakShapeMetrics
+        # ProForma nested classes (pxd name != C++ flattened name)
+        "Peptidoform",                   # ProForma::Peptidoform
+        "PeptidoformIon",                # ProForma::PeptidoformIon
+        "ConversionIssue",               # ProForma::ConversionIssue
+        "CvAccession",                   # ProForma::CvAccession
+        "NamedMod",                      # ProForma::NamedMod
+        "MassDelta",                     # ProForma::MassDelta
+        "FormulaTag",                    # ProForma::FormulaTag
+        "InfoTag",                       # ProForma::InfoTag
+        "Label",                         # ProForma::Label
+        "Modification",                  # ProForma::Modification
+        "SequenceElement",               # ProForma::SequenceElement
+        "UnlocalisedMod",                # ProForma::UnlocalisedMod
+        "LabileModification",            # ProForma::LabileModification
+        "IsotopeReplacement",            # ProForma::IsotopeReplacement
+        # OpenMS::Math namespace classes (different namespace, not found by libclang)
+        "MultipleTesting",               # OpenMS::Math::MultipleTesting
+        "Pi0Result",                     # OpenMS::Math::Pi0Result
+        "RankData",                      # OpenMS::Math::RankData
         # Template classes (may not match in libclang by name)
         "Matrix",                        # OpenMS::Matrix<T> (template)
         "BilinearInterpolation",         # OpenMS::Math::BilinearInterpolation<K,V> (template)
