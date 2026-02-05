@@ -80,7 +80,7 @@ if (WITH_PARQUET)
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
   )
-  target_link_libraries(ArrowExport_test
+  target_link_libraries(MSExperimentArrowExport_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
   )

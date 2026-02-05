@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FORMAT/ArrowExport.h>
+#include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -37,7 +37,7 @@ std::shared_ptr<arrow::Table> exportSpectraViaInterface(
   ArrowSchema schema;
   ArrowArray array;
 
-  if (!ArrowExport::exportSpectraToArrowCDataInterface(exp, config, &schema, &array))
+  if (!MSExperimentArrowExport::exportSpectraToArrowCDataInterface(exp, config, &schema, &array))
   {
     return nullptr;
   }
@@ -60,7 +60,7 @@ std::shared_ptr<arrow::Table> exportChromatogramsViaInterface(
   ArrowSchema schema;
   ArrowArray array;
 
-  if (!ArrowExport::exportChromatogramsToArrowCDataInterface(exp, config, &schema, &array))
+  if (!MSExperimentArrowExport::exportChromatogramsToArrowCDataInterface(exp, config, &schema, &array))
   {
     return nullptr;
   }
@@ -131,7 +131,7 @@ MSExperiment createEmptyExperiment()
 
 /////////////////////////////////////////////////////////////
 
-START_TEST(ArrowExport, "$Id$")
+START_TEST(MSExperimentArrowExport, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -315,7 +315,7 @@ START_SECTION(getSpectraArrowColumnNames - long format)
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::Long;
 
-  auto columns = ArrowExport::getSpectraArrowColumnNames(exp, config);
+  auto columns = MSExperimentArrowExport::getSpectraArrowColumnNames(exp, config);
 
   // Check required columns are present
   TEST_EQUAL(std::find(columns.begin(), columns.end(), "mz") != columns.end(), true)
@@ -333,7 +333,7 @@ START_SECTION(getSpectraArrowColumnNames - with column filter)
   ArrowSpectraExportConfig config;
   config.columns = {"mz", "intensity"};
 
-  auto columns = ArrowExport::getSpectraArrowColumnNames(exp, config);
+  auto columns = MSExperimentArrowExport::getSpectraArrowColumnNames(exp, config);
 
   TEST_EQUAL(columns.size(), 2)
   TEST_EQUAL(std::find(columns.begin(), columns.end(), "mz") != columns.end(), true)
@@ -497,7 +497,7 @@ START_SECTION(exportSpectraToParquet - basic export)
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
-  bool success = ArrowExport::exportSpectraToParquet(exp, filename);
+  bool success = MSExperimentArrowExport::exportSpectraToParquet(exp, filename);
   TEST_EQUAL(success, true)
 
   // Verify file was created
@@ -520,7 +520,7 @@ START_SECTION(exportSpectraToParquet - with compression options)
   pq_config.compression_level = 9;
   pq_config.row_group_size = 1024 * 1024; // 1MB for testing
 
-  bool success = ArrowExport::exportSpectraToParquet(exp, filename, ArrowSpectraExportConfig{}, pq_config);
+  bool success = MSExperimentArrowExport::exportSpectraToParquet(exp, filename, ArrowSpectraExportConfig{}, pq_config);
   TEST_EQUAL(success, true)
 
   // Verify file was created
@@ -540,7 +540,7 @@ START_SECTION(exportSpectraToParquet - with filtering)
   ArrowSpectraExportConfig config;
   config.ms_levels = {2};
 
-  bool success = ArrowExport::exportSpectraToParquet(exp, filename, config);
+  bool success = MSExperimentArrowExport::exportSpectraToParquet(exp, filename, config);
   TEST_EQUAL(success, true)
 
   // Verify file was created
@@ -556,7 +556,7 @@ START_SECTION(exportSpectraToParquet - empty experiment)
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
-  bool success = ArrowExport::exportSpectraToParquet(exp, filename);
+  bool success = MSExperimentArrowExport::exportSpectraToParquet(exp, filename);
   TEST_EQUAL(success, true)
 
   // Verify file was created (even for empty data)
@@ -590,7 +590,7 @@ START_SECTION(exportChromatogramsToParquet - basic export)
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
-  bool success = ArrowExport::exportChromatogramsToParquet(exp, filename);
+  bool success = MSExperimentArrowExport::exportChromatogramsToParquet(exp, filename);
   TEST_EQUAL(success, true)
 
   // Verify file was created
@@ -621,7 +621,7 @@ START_SECTION(exportChromatogramsToParquet - with compression options)
   ParquetWriteConfig pq_config;
   pq_config.compression = ParquetWriteConfig::Compression::SNAPPY;
 
-  bool success = ArrowExport::exportChromatogramsToParquet(exp, filename, ArrowChromatogramExportConfig{}, pq_config);
+  bool success = MSExperimentArrowExport::exportChromatogramsToParquet(exp, filename, ArrowChromatogramExportConfig{}, pq_config);
   TEST_EQUAL(success, true)
 
   // Verify file was created
