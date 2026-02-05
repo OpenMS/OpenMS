@@ -21,7 +21,29 @@ def _has_compiled_extensions(path: Path) -> bool:
 
 def _setup_pyopenms():
     """Ensure the built pyopenms is used by pre-loading it into sys.modules."""
-    build_path = Path("/home/sachsenb/Development/tmp/OpenMS/OpenMS-build/pyOpenMS2-build")
+    # Try to find build path from PYTHONPATH or relative to source
+    build_path = None
+
+    # Check PYTHONPATH for build directory
+    for p in sys.path:
+        if "pyOpenMS2-build" in p and _has_compiled_extensions(Path(p)):
+            build_path = Path(p)
+            break
+
+    # Fallback: relative to source tree
+    if not build_path:
+        # src/pyOpenMS2/tests/conftest.py -> ../../.. = repo root
+        repo_root = Path(__file__).parent.parent.parent.parent
+        for candidate in [
+            repo_root.parent / "OpenMS-build" / "pyOpenMS2-build",
+            repo_root / "build" / "pyOpenMS2-build",
+        ]:
+            if candidate.exists() and _has_compiled_extensions(candidate):
+                build_path = candidate
+                break
+
+    if not build_path:
+        build_path = Path("/home/sachsenb/Development/tmp2/OpenMS-build/pyOpenMS2-build")
 
     if not build_path.exists() or not _has_compiled_extensions(build_path):
         raise ImportError(

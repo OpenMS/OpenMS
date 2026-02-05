@@ -7,8 +7,9 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DefaultParamHandler.h>" namespace "Open
     cdef cppclass DefaultParamHandler:
         # wrap-doc:
         #  A base class for all classes handling default parameters
-        #wrap-ignore
-        #no-pxd-import
+
+        # wrap-ignore
+        # no-pxd-import
 
         DefaultParamHandler(String name) except + nogil 
         DefaultParamHandler(DefaultParamHandler &) except + nogil 
