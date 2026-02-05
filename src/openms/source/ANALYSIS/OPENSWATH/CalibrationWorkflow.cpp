@@ -641,6 +641,13 @@ namespace OpenMS
     {
       applyWindow_("RT", result.estimated_rt_window, cp.rt_extraction_window, 
                   cp.rt_extraction_window, true, true);
+      if (result.estimated_rt_window > 1000)
+      {
+        OPENMS_LOG_WARN << "Estimated RT extraction window is fairly large (" 
+                        << result.estimated_rt_window 
+                        << " seconds). If you are certain this is okay for your data, then ignore this warning. Otherwise, please verify that the calibration was successful by outputting the debugging calibration files or adjust the `windows:rt_percentile` to a lower value to restrict the residual distribution that the window is estimated from." 
+                        << std::endl;
+      }
     }
     
     // Apply MS2 m/z window (only if user is using ppm)
