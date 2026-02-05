@@ -102,11 +102,30 @@ for class_name, enum_names in _NESTED_ENUM_ALIASES.items():
 
 del _NESTED_ENUM_ALIASES
 
+# Export nested enums at module level for backward compatibility
+# These are enums defined inside classes that old pyOpenMS exposed at module level
+_MODULE_LEVEL_NESTED_ENUMS = {
+    "Scores": ["IDType"],
+    "ProgressLogger": ["LogType"],
+}
+
+for class_name, enum_names in _MODULE_LEVEL_NESTED_ENUMS.items():
+    if class_name in globals():
+        cls = globals()[class_name]
+        for enum_name in enum_names:
+            if hasattr(cls, enum_name) and enum_name not in globals():
+                globals()[enum_name] = getattr(cls, enum_name)
+
+del _MODULE_LEVEL_NESTED_ENUMS
+
 # Add backward-compatible aliases
 if "MSExperiment" in globals():
     globals()["PeakMap"] = globals()["MSExperiment"]
 if "MSSpectrum" in globals():
     globals()["PeakSpectrum"] = globals()["MSSpectrum"]
+# FileTypes.FileType nested enum is exported as "FileType" in old pyOpenMS for convenience
+if "FileTypes" in globals() and hasattr(globals()["FileTypes"], "FileType"):
+    globals()["FileType"] = globals()["FileTypes"].FileType
 
 # Create Interfaces namespace for pyopenms.Interfaces.Spectrum / Chromatogram
 class _InterfacesNamespace:
