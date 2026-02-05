@@ -3,8 +3,8 @@
  * @brief Extended std::string type caster that also accepts Python bytes
  *
  * This overrides nanobind's default std::string caster to additionally
- * accept bytes objects, matching pyOpenMS (Cython) behavior where
- * bytes and str are both accepted for string parameters.
+ * accept bytes objects so that both bytes and str are accepted for
+ * string parameters.
  */
 
 #pragma once

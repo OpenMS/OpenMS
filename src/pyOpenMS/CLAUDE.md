@@ -2,10 +2,9 @@
 
 ## Architecture
 
-- **Generator** (`generator/`) parses `.pxd` files from `pxds/` and emits nanobind C++ code using libclang
-- **Type casters** (`bindings/type_casters/`) handle C++ ↔ Python type conversion
-- **Generated bindings** (`bindings/generated/`) contain pre-committed nanobind C++ wrapper code (11 files)
-- **Addon system** (`pyopenms/addons/`) injects pure Python methods into wrapped classes at import time
+- **Bindings** (`bindings/`) — hand-maintained nanobind C++ binding files (10 domain modules + main)
+- **Type casters** (`bindings/type_casters/`) — custom nanobind type casters (C++ ↔ Python conversion)
+- **Addon system** (`pyopenms/addons/`) — pure Python methods injected into wrapped classes at import time
 - **DataFrame wrappers** in `pyopenms/_dataframes.py` add pandas methods (keeps pandas optional)
 
 ## Build
@@ -21,26 +20,30 @@ PYTHONPATH=OpenMS-build/pyOpenMS python3 -m pytest src/pyOpenMS/tests/ -v
 cd src/pyOpenMS && pip wheel . --no-build-isolation
 ```
 
-Bindings compile from pre-committed generated sources in `bindings/generated/*.cpp` — no code generation at build time.
+## Wrapping New C++ Classes
 
-## Regenerating Bindings (maintainer-only)
+1. Pick the right `bindings/bind_<domain>.cpp` based on the C++ header path:
+   - `KERNEL/` → `bind_kernel.cpp`
+   - `FORMAT/` → `bind_format.cpp`
+   - `ANALYSIS/` → `bind_analysis.cpp`
+   - `CHEMISTRY/` → `bind_chemistry.cpp`
+   - `METADATA/` → `bind_metadata.cpp`
+   - `PROCESSING/` → `bind_processing.cpp`
+   - `FEATUREFINDER/` → `bind_featurefinder.cpp`
+   - `DATASTRUCTURES/`, `MATH/`, `CONCEPT/` → `bind_datastructures.cpp`
+   - `ML/` → `bind_ml.cpp`
+   - Everything else → `bind_misc.cpp`
+2. Add the `#include` for the C++ header
+3. Add `nb::class_<...>(m, "ClassName", "docstring")` with `.def()` chains
+4. Build and test
 
-Only needed when `.pxd` files change or new classes are added:
-
-```bash
-cd src/pyOpenMS
-python -m generator --pxd-dir pxds \
-  --output-dir bindings/generated \
-  --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include
-```
-
-Requires `clang` Python bindings (libclang). Clear cache if needed: `rm -rf OpenMS-build/libclang_cache`
+Each class has a section comment (`// --- ClassName ---`) for navigation.
 
 ## Addon Rules
 
-- Pure Python methods in `pyopenms/addons/` (not Cython `.pyx`)
+- Pure Python methods in `pyopenms/addons/`
 - Use the `@addon("ClassName")` decorator from `pyopenms.addons`
-- Keep addons minimal - only add non-auto-generatable methods
+- Keep addons minimal — only add non-auto-generatable methods
 - Performance-critical methods should be C++ lambdas in the bindings
 
 ## Module Split
@@ -61,35 +64,11 @@ All modules use `NB_DOMAIN "pyopenms"` to share type information.
 - `AASequence.fromString()`: valid amino acids only (A-Z except B, J, O, U, X, Z)
 - `DPosition<1>` accepts `float`, `DPosition<2>` accepts `tuple`
 
-## Wrapping New C++ Classes
-
-1. Add a `.pxd` declaration file in `pxds/`
-2. Regenerate bindings (see above)
-3. Commit the updated `bindings/generated/*.cpp` files
-
-## wrap- Directive Reference
-
-Directives parsed from .pxd files:
-
-| Directive | Purpose |
-|-----------|---------|
-| `wrap-doc:` | Documentation string |
-| `wrap-as:` | Rename method in Python |
-| `wrap-ignore` | Skip wrapping this method |
-| `wrap-inherits:` | Specify base classes |
-| `wrap-instances:` | Template specializations |
-| `wrap-upper-limit:` | Bounds checking for `[]` |
-| `wrap-hash:` | Enable `__hash__` |
-| `wrap-manual-memory` | Custom memory management (singletons) |
-| `wrap-attach:ClassName` | Attach namespace function as static method |
-
 ## Gotchas
 
 - `getDriftTimeUnitAsString()` returns `'<NONE>'` not empty string
 - Mobilogram has no MetaInfoInterface (no `getKeys()`, `getMetaValue()`)
-- `# wrap-doc:` must be properly indented (strict whitespace parsing)
 - Test from `/tmp` to avoid path shadowing with source `pyopenms/`
-- Clear libclang cache after header changes: `rm -rf OpenMS-build/libclang_cache`
 
 ## Testing
 

@@ -2,7 +2,7 @@
 
 This module defines a small abstract query interface and a concrete
 ChromatogramQuery for XICParquetFile. The builders are pure Python to
-avoid Cython class placement limitations while still using the C++
+keep query builders separate from the C++ bindings while still using the C++
 ParquetFilter under the hood for predicate pushdown.
 
 Why this exists:

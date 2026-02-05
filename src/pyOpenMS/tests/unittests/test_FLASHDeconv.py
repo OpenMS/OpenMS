@@ -1161,7 +1161,7 @@ class TestTargetDecoyTypeEnum(unittest.TestCase):
 
     def test_enum_values(self):
         """Test that all enum values exist."""
-        # Cython enums are exposed as integers, not Python enum objects
+        # Enum values compare equal to their integer values
         self.assertEqual(pyopenms.PeakGroup.TargetDecoyType.target, 0)
         self.assertEqual(pyopenms.PeakGroup.TargetDecoyType.noise_decoy, 1)
         self.assertEqual(pyopenms.PeakGroup.TargetDecoyType.signal_decoy, 2)

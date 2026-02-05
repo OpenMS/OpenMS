@@ -165,7 +165,7 @@ class TestLightTargetedExperimentStringInput(unittest.TestCase):
         """Test LightTransition.setFragmentType accepts str."""
         transition = pyopenms.LightTransition()
         transition.setFragmentType("y")
-        # getFragmentType returns str (nanobind) or bytes (Cython)
+        # getFragmentType returns str
         result = transition.getFragmentType()
         self.assertIn(result, ("y", b"y"))
 
@@ -173,7 +173,7 @@ class TestLightTargetedExperimentStringInput(unittest.TestCase):
         """Test LightTransition.setFragmentType still accepts bytes."""
         transition = pyopenms.LightTransition()
         transition.setFragmentType(b"b")
-        # getFragmentType returns str (nanobind) or bytes (Cython)
+        # getFragmentType returns str
         result = transition.getFragmentType()
         self.assertIn(result, ("b", b"b"))
 
