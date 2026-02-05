@@ -1,11 +1,9 @@
-import pytest
 import pyopenms
 import os.path
 
 from .collections_ import Counter
 
-@pytest.mark.skip(reason="MzMLFile.transform() requires IMSDataConsumer trampoline not yet ported to nanobind")
-def test0():
+def test_mzml_consumer():
     fh = pyopenms.MzMLFile()
     here = os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(here, "test2.mzML").encode()

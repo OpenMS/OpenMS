@@ -211,9 +211,11 @@ SKIP_METHODS = {
     },
     "MzMLFile": {
         "load", "store", "loadBuffer", "storeBuffer", "isSemanticallyValid",  # By-value params in auto-gen; SPECIAL_METHODS uses refs
+        "transform",  # Uses IMSDataConsumer* - SPECIAL_METHODS wraps with Python duck-typing
     },
     "MzXMLFile": {
         "load", "store",  # By-value params in auto-gen; SPECIAL_METHODS uses refs
+        "transform",  # Uses IMSDataConsumer* - SPECIAL_METHODS wraps with Python duck-typing
     },
     "CachedmzML": {
         "load",  # Need backward-compatible signature with output parameter
@@ -703,7 +705,8 @@ ADDITIONAL_INCLUDES = {
     "EmpiricalFormula": ["<OpenMS/CHEMISTRY/EmpiricalFormula.h>", "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>", "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>"],
     "Residue": ["<OpenMS/CHEMISTRY/Residue.h>"],
     "Param": ["<OpenMS/DATASTRUCTURES/Param.h>"],
-    "MzMLFile": ["<OpenMS/FORMAT/MzMLFile.h>", "<OpenMS/KERNEL/MSExperiment.h>"],
+    "MzMLFile": ["<OpenMS/FORMAT/MzMLFile.h>", "<OpenMS/KERNEL/MSExperiment.h>", "\"nanobind_ms_data_consumer.h\""],
+    "MzXMLFile": ["\"nanobind_ms_data_consumer.h\""],
     "IdXMLFile": ["<OpenMS/FORMAT/IdXMLFile.h>", "<OpenMS/METADATA/ProteinIdentification.h>", "<OpenMS/METADATA/PeptideIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
     "FeatureXMLFile": ["<OpenMS/FORMAT/FeatureXMLFile.h>", "<OpenMS/KERNEL/FeatureMap.h>"],
     "ConsensusXMLFile": ["<OpenMS/FORMAT/ConsensusXMLFile.h>", "<OpenMS/KERNEL/ConsensusMap.h>"],
@@ -1436,12 +1439,11 @@ SPECIAL_METHODS = {
     },
     "MSExperiment": {
         # getSpectra, getChromatograms, getSpectrum, getChromatogram auto-generated
-        # __getitem__ returns copy for pyOpenMS backward compatibility
         "__getitem__": '''
-        .def("__getitem__", [](const OpenMS::MSExperiment& self, size_t i) {
+        .def("__getitem__", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];  // Return by value (copy)
-        }, "i"_a, "Returns a copy of the spectrum at index i")''',
+            return self[i];
+        }, "i"_a, nb::rv_policy::reference_internal)''',
         "rasterizeRTMZ": '''
         .def("rasterizeRTMZ", [](OpenMS::MSExperiment& self,
                                 nb::ndarray<float, nb::ndim<2>, nb::device::cpu> output,
@@ -1592,6 +1594,13 @@ SPECIAL_METHODS = {
         .def("store", [](OpenMS::MzMLFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzML file")''',
+        "transform": '''
+        .def("transform", [](OpenMS::MzMLFile& self, const OpenMS::String& filename, nb::object consumer,
+                             bool skip_full_count, bool skip_first_pass) {
+            NanobindMSDataConsumer wrapper(consumer);
+            self.transform(filename, &wrapper, skip_full_count, skip_first_pass);
+        }, "filename"_a, "consumer"_a, "skip_full_count"_a = false, "skip_first_pass"_a = false,
+        "Transform an mzML file using a consumer object (streaming processing)")''',
     },
     "IdXMLFile": {
         "load": '''
@@ -1639,6 +1648,13 @@ SPECIAL_METHODS = {
         .def("store", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzXML file")''',
+        "transform": '''
+        .def("transform", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, nb::object consumer,
+                             bool skip_full_count) {
+            NanobindMSDataConsumer wrapper(consumer);
+            self.transform(filename, &wrapper, skip_full_count);
+        }, "filename"_a, "consumer"_a, "skip_full_count"_a = false,
+        "Transform an mzXML file using a consumer object (streaming processing)")''',
     },
     "CachedmzML": {
         "load": '''

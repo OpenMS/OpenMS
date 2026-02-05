@@ -115,6 +115,15 @@ def _is_acceptable_error(error, docstring):
         return True
     if 'unknown directive type "deprecated"' in err:
         return True
+    # NumPy-style docstring section headers (Parameters, Returns, Raises, etc.)
+    # are valid for Sphinx napoleon but not for raw docutils RST parsing
+    if "unexpected section title" in err:
+        return True
+    # nanobind auto-generated signatures may contain C++ pointer syntax (*)
+    if "inline emphasis start-string without end-string" in err:
+        return True
+    if "inline strong start-string without end-string" in err:
+        return True
     return False
 
 
