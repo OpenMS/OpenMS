@@ -912,13 +912,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def_rw("annotation_id", &OpenMS::PEFFVariantSimple::annotation_id)
         ;
 
-    nb::class_<OpenMS::ParamCTDFile>(m, "ParamCTDFile", 
-        R"doc(
-A struct to pass information about the tool as one parameter */
-struct ToolInfo { std::string version_; std::string name_; std::string
-docurl_; std::string category_; std::string description_;
-std::vector<std::string> citations_; };
-)doc")
+    nb::class_<OpenMS::ParamCTDFile>(m, "ParamCTDFile", "Serializes a Param object to/from a CTD (Common Tool Description) file")
         .def(nb::init<>())
         .def("store", [](const OpenMS::ParamCTDFile& self, const OpenMS::String& filename, const OpenMS::Param& param, const OpenMS::ToolInfo& tool_info) { return self.store(filename, param, tool_info); }, "filename"_a, "param"_a, "tool_info"_a)
         ;
@@ -1121,28 +1115,8 @@ the expected size is not set correctly
 
     nb::class_<OpenMS::RegularSwathFileConsumer>(m, "RegularSwathFileConsumer", 
         R"doc(
-Abstract base class which can consume spectra coming from SWATH
-experiment stored in a single file. * * The class consumes spectra
-which are coming from a complete SWATH * experiment. It will group MS2
-spectra by their precursor m/z, assuming * that they correspond to the
-same SWATH window. For example, the spectra * could be arranged in the
-following fashion: * * - MS1 Spectrum (no precursor) * - MS2 Spectrum
-(precursor = [400,425]) * - MS2 Spectrum (precursor = [425,450]) * -
-[...] * - MS2 Spectrum (precursor = [1175,1200]) * - MS1 Spectrum (no
-precursor) * - MS2 Spectrum (precursor = [400,425]) * - MS2 Spectrum
-(precursor = [425,450]) * - [...] * * Base classes are expected to
-implement functions consuming a spectrum coming * from a specific
-SWATH or an MS1 spectrum and a final function * ensureMapsAreFilled_
-after which the swath_maps_ vector needs to contain * valid pointers
-to MSExperiment. * * In addition it is possible to provide the swath
-boundaries and the read in * spectra will be matched by their
-precursor m/z to the "center" attribute * of the provided Swath maps.
-* * Usage: * * @code * FullSwathFileConsumer * dataConsumer; * //
-assign dataConsumer to an implementation of FullSwathFileConsumer *
-MzMLFile().transform(file, dataConsumer); *
-dataConsumer->retrieveSwathMaps(maps); * @endcode * */ class
-OPENMS_DLLAPI FullSwathFileConsumer : public
-Interfaces::IMSDataConsumer {
+Consumes spectra from a SWATH experiment stored in a single file.
+Groups MS2 spectra by their precursor m/z into SWATH windows
 FullSwathFileConsumer
 )doc")
         .def(nb::init<>())

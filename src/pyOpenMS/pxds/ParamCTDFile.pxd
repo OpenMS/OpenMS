@@ -10,10 +10,7 @@ cdef extern from "<OpenMS/FORMAT/ParamCTDFile.h>" namespace "OpenMS":
 
     cdef cppclass ParamCTDFile:
         # wrap-doc:
-        #  A struct to pass information about the tool as one parameter */
-        #  struct ToolInfo { std::string version_; std::string name_; std::string
-        #  docurl_; std::string category_; std::string description_;
-        #  std::vector<std::string> citations_; };
+        #  Serializes a Param object to/from a CTD (Common Tool Description) file
 
         ParamCTDFile() except + nogil 
         void store(libcpp_utf8_string filename, Param param, ToolInfo tool_info) except + nogil 

@@ -72,9 +72,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass RetentionTime(CVTermList):
         # wrap-doc:
-        #  This class stores helper structures that are used in multiple classes
-        #  of the TargetedExperiment (e.g. ReactionMonitoringTransition and
-        #  IncludeExcludeTarget). */
+        #  Represents a retention time entry for targeted experiment compounds and peptides
         # wrap-inherits:
         #   CVTermList
 
@@ -95,9 +93,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass Compound(CVTermList):
         # wrap-doc:
-        #  This class stores helper structures that are used in multiple classes
-        #  of the TargetedExperiment (e.g. ReactionMonitoringTransition and
-        #  IncludeExcludeTarget). */
+        #  Represents a compound in a targeted experiment (e.g. used by
+        #  ReactionMonitoringTransition and IncludeExcludeTarget)
         # wrap-inherits:
         #   CVTermList
 
@@ -122,9 +119,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass Peptide(CVTermList):
         # wrap-doc:
-        #  This class stores helper structures that are used in multiple classes
-        #  of the TargetedExperiment (e.g. ReactionMonitoringTransition and
-        #  IncludeExcludeTarget). */
+        #  Represents a peptide in a targeted experiment (e.g. used by
+        #  ReactionMonitoringTransition and IncludeExcludeTarget)
         # wrap-inherits:
         #   CVTermList
 

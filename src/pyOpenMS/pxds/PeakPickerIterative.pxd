@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>" namespa
 
     cdef cppclass PeakPickerIterative(DefaultParamHandler, ProgressLogger):
         # wrap-doc:
-        #  A small structure to hold peak candidates * */ struct PeakCandidate {
-        #  int index; double peak_apex_intensity;
+        #  Iterative peak picker that uses seed-based centroiding to detect and
+        #  integrate peaks in profile spectra
         # wrap-inherits:
         #   DefaultParamHandler
         #   ProgressLogger
