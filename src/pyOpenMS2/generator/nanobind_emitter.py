@@ -252,8 +252,6 @@ SKIP_METHODS = {
     "ProteinIdentification": {
         "computeCoverage",  # Takes ConsensusMap/PeptideIdentificationList - complex types
         "setPrimaryMSRunPath",  # Overloaded with MSExperiment parameter
-        "setSearchParameters", "getSearchParameters",  # SearchParameters nested type
-        "insertProteinGroup", "insertIndistinguishableProteins",  # ProteinGroup nested type
     },
     "ConsensusFeature": {
         "computeDechargeConsensus",  # Takes forward-declared FeatureMap
@@ -261,10 +259,12 @@ SKIP_METHODS = {
     "ProteinInference": {
         "run",  # Takes ConsensusMap (forward-declared)
     },
+    "MassTraceDetection": {
+        "run",  # Output parameter (vector<MassTrace>&) - needs SPECIAL_METHODS
+    },
     # === High-priority classes being unblocked from SKIP_CLASSES ===
     "IDFilter": {
         "countHits",  # Overloaded (PeptideIdentificationList vs ProteinIdentification vector)
-        "updateProteinGroups",  # ProteinGroup nested type
     },
     "FalseDiscoveryRate": {
         "applyBasic",  # ScoreToTgtDecLabelPairs unknown type
@@ -1443,6 +1443,39 @@ SPECIAL_METHODS = {
             if (i >= self.size()) throw nb::index_error();
             return self[i];  // Return by value (copy)
         }, "i"_a, "Returns a copy of the spectrum at index i")''',
+        "rasterizeRTMZ": '''
+        .def("rasterizeRTMZ", [](OpenMS::MSExperiment& self,
+                                nb::ndarray<float, nb::ndim<2>, nb::device::cpu> output,
+                                double min_rt, double max_rt,
+                                double min_mz, double max_mz,
+                                unsigned int ms_level,
+                                const std::string& aggregation) {
+            // Check for C-contiguous array (legacy pyOpenMS compatibility)
+            // DLTensor strides are in elements, not bytes
+            // C-contiguous: stride(1)=1, stride(0)=shape(1)
+            if (output.stride(1) != 1 ||
+                output.stride(0) != static_cast<int64_t>(output.shape(1))) {
+                throw std::invalid_argument("Output array must be C-contiguous. "
+                    "Use numpy.ascontiguousarray() to convert.");
+            }
+
+            // Output array has shape [mz_bins, rt_bins]
+            size_t mz_bins = output.shape(0);
+            size_t rt_bins = output.shape(1);
+            float* output_ptr = output.data();
+
+            OpenMS::MSExperiment::RasterAggregation agg_mode;
+            if (aggregation == "sum" || aggregation == "SUM") {
+                agg_mode = OpenMS::MSExperiment::RasterAggregation::SUM;
+            } else if (aggregation == "max" || aggregation == "MAX") {
+                agg_mode = OpenMS::MSExperiment::RasterAggregation::MAX;
+            } else {
+                throw std::invalid_argument("Invalid aggregation mode '" + aggregation + "'. Must be 'sum' or 'max'.");
+            }
+
+            self.rasterizeRTMZ(output_ptr, rt_bins, mz_bins, min_rt, max_rt, min_mz, max_mz, ms_level, agg_mode);
+        }, "output"_a, "min_rt"_a, "max_rt"_a, "min_mz"_a, "max_mz"_a, "ms_level"_a, "aggregation"_a = "sum",
+           "Rasterize peak data into a 2D intensity matrix. Output shape is [mz_bins, rt_bins].")''',
     },
     # PeptideIdentification: getHits, setHits, insertHit auto-generated
     # (mutable ref dedup prefers non-const getHits)
@@ -2579,6 +2612,180 @@ SPECIAL_METHODS = {
         .def("__str__", [](const OpenMS::EmpiricalFormula& self) {
             return std::string(self.toString());
         }, "Returns the formula as a string")''',
+    },
+    "XICParquetFile": {
+        "getColumns": '''
+        .def("getColumns", [](const OpenMS::XICParquetFile& self) {
+            std::vector<OpenMS::String> columns;
+            self.getColumns(columns);
+            nb::list result;
+            for (const auto& col : columns) {
+                result.append(nb::str(col.c_str()));
+            }
+            return result;
+        }, "Return parquet schema column names as a list")''',
+        "getRuns": '''
+        .def("getRuns", [](const OpenMS::XICParquetFile& self) {
+            std::vector<OpenMS::XICParquetFile::XICRunInfo> runs;
+            self.getRuns(runs);
+            nb::list run_ids, source_files;
+            for (const auto& r : runs) {
+                run_ids.append(r.run_id);
+                source_files.append(nb::str(r.source_file.c_str()));
+            }
+            nb::dict result;
+            result["run_id"] = run_ids;
+            result["source_file"] = source_files;
+            return result;
+        }, "Return unique run metadata as a dict")''',
+        "getAnalytes": '''
+        .def("getAnalytes", [](const OpenMS::XICParquetFile& self, bool nest_transitions, nb::object columns_obj) {
+            std::vector<OpenMS::String> columns;
+            if (!columns_obj.is_none()) {
+                for (auto item : columns_obj) {
+                    columns.push_back(nb::cast<std::string>(item));
+                }
+            }
+            std::vector<OpenMS::XICParquetFile::XICAnalyte> analytes;
+            self.getAnalytes(analytes, columns, nest_transitions);
+
+            nb::list precursor_id_list, modified_sequence_list, precursor_charge_list, precursor_decoy_list;
+            nb::list transition_id_list, product_charge_list, transition_ordinal_list;
+            nb::list detecting_transition_list, product_decoy_list, transition_type_list, annotation_list;
+
+            for (const auto& a : analytes) {
+                precursor_id_list.append(a.has_precursor_id ? nb::cast(a.precursor_id) : nb::none());
+                modified_sequence_list.append(nb::str(a.modified_sequence.c_str()));
+                precursor_charge_list.append(a.has_precursor_charge ? nb::cast(a.precursor_charge) : nb::none());
+                precursor_decoy_list.append(a.has_precursor_decoy ? nb::cast(a.precursor_decoy) : nb::none());
+
+                if (!nest_transitions) {
+                    transition_id_list.append(a.has_transition_id ? nb::cast(a.transition_id) : nb::none());
+                    product_charge_list.append(a.has_product_charge ? nb::cast(a.product_charge) : nb::none());
+                    transition_ordinal_list.append(a.has_transition_ordinal ? nb::cast(a.transition_ordinal) : nb::none());
+                    detecting_transition_list.append(a.has_detecting_transition ? nb::cast(a.detecting_transition) : nb::none());
+                    product_decoy_list.append(a.has_product_decoy ? nb::cast(a.product_decoy) : nb::none());
+                    transition_type_list.append(nb::str(a.transition_type.c_str()));
+                    annotation_list.append(nb::str(a.annotation.c_str()));
+                } else {
+                    nb::list t_ids, p_charges, t_ordinals, d_transitions, p_decoys, t_types, annots;
+                    for (auto v : a.transition_ids) t_ids.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.product_charges) p_charges.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.transition_ordinals) t_ordinals.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.detecting_transitions) d_transitions.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.product_decoys) p_decoys.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (const auto& s : a.transition_types) t_types.append(nb::str(s.c_str()));
+                    for (const auto& s : a.annotations) annots.append(nb::str(s.c_str()));
+                    transition_id_list.append(t_ids);
+                    product_charge_list.append(p_charges);
+                    transition_ordinal_list.append(t_ordinals);
+                    detecting_transition_list.append(d_transitions);
+                    product_decoy_list.append(p_decoys);
+                    transition_type_list.append(t_types);
+                    annotation_list.append(annots);
+                }
+            }
+
+            nb::dict result;
+            result["precursor_id"] = precursor_id_list;
+            result["modified_sequence"] = modified_sequence_list;
+            result["precursor_charge"] = precursor_charge_list;
+            result["precursor_decoy"] = precursor_decoy_list;
+            result["transition_id"] = transition_id_list;
+            result["product_charge"] = product_charge_list;
+            result["transition_ordinal"] = transition_ordinal_list;
+            result["detecting_transition"] = detecting_transition_list;
+            result["product_decoy"] = product_decoy_list;
+            result["transition_type"] = transition_type_list;
+            result["annotation"] = annotation_list;
+            return result;
+        }, "nest_transitions"_a = true, "columns"_a = nb::none(),
+           "Return unique analyte metadata as a dict")''',
+        "getChromatograms": '''
+        .def("getChromatograms", [](const OpenMS::XICParquetFile& self,
+                                    int64_t precursor_id, int64_t transition_id,
+                                    const std::string& modified_sequence,
+                                    int64_t precursor_charge, int64_t product_charge,
+                                    int64_t ms_level, int64_t run_id,
+                                    const std::string& filter, bool explode) {
+            std::vector<OpenMS::XICParquetFile::XICChromatogram> chroms;
+            self.getChromatograms(chroms, precursor_id, transition_id,
+                                  OpenMS::String(modified_sequence),
+                                  precursor_charge, product_charge,
+                                  ms_level, run_id, OpenMS::String(filter));
+
+            nb::list run_id_list, source_file_list, ms_level_list;
+            nb::list precursor_id_list, transition_id_list, modified_sequence_list;
+            nb::list precursor_charge_list, product_charge_list, detecting_transition_list;
+            nb::list precursor_decoy_list, product_decoy_list, transition_ordinal_list;
+            nb::list transition_type_list, annotation_list, rt_list, intensity_list;
+
+            for (const auto& c : chroms) {
+                if (explode) {
+                    if (c.rt.empty()) continue;
+                    for (size_t j = 0; j < c.rt.size(); ++j) {
+                        run_id_list.append(c.run_id);
+                        source_file_list.append(nb::str(c.source_file.c_str()));
+                        ms_level_list.append(c.ms_level);
+                        precursor_id_list.append(c.has_precursor_id ? nb::cast(c.precursor_id) : nb::none());
+                        transition_id_list.append(c.has_transition_id ? nb::cast(c.transition_id) : nb::none());
+                        modified_sequence_list.append(nb::str(c.modified_sequence.c_str()));
+                        precursor_charge_list.append(c.has_precursor_charge ? nb::cast(c.precursor_charge) : nb::none());
+                        product_charge_list.append(c.has_product_charge ? nb::cast(c.product_charge) : nb::none());
+                        detecting_transition_list.append(c.has_detecting_transition ? nb::cast(c.detecting_transition) : nb::none());
+                        precursor_decoy_list.append(c.has_precursor_decoy ? nb::cast(c.precursor_decoy) : nb::none());
+                        product_decoy_list.append(c.has_product_decoy ? nb::cast(c.product_decoy) : nb::none());
+                        transition_ordinal_list.append(c.has_transition_ordinal ? nb::cast(c.transition_ordinal) : nb::none());
+                        transition_type_list.append(nb::str(c.transition_type.c_str()));
+                        annotation_list.append(nb::str(c.annotation.c_str()));
+                        rt_list.append(c.rt[j]);
+                        intensity_list.append(c.intensity[j]);
+                    }
+                } else {
+                    run_id_list.append(c.run_id);
+                    source_file_list.append(nb::str(c.source_file.c_str()));
+                    ms_level_list.append(c.ms_level);
+                    precursor_id_list.append(c.has_precursor_id ? nb::cast(c.precursor_id) : nb::none());
+                    transition_id_list.append(c.has_transition_id ? nb::cast(c.transition_id) : nb::none());
+                    modified_sequence_list.append(nb::str(c.modified_sequence.c_str()));
+                    precursor_charge_list.append(c.has_precursor_charge ? nb::cast(c.precursor_charge) : nb::none());
+                    product_charge_list.append(c.has_product_charge ? nb::cast(c.product_charge) : nb::none());
+                    detecting_transition_list.append(c.has_detecting_transition ? nb::cast(c.detecting_transition) : nb::none());
+                    precursor_decoy_list.append(c.has_precursor_decoy ? nb::cast(c.precursor_decoy) : nb::none());
+                    product_decoy_list.append(c.has_product_decoy ? nb::cast(c.product_decoy) : nb::none());
+                    transition_ordinal_list.append(c.has_transition_ordinal ? nb::cast(c.transition_ordinal) : nb::none());
+                    transition_type_list.append(nb::str(c.transition_type.c_str()));
+                    annotation_list.append(nb::str(c.annotation.c_str()));
+                    nb::list rt_vals, int_vals;
+                    for (auto v : c.rt) rt_vals.append(v);
+                    for (auto v : c.intensity) int_vals.append(v);
+                    rt_list.append(rt_vals);
+                    intensity_list.append(int_vals);
+                }
+            }
+
+            nb::dict result;
+            result["run_id"] = run_id_list;
+            result["source_file"] = source_file_list;
+            result["ms_level"] = ms_level_list;
+            result["precursor_id"] = precursor_id_list;
+            result["transition_id"] = transition_id_list;
+            result["modified_sequence"] = modified_sequence_list;
+            result["precursor_charge"] = precursor_charge_list;
+            result["product_charge"] = product_charge_list;
+            result["detecting_transition"] = detecting_transition_list;
+            result["precursor_decoy"] = precursor_decoy_list;
+            result["product_decoy"] = product_decoy_list;
+            result["transition_ordinal"] = transition_ordinal_list;
+            result["transition_type"] = transition_type_list;
+            result["annotation"] = annotation_list;
+            result["rt"] = rt_list;
+            result["intensity"] = intensity_list;
+            return result;
+        }, "precursor_id"_a = -1, "transition_id"_a = -1, "modified_sequence"_a = "",
+           "precursor_charge"_a = -1, "product_charge"_a = -1, "ms_level"_a = -1,
+           "run_id"_a = -1, "filter"_a = "", "explode"_a = false,
+           "Return chromatogram data as a dict")''',
     },
 }
 
