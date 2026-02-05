@@ -1389,6 +1389,8 @@ def merge_with_pxd(
         # Nested classes (pxd name != C++ flattened name)
         "ColumnHeader",                  # ConsensusMap::ColumnHeader
         "ExtractionCoordinates",         # ChromatogramExtractorAlgorithm::ExtractionCoordinates
+        "ProteinGroup",                  # ProteinIdentification::ProteinGroup
+        "SearchParameters",              # ProteinIdentification::SearchParameters
         "MRMFQC_ComponentQCs",           # MRMFeatureQC::ComponentQCs
         "MRMFQC_ComponentGroupQCs",      # MRMFeatureQC::ComponentGroupQCs
         "MRMFQC_ComponentGroupPairQCs",  # MRMFeatureQC::ComponentGroupPairQCs

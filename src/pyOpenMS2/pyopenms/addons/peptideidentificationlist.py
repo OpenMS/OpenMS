@@ -886,3 +886,13 @@ def get_df(self, *args, **kwargs):
         DeprecationWarning, stacklevel=2
     )
     return self.to_df(*args, **kwargs)
+
+
+@addon("PeptideIdentificationList")
+def to_psm_qpx(self, *args, **kwargs):
+    """
+    **EXPERIMENTAL**: Export PSMs as QPX format structure with file metadata and PSMs array.
+
+    This is an alias for to_qpx().
+    """
+    return self.to_qpx(*args, **kwargs)
