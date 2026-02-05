@@ -1,6 +1,6 @@
 # pyopenms
 
-pyOpenMS is a Python library for the analysis of mass spectrometry data. It is mainly based on Cython wrappers around the OpenMS C++ library. To see which classes and functions are currently wrapped, please check the `.pxd` files under `./pxds` or consult our [API documentation](https://pyopenms.readthedocs.io/en/latest/apidocs/index.html).
+pyOpenMS is a Python library for the analysis of mass spectrometry data. It uses nanobind to generate C++ bindings for the OpenMS C++ library. To see which classes and functions are currently wrapped, please check the `.pxd` files under `./pxds` or consult our [API documentation](https://pyopenms.readthedocs.io/en/latest/apidocs/index.html).
 
 Additionally, it provides convenience functions for plotting and converting from/to DataFrames or NumPy/pyarrow arrays.
 
@@ -92,8 +92,8 @@ cmake --build . --target pyopenms # or pyopenms_wheel if you want to build wheel
 In addition to the usual CMake options you can set for the OpenMS C++ toolkit, enabling pyopenms offers the following:
 
 - `-DPython_EXECUTABLE="/path/to/python"` - Specify Python interpreter
-- `-DPY_NUM_THREADS=2` - Parallel Cython compilation (only affects the generation of cythonized .cpp files, NOT compilation, steer this with CMake/build program parallelism instead)
-- `-DPY_NUM_MODULES=8` - Number of module splits (default: 8)
+- `-DPY_NUM_THREADS=2` - (Deprecated, ignored) Was used for parallel Cython compilation
+- `-DPY_NUM_MODULES=8` - (Deprecated, ignored) Was used for module split count. Now uses domain-based split (10 modules)
 - `-DNO_DEPENDENCIES=ON`- When not distributing a wheel, you can use this to avoid copying dependencies into the pyopenms build folder. Make sure that the pyopenms shared modules find their dependencies at the original places with correct RPATH/INSTALL_NAME_DIR CMake settings.
 - `-DWITH_UV=OFF` - Do not use uv to create a new venv. If disabled, make sure the found (or specified, see Python_EXECUTABLE) Python executable has access to all required dependencies.
 - `-DPYOPENMS_UV_PYTHON_VERSION=3.12` - Specify the python version that uv should use to create the venv. This will decide with which python version the extension module and the pyopenms wheel will be compatible with. Note: If such a python version is not available on the system, uv will download it for you.
@@ -103,9 +103,8 @@ In addition to the usual CMake options you can set for the OpenMS C++ toolkit, e
 | Target | Description |
 |--------|-------------|
 | `pyopenms` | Main target: builds complete pyOpenMS module (runs all sub-targets) |
-| `pyopenms_compile` | Compile all C++ extension module(s) - aggregates `pyopenms_1` through `pyopenms_N` |
-| `pyopenms_1` ... `pyopenms_N` | Individual extension module targets (when `PY_NUM_MODULES > 1`) |
-| `compile_pxds` | Generate `.pyx` file(s) from `.pxd` declarations using autowrap |
+| `pyopenms_compile` | Compile all C++ nanobind extension modules (10 domain modules + main + arrow) |
+| `_pyopenms_kernel`, `_pyopenms_chemistry`, etc. | Individual domain module targets |
 | `pyopenms_copy_deps` | Copy OpenMS libraries to pyOpenMS build directory (when `NO_DEPENDENCIES=OFF`) |
 | `pyopenms_fix_deps` | Fix library dependencies on macOS (when `NO_DEPENDENCIES=OFF`) |
 | `pyopenms_wheel` | Package pyOpenMS as a wheel file (depends on `pyopenms`, creates wheel in `$BUILDDIR/pyopenms_wheels/`) |
@@ -135,45 +134,31 @@ In addition to the usual CMake options you can set for the OpenMS C++ toolkit, e
 
 ## How pyOpenMS is Built Under the Hood
 
-The build process involves several steps that transform C++ code into a Python extension module:
+The build process uses nanobind to generate C++ binding code from `.pxd` declarations:
 
-### Step 1: Wrapper Generation (`compile_pxds`)
+### Step 1: Binding Generation (maintainer-only, pre-committed)
 
-- **Input:** `.pxd` declaration files in `src/pyOpenMS/pxds/`
-- **Tool:** `autowrap` (automated Cython wrapper generator)
-- **Output:** Internally held corresponding pyx source code for every pxd file. Designed for a 1:1 correspondence of classes and pxds.
-- **What happens:** autowrap reads the `.pxd` files containing class and method declarations and generates Cython wrapper code with proper type conversions between C++ and Python
+- **Input:** `.pxd` declaration files in `pxds/` + C++ headers via libclang
+- **Tool:** `python -m generator` (the nanobind code generator in `generator/`)
+- **Output:** Pre-committed C++ binding files in `bindings/generated/` (11 files)
+- **What happens:** The generator parses `.pxd` files for the class/method allowlist, uses libclang for accurate C++ type information, and emits nanobind C++ code. This step is only needed when `.pxd` files change — the generated sources are committed to the repo.
 
-### Step 2: Addon Injection
+### Step 2: C++ Compilation and Linking
 
-- **Input:** Manual additions in `src/pyOpenMS/addons/` (`.pyx` files)
-- **Output:** Addons are merged into `pyopenms.pyx` or split `.pyx` files
-- **What happens:** Python-specific convenience methods (like `to_df()`, `__repr__()`) are injected into the generated wrapper code. Pyx files whose name corresponds to a pxd file are added to the end of the internally held, generated pyx source code for every pxd file/class. Pyx source codes are merged into N "split modules" to reduce peak memory usage during cpp compilation later. Special pyx files are added to the split modules as follows:
-  - ADD_TO_FIRST.pyx: Used to create stable references for utility methods. Only gets added to the first split module (i.e. _pyopenms_1)
-  - ADD_TO_ALL_OTHER.pyx: Usually used in conjunction with ADD_TO_FIRST to import the utility methods into all but the first split module.
-  - ADD_TO_ALL.pyx: Usually additional non-OpenMS imports that are needed by all modules.
+- **Input:** Pre-committed `bindings/generated/*.cpp` files
+- **Tools:** C++ compiler (gcc/clang/MSVC), linker, nanobind
+- **Output:** Domain-based shared modules: `_pyopenms.*.so` (Linux), `.dylib` (macOS), `.pyd` (Windows)
+  - 10 domain modules: `_pyopenms_kernel`, `_pyopenms_chemistry`, `_pyopenms_analysis`, etc.
+  - 1 main module: `_pyopenms`
+  - 1 optional Arrow module: `_arrow_zerocopy` (when `WITH_PARQUET=ON`)
+- **What happens:** nanobind C++ code is compiled and linked against OpenMS, OpenSwathAlgo, and Python. All modules share types via `NB_DOMAIN "pyopenms"`.
 
-### Step 3: Cython Compilation (part of `pyopenms_compile`)
+### Step 3: Addon Injection (at import time)
 
-- **Input:** `pyopenms.pyx` (or `_pyopenms_1.pyx` through `_pyopenms_N.pyx` for split modules)
-- **Tool:** Cython compiler
-- **Output:** C++ source files (`.cpp`)
-- **What happens:** Cython translates the `.pyx` file(s) into C++ code that bridges Python and C++ types. Type stub files (`.pyi`) are also generated for IDE support.
+- **Input:** Pure Python addon files in `pyopenms/addons/`
+- **What happens:** When `import pyopenms` runs, the addon system injects Python convenience methods (like `to_df()`, `__repr__()`) into the C++ wrapper classes using the `@addon("ClassName")` decorator.
 
-### Step 4: C++ Compilation and Linking (`pyopenms_1` ... `pyopenms_N`)
-
-- **Input:** Generated `.cpp` files
-- **Tools:** C++ compiler (gcc/clang/MSVC), linker
-- **Output:** `_pyopenms.*.so` (Linux), `_pyopenms.*.dylib` (macOS), or `_pyopenms.*.pyd` (Windows)
-  - For split modules: `_pyopenms_1`, `_pyopenms_2`, ... `_pyopenms_N`
-- **What happens:** The C++ code is compiled and linked against:
-  - OpenMS C++ library
-  - OpenSwathAlgo library
-  - Python C API
-  - NumPy C API
-  - Cython runtime
-
-### Step 5: Dependency Bundling (optional, when `NO_DEPENDENCIES=OFF`)
+### Step 4: Dependency Bundling (optional, when `NO_DEPENDENCIES=OFF`)
 
 - **Targets:** `pyopenms_copy_deps`, `pyopenms_fix_deps` (macOS only)
 - **What happens:**
@@ -185,44 +170,38 @@ The result is a native Python extension module that can be imported with `import
 
 ## Wrapping New Classes
 
-To add new OpenMS classes to pyOpenMS, you need to create `.pxd` declaration files that tell autowrap which classes and methods to wrap.
+To add new OpenMS classes to pyOpenMS, create a `.pxd` declaration file that specifies which classes and methods to wrap.
 
 **Quick overview:**
 
 1. Create or edit a `.pxd` file in `src/pyOpenMS/pxds/`
-2. Declare the class and methods using Cython syntax
+2. Declare the class and methods using `.pxd` syntax (parsed by the generator)
 3. Add wrapping hints as comments (e.g., `# wrap-ignore`, `# wrap-doc:`)
-4. Rebuild: `cmake --build . --target pyopenms`
+4. Regenerate bindings: `python -m generator --pxd-dir pxds --output-dir bindings/generated --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include`
+5. Commit the updated `bindings/generated/*.cpp` files
+6. Rebuild: `cmake --build OpenMS-build --target pyopenms`
 
 **Detailed instructions:** See [README_WRAPPING_NEW_CLASSES](./README_WRAPPING_NEW_CLASSES)
-
-**autowrap documentation:** https://github.com/OpenMS/autowrap/blob/master/docs/README.md
 
 **Important wrapping hints:**
 
 | Hint | Purpose | Example |
 |------|---------|---------|
 | `# wrap-ignore` | Skip this method | `void internal() # wrap-ignore` |
-| `# wrap-doc:` | Add Python docstring | See autowrap docs for format |
+| `# wrap-doc:` | Add Python docstring | Multi-line with `#  ` continuation |
 | `# wrap-as:NewName` | Rename method | `void getValue() # wrap-as:get_value` |
 | `# wrap-iter-begin/end` | Enable iteration | For container classes |
 | `# wrap-instances:` | Template instantiation | `# wrap-instances:T:int,double` |
+| `# wrap-attach:ClassName` | Attach as static method | For namespace-level functions |
+| `# wrap-hash` | Enable `__hash__` | For hashable types |
+| `# wrap-manual-memory` | Custom memory management | For singletons |
 
 **Common patterns:**
 
 - Always declare default and copy constructors
-- Use `cimport` for Cython imports, not Python `import`
+- Use `cimport` for type imports, not Python `import`
 - Match parameter types exactly with C++ signatures
 - Use `except + nogil` for methods that may throw exceptions
-
-**After making changes:**
-
-Force regeneration by removing the generation marker:
-
-```bash
-rm OpenMS-build/pyOpenMS/.cpp_extension_generated
-cmake --build OpenMS-build --target pyopenms
-```
 
 ## Development Patterns
 
@@ -241,7 +220,7 @@ and DataFrame columns should use snake_case for Pythonic consistency.
 
 ### DataFrame Export Pattern (get_data_dict + get_df)
 
-To add DataFrame export to a class, implement both methods directly in the Cython addon file:
+To add DataFrame export to a class, implement methods in a pure Python addon file:
 
 1. **`df_columns()`**: Returns list of available column names (for discovery)
 2. **`get_data_dict(columns=None)`**: Returns dict of numpy arrays (works without pandas)
@@ -251,42 +230,42 @@ This pattern ensures:
 
 - Users without pandas can still access data via `get_data_dict()`
 - Column selection happens at the data extraction level for efficiency
-- All DataFrame logic is in one place (the Cython addon)
+- All DataFrame logic is in one place (the addon)
 
-**Example addon** (`addons/MyClass.pyx`):
+**Example addon** (`pyopenms/addons/myclass.py`):
 
-```cython
-cimport numpy as np
-import numpy as np
-import pandas as pd
+```python
+from pyopenms.addons import addon
 
-    def df_columns(self, columns='default'):
-        """Returns list of column names that to_df() would produce."""
-        cols = ['mz', 'intensity']
-        if columns == 'all':
-            cols.append('extra_data')
-        return cols
+@addon("MyClass")
+def df_columns(self, columns='default'):
+    """Returns list of column names that to_df() would produce."""
+    cols = ['mz', 'intensity']
+    if columns == 'all':
+        cols.append('extra_data')
+    return cols
 
-    def get_data_dict(self, columns=None):
-        """Returns dict of numpy arrays for DataFrame conversion."""
-        if columns is not None:
-            requested = set(columns)
-        else:
-            requested = None
+@addon("MyClass")
+def get_data_dict(self, columns=None):
+    """Returns dict of numpy arrays for DataFrame conversion."""
+    import numpy as np
+    requested = set(columns) if columns is not None else None
 
-        def want(col):
-            return requested is None or col in requested
+    def want(col):
+        return requested is None or col in requested
 
-        data = {}
-        if want('mz'):
-            data['mz'] = self.get_mz_array()
-        if want('intensity'):
-            data['intensity'] = self.get_intensity_array()
-        return data
+    data = {}
+    if want('mz'):
+        data['mz'] = self.get_mz_array()
+    if want('intensity'):
+        data['intensity'] = self.get_intensity_array()
+    return data
 
-    def get_df(self, columns=None):
-        """Returns pandas DataFrame."""
-        return pd.DataFrame(self.get_data_dict(columns=columns))
+@addon("MyClass")
+def get_df(self, columns=None):
+    """Returns pandas DataFrame."""
+    import pandas as pd
+    return pd.DataFrame(self.get_data_dict(columns=columns))
 ```
 
 **Standalone utility functions** are kept in `pyopenms/_dataframes.py`:
@@ -306,10 +285,9 @@ Common methods to add for container-like classes:
 
 ### Rebuilding After Addon Changes
 
-After modifying addon `.pyx` files, force regeneration:
+Addons are pure Python files in `pyopenms/addons/` — no recompilation needed. Just rebuild (which copies updated files):
 
 ```bash
-rm OpenMS-build/pyOpenMS/.cpp_extension_generated
 cmake --build OpenMS-build --target pyopenms -j4
 ```
 
