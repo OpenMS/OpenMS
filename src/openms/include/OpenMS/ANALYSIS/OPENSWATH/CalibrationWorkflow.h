@@ -113,13 +113,15 @@ namespace OpenMS
       Analyzes the available iRT data to determine which IRT strategy
       should be used for calibration. Priority order:
       1. If static iRT files are configured → STATIC_FILES or RUN_SPECIFIC
-      2. If full transition library is provided → SAMPLE_ONCE or SAMPLE_PER_RUN
-      3. Otherwise → throws exception (CalibrationWorkflow requires iRT data)
+      2. If full transition library is provided and auto-iRT is enabled → SAMPLE_ONCE or SAMPLE_PER_RUN
+      3. Otherwise → NULL_TRANSFORMATION (no iRT data available)
       
       @param[in] full_transition_exp Full transition experiment for auto-sampling (empty if not available)
       @param[in] num_runs Total number of runs to process (affects strategy choice)
       @return The determined IRT strategy
-      @throws Exception::MissingInformation if no iRT data is available
+      
+      @note When NULL_TRANSFORMATION is returned, callers can decide whether to skip calibration
+      or throw an exception based on their requirements
     */
     IrtStrategy determineIrtStrategy(
       const OpenSwath::LightTargetedExperiment& full_transition_exp,
