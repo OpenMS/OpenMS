@@ -210,7 +210,7 @@ from .addons import apply_addons
 
 apply_addons(globals())
 
-# Add nested enum aliases for backwards compatibility with pyOpenMS (autowrap)
+# Add nested enum aliases for backwards compatibility
 # These enums are defined inside C++ classes but exposed at module level in nanobind
 # For compatibility, also add them as class attributes
 _NESTED_ENUM_ALIASES = {

@@ -1,6 +1,6 @@
 # pyopenms
 
-pyOpenMS is a Python library for the analysis of mass spectrometry data. It uses nanobind to generate C++ bindings for the OpenMS C++ library. To see which classes and functions are currently wrapped, please check the `.pxd` files under `./pxds` or consult our [API documentation](https://pyopenms.readthedocs.io/en/latest/apidocs/index.html).
+pyOpenMS is a Python library for the analysis of mass spectrometry data. It uses nanobind for C++ bindings to the OpenMS C++ library. To see which classes and functions are currently wrapped, check the `bindings/bind_*.cpp` files or consult our [API documentation](https://pyopenms.readthedocs.io/en/latest/apidocs/index.html).
 
 Additionally, it provides convenience functions for plotting and converting from/to DataFrames or NumPy/pyarrow arrays.
 
@@ -92,8 +92,6 @@ cmake --build . --target pyopenms # or pyopenms_wheel if you want to build wheel
 In addition to the usual CMake options you can set for the OpenMS C++ toolkit, enabling pyopenms offers the following:
 
 - `-DPython_EXECUTABLE="/path/to/python"` - Specify Python interpreter
-- `-DPY_NUM_THREADS=2` - (Deprecated, ignored) Was used for parallel Cython compilation
-- `-DPY_NUM_MODULES=8` - (Deprecated, ignored) Was used for module split count. Now uses domain-based split (10 modules)
 - `-DNO_DEPENDENCIES=ON`- When not distributing a wheel, you can use this to avoid copying dependencies into the pyopenms build folder. Make sure that the pyopenms shared modules find their dependencies at the original places with correct RPATH/INSTALL_NAME_DIR CMake settings.
 - `-DWITH_UV=OFF` - Do not use uv to create a new venv. If disabled, make sure the found (or specified, see Python_EXECUTABLE) Python executable has access to all required dependencies.
 - `-DPYOPENMS_UV_PYTHON_VERSION=3.12` - Specify the python version that uv should use to create the venv. This will decide with which python version the extension module and the pyopenms wheel will be compatible with. Note: If such a python version is not available on the system, uv will download it for you.
@@ -115,7 +113,7 @@ In addition to the usual CMake options you can set for the OpenMS C++ toolkit, e
    # With ctest (pyopenms specific tests only)
    cd /path/to/OpenMS-build
    ctest -R pyopenms # add -V for verbose output
-   
+
    # Or run pytest directly for faster iteration:
    cd /path/to/OpenMS-build/pyOpenMS
    python -m pytest tests/unittests
@@ -134,18 +132,11 @@ In addition to the usual CMake options you can set for the OpenMS C++ toolkit, e
 
 ## How pyOpenMS is Built Under the Hood
 
-The build process uses nanobind to generate C++ binding code from `.pxd` declarations:
+The build process compiles hand-maintained nanobind C++ binding files:
 
-### Step 1: Binding Generation (maintainer-only, pre-committed)
+### Step 1: C++ Compilation and Linking
 
-- **Input:** `.pxd` declaration files in `pxds/` + C++ headers via libclang
-- **Tool:** `python -m generator` (the nanobind code generator in `generator/`)
-- **Output:** Pre-committed C++ binding files in `bindings/generated/` (11 files)
-- **What happens:** The generator parses `.pxd` files for the class/method allowlist, uses libclang for accurate C++ type information, and emits nanobind C++ code. This step is only needed when `.pxd` files change — the generated sources are committed to the repo.
-
-### Step 2: C++ Compilation and Linking
-
-- **Input:** Pre-committed `bindings/generated/*.cpp` files
+- **Input:** Hand-maintained `bindings/bind_*.cpp` files (11 files across 10 domains + main)
 - **Tools:** C++ compiler (gcc/clang/MSVC), linker, nanobind
 - **Output:** Domain-based shared modules: `_pyopenms.*.so` (Linux), `.dylib` (macOS), `.pyd` (Windows)
   - 10 domain modules: `_pyopenms_kernel`, `_pyopenms_chemistry`, `_pyopenms_analysis`, etc.
@@ -153,12 +144,12 @@ The build process uses nanobind to generate C++ binding code from `.pxd` declara
   - 1 optional Arrow module: `_arrow_zerocopy` (when `WITH_PARQUET=ON`)
 - **What happens:** nanobind C++ code is compiled and linked against OpenMS, OpenSwathAlgo, and Python. All modules share types via `NB_DOMAIN "pyopenms"`.
 
-### Step 3: Addon Injection (at import time)
+### Step 2: Addon Injection (at import time)
 
 - **Input:** Pure Python addon files in `pyopenms/addons/`
 - **What happens:** When `import pyopenms` runs, the addon system injects Python convenience methods (like `to_df()`, `__repr__()`) into the C++ wrapper classes using the `@addon("ClassName")` decorator.
 
-### Step 4: Dependency Bundling (optional, when `NO_DEPENDENCIES=OFF`)
+### Step 3: Dependency Bundling (optional, when `NO_DEPENDENCIES=OFF`)
 
 - **Targets:** `pyopenms_copy_deps`, `pyopenms_fix_deps` (macOS only)
 - **What happens:**
@@ -170,38 +161,14 @@ The result is a native Python extension module that can be imported with `import
 
 ## Wrapping New Classes
 
-To add new OpenMS classes to pyOpenMS, create a `.pxd` declaration file that specifies which classes and methods to wrap.
+Bindings are hand-maintained in `bindings/bind_<domain>.cpp` files. See [README_WRAPPING_NEW_CLASSES](./README_WRAPPING_NEW_CLASSES) for detailed instructions.
 
 **Quick overview:**
 
-1. Create or edit a `.pxd` file in `src/pyOpenMS/pxds/`
-2. Declare the class and methods using `.pxd` syntax (parsed by the generator)
-3. Add wrapping hints as comments (e.g., `# wrap-ignore`, `# wrap-doc:`)
-4. Regenerate bindings: `python -m generator --pxd-dir pxds --output-dir bindings/generated --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include`
-5. Commit the updated `bindings/generated/*.cpp` files
-6. Rebuild: `cmake --build OpenMS-build --target pyopenms`
-
-**Detailed instructions:** See [README_WRAPPING_NEW_CLASSES](./README_WRAPPING_NEW_CLASSES)
-
-**Important wrapping hints:**
-
-| Hint | Purpose | Example |
-|------|---------|---------|
-| `# wrap-ignore` | Skip this method | `void internal() # wrap-ignore` |
-| `# wrap-doc:` | Add Python docstring | Multi-line with `#  ` continuation |
-| `# wrap-as:NewName` | Rename method | `void getValue() # wrap-as:get_value` |
-| `# wrap-iter-begin/end` | Enable iteration | For container classes |
-| `# wrap-instances:` | Template instantiation | `# wrap-instances:T:int,double` |
-| `# wrap-attach:ClassName` | Attach as static method | For namespace-level functions |
-| `# wrap-hash` | Enable `__hash__` | For hashable types |
-| `# wrap-manual-memory` | Custom memory management | For singletons |
-
-**Common patterns:**
-
-- Always declare default and copy constructors
-- Use `cimport` for type imports, not Python `import`
-- Match parameter types exactly with C++ signatures
-- Use `except + nogil` for methods that may throw exceptions
+1. Pick the right `bindings/bind_<domain>.cpp` based on the C++ header path
+2. Add the `#include` for the C++ header
+3. Add `nb::class_<...>(m, "ClassName", "docstring")` with `.def()` chains
+4. Rebuild: `cmake --build OpenMS-build --target pyopenms`
 
 ## Development Patterns
 
@@ -308,12 +275,12 @@ import pytest
 import os
 
 class TestMyFeature(unittest.TestCase):
-    
+
     @pytest.fixture(autouse=True)
     def setup_test_data(self, openms_test_data_dir):
         """Setup test with test data directory."""
         self.test_file = os.path.join(openms_test_data_dir, "my_test_file.mzML")
-    
+
     def test_something(self):
         # Use self.test_file here
         pass

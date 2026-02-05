@@ -1,336 +1,206 @@
-nanobind
+Wrapping New OpenMS Classes in pyOpenMS (nanobind)
 
-General concept of how the wrapping is done:
-  Step 1: The author declares which classes and which functions of these
-  classes s/he wants to wrap (expose to Python). This is done by writing the
-  function declaration in a file in the pxds/ folder.
-  Step 2: The nanobind code generator (generator/) parses the .pxd files
-  for the class/method allowlist and uses libclang for accurate C++ type
-  information. It emits nanobind C++ binding code in bindings/generated/.
-  Pure Python convenience methods can be added in pyopenms/addons/.
-  Step 3: A compiler compiles the generated C++ code and links it with
-  nanobind and OpenMS to produce Python extension modules that are
-  importable in Python with "import pyopenms"
+Bindings are hand-maintained C++ files using nanobind. No code generation step is
+needed — you edit the binding files directly and rebuild.
 
-What if you changed an API in C++ and now pyOpenMS is broken? 
-=> find the corresponding file in the pxds/ folder and adjust the function
-   declaration accordingly
+= File layout
 
-How to wrap new classes:
+  bindings/
+    bind_kernel.cpp         — KERNEL/ classes (MSSpectrum, MSExperiment, etc.)
+    bind_metadata.cpp       — METADATA/ classes
+    bind_chemistry.cpp      — CHEMISTRY/ classes
+    bind_analysis.cpp       — ANALYSIS/ classes
+    bind_featurefinder.cpp  — FEATUREFINDER/ classes
+    bind_format.cpp         — FORMAT/ classes
+    bind_processing.cpp     — PROCESSING/ classes
+    bind_datastructures.cpp — DATASTRUCTURES/, MATH/, CONCEPT/ classes
+    bind_ml.cpp             — ML/ classes
+    bind_misc.cpp           — Everything else
+    main_module.cpp         — Main _pyopenms module (placeholder)
+    type_casters/           — Custom nanobind type casters (6 headers)
 
-To wrap a new OpenMS class: Create a new "pxd" file in the folder "./pxds". As
-a small example, look at the CVTerm.pxd to get you started. Start with the
-following structure:
+= Quick start: wrapping a new class
 
-from xxx cimport *
-cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
+1. Pick the right bind_<domain>.cpp based on the C++ header path
+2. Add the #include for the C++ header at the top of the file
+3. Add a section comment and the class binding:
 
-    cdef cppclass ClassName(DefaultParamHandler):
-        # wrap-inherits:
-        #    DefaultParamHandler
+    // -----------------------------------------------------------------------
+    // MyNewClass
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::MyNewClass>(m, "MyNewClass", "Brief description")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::MyNewClass&>())
+        .def("myMethod", [](OpenMS::MyNewClass& self, int arg) {
+            return self.myMethod(arg);
+        }, "arg"_a, "Description of what myMethod does")
+        ;
 
-        ClassName() except + nogil 
-        ClassName(ClassName) except + nogil 
+4. Build and test:
 
+    cmake --build OpenMS-build --target pyopenms -j$(nproc)
+    cd /tmp && PYTHONPATH=.../OpenMS-build/pyOpenMS python3 -m pytest \
+      .../src/pyOpenMS/tests/ -v -k "MyNewClass"
 
-- make sure to use "ClassName:" instead of "ClassName(DefaultParamHandler)" to
-  wrap a class that does not inherit from another class and also remove the two
-  comments below that line.
-- always use "cimport" and not Python "import"
-- always add default constructor AND copy constructor to the code (note that the C++
-  compiler will add a default copy constructur to any class, so there is always
-  one if it is not declared, see http://www.cplusplus.com/articles/y8hv0pDG/ "The
-  implicit copy constructor does a member-wise copy of the source object.")
-  EXCEPTION: If the constructor is deleted or private in C++, see the section 
-  "Wrapping classes with deleted or private constructors" below.
-- to expose a function to Python, copy the signature to your pxd file, e.g.
-  "DataValue getValue()" and make sure you "cimport" all corresponding classes.
-  Replace std::vector with vector from libcpp.vector (see for example PepXMLFile.pxd)
+= Common patterns
 
-Possible Error messages:
+== Constructors
 
-  item0.inst = shared_ptr[_XXX](new _XXX(deref(it_terms)))
-    Call with wrong number of arguments (expected 0, got 1)
+Always add default and copy constructors when available:
 
-means you forgot to add the copy constructor in the class XXX and it is expected somewhere else => go fix it
+    .def(nb::init<>())
+    .def(nb::init<const OpenMS::MyClass&>())
 
+For classes with parameterized constructors:
 
+    .def(nb::init<int, double>())
 
-- inheriting: some limitations, see Precursor.pxd
+== Methods
 
-- arguments by reference may be copied under some circumstances. For example,
-  if they are in an array then not the original argument is handed back, so
-  comparisons might fail.
+Wrap methods using lambdas for explicit control:
 
-- operator+=: see AASequence.iadd in AASequence.pxd
+    .def("getName", [](const OpenMS::MyClass& self) {
+        return self.getName();
+    }, "Returns the name")
 
-- operator==, !=, <=, <, >=, > are wrapped automatically
+Use const& for read-only access. Use non-const& when the method modifies state.
 
-- limitations: iterator, reference
+== Static methods
 
-- copy-constructor -> __copy__
+    .def_static("getInstance", []() -> OpenMS::MyDB* {
+        return OpenMS::MyDB::getInstance();
+    }, nb::rv_policy::reference, "Returns the singleton instance")
 
-= Wrapping hints
-- wrap-ignore: tells the generator to not wrap the function
-- wrap-as - see for example AASequence ":"
-- wrap-iter-begin, wrap-iter-end (see ConsensusMap.pxd)
-- wrap-instances - for templated classes (see MSSpectrum.pxd)
-- wrap-attach: enums, static methods (see for example VersionInfo.pxd)
-- wrap-upper-limit:size or size() (see MSSpectrum.pxd)
-- wrap-hash: enable __hash__ for hashable types
-- wrap-manual-memory: custom memory management for singletons.
+== Properties (read-write and read-only)
 
-= CRITICAL: wrap-doc formatting requirements
+    .def_rw("name", &OpenMS::MyClass::name)
+    .def_ro("version", &OpenMS::MyClass::version)
 
-The pxd parser enforces STRICT whitespace rules for wrap-doc blocks.
-All documentation continuation lines MUST start with "#  " (hash + exactly 2 spaces).
+== Overloaded methods
 
-The parser uses `line.startswith("#  ")` for validation and continuation.
+Use separate .def() calls with different lambda signatures:
 
-== Correct format:
+    .def("setMapping", [](OpenMS::MyClass& self, double scale, double inside, double outside) {
+        self.setMapping(scale, inside, outside);
+    }, "scale"_a, "inside"_a, "outside"_a)
+    .def("setMapping", [](OpenMS::MyClass& self, double low, double high) {
+        self.setMapping(low, high);
+    }, "low"_a, "high"_a)
 
-    void myMethod() except + nogil
-        # wrap-doc:
-        #  This is the documentation text.
-        #
-        #  :param x: Description of parameter
-        #  :returns: Description of return value
+== Out-parameters (C++ fills a vector by reference)
 
-Note: Each continuation line starts with "#  " (hash + 2 spaces).
-For blank lines within docs, use "#  " (hash + 2 spaces, nothing after).
+Convert to return value:
 
-== WRONG formats (will cause ValueError):
+    .def("getAllNames", [](const OpenMS::MyDB& self) {
+        std::vector<OpenMS::String> names;
+        self.getAllNames(names);
+        return names;
+    }, "Returns all names")
 
-    # WRONG - only 1 space after hash:
-    void myMethod() except + nogil
-        # wrap-doc:
-        # This text has only one space.    <- FAILS startswith("#  ")
+== Enums
 
-    # WRONG - no spaces after hash:
-    void myMethod() except + nogil
-        # wrap-doc:
-        #This text has no space.           <- FAILS startswith("#  ")
+Nested enums use nb::enum_ scoped to the class variable:
 
-    # WRONG - inconsistent spacing:
-    void myMethod() except + nogil
-        # wrap-doc:
-        #  First line is correct.
-        # Second line has one space.       <- Loop exits, docs truncated
+    auto myclass = nb::class_<OpenMS::MyClass>(m, "MyClass");
+    nb::enum_<OpenMS::MyClass::Status>(myclass, "Status", nb::is_arithmetic())
+        .value("ACTIVE", OpenMS::MyClass::Status::ACTIVE)
+        .value("INACTIVE", OpenMS::MyClass::Status::INACTIVE)
+        .export_values();
 
-== Why this matters:
+Standalone enums at module level:
 
-1. VALIDATION: The first continuation line must pass `startswith("#  ")` or parsing fails
-2. ITERATION: The loop continues only while lines start with "#  "
-3. EXTRACTION: Content is extracted by removing exactly 3 characters (the "#  " prefix)
+    nb::enum_<OpenMS::FileTypes::Type>(m, "FileType", nb::is_arithmetic())
+        .value("MZML", OpenMS::FileTypes::MZML)
+        .export_values();
 
-Changing "#  " to "#" or "# " will cause the parser to raise a ValueError and fail
-to generate Python bindings for the entire pxd file.
+== Inheritance
 
-= Wrapping classes with deleted or private constructors
+    nb::class_<OpenMS::Derived, OpenMS::Base>(m, "Derived", "Derived class")
 
-Some OpenMS classes have deleted or private default constructors and/or copy constructors.
-This commonly occurs in:
-  - Singleton classes (e.g., ModificationsDB, ElementDB, CrossLinksDB)
-  - Utility classes with only static methods (e.g., AAIndex, UniqueIdGenerator)
-  - Handler classes that require specific initialization (e.g., XMLHandler)
-  - Base classes that should not be instantiated directly (e.g., ConsensusIDAlgorithm)
+== Return value policies
 
-When wrapping such classes, you need to handle them differently from regular classes.
+- nb::rv_policy::reference_internal — for getters returning references to owned data
+- nb::rv_policy::reference — for singletons or data not owned by the caller
+- nb::rv_policy::copy — for returning copies of const references
 
-= Pattern 1: Classes with private/deleted default and copy constructors (Singletons)
+== Docstrings
 
-For singleton classes that have a getInstance() static method:
+Add docstrings as the last argument to class or method definitions:
 
-Step 1: In the pxd file (e.g., pxds/ModificationsDB.pxd):
+    nb::class_<OpenMS::MyClass>(m, "MyClass",
+        R"doc(
+    Brief description of the class.
 
-    cdef cppclass ModificationsDB "OpenMS::ModificationsDB":
-        # wrap-manual-memory:
-        #  cdef AutowrapPtrHolder[_ModificationsDB] inst
+    Longer description with details.
+    )doc")
 
-        # private
-        ModificationsDB() except + nogil  # wrap-ignore
-        # private
-        ModificationsDB(ModificationsDB) except + nogil  # wrap-ignore
+    .def("myMethod", ..., "arg"_a, "Brief description of myMethod")
 
-        # ... public methods ...
+For longer method docs use R"doc(...)doc" syntax.
 
-    ## wrap static methods
-    cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS::ModificationsDB":
-        ModificationsDB* getInstance() except + nogil  # wrap-ignore
+= Singleton classes
 
-Key points:
-  - Mark constructors with "# private" or "# wrap-ignore" to prevent the generator from wrapping them
-  - Add "# wrap-manual-memory:" directive for custom memory management
-  - Declare getInstance() but mark it with "# wrap-ignore" (handled as a special method in the generator)
+For classes with private constructors and getInstance():
 
-The nanobind generator handles singleton classes automatically when it sees the
-wrap-manual-memory directive. No manual addon file is needed for basic singletons.
+    nb::class_<OpenMS::MyDB>(m, "MyDB", "Singleton database")
+        .def_static("getInstance", []() -> OpenMS::MyDB* {
+            return OpenMS::MyDB::getInstance();
+        }, nb::rv_policy::reference, "Returns the singleton instance")
+        // ... public methods, no constructors exposed ...
+        ;
 
-Examples: ModificationsDB.pxd, ElementDB.pxd, CrossLinksDB.pxd
+= Domain mapping
 
-= Pattern 2: Utility classes with only static methods (no instance needed)
+Pick the binding file based on the C++ header location:
 
-For utility classes where you only want to expose static methods and don't need to create instances:
+    OpenMS/KERNEL/         → bind_kernel.cpp
+    OpenMS/METADATA/       → bind_metadata.cpp
+    OpenMS/CHEMISTRY/      → bind_chemistry.cpp
+    OpenMS/ANALYSIS/       → bind_analysis.cpp
+    OpenMS/FEATUREFINDER/  → bind_featurefinder.cpp
+    OpenMS/FORMAT/         → bind_format.cpp
+    OpenMS/PROCESSING/     → bind_processing.cpp
+    OpenMS/DATASTRUCTURES/ → bind_datastructures.cpp
+    OpenMS/MATH/           → bind_datastructures.cpp
+    OpenMS/CONCEPT/        → bind_datastructures.cpp
+    OpenMS/ML/             → bind_ml.cpp
+    Everything else        → bind_misc.cpp
 
-In the pxd file (e.g., pxds/AAIndex.pxd):
+= Type casters
 
-    cdef cppclass AAIndex "OpenMS::AAIndex":
-        # private
-        AAIndex() except + nogil  # wrap-ignore
-        # private
-        AAIndex(AAIndex &) except + nogil  # wrap-ignore
-        
-        # Static or utility methods that don't need an instance
-        double aliphatic(char aa) except + nogil 
-        double acidic(char aa) except + nogil 
+Custom type casters in bindings/type_casters/ handle automatic conversion:
 
-Key points:
-  - Mark both default and copy constructors with "# wrap-ignore"
-  - Comment them as "# private" for clarity
-  - No addon file needed if all methods are static or class-level
+- OpenMS::String ↔ Python str
+- OpenMS::DataValue ↔ Python int/float/str/list
+- OpenMS::ParamValue ↔ Python int/float/str/list
+- DPosition<1> ↔ float, DPosition<2> ↔ tuple
+- std::string ↔ str (also accepts bytes)
 
-Examples: AAIndex.pxd, UniqueIdGenerator.pxd
+= Adding Python-only methods (addons)
 
-= Pattern 3: Handler classes with specific constructor requirements
+For methods that are better implemented in Python, add an addon file in
+pyopenms/addons/:
 
-For classes that require specific parameters and have deleted default constructors:
+    from pyopenms.addons import addon
 
-In the pxd file (e.g., pxds/XMLHandler.pxd):
+    @addon("MyClass")
+    def my_python_method(self, arg):
+        """This method is injected into MyClass at import time."""
+        return self.someMethod(arg) + 1
 
-    cdef extern from "<OpenMS/FORMAT/HANDLERS/XMLHandler.h>" namespace "OpenMS::Internal":
-        
-        cdef cppclass XMLHandler:
-            # private
-            XMLHandler() except + nogil  # wrap-ignore
-            # copy constructor deleted in base class
-            XMLHandler(XMLHandler &) except + nogil  # wrap-ignore
+= Cross-module type sharing
 
-            # Actual constructor with required parameters
-            XMLHandler(const String & filename, const String & version) except + nogil 
-            
-            # ... other methods ...
+All domain modules use NB_DOMAIN "pyopenms" so types defined in one module
+(e.g., MSSpectrum in _pyopenms_kernel) are available in another module
+(e.g., MzMLFile in _pyopenms_format). No special imports needed.
 
-Key points:
-  - Mark the default and copy constructors with "# wrap-ignore"
-  - Keep the parameterized constructors that should be exposed
-  - Add comments explaining why (e.g., "deleted in base class", "# private")
+= Common errors
 
-Examples: XMLHandler.pxd, ConsensusIDAlgorithm.pxd
+Error: "incompatible function arguments"
+  → Check parameter types match exactly. Use lambdas for explicit conversion.
 
-= Pattern 4: Base classes or abstract classes with protected/private constructors
+Error: "nanobind: type not found"
+  → The class might be in a different domain module. Check NB_DOMAIN is set.
 
-For base classes that should not be instantiated directly but only through derived classes:
-
-In the pxd file (e.g., pxds/ConsensusIDAlgorithm.pxd):
-
-    cdef cppclass ConsensusIDAlgorithm(DefaultParamHandler):
-        # wrap-inherits:
-        #  DefaultParamHandler
-        # wrap-ignore
-        # ABSTRACT class
-
-        # protected
-        ConsensusIDAlgorithm() except + nogil  # wrap-ignore
-        # private
-        ConsensusIDAlgorithm(ConsensusIDAlgorithm) except + nogil  # wrap-ignore
-
-        # Public methods
-        void apply(PeptideIdentificationList & ids, Size number_of_runs) except + nogil
-
-Key points:
-  - Mark protected or private constructors with "# wrap-ignore"
-  - Add comments like "# protected" or "# private" to document why
-  - For truly abstract classes, you may also add class-level "# wrap-ignore" to prevent
-    the class from being wrapped entirely (only derived classes will be wrapped)
-  - Derived classes can have their own constructors exposed
-
-Examples: ConsensusIDAlgorithm.pxd, ConsensusIDAlgorithmIdentity.pxd
-
-= Common errors and solutions:
-
-Error: "Call with wrong number of arguments (expected 0, got 1)"
-Solution: You forgot to declare the copy constructor. Either add it (if available) or mark it 
-          with "# wrap-ignore" if it's deleted/private.
-
-Error: "no matching function for call to 'ClassName::ClassName()'"
-Solution: The class has no default constructor. Mark it with "# wrap-ignore" and either:
-          - Provide a parameterized constructor, or
-          - Create a manual wrapper in an addon file (for singletons)
-
-Error: Segfault when using singleton classes
-Solution: Don't use shared_ptr for singletons. Use raw pointer with manual memory management
-          as shown in Pattern 1, and don't delete the instance in __dealloc__.
-
-= Summary of wrap-ignore usage:
-
-Use "# wrap-ignore" on constructors when:
-  1. The constructor is private or deleted in C++
-  2. The class is a singleton and instances should be obtained via getInstance()
-  3. The class should not be instantiated from Python
-  4. The copy constructor is explicitly deleted (e.g., for non-copyable classes)
-
-Always add a comment explaining why the constructor is ignored (e.g., "# private",
-"# deleted", "# singleton pattern", "# deleted in base class").
-
-= String handling in pxd files
-
-When wrapping C++ functions with std::string parameters, use the appropriate string
-type alias to provide a Pythonic interface:
-
-== String type aliases
-
-- **libcpp_string**: Basic C++ std::string mapping. In Python, accepts only bytes.
-  Use for member variables and internal data storage.
-
-- **libcpp_utf8_string**: For function INPUT parameters. Accepts both Python str
-  and bytes, automatically encoding str to UTF-8. More Pythonic for user-facing APIs.
-
-- **libcpp_utf8_output_string**: For function RETURN values. Converts C++ std::string
-  to Python str (instead of bytes). More Pythonic for user-facing APIs.
-
-== Import syntax
-
-    from libcpp.string cimport string as libcpp_string
-    from libcpp.string cimport string as libcpp_utf8_string
-    from libcpp.string cimport string as libcpp_utf8_output_string
-
-== Guidelines
-
-1. Use **libcpp_utf8_string** for function parameters that users pass in:
-
-    void setName(libcpp_utf8_string name) except + nogil   # accepts str or bytes
-
-2. Use **libcpp_utf8_output_string** for return values that users receive:
-
-    libcpp_utf8_output_string getName() except + nogil     # returns str
-
-   This also works for return types in containers:
-
-    libcpp_vector[libcpp_utf8_output_string] getNames() except + nogil  # returns list of str
-
-3. Keep **libcpp_string** for:
-   - Member variables (internal data storage)
-   - Cases where raw bytes are semantically correct
-
-== Example
-
-Before (bytes-only):
-    void processFile(libcpp_string filename) except + nogil
-    # Python: obj.processFile(b"/path/to/file")  # bytes required
-
-After (str and bytes):
-    void processFile(libcpp_utf8_string filename) except + nogil
-    # Python: obj.processFile("/path/to/file")   # str works
-    # Python: obj.processFile(b"/path/to/file")  # bytes still works
-
-== Manual addon wrappers
-
-When wrapping functions manually (with wrap-ignore), implement the same behavior:
-
-    def myMethod(self, code):
-        """Accepts str or bytes."""
-        assert isinstance(code, (bytes, str)), 'arg code wrong type'
-        if isinstance(code, str):
-            code = code.encode('utf-8')
-        # ... call C++ function with bytes ...
-
+Error: linker errors about undefined symbols
+  → Make sure the #include is added and the class is in the OpenMS library.
