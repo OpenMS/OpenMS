@@ -24,6 +24,12 @@ namespace Util {
    * This code is here to isolate checking hits because the process
    * might change in a future version of OpenMS.
    */
- std::optional<PeptideHit> feature_hit(const Feature&);
+  std::optional<PeptideHit> feature_hit(const Feature&);
+
+  /****************************************************************************/
+  /**
+   * Compute the mass error in PPM for the given feature.
+   */
+  std::optional<double> feature_mass_error(const Feature&);
 
 }}} // Name spaces

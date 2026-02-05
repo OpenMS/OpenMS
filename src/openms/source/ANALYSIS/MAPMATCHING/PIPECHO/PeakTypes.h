@@ -12,6 +12,7 @@
 
 #include "OpenMS/KERNEL/Feature.h"
 
+#include "Score.h"
 #include "Window.h"
 
 namespace OpenMS {
@@ -65,10 +66,10 @@ namespace PipEcho {
    */
   struct Acceptor : Peak {
     /// Type used when searching for a matching Acceptor.
-    using match_t = std::optional<std::pair<double, Acceptor*>>;
+    using match_t = std::optional<std::pair<Score, Acceptor*>>;
 
     /// Type used for tracking targets and decoys.
-    using scored_t = std::optional<std::pair<double, const Donor*>>;
+    using scored_t = std::optional<std::pair<Score, const Donor*>>;
 
     /// Possible target Donor.
     scored_t target;
@@ -100,9 +101,11 @@ namespace PipEcho {
   void Acceptor::update_donor(Member slot, const scored_t& donor) {
     if (!donor.has_value()) return;
 
-    if (!(this->*slot).has_value() || (this->*slot)->first < donor->first) {
-      this->*slot = donor;
-    }
+    if (!(this->*slot).has_value() ||
+        (this->*slot)->first.mbr_score < donor->first.mbr_score)
+      {
+        this->*slot = donor;
+      }
   }
 
   /****************************************************************************/

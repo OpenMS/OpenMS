@@ -26,4 +26,14 @@ namespace Util {
     return {};
   }
 
+  /****************************************************************************/
+  std::optional<double> feature_mass_error(const Feature& feature) {
+    auto hit = Util::feature_hit(feature);
+    if (!hit.has_value()) return {};
+
+    double experimental = feature.getMZ();
+    double theoretical = hit->getSequence().getMZ(hit->getCharge());
+    return (experimental - theoretical) / theoretical * 1e-6;
+  }
+
 }}} // Name spaces

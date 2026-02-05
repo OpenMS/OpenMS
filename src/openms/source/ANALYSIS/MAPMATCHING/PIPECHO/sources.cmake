@@ -7,6 +7,8 @@ set(sources_list_h
   MzDiff.h
   PeakTypes.h
   Run.h
+  RunStatistics.h
+  Score.h
   Util.h
   Window.h
 )
