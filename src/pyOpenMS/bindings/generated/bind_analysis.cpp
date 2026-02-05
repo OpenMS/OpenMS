@@ -197,9 +197,8 @@ the transformation model used for concentration calculation
 
     nb::class_<OpenMS::TargetedExperimentHelper::Compound>(m, "Compound", 
         R"doc(
-This class stores helper structures that are used in multiple classes
-of the TargetedExperiment (e.g. ReactionMonitoringTransition and
-IncludeExcludeTarget). */
+Represents a compound in a targeted experiment (e.g. used by
+ReactionMonitoringTransition and IncludeExcludeTarget)
 CVTermList
 )doc")
         .def(nb::init<>())
@@ -1199,9 +1198,8 @@ Constructors
 
     nb::class_<OpenMS::TargetedExperimentHelper::Peptide>(m, "Peptide", 
         R"doc(
-This class stores helper structures that are used in multiple classes
-of the TargetedExperiment (e.g. ReactionMonitoringTransition and
-IncludeExcludeTarget). */
+Represents a peptide in a targeted experiment (e.g. used by
+ReactionMonitoringTransition and IncludeExcludeTarget)
 CVTermList
 )doc")
         .def(nb::init<>())

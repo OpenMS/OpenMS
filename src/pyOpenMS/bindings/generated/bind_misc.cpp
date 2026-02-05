@@ -2,6 +2,7 @@
 // Domain: misc
 
 #include "all_casters.h"
+#include "nanobind_ms_data_consumer.h"
 #include <OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
@@ -2360,11 +2361,7 @@ Averagine access
 
     nb::class_<OpenMS::FeatureFinderAlgorithmPicked, OpenMS::DefaultParamHandler>(m, "FeatureFinderAlgorithmPicked", 
         R"doc(
-The purpose of this struct is to provide definitions of classes and
-typedefs which are used throughout all FeatureFinder classes. */
-struct OPENMS_DLLAPI FeatureFinderDefs { /// Index to peak consisting
-of two UInts (scan index / peak index) typedef
-IsotopeCluster::IndexPair IndexPair;
+FeatureFinder algorithm for picked (centroided) data
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
@@ -2991,8 +2988,8 @@ ProgressLogger
 
     nb::class_<OpenMS::PeakPickerIterative, OpenMS::DefaultParamHandler>(m, "PeakPickerIterative", 
         R"doc(
-A small structure to hold peak candidates * */ struct PeakCandidate {
-int index; double peak_apex_intensity;
+Iterative peak picker that uses seed-based centroiding to detect and
+integrate peaks in profile spectra
 DefaultParamHandler
 ProgressLogger
 )doc")
@@ -4129,6 +4126,13 @@ MzMLFile().store("filtered.mzML", exp)
         .def("store", [](OpenMS::MzMLFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzML file")
+
+        .def("transform", [](OpenMS::MzMLFile& self, const OpenMS::String& filename, nb::object consumer,
+                             bool skip_full_count, bool skip_first_pass) {
+            NanobindMSDataConsumer wrapper(consumer);
+            self.transform(filename, &wrapper, skip_full_count, skip_first_pass);
+        }, "filename"_a, "consumer"_a, "skip_full_count"_a = false, "skip_first_pass"_a = false,
+        "Transform an mzML file using a consumer object (streaming processing)")
         ;
 
     nb::class_<OpenMS::MzXMLFile, OpenMS::Internal::XMLFile>(m, "MzXMLFile", 
@@ -4160,6 +4164,13 @@ MzXMLFile().load("test.mzXML", exp)
         .def("store", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzXML file")
+
+        .def("transform", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, nb::object consumer,
+                             bool skip_full_count) {
+            NanobindMSDataConsumer wrapper(consumer);
+            self.transform(filename, &wrapper, skip_full_count);
+        }, "filename"_a, "consumer"_a, "skip_full_count"_a = false,
+        "Transform an mzXML file using a consumer object (streaming processing)")
         ;
 
     nb::class_<OpenMS::OMSSAXMLFile, OpenMS::Internal::XMLFile>(m, "OMSSAXMLFile", 

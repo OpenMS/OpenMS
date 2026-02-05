@@ -16,7 +16,7 @@ class TestGaussFilter(unittest.TestCase):
 
     def test_run(self):
         thisfilter = pyopenms.GaussFilter();
-        old_firstspec = self.exp[0]
+        old_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterExperiment(self.exp)
 
         self.assertNotEqual(self.exp.size(), 0)
@@ -39,7 +39,7 @@ class TestSavitzkyGolayFilter(unittest.TestCase):
 
     def test_run(self):
         thisfilter = pyopenms.SavitzkyGolayFilter();
-        old_firstspec = self.exp[0]
+        old_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterExperiment(self.exp)
 
         self.assertNotEqual(self.exp.size(), 0)

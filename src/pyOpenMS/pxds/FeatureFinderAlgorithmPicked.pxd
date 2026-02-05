@@ -10,11 +10,7 @@ cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespa
 
     cdef cppclass FeatureFinderAlgorithmPicked(DefaultParamHandler):
         # wrap-doc:
-        #  The purpose of this struct is to provide definitions of classes and
-        #  typedefs which are used throughout all FeatureFinder classes. */
-        #  struct OPENMS_DLLAPI FeatureFinderDefs { /// Index to peak consisting
-        #  of two UInts (scan index / peak index) typedef
-        #  IsotopeCluster::IndexPair IndexPair;
+        #  FeatureFinder algorithm for picked (centroided) data
 
         # wrap-inherits:
         #   DefaultParamHandler

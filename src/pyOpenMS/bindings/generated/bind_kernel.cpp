@@ -1427,10 +1427,10 @@ mz, intensities = spectrum.get_peaks()
         .def("__iter__", [](OpenMS::MSExperiment& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "MSExperiment_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::MSExperiment& self) { return self.size(); })
 
-        .def("__getitem__", [](const OpenMS::MSExperiment& self, size_t i) {
+        .def("__getitem__", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
             if (i >= self.size()) throw nb::index_error();
-            return self[i];  // Return by value (copy)
-        }, "i"_a, "Returns a copy of the spectrum at index i")
+            return self[i];
+        }, "i"_a, nb::rv_policy::reference_internal)
 
         .def("rasterizeRTMZ", [](OpenMS::MSExperiment& self,
                                 nb::ndarray<float, nb::ndim<2>, nb::device::cpu> output,
@@ -2971,9 +2971,7 @@ uninitialized
 
     nb::class_<OpenMS::TargetedExperimentHelper::RetentionTime, OpenMS::CVTermListInterface>(m, "RetentionTime", 
         R"doc(
-This class stores helper structures that are used in multiple classes
-of the TargetedExperiment (e.g. ReactionMonitoringTransition and
-IncludeExcludeTarget). */
+Represents a retention time entry for targeted experiment compounds and peptides
 CVTermList
 )doc")
         .def(nb::init<>())
