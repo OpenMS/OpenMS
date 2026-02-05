@@ -678,6 +678,12 @@ class PxdParser:
                 if not val or val.startswith("cdef"):
                     continue
 
+                # Handle Cython syntax: NAME "fully::qualified::cpp::name"
+                # e.g., SUM "OpenMS::MSExperiment::RasterAggregation::SUM"
+                # Extract just the Python/enum name before the quoted string
+                if '"' in val:
+                    val = val.split('"')[0].strip()
+
                 if "=" in val:
                     parts = val.split("=")
                     name = parts[0].strip()
