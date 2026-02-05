@@ -343,6 +343,9 @@ namespace OpenMS
     // iRT File Parameters
     String linear_irt_file_;
     String nonlinear_irt_file_;
+    // Run-specific iRT file lists (positional mapping: nth entry -> nth run)
+    std::vector<String> linear_irt_files_list_;
+    std::vector<String> nonlinear_irt_files_list_;
     
     // Auto-iRT Sampling Parameters
     bool auto_irt_enabled_;

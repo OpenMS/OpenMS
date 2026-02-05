@@ -1854,8 +1854,12 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_26" PROPERTIES DEPENDS "TOPP_OpenSwathFileSplitter_1")
   set_tests_properties("TOPP_OpenSwathWorkflow_26_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_26")
 
-
-
+  # Test with multiple separate mzML experiments and multiple per-run linear iRT files
+  # Use distinct input files (not split-file_input) and pass a semicolon-separated
+  # list to -Calibration:files:linear_irt_file to exercise positional mapping.
+  add_test("TOPP_OpenSwathWorkflow_27" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.tsv -Calibration:files:linear_irt_file "${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML" -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_27.tmp.featureXML -enable_ms1 false -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -Calibration:RTNormalization:lowess:auto_span false -Calibration:RTNormalization:lowess:span 0.666666666666666666666666666 ${OLD_OSW_PARAM})
+  add_test("TOPP_OpenSwathWorkflow_27_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_27.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_27_expected.featureXML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_27_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_27")
 endif(NOT DISABLE_OPENSWATH)
 
 #------------------------------------------------------------------------------

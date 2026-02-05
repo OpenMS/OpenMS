@@ -29,7 +29,7 @@ namespace OpenMS
     DefaultParamHandler("CalibrationWorkflow"),
     ProgressLogger()
   {
-    // === iRT peptide sampling parameters ===
+    // iRT peptide sampling parameters
     defaults_.setValue("auto_irt:enabled", "true", "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files). This may be useful if standard iRTs (Biognosys iRT kit) were not spiked-in. If set to false, and no additional iRT files are provided, and no transformation is provided, then no calibration is performed.");
     defaults_.setValidStrings("auto_irt:enabled", {"true", "false"});
     
@@ -63,19 +63,19 @@ namespace OpenMS
     defaults_.setValue("auto_irt:irt_nonlinear_rt_extraction_window", 600.0, "Only extract RT around this value for non linear iRT calibration (set to -1 to use whole range)");
     defaults_.setMinFloat("auto_irt:irt_nonlinear_rt_extraction_window", -1.0);
     
-    // === Static iRT file parameters ===
-    defaults_.setValue("files:linear_irt_file", "", "Path to linear iRT transition file (TraML, TSV, or PQP)");
-    defaults_.setValue("files:nonlinear_irt_file", "", "Path to nonlinear iRT transition file (TraML, TSV, or PQP)");
+    // Static iRT file parameters
+    defaults_.setValue("files:linear_irt_file", "", "Path(s) to linear iRT transition file(s) (TraML, TSV, or PQP). Accepts a string of a single file path or multiple file paths (space-separated, 'run1_irt.pqp run2_irt.pqp ... runN_irt.pqp') for run-specific mapping (positional: nth entry -> nth run).");
+    defaults_.setValue("files:nonlinear_irt_file", "", "Path(s) to nonlinear iRT transition file(s) (TraML, TSV, or PQP). Accepts a string of a single file path or multiple file paths (space-separated, 'run1_irt.pqp run2_irt.pqp ... runN_irt.pqp') for run-specific mapping (positional: nth entry -> nth run). Entries may be empty to indicate no nonlinear iRT for that run.");
     
-    // === Linear calibration parameters ===
+    // Linear calibration parameters
     defaults_.setValue("linear:outlier_detection", "iter_residual", "Which outlier detection method to use for linear calibration (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
     defaults_.setValidStrings("linear:outlier_detection", {"iter_residual", "iter_jackknife", "ransac", "none"});
       
-    // === Nonlinear calibration parameters ===
+    // Nonlinear calibration parameters
     defaults_.setValue("nonlinear:outlier_detection", "iter_residual", "Which outlier detection method to use for nonlinear calibration (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
     defaults_.setValidStrings("nonlinear:outlier_detection", {"iter_residual", "iter_jackknife", "ransac", "none"});
     
-    // === Window estimation parameters ===
+    // Window estimation parameters
     defaults_.setValue("windows:estimate_rt", "true", "Estimate RT extraction windows from calibration");
     defaults_.setValidStrings("windows:estimate_rt", {"true", "false"});
     
@@ -93,7 +93,7 @@ namespace OpenMS
     defaults_.setValue("windows:rt_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated RT window by. For example, a factor of 1.3 will add a 30% padding to the estimated RT window, so if the estimated RT window is 144, then 43 will be added for a total estimated RT window of 187 seconds. A factor of 1.0 will not add any padding to the estimated window.");
     defaults_.setMinFloat("windows:rt_estimation_padding_factor", 1.0);
     
-    // === Quality control parameters ===
+    // Quality control parameters
     defaults_.setValue("qc:min_rsq", 0.95, "Minimum R-squared required for RT peptides regression");
     defaults_.setMinFloat("qc:min_rsq", 0.0);
     defaults_.setMaxFloat("qc:min_rsq", 1.0);
@@ -769,9 +769,6 @@ namespace OpenMS
                                         String("Unsupported iRT file format: ") + FileTypes::typeToName(file_type));
       }
       
-      OPENMS_LOG_INFO << "Loaded " << irt_exp.getTransitions().size() << " transitions for " 
-                      << label << " iRT calibration from " << irt_file_path << std::endl;
-      
       return irt_exp;
     }
     catch (const Exception::BaseException& e)
@@ -789,6 +786,30 @@ namespace OpenMS
     size_t num_runs) const
   {
     // Priority 1: If static iRT files are configured
+    // If user supplied run-specific lists, prefer RUN_SPECIFIC when lists contain multiple entries
+    if (!linear_irt_files_list_.empty())
+    {
+      if (linear_irt_files_list_.size() == 1)
+      {
+        OPENMS_LOG_DEBUG << "Single entry in files:linear_irt_file - treating as STATIC_FILES" << std::endl;
+        return IrtStrategy::STATIC_FILES;
+      }
+      // multiple entries -> require num_runs match
+      if (linear_irt_files_list_.size() != num_runs)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "files:linear_irt_file contains different number of entries (" + String((Int)linear_irt_files_list_.size()) + ") than the number of runs (" + String((Int)num_runs) + ") - provide one file per run or use STATIC_FILES");
+      }
+      // Validate nonlinear list length if present (must be same length or empty or size==1)
+      if (!nonlinear_irt_files_list_.empty() && nonlinear_irt_files_list_.size() != linear_irt_files_list_.size() && nonlinear_irt_files_list_.size() != 1)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "files:nonlinear_irt_file length must be 0, 1, or equal to files:linear_irt_file length when using RUN_SPECIFIC");
+      }
+      OPENMS_LOG_DEBUG << "Using RUN_SPECIFIC iRT files (positional mapping) for " << num_runs << " runs." << std::endl;
+      return IrtStrategy::RUN_SPECIFIC;
+    }
+
     if (!linear_irt_file_.empty())
     {
       if (num_runs > 1)
@@ -958,10 +979,45 @@ namespace OpenMS
       case IrtStrategy::RUN_SPECIFIC:
       {
         OPENMS_LOG_DEBUG << "Loading run-specific iRT experiments for run " << run_index << std::endl;
-        // TODO: Implement run-specific file loading logic
-        // This would require run-specific file naming convention
-        OPENMS_LOG_WARN << "RUN_SPECIFIC iRT preparation not yet implemented - using empty experiments" << std::endl;
-        result.is_prepared = false;
+        // Positional mapping: nth entry in files lists corresponds to nth run (0-based)
+        if (linear_irt_files_list_.empty())
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "RUN_SPECIFIC selected but files:linear_irt_file is empty");
+        }
+        if (run_index >= linear_irt_files_list_.size())
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Run index out of range for files:linear_irt_file (run_index=" + String((Int)run_index) + ", list_size=" + String((Int)linear_irt_files_list_.size()) + ")");
+        }
+        result.linear_irt = loadIrtExperimentFromFile_(linear_irt_files_list_[run_index], "linear");
+
+        // Nonlinear file may be empty, single entry (apply to all) or positional
+        if (!nonlinear_irt_files_list_.empty())
+        {
+          if (nonlinear_irt_files_list_.size() == 1)
+          {
+            // Single file apply to all runs
+            if (!nonlinear_irt_files_list_[0].empty())
+            {
+              result.nonlinear_irt = loadIrtExperimentFromFile_(nonlinear_irt_files_list_[0], "nonlinear");
+            }
+          }
+          else
+          {
+            if (run_index >= nonlinear_irt_files_list_.size())
+            {
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "Run index out of range for files:nonlinear_irt_file (run_index=" + String((Int)run_index) + ", list_size=" + String((Int)nonlinear_irt_files_list_.size()) + ")");
+            }
+            if (!nonlinear_irt_files_list_[run_index].empty())
+            {
+              result.nonlinear_irt = loadIrtExperimentFromFile_(nonlinear_irt_files_list_[run_index], "nonlinear");
+            }
+          }
+        }
+
+        result.is_prepared = true;
         break;
       }
 
@@ -982,11 +1038,11 @@ namespace OpenMS
 
   void CalibrationWorkflow::updateMembers_()
   {
-    // === Static iRT file parameters ===
+    // Static iRT file parameters
     linear_irt_file_ = param_.getValue("files:linear_irt_file").toString();
     nonlinear_irt_file_ = param_.getValue("files:nonlinear_irt_file").toString();
     
-    // === iRT peptide sampling parameters ===
+    // iRT peptide sampling parameters
     auto_irt_enabled_ = param_.getValue("auto_irt:enabled").toBool();
     auto_irt_irt_bins_ = (int)param_.getValue("auto_irt:irt_bins");
     auto_irt_irt_peptides_per_bin_ = (int)param_.getValue("auto_irt:irt_peptides_per_bin");
@@ -996,22 +1052,40 @@ namespace OpenMS
     auto_irt_linear_top_fraction_ = (double)param_.getValue("auto_irt:linear_top_fraction");
     auto_irt_nonlinear_top_fraction_ = (double)param_.getValue("auto_irt:nonlinear_top_fraction");
     
-    // === Linear calibration parameters ===
+    // Linear calibration parameters
     linear_outlier_detection_ = param_.getValue("linear:outlier_detection").toString();
     
-    // === Nonlinear calibration parameters ===
+    // Nonlinear calibration parameters
     nonlinear_outlier_detection_ = param_.getValue("nonlinear:outlier_detection").toString();
     
-    // === Window estimation parameters ===
+    // Window estimation parameters
     windows_estimate_rt_ = param_.getValue("windows:estimate_rt").toBool();
     windows_estimate_mz_ = param_.getValue("windows:estimate_mz").toBool();
     windows_estimate_im_ = param_.getValue("windows:estimate_im").toBool();
     windows_rt_percentile_ = (double)param_.getValue("windows:rt_percentile");
     rt_estimation_padding_factor_ = (double)param_.getValue("windows:rt_estimation_padding_factor");
     
-    // === Quality control parameters ===
+    // Quality control parameters
     min_rsq_ = (double)param_.getValue("qc:min_rsq");
     min_coverage_ = (double)param_.getValue("qc:min_coverage");
+
+    // Run-specific iRT file lists
+    linear_irt_files_list_.clear();
+    nonlinear_irt_files_list_.clear();
+
+    {
+      StringList tmp;
+      String legacy = param_.getValue("files:linear_irt_file").toString();
+      legacy.split(' ', tmp);
+      linear_irt_files_list_ = tmp;
+    }
+
+    {
+      StringList tmp;
+      String legacy = param_.getValue("files:nonlinear_irt_file").toString();
+      legacy.split(' ', tmp);
+      nonlinear_irt_files_list_ = tmp;
+    }
   }
 
 } // namespace OpenMS
