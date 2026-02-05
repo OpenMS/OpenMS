@@ -14,7 +14,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/FORMAT/ArrowExport.h>
+#include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 
 #include <memory>
 #include <string>
