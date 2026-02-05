@@ -8,6 +8,8 @@ from TargetedExperimentHelper cimport *
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>" namespace "OpenMS":
     
     cdef cppclass IncludeExcludeTarget :
+        # wrap-doc:
+        #  This class stores a SRM/MRM transition
         # wrap-hash:
         #  std
 

@@ -25,6 +25,9 @@ from SpectrumAccessOpenMSCached cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespace "OpenMS":
 
     cdef cppclass MRMFeatureFinderScoring(DefaultParamHandler, ProgressLogger):
+        # wrap-doc:
+        #  The MRMFeatureFinder finds and scores peaks of transitions that
+        #  co-elute
         # wrap-inherits:
         #   DefaultParamHandler
         #   ProgressLogger

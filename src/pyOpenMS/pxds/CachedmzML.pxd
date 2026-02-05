@@ -9,6 +9,9 @@ from streampos cimport *
 cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS":
 
     cdef cppclass CachedmzML:
+        # wrap-doc:
+        #  An class that uses on-disk caching to read and write spectra and
+        #  chromatograms
 
         CachedmzML() except + nogil  # wrap-doc:A class that uses on-disk caching to read and write spectra and chromatograms
         CachedmzML(CachedmzML &) except + nogil 

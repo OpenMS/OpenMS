@@ -9,6 +9,8 @@ from MSExperiment cimport *
 cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
     
     cdef cppclass MascotXMLFile(XMLFile) :
+        # wrap-doc:
+        #  Used to load Mascot XML files
         # wrap-inherits:
         #  XMLFile
         MascotXMLFile() except + nogil 

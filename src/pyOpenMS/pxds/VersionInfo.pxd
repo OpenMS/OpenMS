@@ -5,6 +5,8 @@ from Types cimport *
 cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS":
 
     cdef cppclass VersionInfo:
+        # wrap-doc:
+        #  Version information class
 
         @staticmethod
         VersionDetails getVersionStruct() except + nogil

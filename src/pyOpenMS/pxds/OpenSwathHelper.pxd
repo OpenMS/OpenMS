@@ -10,6 +10,8 @@ from libcpp cimport bool
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "OpenMS":
 
     cdef cppclass OpenSwathHelper:
+        # wrap-doc:
+        #  A helper class that is used by several OpenSWATH tools
 
         OpenSwathHelper() except + nogil  # compiler
         OpenSwathHelper(OpenSwathHelper &) except + nogil  # compiler

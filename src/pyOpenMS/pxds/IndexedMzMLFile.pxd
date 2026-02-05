@@ -12,6 +12,8 @@ from libcpp.string cimport string as libcpp_utf8_string
 cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>" namespace "OpenMS":
     
     cdef cppclass IndexedMzMLHandler "OpenMS::Internal::IndexedMzMLHandler":
+        # wrap-doc:
+        #  A low-level class to read an indexedmzML file
         IndexedMzMLHandler() except + nogil 
         IndexedMzMLHandler(IndexedMzMLHandler &) except + nogil 
         IndexedMzMLHandler(String filename) except + nogil 

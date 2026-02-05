@@ -10,6 +10,9 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>" namespace "OpenMS":
     
     cdef cppclass IsobaricNormalizer "OpenMS::IsobaricNormalizer":
+        # wrap-doc:
+        #  Performs median normalization on the extracted ratios of isobaric
+        #  labeling experiment
         IsobaricNormalizer(IsobaricNormalizer &) except + nogil 
 
         IsobaricNormalizer(IsobaricQuantitationMethod *quant_method) except + nogil  # wrap-ignore

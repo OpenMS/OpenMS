@@ -6,6 +6,10 @@ from Matrix cimport *
 cdef extern from "<OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>" namespace "OpenMS::Math":
     
     cdef cppclass BilinearInterpolation[KeyType,ValueType]:
+        # wrap-doc:
+        #  Provides access to bilinearly interpolated values (and derivatives)
+        #  from discrete data points. Values beyond the given range of data
+        #  points are implicitly taken as zero
         # wrap-instances:
         #  BilinearInterpolation := BilinearInterpolation[double, double]
 

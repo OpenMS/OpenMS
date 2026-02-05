@@ -7,6 +7,9 @@ from ProgressLogger cimport *
 cdef extern from "<OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>" namespace "OpenMS":
     
     cdef cppclass SignalToNoiseEstimatorMeanIterative[Container]:
+        # wrap-doc:
+        #  Estimates the signal/noise (S/N) ratio of each data point in a scan
+        #  based on an iterative scheme which discards high intensities
         # wrap-instances:
         #  SignalToNoiseEstimatorMeanIterative := SignalToNoiseEstimatorMeanIterative[ MSSpectrum ]
 

@@ -8,6 +8,8 @@ from FeatureMap cimport *
 cdef extern from "<OpenMS/PROCESSING/MISC/DataFilters.h>" namespace "OpenMS":
 
     cdef cppclass DataFilters "OpenMS::DataFilters":
+        # wrap-doc:
+        #  DataFilter array providing some convenience functions
         DataFilters() except + nogil  # compiler
         DataFilters(DataFilters &) except + nogil  # compiler 
         Size size() except + nogil 

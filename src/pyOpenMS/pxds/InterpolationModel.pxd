@@ -10,6 +10,9 @@ ctypedef double CoordinateType
 cdef extern from "<OpenMS/FEATUREFINDER/InterpolationModel.h>" namespace "OpenMS":
     
     cdef cppclass InterpolationModel "OpenMS::InterpolationModel":
+        # wrap-doc:
+        #  Abstract class for 1D-models that are approximated using linear
+        #  interpolation
       
         InterpolationModel() except + nogil  # wrap-doc:Abstract class for 1D-models that are approximated using linear interpolation
         InterpolationModel(InterpolationModel &) except + nogil 

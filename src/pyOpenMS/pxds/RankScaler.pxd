@@ -8,6 +8,9 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/PROCESSING/SCALING/RankScaler.h>" namespace "OpenMS":
 
     cdef cppclass RankScaler(DefaultParamHandler):
+        # wrap-doc:
+        #  Scales each peak by ranking the peaks per spectrum and assigning
+        #  intensity according to rank
         # wrap-inherits:
         #   DefaultParamHandler
 

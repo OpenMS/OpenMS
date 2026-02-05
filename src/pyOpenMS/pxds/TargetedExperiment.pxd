@@ -11,6 +11,9 @@ from SourceFile cimport *
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "OpenMS":
 
     cdef cppclass TargetedExperiment:
+        # wrap-doc:
+        #  A description of a targeted experiment containing precursor and
+        #  production ions
 
         TargetedExperiment() except + nogil  # TODO
         TargetedExperiment(TargetedExperiment &) except + nogil 

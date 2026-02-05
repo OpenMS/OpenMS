@@ -12,6 +12,8 @@ from Precursor cimport *
 cdef extern from "<OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>" namespace "OpenMS":
 
     cdef cppclass PrecursorCorrection:
+        # wrap-doc:
+        #  This class provides methods for precursor correction
 
         PrecursorCorrection() except + nogil
         PrecursorCorrection(PrecursorCorrection &) except + nogil  # compiler

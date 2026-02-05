@@ -5,6 +5,9 @@ from FeatureGroupingAlgorithm cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>" namespace "OpenMS":
     
     cdef cppclass FeatureGroupingAlgorithmLabeled(FeatureGroupingAlgorithm) :
+        # wrap-doc:
+        #  A map feature grouping algorithm for labeling techniques with two
+        #  labels
         # wrap-inherits:
         #  FeatureGroupingAlgorithm
         FeatureGroupingAlgorithmLabeled() except + nogil 

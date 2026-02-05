@@ -8,6 +8,9 @@ from ProteinIdentification cimport *
 cdef extern from "<OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass XFDRAlgorithm(DefaultParamHandler) :
+        # wrap-doc:
+        #  Calculates false discovery rate estimates on crosslink
+        #  identifications
         # wrap-inherits:
         #  DefaultParamHandler
         XFDRAlgorithm() except + nogil

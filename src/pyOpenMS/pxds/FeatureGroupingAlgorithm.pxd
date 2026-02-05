@@ -7,6 +7,8 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass FeatureGroupingAlgorithm(DefaultParamHandler):
+        # wrap-doc:
+        #  Base class for all feature grouping algorithms
         # wrap-inherits:
         #   DefaultParamHandler
         # wrap-ignore

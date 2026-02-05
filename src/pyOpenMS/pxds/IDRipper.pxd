@@ -66,6 +66,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS::IDRipper":
 cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
 
     cdef cppclass IDRipper(DefaultParamHandler):
+        # wrap-doc:
+        #  Ripping protein/peptide identification according their file origin
         # wrap-inherits:
         #   DefaultParamHandler
         

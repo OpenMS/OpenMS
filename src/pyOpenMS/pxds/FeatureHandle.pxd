@@ -6,6 +6,8 @@ from UniqueIdInterface cimport *
 cdef extern from "<OpenMS/KERNEL/FeatureHandle.h>" namespace "OpenMS":
     
     cdef cppclass FeatureHandle(Peak2D,UniqueIdInterface) :
+        # wrap-doc:
+        #  Representation of a Peak2D, RichPeak2D or Feature
         # wrap-inherits:
         #  Peak2D
         #  UniqueIdInterface

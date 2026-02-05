@@ -9,6 +9,8 @@ from Peak1D cimport *
 cdef extern from "<OpenMS/COMPARISON/SpectraSTSimilarityScore.h>" namespace "OpenMS":
     
     cdef cppclass SpectraSTSimilarityScore:
+        # wrap-doc:
+        #  Similarity score of SpectraST
         #  PeakSpectrumCompareFunctor inheritance
         SpectraSTSimilarityScore() except + nogil 
         SpectraSTSimilarityScore(SpectraSTSimilarityScore &) except + nogil 

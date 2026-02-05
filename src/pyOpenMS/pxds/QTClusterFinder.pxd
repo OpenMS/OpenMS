@@ -10,6 +10,8 @@ from FeatureDistance cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>" namespace "OpenMS":
     
     cdef cppclass QTClusterFinder(BaseGroupFinder) :
+        # wrap-doc:
+        #  A variant of QT clustering for the detection of feature groups
         # wrap-inherits:
         #  BaseGroupFinder
         QTClusterFinder() except + nogil 

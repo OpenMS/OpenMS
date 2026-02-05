@@ -25,6 +25,9 @@ from ModifiedPeptideGenerator cimport *
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
 
     cdef cppclass OPXLHelper:
+        # wrap-doc:
+        #  The OPXLHelper class contains functions needed by OpenPepXL to reduce
+        #  duplicated code
 
         OPXLHelper() except + nogil  # compiler
         OPXLHelper(OPXLHelper &) except + nogil  # compiler

@@ -7,6 +7,8 @@ from ModificationsDB cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
     
     cdef cppclass MRMAssay(ProgressLogger) :
+        # wrap-doc:
+        #  Generate assays from a TargetedExperiment
         # wrap-inherits:
         #  ProgressLogger
 

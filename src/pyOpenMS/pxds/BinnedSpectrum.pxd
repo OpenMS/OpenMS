@@ -6,6 +6,8 @@ from MSSpectrum cimport *
 cdef extern from "<OpenMS/KERNEL/BinnedSpectrum.h>" namespace "OpenMS":
 
     cdef cppclass BinnedSpectrum:
+        # wrap-doc:
+        #  This is a binned representation of a PeakSpectrum
         BinnedSpectrum() except + nogil 
         BinnedSpectrum(BinnedSpectrum &) except + nogil 
         BinnedSpectrum(MSSpectrum, float size, bool unit_ppm, UInt spread, float offset) except + nogil 

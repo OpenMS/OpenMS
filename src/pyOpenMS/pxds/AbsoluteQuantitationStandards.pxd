@@ -6,6 +6,9 @@ from Types cimport *
 cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "OpenMS":
 
     cdef cppclass AbsoluteQuantitationStandards:
+        # wrap-doc:
+        #  AbsoluteQuantitationStandards is a class to handle the relationship
+        #  between runs, components, and their actual concentrations
 
         AbsoluteQuantitationStandards() except + nogil 
         AbsoluteQuantitationStandards(AbsoluteQuantitationStandards &) except + nogil  # compiler

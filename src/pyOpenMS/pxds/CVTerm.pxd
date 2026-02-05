@@ -6,6 +6,8 @@ from DataValue cimport *
 cdef extern from "<OpenMS/METADATA/CVTerm.h>" namespace "OpenMS":
 
     cdef cppclass CVTerm:
+        # wrap-doc:
+        #  Representation of controlled vocabulary term
         # wrap-hash:
         #  std
 

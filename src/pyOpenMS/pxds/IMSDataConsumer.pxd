@@ -4,6 +4,8 @@ from Types cimport *
 cdef extern from "<OpenMS/INTERFACES/IMSDataConsumer.h>" namespace "OpenMS::Interfaces":
 
     cdef cppclass IMSDataConsumer[SpectrumType, ChromatogramType]:
+        # wrap-doc:
+        #  The interface of a consumer of spectra and chromatograms
         # wrap-ignore
         # no-pxd-import
         # ABSTRACT class

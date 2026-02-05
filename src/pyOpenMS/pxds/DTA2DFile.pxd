@@ -12,6 +12,8 @@ from PeakFileOptions cimport *
 cdef extern from "<OpenMS/FORMAT/DTA2DFile.h>" namespace "OpenMS":
 
     cdef cppclass DTA2DFile(ProgressLogger):
+        # wrap-doc:
+        #  DTA2D File adapter
         # wrap-inherits:
         #   ProgressLogger
 

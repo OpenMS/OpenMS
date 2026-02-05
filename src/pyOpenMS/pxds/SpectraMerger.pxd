@@ -9,6 +9,9 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>" namespace "OpenMS":
 
     cdef cppclass SpectraMerger(DefaultParamHandler):
+        # wrap-doc:
+        #  Offers spectra merging and averaging algorithms to increase the
+        #  quality of a spectrum
         # wrap-inherits:
         #   DefaultParamHandler
 

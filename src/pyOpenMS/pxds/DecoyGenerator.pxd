@@ -7,6 +7,9 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/CHEMISTRY/DecoyGenerator.h>" namespace "OpenMS":
 
     cdef cppclass DecoyGenerator:
+        # wrap-doc:
+        #  Methods to generate isobaric decoy sequences for DDA target-decoy
+        #  searches
         DecoyGenerator() except + nogil 
 
         DecoyGenerator(DecoyGenerator &) except + nogil 

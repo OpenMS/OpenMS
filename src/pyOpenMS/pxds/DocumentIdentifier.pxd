@@ -7,6 +7,8 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/METADATA/DocumentIdentifier.h>" namespace "OpenMS":
 
     cdef cppclass DocumentIdentifier:
+        # wrap-doc:
+        #  Manage source document information
 
         DocumentIdentifier() except + nogil 
         DocumentIdentifier(DocumentIdentifier &) except + nogil 

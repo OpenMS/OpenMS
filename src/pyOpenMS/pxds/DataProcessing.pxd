@@ -9,6 +9,8 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
 
     cdef cppclass DataProcessing(MetaInfoInterface):
+        # wrap-doc:
+        #  Description of the applied preprocessing steps
         # wrap-inherits:
         #    MetaInfoInterface
 

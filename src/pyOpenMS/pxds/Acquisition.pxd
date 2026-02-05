@@ -6,6 +6,9 @@ from String cimport *
 cdef extern from "<OpenMS/METADATA/Acquisition.h>" namespace "OpenMS":
 	
 	cdef cppclass Acquisition(MetaInfoInterface):
+     # wrap-doc:
+     #  Information about one raw data spectrum that was combined with
+     #  several other raw data spectra
 		# wrap-inherits:
 		#  MetaInfoInterface
 

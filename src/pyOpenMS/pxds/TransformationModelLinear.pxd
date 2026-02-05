@@ -11,6 +11,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" nam
 
 
     cdef cppclass TransformationModelLinear(TransformationModel):
+        # wrap-doc:
+        #  Linear model for transformations
         # wrap-inherits:
         #  TransformationModel
 

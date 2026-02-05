@@ -5,6 +5,9 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/MATH/MISC/EmgGradientDescent.h>" namespace "OpenMS":
 
     cdef cppclass EmgGradientDescent(DefaultParamHandler):
+        # wrap-doc:
+        #  Fit peaks to an Exponentially Modified Gaussian (EMG) model using
+        #  gradient descent
         # wrap-inherits:
         #  DefaultParamHandler
 

@@ -5,6 +5,8 @@ from String cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/DefaultParamHandler.h>" namespace "OpenMS":
 
     cdef cppclass DefaultParamHandler:
+        # wrap-doc:
+        #  A base class for all classes handling default parameters
         #wrap-ignore
         #no-pxd-import
 

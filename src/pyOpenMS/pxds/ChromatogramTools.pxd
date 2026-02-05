@@ -5,6 +5,8 @@ from MSExperiment cimport *
 cdef extern from "<OpenMS/KERNEL/ChromatogramTools.h>" namespace "OpenMS":
 
     cdef cppclass ChromatogramTools:
+        # wrap-doc:
+        #  Conversion class to convert chromatograms
         ChromatogramTools() except + nogil 
         ChromatogramTools(ChromatogramTools &) except + nogil 
 

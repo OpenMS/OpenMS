@@ -5,6 +5,8 @@ from FeatureMap cimport *
 cdef extern from "<OpenMS/FEATUREFINDER/ElutionModelFitter.h>" namespace "OpenMS":
     
     cdef cppclass ElutionModelFitter(DefaultParamHandler) :
+        # wrap-doc:
+        #  Helper class for fitting elution models to features
         # wrap-inherits:
         #  DefaultParamHandler
         ElutionModelFitter() except + nogil  # wrap-doc:Helper class for fitting elution models to features

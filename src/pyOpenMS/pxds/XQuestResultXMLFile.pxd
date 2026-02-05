@@ -11,6 +11,8 @@ from MSExperiment cimport *
 cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
 
     cdef cppclass XQuestResultXMLFile(XMLFile) :
+        # wrap-doc:
+        #  Used to load and store xQuest result files
         # wrap-inherits:
         #  XMLFile
 

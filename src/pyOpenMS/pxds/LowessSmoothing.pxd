@@ -9,6 +9,8 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/PROCESSING/SMOOTHING/LowessSmoothing.h>" namespace "OpenMS":
 
     cdef cppclass LowessSmoothing(DefaultParamHandler):
+        # wrap-doc:
+        #  LOWESS (locally weighted scatterplot smoothing)
         # wrap-inherits:
         #   DefaultParamHandler
 

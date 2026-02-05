@@ -4,6 +4,8 @@ from LinearResampler cimport *
 cdef extern from "<OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>" namespace "OpenMS":
     
     cdef cppclass LinearResamplerAlign(LinearResampler) :
+        # wrap-doc:
+        #  Linear Resampling of raw data with alignment
         # wrap-inherits:
         #  LinearResampler
         LinearResamplerAlign(LinearResamplerAlign &) except + nogil 

@@ -12,6 +12,8 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass OpenPepXLAlgorithm(DefaultParamHandler) :
+        # wrap-doc:
+        #  Search for peptide pairs linked with a labeled cross-linker
         # wrap-inherits:
         #  DefaultParamHandler
         OpenPepXLAlgorithm() except + nogil 

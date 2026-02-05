@@ -11,6 +11,9 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>" namespace "OpenM
     # Do not use this class directly, rather use SpectrumAccessOpenMSCached
 
     cdef cppclass CachedMzMLHandler(ProgressLogger):
+        # wrap-doc:
+        #  An class that uses on-disk caching to read and write spectra and
+        #  chromatograms
         # wrap-inherits:
         #  ProgressLogger
 

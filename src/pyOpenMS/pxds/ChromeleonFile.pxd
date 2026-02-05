@@ -4,6 +4,8 @@ from String cimport *
 cdef extern from "<OpenMS/FORMAT/ChromeleonFile.h>" namespace "OpenMS":
 
     cdef cppclass ChromeleonFile:
+        # wrap-doc:
+        #  Load Chromeleon HPLC text file and save it into a `MSExperiment`
 
         ChromeleonFile() except + nogil  # wrap-doc:Load Chromeleon HPLC text file and save it into a `MSExperiment`.
         ChromeleonFile(ChromeleonFile &) except + nogil  # compiler

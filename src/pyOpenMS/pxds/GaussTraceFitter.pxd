@@ -8,6 +8,9 @@ from FeatureFinderAlgorithmPickedHelperStructs cimport *
 cdef extern from "<OpenMS/FEATUREFINDER/GaussTraceFitter.h>" namespace "OpenMS":
 
     cdef cppclass GaussTraceFitter:
+        # wrap-doc:
+        #  Fitter for RT profiles using a Gaussian background model * *
+        #  @htmlinclude OpenMS_GaussTraceFitter.parameters * * @todo More docu
 
         GaussTraceFitter() except + nogil  # wrap-doc:Fitter for RT profiles using a Gaussian background model
         GaussTraceFitter(GaussTraceFitter &) except + nogil 

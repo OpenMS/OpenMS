@@ -6,6 +6,9 @@ from TargetedExperiment cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
 
     cdef cppclass MRMDecoy(ProgressLogger):
+        # wrap-doc:
+        #  This class generates a TargetedExperiment object with decoys based on
+        #  a TargetedExperiment object
         # wrap-inherits:
         #   ProgressLogger
 

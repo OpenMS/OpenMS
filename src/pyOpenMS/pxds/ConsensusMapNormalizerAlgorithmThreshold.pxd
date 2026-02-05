@@ -4,6 +4,8 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>" namespace "OpenMS":
 
     cdef cppclass ConsensusMapNormalizerAlgorithmThreshold:
+        # wrap-doc:
+        #  Algorithms of ConsensusMapNormalizer *
 
         ConsensusMapNormalizerAlgorithmThreshold() except + nogil 
         # private

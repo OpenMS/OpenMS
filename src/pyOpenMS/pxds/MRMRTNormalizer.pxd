@@ -4,6 +4,8 @@ from libcpp.string cimport string as libcpp_utf8_string
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "OpenMS":
 
     cdef cppclass MRMRTNormalizer:
+        # wrap-doc:
+        #  The MRMRTNormalizer will find retention time peptides in data
 
         MRMRTNormalizer() except + nogil
         MRMRTNormalizer(MRMRTNormalizer &) except + nogil  # compiler

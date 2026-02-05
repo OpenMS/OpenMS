@@ -5,6 +5,8 @@ from TransformationModelInterpolated cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>" namespace "OpenMS":
 
     cdef cppclass TransformationModelLowess(TransformationModel) :
+        # wrap-doc:
+        #  Lowess (non-linear) model for transformations
         # wrap-inherits:
         #  TransformationModel
 

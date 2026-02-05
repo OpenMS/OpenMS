@@ -9,6 +9,8 @@ from ProteinProteinCrossLink cimport *
 cdef extern from "<OpenMS/CHEMISTRY/SimpleTSGXLMS.h>" namespace "OpenMS":
 
     cdef cppclass SimpleTSGXLMS(DefaultParamHandler) :
+        # wrap-doc:
+        #  Generates theoretical spectra for cross-linked peptides
         # wrap-inherits:
         #  DefaultParamHandler
 

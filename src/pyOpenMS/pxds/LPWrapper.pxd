@@ -5,6 +5,8 @@ from String cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
     
     cdef cppclass LPWrapper "OpenMS::LPWrapper":
+        # wrap-doc:
+        #  A wrapper class for linear programming (LP) solvers
         LPWrapper() except + nogil 
         LPWrapper(LPWrapper) except + nogil  #wrap-ignore
         Int addRow(libcpp_vector[ int ] row_indices, libcpp_vector[ double ] row_values, const String & name) except + nogil  # wrap-doc:Adds a row to the LP matrix, returns index

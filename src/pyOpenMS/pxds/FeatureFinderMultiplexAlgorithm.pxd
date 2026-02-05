@@ -10,6 +10,12 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFinderMultiplexAlgorithm(DefaultParamHandler):
+        # wrap-doc:
+        #  FeatureFinderMultiplexAlgorithm is a tool for the fully automated
+        #  analysis of quantitative proteomics data. It detects pairs of isotopic
+        #  envelopes with fixed m/z separation. It requires no prior sequence
+        #  identification of the peptides and works on both profile or centroided
+        #  spectra. In what follows we outline the algorithm
 
         # wrap-inherits:
         #   DefaultParamHandler

@@ -4,6 +4,8 @@ from String cimport *
 cdef extern from "<OpenMS/METADATA/SpectrumNativeIDParser.h>" namespace "OpenMS":
 
     cdef cppclass SpectrumNativeIDParser:
+        # wrap-doc:
+        #  Parser for extracting scan numbers from spectrum native IDs
 
         # SpectrumNativeIDParser is a utility class with only static methods
         # No constructor needed for Python binding since we only need static methods

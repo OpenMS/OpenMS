@@ -16,6 +16,8 @@ ctypedef libcpp_vector[DPosition2] SeedList
 cdef extern from "<OpenMS/FEATUREFINDER/SeedListGenerator.h>" namespace "OpenMS":
 
     cdef cppclass SeedListGenerator:
+        # wrap-doc:
+        #  Generate seed lists for feature detection
 
         SeedListGenerator() except + nogil 
         SeedListGenerator(SeedListGenerator &) except + nogil  # compiler

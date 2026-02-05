@@ -10,6 +10,8 @@ from PeakFileOptions cimport *
 cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
 
     cdef cppclass MzDataFile(ProgressLogger):
+        # wrap-doc:
+        #  File adapter for MzData files
         # wrap-inherits:
         #  ProgressLogger
 

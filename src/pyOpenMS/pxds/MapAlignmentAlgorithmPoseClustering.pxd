@@ -10,6 +10,8 @@ from TransformationDescription cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>" namespace "OpenMS":
 
     cdef cppclass MapAlignmentAlgorithmPoseClustering(DefaultParamHandler, ProgressLogger):
+        # wrap-doc:
+        #  A map alignment algorithm based on pose clustering
         # wrap-inherits:
         #   DefaultParamHandler
         #   ProgressLogger

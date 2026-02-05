@@ -7,6 +7,8 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
 
     cdef cppclass Sample(MetaInfoInterface):
+        # wrap-doc:
+        #  Meta information about the sample
         # wrap-inherits:
         #   MetaInfoInterface
 

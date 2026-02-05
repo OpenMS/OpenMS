@@ -5,6 +5,8 @@ from Types cimport *
 cdef extern from "<OpenMS/METADATA/Software.h>" namespace "OpenMS":
 
     cdef cppclass Software:
+        # wrap-doc:
+        #  Description of the software used for processing
         # wrap-hash:
         #  std
 

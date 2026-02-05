@@ -13,6 +13,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>" namespace "
     ctypedef libcpp_vector[libcpp_pair[double,double ] ] MasstracePointsType
 
     cdef cppclass MasstraceCorrelator(DefaultParamHandler,ProgressLogger) :
+        # wrap-doc:
+        #  Correlates individual masstraces found in mass spectrometric maps
         # wrap-inherits:
         #  DefaultParamHandler
         #  ProgressLogger

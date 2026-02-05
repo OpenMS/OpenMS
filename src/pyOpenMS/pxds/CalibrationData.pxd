@@ -6,6 +6,8 @@ from MSSpectrum cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/CalibrationData.h>" namespace "OpenMS":
 
     cdef cppclass CalibrationData:
+        # wrap-doc:
+        #  A helper class, holding all calibration points
 
         CalibrationData()  except + nogil 
 

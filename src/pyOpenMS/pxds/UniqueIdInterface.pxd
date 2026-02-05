@@ -4,6 +4,9 @@ from Types cimport *
 cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS":
 
     cdef cppclass UniqueIdInterface:
+        # wrap-doc:
+        #  A base class defining a common interface for all classes having a
+        #  unique id
         # wrap-ignore
         # no-pxd-import
 

@@ -5,6 +5,8 @@ from ScanWindow cimport *
 cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
 
     cdef cppclass InstrumentSettings(MetaInfoInterface):
+        # wrap-doc:
+        #  Description of the settings a MS Instrument was run with
         # wrap-inherits:
         #   MetaInfoInterface
 
