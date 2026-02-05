@@ -226,6 +226,9 @@ import warnings
 
         def decode_mv_name(name):
             """Decode metavalue name using ontology if available."""
+            # Normalize to string (getKeys may return bytes in some cases)
+            if isinstance(name, bytes):
+                name = name.decode("utf-8")
             if cv is not None and name.startswith("MS:"):
                 try:
                     return cv.getTerm(name).name
@@ -812,11 +815,13 @@ import warnings
             pep_id_keys = []
             pep_id.getKeys(pep_id_keys)
             for key in pep_id_keys:
-                if key not in _excluded_spectrum_metavalues:
+                # Normalize key to string (getKeys may return bytes in some cases)
+                key_str = key.decode("utf-8") if isinstance(key, bytes) else key
+                if key_str not in _excluded_spectrum_metavalues:
                     val = pep_id.getMetaValue(key)
                     val_type = _get_value_type(val)
                     spectrum_metavalues.append({
-                        "name": key,
+                        "name": key_str,
                         "value": val,
                         "value_type": val_type
                     })
@@ -883,22 +888,24 @@ import warnings
                 keys = []
                 hit.getKeys(keys)
                 for key in keys:
-                    if key not in _excluded_psm_metavalues:
+                    # Normalize key to string (getKeys may return bytes in some cases)
+                    key_str = key.decode("utf-8") if isinstance(key, bytes) else key
+                    if key_str not in _excluded_psm_metavalues:
                         val = hit.getMetaValue(key)
 
                         # Check if this is a known score type (using C++ registry)
-                        is_known_score = _is_known_score(key)
+                        is_known_score = _is_known_score(key_str)
 
                         if isinstance(val, (int, float)) and is_known_score:
                             # Known score - add to additional_scores
                             higher_better = None
                             try:
-                                score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key)
+                                score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key_str)
                                 higher_better = idsa.isScoreTypeHigherBetter(score_type_enum)
                             except Exception:
                                 pass  # Unknown score type, leave as None
                             additional_scores.append({
-                                "score_name": key,
+                                "score_name": key_str,
                                 "score_value": float(val),
                                 "higher_better": higher_better
                             })
@@ -906,7 +913,7 @@ import warnings
                             # Not a known score - add to psm_metavalues
                             val_type = _get_value_type(val)
                             psm_metavalues.append({
-                                "name": key,
+                                "name": key_str,
                                 "value": val,
                                 "value_type": val_type
                             })

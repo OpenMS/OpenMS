@@ -754,17 +754,19 @@ from collections import defaultdict as _defaultdict
                 keys = []
                 best_hit.getKeys(keys)
                 for key in keys:
-                    if key not in _excluded_metavalues:
+                    # Normalize key to string (getKeys may return bytes in some cases)
+                    key_str = key.decode("utf-8") if isinstance(key, bytes) else key
+                    if key_str not in _excluded_metavalues:
                         val = best_hit.getMetaValue(key)
-                        if isinstance(val, (int, float)) and _Scores.isKnownScoreType(key):
+                        if isinstance(val, (int, float)) and _Scores.isKnownScoreType(key_str):
                             higher_better = None
                             try:
-                                score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key)
+                                score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key_str)
                                 higher_better = idsa.isScoreTypeHigherBetter(score_type_enum)
                             except Exception:
                                 pass
                             additional_scores.append({
-                                "score_name": key,
+                                "score_name": key_str,
                                 "score_value": float(val),
                                 "higher_better": higher_better
                             })
@@ -903,10 +905,12 @@ from collections import defaultdict as _defaultdict
             cf.getKeys(cf_keys)
             _excluded_feature_mvs = {"rt_start", "rt_stop", "start_ion_mobility", "stop_ion_mobility"}
             for key in cf_keys:
-                if key not in _excluded_feature_mvs:
+                # Normalize key to string (getKeys may return bytes in some cases)
+                key_str = key.decode("utf-8") if isinstance(key, bytes) else key
+                if key_str not in _excluded_feature_mvs:
                     val = cf.getMetaValue(key)
                     val_type = _get_value_type(val)
-                    feature_mvs.append({"name": key, "value": val, "value_type": val_type})
+                    feature_mvs.append({"name": key_str, "value": val, "value_type": val_type})
             all_feature_metavalues.append(feature_mvs)
 
         # Build Arrow table
