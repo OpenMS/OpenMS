@@ -275,8 +275,17 @@ protected:
     {
     }
 
-
-    /// Load MS1 SpectrumAccessPtr from given swath maps (returns first MS1 map or nullptr)
+    /** @brief Load MS1 SpectrumAccessPtr from given swath maps.
+     *
+     * Searches through the provided swath maps and returns a SpectrumAccessPtr
+     * to the first MS1 map found. If no MS1 map is present, returns nullptr.
+     *
+     * @param[in] swath_maps Vector of SWATH maps to search for MS1 data
+     * @param[in] load_into_memory Whether to cache the MS1 map in memory for faster access
+     * @return SpectrumAccessPtr to the first MS1 map, or nullptr if no MS1 map exists
+     *
+     * @note The returned pointer may be cached on disk or in memory depending on load_into_memory parameter
+    */
     OpenSwath::SpectrumAccessPtr loadMS1Map(const std::vector<OpenSwath::SwathMap>& swath_maps, bool load_into_memory);
 
     /** @brief Execute OpenSWATH analysis on a set of SwathMaps and transitions.
