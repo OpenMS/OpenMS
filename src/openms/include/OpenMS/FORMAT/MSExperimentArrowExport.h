@@ -20,7 +20,7 @@
 #include <string>
 
 // Forward declarations for Arrow C Data Interface structs (opaque pointers only)
-// Full definitions are in <arrow/c/abi.h>, included only in ArrowExport.cpp
+// Full definitions are in <arrow/c/abi.h>, included only in MSExperimentArrowExport.cpp
 struct ArrowSchema;
 struct ArrowArray;
 
@@ -183,7 +183,7 @@ struct OPENMS_DLLAPI ParquetWriteConfig
 
   @ingroup FileIO
 */
-class OPENMS_DLLAPI ArrowExport
+class OPENMS_DLLAPI MSExperimentArrowExport
 {
 public:
   /**
@@ -347,7 +347,7 @@ public:
     const String& filename,
     const ArrowChromatogramExportConfig& config = ArrowChromatogramExportConfig{},
     const ParquetWriteConfig& parquet_config = ParquetWriteConfig{});
-}; // class ArrowExport
+}; // class MSExperimentArrowExport
 
 } // namespace OpenMS
 

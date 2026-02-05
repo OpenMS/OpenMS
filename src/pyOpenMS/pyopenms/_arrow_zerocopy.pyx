@@ -57,8 +57,8 @@ cdef extern from "<arrow/c/abi.h>" nogil:
         void* private_data
 
 
-# OpenMS ArrowExport declarations
-cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
+# OpenMS MSExperimentArrowExport declarations
+cdef extern from "<OpenMS/FORMAT/MSExperimentArrowExport.h>" namespace "OpenMS":
 
     cdef enum ArrowExportFormat:
         Long "OpenMS::ArrowExportFormat::Long"
@@ -83,7 +83,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         double max_rt
         libcpp_vector[libcpp_string] columns
 
-    cdef cppclass ArrowExport:
+    cdef cppclass MSExperimentArrowExport:
         @staticmethod
         bool exportSpectraToArrowCDataInterface(
             const MSExperiment& exp,
@@ -183,7 +183,7 @@ def spectra_to_arrow(exp, str format='long', list ms_levels=None,
     # Call C++ export via static method
     cdef bint success
     with nogil:
-        success = ArrowExport.exportSpectraToArrowCDataInterface(
+        success = MSExperimentArrowExport.exportSpectraToArrowCDataInterface(
             cpp_exp[0], config, schema, array)
 
     if not success:
@@ -279,7 +279,7 @@ def chromatograms_to_arrow(exp, str format='long', double min_rt=0.0,
     # Call C++ export via static method
     cdef bint success
     with nogil:
-        success = ArrowExport.exportChromatogramsToArrowCDataInterface(
+        success = MSExperimentArrowExport.exportChromatogramsToArrowCDataInterface(
             cpp_exp[0], config, schema, array)
 
     if not success:
