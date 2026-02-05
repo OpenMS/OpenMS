@@ -58,8 +58,6 @@ namespace OpenMS
     - Extraction window estimation and application
     - Result aggregation and reporting
     
-    @htmlinclude OpenMS_CalibrationWorkflow.parameters
-    
     @ingroup OpenSWATH
   */
   class OPENMS_DLLAPI CalibrationWorkflow : 
@@ -186,6 +184,7 @@ namespace OpenMS
       @param[in] load_into_memory Whether to load data into memory for processing
       @param[in] irt_trafo_out Output file for RT transformation (empty = no output)
       @param[in] irt_mzml_out Output file for iRT chromatograms (empty = no output)
+      @param[in] debug_level Debug level (0 = no debug output, >1 = verbose)
       
       @return Calibration results including transformations and estimated windows
       
@@ -286,7 +285,7 @@ namespace OpenMS
      *   - Perform m/z and IM calibration (see SwathMapMassCorrection)
      *   - Store transformation, using the selected model
      *
-     * @param[in] transition_exp_ The transitions for the normalization peptides
+     * @param[in] targeted_exp The transitions for the normalization peptides
      * @param[out] chromatograms The extracted chromatograms
      * @param[out] im_trafo Ion mobility trafo values on the RT-normalization peptides
      * @param[in] swath_maps The raw data (swath maps)     
@@ -393,6 +392,7 @@ namespace OpenMS
       @param[in] load_into_memory Whether to load data into memory
       @param[in] irt_trafo_out Output transformation file
       @param[in] irt_mzml_out Output iRT chromatograms file
+      @param[in] debug_level Debug level (0 = no debug output, >1 = verbose)
       
       @return Linear calibration results
     */
@@ -427,6 +427,7 @@ namespace OpenMS
       @param[in] load_into_memory Whether to load data into memory
       @param[in] irt_trafo_out Output transformation file
       @param[in] irt_mzml_out Output iRT chromatograms file
+      @param[in] debug_level Debug level (0 = no debug output, >1 = verbose)
       
       @return Combined calibration results
     */
