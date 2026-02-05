@@ -474,6 +474,10 @@ class PxdParser:
 
                 # Apply class-level directives found inside class body
                 if WrapDirective.HASH in directives:
+                    # Flush pending class doc before processing hash (which clears pending_class_doc)
+                    if pending_class_doc and pending_doc and not seen_method:
+                        class_decl.doc = "\n".join(pending_doc)
+                        pending_doc = []
                     value = directives[WrapDirective.HASH].strip()
                     if value:
                         class_decl.wrap_hash = value
@@ -624,6 +628,11 @@ class PxdParser:
                 if potential_class and potential_class[0].isupper():
                     enum_decl.attached_to = potential_class
 
+        # Look for wrap-attach in the enum body (multi-line format)
+        # Format:
+        #   # wrap-attach:
+        #   #  ClassName
+        pending_attach = False
         while i < len(lines):
             line = lines[i]
             current_indent = self._get_indent(line)
@@ -633,6 +642,23 @@ class PxdParser:
                 break
 
             if not stripped or stripped.startswith("#"):
+                # Check for wrap-attach in comment lines
+                if stripped.startswith("#"):
+                    if "wrap-attach:" in stripped:
+                        # Check if value is on same line
+                        attach_directives = self._parse_wrap_directives(stripped)
+                        if WrapDirective.ATTACH in attach_directives:
+                            val = attach_directives[WrapDirective.ATTACH].strip()
+                            if val:
+                                enum_decl.attached_to = val
+                            else:
+                                pending_attach = True
+                    elif pending_attach:
+                        # This line should have the class name (e.g., "#  Residue")
+                        class_name = stripped.lstrip("#").strip()
+                        if class_name and class_name[0].isupper():
+                            enum_decl.attached_to = class_name
+                            pending_attach = False
                 i += 1
                 continue
 
