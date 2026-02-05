@@ -3646,9 +3646,9 @@ class NanobindEmitter:
 
         # Add docstring
         if merged_class.doc:
-            doc = self._escape_string(merged_class.doc)
+            doc_str = self._format_docstring(merged_class.doc)
             lines[-1] = lines[-1][:-1]  # Remove trailing paren
-            lines[-1] += f', "{doc}")'
+            lines[-1] += f', {doc_str})'
 
         # Generate constructors (skip for abstract/private-ctor base classes - they can't be instantiated)
         self._current_merged_class = merged_class
@@ -4805,8 +4805,8 @@ class NanobindEmitter:
         if rv_policy:
             result += rv_policy
         if merged_method.doc:
-            doc = self._escape_string(merged_method.doc)
-            result += f', "{doc}"'
+            doc_str = self._format_docstring(merged_method.doc)
+            result += f', {doc_str}'
         result += ")"
 
         return result
@@ -4947,8 +4947,8 @@ class NanobindEmitter:
         if input_args:
             result += f", {', '.join(input_args)}"
         if doc:
-            escaped_doc = self._escape_string(doc)
-            result += f', "{escaped_doc}"'
+            doc_str = self._format_docstring(doc)
+            result += f', {doc_str}'
         result += ")"
 
         return result
@@ -5019,8 +5019,8 @@ class NanobindEmitter:
         if rv_policy:
             result += rv_policy
         if doc:
-            escaped_doc = self._escape_string(doc)
-            result += f', "{escaped_doc}"'
+            doc_str = self._format_docstring(doc)
+            result += f', {doc_str}'
         result += ")"
 
         return result
@@ -5113,8 +5113,8 @@ class NanobindEmitter:
         if input_args:
             result += f", {', '.join(input_args)}"
         if doc:
-            escaped_doc = self._escape_string(doc)
-            result += f', "{escaped_doc}"'
+            doc_str = self._format_docstring(doc)
+            result += f', {doc_str}'
         result += ")"
 
         return result
@@ -5413,6 +5413,26 @@ class NanobindEmitter:
     def _escape_string(self, s: str) -> str:
         """Escape a string for use in C++ code."""
         return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+    def _format_docstring(self, doc: str) -> str:
+        """Format a docstring for use in C++ code using raw strings.
+
+        Uses C++ raw string literals R"doc(...)doc" for better readability,
+        especially for multi-line docstrings.
+        """
+        if not doc:
+            return '""'
+
+        # Clean up the docstring
+        doc = doc.strip()
+
+        # For simple single-line docs without special chars, use regular string
+        if '\n' not in doc and '"' not in doc and '\\' not in doc:
+            return f'"{doc}"'
+
+        # Use raw string literal with delimiter to handle any content
+        # R"doc(content)doc" - the "doc" delimiter ensures )doc" in content won't break it
+        return f'R"doc({doc})doc"'
 
     def _qualify_openms_types(self, type_str: str) -> str:
         """Add OpenMS:: prefix to unqualified OpenMS types.
