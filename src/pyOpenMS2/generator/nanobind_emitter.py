@@ -4805,7 +4805,7 @@ class NanobindEmitter:
         if rv_policy:
             result += rv_policy
         if merged_method.doc:
-            doc_str = self._format_docstring(merged_method.doc)
+            doc_str = self._format_docstring(merged_method.doc, indent=12)
             result += f', {doc_str}'
         result += ")"
 
@@ -4947,7 +4947,7 @@ class NanobindEmitter:
         if input_args:
             result += f", {', '.join(input_args)}"
         if doc:
-            doc_str = self._format_docstring(doc)
+            doc_str = self._format_docstring(doc, indent=12)
             result += f', {doc_str}'
         result += ")"
 
@@ -5019,7 +5019,7 @@ class NanobindEmitter:
         if rv_policy:
             result += rv_policy
         if doc:
-            doc_str = self._format_docstring(doc)
+            doc_str = self._format_docstring(doc, indent=12)
             result += f', {doc_str}'
         result += ")"
 
@@ -5113,7 +5113,7 @@ class NanobindEmitter:
         if input_args:
             result += f", {', '.join(input_args)}"
         if doc:
-            doc_str = self._format_docstring(doc)
+            doc_str = self._format_docstring(doc, indent=12)
             result += f', {doc_str}'
         result += ")"
 
@@ -5414,11 +5414,16 @@ class NanobindEmitter:
         """Escape a string for use in C++ code."""
         return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 
-    def _format_docstring(self, doc: str) -> str:
+    def _format_docstring(self, doc: str, indent: int = 8) -> str:
         """Format a docstring for use in C++ code using raw strings.
 
         Uses C++ raw string literals R"doc(...)doc" for better readability,
-        especially for multi-line docstrings.
+        especially for multi-line docstrings. Multi-line docs are formatted
+        with R"doc( on its own line for clarity.
+
+        Args:
+            doc: The docstring content
+            indent: Number of spaces to indent continuation lines (default 8)
         """
         if not doc:
             return '""'
@@ -5431,8 +5436,12 @@ class NanobindEmitter:
             return f'"{doc}"'
 
         # Use raw string literal with delimiter to handle any content
-        # R"doc(content)doc" - the "doc" delimiter ensures )doc" in content won't break it
-        return f'R"doc({doc})doc"'
+        # Format with R"doc( on new line for readability:
+        #     R"doc(
+        # content here
+        # )doc"
+        indent_str = ' ' * indent
+        return f'\n{indent_str}R"doc(\n{doc}\n)doc"'
 
     def _qualify_openms_types(self, type_str: str) -> str:
         """Add OpenMS:: prefix to unqualified OpenMS types.
