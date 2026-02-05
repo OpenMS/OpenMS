@@ -36,7 +36,7 @@ OpenMS is an open-source software C++ library for LC-MS data management and anal
    - pyOpenMS for Python scripting
 
 4. **pyOpenMS**
-   - Python bindings generated via autowrap
+   - Python bindings generated via nanobind
    - Integration with scientific Python ecosystem
    - Located in `src/pyOpenMS/`
 
@@ -86,9 +86,10 @@ OpenMS/
 │   │   ├── include/OpenMS/  # Header files
 │   │   └── source/          # Implementation files
 │   ├── openms_gui/          # GUI components
-│   ├── pyOpenMS/            # Python bindings
-│   │   ├── pxds/            # Declarations for autowrap
-│   │   └── addons/          # Manual wrapper code
+│   ├── pyOpenMS/            # Python bindings (nanobind)
+│   │   ├── bindings/        # C++ binding sources and type casters
+│   │   ├── generator/       # Code generator (libclang-based)
+│   │   └── pyopenms/addons/ # Pure Python addon methods
 │   ├── tests/               # Test suites
 │   │   ├── class_tests/     # Unit tests
 │   │   └── topp/            # TOPP tool tests
