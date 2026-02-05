@@ -445,9 +445,6 @@ namespace OpenMS
     const bool pasef)
   {
     bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
-    if (estimateBestPeptides)
-    {
-    }
 
     // 1. Estimate the retention time range of the iRT peptides over all assays
     std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
