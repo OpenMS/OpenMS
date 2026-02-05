@@ -166,7 +166,7 @@ import warnings
             "end",
             "P_ID",
             "PSM_ID",
-            "metavalues",  # List of {"name": str, "value": str, "type": str}
+            "metavalues",  # List of {"name": str, "value": str, "value_type": str}
         ]
 
     def to_arrow(self, decode_ontology=True, default_missing_values=None, export_unidentified=True, columns=None):
