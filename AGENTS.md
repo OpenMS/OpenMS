@@ -45,9 +45,11 @@ OpenMS/
 │   ├── openms_gui/          # Qt-based GUI components
 │   ├── openswathalgo/       # OpenSWATH algorithms
 │   ├── topp/                # Command-line tools (TOPP)
-│   ├── pyOpenMS/            # Python bindings
-│   │   ├── pxds/            # .pxd declarations for autowrap
-│   │   ├── addons/          # Python-only method additions
+│   ├── pyOpenMS/            # Python bindings (nanobind)
+│   │   ├── pxds/            # .pxd declarations (generator input)
+│   │   ├── generator/       # Code generator (pxd_parser, nanobind_emitter)
+│   │   ├── bindings/        # Pre-committed nanobind C++ code + type casters
+│   │   ├── pyopenms/addons/ # Pure Python addon methods
 │   │   └── tests/           # Python tests
 │   └── tests/
 │       ├── class_tests/openms/source/  # C++ unit tests
@@ -63,7 +65,7 @@ OpenMS/
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
-- pyOpenMS build deps: install via `uv sync --only-group build` or `pip install -e .[dev]` (see `src/pyOpenMS/pyproject.toml`); enable with `-DPYOPENMS=ON` and optional `-DPY_NUM_THREADS`/`-DPY_NUM_MODULES`.
+- pyOpenMS build deps: install via `uv sync --only-group build` or `pip install -e .[dev]` (see `src/pyOpenMS/pyproject.toml`); enable with `-DPYOPENMS=ON`.
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
 **Required dependencies:**
@@ -274,9 +276,11 @@ bool fragment_tolerance_ppm_;
 │   ├── openms_gui/       # Qt-based GUI components
 │   ├── openswathalgo/    # OpenSWATH algorithms
 │   ├── topp/             # Command-line tools (TOPP)
-│   ├── pyOpenMS/         # Python bindings
-│   │   ├── pxds/         # .pxd declarations for autowrap
-│   │   ├── addons/       # Python-only method additions
+│   ├── pyOpenMS/         # Python bindings (nanobind)
+│   │   ├── pxds/         # .pxd declarations (generator input)
+│   │   ├── generator/    # Code generator (pxd_parser, nanobind_emitter)
+│   │   ├── bindings/     # Pre-committed nanobind C++ code + type casters
+│   │   ├── pyopenms/addons/ # Pure Python addon methods
 │   │   └── tests/        # Python tests
 │   └── tests/
 │       ├── class_tests/openms/source/  # C++ unit tests
@@ -365,19 +369,18 @@ void MyClass::process(const MSSpectrum& spectrum)
 
 ## pyOpenMS Wrapping
 
-- Autowrap reads `.pxd` in `src/pyOpenMS/pxds/` and generates `pyopenms/pyopenms.pyx` -> `pyopenms.cpp` -> module.
-- Addons in `src/pyOpenMS/addons/` inject Python-only methods (indent only; no `cdef class`).
+- The nanobind generator reads `.pxd` in `src/pyOpenMS/pxds/` and emits C++ binding code in `bindings/generated/`.
+- Addons in `src/pyOpenMS/pyopenms/addons/` inject pure Python methods at import time via `@addon("ClassName")`.
 - Keep `.pxd` signatures in sync with C++ APIs; update or remove `wrap-ignore` when wrapping changes.
 - Always declare default and copy constructors in `.pxd`; use `cimport`, not Python `import`.
 - For non-inheriting classes use `cdef cppclass ClassName:` with no base.
-- Autowrap hints: `wrap-ignore`, `wrap-as`, `wrap-iter-begin/end`, `wrap-instances`, `wrap-attach`, `wrap-upper-limit`, `wrap-inherits`.
-- Avoid custom `__init__` unless required; it overrides autowrap dispatchers.
+- Wrapping hints: `wrap-ignore`, `wrap-as`, `wrap-iter-begin/end`, `wrap-instances`, `wrap-attach`, `wrap-upper-limit`, `wrap-inherits`, `wrap-hash`, `wrap-manual-memory`.
 - Use snake_case for Python-facing names and DataFrame columns.
 - Do not add Python-only methods to `.pxd`; use addons or `_dataframes.py` wrappers.
 - DataFrame pattern: `get_data_dict()` in addon returns numpy arrays; `get_df()` in `src/pyOpenMS/pyopenms/_dataframes.py` wraps with pandas.
-- Type converters: implement in `src/pyOpenMS/converters/special_autowrap_conversionproviders.py`, register in `src/pyOpenMS/converters/__init__.py`.
-- Gotchas: autowrap returns Python strings; do not `.decode()`. Avoid `cdef` for autowrap string returns. Avoid `cdef` typed variables for autowrap return values inside `def` methods; use Python type checks. Keep addons minimal; avoid redundant aliases.
-- **CRITICAL: `wrap-doc:` formatting** - The autowrap parser (`PXDParser.py`) requires exactly `#  ` (hash + 2 spaces) for all documentation continuation lines. Changing to `#` or `# ` will break parsing:
+- Type casters in `bindings/type_casters/` handle C++ ↔ Python type conversion (OpenMS::String ↔ str, DPosition, DataValue, etc.).
+- Keep addons minimal; avoid redundant aliases.
+- **CRITICAL: `wrap-doc:` formatting** - The parser requires exactly `#  ` (hash + 2 spaces) for documentation continuation lines:
   ```python
   # CORRECT format:
   void myMethod() except + nogil
@@ -390,12 +393,12 @@ void MyClass::process(const MSSpectrum& spectrum)
   void myMethod() except + nogil
       # wrap-doc:
       # This is the documentation.     <- only 1 space after hash - BREAKS!
-      #                                <- just hash - BREAKS!
   ```
-  The parser uses `line.startswith("#  ")` to validate and continue parsing. Any deviation causes immediate failure.
-- Regenerate after addon changes:
+- Regenerate bindings after `.pxd` changes:
   ```bash
-  rm OpenMS-build/pyOpenMS/.cpp_extension_generated
+  cd src/pyOpenMS
+  python -m generator --pxd-dir pxds --output-dir bindings/generated \
+    --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include
   cmake --build OpenMS-build --target pyopenms -j4
   ```
 
@@ -495,12 +498,17 @@ File format | `FileHandler::NamesOfTypes[]`, schemas, tests
 
 **Key files:**
 - `.pxd` declarations: `src/pyOpenMS/pxds/`
-- Python addons: `src/pyOpenMS/addons/`
-- Type converters: `src/pyOpenMS/converters/`
+- Generator: `src/pyOpenMS/generator/`
+- Generated bindings: `src/pyOpenMS/bindings/generated/`
+- Type casters: `src/pyOpenMS/bindings/type_casters/`
+- Python addons: `src/pyOpenMS/pyopenms/addons/`
 
 **Common patterns:**
 ```python
-# In addons/MyClass.pyx - inject Python-only methods
+# In pyopenms/addons/myclass.py - inject Python-only methods
+from pyopenms.addons import addon
+
+@addon("MyClass")
 def get_df(self):
     """Return pandas DataFrame."""
     import pandas as pd
@@ -509,8 +517,7 @@ def get_df(self):
 
 **Gotchas:**
 - Always declare default and copy constructors in `.pxd`
-- Use `cimport`, not Python `import` for Cython imports
-- Autowrap returns Python strings; do NOT call `.decode()`
+- Use `cimport`, not Python `import` for type declarations in `.pxd`
 - Use snake_case for Python-facing names
 
 ## Verification Commands
@@ -648,7 +655,7 @@ perf report
 - http://www.doxygen.org/index.html
 - https://llvm.org/builds/
 - https://docs.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/compiler-error-c2471?view=msvc-170
-- https://github.com/OpenMS/autowrap/blob/master/docs/README.md
+- https://nanobind.readthedocs.io/
 
 ### Testing and Profiling Tools
 - https://openms.readthedocs.io/en/latest/docs/topp/adding-new-tool-to-topp.html#how-do-I-add-a-new-TOPP-test

@@ -199,58 +199,6 @@ class TestPxdParser:
         assert "1-dimensional" in cls.doc
 
 
-class TestAddonProcessor:
-    """Tests for AddonProcessor."""
-
-    @pytest.fixture
-    def sample_addon(self, tmp_path):
-        """Create a sample addon file for testing."""
-        addon_content = textwrap.dedent('''
-            def __repr__(self):
-                """Return string representation."""
-                return f"Peak1D(mz={self.getMZ()}, intensity={self.getIntensity()})"
-
-            def __len__(self):
-                cdef unsigned int n = self.inst.get().size()
-                return n
-        ''')
-
-        addon_file = tmp_path / "Peak1D.pyx"
-        addon_file.write_text(addon_content)
-        return addon_file
-
-    def test_classify_methods(self, sample_addon):
-        """Test method classification."""
-        from generator.addon_processor import AddonProcessor, AddonTier
-
-        processor = AddonProcessor()
-        addon = processor.parse_file(sample_addon)
-
-        assert addon is not None
-        assert addon.class_name == "Peak1D"
-
-        # __repr__ should be pure Python
-        repr_methods = [m for m in addon.methods if m.name == "__repr__"]
-        if repr_methods:
-            assert repr_methods[0].tier == AddonTier.PURE_PYTHON
-
-        # __len__ with cdef should require C++
-        len_methods = [m for m in addon.methods if m.name == "__len__"]
-        if len_methods:
-            assert len_methods[0].tier == AddonTier.CPP_REQUIRED
-
-    def test_performance_critical_detection(self):
-        """Test detection of performance-critical methods."""
-        from generator.addon_processor import AddonProcessor, AddonTier
-
-        processor = AddonProcessor()
-
-        # These method names should be flagged as performance-critical
-        critical_names = ["get_peaks", "set_peaks", "get_data_dict"]
-        for name in critical_names:
-            assert name in processor.PERFORMANCE_CRITICAL_METHODS
-
-
 class TestNanobindEmitter:
     """Tests for NanobindEmitter."""
 

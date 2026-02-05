@@ -29,7 +29,7 @@ Only needed when `.pxd` files change or new classes are added:
 
 ```bash
 cd src/pyOpenMS
-python -m generator --pxd-dir pxds --addons-dir pyopenms/addons \
+python -m generator --pxd-dir pxds \
   --output-dir bindings/generated \
   --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include
 ```

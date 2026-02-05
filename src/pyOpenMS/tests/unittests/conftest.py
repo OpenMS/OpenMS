@@ -1,7 +1,7 @@
 """
-pytest configuration for legacy pyOpenMS tests running against nanobind build.
+pytest configuration for pyOpenMS tests.
 
-Ensures the nanobind build is imported when running legacy tests.
+Ensures the nanobind build is imported and the generator package is importable.
 """
 
 import sys
@@ -75,8 +75,18 @@ def _setup_pyopenms():
         spec.loader.exec_module(pyopenms)
 
 
-# Set up pyopenms immediately when conftest is loaded
+def _setup_generator_path():
+    """Add src/pyOpenMS/ to sys.path so 'from generator...' imports work."""
+    # src/pyOpenMS/tests/unittests/conftest.py -> src/pyOpenMS/
+    pyopenms_src = Path(__file__).parent.parent.parent
+    pyopenms_src_str = str(pyopenms_src)
+    if pyopenms_src_str not in sys.path:
+        sys.path.insert(0, pyopenms_src_str)
+
+
+# Set up pyopenms and generator paths immediately when conftest is loaded
 _setup_pyopenms()
+_setup_generator_path()
 
 
 # Import fixtures from parent conftest
