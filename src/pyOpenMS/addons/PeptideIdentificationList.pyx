@@ -302,8 +302,7 @@ import warnings
             for mv in mvs:
                 if besthit.metaValueExists(mv):
                     val = besthit.getMetaValue(mv)
-                    mv_name = mv.decode("utf-8") if isinstance(mv, bytes) else mv
-                    decoded_name = decode_mv_name(mv_name)
+                    decoded_name = decode_mv_name(mv)
                     metavalues.append({
                         "name": decoded_name,
                         "value": str(val),
@@ -746,8 +745,8 @@ import warnings
                 return "str"
 
         # Excluded metavalues (have dedicated columns)
-        _excluded_psm_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
-        _excluded_spectrum_metavalues = {b"spectrum_reference", b"ion_mobility", b"IM"}
+        _excluded_psm_metavalues = {"target_decoy", "predicted_RT", "predicted_rt"}
+        _excluded_spectrum_metavalues = {"spectrum_reference", "ion_mobility", "IM"}
 
         # Initialize column lists
         all_sequence = []
@@ -793,19 +792,17 @@ import warnings
 
             # Spectrum reference
             spec_ref = ""
-            if pep_id.metaValueExists(b"spectrum_reference"):
-                spec_ref = pep_id.getMetaValue(b"spectrum_reference")
-                if isinstance(spec_ref, bytes):
-                    spec_ref = spec_ref.decode("utf-8")
+            if pep_id.metaValueExists("spectrum_reference"):
+                spec_ref = pep_id.getMetaValue("spectrum_reference")
 
             score_type = pep_id.getScoreType()
 
             # Ion mobility
             ion_mobility = None
-            if pep_id.metaValueExists(b"ion_mobility"):
-                ion_mobility = pep_id.getMetaValue(b"ion_mobility")
-            elif pep_id.metaValueExists(b"IM"):
-                ion_mobility = pep_id.getMetaValue(b"IM")
+            if pep_id.metaValueExists("ion_mobility"):
+                ion_mobility = pep_id.getMetaValue("ion_mobility")
+            elif pep_id.metaValueExists("IM"):
+                ion_mobility = pep_id.getMetaValue("IM")
 
             # Extract scan number
             scan = _extract_scan_number(spec_ref)
@@ -817,14 +814,9 @@ import warnings
             for key in pep_id_keys:
                 if key not in _excluded_spectrum_metavalues:
                     val = pep_id.getMetaValue(key)
-                    key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
-                    # Determine type before any conversion
                     val_type = _get_value_type(val)
-                    # Convert value to appropriate Python type
-                    if isinstance(val, bytes):
-                        val = val.decode("utf-8")
                     spectrum_metavalues.append({
-                        "name": key_str,
+                        "name": key,
                         "value": val,
                         "value_type": val_type
                     })
@@ -875,12 +867,9 @@ import warnings
 
                 # Determine is_decoy
                 is_decoy = None
-                if hit.metaValueExists(b"target_decoy"):
-                    td = hit.getMetaValue(b"target_decoy")
-                    if isinstance(td, bytes):
-                        is_decoy = 1 if td.startswith(b"decoy") else 0
-                    else:
-                        is_decoy = 1 if str(td).startswith("decoy") else 0
+                if hit.metaValueExists("target_decoy"):
+                    td = hit.getMetaValue("target_decoy")
+                    is_decoy = 1 if str(td).startswith("decoy") else 0
 
                 # Protein accessions
                 evidences = hit.getPeptideEvidences()
@@ -896,32 +885,28 @@ import warnings
                 for key in keys:
                     if key not in _excluded_psm_metavalues:
                         val = hit.getMetaValue(key)
-                        key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
 
                         # Check if this is a known score type (using C++ registry)
-                        is_known_score = _is_known_score(key_str)
+                        is_known_score = _is_known_score(key)
 
                         if isinstance(val, (int, float)) and is_known_score:
                             # Known score - add to additional_scores
                             higher_better = None
                             try:
-                                score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key_str)
+                                score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key)
                                 higher_better = idsa.isScoreTypeHigherBetter(score_type_enum)
                             except Exception:
                                 pass  # Unknown score type, leave as None
                             additional_scores.append({
-                                "score_name": key_str,
+                                "score_name": key,
                                 "score_value": float(val),
                                 "higher_better": higher_better
                             })
                         else:
                             # Not a known score - add to psm_metavalues
-                            # Determine type before any conversion
                             val_type = _get_value_type(val)
-                            if isinstance(val, bytes):
-                                val = val.decode("utf-8")
                             psm_metavalues.append({
-                                "name": key_str,
+                                "name": key,
                                 "value": val,
                                 "value_type": val_type
                             })
@@ -936,21 +921,18 @@ import warnings
 
                 # Predicted RT
                 predicted_rt = None
-                if hit.metaValueExists(b"predicted_RT"):
-                    predicted_rt = hit.getMetaValue(b"predicted_RT")
-                elif hit.metaValueExists(b"predicted_rt"):
-                    predicted_rt = hit.getMetaValue(b"predicted_rt")
+                if hit.metaValueExists("predicted_RT"):
+                    predicted_rt = hit.getMetaValue("predicted_RT")
+                elif hit.metaValueExists("predicted_rt"):
+                    predicted_rt = hit.getMetaValue("predicted_rt")
 
                 # PEP value using findScoreType result
                 pep_value = None
                 if pep_score_name:  # Non-empty means PEP was found
                     if pep_search_result.is_main_score_type:
                         pep_value = hit.getScore()
-                    else:
-                        # PEP is in metavalues - use the score_name found by findScoreType
-                        pep_key = pep_score_name.encode('utf-8') if isinstance(pep_score_name, str) else pep_score_name
-                        if hit.metaValueExists(pep_key):
-                            pep_value = hit.getMetaValue(pep_key)
+                    elif hit.metaValueExists(pep_score_name):
+                        pep_value = hit.getMetaValue(pep_score_name)
 
                 # Append to column lists
                 all_sequence.append(seq.toUnmodifiedString())

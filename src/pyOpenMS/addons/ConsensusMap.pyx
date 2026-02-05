@@ -571,15 +571,11 @@ from collections import defaultdict as _defaultdict
                 # Gene info from metavalues if available
                 gene_accessions = []
                 gene_names = []
-                if ph.metaValueExists(b"gene_accession"):
-                    val = ph.getMetaValue(b"gene_accession")
-                    if isinstance(val, bytes):
-                        val = val.decode("utf-8")
+                if ph.metaValueExists("gene_accession"):
+                    val = ph.getMetaValue("gene_accession")
                     gene_accessions.append(str(val))
-                if ph.metaValueExists(b"gene_name"):
-                    val = ph.getMetaValue(b"gene_name")
-                    if isinstance(val, bytes):
-                        val = val.decode("utf-8")
+                if ph.metaValueExists("gene_name"):
+                    val = ph.getMetaValue("gene_name")
                     gene_names.append(str(val))
                 if gene_accessions:
                     gg_accessions_lookup[acc] = gene_accessions
@@ -643,7 +639,7 @@ from collections import defaultdict as _defaultdict
         all_feature_metavalues = []
 
         # Excluded metavalues (have dedicated columns)
-        _excluded_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
+        _excluded_metavalues = {"target_decoy", "predicted_RT", "predicted_rt"}
 
         def _get_value_type(val):
             if type(val).__name__ == 'bool':
@@ -741,20 +737,15 @@ from collections import defaultdict as _defaultdict
                 if pep_score_name and best_hit is not None:
                     if pep_search_result.is_main_score_type:
                         pep_value = best_hit.getScore()
-                    else:
-                        pep_key = pep_score_name.encode('utf-8') if isinstance(pep_score_name, str) else pep_score_name
-                        if best_hit.metaValueExists(pep_key):
-                            pep_value = best_hit.getMetaValue(pep_key)
+                    elif best_hit.metaValueExists(pep_score_name):
+                        pep_value = best_hit.getMetaValue(pep_score_name)
             all_pep.append(pep_value)
 
             # is_decoy
             is_decoy = None
-            if best_hit is not None and best_hit.metaValueExists(b"target_decoy"):
-                td = best_hit.getMetaValue(b"target_decoy")
-                if isinstance(td, bytes):
-                    is_decoy = 1 if td.startswith(b"decoy") else 0
-                else:
-                    is_decoy = 1 if str(td).startswith("decoy") else 0
+            if best_hit is not None and best_hit.metaValueExists("target_decoy"):
+                td = best_hit.getMetaValue("target_decoy")
+                is_decoy = 1 if str(td).startswith("decoy") else 0
             all_is_decoy.append(is_decoy)
 
             # additional_scores from best hit
@@ -765,16 +756,15 @@ from collections import defaultdict as _defaultdict
                 for key in keys:
                     if key not in _excluded_metavalues:
                         val = best_hit.getMetaValue(key)
-                        key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
-                        if isinstance(val, (int, float)) and _Scores.isKnownScoreType(key_str):
+                        if isinstance(val, (int, float)) and _Scores.isKnownScoreType(key):
                             higher_better = None
                             try:
-                                score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key_str)
+                                score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key)
                                 higher_better = idsa.isScoreTypeHigherBetter(score_type_enum)
                             except Exception:
                                 pass
                             additional_scores.append({
-                                "score_name": key_str,
+                                "score_name": key,
                                 "score_value": float(val),
                                 "higher_better": higher_better
                             })
@@ -783,10 +773,10 @@ from collections import defaultdict as _defaultdict
             # predicted_rt
             predicted_rt = None
             if best_hit is not None:
-                if best_hit.metaValueExists(b"predicted_RT"):
-                    predicted_rt = best_hit.getMetaValue(b"predicted_RT")
-                elif best_hit.metaValueExists(b"predicted_rt"):
-                    predicted_rt = best_hit.getMetaValue(b"predicted_rt")
+                if best_hit.metaValueExists("predicted_RT"):
+                    predicted_rt = best_hit.getMetaValue("predicted_RT")
+                elif best_hit.metaValueExists("predicted_rt"):
+                    predicted_rt = best_hit.getMetaValue("predicted_rt")
             all_predicted_rt.append(predicted_rt)
 
             # reference_file_name
@@ -797,10 +787,8 @@ from collections import defaultdict as _defaultdict
 
             # scan + scan_reference_file_name from best PSM's spectrum reference
             spec_ref = ""
-            if has_id and pep_ids[0].metaValueExists(b"spectrum_reference"):
-                spec_ref = pep_ids[0].getMetaValue(b"spectrum_reference")
-                if isinstance(spec_ref, bytes):
-                    spec_ref = spec_ref.decode("utf-8")
+            if has_id and pep_ids[0].metaValueExists("spectrum_reference"):
+                spec_ref = pep_ids[0].getMetaValue("spectrum_reference")
 
             if scan_format == "nativeId":
                 all_scan.append(spec_ref if spec_ref else None)
@@ -813,19 +801,19 @@ from collections import defaultdict as _defaultdict
             # ion_mobility
             ion_mobility = None
             if has_id:
-                if pep_ids[0].metaValueExists(b"ion_mobility"):
-                    ion_mobility = pep_ids[0].getMetaValue(b"ion_mobility")
-                elif pep_ids[0].metaValueExists(b"IM"):
-                    ion_mobility = pep_ids[0].getMetaValue(b"IM")
+                if pep_ids[0].metaValueExists("ion_mobility"):
+                    ion_mobility = pep_ids[0].getMetaValue("ion_mobility")
+                elif pep_ids[0].metaValueExists("IM"):
+                    ion_mobility = pep_ids[0].getMetaValue("IM")
             all_ion_mobility.append(ion_mobility)
 
             # start/stop ion mobility from metavalues
             start_im = None
             stop_im = None
-            if cf.metaValueExists(b"start_ion_mobility"):
-                start_im = cf.getMetaValue(b"start_ion_mobility")
-            if cf.metaValueExists(b"stop_ion_mobility"):
-                stop_im = cf.getMetaValue(b"stop_ion_mobility")
+            if cf.metaValueExists("start_ion_mobility"):
+                start_im = cf.getMetaValue("start_ion_mobility")
+            if cf.metaValueExists("stop_ion_mobility"):
+                stop_im = cf.getMetaValue("stop_ion_mobility")
             all_start_ion_mobility.append(start_im)
             all_stop_ion_mobility.append(stop_im)
 
@@ -884,10 +872,10 @@ from collections import defaultdict as _defaultdict
             # rt_start / rt_stop from feature width or metavalues
             rt_start = None
             rt_stop = None
-            if cf.metaValueExists(b"rt_start"):
-                rt_start = cf.getMetaValue(b"rt_start")
-            if cf.metaValueExists(b"rt_stop"):
-                rt_stop = cf.getMetaValue(b"rt_stop")
+            if cf.metaValueExists("rt_start"):
+                rt_start = cf.getMetaValue("rt_start")
+            if cf.metaValueExists("rt_stop"):
+                rt_stop = cf.getMetaValue("rt_stop")
             if rt_start is None and rt_stop is None:
                 width = cf.getWidth()
                 if width > 0:
@@ -913,15 +901,12 @@ from collections import defaultdict as _defaultdict
             feature_mvs = []
             cf_keys = []
             cf.getKeys(cf_keys)
-            _excluded_feature_mvs = {b"rt_start", b"rt_stop", b"start_ion_mobility", b"stop_ion_mobility"}
+            _excluded_feature_mvs = {"rt_start", "rt_stop", "start_ion_mobility", "stop_ion_mobility"}
             for key in cf_keys:
                 if key not in _excluded_feature_mvs:
                     val = cf.getMetaValue(key)
-                    key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
                     val_type = _get_value_type(val)
-                    if isinstance(val, bytes):
-                        val = val.decode("utf-8")
-                    feature_mvs.append({"name": key_str, "value": val, "value_type": val_type})
+                    feature_mvs.append({"name": key, "value": val, "value_type": val_type})
             all_feature_metavalues.append(feature_mvs)
 
         # Build Arrow table
