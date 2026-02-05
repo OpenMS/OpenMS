@@ -6,6 +6,8 @@ from IsotopeDistribution cimport *
 cdef extern from "<OpenMS/CHEMISTRY/Element.h>" namespace "OpenMS":
 
     cdef cppclass Element:
+        # wrap-doc:
+        #  Representation of an element
         # wrap-hash:
         #  std
 

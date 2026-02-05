@@ -9,6 +9,8 @@ from DataProcessing cimport *
 cdef extern from "<OpenMS/METADATA/MetaInfoDescription.h>" namespace "OpenMS":
 
     cdef cppclass MetaInfoDescription(MetaInfoInterface):
+        # wrap-doc:
+        #  Description of the meta data arrays of MSSpectrum
         # wrap-inherits:
         #  MetaInfoInterface
 

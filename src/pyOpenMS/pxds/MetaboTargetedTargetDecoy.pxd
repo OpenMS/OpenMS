@@ -5,6 +5,9 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h>" namespace "OpenMS":
 
   cdef cppclass MetaboTargetedTargetDecoy "OpenMS::MetaboTargetedTargetDecoy":
+      # wrap-doc:
+      #  Resolve overlapping fragments and missing decoys for experimental
+      #  specific decoy generation in targeted/pseudo targeted metabolomics
 
       MetaboTargetedTargetDecoy() except + nogil  # wrap-doc:Resolve overlapping fragments and missing decoys for experimental specific decoy generation in targeted/pseudo targeted metabolomics
       MetaboTargetedTargetDecoy(MetaboTargetedTargetDecoy &) except + nogil  # compiler

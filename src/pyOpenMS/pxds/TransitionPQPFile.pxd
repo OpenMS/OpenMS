@@ -7,6 +7,8 @@ from LightTargetedExperiment cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>" namespace "OpenMS":
 
     cdef cppclass TransitionPQPFile:
+        # wrap-doc:
+        #  This class supports reading and writing of PQP files
 
         TransitionPQPFile() except + nogil 
         TransitionPQPFile(TransitionPQPFile &) except + nogil  # compiler

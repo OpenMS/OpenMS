@@ -6,6 +6,8 @@ from ResidueModification cimport *
 cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS":
     
     cdef cppclass ModificationDefinition "OpenMS::ModificationDefinition":
+        # wrap-doc:
+        #  Representation of modification definition
         # wrap-hash:
         #  std
 

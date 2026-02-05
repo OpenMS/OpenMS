@@ -11,6 +11,8 @@ from FileHandler cimport *
 cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
     
     cdef cppclass InspectOutfile "OpenMS::InspectOutfile":
+        # wrap-doc:
+        #  Representation of an Inspect outfile
       
         InspectOutfile() except + nogil  # wrap-doc:This class serves to read in an Inspect outfile and write an idXML file
         InspectOutfile(InspectOutfile &) except + nogil 

@@ -11,6 +11,8 @@ from DBoundingBox cimport *
 cdef extern from "<OpenMS/ML/CLUSTERING/GridBasedCluster.h>" namespace "OpenMS":
     
     cdef cppclass GridBasedCluster "OpenMS::GridBasedCluster":
+        # wrap-doc:
+        #  basic data structure for clustering
 
         GridBasedCluster(DPosition2 centre,
             DBoundingBox2 bounding_box, 

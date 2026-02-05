@@ -5,6 +5,9 @@ from InterfaceDataStructures cimport *
 cdef extern from "<OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>" namespace "OpenMS":
     
     cdef cppclass SignalToNoiseEstimatorMedianRapid "OpenMS::SignalToNoiseEstimatorMedianRapid":
+        # wrap-doc:
+        #  Estimates the signal/noise (S/N) ratio of each data point in a scan
+        #  by using the median (window based)
 
         SignalToNoiseEstimatorMedianRapid(SignalToNoiseEstimatorMedianRapid &) except + nogil  # compiler
         SignalToNoiseEstimatorMedianRapid(double window_length) except + nogil 

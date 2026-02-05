@@ -5,6 +5,8 @@ from Types cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/DistanceMatrix.h>" namespace "OpenMS":
     
     cdef cppclass DistanceMatrix[Value]:
+        # wrap-doc:
+        #  A two-dimensional distance matrix, similar to OpenMS::Matrix
         # wrap-instances:
         #  DistanceMatrix := DistanceMatrix[float]
         DistanceMatrix() except + nogil 

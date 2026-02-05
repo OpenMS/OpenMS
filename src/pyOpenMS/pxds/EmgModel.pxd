@@ -4,6 +4,9 @@ from String cimport *
 cdef extern from "<OpenMS/FEATUREFINDER/EmgModel.h>" namespace "OpenMS":
     
     cdef cppclass EmgModel(InterpolationModel):
+        # wrap-doc:
+        #  Exponentially modified gaussian distribution model for elution
+        #  profiles
         # wrap-inherits:
         #  InterpolationModel
         EmgModel() except + nogil  # wrap-doc:Exponentially modified gaussian distribution model for elution profiles

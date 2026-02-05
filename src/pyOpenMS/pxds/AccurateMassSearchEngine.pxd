@@ -15,6 +15,9 @@ from EmpiricalFormula cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "OpenMS":
 
     cdef cppclass AccurateMassSearchEngine(DefaultParamHandler,ProgressLogger) :
+        # wrap-doc:
+        #  An algorithm to search for exact mass matches from a spectrum against
+        #  a database (e.g. HMDB)
         # wrap-inherits:
         #  DefaultParamHandler
         #  ProgressLogger

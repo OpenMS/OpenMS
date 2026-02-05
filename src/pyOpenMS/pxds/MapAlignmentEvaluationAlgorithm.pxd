@@ -5,6 +5,8 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>" namespace "OpenMS":
     
     cdef cppclass MapAlignmentEvaluationAlgorithm "OpenMS::MapAlignmentEvaluationAlgorithm":
+        # wrap-doc:
+        #  Base class for all Caap evaluation algorithms
         # wrap-ignore
         # ABSTRACT class
         # no-pxd-import

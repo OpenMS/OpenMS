@@ -5,6 +5,8 @@ from ResidueModification cimport *
 cdef extern from "<OpenMS/FORMAT/UnimodXMLFile.h>" namespace "OpenMS":
     
     cdef cppclass UnimodXMLFile(XMLFile) :
+        # wrap-doc:
+        #  Used to load XML files from unimod.org files
         # wrap-inherits:
         #  XMLFile
 

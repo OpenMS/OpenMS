@@ -14,6 +14,9 @@ from ProgressLogger cimport *
 cdef extern from "<OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFindingMetabo(ProgressLogger, DefaultParamHandler):
+        # wrap-doc:
+        #  Internal structure used in @ref FeatureFindingMetabo that keeps track
+        #  of a feature hypothesis (isotope group hypothesis)
         # wrap-inherits:
         #   ProgressLogger
         #   DefaultParamHandler

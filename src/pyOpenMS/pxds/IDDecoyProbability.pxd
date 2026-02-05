@@ -7,6 +7,8 @@ from PeptideIdentification cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/IDDecoyProbability.h>" namespace "OpenMS":
 
     cdef cppclass IDDecoyProbability(DefaultParamHandler):
+        # wrap-doc:
+        #  IDDecoyProbability calculates probabilities using decoy approach
         # wrap-inherits:
         #   DefaultParamHandler
 

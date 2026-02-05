@@ -5,6 +5,8 @@ from String cimport *
 cdef extern from "<OpenMS/SYSTEM/JavaInfo.h>" namespace "OpenMS":
 
     cdef cppclass JavaInfo:
+        # wrap-doc:
+        #  Detect Java and retrieve information
 
         JavaInfo() except + nogil  # wrap-doc:Detect Java and retrieve information
         JavaInfo(JavaInfo &) except + nogil 

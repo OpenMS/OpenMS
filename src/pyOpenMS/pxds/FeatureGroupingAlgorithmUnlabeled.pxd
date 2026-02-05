@@ -6,6 +6,8 @@ from FeatureGroupingAlgorithm cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>" namespace "OpenMS":
     
     cdef cppclass FeatureGroupingAlgorithmUnlabeled(FeatureGroupingAlgorithm) :
+        # wrap-doc:
+        #  A map feature grouping algorithm for unlabeled data
         # wrap-inherits:
         #  FeatureGroupingAlgorithm
         FeatureGroupingAlgorithmUnlabeled() except + nogil 

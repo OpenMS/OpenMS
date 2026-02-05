@@ -10,6 +10,9 @@ from IsobaricQuantifierStatistics cimport *
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>" namespace "OpenMS":
 
     cdef cppclass IsobaricIsotopeCorrector:
+        # wrap-doc:
+        #  Performs isotope impurity correction on intensities extracted from
+        #  isobaric labeling experiments
 
         IsobaricIsotopeCorrector() except + nogil  # compiler
         IsobaricIsotopeCorrector(IsobaricIsotopeCorrector &) except + nogil  # compiler

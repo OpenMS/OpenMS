@@ -18,6 +18,12 @@ from ChromatogramPeak cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/AScore.h>" namespace "OpenMS":
 
     cdef cppclass AScore(DefaultParamHandler):
+        # wrap-doc:
+        #  Implementation of the Ascore For a given peptide sequence and its
+        #  MS/MS spectrum it identifies the most probable
+        #  phosphorylation-site(s). For each phosphorylation site a probability
+        #  score is calculated. The algorithm is implemented according to
+        #  Beausoleil et al. (Nat. Biotechnol. 2006)
         # wrap-inherits:
         #  DefaultParamHandler
         AScore() except + nogil 

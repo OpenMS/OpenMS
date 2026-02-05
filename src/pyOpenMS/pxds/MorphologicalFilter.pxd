@@ -8,6 +8,9 @@ from ChromatogramPeak cimport *
 cdef extern from "<OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>" namespace "OpenMS":
 
     cdef cppclass MorphologicalFilter(DefaultParamHandler,ProgressLogger):
+        # wrap-doc:
+        #  An iterator wrapper to access peak intensities instead of the peak
+        #  itself
         # wrap-inherits:
         #   DefaultParamHandler
         #   ProgressLogger

@@ -14,6 +14,8 @@ from DateTime cimport *
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
 
     cdef cppclass ProteinIdentification(MetaInfoInterface):
+        # wrap-doc:
+        #  Representation of a protein identification run
         # wrap-inherits:
         #   MetaInfoInterface
         # wrap-hash:

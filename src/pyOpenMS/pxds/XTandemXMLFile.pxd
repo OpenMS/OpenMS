@@ -8,6 +8,8 @@ from ModificationDefinitionsSet cimport *
 cdef extern from "<OpenMS/FORMAT/XTandemXMLFile.h>" namespace "OpenMS":
 
     cdef cppclass XTandemXMLFile:
+        # wrap-doc:
+        #  Used to load XTandemXML files
 
         XTandemXMLFile() except + nogil 
         # protected

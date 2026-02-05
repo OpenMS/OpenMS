@@ -9,6 +9,13 @@ from ProgressLogger cimport *
 cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>" namespace "OpenMS":
 
     cdef cppclass PeakPickerHiRes(DefaultParamHandler, ProgressLogger):
+        # wrap-doc:
+        #  This class implements a fast peak-picking algorithm best suited for
+        #  high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution
+        #  data, the signals of ions with similar mass-to-charge ratios (m/z)
+        #  exhibit little or no overlapping and therefore allow for a clear
+        #  separation. Furthermore, ion signals tend to show well-defined peak
+        #  shapes with narrow peak width
         # wrap-inherits:
         #   DefaultParamHandler
         #   ProgressLogger

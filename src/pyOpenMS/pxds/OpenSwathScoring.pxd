@@ -8,6 +8,9 @@ from libcpp.string cimport string as libcpp_utf8_string
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "OpenMS":
 
     cdef cppclass OpenSwathScoring:
+        # wrap-doc:
+        #  A class that calls the scoring routines * * Use this class to invoke
+        #  the individual OpenSWATH scoring routines. *
 
         OpenSwathScoring() except + nogil 
         OpenSwathScoring(OpenSwathScoring &) except + nogil  # compiler

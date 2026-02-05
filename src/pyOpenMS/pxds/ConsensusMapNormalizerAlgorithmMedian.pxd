@@ -10,6 +10,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMe
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>" namespace "OpenMS":
     cdef cppclass ConsensusMapNormalizerAlgorithmMedian:
+        # wrap-doc:
+        #  Algorithms of ConsensusMapNormalizer *
 
         ConsensusMapNormalizerAlgorithmMedian() except + nogil 
         # private

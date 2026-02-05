@@ -5,6 +5,8 @@ from String cimport *
 cdef extern from "<OpenMS/FORMAT/MzTabFile.h>" namespace "OpenMS":
 
     cdef cppclass MzTabFile:
+        # wrap-doc:
+        #  File adapter for MzTab files
 
         MzTabFile() except + nogil 
         MzTabFile(MzTabFile &) except + nogil  # compiler

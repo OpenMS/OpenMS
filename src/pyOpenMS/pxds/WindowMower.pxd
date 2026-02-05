@@ -8,6 +8,8 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/PROCESSING/FILTERING/WindowMower.h>" namespace "OpenMS":
 
     cdef cppclass WindowMower(DefaultParamHandler):
+        # wrap-doc:
+        #  Retains the highest peaks in a sliding or jumping window
         # wrap-inherits:
         #   DefaultParamHandler
 

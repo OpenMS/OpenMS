@@ -9,6 +9,9 @@ from MSChromatogram cimport *
 cdef extern from "<OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>" namespace "OpenMS":
 
     cdef cppclass SignalToNoiseEstimatorMedian[SpectrumT]:
+        # wrap-doc:
+        #  Estimates the signal/noise (S/N) ratio of each data point in a scan
+        #  by using the median (histogram based)
         # wrap-instances:
         #  SignalToNoiseEstimatorMedian := SignalToNoiseEstimatorMedian[MSSpectrum]
 

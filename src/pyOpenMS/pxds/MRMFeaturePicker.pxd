@@ -4,6 +4,10 @@ from String cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeaturePicker.h>" namespace "OpenMS":
 
     cdef cppclass MRMFeaturePicker:
+        # wrap-doc:
+        #  _MRMFeaturePicker_ defines the structures containing parameters to be
+        #  used in [MRMTransitionGroupPicker](@ref MRMTransitionGroupPicker) for
+        #  components and components groups
 
         MRMFeaturePicker() except + nogil 
         MRMFeaturePicker(MRMFeaturePicker &) except + nogil  # compiler

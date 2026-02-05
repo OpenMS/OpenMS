@@ -10,6 +10,8 @@ from Peak1D cimport *
 cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
 
     cdef cppclass PepXMLFile:
+        # wrap-doc:
+        #  Used to load and store PepXML files
 
         PepXMLFile() except + nogil
         #  copy constructor of 'PepXMLFile' is implicitly deleted because base class 'Internal::XMLHandler' has a deleted copy constructor protected Internal::XMLHandler,

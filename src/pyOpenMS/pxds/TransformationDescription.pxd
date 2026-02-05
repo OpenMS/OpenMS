@@ -21,6 +21,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" namespace "OpenMS":
 
     cdef cppclass TransformationDescription:
+        # wrap-doc:
+        #  Generic description of a coordinate transformation
         TransformationDescription() except + nogil 
         TransformationDescription(TransformationDescription &) except + nogil 
 

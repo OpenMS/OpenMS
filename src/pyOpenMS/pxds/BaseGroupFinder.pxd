@@ -7,6 +7,8 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>" namespace "OpenMS":
     
     cdef cppclass BaseGroupFinder(DefaultParamHandler,ProgressLogger) :
+        # wrap-doc:
+        #  The base class of all element group finding algorithms
         # wrap-ignore
         # no-pxd-import
         # ABSTRACT class

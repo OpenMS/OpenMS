@@ -15,6 +15,9 @@ from TransformationDescription cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>" namespace "OpenMS":
 
     cdef cppclass MapAlignmentAlgorithmIdentification(DefaultParamHandler, ProgressLogger):
+        # wrap-doc:
+        #  A map alignment algorithm based on peptide identifications from MS2
+        #  spectra
         # wrap-inherits:
         #   DefaultParamHandler
         #   ProgressLogger

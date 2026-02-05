@@ -5,6 +5,10 @@ from Types cimport *
 cdef extern from "<OpenMS/ML/INTERPOLATION/LinearInterpolation.h>" namespace "OpenMS::Math":
     
     cdef cppclass LinearInterpolation[KeyType,ValueType]:
+        # wrap-doc:
+        #  Provides access to linearly interpolated values (and derivatives)
+        #  from discrete data points. Values beyond the given range of data
+        #  points are implicitly taken as zero
         # wrap-instances:
         #  LinearInterpolation := LinearInterpolation[double, double]
         

@@ -14,6 +14,9 @@ from ProteinIdentification cimport *
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" namespace "OpenMS":
 
     cdef cppclass PeptideAndProteinQuant(DefaultParamHandler):
+        # wrap-doc:
+        #  Helper class for peptide and protein quantification based on feature
+        #  data annotated with IDs
         # wrap-inherits:
         #   DefaultParamHandler
 

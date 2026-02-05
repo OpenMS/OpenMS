@@ -11,6 +11,9 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>" namespace "OpenMS":
     
     cdef cppclass IsobaricChannelExtractor(DefaultParamHandler) :
+        # wrap-doc:
+        #  Extracts individual channels from MS/MS spectra for isobaric labeling
+        #  experiments
         # wrap-inherits:
         #  DefaultParamHandler
 

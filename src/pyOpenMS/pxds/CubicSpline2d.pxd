@@ -5,6 +5,10 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/MATH/MISC/CubicSpline2d.h>" namespace "OpenMS":
     
     cdef cppclass CubicSpline2d "OpenMS::CubicSpline2d":
+        # wrap-doc:
+        #  cubic spline interpolation as described in R.L. Burden, J.D. Faires,
+        #  Numerical Analysis, 4th ed. PWS-Kent, 1989, ISBN 0-53491-585-X, pp.
+        #  126-131
 
         CubicSpline2d(libcpp_vector[ double ] x, libcpp_vector[ double ] y) except + nogil 
         CubicSpline2d(CubicSpline2d &) except + nogil  # compiler

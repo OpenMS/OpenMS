@@ -4,6 +4,9 @@ from ConsensusIDAlgorithm cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmSimilarity.h>" namespace "OpenMS":
     
     cdef cppclass ConsensusIDAlgorithmSimilarity(ConsensusIDAlgorithm) :
+        # wrap-doc:
+        #  Abstract base class for ConsensusID algorithms that take peptide
+        #  similarity into account
         # wrap-inherits:
         #  ConsensusIDAlgorithm
         # wrap-ignore

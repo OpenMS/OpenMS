@@ -60,6 +60,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>" namespace "OpenMS"
         double rt_diff_u
 
     cdef cppclass MRMFeatureQC:
+        # wrap-doc:
+        #  The MRMFeatureQC is a class to handle the parameters and options for
+        #  MRMFeatureFilter
 
         MRMFeatureQC() except + nogil 
         MRMFeatureQC(MRMFeatureQC &) except + nogil 

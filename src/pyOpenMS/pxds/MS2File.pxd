@@ -6,6 +6,8 @@ from MSExperiment cimport *
 cdef extern from "<OpenMS/FORMAT/MS2File.h>" namespace "OpenMS":
     
     cdef cppclass MS2File(ProgressLogger) :
+        # wrap-doc:
+        #  MS2 input file adapter
         # wrap-inherits:
         #  ProgressLogger
         MS2File() except + nogil 

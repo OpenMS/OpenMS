@@ -8,6 +8,8 @@ from CVTerm cimport *
 cdef extern from "<OpenMS/METADATA/CVTermListInterface.h>" namespace "OpenMS":
     
     cdef cppclass CVTermListInterface(MetaInfoInterface) :
+        # wrap-doc:
+        #  Interface to the controlled vocabulary term list
         # wrap-inherits:
         #  MetaInfoInterface
 

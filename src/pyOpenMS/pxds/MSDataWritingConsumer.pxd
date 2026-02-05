@@ -7,6 +7,8 @@ from PeakFileOptions cimport *
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace "OpenMS":
 
     cdef cppclass PlainMSDataWritingConsumer:
+        # wrap-doc:
+        #  Consumer class that writes MS data to disk using the mzML format
 
         PlainMSDataWritingConsumer(String filename) except + nogil 
         # copy constructor of 'PlainMSDataWritingConsumer' is implicitly deleted because base class 'OpenMS::MSDataWritingConsumer' has a deleted copy constructor (see XMLHandler)

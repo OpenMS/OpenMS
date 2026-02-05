@@ -7,6 +7,17 @@ from Peak1D cimport *
 cdef extern from "<OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h>" namespace "OpenMS":
     
     cdef cppclass SplineInterpolatedPeaks "OpenMS::SplineInterpolatedPeaks":
+        # wrap-doc:
+        #  Data structure for spline interpolation of MS1 spectra and
+        #  chromatograms * * The data structure consists of a set of splines,
+        #  each interpolating the MS1 spectrum (or chromatogram) in a * certain
+        #  m/z (or RT) range. Between these splines no raw data points exist and
+        #  the intensity is identical to zero. * * A spline on non-equi-distant
+        #  input data is not well supported in regions without data points.
+        #  Hence, a spline tends to * swing wildly in these regions and cannot be
+        #  used for reliable interpolation. We assume that in m/z (or RT) regions
+        #  * without data points, the spectrum (or chromatogram) is identical to
+        #  zero. * * @see SplinePackage * @see MSSpectrum * @see MSChromatogram
 
         # private
         SplineInterpolatedPeaks() except + nogil  # wrap-ignore

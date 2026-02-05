@@ -7,6 +7,9 @@ from BaseFeature cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>" namespace "OpenMS":
     
     cdef cppclass FeatureDistance(DefaultParamHandler) :
+        # wrap-doc:
+        #  A functor class for the calculation of distances between features or
+        #  consensus features
         # wrap-inherits:
         #  DefaultParamHandler
 

@@ -6,6 +6,8 @@ from ExperimentalSettings cimport *
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataAggregatingConsumer.h>" namespace "OpenMS":
     
     cdef cppclass MSDataAggregatingConsumer :
+        # wrap-doc:
+        #  Aggregates spectra by retention time
 
         MSDataAggregatingConsumer(MSDataAggregatingConsumer &) except + nogil  # compiler
 

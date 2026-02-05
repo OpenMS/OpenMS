@@ -12,6 +12,9 @@ from Precursor cimport *
 cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS":
 
     cdef cppclass InternalCalibration(ProgressLogger):
+        # wrap-doc:
+        #  A mass recalibration method using linear/quadratic interpolation
+        #  (robust/weighted) of given reference masses
         # wrap-inherits:
         #   ProgressLogger
 

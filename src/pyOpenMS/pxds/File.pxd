@@ -6,6 +6,8 @@ from libcpp cimport bool
 cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS":
 
     cdef cppclass File:
+        # wrap-doc:
+        #  Basic file handling operations
 
         @staticmethod
         String getExecutablePath() except + nogil

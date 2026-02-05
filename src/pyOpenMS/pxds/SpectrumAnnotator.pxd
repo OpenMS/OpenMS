@@ -10,6 +10,10 @@ from PeptideIdentification cimport *
 cdef extern from "<OpenMS/CHEMISTRY/SpectrumAnnotator.h>" namespace "OpenMS":
     
     cdef cppclass SpectrumAnnotator(DefaultParamHandler) :
+        # wrap-doc:
+        #  Annotates spectra from identifications and theoretical spectra or
+        #  identifications from spectra and theoretical spectra matching with
+        #  various options
         # wrap-inherits:
         #  DefaultParamHandler
 

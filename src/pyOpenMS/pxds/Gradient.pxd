@@ -4,6 +4,8 @@ from String cimport *
 cdef extern from "<OpenMS/METADATA/Gradient.h>" namespace "OpenMS":
 
     cdef cppclass Gradient:
+        # wrap-doc:
+        #  Representation of a HPLC gradient
 
         Gradient() except + nogil  # wrap-doc:Representation of a HPLC gradient
         Gradient(Gradient &) except + nogil 

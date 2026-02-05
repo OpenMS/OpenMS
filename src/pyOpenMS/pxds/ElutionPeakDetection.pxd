@@ -14,6 +14,8 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/FEATUREFINDER/ElutionPeakDetection.h>" namespace "OpenMS":
 
     cdef cppclass ElutionPeakDetection(ProgressLogger, DefaultParamHandler):
+        # wrap-doc:
+        #  Extracts chromatographic peaks from a mass trace
         # wrap-inherits:
         #   ProgressLogger
         #   DefaultParamHandler

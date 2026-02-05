@@ -10,6 +10,8 @@ from LightTargetedExperiment cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>" namespace "OpenMS":
 
     cdef cppclass TransitionTSVFile(ProgressLogger):
+        # wrap-doc:
+        #  This class supports reading and writing of OpenSWATH transition lists
         # wrap-inherits:
         #   ProgressLogger
 

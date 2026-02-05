@@ -4,6 +4,8 @@ from Matrix cimport *
 cdef extern from "<OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>" namespace "OpenMS":
     
     cdef cppclass NonNegativeLeastSquaresSolver "OpenMS::NonNegativeLeastSquaresSolver":
+        # wrap-doc:
+        #  Wrapper for a non-negative least squares (NNLS) solver
         NonNegativeLeastSquaresSolver() except + nogil 
         NonNegativeLeastSquaresSolver(NonNegativeLeastSquaresSolver &) except + nogil 
         Int solve(Matrix[ double ] & A, Matrix[ double ] & b, Matrix[ double ] & x) except + nogil 

@@ -12,6 +12,9 @@ from RangeManager cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>" namespace "OpenMS":
 
     cdef cppclass DIAScoring(DefaultParamHandler):
+        # wrap-doc:
+        #  Scoring of an spectrum at the peak apex of an chromatographic elution
+        #  peak
         # wrap-inherits:
         #   DefaultParamHandler
 

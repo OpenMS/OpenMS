@@ -11,6 +11,8 @@ from Peak1D cimport *
 cdef extern from "<OpenMS/FORMAT/DTAFile.h>" namespace "OpenMS":
 
     cdef cppclass DTAFile:
+        # wrap-doc:
+        #  File adapter for DTA files
 
         DTAFile() except + nogil 
         DTAFile(DTAFile &) except + nogil  # compiler

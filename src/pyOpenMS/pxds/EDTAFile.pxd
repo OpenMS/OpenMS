@@ -10,6 +10,8 @@ from libcpp cimport bool
 cdef extern from "<OpenMS/FORMAT/EDTAFile.h>" namespace "OpenMS":
 
     cdef cppclass EDTAFile:
+        # wrap-doc:
+        #  File adapter for Enhanced DTA files
 
         EDTAFile() except + nogil 
         EDTAFile(EDTAFile &) except + nogil  # compiler

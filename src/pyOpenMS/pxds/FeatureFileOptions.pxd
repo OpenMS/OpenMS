@@ -6,6 +6,8 @@ from DRange cimport *
 cdef extern from "<OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFileOptions:
+        # wrap-doc:
+        #  Options for loading files containing features
 
         FeatureFileOptions() except + nogil  # wrap-doc:Options for loading files containing features.
         FeatureFileOptions(FeatureFileOptions &) except + nogil  # compiler

@@ -3,6 +3,8 @@ from Types cimport *
 cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS":
     
     cdef cppclass BSpline2d:
+        # wrap-doc:
+        #  b spline interpolation
 
         BSpline2d(libcpp_vector[double] x, libcpp_vector[double] y, 
                   double wave_length, BoundaryCondition boundary_condition, 

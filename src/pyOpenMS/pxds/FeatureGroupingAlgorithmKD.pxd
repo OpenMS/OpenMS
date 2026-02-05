@@ -8,6 +8,8 @@ from ProgressLogger cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>" namespace "OpenMS":
     
     cdef cppclass FeatureGroupingAlgorithmKD(FeatureGroupingAlgorithm,ProgressLogger) :
+        # wrap-doc:
+        #  Proxy for a (potential) cluster
         # wrap-inherits:
         #  FeatureGroupingAlgorithm
         #  ProgressLogger

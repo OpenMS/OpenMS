@@ -8,6 +8,8 @@ from libcpp.string cimport string as libcpp_utf8_output_string
 cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
 
     cdef cppclass MassAnalyzer(MetaInfoInterface):
+        # wrap-doc:
+        #  Description of a mass analyzer (part of a MS Instrument)
         # wrap-inherits:
         #   MetaInfoInterface
         # wrap-hash:

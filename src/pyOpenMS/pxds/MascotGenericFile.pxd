@@ -8,6 +8,8 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/FORMAT/MascotGenericFile.h>" namespace "OpenMS":
     
     cdef cppclass MascotGenericFile(ProgressLogger, DefaultParamHandler) :
+        # wrap-doc:
+        #  Read/write Mascot generic files (MGF)
         # wrap-inherits:
         #  ProgressLogger
         #  DefaultParamHandler

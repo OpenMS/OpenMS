@@ -8,6 +8,9 @@ from ChromatogramPeak cimport *
 cdef extern from "<OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>" namespace "OpenMS":
 
     cdef cppclass SavitzkyGolayFilter(DefaultParamHandler,ProgressLogger):
+        # wrap-doc:
+        #  Computes the Savitzky-Golay filter coefficients using QR
+        #  decomposition
         # wrap-inherits:
         #   DefaultParamHandler
         #   ProgressLogger

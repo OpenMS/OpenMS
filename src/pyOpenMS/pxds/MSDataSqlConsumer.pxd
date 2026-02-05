@@ -6,6 +6,8 @@ from ExperimentalSettings cimport *
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>" namespace "OpenMS":
     
     cdef cppclass MSDataSqlConsumer:
+        # wrap-doc:
+        #  A data consumer that inserts MS data into a SQLite database
 
         MSDataSqlConsumer(String filename, UInt64 run_id, int buffer_size, bool full_meta, bool lossy_compression, double linear_mass_acc) except + nogil 
         MSDataSqlConsumer(MSDataSqlConsumer &) except + nogil  # compiler

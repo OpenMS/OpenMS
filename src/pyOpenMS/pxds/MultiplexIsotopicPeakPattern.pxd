@@ -4,6 +4,12 @@ from MultiplexDeltaMasses cimport *
 cdef extern from "<OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>" namespace "OpenMS":
     
     cdef cppclass MultiplexIsotopicPeakPattern "OpenMS::MultiplexIsotopicPeakPattern":
+        # wrap-doc:
+        #  data structure for pattern of isotopic peaks * * Groups of peptides
+        #  appear as characteristic patterns of isotopic peaks * in MS1 spectra.
+        #  For example, for an Arg6 labeled SILAC peptide pair * of charge 2+
+        #  with three isotopic peaks we expect peaks * at relative m/z shifts of
+        #  0, 0.5, 1, 3, 3.5 and 4 Th
 
         MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) except + nogil 
         MultiplexIsotopicPeakPattern(MultiplexIsotopicPeakPattern &) except + nogil  # compiler

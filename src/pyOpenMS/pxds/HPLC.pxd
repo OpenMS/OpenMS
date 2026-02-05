@@ -4,6 +4,8 @@ from Gradient cimport *
 cdef extern from "<OpenMS/METADATA/HPLC.h>" namespace "OpenMS":
 
     cdef cppclass HPLC:
+        # wrap-doc:
+        #  Representation of a HPLC experiment
 
         HPLC() except + nogil  # wrap-doc:Representation of a HPLC experiment
         HPLC(HPLC &) except + nogil 

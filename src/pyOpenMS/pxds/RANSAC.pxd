@@ -6,6 +6,16 @@ from RANSACModelQuadratic cimport *
 cdef extern from "<OpenMS/ML/RANSAC/RANSAC.h>" namespace "OpenMS::Math":
 
     cdef cppclass RANSAC[TModelType]:
+        # wrap-doc:
+        #  A simple struct to carry all the parameters required for a RANSAC
+        #  run. */ struct RANSACParam { /// Default constructor RANSACParam() :
+        #  n(0), k(0), t(0), d(0), relative_d(false) { } /// Full constructor
+        #  RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool
+        #  p_relative_d = false) : n(p_n), k(p_k), t(p_t), d(p_d),
+        #  relative_d(p_relative_d) { if (relative_d) { if (d >= 100) throw
+        #  Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        #  String("RANSAC: Relative 'd' >= 100% given. Use a lower value; the
+        #  more outliers you expect, the lower it should be.")); } }
         # wrap-instances:
         #  RANSAC := RANSAC[RansacModelLinear]
         #  RANSACQuadratic := RANSAC[RansacModelQuadratic]

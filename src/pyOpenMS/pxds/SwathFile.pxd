@@ -10,6 +10,15 @@ from ExperimentalSettings cimport *
 cdef extern from "<OpenMS/FORMAT/SwathFile.h>" namespace "OpenMS":
     
     cdef cppclass SwathFile(ProgressLogger) :
+        # wrap-doc:
+        #  File adapter for Swath files. * * This class can load SWATH files in
+        #  different storage versions. The most * convenient file is a single
+        #  MzML file which contains one experiment. * However, also the loading
+        #  of a list of files is supported (loadSplit) * where it is assumed that
+        #  each individual file only contains scans from one * precursor
+        #  isolation window (one SWATH). Finally, experimental support for *
+        #  mzXML is available but needs to be selected with a specific compile
+        #  flag * (this is not for everyday use). *
         # wrap-inherits:
         #  ProgressLogger
         SwathFile() except + nogil  # compiler

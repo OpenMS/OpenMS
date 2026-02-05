@@ -5,6 +5,8 @@ from MapAlignmentEvaluationAlgorithm cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>" namespace "OpenMS":
     
     cdef cppclass MapAlignmentEvaluationAlgorithmPrecision(MapAlignmentEvaluationAlgorithm) :
+        # wrap-doc:
+        #  Caap evaluation algorithm to obtain a precision value
         # wrap-inherits:
         #  MapAlignmentEvaluationAlgorithm
         MapAlignmentEvaluationAlgorithmPrecision() except + nogil 

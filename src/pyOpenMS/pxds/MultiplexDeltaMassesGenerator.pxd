@@ -6,6 +6,14 @@ from MultiplexDeltaMasses cimport *
 cdef extern from "<OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>" namespace "OpenMS":
     
     cdef cppclass MultiplexDeltaMassesGenerator(DefaultParamHandler) :
+        # wrap-doc:
+        #  generates complete list of all possible mass shifts due to isotopic
+        #  labelling * * Isotopic labelling results in the shift of peptide
+        #  masses. * * For example in a Lys8/Arg10 SILAC labelled sample, some
+        #  peptides (the ones with one * Arg in their sequence) will show a
+        #  relative mass shift between light and heavy * partners of 10 Da. This
+        #  class constructs the complete list of all possible mass * shifts that
+        #  arise from isotopic labelling
         # wrap-inherits:
         #  DefaultParamHandler
         MultiplexDeltaMassesGenerator() except + nogil 

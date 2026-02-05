@@ -7,6 +7,8 @@ from BSpline2d cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" namespace "OpenMS":
 
     cdef cppclass TransformationModelBSpline(TransformationModel) :
+        # wrap-doc:
+        #  B-spline (non-linear) model for transformations
         # wrap-inherits:
         #  TransformationModel
 
