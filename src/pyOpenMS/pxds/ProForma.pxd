@@ -282,10 +282,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ProForma.h>" namespace "OpenMS::ProForma":
     MSSpectrum generateSpectrumIon "OpenMS::ProForma::generateSpectrum" (const PeptidoformIon& pfi, int min_charge, int max_charge, const libcpp_string& ion_types, bool add_losses, bool add_metainfo) except + nogil  # wrap-attach:ProForma wrap-doc:Generate theoretical MS/MS spectrum for a PeptidoformIon (supports cross-linked peptides). ion_types uses chars a,b,c,x,y,z for ion series, M for precursor, I for immonium
 
     # JSON Serialization
-    String toJSON(const Peptidoform& pf) except + nogil  # wrap-attach:ProForma wrap-doc:Convert Peptidoform to JSON string representation
+    String peptidoformToJSON "OpenMS::ProForma::toJSON" (const Peptidoform& pf) except + nogil  # wrap-attach:ProForma wrap-doc:Convert Peptidoform to JSON string representation
 
     Peptidoform peptidoformFromJSON(const String& json_str) except + nogil  # wrap-attach:ProForma wrap-doc:Construct Peptidoform from JSON string
 
-    String toJSONIon "OpenMS::ProForma::toJSON" (const PeptidoformIon& pfi) except + nogil  # wrap-attach:ProForma wrap-doc:Convert PeptidoformIon to JSON string representation
+    String peptidoformIonToJSON "OpenMS::ProForma::toJSON" (const PeptidoformIon& pfi) except + nogil  # wrap-attach:ProForma wrap-doc:Convert PeptidoformIon to JSON string representation
 
     PeptidoformIon peptidoformIonFromJSON(const String& json_str) except + nogil  # wrap-attach:ProForma wrap-doc:Construct PeptidoformIon from JSON string

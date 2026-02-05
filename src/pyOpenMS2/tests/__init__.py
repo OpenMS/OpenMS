@@ -1,1 +1,0 @@
-# pyOpenMS2 tests
