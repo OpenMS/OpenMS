@@ -6,6 +6,8 @@ from String cimport *
 cdef extern from "<OpenMS/FORMAT/Base64.h>" namespace "OpenMS":
     
     cdef cppclass Base64 "OpenMS::Base64":
+        # wrap-doc:
+        #  Class to encode and decode Base64
 
         Base64() except + nogil  # wrap-doc:Class to encode and decode Base64, it supports two precisions 32 bit (float) and 64 bit (double).
         Base64(Base64 &) except + nogil  # compiler

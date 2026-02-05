@@ -4,6 +4,8 @@ from Types cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/DateTime.h>" namespace "OpenMS":
 
     cdef cppclass DateTime:
+        # wrap-doc:
+        #  DateTime Class
         # wrap-hash:
         #  std
 

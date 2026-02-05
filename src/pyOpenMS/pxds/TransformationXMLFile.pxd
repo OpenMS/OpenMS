@@ -7,6 +7,8 @@ from TransformationDescription cimport *
 cdef extern from "<OpenMS/FORMAT/TransformationXMLFile.h>" namespace "OpenMS":
 
     cdef cppclass TransformationXMLFile:
+        # wrap-doc:
+        #  Used to load and store TransformationXML files
         TransformationXMLFile() except + nogil 
         # copy constructor of 'TransformationXMLFile' is implicitly deleted because base class 'Internal::XMLHandler' has a deleted copy constructor protected Internal::XMLHandler
         TransformationXMLFile(TransformationXMLFile &) except + nogil  # wrap-ignore

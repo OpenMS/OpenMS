@@ -10,6 +10,8 @@ from PeptideIdentificationList cimport *
 cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
 
     cdef cppclass BaseFeature(UniqueIdInterface, RichPeak2D):
+        # wrap-doc:
+        #  A basic LC-MS feature
         # wrap-inherits:
         #   UniqueIdInterface
         #   RichPeak2D

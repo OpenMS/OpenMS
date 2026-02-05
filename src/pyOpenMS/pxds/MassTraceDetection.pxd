@@ -13,6 +13,9 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/FEATUREFINDER/MassTraceDetection.h>" namespace "OpenMS":
 
     cdef cppclass MassTraceDetection(ProgressLogger, DefaultParamHandler):
+        # wrap-doc:
+        #  A mass trace extraction method that gathers peaks similar in m/z and
+        #  moving along retention time
         # wrap-inherits:
         #   ProgressLogger
         #   DefaultParamHandler

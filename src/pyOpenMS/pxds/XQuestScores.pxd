@@ -8,6 +8,10 @@ from Types cimport *
 cdef extern from "<OpenMS/ANALYSIS/XLMS/XQuestScores.h>" namespace "OpenMS":
 
     cdef cppclass XQuestScores "OpenMS::XQuestScores":
+        # wrap-doc:
+        #  An implementation of the scores for cross-link identification from
+        #  the xQuest algorithm (O. Rinner et al., 2008, "Identification of
+        #  cross-linked peptides from large sequence databases")
         XQuestScores() except + nogil 
         XQuestScores(XQuestScores &) except + nogil 
         float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta) except + nogil 

@@ -7,6 +7,8 @@ from MetaInfoInterface cimport *
 cdef extern from "<OpenMS/METADATA/ContactPerson.h>" namespace "OpenMS":
 
     cdef cppclass ContactPerson(MetaInfoInterface):
+        # wrap-doc:
+        #  Contact person information
         # wrap-inherits:
         #   MetaInfoInterface
 

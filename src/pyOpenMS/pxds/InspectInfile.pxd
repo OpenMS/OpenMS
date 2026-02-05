@@ -7,6 +7,8 @@ from String cimport *
 cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
 
     cdef cppclass InspectInfile "OpenMS::InspectInfile":
+        # wrap-doc:
+        #  Inspect input file adapter
 
         InspectInfile() except + nogil  # wrap-doc:Inspect input file adapter
         InspectInfile(InspectInfile &) except + nogil 

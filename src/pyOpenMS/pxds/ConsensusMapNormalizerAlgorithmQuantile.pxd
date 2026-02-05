@@ -5,6 +5,8 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h>" namespace "OpenMS":
 
     cdef cppclass ConsensusMapNormalizerAlgorithmQuantile:
+        # wrap-doc:
+        #  Algorithms of ConsensusMapNormalizer *
 
         ConsensusMapNormalizerAlgorithmQuantile() except + nogil 
         # private

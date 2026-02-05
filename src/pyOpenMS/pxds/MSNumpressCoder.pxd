@@ -5,6 +5,8 @@ from Base64 cimport *
 cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
 
     cdef cppclass MSNumpressCoder:
+        # wrap-doc:
+        #  Class to encode and decode data encoded with MSNumpress
 
         MSNumpressCoder() except + nogil 
         MSNumpressCoder(MSNumpressCoder &) except + nogil  # compiler

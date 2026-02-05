@@ -9,6 +9,8 @@ from StringList cimport *
 cdef extern from "<OpenMS/FORMAT/MSstatsFile.h>" namespace "OpenMS":
 
     cdef cppclass MSstatsFile:
+        # wrap-doc:
+        #  File adapter for MSstats files
 
         MSstatsFile() except + nogil 
         MSstatsFile(MSstatsFile &) except + nogil  # compiler

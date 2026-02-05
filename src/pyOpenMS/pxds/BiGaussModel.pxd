@@ -5,6 +5,8 @@ from String cimport *
 cdef extern from "<OpenMS/FEATUREFINDER/BiGaussModel.h>" namespace "OpenMS":
     
     cdef cppclass BiGaussModel "OpenMS::BiGaussModel":
+        # wrap-doc:
+        #  BiGaussian distribution approximated using linear interpolation
         BiGaussModel() except + nogil 
         BiGaussModel(BiGaussModel &) except + nogil 
         void setOffset(double offset) except + nogil 

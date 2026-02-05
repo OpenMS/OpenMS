@@ -5,6 +5,10 @@ from Peak1D cimport *
 cdef extern from "<OpenMS/FEATUREFINDER/EmgFitter1D.h>" namespace "OpenMS":
     
     cdef cppclass EmgFitter1D(LevMarqFitter1D):
+        # wrap-doc:
+        #  Exponentially modified gaussian distribution fitter (1-dim.) using
+        #  Levenberg-Marquardt algorithm (Eigen implementation) for parameter
+        #  optimization
         # wrap-inherits:
         #  LevMarqFitter1D
         EmgFitter1D() except + nogil  # wrap-doc:Exponentially modified gaussian distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (Eigen implementation) for parameter optimization

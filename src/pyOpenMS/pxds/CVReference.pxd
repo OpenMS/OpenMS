@@ -5,6 +5,8 @@ from String cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/CVReference.h>" namespace "OpenMS":
     
     cdef cppclass CVReference "OpenMS::CVReference":
+        # wrap-doc:
+        #  Controlled Vocabulary Reference
         CVReference() except + nogil 
         CVReference(CVReference &) except + nogil 
         void setName(const String &name) except + nogil  # wrap-doc:Sets the name of the CV reference

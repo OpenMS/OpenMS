@@ -8,6 +8,8 @@ from EmpiricalFormula cimport *
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
 
     cdef cppclass ResidueModification "OpenMS::ResidueModification":
+        # wrap-doc:
+        #  Representation of a modification on an amino acid residue
         # wrap-hash:
         #  std
 

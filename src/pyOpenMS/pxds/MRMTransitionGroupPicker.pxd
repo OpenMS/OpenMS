@@ -15,6 +15,9 @@ from PeakPickerHiRes cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>" namespace "OpenMS":
     
     cdef cppclass MRMTransitionGroupPicker(DefaultParamHandler) :
+        # wrap-doc:
+        #  The MRMTransitionGroupPicker finds peaks in chromatograms that belong
+        #  to the same precursors
         # wrap-inherits:
         #  DefaultParamHandler
         MRMTransitionGroupPicker() except + nogil 

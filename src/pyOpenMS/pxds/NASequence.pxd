@@ -10,6 +10,16 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
     ctypedef Ribonucleotide RibonucleotideChainEnd
 
     cdef cppclass NASequence "OpenMS::NASequence":
+        # wrap-doc:
+        #  Representation of a nucleic acid sequence * * NASequence represents
+        #  nucleic acid sequences (RNA) in %OpenMS. Each NASequence consists * of
+        #  a vector of pointers to Ribonucleotides as well as
+        #  RibonucleotideChainEnds representing * the 5' and 3' ends of the
+        #  sequence. Each Ribonucleotide has only a single instance. * These are
+        #  accessible through RibonucleotideDB. Modified Ribonucleotides are
+        #  included in RibonucleotideDB * and are expressed as the Modomics Short
+        #  name surrounded by brackets when converted to string. * * @ingroup
+        #  Chemistry
         # wrap-hash:
         #  std
         # wrap-doc:

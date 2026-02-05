@@ -8,6 +8,8 @@ from libcpp.string cimport string as libcpp_utf8_output_string
 cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
 
     cdef cppclass IonSource(MetaInfoInterface):
+        # wrap-doc:
+        #  Description of an ion source (part of a MS Instrument)
         # wrap-inherits:
         #   MetaInfoInterface
         # wrap-hash:

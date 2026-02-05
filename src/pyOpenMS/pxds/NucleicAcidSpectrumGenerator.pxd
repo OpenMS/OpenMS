@@ -8,6 +8,8 @@ from Peak1D cimport *
 cdef extern from "<OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>" namespace "OpenMS":
     
     cdef cppclass NucleicAcidSpectrumGenerator(DefaultParamHandler):
+        # wrap-doc:
+        #  Generates theoretical spectra for nucleic acid sequences
         # wrap-inherits:
         #   DefaultParamHandler
 

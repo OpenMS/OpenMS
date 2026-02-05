@@ -8,6 +8,8 @@ from ProgressLogger cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>" namespace "OpenMS":
     
     cdef cppclass ClusterProxyKD "OpenMS::ClusterProxyKD":
+        # wrap-doc:
+        #  Proxy for a (potential) cluster
         ClusterProxyKD() except + nogil 
         ClusterProxyKD(ClusterProxyKD &) except + nogil 
         ClusterProxyKD(Size size, double avg_distance, Size center_index) except + nogil 

@@ -6,6 +6,8 @@ from ResidueModification cimport *
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
     cdef cppclass Residue:
+        # wrap-doc:
+        #  Representation of an amino acid residue
         # wrap-hash:
         #  std
 
@@ -173,8 +175,10 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
       CIon,           # MS:1001231 N-terminus up to the amide/C-alpha bond
       XIon,           # MS:1001228 amide/C-alpha bond up to the C-terminus
       YIon,           # MS:1001220 peptide bond up to the C-terminus
-      ZIon,           # MS:1001230 C-alpha/carbonyl carbon bond
-      Precursor_ion,  # MS:1001523 Precursor ion
+      ZIon,           # MS:1001230 C-alpha/carbonyl carbon bond [CID fragment]
+      Zp1Ion,         # MS:1001230 C-alpha/carbonyl carbon bond (free radical, z+1 "ion") [main EAD fragment]
+      Zp2Ion,         # MS:1001230 C-alpha/carbonyl carbon bond (free radical, z+2 "ion" with additional abstracted hydrogen) [EAD fragment]
+      Precursor,      # MS:1001523 Precursor ion
       BIonMinusH20,   # MS:1001222 b ion without water
       YIonMinusH20,   # MS:1001223 y ion without water
       BIonMinusNH3,   # MS:1001232 b ion without ammonia

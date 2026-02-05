@@ -6,6 +6,10 @@ from DPosition cimport *
 cdef extern from "<OpenMS/ML/CLUSTERING/ClusteringGrid.h>" namespace "OpenMS":
     
     cdef cppclass ClusteringGrid "OpenMS::ClusteringGrid":
+        # wrap-doc:
+        #  data structure to store 2D data to be clustered * e.g. (m/z,
+        #  retention time) coordinates from multiplex filtering * * @see
+        #  LocalClustering
         ClusteringGrid(libcpp_vector[ double ] & grid_spacing_x, libcpp_vector[ double ] & grid_spacing_y) except + nogil 
         ClusteringGrid(ClusteringGrid &) except + nogil  # compiler
         libcpp_vector[ double ] getGridSpacingX() except + nogil 

@@ -8,6 +8,9 @@ from DBoundingBox cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/ConvexHull2D.h>" namespace "OpenMS":
 
     cdef cppclass ConvexHull2D:
+        # wrap-doc:
+        #  A 2-dimensional hull representation in [counter]clockwise direction -
+        #  depending on axis labelling
         # wrap-hash:
         #  std
 

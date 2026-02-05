@@ -10,6 +10,10 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespace "OpenMS":
     
     cdef cppclass IsotopeLabelingMDVs(DefaultParamHandler) :
+        # wrap-doc:
+        #  IsotopeLabelingMDVs is a class to support and analyze isotopic
+        #  labeling experiments (i.e. MDVs : Mass Distribution Vectors, also
+        #  known as Mass Isotopomer Distribution (MID))
         
         IsotopeLabelingMDVs() except + nogil 
         IsotopeLabelingMDVs(IsotopeLabelingMDVs &) except + nogil  # compiler

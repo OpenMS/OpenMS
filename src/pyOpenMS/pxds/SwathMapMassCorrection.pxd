@@ -8,6 +8,11 @@ from MRMFeatureFinderScoring cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>" namespace "OpenMS":
     
     cdef cppclass SwathMapMassCorrection "OpenMS::SwathMapMassCorrection":
+        # wrap-doc:
+        #  A class containing correction functions for Swath MS maps * * This
+        #  class can use a set of pre-determined points in a Swath-MS map to *
+        #  correct all maps according to the m/z shift found in those fixed
+        #  points. *
         SwathMapMassCorrection() except + nogil  # compiler
         SwathMapMassCorrection(SwathMapMassCorrection) except + nogil  # compiler
 

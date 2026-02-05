@@ -6,6 +6,8 @@ from TargetedExperiment cimport *
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/MRMMapping.h>" namespace "OpenMS":
     
     cdef cppclass MRMMapping(DefaultParamHandler) :
+        # wrap-doc:
+        #  A class to map targeted assays to chromatograms
         # wrap-inherits:
         #  DefaultParamHandler
         MRMMapping() except + nogil 

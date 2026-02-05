@@ -15,6 +15,9 @@ from AASequence cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" namespace "OpenMS":
 
     cdef cppclass OpenSwathDataAccessHelper:
+        # wrap-doc:
+        #  Several helpers to convert OpenMS datastructures to structures that
+        #  implement the OpenSWATH interfaces
 
         OpenSwathDataAccessHelper() except + nogil  # compiler
         OpenSwathDataAccessHelper(OpenSwathDataAccessHelper &) except + nogil  # compiler

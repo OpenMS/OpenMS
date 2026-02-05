@@ -6,6 +6,8 @@ from FeatureMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>" namespace "OpenMS":
     
     cdef cppclass OpenSwathOSWWriter "OpenMS::OpenSwathOSWWriter":
+        # wrap-doc:
+        #  Class to write out an OpenSwath OSW SQLite output (PyProphet input)
         OpenSwathOSWWriter(String output_filename, bool uis_scores) except + nogil 
         OpenSwathOSWWriter(OpenSwathOSWWriter &) except + nogil  # compiler
 

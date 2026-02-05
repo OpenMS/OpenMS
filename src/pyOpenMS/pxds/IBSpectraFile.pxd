@@ -5,6 +5,9 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/FORMAT/IBSpectraFile.h>" namespace "OpenMS":
     
     cdef cppclass IBSpectraFile "OpenMS::IBSpectraFile":
+        # wrap-doc:
+        #  Implements the export of consensusmaps into the IBSpectra format used
+        #  by isobar to load quantification results
 
         IBSpectraFile() except + nogil  # wrap-doc:Implements the export of consensusmaps into the IBSpectra format used by isobar to load quantification results
         IBSpectraFile(IBSpectraFile &) except + nogil 

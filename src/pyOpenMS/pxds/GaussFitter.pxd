@@ -6,6 +6,8 @@ from String cimport *
 cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Math":
 
     cdef cppclass GaussFitter:
+        # wrap-doc:
+        #  Implements a fitter for Gaussian functions
 
         GaussFitter() except + nogil  # wrap-doc:Implements a fitter for Gaussian functions
         # private

@@ -9,6 +9,8 @@ from SpectrumLookup cimport *
 cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS":
 
     cdef cppclass SpectrumMetaDataLookup(SpectrumLookup):
+        # wrap-doc:
+        #  Helper class for looking up spectrum meta data
         # wrap-inherits:
         #  SpectrumLookup
 

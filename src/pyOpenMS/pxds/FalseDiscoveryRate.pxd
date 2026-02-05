@@ -8,6 +8,8 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>" namespace "OpenMS":
 
     cdef cppclass FalseDiscoveryRate(DefaultParamHandler):
+        # wrap-doc:
+        #  Calculates false discovery rates (FDR) from identifications
         # wrap-inherits:
         #   DefaultParamHandler
 

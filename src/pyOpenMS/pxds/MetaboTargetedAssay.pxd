@@ -8,6 +8,9 @@ from libcpp.unordered_map cimport unordered_map as libcpp_unordered_map
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "OpenMS":
 
     cdef cppclass MetaboTargetedAssay "OpenMS::MetaboTargetedAssay":
+        # wrap-doc:
+        #  This class provides methods for the extraction of targeted assays for
+        #  metabolomics
 
        MetaboTargetedAssay() except + nogil  # wrap-doc:This class provides methods for the extraction of targeted assays for metabolomics
        MetaboTargetedAssay(MetaboTargetedAssay &) except + nogil  # compiler

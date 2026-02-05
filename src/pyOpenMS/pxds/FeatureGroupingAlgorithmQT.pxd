@@ -8,6 +8,8 @@ from ConsensusMap cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>" namespace "OpenMS":
 
     cdef cppclass FeatureGroupingAlgorithmQT(FeatureGroupingAlgorithm):
+        # wrap-doc:
+        #  A feature grouping algorithm for unlabeled data
         # wrap-inherits:
         #   FeatureGroupingAlgorithm
 

@@ -7,6 +7,8 @@ from ModificationDefinitionsSet cimport *
 cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS":
     
     cdef cppclass XTandemInfile: # (XMLFile):
+        # wrap-doc:
+        #  XTandem input file
         XTandemInfile() except + nogil 
         # protected
         XTandemInfile(XTandemInfile &) except + nogil  # wrap-ignore

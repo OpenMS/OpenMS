@@ -6,6 +6,9 @@ from PeptideIdentification cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>" namespace "OpenMS":
     
     cdef cppclass ConsensusIDAlgorithm(DefaultParamHandler) :
+        # wrap-doc:
+        #  Abstract base class for all ConsensusID algorithms (that calculate a
+        #  consensus from multiple ID runs)
         # wrap-inherits:
         #  DefaultParamHandler
         # wrap-ignore

@@ -11,6 +11,8 @@ ctypedef libcpp_vector[Peak1D] RawDataArrayType
 cdef extern from "<OpenMS/FEATUREFINDER/Fitter1D.h>" namespace "OpenMS":
     
     cdef cppclass Fitter1D(DefaultParamHandler):
+        # wrap-doc:
+        #  Abstract base class for all 1D-dimensional model fitter
         # wrap-inherits:
         #  DefaultParamHandler
 

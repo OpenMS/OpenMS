@@ -7,6 +7,8 @@ from MSSpectrum cimport *
 cdef extern from "<OpenMS/FORMAT/MsInspectFile.h>" namespace "OpenMS":
     
     cdef cppclass MsInspectFile "OpenMS::MsInspectFile":
+        # wrap-doc:
+        #  File adapter for MsInspect files
         MsInspectFile() except + nogil 
         MsInspectFile(MsInspectFile &) except + nogil  # compiler
         void load(const String & filename, FeatureMap & feature_map) except + nogil

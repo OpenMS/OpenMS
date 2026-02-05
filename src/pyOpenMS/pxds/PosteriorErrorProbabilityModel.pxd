@@ -21,6 +21,9 @@ from TextFile cimport *
 cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" namespace "OpenMS::Math":
 
     cdef cppclass PosteriorErrorProbabilityModel(DefaultParamHandler):
+        # wrap-doc:
+        #  Implements a mixture model of the inverse gumbel and the gauss
+        #  distribution or a gaussian mixture
         # wrap-inherits:
         #   DefaultParamHandler
 

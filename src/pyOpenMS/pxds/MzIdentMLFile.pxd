@@ -10,6 +10,8 @@ from ProgressLogger cimport *
 cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
 
     cdef cppclass MzIdentMLFile(ProgressLogger):
+        # wrap-doc:
+        #  File adapter for MzIdentML files
         # wrap-inherits:
         #  ProgressLogger
 

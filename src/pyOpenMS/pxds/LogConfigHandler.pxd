@@ -8,6 +8,10 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/CONCEPT/LogConfigHandler.h>" namespace "OpenMS":
     
     cdef cppclass LogConfigHandler "OpenMS::LogConfigHandler":
+        # wrap-doc:
+        #  The LogConfigHandler provides the functionality to configure the
+        #  internal logging of OpenMS algorithms that use the global instances of
+        #  LogStream
     # wrap-manual-memory:
     #  cdef AutowrapPtrHolder[_LogConfigHandler] inst
 

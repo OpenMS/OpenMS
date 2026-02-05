@@ -9,6 +9,9 @@ from MassDecomposition cimport *
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>" namespace "OpenMS":
     
     cdef cppclass MassDecompositionAlgorithm(DefaultParamHandler) :
+        # wrap-doc:
+        #  Mass decomposition algorithm, given a mass it suggests possible
+        #  compositions
         # wrap-inherits:
         #  DefaultParamHandler
         MassDecompositionAlgorithm() except + nogil 

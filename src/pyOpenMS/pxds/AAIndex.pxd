@@ -3,6 +3,8 @@ from AASequence cimport *
 cdef extern from "<OpenMS/CHEMISTRY/AAIndex.h>" namespace "OpenMS":
     
     cdef cppclass AAIndex "OpenMS::AAIndex":
+        # wrap-doc:
+        #  Representation of selected %AAIndex properties
         # private
         AAIndex() except + nogil  # wrap-ignore
         # private

@@ -8,6 +8,8 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/PROCESSING/FILTERING/ThresholdMower.h>" namespace "OpenMS":
 
     cdef cppclass ThresholdMower(DefaultParamHandler):
+        # wrap-doc:
+        #  Removes all peaks below an intensity threshold
         # wrap-inherits:
         #   DefaultParamHandler
 

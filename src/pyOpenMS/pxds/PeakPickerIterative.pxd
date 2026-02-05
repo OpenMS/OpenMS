@@ -9,6 +9,9 @@ from ProgressLogger cimport *
 cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>" namespace "OpenMS":
 
     cdef cppclass PeakPickerIterative(DefaultParamHandler, ProgressLogger):
+        # wrap-doc:
+        #  A small structure to hold peak candidates * */ struct PeakCandidate {
+        #  int index; double peak_apex_intensity;
         # wrap-inherits:
         #   DefaultParamHandler
         #   ProgressLogger

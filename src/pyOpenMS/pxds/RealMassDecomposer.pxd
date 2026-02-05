@@ -8,6 +8,9 @@ ctypedef UInt64 number_of_decompositions_type
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>" namespace "OpenMS::ims":
     
     cdef cppclass RealMassDecomposer "OpenMS::ims::RealMassDecomposer":
+        # wrap-doc:
+        #  Handles decomposing of non-integer values/masses over a set of
+        #  non-integer weights with an error allowed
         RealMassDecomposer() except + nogil  #wrap-ignore
         RealMassDecomposer(RealMassDecomposer) except + nogil  # compiler
         RealMassDecomposer(IMSWeights & weights) except + nogil 

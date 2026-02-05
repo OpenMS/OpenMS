@@ -15,6 +15,9 @@ from ChromatogramPeak cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
 
     cdef cppclass IDMapper(DefaultParamHandler):
+        # wrap-doc:
+        #  Annotates an MSExperiment, FeatureMap or ConsensusMap with peptide
+        #  identifications
         # wrap-inherits:
         #   DefaultParamHandler
 

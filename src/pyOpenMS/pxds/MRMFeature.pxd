@@ -7,6 +7,8 @@ from OpenSwathScoring cimport *
 cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
 
     cdef cppclass MRMFeature(Feature):
+        # wrap-doc:
+        #  A multi-chromatogram MRM feature
         #
         # wrap-inherits:
         #   Feature

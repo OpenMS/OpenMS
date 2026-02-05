@@ -9,6 +9,9 @@ from TargetedExperiment cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>" namespace "OpenMS":
     
     cdef cppclass MRMIonSeries "OpenMS::MRMIonSeries":
+        # wrap-doc:
+        #  Generate theoretical fragment ion series for use in MRMAssay and
+        #  MRMDecoy
         MRMIonSeries() except + nogil 
         MRMIonSeries(MRMIonSeries &) except + nogil  # compiler
 

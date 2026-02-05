@@ -5,6 +5,8 @@ from MapAlignmentEvaluationAlgorithm cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>" namespace "OpenMS":
     
     cdef cppclass MapAlignmentEvaluationAlgorithmRecall(MapAlignmentEvaluationAlgorithm) :
+        # wrap-doc:
+        #  Caap evaluation algorithm to obtain a recall value
         # wrap-inherits:
         #  MapAlignmentEvaluationAlgorithm
         MapAlignmentEvaluationAlgorithmRecall() except + nogil 

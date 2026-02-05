@@ -7,6 +7,8 @@ from OnDiscMSExperiment cimport *
 cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
 
     cdef cppclass IndexedMzMLFileLoader:
+        # wrap-doc:
+        #  A class to load an indexedmzML file
 
         IndexedMzMLFileLoader() except + nogil  # wrap-doc:A class to load an indexedmzML file
  

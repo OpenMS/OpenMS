@@ -14,6 +14,8 @@ from libcpp.string cimport string as libcpp_utf8_output_string
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
 
     cdef cppclass SpectrumSettings(MetaInfoInterface):
+        # wrap-doc:
+        #  Representation of 1D spectrum settings
         # wrap-inherits:
         #  MetaInfoInterface
         # wrap-hash:

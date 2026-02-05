@@ -5,6 +5,8 @@ from MSExperiment cimport *
 cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
 
     cdef cppclass SpectrumLookup:
+        # wrap-doc:
+        #  Helper class for looking up spectra based on different attributes
 
         SpectrumLookup() except + nogil 
         # private

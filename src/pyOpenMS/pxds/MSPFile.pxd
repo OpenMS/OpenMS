@@ -7,6 +7,8 @@ from AnnotatedMSRun cimport *
 cdef extern from "<OpenMS/FORMAT/MSPFile.h>" namespace "OpenMS":
 
     cdef cppclass MSPFile:
+        # wrap-doc:
+        #  File adapter for MSP files (NIST spectra library)
 
         MSPFile() except + nogil  # wrap-doc:File adapter for MSP files (NIST spectra library)
         MSPFile(MSPFile &) except + nogil 

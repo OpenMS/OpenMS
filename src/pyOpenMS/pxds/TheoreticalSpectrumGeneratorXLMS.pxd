@@ -8,6 +8,8 @@ from ProteinProteinCrossLink cimport *
 cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespace "OpenMS":
 
     cdef cppclass TheoreticalSpectrumGeneratorXLMS(DefaultParamHandler) :
+        # wrap-doc:
+        #  Generates theoretical spectra for cross-linked peptides
         # wrap-inherits:
         #  DefaultParamHandler
 

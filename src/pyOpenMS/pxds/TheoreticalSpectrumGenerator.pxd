@@ -9,6 +9,8 @@ from Peak1D cimport *
 cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>" namespace "OpenMS":
     
     cdef cppclass TheoreticalSpectrumGenerator(DefaultParamHandler):
+        # wrap-doc:
+        #  Generates theoretical spectra for peptides with various options
         # wrap-inherits:
         #   DefaultParamHandler
 

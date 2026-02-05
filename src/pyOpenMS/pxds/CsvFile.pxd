@@ -6,6 +6,9 @@ from StringList cimport *
 cdef extern from "<OpenMS/FORMAT/CsvFile.h>" namespace "OpenMS":
 
   cdef cppclass CsvFile "OpenMS::CsvFile":
+      # wrap-doc:
+      #  This class handles csv files. Currently only loading is implemented.
+      #  Does NOT support comment lines!
     CsvFile() except + nogil 
     CsvFile(CsvFile &) except + nogil  # compiler
 

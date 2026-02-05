@@ -5,6 +5,8 @@ from BaseGroupFinder cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>" namespace "OpenMS":
 
     cdef cppclass StablePairFinder(BaseGroupFinder) :
+        # wrap-doc:
+        #  This class implements a pair finding algorithm for consensus features
         # wrap-inherits:
         #  BaseGroupFinder
         StablePairFinder() except + nogil 
