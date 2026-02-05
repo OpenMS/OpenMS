@@ -183,7 +183,10 @@ def to_arrow(self, data='spectra', format='long', columns=None,
                 self, format=format, min_rt=min_rt, max_rt=max_rt, columns=columns)
         if data == 'both':
             return result
-        return result.get('spectra') or result.get('chromatograms')
+        elif data == 'spectra':
+            return result['spectra']
+        else:
+            return result['chromatograms']
 
     # Fall back to pure Python implementation
     result = {}
