@@ -8,8 +8,7 @@
 # 1. As part of the OpenMS build (when PYOPENMS=ON)
 # 2. Standalone with py-build-cmake (pip install .)
 #
-# Bindings are compiled from pre-committed generated sources in
-# bindings/generated/*.cpp — no code generation at build time.
+# Bindings are hand-maintained nanobind C++ sources in bindings/*.cpp.
 # --------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
@@ -190,21 +189,19 @@ else()
   file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/addons)
 
   # --------------------------------------------------------------------------
-  # Pre-committed generated sources (no generator execution at build time)
+  # Hand-maintained nanobind binding sources
   # --------------------------------------------------------------------------
-  set(PYOPENMS_BINDINGS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bindings/generated")
+  set(PYOPENMS_BINDINGS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bindings")
 
-  set(PYOPENMS_GENERATED_SOURCES "${PYOPENMS_BINDINGS_DIR}/main_module.cpp")
+  set(PYOPENMS_BINDING_SOURCES "${PYOPENMS_BINDINGS_DIR}/main_module.cpp")
   foreach(domain ${PYOPENMS_DOMAINS})
-    list(APPEND PYOPENMS_GENERATED_SOURCES "${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp")
+    list(APPEND PYOPENMS_BINDING_SOURCES "${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp")
   endforeach()
 
-  # Verify generated sources exist
-  foreach(_src ${PYOPENMS_GENERATED_SOURCES})
+  # Verify binding sources exist
+  foreach(_src ${PYOPENMS_BINDING_SOURCES})
     if(NOT EXISTS "${_src}")
-      message(FATAL_ERROR "Generated binding source not found: ${_src}\n"
-        "Run the generator first: python -m generator --pxd-dir pxds --addons-dir addons "
-        "--output-dir bindings/generated --openms-include-dir <include-dirs>")
+      message(FATAL_ERROR "Binding source not found: ${_src}")
     endif()
   endforeach()
 

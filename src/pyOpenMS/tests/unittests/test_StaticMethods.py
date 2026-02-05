@@ -579,7 +579,7 @@ class TestTransformationDescriptionStaticMethods(unittest.TestCase):
         self.assertIsInstance(result, list)
         self.assertGreater(len(result), 0)
         # Should contain known model types like 'linear', 'b_spline', etc.
-        # StringList returns str (nanobind) or bytes (Cython)
+        # StringList returns str
         self.assertIn("linear", result)
 
 

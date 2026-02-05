@@ -72,7 +72,7 @@ class TestDataProcessing(unittest.TestCase):
         """Test getting all processing action names."""
         names = pyopenms.DataProcessing.getAllNamesOfProcessingAction()
         self.assertGreater(len(names), 0)
-        # getAllNames returns str (nanobind) or bytes (Cython)
+        # getAllNames returns str
         self.assertIn("Peak picking", names)
         self.assertIn("Smoothing", names)
         self.assertIn("Calibration of m/z positions", names)

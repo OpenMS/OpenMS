@@ -69,7 +69,7 @@ class TestInstrumentSettings(unittest.TestCase):
         """Test getting all scan mode names."""
         names = pyopenms.InstrumentSettings.getAllNamesOfScanMode()
         self.assertGreater(len(names), 0)
-        # getAllNames returns str (nanobind) or bytes (Cython)
+        # getAllNames returns str
         self.assertIn("MS1Spectrum", names)
         self.assertIn("MSnSpectrum", names)
 

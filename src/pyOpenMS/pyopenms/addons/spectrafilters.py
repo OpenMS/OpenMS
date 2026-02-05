@@ -10,7 +10,7 @@ def _make_filter_spectrum():
     return filterSpectrum
 
 
-# In pyOpenMS (autowrap), filterPeakSpectrum was exposed as filterSpectrum
+# filterPeakSpectrum is also exposed as filterSpectrum for backwards compatibility
 for _cls_name in ("NLargest", "Normalizer", "RankScaler", "SqrtScaler",
                    "ThresholdMower", "WindowMower", "GaussFilter",
                    "SavitzkyGolayFilter", "LowessSmoothing",
