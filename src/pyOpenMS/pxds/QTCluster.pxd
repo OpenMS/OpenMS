@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/QTCluster.h>" namespace "OpenMS":
     cdef cppclass QTCluster "OpenMS::QTCluster":
         # wrap-doc:
         #  A representation of a QT cluster used for feature grouping
+
         # deleted
         QTCluster() except + nogil  # wrap-ignore
         QTCluster(QTCluster &) except + nogil 

@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/CONCEPT/LogConfigHandler.h>" namespace "OpenMS":
         #  The LogConfigHandler provides the functionality to configure the
         #  internal logging of OpenMS algorithms that use the global instances of
         #  LogStream
-    # wrap-manual-memory:
-    #  cdef AutowrapPtrHolder[_LogConfigHandler] inst
+        # wrap-manual-memory:
+        #  cdef AutowrapPtrHolder[_LogConfigHandler] inst
 
         # private
         LogConfigHandler() except + nogil  # wrap-ignore
