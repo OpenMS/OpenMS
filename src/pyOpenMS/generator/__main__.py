@@ -16,7 +16,6 @@ from typing import List, Optional
 from .pxd_parser import PxdParser
 from .nanobind_emitter import NanobindEmitter, DOMAIN_NAMES
 from .type_registry import TypeRegistry
-from .addon_processor import AddonProcessor
 
 # Check if libclang is available
 try:
@@ -48,8 +47,9 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--addons-dir",
         type=Path,
-        required=True,
-        help="Directory containing .pyx addon files",
+        required=False,
+        default=None,
+        help="(Deprecated) Directory containing .pyx addon files. No longer used.",
     )
 
     parser.add_argument(
@@ -139,7 +139,6 @@ def main(args: Optional[List[str]] = None) -> int:
 
     logger.info("pyOpenMS Generator (libclang)")
     logger.info(f"  PXD directory: {opts.pxd_dir}")
-    logger.info(f"  Addons directory: {opts.addons_dir}")
     logger.info(f"  Output directory: {opts.output_dir}")
     logger.info(f"  Include directories: {opts.openms_include_dir}")
     logger.info(f"  Module split: domain-based ({len(DOMAIN_NAMES)} domains)")
@@ -156,10 +155,6 @@ def main(args: Optional[List[str]] = None) -> int:
     # Validate input directories
     if not opts.pxd_dir.exists():
         logger.error(f"PXD directory does not exist: {opts.pxd_dir}")
-        return 1
-
-    if not opts.addons_dir.exists():
-        logger.error(f"Addons directory does not exist: {opts.addons_dir}")
         return 1
 
     # Create output directory
@@ -197,28 +192,9 @@ def main(args: Optional[List[str]] = None) -> int:
 
     logger.info(f"Parsed {len(classes)} classes from .pxd files")
 
-    # Process addon files
-    logger.info("Processing addon files...")
-    addon_processor = AddonProcessor()
-
-    addon_files = sorted(opts.addons_dir.glob("*.pyx"))
-    logger.info(f"Found {len(addon_files)} addon files")
-
-    addons = {}
-    for addon_file in addon_files:
-        logger.debug(f"Processing addon {addon_file.name}...")
-        try:
-            parsed = addon_processor.parse_file(addon_file)
-            if parsed:
-                class_name = addon_file.stem
-                addons[class_name] = parsed
-        except Exception as e:
-            logger.warning(f"Failed to process addon {addon_file.name}: {e}")
-            if opts.verbose:
-                import traceback
-                traceback.print_exc()
-
-    logger.info(f"Processed {len(addons)} addon files")
+    # Note: Legacy .pyx addon processing was removed. Addons are now pure Python
+    # in pyopenms/addons/ and loaded at runtime. C++ special methods are hardcoded
+    # in nanobind_emitter.py's SPECIAL_METHODS dict.
 
     if opts.dry_run:
         logger.info("Dry run - not generating output")
