@@ -2,86 +2,86 @@
 
 ## Architecture
 
-- **Autowrap** generates Cython bindings from `.pxd` files in `pxds/`
-- **Addon files** (`.pyx`) in `addons/` inject custom Python methods into generated classes
+- **Generator** (`generator/`) parses `.pxd` files from `pxds/` and emits nanobind C++ code using libclang
+- **Type casters** (`bindings/type_casters/`) handle C++ ↔ Python type conversion
+- **Generated bindings** (`bindings/generated/`) contain pre-committed nanobind C++ wrapper code (11 files)
+- **Addon system** (`pyopenms/addons/`) injects pure Python methods into wrapped classes at import time
 - **DataFrame wrappers** in `pyopenms/_dataframes.py` add pandas methods (keeps pandas optional)
-- **Type converters** in `converters/special_autowrap_conversionproviders.py` handle C++ to Python type conversion
+
+## Build
+
+```bash
+# Build (as part of OpenMS)
+cmake --build OpenMS-build --target pyopenms -j$(nproc)
+
+# Test
+PYTHONPATH=OpenMS-build/pyOpenMS python3 -m pytest src/pyOpenMS/tests/ -v
+
+# Standalone wheel build
+cd src/pyOpenMS && pip wheel . --no-build-isolation
+```
+
+Bindings compile from pre-committed generated sources in `bindings/generated/*.cpp` — no code generation at build time.
+
+## Regenerating Bindings (maintainer-only)
+
+Only needed when `.pxd` files change or new classes are added:
+
+```bash
+cd src/pyOpenMS
+python -m generator --pxd-dir pxds --addons-dir pyopenms/addons \
+  --output-dir bindings/generated \
+  --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include
+```
+
+Requires `clang` Python bindings (libclang). Clear cache if needed: `rm -rf OpenMS-build/libclang_cache`
 
 ## Addon Rules
 
-- 4-space indent, no `cdef class` declaration - code is injected directly
-- Don't add custom `__init__` unless necessary (overwrites autowrap's dispatcher)
-- Don't add Python-only methods to `.pxd` files (tries to wrap non-existent C++)
-- Don't use `cdef` typed variables for autowrap return values in `def` methods
+- Pure Python methods in `pyopenms/addons/` (not Cython `.pyx`)
+- Use the `@addon("ClassName")` decorator from `pyopenms.addons`
+- Keep addons minimal - only add non-auto-generatable methods
+- Performance-critical methods should be C++ lambdas in the bindings
+
+## Module Split
+
+10 domain-based nanobind modules for parallel compilation:
+`_pyopenms_kernel`, `_pyopenms_metadata`, `_pyopenms_chemistry`, `_pyopenms_analysis`,
+`_pyopenms_featurefinder`, `_pyopenms_format`, `_pyopenms_processing`,
+`_pyopenms_datastructures`, `_pyopenms_ml`, `_pyopenms_misc`
+
+Plus `_pyopenms` (main entry) and `_arrow_zerocopy` (when WITH_PARQUET=ON).
+
+All modules use `NB_DOMAIN "pyopenms"` to share type information.
 
 ## Type Handling
 
-- Autowrap returns Python strings - never call `.decode('utf-8')` on them
-- Use `cdef double/int/float` for C++ types, not for autowrap string returns
+- nanobind type casters auto-convert `OpenMS::String` ↔ Python `str`
 - `PeptideIdentificationList` required (not Python list) for `setPeptideIdentifications()`
 - `AASequence.fromString()`: valid amino acids only (A-Z except B, J, O, U, X, Z)
+- `DPosition<1>` accepts `float`, `DPosition<2>` accepts `tuple`
 
-## DataFrame Pattern
+## Wrapping New C++ Classes
 
-- `get_data_dict()` in Cython addon returns numpy arrays
-- `get_df()` in `_dataframes.py` wraps with pandas
-- Example: `_MSSpectrumDF` extends `_MSSpectrum`
+1. Add a `.pxd` declaration file in `pxds/`
+2. Regenerate bindings (see above)
+3. Commit the updated `bindings/generated/*.cpp` files
 
-## Type Converters
+## wrap- Directive Reference
 
-To make C++ types accept Python primitives (e.g., `DPosition<1>` from `float`):
-1. Create converter in `converters/special_autowrap_conversionproviders.py`
-2. Register in `converters/__init__.py`
-3. Remove `wrap-ignore` from methods using that type
+Directives parsed from .pxd files:
 
-## Wrapping C++ `enum class` (scoped enums)
-
-Use `cdef enum class`, NOT `cdef enum`, for C++ `enum class` types:
-
-```cython
-# CORRECT - for C++ enum class
-cdef enum class WriteMode "OpenMS::ProForma::WriteMode":
-    LOSSLESS
-    CANONICAL
-
-# WRONG - this is for C++ enum (unscoped)
-cdef enum WriteMode "OpenMS::ProForma::WriteMode":
-    LOSSLESS
-    CANONICAL
-```
-
-The `wrap-attach` directive nests enums under a class. **Formatting matters** - class name must be on a separate indented line:
-
-```cython
-# CORRECT
-cdef enum class WriteMode "OpenMS::ProForma::WriteMode":
-    # wrap-attach:
-    #    ProForma
-    LOSSLESS
-    CANONICAL
-
-# WRONG - won't attach properly
-cdef enum class WriteMode "OpenMS::ProForma::WriteMode":
-    # wrap-attach:ProForma
-    LOSSLESS
-    CANONICAL
-```
-
-See `pxds/IonSource.pxd` for a working example of nested enum classes.
-
-## Common Patterns
-
-- `__str__`: short user display
-- `__repr__`: detailed with class name and key properties
-- Keep addons minimal - only add non-auto-generatable methods
-- Don't add redundant aliases (if `minX()` exists, don't add `getMin()`)
-
-## Data Sources (MSSpectrum)
-
-- **FloatDataArrays**: per-peak float data (ion mobility via `getIMData()`)
-- **StringDataArrays**: per-peak strings (ion annotations, name `'IonNames'`)
-- **IntegerDataArrays**: per-peak integers
-- **MetaValues**: spectrum-level metadata (not per-peak)
+| Directive | Purpose |
+|-----------|---------|
+| `wrap-doc:` | Documentation string |
+| `wrap-as:` | Rename method in Python |
+| `wrap-ignore` | Skip wrapping this method |
+| `wrap-inherits:` | Specify base classes |
+| `wrap-instances:` | Template specializations |
+| `wrap-upper-limit:` | Bounds checking for `[]` |
+| `wrap-hash:` | Enable `__hash__` |
+| `wrap-manual-memory` | Custom memory management (singletons) |
+| `wrap-attach:ClassName` | Attach namespace function as static method |
 
 ## Gotchas
 
@@ -89,13 +89,17 @@ See `pxds/IonSource.pxd` for a working example of nested enum classes.
 - Mobilogram has no MetaInfoInterface (no `getKeys()`, `getMetaValue()`)
 - `# wrap-doc:` must be properly indented (strict whitespace parsing)
 - Test from `/tmp` to avoid path shadowing with source `pyopenms/`
+- Clear libclang cache after header changes: `rm -rf OpenMS-build/libclang_cache`
 
-## Classes with MetaInfoInterface
+## Testing
 
-**Has meta values**: MSSpectrum, MSChromatogram, Feature, ConsensusFeature, PeptideHit
-**No meta values**: Mobilogram
+```bash
+# All tests (from /tmp to avoid import shadowing)
+cd /tmp && PYTHONPATH=.../OpenMS-build/pyOpenMS python3 -m pytest .../src/pyOpenMS/tests/ -v
 
-## Reference
+# Legacy tests only
+python3 -m pytest src/pyOpenMS/tests/unittests/ -v
 
-- Autowrap: [github.com/OpenMS/autowrap](https://github.com/OpenMS/autowrap)
-- pyopenms and openms can be built with multiple threads
+# Nanobind-specific tests
+python3 -m pytest src/pyOpenMS/tests/nanobind/ -v
+```

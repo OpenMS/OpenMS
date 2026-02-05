@@ -4,7 +4,7 @@ import os.path
 
 from .collections_ import Counter
 
-@pytest.mark.skip(reason="MzXMLFile.transform() callback interface not yet ported to pyOpenMS2")
+@pytest.mark.skip(reason="MzXMLFile.transform() requires IMSDataConsumer trampoline not yet ported to nanobind")
 def test0():
     fh = pyopenms.MzXMLFile()
     here = os.path.dirname(os.path.abspath(__file__))

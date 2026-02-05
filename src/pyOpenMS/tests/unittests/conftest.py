@@ -1,7 +1,7 @@
 """
-pytest configuration for legacy pyOpenMS tests running against pyOpenMS2.
+pytest configuration for legacy pyOpenMS tests running against nanobind build.
 
-Ensures the pyOpenMS2 build is imported when running legacy tests.
+Ensures the nanobind build is imported when running legacy tests.
 """
 
 import sys
@@ -16,17 +16,17 @@ def _has_compiled_extensions(path: Path) -> bool:
     pyopenms_dir = path / "pyopenms"
     if not pyopenms_dir.exists():
         return False
-    # Look for any _pyopenms2_*.so file
-    return bool(list(pyopenms_dir.glob("_pyopenms2_*.so")))
+    # Look for any _pyopenms_*.so or _pyopenms2_*.so file
+    return bool(list(pyopenms_dir.glob("_pyopenms_*.so")) or list(pyopenms_dir.glob("_pyopenms2_*.so")))
 
 
 def _setup_pyopenms():
-    """Ensure the pyOpenMS2 build is used by pre-loading it into sys.modules."""
+    """Ensure the nanobind build is used by pre-loading it into sys.modules."""
     build_path = None
 
     # Check PYTHONPATH for build directory
     for p in sys.path:
-        if "pyOpenMS2-build" in p and _has_compiled_extensions(Path(p)):
+        if ("pyOpenMS2-build" in p or "pyOpenMS" in p) and _has_compiled_extensions(Path(p)):
             build_path = Path(p)
             break
 
@@ -35,7 +35,9 @@ def _setup_pyopenms():
         # src/pyOpenMS/tests/unittests/conftest.py -> ../../../.. = repo root
         repo_root = Path(__file__).parent.parent.parent.parent.parent
         for candidate in [
+            repo_root.parent / "OpenMS-build" / "pyOpenMS",
             repo_root.parent / "OpenMS-build" / "pyOpenMS2-build",
+            repo_root / "build" / "pyOpenMS",
             repo_root / "build" / "pyOpenMS2-build",
         ]:
             if candidate.exists() and _has_compiled_extensions(candidate):
@@ -43,7 +45,7 @@ def _setup_pyopenms():
                 break
 
     if not build_path:
-        # Skip setup if no pyOpenMS2 build found (will use system/source pyopenms)
+        # Skip setup if no nanobind build found (will use system/source pyopenms)
         return
 
     # Clear any existing pyopenms from sys.modules

@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# -*- encoding: utf8 -*-
 """Python bindings to the OpenMS C++ library.
 
 The pyOpenMS package contains Python bindings for a large part of the OpenMS
@@ -21,6 +19,8 @@ Please cite:
     Proteomics. 2014 Jan;14(1):74-7. doi: 10.1002/pmic.201300246.
 
 """
+from __future__ import annotations
+
 import os
 import sys
 import warnings
@@ -35,6 +35,7 @@ except Exception:
 
 here = os.path.abspath(os.path.dirname(__file__))
 
+# Set up OpenMS data path if not already set
 default_openms_data_path = os.path.join(here, "share", "OpenMS")
 env_openms_data_path = os.environ.get("OPENMS_DATA_PATH")
 
@@ -51,10 +52,23 @@ if os.path.exists(default_openms_data_path):
         )
 else:
     if not env_openms_data_path:
-        warnings.warn(
-            "Warning: OPENMS_DATA_PATH environment variable not found and no share directory was installed. "
-            "Some functionality might not work as expected."
-        )
+        # Try to find the data path relative to this package
+        from pathlib import Path
+        _possible_paths = [
+            Path(__file__).parent.parent / "share" / "OpenMS",
+            Path(sys.prefix) / "share" / "OpenMS",
+        ]
+        for _path in _possible_paths:
+            if _path.exists():
+                os.environ["OPENMS_DATA_PATH"] = str(_path)
+                break
+        else:
+            warnings.warn(
+                "Warning: OPENMS_DATA_PATH environment variable not found and no share directory was installed. "
+                "Some functionality might not work as expected."
+            )
+        del _possible_paths, _path, Path
+
 
 # Patch pyarrow to handle filesystem registration conflicts with OpenMS Arrow C++.
 # When OpenMS is built with WITH_PARQUET, both pyarrow and C++ Arrow try to register
@@ -146,9 +160,8 @@ def _patch_pyarrow_filesystem():
 _patch_pyarrow_filesystem()
 del _patch_pyarrow_filesystem
 
-# on conda the libs will be installed to the general conda lib path which is available during load.
-# try to skip this loading if we do not ship the libraries in the package (e.g. as wheel via pip)
-# TODO check if this can be completely removed by now or e.g. by baking in an RPATH into the pyopenms*.so's
+# On conda the libs will be installed to the general conda lib path which is available during load.
+# Try to skip this loading if we do not ship the libraries in the package (e.g. as wheel via pip).
 if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOpenMS.so")):
     # load local shared libraries before we import pyopenms*.so, else
     # those are not found. setting LD_LIBRARY_PATH does not work,
@@ -157,50 +170,124 @@ if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOp
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenSwathAlgo.so"))
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
 
-try:
-    from ._all_modules import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
-    # This has to be imported after all_modules so it can augment the core datastructures with dataframe
-    # export capabilities
-    from ._dataframes import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
-    from ._python_extras import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
-except Exception as e:
-    print(f"""
-======================================================================
-Error when loading pyOpenMS libraries!
-Libraries could not be found / could not be loaded.
 
-To debug this error, please run ldd (on linux), otool -L (on macOS) or dependency walker (on windows) on
+def _import_submodules():
+    """Import all nanobind submodules and merge into this namespace."""
+    import importlib
+    import pkgutil
 
-{os.path.join(here, "pyopenms*.so")}
+    _imported_modules = []
+    # Discover all _pyopenms_* modules (domain-based naming)
+    for finder, name, ispkg in pkgutil.iter_modules(__path__):
+        if name.startswith("_pyopenms_"):
+            try:
+                mod = importlib.import_module(f".{name}", package=__name__)
+                _imported_modules.append(mod)
+                for attr in dir(mod):
+                    if not attr.startswith("_"):
+                        globals()[attr] = getattr(mod, attr)
+            except Exception as e:
+                import traceback
+                warnings.warn(f"Failed to import {name}: {type(e).__name__}: {e}")
+                traceback.print_exc()
 
-======================================================================
-""")
-
-    try:
-        import PyQt6.QtCore
-    except:
-        pass
-    else:
-        from ._dependency_version_info import qt_version
-
-        info = "\n    ".join(qt_version.split("\n"))
-
-        warnings.warn(
-            f"""PyQt6 was found to be installed.
-    pyopenms was built with Qt version: {info}
-    PyQt6 version detected: {PyQt6.QtCore.PYQT_VERSION_STR}
-
-    This may cause a conflict if both are loaded. To test for issues, try importing pyopenms
-    first, then import PyQt6.QtCore.
-
-    Note: If you are using the Spyder IDE, you can avoid PyQt conflicts by setting
-    the graphics backend to 'Inline' (Tools → Preferences → IPython Console → Graphics).
-    In general, ensure all dependencies are installed within the same environment (e.g., via conda)
-    to guarantee compatible Qt versions.
-
-    {"="*70}
-    """
+    if not _imported_modules:
+        raise ImportError(
+            "Failed to import any pyOpenMS bindings.\n"
+            "Make sure the package was built correctly with nanobind."
         )
-    raise e
 
+
+# Import bindings
+_import_submodules()
+
+# Import pure Python modules
+from ._dataframes import DataFrameMixin
+from ._python_extras import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
+
+# Apply Python addons to classes
+from .addons import apply_addons
+
+apply_addons(globals())
+
+# Add nested enum aliases for backwards compatibility with pyOpenMS (autowrap)
+# These enums are defined inside C++ classes but exposed at module level in nanobind
+# For compatibility, also add them as class attributes
+_NESTED_ENUM_ALIASES = {
+    "SpectrumSettings": ["SpectrumType"],
+    "ChromatogramSettings": ["ChromatogramType"],
+    "IonSource": ["Polarity", "InletType", "IonizationMethod"],
+    "SourceFile": ["ChecksumType"],
+    "ProteinIdentification": ["PeakMassType"],
+    "Instrument": ["IonOpticsType"],
+    "InstrumentSettings": ["ScanMode"],
+    "IonDetector": ["Type", "AcquisitionMode"],
+    "PercolatorOutfile": ["ScoreType"],
+    "MassAnalyzer": ["AnalyzerType", "ResolutionMethod", "ResolutionType", "ScanDirection", "ScanLaw", "ReflectronState"],
+    "Sample": ["SampleState"],
+    "Precursor": ["ActivationMethod"],
+    "MZTrafoModel": ["MODELTYPE"],
+    "MultipleTesting": ["Pi0Method", "LfdrTransform"],
+    "RankData": ["Method", "NaNPolicy"],
+    "MSNumpressCoder": ["NumpressCompression"],
+    "DataProcessing": ["ProcessingAction"],
+    "FileTypes": ["Type"],
+    "PeakGroup": ["TargetDecoyType"],
+}
+
+for class_name, enum_names in _NESTED_ENUM_ALIASES.items():
+    if class_name in globals():
+        cls = globals()[class_name]
+        for enum_name in enum_names:
+            if enum_name in globals() and not hasattr(cls, enum_name):
+                try:
+                    setattr(cls, enum_name, globals()[enum_name])
+                except (TypeError, AttributeError):
+                    pass  # Some classes may not allow attribute assignment
+
+del _NESTED_ENUM_ALIASES
+
+# Export nested enums at module level for backward compatibility
+# These are enums defined inside classes that old pyOpenMS exposed at module level
+_MODULE_LEVEL_NESTED_ENUMS = {
+    "Scores": ["IDType"],
+    "ProgressLogger": ["LogType"],
+}
+
+for class_name, enum_names in _MODULE_LEVEL_NESTED_ENUMS.items():
+    if class_name in globals():
+        cls = globals()[class_name]
+        for enum_name in enum_names:
+            if hasattr(cls, enum_name) and enum_name not in globals():
+                globals()[enum_name] = getattr(cls, enum_name)
+
+del _MODULE_LEVEL_NESTED_ENUMS
+
+# Add backward-compatible aliases
+if "MSExperiment" in globals():
+    globals()["PeakMap"] = globals()["MSExperiment"]
+if "MSSpectrum" in globals():
+    globals()["PeakSpectrum"] = globals()["MSSpectrum"]
+# FileTypes.FileType nested enum is exported as "FileType" in old pyOpenMS for convenience
+if "FileTypes" in globals() and hasattr(globals()["FileTypes"], "FileType"):
+    globals()["FileType"] = globals()["FileTypes"].FileType
+
+# Create Interfaces namespace for pyopenms.Interfaces.Spectrum / Chromatogram
+class _InterfacesNamespace:
+    """Namespace for OpenMS::Interfaces data structures."""
+    pass
+
+_interfaces = _InterfacesNamespace()
+if "Spectrum" in globals():
+    _interfaces.Spectrum = globals()["Spectrum"]
+if "Chromatogram" in globals():
+    _interfaces.Chromatogram = globals()["Chromatogram"]
+globals()["Interfaces"] = _interfaces
+del _interfaces, _InterfacesNamespace
+
+# Add module-level DataFrame utility functions (backward compatibility)
+from ._dataframes_compat import peptide_identifications_to_df, update_scores_from_df
+
+# Clean up namespace
+del _import_submodules, apply_addons, DataFrameMixin
 del os, here, sys
