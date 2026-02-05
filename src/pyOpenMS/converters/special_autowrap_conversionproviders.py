@@ -402,7 +402,7 @@ class StdVectorStringConverter(TypeConverterBase):
 
     def type_check_expression(self, cpp_type, arg_var):
         return Code().add("""
-          |isinstance($arg_var, list) and all(isinstance(i, bytes) for i in
+          |isinstance($arg_var, list) and all(isinstance(i, (bytes, str)) for i in
           + $arg_var)
           """, locals()).render()
 
@@ -410,11 +410,17 @@ class StdVectorStringConverter(TypeConverterBase):
         temp_var = "v%d" % arg_num
         temp_it = "it_%d" % arg_num
         item = "item%d" % arg_num
+        bytes_var = "_b%d" % arg_num
         code = Code().add("""
             |cdef libcpp_vector[_String] * $temp_var = new libcpp_vector[_String]()
-            |cdef bytes $item
+            |cdef object $item
+            |cdef bytes $bytes_var
             |for $item in $argument_var:
-            |   $temp_var.push_back(_String(<char *>$item))
+            |   if isinstance($item, bytes):
+            |       $bytes_var = <bytes>$item
+            |   else:
+            |       $bytes_var = (<str>$item).encode()
+            |   $temp_var.push_back(_String(<char *>$bytes_var))
             """, locals())
         if cpp_type.is_ref:
             cleanup_code = Code().add("""
@@ -663,5 +669,3 @@ class CVTermMapConverter(TypeConverterBase):
             """, locals())
 
         return code
-
-

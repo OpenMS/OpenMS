@@ -88,6 +88,7 @@ PyOpenMS:
     - PEFFDatabaseMetadata for header information
     - Conversion methods: toFASTAEntry(), fromFASTAEntry(), toProForma()
     - Sequence accessors: getSequence(), getModifiedSequence(), getVariantSequences(), getProcessedSequence()
+  - XICParquetFile: Python bindings with multi-file support and filtering for reading XIC data from Parquet files (#8725)
 
 TOPP tools:
   Changes:
