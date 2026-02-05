@@ -176,8 +176,9 @@ endif()
    # Workaround for Arrow 23+ CMake configuration issue where CURL dependency
    # is not properly exported. See: https://github.com/apache/arrow/issues/48885
    find_package(CURL QUIET)
-   find_package(Arrow CONFIG REQUIRED)
-   find_package(Parquet CONFIG REQUIRED)
+   # Arrow 23+ required for parquet file format compatibility
+   find_package(Arrow 23 CONFIG REQUIRED)
+   find_package(Parquet 23 CONFIG REQUIRED)
    
    # Determine Arrow target based on ARROW_USE_STATIC preference
    if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
