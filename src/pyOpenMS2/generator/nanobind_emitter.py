@@ -2641,9 +2641,16 @@ SPECIAL_METHODS = {
         "getAnalytes": '''
         .def("getAnalytes", [](const OpenMS::XICParquetFile& self, bool nest_transitions, nb::object columns_obj) {
             std::vector<OpenMS::String> columns;
-            if (!columns_obj.is_none()) {
+            std::set<std::string> requested_cols;
+            bool filter_cols = !columns_obj.is_none();
+            if (filter_cols) {
                 for (auto item : columns_obj) {
-                    columns.push_back(nb::cast<std::string>(item));
+                    std::string col = nb::cast<std::string>(item);
+                    columns.push_back(col);
+                    // Store lowercase version for result dict filtering
+                    std::string lower_col = col;
+                    std::transform(lower_col.begin(), lower_col.end(), lower_col.begin(), ::tolower);
+                    requested_cols.insert(lower_col);
                 }
             }
             std::vector<OpenMS::XICParquetFile::XICAnalyte> analytes;
@@ -2653,20 +2660,22 @@ SPECIAL_METHODS = {
             nb::list transition_id_list, product_charge_list, transition_ordinal_list;
             nb::list detecting_transition_list, product_decoy_list, transition_type_list, annotation_list;
 
+            auto want = [&](const std::string& col) { return !filter_cols || requested_cols.count(col) > 0; };
+
             for (const auto& a : analytes) {
-                precursor_id_list.append(a.has_precursor_id ? nb::cast(a.precursor_id) : nb::none());
-                modified_sequence_list.append(nb::str(a.modified_sequence.c_str()));
-                precursor_charge_list.append(a.has_precursor_charge ? nb::cast(a.precursor_charge) : nb::none());
-                precursor_decoy_list.append(a.has_precursor_decoy ? nb::cast(a.precursor_decoy) : nb::none());
+                if (want("precursor_id")) precursor_id_list.append(a.has_precursor_id ? nb::cast(a.precursor_id) : nb::none());
+                if (want("modified_sequence")) modified_sequence_list.append(nb::str(a.modified_sequence.c_str()));
+                if (want("precursor_charge")) precursor_charge_list.append(a.has_precursor_charge ? nb::cast(a.precursor_charge) : nb::none());
+                if (want("precursor_decoy")) precursor_decoy_list.append(a.has_precursor_decoy ? nb::cast(a.precursor_decoy) : nb::none());
 
                 if (!nest_transitions) {
-                    transition_id_list.append(a.has_transition_id ? nb::cast(a.transition_id) : nb::none());
-                    product_charge_list.append(a.has_product_charge ? nb::cast(a.product_charge) : nb::none());
-                    transition_ordinal_list.append(a.has_transition_ordinal ? nb::cast(a.transition_ordinal) : nb::none());
-                    detecting_transition_list.append(a.has_detecting_transition ? nb::cast(a.detecting_transition) : nb::none());
-                    product_decoy_list.append(a.has_product_decoy ? nb::cast(a.product_decoy) : nb::none());
-                    transition_type_list.append(nb::str(a.transition_type.c_str()));
-                    annotation_list.append(nb::str(a.annotation.c_str()));
+                    if (want("transition_id")) transition_id_list.append(a.has_transition_id ? nb::cast(a.transition_id) : nb::none());
+                    if (want("product_charge")) product_charge_list.append(a.has_product_charge ? nb::cast(a.product_charge) : nb::none());
+                    if (want("transition_ordinal")) transition_ordinal_list.append(a.has_transition_ordinal ? nb::cast(a.transition_ordinal) : nb::none());
+                    if (want("detecting_transition")) detecting_transition_list.append(a.has_detecting_transition ? nb::cast(a.detecting_transition) : nb::none());
+                    if (want("product_decoy")) product_decoy_list.append(a.has_product_decoy ? nb::cast(a.product_decoy) : nb::none());
+                    if (want("transition_type")) transition_type_list.append(nb::str(a.transition_type.c_str()));
+                    if (want("annotation")) annotation_list.append(nb::str(a.annotation.c_str()));
                 } else {
                     nb::list t_ids, p_charges, t_ordinals, d_transitions, p_decoys, t_types, annots;
                     for (auto v : a.transition_ids) t_ids.append(v >= 0 ? nb::cast(v) : nb::none());
@@ -2676,28 +2685,28 @@ SPECIAL_METHODS = {
                     for (auto v : a.product_decoys) p_decoys.append(v >= 0 ? nb::cast(v) : nb::none());
                     for (const auto& s : a.transition_types) t_types.append(nb::str(s.c_str()));
                     for (const auto& s : a.annotations) annots.append(nb::str(s.c_str()));
-                    transition_id_list.append(t_ids);
-                    product_charge_list.append(p_charges);
-                    transition_ordinal_list.append(t_ordinals);
-                    detecting_transition_list.append(d_transitions);
-                    product_decoy_list.append(p_decoys);
-                    transition_type_list.append(t_types);
-                    annotation_list.append(annots);
+                    if (want("transition_id")) transition_id_list.append(t_ids);
+                    if (want("product_charge")) product_charge_list.append(p_charges);
+                    if (want("transition_ordinal")) transition_ordinal_list.append(t_ordinals);
+                    if (want("detecting_transition")) detecting_transition_list.append(d_transitions);
+                    if (want("product_decoy")) product_decoy_list.append(p_decoys);
+                    if (want("transition_type")) transition_type_list.append(t_types);
+                    if (want("annotation")) annotation_list.append(annots);
                 }
             }
 
             nb::dict result;
-            result["precursor_id"] = precursor_id_list;
-            result["modified_sequence"] = modified_sequence_list;
-            result["precursor_charge"] = precursor_charge_list;
-            result["precursor_decoy"] = precursor_decoy_list;
-            result["transition_id"] = transition_id_list;
-            result["product_charge"] = product_charge_list;
-            result["transition_ordinal"] = transition_ordinal_list;
-            result["detecting_transition"] = detecting_transition_list;
-            result["product_decoy"] = product_decoy_list;
-            result["transition_type"] = transition_type_list;
-            result["annotation"] = annotation_list;
+            if (want("precursor_id")) result["precursor_id"] = precursor_id_list;
+            if (want("modified_sequence")) result["modified_sequence"] = modified_sequence_list;
+            if (want("precursor_charge")) result["precursor_charge"] = precursor_charge_list;
+            if (want("precursor_decoy")) result["precursor_decoy"] = precursor_decoy_list;
+            if (want("transition_id")) result["transition_id"] = transition_id_list;
+            if (want("product_charge")) result["product_charge"] = product_charge_list;
+            if (want("transition_ordinal")) result["transition_ordinal"] = transition_ordinal_list;
+            if (want("detecting_transition")) result["detecting_transition"] = detecting_transition_list;
+            if (want("product_decoy")) result["product_decoy"] = product_decoy_list;
+            if (want("transition_type")) result["transition_type"] = transition_type_list;
+            if (want("annotation")) result["annotation"] = annotation_list;
             return result;
         }, "nest_transitions"_a = true, "columns"_a = nb::none(),
            "Return unique analyte metadata as a dict")''',

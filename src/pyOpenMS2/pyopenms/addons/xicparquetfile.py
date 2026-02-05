@@ -2,6 +2,79 @@
 from . import addon
 
 
+class _ChromatogramQuery:
+    """Chainable query builder for XICParquetFile chromatograms.
+
+    Example::
+        q = xic.query_chromatograms()
+        df = q.filter_precursor_id(123).to_df()
+    """
+
+    def __init__(self, xic):
+        self._xic = xic
+        self._filters = []
+
+    def __repr__(self):
+        return f"ChromatogramQuery(conditions={len(self._filters)})"
+
+    def _add_filter(self, column, value, op="="):
+        if isinstance(value, (list, tuple)):
+            values_str = ",".join(str(v) for v in value)
+            self._filters.append(f"{column} IN ({values_str})")
+        else:
+            self._filters.append(f"{column}{op}{value}")
+        return self
+
+    def filter_precursor_id(self, value, op="="):
+        return self._add_filter("precursor_id", value, op)
+
+    def filter_transition_id(self, value, op="="):
+        return self._add_filter("transition_id", value, op)
+
+    def filter_ms_level(self, value, op="="):
+        return self._add_filter("ms_level", value, op)
+
+    def filter_run_id(self, value, op="="):
+        return self._add_filter("run_id", value, op)
+
+    def filter_precursor_charge(self, value, op="="):
+        return self._add_filter("precursor_charge", value, op)
+
+    def filter_product_charge(self, value, op="="):
+        return self._add_filter("product_charge", value, op)
+
+    def filter_annotation(self, value, op="="):
+        if isinstance(value, str):
+            return self._add_filter("annotation", f'"{value}"', op)
+        return self._add_filter("annotation", value, op)
+
+    def filter_modified_sequence(self, value, op="="):
+        if isinstance(value, str):
+            return self._add_filter("modified_sequence", f'"{value}"', op)
+        return self._add_filter("modified_sequence", value, op)
+
+    def filter_transition_type(self, value, op="="):
+        if isinstance(value, str):
+            return self._add_filter("transition_type", f'"{value}"', op)
+        return self._add_filter("transition_type", value, op)
+
+    def to_dict(self, explode=False):
+        """Return chromatogram data as dict."""
+        filter_str = " AND ".join(self._filters) if self._filters else ""
+        return self._xic.get_data_dict(explode=explode, filter=filter_str)
+
+    def to_df(self, explode=True):
+        """Return chromatogram data as pandas DataFrame."""
+        try:
+            import pandas as pd
+        except ImportError as e:
+            raise ImportError(
+                "pandas is required for to_df(). Install with `pip install pandas`."
+            ) from e
+        data = self.to_dict(explode=explode)
+        return pd.DataFrame({k: list(v) for k, v in data.items()})
+
+
 @addon("XICParquetFile")
 def __len__(self):
     """Return the number of files associated with this instance."""
@@ -257,3 +330,19 @@ def to_arrow(self, explode=False):
             "pyarrow is required for to_arrow(). Install with `pip install pyarrow`."
         ) from e
     return pa.Table.from_pydict(self.get_data_dict(explode=explode))
+
+
+@addon("XICParquetFile")
+def query_chromatograms(self):
+    """
+    Return a chainable query builder for chromatograms.
+
+    Example::
+        df = xic.query_chromatograms().filter_precursor_id(123).to_df()
+
+    Returns
+    -------
+    _ChromatogramQuery
+        Query builder with filter methods and to_df()/to_dict().
+    """
+    return _ChromatogramQuery(self)
