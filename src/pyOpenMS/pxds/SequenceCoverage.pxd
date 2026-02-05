@@ -8,6 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SequenceCoverage.h>" namespace "OpenMS":
     cdef cppclass SequenceCoverage:
         # wrap-doc:
         #  Compute sequence coverage of a protein by peptide sequences
+
         # Default constructor
         SequenceCoverage() except + nogil
 
