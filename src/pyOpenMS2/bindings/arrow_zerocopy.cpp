@@ -15,7 +15,7 @@
 
 #include <arrow/c/abi.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/ArrowExport.h>
+#include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -145,7 +145,7 @@ NB_MODULE(_arrow_zerocopy, m) {
             bool success;
             {
                 nb::gil_scoped_release release;
-                success = OpenMS::ArrowExport::exportSpectraToArrowCDataInterface(
+                success = OpenMS::MSExperimentArrowExport::exportSpectraToArrowCDataInterface(
                     exp, config, guard.schema, guard.array);
             }
 
@@ -203,7 +203,7 @@ NB_MODULE(_arrow_zerocopy, m) {
             bool success;
             {
                 nb::gil_scoped_release release;
-                success = OpenMS::ArrowExport::exportChromatogramsToArrowCDataInterface(
+                success = OpenMS::MSExperimentArrowExport::exportChromatogramsToArrowCDataInterface(
                     exp, config, guard.schema, guard.array);
             }
 
