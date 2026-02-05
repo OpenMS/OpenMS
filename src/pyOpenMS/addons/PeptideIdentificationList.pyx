@@ -104,7 +104,7 @@ import warnings
                  and additional meta value columns from PeptideHit.
         :rtype: pd.DataFrame
 
-        :raises ImportError: If pandas is not installed
+        :raises ImportError: If pyarrow or pandas is not installed
 
         Example::
 
@@ -121,12 +121,18 @@ import warnings
             df = peps.to_df(columns=['id', 'rt', 'mz', 'charge'])
         """
         # Delegate to to_arrow() for DRY - single source of truth for data extraction
-        table = self.to_arrow(
-            decode_ontology=decode_ontology,
-            default_missing_values=default_missing_values,
-            export_unidentified=export_unidentified,
-            columns=columns
-        )
+        try:
+            table = self.to_arrow(
+                decode_ontology=decode_ontology,
+                default_missing_values=default_missing_values,
+                export_unidentified=export_unidentified,
+                columns=columns
+            )
+        except ImportError as e:
+            raise ImportError(
+                "pyarrow is required for to_df(). "
+                "Please install it with: pip install pyarrow"
+            ) from e
         return table.to_pandas()
 
     def df_columns(self):
