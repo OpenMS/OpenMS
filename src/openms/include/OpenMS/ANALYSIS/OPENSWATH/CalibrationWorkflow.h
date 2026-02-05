@@ -302,10 +302,44 @@ namespace OpenMS
       const Param& calibration_param,
       const bool pasef);
 
-    /// Accessors for estimated extraction windows (populated after calibration)
+    /** @brief Get estimated MS2 m/z extraction window.
+     *
+     * Returns the MS2 m/z extraction window (full width, in ppm) estimated
+     * during calibration. This value is only valid after performCalibration()
+     * has been called and window estimation was enabled.
+     *
+     * @return Estimated MS2 m/z window in ppm, or -1.0 if not computed
+    */
     double getEstimatedMzWindow() const { return estimated_mz_window_; }
+
+    /** @brief Get estimated MS2 ion mobility extraction window.
+     *
+     * Returns the MS2 ion mobility extraction window (full width) estimated
+     * during calibration. This value is only valid after performCalibration()
+     * has been called on PASEF/ion mobility data with window estimation enabled.
+     *
+     * @return Estimated MS2 IM window, or -1.0 if not applicable/computed
+    */
     double getEstimatedImWindow() const { return estimated_im_window_; }
+
+    /** @brief Get estimated MS1 m/z extraction window.
+     *
+     * Returns the MS1 m/z extraction window (full width, in ppm) estimated
+     * during calibration. This value is only valid after performCalibration()
+     * has been called and MS1 window estimation was enabled.
+     *
+     * @return Estimated MS1 m/z window in ppm, or -1.0 if not computed
+    */
     double getEstimatedMs1MzWindow() const { return estimated_ms1_mz_window_; }
+
+    /** @brief Get estimated MS1 ion mobility extraction window.
+     *
+     * Returns the MS1 ion mobility extraction window (full width) estimated
+     * during calibration. This value is only valid after performCalibration()
+     * has been called on PASEF/ion mobility data with MS1 IM window estimation enabled.
+     *
+     * @return Estimated MS1 IM window, or -1.0 if not applicable/computed
+    */
     double getEstimatedMs1ImWindow() const { return estimated_ms1_im_window_; }
 
   private:
