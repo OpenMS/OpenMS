@@ -86,14 +86,6 @@ namespace OpenMS
       double ms1_im_window{-1.0};
       /// Estimated RT extraction window (full width, seconds)
       double estimated_rt_window{-1.0};
-      
-      // Quality Metrics
-      /// Number of iRT peptides used in final calibration
-      Size num_irt_peptides_used{0};
-      /// R-squared of final RT transformation
-      double rt_rsq{0.0};
-      /// Coverage fraction achieved
-      double coverage_fraction{0.0};
     };
     
     /// Prepared iRT experiments ready for calibration
