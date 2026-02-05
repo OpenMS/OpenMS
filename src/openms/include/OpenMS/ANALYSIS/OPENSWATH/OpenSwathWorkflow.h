@@ -219,27 +219,6 @@ protected:
 };
 
   /**
-   * @brief Execute all steps for retention time and m/z calibration of SWATH-MS data
-   *
-   * Uses a set of robust calibrant peptides (e.g. iRT peptides, common
-   * calibrants) perform RT and m/z correction in SWATH-MS data. Currently
-   * supports (non-)linear correction of RT against library RT as well
-   * as (non-)linear correction of m/z error as a function of m/z.
-   *
-   * @note The relevant algorithms are implemented in MRMRTNormalizer for RT
-   * calibration and SwathMapMassCorrection for m/z calibration.
-   *
-   * The overall execution flow in this class is as follows (see performRTNormalization() function):
-   *   - Extract chromatograms across the whole RT range using simpleExtractChromatograms_()
-   *   - Compute calibration functions for RT and m/z using doDataNormalization_()
-   *
-  */
-  // NOTE: OpenSwathCalibrationWorkflow was removed. Use `CalibrationWorkflow`
-  // (`src/openms/include/OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h`) as
-  // the canonical API for RT/m/z/IM calibration and extraction-window
-  // estimation.
-
-  /**
    * @brief Execute all steps in an \ref TOPP_OpenSwathWorkflow "OpenSwath" analysis
    *
    * The workflow will perform a complete OpenSWATH analysis. Optionally,
