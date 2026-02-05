@@ -12,214 +12,29 @@
 
 #include "OpenMS/CONCEPT/Exception.h"
 #include "OpenMS/config.h"
-#include <OpenMS/ANALYSIS/MAPMATCHING/PipEcho.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ML/CLUSTERING/HashGrid.h>
+#include "OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h"
+#include "OpenMS/CONCEPT/ProgressLogger.h"
+#include "OpenMS/ML/CLUSTERING/HashGrid.h"
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include "PIPECHO/GridWithStorage.h"
+#include "PIPECHO/MzDiff.h"
+#include "PIPECHO/PeakTypes.h"
+#include "PIPECHO/Run.h"
+#include "PIPECHO/Util.h"
+#include "PIPECHO/Window.h"
 
 namespace OpenMS {
 
   /****************************************************************************/
-  /**
-   * Window used when searching for acceptor features.
-   */
-  struct Window {
-    double rt_tol; // Seconds.
-    double mz_tol; // Daltons.
-    std::size_t grid_neighbors;
-  };
-
-  /****************************************************************************/
-  /**
-   * Clean conversion from PPM to m/z.
-   */
-  class MzDiff {
-  public:
-    MzDiff(const Param& params)
-        : mz(params.getValue("distance_MZ:max_difference")),
-          is_ppm(params.getValue("distance_MZ:unit") == "ppm")
-    { };
-
-    /// Return the maximum allowed difference in m/z which may be
-    /// based on the given m/z value if the stored m/z difference is
-    /// actually in PPM.
-    double mz_diff(const double relative) {
-      if (is_ppm) {
-        return relative * 1e-6 * mz;
-      } else {
-        return mz;
-      }
-    };
-  private:
-    double mz;
-    bool is_ppm;
-  };
-
-  /****************************************************************************/
-  /**
-   * Information about a Feature and which FeatureMap and mzML file it
-   * came from.  This is similar to a FeatureHandle but with
-   * additional information.
-   */
-  struct Peak {
-    const std::size_t map_index;
-    const Feature& feature;
-
-    Peak(const std::size_t map_index,
-         const Feature& feature)
-    : map_index(map_index),
-      feature(feature)
-    { };
-  };
-
-  /****************************************************************************/
-  /**
-   * Used for putting Peak objects in ordered containers.
-   */
-  struct PeakCmp {
-    bool operator()(const Peak& lhs, const Peak& rhs) const {
-      if (lhs.map_index == rhs.map_index) {
-        return lhs.feature.getUniqueId() < rhs.feature.getUniqueId();
-      }
-      return lhs.map_index < rhs.map_index;
-    }
-  };
-
-  /****************************************************************************/
-  /**
-   * A Feature that has been identified.
-   */
-  struct Donor : Peak {
-    Donor(const Peak& peak)
-    : Peak(peak.map_index,
-           peak.feature)
-    { };
-  };
-
-  /****************************************************************************/
-  /**
-   * A Feature that has no identification information and may match a
-   * Donor.
-   */
-  struct Acceptor : Peak {
-    /// Type used when searching for a matching Acceptor.
-    using match_t = std::optional<std::pair<double, Acceptor*>>;
-
-    /// Type used for tracking targets and decoys.
-    using scored_t = std::optional<std::pair<double, const Donor*>>;
-
-    /// Possible target Donor.
-    scored_t target;
-
-    /// Possible decoy Donor.
-    scored_t decoy;
-
-    /// Constructor.
-    Acceptor(const Peak& peak)
-    : Peak(peak.map_index,
-           peak.feature)
-    {};
-
-    /// Check if a Donor matches this Acceptor.
-    bool is_donor_compatible(const Donor&, const Window&) const;
-
-    /// Update a target or decoy slot.
-    template <typename Member>
-    void update_donor(Member, const scored_t&);
-
-    /// Update a target or decoy slot.
-    template <typename Member>
-    void update_donor(Member, const match_t&, const Donor&);
-  };
-
-  /****************************************************************************/
-  /**
-   * This class works around an issue with the HashGrid type.
-   *
-   * In HashGrid, the cell contents are copied after insertion so
-   * mutation is not possible.  Additionally, due to limitations in
-   * its implementation it doesn't support smart pointers as cell
-   * values.
-   *
-   * Therefore we need to use raw pointers, but need those pointers to
-   * be stable and stored somewhere.  This type uses a vector of smart
-   * pointers to maintain stable storage and a HashGrid for cell-based
-   * access to those pointers.
-   */
-  template <typename T>
-  struct GridWithStorage {
-    // Handy aliases.
-    using grid_t = HashGrid<T*>;
-    using grid_center_t = grid_t::ClusterCenter;
-    using grid_index_t = grid_t::CellIndex;
-
-    // Access to the underlying storage.
-    std::vector<std::unique_ptr<T>> storage;
-    grid_t grid;
-
-    /// Construct a new object given the grid center.
-    GridWithStorage(const grid_center_t& center)
-    : grid(center) { };
-
-    /// Insert a new object into the storage and grid.
-    void insert(const Peak& peak) {
-      grid_center_t center(peak.feature.getRT(), peak.feature.getMZ());
-      auto acceptor = std::make_unique<T>(peak);
-      storage.push_back(std::move(acceptor));
-      grid.insert(std::make_pair(center, storage.back().get()));
-    }
-
-    /// Explore cells near a starting point.
-    template <typename Result, typename BinaryOp>
-    Result nearby(const grid_index_t&, std::size_t, Result, BinaryOp) const;
-
-    /// Remove all objects from the storage and grid.
-    void clear() {
-      grid.clear();
-      storage.clear();
-    }
-  };
-
-  /****************************************************************************/
-  class Run {
-  public:
-    /// Construct a new Run object.
-    Run(const std::string &file_name,
-        const double rt_window,
-        const double mz_window)
-      : donors({rt_window, mz_window}),
-        acceptors({rt_window, mz_window}),
-        file_name(file_name)
-    { }
-
-    /// Insert a donor peak.
-    void insert(const Feature& feature, const std::size_t map_index) {
-      Peak peak(map_index, feature);
-
-      if (is_donor_feature(feature)) {
-        donors.insert(Donor(peak));
-      } else {
-        acceptors.insert(Acceptor(peak));
-      }
-    }
-
-    /// Release all storage.
-    void clear() {
-      donors.clear();
-      acceptors.clear();
-    }
-
-    // Allow direct access to the grid type.
-    GridWithStorage<Donor> donors;
-    GridWithStorage<Acceptor> acceptors;
-
-    // The name of the file for this spectrum.
-    // FIXME: Remove this if we don't end up using it.
-    const std::string file_name;
-
-  private:
-    bool is_donor_feature(const Feature&);
-  };
+  using OpenMS::PipEcho::Acceptor;
+  using OpenMS::PipEcho::Donor;
+  using OpenMS::PipEcho::GridWithStorage;
+  using OpenMS::PipEcho::MzDiff;
+  using OpenMS::PipEcho::Peak;
+  using OpenMS::PipEcho::PeakCmp;
+  using OpenMS::PipEcho::Run;
+  using OpenMS::PipEcho::Window;
 
   /****************************************************************************/
   // Handy aliases.
@@ -278,31 +93,11 @@ namespace OpenMS {
 
   /****************************************************************************/
   /**
-   * Return the first peptide hit from a feature.
-   *
-   * This code is here to isolate checking hits because the process
-   * might change in a future version of OpenMS.
-   */
-  std::optional<PeptideHit> feature_hit(const Feature& feature) {
-    const PeptideIdentificationList& peps = feature.getPeptideIdentifications();
-
-    // FIXME: Is this the correct way to know if a feature has an
-    // ID?  There seems to be two ways to store an ID on a feature,
-    // but most code I see uses the "old way".
-    if (!peps.empty() && !peps[0].getHits().empty()) {
-      return peps[0].getHits()[0];
-    }
-
-    return {};
-  }
-
-  /****************************************************************************/
-  /**
    * Return a key that can be used to link features with the same
    * amino acid sequence and charge state.
    */
   std::string feature_sequence_key(const Feature& feature) {
-    auto hit = feature_hit(feature);
+    auto hit = PipEcho::Util::feature_hit(feature);
 
     if (hit) {
       return hit->getSequence().toString() + "_" + feature.getCharge();
@@ -347,45 +142,7 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  template <typename T>
-  template <typename Result, typename BinaryOp>
-  Result GridWithStorage<T>::nearby(const grid_index_t& index,
-                                    std::size_t neighbors,
-                                    Result init,
-                                    BinaryOp op) const
-  {
-    // Check the cell where we expect to find the starting peak.
-    if (auto cell = this->grid.grid_find(index); cell != this->grid.grid_end()) {
-      for (auto& peak : cell->second) {
-        init = op(std::move(init), *peak.second);
-      }
-    }
-
-    if (neighbors < 1) {
-      return init;
-    }
-
-    // Check nearby cells.
-    const auto index_x = index.getX();
-    const auto index_y = index.getY();
-
-    for (auto i = index_x - neighbors; i <= index_x + neighbors; ++i) {
-      for (auto j = index_y - neighbors; j <= index_y + neighbors; ++j) {
-        const auto addr = grid_index_t(i, j);
-
-        if (auto cell = this->grid.grid_find(addr); cell != this->grid.grid_end()) {
-          for (auto& peak : cell->second) {
-            init = op(std::move(init), *peak.second);
-          }
-        }
-      }
-    }
-
-    return init;
-  }
-
-  /****************************************************************************/
-  PipEcho::PipEcho()
+  PipEchoAlgorithm::PipEchoAlgorithm()
   : FeatureGroupingAlgorithm()
   {
     setName("PipEcho");
@@ -409,10 +166,10 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  PipEcho::~PipEcho() = default;
+  PipEchoAlgorithm::~PipEchoAlgorithm() = default;
 
   /****************************************************************************/
-  void PipEcho::group(
+  void PipEchoAlgorithm::group(
     const std::vector<FeatureMap>& feature_maps,
     ConsensusMap& consensus_map
   )
@@ -577,7 +334,7 @@ namespace OpenMS {
     /// FIXME: Is this sequence calculation good enough?
     /// FIXME: What is a "Base Sequence"?
     const auto base_seq = [](const Donor& donor) -> std::string {
-      const auto hit(feature_hit(donor.feature));
+      const auto hit(PipEcho::Util::feature_hit(donor.feature));
       assert(hit.has_value());
       return hit->getSequence().toUnmodifiedString();
     };
@@ -692,38 +449,6 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  bool Acceptor::is_donor_compatible(const Donor& donor, const Window& window) const {
-    return donor.feature.getCharge() == this->feature.getCharge() &&
-           std::fabs(donor.feature.getRT() - this->feature.getRT()) <= window.rt_tol &&
-           std::fabs(donor.feature.getMZ() - this->feature.getMZ()) <= window.mz_tol;
-  }
-
-  /****************************************************************************/
-  template <typename Member>
-  void Acceptor::update_donor(Member slot, const Acceptor::scored_t& donor) {
-    if (!donor.has_value()) return;
-
-    if (!(this->*slot).has_value() || (this->*slot)->first < donor->first) {
-      this->*slot = donor;
-    }
-  }
-
-  /****************************************************************************/
-  template <typename Member>
-  void Acceptor::update_donor(Member slot,
-                              const Acceptor::match_t& match,
-                              const Donor& donor)
-  {
-    if (!match.has_value()) return;
-    this->update_donor(slot, std::make_pair(match->first, &donor));
-  }
-
-  /****************************************************************************/
-  bool Run::is_donor_feature(const Feature& feature) {
-    return feature_hit(feature).has_value();
-  }
-
-  /****************************************************************************/
   std::string PipEchoImpl::path_from_feature_map(const FeatureMap& map) {
     StringList paths;
     map.getPrimaryMSRunPath(paths);
@@ -779,4 +504,13 @@ namespace OpenMS {
       return {};
     }
   }
+
+  /****************************************************************************/
+  // double Score::calc_intensity_score(const Feature& donor, const Feature& acceptor) {
+  //   double donor_intensity = donor.getIntensity();
+  //   double acceptor_intensity = acceptor.getIntensity();
+
+//     // var logIntensity = Math.Log(acceptorIntensity, 2);
+  //   // return CalculateScore(_logIntensityDistribution, logIntensity);
+  // }
 }

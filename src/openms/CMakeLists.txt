@@ -146,7 +146,9 @@ openms_add_library(TARGET_NAME  OpenMS
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES
+                   PRIVATE_INCLUDES ${OpenMS_private_sources_h}
+                                    ${EOL_BSPLINE_INCLUDE_DIRECTORY}
+                                    ${ISOSPEC_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}

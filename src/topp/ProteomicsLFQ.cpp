@@ -19,7 +19,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/PipEcho.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
@@ -335,7 +335,7 @@ protected:
     }
 
     // For PIP-ECHO:
-    Param pip_echo_defaults = PipEcho().getDefaults();
+    Param pip_echo_defaults = PipEchoAlgorithm().getDefaults();
     pip_echo_defaults.remove("distance_RT:max_difference"); // estimated from data
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
@@ -637,7 +637,7 @@ protected:
 
     if (getStringOption_("pip_echo") != "false")
     {
-      PipEcho linker;
+      PipEchoAlgorithm linker;
 
       Param pe_param = getParam_().copy("PipEcho:", true);
       pe_param.setValue("distance_RT:max_difference", max_alignment_diff);

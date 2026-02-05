@@ -35,6 +35,7 @@ include(source/IONMOBILITY/sources.cmake)
 include(source/IMAGING/sources.cmake)
 include(source/ANALYSIS/QUANTITATION/sources.cmake)
 include(source/ANALYSIS/SEQUENCE/sources.cmake)
+include(source/ANALYSIS/MAPMATCHING/PIPECHO/sources.cmake)
 include(source/ANALYSIS/MAPMATCHING/sources.cmake)
 include(source/ANALYSIS/DECHARGING/sources.cmake)
 include(source/ANALYSIS/ID/sources.cmake)
@@ -68,6 +69,7 @@ endif(NOT DISABLE_OPENSWATH)
 include(source/APPLICATIONS/sources.cmake)
 
 set(OpenMS_sources_h  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
+set(OpenMS_private_sources_h  CACHE INTERNAL "This variable should hold all OpenMS private headers at the end of the config step" )
 
 ## ATTENTION: The order of includes should be similar to the inclusion hierarchy
 include(include/OpenMS/INTERFACES/sources.cmake)

@@ -16,26 +16,26 @@
 #include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS {
-  class OPENMS_DLLAPI PipEcho
+  class OPENMS_DLLAPI PipEchoAlgorithm
     : public FeatureGroupingAlgorithm
   {
  public:
 
     /// Constructor.
-    PipEcho();
+    PipEchoAlgorithm();
 
-    PipEcho(PipEcho&&) = delete;
+    PipEchoAlgorithm(PipEchoAlgorithm&&) = delete;
 
-    PipEcho& operator=(PipEcho&&) = delete;
+    PipEchoAlgorithm& operator=(PipEchoAlgorithm&&) = delete;
 
     /// Copy constructor.
-    PipEcho(const PipEcho& other) = delete;
+    PipEchoAlgorithm(const PipEchoAlgorithm& other) = delete;
 
     /// Assignment operator.
-    PipEcho& operator=(const PipEcho& source) = delete;
+    PipEchoAlgorithm& operator=(const PipEchoAlgorithm& source) = delete;
 
     /// Destructor.
-    ~PipEcho();
+    ~PipEchoAlgorithm();
 
     /**
      * Group together features from multiple LC-MS runs that represent
