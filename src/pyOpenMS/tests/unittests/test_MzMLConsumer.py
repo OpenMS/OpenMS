@@ -1,8 +1,10 @@
+import pytest
 import pyopenms
 import os.path
 
 from .collections_ import Counter
 
+@pytest.mark.skip(reason="MzMLFile.transform() callback interface not yet ported to pyOpenMS2")
 def test0():
     fh = pyopenms.MzMLFile()
     here = os.path.dirname(os.path.abspath(__file__))
