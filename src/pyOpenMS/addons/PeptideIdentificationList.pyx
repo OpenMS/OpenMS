@@ -104,7 +104,7 @@ import warnings
                  and additional meta value columns from PeptideHit.
         :rtype: pd.DataFrame
 
-        :raises ImportError: If pandas is not installed
+        :raises ImportError: If pyarrow or pandas is not installed
 
         Example::
 
@@ -120,137 +120,29 @@ import warnings
             # Export only specific columns
             df = peps.to_df(columns=['id', 'rt', 'mz', 'charge'])
         """
+        # Delegate to to_arrow() for DRY - single source of truth for data extraction
         try:
-            import pandas as pd
-        except ImportError:
-            raise ImportError(
-                "pandas is required for to_df(). "
-                "Please install it with: pip install pandas"
+            table = self.to_arrow(
+                decode_ontology=decode_ontology,
+                default_missing_values=default_missing_values,
+                export_unidentified=export_unidentified,
+                columns=columns
             )
-        from . import ControlledVocabulary as _ControlledVocabulary
-        from . import File as _File
+        except ImportError as e:
+            raise ImportError(
+                "pyarrow is required for to_df(). "
+                "Please install it with: pip install pyarrow"
+            ) from e
+        return table.to_pandas()
 
-        if default_missing_values is None:
-            # Use type() to get Python types since 'bool' conflicts with C bool in Cython
-            default_missing_values = {type(True): False, type(1): -9999, type(1.0): np.nan, type(''): ''}
-
-        switchDict = {type(True): '?', type(1): 'i', type(1.0): 'f', type(''): 'U100'}
-
-        # filter out PeptideIdentifications without PeptideHits if export_unidentified == False
-        count = self.size()
-        if not export_unidentified:
-            count = sum(len(pep.getHits()) > 0 for pep in self)
-
-        # get all possible metavalues
-        metavals = []
-        types = []
-        mainscorename = "score"
-        for pep in self:
-            hits = pep.getHits()
-            if not len(hits) == 0:
-                mvs = []
-                hits[0].getKeys(mvs)
-                metavals += mvs
-                mainscorename = pep.getScoreType()
-
-        metavals = list(set(metavals))
-
-        # get type of all metavalues
-        for k in metavals:
-            if k == b"target_decoy":
-                types.append('?')
-            else:
-                for p in self:
-                    hits = p.getHits()
-                    if not len(hits) == 0:
-                        if hits[0].metaValueExists(k):
-                            mv = hits[0].getMetaValue(k)
-                            types.append(switchDict[type(mv)])
-                            break
-
-        # get default value for each type in types to append if there are no hits in a PeptideIdentification
-        def get_key(val):
-            for key, value in switchDict.items():
-                if val == value:
-                    return key
-        dmv = [default_missing_values[get_key(t)] for t in types]
-
-        decodedMVs = [m.decode("utf-8") for m in metavals]
-        if decode_ontology:
-            cv = _ControlledVocabulary()
-            cv.loadFromOBO("psims", _File.getOpenMSDataPath() + "/CV/psi-ms.obo")
-            clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
-        else:
-            clearMVs = decodedMVs
-
-        clearcols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
-        coltypes = ['U100', 'f', 'f', 'f', 'i','U1000', 'U1000', 'U1000', 'i', 'i'] + types
-        dt = list(zip(clearcols, coltypes))
-
-        def extract(pep, pep_idx):
-            hits = pep.getHits()
-            if not hits:
-                if export_unidentified:
-                    return (pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int],
-                            default_missing_values[str], default_missing_values[str], default_missing_values[str], pep_idx, default_missing_values[int], *dmv)
-                else:
-                    return
-
-            besthit = hits[0]
-            ret = [pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()]
-            # add accession, start and end positions of peptide evidences as comma separated str (like in mzTab)
-            evs = besthit.getPeptideEvidences()
-            ret += [','.join(v) if v else default_missing_values[str] for v in ([e.getProteinAccession() for e in evs],
-                                                                                [str(e.getStart()) for e in evs],
-                                                                                [str(e.getEnd()) for e in evs])]
-
-            ret += [str(pep_idx), 0]  # we currently only export the first hit
-
-            for idx, k in enumerate(metavals):
-                if besthit.metaValueExists(k):
-                    val = besthit.getMetaValue(k)
-                    if k == b"target_decoy":
-                        if val[0] == 't':
-                            ret.append(True)
-                        else:
-                            ret.append(False)
-                    else:
-                        ret.append(val)
-                else:
-                    ret.append(dmv[idx])  # Use precomputed default for this metavalue's type
-            return tuple(ret)
-
-        df = pd.DataFrame(np.fromiter((extract(pep, pep_idx) for pep_idx, pep in enumerate(self)), dtype=dt, count=count))
-
-        # Filter columns if specified
-        if columns is not None:
-            available = set(df.columns)
-            unknown = [c for c in columns if c not in available]
-            if unknown:
-                warnings.warn(f"Unknown column(s) ignored in to_df(): {unknown}. "
-                              f"Use df_columns() to see available columns.")
-            requested = [c for c in columns if c in available]
-            df = df[requested]
-
-        return df
-
-    def df_columns(self, decode_ontology=True):
+    def df_columns(self):
         """
-        df_columns(self: PeptideIdentificationList, decode_ontology: bool = True) -> list
+        df_columns(self: PeptideIdentificationList) -> list
 
         Returns a list of column names that to_df() would produce.
 
         Useful for discovering available columns before export, especially
         for column selection with the `columns` parameter.
-
-        Note: Column names depend on the data (metavalues from PeptideHits),
-        so this method inspects the actual data. Only metavalue keys from the
-        first PeptideHit of each identification are considered; hits with
-        additional metavalues not present on the first hit will not be reflected.
-
-        :param decode_ontology: Decode meta value names using the PSI-MS ontology.
-                                Default True. Should match the parameter used in to_df().
-        :type decode_ontology: bool
 
         :return: List of column name strings.
         :rtype: list
@@ -263,32 +155,19 @@ import warnings
             # Use for column selection
             df = peps.to_df(columns=peps.df_columns()[:5])
         """
-        from . import ControlledVocabulary as _ControlledVocabulary
-        from . import File as _File
-
-        # Get all possible metavalues and main score name
-        metavals = []
-        mainscorename = "score"
-        for pep in self:
-            hits = pep.getHits()
-            if hits:
-                mvs = []
-                hits[0].getKeys(mvs)
-                metavals += mvs
-                mainscorename = pep.getScoreType()
-
-        metavals = list(set(metavals))
-
-        # Decode metavalue names if requested
-        decodedMVs = [m.decode("utf-8") for m in metavals]
-        if decode_ontology:
-            cv = _ControlledVocabulary()
-            cv.loadFromOBO("psims", _File.getOpenMSDataPath() + "/CV/psi-ms.obo")
-            clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
-        else:
-            clearMVs = decodedMVs
-
-        return ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
+        return [
+            "id",
+            "rt",
+            "mz",
+            "score",
+            "charge",
+            "protein_accession",
+            "start",
+            "end",
+            "P_ID",
+            "PSM_ID",
+            "metavalues",  # List of {"name": str, "value": str, "value_type": str}
+        ]
 
     def to_arrow(self, decode_ontology=True, default_missing_values=None, export_unidentified=True, columns=None):
         """
@@ -345,35 +224,34 @@ import warnings
         if default_missing_values is None:
             default_missing_values = {type(True): False, type(1): -9999, type(1.0): np.nan, type(''): ''}
 
-        # Get all possible metavalues and their types
-        metavals = []
-        meta_types = {}  # key -> Python type
-        mainscorename = "score"
-
-        for pep in self:
-            hits = pep.getHits()
-            if hits:
-                mvs = []
-                hits[0].getKeys(mvs)
-                for mv in mvs:
-                    if mv not in meta_types:
-                        metavals.append(mv)
-                        # Determine type from first occurrence
-                        if mv == b"target_decoy":
-                            meta_types[mv] = type(True)
-                        elif hits[0].metaValueExists(mv):
-                            val = hits[0].getMetaValue(mv)
-                            meta_types[mv] = type(val)
-                mainscorename = pep.getScoreType()
-
-        # Decode metavalue names if requested
-        decodedMVs = [m.decode("utf-8") for m in metavals]
+        # Load ontology for decoding metavalue names if requested
+        cv = None
         if decode_ontology:
             cv = _ControlledVocabulary()
             cv.loadFromOBO("psims", _File.getOpenMSDataPath() + "/CV/psi-ms.obo")
-            clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
-        else:
-            clearMVs = decodedMVs
+
+        def decode_mv_name(name):
+            """Decode metavalue name using ontology if available."""
+            # Normalize to string (getKeys may return bytes in some cases)
+            if isinstance(name, bytes):
+                name = name.decode("utf-8")
+            if cv is not None and name.startswith("MS:"):
+                try:
+                    return cv.getTerm(name).name
+                except Exception:
+                    return name
+            return name
+
+        def get_type_str(val):
+            """Get type string for a value."""
+            if type(val) is type(True):
+                return "bool"
+            elif type(val) is type(1):
+                return "int"
+            elif type(val) is type(1.0):
+                return "float"
+            else:
+                return "str"
 
         # Initialize lists for core columns
         all_id = []
@@ -386,9 +264,7 @@ import warnings
         all_end = []
         all_p_id = []
         all_psm_id = []
-
-        # Initialize lists for metavalue columns
-        meta_data = {mv: [] for mv in metavals}
+        all_metavalues = []
 
         for pep_idx, pep in enumerate(self):
             hits = pep.getHits()
@@ -405,11 +281,7 @@ import warnings
                     all_end.append(default_missing_values[type('')])
                     all_p_id.append(pep_idx)
                     all_psm_id.append(default_missing_values[type(1)])
-
-                    # Add default values for all metavalues
-                    for mv in metavals:
-                        mv_type = meta_types.get(mv, type(1.0))
-                        meta_data[mv].append(default_missing_values.get(mv_type, None))
+                    all_metavalues.append([])
                 continue
 
             besthit = hits[0]
@@ -432,20 +304,20 @@ import warnings
             all_p_id.append(pep_idx)
             all_psm_id.append(0)  # Only first hit exported
 
-            # Add metavalue columns
-            for mv in metavals:
+            # Collect metavalues as key-value pairs
+            metavalues = []
+            mvs = []
+            besthit.getKeys(mvs)
+            for mv in mvs:
                 if besthit.metaValueExists(mv):
                     val = besthit.getMetaValue(mv)
-                    if mv == b"target_decoy":
-                        if isinstance(val, bytes):
-                            meta_data[mv].append(val.startswith(b't'))
-                        else:
-                            meta_data[mv].append(str(val).startswith('t'))
-                    else:
-                        meta_data[mv].append(val)
-                else:
-                    mv_type = meta_types.get(mv, type(1.0))
-                    meta_data[mv].append(default_missing_values.get(mv_type, None))
+                    decoded_name = decode_mv_name(mv)
+                    metavalues.append({
+                        "name": decoded_name,
+                        "value": str(val),
+                        "value_type": get_type_str(val)
+                    })
+            all_metavalues.append(metavalues)
 
         # Build Arrow table directly using pa.Table.from_pydict
         data_dict = {}
@@ -463,8 +335,8 @@ import warnings
             data_dict["rt"] = pa.array(all_rt, type=pa.float32())
         if should_include("mz"):
             data_dict["mz"] = pa.array(all_mz, type=pa.float32())
-        if should_include(mainscorename):
-            data_dict[mainscorename] = pa.array(all_score, type=pa.float32())
+        if should_include("score"):
+            data_dict["score"] = pa.array(all_score, type=pa.float64())
         if should_include("charge"):
             data_dict["charge"] = pa.array(all_charge, type=pa.int32())
         if should_include("protein_accession"):
@@ -478,20 +350,14 @@ import warnings
         if should_include("PSM_ID"):
             data_dict["PSM_ID"] = pa.array(all_psm_id, type=pa.int32())
 
-        # Metavalue columns with appropriate types
-        for mv, clearname in zip(metavals, clearMVs):
-            if should_include(clearname):
-                mv_type = meta_types.get(mv, type(1.0))
-                if mv_type == type(True):
-                    data_dict[clearname] = pa.array(meta_data[mv], type=pa.bool_())
-                elif mv_type == type(1):
-                    data_dict[clearname] = pa.array(meta_data[mv], type=pa.int64())
-                elif mv_type == type(1.0):
-                    data_dict[clearname] = pa.array(meta_data[mv], type=pa.float64())
-                else:
-                    # Convert to string for other types
-                    str_data = [str(v) if v is not None else None for v in meta_data[mv]]
-                    data_dict[clearname] = pa.array(str_data, type=pa.utf8())
+        # Metavalues as list of structs (matches QPX schema)
+        if should_include("metavalues"):
+            metavalue_type = pa.struct([
+                ("name", pa.utf8()),
+                ("value", pa.utf8()),
+                ("value_type", pa.utf8())
+            ])
+            data_dict["metavalues"] = pa.array(all_metavalues, type=pa.list_(metavalue_type))
 
         if columns_set is not None:
             unknown = [c for c in columns if c not in data_dict]
@@ -660,10 +526,10 @@ import warnings
             )
         return table.to_pandas()
 
-    def to_qpx(self, qpx_version="1.0", creator="pyOpenMS", software_provider="OpenMS",
-                scan_format="scan", **kwargs):
+    def to_psm_qpx(self, qpx_version="1.0", creator="pyOpenMS", software_provider="OpenMS",
+                    scan_format="scan", **kwargs):
         """
-        to_qpx(self: PeptideIdentificationList, qpx_version: str = "1.0", creator: str = "pyOpenMS", software_provider: str = "OpenMS", scan_format: str = "scan", **kwargs) -> dict
+        to_psm_qpx(self: PeptideIdentificationList, qpx_version: str = "1.0", creator: str = "pyOpenMS", software_provider: str = "OpenMS", scan_format: str = "scan", **kwargs) -> dict
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -707,7 +573,7 @@ import warnings
 
         Example::
 
-            qpx_data = peps.to_qpx(reference_file_name="sample.mzML")
+            qpx_data = peps.to_psm_qpx(reference_file_name="sample.mzML")
 
             # Access file metadata
             print(qpx_data["file_metadata"]["qpx_version"])
@@ -840,6 +706,7 @@ import warnings
         from . import SpectrumLookup as _SpectrumLookup
         from . import IDScoreSwitcherAlgorithm as _IDScoreSwitcherAlgorithm
         from . import Scores as _Scores
+        from . import ProForma as _ProForma
         _IDType = _Scores.IDType
 
         # Native ID type accessions for scan number extraction
@@ -887,8 +754,8 @@ import warnings
                 return "str"
 
         # Excluded metavalues (have dedicated columns)
-        _excluded_psm_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
-        _excluded_spectrum_metavalues = {b"spectrum_reference", b"ion_mobility", b"IM"}
+        _excluded_psm_metavalues = {"target_decoy", "predicted_RT", "predicted_rt"}
+        _excluded_spectrum_metavalues = {"spectrum_reference", "ion_mobility", "IM"}
 
         # Initialize column lists
         all_sequence = []
@@ -934,19 +801,17 @@ import warnings
 
             # Spectrum reference
             spec_ref = ""
-            if pep_id.metaValueExists(b"spectrum_reference"):
-                spec_ref = pep_id.getMetaValue(b"spectrum_reference")
-                if isinstance(spec_ref, bytes):
-                    spec_ref = spec_ref.decode("utf-8")
+            if pep_id.metaValueExists("spectrum_reference"):
+                spec_ref = pep_id.getMetaValue("spectrum_reference")
 
             score_type = pep_id.getScoreType()
 
             # Ion mobility
             ion_mobility = None
-            if pep_id.metaValueExists(b"ion_mobility"):
-                ion_mobility = pep_id.getMetaValue(b"ion_mobility")
-            elif pep_id.metaValueExists(b"IM"):
-                ion_mobility = pep_id.getMetaValue(b"IM")
+            if pep_id.metaValueExists("ion_mobility"):
+                ion_mobility = pep_id.getMetaValue("ion_mobility")
+            elif pep_id.metaValueExists("IM"):
+                ion_mobility = pep_id.getMetaValue("IM")
 
             # Extract scan number
             scan = _extract_scan_number(spec_ref)
@@ -956,14 +821,11 @@ import warnings
             pep_id_keys = []
             pep_id.getKeys(pep_id_keys)
             for key in pep_id_keys:
-                if key not in _excluded_spectrum_metavalues:
+                # Normalize key to string (getKeys may return bytes in some cases)
+                key_str = key.decode("utf-8") if isinstance(key, bytes) else key
+                if key_str not in _excluded_spectrum_metavalues:
                     val = pep_id.getMetaValue(key)
-                    key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
-                    # Determine type before any conversion
                     val_type = _get_value_type(val)
-                    # Convert value to appropriate Python type
-                    if isinstance(val, bytes):
-                        val = val.decode("utf-8")
                     spectrum_metavalues.append({
                         "name": key_str,
                         "value": val,
@@ -990,51 +852,35 @@ import warnings
                 if include_modifications and seq.isModified():
                     mod_dict = {}
 
-                    # N-terminal modification
-                    if seq.hasNTerminalModification():
-                        mod = seq.getNTerminalModification()
-                        mod_name = seq.getNTerminalModificationName()
+                    def _add_mod(mod_dict, mod, mod_name, position_str):
                         accession = mod.getUniModRecordId() if mod else None
                         accession_str = f"UNIMOD:{accession}" if accession and accession > 0 else None
-                        position_str = "N-term.0"
                         if mod_name not in mod_dict:
                             mod_dict[mod_name] = {"name": mod_name, "accession": accession_str, "positions": []}
                         mod_dict[mod_name]["positions"].append({"position": position_str, "scores": None})
 
-                    # Residue modifications
+                    if seq.hasNTerminalModification():
+                        _add_mod(mod_dict, seq.getNTerminalModification(),
+                                 seq.getNTerminalModificationName(), "N-term.0")
+
                     for pos, residue in enumerate(seq):
                         if residue.isModified():
-                            res_mod = residue.getModification()
-                            mod_name = residue.getModificationName()
-                            accession = res_mod.getUniModRecordId() if res_mod else None
-                            accession_str = f"UNIMOD:{accession}" if accession and accession > 0 else None
-                            aa_code = residue.getOneLetterCode()
-                            position_str = f"{aa_code}.{pos + 1}"
-                            if mod_name not in mod_dict:
-                                mod_dict[mod_name] = {"name": mod_name, "accession": accession_str, "positions": []}
-                            mod_dict[mod_name]["positions"].append({"position": position_str, "scores": None})
+                            _add_mod(mod_dict, residue.getModification(),
+                                     residue.getModificationName(),
+                                     f"{residue.getOneLetterCode()}.{pos + 1}")
 
-                    # C-terminal modification
                     if seq.hasCTerminalModification():
-                        mod = seq.getCTerminalModification()
-                        mod_name = seq.getCTerminalModificationName()
-                        accession = mod.getUniModRecordId() if mod else None
-                        accession_str = f"UNIMOD:{accession}" if accession and accession > 0 else None
-                        position_str = f"C-term.{seq.size() + 1}"
-                        if mod_name not in mod_dict:
-                            mod_dict[mod_name] = {"name": mod_name, "accession": accession_str, "positions": []}
-                        mod_dict[mod_name]["positions"].append({"position": position_str, "scores": None})
+                        _add_mod(mod_dict, seq.getCTerminalModification(),
+                                 seq.getCTerminalModificationName(),
+                                 f"C-term.{seq.size() + 1}")
 
                     modifications = list(mod_dict.values())
 
                 # Determine is_decoy
                 is_decoy = None
-                if hit.metaValueExists(b"target_decoy"):
-                    td = hit.getMetaValue(b"target_decoy")
-                    if isinstance(td, bytes):
-                        is_decoy = 1 if td.startswith(b"decoy") else 0
-                    else:
-                        is_decoy = 1 if str(td).startswith("decoy") else 0
+                if hit.metaValueExists("target_decoy"):
+                    td = hit.getMetaValue("target_decoy")
+                    is_decoy = 1 if str(td).startswith("decoy") else 0
 
                 # Protein accessions
                 evidences = hit.getPeptideEvidences()
@@ -1048,9 +894,10 @@ import warnings
                 keys = []
                 hit.getKeys(keys)
                 for key in keys:
-                    if key not in _excluded_psm_metavalues:
+                    # Normalize key to string (getKeys may return bytes in some cases)
+                    key_str = key.decode("utf-8") if isinstance(key, bytes) else key
+                    if key_str not in _excluded_psm_metavalues:
                         val = hit.getMetaValue(key)
-                        key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
 
                         # Check if this is a known score type (using C++ registry)
                         is_known_score = _is_known_score(key_str)
@@ -1070,10 +917,7 @@ import warnings
                             })
                         else:
                             # Not a known score - add to psm_metavalues
-                            # Determine type before any conversion
                             val_type = _get_value_type(val)
-                            if isinstance(val, bytes):
-                                val = val.decode("utf-8")
                             psm_metavalues.append({
                                 "name": key_str,
                                 "value": val,
@@ -1090,25 +934,23 @@ import warnings
 
                 # Predicted RT
                 predicted_rt = None
-                if hit.metaValueExists(b"predicted_RT"):
-                    predicted_rt = hit.getMetaValue(b"predicted_RT")
-                elif hit.metaValueExists(b"predicted_rt"):
-                    predicted_rt = hit.getMetaValue(b"predicted_rt")
+                if hit.metaValueExists("predicted_RT"):
+                    predicted_rt = hit.getMetaValue("predicted_RT")
+                elif hit.metaValueExists("predicted_rt"):
+                    predicted_rt = hit.getMetaValue("predicted_rt")
 
                 # PEP value using findScoreType result
                 pep_value = None
                 if pep_score_name:  # Non-empty means PEP was found
                     if pep_search_result.is_main_score_type:
                         pep_value = hit.getScore()
-                    else:
-                        # PEP is in metavalues - use the score_name found by findScoreType
-                        pep_key = pep_score_name.encode('utf-8') if isinstance(pep_score_name, str) else pep_score_name
-                        if hit.metaValueExists(pep_key):
-                            pep_value = hit.getMetaValue(pep_key)
+                    elif hit.metaValueExists(pep_score_name):
+                        pep_value = hit.getMetaValue(pep_score_name)
 
                 # Append to column lists
                 all_sequence.append(seq.toUnmodifiedString())
-                all_peptidoform.append(seq.toString())
+                pf = _ProForma.fromAASequence(seq)
+                all_peptidoform.append(_ProForma.toString(pf, _ProForma.WriteMode.CANONICAL))
                 all_modifications.append(modifications if include_modifications else None)
                 all_precursor_charge.append(charge)
                 all_pep.append(pep_value)
@@ -1459,7 +1301,7 @@ import warnings
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
-        Return list of column names that to_psm_df() and to_qpx() produce.
+        Return list of column names that to_psm_df() and to_psm_qpx() produce.
 
         Useful for discovering available columns before export, especially
         for column selection with the `columns` parameter.

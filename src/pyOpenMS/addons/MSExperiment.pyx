@@ -250,13 +250,13 @@ from libc.stdint cimport uintptr_t
         """
         # Try to use C++ implementation for consistency (only available with WITH_PARQUET)
         try:
-            from pyopenms import ArrowExport, ArrowSpectraExportConfig, ArrowChromatogramExportConfig, ArrowExportFormat
+            from pyopenms import MSExperimentArrowExport, ArrowSpectraExportConfig, ArrowChromatogramExportConfig, ArrowExportFormat
             _use_cpp = True
         except ImportError:
             _use_cpp = False
 
         if _use_cpp:
-            arrow_export = ArrowExport()
+            arrow_export = MSExperimentArrowExport()
             result = {}
 
             # Map Python format string to C++ enum
@@ -283,7 +283,7 @@ from libc.stdint cimport uintptr_t
             else:
                 raise ValueError(f"data must be 'spectra', 'chromatograms', or 'both', got '{data}'")
 
-        # Fallback: Python implementation (matches C++ ArrowExport column order)
+        # Fallback: Python implementation (matches C++ MSExperimentArrowExport column order)
         # Long format: mz, intensity, rt, ion_mobility?, spectrum_index, ms_level, native_id, precursor_cols?
         spectra_long_cols = ['mz', 'intensity', 'rt']
         if include_ion_mobility:
@@ -558,7 +558,7 @@ from libc.stdint cimport uintptr_t
 
         if num_spectra == 0 and num_chromatograms == 0:
             # Return empty tables for empty experiment with full schema
-            # Column order and types match C++ ArrowExport implementation
+            # Column order and types match C++ MSExperimentArrowExport implementation
             result = {}
             if data in ('spectra', 'both'):
                 if format == 'long':
@@ -636,7 +636,7 @@ from libc.stdint cimport uintptr_t
                 return result['chromatograms']
 
         # Set default RT/MZ ranges for Python path (None means "no filter")
-        # Use sentinel values: min -> 0.0, max -> inf (consistent with C++ ArrowExport)
+        # Use sentinel values: min -> 0.0, max -> inf (consistent with C++ MSExperimentArrowExport)
         if min_rt is None:
             min_rt = 0.0
         if max_rt is None:
@@ -768,7 +768,7 @@ from libc.stdint cimport uintptr_t
                         # Use None for proper Arrow null representation
                         all_ion_mobility.extend([None] * n_peaks)
 
-            # Build data dict - order matches C++ ArrowExport implementation
+            # Build data dict - order matches C++ MSExperimentArrowExport implementation
             data_dict['mz'] = np.concatenate(all_mz) if all_mz else np.array([], dtype=np.float64)
             data_dict['intensity'] = np.concatenate(all_intensity) if all_intensity else np.array([], dtype=np.float32)
             data_dict['rt'] = np.concatenate(all_rt) if all_rt else np.array([], dtype=np.float32)
@@ -860,7 +860,7 @@ from libc.stdint cimport uintptr_t
                         # Use None for null list (spectrum has no IM data)
                         all_ion_mobility.append(None)
 
-            # Build data dict with list columns - order matches C++ ArrowExport semi-wide:
+            # Build data dict with list columns - order matches C++ MSExperimentArrowExport semi-wide:
             # spectrum_index, rt, ms_level, native_id, mz, intensity, ion_mobility, precursor_*
             data_dict['spectrum_index'] = np.array(all_spectrum_index, dtype=np.uint32)
             data_dict['rt'] = np.array(all_rt, dtype=np.float32)
@@ -954,7 +954,7 @@ from libc.stdint cimport uintptr_t
                 all_precursor_mz.append(chrom.getPrecursor().getMZ())
                 all_product_mz.append(chrom.getProduct().getMZ())
 
-            # Build data dict with list columns - order matches C++ ArrowExport semi-wide:
+            # Build data dict with list columns - order matches C++ MSExperimentArrowExport semi-wide:
             # chromatogram_index, native_id, rt, intensity, precursor_mz, product_mz
             data_dict['chromatogram_index'] = np.array(all_chrom_index, dtype=np.uint32)
             data_dict['native_id'] = all_native_id

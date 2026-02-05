@@ -11,8 +11,8 @@ from libcpp.string cimport string as libcpp_utf8_output_string
 from libcpp cimport bool
 from libc.stdint cimport int64_t, uint8_t
 
-# OpenMS ArrowExport declarations (only available when WITH_PARQUET is enabled)
-cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
+# OpenMS MSExperimentArrowExport declarations (only available when WITH_PARQUET is enabled)
+cdef extern from "<OpenMS/FORMAT/MSExperimentArrowExport.h>" namespace "OpenMS":
 
     cdef enum class ArrowExportFormat "OpenMS::ArrowExportFormat":
         # wrap-attach:
@@ -72,7 +72,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         bool write_statistics
         int64_t data_page_size
 
-    cdef cppclass ArrowExport:
+    cdef cppclass MSExperimentArrowExport:
         # wrap-doc:
         #  Export MSExperiment data to Apache Arrow format.
         #
@@ -82,8 +82,8 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         #
         #  EXPERIMENTAL: This API is experimental and may change in future versions.
         #  The table schema, column names, and data types are subject to modification.
-        ArrowExport() except + nogil
-        ArrowExport(const ArrowExport&) except + nogil  # copy constructor
+        MSExperimentArrowExport() except + nogil
+        MSExperimentArrowExport(const MSExperimentArrowExport&) except + nogil  # copy constructor
         # Column discovery - these are static methods but declared as instance methods for autowrap
         libcpp_vector[libcpp_utf8_output_string] getSpectraArrowColumnNames(
             const MSExperiment& exp,
