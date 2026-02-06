@@ -2025,6 +2025,22 @@ production ions
         ;
 
     // -----------------------------------------------------------------------
+    // TransformationModel_DataPoint
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::TransformationModel::DataPoint>(m, "TransformationModel_DataPoint",
+        "Coordinate pair (with optional annotation) used for transformation models")
+        .def(nb::init<>())
+        .def(nb::init<double, double, const OpenMS::String&>(), "first"_a = 0.0, "second"_a = 0.0, "note"_a = "")
+        .def(nb::init<const std::pair<double, double>&>(), "pair"_a)
+        .def(nb::init<const OpenMS::TransformationModel::DataPoint&>())
+        .def_rw("first", &OpenMS::TransformationModel::DataPoint::first)
+        .def_rw("second", &OpenMS::TransformationModel::DataPoint::second)
+        .def_rw("note", &OpenMS::TransformationModel::DataPoint::note)
+        .def(nb::self < nb::self)
+        .def(nb::self == nb::self)
+        ;
+
+    // -----------------------------------------------------------------------
     // TransformationDescription
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TransformationDescription>(m, "TransformationDescription", "Generic description of a coordinate transformation")
@@ -2053,7 +2069,11 @@ Get the deviations between the data pairs
                 dp.push_back(std::make_pair(p.first, p.second));
             }
             self.setDataPoints(dp);
-        }, "data"_a, "Set the data points for the transformation")
+        }, "data"_a, "Set the data points for the transformation (from pairs)")
+
+        .def("setDataPoints", [](OpenMS::TransformationDescription& self, const std::vector<OpenMS::TransformationModel::DataPoint>& data) {
+            self.setDataPoints(data);
+        }, "data"_a, "Set the data points for the transformation (from DataPoint objects)")
 
         .def("apply", [](const OpenMS::TransformationDescription& self, double value) {
             return self.apply(value);
