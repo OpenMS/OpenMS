@@ -858,8 +858,8 @@ if (!pi.getHits().empty())
       if (!output_base_name.empty())
       {
         OPENMS_LOG_INFO << "[PDBS-FI] Statistics tables written to:" << std::endl;
-        OPENMS_LOG_INFO << "  - " << output_base_name << "_DeltaMassStats.tsv" << std::endl;
-        OPENMS_LOG_INFO << "  - " << output_base_name << "_PTMStats.tsv" << std::endl;
+        OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_DeltaMassStats.tsv" << std::endl;
+        OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_PTMStats.tsv" << std::endl;
       }
     }
     else
