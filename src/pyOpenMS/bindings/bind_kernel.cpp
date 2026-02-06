@@ -1446,9 +1446,9 @@ mz, intensities = spectrum.get_peaks()
         .def("getMaxMobility", [](const OpenMS::MSExperiment& self) { return self.getMaxMobility(); }, "Get the maximum mobility value from the combined ranges")
         .def("updateRanges", [](OpenMS::MSExperiment& self) { return self.updateRanges(); }, "Recalculate global ranges for both spectra and chromatrograms after changes to the data has been made.")
         .def("getSize", [](const OpenMS::MSExperiment& self) { return self.getSize(); }, "Returns the total number of peaks")
-        .def("sortSpectra", [](OpenMS::MSExperiment& self, bool sort_mz) { return self.sortSpectra(sort_mz); }, "sort_mz"_a, "Sorts spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z")
-        .def("sortChromatograms", [](OpenMS::MSExperiment& self, bool sort_rt) { return self.sortChromatograms(sort_rt); }, "sort_rt"_a, "Sorts chromatograms by m/z. If sort_rt=True also sort each chromatogram RT")
-        .def("isSorted", [](const OpenMS::MSExperiment& self, bool check_mz) { return self.isSorted(check_mz); }, "check_mz"_a, "Checks if all spectra are sorted with respect to ascending RT")
+        .def("sortSpectra", [](OpenMS::MSExperiment& self, bool sort_mz) { return self.sortSpectra(sort_mz); }, "sort_mz"_a = true, "Sorts spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z")
+        .def("sortChromatograms", [](OpenMS::MSExperiment& self, bool sort_rt) { return self.sortChromatograms(sort_rt); }, "sort_rt"_a = true, "Sorts chromatograms by m/z. If sort_rt=True also sort each chromatogram RT")
+        .def("isSorted", [](const OpenMS::MSExperiment& self, bool check_mz) { return self.isSorted(check_mz); }, "check_mz"_a = true, "Checks if all spectra are sorted with respect to ascending RT")
         .def("reset", [](OpenMS::MSExperiment& self) { return self.reset(); }, "Clears all data and meta data")
         .def("clearMetaDataArrays", [](OpenMS::MSExperiment& self) { return self.clearMetaDataArrays(); }, "Clears the meta data arrays of all contained spectra")
         .def("getExperimentalSettings", [](OpenMS::MSExperiment& self) -> OpenMS::ExperimentalSettings & { return self.getExperimentalSettings(); }, nb::rv_policy::reference_internal, "Returns the meta information of this experiment")
@@ -1779,10 +1779,14 @@ Commonly used for storing ion mobility values or other per-peak float annotation
         .def("isMetaEmpty", [](const OpenMS::DataArrays::FloatDataArray& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
         .def("clearMetaInfo", [](OpenMS::DataArrays::FloatDataArray& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def("__len__", [](OpenMS::DataArrays::FloatDataArray& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i) -> float& { 
+        .def("__getitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i) -> float& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, nb::rv_policy::reference_internal)
+        .def("__setitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i, float val) {
+            if (i >= self.size()) throw nb::index_error();
+            self[i] = val;
+        })
 
         .def(nb::init<>(), "Default constructor")
         .def(nb::init<const OpenMS::DataArrays::FloatDataArray&>(), "Copy constructor")
@@ -1866,10 +1870,14 @@ Used for storing per-peak integer annotations.
         .def("isMetaEmpty", [](const OpenMS::DataArrays::IntegerDataArray& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
         .def("clearMetaInfo", [](OpenMS::DataArrays::IntegerDataArray& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def("__len__", [](OpenMS::DataArrays::IntegerDataArray& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i) -> int& { 
+        .def("__getitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i) -> int& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, nb::rv_policy::reference_internal)
+        .def("__setitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i, int val) {
+            if (i >= self.size()) throw nb::index_error();
+            self[i] = val;
+        })
 
         .def(nb::init<>(), "Default constructor")
         .def(nb::init<const OpenMS::DataArrays::IntegerDataArray&>(), "Copy constructor")
@@ -3775,10 +3783,14 @@ Commonly used for storing ion annotation names or other per-peak string annotati
         .def("isMetaEmpty", [](const OpenMS::DataArrays::StringDataArray& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
         .def("clearMetaInfo", [](OpenMS::DataArrays::StringDataArray& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def("__len__", [](OpenMS::DataArrays::StringDataArray& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i) -> OpenMS::String& { 
+        .def("__getitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i) -> OpenMS::String& {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, nb::rv_policy::reference_internal)
+        .def("__setitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i, const OpenMS::String& val) {
+            if (i >= self.size()) throw nb::index_error();
+            self[i] = val;
+        })
 
         .def(nb::init<>(), "Default constructor")
         .def(nb::init<const OpenMS::DataArrays::StringDataArray&>(), "Copy constructor")
