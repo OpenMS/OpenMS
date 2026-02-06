@@ -260,7 +260,11 @@ CVTermList
     auto consensusmapnormalizeralgorithmmedian_class = nb::class_<OpenMS::ConsensusMapNormalizerAlgorithmMedian>(m, "ConsensusMapNormalizerAlgorithmMedian", "Algorithms of ConsensusMapNormalizer *")
         .def(nb::init<>())
         .def_static("normalizeMaps", [](OpenMS::ConsensusMap& map, OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod method, const OpenMS::String& acc_filter, const OpenMS::String& desc_filter) { return OpenMS::ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, method, acc_filter, desc_filter); }, "map"_a, "method"_a, "acc_filter"_a, "desc_filter"_a, "Normalizes the maps of the consensusMap")
-        .def_static("computeMedians", [](const OpenMS::ConsensusMap& map, std::vector<double>& medians, const OpenMS::String& acc_filter, const OpenMS::String& desc_filter) { return OpenMS::ConsensusMapNormalizerAlgorithmMedian::computeMedians(map, medians, acc_filter, desc_filter); }, "map"_a, "medians"_a, "acc_filter"_a, "desc_filter"_a, "Computes medians of all maps and returns index of map with most features")
+        .def_static("computeMedians", [](const OpenMS::ConsensusMap& map, const OpenMS::String& acc_filter, const OpenMS::String& desc_filter) {
+            std::vector<double> medians;
+            auto idx = OpenMS::ConsensusMapNormalizerAlgorithmMedian::computeMedians(map, medians, acc_filter, desc_filter);
+            return nb::make_tuple(idx, medians);
+        }, "map"_a, "acc_filter"_a, "desc_filter"_a, "Computes medians of all maps and returns tuple of (index of map with most features, medians vector)")
         ;
     // NormalizationMethod enum nested under ConsensusMapNormalizerAlgorithmMedian
     nb::enum_<OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod>(consensusmapnormalizeralgorithmmedian_class, "NormalizationMethod", nb::is_arithmetic())
@@ -274,7 +278,11 @@ CVTermList
     nb::class_<OpenMS::ConsensusMapNormalizerAlgorithmQuantile>(m, "ConsensusMapNormalizerAlgorithmQuantile", "Algorithms of ConsensusMapNormalizer *")
         .def(nb::init<>())
         .def_static("normalizeMaps", [](OpenMS::ConsensusMap& map) { return OpenMS::ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(map); }, "map"_a)
-        .def_static("resample", [](const std::vector<double>& data_in, std::vector<double>& data_out, unsigned int n_resampling_points) { return OpenMS::ConsensusMapNormalizerAlgorithmQuantile::resample(data_in, data_out, n_resampling_points); }, "data_in"_a, "data_out"_a, "n_resampling_points"_a, "Resamples data_in and writes the results to data_out")
+        .def_static("resample", [](const std::vector<double>& data_in, unsigned int n_resampling_points) {
+            std::vector<double> data_out;
+            OpenMS::ConsensusMapNormalizerAlgorithmQuantile::resample(data_in, data_out, n_resampling_points);
+            return data_out;
+        }, "data_in"_a, "n_resampling_points"_a, "Resamples data_in and returns the resampled data")
         .def_static("extractIntensityVectors", [](const OpenMS::ConsensusMap& map) { std::vector<std::vector<double>> out_intensities; OpenMS::ConsensusMapNormalizerAlgorithmQuantile::extractIntensityVectors(map, out_intensities); return out_intensities; }, "map"_a, "Extracts the intensities of the features of the different maps")
         ;
 
@@ -415,7 +423,10 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
         .def(nb::init<const OpenMS::HyperScore &>())
         .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& theo_spectrum) { return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a)
         .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum, const OpenMS::DataArrays::IntegerDataArray& theo_charges) { return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, exp_charges, theo_spectrum, theo_charges); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "exp_charges"_a, "theo_spectrum"_a, "theo_charges"_a)
-        .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum, const OpenMS::DataArrays::IntegerDataArray& theo_charges, std::vector<double>& intensity_sum) { return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, exp_charges, theo_spectrum, theo_charges, intensity_sum); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "exp_charges"_a, "theo_spectrum"_a, "theo_charges"_a, "intensity_sum"_a)
+        .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum, const OpenMS::DataArrays::IntegerDataArray& theo_charges, std::vector<double> intensity_sum) {
+            auto score = OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, exp_charges, theo_spectrum, theo_charges, intensity_sum);
+            return nb::make_tuple(score, intensity_sum);
+        }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "exp_charges"_a, "theo_spectrum"_a, "theo_charges"_a, "intensity_sum"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -534,13 +545,17 @@ Constants for iTRAQ experiments and a ChannelInfo structure to store information
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ItraqConstants &>())
         .def_static("getIsotopeMatrixAsStringList", [](int itraq_type, const std::vector<OpenMS::Matrix<double>>& isotope_corrections) { return OpenMS::ItraqConstants::getIsotopeMatrixAsStringList(itraq_type, isotope_corrections); }, "itraq_type"_a, "isotope_corrections"_a)
-        .def_static("updateIsotopeMatrixFromStringList", [](int itraq_type, const std::vector<OpenMS::String>& channels, std::vector<OpenMS::Matrix<double>>& isotope_corrections) { return OpenMS::ItraqConstants::updateIsotopeMatrixFromStringList(itraq_type, channels, isotope_corrections); }, "itraq_type"_a, "channels"_a, "isotope_corrections"_a, 
+        .def_static("updateIsotopeMatrixFromStringList", [](int itraq_type, const std::vector<OpenMS::String>& channels, std::vector<OpenMS::Matrix<double>> isotope_corrections) {
+            OpenMS::ItraqConstants::updateIsotopeMatrixFromStringList(itraq_type, channels, isotope_corrections);
+            return isotope_corrections;
+        }, "itraq_type"_a, "channels"_a, "isotope_corrections"_a,
             R"doc(
 Convert isotope correction matrix to stringlist\n
 Each line is converted into a string of the format channel:-2Da/-1Da/+1Da/+2Da ; e.g. '114:0/0.3/4/0'
 Useful for creating parameters or debug output
 :param itraq_type: Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
 :param isotope_corrections: Vector of the two matrices (4plex, 8plex)
+:returns: Updated isotope_corrections
 )doc")
         .def_static("translateIsotopeMatrix", [](const int& itraq_type, const std::vector<OpenMS::Matrix<double>>& isotope_corrections) { return OpenMS::ItraqConstants::translateIsotopeMatrix(itraq_type, isotope_corrections); }, "itraq_type"_a, "isotope_corrections"_a, 
             R"doc(
@@ -1069,12 +1084,19 @@ specific decoy generation in targeted/pseudo targeted metabolomics
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MetaboTargetedTargetDecoy &>())
         .def_static("constructTargetDecoyMassMapping", [](const OpenMS::TargetedExperiment& t_exp) { return OpenMS::MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(t_exp); }, "t_exp"_a)
-        .def_static("resolveOverlappingTargetDecoyMassesByDecoyMassShift", [](OpenMS::TargetedExperiment& t_exp, std::vector<OpenMS::MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add, const double& mz_tol, const OpenMS::String& mz_tol_unit) { return OpenMS::MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByDecoyMassShift(t_exp, mappings, mass_to_add, mz_tol, mz_tol_unit); }, "t_exp"_a, "mappings"_a, "mass_to_add"_a, "mz_tol"_a, "mz_tol_unit"_a, 
+        .def_static("resolveOverlappingTargetDecoyMassesByDecoyMassShift", [](OpenMS::TargetedExperiment& t_exp, std::vector<OpenMS::MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings, const double& mass_to_add, const double& mz_tol, const OpenMS::String& mz_tol_unit) {
+            OpenMS::MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByDecoyMassShift(t_exp, mappings, mass_to_add, mz_tol, mz_tol_unit);
+            return mappings;
+        }, "t_exp"_a, "mappings"_a, "mass_to_add"_a, "mz_tol"_a, "mz_tol_unit"_a,
             R"doc(
 Constructs a mass mapping of targets and decoys using the unique m_id identifier
 :param t_exp: TransitionExperiment holds compound and transition information used for the mapping
+:returns: Updated mappings
 )doc")
-        .def_static("generateMissingDecoysByMassShift", [](OpenMS::TargetedExperiment& t_exp, std::vector<OpenMS::MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add) { return OpenMS::MetaboTargetedTargetDecoy::generateMissingDecoysByMassShift(t_exp, mappings, mass_to_add); }, "t_exp"_a, "mappings"_a, "mass_to_add"_a, 
+        .def_static("generateMissingDecoysByMassShift", [](OpenMS::TargetedExperiment& t_exp, std::vector<OpenMS::MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings, const double& mass_to_add) {
+            OpenMS::MetaboTargetedTargetDecoy::generateMissingDecoysByMassShift(t_exp, mappings, mass_to_add);
+            return mappings;
+        }, "t_exp"_a, "mappings"_a, "mass_to_add"_a,
             R"doc(
 Resolves overlapping target and decoy transition masses by adding a specifiable mass (e.g. CH2) to the overlapping decoy fragment
 :param t_exp: TransitionExperiment holds compound and transition information
@@ -1082,6 +1104,7 @@ Resolves overlapping target and decoy transition masses by adding a specifiable 
 :param mass_to_add: (e.g. CH2)
 :param mz_tol: m/z tolerarance for target and decoy transition masses to be considered overlapping
 :param mz_tol_unit: m/z tolerance unit
+:returns: Updated mappings
 )doc")
         ;
 
@@ -1154,16 +1177,27 @@ duplicated code
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::OPXLHelper &>())
-        .def_static("addXLTargetDecoyMV", [](std::vector<OpenMS::PeptideIdentification>& peptide_ids) { return OpenMS::OPXLHelper::addXLTargetDecoyMV(peptide_ids); }, "peptide_ids"_a)
+        .def_static("addXLTargetDecoyMV", [](std::vector<OpenMS::PeptideIdentification> peptide_ids) {
+            OpenMS::OPXLHelper::addXLTargetDecoyMV(peptide_ids);
+            return peptide_ids;
+        }, "peptide_ids"_a)
         .def_static("addXLTargetDecoyMV", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::addXLTargetDecoyMV(peptide_ids); }, "peptide_ids"_a)
-        .def_static("addBetaAccessions", [](std::vector<OpenMS::PeptideIdentification>& peptide_ids) { return OpenMS::OPXLHelper::addBetaAccessions(peptide_ids); }, "peptide_ids"_a)
+        .def_static("addBetaAccessions", [](std::vector<OpenMS::PeptideIdentification> peptide_ids) {
+            OpenMS::OPXLHelper::addBetaAccessions(peptide_ids);
+            return peptide_ids;
+        }, "peptide_ids"_a)
         .def_static("addBetaAccessions", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::addBetaAccessions(peptide_ids); }, "peptide_ids"_a)
-        .def_static("removeBetaPeptideHits", [](std::vector<OpenMS::PeptideIdentification>& peptide_ids) { return OpenMS::OPXLHelper::removeBetaPeptideHits(peptide_ids); }, "peptide_ids"_a)
+        .def_static("removeBetaPeptideHits", [](std::vector<OpenMS::PeptideIdentification> peptide_ids) {
+            OpenMS::OPXLHelper::removeBetaPeptideHits(peptide_ids);
+            return peptide_ids;
+        }, "peptide_ids"_a)
         .def_static("removeBetaPeptideHits", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::removeBetaPeptideHits(peptide_ids); }, "peptide_ids"_a)
         .def_static("addPercolatorFeatureList", [](OpenMS::ProteinIdentification& prot_id) { return OpenMS::OPXLHelper::addPercolatorFeatureList(prot_id); }, "prot_id"_a)
         .def_static("computeDeltaScores", []() { std::vector<OpenMS::PeptideIdentification> peptide_ids; OpenMS::OPXLHelper::computeDeltaScores(peptide_ids); return peptide_ids; })
         .def_static("computeDeltaScores", []() { OpenMS::PeptideIdentificationList peptide_ids; OpenMS::OPXLHelper::computeDeltaScores(peptide_ids); return peptide_ids; })
-        .def_static("combineTopRanksFromPairs", [](std::vector<OpenMS::PeptideIdentification>& peptide_ids, unsigned long number_top_hits) { return OpenMS::OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits); }, "peptide_ids"_a, "number_top_hits"_a)
+        .def_static("combineTopRanksFromPairs", [](std::vector<OpenMS::PeptideIdentification> peptide_ids, unsigned long number_top_hits) {
+            return OpenMS::OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits);
+        }, "peptide_ids"_a, "number_top_hits"_a)
         .def_static("combineTopRanksFromPairs", [](OpenMS::PeptideIdentificationList& peptide_ids, unsigned long number_top_hits) { return OpenMS::OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits); }, "peptide_ids"_a, "number_top_hits"_a)
         .def_static("computePrecursorError", [](const OpenMS::OPXLDataStructs::CrossLinkSpectrumMatch& csm, double precursor_mz, int precursor_charge) { return OpenMS::OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge); }, "csm"_a, "precursor_mz"_a, "precursor_charge"_a)
         ;
@@ -1508,7 +1542,10 @@ Maybe extend it to work with MS1 features. Separate resolution and adding
 groups to output
 )doc")
         .def(nb::init<bool>())
-        .def_static("run", [](std::vector<OpenMS::ProteinIdentification>& inferred_protein_id, OpenMS::PeptideIdentificationList& inferred_peptide_ids) { return OpenMS::PeptideProteinResolution::run(inferred_protein_id, inferred_peptide_ids); }, "inferred_protein_id"_a, "inferred_peptide_ids"_a, 
+        .def_static("run", [](std::vector<OpenMS::ProteinIdentification> inferred_protein_id, OpenMS::PeptideIdentificationList& inferred_peptide_ids) {
+            OpenMS::PeptideProteinResolution::run(inferred_protein_id, inferred_peptide_ids);
+            return inferred_protein_id;
+        }, "inferred_protein_id"_a, "inferred_peptide_ids"_a,
             R"doc(
 Resolves connected components based on posterior probabilities and adds them
 as additional protein_groups to the output idXML.
@@ -1522,6 +1559,7 @@ Probability ties resolved by taking protein with largest number of peptides
 :param conn_comp: The component to be resolved
 :param protein: ProteinIdentification object storing IDs and groups
 :param peptides: Vector of ProteinIdentifications with links to the proteins
+:returns: Updated inferred_protein_id
 static members
 )doc")
         .def("buildGraph", [](OpenMS::PeptideProteinResolution& self, OpenMS::ProteinIdentification& protein, const OpenMS::PeptideIdentificationList& peptides, bool skip_sort) { return self.buildGraph(protein, peptides, skip_sort); }, "protein"_a, "peptides"_a, "skip_sort"_a)
@@ -1573,44 +1611,71 @@ Appends a vector of PeptideIdentification to another and prepares Percolator fea
 :param new_peptide_ids: PeptideIdentification vector to be appended
 :param search_engine: Search engine to depend on for feature creation
 )doc")
-        .def_static("mergeMULTISEProteinIds", [](std::vector<OpenMS::ProteinIdentification>& all_protein_ids, std::vector<OpenMS::ProteinIdentification>& new_protein_ids) { return OpenMS::PercolatorFeatureSetHelper::mergeMULTISEProteinIds(all_protein_ids, new_protein_ids); }, "all_protein_ids"_a, "new_protein_ids"_a, 
+        .def_static("mergeMULTISEProteinIds", [](std::vector<OpenMS::ProteinIdentification> all_protein_ids, std::vector<OpenMS::ProteinIdentification> new_protein_ids) {
+            OpenMS::PercolatorFeatureSetHelper::mergeMULTISEProteinIds(all_protein_ids, new_protein_ids);
+            return nb::make_tuple(all_protein_ids, new_protein_ids);
+        }, "all_protein_ids"_a, "new_protein_ids"_a,
             R"doc(
 Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration
 :param all_peptide_idsL: PeptideIdentification vector to be merged into
 :param new_peptide_idsL: PeptideIdentification vector to merge
 :param search_engineL: Search engine to create features from their scores
+:returns: Tuple of (updated all_protein_ids, updated new_protein_ids)
 )doc")
-        .def_static("addMSGFFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<OpenMS::String>& feature_set) { return OpenMS::PercolatorFeatureSetHelper::addMSGFFeatures(peptide_ids, feature_set); }, "peptide_ids"_a, "feature_set"_a, 
+        .def_static("addMSGFFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<OpenMS::String> feature_set) {
+            OpenMS::PercolatorFeatureSetHelper::addMSGFFeatures(peptide_ids, feature_set);
+            return feature_set;
+        }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
 Concatenates SearchParameter of multiple search engine runs and merges PeptideEvidences, collects used search engines in MetaInfo for collection in addMULTISEFeatures for feature registration
 :param all_protein_ids: ProteinIdentification vector to be merged into
 :param new_protein_ids: ProteinIdentification vector to merge
+:returns: Updated feature_set
 )doc")
-        .def_static("addXTANDEMFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<OpenMS::String>& feature_set) { return OpenMS::PercolatorFeatureSetHelper::addXTANDEMFeatures(peptide_ids, feature_set); }, "peptide_ids"_a, "feature_set"_a, 
+        .def_static("addXTANDEMFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<OpenMS::String> feature_set) {
+            OpenMS::PercolatorFeatureSetHelper::addXTANDEMFeatures(peptide_ids, feature_set);
+            return feature_set;
+        }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
 Creates and adds MSGF+ specific Percolator features and registers them in feature_set. MSGF+ should be run with the addFeatures flag enabled
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param feature_set: Register of added features
+:returns: Updated feature_set
 )doc")
-        .def_static("addCOMETFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<OpenMS::String>& feature_set) { return OpenMS::PercolatorFeatureSetHelper::addCOMETFeatures(peptide_ids, feature_set); }, "peptide_ids"_a, "feature_set"_a, 
+        .def_static("addCOMETFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<OpenMS::String> feature_set) {
+            OpenMS::PercolatorFeatureSetHelper::addCOMETFeatures(peptide_ids, feature_set);
+            return feature_set;
+        }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
 Creates and adds X!Tandem specific Percolator features and registers them in feature_set
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param feature_set: Register of added features
+:returns: Updated feature_set
 )doc")
-        .def_static("addMASCOTFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<OpenMS::String>& feature_set) { return OpenMS::PercolatorFeatureSetHelper::addMASCOTFeatures(peptide_ids, feature_set); }, "peptide_ids"_a, "feature_set"_a, 
+        .def_static("addMASCOTFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<OpenMS::String> feature_set) {
+            OpenMS::PercolatorFeatureSetHelper::addMASCOTFeatures(peptide_ids, feature_set);
+            return feature_set;
+        }, "peptide_ids"_a, "feature_set"_a,
             R"doc(
 Creates and adds Comet specific Percolator features and registers them in feature_set
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param feature_set: Register of added features
+:returns: Updated feature_set
 )doc")
-        .def_static("addMULTISEFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<OpenMS::String>& search_engines_used, std::vector<OpenMS::String>& feature_set, bool complete_only, bool limits_imputation) { return OpenMS::PercolatorFeatureSetHelper::addMULTISEFeatures(peptide_ids, search_engines_used, feature_set, complete_only, limits_imputation); }, "peptide_ids"_a, "search_engines_used"_a, "feature_set"_a, "complete_only"_a, "limits_imputation"_a, 
+        .def_static("addMULTISEFeatures", [](OpenMS::PeptideIdentificationList& peptide_ids, std::vector<OpenMS::String> search_engines_used, std::vector<OpenMS::String> feature_set, bool complete_only, bool limits_imputation) {
+            OpenMS::PercolatorFeatureSetHelper::addMULTISEFeatures(peptide_ids, search_engines_used, feature_set, complete_only, limits_imputation);
+            return feature_set;
+        }, "peptide_ids"_a, "search_engines_used"_a, "feature_set"_a, "complete_only"_a, "limits_imputation"_a,
             R"doc(
 Creates and adds Mascot specific Percolator features and registers them in feature_set
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param feature_set: Register of added features
+:returns: Updated feature_set
 )doc")
-        .def_static("addCONCATSEFeatures", [](OpenMS::PeptideIdentificationList& peptide_id_list, std::vector<OpenMS::String>& search_engines_used, std::vector<OpenMS::String>& feature_set) { return OpenMS::PercolatorFeatureSetHelper::addCONCATSEFeatures(peptide_id_list, search_engines_used, feature_set); }, "peptide_id_list"_a, "search_engines_used"_a, "feature_set"_a, 
+        .def_static("addCONCATSEFeatures", [](OpenMS::PeptideIdentificationList& peptide_id_list, std::vector<OpenMS::String> search_engines_used, std::vector<OpenMS::String> feature_set) {
+            OpenMS::PercolatorFeatureSetHelper::addCONCATSEFeatures(peptide_id_list, search_engines_used, feature_set);
+            return feature_set;
+        }, "peptide_id_list"_a, "search_engines_used"_a, "feature_set"_a,
             R"doc(
 Adds multiple search engine specific Percolator features and registers them in feature_set
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
@@ -1618,14 +1683,19 @@ Adds multiple search engine specific Percolator features and registers them in f
 :param feature_set: Register of added features
 :param complete_only: Will only add features for PeptideIdentifications where all given search engines identified something
 :param limits_imputation: Uses C++ numeric limits as imputed values instead of min/max of that feature
+:returns: Updated feature_set
 )doc")
-        .def_static("checkExtraFeatures", [](const std::vector<OpenMS::PeptideHit>& psms, std::vector<OpenMS::String>& extra_features) { return OpenMS::PercolatorFeatureSetHelper::checkExtraFeatures(psms, extra_features); }, "psms"_a, "extra_features"_a, 
+        .def_static("checkExtraFeatures", [](const std::vector<OpenMS::PeptideHit>& psms, std::vector<OpenMS::String> extra_features) {
+            OpenMS::PercolatorFeatureSetHelper::checkExtraFeatures(psms, extra_features);
+            return extra_features;
+        }, "psms"_a, "extra_features"_a,
             R"doc(
 Adds multiple search engine specific Percolator features and registers them in feature_set
 This struct can be used to store both peak or feature indices
 :param peptide_ids: PeptideIdentification vector to create Percolator features in
 :param search_engines_used: The list of search engines to be considered
 :param feature_set: Register of added features
+:returns: Updated extra_features with unavailable features removed
 )doc")
         ;
 
@@ -1889,7 +1959,10 @@ a header and will be skipped. *
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SwathWindowLoader &>())
-        .def_static("annotateSwathMapsFromFile", [](const OpenMS::String& filename, std::vector<OpenSwath::SwathMap>& swath_maps, bool do_sort, bool force) { return OpenMS::SwathWindowLoader::annotateSwathMapsFromFile(filename, swath_maps, do_sort, force); }, "filename"_a, "swath_maps"_a, "do_sort"_a, "force"_a)
+        .def_static("annotateSwathMapsFromFile", [](const OpenMS::String& filename, std::vector<OpenSwath::SwathMap> swath_maps, bool do_sort, bool force) {
+            OpenMS::SwathWindowLoader::annotateSwathMapsFromFile(filename, swath_maps, do_sort, force);
+            return swath_maps;
+        }, "filename"_a, "swath_maps"_a, "do_sort"_a, "force"_a)
         .def_static("readSwathWindows", [](const OpenMS::String& filename) { std::vector<double> swath_prec_lower; std::vector<double> swath_prec_upper; OpenMS::SwathWindowLoader::readSwathWindows(filename, swath_prec_lower, swath_prec_upper); return std::make_tuple(swath_prec_lower, swath_prec_upper); }, "filename"_a)
         ;
 
@@ -2006,8 +2079,14 @@ TransformationModel
         .def(nb::init<std::vector<OpenMS::TransformationModel::DataPoint>, OpenMS::Param>())
         .def("evaluate", [](const OpenMS::TransformationModelLinear& self, double value) { return self.evaluate(value); }, "value"_a)
         .def("invert", [](OpenMS::TransformationModelLinear& self) { return self.invert(); })
-        .def("weightData", [](OpenMS::TransformationModelLinear& self, std::vector<OpenMS::TransformationModel::DataPoint>& data) { return self.weightData(data); }, "data"_a, "Weight the data by the given weight function")
-        .def("unWeightData", [](OpenMS::TransformationModelLinear& self, std::vector<OpenMS::TransformationModel::DataPoint>& data) { return self.unWeightData(data); }, "data"_a, "Unweight the data by the given weight function")
+        .def("weightData", [](OpenMS::TransformationModelLinear& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
+            self.weightData(data);
+            return data;
+        }, "data"_a, "Weight the data by the given weight function, returns weighted data")
+        .def("unWeightData", [](OpenMS::TransformationModelLinear& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
+            self.unWeightData(data);
+            return data;
+        }, "data"_a, "Unweight the data by the given weight function, returns unweighted data")
         .def("checkValidWeight", [](const OpenMS::TransformationModelLinear& self, const OpenMS::String& weight, const std::vector<OpenMS::String>& valid_weights) { return self.checkValidWeight(weight, valid_weights); }, "weight"_a, "valid_weights"_a, "Check for a valid weighting function string")
         .def("checkDatumRange", [](OpenMS::TransformationModelLinear& self, const double& datum, const double& datum_min, const double& datum_max) { return self.checkDatumRange(datum, datum_min, datum_max); }, "datum"_a, "datum_min"_a, "datum_max"_a, "Check that the datum is within the valid min and max bounds")
         .def("weightDatum", [](const OpenMS::TransformationModelLinear& self, const double& datum, const OpenMS::String& weight) { return self.weightDatum(datum, weight); }, "datum"_a, "weight"_a, "Weight the data according to the weighting function")

@@ -252,14 +252,14 @@ The following formats are supported:
 - yyyy-MM-ddZ (ISO 8601 format)
 - yyyy-MM-dd+hh:mm (ISO 8601 format)
 )doc")
-        .def("get", [](const OpenMS::DateTime& self, unsigned int& month, unsigned int& day, unsigned int& year, unsigned int& hour, unsigned int& minute, unsigned int& second) { return self.get(month, day, year, hour, minute, second); }, "month"_a, "day"_a, "year"_a, "hour"_a, "minute"_a, "second"_a, 
+        .def("getDateAndTime", [](const OpenMS::DateTime& self) { unsigned int month, day, year, hour, minute, second; self.get(month, day, year, hour, minute, second); return nb::make_tuple(month, day, year, hour, minute, second); },
             R"doc(
-@brief Returns a string representation of the date and time
-The format of the string will be yyyy-MM-dd hh:mm:ss
+@brief Returns date and time components as a tuple
+@return Tuple of (month, day, year, hour, minute, second) as integers
 )doc")
-        .def("getDate", [](const OpenMS::DateTime& self, unsigned int& month, unsigned int& day, unsigned int& year) { return self.getDate(month, day, year); }, "month"_a, "day"_a, "year"_a)
+        .def("getDateComponents", [](const OpenMS::DateTime& self) { unsigned int month, day, year; self.getDate(month, day, year); return nb::make_tuple(month, day, year); }, "Returns (month, day, year) as a tuple of integers")
         .def("getDate", [](const OpenMS::DateTime& self) { return self.getDate(); })
-        .def("getTime", [](const OpenMS::DateTime& self, unsigned int& hour, unsigned int& minute, unsigned int& second) { return self.getTime(hour, minute, second); }, "hour"_a, "minute"_a, "second"_a)
+        .def("getTimeComponents", [](const OpenMS::DateTime& self) { unsigned int hour, minute, second; self.getTime(hour, minute, second); return nb::make_tuple(hour, minute, second); }, "Returns (hour, minute, second) as a tuple of integers")
         .def("getTime", [](const OpenMS::DateTime& self) { return self.getTime(); })
         .def_static("now", []() { return OpenMS::DateTime::now(); })
         .def("clear", [](OpenMS::DateTime& self) { return self.clear(); })
