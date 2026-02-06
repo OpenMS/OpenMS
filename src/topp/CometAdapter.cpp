@@ -26,186 +26,16 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/ANALYSIS/ID/CometModification.h>
+
 #include <fstream>
+#include <iomanip>
 
 #include <QStringList>
 #include <QRegularExpression>
 
 using namespace OpenMS;
 using namespace std;
-
-/**
- * @brief Helper struct to represent a Comet variable modification entry.
- * 
- * This struct facilitates merging of modifications with the same mass and compatible
- * term specificity. Comet supports specifying multiple residues in a single modification
- * entry (e.g., "KR" for lysine and arginine), which significantly improves search performance.
- * 
- * Merging rules based on Comet's internal logic:
- * - Modifications with the same mass and compatible term settings can be merged
- * - N-term and amino acids can be merged (resulting in e.g., "nRST")
- * - C-term and amino acids can be merged (resulting in e.g., "cKR")
- * - Protein N-term (nc_term=0) must remain separate from peptide N-term (nc_term=2)
- * - Protein C-term (nc_term=1) must remain separate from peptide C-term (nc_term=3)
- */
-struct CometModification
-{
-  /// Mass tolerance for comparing modification masses
-  static constexpr double MASS_TOLERANCE = 1e-6;
-  
-  double mass{0.0};              ///< Modification mass difference
-  String residues;               ///< Residue(s) this modification applies to (e.g., "K", "KR", "n", "nKR")
-  int binary_group{0};           ///< Binary modification group (for SILAC etc.)
-  int max_mods_per_peptide{5};   ///< Maximum number of this modification per peptide
-  int term_distance{-1};         ///< Terminal distance (-1 = no constraint, 0 = terminal)
-  int nc_term{0};                ///< Terminal specificity: 0=protein N-term, 1=protein C-term, 2=peptide N-term, 3=peptide C-term
-  bool required{false};          ///< Whether this modification is required
-
-  /// Constructor from ResidueModification
-  CometModification(const ResidueModification* mod, int binary_grp, int max_mods)
-    : mass(mod->getDiffMonoMass()), binary_group(binary_grp), max_mods_per_peptide(max_mods)
-  {
-    residues = String(mod->getOrigin());
-    
-    auto term_spec = mod->getTermSpecificity();
-    if (term_spec == ResidueModification::C_TERM)
-    {
-      if (mod->getOrigin() == 'X')
-      {
-        residues = "c";
-      }
-      term_distance = 0;
-      nc_term = 3;
-    }
-    else if (term_spec == ResidueModification::N_TERM)
-    {
-      if (mod->getOrigin() == 'X')
-      {
-        residues = "n";
-      }
-      term_distance = 0;
-      nc_term = 2;
-    }
-    else if (term_spec == ResidueModification::PROTEIN_N_TERM)
-    {
-      if (mod->getOrigin() == 'X')
-      {
-        residues = "n";
-      }
-      term_distance = 0;
-      nc_term = 0;
-    }
-    else if (term_spec == ResidueModification::PROTEIN_C_TERM)
-    {
-      if (mod->getOrigin() == 'X')
-      {
-        residues = "c";
-      }
-      term_distance = 0;
-      nc_term = 1;
-    }
-  }
-
-  /// Check if this modification can be merged with another
-  bool isMergeableWith(const CometModification& other) const
-  {
-    // Must have same mass (within floating point tolerance)
-    if (std::abs(mass - other.mass) > MASS_TOLERANCE) return false;
-    
-    // Must have same binary group
-    if (binary_group != other.binary_group) return false;
-    
-    // Determine if modifications are terminal-specific
-    // Protein terminal: term_distance=0 and (nc_term=0 for protein N-term or nc_term=1 for protein C-term)
-    // Peptide terminal: term_distance=0 and (nc_term=2 for peptide N-term or nc_term=3 for peptide C-term)
-    // Regular amino acid: term_distance=-1
-    
-    bool this_is_protein_term = (term_distance == 0 && (nc_term == 0 || nc_term == 1));
-    bool other_is_protein_term = (other.term_distance == 0 && (other.nc_term == 0 || other.nc_term == 1));
-    
-    // Protein terminal modifications cannot be merged with anything except same type
-    if (this_is_protein_term || other_is_protein_term)
-    {
-      return (nc_term == other.nc_term && term_distance == other.term_distance);
-    }
-    
-    // For non-protein-terminal modifications:
-    // - Regular amino acid mods (term_distance=-1) can merge with each other
-    // - Peptide N-term (nc_term=2) can merge with amino acids  
-    // - Peptide C-term (nc_term=3) can merge with amino acids
-    // But peptide N-term cannot merge with peptide C-term
-    
-    bool this_is_peptide_nterm = (term_distance == 0 && nc_term == 2);
-    bool this_is_peptide_cterm = (term_distance == 0 && nc_term == 3);
-    bool other_is_peptide_nterm = (other.term_distance == 0 && other.nc_term == 2);
-    bool other_is_peptide_cterm = (other.term_distance == 0 && other.nc_term == 3);
-    
-    // If one is peptide N-term and other is peptide C-term, cannot merge
-    if ((this_is_peptide_nterm && other_is_peptide_cterm) ||
-        (this_is_peptide_cterm && other_is_peptide_nterm))
-    {
-      return false;
-    }
-    
-    return true;
-  }
-
-  /// Merge another modification into this one
-  void merge(const CometModification& other)
-  {
-    // Add residues from other (avoiding duplicates)
-    for (char c : other.residues)
-    {
-      if (residues.find(c) == String::npos)
-      {
-        residues += c;
-      }
-    }
-    
-    // Take the maximum max_mods_per_peptide
-    max_mods_per_peptide = std::max(max_mods_per_peptide, other.max_mods_per_peptide);
-    
-    // When merging terminal with non-terminal modifications:
-    // - If we're adding a peptide terminal mod to a regular amino acid mod,
-    //   we want term_distance=-1 (so the mod can apply anywhere)
-    //   and set nc_term to indicate it can also apply to the terminus
-    // Based on Comet's internal logic (commit 6e252720950bfacc8738d720c612e52f1c358b91)
-    
-    bool this_is_terminal = (term_distance == 0);
-    bool other_is_terminal = (other.term_distance == 0);
-    
-    if (this_is_terminal && !other_is_terminal)
-    {
-      // We started with a terminal mod and are adding non-terminal residues
-      // Keep nc_term but set term_distance to -1
-      term_distance = -1;
-    }
-    else if (!this_is_terminal && other_is_terminal)
-    {
-      // We started with non-terminal and are adding terminal
-      // Take the terminal's nc_term but keep term_distance=-1
-      nc_term = other.nc_term;
-    }
-    
-    required = required || other.required;
-  }
-
-  /// Generate the Comet param file line format
-  String toCometString(Size index) const
-  {
-    // Format: variable_modXX = <mass> <residues> <binary_group> <max_mods> <term_distance> <nc_term> <required> <neutral_loss>
-    std::ostringstream os;
-    os << "variable_mod0" << index << " = " 
-       << mass << " " << residues << " " 
-       << binary_group << " " 
-       << max_mods_per_peptide << " " 
-       << term_distance << " " 
-       << nc_term << " " 
-       << (required ? 1 : 0) << " " 
-       << "0.0";  // neutral loss - not currently supported
-    return String(os.str());
-  }
-};
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -527,38 +357,29 @@ protected:
 
     int max_variable_mods_in_peptide = getIntOption_("max_variable_mods_in_peptide");
 
-    // Convert all modifications to CometModification objects and merge compatible ones
-    vector<CometModification> merged_mods;
-    merged_mods.reserve(variable_modifications.size());
-
+    // Convert all modifications to CometModification objects
+    vector<CometModification> all_mods;
+    all_mods.reserve(variable_modifications.size());
     for (Size i = 0; i < variable_modifications.size(); ++i)
     {
       int binary_group = binary_modifications.empty() ? 0 : binary_modifications[i];
-      CometModification new_mod(variable_modifications[i], binary_group, max_variable_mods_in_peptide);
+      all_mods.emplace_back(variable_modifications[i], binary_group, max_variable_mods_in_peptide);
+    }
 
-      // Try to merge with an existing modification
-      bool was_merged = false;
-      for (auto& existing_mod : merged_mods)
-      {
-        if (existing_mod.isMergeableWith(new_mod))
-        {
-          existing_mod.merge(new_mod);
-          was_merged = true;
-          break;
-        }
-      }
+    // Merge compatible modifications (same mass, compatible terminal specificity)
+    vector<CometModification> merged_mods = CometModification::mergeModifications(all_mods);
 
-      if (!was_merged)
-      {
-        merged_mods.push_back(std::move(new_mod));
-      }
+    if (merged_mods.size() < all_mods.size())
+    {
+      OPENMS_LOG_INFO << "Merged " << all_mods.size() << " variable modifications into "
+                      << merged_mods.size() << " Comet entries." << std::endl;
     }
 
     // Check if we have too many modifications after merging
     if (merged_mods.size() > 9)
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-        "Error: Comet supports at most 9 variable modification entries. After merging compatible modifications, " 
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Error: Comet supports at most 9 variable modification entries. After merging compatible modifications, "
         + String(merged_mods.size()) + " entries remain. Consider using fewer distinct modification types.");
     }
 
@@ -572,7 +393,8 @@ protected:
     // fill remaining modification slots (if any) in Comet with "no modification"
     for (; var_mod_index < 9; ++var_mod_index)
     {
-      os << "variable_mod0" << var_mod_index+1 << " = " << "0.0 X 0 3 -1 0 0 0.0" << "\n";
+      os << "variable_mod" << std::setw(2) << std::setfill('0') << var_mod_index + 1
+         << " = " << "0.0 X 0 3 -1 0 0 0.0" << "\n";
     }
 
     os << "max_variable_mods_in_peptide = " << getIntOption_("max_variable_mods_in_peptide") << "\n";
