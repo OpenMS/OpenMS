@@ -136,7 +136,7 @@ run.setPeptideIdentifications(my_peptide_ids)
     // -----------------------------------------------------------------------
     // ExperimentalDesign_MSFileSectionEntry
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ExperimentalDesign::MSFileSectionEntry>(m, "ExperimentalDesign_MSFileSectionEntry")
+    nb::class_<OpenMS::ExperimentalDesign::MSFileSectionEntry>(m, "ExperimentalDesign_MSFileSectionEntry", "OpenMS class ExperimentalDesign_MSFileSectionEntry")
         .def(nb::init<>())
         .def_rw("fraction_group", &OpenMS::ExperimentalDesign::MSFileSectionEntry::fraction_group)
         .def_rw("fraction", &OpenMS::ExperimentalDesign::MSFileSectionEntry::fraction)
@@ -149,7 +149,7 @@ run.setPeptideIdentifications(my_peptide_ids)
     // -----------------------------------------------------------------------
     // ExperimentalDesign_SampleSection
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ExperimentalDesign::SampleSection>(m, "ExperimentalDesign_SampleSection")
+    nb::class_<OpenMS::ExperimentalDesign::SampleSection>(m, "ExperimentalDesign_SampleSection", "OpenMS class ExperimentalDesign_SampleSection")
         .def(nb::init<>())
         .def(nb::init<std::vector<std::vector<OpenMS::String>>, std::map<OpenMS::String, unsigned long>, std::map<OpenMS::String, unsigned long>>())
         .def("getSamples", [](const OpenMS::ExperimentalDesign::SampleSection& self) { return self.getSamples(); }, "Returns a set of all samples that are present in the sample section")
@@ -364,7 +364,7 @@ Indices from 1 to 1023 are reserved for fast access and will never change:
     // -----------------------------------------------------------------------
     // PeptideHit_PeakAnnotation
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeptideHit::PeakAnnotation>(m, "PeptideHit_PeakAnnotation")
+    nb::class_<OpenMS::PeptideHit::PeakAnnotation>(m, "PeptideHit_PeakAnnotation", "OpenMS class PeptideHit_PeakAnnotation")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::PeptideHit::PeakAnnotation &>())
         .def(nb::self < nb::self)
@@ -491,7 +491,7 @@ Register a possible format for a spectrum reference
     // -----------------------------------------------------------------------
     // SpectrumNativeIDParser
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SpectrumNativeIDParser>(m, "SpectrumNativeIDParser")
+    nb::class_<OpenMS::SpectrumNativeIDParser>(m, "SpectrumNativeIDParser", "OpenMS class SpectrumNativeIDParser")
         .def_static("extractScanNumber", [](const OpenMS::String& native_id, const boost::basic_regex<char>& scan_regexp, bool no_error) { return OpenMS::SpectrumNativeIDParser::extractScanNumber(native_id, scan_regexp, no_error); }, "native_id"_a, "scan_regexp"_a, "no_error"_a, 
             R"doc(
 wrap-attach:
@@ -572,7 +572,7 @@ The optional interpretation part uses ProForma proteoform-ion notation.
     // -----------------------------------------------------------------------
     // SpectrumMetaDataLookup
     // -----------------------------------------------------------------------
-    nb::class_<SpectrumMetaDataLookup_Dummy>(m, "SpectrumMetaDataLookup")
+    nb::class_<SpectrumMetaDataLookup_Dummy>(m, "SpectrumMetaDataLookup", "OpenMS class SpectrumMetaDataLookup")
         .def_static("addMissingRTsToPeptideIDs", smld_addMissingRTs, "peptides"_a, "exp"_a, "Add missing RTs to peptide IDs")
         .def_static("addMissingSpectrumReferences", smld_addMissingRefs, "peptides"_a, "filename"_a, "stop_on_error"_a = false, "override_spectra_data"_a = false, "override_spectra_references"_a = false, "Add missing spectrum references")
         ;

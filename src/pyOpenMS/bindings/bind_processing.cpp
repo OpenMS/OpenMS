@@ -76,7 +76,7 @@ NB_MODULE(_pyopenms_processing, m) {
     // -----------------------------------------------------------------------
     // Deisotoper
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Deisotoper>(m, "Deisotoper")
+    nb::class_<OpenMS::Deisotoper>(m, "Deisotoper", "OpenMS class Deisotoper")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Deisotoper &>())
 
@@ -207,7 +207,7 @@ Removes hits annotated as decoys from peptide or protein identifications. Checks
     // -----------------------------------------------------------------------
     // InternalCalibration_LockMass
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::InternalCalibration::LockMass>(m, "InternalCalibration_LockMass")
+    nb::class_<OpenMS::InternalCalibration::LockMass>(m, "InternalCalibration_LockMass", "OpenMS class InternalCalibration_LockMass")
         .def(nb::init<double, int, int>())
         .def_rw("mz", &OpenMS::InternalCalibration::LockMass::mz)
         .def_rw("ms_level", &OpenMS::InternalCalibration::LockMass::ms_level)
@@ -316,7 +316,7 @@ If you want a constant model, set slope to zero in addition
     // -----------------------------------------------------------------------
     // SignalToNoiseEstimatorMeanIterative
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMeanIterative")
+    nb::class_<OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMeanIterative", "OpenMS class SignalToNoiseEstimatorMeanIterative")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>&>())
         ;
@@ -325,7 +325,7 @@ If you want a constant model, set slope to zero in addition
     // -----------------------------------------------------------------------
     // SignalToNoiseEstimatorMedian
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMedian")
+    nb::class_<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMedian", "OpenMS class SignalToNoiseEstimatorMedian")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>&>())
         ;

@@ -69,7 +69,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     // Adduct
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Adduct>(m, "Adduct")
+    nb::class_<OpenMS::Adduct>(m, "Adduct", "OpenMS class Adduct")
         .def(nb::init<>())
         .def(nb::init<int>())
         .def(nb::init<int, int, double, OpenMS::String, double, double, OpenMS::String>())
@@ -109,7 +109,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     // CVMappingTerm
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::CVMappingTerm>(m, "CVMappingTerm")
+    nb::class_<OpenMS::CVMappingTerm>(m, "CVMappingTerm", "OpenMS class CVMappingTerm")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::CVMappingTerm &>())
         .def("setAccession", [](OpenMS::CVMappingTerm& self, const OpenMS::String& accession) { return self.setAccession(accession); }, "accession"_a, "Sets the accession string of the term")
@@ -210,7 +210,7 @@ Numerical Analysis, 4th ed. PWS-Kent, 1989, ISBN 0-53491-585-X, pp.
     // -----------------------------------------------------------------------
     // DBoundingBox2
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::DBoundingBox<2> >(m, "DBoundingBox2")
+    nb::class_<OpenMS::DBoundingBox<2> >(m, "DBoundingBox2", "OpenMS class DBoundingBox2")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::DBoundingBox<2>  &>())
 
@@ -285,7 +285,7 @@ The following formats are supported:
     // -----------------------------------------------------------------------
     // DistanceMatrix
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::DistanceMatrix<float>>(m, "DistanceMatrix")
+    nb::class_<OpenMS::DistanceMatrix<float>>(m, "DistanceMatrix", "OpenMS class DistanceMatrix")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::DistanceMatrix<float>&>())
         .def(nb::init<size_t, float>())
@@ -304,7 +304,7 @@ The following formats are supported:
     // -----------------------------------------------------------------------
     // IsotopeCluster
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::IsotopeCluster>(m, "IsotopeCluster")
+    nb::class_<OpenMS::IsotopeCluster>(m, "IsotopeCluster", "OpenMS class IsotopeCluster")
         .def(nb::init<>())
         .def_rw("peaks", &OpenMS::IsotopeCluster::peaks)
         .def_rw("scans", &OpenMS::IsotopeCluster::scans)
@@ -463,7 +463,7 @@ A classical configuration would contain a list of settings e.g.
     // -----------------------------------------------------------------------
     // MatrixDouble
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Matrix<double>>(m, "MatrixDouble")
+    nb::class_<OpenMS::Matrix<double>>(m, "MatrixDouble", "OpenMS class MatrixDouble")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Matrix<double>&>())
         .def(nb::init<size_t, size_t, double>())
@@ -617,7 +617,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
     // -----------------------------------------------------------------------
     // ParamEntry
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Param::ParamEntry>(m, "ParamEntry")
+    nb::class_<OpenMS::Param::ParamEntry>(m, "ParamEntry", "OpenMS class ParamEntry")
         .def(nb::init<>())
         .def(nb::init<const std::string&, const OpenMS::ParamValue&, const std::string&>(), "name"_a, "value"_a, "description"_a)
         .def_rw("name", &OpenMS::Param::ParamEntry::name)
@@ -640,7 +640,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
     // -----------------------------------------------------------------------
     // ParamNode
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Param::ParamNode>(m, "ParamNode")
+    nb::class_<OpenMS::Param::ParamNode>(m, "ParamNode", "OpenMS class ParamNode")
         .def(nb::init<>())
         .def(nb::init<const std::string&, const std::string&>(), "name"_a, "description"_a)
         .def_rw("name", &OpenMS::Param::ParamNode::name)

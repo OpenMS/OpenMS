@@ -114,7 +114,7 @@ NB_MODULE(_pyopenms_kernel, m) {
     // -----------------------------------------------------------------------
     // AnnotationStatistics
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::AnnotationStatistics>(m, "AnnotationStatistics")
+    nb::class_<OpenMS::AnnotationStatistics>(m, "AnnotationStatistics", "OpenMS class AnnotationStatistics")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::AnnotationStatistics &>())
         .def(nb::self == nb::self)
@@ -209,7 +209,7 @@ The template parameters for the base RangeManager are ordered differently than i
     // -----------------------------------------------------------------------
     // MRMTransitionGroupCP
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>>(m, "MRMTransitionGroupCP")
+    nb::class_<OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>>(m, "MRMTransitionGroupCP", "OpenMS class MRMTransitionGroupCP")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>&>())
         .def("size", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.size(); })
@@ -242,7 +242,7 @@ The template parameters for the base RangeManager are ordered differently than i
     // -----------------------------------------------------------------------
     // LightMRMTransitionGroupCP
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>>(m, "LightMRMTransitionGroupCP")
+    nb::class_<OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>>(m, "LightMRMTransitionGroupCP", "OpenMS class LightMRMTransitionGroupCP")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>&>())
         .def("size", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& self) { return self.size(); })
@@ -276,7 +276,7 @@ The template parameters for the base RangeManager are ordered differently than i
     // -----------------------------------------------------------------------
     // MapConversion
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MapConversion>(m, "MapConversion")
+    nb::class_<OpenMS::MapConversion>(m, "MapConversion", "OpenMS class MapConversion")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MapConversion &>())
         .def_static("convert", [](unsigned long input_map_index, OpenMS::MSExperiment& input_map, OpenMS::ConsensusMap& output_map, unsigned long n) { return OpenMS::MapConversion::convert(input_map_index, input_map, output_map, n); }, "input_map_index"_a, "input_map"_a, "output_map"_a, "n"_a)
@@ -287,7 +287,7 @@ The template parameters for the base RangeManager are ordered differently than i
     // -----------------------------------------------------------------------
     // MassTrace
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MassTrace>(m, "MassTrace")
+    nb::class_<OpenMS::MassTrace>(m, "MassTrace", "OpenMS class MassTrace")
         .def(nb::init<>())
         .def(nb::init<std::list<OpenMS::Peak2D>>())
         .def(nb::init<std::vector<OpenMS::Peak2D>>())
@@ -454,7 +454,7 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     // CVTermList
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::CVTermList, OpenMS::MetaInfoInterface>(m, "CVTermList")
+    nb::class_<OpenMS::CVTermList, OpenMS::MetaInfoInterface>(m, "CVTermList", "OpenMS class CVTermList")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::CVTermList &>())
         .def("replaceCVTerm", [](OpenMS::CVTermList& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
@@ -608,7 +608,7 @@ about a single chromatogram.
     // -----------------------------------------------------------------------
     // ColumnHeader
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusMap::ColumnHeader, OpenMS::MetaInfoInterface>(m, "ColumnHeader")
+    nb::class_<OpenMS::ConsensusMap::ColumnHeader, OpenMS::MetaInfoInterface>(m, "ColumnHeader", "OpenMS class ColumnHeader")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ConsensusMap::ColumnHeader &>())
         .def("getMetaValue", [](OpenMS::ConsensusMap::ColumnHeader& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
@@ -626,7 +626,7 @@ about a single chromatogram.
     // -----------------------------------------------------------------------
     // Configuration
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::TargetedExperimentHelper::Configuration, OpenMS::CVTermList>(m, "Configuration")
+    nb::class_<OpenMS::TargetedExperimentHelper::Configuration, OpenMS::CVTermList>(m, "Configuration", "OpenMS class Configuration")
         .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Configuration& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
         .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::Configuration& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
         .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::Configuration& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
@@ -659,7 +659,7 @@ about a single chromatogram.
     // -----------------------------------------------------------------------
     // Contact
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::TargetedExperimentHelper::Contact, OpenMS::CVTermList>(m, "Contact")
+    nb::class_<OpenMS::TargetedExperimentHelper::Contact, OpenMS::CVTermList>(m, "Contact", "OpenMS class Contact")
         .def(nb::init<>())
         .def(nb::self == nb::self)
         .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Contact& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
@@ -2640,7 +2640,7 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     // -----------------------------------------------------------------------
     // Prediction
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::TargetedExperimentHelper::Prediction, OpenMS::CVTermList>(m, "Prediction")
+    nb::class_<OpenMS::TargetedExperimentHelper::Prediction, OpenMS::CVTermList>(m, "Prediction", "OpenMS class Prediction")
         .def(nb::init<>())
         .def(nb::self == nb::self)
         .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Prediction& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
@@ -2690,7 +2690,7 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     // -----------------------------------------------------------------------
     // Protein
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::TargetedExperimentHelper::Protein, OpenMS::CVTermList>(m, "Protein")
+    nb::class_<OpenMS::TargetedExperimentHelper::Protein, OpenMS::CVTermList>(m, "Protein", "OpenMS class Protein")
         .def(nb::init<>())
         .def(nb::self == nb::self)
         .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Protein& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
@@ -2954,7 +2954,7 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     // RangeBase
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::RangeBase>(m, "RangeBase")
+    nb::class_<OpenMS::RangeBase>(m, "RangeBase", "OpenMS class RangeBase")
         .def(nb::init<>())
         .def(nb::init<double>())
         .def(nb::init<double, double>())
@@ -2972,7 +2972,7 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     // RangeIntensity
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::RangeIntensity, OpenMS::RangeBase>(m, "RangeIntensity")
+    nb::class_<OpenMS::RangeIntensity, OpenMS::RangeBase>(m, "RangeIntensity", "OpenMS class RangeIntensity")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::RangeIntensity &>())
         .def("setMinIntensity", [](OpenMS::RangeIntensity& self, double min) { return self.setMinIntensity(min); }, "min"_a)
@@ -2993,7 +2993,7 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     // RangeMZ
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::RangeMZ, OpenMS::RangeBase>(m, "RangeMZ")
+    nb::class_<OpenMS::RangeMZ, OpenMS::RangeBase>(m, "RangeMZ", "OpenMS class RangeMZ")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::RangeMZ &>())
         .def("setMinMZ", [](OpenMS::RangeMZ& self, double min) { return self.setMinMZ(min); }, "min"_a)
@@ -3014,7 +3014,7 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     // RangeMobility
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::RangeMobility, OpenMS::RangeBase>(m, "RangeMobility")
+    nb::class_<OpenMS::RangeMobility, OpenMS::RangeBase>(m, "RangeMobility", "OpenMS class RangeMobility")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::RangeMobility &>())
         .def("setMinMobility", [](OpenMS::RangeMobility& self, double min) { return self.setMinMobility(min); }, "min"_a)
@@ -3035,7 +3035,7 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     // RangeRT
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::RangeRT, OpenMS::RangeBase>(m, "RangeRT")
+    nb::class_<OpenMS::RangeRT, OpenMS::RangeBase>(m, "RangeRT", "OpenMS class RangeRT")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::RangeRT &>())
         .def("setMinRT", [](OpenMS::RangeRT& self, double min) { return self.setMinRT(min); }, "min"_a)
@@ -3254,7 +3254,7 @@ Returns the comment (default "")
     // -----------------------------------------------------------------------
     // ScanWindow
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ScanWindow, OpenMS::MetaInfoInterface>(m, "ScanWindow")
+    nb::class_<OpenMS::ScanWindow, OpenMS::MetaInfoInterface>(m, "ScanWindow", "OpenMS class ScanWindow")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ScanWindow &>())
         .def(nb::self == nb::self)
@@ -3288,7 +3288,7 @@ Returns the comment (default "")
     // -----------------------------------------------------------------------
     // SearchParameters
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ProteinIdentification::SearchParameters, OpenMS::MetaInfoInterface>(m, "SearchParameters")
+    nb::class_<OpenMS::ProteinIdentification::SearchParameters, OpenMS::MetaInfoInterface>(m, "SearchParameters", "OpenMS class SearchParameters")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ProteinIdentification::SearchParameters &>())
         .def("getMetaValue", [](OpenMS::ProteinIdentification::SearchParameters& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
@@ -3331,7 +3331,7 @@ Returns the comment (default "")
     // -----------------------------------------------------------------------
     // SourceFile
     // -----------------------------------------------------------------------
-    auto sourcefile_class = nb::class_<OpenMS::SourceFile, OpenMS::CVTermList>(m, "SourceFile")
+    auto sourcefile_class = nb::class_<OpenMS::SourceFile, OpenMS::CVTermList>(m, "SourceFile", "OpenMS class SourceFile")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SourceFile &>())
         .def_static("getAllNamesOfChecksumType", []() { return OpenMS::SourceFile::getAllNamesOfChecksumType(); }, "Returns all checksum type names known to OpenMS")
@@ -3808,7 +3808,7 @@ Commonly used for storing ion annotation names or other per-peak string annotati
     // -----------------------------------------------------------------------
     // TraMLProduct
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::TargetedExperimentHelper::TraMLProduct, OpenMS::CVTermListInterface>(m, "TraMLProduct")
+    nb::class_<OpenMS::TargetedExperimentHelper::TraMLProduct, OpenMS::CVTermListInterface>(m, "TraMLProduct", "OpenMS class TraMLProduct")
         .def(nb::init<>())
         .def(nb::self == nb::self)
         .def("setChargeState", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, int charge) { return self.setChargeState(charge); }, "charge"_a)
@@ -4615,7 +4615,7 @@ Sets the charge state of the feature
     // -----------------------------------------------------------------------
     // SpectrumHelper
     // -----------------------------------------------------------------------
-    nb::class_<SpectrumHelper_Dummy>(m, "SpectrumHelper")
+    nb::class_<SpectrumHelper_Dummy>(m, "SpectrumHelper", "OpenMS class SpectrumHelper")
         .def_static("removePeaks", [](OpenMS::MSSpectrum& spec, double min_mz, double max_mz) {
             OpenMS::removePeaks(spec, min_mz, max_mz);
         }, "spectrum"_a, "min_mz"_a, "max_mz"_a, "Remove peaks outside the given m/z range")
@@ -4628,7 +4628,7 @@ Sets the charge state of the feature
     // -----------------------------------------------------------------------
     // MRMFeature
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MRMFeature, OpenMS::Feature>(m, "MRMFeature")
+    nb::class_<OpenMS::MRMFeature, OpenMS::Feature>(m, "MRMFeature", "OpenMS class MRMFeature")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MRMFeature&>())
         .def("getScores", [](const OpenMS::MRMFeature& self) { return self.getScores(); })
