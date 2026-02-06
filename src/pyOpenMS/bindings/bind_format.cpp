@@ -42,7 +42,9 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/PEFFFile.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
+#ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/ParquetFilter.h>
+#endif
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -51,7 +53,9 @@
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/TargetedDataFileLoader.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
+#ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/XICParquetFile.h>
+#endif
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <iomanip>
@@ -1052,6 +1056,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("store", [](const OpenMS::ParamCTDFile& self, const OpenMS::String& filename, const OpenMS::Param& param, const OpenMS::ToolInfo& tool_info) { return self.store(filename, param, tool_info); }, "filename"_a, "param"_a, "tool_info"_a)
         ;
 
+#ifdef WITH_PARQUET
     // -----------------------------------------------------------------------
     // ParquetFilter
     // -----------------------------------------------------------------------
@@ -1098,6 +1103,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("filter", [](const OpenMS::ParquetFilterBuilder& self) -> const OpenMS::ParquetFilter & { return self.filter(); }, nb::rv_policy::reference_internal)
         .def("empty", [](const OpenMS::ParquetFilterBuilder& self) { return self.empty(); })
         ;
+#endif // WITH_PARQUET
 
     // -----------------------------------------------------------------------
     // PeakFileOptions
@@ -1448,6 +1454,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def_rw("citations_", &OpenMS::ToolInfo::citations_)
         ;
 
+#ifdef WITH_PARQUET
     // -----------------------------------------------------------------------
     // XICParquetFile
     // -----------------------------------------------------------------------
@@ -1639,5 +1646,6 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
            "run_id"_a = -1, "filter"_a = "", "explode"_a = false,
            "Return chromatogram data as a dict")
         ;
+#endif // WITH_PARQUET
 
 }
