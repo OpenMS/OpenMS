@@ -982,7 +982,7 @@ namespace OpenMS
         }
       }
     }
-    catch (...)
+    catch (const Exception::BaseException&)
     {
       // Modification not found in database
     }

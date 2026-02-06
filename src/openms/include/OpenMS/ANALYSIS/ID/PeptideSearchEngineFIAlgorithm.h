@@ -36,20 +36,6 @@ namespace OpenMS
   - Used by the PeptideDataBaseSearchFI TOPP tool
   - Experimental; interfaces and behavior may change
 */
-/**
-  @brief Fragment-index-based peptide database search algorithm (experimental).
-
-  Provides a self-contained search engine that matches MS/MS spectra against a protein
-  database using an FI (Fragment Index). Typical usage:
-  - Configure parameters via DefaultParamHandler (mass tolerances, enzyme, charges, etc.)
-  - Call search() with an input mzML file and a FASTA database to populate identification
-    outputs (ProteinIdentification and PeptideIdentificationList)
-  - Intended for educational/prototyping use and to demonstrate FI-backed searching
-
-  Notes:
-  - Used by the PeptideDataBaseSearchFI TOPP tool
-  - Experimental; interfaces and behavior may change
-*/
 class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
   public DefaultParamHandler,
   public ProgressLogger

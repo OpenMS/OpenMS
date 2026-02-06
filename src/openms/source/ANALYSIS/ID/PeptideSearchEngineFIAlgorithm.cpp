@@ -685,8 +685,7 @@ if (!pi.getHits().empty())
         }
       }
 
-      // Use the new method with statistics for enhanced output
-      auto analysis_result = mod_analyzer.analyzeModificationsWithStatistics(
+      auto modification_summaries = mod_analyzer.analyzeModifications(
         peptide_ids,
         precursor_mass_tolerance_,
         precursor_mass_tolerance_unit_ == "ppm",
@@ -694,32 +693,8 @@ if (!pi.getHits().empty())
         mod_output_file
       );
 
-      OPENMS_LOG_INFO << "[PDBS-FI] Found " << analysis_result.summaries.size()
+      OPENMS_LOG_INFO << "[PDBS-FI] Found " << modification_summaries.size()
                       << " modification patterns in open search results." << std::endl;
-
-      // Log summary statistics
-      OPENMS_LOG_INFO << "[PDBS-FI] Delta Mass Statistics:" << std::endl;
-      OPENMS_LOG_INFO << "  - Total PSMs: " << analysis_result.delta_mass_stats.total_psms << std::endl;
-      OPENMS_LOG_INFO << "  - Modified PSMs: " << analysis_result.delta_mass_stats.modified_psms << std::endl;
-      OPENMS_LOG_INFO << "  - Unmodified PSMs: " << analysis_result.delta_mass_stats.unmodified_psms << std::endl;
-
-      OPENMS_LOG_INFO << "[PDBS-FI] PTM Statistics:" << std::endl;
-      OPENMS_LOG_INFO << "  - Total Modified PSMs: " << analysis_result.ptm_stats.total_modified_psms << std::endl;
-      OPENMS_LOG_INFO << "  - Unknown Modifications: " << analysis_result.ptm_stats.unknown_modification_psms << std::endl;
-      OPENMS_LOG_INFO << "  - Unique PTMs found: " << analysis_result.ptm_stats.num_unique_modifications << std::endl;
-
-      // Log top PTMs
-      if (!analysis_result.ptm_stats.entries.empty())
-      {
-        OPENMS_LOG_INFO << "[PDBS-FI] Top PTMs discovered:" << std::endl;
-        size_t count = 0;
-        for (const auto& ptm : analysis_result.ptm_stats.entries)
-        {
-          if (count++ >= 10) break; // Show top 10
-          OPENMS_LOG_INFO << "  - " << ptm.name << ": " << ptm.count << " PSMs ("
-                          << ptm.percentage << "%), mass=" << ptm.theoretical_mass << " Da" << std::endl;
-        }
-      }
 
       endProgress();
     }
@@ -789,7 +764,9 @@ if (!pi.getHits().empty())
         output_file = output_base_name + "_ModificationAnalysis.idXML";
       }
 
-      // Run comprehensive analysis
+      // Note: search() already performs basic modification analysis via analyzeModifications(),
+      // annotating peptide hits with PTM/DeltaMass meta values. The call below re-analyzes
+      // and additionally generates structured statistics tables. The annotation is idempotent.
       result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
         result.peptide_ids,
         precursor_mass_tolerance_,
