@@ -322,27 +322,23 @@ Calculate the ratio between two features (e.g., analyte/IS)
 :param feature_name: Name of the feature to use (e.g., "peak_apex_int")
 :returns: The ratio component_1 / component_2
 )doc")
-        .def("optimizeCalibrationCurveIterative", [](OpenMS::AbsoluteQuantitation& self, std::vector<OpenMS::AbsoluteQuantitationStandards::featureConcentration>& component_concentrations, const OpenMS::String& feature_name, const OpenMS::String& transformation_model, const OpenMS::Param& transformation_model_params, OpenMS::Param& optimized_params) { return self.optimizeCalibrationCurveIterative(component_concentrations, feature_name, transformation_model, transformation_model_params, optimized_params); }, "component_concentrations"_a, "feature_name"_a, "transformation_model"_a, "transformation_model_params"_a, "optimized_params"_a, 
+        .def("optimizeCalibrationCurveIterative", [](OpenMS::AbsoluteQuantitation& self, std::vector<OpenMS::AbsoluteQuantitationStandards::featureConcentration> component_concentrations, const OpenMS::String& feature_name, const OpenMS::String& transformation_model, const OpenMS::Param& transformation_model_params, OpenMS::Param& optimized_params) { bool result = self.optimizeCalibrationCurveIterative(component_concentrations, feature_name, transformation_model, transformation_model_params, optimized_params); return nb::make_tuple(result, component_concentrations); }, "component_concentrations"_a, "feature_name"_a, "transformation_model"_a, "transformation_model_params"_a, "optimized_params"_a,
             R"doc(
 Calculate bias values and correlation coefficient for calibration
 :param component_concentrations: Standards with known concentrations
 :param feature_name: Feature to use
 :param transformation_model: Model type
 :param transformation_model_params: Model parameters
-:param biases: Output vector of bias values for each standard
-:param correlation_coefficient: Output Pearson R correlation
+:param optimized_params: Output optimized parameters (modified in-place)
+:returns: Tuple of (success_bool, updated_component_concentrations)
 )doc")
-        .def("optimizeSingleCalibrationCurve", [](OpenMS::AbsoluteQuantitation& self, const OpenMS::String& component_name, std::vector<OpenMS::AbsoluteQuantitationStandards::featureConcentration>& component_concentrations) { return self.optimizeSingleCalibrationCurve(component_name, component_concentrations); }, "component_name"_a, "component_concentrations"_a, 
+        .def("optimizeSingleCalibrationCurve", [](OpenMS::AbsoluteQuantitation& self, const OpenMS::String& component_name, std::vector<OpenMS::AbsoluteQuantitationStandards::featureConcentration> component_concentrations) { self.optimizeSingleCalibrationCurve(component_name, component_concentrations); return component_concentrations; }, "component_name"_a, "component_concentrations"_a,
             R"doc(
 Iteratively optimize calibration curve with outlier removal
 Uses jackknife or residual-based outlier detection to iteratively
 remove points that degrade the calibration fit.
 :param component_concentrations: Standards (outliers will be removed)
-:param feature_name: Feature to use
-:param transformation_model: Model type
-:param transformation_model_params: Initial model parameters
-:param optimized_params: Output optimized parameters
-:returns: True if optimization succeeded
+:returns: Updated component_concentrations after optimization
 Note: optimizeCalibrationCurves taking map<String, vector<featureConcentration>>
 is not wrapped due to complex nested container type. Use optimizeSingleCalibrationCurve instead.
 )doc")
@@ -393,7 +389,7 @@ C++ implementation of the Biosaur2 feature detection workflow.
         .def("setMSData", [](OpenMS::Biosaur2Algorithm& self, OpenMS::MSExperiment& ms_data) { return self.setMSData(ms_data); }, "ms_data"_a, "Set the MS data used for feature detection (copy version)")
         .def("getMSData", [](OpenMS::Biosaur2Algorithm& self) -> OpenMS::MSExperiment & { return self.getMSData(); }, nb::rv_policy::reference_internal, "Get non-const reference to MS data")
         .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map) { return self.run(feature_map); }, "feature_map"_a, "Run the algorithm storing only the resulting features")
-        .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map, std::vector<OpenMS::Biosaur2Algorithm::Hill>& hills, std::vector<OpenMS::Biosaur2Algorithm::PeptideFeature>& peptide_features) { return self.run(feature_map, hills, peptide_features); }, "feature_map"_a, "hills"_a, "peptide_features"_a, "Run the algorithm storing only the resulting features")
+        .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map, bool /*return_details*/) { std::vector<OpenMS::Biosaur2Algorithm::Hill> hills; std::vector<OpenMS::Biosaur2Algorithm::PeptideFeature> peptide_features; self.run(feature_map, hills, peptide_features); return nb::make_tuple(hills, peptide_features); }, "feature_map"_a, "return_details"_a, "Run the algorithm returning (hills, peptide_features) in addition to modifying feature_map in-place")
         .def("setParameters", [](OpenMS::Biosaur2Algorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::Biosaur2Algorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::Biosaur2Algorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -679,8 +675,14 @@ DefaultParamHandler
         .def(nb::init<>())
         .def("apply", [](const OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& fwd_ids, OpenMS::PeptideIdentificationList& rev_ids) { return self.apply(fwd_ids, rev_ids); }, "fwd_ids"_a, "rev_ids"_a)
         .def("apply", [](const OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& id, bool annotate_peptide_fdr) { return self.apply(id, annotate_peptide_fdr); }, "id"_a, "annotate_peptide_fdr"_a)
-        .def("apply", [](const OpenMS::FalseDiscoveryRate& self, std::vector<OpenMS::ProteinIdentification>& fwd_ids, std::vector<OpenMS::ProteinIdentification>& rev_ids) { return self.apply(fwd_ids, rev_ids); }, "fwd_ids"_a, "rev_ids"_a)
-        .def("apply", [](const OpenMS::FalseDiscoveryRate& self, std::vector<OpenMS::ProteinIdentification>& ids) { return self.apply(ids); }, "ids"_a)
+        .def("apply", [](const OpenMS::FalseDiscoveryRate& self, std::vector<OpenMS::ProteinIdentification> fwd_ids, std::vector<OpenMS::ProteinIdentification> rev_ids) {
+            self.apply(fwd_ids, rev_ids);
+            return nb::make_tuple(fwd_ids, rev_ids);
+        }, "fwd_ids"_a, "rev_ids"_a)
+        .def("apply", [](const OpenMS::FalseDiscoveryRate& self, std::vector<OpenMS::ProteinIdentification> ids) {
+            self.apply(ids);
+            return ids;
+        }, "ids"_a)
         .def("applyEvaluateProteinIDs", [](const OpenMS::FalseDiscoveryRate& self, const std::vector<OpenMS::ProteinIdentification>& ids, double pepCutoff, unsigned int fpCutoff, double diffWeight) { return self.applyEvaluateProteinIDs(ids, pepCutoff, fpCutoff, diffWeight); }, "ids"_a, "pepCutoff"_a, "fpCutoff"_a, "diffWeight"_a)
         .def("applyEvaluateProteinIDs", [](const OpenMS::FalseDiscoveryRate& self, const OpenMS::ProteinIdentification& ids, double pepCutoff, unsigned int fpCutoff, double diffWeight) { return self.applyEvaluateProteinIDs(ids, pepCutoff, fpCutoff, diffWeight); }, "ids"_a, "pepCutoff"_a, "fpCutoff"_a, "diffWeight"_a)
         .def("applyPickedProteinFDR", [](OpenMS::FalseDiscoveryRate& self, OpenMS::ProteinIdentification& id, OpenMS::String decoy_string, bool prefix, bool groups_too) { return self.applyPickedProteinFDR(id, decoy_string, prefix, groups_too); }, "id"_a, "decoy_string"_a, "prefix"_a, "groups_too"_a)
@@ -916,7 +918,7 @@ FeatureGroupingAlgorithm
         .def_static("remove", [](const OpenMS::String& file) { return OpenMS::File::remove(file); }, "file"_a)
         .def_static("removeDirRecursively", [](const OpenMS::String& dir_name) { return OpenMS::File::removeDirRecursively(dir_name); }, "dir_name"_a)
         .def_static("find", [](const OpenMS::String& filename, std::vector<OpenMS::String> directories) { return OpenMS::File::find(filename, directories); }, "filename"_a, "directories"_a)
-        .def_static("fileList", [](const OpenMS::String& dir, const OpenMS::String& file_pattern, std::vector<OpenMS::String>& output, bool full_path) { return OpenMS::File::fileList(dir, file_pattern, output, full_path); }, "dir"_a, "file_pattern"_a, "output"_a, "full_path"_a, "@p dir (returns filenames without paths unless @p full_path is true)")
+        .def_static("fileList", [](const OpenMS::String& dir, const OpenMS::String& file_pattern, bool full_path) { std::vector<OpenMS::String> output; OpenMS::File::fileList(dir, file_pattern, output, full_path); return output; }, "dir"_a, "file_pattern"_a, "full_path"_a = false, "Returns list of files matching @p file_pattern in @p dir (returns filenames without paths unless @p full_path is true)")
         .def_static("findDoc", [](const OpenMS::String& filename) { return OpenMS::File::findDoc(filename); }, "filename"_a)
         .def_static("getOpenMSDataPath", []() { return OpenMS::File::getOpenMSDataPath(); })
         .def_static("getOpenMSHomePath", []() { return OpenMS::File::getOpenMSHomePath(); })
@@ -1102,8 +1104,8 @@ Ripping protein/peptide identification according their file origin
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("rip", [](OpenMS::IDRipper& self, std::map<OpenMS::IDRipper::RipFileIdentifier, OpenMS::IDRipper::RipFileContent, OpenMS::IDRipper::RipFileIdentifierIdxComparator>& ripped, std::vector<OpenMS::ProteinIdentification>& proteins, OpenMS::PeptideIdentificationList& peptides, bool numeric_filenames, bool split_ident_runs) { return self.rip(ripped, proteins, peptides, numeric_filenames, split_ident_runs); }, "ripped"_a, "proteins"_a, "peptides"_a, "numeric_filenames"_a, "split_ident_runs"_a)
-        .def("rip", [](OpenMS::IDRipper& self, std::vector<OpenMS::IDRipper::RipFileIdentifier>& rfis, std::vector<OpenMS::IDRipper::RipFileContent>& rfcs, std::vector<OpenMS::ProteinIdentification>& proteins, OpenMS::PeptideIdentificationList& peptides, bool numeric_filenames, bool split_ident_runs) { return self.rip(rfis, rfcs, proteins, peptides, numeric_filenames, split_ident_runs); }, "rfis"_a, "rfcs"_a, "proteins"_a, "peptides"_a, "numeric_filenames"_a, "split_ident_runs"_a)
+        .def("rip", [](OpenMS::IDRipper& self, std::vector<OpenMS::ProteinIdentification> proteins, OpenMS::PeptideIdentificationList& peptides, bool numeric_filenames, bool split_ident_runs) { std::map<OpenMS::IDRipper::RipFileIdentifier, OpenMS::IDRipper::RipFileContent, OpenMS::IDRipper::RipFileIdentifierIdxComparator> ripped; self.rip(ripped, proteins, peptides, numeric_filenames, split_ident_runs); return ripped; }, "proteins"_a, "peptides"_a, "numeric_filenames"_a, "split_ident_runs"_a)
+        .def("rip", [](OpenMS::IDRipper& self, std::vector<OpenMS::ProteinIdentification> proteins, OpenMS::PeptideIdentificationList& peptides, bool numeric_filenames, bool split_ident_runs, bool /*use_vector_output*/) { std::vector<OpenMS::IDRipper::RipFileIdentifier> rfis; std::vector<OpenMS::IDRipper::RipFileContent> rfcs; self.rip(rfis, rfcs, proteins, peptides, numeric_filenames, split_ident_runs); return nb::make_tuple(rfis, rfcs); }, "proteins"_a, "peptides"_a, "numeric_filenames"_a, "split_ident_runs"_a, "use_vector_output"_a)
         .def("setParameters", [](OpenMS::IDRipper& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::IDRipper& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::IDRipper& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -1473,7 +1475,7 @@ IsobaricQuantitationMethod
         .def("clear", [](OpenMS::KDTreeFeatureMaps& self) { return self.clear(); })
         .def("optimizeTree", [](OpenMS::KDTreeFeatureMaps& self) { return self.optimizeTree(); })
         .def("getNeighborhood", [](const OpenMS::KDTreeFeatureMaps& self, unsigned long index, double rt_tol, double mz_tol, bool mz_ppm, bool include_features_from_same_map, double max_pairwise_log_fc) { std::vector<unsigned long> result_indices; self.getNeighborhood(index, result_indices, rt_tol, mz_tol, mz_ppm, include_features_from_same_map, max_pairwise_log_fc); return result_indices; }, "index"_a, "rt_tol"_a, "mz_tol"_a, "mz_ppm"_a, "include_features_from_same_map"_a, "max_pairwise_log_fc"_a, "Fill `result` with indices of all features compatible (wrt. RT, m/z, map index) to the feature with `index`")
-        .def("queryRegion", [](const OpenMS::KDTreeFeatureMaps& self, double rt_low, double rt_high, double mz_low, double mz_high, std::vector<unsigned long>& result_indices, unsigned long ignored_map_index) { return self.queryRegion(rt_low, rt_high, mz_low, mz_high, result_indices, ignored_map_index); }, "rt_low"_a, "rt_high"_a, "mz_low"_a, "mz_high"_a, "result_indices"_a, "ignored_map_index"_a)
+        .def("queryRegion", [](const OpenMS::KDTreeFeatureMaps& self, double rt_low, double rt_high, double mz_low, double mz_high, unsigned long ignored_map_index) { std::vector<unsigned long> result_indices; self.queryRegion(rt_low, rt_high, mz_low, mz_high, result_indices, ignored_map_index); return result_indices; }, "rt_low"_a, "rt_high"_a, "mz_low"_a, "mz_high"_a, "ignored_map_index"_a)
         .def("setParameters", [](OpenMS::KDTreeFeatureMaps& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::KDTreeFeatureMaps& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::KDTreeFeatureMaps& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -1526,7 +1528,7 @@ LOWESS (locally weighted scatterplot smoothing)
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("smoothData", [](OpenMS::LowessSmoothing& self, const std::vector<double>& p0, const std::vector<double>& p1, std::vector<double>& p2) { return self.smoothData(p0, p1, p2); }, "Smoothing method that receives x and y coordinates (e.g., RT and intensities) and computes smoothed intensities")
+        .def("smoothData", [](OpenMS::LowessSmoothing& self, const std::vector<double>& x_vals, const std::vector<double>& y_vals) { std::vector<double> smoothed; self.smoothData(x_vals, y_vals, smoothed); return smoothed; }, "x_vals"_a, "y_vals"_a, "Smoothing method that receives x and y coordinates (e.g., RT and intensities) and returns smoothed intensities")
         .def("setParameters", [](OpenMS::LowessSmoothing& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::LowessSmoothing& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::LowessSmoothing& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -2010,14 +2012,21 @@ distribution or a gaussian mixture
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double>& search_engine_scores, const OpenMS::String& outlier_handling) { return self.fit(search_engine_scores, outlier_handling); }, "search_engine_scores"_a, "outlier_handling"_a)
-        .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double>& search_engine_scores, std::vector<double>& probabilities, const OpenMS::String& outlier_handling) { return self.fit(search_engine_scores, probabilities, outlier_handling); }, "search_engine_scores"_a, "probabilities"_a, "outlier_handling"_a, 
+        .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> search_engine_scores, const OpenMS::String& outlier_handling) { bool result = self.fit(search_engine_scores, outlier_handling); return nb::make_tuple(result, search_engine_scores); }, "search_engine_scores"_a, "outlier_handling"_a,
+            R"doc(
+Fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
+computeProbability can be used afterwards.
+:param search_engine_scores: A vector which holds the data points
+:return: Tuple of (success, sorted_scores). Note: scores are sorted from smallest to biggest value
+)doc")
+        .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> search_engine_scores, const OpenMS::String& outlier_handling, bool /*compute_probabilities*/) { std::vector<double> probabilities; bool result = self.fit(search_engine_scores, probabilities, outlier_handling); return nb::make_tuple(result, search_engine_scores, probabilities); }, "search_engine_scores"_a, "outlier_handling"_a, "compute_probabilities"_a,
             R"doc(
 Fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables
 computeProbability can be used afterwards
 Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate final probabilities
 :param search_engine_scores: A vector which holds the data points
-:return: `true` if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated
+:param compute_probabilities: Pass True to use the overload that also computes probabilities
+:return: Tuple of (success, sorted_scores, probabilities). success is `true` if algorithm has run through
 )doc")
         .def("fillDensities", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& x_scores) { std::vector<double> incorrect_density; std::vector<double> correct_density; self.fillDensities(x_scores, incorrect_density, correct_density); return std::make_tuple(incorrect_density, correct_density); }, "x_scores"_a, "Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences")
         .def("fillLogDensities", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& x_scores) { std::vector<double> incorrect_density; std::vector<double> correct_density; self.fillLogDensities(x_scores, incorrect_density, correct_density); return std::make_tuple(incorrect_density, correct_density); }, "x_scores"_a, "Writes the log distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences")
@@ -2027,11 +2036,11 @@ Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate
         .def("getIncorrectlyAssignedFitResult", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getIncorrectlyAssignedFitResult(); }, "Returns estimated parameters for correctly assigned sequences. Fit should be used before")
         .def("getNegativePrior", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getNegativePrior(); }, "Returns the estimated negative prior probability")
         .def("computeProbability", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, double score) { return self.computeProbability(score); }, "score"_a, "Returns the computed posterior error probability for a given score")
-        .def("initPlots", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double>& x_scores) { return self.initPlots(x_scores); }, "x_scores"_a, "Initializes the plots")
+        .def("initPlots", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> x_scores) { auto text_file = self.initPlots(x_scores); return nb::make_tuple(text_file, x_scores); }, "x_scores"_a, "Initializes the plots. Returns (TextFile, sorted_scores)")
         .def("getGumbelGnuplotFormula", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::Math::GaussFitter::GaussFitResult& params) { return self.getGumbelGnuplotFormula(params); }, "params"_a, "Returns the gnuplot formula of the fitted gumbel distribution")
         .def("getGaussGnuplotFormula", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::Math::GaussFitter::GaussFitResult& params) { return self.getGaussGnuplotFormula(params); }, "params"_a, "Returns the gnuplot formula of the fitted gauss distribution")
         .def("getBothGnuplotFormula", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::Math::GaussFitter::GaussFitResult& incorrect, const OpenMS::Math::GaussFitter::GaussFitResult& correct) { return self.getBothGnuplotFormula(incorrect, correct); }, "incorrect"_a, "correct"_a, "Returns the gnuplot formula of the fitted mixture distribution")
-        .def("plotTargetDecoyEstimation", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double>& target, std::vector<double>& decoy) { return self.plotTargetDecoyEstimation(target, decoy); }, "target"_a, "decoy"_a, "Plots the estimated distribution against target and decoy hits")
+        .def("plotTargetDecoyEstimation", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> target, std::vector<double> decoy) { self.plotTargetDecoyEstimation(target, decoy); }, "target"_a, "decoy"_a, "Plots the estimated distribution against target and decoy hits")
         .def("getSmallestScore", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getSmallestScore(); }, "Returns the smallest score used in the last fit")
         .def("tryGnuplot", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::String& gp_file) { return self.tryGnuplot(gp_file); }, "gp_file"_a)
         .def("setParameters", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
@@ -2078,9 +2087,9 @@ DefaultParamHandler
 ProgressLogger
 )doc")
         .def(nb::init<>())
-        .def("queryByMZ", [](const OpenMS::AccurateMassSearchEngine& self, const double& observed_mz, const int& observed_charge, const OpenMS::String& ion_mode, std::vector<OpenMS::AccurateMassSearchResult>& results, const OpenMS::EmpiricalFormula& observed_adduct) { return self.queryByMZ(observed_mz, observed_charge, ion_mode, results, observed_adduct); }, "observed_mz"_a, "observed_charge"_a, "ion_mode"_a, "results"_a, "observed_adduct"_a)
-        .def("queryByFeature", [](const OpenMS::AccurateMassSearchEngine& self, const OpenMS::Feature& feature, const unsigned long& feature_index, const OpenMS::String& ion_mode, std::vector<OpenMS::AccurateMassSearchResult>& results) { return self.queryByFeature(feature, feature_index, ion_mode, results); }, "feature"_a, "feature_index"_a, "ion_mode"_a, "results"_a)
-        .def("queryByConsensusFeature", [](const OpenMS::AccurateMassSearchEngine& self, const OpenMS::ConsensusFeature& cfeat, const unsigned long& cf_index, const unsigned long& number_of_maps, const OpenMS::String& ion_mode, std::vector<OpenMS::AccurateMassSearchResult>& results) { return self.queryByConsensusFeature(cfeat, cf_index, number_of_maps, ion_mode, results); }, "cfeat"_a, "cf_index"_a, "number_of_maps"_a, "ion_mode"_a, "results"_a)
+        .def("queryByMZ", [](const OpenMS::AccurateMassSearchEngine& self, const double& observed_mz, const int& observed_charge, const OpenMS::String& ion_mode, const OpenMS::EmpiricalFormula& observed_adduct) { std::vector<OpenMS::AccurateMassSearchResult> results; self.queryByMZ(observed_mz, observed_charge, ion_mode, results, observed_adduct); return results; }, "observed_mz"_a, "observed_charge"_a, "ion_mode"_a, "observed_adduct"_a)
+        .def("queryByFeature", [](const OpenMS::AccurateMassSearchEngine& self, const OpenMS::Feature& feature, const unsigned long& feature_index, const OpenMS::String& ion_mode) { std::vector<OpenMS::AccurateMassSearchResult> results; self.queryByFeature(feature, feature_index, ion_mode, results); return results; }, "feature"_a, "feature_index"_a, "ion_mode"_a)
+        .def("queryByConsensusFeature", [](const OpenMS::AccurateMassSearchEngine& self, const OpenMS::ConsensusFeature& cfeat, const unsigned long& cf_index, const unsigned long& number_of_maps, const OpenMS::String& ion_mode) { std::vector<OpenMS::AccurateMassSearchResult> results; self.queryByConsensusFeature(cfeat, cf_index, number_of_maps, ion_mode, results); return results; }, "cfeat"_a, "cf_index"_a, "number_of_maps"_a, "ion_mode"_a)
         .def("run", [](const OpenMS::AccurateMassSearchEngine& self, OpenMS::FeatureMap& p0, OpenMS::MzTab& p1) { return self.run(p0, p1); })
         .def("run", [](const OpenMS::AccurateMassSearchEngine& self, OpenMS::FeatureMap& p0, OpenMS::MzTabM& p1) { return self.run(p0, p1); })
         .def("run", [](const OpenMS::AccurateMassSearchEngine& self, OpenMS::ConsensusMap& p0, OpenMS::MzTab& p1) { return self.run(p0, p1); })
@@ -2176,7 +2185,10 @@ print(hits[0].getMetaValue("nr_found_peptides")) # 1
 print(hits[3].getMetaValue("nr_found_peptides")) # 2
 )doc")
         .def(nb::init<>())
-        .def("run", [](const OpenMS::BasicProteinInferenceAlgorithm& self, OpenMS::PeptideIdentificationList& pep_ids, std::vector<OpenMS::ProteinIdentification>& prot_ids) { return self.run(pep_ids, prot_ids); }, "pep_ids"_a, "prot_ids"_a)
+        .def("run", [](const OpenMS::BasicProteinInferenceAlgorithm& self, OpenMS::PeptideIdentificationList& pep_ids, std::vector<OpenMS::ProteinIdentification> prot_ids) {
+            self.run(pep_ids, prot_ids);
+            return prot_ids;
+        }, "pep_ids"_a, "prot_ids"_a)
         .def("run", [](const OpenMS::BasicProteinInferenceAlgorithm& self, OpenMS::PeptideIdentificationList& pep_ids, OpenMS::ProteinIdentification& prot_id) { return self.run(pep_ids, prot_id); }, "pep_ids"_a, "prot_id"_a)
         .def("run", [](const OpenMS::BasicProteinInferenceAlgorithm& self, OpenMS::ConsensusMap& cmap, OpenMS::ProteinIdentification& prot_id, bool include_unassigned) { return self.run(cmap, prot_id, include_unassigned); }, "cmap"_a, "prot_id"_a, "include_unassigned"_a, 
             R"doc(
@@ -2250,13 +2262,16 @@ print(proteins[0].getHits()[0].getScore()) # 0.624641
 print(proteins[0].getHits()[1].getScore()) # 0.648346
 )doc")
         .def(nb::init<unsigned int>())
-        .def("inferPosteriorProbabilities", [](OpenMS::BayesianProteinInferenceAlgorithm& self, std::vector<OpenMS::ProteinIdentification>& proteinIDs, OpenMS::PeptideIdentificationList& peptideIDs, bool greedy_group_resolution, std::optional<OpenMS::ExperimentalDesign> exp_des) { return self.inferPosteriorProbabilities(proteinIDs, peptideIDs, greedy_group_resolution, exp_des); }, "proteinIDs"_a, "peptideIDs"_a, "greedy_group_resolution"_a, "exp_des"_a, 
+        .def("inferPosteriorProbabilities", [](OpenMS::BayesianProteinInferenceAlgorithm& self, std::vector<OpenMS::ProteinIdentification> proteinIDs, OpenMS::PeptideIdentificationList& peptideIDs, bool greedy_group_resolution, std::optional<OpenMS::ExperimentalDesign> exp_des) {
+            self.inferPosteriorProbabilities(proteinIDs, peptideIDs, greedy_group_resolution, exp_des);
+            return proteinIDs;
+        }, "proteinIDs"_a, "peptideIDs"_a, "greedy_group_resolution"_a, "exp_des"_a,
             R"doc(
 Optionally adds indistinguishable protein groups with separate scores, too
 Currently only takes first proteinID run and all peptides
 :param proteinIDs: Vector of protein identifications
 :param peptideIDs: Vector of peptide identifications
-:return: Writes its results into protein and (optionally also) peptide hits (as new score)
+:returns: Updated proteinIDs with posterior probabilities
 )doc")
         .def("inferPosteriorProbabilities", [](OpenMS::BayesianProteinInferenceAlgorithm& self, OpenMS::ConsensusMap& cmap, bool greedy_group_resolution, std::optional<OpenMS::ExperimentalDesign> exp_des) { return self.inferPosteriorProbabilities(cmap, greedy_group_resolution, exp_des); }, "cmap"_a, "greedy_group_resolution"_a, "exp_des"_a)
         .def("setParameters", [](OpenMS::BayesianProteinInferenceAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
@@ -2451,9 +2466,9 @@ ProgressLogger
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("detectPeaks", [](OpenMS::ElutionPeakDetection& self, OpenMS::MassTrace& mt, std::vector<OpenMS::MassTrace>& single_mtraces) { return self.detectPeaks(mt, single_mtraces); }, "mt"_a, "single_mtraces"_a)
-        .def("detectPeaks", [](OpenMS::ElutionPeakDetection& self, std::vector<OpenMS::MassTrace>& mt_vec, std::vector<OpenMS::MassTrace>& single_mtraces) { return self.detectPeaks(mt_vec, single_mtraces); }, "mt_vec"_a, "single_mtraces"_a)
-        .def("filterByPeakWidth", [](OpenMS::ElutionPeakDetection& self, std::vector<OpenMS::MassTrace>& p0, std::vector<OpenMS::MassTrace>& p1) { return self.filterByPeakWidth(p0, p1); })
+        .def("detectPeaks", [](OpenMS::ElutionPeakDetection& self, OpenMS::MassTrace& mt) { std::vector<OpenMS::MassTrace> single_mtraces; self.detectPeaks(mt, single_mtraces); return single_mtraces; }, "mt"_a)
+        .def("detectPeaks", [](OpenMS::ElutionPeakDetection& self, std::vector<OpenMS::MassTrace> mt_vec) { std::vector<OpenMS::MassTrace> single_mtraces; self.detectPeaks(mt_vec, single_mtraces); return single_mtraces; }, "mt_vec"_a)
+        .def("filterByPeakWidth", [](OpenMS::ElutionPeakDetection& self, std::vector<OpenMS::MassTrace> mt_vec) { std::vector<OpenMS::MassTrace> filtered; self.filterByPeakWidth(mt_vec, filtered); return filtered; }, "mt_vec"_a)
         .def("computeMassTraceNoise", [](OpenMS::ElutionPeakDetection& self, const OpenMS::MassTrace& p0) { return self.computeMassTraceNoise(p0); }, "Compute noise level (as RMSE of the actual signal and the smoothed signal)")
         .def("computeMassTraceSNR", [](OpenMS::ElutionPeakDetection& self, const OpenMS::MassTrace& p0) { return self.computeMassTraceSNR(p0); }, "Compute the signal to noise ratio (estimated by computeMassTraceNoise)")
         .def("computeApexSNR", [](OpenMS::ElutionPeakDetection& self, const OpenMS::MassTrace& p0) { return self.computeApexSNR(p0); }, "Compute the signal to noise ratio at the apex (estimated by computeMassTraceNoise)")
@@ -2576,7 +2591,7 @@ Constructors
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FLASHDeconvAlgorithm &>())
         .def("getTolerances", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getTolerances(); }, "Get calculated decoy averagine. Call after run() is called.")
-        .def("run", [](OpenMS::FLASHDeconvAlgorithm& self, OpenMS::MSExperiment& map, std::vector<OpenMS::DeconvolvedSpectrum>& deconvolved_spectra, std::vector<OpenMS::FLASHHelperClasses::MassFeature>& deconvolved_feature) { return self.run(map, deconvolved_spectra, deconvolved_feature); }, "map"_a, "deconvolved_spectra"_a, "deconvolved_feature"_a)
+        .def("run", [](OpenMS::FLASHDeconvAlgorithm& self, OpenMS::MSExperiment& map) { std::vector<OpenMS::DeconvolvedSpectrum> deconvolved_spectra; std::vector<OpenMS::FLASHHelperClasses::MassFeature> deconvolved_feature; self.run(map, deconvolved_spectra, deconvolved_feature); return nb::make_tuple(deconvolved_spectra, deconvolved_feature); }, "map"_a)
         .def("getAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> const OpenMS::FLASHHelperClasses::PrecalculatedAveragine & { return self.getAveragine(); }, nb::rv_policy::reference_internal, 
             R"doc(
 Run FLASHDeconv algorithm for input_map and store deconvolved_spectra and deconvolved_features.
@@ -2655,7 +2670,7 @@ ProgressLogger
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("run", [](OpenMS::FeatureFindingMetabo& self, std::vector<OpenMS::MassTrace>& input_mtraces, OpenMS::FeatureMap& output_featmap, std::vector<std::vector<OpenMS::MSChromatogram>>& output_chromatograms) { return self.run(input_mtraces, output_featmap, output_chromatograms); }, "input_mtraces"_a, "output_featmap"_a, "output_chromatograms"_a)
+        .def("run", [](OpenMS::FeatureFindingMetabo& self, std::vector<OpenMS::MassTrace> input_mtraces, OpenMS::FeatureMap& output_featmap) { std::vector<std::vector<OpenMS::MSChromatogram>> output_chromatograms; self.run(input_mtraces, output_featmap, output_chromatograms); return nb::make_tuple(input_mtraces, output_chromatograms); }, "input_mtraces"_a, "output_featmap"_a)
         .def("setParameters", [](OpenMS::FeatureFindingMetabo& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::FeatureFindingMetabo& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::FeatureFindingMetabo& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -2757,7 +2772,10 @@ larger outliers are removed before accepting an ID as calibrant
 :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
 :return: Number of calibration masses found
 )doc")
-        .def_static("applyTransformation", [](std::vector<OpenMS::Precursor>& pcs, const OpenMS::MZTrafoModel& trafo) { return OpenMS::InternalCalibration::applyTransformation(pcs, trafo); }, "pcs"_a, "trafo"_a, 
+        .def_static("applyTransformation", [](std::vector<OpenMS::Precursor> pcs, const OpenMS::MZTrafoModel& trafo) {
+            OpenMS::InternalCalibration::applyTransformation(pcs, trafo);
+            return pcs;
+        }, "pcs"_a, "trafo"_a,
             R"doc(
 Apply calibration to data\n
 For each spectrum, a calibration model will be computed and applied.
@@ -2775,7 +2793,7 @@ The MSExperiment will be sorted by RT and m/z if unsorted.
 :param file_residuals: Output CSV filename, where ppm errors of calibrants before and after model fitting parameters are written to (pass empty string to skip)
 :param file_residuals_plot: Output PNG image of the ppm errors of calibrants (pass empty string to skip)
 :param rscript_executable: Full path to the Rscript executable
-:return: true upon successful calibration
+:returns: Updated precursors with calibration applied
 )doc")
         .def_static("applyTransformation", [](OpenMS::MSSpectrum& spec, const std::vector<int>& target_mslvl, const OpenMS::MZTrafoModel& trafo) { return OpenMS::InternalCalibration::applyTransformation(spec, target_mslvl, trafo); }, "spec"_a, "target_mslvl"_a, "trafo"_a)
         .def_static("applyTransformation", [](OpenMS::MSExperiment& exp, const std::vector<int>& target_mslvl, const OpenMS::MZTrafoModel& trafo) { return OpenMS::InternalCalibration::applyTransformation(exp, target_mslvl, trafo); }, "exp"_a, "target_mslvl"_a, "trafo"_a)
@@ -3129,8 +3147,16 @@ ProgressLogger
     nb::class_<OpenMS::MetaboliteSpectralMatching, OpenMS::DefaultParamHandler>(m, "MetaboliteSpectralMatching")
         .def(nb::init<>())
         .def_static("computeHyperScore", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) { return OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, mz_lower_bound); }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a)
-        .def_static("computeHyperScore", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, std::vector<OpenMS::PeptideHit::PeakAnnotation>& annotations, double mz_lower_bound) { return OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, annotations, mz_lower_bound); }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "annotations"_a, "mz_lower_bound"_a)
-        .def("run", [](OpenMS::MetaboliteSpectralMatching& self, OpenMS::MSExperiment& p0, OpenMS::MSExperiment& p1, OpenMS::MzTab& p2, OpenMS::String& p3) { return self.run(p0, p1, p2, p3); })
+        .def_static("computeHyperScoreWithAnnotations", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) {
+            std::vector<OpenMS::PeptideHit::PeakAnnotation> annotations;
+            auto score = OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, annotations, mz_lower_bound);
+            return nb::make_tuple(score, annotations);
+        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a)
+        .def("run", [](OpenMS::MetaboliteSpectralMatching& self, OpenMS::MSExperiment& p0, OpenMS::MSExperiment& p1, OpenMS::MzTab& p2) {
+            OpenMS::String out_spectra;
+            self.run(p0, p1, p2, out_spectra);
+            return out_spectra;
+        })
         .def("setParameters", [](OpenMS::MetaboliteSpectralMatching& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::MetaboliteSpectralMatching& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::MetaboliteSpectralMatching& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -3284,9 +3310,21 @@ ProgressLogger
         .def("pick", [](const OpenMS::PeakPickerHiRes& self, const OpenMS::MSSpectrum& input, OpenMS::MSSpectrum& output) { return self.pick(input, output); }, "input"_a, "output"_a)
         .def("pick", [](const OpenMS::PeakPickerHiRes& self, const OpenMS::MSChromatogram& input, OpenMS::MSChromatogram& output) { return self.pick(input, output); }, "input"_a, "output"_a)
         .def("pick", [](const OpenMS::PeakPickerHiRes& self, const OpenMS::Mobilogram& input, OpenMS::Mobilogram& output) { return self.pick(input, output); }, "input"_a, "output"_a)
-        .def("pick", [](const OpenMS::PeakPickerHiRes& self, const OpenMS::MSSpectrum& input, OpenMS::MSSpectrum& output, std::vector<OpenMS::PeakPickerHiRes::PeakBoundary>& boundaries, bool check_spacings) { return self.pick(input, output, boundaries, check_spacings); }, "input"_a, "output"_a, "boundaries"_a, "check_spacings"_a)
-        .def("pick", [](const OpenMS::PeakPickerHiRes& self, const OpenMS::MSChromatogram& input, OpenMS::MSChromatogram& output, std::vector<OpenMS::PeakPickerHiRes::PeakBoundary>& boundaries, bool check_spacings) { return self.pick(input, output, boundaries, check_spacings); }, "input"_a, "output"_a, "boundaries"_a, "check_spacings"_a)
-        .def("pick", [](const OpenMS::PeakPickerHiRes& self, const OpenMS::Mobilogram& input, OpenMS::Mobilogram& output, std::vector<OpenMS::PeakPickerHiRes::PeakBoundary>& boundaries, bool check_spacings) { return self.pick(input, output, boundaries, check_spacings); }, "input"_a, "output"_a, "boundaries"_a, "check_spacings"_a)
+        .def("pick", [](const OpenMS::PeakPickerHiRes& self, const OpenMS::MSSpectrum& input, OpenMS::MSSpectrum& output, bool check_spacings) {
+            std::vector<OpenMS::PeakPickerHiRes::PeakBoundary> boundaries;
+            self.pick(input, output, boundaries, check_spacings);
+            return boundaries;
+        }, "input"_a, "output"_a, "check_spacings"_a)
+        .def("pick", [](const OpenMS::PeakPickerHiRes& self, const OpenMS::MSChromatogram& input, OpenMS::MSChromatogram& output, bool check_spacings) {
+            std::vector<OpenMS::PeakPickerHiRes::PeakBoundary> boundaries;
+            self.pick(input, output, boundaries, check_spacings);
+            return boundaries;
+        }, "input"_a, "output"_a, "check_spacings"_a)
+        .def("pick", [](const OpenMS::PeakPickerHiRes& self, const OpenMS::Mobilogram& input, OpenMS::Mobilogram& output, bool check_spacings) {
+            std::vector<OpenMS::PeakPickerHiRes::PeakBoundary> boundaries;
+            self.pick(input, output, boundaries, check_spacings);
+            return boundaries;
+        }, "input"_a, "output"_a, "check_spacings"_a)
         .def("setParameters", [](OpenMS::PeakPickerHiRes& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::PeakPickerHiRes& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::PeakPickerHiRes& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -3351,9 +3389,18 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
 (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 )doc")
         .def(nb::init<>())
-        .def("run", [](OpenMS::PeptideIndexing& self, std::vector<OpenMS::FASTAFile::FASTAEntry>& proteins, std::vector<OpenMS::ProteinIdentification>& prot_ids, OpenMS::PeptideIdentificationList& pep_ids) { return self.run(proteins, prot_ids, pep_ids); }, "proteins"_a, "prot_ids"_a, "pep_ids"_a)
-        .def("run", [](OpenMS::PeptideIndexing& self, OpenMS::FASTAContainer<OpenMS::TFI_File>& proteins, std::vector<OpenMS::ProteinIdentification>& prot_ids, OpenMS::PeptideIdentificationList& pep_ids) { return self.run(proteins, prot_ids, pep_ids); }, "proteins"_a, "prot_ids"_a, "pep_ids"_a)
-        .def("run", [](OpenMS::PeptideIndexing& self, OpenMS::FASTAContainer<OpenMS::TFI_Vector>& proteins, std::vector<OpenMS::ProteinIdentification>& prot_ids, OpenMS::PeptideIdentificationList& pep_ids) { return self.run(proteins, prot_ids, pep_ids); }, "proteins"_a, "prot_ids"_a, "pep_ids"_a)
+        .def("run", [](OpenMS::PeptideIndexing& self, std::vector<OpenMS::FASTAFile::FASTAEntry> proteins, std::vector<OpenMS::ProteinIdentification> prot_ids, OpenMS::PeptideIdentificationList& pep_ids) {
+            auto result = self.run(proteins, prot_ids, pep_ids);
+            return nb::make_tuple(result, proteins, prot_ids);
+        }, "proteins"_a, "prot_ids"_a, "pep_ids"_a)
+        .def("run", [](OpenMS::PeptideIndexing& self, OpenMS::FASTAContainer<OpenMS::TFI_File>& proteins, std::vector<OpenMS::ProteinIdentification> prot_ids, OpenMS::PeptideIdentificationList& pep_ids) {
+            auto result = self.run(proteins, prot_ids, pep_ids);
+            return nb::make_tuple(result, prot_ids);
+        }, "proteins"_a, "prot_ids"_a, "pep_ids"_a)
+        .def("run", [](OpenMS::PeptideIndexing& self, OpenMS::FASTAContainer<OpenMS::TFI_Vector>& proteins, std::vector<OpenMS::ProteinIdentification> prot_ids, OpenMS::PeptideIdentificationList& pep_ids) {
+            auto result = self.run(proteins, prot_ids, pep_ids);
+            return nb::make_tuple(result, prot_ids);
+        }, "proteins"_a, "prot_ids"_a, "pep_ids"_a)
         .def("getDecoyString", [](const OpenMS::PeptideIndexing& self) { return self.getDecoyString(); })
         .def("isPrefix", [](const OpenMS::PeptideIndexing& self) { return self.isPrefix(); })
         .def("setParameters", [](OpenMS::PeptideIndexing& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
@@ -3389,7 +3436,11 @@ outputs (ProteinIdentification and PeptideIdentificationList)
 - Intended for educational/prototyping use and to demonstrate FI-backed searching
 )doc")
         .def(nb::init<>())
-        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, std::vector<OpenMS::ProteinIdentification>& prot_ids, OpenMS::PeptideIdentificationList& pep_ids) { return self.search(in_mzML, in_db, prot_ids, pep_ids); }, "in_mzML"_a, "in_db"_a, "prot_ids"_a, "pep_ids"_a)
+        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
+            std::vector<OpenMS::ProteinIdentification> prot_ids;
+            auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
+            return nb::make_tuple(result, prot_ids);
+        }, "in_mzML"_a, "in_db"_a, "pep_ids"_a)
         .def("setParameters", [](OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -3491,7 +3542,11 @@ ProgressLogger
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SimpleSearchEngineAlgorithm, OpenMS::DefaultParamHandler>(m, "SimpleSearchEngineAlgorithm")
         .def(nb::init<>())
-        .def("search", [](const OpenMS::SimpleSearchEngineAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, std::vector<OpenMS::ProteinIdentification>& prot_ids, OpenMS::PeptideIdentificationList& pep_ids) { return self.search(in_mzML, in_db, prot_ids, pep_ids); }, "in_mzML"_a, "in_db"_a, "prot_ids"_a, "pep_ids"_a)
+        .def("search", [](const OpenMS::SimpleSearchEngineAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
+            std::vector<OpenMS::ProteinIdentification> prot_ids;
+            auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
+            return nb::make_tuple(result, prot_ids);
+        }, "in_mzML"_a, "in_db"_a, "pep_ids"_a)
         .def("setParameters", [](OpenMS::SimpleSearchEngineAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::SimpleSearchEngineAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::SimpleSearchEngineAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -3650,7 +3705,11 @@ Result access
         .def("setToleranceEstimation", [](OpenMS::SpectralDeconvolution& self) { return self.setToleranceEstimation(); }, "Precalculate averagine (for predefined mass bins) to speed up averagine generation")
         .def_static("getNominalMass", [](double mass) { return OpenMS::SpectralDeconvolution::getNominalMass(mass); }, "mass"_a, "Set target decoy type for the SpectralDeconvolution run")
         .def_static("getCosine", [](const std::vector<float>& a, int a_start, int a_end, const OpenMS::IsotopeDistribution& b, int offset, int min_iso_len) { return OpenMS::SpectralDeconvolution::getCosine(a, a_start, a_end, b, offset, min_iso_len); }, "a"_a, "a_start"_a, "a_end"_a, "b"_a, "offset"_a, "min_iso_len"_a, "Convert double mass to nominal mass (integer)")
-        .def_static("getIsotopeCosineAndIsoOffset", [](double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const OpenMS::FLASHHelperClasses::PrecalculatedAveragine& avg, int iso_int_shift, int window_width, const std::vector<double>& excluded_masses) { return OpenMS::SpectralDeconvolution::getIsotopeCosineAndIsoOffset(mono_mass, per_isotope_intensities, offset, avg, iso_int_shift, window_width, excluded_masses); }, "mono_mass"_a, "per_isotope_intensities"_a, "offset"_a, "avg"_a, "iso_int_shift"_a, "window_width"_a, "excluded_masses"_a, "Calculate cosine between two vectors with optimization parameters")
+        .def_static("getIsotopeCosineAndIsoOffset", [](double mono_mass, const std::vector<float>& per_isotope_intensities, const OpenMS::FLASHHelperClasses::PrecalculatedAveragine& avg, int iso_int_shift, int window_width, const std::vector<double>& excluded_masses) {
+            int offset = 0;
+            auto cosine = OpenMS::SpectralDeconvolution::getIsotopeCosineAndIsoOffset(mono_mass, per_isotope_intensities, offset, avg, iso_int_shift, window_width, excluded_masses);
+            return nb::make_tuple(cosine, offset);
+        }, "mono_mass"_a, "per_isotope_intensities"_a, "avg"_a, "iso_int_shift"_a, "window_width"_a, "excluded_masses"_a, "Calculate cosine between two vectors with optimization parameters")
         .def("setTargetDecoyType", [](OpenMS::SpectralDeconvolution& self, OpenMS::PeakGroup::TargetDecoyType target_decoy_type, const OpenMS::DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion) { return self.setTargetDecoyType(target_decoy_type, target_dspec_for_decoy_calcualtion); }, "target_decoy_type"_a, "target_dspec_for_decoy_calcualtion"_a, "When estimating tolerance, set max_mass_dalton_tolerance to a large value")
         .def("setParameters", [](OpenMS::SpectralDeconvolution& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::SpectralDeconvolution& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
@@ -3985,14 +4044,20 @@ targets = TargetedExperiment()
 TraMLFile().load("targets.traML", targets)
 # Extract matching spectra
 extractor = TargetedSpectraExtractor()
-extracted = []
-features = FeatureMap()
-extractor.extractSpectra(exp, targets, extracted, features, True)
+extracted, features = extractor.extractSpectra(exp, targets, True)
 print(f"Found {len(extracted)} matching spectra")
 )doc")
         .def(nb::init<>())
-        .def("annotateSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& spectra, const OpenMS::TargetedExperiment& targeted_exp, std::vector<OpenMS::MSSpectrum>& annotated_spectra, OpenMS::FeatureMap& features, bool compute_features) { return self.annotateSpectra(spectra, targeted_exp, annotated_spectra, features, compute_features); }, "spectra"_a, "targeted_exp"_a, "annotated_spectra"_a, "features"_a, "compute_features"_a, "Get default parameters for the extractor")
-        .def("annotateSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& spectra, const OpenMS::TargetedExperiment& targeted_exp, std::vector<OpenMS::MSSpectrum>& annotated_spectra) { return self.annotateSpectra(spectra, targeted_exp, annotated_spectra); }, "spectra"_a, "targeted_exp"_a, "annotated_spectra"_a, 
+        .def("annotateSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& spectra, const OpenMS::TargetedExperiment& targeted_exp, OpenMS::FeatureMap& features, bool compute_features) {
+            std::vector<OpenMS::MSSpectrum> annotated_spectra;
+            self.annotateSpectra(spectra, targeted_exp, annotated_spectra, features, compute_features);
+            return annotated_spectra;
+        }, "spectra"_a, "targeted_exp"_a, "features"_a, "compute_features"_a, "Get default parameters for the extractor")
+        .def("annotateSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& spectra, const OpenMS::TargetedExperiment& targeted_exp) {
+            std::vector<OpenMS::MSSpectrum> annotated_spectra;
+            self.annotateSpectra(spectra, targeted_exp, annotated_spectra);
+            return annotated_spectra;
+        }, "spectra"_a, "targeted_exp"_a, 
             R"doc(
 Annotate spectra that match target transitions
 Filters spectra that fall within the precursor RT window and MZ tolerance.
@@ -4002,7 +4067,11 @@ Filters spectra that fall within the precursor RT window and MZ tolerance.
 :param features: Output FeatureMap with transition info
 :param compute_features: If True, populate features output
 )doc")
-        .def("annotateSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& spectra, const OpenMS::FeatureMap& ms1_features, OpenMS::FeatureMap& ms2_features, std::vector<OpenMS::MSSpectrum>& annotated_spectra) { return self.annotateSpectra(spectra, ms1_features, ms2_features, annotated_spectra); }, "spectra"_a, "ms1_features"_a, "ms2_features"_a, "annotated_spectra"_a, 
+        .def("annotateSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& spectra, const OpenMS::FeatureMap& ms1_features, OpenMS::FeatureMap& ms2_features) {
+            std::vector<OpenMS::MSSpectrum> annotated_spectra;
+            self.annotateSpectra(spectra, ms1_features, ms2_features, annotated_spectra);
+            return annotated_spectra;
+        }, "spectra"_a, "ms1_features"_a, "ms2_features"_a, 
             R"doc(
 Annotate spectra that match target transitions (without features)
 :param spectra: Input spectra to filter
@@ -4024,14 +4093,22 @@ Search for matching features between MS1 and MS2
 :param ms2_features: MS2 feature map (modified in place)
 :param add_unidentified_features: Add features without matches
 )doc")
-        .def("scoreSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& annotated_spectra, const std::vector<OpenMS::MSSpectrum>& picked_spectra, OpenMS::FeatureMap& features, std::vector<OpenMS::MSSpectrum>& scored_spectra, bool compute_features) { return self.scoreSpectra(annotated_spectra, picked_spectra, features, scored_spectra, compute_features); }, "annotated_spectra"_a, "picked_spectra"_a, "features"_a, "scored_spectra"_a, "compute_features"_a, 
+        .def("scoreSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& annotated_spectra, const std::vector<OpenMS::MSSpectrum>& picked_spectra, OpenMS::FeatureMap& features, bool compute_features) {
+            std::vector<OpenMS::MSSpectrum> scored_spectra;
+            self.scoreSpectra(annotated_spectra, picked_spectra, features, scored_spectra, compute_features);
+            return scored_spectra;
+        }, "annotated_spectra"_a, "picked_spectra"_a, "features"_a, "compute_features"_a, 
             R"doc(
 Smooth and pick peaks from a spectrum
 Applies Gaussian or Savitzky-Golay smoothing followed by peak picking.
 :param spectrum: Input spectrum
 :param picked_spectrum: Output picked spectrum
 )doc")
-        .def("scoreSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& annotated_spectra, const std::vector<OpenMS::MSSpectrum>& picked_spectra, std::vector<OpenMS::MSSpectrum>& scored_spectra) { return self.scoreSpectra(annotated_spectra, picked_spectra, scored_spectra); }, "annotated_spectra"_a, "picked_spectra"_a, "scored_spectra"_a, 
+        .def("scoreSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& annotated_spectra, const std::vector<OpenMS::MSSpectrum>& picked_spectra) {
+            std::vector<OpenMS::MSSpectrum> scored_spectra;
+            self.scoreSpectra(annotated_spectra, picked_spectra, scored_spectra);
+            return scored_spectra;
+        }, "annotated_spectra"_a, "picked_spectra"_a, 
             R"doc(
 Score spectra based on TIC, FWHM, and SNR
 Scores are computed using configurable weights for each metric.
@@ -4040,14 +4117,22 @@ Scores are computed using configurable weights for each metric.
 :param features: Feature map with transition info
 :param scored_spectra: Output scored spectra
 )doc")
-        .def("selectSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& scored_spectra, const OpenMS::FeatureMap& features, std::vector<OpenMS::MSSpectrum>& selected_spectra, OpenMS::FeatureMap& selected_features, bool compute_features) { return self.selectSpectra(scored_spectra, features, selected_spectra, selected_features, compute_features); }, "scored_spectra"_a, "features"_a, "selected_spectra"_a, "selected_features"_a, "compute_features"_a, 
+        .def("selectSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& scored_spectra, const OpenMS::FeatureMap& features, OpenMS::FeatureMap& selected_features, bool compute_features) {
+            std::vector<OpenMS::MSSpectrum> selected_spectra;
+            self.selectSpectra(scored_spectra, features, selected_spectra, selected_features, compute_features);
+            return selected_spectra;
+        }, "scored_spectra"_a, "features"_a, "selected_features"_a, "compute_features"_a, 
             R"doc(
 Score spectra (without feature map)
 :param annotated_spectra: Annotated input spectra
 :param picked_spectra: Peak-picked spectra
 :param scored_spectra: Output scored spectra
 )doc")
-        .def("selectSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& scored_spectra, std::vector<OpenMS::MSSpectrum>& selected_spectra) { return self.selectSpectra(scored_spectra, selected_spectra); }, "scored_spectra"_a, "selected_spectra"_a, 
+        .def("selectSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const std::vector<OpenMS::MSSpectrum>& scored_spectra) {
+            std::vector<OpenMS::MSSpectrum> selected_spectra;
+            self.selectSpectra(scored_spectra, selected_spectra);
+            return selected_spectra;
+        }, "scored_spectra"_a, 
             R"doc(
 Select the best spectrum for each transition
 :param scored_spectra: Scored input spectra
@@ -4055,13 +4140,17 @@ Select the best spectrum for each transition
 :param selected_spectra: Output selected spectra
 :param selected_features: Output selected features
 )doc")
-        .def("extractSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const OpenMS::MSExperiment& experiment, const OpenMS::TargetedExperiment& targeted_exp, bool compute_features) { std::vector<OpenMS::MSSpectrum> extracted_spectra; OpenMS::FeatureMap extracted_features; self.extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features, compute_features); return std::make_tuple(extracted_spectra, extracted_features); }, "experiment"_a, "targeted_exp"_a, "compute_features"_a, 
+        .def("extractSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const OpenMS::MSExperiment& experiment, const OpenMS::TargetedExperiment& targeted_exp, bool compute_features) { std::vector<OpenMS::MSSpectrum> extracted_spectra; OpenMS::FeatureMap extracted_features; self.extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features, compute_features); return nb::make_tuple(extracted_spectra, extracted_features); }, "experiment"_a, "targeted_exp"_a, "compute_features"_a, 
             R"doc(
 Select the best spectrum for each transition (without features)
 :param scored_spectra: Scored input spectra
 :param selected_spectra: Output selected spectra
 )doc")
-        .def("extractSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const OpenMS::MSExperiment& experiment, const OpenMS::TargetedExperiment& targeted_exp, std::vector<OpenMS::MSSpectrum>& extracted_spectra) { return self.extractSpectra(experiment, targeted_exp, extracted_spectra); }, "experiment"_a, "targeted_exp"_a, "extracted_spectra"_a, 
+        .def("extractSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const OpenMS::MSExperiment& experiment, const OpenMS::TargetedExperiment& targeted_exp) {
+            std::vector<OpenMS::MSSpectrum> extracted_spectra;
+            self.extractSpectra(experiment, targeted_exp, extracted_spectra);
+            return extracted_spectra;
+        }, "experiment"_a, "targeted_exp"_a, 
             R"doc(
 Complete pipeline: annotate, pick, score, and select spectra
 Runs the full extraction workflow in a single call.
@@ -4071,7 +4160,11 @@ Runs the full extraction workflow in a single call.
 :param features: Output feature map
 :param compute_features: If True, populate features
 )doc")
-        .def("extractSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const OpenMS::MSExperiment& experiment, const OpenMS::FeatureMap& ms1_features, std::vector<OpenMS::MSSpectrum>& extracted_spectra) { return self.extractSpectra(experiment, ms1_features, extracted_spectra); }, "experiment"_a, "ms1_features"_a, "extracted_spectra"_a, 
+        .def("extractSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const OpenMS::MSExperiment& experiment, const OpenMS::FeatureMap& ms1_features) {
+            std::vector<OpenMS::MSSpectrum> extracted_spectra;
+            self.extractSpectra(experiment, ms1_features, extracted_spectra);
+            return extracted_spectra;
+        }, "experiment"_a, "ms1_features"_a, 
             R"doc(
 Complete pipeline: annotate, pick, score, and select spectra
 Runs the full extraction workflow in a single call.
@@ -4081,7 +4174,11 @@ Runs the full extraction workflow in a single call.
 :param features: Output feature map
 :param compute_features: If True, populate features
 )doc")
-        .def("extractSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const OpenMS::MSExperiment& experiment, const OpenMS::FeatureMap& ms1_features, std::vector<OpenMS::MSSpectrum>& extracted_spectra, OpenMS::FeatureMap& extracted_features) { return self.extractSpectra(experiment, ms1_features, extracted_spectra, extracted_features); }, "experiment"_a, "ms1_features"_a, "extracted_spectra"_a, "extracted_features"_a, 
+        .def("extractSpectra", [](const OpenMS::TargetedSpectraExtractor& self, const OpenMS::MSExperiment& experiment, const OpenMS::FeatureMap& ms1_features, OpenMS::FeatureMap& extracted_features) {
+            std::vector<OpenMS::MSSpectrum> extracted_spectra;
+            self.extractSpectra(experiment, ms1_features, extracted_spectra, extracted_features);
+            return extracted_spectra;
+        }, "experiment"_a, "ms1_features"_a, "extracted_features"_a, 
             R"doc(
 Select the best spectrum for each transition (without features)
 :param scored_spectra: Scored input spectra
@@ -4148,7 +4245,11 @@ Does NOT support comment lines!
         .def("store", [](OpenMS::CsvFile& self, const OpenMS::String& filename) { return self.store(filename); }, "filename"_a, "Stores the buffer's content into a file")
         .def("addRow", [](OpenMS::CsvFile& self, const std::vector<OpenMS::String>& list) { return self.addRow(list); }, "list"_a, "Add a row to the buffer")
         .def("clear", [](OpenMS::CsvFile& self) { return self.clear(); }, "Clears the buffer")
-        .def("getRow", [](const OpenMS::CsvFile& self, unsigned long row, std::vector<OpenMS::String>& list) { return self.getRow(row, list); }, "row"_a, "list"_a, "Writes all items from a row to list")
+        .def("getRow", [](const OpenMS::CsvFile& self, unsigned long row) {
+            std::vector<OpenMS::String> list;
+            auto result = self.getRow(row, list);
+            return nb::make_tuple(result, list);
+        }, "row"_a, "Writes all items from a row to list")
         ;
 
     // -----------------------------------------------------------------------
@@ -4486,7 +4587,12 @@ Exception: FileNotFound is thrown if the file could not be opened
 :raises:
 Exception: ParseError is thrown if an error occurs during parsing
 )doc")
-        .def("isSemanticallyValid", [](OpenMS::MzDataFile& self, const OpenMS::String& filename, std::vector<OpenMS::String>& errors, std::vector<OpenMS::String>& warnings) { return self.isSemanticallyValid(filename, errors, warnings); }, "filename"_a, "errors"_a, "warnings"_a)
+        .def("isSemanticallyValid", [](OpenMS::MzDataFile& self, const OpenMS::String& filename) {
+            std::vector<OpenMS::String> errors;
+            std::vector<OpenMS::String> warnings;
+            auto result = self.isSemanticallyValid(filename, errors, warnings);
+            return nb::make_tuple(result, errors, warnings);
+        }, "filename"_a)
         .def("setLogType", [](const OpenMS::MzDataFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
         .def("getLogType", [](const OpenMS::MzDataFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MzDataFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
@@ -4504,7 +4610,12 @@ File adapter for MzIdentML files
 ProgressLogger
 )doc")
         .def(nb::init<>())
-        .def("isSemanticallyValid", [](OpenMS::MzIdentMLFile& self, const OpenMS::String& filename, std::vector<OpenMS::String>& errors, std::vector<OpenMS::String>& warnings) { return self.isSemanticallyValid(filename, errors, warnings); }, "filename"_a, "errors"_a, "warnings"_a, 
+        .def("isSemanticallyValid", [](OpenMS::MzIdentMLFile& self, const OpenMS::String& filename) {
+            std::vector<OpenMS::String> errors;
+            std::vector<OpenMS::String> warnings;
+            auto result = self.isSemanticallyValid(filename, errors, warnings);
+            return nb::make_tuple(result, errors, warnings);
+        }, "filename"_a, 
             R"doc(
 Stores the identifications in a MzIdentML file
 :raises:
@@ -4748,10 +4859,10 @@ This Class is supposed to internally collect the data for the qcML File
         .def("addRunAttachment", [](OpenMS::QcMLFile& self, const OpenMS::String& r, const OpenMS::QcMLFile::Attachment& at) { return self.addRunAttachment(r, at); }, "r"_a, "at"_a, "Adds a attachment to run by the name r")
         .def("addSetQualityParameter", [](OpenMS::QcMLFile& self, const OpenMS::String& r, const OpenMS::QcMLFile::QualityParameter& qp) { return self.addSetQualityParameter(r, qp); }, "r"_a, "qp"_a, "Adds a QualityParameter to set by the name r")
         .def("addSetAttachment", [](OpenMS::QcMLFile& self, const OpenMS::String& r, const OpenMS::QcMLFile::Attachment& at) { return self.addSetAttachment(r, at); }, "r"_a, "at"_a, "Adds a attachment to set by the name r")
-        .def("removeAttachment", [](OpenMS::QcMLFile& self, const OpenMS::String& r, std::vector<OpenMS::String>& ids, const OpenMS::String& at) { return self.removeAttachment(r, ids, at); }, "r"_a, "ids"_a, "at"_a, "Removes attachments referencing an id given in ids, from run/set r. All attachments if no attachment name is given with at")
+        .def("removeAttachment", [](OpenMS::QcMLFile& self, const OpenMS::String& r, std::vector<OpenMS::String> ids, const OpenMS::String& at) { return self.removeAttachment(r, ids, at); }, "r"_a, "ids"_a, "at"_a, "Removes attachments referencing an id given in ids, from run/set r. All attachments if no attachment name is given with at")
         .def("removeAttachment", [](OpenMS::QcMLFile& self, const OpenMS::String& r, const OpenMS::String& at) { return self.removeAttachment(r, at); }, "r"_a, "at"_a, "Removes attachment with cv accession at from run/set r")
         .def("removeAllAttachments", [](OpenMS::QcMLFile& self, const OpenMS::String& at) { return self.removeAllAttachments(at); }, "at"_a, "Removes attachment with cv accession at from  all runs/sets")
-        .def("removeQualityParameter", [](OpenMS::QcMLFile& self, const OpenMS::String& r, std::vector<OpenMS::String>& ids) { return self.removeQualityParameter(r, ids); }, "r"_a, "ids"_a, "Removes QualityParameter going by one of the ID attributes given in ids")
+        .def("removeQualityParameter", [](OpenMS::QcMLFile& self, const OpenMS::String& r, std::vector<OpenMS::String> ids) { return self.removeQualityParameter(r, ids); }, "r"_a, "ids"_a, "Removes QualityParameter going by one of the ID attributes given in ids")
         .def("merge", [](OpenMS::QcMLFile& self, const OpenMS::QcMLFile& addendum, const OpenMS::String& setname) { return self.merge(addendum, setname); }, "addendum"_a, "setname"_a, "Merges the given QCFile into this one")
         .def("collectSetParameter", [](OpenMS::QcMLFile& self, const OpenMS::String& setname, const OpenMS::String& qp) { std::vector<OpenMS::String> ret; self.collectSetParameter(setname, qp, ret); return ret; }, "setname"_a, "qp"_a, "Collects the values of given QPs (as CVid) of the given set")
         .def("exportAttachment", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, const OpenMS::String& qpname) { return self.exportAttachment(filename, qpname); }, "filename"_a, "qpname"_a, "Returns a String of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname")
@@ -4761,8 +4872,16 @@ This Class is supposed to internally collect the data for the qcML File
         .def("getRunNames", [](const OpenMS::QcMLFile& self) { std::vector<OpenMS::String> ids; self.getRunNames(ids); return ids; }, "Gives the names of the registered runs in the vector ids")
         .def("existsRun", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, bool checkname) { return self.existsRun(filename, checkname); }, "filename"_a, "checkname"_a, "Returns true if the given run id is present in this file, if checkname is true it also checks the names")
         .def("existsSet", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, bool checkname) { return self.existsSet(filename, checkname); }, "filename"_a, "checkname"_a, "Returns true if the given set id is present in this file, if checkname is true it also checks the names")
-        .def("existsRunQualityParameter", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, const OpenMS::String& qpname, std::vector<OpenMS::String>& ids) { return self.existsRunQualityParameter(filename, qpname, ids); }, "filename"_a, "qpname"_a, "ids"_a, "Returns the ids of the parameter name given if found in given run empty else")
-        .def("existsSetQualityParameter", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, const OpenMS::String& qpname, std::vector<OpenMS::String>& ids) { return self.existsSetQualityParameter(filename, qpname, ids); }, "filename"_a, "qpname"_a, "ids"_a, "Returns the ids of the parameter name given if found in given set, empty else")
+        .def("existsRunQualityParameter", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, const OpenMS::String& qpname) {
+            std::vector<OpenMS::String> ids;
+            self.existsRunQualityParameter(filename, qpname, ids);
+            return ids;
+        }, "filename"_a, "qpname"_a, "Returns the ids of the parameter name given if found in given run empty else")
+        .def("existsSetQualityParameter", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, const OpenMS::String& qpname) {
+            std::vector<OpenMS::String> ids;
+            self.existsSetQualityParameter(filename, qpname, ids);
+            return ids;
+        }, "filename"_a, "qpname"_a, "Returns the ids of the parameter name given if found in given set, empty else")
         .def("store", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename) { return self.store(filename); }, "filename"_a, "Store the qcML file")
         .def("load", [](OpenMS::QcMLFile& self, const OpenMS::String& filename) { return self.load(filename); }, "filename"_a, "Load a QCFile")
         .def("reset", [](OpenMS::QcMLFile& self) { return self.reset(); })

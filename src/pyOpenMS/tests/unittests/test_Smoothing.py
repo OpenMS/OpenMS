@@ -61,8 +61,7 @@ class TestLowessSmoothing(unittest.TestCase):
         thisfilter = pyopenms.LowessSmoothing();
         x = [1.0,2.0,3.0,4.0]
         y = [10.0,11.0,12.0,13.0]
-        y_smoothed = [0.0]
-        thisfilter.smoothData(x,y,y_smoothed)
+        y_smoothed = thisfilter.smoothData(x,y)
 
         self.assertNotEqual( len(y_smoothed), 0)
 

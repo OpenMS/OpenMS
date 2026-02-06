@@ -115,9 +115,20 @@ LocalClustering
     auto nonnegativeleastsquaressolver_class = nb::class_<OpenMS::NonNegativeLeastSquaresSolver>(m, "NonNegativeLeastSquaresSolver", "Wrapper for a non-negative least squares (NNLS) solver")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::NonNegativeLeastSquaresSolver &>())
-        .def_static("solve", [](const OpenMS::Matrix<double>& A, const OpenMS::Matrix<double>& b, OpenMS::Matrix<double>& x) { return OpenMS::NonNegativeLeastSquaresSolver::solve(A, b, x); }, "A"_a, "b"_a, "x"_a)
-        .def_static("solve", [](double * A, int A_rows, int A_cols, std::vector<double>& b, std::vector<double>& x) { return OpenMS::NonNegativeLeastSquaresSolver::solve(A, A_rows, A_cols, b, x); }, "A"_a, "A_rows"_a, "A_cols"_a, "b"_a, "x"_a)
-        .def_static("solve", [](OpenMS::Matrix<double>& A, std::vector<double>& b, std::vector<double>& x) { return OpenMS::NonNegativeLeastSquaresSolver::solve(A, b, x); }, "A"_a, "b"_a, "x"_a)
+        .def_static("solve", [](const OpenMS::Matrix<double>& A, const OpenMS::Matrix<double>& b) {
+            OpenMS::Matrix<double> x;
+            auto status = OpenMS::NonNegativeLeastSquaresSolver::solve(A, b, x);
+            return nb::make_tuple(status, x);
+        }, "A"_a, "b"_a,
+        "Solve Ax=b (x>=0). Returns tuple(status, x). Copies A and b.")
+        // Note: raw pointer overload (double*, int, int, vector&, vector&) is omitted
+        // because it is not safely wrappable from Python.
+        .def_static("solve", [](OpenMS::Matrix<double> A, std::vector<double> b) {
+            std::vector<double> x;
+            auto status = OpenMS::NonNegativeLeastSquaresSolver::solve(A, b, x);
+            return nb::make_tuple(status, x);
+        }, "A"_a, "b"_a,
+        "Solve Ax=b (x>=0) in-place. Returns tuple(status, x). Modifies A and b internally.")
         ;
     // RETURN_STATUS enum nested under NonNegativeLeastSquaresSolver
     nb::enum_<OpenMS::NonNegativeLeastSquaresSolver::RETURN_STATUS>(nonnegativeleastsquaressolver_class, "RETURN_STATUS", nb::is_arithmetic())

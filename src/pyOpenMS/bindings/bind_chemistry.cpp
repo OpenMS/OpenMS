@@ -830,7 +830,7 @@ e.g. used as input parameters in search engines.
         .def("getFixedModifications", [](const OpenMS::ModificationDefinitionsSet& self) -> const std::set<OpenMS::ModificationDefinition> & { return self.getFixedModifications(); }, nb::rv_policy::reference_internal, "Returns the stored fixed modification definitions")
         .def("getVariableModifications", [](const OpenMS::ModificationDefinitionsSet& self) -> const std::set<OpenMS::ModificationDefinition> & { return self.getVariableModifications(); }, nb::rv_policy::reference_internal, "Returns the stored variable modification definitions")
         .def("getModificationNames", [](const OpenMS::ModificationDefinitionsSet& self) { return self.getModificationNames(); }, "Returns only the names of the modifications stored in the set")
-        .def("getModificationNames", [](const OpenMS::ModificationDefinitionsSet& self, std::vector<OpenMS::String>& fixed_modifications, std::vector<OpenMS::String>& variable_modifications) { return self.getModificationNames(fixed_modifications, variable_modifications); }, "fixed_modifications"_a, "variable_modifications"_a, "Populates the output lists with the modification names (use e.g. for ProteinIdentification::SearchParameters)")
+        .def("getFixedAndVariableModificationNames", [](const OpenMS::ModificationDefinitionsSet& self) { std::vector<OpenMS::String> fixed_modifications, variable_modifications; self.getModificationNames(fixed_modifications, variable_modifications); return nb::make_tuple(fixed_modifications, variable_modifications); }, "Returns a tuple of (fixed_modification_names, variable_modification_names)")
         .def("getFixedModificationNames", [](const OpenMS::ModificationDefinitionsSet& self) { return self.getFixedModificationNames(); }, "Returns only the names of the fixed modifications")
         .def("getVariableModificationNames", [](const OpenMS::ModificationDefinitionsSet& self) { return self.getVariableModificationNames(); }, "Returns only the names of the variable modifications")
         .def("isCompatible", [](const OpenMS::ModificationDefinitionsSet& self, const OpenMS::AASequence& peptide) { return self.isCompatible(peptide); }, "peptide"_a, "Returns true if the peptide is compatible with the definitions, e.g. does not contain other modifications")
@@ -873,7 +873,7 @@ The modifications are read from the unimod.xml file on construction.
         .def(nb::init<const OpenMS::ModifiedPeptideGenerator &>())
         .def_static("getModifications", [](const std::vector<OpenMS::String>& modNames) { return OpenMS::ModifiedPeptideGenerator::getModifications(modNames); }, "modNames"_a)
         .def_static("applyFixedModifications", [](const OpenMS::ModifiedPeptideGenerator::MapToResidueType& fixed_mods, OpenMS::AASequence& peptide) { return OpenMS::ModifiedPeptideGenerator::applyFixedModifications(fixed_mods, peptide); }, "fixed_mods"_a, "peptide"_a)
-        .def_static("applyVariableModifications", [](const OpenMS::ModifiedPeptideGenerator::MapToResidueType& var_mods, const OpenMS::AASequence& peptide, unsigned long max_variable_mods_per_peptide, std::vector<OpenMS::AASequence>& all_modified_peptides, bool keep_original) { return OpenMS::ModifiedPeptideGenerator::applyVariableModifications(var_mods, peptide, max_variable_mods_per_peptide, all_modified_peptides, keep_original); }, "var_mods"_a, "peptide"_a, "max_variable_mods_per_peptide"_a, "all_modified_peptides"_a, "keep_original"_a)
+        .def_static("applyVariableModifications", [](const OpenMS::ModifiedPeptideGenerator::MapToResidueType& var_mods, const OpenMS::AASequence& peptide, unsigned long max_variable_mods_per_peptide, bool keep_original) { std::vector<OpenMS::AASequence> all_modified_peptides; OpenMS::ModifiedPeptideGenerator::applyVariableModifications(var_mods, peptide, max_variable_mods_per_peptide, all_modified_peptides, keep_original); return all_modified_peptides; }, "var_mods"_a, "peptide"_a, "max_variable_mods_per_peptide"_a, "keep_original"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -1624,8 +1624,8 @@ Also `max_tag_length` should be >= `min_tag_length`
 :param var_mods: A list of modification names. The modified residues are added as additional entries to the list of residues
 )doc")
         .def(nb::init<unsigned long, double, unsigned long, unsigned long, unsigned long, std::vector<OpenMS::String>, std::vector<OpenMS::String>, bool>())
-        .def("getTag", [](const OpenMS::Tagger& self, const std::vector<double>& mzs, std::vector<std::basic_string<char>>& tags) { return self.getTag(mzs, tags); }, "mzs"_a, "tags"_a)
-        .def("getTag", [](const OpenMS::Tagger& self, const OpenMS::MSSpectrum& spec, std::vector<std::basic_string<char>>& tags) { return self.getTag(spec, tags); }, "spec"_a, "tags"_a)
+        .def("getTag", [](const OpenMS::Tagger& self, const std::vector<double>& mzs) { std::vector<std::string> tags; self.getTag(mzs, tags); return tags; }, "mzs"_a)
+        .def("getTag", [](const OpenMS::Tagger& self, const OpenMS::MSSpectrum& spec) { std::vector<std::string> tags; self.getTag(spec, tags); return tags; }, "spec"_a)
         .def("setMaxCharge", [](OpenMS::Tagger& self, unsigned long max_charge) { return self.setMaxCharge(max_charge); }, "max_charge"_a, 
             R"doc(
 Generate tags from an MSSpectrum
