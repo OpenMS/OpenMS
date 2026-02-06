@@ -238,9 +238,8 @@ else()
       )
     endif()
     install(TARGETS ${target_name}
-      LIBRARY DESTINATION pyopenms
-      RUNTIME DESTINATION pyopenms
-      COMPONENT python_modules
+      LIBRARY DESTINATION pyopenms COMPONENT python_modules
+      RUNTIME DESTINATION pyopenms COMPONENT python_modules
     )
   endfunction()
 
