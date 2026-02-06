@@ -4,6 +4,7 @@ set(directory source/ANALYSIS/MAPMATCHING/PIPECHO)
 ### list all filenames of the directory here
 set(sources_list_h
   GridWithStorage.h
+  Impl.h
   MzDiff.h
   PeakTypes.h
   Run.h
@@ -14,6 +15,7 @@ set(sources_list_h
 )
 
 set(sources_list
+  Impl.cpp
   PeakTypes.cpp
   Run.cpp
   RunStatistics.cpp
