@@ -116,7 +116,7 @@ run.setPeptideIdentifications(my_peptide_ids)
         .def("getNumberOfLabels", [](const OpenMS::ExperimentalDesign& self) { return self.getNumberOfLabels(); }, "Returns the number of labels per file")
         .def("getNumberOfMSFiles", [](const OpenMS::ExperimentalDesign& self) { return self.getNumberOfMSFiles(); }, "Returns the number of MS files (= fractions * fraction_groups)")
         .def("getNumberOfFractionGroups", [](const OpenMS::ExperimentalDesign& self) { return self.getNumberOfFractionGroups(); }, "Allows to group fraction ids and source files. Return the number of fraction_groups")
-        .def("getSample", [](OpenMS::ExperimentalDesign& self, unsigned int fraction_group, unsigned int label) { return self.getSample(fraction_group, label); }, "fraction_group"_a, "label"_a, "Returns sample index (depends on fraction_group and label)")
+        .def("getSample", [](OpenMS::ExperimentalDesign& self, unsigned int fraction_group, unsigned int label) { return self.getSample(fraction_group, label); }, "fraction_group"_a, "label"_a = 1, "Returns sample index (depends on fraction_group and label)")
         .def("isFractionated", [](const OpenMS::ExperimentalDesign& self) { return self.isFractionated(); }, "Returns whether at least one fraction_group in this experimental design is fractionated")
         .def("sameNrOfMSFilesPerFraction", [](const OpenMS::ExperimentalDesign& self) { return self.sameNrOfMSFilesPerFraction(); }, "Returns if each fraction number is associated with the same number of fraction_group")
 
@@ -325,7 +325,7 @@ Indices from 1 to 1023 are reserved for fast access and will never change:
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MetaInfoRegistry &>())
-        .def("registerName", [](OpenMS::MetaInfoRegistry& self, const OpenMS::String& name, const OpenMS::String& description, const OpenMS::String& unit) { return self.registerName(name, description, unit); }, "name"_a, "description"_a, "unit"_a, "Registers a string, stores its description and unit, and returns the corresponding index. If the string is already registered, it returns the index of the string")
+        .def("registerName", [](OpenMS::MetaInfoRegistry& self, const OpenMS::String& name, const OpenMS::String& description, const OpenMS::String& unit) { return self.registerName(name, description, unit); }, "name"_a, "description"_a = "", "unit"_a = "", "Registers a string, stores its description and unit, and returns the corresponding index. If the string is already registered, it returns the index of the string")
         .def("setDescription", [](OpenMS::MetaInfoRegistry& self, unsigned int index, const OpenMS::String& description) { return self.setDescription(index, description); }, "index"_a, "description"_a, "Sets the description (String), corresponding to an index")
         .def("setDescription", [](OpenMS::MetaInfoRegistry& self, const OpenMS::String& name, const OpenMS::String& description) { return self.setDescription(name, description); }, "name"_a, "description"_a, "Sets the description (String), corresponding to an index")
         .def("setUnit", [](OpenMS::MetaInfoRegistry& self, unsigned int index, const OpenMS::String& unit) { return self.setUnit(index, unit); }, "index"_a, "unit"_a, "Sets the unit (String), corresponding to an index")
@@ -447,7 +447,7 @@ Look up spectrum by retention time (RT)
 :param rt: Retention time to look up
 :returns: Index of the spectrum that matched
 )doc")
-        .def("findByIndex", [](const OpenMS::SpectrumLookup& self, unsigned long index, bool count_from_one) { return self.findByIndex(index, count_from_one); }, "index"_a, "count_from_one"_a, 
+        .def("findByIndex", [](const OpenMS::SpectrumLookup& self, unsigned long index, bool count_from_one) { return self.findByIndex(index, count_from_one); }, "index"_a, "count_from_one"_a = false, 
             R"doc(
 Look up spectrum by native ID
 :param native_id: Native ID to look up

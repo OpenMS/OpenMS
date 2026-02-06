@@ -308,7 +308,7 @@ Constructors
         .def(nb::init<>())
         .def(nb::init<int>())
         .def(nb::init<const OpenMS::DeconvolvedSpectrum &>())
-        .def("toSpectrum", [](OpenMS::DeconvolvedSpectrum& self, int to_charge, double tol, bool retain_undeconvolved) { return self.toSpectrum(to_charge, tol, retain_undeconvolved); }, "to_charge"_a, "tol"_a, "retain_undeconvolved"_a)
+        .def("toSpectrum", [](OpenMS::DeconvolvedSpectrum& self, int to_charge, double tol, bool retain_undeconvolved) { return self.toSpectrum(to_charge, tol, retain_undeconvolved); }, "to_charge"_a, "tol"_a = 10.0, "retain_undeconvolved"_a = false)
         .def("getOriginalSpectrum", [](const OpenMS::DeconvolvedSpectrum& self) -> const OpenMS::MSSpectrum & { return self.getOriginalSpectrum(); }, nb::rv_policy::reference_internal, "Returns the original spectrum")
         .def("getPrecursorPeakGroup", [](const OpenMS::DeconvolvedSpectrum& self) -> const OpenMS::PeakGroup & { return self.getPrecursorPeakGroup(); }, nb::rv_policy::reference_internal, "Returns the precursor peak group (MSn, n>1)")
         .def("getPrecursorCharge", [](const OpenMS::DeconvolvedSpectrum& self) { return self.getPrecursorCharge(); }, "Returns the precursor charge")
@@ -1400,7 +1400,7 @@ Constructors
         .def("begin", [](const OpenMS::PeakGroup& self) { return self.begin(); })
         .def("end", [](const OpenMS::PeakGroup& self) { return self.end(); })
         .def("__getitem__", [](OpenMS::PeakGroup& self, size_t i) { if (i >= self.size()) throw nb::index_error(); return self[i]; })
-        .def("getMassErrors", [](const OpenMS::PeakGroup& self, bool ppm) { return self.getMassErrors(ppm); }, "ppm"_a, "Returns mass errors per isotope")
+        .def("getMassErrors", [](const OpenMS::PeakGroup& self, bool ppm) { return self.getMassErrors(ppm); }, "ppm"_a = true, "Returns mass errors per isotope")
         .def("push_back", [](OpenMS::PeakGroup& self, const OpenMS::FLASHHelperClasses::LogMzPeak& pg) { return self.push_back(pg); }, "pg"_a, "Adds a LogMzPeak")
         .def("size", [](const OpenMS::PeakGroup& self) { return self.size(); }, "Returns number of LogMzPeaks")
         .def("reserve", [](OpenMS::PeakGroup& self, unsigned long n) { return self.reserve(n); }, "n"_a, "Reserves space for n peaks")
@@ -1562,7 +1562,7 @@ Probability ties resolved by taking protein with largest number of peptides
 :returns: Updated inferred_protein_id
 static members
 )doc")
-        .def("buildGraph", [](OpenMS::PeptideProteinResolution& self, OpenMS::ProteinIdentification& protein, const OpenMS::PeptideIdentificationList& peptides, bool skip_sort) { return self.buildGraph(protein, peptides, skip_sort); }, "protein"_a, "peptides"_a, "skip_sort"_a)
+        .def("buildGraph", [](OpenMS::PeptideProteinResolution& self, OpenMS::ProteinIdentification& protein, const OpenMS::PeptideIdentificationList& peptides, bool skip_sort) { return self.buildGraph(protein, peptides, skip_sort); }, "protein"_a, "peptides"_a, "skip_sort"_a = false)
         .def("resolveGraph", [](OpenMS::PeptideProteinResolution& self, OpenMS::ProteinIdentification& protein, OpenMS::PeptideIdentificationList& peptides) { return self.resolveGraph(protein, peptides); }, "protein"_a, "peptides"_a, 
             R"doc(
 Initialize and store the graph (= maps), needs sorted groups for
@@ -2050,7 +2050,7 @@ production ions
         .def("getModelType", [](const OpenMS::TransformationDescription& self) { return self.getModelType(); }, "Gets the type of the fitted model")
         .def("getModelParameters", [](const OpenMS::TransformationDescription& self) -> const OpenMS::Param & { return self.getModelParameters(); }, nb::rv_policy::reference_internal, "Returns the model parameters")
         .def("invert", [](OpenMS::TransformationDescription& self) { return self.invert(); }, "Computes an (approximate) inverse of the transformation")
-        .def("getDeviations", [](const OpenMS::TransformationDescription& self, bool do_apply, bool do_sort) { std::vector<double> diffs; self.getDeviations(diffs, do_apply, do_sort); return diffs; }, "do_apply"_a, "do_sort"_a)
+        .def("getDeviations", [](const OpenMS::TransformationDescription& self, bool do_apply, bool do_sort) { std::vector<double> diffs; self.getDeviations(diffs, do_apply, do_sort); return diffs; }, "do_apply"_a = false, "do_sort"_a = true)
         .def("getStatistics", [](const OpenMS::TransformationDescription& self) { return self.getStatistics(); }, 
             R"doc(
 Get the deviations between the data pairs

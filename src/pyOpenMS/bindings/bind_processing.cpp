@@ -20,6 +20,7 @@
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
+#include <limits>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
 #include <nanobind/nanobind.h>
@@ -241,7 +242,7 @@ Outlier detection before model building via the RANSAC algorithm is supported fo
         .def("isTrained", [](const OpenMS::MZTrafoModel& self) { return self.isTrained(); }, "Returns true if the model have coefficients (i.e. was trained successfully)")
         .def("getRT", [](const OpenMS::MZTrafoModel& self) { return self.getRT(); }, "Get RT associated with the model (training region)")
         .def("predict", [](const OpenMS::MZTrafoModel& self, double mz) { return self.predict(mz); }, "mz"_a)
-        .def("train", [](OpenMS::MZTrafoModel& self, const OpenMS::CalibrationData& cd, OpenMS::MZTrafoModel::MODELTYPE md, bool use_RANSAC, double rt_left, double rt_right) { return self.train(cd, md, use_RANSAC, rt_left, rt_right); }, "cd"_a, "md"_a, "use_RANSAC"_a, "rt_left"_a, "rt_right"_a, 
+        .def("train", [](OpenMS::MZTrafoModel& self, const OpenMS::CalibrationData& cd, OpenMS::MZTrafoModel::MODELTYPE md, bool use_RANSAC, double rt_left, double rt_right) { return self.train(cd, md, use_RANSAC, rt_left, rt_right); }, "cd"_a, "md"_a, "use_RANSAC"_a, "rt_left"_a = -std::numeric_limits<double>::max(), "rt_right"_a = std::numeric_limits<double>::max(), 
             R"doc(
 Apply the model to an uncalibrated m/z value
 Make sure the model was trained (train()) and is valid (isValidModel()) before calling this function!
@@ -367,7 +368,7 @@ zero. * * @see SplinePackage * @see MSSpectrum * @see MSChromatogram
         .def("getPosMin", [](const OpenMS::SplineInterpolatedPeaks& self) { return self.getPosMin(); })
         .def("getPosMax", [](const OpenMS::SplineInterpolatedPeaks& self) { return self.getPosMax(); })
         .def("size", [](const OpenMS::SplineInterpolatedPeaks& self) { return self.size(); })
-        .def("getNavigator", [](OpenMS::SplineInterpolatedPeaks& self, double scaling) { return self.getNavigator(scaling); }, "scaling"_a)
+        .def("getNavigator", [](OpenMS::SplineInterpolatedPeaks& self, double scaling) { return self.getNavigator(scaling); }, "scaling"_a = 0.7)
         .def("__len__", [](OpenMS::SplineInterpolatedPeaks& self) { return self.size(); })
         ;
 
