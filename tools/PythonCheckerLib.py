@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 def parse_pxd_file(path):
 
     import os
@@ -103,4 +101,3 @@ def create_pxd_file_map(src_path):
             pxd_file_matching[fm] = res
 
     return pxd_file_matching
-

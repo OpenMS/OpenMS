@@ -31,7 +31,7 @@ NB_MODULE(_pyopenms_ml, m) {
     // -----------------------------------------------------------------------
     // BilinearInterpolation
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Math::BilinearInterpolation<double, double>>(m, "BilinearInterpolation")
+    nb::class_<OpenMS::Math::BilinearInterpolation<double, double>>(m, "BilinearInterpolation", "OpenMS class BilinearInterpolation")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::BilinearInterpolation<double, double>&>())
         .def("value", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double arg_pos_0, double arg_pos_1) { return self.value(arg_pos_0, arg_pos_1); }, "arg_pos_0"_a, "arg_pos_1"_a)
@@ -102,7 +102,7 @@ LocalClustering
     // -----------------------------------------------------------------------
     // LinearInterpolation
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Math::LinearInterpolation<double, double>>(m, "LinearInterpolation")
+    nb::class_<OpenMS::Math::LinearInterpolation<double, double>>(m, "LinearInterpolation", "OpenMS class LinearInterpolation")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::LinearInterpolation<double, double>&>())
         .def(nb::init<double, double>())
@@ -139,7 +139,7 @@ LocalClustering
     // -----------------------------------------------------------------------
     // RANSAC
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>>(m, "RANSAC")
+    nb::class_<OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>>(m, "RANSAC", "OpenMS class RANSAC")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>&>())
         .def(nb::init<OpenMS::UInt64>())
@@ -148,7 +148,7 @@ LocalClustering
     // -----------------------------------------------------------------------
     // RANSACQuadratic
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>>(m, "RANSACQuadratic")
+    nb::class_<OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>>(m, "RANSACQuadratic", "OpenMS class RANSACQuadratic")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>&>())
         .def(nb::init<OpenMS::UInt64>())
@@ -158,7 +158,7 @@ LocalClustering
     // -----------------------------------------------------------------------
     // RANSACParam
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Math::RANSACParam>(m, "RANSACParam")
+    nb::class_<OpenMS::Math::RANSACParam>(m, "RANSACParam", "OpenMS class RANSACParam")
         .def(nb::init<>())
         .def(nb::init<unsigned long, unsigned long, double, unsigned long, bool>())
         .def("toString", [](const OpenMS::Math::RANSACParam& self) { return self.toString(); })

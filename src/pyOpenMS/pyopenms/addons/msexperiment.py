@@ -149,10 +149,10 @@ def to_arrow(self, data='spectra', format='long', columns=None,
     if data not in ('spectra', 'chromatograms', 'both'):
         raise ValueError(f"data must be 'spectra', 'chromatograms', or 'both', got '{data}'")
 
-    self.updateRanges()
-
-    if not ms_levels:
-        ms_levels = self.getMSLevels() if self.getNrSpectra() > 0 else []
+    if ms_levels is None:
+        ms_levels = []
+    else:
+        ms_levels = list(ms_levels)
 
     if min_rt is None:
         min_rt = 0.0
@@ -162,6 +162,29 @@ def to_arrow(self, data='spectra', format='long', columns=None,
         min_mz = 0.0
     if max_mz is None:
         max_mz = float('inf')
+
+    if self.getNrSpectra() == 0 and self.getNrChromatograms() == 0:
+        result = {}
+        if data in ('spectra', 'both'):
+            result['spectra'] = _build_spectra_arrow(
+                self, format, columns, ms_levels,
+                min_rt, max_rt, min_mz, max_mz,
+                include_precursor_info, include_ion_mobility, pa
+            )
+        if data in ('chromatograms', 'both'):
+            result['chromatograms'] = _build_chrom_arrow(
+                self, format, columns, min_rt, max_rt, pa
+            )
+        if data == 'both':
+            return result
+        if data == 'spectra':
+            return result['spectra']
+        return result['chromatograms']
+
+    self.updateRanges()
+
+    if not ms_levels:
+        ms_levels = self.getMSLevels() if self.getNrSpectra() > 0 else []
 
     # Try zero-copy C++ path first (available when built with WITH_PARQUET)
     try:

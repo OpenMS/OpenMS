@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import argparse
 
 from pyopenms import Param, ParamXMLFile, MSExperiment, MzMLFile
@@ -57,4 +57,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-

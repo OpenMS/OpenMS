@@ -306,7 +306,7 @@ Determines the file type based on the file content
     // -----------------------------------------------------------------------
     // FileTypes
     // -----------------------------------------------------------------------
-    auto filetypes_class = nb::class_<OpenMS::FileTypes>(m, "FileTypes")
+    auto filetypes_class = nb::class_<OpenMS::FileTypes>(m, "FileTypes", "OpenMS class FileTypes")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FileTypes &>())
         .def_static("typeToName", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToName(type); }, "type"_a, "Returns the name/extension of the type")
@@ -383,7 +383,7 @@ Determines the file type based on the file content
     // -----------------------------------------------------------------------
     // GNPSMetaValueFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::GNPSMetaValueFile>(m, "GNPSMetaValueFile")
+    nb::class_<OpenMS::GNPSMetaValueFile>(m, "GNPSMetaValueFile", "OpenMS class GNPSMetaValueFile")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::GNPSMetaValueFile &>())
         .def_static("store", [](const OpenMS::ConsensusMap& consensus_map, const OpenMS::String& output_file) { return OpenMS::GNPSMetaValueFile::store(consensus_map, output_file); }, "consensus_map"_a, "output_file"_a)
@@ -392,7 +392,7 @@ Determines the file type based on the file content
     // -----------------------------------------------------------------------
     // GNPSQuantificationFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::GNPSQuantificationFile>(m, "GNPSQuantificationFile")
+    nb::class_<OpenMS::GNPSQuantificationFile>(m, "GNPSQuantificationFile", "OpenMS class GNPSQuantificationFile")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::GNPSQuantificationFile &>())
         .def_static("store", [](const OpenMS::ConsensusMap& consensus_map, const OpenMS::String& output_file) { return OpenMS::GNPSQuantificationFile::store(consensus_map, output_file); }, "consensus_map"_a, "output_file"_a)
@@ -638,7 +638,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
     // -----------------------------------------------------------------------
     // NumpressConfig
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MSNumpressCoder::NumpressConfig>(m, "NumpressConfig")
+    nb::class_<OpenMS::MSNumpressCoder::NumpressConfig>(m, "NumpressConfig", "OpenMS class NumpressConfig")
         .def(nb::init<>())
         .def_rw("numpressFixedPoint", &OpenMS::MSNumpressCoder::NumpressConfig::numpressFixedPoint)
         .def_rw("numpressErrorTolerance", &OpenMS::MSNumpressCoder::NumpressConfig::numpressErrorTolerance)
@@ -1055,7 +1055,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
     // -----------------------------------------------------------------------
     // ParquetFilter
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ParquetFilter>(m, "ParquetFilter")
+    nb::class_<OpenMS::ParquetFilter>(m, "ParquetFilter", "OpenMS class ParquetFilter")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ParquetFilter &>())
         .def("andNext", [](OpenMS::ParquetFilter& self) -> OpenMS::ParquetFilter & { return self.andNext(); }, nb::rv_policy::reference_internal)
@@ -1078,7 +1078,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
     // -----------------------------------------------------------------------
     // ParquetFilterBuilder
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ParquetFilterBuilder>(m, "ParquetFilterBuilder")
+    nb::class_<OpenMS::ParquetFilterBuilder>(m, "ParquetFilterBuilder", "OpenMS class ParquetFilterBuilder")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ParquetFilterBuilder &>())
         .def("andNext", [](OpenMS::ParquetFilterBuilder& self) -> OpenMS::ParquetFilterBuilder & { return self.andNext(); }, nb::rv_policy::reference_internal)
@@ -1168,7 +1168,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
     // -----------------------------------------------------------------------
     // DRange1
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::DRange<1>>(m, "DRange1")
+    nb::class_<OpenMS::DRange<1>>(m, "DRange1", "OpenMS class DRange1")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::DRange<1>&>())
         .def("__init__", [](OpenMS::DRange<1>* self, double min_val, double max_val) {
@@ -1293,7 +1293,7 @@ FullSwathFileConsumer
     // -----------------------------------------------------------------------
     // SemanticValidator_CVTerm
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Internal::SemanticValidator::CVTerm>(m, "SemanticValidator_CVTerm")
+    nb::class_<OpenMS::Internal::SemanticValidator::CVTerm>(m, "SemanticValidator_CVTerm", "OpenMS class SemanticValidator_CVTerm")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Internal::SemanticValidator::CVTerm &>())
         .def_rw("accession", &OpenMS::Internal::SemanticValidator::CVTerm::accession)
@@ -1309,7 +1309,7 @@ FullSwathFileConsumer
     // -----------------------------------------------------------------------
     // SequestInfile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SequestInfile>(m, "SequestInfile")
+    nb::class_<OpenMS::SequestInfile>(m, "SequestInfile", "OpenMS class SequestInfile")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SequestInfile &>())
         .def(nb::self == nb::self)
@@ -1387,7 +1387,7 @@ FullSwathFileConsumer
     // -----------------------------------------------------------------------
     // SiriusFragmentAnnotation
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SiriusFragmentAnnotation>(m, "SiriusFragmentAnnotation")
+    nb::class_<OpenMS::SiriusFragmentAnnotation>(m, "SiriusFragmentAnnotation", "OpenMS class SiriusFragmentAnnotation")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SiriusFragmentAnnotation &>())
         .def_static("extractAndResolveSiriusAnnotations", [](const std::vector<OpenMS::String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool decoy_generation) { return OpenMS::SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(sirius_workspace_subdirs, score_threshold, use_exact_mass, decoy_generation); }, "sirius_workspace_subdirs"_a, "score_threshold"_a, "use_exact_mass"_a, "decoy_generation"_a)
@@ -1398,7 +1398,7 @@ FullSwathFileConsumer
     // -----------------------------------------------------------------------
     // SiriusFragmentAnnotation_SiriusTargetDecoySpectra
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra>(m, "SiriusFragmentAnnotation_SiriusTargetDecoySpectra")
+    nb::class_<OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra>(m, "SiriusFragmentAnnotation_SiriusTargetDecoySpectra", "OpenMS class SiriusFragmentAnnotation_SiriusTargetDecoySpectra")
         .def(nb::init<>())
         .def(nb::init<OpenMS::MSSpectrum, OpenMS::MSSpectrum>())
         .def_rw("target", &OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra::target)
@@ -1438,7 +1438,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     // -----------------------------------------------------------------------
     // ToolInfo
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ToolInfo>(m, "ToolInfo")
+    nb::class_<OpenMS::ToolInfo>(m, "ToolInfo", "OpenMS class ToolInfo")
         .def(nb::init<const OpenMS::ToolInfo &>())
         .def_rw("version_", &OpenMS::ToolInfo::version_)
         .def_rw("name_", &OpenMS::ToolInfo::name_)
@@ -1451,7 +1451,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     // -----------------------------------------------------------------------
     // XICParquetFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::XICParquetFile>(m, "XICParquetFile")
+    nb::class_<OpenMS::XICParquetFile>(m, "XICParquetFile", "OpenMS class XICParquetFile")
         .def(nb::init<OpenMS::String>())
         .def(nb::init<std::vector<OpenMS::String>>())
         .def(nb::init<const OpenMS::XICParquetFile &>())
