@@ -288,7 +288,7 @@ Determines the file type based on the file content
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log,
              bool rewrite_source_file, bool compute_hash) {
             self.loadExperiment(filename, exp, allowed_types, log, rewrite_source_file, compute_hash);
-        }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "rewrite_source_file"_a, "compute_hash"_a, "Load experiment with options")
+        }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "rewrite_source_file"_a = false, "compute_hash"_a = false, "Load experiment with options")
 
         .def("storeExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
             self.storeExperiment(filename, exp);
@@ -427,7 +427,7 @@ to all spectra and chromatogram offsets
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IndexedMzMLDecoder &>())
-        .def("findIndexListOffset", [](OpenMS::IndexedMzMLDecoder& self, const OpenMS::String& filename, int buffersize) { return self.findIndexListOffset(filename, buffersize); }, "filename"_a, "buffersize"_a)
+        .def("findIndexListOffset", [](OpenMS::IndexedMzMLDecoder& self, const OpenMS::String& filename, int buffersize) { return self.findIndexListOffset(filename, buffersize); }, "filename"_a, "buffersize"_a = 1023)
         ;
 
     // -----------------------------------------------------------------------
@@ -524,7 +524,7 @@ Specifies the name of a enzyme. "Trypsin", "None", and "Chymotrypsin" are the av
         .def(nb::init<>())
         .def(nb::init<const OpenMS::InspectOutfile &>())
         .def(nb::self == nb::self)
-        .def("load", [](OpenMS::InspectOutfile& self, const OpenMS::String& result_filename, OpenMS::PeptideIdentificationList& peptide_identifications, OpenMS::ProteinIdentification& protein_identification, double p_value_threshold, const OpenMS::String& database_filename) { return self.load(result_filename, peptide_identifications, protein_identification, p_value_threshold, database_filename); }, "result_filename"_a, "peptide_identifications"_a, "protein_identification"_a, "p_value_threshold"_a, "database_filename"_a)
+        .def("load", [](OpenMS::InspectOutfile& self, const OpenMS::String& result_filename, OpenMS::PeptideIdentificationList& peptide_identifications, OpenMS::ProteinIdentification& protein_identification, double p_value_threshold, const OpenMS::String& database_filename) { return self.load(result_filename, peptide_identifications, protein_identification, p_value_threshold, database_filename); }, "result_filename"_a, "peptide_identifications"_a, "protein_identification"_a, "p_value_threshold"_a, "database_filename"_a = "")
         .def("getWantedRecords", [](OpenMS::InspectOutfile& self, const OpenMS::String& result_filename, double p_value_threshold) { return self.getWantedRecords(result_filename, p_value_threshold); }, "result_filename"_a, "p_value_threshold"_a, 
             R"doc(
 Load the results of an Inspect search
@@ -540,8 +540,8 @@ Exception: ParseError is thrown if the given file could not be parsed
 :raises:
 Exception: FileEmpty is thrown if the given file is empty
 )doc")
-        .def("compressTrieDB", [](OpenMS::InspectOutfile& self, const OpenMS::String& database_filename, const OpenMS::String& index_filename, std::vector<unsigned long>& wanted_records, const OpenMS::String& snd_database_filename, const OpenMS::String& snd_index_filename, bool append) { return self.compressTrieDB(database_filename, index_filename, wanted_records, snd_database_filename, snd_index_filename, append); }, "database_filename"_a, "index_filename"_a, "wanted_records"_a, "snd_database_filename"_a, "snd_index_filename"_a, "append"_a, "Generates a trie database from another one, using the wanted records only")
-        .def("generateTrieDB", [](OpenMS::InspectOutfile& self, const OpenMS::String& source_database_filename, const OpenMS::String& database_filename, const OpenMS::String& index_filename, bool append, const OpenMS::String& species) { return self.generateTrieDB(source_database_filename, database_filename, index_filename, append, species); }, "source_database_filename"_a, "database_filename"_a, "index_filename"_a, "append"_a, "species"_a, "Generates a trie database from a given one (the type of database is determined by getLabels)")
+        .def("compressTrieDB", [](OpenMS::InspectOutfile& self, const OpenMS::String& database_filename, const OpenMS::String& index_filename, std::vector<unsigned long>& wanted_records, const OpenMS::String& snd_database_filename, const OpenMS::String& snd_index_filename, bool append) { return self.compressTrieDB(database_filename, index_filename, wanted_records, snd_database_filename, snd_index_filename, append); }, "database_filename"_a, "index_filename"_a, "wanted_records"_a, "snd_database_filename"_a, "snd_index_filename"_a, "append"_a = false, "Generates a trie database from another one, using the wanted records only")
+        .def("generateTrieDB", [](OpenMS::InspectOutfile& self, const OpenMS::String& source_database_filename, const OpenMS::String& database_filename, const OpenMS::String& index_filename, bool append, const OpenMS::String& species) { return self.generateTrieDB(source_database_filename, database_filename, index_filename, append, species); }, "source_database_filename"_a, "database_filename"_a, "index_filename"_a, "append"_a = false, "species"_a = "", "Generates a trie database from a given one (the type of database is determined by getLabels)")
         .def("getACAndACType", [](OpenMS::InspectOutfile& self, OpenMS::String line) { OpenMS::String accession; OpenMS::String accession_type; self.getACAndACType(line, accession, accession_type); return std::make_tuple(accession, accession_type); }, "line"_a, "Retrieve the accession type and accession number from a protein description line")
         .def("getLabels", [](OpenMS::InspectOutfile& self, const OpenMS::String& source_database_filename) { OpenMS::String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label; self.getLabels(source_database_filename, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label); return std::make_tuple(ac_label, sequence_start_label, sequence_end_label, comment_label, species_label); }, "source_database_filename"_a, "Retrieve the labels of a given database (at the moment FASTA and Swissprot)")
         .def("getSequences", [](OpenMS::InspectOutfile& self, const OpenMS::String& database_filename, const std::map<unsigned long, unsigned long>& wanted_records) { std::vector<OpenMS::String> sequences; self.getSequences(database_filename, wanted_records, sequences); return sequences; }, "database_filename"_a, "wanted_records"_a, "Retrieve sequences from a trie database")
@@ -739,7 +739,7 @@ Please see the official MzTab specification at https://code.google.com/p/mztab/
     nb::class_<OpenMS::MzTabFile>(m, "MzTabFile", "File adapter for MzTab files")
         .def(nb::init<>())
         .def("store", [](const OpenMS::MzTabFile& self, const OpenMS::String& filename, const OpenMS::MzTab& mz_tab) { return self.store(filename, mz_tab); }, "filename"_a, "mz_tab"_a, "Stores MzTab file")
-        .def("store", [](OpenMS::MzTabFile& self, const OpenMS::String& filename, const std::vector<OpenMS::ProteinIdentification>& protein_identifications, const OpenMS::PeptideIdentificationList& peptide_identifications, bool first_run_inference_only, bool export_empty_pep_ids, bool export_all_psms, const OpenMS::String& title) { return self.store(filename, protein_identifications, peptide_identifications, first_run_inference_only, export_empty_pep_ids, export_all_psms, title); }, "filename"_a, "protein_identifications"_a, "peptide_identifications"_a, "first_run_inference_only"_a, "export_empty_pep_ids"_a, "export_all_psms"_a, "title"_a, "Stores MzTab file")
+        .def("store", [](OpenMS::MzTabFile& self, const OpenMS::String& filename, const std::vector<OpenMS::ProteinIdentification>& protein_identifications, const OpenMS::PeptideIdentificationList& peptide_identifications, bool first_run_inference_only, bool export_empty_pep_ids, bool export_all_psms, const OpenMS::String& title) { return self.store(filename, protein_identifications, peptide_identifications, first_run_inference_only, export_empty_pep_ids, export_all_psms, title); }, "filename"_a, "protein_identifications"_a, "peptide_identifications"_a, "first_run_inference_only"_a, "export_empty_pep_ids"_a = false, "export_all_psms"_a = false, "title"_a = "ID export from OpenMS", "Stores MzTab file")
         .def("load", [](OpenMS::MzTabFile& self, const OpenMS::String& filename) { OpenMS::MzTab mz_tab; self.load(filename, mz_tab); return mz_tab; }, "filename"_a, "Loads MzTab file")
         ;
 

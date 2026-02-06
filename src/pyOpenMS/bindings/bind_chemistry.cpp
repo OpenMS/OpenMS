@@ -263,11 +263,11 @@ searches
         .def("setSeed", [](OpenMS::DecoyGenerator& self, unsigned long seed) { return self.setSeed(seed); }, "seed"_a)
         .def("reverseProtein", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein) { return self.reverseProtein(protein); }, "protein"_a, "Reverses the protein sequence")
         .def("reversePeptides", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const OpenMS::String& protease) { return self.reversePeptides(protein, protease); }, "protein"_a, "protease"_a, "Reverses the protein's peptide sequences between enzymatic cutting positions")
-        .def("shuffle", [](OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const OpenMS::String& protease, int decoy_factor) { return self.shuffle(protein, protease, decoy_factor); }, "protein"_a, "protease"_a, "decoy_factor"_a, 
+        .def("shuffle", [](OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const OpenMS::String& protease, int decoy_factor) { return self.shuffle(protein, protease, decoy_factor); }, "protein"_a, "protease"_a, "decoy_factor"_a = 1, 
             R"doc(
 Generate decoy protein sequences using shuffle algorithm. Digests protein using specified protease and shuffles each peptide. For top-down proteomics use "no cleavage". decoy_factor is the number of complete decoy proteins to generate. Returns vector of AASequence
 )doc")
-        .def("shufflePeptides", [](OpenMS::DecoyGenerator& self, const OpenMS::AASequence& aas, const OpenMS::String& protease, int max_attempts) { return self.shufflePeptides(aas, protease, max_attempts); }, "aas"_a, "protease"_a, "max_attempts"_a, "Shuffle the protein's peptide sequences between enzymatic cutting positions. Each peptide is shuffled `max_attempts` times to minimize sequence identity")
+        .def("shufflePeptides", [](OpenMS::DecoyGenerator& self, const OpenMS::AASequence& aas, const OpenMS::String& protease, int max_attempts) { return self.shufflePeptides(aas, protease, max_attempts); }, "aas"_a, "protease"_a, "max_attempts"_a = 100, "Shuffle the protein's peptide sequences between enzymatic cutting positions. Each peptide is shuffled `max_attempts` times to minimize sequence identity")
         ;
 
     // -----------------------------------------------------------------------
@@ -513,7 +513,7 @@ Thus no random selection of just n specific missed cleavage sites is performed.
         .def("getSpecificity", [](const OpenMS::EnzymaticDigestion& self) { return self.getSpecificity(); }, "Returns the specificity for the digestion")
         .def("setSpecificity", [](OpenMS::EnzymaticDigestion& self, OpenMS::EnzymaticDigestion::Specificity spec) { return self.setSpecificity(spec); }, "spec"_a, "Sets the specificity for the digestion (default is SPEC_FULL)")
         .def_static("getSpecificityByName", [](const OpenMS::String& name) { return OpenMS::EnzymaticDigestion::getSpecificityByName(name); }, "name"_a, "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
-        .def("isValidProduct", [](const OpenMS::EnzymaticDigestion& self, const OpenMS::String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages) { return self.isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages); }, "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a, 
+        .def("isValidProduct", [](const OpenMS::EnzymaticDigestion& self, const OpenMS::String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages) { return self.isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages); }, "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a = true, 
             R"doc(
 Performs the enzymatic digestion of an unmodified sequence\n
 By returning only references into the original string this is very fast
@@ -584,9 +584,9 @@ if the threshold is absolute or relative.
         .def("getSequence", [](const OpenMS::ims::IMSElement& self) { return self.getSequence(); }, "Gets element's sequence")
         .def("setSequence", [](OpenMS::ims::IMSElement& self, const OpenMS::String& sequence) { return self.setSequence(sequence); }, "sequence"_a, "Sets element's sequence")
         .def("getNominalMass", [](const OpenMS::ims::IMSElement& self) { return self.getNominalMass(); }, "Gets element's nominal mass")
-        .def("getMass", [](const OpenMS::ims::IMSElement& self, unsigned long index) { return self.getMass(index); }, "index"_a, "Gets mass of element's isotope 'index'")
+        .def("getMass", [](const OpenMS::ims::IMSElement& self, unsigned long index) { return self.getMass(index); }, "index"_a = 0, "Gets mass of element's isotope 'index'")
         .def("getAverageMass", [](const OpenMS::ims::IMSElement& self) { return self.getAverageMass(); }, "Gets element's average mass")
-        .def("getIonMass", [](const OpenMS::ims::IMSElement& self, int electrons_number) { return self.getIonMass(electrons_number); }, "electrons_number"_a, "Gets ion mass of element. By default ion lacks 1 electron, but this can be changed by setting other 'electrons_number'")
+        .def("getIonMass", [](const OpenMS::ims::IMSElement& self, int electrons_number) { return self.getIonMass(electrons_number); }, "electrons_number"_a = 1, "Gets ion mass of element. By default ion lacks 1 electron, but this can be changed by setting other 'electrons_number'")
         .def("getIsotopeDistribution", [](const OpenMS::ims::IMSElement& self) -> const OpenMS::ims::IMSIsotopeDistribution & { return self.getIsotopeDistribution(); }, nb::rv_policy::reference_internal, "Gets element's isotope distribution")
         .def("setIsotopeDistribution", [](OpenMS::ims::IMSElement& self, const OpenMS::ims::IMSIsotopeDistribution& isotopes) { return self.setIsotopeDistribution(isotopes); }, "isotopes"_a, "Sets element's isotope distribution")
         .def(nb::self == nb::self)
@@ -1429,7 +1429,7 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("getModifiedResidue", [](OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.getModifiedResidue(name); }, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a modification name")
         .def("getModifiedResidue", [](OpenMS::ResidueDB& self, OpenMS::Residue * residue, const OpenMS::String& name) { return self.getModifiedResidue(residue, name); }, "residue"_a, "name"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
         .def("getModifiedResidue", [](OpenMS::ResidueDB& self, OpenMS::Residue * residue, OpenMS::ResidueModification * mod) { return self.getModifiedResidue(residue, mod); }, "residue"_a, "mod"_a, nb::rv_policy::reference, "Returns a pointer to a modified residue given a residue and a modification name")
-        .def("getResidues", [](const OpenMS::ResidueDB& self, const OpenMS::String& residue_set) { return self.getResidues(residue_set); }, "residue_set"_a, nb::rv_policy::reference, "Returns a set of all residues stored in this residue db")
+        .def("getResidues", [](const OpenMS::ResidueDB& self, const OpenMS::String& residue_set) { return self.getResidues(residue_set); }, "residue_set"_a = "All", nb::rv_policy::reference, "Returns a set of all residues stored in this residue db")
         .def("getResidueSets", [](const OpenMS::ResidueDB& self) { return self.getResidueSets(); }, "Returns all residue sets that are registered which this instance")
         .def("hasResidue", [](const OpenMS::ResidueDB& self, const OpenMS::String& name) { return self.hasResidue(name); }, "name"_a, "Returns True if the db contains a residue with the given name")
         .def("hasResidue", [](const OpenMS::ResidueDB& self, OpenMS::Residue * residue) { return self.hasResidue(residue); }, "residue"_a, "Returns True if the db contains a residue with the given name")
@@ -1444,7 +1444,7 @@ Modified residues get created and added if getModifiedResidue is called.
         .def(nb::init<const OpenMS::ResidueModification &>())
         .def("setId", [](OpenMS::ResidueModification& self, const OpenMS::String& id) { return self.setId(id); }, "id"_a, "Sets the identifier of the modification")
         .def("getId", [](const OpenMS::ResidueModification& self) { return self.getId(); }, "Returns the identifier of the modification")
-        .def("setFullId", [](OpenMS::ResidueModification& self, const OpenMS::String& full_id) { return self.setFullId(full_id); }, "full_id"_a, "Sets the full identifier (Unimod Accession + origin, if available)")
+        .def("setFullId", [](OpenMS::ResidueModification& self, const OpenMS::String& full_id) { return self.setFullId(full_id); }, "full_id"_a = "", "Sets the full identifier (Unimod Accession + origin, if available)")
         .def("getFullId", [](const OpenMS::ResidueModification& self) { return self.getFullId(); })
         .def("setUniModRecordId", [](OpenMS::ResidueModification& self, const int& id) { return self.setUniModRecordId(id); }, "id"_a, "Sets the unimod record id")
         .def("getUniModRecordId", [](const OpenMS::ResidueModification& self) { return self.getUniModRecordId(); }, "Gets the unimod record id")
