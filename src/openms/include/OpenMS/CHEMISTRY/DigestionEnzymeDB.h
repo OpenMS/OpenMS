@@ -234,13 +234,37 @@ namespace OpenMS
       return enzy_ptr;
     }
 
-    /// add to internal data; also update indices for search by name and regex
+    /// add to internal data; also update indices for search by name and regex.
+    /// If an enzyme with the same name already exists, it is replaced.
     void addEnzyme_(const DigestionEnzymeType* enzyme)
     {
+      String name = enzyme->getName();
+
+      // if an enzyme with the same name exists, remove the old one first
+      auto existing = enzyme_names_.find(name);
+      if (existing != enzyme_names_.end())
+      {
+        const DigestionEnzymeType* old = existing->second;
+        const_enzymes_.erase(old);
+        // remove old name/synonym entries
+        String old_name = old->getName();
+        enzyme_names_.erase(old_name);
+        enzyme_names_.erase(old_name.toLower());
+        for (const auto& syn : old->getSynonyms())
+        {
+          enzyme_names_.erase(syn);
+        }
+        // remove old regex entry
+        if (!old->getRegEx().empty())
+        {
+          enzyme_regex_.erase(old->getRegEx());
+        }
+        delete old;
+      }
+
       // add to internal storage
       const_enzymes_.insert(enzyme);
       // add to internal indices (by name and its synonyms)
-      String name = enzyme->getName();
       enzyme_names_[name] = enzyme;
       enzyme_names_[name.toLower()] = enzyme;
       for (std::set<String>::const_iterator it = enzyme->getSynonyms().begin(); it != enzyme->getSynonyms().end(); ++it)

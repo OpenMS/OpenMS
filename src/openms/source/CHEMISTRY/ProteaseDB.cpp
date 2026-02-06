@@ -395,7 +395,7 @@ namespace OpenMS
     addEnzyme_(new DigestionEnzymeProtein(
       "staphylococcal protease/D",
       "(?<=[EZX])",
-      set<String>{"Glu-C/D"},
+      set<String>{"Glu-C/D", "staphylococcal protease/D"},
       "staphylococcal protease/D cuts after E(or Z).",
       EmpiricalFormula(""),
       EmpiricalFormula(""),
@@ -425,7 +425,7 @@ namespace OpenMS
     addEnzyme_(new DigestionEnzymeProtein(
       "Glu-C+P",
       "(?<=[DBEZX])(?!P)",
-      set<String>{"staphylococcal protease+P"},
+      set<String>{"Glu-C+P", "staphylococcal protease+P"},
       "Glu-C+P cuts after D(or B) or E(or Z) unless followed by P.",
       EmpiricalFormula(""),
       EmpiricalFormula(""),
