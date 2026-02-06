@@ -12,6 +12,7 @@ ConsensusIDAlgorithm.h
 ConsensusIDAlgorithmAverage.h
 ConsensusIDAlgorithmBest.h
 ConsensusIDAlgorithmIdentity.h
+CometModification.h
 ConsensusIDAlgorithmPEPIons.h
 ConsensusIDAlgorithmPEPMatrix.h
 ConsensusIDAlgorithmRanks.h
