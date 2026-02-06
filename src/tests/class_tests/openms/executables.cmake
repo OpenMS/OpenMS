@@ -642,6 +642,7 @@ if(NOT DISABLE_OPENSWATH)
     TargetedSpectraExtractor_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
+    CalibrationWorkflow_test
     MasstraceCorrelator_test
     MRMBatchFeatureSelector_test
     MRMFeatureScoring_test

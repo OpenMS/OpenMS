@@ -129,6 +129,7 @@ OpenMS Library:
     - LightTransition methods for MRMAssay, MRMDecoy, TransitionTSVFile, TransitionPQPFile (#8544)
     - SpectrumAnnotator: addPeakAnnotationsToPeptideHit() method (#8421)
     - iRT/CiRT transition files in share/OpenMS/CHEMISTRY/ (#8372)
+    - CalibrationWorkflow: refactored OpenSwathWorkflowCalibration workflow logic into a separate reusable CalibrationWorkflow class. (#8743)
     - SpectrumNativeIDParser class for parsing spectrum native IDs (extractScanNumber, getRegExFromNativeID, isNativeID) (#8633)
     - ArrowExport helper for exporting MSExperiment to Apache Arrow/Parquet formats with configurable layouts and compression (#8655)
     - ProFormaParser: Full ProForma v2 notation parser with AST representation (#8648)
