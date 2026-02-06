@@ -1,7 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8  -*-
-from __future__ import print_function
-
 import copy
 import os
 
@@ -493,4 +491,3 @@ def testMSChromatogramLen():
     assert len(chromatogram2) == chromatogram2.size()
     
     print("All MSChromatogram len() tests passed!")
-

@@ -196,7 +196,7 @@ NB_MODULE(_pyopenms_misc, m) {
     // -----------------------------------------------------------------------
     // BinaryDataArray
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Interfaces::BinaryDataArray>(m, "BinaryDataArray")
+    nb::class_<OpenMS::Interfaces::BinaryDataArray>(m, "BinaryDataArray", "OpenMS class BinaryDataArray")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Interfaces::BinaryDataArray &>())
         .def_rw("data", &OpenMS::Interfaces::BinaryDataArray::data)
@@ -205,7 +205,7 @@ NB_MODULE(_pyopenms_misc, m) {
     // -----------------------------------------------------------------------
     // Chromatogram
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Interfaces::Chromatogram>(m, "Chromatogram")
+    nb::class_<OpenMS::Interfaces::Chromatogram>(m, "Chromatogram", "OpenMS class Chromatogram")
         .def(nb::init<>())
         .def_rw("defaultArrayLength", &OpenMS::Interfaces::Chromatogram::defaultArrayLength)
 
@@ -1213,7 +1213,7 @@ Switches the score type of a ConsensusMap to a general score type
     // -----------------------------------------------------------------------
     // ScoreSearchResult
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::IDScoreSwitcherAlgorithm::ScoreSearchResult>(m, "ScoreSearchResult")
+    nb::class_<OpenMS::IDScoreSwitcherAlgorithm::ScoreSearchResult>(m, "ScoreSearchResult", "OpenMS class ScoreSearchResult")
         .def(nb::init<>())
         .def_rw("is_main_score_type", &OpenMS::IDScoreSwitcherAlgorithm::ScoreSearchResult::is_main_score_type,
                 "True if the main score is already of the requested score type")
@@ -1231,7 +1231,7 @@ Switches the score type of a ConsensusMap to a general score type
     // -----------------------------------------------------------------------
     // IDSwitchResult
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult>(m, "IDSwitchResult")
+    nb::class_<OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult>(m, "IDSwitchResult", "OpenMS class IDSwitchResult")
         .def(nb::init<>())
         .def_rw("original_score_name", &OpenMS::IDScoreSwitcherAlgorithm::IDSwitchResult::original_score_name,
                 "The name of the original score used before the switch")
@@ -1278,7 +1278,7 @@ chromatograms to be consumed and need to be informed about this
     // -----------------------------------------------------------------------
     // IMTypes
     // -----------------------------------------------------------------------
-    auto imtypes_class = nb::class_<OpenMS::IMTypes>(m, "IMTypes")
+    auto imtypes_class = nb::class_<OpenMS::IMTypes>(m, "IMTypes", "OpenMS class IMTypes")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IMTypes &>())
         .def_static("determineIMFormat", [](const OpenMS::MSExperiment& exp) { return OpenMS::IMTypes::determineIMFormat(exp); }, "exp"_a)
@@ -1462,7 +1462,7 @@ IsobaricQuantitationMethod
     // -----------------------------------------------------------------------
     // KDTreeFeatureMaps
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::KDTreeFeatureMaps, OpenMS::DefaultParamHandler>(m, "KDTreeFeatureMaps")
+    nb::class_<OpenMS::KDTreeFeatureMaps, OpenMS::DefaultParamHandler>(m, "KDTreeFeatureMaps", "OpenMS class KDTreeFeatureMaps")
         .def(nb::init<>())
         .def("rt", [](const OpenMS::KDTreeFeatureMaps& self, unsigned long i) { return self.rt(i); }, "i"_a)
         .def("mz", [](const OpenMS::KDTreeFeatureMaps& self, unsigned long i) { return self.mz(i); }, "i"_a)
@@ -1838,7 +1838,7 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     // OpenMSBuildInfo
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Internal::OpenMSBuildInfo>(m, "OpenMSBuildInfo")
+    nb::class_<OpenMS::Internal::OpenMSBuildInfo>(m, "OpenMSBuildInfo", "OpenMS class OpenMSBuildInfo")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Internal::OpenMSBuildInfo &>())
         .def_static("isOpenMPEnabled", []() { return OpenMS::Internal::OpenMSBuildInfo::isOpenMPEnabled(); })
@@ -2431,7 +2431,7 @@ ProgressLogger
     // -----------------------------------------------------------------------
     // ConfidenceScoring
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConfidenceScoring, OpenMS::ProgressLogger>(m, "ConfidenceScoring")
+    nb::class_<OpenMS::ConfidenceScoring, OpenMS::ProgressLogger>(m, "ConfidenceScoring", "OpenMS class ConfidenceScoring")
         .def(nb::init<bool>())
         .def("initialize", [](OpenMS::ConfidenceScoring& self, const OpenMS::TargetedExperiment& library, unsigned long n_decoys, unsigned long n_transitions, const OpenMS::TransformationDescription& rt_trafo) { return self.initialize(library, n_decoys, n_transitions, rt_trafo); }, "library"_a, "n_decoys"_a, "n_transitions"_a, "rt_trafo"_a)
         .def("initializeGlm", [](OpenMS::ConfidenceScoring& self, double intercept, double rt_coef, double int_coef) { return self.initializeGlm(intercept, rt_coef, int_coef); }, "intercept"_a, "rt_coef"_a, "int_coef"_a)
@@ -2712,7 +2712,7 @@ ProgressLogger
     // -----------------------------------------------------------------------
     // GNPSMGFFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::GNPSMGFFile, OpenMS::DefaultParamHandler>(m, "GNPSMGFFile")
+    nb::class_<OpenMS::GNPSMGFFile, OpenMS::DefaultParamHandler>(m, "GNPSMGFFile", "OpenMS class GNPSMGFFile")
         .def(nb::init<>())
         .def("store", [](const OpenMS::GNPSMGFFile& self, const OpenMS::String& consensus_file_path, const std::vector<OpenMS::String>& mzml_file_paths, const OpenMS::String& out) { return self.store(consensus_file_path, mzml_file_paths, out); }, "consensus_file_path"_a, "mzml_file_paths"_a, "out"_a, "Export consensus file from default workflow to GNPS MGF format")
         .def("setParameters", [](OpenMS::GNPSMGFFile& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
@@ -2726,7 +2726,7 @@ ProgressLogger
     // -----------------------------------------------------------------------
     // GaussFilter
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::GaussFilter, OpenMS::ProgressLogger>(m, "GaussFilter")
+    nb::class_<OpenMS::GaussFilter, OpenMS::ProgressLogger>(m, "GaussFilter", "OpenMS class GaussFilter")
         .def(nb::init<>())
         .def("filter", [](OpenMS::GaussFilter& self, OpenMS::MSSpectrum& spectrum) { return self.filter(spectrum); }, "spectrum"_a, "Smoothes an MSSpectrum containing profile data")
         .def("filter", [](OpenMS::GaussFilter& self, OpenMS::MSChromatogram& chromatogram) { return self.filter(chromatogram); }, "chromatogram"_a, "Smoothes an MSSpectrum containing profile data")
@@ -2756,6 +2756,20 @@ A mass recalibration method using linear/quadratic interpolation
 ProgressLogger
 )doc")
         .def(nb::init<>())
+        .def("fillCalibrants", [](OpenMS::InternalCalibration& self, const OpenMS::PeakMap& exp,
+                                   const std::vector<OpenMS::InternalCalibration::LockMass>& ref_masses,
+                                   double tol_ppm, bool lock_require_mono, bool lock_require_iso, bool verbose) {
+            OpenMS::CalibrationData failed_lock_masses;
+            const OpenMS::Size found = self.fillCalibrants(exp, ref_masses, tol_ppm, lock_require_mono, lock_require_iso, failed_lock_masses, verbose);
+            return nb::make_tuple(found, failed_lock_masses);
+        }, "exp"_a, "ref_masses"_a, "tol_ppm"_a, "lock_require_mono"_a, "lock_require_iso"_a, "verbose"_a = true,
+           "Extract calibrants from raw spectra. Returns (number_found, failed_lock_masses)")
+        .def("fillCalibrants", [](OpenMS::InternalCalibration& self, const OpenMS::FeatureMap& fm, double tol_ppm) {
+            return self.fillCalibrants(fm, tol_ppm);
+        }, "fm"_a, "tol_ppm"_a, "Extract calibrants from feature identifications")
+        .def("fillCalibrants", [](OpenMS::InternalCalibration& self, const OpenMS::PeptideIdentificationList& pep_ids, double tol_ppm) {
+            return self.fillCalibrants(pep_ids, tol_ppm);
+        }, "pep_ids"_a, "tol_ppm"_a, "Extract calibrants from peptide identifications")
         .def("getCalibrationPoints", [](const OpenMS::InternalCalibration& self) -> const OpenMS::CalibrationData & { return self.getCalibrationPoints(); }, nb::rv_policy::reference_internal, 
             R"doc(
 Extract calibrants from identifications\n
@@ -2795,6 +2809,19 @@ The MSExperiment will be sorted by RT and m/z if unsorted.
 :param rscript_executable: Full path to the Rscript executable
 :returns: Updated precursors with calibration applied
 )doc")
+        .def("calibrate", [](OpenMS::InternalCalibration& self, OpenMS::PeakMap& exp, const OpenMS::IntList& target_mslvl,
+                              OpenMS::MZTrafoModel::MODELTYPE model_type, double rt_chunk, bool use_RANSAC,
+                              double post_ppm_median, double post_ppm_MAD,
+                              const OpenMS::String& file_models, const OpenMS::String& file_models_plot,
+                              const OpenMS::String& file_residuals, const OpenMS::String& file_residuals_plot,
+                              const OpenMS::String& rscript_executable) {
+            return self.calibrate(exp, target_mslvl, model_type, rt_chunk, use_RANSAC,
+                                  post_ppm_median, post_ppm_MAD, file_models, file_models_plot,
+                                  file_residuals, file_residuals_plot, rscript_executable);
+        }, "exp"_a, "target_mslvl"_a, "model_type"_a, "rt_chunk"_a, "use_RANSAC"_a,
+           "post_ppm_median"_a, "post_ppm_MAD"_a, "file_models"_a = "", "file_models_plot"_a = "",
+           "file_residuals"_a = "", "file_residuals_plot"_a = "", "rscript_executable"_a = "Rscript",
+           "Calibrate an experiment using previously collected calibration points")
         .def_static("applyTransformation", [](OpenMS::MSSpectrum& spec, const std::vector<int>& target_mslvl, const OpenMS::MZTrafoModel& trafo) { return OpenMS::InternalCalibration::applyTransformation(spec, target_mslvl, trafo); }, "spec"_a, "target_mslvl"_a, "trafo"_a)
         .def_static("applyTransformation", [](OpenMS::MSExperiment& exp, const std::vector<int>& target_mslvl, const OpenMS::MZTrafoModel& trafo) { return OpenMS::InternalCalibration::applyTransformation(exp, target_mslvl, trafo); }, "exp"_a, "target_mslvl"_a, "trafo"_a)
         .def("setLogType", [](const OpenMS::InternalCalibration& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
@@ -3144,7 +3171,7 @@ ProgressLogger
     // -----------------------------------------------------------------------
     // MetaboliteSpectralMatching
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MetaboliteSpectralMatching, OpenMS::DefaultParamHandler>(m, "MetaboliteSpectralMatching")
+    nb::class_<OpenMS::MetaboliteSpectralMatching, OpenMS::DefaultParamHandler>(m, "MetaboliteSpectralMatching", "OpenMS class MetaboliteSpectralMatching")
         .def(nb::init<>())
         .def_static("computeHyperScore", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) { return OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, mz_lower_bound); }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a)
         .def_static("computeHyperScoreWithAnnotations", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) {
@@ -3540,7 +3567,7 @@ ProgressLogger
     // -----------------------------------------------------------------------
     // SimpleSearchEngineAlgorithm
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SimpleSearchEngineAlgorithm, OpenMS::DefaultParamHandler>(m, "SimpleSearchEngineAlgorithm")
+    nb::class_<OpenMS::SimpleSearchEngineAlgorithm, OpenMS::DefaultParamHandler>(m, "SimpleSearchEngineAlgorithm", "OpenMS class SimpleSearchEngineAlgorithm")
         .def(nb::init<>())
         .def("search", [](const OpenMS::SimpleSearchEngineAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
@@ -3618,7 +3645,7 @@ The generated ion types and other additional settings are determined by the tool
     // -----------------------------------------------------------------------
     // SiriusExportAlgorithm
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SiriusExportAlgorithm, OpenMS::DefaultParamHandler>(m, "SiriusExportAlgorithm")
+    nb::class_<OpenMS::SiriusExportAlgorithm, OpenMS::DefaultParamHandler>(m, "SiriusExportAlgorithm", "OpenMS class SiriusExportAlgorithm")
         .def(nb::init<>())
         .def("isFeatureOnly", [](const OpenMS::SiriusExportAlgorithm& self) { return self.isFeatureOnly(); })
         .def("getFilterByNumMassTraces", [](const OpenMS::SiriusExportAlgorithm& self) { return self.getFilterByNumMassTraces(); })
@@ -4224,7 +4251,7 @@ Store spectra in MSP format
     // -----------------------------------------------------------------------
     // TextFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::TextFile>(m, "TextFile")
+    nb::class_<OpenMS::TextFile>(m, "TextFile", "OpenMS class TextFile")
         .def(nb::init<>())
         .def(nb::init<OpenMS::String, bool, int, bool, OpenMS::String>())
         .def("load", [](OpenMS::TextFile& self, const OpenMS::String& filename, bool trim_lines, int first_n, bool skip_empty_lines, const OpenMS::String& comment_symbol) { return self.load(filename, trim_lines, first_n, skip_empty_lines, comment_symbol); }, "filename"_a, "trim_lines"_a, "first_n"_a, "skip_empty_lines"_a, "comment_symbol"_a)
@@ -4458,7 +4485,7 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     // XMLFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Internal::XMLFile>(m, "XMLFile")
+    nb::class_<OpenMS::Internal::XMLFile>(m, "XMLFile", "OpenMS class XMLFile")
         .def(nb::init<>())
         .def(nb::init<OpenMS::String, OpenMS::String>())
         .def("getVersion", [](const OpenMS::Internal::XMLFile& self) { return self.getVersion(); }, "Return the version of the schema")
@@ -5042,7 +5069,7 @@ XMLFile
     // -----------------------------------------------------------------------
     // IsobaricChannelExtractor
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::IsobaricChannelExtractor, OpenMS::DefaultParamHandler>(m, "IsobaricChannelExtractor")
+    nb::class_<OpenMS::IsobaricChannelExtractor, OpenMS::DefaultParamHandler>(m, "IsobaricChannelExtractor", "OpenMS class IsobaricChannelExtractor")
         .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod*>(), "quant_method"_a)
         .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod*>(), "quant_method"_a)
         .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod*>(), "quant_method"_a)
@@ -5054,7 +5081,7 @@ XMLFile
     // -----------------------------------------------------------------------
     // DIAScoring
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::DIAScoring, OpenMS::DefaultParamHandler>(m, "DIAScoring")
+    nb::class_<OpenMS::DIAScoring, OpenMS::DefaultParamHandler>(m, "DIAScoring", "OpenMS class DIAScoring")
         .def(nb::init<>())
         .def("score_with_isotopes", [](OpenMS::DIAScoring& self,
                 std::vector<std::shared_ptr<OpenSwath::OSSpectrum>>& spectrum,
@@ -5080,7 +5107,7 @@ XMLFile
     // -----------------------------------------------------------------------
     // MRMFeatureFinderScoring
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MRMFeatureFinderScoring, OpenMS::DefaultParamHandler>(m, "MRMFeatureFinderScoring")
+    nb::class_<OpenMS::MRMFeatureFinderScoring, OpenMS::DefaultParamHandler>(m, "MRMFeatureFinderScoring", "OpenMS class MRMFeatureFinderScoring")
         .def(nb::init<>())
         .def("pickExperiment", [](OpenMS::MRMFeatureFinderScoring& self,
                 OpenMS::MSExperiment& chromatograms,

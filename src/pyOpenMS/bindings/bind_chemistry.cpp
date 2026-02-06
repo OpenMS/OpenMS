@@ -192,7 +192,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
     // -----------------------------------------------------------------------
     // CoarseIsotopePatternGenerator
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::CoarseIsotopePatternGenerator>(m, "CoarseIsotopePatternGenerator")
+    nb::class_<OpenMS::CoarseIsotopePatternGenerator>(m, "CoarseIsotopePatternGenerator", "OpenMS class CoarseIsotopePatternGenerator")
         .def(nb::init<unsigned long, bool>())
         .def("setMaxIsotope", [](OpenMS::CoarseIsotopePatternGenerator& self, const unsigned long& max_isotope) { return self.setMaxIsotope(max_isotope); }, "max_isotope"_a, "Sets the maximal isotope with 'max_isotope'")
         .def("setRoundMasses", [](OpenMS::CoarseIsotopePatternGenerator& self, bool round_masses) { return self.setRoundMasses(round_masses); }, "round_masses"_a, "Sets the round_masses_ flag to round masses to integer values (true) or return accurate masses (false)")
@@ -573,7 +573,7 @@ if the threshold is absolute or relative.
     // -----------------------------------------------------------------------
     // IMSElement
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ims::IMSElement>(m, "IMSElement")
+    nb::class_<OpenMS::ims::IMSElement>(m, "IMSElement", "OpenMS class IMSElement")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ims::IMSElement &>())
         .def(nb::init<OpenMS::String, OpenMS::ims::IMSIsotopeDistribution>())
@@ -648,7 +648,7 @@ Folding with itself is done using Russian Multiplication Scheme
     // -----------------------------------------------------------------------
     // IMSIsotopeDistribution_Peak
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ims::IMSIsotopeDistribution::Peak>(m, "IMSIsotopeDistribution_Peak")
+    nb::class_<OpenMS::ims::IMSIsotopeDistribution::Peak>(m, "IMSIsotopeDistribution_Peak", "OpenMS class IMSIsotopeDistribution_Peak")
         .def(nb::init<double, double>())
         .def(nb::self == nb::self)
         .def_rw("mass", &OpenMS::ims::IMSIsotopeDistribution::Peak::mass)
@@ -879,7 +879,7 @@ The modifications are read from the unimod.xml file on construction.
     // -----------------------------------------------------------------------
     // ModifiedPeptideGenerator_MapToResidueType
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ModifiedPeptideGenerator::MapToResidueType>(m, "ModifiedPeptideGenerator_MapToResidueType")
+    nb::class_<OpenMS::ModifiedPeptideGenerator::MapToResidueType>(m, "ModifiedPeptideGenerator_MapToResidueType", "OpenMS class ModifiedPeptideGenerator_MapToResidueType")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ModifiedPeptideGenerator::MapToResidueType &>())
         .def_ro("val", &OpenMS::ModifiedPeptideGenerator::MapToResidueType::val)
@@ -1650,7 +1650,7 @@ the fixed and variable modifications given to the constructor
     // -----------------------------------------------------------------------
     // NASequence
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::NASequence>(m, "NASequence")
+    nb::class_<OpenMS::NASequence>(m, "NASequence", "OpenMS class NASequence")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::NASequence&>())
         .def("toString", &OpenMS::NASequence::toString, "Get string representation")

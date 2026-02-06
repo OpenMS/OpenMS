@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8  -*-
 
 ## ----------------------------------------------------------------------------
@@ -8,8 +8,6 @@
 ##           Nikos Patikas, Chris Bielow, Julianus Pfeuffer,
 ##           Oliver Alka, Stephan Aiche $
 ## ----------------------------------------------------------------------------
-from __future__ import print_function
-
 import pyopenms
 import copy
 import os
@@ -21,19 +19,10 @@ import pandas as pd
 
 print("IMPORTED ", pyopenms.__file__)
 
-try:
-    long
-except NameError:
-    long = int
-
 from functools import wraps
 
-import sys
 def _testStrOutput(input_str):
-    if sys.version_info[0] < 3:
-        assert isinstance(input_str, unicode)
-    else:
-        assert isinstance( input_str, str)
+    assert isinstance(input_str, str)
 
 def report(f):
     @wraps(f)
@@ -102,7 +91,7 @@ def _testUniqueIdInterface(what):
     assert what.hasInvalidUniqueId()
     assert not what.hasValidUniqueId()
     assert what.ensureUniqueId()
-    assert isinstance(what.getUniqueId(), (int, long))
+    assert isinstance(what.getUniqueId(), int)
     assert what.getUniqueId() > 0
     assert not what.hasInvalidUniqueId()
     assert what.hasValidUniqueId()
@@ -113,7 +102,7 @@ def _testUniqueIdInterface(what):
     assert not what.hasValidUniqueId()
 
     assert what.ensureUniqueId()
-    assert isinstance(what.getUniqueId(), (int, long))
+    assert isinstance(what.getUniqueId(), int)
     assert what.getUniqueId() > 0
     assert not what.hasInvalidUniqueId()
     assert what.hasValidUniqueId()
@@ -698,7 +687,7 @@ def test_BaseFeature():
     assert bf.ensureUniqueId()
     assert bf.getCharge() == 0
     assert isinstance(bf.getQuality(), float)
-    assert isinstance(bf.getUniqueId(), (long, int))
+    assert isinstance(bf.getUniqueId(), int)
     assert isinstance(bf.getWidth(), float)
 
     assert not bf.hasInvalidUniqueId()
@@ -1623,7 +1612,7 @@ def _testParam(p):
         if len(k.split(b":")) < 2: continue
         f = k.split(b":")[0]
         p.setSectionDescription(f, k)
-        # TODO: keys inside maps are not yet properly decoded
+        # keys inside maps should round-trip to native Python strings
         assert p.getSectionDescription(f) == k.decode()
 
         assert p.get(k) is not None
@@ -1845,8 +1834,9 @@ def testInternalCalibration():
     p = ff.getDefaults()
     _testParam(p)
 
-    # TODO 
-    # assert pyopenms.InternalCalibration().compute is not None
+    assert pyopenms.InternalCalibration().fillCalibrants is not None
+    assert pyopenms.InternalCalibration().getCalibrationPoints is not None
+    assert pyopenms.InternalCalibration().calibrate is not None
 
 @report
 def testItraqConstants():
@@ -1900,19 +1890,9 @@ def testSeedListGenerator():
     p = ff.getDefaults()
     _testParam(p)
 
-    # TODO 
-    # assert pyopenms.SeedListGenerator().compute is not None
-
-# TODO: re-enable as soon as ConsensusIDAlgorithm classes are wrapped
-# @report
-# def testConsensusID():
-#     """
-#     @tests: ConsensusID
-#      ConsensusID.__init__
-#     """
-#     ff = pyopenms.ConsensusID()
-#     p = ff.getDefaults()
-#     _testParam(p)
+    assert pyopenms.SeedListGenerator().generateSeedList is not None
+    assert pyopenms.SeedListGenerator().generateSeedLists is not None
+    assert pyopenms.SeedListGenerator().convertSeedList is not None
 
 #     assert pyopenms.ConsensusID().apply is not None
 
@@ -1982,8 +1962,9 @@ def testSeedListGenerator():
     """
     ff = pyopenms.SeedListGenerator()
 
-    # TODO 
-    # assert pyopenms.SeedListGenerator().generateSeedList is not None
+    assert pyopenms.SeedListGenerator().generateSeedList is not None
+    assert pyopenms.SeedListGenerator().generateSeedLists is not None
+    assert pyopenms.SeedListGenerator().convertSeedList is not None
 
 @report
 def testConsensusMapNormalizerAlgorithmMedian():
@@ -2399,7 +2380,7 @@ def testFileDescription():
     _testStrOutput(fd.filename)
     _testStrOutput(fd.label)
     assert isinstance(fd.size, int)
-    # assert isinstance(fd.unique_id, (long, int, bytes))
+    # assert isinstance(fd.unique_id, (int, bytes))
 
 @report
 def testFileHandler():
@@ -6954,4 +6935,3 @@ CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
 1	2.mzML	MAP1
 """
     os.remove("MetaValueTable.tsv")
-

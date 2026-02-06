@@ -26,6 +26,7 @@ for clz_name, clz in pyopenms.__dict__.items():
         toTest.add("%s.%s" % (clz_name, method_name))
 
 def parse_doc(item, collection):
+    oldclzz = ""
     if item.__doc__ is not None:
        it = iter(item.__doc__.split("\n"))
        for line in it:
@@ -42,7 +43,7 @@ def parse_doc(item, collection):
                     clz = oldclzz
                 fullname = "%s.%s" % (clz, method)
                 if fullname.endswith("()"):
-                    print fullname, "declared with parentesis, fix it"
+                    print(fullname, "declared with parentesis, fix it")
                     fullname = fullname[:-2]
                 collection.add(fullname)
                 oldclzz = clz
@@ -66,15 +67,15 @@ for p in glob.glob("tests/unittests/test*.py"):
 missing = toTest-declaredAsTested
 
 if missing:
-    print
-    print len(missing), "tests/test declarations  are missing !"
+    print()
+    print(len(missing), "tests/test declarations  are missing !")
     for name in sorted(missing):
-        print "    ", name
+        print("    ", name)
 
 toMuch = declaredAsTested-toTest
 
 if toMuch:
-    print
-    print len(toMuch), "tests/test declarations do not fit:"
+    print()
+    print(len(toMuch), "tests/test declarations do not fit:")
     for name in toMuch:
-        print "    ", name
+        print("    ", name)

@@ -143,7 +143,7 @@ the transformation model used for concentration calculation
     // -----------------------------------------------------------------------
     // AccurateMassSearchResult
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::AccurateMassSearchResult>(m, "AccurateMassSearchResult")
+    nb::class_<OpenMS::AccurateMassSearchResult>(m, "AccurateMassSearchResult", "OpenMS class AccurateMassSearchResult")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::AccurateMassSearchResult &>())
         .def("getObservedMZ", [](const OpenMS::AccurateMassSearchResult& self) { return self.getObservedMZ(); })
@@ -182,7 +182,7 @@ the transformation model used for concentration calculation
     // -----------------------------------------------------------------------
     // CV
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::TargetedExperimentHelper::CV>(m, "CV")
+    nb::class_<OpenMS::TargetedExperimentHelper::CV>(m, "CV", "OpenMS class CV")
         .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String>())
         .def(nb::self == nb::self)
         .def_rw("id", &OpenMS::TargetedExperimentHelper::CV::id)
@@ -389,7 +389,7 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
     // -----------------------------------------------------------------------
     // FeatureMapping
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FeatureMapping>(m, "FeatureMapping")
+    nb::class_<OpenMS::FeatureMapping>(m, "FeatureMapping", "OpenMS class FeatureMapping")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FeatureMapping &>())
         .def_static("assignMS2IndexToFeature", [](const OpenMS::MSExperiment& spectra, const OpenMS::FeatureMapping::FeatureMappingInfo& fm_info, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance, bool ppm) { return OpenMS::FeatureMapping::assignMS2IndexToFeature(spectra, fm_info, precursor_mz_tolerance, precursor_rt_tolerance, ppm); }, "spectra"_a, "fm_info"_a, "precursor_mz_tolerance"_a, "precursor_rt_tolerance"_a, "ppm"_a)
@@ -398,7 +398,7 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
     // -----------------------------------------------------------------------
     // FeatureMapping_FeatureMappingInfo
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FeatureMapping::FeatureMappingInfo>(m, "FeatureMapping_FeatureMappingInfo")
+    nb::class_<OpenMS::FeatureMapping::FeatureMappingInfo>(m, "FeatureMapping_FeatureMappingInfo", "OpenMS class FeatureMapping_FeatureMappingInfo")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FeatureMapping::FeatureMappingInfo &>())
         .def_rw("feature_maps", &OpenMS::FeatureMapping::FeatureMappingInfo::feature_maps)
@@ -408,7 +408,7 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
     // -----------------------------------------------------------------------
     // FeatureMapping_FeatureToMs2Indices
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FeatureMapping::FeatureToMs2Indices>(m, "FeatureMapping_FeatureToMs2Indices")
+    nb::class_<OpenMS::FeatureMapping::FeatureToMs2Indices>(m, "FeatureMapping_FeatureToMs2Indices", "OpenMS class FeatureMapping_FeatureToMs2Indices")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FeatureMapping::FeatureToMs2Indices &>())
         .def_ro("assignedMS2", &OpenMS::FeatureMapping::FeatureToMs2Indices::assignedMS2)
@@ -418,7 +418,7 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
     // -----------------------------------------------------------------------
     // HyperScore
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::HyperScore>(m, "HyperScore")
+    nb::class_<OpenMS::HyperScore>(m, "HyperScore", "OpenMS class HyperScore")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::HyperScore &>())
         .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& theo_spectrum) { return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a)
@@ -432,7 +432,7 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
     // -----------------------------------------------------------------------
     // IDConflictResolverAlgorithm
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::IDConflictResolverAlgorithm>(m, "IDConflictResolverAlgorithm")
+    nb::class_<OpenMS::IDConflictResolverAlgorithm>(m, "IDConflictResolverAlgorithm", "OpenMS class IDConflictResolverAlgorithm")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IDConflictResolverAlgorithm &>())
         .def_static("resolve", [](OpenMS::FeatureMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); }, "features"_a, "keep_matching"_a)
@@ -595,7 +595,7 @@ KDTreeFeatureNode() except + nogil
     // -----------------------------------------------------------------------
     // LightCompound
     // -----------------------------------------------------------------------
-    nb::class_<OpenSwath::LightCompound>(m, "LightCompound")
+    nb::class_<OpenSwath::LightCompound>(m, "LightCompound", "OpenMS class LightCompound")
         .def(nb::init<>())
         .def(nb::init<const OpenSwath::LightCompound &>())
         .def("setDriftTime", [](OpenSwath::LightCompound& self, double d) { return self.setDriftTime(d); }, "d"_a)
@@ -622,7 +622,7 @@ KDTreeFeatureNode() except + nogil
     // -----------------------------------------------------------------------
     // LightModification
     // -----------------------------------------------------------------------
-    nb::class_<OpenSwath::LightModification>(m, "LightModification")
+    nb::class_<OpenSwath::LightModification>(m, "LightModification", "OpenMS class LightModification")
         .def(nb::init<>())
         .def(nb::init<const OpenSwath::LightModification &>())
         .def_rw("location", &OpenSwath::LightModification::location)
@@ -632,7 +632,7 @@ KDTreeFeatureNode() except + nogil
     // -----------------------------------------------------------------------
     // LightProtein
     // -----------------------------------------------------------------------
-    nb::class_<OpenSwath::LightProtein>(m, "LightProtein")
+    nb::class_<OpenSwath::LightProtein>(m, "LightProtein", "OpenMS class LightProtein")
         .def(nb::init<>())
         .def(nb::init<const OpenSwath::LightProtein &>())
         .def_rw("id", &OpenSwath::LightProtein::id)
@@ -643,7 +643,7 @@ KDTreeFeatureNode() except + nogil
     // -----------------------------------------------------------------------
     // LightTargetedExperiment
     // -----------------------------------------------------------------------
-    nb::class_<OpenSwath::LightTargetedExperiment>(m, "LightTargetedExperiment")
+    nb::class_<OpenSwath::LightTargetedExperiment>(m, "LightTargetedExperiment", "OpenMS class LightTargetedExperiment")
         .def(nb::init<>())
         .def(nb::init<const OpenSwath::LightTargetedExperiment &>())
         .def("getTransitions", [](const OpenSwath::LightTargetedExperiment& self) { return self.getTransitions(); })
@@ -661,7 +661,7 @@ KDTreeFeatureNode() except + nogil
     // -----------------------------------------------------------------------
     // LightTransition
     // -----------------------------------------------------------------------
-    nb::class_<OpenSwath::LightTransition>(m, "LightTransition")
+    nb::class_<OpenSwath::LightTransition>(m, "LightTransition", "OpenMS class LightTransition")
         .def(nb::init<>())
         .def(nb::init<const OpenSwath::LightTransition &>())
         .def("getProductChargeState", [](const OpenSwath::LightTransition& self) { return self.getProductChargeState(); })
@@ -728,13 +728,13 @@ Constructors
     // -----------------------------------------------------------------------
     // MRMBatchFeatureSelector
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MRMBatchFeatureSelector>(m, "MRMBatchFeatureSelector")
+    nb::class_<OpenMS::MRMBatchFeatureSelector>(m, "MRMBatchFeatureSelector", "OpenMS class MRMBatchFeatureSelector")
         ;
 
     // -----------------------------------------------------------------------
     // MRMFQC_ComponentGroupPairQCs
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MRMFeatureQC::ComponentGroupPairQCs>(m, "MRMFQC_ComponentGroupPairQCs")
+    nb::class_<OpenMS::MRMFeatureQC::ComponentGroupPairQCs>(m, "MRMFQC_ComponentGroupPairQCs", "OpenMS class MRMFQC_ComponentGroupPairQCs")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MRMFeatureQC::ComponentGroupPairQCs &>())
         .def_rw("component_group_name", &OpenMS::MRMFeatureQC::ComponentGroupPairQCs::component_group_name)
@@ -748,7 +748,7 @@ Constructors
     // -----------------------------------------------------------------------
     // MRMFQC_ComponentGroupQCs
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MRMFeatureQC::ComponentGroupQCs>(m, "MRMFQC_ComponentGroupQCs")
+    nb::class_<OpenMS::MRMFeatureQC::ComponentGroupQCs>(m, "MRMFQC_ComponentGroupQCs", "OpenMS class MRMFQC_ComponentGroupQCs")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MRMFeatureQC::ComponentGroupQCs &>())
         .def_rw("component_group_name", &OpenMS::MRMFeatureQC::ComponentGroupQCs::component_group_name)
@@ -780,7 +780,7 @@ Constructors
     // -----------------------------------------------------------------------
     // MRMFQC_ComponentQCs
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MRMFeatureQC::ComponentQCs>(m, "MRMFQC_ComponentQCs")
+    nb::class_<OpenMS::MRMFeatureQC::ComponentQCs>(m, "MRMFQC_ComponentQCs", "OpenMS class MRMFQC_ComponentQCs")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MRMFeatureQC::ComponentQCs &>())
         .def_rw("component_name", &OpenMS::MRMFeatureQC::ComponentQCs::component_name)
@@ -1124,7 +1124,7 @@ Resolves overlapping target and decoy transition masses by adding a specifiable 
     // -----------------------------------------------------------------------
     // MorpheusScore
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MorpheusScore>(m, "MorpheusScore")
+    nb::class_<OpenMS::MorpheusScore>(m, "MorpheusScore", "OpenMS class MorpheusScore")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MorpheusScore &>())
         .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& theo_spectrum) { return OpenMS::MorpheusScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a, "Returns Morpheus Score")
@@ -1134,7 +1134,7 @@ Resolves overlapping target and decoy transition masses by adding a specifiable 
     // -----------------------------------------------------------------------
     // MorpheusScore_Result
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MorpheusScore::Result>(m, "MorpheusScore_Result")
+    nb::class_<OpenMS::MorpheusScore::Result>(m, "MorpheusScore_Result", "OpenMS class MorpheusScore_Result")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MorpheusScore::Result &>())
         .def_rw("matches", &OpenMS::MorpheusScore::Result::matches)
@@ -1149,7 +1149,7 @@ Resolves overlapping target and decoy transition masses by adding a specifiable 
     // -----------------------------------------------------------------------
     // OPXLDataStructs
     // -----------------------------------------------------------------------
-    auto opxldatastructs_class = nb::class_<OpenMS::OPXLDataStructs>(m, "OPXLDataStructs")
+    auto opxldatastructs_class = nb::class_<OpenMS::OPXLDataStructs>(m, "OPXLDataStructs", "OpenMS class OPXLDataStructs")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::OPXLDataStructs &>())
         ;
@@ -1205,7 +1205,7 @@ duplicated code
     // -----------------------------------------------------------------------
     // OPXLSpectrumProcessingAlgorithms
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::OPXLSpectrumProcessingAlgorithms>(m, "OPXLSpectrumProcessingAlgorithms")
+    nb::class_<OpenMS::OPXLSpectrumProcessingAlgorithms>(m, "OPXLSpectrumProcessingAlgorithms", "OpenMS class OPXLSpectrumProcessingAlgorithms")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::OPXLSpectrumProcessingAlgorithms &>())
         .def_static("mergeAnnotatedSpectra", [](OpenMS::MSSpectrum& first_spectrum, OpenMS::MSSpectrum& second_spectrum) { return OpenMS::OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(first_spectrum, second_spectrum); }, "first_spectrum"_a, "second_spectrum"_a)
@@ -1273,7 +1273,7 @@ The result can be flushed to disk using writeLines (either line by line or after
     // -----------------------------------------------------------------------
     // PI_PeakArea
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeakIntegrator::PeakArea>(m, "PI_PeakArea")
+    nb::class_<OpenMS::PeakIntegrator::PeakArea>(m, "PI_PeakArea", "OpenMS class PI_PeakArea")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::PeakIntegrator::PeakArea &>())
         .def_rw("area", &OpenMS::PeakIntegrator::PeakArea::area)
@@ -1285,7 +1285,7 @@ The result can be flushed to disk using writeLines (either line by line or after
     // -----------------------------------------------------------------------
     // PI_PeakBackground
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeakIntegrator::PeakBackground>(m, "PI_PeakBackground")
+    nb::class_<OpenMS::PeakIntegrator::PeakBackground>(m, "PI_PeakBackground", "OpenMS class PI_PeakBackground")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::PeakIntegrator::PeakBackground &>())
         .def_rw("area", &OpenMS::PeakIntegrator::PeakBackground::area)
@@ -1295,7 +1295,7 @@ The result can be flushed to disk using writeLines (either line by line or after
     // -----------------------------------------------------------------------
     // PI_PeakShapeMetrics
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeakIntegrator::PeakShapeMetrics>(m, "PI_PeakShapeMetrics")
+    nb::class_<OpenMS::PeakIntegrator::PeakShapeMetrics>(m, "PI_PeakShapeMetrics", "OpenMS class PI_PeakShapeMetrics")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::PeakIntegrator::PeakShapeMetrics &>())
         .def_rw("width_at_5", &OpenMS::PeakIntegrator::PeakShapeMetrics::width_at_5)
@@ -1319,7 +1319,7 @@ The result can be flushed to disk using writeLines (either line by line or after
     // -----------------------------------------------------------------------
     // PScore
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PScore>(m, "PScore")
+    nb::class_<OpenMS::PScore>(m, "PScore", "OpenMS class PScore")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::PScore &>())
         .def_static("calculateIntensityRankInMZWindow", [](const std::vector<double>& mz, const std::vector<double>& intensities, double mz_window) { return OpenMS::PScore::calculateIntensityRankInMZWindow(mz, intensities, mz_window); }, "mz"_a, "intensities"_a, "mz_window"_a)
@@ -1475,7 +1475,7 @@ CVTermList
     // -----------------------------------------------------------------------
     // PeptideAndProteinQuant_PeptideData
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeptideAndProteinQuant::PeptideData>(m, "PeptideAndProteinQuant_PeptideData")
+    nb::class_<OpenMS::PeptideAndProteinQuant::PeptideData>(m, "PeptideAndProteinQuant_PeptideData", "OpenMS class PeptideAndProteinQuant_PeptideData")
         .def(nb::init<>())
         .def_rw("abundances", &OpenMS::PeptideAndProteinQuant::PeptideData::abundances)
         .def_rw("psm_counts", &OpenMS::PeptideAndProteinQuant::PeptideData::psm_counts)
@@ -1488,7 +1488,7 @@ CVTermList
     // -----------------------------------------------------------------------
     // PeptideAndProteinQuant_ProteinData
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeptideAndProteinQuant::ProteinData>(m, "PeptideAndProteinQuant_ProteinData")
+    nb::class_<OpenMS::PeptideAndProteinQuant::ProteinData>(m, "PeptideAndProteinQuant_ProteinData", "OpenMS class PeptideAndProteinQuant_ProteinData")
         .def(nb::init<>())
         .def_rw("peptide_abundances", &OpenMS::PeptideAndProteinQuant::ProteinData::peptide_abundances)
         .def_rw("peptide_psm_counts", &OpenMS::PeptideAndProteinQuant::ProteinData::peptide_psm_counts)
@@ -1503,7 +1503,7 @@ CVTermList
     // -----------------------------------------------------------------------
     // PeptideAndProteinQuant_Statistics
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeptideAndProteinQuant::Statistics>(m, "PeptideAndProteinQuant_Statistics")
+    nb::class_<OpenMS::PeptideAndProteinQuant::Statistics>(m, "PeptideAndProteinQuant_Statistics", "OpenMS class PeptideAndProteinQuant_Statistics")
         .def(nb::init<>())
         .def_rw("n_samples", &OpenMS::PeptideAndProteinQuant::Statistics::n_samples)
         .def_rw("n_fractions", &OpenMS::PeptideAndProteinQuant::Statistics::n_fractions)
@@ -1864,7 +1864,7 @@ params.select_transition_group = False
     // -----------------------------------------------------------------------
     // SiriusMSFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SiriusMSFile>(m, "SiriusMSFile")
+    nb::class_<OpenMS::SiriusMSFile>(m, "SiriusMSFile", "OpenMS class SiriusMSFile")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SiriusMSFile &>())
         ;
@@ -1872,7 +1872,7 @@ params.select_transition_group = False
     // -----------------------------------------------------------------------
     // SiriusMSFile_AccessionInfo
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SiriusMSFile::AccessionInfo>(m, "SiriusMSFile_AccessionInfo")
+    nb::class_<OpenMS::SiriusMSFile::AccessionInfo>(m, "SiriusMSFile_AccessionInfo", "OpenMS class SiriusMSFile_AccessionInfo")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SiriusMSFile::AccessionInfo &>())
         .def_rw("sf_path", &OpenMS::SiriusMSFile::AccessionInfo::sf_path)
@@ -1886,7 +1886,7 @@ params.select_transition_group = False
     // -----------------------------------------------------------------------
     // SiriusMSFile_CompoundInfo
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SiriusMSFile::CompoundInfo>(m, "SiriusMSFile_CompoundInfo")
+    nb::class_<OpenMS::SiriusMSFile::CompoundInfo>(m, "SiriusMSFile_CompoundInfo", "OpenMS class SiriusMSFile_CompoundInfo")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SiriusMSFile::CompoundInfo &>())
         .def_rw("cmp", &OpenMS::SiriusMSFile::CompoundInfo::cmp)
@@ -1914,7 +1914,7 @@ params.select_transition_group = False
     // -----------------------------------------------------------------------
     // SpectralMatch
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SpectralMatch>(m, "SpectralMatch")
+    nb::class_<OpenMS::SpectralMatch>(m, "SpectralMatch", "OpenMS class SpectralMatch")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SpectralMatch &>())
         .def("getObservedPrecursorMass", [](const OpenMS::SpectralMatch& self) { return self.getObservedPrecursorMass(); })
@@ -2173,7 +2173,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // OSBinaryDataArray
     // -----------------------------------------------------------------------
-    nb::class_<OSBDA>(m, "OSBinaryDataArray")
+    nb::class_<OSBDA>(m, "OSBinaryDataArray", "OpenMS class OSBinaryDataArray")
         .def(nb::init<>())
         .def(nb::init<const OSBDA&>())
         .def_rw("data", &OSBDA::data)
@@ -2195,7 +2195,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // OSSpectrum
     // -----------------------------------------------------------------------
-    nb::class_<OSSpec>(m, "OSSpectrum")
+    nb::class_<OSSpec>(m, "OSSpectrum", "OpenMS class OSSpectrum")
         .def(nb::init<>())
         .def(nb::init<const OSSpec&>())
         .def("getMZArray", &OSSpec::getMZArray)
@@ -2261,7 +2261,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // OSChromatogram
     // -----------------------------------------------------------------------
-    nb::class_<OSChrom>(m, "OSChromatogram")
+    nb::class_<OSChrom>(m, "OSChromatogram", "OpenMS class OSChromatogram")
         .def(nb::init<>())
         .def(nb::init<const OSChrom&>())
         .def("getTimeArray", &OSChrom::getTimeArray)
@@ -2306,7 +2306,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // IsobaricChannelInformation
     // -----------------------------------------------------------------------
-    nb::class_<ICI>(m, "IsobaricChannelInformation")
+    nb::class_<ICI>(m, "IsobaricChannelInformation", "OpenMS class IsobaricChannelInformation")
         .def("__init__", [](ICI* self, const std::string& name, int id, const std::string& description, double center, std::vector<int> affected_channels) {
             new (self) ICI(name, id, description, center, affected_channels);
         }, "name"_a, "id"_a, "description"_a, "center"_a, "affected_channels"_a)
@@ -2323,7 +2323,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // TransformationModelBSpline
     // -----------------------------------------------------------------------
-    nb::class_<TransformationModelBSpline_Dummy>(m, "TransformationModelBSpline")
+    nb::class_<TransformationModelBSpline_Dummy>(m, "TransformationModelBSpline", "OpenMS class TransformationModelBSpline")
         .def_static("getDefaultParameters", [](OpenMS::Param& params) {
             OpenMS::TransformationModelBSpline::getDefaultParameters(params);
         }, "params"_a, "Get default parameters")
@@ -2334,7 +2334,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // TransformationModelLowess
     // -----------------------------------------------------------------------
-    nb::class_<TransformationModelLowess_Dummy>(m, "TransformationModelLowess")
+    nb::class_<TransformationModelLowess_Dummy>(m, "TransformationModelLowess", "OpenMS class TransformationModelLowess")
         .def_static("getDefaultParameters", [](OpenMS::Param& params) {
             OpenMS::TransformationModelLowess::getDefaultParameters(params);
         }, "params"_a, "Get default parameters")
@@ -2344,7 +2344,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // IsobaricNormalizer
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::IsobaricNormalizer>(m, "IsobaricNormalizer")
+    nb::class_<OpenMS::IsobaricNormalizer>(m, "IsobaricNormalizer", "OpenMS class IsobaricNormalizer")
         .def(nb::init<const OpenMS::ItraqFourPlexQuantitationMethod*>(), "quant_method"_a)
         .def(nb::init<const OpenMS::ItraqEightPlexQuantitationMethod*>(), "quant_method"_a)
         .def(nb::init<const OpenMS::TMTSixPlexQuantitationMethod*>(), "quant_method"_a)
@@ -2356,7 +2356,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // SpectrumAccessOpenMS
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SpectrumAccessOpenMS>(m, "SpectrumAccessOpenMS")
+    nb::class_<OpenMS::SpectrumAccessOpenMS>(m, "SpectrumAccessOpenMS", "OpenMS class SpectrumAccessOpenMS")
         .def(nb::init<std::shared_ptr<OpenMS::MSExperiment>>(), "ms_experiment"_a)
         .def("getSpectrumById", &OpenMS::SpectrumAccessOpenMS::getSpectrumById, "id"_a, "Get spectrum by index")
         .def("getChromatogramById", &OpenMS::SpectrumAccessOpenMS::getChromatogramById, "id"_a, "Get chromatogram by index")
@@ -2369,7 +2369,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // SpectrumAccessOpenMSInMemory
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SpectrumAccessOpenMSInMemory>(m, "SpectrumAccessOpenMSInMemory")
+    nb::class_<OpenMS::SpectrumAccessOpenMSInMemory>(m, "SpectrumAccessOpenMSInMemory", "OpenMS class SpectrumAccessOpenMSInMemory")
         .def("__init__", [](OpenMS::SpectrumAccessOpenMSInMemory* self, OpenMS::SpectrumAccessOpenMS& other) {
             new (self) OpenMS::SpectrumAccessOpenMSInMemory(other);
         }, "other"_a)
@@ -2383,7 +2383,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // SwathMap
     // -----------------------------------------------------------------------
-    nb::class_<OpenSwath::SwathMap>(m, "SwathMap")
+    nb::class_<OpenSwath::SwathMap>(m, "SwathMap", "OpenMS class SwathMap")
         .def(nb::init<>())
         .def(nb::init<const OpenSwath::SwathMap&>())
         .def(nb::init<double, double, double, bool>(), "mz_start"_a, "mz_end"_a, "mz_center"_a, "is_ms1"_a)
@@ -2413,7 +2413,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     // OpenSwathScoring
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::OpenSwathScoring>(m, "OpenSwathScoring")
+    nb::class_<OpenMS::OpenSwathScoring>(m, "OpenSwathScoring", "OpenMS class OpenSwathScoring")
         .def(nb::init<>())
         .def("initialize", &OpenMS::OpenSwathScoring::initialize,
             "rt_normalization_factor"_a, "add_up_spectra"_a,

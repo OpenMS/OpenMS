@@ -48,7 +48,7 @@ interpolation
     // -----------------------------------------------------------------------
     // EmgScoring
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::EmgScoring>(m, "EmgScoring")
+    nb::class_<OpenMS::EmgScoring>(m, "EmgScoring", "OpenMS class EmgScoring")
         .def(nb::init<>())
         .def("setFitterParam", [](OpenMS::EmgScoring& self, const OpenMS::Param& param) { return self.setFitterParam(param); }, "param"_a)
         .def("getDefaults", [](OpenMS::EmgScoring& self) { return self.getDefaults(); })
@@ -212,7 +212,7 @@ for a group of matching peptide features
     // -----------------------------------------------------------------------
     // MultiplexDeltaMassesGenerator_Label
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MultiplexDeltaMassesGenerator::Label>(m, "MultiplexDeltaMassesGenerator_Label")
+    nb::class_<OpenMS::MultiplexDeltaMassesGenerator::Label>(m, "MultiplexDeltaMassesGenerator_Label", "OpenMS class MultiplexDeltaMassesGenerator_Label")
         .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, double>())
         .def_rw("short_name", &OpenMS::MultiplexDeltaMassesGenerator::Label::short_name)
         .def_rw("long_name", &OpenMS::MultiplexDeltaMassesGenerator::Label::long_name)
@@ -223,7 +223,7 @@ for a group of matching peptide features
     // -----------------------------------------------------------------------
     // MultiplexDeltaMasses_DeltaMass
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MultiplexDeltaMasses::DeltaMass>(m, "MultiplexDeltaMasses_DeltaMass")
+    nb::class_<OpenMS::MultiplexDeltaMasses::DeltaMass>(m, "MultiplexDeltaMasses_DeltaMass", "OpenMS class MultiplexDeltaMasses_DeltaMass")
         .def(nb::init<double, std::multiset<OpenMS::String>>())
         .def(nb::init<double, OpenMS::String>())
         .def_rw("delta_mass", &OpenMS::MultiplexDeltaMasses::DeltaMass::delta_mass)
@@ -273,6 +273,31 @@ PeakWidthEstimator() except + nogil
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SeedListGenerator>(m, "SeedListGenerator", "Generate seed lists for feature detection")
         .def(nb::init<>())
+        .def("generateSeedList", [](OpenMS::SeedListGenerator& self, const OpenMS::PeakMap& experiment) {
+            OpenMS::SeedListGenerator::SeedList seeds;
+            self.generateSeedList(experiment, seeds);
+            return seeds;
+        }, "experiment"_a, "Generate a seed list from an experiment using precursor positions")
+        .def("generateSeedList", [](OpenMS::SeedListGenerator& self, OpenMS::PeptideIdentificationList& peptides, bool use_peptide_mass) {
+            OpenMS::SeedListGenerator::SeedList seeds;
+            self.generateSeedList(peptides, seeds, use_peptide_mass);
+            return seeds;
+        }, "peptides"_a, "use_peptide_mass"_a = false, "Generate a seed list from peptide identifications")
+        .def("generateSeedLists", [](OpenMS::SeedListGenerator& self, const OpenMS::ConsensusMap& consensus) {
+            std::map<OpenMS::UInt64, OpenMS::SeedListGenerator::SeedList> seed_lists;
+            self.generateSeedLists(consensus, seed_lists);
+            return seed_lists;
+        }, "consensus"_a, "Generate one seed list per constituent map in a consensus map")
+        .def("convertSeedList", [](OpenMS::SeedListGenerator& self, const OpenMS::SeedListGenerator::SeedList& seeds) {
+            OpenMS::FeatureMap features;
+            self.convertSeedList(seeds, features);
+            return features;
+        }, "seeds"_a, "Convert seed positions to a FeatureMap")
+        .def("convertSeedList", [](OpenMS::SeedListGenerator& self, const OpenMS::FeatureMap& features) {
+            OpenMS::SeedListGenerator::SeedList seeds;
+            self.convertSeedList(features, seeds);
+            return seeds;
+        }, "features"_a, "Convert a FeatureMap of seeds back to seed positions")
         ;
 
 }

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8  -*-
 """
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
@@ -10,7 +10,6 @@
 # --------------------------------------------------------------------------
 """
 from __future__ import division
-from __future__ import print_function
 
 # Create simulated ion mobility scans for testing
 
@@ -143,4 +142,3 @@ pf.setCompression(True)
 f.setOptions(pf)
 exp.sortSpectra()
 f.store('output.mzML', exp)
-
