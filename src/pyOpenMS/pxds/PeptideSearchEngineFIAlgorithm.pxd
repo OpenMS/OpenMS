@@ -95,8 +95,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>" namespa
         ILLEGAL_PARAMETERS
 
     cdef cppclass PeptideSearchEngineFIAlgorithm_SearchResult "OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult":
-        # wrap-attach:
-        #   PeptideSearchEngineFIAlgorithm
         # wrap-doc:
         #   Comprehensive search result including modification analysis.
         #

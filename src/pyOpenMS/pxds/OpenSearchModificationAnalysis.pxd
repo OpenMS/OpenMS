@@ -130,8 +130,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
 cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespace "OpenMS::OpenSearchModificationAnalysis":
 
     cdef cppclass OpenSearchModificationAnalysis_ModificationPattern "OpenMS::OpenSearchModificationAnalysis::ModificationPattern":
-        # wrap-attach:
-        #   OpenSearchModificationAnalysis
         double count
         libcpp_vector[double] masses
         int num_charge_states
@@ -140,8 +138,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
         OpenSearchModificationAnalysis_ModificationPattern(OpenSearchModificationAnalysis_ModificationPattern&) except + nogil
 
     cdef cppclass OpenSearchModificationAnalysis_ModificationSummary "OpenMS::OpenSearchModificationAnalysis::ModificationSummary":
-        # wrap-attach:
-        #   OpenSearchModificationAnalysis
         int count
         String name
         int num_charge_states
@@ -151,8 +147,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
         OpenSearchModificationAnalysis_ModificationSummary(OpenSearchModificationAnalysis_ModificationSummary&) except + nogil
 
     cdef cppclass OpenSearchModificationAnalysis_DeltaMassEntry "OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry":
-        # wrap-attach:
-        #   OpenSearchModificationAnalysis
         # wrap-doc:
         #  Statistics for a single delta mass bin in the histogram.
         double delta_mass
@@ -167,8 +161,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
         OpenSearchModificationAnalysis_DeltaMassEntry(OpenSearchModificationAnalysis_DeltaMassEntry&) except + nogil
 
     cdef cppclass OpenSearchModificationAnalysis_PTMEntry "OpenMS::OpenSearchModificationAnalysis::PTMEntry":
-        # wrap-attach:
-        #   OpenSearchModificationAnalysis
         # wrap-doc:
         #  Statistics for a mapped PTM.
         String name
@@ -179,15 +171,14 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
         int unique_peptides
         int num_charge_states
         double percentage
-        libcpp_map[char, int] residue_counts
+        # libcpp_map[char, int] not supported as struct member by autowrap;
+        # use analyzeResidueFrequency() method for per-residue counts
         String target_residues
 
         OpenSearchModificationAnalysis_PTMEntry() except + nogil
         OpenSearchModificationAnalysis_PTMEntry(OpenSearchModificationAnalysis_PTMEntry&) except + nogil
 
     cdef cppclass OpenSearchModificationAnalysis_DeltaMassStatistics "OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics":
-        # wrap-attach:
-        #   OpenSearchModificationAnalysis
         # wrap-doc:
         #  Container for delta mass statistics table.
         libcpp_vector[OpenSearchModificationAnalysis_DeltaMassEntry] entries
@@ -201,8 +192,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
         OpenSearchModificationAnalysis_DeltaMassStatistics(OpenSearchModificationAnalysis_DeltaMassStatistics&) except + nogil
 
     cdef cppclass OpenSearchModificationAnalysis_PTMStatistics "OpenMS::OpenSearchModificationAnalysis::PTMStatistics":
-        # wrap-attach:
-        #   OpenSearchModificationAnalysis
         # wrap-doc:
         #  Container for PTM statistics table.
         libcpp_vector[OpenSearchModificationAnalysis_PTMEntry] entries
@@ -214,8 +203,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
         OpenSearchModificationAnalysis_PTMStatistics(OpenSearchModificationAnalysis_PTMStatistics&) except + nogil
 
     cdef cppclass OpenSearchModificationAnalysis_OpenSearchAnalysisResult "OpenMS::OpenSearchModificationAnalysis::OpenSearchAnalysisResult":
-        # wrap-attach:
-        #   OpenSearchModificationAnalysis
         # wrap-doc:
         #  Combined result of open search modification analysis.
         OpenSearchModificationAnalysis_DeltaMassStatistics delta_mass_stats

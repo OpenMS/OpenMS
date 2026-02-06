@@ -758,21 +758,15 @@ namespace OpenMS
         // Track charge states (simplified - just count hits with different charges)
         // Note: This is approximate since we don't track unique charges per PTM in this version
 
-        // Analyze observed mass if available
+        // Analyze observed mass and residue frequency if available
         if (hit.metaValueExists("DeltaMass"))
         {
           double obs_mass = hit.getMetaValue("DeltaMass");
           // Running average for observed mass
           entry.observed_mass = ((entry.observed_mass * (entry.count - 1)) + obs_mass) / entry.count;
-        }
 
-        // Analyze residue frequency
-        if (hit.metaValueExists("DeltaMass"))
-        {
-          double delta_mass = hit.getMetaValue("DeltaMass");
+          // Count all residues in this peptide for residue frequency analysis
           const AASequence& seq = hit.getSequence();
-
-          // Count all residues in this peptide
           for (Size i = 0; i < seq.size(); ++i)
           {
             char residue = seq[i].getOneLetterCode()[0];
