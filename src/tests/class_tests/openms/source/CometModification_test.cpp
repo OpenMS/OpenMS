@@ -499,7 +499,7 @@ START_SECTION(String toCometString(Size index) const)
     mod.nc_term = 0;
 
     String result = mod.toCometString(1);
-    TEST_STRING_EQUAL(result, "variable_mod01 = 42.010565 nK 0 3 -1 0 0 0.0")
+    TEST_STRING_EQUAL(result, "variable_mod01 = 42.0106 nK 0 3 -1 0 0 0.0")
   }
 
   // Required modification

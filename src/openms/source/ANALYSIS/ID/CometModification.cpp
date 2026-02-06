@@ -136,7 +136,7 @@ namespace OpenMS
   {
     // Format: variable_modXX = <mass> <residues> <binary_group> <max_mods> <term_distance> <nc_term> <required> <neutral_loss>
     std::ostringstream os;
-    os << std::setprecision(9) // sufficient precision for modification masses
+    os // use default precision (6 significant digits) to match previous CometAdapter behavior
        << "variable_mod"
        << std::setw(2) << std::setfill('0') << index
        << " = "
