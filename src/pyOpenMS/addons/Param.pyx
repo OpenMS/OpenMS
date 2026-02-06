@@ -1,6 +1,32 @@
 # two empty lines are important !
 
 
+    @staticmethod
+    def from_dict(d):
+        """
+        from_dict(d: dict) -> Param
+
+        Create a new Param object from a Python dictionary.
+
+        Args:
+            d: Dictionary with string or bytes keys and parameter values
+
+        Returns:
+            A new Param object populated with the dictionary contents
+
+        Example:
+            >>> p = Param.from_dict({"algorithm:threshold": 0.5, "debug": True})
+        """
+        p = Param()
+        p.update(d)
+        return p
+
+    def _to_bytes_key(self, key):
+        """Convert a string or bytes key to bytes."""
+        if isinstance(key, str):
+            return key.encode('utf-8')
+        return key
+
     def initPluginParam(self, name, version):
         """
         initPluginParam(self: Param, name: Union[str, bytes], version: Union[str, bytes]) -> None
@@ -18,10 +44,36 @@
     def asDict(self):
         """
         asDict(self: Param) -> dict
-        
+
         Convert the Param object to a Python dictionary.
+
+        Note: Consider using to_dict() for PEP 8 compliant naming.
         """
         return dict(self.items())
+
+    def to_dict(self):
+        """
+        to_dict(self: Param) -> dict
+
+        Convert the Param object to a Python dictionary with string keys.
+
+        This is the Pythonic way to convert a Param to a dict. Unlike asDict()
+        which returns bytes keys for backward compatibility, this method returns
+        string keys for easier manipulation.
+
+        Returns:
+            Dictionary with string keys and parameter values
+
+        Example:
+            >>> p = Param()
+            >>> p.setValue("threshold", 0.5, "A threshold value")
+            >>> d = p.to_dict()
+            >>> print(d)
+            {'threshold': 0.5}
+            >>> d["threshold"] = 0.75  # Modify with string key
+            >>> p.update(d)            # Write back
+        """
+        return {k.decode('utf-8'): v for k, v in self.items()}
 
     def keys(self):
         """
@@ -63,15 +115,15 @@
 
     def update(self, *a):
         """
-        update(self: Param, *args: Union[dict, Param, Tuple[Param, int]]) -> bool
-        
-        Update parameter values from a dictionary or another Param object.
-        
-        use cases:
+        update(self: Param, args) -> bool
 
-           p.update(dict d)
-           p.update(Param p)
-           p.update(Param p, int flag)
+        Update parameter values from a dictionary or another Param object.
+
+        Use cases::
+
+            p.update(dict d)
+            p.update(Param p)
+            p.update(Param p, int flag)
         """
 
         cdef Param p
@@ -94,34 +146,119 @@
         else:
             raise Exception("can not handle parameters of type %s" % (map(type, a)))
 
-    def get(self, bytes key, default=None):
+    def get(self, key, default=None):
         """
-        get(self: Param, key: bytes, default: Optional[Union[int, float, bytes, str, List[int], List[float], List[bytes]]] = None) -> Union[int, float, bytes, str, List[int], List[float], List[bytes]]
-        
+        get(self: Param, key: Union[str, bytes], default: Any = None) -> Any
+
         Get parameter value by key, with optional default.
+
+        Args:
+            key: Parameter key (string or bytes)
+            default: Value to return if key doesn't exist (default: None)
+
+        Returns:
+            The parameter value, or default if not found
+
+        Example:
+            >>> value = param.get("threshold", 0.5)
         """
+        key = self._to_bytes_key(key)
         if self.exists(key):
             return self.getValue(key)
         return default
 
-    def __getitem__(self, bytes key):
+    def __getitem__(self, key):
         """
-        __getitem__(self: Param, key: bytes) -> Union[int, float, bytes, str, List[int], List[float], List[bytes]]
-        
+        __getitem__(self: Param, key: Union[str, bytes]) -> Any
+
         Get parameter value by key using dictionary notation.
+
+        Args:
+            key: Parameter key (string or bytes)
+
+        Returns:
+            The parameter value
+
+        Raises:
+            Exception: If the key doesn't exist
+
+        Example:
+            >>> value = param["threshold"]
         """
+        key = self._to_bytes_key(key)
         return self.getValue(key)
 
-    def __setitem__(self, bytes key, value):
+    def __setitem__(self, key, value):
         """
-        __setitem__(self: Param, key: bytes, value: Union[int, float, bytes, str, List[int], List[float], List[bytes]]) -> None
-        
+        __setitem__(self: Param, key: Union[str, bytes], value: Any) -> None
+
         Set parameter value by key using dictionary notation.
+
+        Args:
+            key: Parameter key (string or bytes)
+            value: The value to set
+
+        Example:
+            >>> param["threshold"] = 0.5
         """
-        tags = self.getTags(key)
-        desc = self.getDescription(key)
+        key = self._to_bytes_key(key)
+        # Preserve existing tags and description if key exists, otherwise use defaults
+        if self.exists(key):
+            tags = self.getTags(key)
+            desc = self.getDescription(key)
+        else:
+            tags = []
+            desc = b""
         self.setValue(key, value, desc, tags)
-        
+
+    def __iter__(self):
+        """
+        __iter__(self: Param) -> Iterator[bytes]
+
+        Iterate over parameter keys.
+
+        Returns:
+            Iterator over parameter keys
+
+        Example:
+            >>> for key in param:
+            ...     print(key, param[key])
+        """
+        return iter(self.keys())
+
+    def __len__(self):
+        """
+        __len__(self: Param) -> int
+
+        Return the number of parameters.
+
+        Returns:
+            Number of parameters
+
+        Example:
+            >>> print(len(param))
+        """
+        return self.size()
+
+    def __contains__(self, key):
+        """
+        __contains__(self: Param, key: Union[str, bytes]) -> bool
+
+        Check if a parameter key exists.
+
+        Args:
+            key: Parameter key (string or bytes)
+
+        Returns:
+            True if key exists, False otherwise
+
+        Example:
+            >>> if "threshold" in param:
+            ...     print("Found!")
+        """
+        key = self._to_bytes_key(key)
+        return self.exists(key)
+
     def __str__(self):
         """
         __str__(self: Param) -> str

@@ -15,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <cmath>
+#include <unordered_set>
 
 ///////////////////////////
 
@@ -729,6 +730,81 @@ START_SECTION([Integration] LogMzPeak sorting)
   TEST_REAL_SIMILAR(peaks[0].logMz, 6.2)
   TEST_REAL_SIMILAR(peaks[1].logMz, 6.5)
   TEST_REAL_SIMILAR(peaks[2].logMz, 6.8)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Hash tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION([MassFeature] std::hash)
+{
+  std::hash<MassFeature> hasher;
+
+  // Test that equal objects have equal hashes
+  MassFeature mf1, mf2;
+  mf1.avg_mass = 10000.0;
+  mf2.avg_mass = 10000.0;
+
+  TEST_EQUAL(mf1 == mf2, true)
+  TEST_EQUAL(hasher(mf1), hasher(mf2))
+
+  // Test that different objects have different hashes (not guaranteed, but likely)
+  MassFeature mf3;
+  mf3.avg_mass = 15000.0;
+  TEST_EQUAL(mf1 == mf3, false)
+  TEST_NOT_EQUAL(hasher(mf1), hasher(mf3))
+
+  // Test usability in unordered_set
+  std::unordered_set<MassFeature> feature_set;
+  feature_set.insert(mf1);
+  feature_set.insert(mf2);  // Should not be added (equal to mf1)
+  feature_set.insert(mf3);
+
+  TEST_EQUAL(feature_set.size(), 2)
+  TEST_EQUAL(feature_set.count(mf1), 1)
+  TEST_EQUAL(feature_set.count(mf3), 1)
+}
+END_SECTION
+
+START_SECTION([LogMzPeak] std::hash)
+{
+  std::hash<LogMzPeak> hasher;
+
+  // Test that equal objects have equal hashes
+  LogMzPeak lmp1, lmp2;
+  lmp1.logMz = 5.5;
+  lmp1.intensity = 100.0f;
+  lmp2.logMz = 5.5;
+  lmp2.intensity = 100.0f;
+
+  TEST_EQUAL(lmp1 == lmp2, true)
+  TEST_EQUAL(hasher(lmp1), hasher(lmp2))
+
+  // Test that different objects have different hashes
+  LogMzPeak lmp3;
+  lmp3.logMz = 5.5;
+  lmp3.intensity = 200.0f;  // Different intensity
+  TEST_EQUAL(lmp1 == lmp3, false)
+  TEST_NOT_EQUAL(hasher(lmp1), hasher(lmp3))
+
+  LogMzPeak lmp4;
+  lmp4.logMz = 6.0;  // Different logMz
+  lmp4.intensity = 100.0f;
+  TEST_EQUAL(lmp1 == lmp4, false)
+  TEST_NOT_EQUAL(hasher(lmp1), hasher(lmp4))
+
+  // Test usability in unordered_set
+  std::unordered_set<LogMzPeak> peak_set;
+  peak_set.insert(lmp1);
+  peak_set.insert(lmp2);  // Should not be added (equal to lmp1)
+  peak_set.insert(lmp3);
+  peak_set.insert(lmp4);
+
+  TEST_EQUAL(peak_set.size(), 3)
+  TEST_EQUAL(peak_set.count(lmp1), 1)
+  TEST_EQUAL(peak_set.count(lmp3), 1)
+  TEST_EQUAL(peak_set.count(lmp4), 1)
 }
 END_SECTION
 

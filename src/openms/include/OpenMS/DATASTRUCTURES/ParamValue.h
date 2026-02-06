@@ -8,8 +8,10 @@
 #pragma once
 
 #include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 #include <cstddef> // for ptrdiff_t
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -368,5 +370,75 @@ private:
     static std::string doubleToString(double value, bool full_precision = true);
 
   };
-}
+} // namespace OpenMS
+
+// std::hash specialization for ParamValue - must be in std namespace
+namespace std
+{
+  template<>
+  struct hash<OpenMS::ParamValue>
+  {
+    std::size_t operator()(const OpenMS::ParamValue& pv) const noexcept
+    {
+      using namespace OpenMS;
+      std::size_t seed = hash_int(static_cast<unsigned char>(pv.valueType()));
+
+      switch (pv.valueType())
+      {
+        case ParamValue::EMPTY_VALUE:
+          // No additional data to hash
+          break;
+        case ParamValue::STRING_VALUE:
+        {
+          std::string s = pv;
+          hash_combine(seed, fnv1a_hash_string(s));
+          break;
+        }
+        case ParamValue::INT_VALUE:
+        {
+          std::ptrdiff_t i = static_cast<long long>(pv);
+          hash_combine(seed, hash_int(i));
+          break;
+        }
+        case ParamValue::DOUBLE_VALUE:
+        {
+          double d = pv;
+          hash_combine(seed, hash_float(d));
+          break;
+        }
+        case ParamValue::STRING_LIST:
+        {
+          std::vector<std::string> sl = pv.toStringVector();
+          hash_combine(seed, hash_int(sl.size()));
+          for (const auto& s : sl)
+          {
+            hash_combine(seed, fnv1a_hash_string(s));
+          }
+          break;
+        }
+        case ParamValue::INT_LIST:
+        {
+          std::vector<int> il = pv.toIntVector();
+          hash_combine(seed, hash_int(il.size()));
+          for (int i : il)
+          {
+            hash_combine(seed, hash_int(i));
+          }
+          break;
+        }
+        case ParamValue::DOUBLE_LIST:
+        {
+          std::vector<double> dl = pv.toDoubleVector();
+          hash_combine(seed, hash_int(dl.size()));
+          for (double d : dl)
+          {
+            hash_combine(seed, hash_float(d));
+          }
+          break;
+        }
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

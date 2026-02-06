@@ -50,6 +50,10 @@
 
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 
+#ifdef WITH_PARQUET
+#include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#endif
+
 using namespace OpenMS;
 using namespace std;
 
@@ -91,6 +95,13 @@ The data is split by CV and processed separately for each voltage group during f
 Features representing the same analyte detected at different CV values are merged automatically.
 The merged features are then aligned and linked across runs based on RT and m/z.
 No special preparation of the input mzML file is required.
+
+Normalization: @n
+  - For feature-intensity-based quantification with multiple runs, ProteomicsLFQ automatically applies median normalization
+    to the consensus features (using simple median scaling).
+  - Normalization is DISABLED when MSstats output (-out_msstats) or Triqler output (-out_triqler) is requested,
+    as these tools perform their own normalization.
+  - Normalization is also DISABLED for spectral counting quantification.
 
 Output:
   - mzTab file with analysis results
@@ -151,6 +162,11 @@ protected:
 
     registerOutputFile_("out_cxml", "<file>", "", "output consensusXML file", false, false);
     setValidFormats_("out_cxml", ListUtils::create<String>("consensusXML"));
+
+#ifdef WITH_PARQUET
+    registerOutputFile_("out_feature_qpx", "<file>", "", "Output parquet file for feature-level quantification (QPX feature format)", false, false);
+    setValidFormats_("out_feature_qpx", ListUtils::create<String>("parquet"));
+#endif
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
@@ -417,7 +433,7 @@ protected:
         {
           t.fitModel(model_type, model_params);
         }
-        t.printSummary(OpenMS_Log_debug);
+        t.printSummary(getGlobalLogDebug());
         alignment_stats.emplace_back(t.getStatistics());
       }
 
@@ -659,14 +675,14 @@ protected:
 
       picked_decoy_string_ = indexer.getDecoyString();
       picked_decoy_prefix_ = indexer.isPrefix();
-      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+      if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
+          (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
       {
-        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+        if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
         {
           return INPUT_FILE_EMPTY;
         }
-        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
         {
           return UNEXPECTED_RESULT;
         }
@@ -922,8 +938,6 @@ protected:
 
       Param ffi_param = getParam_().copy("PeptideQuantification:", true);
       ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
-      ffi_param.setValue("EMGScoring:init_mom", "true");   // overwrite default settings
-      ffi_param.setValue("EMGScoring:max_iteration", 100); // overwrite default settings
       ffi_param.setValue("debug", debug_level_); // pass down debug level
 
       double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
@@ -1210,8 +1224,14 @@ protected:
     IDConflictResolverAlgorithm::resolve(consensus_fraction, true);
 
     //-------------------------------------------------------------
-    // ConsensusMap normalization (basic)
+    // ConsensusMap normalization (basic median scaling)
     //-------------------------------------------------------------
+    // Note: This normalization is applied automatically for feature-intensity-based quantification
+    // when multiple runs are provided. It uses simple median scaling to make sample medians equal.
+    // Normalization is DISABLED when MSstats or Triqler output is requested, as these tools
+    // perform their own normalization.
+    // This is independent of the -ProteinQuantification:consensus:normalize parameter, which
+    // controls an additional normalization step at the peptide quantification level (default: false).
     if (getStringOption_("out_msstats").empty() 
     && getStringOption_("out_triqler").empty())  // only normalize if no MSstats/Triqler output is generated
     {
@@ -1670,6 +1690,21 @@ protected:
     
     // only keep best scoring ID for each consensus feature
     IDConflictResolverAlgorithm::resolve(consensus);
+
+#ifdef WITH_PARQUET
+    {
+      String out_feature_qpx = getStringOption_("out_feature_qpx");
+      if (!out_feature_qpx.empty())
+      {
+        OPENMS_LOG_INFO << "Exporting feature-level Parquet file..." << std::endl;
+        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_feature_qpx))
+        {
+          OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out_feature_qpx << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+      }
+    }
+#endif
 
     //-------------------------------------------------------------
     // Peptide quantification

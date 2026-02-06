@@ -76,16 +76,23 @@ if (WITH_HDF5)
 endif()
 
 if (WITH_PARQUET)
-  target_link_libraries(Arrow_test 
+  target_link_libraries(Arrow_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
   )
-  target_link_libraries(QuantmsIO_test 
+  target_link_libraries(MSExperimentArrowExport_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_link_libraries(ConsensusMapArrowExport_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_link_libraries(QuantmsIO_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
   )
 endif()
-
 
 #------------------------------------------------------------------------------
 # restore old compiler flags

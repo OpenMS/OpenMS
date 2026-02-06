@@ -3,6 +3,7 @@ from Types cimport *
 from OpenSwathDataStructures cimport *
 from SpectrumAccessOpenMS cimport *
 from LightTargetedExperiment cimport LightTransition
+from libcpp.string cimport string as libcpp_utf8_string
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "OpenMS":
 
@@ -17,8 +18,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
                         double merge_spectra_by_peak_width_fraction,
                         double drift_extra,
                         OpenSwath_Scores_Usage su,
-                        libcpp_string spectrum_addition_method,
-                        libcpp_string spectrum_merge_method_type,
+                        libcpp_utf8_string spectrum_addition_method,
+                        libcpp_utf8_string spectrum_merge_method_type,
                         bool use_ms1_ion_mobility,
                         bool apply_im_peak_picking) except + nogil
             # wrap-doc:
@@ -37,27 +38,27 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
                 #  :param use_ms1_ion_mobility: Use MS1 ion mobility extraction in DIA scores
                 #  :param apply_im_peak_picking: Apply peak picking to the  extracted ion mobilograms
 
-        # void calculateChromatographicScores(
-        #      OpenSwath::IMRMFeature* imrmfeature,
-        #      const std::vector<std::string>& native_ids,
-        #      const std::vector<double>& normalized_library_intensity,
-        #      std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-        #      OpenSwath_Scores & scores) except + nogil 
+            #  void calculateChromatographicScores(
+            #       OpenSwath::IMRMFeature* imrmfeature,
+            #       const std::vector<std::string>& native_ids,
+            #       const std::vector<double>& normalized_library_intensity,
+            #       std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+            #       OpenSwath_Scores & scores) except + nogil
 
-        # void calculateLibraryScores(
-        #      OpenSwath::IMRMFeature* imrmfeature,
-        #      const std::vector<TransitionType> & transitions,
-        #      const PeptideType& pep,
-        #      const double normalized_feature_rt,
-        #      OpenSwath_Scores & scores) except + nogil 
+            #  void calculateLibraryScores(
+            #       OpenSwath::IMRMFeature* imrmfeature,
+            #       const std::vector<TransitionType> & transitions,
+            #       const PeptideType& pep,
+            #       const double normalized_feature_rt,
+            #       OpenSwath_Scores & scores) except + nogil
 
-        # void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
-        #    const std::vector<TransitionType> & transitions,
-        #    OpenSwath::SpectrumAccessPtr swath_map,
-        #    OpenSwath::SpectrumAccessPtr ms1_map,
-        #    OpenMS::DIAScoring & diascoring,
-        #    const PeptideType& pep,
-        #    OpenSwath_Scores & scores) except + nogil 
+            #  void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
+            #     const std::vector<TransitionType> & transitions,
+            #     OpenSwath::SpectrumAccessPtr swath_map,
+            #     OpenSwath::SpectrumAccessPtr ms1_map,
+            #     OpenMS::DIAScoring & diascoring,
+            #     const PeptideType& pep,
+            #     OpenSwath_Scores & scores) except + nogil
 
         void getNormalized_library_intensities_(libcpp_vector[LightTransition] transitions,
                                                 libcpp_vector[double] normalized_library_intensity) except + nogil 

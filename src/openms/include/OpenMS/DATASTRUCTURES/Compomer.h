@@ -8,17 +8,19 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <functional>
 #include <map>
 #include <vector>
 
 namespace OpenMS
 {
 
-  class Adduct;
   class String;
 
   /**
@@ -294,4 +296,38 @@ private:
   }; // \Compomer
 
 } // namespace OpenMS
+
+// Hash function specialization for Compomer
+// Note: Only hash fields used in operator== (cmp_, net_charge_, mass_, pos_charges_, neg_charges_, log_p_, id_)
+// Do NOT hash rt_shift_ as it is not compared in operator==
+namespace std
+{
+  template<>
+  struct hash<OpenMS::Compomer>
+  {
+    std::size_t operator()(const OpenMS::Compomer& c) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_int(c.getNetCharge());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(c.getMass()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(c.getPositiveCharges()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(c.getNegativeCharges()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(c.getLogP()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(c.getID()));
+
+      // Hash the compomer components (vector<map<String, Adduct>>)
+      const auto& components = c.getComponent();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(components.size()));
+      for (const auto& side : components)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(side.size()));
+        for (const auto& [key, adduct] : side)
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(key));
+          OpenMS::hash_combine(seed, std::hash<OpenMS::Adduct>{}(adduct));
+        }
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

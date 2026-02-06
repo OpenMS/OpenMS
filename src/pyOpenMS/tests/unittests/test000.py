@@ -733,10 +733,10 @@ def testChecksumType():
      ChecksumType.SIZE_OF_CHECKSUMTYPE
      ChecksumType.UNKNOWN_CHECKSUM
     """
-    assert isinstance(pyopenms.ChecksumType.MD5, int)
-    assert isinstance(pyopenms.ChecksumType.SHA1, int)
-    assert isinstance(pyopenms.ChecksumType.SIZE_OF_CHECKSUMTYPE, int)
-    assert isinstance(pyopenms.ChecksumType.UNKNOWN_CHECKSUM, int)
+    assert isinstance(pyopenms.SourceFile.ChecksumType.MD5, int)
+    assert isinstance(pyopenms.SourceFile.ChecksumType.SHA1, int)
+    assert isinstance(pyopenms.SourceFile.ChecksumType.SIZE_OF_CHECKSUMTYPE, int)
+    assert isinstance(pyopenms.SourceFile.ChecksumType.UNKNOWN_CHECKSUM, int)
 
 
 @report
@@ -1672,6 +1672,121 @@ def _testParam(p):
     assert p1.get(b"abcde", 7) == 7
 
 
+@report
+def testParamPythonicInterface():
+    """
+    @tests: Param
+     Param.from_dict
+     Param.to_dict
+     Param.__iter__
+     Param.__len__
+     Param.__contains__
+    """
+    # Test from_dict() class method
+    d = {b"param1": 42, b"param2": 3.14, b"param3": "hello"}
+    p = pyopenms.Param.from_dict(d)
+    assert p.size() == 3
+    assert p[b"param1"] == 42
+    assert abs(p[b"param2"] - 3.14) < 0.001
+    assert p[b"param3"] == "hello"
+
+    # Test from_dict() with string keys
+    d_str = {"str_param1": 100, "str_param2": 2.718}
+    p2 = pyopenms.Param.from_dict(d_str)
+    assert p2.size() == 2
+    assert p2["str_param1"] == 100
+    assert p2[b"str_param1"] == 100  # bytes key also works
+
+    # Test to_dict() returns string keys
+    d_out = p.to_dict()
+    assert isinstance(d_out, dict)
+    assert len(d_out) == 3
+    assert "param1" in d_out  # String key, not bytes
+    assert d_out["param1"] == 42
+
+    # Test asDict() still returns bytes keys (backward compatibility)
+    d_bytes = p.asDict()
+    assert b"param1" in d_bytes
+    assert d_bytes[b"param1"] == 42
+
+    # Verify to_dict() and asDict() have same values but different key types
+    assert len(p.to_dict()) == len(p.asDict())
+    for str_key, value in p.to_dict().items():
+        assert isinstance(str_key, str)
+        assert p.asDict()[str_key.encode('utf-8')] == value
+
+    # Test __len__()
+    assert len(p) == 3
+    assert len(p) == p.size()
+
+    # Test __iter__()
+    keys_from_iter = list(p)
+    keys_from_method = p.keys()
+    assert keys_from_iter == keys_from_method
+    assert len(keys_from_iter) == 3
+
+    # Test iteration in for loop
+    count = 0
+    for key in p:
+        assert p[key] is not None
+        count += 1
+    assert count == 3
+
+    # Test __contains__() with bytes key
+    assert b"param1" in p
+    assert b"nonexistent" not in p
+
+    # Test __contains__() with string key
+    assert "param1" in p
+    assert "nonexistent" not in p
+
+    # Test __getitem__() with string key
+    assert p["param1"] == 42
+    assert p["param2"] == p[b"param2"]
+
+    # Test __setitem__() with string key
+    p["new_param"] = 999
+    assert p["new_param"] == 999
+    assert p[b"new_param"] == 999
+
+    # Test get() with string key
+    assert p.get("param1") == 42
+    assert p.get("nonexistent") is None
+    assert p.get("nonexistent", "default") == "default"
+
+    # Test get() with bytes key (backward compatibility)
+    assert p.get(b"param1") == 42
+    assert p.get(b"nonexistent") is None
+    assert p.get(b"nonexistent", 123) == 123
+
+    # Test round-trip: dict -> Param -> dict (now with string keys!)
+    original = {"a": 1, "b": 2.5, "c": "test"}
+    p3 = pyopenms.Param.from_dict(original)
+    result = p3.to_dict()
+    # Keys come back as strings, so direct comparison works
+    assert len(result) == len(original)
+    assert result == original  # Direct equality now works!
+
+    # Test round-trip workflow: fetch, modify, write back
+    p4 = pyopenms.Param.from_dict({"threshold": 0.5, "iterations": 10})
+    d = p4.to_dict()
+    d["threshold"] = 0.75  # Modify with string key
+    d["new_key"] = "added"  # Add new key
+    p4.update(d)
+    assert p4["threshold"] == 0.75
+    assert p4["iterations"] == 10
+    assert p4["new_key"] == "added"
+
+    # Test empty Param
+    p_empty = pyopenms.Param()
+    assert len(p_empty) == 0
+    assert list(p_empty) == []
+    assert "anything" not in p_empty
+    assert p_empty.to_dict() == {}
+
+    # Test from_dict() with empty dict
+    p_from_empty = pyopenms.Param.from_dict({})
+    assert len(p_from_empty) == 0
 
 
 @report
@@ -2798,8 +2913,8 @@ def testIonDetector():
 
     # Test getAllNamesOf methods
     type_names = pyopenms.IonDetector.getAllNamesOfType()
-    assert len(type_names) == pyopenms.IonDetector.Type_IonDetector.SIZE_OF_TYPE
-    assert type_names[pyopenms.IonDetector.Type_IonDetector.ELECTRONMULTIPLIER].decode() == "Electron multiplier"
+    assert len(type_names) == pyopenms.IonDetector.Type.SIZE_OF_TYPE
+    assert type_names[pyopenms.IonDetector.Type.ELECTRONMULTIPLIER].decode() == "Electron multiplier"
 
     acq_mode_names = pyopenms.IonDetector.getAllNamesOfAcquisitionMode()
     assert len(acq_mode_names) == pyopenms.IonDetector.AcquisitionMode.SIZE_OF_ACQUISITIONMODE
@@ -5852,18 +5967,18 @@ def testSourceFile():
     assert sf.getPathToFile() == "file.txt"
     sf.setFileType(".txt")
     assert sf.getFileType() == ".txt"
-    sf.setChecksum("abcde000", pyopenms.ChecksumType.UNKNOWN_CHECKSUM)
+    sf.setChecksum("abcde000", pyopenms.SourceFile.ChecksumType.UNKNOWN_CHECKSUM)
     assert sf.getChecksum() == "abcde000"
 
-    assert sf.getChecksumType() in (pyopenms.ChecksumType.UNKNOWN_CHECKSUM,
-                                    pyopenms.ChecksumType.SHA1,
-                                    pyopenms.ChecksumType.MD5)
+    assert sf.getChecksumType() in (pyopenms.SourceFile.ChecksumType.UNKNOWN_CHECKSUM,
+                                    pyopenms.SourceFile.ChecksumType.SHA1,
+                                    pyopenms.SourceFile.ChecksumType.MD5)
 
     # Test getAllNamesOf method
     checksum_names = pyopenms.SourceFile.getAllNamesOfChecksumType()
-    assert len(checksum_names) == pyopenms.ChecksumType.SIZE_OF_CHECKSUMTYPE
-    assert checksum_names[pyopenms.ChecksumType.SHA1].decode() == "SHA-1"
-    assert checksum_names[pyopenms.ChecksumType.MD5].decode() == "MD5"
+    assert len(checksum_names) == pyopenms.SourceFile.ChecksumType.SIZE_OF_CHECKSUMTYPE
+    assert checksum_names[pyopenms.SourceFile.ChecksumType.SHA1].decode() == "SHA-1"
+    assert checksum_names[pyopenms.SourceFile.ChecksumType.MD5].decode() == "MD5"
 
 @report
 def testSpectrumSetting(s=pyopenms.SpectrumSettings()):

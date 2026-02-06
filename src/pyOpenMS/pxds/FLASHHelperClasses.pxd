@@ -16,14 +16,13 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
         FLASHHelperClasses() except + nogil
         FLASHHelperClasses(FLASHHelperClasses &) except + nogil
 
+        @staticmethod
+        double getLogMz(double mz, bool positive) except + nogil
+        # wrap-doc:Calculate log mz from mz
 
-cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "OpenMS::FLASHHelperClasses":
-
-    double getLogMz(double mz, bool positive) except + nogil  # wrap-attach:FLASHHelperClasses
-    # wrap-doc:Calculate log mz from mz
-
-    float getChargeMass(bool positive_ionization_mode) except + nogil  # wrap-attach:FLASHHelperClasses
-    # wrap-doc:Get charge carrier mass (PROTON_MASS_U for positive, -PROTON_MASS_U for negative)
+        @staticmethod
+        float getChargeMass(bool positive_ionization_mode) except + nogil
+        # wrap-doc:Get charge carrier mass (PROTON_MASS_U for positive, -PROTON_MASS_U for negative)
 
 
 cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "OpenMS":
@@ -33,7 +32,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
         #  Mass feature (Deconvolved masses in spectra are traced to generate mass features).
         #  Similar to LC-MS features but for deconvolved masses.
 
-        # Constructors
+        #  Constructors
         MassFeature_FDHS() except + nogil
         MassFeature_FDHS(MassFeature_FDHS &) except + nogil
 
@@ -68,7 +67,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
         #  Averagine patterns pre-calculated for speed up.
         #  Used for fast isotope cosine calculation.
 
-        # Constructors
+        #  Constructors
         PrecalAveragine() except + nogil
         PrecalAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine) except + nogil
         PrecalAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine, double decoy_iso_distance) except + nogil
@@ -91,7 +90,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
         # wrap-doc:
         #  Isobaric quantities from isobaric quantification.
 
-        # Constructors
+        #  Constructors
         IsobaricQuantities() except + nogil
         IsobaricQuantities(IsobaricQuantities &) except + nogil
 
@@ -112,7 +111,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
         #  Log transformed peak from original peak.
         #  Contains information such as charge, isotope index, and uncharged mass.
 
-        # Constructors
+        #  Constructors
         LogMzPeak() except + nogil
         LogMzPeak(LogMzPeak &) except + nogil
         LogMzPeak(Peak1D & peak, bool positive) except + nogil  # wrap-doc:Constructor from Peak1D

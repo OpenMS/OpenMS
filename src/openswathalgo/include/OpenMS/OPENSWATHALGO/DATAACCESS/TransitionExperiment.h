@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <cstdint>
+#include <functional>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
@@ -232,12 +233,34 @@ namespace OpenSwath
     {
       return flags.identifying;
     }
+
+    /// Equality operator - compares transition_name (consistent with hash)
+    bool operator==(const LightTransition& rhs) const
+    {
+      return transition_name == rhs.transition_name;
+    }
+
+    bool operator!=(const LightTransition& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   struct LightModification
   {
     int location;
     int unimod_id;
+
+    /// Equality operator - compares location and unimod_id (consistent with hash)
+    bool operator==(const LightModification& rhs) const
+    {
+      return location == rhs.location && unimod_id == rhs.unimod_id;
+    }
+
+    bool operator!=(const LightModification& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   // A compound is either a peptide or a metabolite
@@ -296,6 +319,17 @@ namespace OpenSwath
     }
 
     std::vector<LightModification> modifications;
+
+    /// Equality operator - compares id (consistent with hash)
+    bool operator==(const LightCompound& rhs) const
+    {
+      return id == rhs.id;
+    }
+
+    bool operator!=(const LightCompound& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   struct LightProtein
@@ -305,6 +339,17 @@ namespace OpenSwath
 
     // Additional fields for roundtrip TSV/PQP I/O
     std::string uniprot_id;                      ///< UniProt identifier
+
+    /// Equality operator - compares id (consistent with hash)
+    bool operator==(const LightProtein& rhs) const
+    {
+      return id == rhs.id;
+    }
+
+    bool operator!=(const LightProtein& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   struct LightTargetedExperiment
@@ -382,4 +427,72 @@ namespace OpenSwath
   };
 
 } //end Namespace OpenSwath
+
+// Hash function specializations for OpenSwath types
+namespace std
+{
+  /**
+   * @brief Hash function for LightTransition.
+   *
+   * Hashes based on the transition_name which serves as the unique identifier.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightTransition>
+  {
+    std::size_t operator()(const OpenSwath::LightTransition& t) const noexcept
+    {
+      return std::hash<std::string>{}(t.transition_name);
+    }
+  };
+
+  /**
+   * @brief Hash function for LightCompound.
+   *
+   * Hashes based on the id which serves as the unique identifier.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightCompound>
+  {
+    std::size_t operator()(const OpenSwath::LightCompound& c) const noexcept
+    {
+      return std::hash<std::string>{}(c.id);
+    }
+  };
+
+  /**
+   * @brief Hash function for LightProtein.
+   *
+   * Hashes based on the id which serves as the unique identifier.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightProtein>
+  {
+    std::size_t operator()(const OpenSwath::LightProtein& p) const noexcept
+    {
+      return std::hash<std::string>{}(p.id);
+    }
+  };
+
+  /**
+   * @brief Hash function for LightModification.
+   *
+   * Hashes based on location and unimod_id using a proper combining function
+   * to reduce collision probability.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightModification>
+  {
+    std::size_t operator()(const OpenSwath::LightModification& m) const noexcept
+    {
+      std::size_t seed = std::hash<int>{}(m.location);
+      // Use standard hash combine formula (from boost) for better distribution
+      seed ^= std::hash<int>{}(m.unimod_id) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+      return seed;
+    }
+  };
+} // namespace std
 

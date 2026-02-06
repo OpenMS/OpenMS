@@ -96,6 +96,11 @@ START_SECTION(std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const 
   ions.push_back(std::make_pair(100.12, "PEPTIDEK"));
   ions.push_back(std::make_pair(100.11, "PEPTIDEK"));
 
+  // Sort by m/z (first element) - required for binary search in getMatchingPeptidoforms_
+  std::sort(ions.begin(), ions.end(),
+      [](const std::pair<double, std::string>& a, const std::pair<double, std::string>& b)
+      { return a.first < b.first; });
+
   std::vector<std::string> isoforms1 = mrma.getMatchingPeptidoforms_test(100.06, ions, 0.03);
   std::vector<std::string> isoforms2 = mrma.getMatchingPeptidoforms_test(100.06, ions, 0.06);
 

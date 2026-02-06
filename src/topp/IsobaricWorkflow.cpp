@@ -43,6 +43,10 @@
 
 #include <memory> // for std::unique_ptr
 
+#ifdef WITH_PARQUET
+#include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#endif
+
 using namespace OpenMS;
 using namespace std;
 
@@ -187,6 +191,11 @@ protected:
     setValidFormats_("out", {"consensusXML"});
     registerOutputFile_("out_mzTab", "<file>", "", "output mzTab file with quantitative information");
     setValidFormats_("out_mzTab", {"mzTab"});
+
+#ifdef WITH_PARQUET
+    registerOutputFile_("out_feature_qpx", "<file>", "", "Output parquet file for feature-level quantification (QPX feature format)", false, false);
+    setValidFormats_("out_feature_qpx", {"parquet"});
+#endif
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     //registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
     registerDoubleOption_("psm_score", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
@@ -433,6 +442,9 @@ protected:
       cf.setCharge(id_spec.getPrecursors()[0].getCharge());
       cf.setIntensity(overall_intensity);
       pep.setIdentifier(ID_RUN_NAME_);
+      // Set id_merge_index to track which input file this peptide identification originated from.
+      // This is required for proper mzTab export when multiple files are merged into a single ID run.
+      pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_idx);
       cf.setPeptideIdentifications({std::move(pep)});
   }
 
@@ -572,11 +584,10 @@ protected:
       cur_cmap.resize(pep_ids.size());
 
       channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
-      // add filename references
-      for (auto& column : cur_cmap.getColumnHeaders())
-      {
-        column.second.filename = mz_file;
-      }
+
+      // Collect peptide IDs without corresponding MS3 spectra (thread-safe collection)
+      // Note: unassigned_pep_ids is shared across threads; push_back is protected by critical section
+      PeptideIdentificationList unassigned_pep_ids;
 
       #pragma omp parallel for /*num_threads(inner_threads)*/
       for (int64_t pep_idx = 0; pep_idx < static_cast<int64_t>(pep_ids.size()); ++pep_idx)
@@ -591,6 +602,23 @@ protected:
             std::vector<std::pair<double,unsigned>> channel_qc(quant_method->getNumberOfChannels(), std::make_pair(std::numeric_limits<double>::quiet_NaN(), 0));
 
             auto [quant_spec_idx, id_spec_idx, ms1_spec_idx] = getSpecIdxs_(ms2spec_it->second, exp, has_ms3);
+            
+            // Check if MS3 spectrum is missing for MS2 spectrum
+            if (has_ms3 && quant_spec_idx == -1)
+            {
+              // Store peptide ID with file association for unassigned IDs
+              PeptideIdentification unassigned_pep = pep;
+              unassigned_pep.setIdentifier(ID_RUN_NAME_);
+              unassigned_pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, i);
+              #pragma omp critical(unassigned_pep_ids_collection)
+              {
+                OPENMS_LOG_WARN << "MS2 spectrum " << spec_ref << " at index " << ms2spec_it->second
+                                << " does not have a corresponding MS3 spectrum. Skipping quantification and adding to unassigned.\n";
+                unassigned_pep_ids.push_back(std::move(unassigned_pep));
+              }
+              continue;
+            }
+            
             auto [quant_purity, id_purity] = getPurities_(quant_spec_idx, id_spec_idx, ms1_spec_idx, exp, has_ms3, max_precursor_isotope_deviation, calc_id_purity, interpolate_precursor_purity);
 
             if (has_ms3 && exp[quant_spec_idx].getMSLevel() != 3)
@@ -630,6 +658,17 @@ protected:
       }
       channel_extractor.printStatsWithMissing(qc);
 
+      // Add peptide IDs without MS3 spectra to unassigned IDs
+      if (!unassigned_pep_ids.empty())
+      {
+        OPENMS_LOG_INFO << "Adding " << unassigned_pep_ids.size() 
+                        << " peptide identifications without MS3 spectra to unassigned IDs." << std::endl;
+        auto& cmap_unassigned = cmap.getUnassignedPeptideIdentifications();
+        cmap_unassigned.insert(cmap_unassigned.end(), 
+                               std::make_move_iterator(unassigned_pep_ids.begin()), 
+                               std::make_move_iterator(unassigned_pep_ids.end()));
+      }
+
       // TODO if we want to support normalization, we either need to replace the quantifier with corrector and normalizer separately
       //  or init the normalizer from the quantifier settings.
       // But honestly, most downstream software can do it better, so I would not bother. Just export to mzTab and do it in R/python.
@@ -637,16 +676,10 @@ protected:
 
       // TODO cleanup, reset?
 
-      if (cmap.empty())
-      {
-        cmap = std::move(cur_cmap);
-        channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
-      }
-      else
-      {
-        cmap.reserve(cmap.size() + cur_cmap.size());
-        cmap.insert(cmap.end(), std::make_move_iterator(cur_cmap.begin()), std::make_move_iterator(cur_cmap.end()));
-      }
+      // Always use insert (not move assignment) to preserve column headers registered at line 577.
+      // Move assignment would lose column headers if early files have no peptide IDs after filtering.
+      cmap.reserve(cmap.size() + cur_cmap.size());
+      cmap.insert(cmap.end(), std::make_move_iterator(cur_cmap.begin()), std::make_move_iterator(cur_cmap.end()));
 
       // TODO If we do the parquet export, we can export the feature file here already. Then, if prot. inference and quant are disabled,
       //  the tool could be run on a single file and distributed over multiple nodes. We could use a parquet partitioned over raw_files
@@ -823,6 +856,21 @@ protected:
       IDFilter::keepUniquePeptidesPerProtein(cmap.getUnassignedPeptideIdentifications());
     }
 
+
+#ifdef WITH_PARQUET
+    {
+      String out_feature_qpx = getStringOption_("out_feature_qpx");
+      if (!out_feature_qpx.empty())
+      {
+        OPENMS_LOG_INFO << "Exporting feature-level Parquet file..." << std::endl;
+        if (!ConsensusMapArrowExport::exportToParquet(cmap, out_feature_qpx))
+        {
+          OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out_feature_qpx << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+      }
+    }
+#endif
 
     PeptideAndProteinQuant prot_quantifier;
     prot_quantifier.setParameters(pq_param);

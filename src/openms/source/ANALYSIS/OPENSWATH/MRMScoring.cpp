@@ -206,7 +206,7 @@ namespace OpenSwath
           // compute normalized cross correlation
           xcorr_precursor_contrast_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(tmp_data_precursor[i], tmp_data_fragments[j], static_cast<int>(tmp_data_precursor[i].size()), 1);
 #ifdef MRMSCORING_TESTING
-          std::cout << " fill xcorr_precursor_contrast_matrix_ "<< tmp_data_precursor[i].size() << " / " << tmp_data_fragments[j].size() << " : " << xcorr_precursor_contrast_matrix_[i][j].data.size() << std::endl;
+          std::cout << " fill xcorr_precursor_contrast_matrix_ "<< tmp_data_precursor[i].size() << " / " << tmp_data_fragments[j].size() << " : " << xcorr_precursor_contrast_matrix_[i][j].data.size() << '\n';
 #endif
         }
       }
@@ -261,7 +261,7 @@ namespace OpenSwath
           //deltas.push_back(std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_.getValue(i, j))->first));
           msc(xcorr_matrix_max_peak_(i,j));
 #ifdef MRMSCORING_TESTING
-          std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first) << std::endl;
+          std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first) << '\n';
 #endif
         }
       }
@@ -289,7 +289,7 @@ namespace OpenSwath
                    * normalized_library_intensity[i]);
 #ifdef MRMSCORING_TESTING
         std::cout << "_xcoel_weighted " << i << " " << i << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][i])->first << " weight " <<
-        normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
+        normalized_library_intensity[i] * normalized_library_intensity[i] << '\n';
       weights += normalized_library_intensity[i] * normalized_library_intensity[i];
 #endif
         for (long int j = i + 1; j < xcorr_matrix_max_peak_.rows(); j++)
@@ -300,7 +300,7 @@ namespace OpenSwath
                      * normalized_library_intensity[j] * 2);
 #ifdef MRMSCORING_TESTING
           std::cout << "_xcoel_weighted " << i << " " << j << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first << " weight " <<
-          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
+          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << '\n';
         weights += normalized_library_intensity[i] * normalized_library_intensity[j];
 #endif
 
@@ -308,7 +308,7 @@ namespace OpenSwath
       }
 
 #ifdef MRMSCORING_TESTING
-      std::cout << " all weights sum " << weights << std::endl;
+      std::cout << " all weights sum " << weights << '\n';
 #endif
 
       return deltas;
@@ -328,7 +328,7 @@ namespace OpenSwath
           auto x = Scoring::xcorrArrayGetMaxPeak(xcorr_contrast_matrix_(i, j));
           deltas_id += std::abs(x->first);
 #ifdef MRMSCORING_TESTING
-          std::cout << "&&_xcoel append " << xcorr_contrast_matrix_max_peak_getValue(i, j) << std::endl;
+          std::cout << "&&_xcoel append " << xcorr_contrast_matrix_max_peak_getValue(i, j) << '\n';
 #endif
         }
         deltas.push_back(deltas_id / xcorr_contrast_matrix_.cols());
@@ -350,7 +350,7 @@ namespace OpenSwath
           auto x = Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_matrix_(i, j));
           msc(std::abs(x->first));
 #ifdef MRMSCORING_TESTING
-          std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_matrix_[i][j])->first) << std::endl;
+          std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_matrix_[i][j])->first) << '\n';
 #endif
         }
       }
@@ -376,7 +376,7 @@ namespace OpenSwath
         auto e = *(em.data() + i);
         msc(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first));
 #ifdef MRMSCORING_TESTING
-        std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_contrast_matrix_[i][j])->first) << std::endl;
+        std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_contrast_matrix_[i][j])->first) << '\n';
 #endif
       }
 
@@ -401,7 +401,7 @@ namespace OpenSwath
         msc(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first));
 
 #ifdef MRMSCORING_TESTING
-        std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_contrast_matrix_[i][j])->first) << std::endl;
+        std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_contrast_matrix_[i][j])->first) << '\n';
 #endif
       }
 
@@ -425,7 +425,7 @@ namespace OpenSwath
           auto x = Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_combined_matrix_(i, j));
           msc(std::abs(x->first));
 #ifdef MRMSCORING_TESTING
-          std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_combined_matrix_[i][j])->first) << std::endl;
+          std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_combined_matrix_[i][j])->first) << '\n';
 #endif
         }
       }
@@ -477,7 +477,7 @@ namespace OpenSwath
                         * normalized_library_intensity[i]);
 #ifdef MRMSCORING_TESTING
         std::cout << "_xcorr_weighted " << i << " " << i << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][i])->second << " weight " <<
-        normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
+        normalized_library_intensity[i] * normalized_library_intensity[i] << '\n';
 #endif
         for (long int j = i + 1; j < xcorr_matrix_max_peak_sec_.rows(); j++)
         {
@@ -486,7 +486,7 @@ namespace OpenSwath
                           * normalized_library_intensity[j] * 2);
 #ifdef MRMSCORING_TESTING
           std::cout << "_xcorr_weighted " << i << " " << j << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->second << " weight " <<
-          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
+          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << '\n';
 #endif
         }
       }
@@ -613,7 +613,7 @@ namespace OpenSwath
       for (std::size_t k = 0; k < transitions.size(); k++)
     {
       native_id = transitions[k].getNativeID();
-      std::cout << native_id << " Lib vs exp " << library_intensity[k] << " " << experimental_intensity[k] << std::endl;
+      std::cout << native_id << " Lib vs exp " << library_intensity[k] << " " << experimental_intensity[k] << '\n';
     }
 #endif
 
@@ -845,7 +845,7 @@ namespace OpenSwath
                      * normalized_library_intensity[i];
 #ifdef MRMSCORING_TESTING
         std::cout << "_mi_weighted " << i << " " << i << " " << mi_matrix_[i][i] << " weight " <<
-        normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
+        normalized_library_intensity[i] * normalized_library_intensity[i] << '\n';
 #endif
         for (long int j = i + 1; j < mi_matrix_.rows(); j++)
         {
@@ -854,7 +854,7 @@ namespace OpenSwath
                        * normalized_library_intensity[j] * 2;
 #ifdef MRMSCORING_TESTING
           std::cout << "_mi_weighted " << i << " " << j << " " << mi_matrix_[i][j] << " weight " <<
-          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
+          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << '\n';
 #endif
         }
       }

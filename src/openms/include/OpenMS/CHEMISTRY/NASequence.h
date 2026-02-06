@@ -10,8 +10,10 @@
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <functional>
 #include <iosfwd>
 #include <vector>
 
@@ -519,3 +521,63 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
+
+// Hash function specialization for NASequence
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::NASequence.
+   *
+   * Computes a hash based on the ribonucleotide sequence (codes),
+   * and the 5' and 3' terminal modifications.
+   *
+   * Design decisions:
+   * - Uses ribonucleotide codes instead of pointers for portability
+   * - Includes 5' and 3' terminal modification codes
+   * - Hash is consistent with operator== when all Ribonucleotide pointers originate
+   *   from RibonucleotideDB (the singleton guarantees identical codes map to identical pointers)
+   *
+   * @pre All Ribonucleotide* in the sequence must originate from RibonucleotideDB.
+   *      If pointers from different sources with identical codes are used,
+   *      hash equality may not imply object equality (violating hash contract).
+   *
+   * @note Hash is reproducible across process runs for equal sequences.
+   */
+  template<>
+  struct hash<OpenMS::NASequence>
+  {
+    std::size_t operator()(const OpenMS::NASequence& seq) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash each ribonucleotide in the sequence
+      for (const auto& ribo : seq)
+      {
+        // Hash the code (stable identifier)
+        const OpenMS::String& code = ribo.getCode();
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(code));
+      }
+
+      // Hash 5' terminal modification if present
+      const OpenMS::RibonucleotideChainEnd* five_prime = seq.getFivePrimeMod();
+      if (five_prime != nullptr)
+      {
+        // Use a different seed offset for 5' to distinguish from 3'
+        std::size_t five_hash = OpenMS::fnv1a_hash_string(five_prime->getCode());
+        OpenMS::hash_combine(seed, five_hash ^ 0x355052494dULL); // "5PRIM" in hex-like
+      }
+
+      // Hash 3' terminal modification if present
+      const OpenMS::RibonucleotideChainEnd* three_prime = seq.getThreePrimeMod();
+      if (three_prime != nullptr)
+      {
+        // Use a different seed offset for 3'
+        std::size_t three_hash = OpenMS::fnv1a_hash_string(three_prime->getCode());
+        OpenMS::hash_combine(seed, three_hash ^ 0x335052494dULL); // "3PRIM" in hex-like
+      }
+
+      return seed;
+    }
+  };
+} // namespace std

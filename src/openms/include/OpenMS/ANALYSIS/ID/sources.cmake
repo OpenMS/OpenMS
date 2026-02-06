@@ -32,7 +32,6 @@ IDRipper.h
 IDScoreGetterSetter.h
 IDScoreSwitcherAlgorithm.h
 IonIdentityMolecularNetworking.h
-MessagePasserFactory.h
 MetaboliteSpectralMatching.h
 PeptideSearchEngineFIAlgorithm.h
 MorpheusScore.h
@@ -43,6 +42,7 @@ PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h
 PrecursorPurity.h
 PScore.h
+Scores.h
 SimpleSearchEngineAlgorithm.h
 SiriusExportAlgorithm.h
 SiriusMSConverter.h

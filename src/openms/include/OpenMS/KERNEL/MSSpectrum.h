@@ -623,6 +623,68 @@ public:
     /// compute the total ion count (sum of all peak intensities)
     PeakType::IntensityType calculateTIC() const;
 
+    /**
+     * @brief Aggregation mode for rasterizeIMFrame
+     */
+    enum class RasterAggregation
+    {
+      SUM,  ///< Sum intensities of all peaks falling into a pixel
+      MAX   ///< Take maximum intensity of all peaks falling into a pixel
+    };
+
+    /**
+     * @brief Rasterizes an ion mobility frame into a 2D intensity matrix (IM vs m/z).
+     *
+     * This method creates a 2D heatmap/image representation of an IM frame by binning peak
+     * intensities into a regular grid of pixels. It is designed for spectra in CONCATENATED
+     * format where each peak has an associated ion mobility value stored in a float data array.
+     *
+     * The output matrix has dimensions [mz_bins x im_bins] where:
+     * - Rows correspond to m/z bins (y-axis in visualization)
+     * - Columns correspond to IM bins (x-axis in visualization)
+     * - Values are aggregated intensities (sum or max)
+     *
+     * The output buffer must be pre-allocated with size (mz_bins * im_bins) and will be
+     * filled in row-major order (C-style: mz varies slowest, im varies fastest).
+     *
+     * @param[out] output Pre-allocated buffer of size (mz_bins * im_bins) to store the
+     *                    aggregated intensity values. Must not be nullptr.
+     * @param[in] im_bins Number of bins along the IM axis (image width)
+     * @param[in] mz_bins Number of bins along the m/z axis (image height)
+     * @param[in] min_im Minimum IM value for the output range
+     * @param[in] max_im Maximum IM value for the output range
+     * @param[in] min_mz Minimum m/z value for the output range
+     * @param[in] max_mz Maximum m/z value for the output range
+     * @param[in] aggregation RasterAggregation mode: SUM (default) or MAX
+     *
+     * @note This method requires the spectrum to have IM data (containsIMData() returns true).
+     * @note Unlike rasterizeRTMZ, this method does NOT require the spectrum to be sorted by m/z,
+     *       as IM frame data is typically unsorted. All peaks are iterated linearly.
+     * @note The output buffer is zero-initialized at the start of this method.
+     *
+     * @throws Exception::MissingInformation if the spectrum does not contain IM data
+     * @throws Exception::NullPointer if output is nullptr
+     * @throws Exception::InvalidValue if im_bins or mz_bins is zero
+     * @throws Exception::InvalidRange if min_im >= max_im or min_mz >= max_mz
+     *
+     * Example usage with numpy (via pyOpenMS):
+     * @code
+     * import numpy as np
+     * im_bins, mz_bins = 800, 600
+     * output = np.zeros((mz_bins, im_bins), dtype=np.float32)
+     * spec.rasterizeIMFrame(output, im_bins, mz_bins, min_im, max_im, min_mz, max_mz)
+     * @endcode
+     */
+    void rasterizeIMFrame(
+      float* output,
+      Size im_bins,
+      Size mz_bins,
+      CoordinateType min_im,
+      CoordinateType max_im,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      RasterAggregation aggregation = RasterAggregation::SUM) const;
+
 protected:
     /// Retention time
     double retention_time_ = -1;

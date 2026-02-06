@@ -200,7 +200,7 @@ public:
         if (ms1) 
         {
           prec.setMZ(coord.mz);
-          chrom.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+          chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::BASEPEAK_CHROMATOGRAM);
 
           // extract compound / peptide id from transition and store in
           // more-or-less default field
@@ -228,7 +228,7 @@ public:
           Product prod;
           prod.setMZ(transition.getProductMZ());
           chrom.setProduct(prod);
-          chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+          chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
 
           // extract compound / peptide id from transition and store in
           // more-or-less default field
@@ -360,7 +360,7 @@ private:
 
         // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
         chrom.setNativeID(transition->getNativeID());
-        chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+        chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
         chromatograms.push_back(chrom);
       }
 
@@ -401,6 +401,18 @@ private:
     }
   }
 
+  // Const-qualified template specialization for extract_id_.
+  // This specialization handles const LightTargetedExperiment parameters by forwarding
+  // to the non-const implementation (via const_cast) to avoid linker errors from
+  // duplicate template instantiations when both const and non-const versions are used.
+  template<>
+  inline String ChromatogramExtractor::extract_id_<const OpenSwath::LightTargetedExperiment>(const OpenSwath::LightTargetedExperiment& transition_exp_used,
+                                                                                               const String& id,
+                                                                                               int & prec_charge)
+  {
+    // forward to non-const implementation
+    return extract_id_<OpenSwath::LightTargetedExperiment>(const_cast<OpenSwath::LightTargetedExperiment&>(transition_exp_used), id, prec_charge);
+  }
 
   // Specialization for template (TargetedExperiment)
   template<>

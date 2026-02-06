@@ -89,17 +89,14 @@ namespace OpenMS
   class OPENMS_DLLAPI OpenSwathOSWWriter
   {
     String output_filename_;
-    String input_filename_;
-    OpenMS::UInt64 run_id_;
+    OpenMS::UInt64 run_id_ = 0;
     bool doWrite_;
     bool enable_uis_scoring_;
 
   public:
 
     OpenSwathOSWWriter(const String& output_filename,
-                       const UInt64 run_id,
-                       const String& input_filename = "inputfile",
-                       bool uis_scores = false);
+              bool uis_scores = false);
 
     bool isActive() const;
 
@@ -108,6 +105,12 @@ namespace OpenMS
      *
      */
     void writeHeader();
+
+    /// Add a RUN entry to the OSW file. Can be called multiple times to register multiple runs.
+    void addRun(const UInt64 run_id, const String& input_filename);
+
+    /// Set the current run id used when prepareLine generates FEATURE entries.
+    void setRunId(const UInt64 run_id);
 
     /**
      * @brief Prepare scores for SQLite insertion

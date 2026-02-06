@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
 
 using namespace std;
 
@@ -156,7 +159,46 @@ namespace OpenMS
     return am;
   }
 
+  const std::string& Precursor::activationMethodToString(ActivationMethod m)
+  {
+    if (m == ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ACTIVATIONMETHOD");
+    }
+    return NamesOfActivationMethod[static_cast<size_t>(m)];
+  }
 
+  const std::string& Precursor::activationMethodToShortString(ActivationMethod m)
+  {
+    if (m == ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ACTIVATIONMETHOD");
+    }
+    return NamesOfActivationMethodShort[static_cast<size_t>(m)];
+  }
+
+  Precursor::ActivationMethod Precursor::toActivationMethod(const std::string& name)
+  {
+    // Search in full names
+    auto first_full = &NamesOfActivationMethod[0];
+    auto last_full = &NamesOfActivationMethod[static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
+    auto it_full = std::find(first_full, last_full, name);
+    if (it_full != last_full)
+    {
+      return static_cast<ActivationMethod>(it_full - first_full);
+    }
+
+    // Search in short names
+    auto first_short = &NamesOfActivationMethodShort[0];
+    auto last_short = &NamesOfActivationMethodShort[static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
+    auto it_short = std::find(first_short, last_short, name);
+    if (it_short != last_short)
+    {
+      return static_cast<ActivationMethod>(it_short - first_short);
+    }
+
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown activation method", name);
+  }
 
   void Precursor::setActivationMethods(const set<Precursor::ActivationMethod> & activation_methods)
   {

@@ -2,14 +2,18 @@ from String cimport *
 from Software cimport *
 from MetaInfoInterface cimport *
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 
 cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
 
     cdef cppclass MassAnalyzer(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  std
 
-        MassAnalyzer() except + nogil 
+        MassAnalyzer() except + nogil
         MassAnalyzer(MassAnalyzer &) except + nogil 
 
         AnalyzerType getType() except + nogil  # wrap-doc:Returns the analyzer type
@@ -85,10 +89,40 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
         @staticmethod
         libcpp_vector[String] getAllNamesOfReflectronState() except + nogil  # wrap-doc:Returns all reflectron state names known to OpenMS
 
+        @staticmethod
+        libcpp_utf8_output_string analyzerTypeToString(AnalyzerType type) except + nogil  # wrap-doc:Convert AnalyzerType enum to string
+        @staticmethod
+        AnalyzerType toAnalyzerType(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to AnalyzerType enum
+
+        @staticmethod
+        libcpp_utf8_output_string resolutionMethodToString(ResolutionMethod method) except + nogil  # wrap-doc:Convert ResolutionMethod enum to string
+        @staticmethod
+        ResolutionMethod toResolutionMethod(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to ResolutionMethod enum
+
+        @staticmethod
+        libcpp_utf8_output_string resolutionTypeToString(ResolutionType type) except + nogil  # wrap-doc:Convert ResolutionType enum to string
+        @staticmethod
+        ResolutionType toResolutionType(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to ResolutionType enum
+
+        @staticmethod
+        libcpp_utf8_output_string scanDirectionToString(ScanDirection direction) except + nogil  # wrap-doc:Convert ScanDirection enum to string
+        @staticmethod
+        ScanDirection toScanDirection(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to ScanDirection enum
+
+        @staticmethod
+        libcpp_utf8_output_string scanLawToString(ScanLaw law) except + nogil  # wrap-doc:Convert ScanLaw enum to string
+        @staticmethod
+        ScanLaw toScanLaw(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to ScanLaw enum
+
+        @staticmethod
+        libcpp_utf8_output_string reflectronStateToString(ReflectronState state) except + nogil  # wrap-doc:Convert ReflectronState enum to string
+        @staticmethod
+        ReflectronState toReflectronState(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to ReflectronState enum
+
 cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnalyzer":
 
     # analyzer type
-    cdef enum AnalyzerType:
+    cdef enum class AnalyzerType "OpenMS::MassAnalyzer::AnalyzerType":
       # wrap-attach:
       #    MassAnalyzer
       ANALYZERNULL,                         #< Unknown
@@ -110,7 +144,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
 
 
     # Which of the available standard measures is used to define whether two peaks are separate
-    cdef enum ResolutionMethod:
+    cdef enum class ResolutionMethod "OpenMS::MassAnalyzer::ResolutionMethod":
       # wrap-attach:
       #    MassAnalyzer
       RESMETHNULL,                  #< Unknown
@@ -120,7 +154,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       SIZE_OF_RESOLUTIONMETHOD
 
     # Resolution type
-    cdef enum ResolutionType:
+    cdef enum class ResolutionType "OpenMS::MassAnalyzer::ResolutionType":
       # wrap-attach:
       #    MassAnalyzer
       RESTYPENULL,              #< Unknown
@@ -129,7 +163,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       SIZE_OF_RESOLUTIONTYPE
 
     # direction of scanning
-    cdef enum ScanDirection:
+    cdef enum class ScanDirection "OpenMS::MassAnalyzer::ScanDirection":
       # wrap-attach:
       #    MassAnalyzer
       SCANDIRNULL,              #< Unknown
@@ -138,7 +172,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       SIZE_OF_SCANDIRECTION
 
     #Scan law
-    cdef enum ScanLaw:
+    cdef enum class ScanLaw "OpenMS::MassAnalyzer::ScanLaw":
       # wrap-attach:
       #    MassAnalyzer
       SCANLAWNULL,              #< Unknown
@@ -148,7 +182,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       SIZE_OF_SCANLAW
 
     #Reflectron state
-    cdef enum ReflectronState:
+    cdef enum class ReflectronState "OpenMS::MassAnalyzer::ReflectronState":
       # wrap-attach:
       #    MassAnalyzer
       REFLSTATENULL,            #< Unknown

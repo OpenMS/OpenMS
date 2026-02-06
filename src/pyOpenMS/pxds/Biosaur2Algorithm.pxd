@@ -6,6 +6,8 @@ from MSExperiment cimport *
 cdef extern from "<OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>" namespace "OpenMS":
 
     cdef cppclass Biosaur2Algorithm(DefaultParamHandler):
+        # wrap-inherits:
+        #   DefaultParamHandler
         # wrap-doc:
         #  C++ implementation of the Biosaur2 feature detection workflow.
 

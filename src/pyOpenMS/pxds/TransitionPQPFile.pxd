@@ -34,8 +34,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>" namespace "Op
                 #  :param targeted_exp: The output targeted experiment
                 #  :param legacy_traml_id: Should legacy TraML IDs be used (boolean)?
 
-        # inherited from TransitionTSVFile
-        # due to issues with Cython and overloaded inheritance
+        #  inherited from TransitionTSVFile
+        #  due to issues with Cython and overloaded inheritance
         void convertTargetedExperimentToTSV(char * filename, TargetedExperiment& targeted_exp) except + nogil 
 
         void convertTSVToTargetedExperiment(char * filename, FileType filetype, TargetedExperiment& targeted_exp) except + nogil 

@@ -25,6 +25,7 @@ namespace OpenMS
     MILLISECOND,               ///< milliseconds
     VSSC,                      ///< volt-second per square centimeter (i.e. 1/K_0)
     FAIMS_COMPENSATION_VOLTAGE,///< compensation voltage
+    CCS,                       ///< collisional cross section (square angstrom)
     SIZE_OF_DRIFTTIMEUNIT
   };
 
@@ -37,7 +38,7 @@ namespace OpenMS
 
   /// convert a DriftTimeUnit enum to String
   /// @throws Exception::InvalidValue if @p value is SIZE_OF_DRIFTTIMEUNIT
-  OPENMS_DLLAPI const std::string& toString(const DriftTimeUnit value);
+  OPENMS_DLLAPI const std::string& driftTimeUnitToString(const DriftTimeUnit value);
 
   /// Different ways to represent ion mobility data in a spectrum
   /// Note: 
@@ -62,7 +63,7 @@ namespace OpenMS
   OPENMS_DLLAPI IMFormat toIMFormat(const std::string& IM_format);
   /// convert an IMFormat enum to String
   /// @throws Exception::InvalidValue if @p value is SIZE_OF_IMFORMAT
-  OPENMS_DLLAPI const std::string& toString(const IMFormat value);
+  OPENMS_DLLAPI const std::string& imFormatToString(const IMFormat value);
 
   class OPENMS_DLLAPI IMTypes
   {

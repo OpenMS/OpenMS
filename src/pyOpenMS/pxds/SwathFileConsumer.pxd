@@ -10,8 +10,9 @@ from SwathMap cimport *
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "OpenMS":
 
     cdef cppclass FullSwathFileConsumer:
-        #wrap-ignore
-        #no-pxd-import
+        # wrap-ignore
+        # ABSTRACT class
+        # no-pxd-import
 
         FullSwathFileConsumer() except + nogil  #wrap-ignore
         FullSwathFileConsumer(FullSwathFileConsumer &) except + nogil  # compiler
