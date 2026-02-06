@@ -1289,7 +1289,7 @@ rt, intensities = chromatogram.get_peaks()
         .def("getName", [](const OpenMS::MSChromatogram& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::MSChromatogram& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getMZ", [](const OpenMS::MSChromatogram& self) { return self.getMZ(); }, "Returns the mz of the product entry, makes sense especially for MRM scans")
-        .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a)
+        .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false)
         .def("sortByPosition", [](OpenMS::MSChromatogram& self) { return self.sortByPosition(); }, 
             R"doc(
 Lexicographically sorts the peaks by their intensity
@@ -1467,7 +1467,7 @@ mz, intensities = spectrum.get_peaks()
         .def("getChromatograms", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram> & { return self.getChromatograms(); }, nb::rv_policy::reference_internal, "Returns the list of chromatograms")
         .def("getNrSpectra", [](const OpenMS::MSExperiment& self) { return self.getNrSpectra(); }, "Returns the number of MS spectra")
         .def("getNrChromatograms", [](const OpenMS::MSExperiment& self) { return self.getNrChromatograms(); }, "Returns the number of chromatograms")
-        .def("calculateTIC", [](const OpenMS::MSExperiment& self, float rt_bin_size, unsigned int ms_level) { return self.calculateTIC(rt_bin_size, ms_level); }, "rt_bin_size"_a, "ms_level"_a, "Returns the total ion chromatogram")
+        .def("calculateTIC", [](const OpenMS::MSExperiment& self, float rt_bin_size, unsigned int ms_level) { return self.calculateTIC(rt_bin_size, ms_level); }, "rt_bin_size"_a = 0, "ms_level"_a = 1, "Returns the total ion chromatogram")
         .def("clear", [](OpenMS::MSExperiment& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a, "Clear all spectra data and meta data (if called with True)")
         .def("spectrumRanges", [](const OpenMS::MSExperiment& self) -> const OpenMS::SpectrumRangeManager & { return self.spectrumRanges(); }, nb::rv_policy::reference_internal, "Returns a reference to the spectrum range manager")
         .def("chromatogramRanges", [](const OpenMS::MSExperiment& self) -> const OpenMS::ChromatogramRangeManager & { return self.chromatogramRanges(); }, nb::rv_policy::reference_internal, "Returns a reference to the chromatogram range manager")
@@ -1953,7 +1953,7 @@ mobility, intensities = mobilogram.get_peaks()
         .def("getDriftTimeUnit", [](const OpenMS::Mobilogram& self) { return self.getDriftTimeUnit(); }, "Returns the ion mobility drift time unit")
         .def("getDriftTimeUnitAsString", [](const OpenMS::Mobilogram& self) { return self.getDriftTimeUnitAsString(); }, "Returns the ion mobility drift time unit as string")
         .def("setDriftTimeUnit", [](OpenMS::Mobilogram& self, OpenMS::DriftTimeUnit dt) { return self.setDriftTimeUnit(dt); }, "dt"_a, "Sets the ion mobility drift time unit")
-        .def("sortByIntensity", [](OpenMS::Mobilogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a)
+        .def("sortByIntensity", [](OpenMS::Mobilogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false)
         .def("sortByPosition", [](OpenMS::Mobilogram& self) { return self.sortByPosition(); }, 
             R"doc(
 Lexicographically sorts the peaks by their intensity
@@ -2081,7 +2081,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
     nb::class_<OpenMS::OnDiscMSExperiment>(m, "OnDiscMSExperiment", "Representation of a mass spectrometry experiment on disk.")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::OnDiscMSExperiment &>())
-        .def("openFile", [](OpenMS::OnDiscMSExperiment& self, const OpenMS::String& filename, bool skipMetaData) { return self.openFile(filename, skipMetaData); }, "filename"_a, "skipMetaData"_a)
+        .def("openFile", [](OpenMS::OnDiscMSExperiment& self, const OpenMS::String& filename, bool skipMetaData) { return self.openFile(filename, skipMetaData); }, "filename"_a, "skipMetaData"_a = false)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("getNrSpectra", [](const OpenMS::OnDiscMSExperiment& self) { return self.getNrSpectra(); }, "Returns the total number of spectra available")
@@ -2501,8 +2501,8 @@ Get the spectrum reference (native ID) for this identification.
         .def("sort", [](OpenMS::PeptideIdentification& self) { return self.sort(); })
         .def("empty", [](const OpenMS::PeptideIdentification& self) { return self.empty(); })
         .def_static("getReferencingHits", [](const std::vector<OpenMS::PeptideHit>& p0, const std::set<OpenMS::String>& accession) { return OpenMS::PeptideIdentification::getReferencingHits(p0, accession); }, "Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)")
-        .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const OpenMS::String& ms_run_name, const OpenMS::String& dataset_id, bool include_interpretation) { return self.buildUSI(ms_run_name, dataset_id, include_interpretation); }, "ms_run_name"_a, "dataset_id"_a, "include_interpretation"_a)
-        .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const OpenMS::IdentifierMSRunMapper& mapping, const OpenMS::String& dataset_id, bool include_interpretation) { return self.buildUSI(mapping, dataset_id, include_interpretation); }, "mapping"_a, "dataset_id"_a, "include_interpretation"_a)
+        .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const OpenMS::String& ms_run_name, const OpenMS::String& dataset_id, bool include_interpretation) { return self.buildUSI(ms_run_name, dataset_id, include_interpretation); }, "ms_run_name"_a, "dataset_id"_a = "local", "include_interpretation"_a = false)
+        .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const OpenMS::IdentifierMSRunMapper& mapping, const OpenMS::String& dataset_id, bool include_interpretation) { return self.buildUSI(mapping, dataset_id, include_interpretation); }, "mapping"_a, "dataset_id"_a = "local", "include_interpretation"_a = false)
         .def("getMetaValue", [](const OpenMS::PeptideIdentification& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
         .def("metaValueExists", [](const OpenMS::PeptideIdentification& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
         .def("setMetaValue", [](OpenMS::PeptideIdentification& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
@@ -2893,9 +2893,9 @@ MetaInfoInterface
         .def("getSearchParameters", [](OpenMS::ProteinIdentification& self) -> OpenMS::ProteinIdentification::SearchParameters & { return self.getSearchParameters(); }, nb::rv_policy::reference_internal, "Returns the search parameters")
         .def("getIdentifier", [](const OpenMS::ProteinIdentification& self) { return self.getIdentifier(); }, "Returns the identifier")
         .def("setIdentifier", [](OpenMS::ProteinIdentification& self, const OpenMS::String& id) { return self.setIdentifier(id); }, "id"_a, "Sets the identifier")
-        .def("addPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const OpenMS::String& s, bool raw) { return self.addPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a)
-        .def("addPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const std::vector<OpenMS::String>& s, bool raw) { return self.addPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a)
-        .def("getPrimaryMSRunPath", [](const OpenMS::ProteinIdentification& self, bool raw) { std::vector<OpenMS::String> output; self.getPrimaryMSRunPath(output, raw); return output; }, "raw"_a)
+        .def("addPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const OpenMS::String& s, bool raw) { return self.addPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a = false)
+        .def("addPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const std::vector<OpenMS::String>& s, bool raw) { return self.addPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a = false)
+        .def("getPrimaryMSRunPath", [](const OpenMS::ProteinIdentification& self, bool raw) { std::vector<OpenMS::String> output; self.getPrimaryMSRunPath(output, raw); return output; }, "raw"_a = false)
         .def("getMetaValue", [](const OpenMS::ProteinIdentification& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
         .def("metaValueExists", [](const OpenMS::ProteinIdentification& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
         .def("setMetaValue", [](OpenMS::ProteinIdentification& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
@@ -3387,9 +3387,9 @@ filtering, and processing operations that need to work with specific MS levels.
         .def(nb::init<const OpenMS::SpectrumRangeManager &>())
         .def("clearRanges", [](OpenMS::SpectrumRangeManager& self) { return self.clearRanges(); })
         .def("getMSLevels", [](const OpenMS::SpectrumRangeManager& self) { return self.getMSLevels(); })
-        .def("extendRT", [](OpenMS::SpectrumRangeManager& self, double rt, unsigned int ms_level) { return self.extendRT(rt, ms_level); }, "rt"_a, "ms_level"_a)
-        .def("extendMZ", [](OpenMS::SpectrumRangeManager& self, double mz, unsigned int ms_level) { return self.extendMZ(mz, ms_level); }, "mz"_a, "ms_level"_a)
-        .def("extendUnsafe", [](OpenMS::SpectrumRangeManager& self, const OpenMS::MSSpectrum& spectrum, unsigned int ms_level) { return self.extendUnsafe(spectrum, ms_level); }, "spectrum"_a, "ms_level"_a)
+        .def("extendRT", [](OpenMS::SpectrumRangeManager& self, double rt, unsigned int ms_level) { return self.extendRT(rt, ms_level); }, "rt"_a, "ms_level"_a = 0)
+        .def("extendMZ", [](OpenMS::SpectrumRangeManager& self, double mz, unsigned int ms_level) { return self.extendMZ(mz, ms_level); }, "mz"_a, "ms_level"_a = 0)
+        .def("extendUnsafe", [](OpenMS::SpectrumRangeManager& self, const OpenMS::MSSpectrum& spectrum, unsigned int ms_level) { return self.extendUnsafe(spectrum, ms_level); }, "spectrum"_a, "ms_level"_a = 0)
         ;
 
     // -----------------------------------------------------------------------
@@ -3527,7 +3527,7 @@ MzMLFile().store("testfile.mzML", exp)
         .def("setMSLevel", [](OpenMS::MSSpectrum& self, unsigned int ms_level) { return self.setMSLevel(ms_level); }, "ms_level"_a, "Sets the MS level")
         .def("getName", [](const OpenMS::MSSpectrum& self) { return self.getName(); }, "Returns the name of the spectrum")
         .def("setName", [](OpenMS::MSSpectrum& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the spectrum")
-        .def("sortByIntensity", [](OpenMS::MSSpectrum& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a, "Sorts the peaks by intensity (ascending if reverse is False, descending if True)")
+        .def("sortByIntensity", [](OpenMS::MSSpectrum& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false, "Sorts the peaks by intensity (ascending if reverse is False, descending if True)")
         .def("sortByPosition", [](OpenMS::MSSpectrum& self) { return self.sortByPosition(); }, "Sorts the peaks by m/z position")
         .def("isSorted", [](const OpenMS::MSSpectrum& self) { return self.isSorted(); }, "Returns True if the spectrum is sorted by m/z")
         .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz) { return self.findNearest(mz); }, "mz"_a, "Returns the index of the closest peak in m/z")
@@ -3905,14 +3905,14 @@ This class supports direct iteration in Python.
         .def(nb::init<unsigned long>())
         .def("appendRows", [](OpenMS::ConsensusMap& self, const OpenMS::ConsensusMap& rhs) -> OpenMS::ConsensusMap & { return self.appendRows(rhs); }, "rhs"_a, nb::rv_policy::reference_internal, "Add consensus map entries as new rows")
         .def("appendColumns", [](OpenMS::ConsensusMap& self, const OpenMS::ConsensusMap& rhs) -> OpenMS::ConsensusMap & { return self.appendColumns(rhs); }, "rhs"_a, nb::rv_policy::reference_internal, "Add consensus map entries as new columns")
-        .def("clear", [](OpenMS::ConsensusMap& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a, "Clears all data and meta data")
+        .def("clear", [](OpenMS::ConsensusMap& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a = true, "Clears all data and meta data")
         .def("getExperimentType", [](const OpenMS::ConsensusMap& self) { return self.getExperimentType(); }, "Non-mutable access to the experiment type")
         .def("setExperimentType", [](OpenMS::ConsensusMap& self, const OpenMS::String& experiment_type) { return self.setExperimentType(experiment_type); }, "experiment_type"_a, "Mutable access to the experiment type")
-        .def("sortByIntensity", [](OpenMS::ConsensusMap& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a, "Sorts the peaks according to ascending intensity.")
+        .def("sortByIntensity", [](OpenMS::ConsensusMap& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false, "Sorts the peaks according to ascending intensity.")
         .def("sortByRT", [](OpenMS::ConsensusMap& self) { return self.sortByRT(); }, "Sorts the peaks according to RT position")
         .def("sortByMZ", [](OpenMS::ConsensusMap& self) { return self.sortByMZ(); }, "Sorts the peaks according to m/z position")
         .def("sortByPosition", [](OpenMS::ConsensusMap& self) { return self.sortByPosition(); }, "Lexicographically sorts the peaks by their position (First RT then m/z)")
-        .def("sortByQuality", [](OpenMS::ConsensusMap& self, bool reverse) { return self.sortByQuality(reverse); }, "reverse"_a, "Sorts the peaks according to ascending quality.")
+        .def("sortByQuality", [](OpenMS::ConsensusMap& self, bool reverse) { return self.sortByQuality(reverse); }, "reverse"_a = false, "Sorts the peaks according to ascending quality.")
         .def("sortBySize", [](OpenMS::ConsensusMap& self) { return self.sortBySize(); }, "Sorts with respect to the size (number of elements)")
         .def("sortByMaps", [](OpenMS::ConsensusMap& self) { return self.sortByMaps(); }, "Sorts with respect to the sets of maps covered by the consensus features (lexicographically)")
         .def("sortPeptideIdentificationsByMapIndex", [](OpenMS::ConsensusMap& self) { return self.sortPeptideIdentificationsByMapIndex(); }, "Sorts PeptideIdentifications of consensus features with respect to their map index.")
@@ -4086,7 +4086,7 @@ print(f"RT: {feat.getRT()}, m/z: {feat.getMZ()}")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def(nb::self + nb::self)
-        .def("sortByIntensity", [](OpenMS::FeatureMap& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a, 
+        .def("sortByIntensity", [](OpenMS::FeatureMap& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false, 
             R"doc(
 Sorts features by ascending intensity
 After sorting, features can be accessed in order from lowest to highest intensity
@@ -4106,7 +4106,7 @@ Compares RT first, then m/z for features with the same RT
 Sorts features by retention time (RT) in ascending order
 This is useful for time-based analysis or visualization
 )doc")
-        .def("sortByOverallQuality", [](OpenMS::FeatureMap& self, bool reverse) { return self.sortByOverallQuality(reverse); }, "reverse"_a, 
+        .def("sortByOverallQuality", [](OpenMS::FeatureMap& self, bool reverse) { return self.sortByOverallQuality(reverse); }, "reverse"_a = false, 
             R"doc(
 Sorts features by mass-to-charge ratio (m/z) in ascending order
 Useful for mass-based grouping or analysis
@@ -4141,7 +4141,7 @@ These are peptide IDs that could not be matched to features, possibly due to fea
         .def("setPrimaryMSRunPath", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::String>& s) { return self.setPrimaryMSRunPath(s); }, "s"_a, "Sets the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)")
         .def("setPrimaryMSRunPath", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::String>& s, OpenMS::MSExperiment& e) { return self.setPrimaryMSRunPath(s, e); }, "s"_a, "e"_a, "Sets the file path to the primary MS run using the mzML annotated in the MSExperiment argument `e`")
         .def("getPrimaryMSRunPath", [](const OpenMS::FeatureMap& self) { std::vector<OpenMS::String> toFill; self.getPrimaryMSRunPath(toFill); return toFill; }, "Returns the file path to the first MS run")
-        .def("clear", [](OpenMS::FeatureMap& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a, 
+        .def("clear", [](OpenMS::FeatureMap& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a = true, 
             R"doc(
 Clears all feature data and metadata
 After calling this, the map will be empty (size() returns 0)

@@ -157,7 +157,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .def("clear", [](OpenMS::CalibrationData& self) { return self.clear(); }, "Remove all calibration points")
         .def("setUsePPM", [](OpenMS::CalibrationData& self, bool usePPM) { return self.setUsePPM(usePPM); }, "usePPM"_a)
         .def("usePPM", [](const OpenMS::CalibrationData& self) { return self.usePPM(); }, "Current error unit (ppm or Th)")
-        .def("insertCalibrationPoint", [](OpenMS::CalibrationData& self, double rt, double mz_obs, float intensity, double mz_ref, double weight, int group) { return self.insertCalibrationPoint(rt, mz_obs, intensity, mz_ref, weight, group); }, "rt"_a, "mz_obs"_a, "intensity"_a, "mz_ref"_a, "weight"_a, "group"_a)
+        .def("insertCalibrationPoint", [](OpenMS::CalibrationData& self, double rt, double mz_obs, float intensity, double mz_ref, double weight, int group) { return self.insertCalibrationPoint(rt, mz_obs, intensity, mz_ref, weight, group); }, "rt"_a, "mz_obs"_a, "intensity"_a, "mz_ref"_a, "weight"_a, "group"_a = -1)
         .def("getNrOfGroups", [](const OpenMS::CalibrationData& self) { return self.getNrOfGroups(); }, "Number of peak groups (can be 0)")
         .def("getError", [](const OpenMS::CalibrationData& self, unsigned long i) { return self.getError(i); }, "i"_a, "Retrieve the error for i'th calibrant in either ppm or Th (depending on usePPM())")
         .def("getRefMZ", [](const OpenMS::CalibrationData& self, unsigned long i) { return self.getRefMZ(i); }, "i"_a, "Retrieve the theoretical m/z of the i'th calibration point")
@@ -350,7 +350,7 @@ Read LP from file
 :param filename: Filename where to store the LP problem
 :param format: LP, MPS or GLPK
 )doc")
-        .def("solve", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::SolverParam& solver_param, unsigned long verbose_level) { return self.solve(solver_param, verbose_level); }, "solver_param"_a, "verbose_level"_a, 
+        .def("solve", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::SolverParam& solver_param, unsigned long verbose_level) { return self.solve(solver_param, verbose_level); }, "solver_param"_a, "verbose_level"_a = 0, 
             R"doc(
 Write LP formulation to a file
 :param filename: Output filename, if the filename ends with '.gz' it will be compressed
@@ -577,18 +577,18 @@ Each parameter can be annotated with an arbitrary number of tags (e.g., 'advance
         .def("insert", [](OpenMS::Param& self, const OpenMS::String& prefix, const OpenMS::Param& param) { return self.insert(prefix, param); }, "prefix"_a, "param"_a, "Inserts all values of another Param object with the given prefix")
         .def("remove", [](OpenMS::Param& self, const OpenMS::String& key) { return self.remove(key); }, "key"_a, "Removes an entry or section (when key ends with ':') by exact name match")
         .def("removeAll", [](OpenMS::Param& self, const OpenMS::String& prefix) { return self.removeAll(prefix); }, "prefix"_a, "Removes all entries and sections that start with the given prefix")
-        .def("copy", [](const OpenMS::Param& self, const OpenMS::String& prefix, bool remove_prefix) { return self.copy(prefix, remove_prefix); }, "prefix"_a, "remove_prefix"_a, 
+        .def("copy", [](const OpenMS::Param& self, const OpenMS::String& prefix, bool remove_prefix) { return self.copy(prefix, remove_prefix); }, "prefix"_a, "remove_prefix"_a = false, 
             R"doc(
 Returns a new Param containing all entries that start with the given prefix.
 If remove_prefix is True, the prefix is removed from the keys in the returned Param
 )doc")
         .def("merge", [](OpenMS::Param& self, const OpenMS::Param& toMerge) { return self.merge(toMerge); }, "toMerge"_a, "Adds missing parameters from another Param object without modifying existing ones")
-        .def("setDefaults", [](OpenMS::Param& self, const OpenMS::Param& defaults, const OpenMS::String& prefix, bool showMessage) { return self.setDefaults(defaults, prefix, showMessage); }, "defaults"_a, "prefix"_a, "showMessage"_a, 
+        .def("setDefaults", [](OpenMS::Param& self, const OpenMS::Param& defaults, const OpenMS::String& prefix, bool showMessage) { return self.setDefaults(defaults, prefix, showMessage); }, "defaults"_a, "prefix"_a = "", "showMessage"_a = false, 
             R"doc(
 Inserts all values from defaults that are not already set.
 Optionally adds a prefix to all keys and prints a message for each default value set
 )doc")
-        .def("checkDefaults", [](const OpenMS::Param& self, const OpenMS::String& name, const OpenMS::Param& defaults, const OpenMS::String& prefix) { return self.checkDefaults(name, defaults, prefix); }, "name"_a, "defaults"_a, "prefix"_a, 
+        .def("checkDefaults", [](const OpenMS::Param& self, const OpenMS::String& name, const OpenMS::Param& defaults, const OpenMS::String& prefix) { return self.checkDefaults(name, defaults, prefix); }, "name"_a, "defaults"_a, "prefix"_a = "", 
             R"doc(
 Checks current parameter entries against given defaults.
 Validates types, string restrictions, and numeric ranges. Raises exception on invalid parameters
@@ -604,10 +604,10 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
 
         .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value, const OpenMS::String& description, const std::vector<std::string>& tags) {
             self.setValue(key, value, description, tags);
-        }, "key"_a, "value"_a, "description"_a, "tags"_a, "Sets a value with description and tags")
+        }, "key"_a, "value"_a, "description"_a = "", "tags"_a = std::vector<std::string>(), "Sets a value with description and tags")
         .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value, const OpenMS::String& description) {
             self.setValue(key, value, description);
-        }, "key"_a, "value"_a, "description"_a, "Sets a value with description")
+        }, "key"_a, "value"_a, "description"_a = "", "Sets a value with description")
         .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value) {
             self.setValue(key, value);
         }, "key"_a, "value"_a, "Set a value for a key")
@@ -742,9 +742,9 @@ PeakSpectrumCompareFunctor inheritance
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SpectraSTSimilarityScore &>())
-        .def("preprocess", [](OpenMS::SpectraSTSimilarityScore& self, OpenMS::MSSpectrum& spec, float remove_peak_intensity_threshold, unsigned int cut_peaks_below, unsigned long min_peak_number, unsigned long max_peak_number) { return self.preprocess(spec, remove_peak_intensity_threshold, cut_peaks_below, min_peak_number, max_peak_number); }, "spec"_a, "remove_peak_intensity_threshold"_a, "cut_peaks_below"_a, "min_peak_number"_a, "max_peak_number"_a)
+        .def("preprocess", [](OpenMS::SpectraSTSimilarityScore& self, OpenMS::MSSpectrum& spec, float remove_peak_intensity_threshold, unsigned int cut_peaks_below, unsigned long min_peak_number, unsigned long max_peak_number) { return self.preprocess(spec, remove_peak_intensity_threshold, cut_peaks_below, min_peak_number, max_peak_number); }, "spec"_a, "remove_peak_intensity_threshold"_a = 2.01, "cut_peaks_below"_a = 1000, "min_peak_number"_a = 5, "max_peak_number"_a = 150)
         .def("transform", [](OpenMS::SpectraSTSimilarityScore& self, const OpenMS::MSSpectrum& spec) { return self.transform(spec); }, "spec"_a, "Spectrum is transformed into a binned spectrum with bin size 1 and spread 1 and the intensities are normalized")
-        .def("dot_bias", [](const OpenMS::SpectraSTSimilarityScore& self, const OpenMS::BinnedSpectrum& bin1, const OpenMS::BinnedSpectrum& bin2, double dot_product) { return self.dot_bias(bin1, bin2, dot_product); }, "bin1"_a, "bin2"_a, "dot_product"_a)
+        .def("dot_bias", [](const OpenMS::SpectraSTSimilarityScore& self, const OpenMS::BinnedSpectrum& bin1, const OpenMS::BinnedSpectrum& bin2, double dot_product) { return self.dot_bias(bin1, bin2, dot_product); }, "bin1"_a, "bin2"_a, "dot_product"_a = -1)
         .def("delta_D", [](OpenMS::SpectraSTSimilarityScore& self, double top_hit, double runner_up) { return self.delta_D(top_hit, runner_up); }, "top_hit"_a, "runner_up"_a, 
             R"doc(
 Calculates how much of the dot product is dominated by a few peaks

@@ -407,8 +407,8 @@ Abstract base class for all ConsensusID algorithms (that calculate a
 consensus from multiple ID runs)
 DefaultParamHandler
 )doc")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, unsigned long number_of_runs) { return self.apply(ids, number_of_runs); }, "ids"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, unsigned long number_of_runs) { return self.apply(ids, number_of_runs); }, "ids"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("setParameters", [](OpenMS::ConsensusIDAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ConsensusIDAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -622,7 +622,7 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FIAMSDataProcessor &>())
-        .def("run", [](OpenMS::FIAMSDataProcessor& self, const OpenMS::MSExperiment& experiment, float n_seconds, OpenMS::MzTab& output, bool load_cached_spectrum) { return self.run(experiment, n_seconds, output, load_cached_spectrum); }, "experiment"_a, "n_seconds"_a, "output"_a, "load_cached_spectrum"_a)
+        .def("run", [](OpenMS::FIAMSDataProcessor& self, const OpenMS::MSExperiment& experiment, float n_seconds, OpenMS::MzTab& output, bool load_cached_spectrum) { return self.run(experiment, n_seconds, output, load_cached_spectrum); }, "experiment"_a, "n_seconds"_a, "output"_a, "load_cached_spectrum"_a = true)
         .def("extractPeaks", [](OpenMS::FIAMSDataProcessor& self, const OpenMS::MSSpectrum& input) { return self.extractPeaks(input); }, "input"_a, 
             R"doc(
 Run the full analysis for the experiment for the given time interval\n
@@ -674,7 +674,7 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def("apply", [](const OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& fwd_ids, OpenMS::PeptideIdentificationList& rev_ids) { return self.apply(fwd_ids, rev_ids); }, "fwd_ids"_a, "rev_ids"_a)
-        .def("apply", [](const OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& id, bool annotate_peptide_fdr) { return self.apply(id, annotate_peptide_fdr); }, "id"_a, "annotate_peptide_fdr"_a)
+        .def("apply", [](const OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& id, bool annotate_peptide_fdr) { return self.apply(id, annotate_peptide_fdr); }, "id"_a, "annotate_peptide_fdr"_a = false)
         .def("apply", [](const OpenMS::FalseDiscoveryRate& self, std::vector<OpenMS::ProteinIdentification> fwd_ids, std::vector<OpenMS::ProteinIdentification> rev_ids) {
             self.apply(fwd_ids, rev_ids);
             return nb::make_tuple(fwd_ids, rev_ids);
@@ -683,9 +683,9 @@ DefaultParamHandler
             self.apply(ids);
             return ids;
         }, "ids"_a)
-        .def("applyEvaluateProteinIDs", [](const OpenMS::FalseDiscoveryRate& self, const std::vector<OpenMS::ProteinIdentification>& ids, double pepCutoff, unsigned int fpCutoff, double diffWeight) { return self.applyEvaluateProteinIDs(ids, pepCutoff, fpCutoff, diffWeight); }, "ids"_a, "pepCutoff"_a, "fpCutoff"_a, "diffWeight"_a)
-        .def("applyEvaluateProteinIDs", [](const OpenMS::FalseDiscoveryRate& self, const OpenMS::ProteinIdentification& ids, double pepCutoff, unsigned int fpCutoff, double diffWeight) { return self.applyEvaluateProteinIDs(ids, pepCutoff, fpCutoff, diffWeight); }, "ids"_a, "pepCutoff"_a, "fpCutoff"_a, "diffWeight"_a)
-        .def("applyPickedProteinFDR", [](OpenMS::FalseDiscoveryRate& self, OpenMS::ProteinIdentification& id, OpenMS::String decoy_string, bool prefix, bool groups_too) { return self.applyPickedProteinFDR(id, decoy_string, prefix, groups_too); }, "id"_a, "decoy_string"_a, "prefix"_a, "groups_too"_a)
+        .def("applyEvaluateProteinIDs", [](const OpenMS::FalseDiscoveryRate& self, const std::vector<OpenMS::ProteinIdentification>& ids, double pepCutoff, unsigned int fpCutoff, double diffWeight) { return self.applyEvaluateProteinIDs(ids, pepCutoff, fpCutoff, diffWeight); }, "ids"_a, "pepCutoff"_a = 1.0, "fpCutoff"_a = 50, "diffWeight"_a = 0.2)
+        .def("applyEvaluateProteinIDs", [](const OpenMS::FalseDiscoveryRate& self, const OpenMS::ProteinIdentification& ids, double pepCutoff, unsigned int fpCutoff, double diffWeight) { return self.applyEvaluateProteinIDs(ids, pepCutoff, fpCutoff, diffWeight); }, "ids"_a, "pepCutoff"_a = 1.0, "fpCutoff"_a = 50, "diffWeight"_a = 0.2)
+        .def("applyPickedProteinFDR", [](OpenMS::FalseDiscoveryRate& self, OpenMS::ProteinIdentification& id, OpenMS::String decoy_string, bool prefix, bool groups_too) { return self.applyPickedProteinFDR(id, decoy_string, prefix, groups_too); }, "id"_a, "decoy_string"_a = "", "prefix"_a = true, "groups_too"_a = true)
         .def("setParameters", [](OpenMS::FalseDiscoveryRate& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::FalseDiscoveryRate& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::FalseDiscoveryRate& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -806,7 +806,7 @@ ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features)
 # 6 peptides without features (6 internal, 0 external)
 )doc")
         .def(nb::init<>())
-        .def("run", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::PeptideIdentificationList peptides, const std::vector<OpenMS::ProteinIdentification>& proteins, OpenMS::PeptideIdentificationList peptides_ext, std::vector<OpenMS::ProteinIdentification> proteins_ext, OpenMS::FeatureMap& features, const OpenMS::FeatureMap& seeds, const OpenMS::String& spectra_file) { return self.run(peptides, proteins, peptides_ext, proteins_ext, features, seeds, spectra_file); }, "peptides"_a, "proteins"_a, "peptides_ext"_a, "proteins_ext"_a, "features"_a, "seeds"_a, "spectra_file"_a, 
+        .def("run", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::PeptideIdentificationList peptides, const std::vector<OpenMS::ProteinIdentification>& proteins, OpenMS::PeptideIdentificationList peptides_ext, std::vector<OpenMS::ProteinIdentification> proteins_ext, OpenMS::FeatureMap& features, const OpenMS::FeatureMap& seeds, const OpenMS::String& spectra_file) { return self.run(peptides, proteins, peptides_ext, proteins_ext, features, seeds, spectra_file); }, "peptides"_a, "proteins"_a, "peptides_ext"_a, "proteins_ext"_a, "features"_a, "seeds"_a, "spectra_file"_a = "", 
             R"doc(
 Run feature detection
 :param peptides: Vector of identified peptides
@@ -1026,8 +1026,8 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IDMapper &>())
-        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::AnnotatedMSRun& map, const OpenMS::PeptideIdentificationList& peptide_ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool clear_ids, bool map_ms1) { return self.annotate(map, peptide_ids, protein_ids, clear_ids, map_ms1); }, "map"_a, "peptide_ids"_a, "protein_ids"_a, "clear_ids"_a, "map_ms1"_a)
-        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::AnnotatedMSRun& map, const OpenMS::FeatureMap& fmap, bool clear_ids, bool map_ms1) { return self.annotate(map, fmap, clear_ids, map_ms1); }, "map"_a, "fmap"_a, "clear_ids"_a, "map_ms1"_a, 
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::AnnotatedMSRun& map, const OpenMS::PeptideIdentificationList& peptide_ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool clear_ids, bool map_ms1) { return self.annotate(map, peptide_ids, protein_ids, clear_ids, map_ms1); }, "map"_a, "peptide_ids"_a, "protein_ids"_a, "clear_ids"_a = false, "map_ms1"_a = false)
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::AnnotatedMSRun& map, const OpenMS::FeatureMap& fmap, bool clear_ids, bool map_ms1) { return self.annotate(map, fmap, clear_ids, map_ms1); }, "map"_a, "fmap"_a, "clear_ids"_a = false, "map_ms1"_a = false, 
             R"doc(
 Mapping method for peak maps\n
 The identifications stored in a PeptideIdentification instance can be added to the
@@ -1041,7 +1041,7 @@ Note that a PeptideIdentication is added to ALL spectra which are within the all
 :raises:
 Exception: MissingInformation is thrown if entries of 'peptide_ids' do not contain 'MZ' and 'RT' information
 )doc")
-        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::FeatureMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool use_centroid_rt, bool use_centroid_mz, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, use_centroid_rt, use_centroid_mz, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "use_centroid_rt"_a, "use_centroid_mz"_a, "spectra"_a, 
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::FeatureMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool use_centroid_rt, bool use_centroid_mz, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, use_centroid_rt, use_centroid_mz, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "use_centroid_rt"_a = false, "use_centroid_mz"_a = false, "spectra"_a, 
             R"doc(
 Mapping method for peak maps\n
 Add peptide identifications stored in a feature map to their
@@ -1054,7 +1054,7 @@ RT and m/z are taken from the peptides, or (if missing) from the feature itself
 :param clear_ids: Reset peptide and protein identifications of each scan before annotating
 :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 )doc")
-        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::ConsensusMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "measure_from_subelements"_a, "annotate_ids_with_subelements"_a, "spectra"_a, 
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::ConsensusMap& map, const OpenMS::PeptideIdentificationList& ids, const std::vector<OpenMS::ProteinIdentification>& protein_ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const OpenMS::MSExperiment& spectra) { return self.annotate(map, ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements, spectra); }, "map"_a, "ids"_a, "protein_ids"_a, "measure_from_subelements"_a = false, "annotate_ids_with_subelements"_a = false, "spectra"_a, 
             R"doc(
 Mapping method for peak maps\n
 Add peptide identifications stored in a feature map to their
@@ -1164,14 +1164,14 @@ Determines whether a higher score type is better given an IDType enum
 Gets a vector of all score names that are used in OpenMS
 :returns: A vector of all score names (e.g., "q-value", "ln(hyperscore)")
 )doc")
-        .def("switchToGeneralScoreType", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::ConsensusMap& cmap, OpenMS::Scores::IDType type, unsigned long& counter, bool unassigned_peptides_too) { return self.switchToGeneralScoreType(cmap, type, counter, unassigned_peptides_too); }, "cmap"_a, "type"_a, "counter"_a, "unassigned_peptides_too"_a, 
+        .def("switchToGeneralScoreType", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::ConsensusMap& cmap, OpenMS::Scores::IDType type, unsigned long& counter, bool unassigned_peptides_too) { return self.switchToGeneralScoreType(cmap, type, counter, unassigned_peptides_too); }, "cmap"_a, "type"_a, "counter"_a, "unassigned_peptides_too"_a = true, 
             R"doc(
 Switches the score type of a PeptideIdentificationList to a general score type
 :param pep_ids: The PeptideIdentificationList whose scores need to be switched
 :param type: The desired general score type to switch to
 :param counter: A reference to a counter that will be incremented for each peptide identification processed
 )doc")
-        .def("switchScores", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::ConsensusMap& cmap, unsigned long& counter, bool unassigned_peptides_too) { return self.switchScores(cmap, counter, unassigned_peptides_too); }, "cmap"_a, "counter"_a, "unassigned_peptides_too"_a, 
+        .def("switchScores", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::ConsensusMap& cmap, unsigned long& counter, bool unassigned_peptides_too) { return self.switchScores(cmap, counter, unassigned_peptides_too); }, "cmap"_a, "counter"_a, "unassigned_peptides_too"_a = true, 
             R"doc(
 Switches the scores of peptide identifications
 :param pep_ids: The peptide identifications whose scores need to be switched
@@ -2066,7 +2066,7 @@ Use startProgress, setProgress and endProgress for the actual logging
         .def("getLogType", [](const OpenMS::ProgressLogger& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::ProgressLogger& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::ProgressLogger& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ProgressLogger& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::ProgressLogger& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::ProgressLogger& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
     // LogType enum nested under ProgressLogger
@@ -2299,7 +2299,7 @@ ProgressLogger
 )doc")
         .def(nb::init<>())
         .def("writeMemdump", [](const OpenMS::Internal::CachedMzMLHandler& self, const OpenMS::MSExperiment& exp, const OpenMS::String& out) { return self.writeMemdump(exp, out); }, "exp"_a, "out"_a, "Write complete spectra as a dump to the disk")
-        .def("writeMetadata", [](OpenMS::Internal::CachedMzMLHandler& self, OpenMS::MSExperiment exp, const OpenMS::String& out_meta, bool addCacheMetaValue) { return self.writeMetadata(exp, out_meta, addCacheMetaValue); }, "exp"_a, "out_meta"_a, "addCacheMetaValue"_a, "Write only the meta data of an MSExperiment")
+        .def("writeMetadata", [](OpenMS::Internal::CachedMzMLHandler& self, OpenMS::MSExperiment exp, const OpenMS::String& out_meta, bool addCacheMetaValue) { return self.writeMetadata(exp, out_meta, addCacheMetaValue); }, "exp"_a, "out_meta"_a, "addCacheMetaValue"_a = false, "Write only the meta data of an MSExperiment")
         .def("readMemdump", [](const OpenMS::Internal::CachedMzMLHandler& self, const OpenMS::String& filename) { OpenMS::MSExperiment exp_reading; self.readMemdump(exp_reading, filename); return exp_reading; }, "filename"_a, "Read all spectra from a dump from the disk")
         .def("createMemdumpIndex", [](OpenMS::Internal::CachedMzMLHandler& self, const OpenMS::String& filename) { return self.createMemdumpIndex(filename); }, "filename"_a, "Create an index on the location of all the spectra and chromatograms")
         .def("getSpectraIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::fpos<__mbstate_t>> & { return self.getSpectraIndex(); }, nb::rv_policy::reference_internal)
@@ -3094,8 +3094,8 @@ ProgressLogger
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("store", [](OpenMS::MascotGenericFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& experiment, bool compact) { return self.store(filename, experiment, compact); }, "filename"_a, "experiment"_a, "compact"_a)
-        .def("store", [](OpenMS::MascotGenericFile& self, std::basic_ostream<char>& os, const OpenMS::String& filename, const OpenMS::MSExperiment& experiment, bool compact) { return self.store(os, filename, experiment, compact); }, "os"_a, "filename"_a, "experiment"_a, "compact"_a)
+        .def("store", [](OpenMS::MascotGenericFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& experiment, bool compact) { return self.store(filename, experiment, compact); }, "filename"_a, "experiment"_a, "compact"_a = false)
+        .def("store", [](OpenMS::MascotGenericFile& self, std::basic_ostream<char>& os, const OpenMS::String& filename, const OpenMS::MSExperiment& experiment, bool compact) { return self.store(os, filename, experiment, compact); }, "os"_a, "filename"_a, "experiment"_a, "compact"_a = false)
         .def("getHTTPPeakListEnclosure", [](const OpenMS::MascotGenericFile& self, const OpenMS::String& filename) { return self.getHTTPPeakListEnclosure(filename); }, "filename"_a, 
             R"doc(
 Loads a Mascot Generic File into a PeakMap
@@ -3727,7 +3727,7 @@ Result access
 )doc")
         .def("getAveragine", [](OpenMS::SpectralDeconvolution& self) -> const OpenMS::FLASHHelperClasses::PrecalculatedAveragine & { return self.getAveragine(); }, nb::rv_policy::reference_internal, "Return the deconvolved spectrum after performSpectrumDeconvolution is called")
         .def("setAveragine", [](OpenMS::SpectralDeconvolution& self, const OpenMS::FLASHHelperClasses::PrecalculatedAveragine& avg) { return self.setAveragine(avg); }, "avg"_a, "Get calculated averagine. Call after calculateAveragine is called.")
-        .def("setTargetMasses", [](OpenMS::SpectralDeconvolution& self, const std::vector<double>& masses, bool exclude) { return self.setTargetMasses(masses, exclude); }, "masses"_a, "exclude"_a, "Set the precalculated averagine")
+        .def("setTargetMasses", [](OpenMS::SpectralDeconvolution& self, const std::vector<double>& masses, bool exclude) { return self.setTargetMasses(masses, exclude); }, "masses"_a, "exclude"_a = false, "Set the precalculated averagine")
         .def("calculateAveragine", [](OpenMS::SpectralDeconvolution& self, bool use_RNA_averagine) { return self.calculateAveragine(use_RNA_averagine); }, "use_RNA_averagine"_a, "Set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.")
         .def("setToleranceEstimation", [](OpenMS::SpectralDeconvolution& self) { return self.setToleranceEstimation(); }, "Precalculate averagine (for predefined mass bins) to speed up averagine generation")
         .def_static("getNominalMass", [](double mass) { return OpenMS::SpectralDeconvolution::getNominalMass(mass); }, "mass"_a, "Set target decoy type for the SpectralDeconvolution run")
@@ -3824,7 +3824,7 @@ Adds ion match annotation to the `spec` input spectrum
 :param tg: A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
 :param sa: A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
 )doc")
-        .def("addPeakAnnotationsToPeptideHit", [](const OpenMS::SpectrumAnnotator& self, OpenMS::PeptideHit& ph, const OpenMS::MSSpectrum& spec, const OpenMS::TheoreticalSpectrumGenerator& tg, const OpenMS::SpectrumAlignment& sa, bool include_unmatched_peaks) { return self.addPeakAnnotationsToPeptideHit(ph, spec, tg, sa, include_unmatched_peaks); }, "ph"_a, "spec"_a, "tg"_a, "sa"_a, "include_unmatched_peaks"_a, 
+        .def("addPeakAnnotationsToPeptideHit", [](const OpenMS::SpectrumAnnotator& self, OpenMS::PeptideHit& ph, const OpenMS::MSSpectrum& spec, const OpenMS::TheoreticalSpectrumGenerator& tg, const OpenMS::SpectrumAlignment& sa, bool include_unmatched_peaks) { return self.addPeakAnnotationsToPeptideHit(ph, spec, tg, sa, include_unmatched_peaks); }, "ph"_a, "spec"_a, "tg"_a, "sa"_a, "include_unmatched_peaks"_a = false, 
             R"doc(
 Adds ion match statistics to `pi` PeptideIdentifcation
 :param pi: A spectrum identifications to be annotated, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
@@ -3901,9 +3901,9 @@ ProgressLogger
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SwathFile &>())
-        .def("loadSplit", [](OpenMS::SwathFile& self, std::vector<OpenMS::String> file_list, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const OpenMS::String& readoptions) { return self.loadSplit(file_list, tmp, exp_meta, readoptions); }, "file_list"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a, "Loads a Swath run from a list of split mzML files")
-        .def("loadMzML", [](OpenMS::SwathFile& self, const OpenMS::String& file, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const OpenMS::String& readoptions, OpenMS::Interfaces::IMSDataConsumer * plugin_consumer) { return self.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a, "plugin_consumer"_a)
-        .def("loadMzXML", [](OpenMS::SwathFile& self, const OpenMS::String& file, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const OpenMS::String& readoptions) { return self.loadMzXML(file, tmp, exp_meta, readoptions); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a, "Loads a Swath run from a single mzXML file")
+        .def("loadSplit", [](OpenMS::SwathFile& self, std::vector<OpenMS::String> file_list, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const OpenMS::String& readoptions) { return self.loadSplit(file_list, tmp, exp_meta, readoptions); }, "file_list"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "Loads a Swath run from a list of split mzML files")
+        .def("loadMzML", [](OpenMS::SwathFile& self, const OpenMS::String& file, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const OpenMS::String& readoptions, OpenMS::Interfaces::IMSDataConsumer * plugin_consumer) { return self.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "plugin_consumer"_a)
+        .def("loadMzXML", [](OpenMS::SwathFile& self, const OpenMS::String& file, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const OpenMS::String& readoptions) { return self.loadMzXML(file, tmp, exp_meta, readoptions); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "Loads a Swath run from a single mzXML file")
         .def("setLogType", [](const OpenMS::SwathFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
         .def("getLogType", [](const OpenMS::SwathFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::SwathFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
@@ -4105,7 +4105,7 @@ Annotate spectra that match target transitions (without features)
 :param targeted_exp: Target transition list
 :param annotated_spectra: Output annotated spectra
 )doc")
-        .def("searchSpectrum", [](const OpenMS::TargetedSpectraExtractor& self, OpenMS::FeatureMap& feat_map, OpenMS::FeatureMap& feat_map_output, bool add_unidentified_features) { return self.searchSpectrum(feat_map, feat_map_output, add_unidentified_features); }, "feat_map"_a, "feat_map_output"_a, "add_unidentified_features"_a, 
+        .def("searchSpectrum", [](const OpenMS::TargetedSpectraExtractor& self, OpenMS::FeatureMap& feat_map, OpenMS::FeatureMap& feat_map_output, bool add_unidentified_features) { return self.searchSpectrum(feat_map, feat_map_output, add_unidentified_features); }, "feat_map"_a, "feat_map_output"_a, "add_unidentified_features"_a = false, 
             R"doc(
 Annotate spectra using MS1 and MS2 feature maps
 :param spectra: Input spectra
@@ -4254,7 +4254,7 @@ Store spectra in MSP format
     nb::class_<OpenMS::TextFile>(m, "TextFile", "OpenMS class TextFile")
         .def(nb::init<>())
         .def(nb::init<OpenMS::String, bool, int, bool, OpenMS::String>())
-        .def("load", [](OpenMS::TextFile& self, const OpenMS::String& filename, bool trim_lines, int first_n, bool skip_empty_lines, const OpenMS::String& comment_symbol) { return self.load(filename, trim_lines, first_n, skip_empty_lines, comment_symbol); }, "filename"_a, "trim_lines"_a, "first_n"_a, "skip_empty_lines"_a, "comment_symbol"_a)
+        .def("load", [](OpenMS::TextFile& self, const OpenMS::String& filename, bool trim_lines, int first_n, bool skip_empty_lines, const OpenMS::String& comment_symbol) { return self.load(filename, trim_lines, first_n, skip_empty_lines, comment_symbol); }, "filename"_a, "trim_lines"_a = false, "first_n"_a = -1, "skip_empty_lines"_a = false, "comment_symbol"_a = "")
         .def("store", [](OpenMS::TextFile& self, const OpenMS::String& filename) { return self.store(filename); }, "filename"_a, "Writes the data to a file")
         ;
 
@@ -4268,7 +4268,7 @@ Does NOT support comment lines!
 )doc")
         .def(nb::init<>())
         .def(nb::init<OpenMS::String, char, bool, int>())
-        .def("load", [](OpenMS::CsvFile& self, const OpenMS::String& filename, char is, bool ie, int first_n) { return self.load(filename, is, ie, first_n); }, "filename"_a, "is"_a, "ie"_a, "first_n"_a, "Loads data from a text file")
+        .def("load", [](OpenMS::CsvFile& self, const OpenMS::String& filename, char is, bool ie, int first_n) { return self.load(filename, is, ie, first_n); }, "filename"_a, "is"_a = ',', "ie"_a = false, "first_n"_a = -1, "Loads data from a text file")
         .def("store", [](OpenMS::CsvFile& self, const OpenMS::String& filename) { return self.store(filename); }, "filename"_a, "Stores the buffer's content into a file")
         .def("addRow", [](OpenMS::CsvFile& self, const std::vector<OpenMS::String>& list) { return self.addRow(list); }, "list"_a, "Add a row to the buffer")
         .def("clear", [](OpenMS::CsvFile& self) { return self.clear(); }, "Clears the buffer")
@@ -4853,7 +4853,7 @@ proteins of the same group only have an accession and score of -1
 )doc")
         .def(nb::init<>())
         .def("load", [](OpenMS::ProtXMLFile& self, const OpenMS::String& filename) { OpenMS::ProteinIdentification protein_ids; OpenMS::PeptideIdentification peptide_ids; self.load(filename, protein_ids, peptide_ids); return std::make_tuple(protein_ids, peptide_ids); }, "filename"_a)
-        .def("store", [](OpenMS::ProtXMLFile& self, const OpenMS::String& filename, const OpenMS::ProteinIdentification& protein_ids, const OpenMS::PeptideIdentification& peptide_ids, const OpenMS::String& document_id) { return self.store(filename, protein_ids, peptide_ids, document_id); }, "filename"_a, "protein_ids"_a, "peptide_ids"_a, "document_id"_a, 
+        .def("store", [](OpenMS::ProtXMLFile& self, const OpenMS::String& filename, const OpenMS::ProteinIdentification& protein_ids, const OpenMS::PeptideIdentification& peptide_ids, const OpenMS::String& document_id) { return self.store(filename, protein_ids, peptide_ids, document_id); }, "filename"_a, "protein_ids"_a, "peptide_ids"_a, "document_id"_a = "", 
             R"doc(
 Loads the identifications of an ProtXML file without identifier
 The information is read in and the information is stored in the
@@ -4886,19 +4886,19 @@ This Class is supposed to internally collect the data for the qcML File
         .def("addRunAttachment", [](OpenMS::QcMLFile& self, const OpenMS::String& r, const OpenMS::QcMLFile::Attachment& at) { return self.addRunAttachment(r, at); }, "r"_a, "at"_a, "Adds a attachment to run by the name r")
         .def("addSetQualityParameter", [](OpenMS::QcMLFile& self, const OpenMS::String& r, const OpenMS::QcMLFile::QualityParameter& qp) { return self.addSetQualityParameter(r, qp); }, "r"_a, "qp"_a, "Adds a QualityParameter to set by the name r")
         .def("addSetAttachment", [](OpenMS::QcMLFile& self, const OpenMS::String& r, const OpenMS::QcMLFile::Attachment& at) { return self.addSetAttachment(r, at); }, "r"_a, "at"_a, "Adds a attachment to set by the name r")
-        .def("removeAttachment", [](OpenMS::QcMLFile& self, const OpenMS::String& r, std::vector<OpenMS::String> ids, const OpenMS::String& at) { return self.removeAttachment(r, ids, at); }, "r"_a, "ids"_a, "at"_a, "Removes attachments referencing an id given in ids, from run/set r. All attachments if no attachment name is given with at")
+        .def("removeAttachment", [](OpenMS::QcMLFile& self, const OpenMS::String& r, std::vector<OpenMS::String> ids, const OpenMS::String& at) { return self.removeAttachment(r, ids, at); }, "r"_a, "ids"_a, "at"_a = "", "Removes attachments referencing an id given in ids, from run/set r. All attachments if no attachment name is given with at")
         .def("removeAttachment", [](OpenMS::QcMLFile& self, const OpenMS::String& r, const OpenMS::String& at) { return self.removeAttachment(r, at); }, "r"_a, "at"_a, "Removes attachment with cv accession at from run/set r")
         .def("removeAllAttachments", [](OpenMS::QcMLFile& self, const OpenMS::String& at) { return self.removeAllAttachments(at); }, "at"_a, "Removes attachment with cv accession at from  all runs/sets")
         .def("removeQualityParameter", [](OpenMS::QcMLFile& self, const OpenMS::String& r, std::vector<OpenMS::String> ids) { return self.removeQualityParameter(r, ids); }, "r"_a, "ids"_a, "Removes QualityParameter going by one of the ID attributes given in ids")
-        .def("merge", [](OpenMS::QcMLFile& self, const OpenMS::QcMLFile& addendum, const OpenMS::String& setname) { return self.merge(addendum, setname); }, "addendum"_a, "setname"_a, "Merges the given QCFile into this one")
+        .def("merge", [](OpenMS::QcMLFile& self, const OpenMS::QcMLFile& addendum, const OpenMS::String& setname) { return self.merge(addendum, setname); }, "addendum"_a, "setname"_a = "", "Merges the given QCFile into this one")
         .def("collectSetParameter", [](OpenMS::QcMLFile& self, const OpenMS::String& setname, const OpenMS::String& qp) { std::vector<OpenMS::String> ret; self.collectSetParameter(setname, qp, ret); return ret; }, "setname"_a, "qp"_a, "Collects the values of given QPs (as CVid) of the given set")
         .def("exportAttachment", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, const OpenMS::String& qpname) { return self.exportAttachment(filename, qpname); }, "filename"_a, "qpname"_a, "Returns a String of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname")
         .def("exportQP", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, const OpenMS::String& qpname) { return self.exportQP(filename, qpname); }, "filename"_a, "qpname"_a, "Returns a String value in quotation of a QualityParameter by the name qpname in run/set by the name filename")
         .def("exportQPs", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, const std::vector<OpenMS::String>& qpnames) { return self.exportQPs(filename, qpnames); }, "filename"_a, "qpnames"_a, "Returns a String of a tab separated QualityParameter by the name qpname in run/set by the name filename")
         .def("getRunIDs", [](const OpenMS::QcMLFile& self) { std::vector<OpenMS::String> ids; self.getRunIDs(ids); return ids; }, "Gives the ids of the registered runs in the vector ids")
         .def("getRunNames", [](const OpenMS::QcMLFile& self) { std::vector<OpenMS::String> ids; self.getRunNames(ids); return ids; }, "Gives the names of the registered runs in the vector ids")
-        .def("existsRun", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, bool checkname) { return self.existsRun(filename, checkname); }, "filename"_a, "checkname"_a, "Returns true if the given run id is present in this file, if checkname is true it also checks the names")
-        .def("existsSet", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, bool checkname) { return self.existsSet(filename, checkname); }, "filename"_a, "checkname"_a, "Returns true if the given set id is present in this file, if checkname is true it also checks the names")
+        .def("existsRun", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, bool checkname) { return self.existsRun(filename, checkname); }, "filename"_a, "checkname"_a = false, "Returns true if the given run id is present in this file, if checkname is true it also checks the names")
+        .def("existsSet", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, bool checkname) { return self.existsSet(filename, checkname); }, "filename"_a, "checkname"_a = false, "Returns true if the given set id is present in this file, if checkname is true it also checks the names")
         .def("existsRunQualityParameter", [](const OpenMS::QcMLFile& self, const OpenMS::String& filename, const OpenMS::String& qpname) {
             std::vector<OpenMS::String> ids;
             self.existsRunQualityParameter(filename, qpname, ids);
@@ -5044,7 +5044,7 @@ XMLFile
         .def("setAllowIsotopeError", [](OpenMS::XTandemInfile& self, bool allow_isotope_error) { return self.setAllowIsotopeError(allow_isotope_error); }, "allow_isotope_error"_a)
         .def("setCleavageSite", [](OpenMS::XTandemInfile& self, const OpenMS::String& cleavage_site) { return self.setCleavageSite(cleavage_site); }, "cleavage_site"_a)
         .def("getCleavageSite", [](const OpenMS::XTandemInfile& self) { return self.getCleavageSite(); })
-        .def("write", [](OpenMS::XTandemInfile& self, const OpenMS::String& filename, bool ignore_member_parameters, bool force_default_mods) { return self.write(filename, ignore_member_parameters, force_default_mods); }, "filename"_a, "ignore_member_parameters"_a, "force_default_mods"_a)
+        .def("write", [](OpenMS::XTandemInfile& self, const OpenMS::String& filename, bool ignore_member_parameters, bool force_default_mods) { return self.write(filename, ignore_member_parameters, force_default_mods); }, "filename"_a, "ignore_member_parameters"_a = false, "force_default_mods"_a = false)
         ;
     // ErrorUnit enum nested under XTandemInfile
     nb::enum_<OpenMS::XTandemInfile::ErrorUnit>(xtandeminfile_class, "ErrorUnit", nb::is_arithmetic())
