@@ -1146,8 +1146,9 @@ class TestBugFixes:
         assert len(df) == 2
         # First feature should have the native_id
         assert df.iloc[0]['ID_native_id'] == 'scan=100'
-        # Second feature should have None (spectrum_native_id meta value not set)
-        assert df.iloc[1]['ID_native_id'] is None
+        # Second feature should have NaN (spectrum_native_id meta value not set)
+        # pd.DataFrame converts None to NaN for object dtype columns
+        assert pd.isna(df.iloc[1]['ID_native_id'])
 
 
 class TestFeatureMapColumnSelection:
