@@ -10,30 +10,6 @@ There are two main ways to build pyOpenMS:
 
 ### 1. Standalone Build with `uv` (For Users and Distribution)
 
-The recommended way to build pyOpenMS as a standalone Python package is using `uv`:
-
-```bash
-# Install uv if you don't have it
-pip install uv
-
-# Build wheel from the OpenMS/src/pyOpenMS directory
-cd src/pyOpenMS
-uv build
-
-# Install the wheel
-pip install dist/pyopenms-*.whl
-```
-
-This method uses the PEP 517 build system defined in `pyproject.toml` and will:
-
-- Automatically discover or download an OpenMS installation
-- Handle all build dependencies
-- Create a distributable wheel package
-
-### 2. In-Tree Development Build with CMake (For OpenMS Developers)
-
-When developing OpenMS and pyOpenMS together, use the integrated CMake build.
-
 **Prerequisites:**
 
 - A **built OpenMS library** (the C++ library must be compiled or installed first)
@@ -50,21 +26,77 @@ Depending on how OpenMS was built, you may also need:
 
 - `-DOpenMP_ROOT="/path/to/openmp"` - Path to OpenMP installation (e.g., libomp on macOS)
 
+#### Usage
+
+The recommended way to build pyOpenMS as a standalone Python package is using `uv`:
+
+```bash
+# Install uv if you don't have it
+pip install uv
+
+# Build wheel from the OpenMS/src/pyOpenMS directory
+cd src/pyOpenMS
+uv build  # add py-build-cmake options here to discover OpenMS+deps and tweak compilation options
+
+# Install the wheel
+pip install dist/pyopenms-*.whl
+```
+
+This method uses the PEP 517 build system defined in `pyproject.toml` and will:
+
+- Automatically discover or download an OpenMS installation
+- Handle all build dependencies
+- Create a distributable wheel package
+
+### 2. In-Tree Development Build with CMake (For OpenMS Developers)
+
+When developing OpenMS and pyOpenMS together, use the integrated CMake build from the same build
+directory as OpenMS.
+
+**Prerequisites:**
+
+We recommend using uv which will be looked up at CMake configure time and creates a nice venv for you
+automatically.
+
+```bash
+# Clone OpenMS to e.g. OpenMS-source
+# gh repo clone OpenMS/OpenMS OpenMS-source
+
+# Familiarize with OpenMS C++ build settings
+
+# Install uv
+pipx install uv
+```
+
 **Build Commands:**
 
 ```bash
-# From your OpenMS build directory (e.g., OpenMS-build/)
-cmake -DPYOPENMS=ON /path/to/OpenMS/source
+# Optional: Create a .python-version file in /path/to/OpenMS-source/src/pyOpenMS to steer the python version used by UV
+echo "3.12" > /path/to/OpenMS-source/src/pyOpenMS/.python-version
+
+# CMake Configure from your OpenMS build directory (e.g., OpenMS-build/)
+# If you have not yet set up an OpenMS build directory, you need to create one first and probably also want to configure
+# some OpenMS C++ related build options.
+cd /path/to/OpenMS-build
+cmake -DPYOPENMS=ON /path/to/OpenMS-source
+
+# UV will create a .venv under /path/to/OpenMS-build/pyOpenMS/.venv with an appropriate python and
+# all python build dependencies and sets the CMake Cache variable Python_EXECUTABLE to the corresponding python exe
 
 # Build pyOpenMS
-cmake --build . --target pyopenms
+cmake --build . --target pyopenms # or pyopenms_wheel if you want to build wheels, too
 ```
 
 **Optional CMake Configuration:**
 
+In addition to the usual CMake options you can set for the OpenMS C++ toolkit, enabling pyopenms offers the following:
+
 - `-DPython_EXECUTABLE="/path/to/python"` - Specify Python interpreter
-- `-DPY_NUM_THREADS=2` - Parallel Cython compilation (requires 16GB+ RAM)
+- `-DPY_NUM_THREADS=2` - Parallel Cython compilation (only affects the generation of cythonized .cpp files, NOT compilation, steer this with CMake/build program parallelism instead)
 - `-DPY_NUM_MODULES=8` - Number of module splits (default: 8)
+- `-DNO_DEPENDENCIES=ON`- When not distributing a wheel, you can use this to avoid copying dependencies into the pyopenms build folder. Make sure that the pyopenms shared modules find their dependencies at the original places with correct RPATH/INSTALL_NAME_DIR CMake settings.
+- `-DWITH_UV=OFF` - Do not use uv to create a new venv. If disabled, make sure the found (or specified, see Python_EXECUTABLE) Python executable has access to all required dependencies.
+- `-DPYOPENMS_UV_PYTHON_VERSION=3.12` - Specify the python version that uv should use to create the venv. This will decide with which python version the extension module and the pyopenms wheel will be compatible with. Note: If such a python version is not available on the system, uv will download it for you.
 
 **Available CMake Targets when `PYOPENMS=ON`:**
 
@@ -76,56 +108,28 @@ cmake --build . --target pyopenms
 | `compile_pxds` | Generate `.pyx` file(s) from `.pxd` declarations using autowrap |
 | `pyopenms_copy_deps` | Copy OpenMS libraries to pyOpenMS build directory (when `NO_DEPENDENCIES=OFF`) |
 | `pyopenms_fix_deps` | Fix library dependencies on macOS (when `NO_DEPENDENCIES=OFF`) |
-| `pyopenms_wheel` | Package pyOpenMS as a wheel file (depends on `pyopenms`, creates wheel in `pyopenms_wheels/`) |
+| `pyopenms_wheel` | Package pyOpenMS as a wheel file (depends on `pyopenms`, creates wheel in `$BUILDDIR/pyopenms_wheels/`) |
 
-**Available CMake Targets when `PYOPENMS=OFF` (default):**
-
-Only the OpenMS C++ library targets are available. No pyOpenMS-related targets exist.
-
-**Setting up for development:**
-
-1. **(Optional) Create a virtual environment:**
+**Run tests:**
 
    ```bash
-   python -m venv /path/to/myenv
-   source /path/to/myenv/bin/activate  # Linux/macOS
-   # or: c:\path\to\myenv\Scripts\activate.bat  # Windows
-   ```
-
-2. **Install build dependencies:**
-
-   ```bash
-   cd src/pyOpenMS
-   # Option 1: Using uv (recommended)
-   pip install uv
-   uv sync --only-group build
-   
-   # Option 2: Using pip with development dependencies
-   pip install -e .[dev]
-   ```
-
-3. **Configure and build:**
-
-   ```bash
-   cd ../../OpenMS-build  # Or your build directory
-   cmake -DPYOPENMS=ON ../OpenMS
-   cmake --build . --target pyopenms
-   ```
-
-4. **Run tests:**
-
-   ```bash
-   ctest -R pyopenms
+   # With ctest (pyopenms specific tests only)
+   cd /path/to/OpenMS-build
+   ctest -R pyopenms # add -V for verbose output
    
    # Or run pytest directly for faster iteration:
-   cd pyOpenMS
+   cd /path/to/OpenMS-build/pyOpenMS
    python -m pytest tests/unittests
    python -m pytest tests/integration_tests
+   # Note that if you want to make changes to non-compile .py files, you should
+   # make these changes in the OpenMS-source folder instead and reconfigure the
+   # with CMake from your build directory such that it syncs.
    ```
 
-5. **Install for development:**
+**Install for development:**
 
    ```bash
+   # in OpenMS-build/pyOpenMS
    pip install -e pyopenms --no-cache-dir --no-binary=pyopenms
    ```
 
@@ -137,14 +141,17 @@ The build process involves several steps that transform C++ code into a Python e
 
 - **Input:** `.pxd` declaration files in `src/pyOpenMS/pxds/`
 - **Tool:** `autowrap` (automated Cython wrapper generator)
-- **Output:** `pyopenms/pyopenms.pyx` (Cython source file) or multiple split `.pyx` files
+- **Output:** Internally held corresponding pyx source code for every pxd file. Designed for a 1:1 correspondence of classes and pxds.
 - **What happens:** autowrap reads the `.pxd` files containing class and method declarations and generates Cython wrapper code with proper type conversions between C++ and Python
 
 ### Step 2: Addon Injection
 
 - **Input:** Manual additions in `src/pyOpenMS/addons/` (`.pyx` files)
 - **Output:** Addons are merged into `pyopenms.pyx` or split `.pyx` files
-- **What happens:** Python-specific convenience methods (like `to_df()`, `__repr__()`) are injected into the generated wrapper code
+- **What happens:** Python-specific convenience methods (like `to_df()`, `__repr__()`) are injected into the generated wrapper code. Pyx files whose name corresponds to a pxd file are added to the end of the internally held, generated pyx source code for every pxd file/class. Pyx source codes are merged into N "split modules" to reduce peak memory usage during cpp compilation later. Special pyx files are added to the split modules as follows:
+  - ADD_TO_FIRST.pyx: Used to create stable references for utility methods. Only gets added to the first split module (i.e. _pyopenms_1)
+  - ADD_TO_ALL_OTHER.pyx: Usually used in conjunction with ADD_TO_FIRST to import the utility methods into all but the first split module.
+  - ADD_TO_ALL.pyx: Usually additional non-OpenMS imports that are needed by all modules.
 
 ### Step 3: Cython Compilation (part of `pyopenms_compile`)
 
@@ -169,7 +176,7 @@ The build process involves several steps that transform C++ code into a Python e
 ### Step 5: Dependency Bundling (optional, when `NO_DEPENDENCIES=OFF`)
 
 - **Targets:** `pyopenms_copy_deps`, `pyopenms_fix_deps` (macOS only)
-- **What happens:** 
+- **What happens:**
   - OpenMS shared libraries are copied to the pyOpenMS module directory
   - On macOS, `install_name_tool` adjusts library paths for relocatability
   - This creates a standalone Python package with all dependencies included

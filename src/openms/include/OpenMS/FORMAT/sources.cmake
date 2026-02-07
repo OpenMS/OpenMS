@@ -119,7 +119,10 @@ if (WITH_HDF5)
 endif()
 
 if (WITH_PARQUET)
-  list(APPEND sources_list_h ArrowExport.h)
+  list(APPEND sources_list_h MSExperimentArrowExport.h)
+  list(APPEND sources_list_h ConsensusMapArrowExport.h)
+  list(APPEND sources_list_h ParquetFilter.h)
+  list(APPEND sources_list_h XICParquetFile.h)
 endif()
 
 ### add path to the filenames

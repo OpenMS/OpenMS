@@ -154,8 +154,10 @@ set(kernel_executables_list
   MRMTransitionGroup_test
   MSChromatogram_test
   MSExperiment_test
+  MSExperiment_rasterizeRTMZ_test
   OnDiscMSExperiment_test
   MSSpectrum_test
+  MSSpectrum_rasterizeIMFrame_test
   Peak1D_test
   Peak2D_test
   PeakIndex_test
@@ -285,7 +287,9 @@ if(WITH_HDF5)
 endif()
 
 if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test ArrowExport_test QuantmsIO_test)
+  list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QuantmsIO_test
+    MSChromatogramParquetConsumer_test
+    XICParquetFile_test)
 endif()
 
 set(math_executables_list
@@ -450,6 +454,7 @@ set(analysis_executables_list
   BasicProteinInferenceAlgorithm_test
   BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
+  CometModification_test
   ConfidenceScoring_test
   ConsensusIDAlgorithmAverage_test
   ConsensusIDAlgorithmBest_test
@@ -638,6 +643,7 @@ if(NOT DISABLE_OPENSWATH)
     TargetedSpectraExtractor_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
+    CalibrationWorkflow_test
     MasstraceCorrelator_test
     MRMBatchFeatureSelector_test
     MRMFeatureScoring_test

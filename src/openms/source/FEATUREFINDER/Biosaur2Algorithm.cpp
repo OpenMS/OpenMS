@@ -84,7 +84,7 @@ Biosaur2Algorithm::Biosaur2Algorithm() :
   defaults_.setValue("profile", "false", "Enable profile mode processing (centroid spectra using PeakPickerHiRes)");
   defaults_.setValidStrings("profile", {"true", "false"});
 
-  defaults_.setValue("paseftol", 0.05, "Ion mobility accuracy (in the same units as the ion-mobility array) for linking peaks into hills and grouping isotopes (0 = disable IM-based gating).");
+  defaults_.setValue("paseftol", 0.05, "Ion mobility accuracy for linking peaks into hills and grouping isotopes (0 = disable IM-based gating). Default is for 1/K0 units (e.g., 0.03-0.08). For CCS data, use larger values (e.g., 5-20 square angstroms).");
   defaults_.setMinFloat("paseftol", 0.0);
 
   defaults_.setValue("use_hill_calib", "false", "Enable automatic hill mass tolerance calibration");
@@ -233,6 +233,28 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   vector<FeatureMap> fmap_per_group(n_groups);
 
   const double original_paseftol = paseftol_;
+
+  // Check IM unit and warn if CCS data with small tolerance (single-threaded, before parallel loop)
+  for (const auto& group_pair : groups)
+  {
+    const MSExperiment& group_exp = group_pair.second;
+    for (const auto& spec : group_exp)
+    {
+      if (spec.containsIMData())
+      {
+        const auto [im_data_index, im_unit] = spec.getIMData();
+        if (im_unit == DriftTimeUnit::CCS && original_paseftol < 1.0)
+        {
+          OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
+                          << "paseftol = " << original_paseftol
+                          << " appears to be set for 1/K0 data. "
+                          << "For CCS data, consider using larger values (e.g., 5-20)." << '\n';
+        }
+        goto done_ccs_check; // Found IM data, no need to check further
+      }
+    }
+  }
+  done_ccs_check:
 
   // Parallelize processing across FAIMS groups. Each group is handled
   // independently using its own local hills/features containers.
@@ -925,6 +947,7 @@ void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, do
     }
 
     const double ion_mobility_step = (*it_max_im) * ion_mobility_accuracy;
+
     if (ion_mobility_step <= 0.0)
     {
       return;

@@ -12,6 +12,7 @@ ConsensusIDAlgorithm.h
 ConsensusIDAlgorithmAverage.h
 ConsensusIDAlgorithmBest.h
 ConsensusIDAlgorithmIdentity.h
+CometModification.h
 ConsensusIDAlgorithmPEPIons.h
 ConsensusIDAlgorithmPEPMatrix.h
 ConsensusIDAlgorithmRanks.h
@@ -42,6 +43,7 @@ PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h
 PrecursorPurity.h
 PScore.h
+Scores.h
 SimpleSearchEngineAlgorithm.h
 SiriusExportAlgorithm.h
 SiriusMSConverter.h

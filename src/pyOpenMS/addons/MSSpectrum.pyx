@@ -759,12 +759,12 @@ import numpy as np
     def get_drift_time_unit(self):
         """
         get_drift_time_unit(self: MSSpectrum) -> Optional[int]
-        
+
         Get the drift time unit for ion mobility data.
 
         Returns:
             int or None: The DriftTimeUnit enum value, or None if no IM data present.
-                        Values: 0=NONE, 1=MILLISECOND, 2=VSSC, 3=FAIMS_COMPENSATION_VOLTAGE
+                        Values: 0=NONE, 1=MILLISECOND, 2=VSSC, 3=FAIMS_COMPENSATION_VOLTAGE, 4=CCS
 
         Example:
             >>> unit = spectrum.get_drift_time_unit()
@@ -846,3 +846,92 @@ import numpy as np
             stacklevel=2
         )
         return self.df_columns(*args, **kwargs)
+
+    def rasterizeIMFrame(MSSpectrum self,
+                    np.ndarray[np.float32_t, ndim=2, mode="c"] output not None,
+                    double min_im, double max_im,
+                    double min_mz, double max_mz,
+                    str aggregation="sum"):
+        """
+        Rasterize an ion mobility frame into a 2D intensity matrix (IM vs m/z).
+
+        This method creates a 2D heatmap/image representation of an IM frame by binning peak
+        intensities into a regular grid of pixels. It is designed for spectra in CONCATENATED
+        format where each peak has an associated ion mobility value.
+
+        The output array has shape [mz_bins, im_bins] where:
+        - Rows correspond to m/z bins (y-axis in visualization)
+        - Columns correspond to IM bins (x-axis in visualization)
+        - Values are aggregated intensities (sum or max)
+
+        Examples
+        --------
+        Quick example:
+
+        >>> import numpy as np
+        >>> from pyopenms import MSSpectrum
+        >>> spec = MSSpectrum()  # IM frame with IM data in FloatDataArray
+        >>> im_bins, mz_bins = 800, 600
+        >>> output = np.empty((mz_bins, im_bins), dtype=np.float32)
+        >>> spec.rasterizeIMFrame(output, min_im, max_im, min_mz, max_mz, "sum")
+        >>> # output now contains the rasterized intensity matrix
+
+        Parameters
+        ----------
+        output : numpy.ndarray
+            Pre-allocated 2D float32 array with shape (mz_bins, im_bins) to store the
+            aggregated intensity values. Will be filled in-place and zero-initialized.
+        min_im : float
+            Minimum ion mobility value for the output range.
+        max_im : float
+            Maximum ion mobility value for the output range.
+        min_mz : float
+            Minimum m/z value for the output range.
+        max_mz : float
+            Maximum m/z value for the output range.
+        aggregation : str, optional
+            Aggregation mode: "sum" (default) or "max".
+
+        Returns
+        -------
+        None
+            The output array is modified in-place.
+
+        Notes
+        -----
+        - This method requires the spectrum to have IM data (containsIMData() returns True).
+        - Unlike rasterizeRTMZ, this does NOT require sorted data since IM frame data
+          is typically unsorted by m/z.
+        - This method uses per-thread accumulation buffers to avoid contention.
+
+        Raises
+        ------
+        RuntimeError
+            If the spectrum does not contain ion mobility data.
+        ValueError
+            If the output array is not C-contiguous or aggregation mode is invalid.
+        """
+        # Validate array is C-contiguous (required for correct pointer arithmetic)
+        if not output.flags['C_CONTIGUOUS']:
+            raise ValueError("Output array must be C-contiguous. Use np.ascontiguousarray() to convert.")
+
+        # Validate array is writeable (required for safe C-level writes)
+        if not output.flags['WRITEABLE']:
+            raise ValueError("Output array must be writeable.")
+
+        cdef _MSSpectrum * spec_ = self.inst.get()
+        cdef Size im_bins = output.shape[1]
+        cdef Size mz_bins = output.shape[0]
+
+        # Get pointer to numpy array data
+        cdef float* output_ptr = <float*>np.PyArray_DATA(output)
+
+        cdef _MSSpectrumRasterAggregation agg_mode
+        if aggregation.lower() == "sum":
+            agg_mode = _MSSpectrumRasterAggregation.SUM
+        elif aggregation.lower() == "max":
+            agg_mode = _MSSpectrumRasterAggregation.MAX
+        else:
+            raise ValueError(f"Invalid aggregation mode '{aggregation}'. Must be 'sum' or 'max'.")
+
+        spec_.rasterizeIMFrame(output_ptr, im_bins, mz_bins, min_im, max_im, min_mz, max_mz, agg_mode)
