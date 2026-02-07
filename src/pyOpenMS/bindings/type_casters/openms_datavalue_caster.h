@@ -483,12 +483,12 @@ public:
                 return PyFloat_FromDouble(static_cast<double>(src));
 
             case ValueType::STRING_VALUE: {
-                const std::string& s = static_cast<std::string>(src);
+                const std::string s = src;
                 return PyUnicode_FromStringAndSize(s.c_str(), s.size());
             }
 
             case ValueType::STRING_LIST: {
-                const std::vector<std::string>& sl = static_cast<std::vector<std::string>>(src);
+                const std::vector<std::string> sl = src;
                 PyObject* list = PyList_New(sl.size());
                 if (!list) return handle();
                 for (size_t i = 0; i < sl.size(); ++i) {
@@ -503,7 +503,7 @@ public:
             }
 
             case ValueType::INT_LIST: {
-                const std::vector<int>& il = static_cast<std::vector<int>>(src);
+                const std::vector<int> il = src;
                 PyObject* list = PyList_New(il.size());
                 if (!list) return handle();
                 for (size_t i = 0; i < il.size(); ++i) {
@@ -518,7 +518,7 @@ public:
             }
 
             case ValueType::DOUBLE_LIST: {
-                const std::vector<double>& dl = static_cast<std::vector<double>>(src);
+                const std::vector<double> dl = src;
                 PyObject* list = PyList_New(dl.size());
                 if (!list) return handle();
                 for (size_t i = 0; i < dl.size(); ++i) {

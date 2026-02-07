@@ -92,7 +92,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // BSpline2d
     // -----------------------------------------------------------------------
     auto bspline2d_class = nb::class_<OpenMS::BSpline2d>(m, "BSpline2d", "b spline interpolation")
-        .def(nb::init<std::vector<double>, std::vector<double>, double, OpenMS::BSpline2d::BoundaryCondition, unsigned long>())
+        .def(nb::init<std::vector<double>, std::vector<double>, double, OpenMS::BSpline2d::BoundaryCondition, size_t>())
         .def("solve", [](OpenMS::BSpline2d& self, const std::vector<double>& y) { return self.solve(y); }, "y"_a, "Solve the spline curve for a new set of y values. Returns false if the solution fails")
         .def("eval", [](const OpenMS::BSpline2d& self, double x) { return self.eval(x); }, "x"_a, "Returns the evaluation of the smoothed curve at a particular x value. If current state is not ok(), returns zero")
         .def("derivative", [](const OpenMS::BSpline2d& self, double x) { return self.derivative(x); }, "x"_a, "Returns the first derivative of the spline curve at the given position x. Returns zero if the current state is not ok()")
@@ -149,9 +149,9 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::CalibrationData>(m, "CalibrationData", "A helper class, holding all calibration points")
         .def(nb::init<>())
-        .def("getMZ", [](const OpenMS::CalibrationData& self, unsigned long i) { return self.getMZ(i); }, "i"_a, "Retrieve the observed m/z of the i'th calibration point")
-        .def("getRT", [](const OpenMS::CalibrationData& self, unsigned long i) { return self.getRT(i); }, "i"_a, "Retrieve the observed RT of the i'th calibration point")
-        .def("getIntensity", [](const OpenMS::CalibrationData& self, unsigned long i) { return self.getIntensity(i); }, "i"_a, "Retrieve the intensity of the i'th calibration point")
+        .def("getMZ", [](const OpenMS::CalibrationData& self, size_t i) { return self.getMZ(i); }, "i"_a, "Retrieve the observed m/z of the i'th calibration point")
+        .def("getRT", [](const OpenMS::CalibrationData& self, size_t i) { return self.getRT(i); }, "i"_a, "Retrieve the observed RT of the i'th calibration point")
+        .def("getIntensity", [](const OpenMS::CalibrationData& self, size_t i) { return self.getIntensity(i); }, "i"_a, "Retrieve the intensity of the i'th calibration point")
         .def("size", [](const OpenMS::CalibrationData& self) { return self.size(); }, "Number of calibration points")
         .def("empty", [](const OpenMS::CalibrationData& self) { return self.empty(); }, "Returns `True` if there are no peaks")
         .def("clear", [](OpenMS::CalibrationData& self) { return self.clear(); }, "Remove all calibration points")
@@ -159,10 +159,10 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .def("usePPM", [](const OpenMS::CalibrationData& self) { return self.usePPM(); }, "Current error unit (ppm or Th)")
         .def("insertCalibrationPoint", [](OpenMS::CalibrationData& self, double rt, double mz_obs, float intensity, double mz_ref, double weight, int group) { return self.insertCalibrationPoint(rt, mz_obs, intensity, mz_ref, weight, group); }, "rt"_a, "mz_obs"_a, "intensity"_a, "mz_ref"_a, "weight"_a, "group"_a = -1)
         .def("getNrOfGroups", [](const OpenMS::CalibrationData& self) { return self.getNrOfGroups(); }, "Number of peak groups (can be 0)")
-        .def("getError", [](const OpenMS::CalibrationData& self, unsigned long i) { return self.getError(i); }, "i"_a, "Retrieve the error for i'th calibrant in either ppm or Th (depending on usePPM())")
-        .def("getRefMZ", [](const OpenMS::CalibrationData& self, unsigned long i) { return self.getRefMZ(i); }, "i"_a, "Retrieve the theoretical m/z of the i'th calibration point")
-        .def("getWeight", [](const OpenMS::CalibrationData& self, unsigned long i) { return self.getWeight(i); }, "i"_a, "Retrieve the weight of the i'th calibration point")
-        .def("getGroup", [](const OpenMS::CalibrationData& self, unsigned long i) { return self.getGroup(i); }, "i"_a, "Retrieve the group of the i'th calibration point")
+        .def("getError", [](const OpenMS::CalibrationData& self, size_t i) { return self.getError(i); }, "i"_a, "Retrieve the error for i'th calibrant in either ppm or Th (depending on usePPM())")
+        .def("getRefMZ", [](const OpenMS::CalibrationData& self, size_t i) { return self.getRefMZ(i); }, "i"_a, "Retrieve the theoretical m/z of the i'th calibration point")
+        .def("getWeight", [](const OpenMS::CalibrationData& self, size_t i) { return self.getWeight(i); }, "i"_a, "Retrieve the weight of the i'th calibration point")
+        .def("getGroup", [](const OpenMS::CalibrationData& self, size_t i) { return self.getGroup(i); }, "i"_a, "Retrieve the group of the i'th calibration point")
         .def_static("getMetaValues", []() { return OpenMS::CalibrationData::getMetaValues(); })
         .def("median", [](const OpenMS::CalibrationData& self, double rt_left, double rt_right) { return self.median(rt_left, rt_right); }, "rt_left"_a, "rt_right"_a, "Compute the median in the given RT range for every peak group")
         .def("sortByRT", [](OpenMS::CalibrationData& self) { return self.sortByRT(); }, "Sort calibration points by RT, to allow for valid RT chunking")
@@ -350,7 +350,7 @@ Write LP formulation to a file
 :param filename: Output filename, if the filename ends with '.gz' it will be compressed
 :param format: MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
 )doc")
-        .def("solve", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::SolverParam& solver_param, unsigned long verbose_level) { return self.solve(solver_param, verbose_level); }, "solver_param"_a, "verbose_level"_a = 0,
+        .def("solve", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::SolverParam& solver_param, size_t verbose_level) { return self.solve(solver_param, verbose_level); }, "solver_param"_a, "verbose_level"_a = 0,
             R"doc(
 Solve problems, parameters like enabled heuristics can be given via solver_param
 The verbose level (0,1,2) determines if the solver prints status messages and internals
@@ -741,7 +741,7 @@ PeakSpectrumCompareFunctor inheritance
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SpectraSTSimilarityScore &>())
-        .def("preprocess", [](OpenMS::SpectraSTSimilarityScore& self, OpenMS::MSSpectrum& spec, float remove_peak_intensity_threshold, unsigned int cut_peaks_below, unsigned long min_peak_number, unsigned long max_peak_number) { return self.preprocess(spec, remove_peak_intensity_threshold, cut_peaks_below, min_peak_number, max_peak_number); }, "spec"_a, "remove_peak_intensity_threshold"_a = 2.01, "cut_peaks_below"_a = 1000, "min_peak_number"_a = 5, "max_peak_number"_a = 150)
+        .def("preprocess", [](OpenMS::SpectraSTSimilarityScore& self, OpenMS::MSSpectrum& spec, float remove_peak_intensity_threshold, unsigned int cut_peaks_below, size_t min_peak_number, size_t max_peak_number) { return self.preprocess(spec, remove_peak_intensity_threshold, cut_peaks_below, min_peak_number, max_peak_number); }, "spec"_a, "remove_peak_intensity_threshold"_a = 2.01, "cut_peaks_below"_a = 1000, "min_peak_number"_a = 5, "max_peak_number"_a = 150)
         .def("transform", [](OpenMS::SpectraSTSimilarityScore& self, const OpenMS::MSSpectrum& spec) { return self.transform(spec); }, "spec"_a, "Spectrum is transformed into a binned spectrum with bin size 1 and spread 1 and the intensities are normalized")
         .def("dot_bias", [](const OpenMS::SpectraSTSimilarityScore& self, const OpenMS::BinnedSpectrum& bin1, const OpenMS::BinnedSpectrum& bin2, double dot_product) { return self.dot_bias(bin1, bin2, dot_product); }, "bin1"_a, "bin2"_a, "dot_product"_a = -1)
         .def("delta_D", [](OpenMS::SpectraSTSimilarityScore& self, double top_hit, double runner_up) { return self.delta_D(top_hit, runner_up); }, "top_hit"_a, "runner_up"_a, 

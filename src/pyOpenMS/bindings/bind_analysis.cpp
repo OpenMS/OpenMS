@@ -164,9 +164,9 @@ the transformation model used for concentration calculation
         .def("setObservedIntensity", [](OpenMS::AccurateMassSearchResult& self, const double& p0) { return self.setObservedIntensity(p0); })
         .def("getIndividualIntensities", [](const OpenMS::AccurateMassSearchResult& self) { return self.getIndividualIntensities(); })
         .def("getMatchingIndex", [](const OpenMS::AccurateMassSearchResult& self) { return self.getMatchingIndex(); })
-        .def("setMatchingIndex", [](OpenMS::AccurateMassSearchResult& self, const unsigned long& p0) { return self.setMatchingIndex(p0); })
+        .def("setMatchingIndex", [](OpenMS::AccurateMassSearchResult& self, const size_t& p0) { return self.setMatchingIndex(p0); })
         .def("getSourceFeatureIndex", [](const OpenMS::AccurateMassSearchResult& self) { return self.getSourceFeatureIndex(); })
-        .def("setSourceFeatureIndex", [](OpenMS::AccurateMassSearchResult& self, const unsigned long& p0) { return self.setSourceFeatureIndex(p0); })
+        .def("setSourceFeatureIndex", [](OpenMS::AccurateMassSearchResult& self, const size_t& p0) { return self.setSourceFeatureIndex(p0); })
         .def("getFoundAdduct", [](const OpenMS::AccurateMassSearchResult& self) { return self.getFoundAdduct(); })
         .def("setFoundAdduct", [](OpenMS::AccurateMassSearchResult& self, const OpenMS::String& p0) { return self.setFoundAdduct(p0); })
         .def("getFormulaString", [](const OpenMS::AccurateMassSearchResult& self) { return self.getFormulaString(); })
@@ -196,7 +196,7 @@ the transformation model used for concentration calculation
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ClusterProxyKD>(m, "ClusterProxyKD", "Proxy for a (potential) cluster")
         .def(nb::init<>())
-        .def(nb::init<unsigned long, double, unsigned long>())
+        .def(nb::init<size_t, double, size_t>())
         .def(nb::init<const OpenMS::ClusterProxyKD &>())
         .def(nb::self < nb::self)
         .def(nb::self != nb::self)
@@ -331,7 +331,7 @@ Constructors
         .def("pop_back", [](OpenMS::DeconvolvedSpectrum& self) { return self.pop_back(); }, "Removes the last peak group")
         .def("size", [](const OpenMS::DeconvolvedSpectrum& self) { return self.size(); }, "Returns number of peak groups")
         .def("clear", [](OpenMS::DeconvolvedSpectrum& self) { return self.clear(); }, "Clears all peak groups")
-        .def("reserve", [](OpenMS::DeconvolvedSpectrum& self, unsigned long n) { return self.reserve(n); }, "n"_a, "Reserves space for n peak groups")
+        .def("reserve", [](OpenMS::DeconvolvedSpectrum& self, size_t n) { return self.reserve(n); }, "n"_a, "Reserves space for n peak groups")
         .def("empty", [](const OpenMS::DeconvolvedSpectrum& self) { return self.empty(); }, "Returns true if no peak groups")
         .def("isDecoy", [](const OpenMS::DeconvolvedSpectrum& self) { return self.isDecoy(); }, "Returns true if this is a decoy spectrum")
         .def("sort", [](OpenMS::DeconvolvedSpectrum& self) { return self.sort(); }, "Sorts peak groups by monoisotopic mass")
@@ -905,7 +905,7 @@ MRMDecoy
     nb::class_<OpenMS::MRMRTNormalizer>(m, "MRMRTNormalizer", "The MRMRTNormalizer will find retention time peptides in data")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MRMRTNormalizer &>())
-        .def_static("removeOutliersRANSAC", [](const std::vector<std::pair<double, double>>& pairs, double rsq_limit, double coverage_limit, unsigned long max_iterations, double max_rt_threshold, unsigned long sampling_size) { return OpenMS::MRMRTNormalizer::removeOutliersRANSAC(pairs, rsq_limit, coverage_limit, max_iterations, max_rt_threshold, sampling_size); }, "pairs"_a, "rsq_limit"_a, "coverage_limit"_a, "max_iterations"_a, "max_rt_threshold"_a, "sampling_size"_a)
+        .def_static("removeOutliersRANSAC", [](const std::vector<std::pair<double, double>>& pairs, double rsq_limit, double coverage_limit, size_t max_iterations, double max_rt_threshold, size_t sampling_size) { return OpenMS::MRMRTNormalizer::removeOutliersRANSAC(pairs, rsq_limit, coverage_limit, max_iterations, max_rt_threshold, sampling_size); }, "pairs"_a, "rsq_limit"_a, "coverage_limit"_a, "max_iterations"_a, "max_rt_threshold"_a, "sampling_size"_a)
         .def_static("removeOutliersIterative", [](const std::vector<std::pair<double, double>>& pairs, double rsq_limit, double coverage_limit, bool use_chauvenet, const OpenMS::String& method) { return OpenMS::MRMRTNormalizer::removeOutliersIterative(pairs, rsq_limit, coverage_limit, use_chauvenet, method); }, "pairs"_a, "rsq_limit"_a, "coverage_limit"_a, "use_chauvenet"_a, "method"_a)
         .def_static("chauvenet_probability", [](const std::vector<double>& residuals, int pos) { return OpenMS::MRMRTNormalizer::chauvenet_probability(residuals, pos); }, "residuals"_a, "pos"_a)
         .def_static("chauvenet", [](const std::vector<double>& residuals, int pos) { return OpenMS::MRMRTNormalizer::chauvenet(residuals, pos); }, "residuals"_a, "pos"_a)
@@ -960,7 +960,7 @@ and based on these, LOWESS transformations are computed for each input map such 
 deviation from the mean retention time within all CCCs is minimized
 private
 )doc")
-        .def(nb::init<unsigned long, OpenMS::Param>())
+        .def(nb::init<size_t, OpenMS::Param>())
         .def("addRTFitData", [](OpenMS::MapAlignmentAlgorithmKD& self, const OpenMS::KDTreeFeatureMaps& kd_data) { return self.addRTFitData(kd_data); }, "kd_data"_a, "Compute data points needed for RT transformation in the current `kd_data`, add to `fit_data_`")
         .def("fitLOWESS", [](OpenMS::MapAlignmentAlgorithmKD& self) { return self.fitLOWESS(); }, "Fit LOWESS to fit_data_, store final models in `transformations_`")
         .def("transform", [](const OpenMS::MapAlignmentAlgorithmKD& self, OpenMS::KDTreeFeatureMaps& kd_data) { return self.transform(kd_data); }, "kd_data"_a, "Transform RTs for `kd_data`")
@@ -1195,10 +1195,10 @@ duplicated code
         .def_static("addPercolatorFeatureList", [](OpenMS::ProteinIdentification& prot_id) { return OpenMS::OPXLHelper::addPercolatorFeatureList(prot_id); }, "prot_id"_a)
         .def_static("computeDeltaScores", []() { std::vector<OpenMS::PeptideIdentification> peptide_ids; OpenMS::OPXLHelper::computeDeltaScores(peptide_ids); return peptide_ids; })
         .def_static("computeDeltaScores", []() { OpenMS::PeptideIdentificationList peptide_ids; OpenMS::OPXLHelper::computeDeltaScores(peptide_ids); return peptide_ids; })
-        .def_static("combineTopRanksFromPairs", [](std::vector<OpenMS::PeptideIdentification> peptide_ids, unsigned long number_top_hits) {
+        .def_static("combineTopRanksFromPairs", [](std::vector<OpenMS::PeptideIdentification> peptide_ids, size_t number_top_hits) {
             return OpenMS::OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits);
         }, "peptide_ids"_a, "number_top_hits"_a)
-        .def_static("combineTopRanksFromPairs", [](OpenMS::PeptideIdentificationList& peptide_ids, unsigned long number_top_hits) { return OpenMS::OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits); }, "peptide_ids"_a, "number_top_hits"_a)
+        .def_static("combineTopRanksFromPairs", [](OpenMS::PeptideIdentificationList& peptide_ids, size_t number_top_hits) { return OpenMS::OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits); }, "peptide_ids"_a, "number_top_hits"_a)
         .def_static("computePrecursorError", [](const OpenMS::OPXLDataStructs::CrossLinkSpectrumMatch& csm, double precursor_mz, int precursor_charge) { return OpenMS::OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge); }, "csm"_a, "precursor_mz"_a, "precursor_charge"_a)
         ;
 
@@ -1209,7 +1209,7 @@ duplicated code
         .def(nb::init<>())
         .def(nb::init<const OpenMS::OPXLSpectrumProcessingAlgorithms &>())
         .def_static("mergeAnnotatedSpectra", [](OpenMS::MSSpectrum& first_spectrum, OpenMS::MSSpectrum& second_spectrum) { return OpenMS::OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(first_spectrum, second_spectrum); }, "first_spectrum"_a, "second_spectrum"_a)
-        .def_static("preprocessSpectra", [](OpenMS::MSExperiment& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, unsigned long peptide_min_size, int min_precursor_charge, int max_precursor_charge, bool deisotope, bool labeled) { return OpenMS::OPXLSpectrumProcessingAlgorithms::preprocessSpectra(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peptide_min_size, min_precursor_charge, max_precursor_charge, deisotope, labeled); }, "exp"_a, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "peptide_min_size"_a, "min_precursor_charge"_a, "max_precursor_charge"_a, "deisotope"_a, "labeled"_a)
+        .def_static("preprocessSpectra", [](OpenMS::MSExperiment& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, size_t peptide_min_size, int min_precursor_charge, int max_precursor_charge, bool deisotope, bool labeled) { return OpenMS::OPXLSpectrumProcessingAlgorithms::preprocessSpectra(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peptide_min_size, min_precursor_charge, max_precursor_charge, deisotope, labeled); }, "exp"_a, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "peptide_min_size"_a, "min_precursor_charge"_a, "max_precursor_charge"_a, "deisotope"_a, "labeled"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -1251,13 +1251,13 @@ Estimate the retention time span of a targeted experiment by returning the min/m
         .def(nb::init<OpenMS::String, bool>())
         .def("isActive", [](const OpenMS::OpenSwathOSWWriter& self) { return self.isActive(); })
         .def("writeHeader", [](OpenMS::OpenSwathOSWWriter& self) { return self.writeHeader(); }, "Initializes file by generating SQLite tables")
-        .def("addRun", [](OpenMS::OpenSwathOSWWriter& self, unsigned long run_id, const OpenMS::String& input_filename) { return self.addRun(run_id, input_filename); }, "run_id"_a, "input_filename"_a, 
+        .def("addRun", [](OpenMS::OpenSwathOSWWriter& self, size_t run_id, const OpenMS::String& input_filename) { return self.addRun(run_id, input_filename); }, "run_id"_a, "input_filename"_a, 
             R"doc(
 Write data to disk
 Takes a set of pre-prepared data statements from prepareLine and flushes them to disk
 :param to_osw_output: Statements generated by prepareLine
 )doc")
-        .def("setRunId", [](OpenMS::OpenSwathOSWWriter& self, unsigned long run_id) { return self.setRunId(run_id); }, "run_id"_a)
+        .def("setRunId", [](OpenMS::OpenSwathOSWWriter& self, size_t run_id) { return self.setRunId(run_id); }, "run_id"_a)
         .def("writeLines", [](OpenMS::OpenSwathOSWWriter& self, const std::vector<OpenMS::String>& to_osw_output) { return self.writeLines(to_osw_output); }, "to_osw_output"_a, 
             R"doc(
 Prepare a single line (feature) for output
@@ -1332,7 +1332,7 @@ The result can be used to efficiently filter spectra for top 1..n peaks in mass 
 :param intensities: The intensities of the peaks
 :param mz_window: The window in Thomson centered at each peak
 )doc")
-        .def_static("calculatePeakLevelSpectra", [](const OpenMS::MSSpectrum& spec, const std::vector<unsigned long>& ranks, unsigned long min_level, unsigned long max_level) { return OpenMS::PScore::calculatePeakLevelSpectra(spec, ranks, min_level, max_level); }, "spec"_a, "ranks"_a, "min_level"_a, "max_level"_a, 
+        .def_static("calculatePeakLevelSpectra", [](const OpenMS::MSSpectrum& spec, const std::vector<size_t>& ranks, size_t min_level, size_t max_level) { return OpenMS::PScore::calculatePeakLevelSpectra(spec, ranks, min_level, max_level); }, "spec"_a, "ranks"_a, "min_level"_a, "max_level"_a,
             R"doc(
 Precalculated, windowed peak ranks for a whole experiment
 The peak rank is defined as the number of neighboring peaks in +/- (mz_window/2) that have higher intensity
@@ -1403,7 +1403,7 @@ Constructors
         .def("getMassErrors", [](const OpenMS::PeakGroup& self, bool ppm) { return self.getMassErrors(ppm); }, "ppm"_a = true, "Returns mass errors per isotope")
         .def("push_back", [](OpenMS::PeakGroup& self, const OpenMS::FLASHHelperClasses::LogMzPeak& pg) { return self.push_back(pg); }, "pg"_a, "Adds a LogMzPeak")
         .def("size", [](const OpenMS::PeakGroup& self) { return self.size(); }, "Returns number of LogMzPeaks")
-        .def("reserve", [](OpenMS::PeakGroup& self, unsigned long n) { return self.reserve(n); }, "n"_a, "Reserves space for n peaks")
+        .def("reserve", [](OpenMS::PeakGroup& self, size_t n) { return self.reserve(n); }, "n"_a, "Reserves space for n peaks")
         .def("empty", [](const OpenMS::PeakGroup& self) { return self.empty(); }, "Returns true if no peaks")
         .def("sort", [](OpenMS::PeakGroup& self) { return self.sort(); }, "Sorts peaks by log m/z")
         .def("__iter__", [](OpenMS::PeakGroup& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "PeakGroup_iter", self.begin(), self.end()); })
@@ -1572,7 +1572,7 @@ if not skipped
 :param peptides: Vector of ProteinIdentifications with links to the proteins
 :param skip_sort: Skips sorting of groups, nothing is modified then
 )doc")
-        .def("findConnectedComponent", [](OpenMS::PeptideProteinResolution& self, unsigned long& root_prot_grp) { return self.findConnectedComponent(root_prot_grp); }, "root_prot_grp"_a, 
+        .def("findConnectedComponent", [](OpenMS::PeptideProteinResolution& self, size_t root_prot_grp) { return self.findConnectedComponent(root_prot_grp); }, "root_prot_grp"_a,
             R"doc(
 Applies resolveConnectedComponent to every component of the graph and
 is able to write statistics when specified. Parameters will
@@ -1928,9 +1928,9 @@ params.select_transition_group = False
         .def("getMatchingScore", [](const OpenMS::SpectralMatch& self) { return self.getMatchingScore(); })
         .def("setMatchingScore", [](OpenMS::SpectralMatch& self, const double& p0) { return self.setMatchingScore(p0); })
         .def("getObservedSpectrumIndex", [](const OpenMS::SpectralMatch& self) { return self.getObservedSpectrumIndex(); })
-        .def("setObservedSpectrumIndex", [](OpenMS::SpectralMatch& self, const unsigned long& p0) { return self.setObservedSpectrumIndex(p0); })
+        .def("setObservedSpectrumIndex", [](OpenMS::SpectralMatch& self, const size_t& p0) { return self.setObservedSpectrumIndex(p0); })
         .def("getMatchingSpectrumIndex", [](const OpenMS::SpectralMatch& self) { return self.getMatchingSpectrumIndex(); })
-        .def("setMatchingSpectrumIndex", [](OpenMS::SpectralMatch& self, const unsigned long& p0) { return self.setMatchingSpectrumIndex(p0); })
+        .def("setMatchingSpectrumIndex", [](OpenMS::SpectralMatch& self, const size_t& p0) { return self.setMatchingSpectrumIndex(p0); })
         .def("getPrimaryIdentifier", [](const OpenMS::SpectralMatch& self) { return self.getPrimaryIdentifier(); })
         .def("setPrimaryIdentifier", [](OpenMS::SpectralMatch& self, const OpenMS::String& p0) { return self.setPrimaryIdentifier(p0); })
         .def("getSecondaryIdentifier", [](const OpenMS::SpectralMatch& self) { return self.getSecondaryIdentifier(); })
@@ -2130,8 +2130,8 @@ cross-linked peptides from large sequence databases")
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::XQuestScores &>())
-        .def_static("preScore", [](unsigned long matched_alpha, unsigned long ions_alpha, unsigned long matched_beta, unsigned long ions_beta) { return OpenMS::XQuestScores::preScore(matched_alpha, ions_alpha, matched_beta, ions_beta); }, "matched_alpha"_a, "ions_alpha"_a, "matched_beta"_a, "ions_beta"_a)
-        .def_static("preScore", [](unsigned long matched_alpha, unsigned long ions_alpha) { return OpenMS::XQuestScores::preScore(matched_alpha, ions_alpha); }, "matched_alpha"_a, "ions_alpha"_a, 
+        .def_static("preScore", [](size_t matched_alpha, size_t ions_alpha, size_t matched_beta, size_t ions_beta) { return OpenMS::XQuestScores::preScore(matched_alpha, ions_alpha, matched_beta, ions_beta); }, "matched_alpha"_a, "ions_alpha"_a, "matched_beta"_a, "ions_beta"_a)
+        .def_static("preScore", [](size_t matched_alpha, size_t ions_alpha) { return OpenMS::XQuestScores::preScore(matched_alpha, ions_alpha); }, "matched_alpha"_a, "ions_alpha"_a, 
             R"doc(
 Compute a simple and fast to compute pre-score for a cross-link spectrum match
 :param matched_alpha: Number of experimental peaks matched to theoretical linear ions from the alpha peptide
@@ -2139,13 +2139,13 @@ Compute a simple and fast to compute pre-score for a cross-link spectrum match
 :param matched_beta: Number of experimental peaks matched to theoretical linear ions from the beta peptide
 :param ions_beta: Number of theoretical ions from the beta peptide
 )doc")
-        .def_static("matchOddsScore", [](const OpenMS::MSSpectrum& theoretical_spec, unsigned long matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, unsigned long n_charges) { return OpenMS::XQuestScores::matchOddsScore(theoretical_spec, matched_size, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, is_xlink_spectrum, n_charges); }, "theoretical_spec"_a, "matched_size"_a, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "is_xlink_spectrum"_a, "n_charges"_a, 
+        .def_static("matchOddsScore", [](const OpenMS::MSSpectrum& theoretical_spec, size_t matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, size_t n_charges) { return OpenMS::XQuestScores::matchOddsScore(theoretical_spec, matched_size, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, is_xlink_spectrum, n_charges); }, "theoretical_spec"_a, "matched_size"_a, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "is_xlink_spectrum"_a, "n_charges"_a, 
             R"doc(
 Compute a simple and fast to compute pre-score for a mono-link spectrum match
 :param matched_alpha: Number of experimental peaks matched to theoretical linear ions from the alpha peptide
 :param ions_alpha: Number of theoretical ions from the alpha peptide
 )doc")
-        .def_static("logOccupancyProb", [](const OpenMS::MSSpectrum& theoretical_spec, unsigned long matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm) { return OpenMS::XQuestScores::logOccupancyProb(theoretical_spec, matched_size, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm); }, "theoretical_spec"_a, "matched_size"_a, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, 
+        .def_static("logOccupancyProb", [](const OpenMS::MSSpectrum& theoretical_spec, size_t matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm) { return OpenMS::XQuestScores::logOccupancyProb(theoretical_spec, matched_size, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm); }, "theoretical_spec"_a, "matched_size"_a, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, 
             R"doc(
 Compute the match-odds score, a score based on the probability of getting the given number of matched peaks by chance
 :param theoretical_spec: Theoretical spectrum, sorted by position
@@ -2155,7 +2155,7 @@ Compute the match-odds score, a score based on the probability of getting the gi
 :param is_xlink_spectrum: Type of cross-link, true = cross-link, false = mono-link
 :param n_charges: Number of considered charges in the theoretical spectrum
 )doc")
-        .def_static("weightedTICScoreXQuest", [](unsigned long alpha_size, unsigned long beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link) { return OpenMS::XQuestScores::weightedTICScoreXQuest(alpha_size, beta_size, intsum_alpha, intsum_beta, total_current, type_is_cross_link); }, "alpha_size"_a, "beta_size"_a, "intsum_alpha"_a, "intsum_beta"_a, "total_current"_a, "type_is_cross_link"_a, 
+        .def_static("weightedTICScoreXQuest", [](size_t alpha_size, size_t beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link) { return OpenMS::XQuestScores::weightedTICScoreXQuest(alpha_size, beta_size, intsum_alpha, intsum_beta, total_current, type_is_cross_link); }, "alpha_size"_a, "beta_size"_a, "intsum_alpha"_a, "intsum_beta"_a, "total_current"_a, "type_is_cross_link"_a, 
             R"doc(
 Compute the logOccupancyProb score, similar to the match_odds, a score based on the probability of getting the given number of matched peaks by chance
 :param theoretical_spec: Theoretical spectrum, sorted by position
@@ -2163,7 +2163,7 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
 :param fragment_mass_tolerance: The tolerance of the alignment
 :param fragment_mass_tolerance_unit: The tolerance unit of the alignment, true = ppm, false = Da
 )doc")
-        .def_static("weightedTICScore", [](unsigned long alpha_size, unsigned long beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link) { return OpenMS::XQuestScores::weightedTICScore(alpha_size, beta_size, intsum_alpha, intsum_beta, total_current, type_is_cross_link); }, "alpha_size"_a, "beta_size"_a, "intsum_alpha"_a, "intsum_beta"_a, "total_current"_a, "type_is_cross_link"_a)
+        .def_static("weightedTICScore", [](size_t alpha_size, size_t beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link) { return OpenMS::XQuestScores::weightedTICScore(alpha_size, beta_size, intsum_alpha, intsum_beta, total_current, type_is_cross_link); }, "alpha_size"_a, "beta_size"_a, "intsum_alpha"_a, "intsum_beta"_a, "total_current"_a, "type_is_cross_link"_a)
         .def_static("xCorrelation", [](const OpenMS::MSSpectrum& spec1, const OpenMS::MSSpectrum& spec2, int maxshift, double tolerance) { return OpenMS::XQuestScores::xCorrelation(spec1, spec2, maxshift, tolerance); }, "spec1"_a, "spec2"_a, "maxshift"_a, "tolerance"_a)
         .def_static("xCorrelationPrescore", [](const OpenMS::MSSpectrum& spec1, const OpenMS::MSSpectrum& spec2, double tolerance) { return OpenMS::XQuestScores::xCorrelationPrescore(spec1, spec2, tolerance); }, "spec1"_a, "spec2"_a, "tolerance"_a)
         ;
