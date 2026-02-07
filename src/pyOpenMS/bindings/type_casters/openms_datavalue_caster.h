@@ -13,6 +13,7 @@
 // Use custom std::string caster that accepts bytes (do NOT include nanobind/stl/string.h)
 #include "std_string_bytes_caster.h"
 #include <nanobind/stl/vector.h>
+#include <limits>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
@@ -147,15 +148,24 @@ public:
                     if (PyUnicode_Check(item)) {
                         Py_ssize_t size;
                         const char* data = PyUnicode_AsUTF8AndSize(item, &size);
-                        if (data) {
-                            sl.push_back(OpenMS::String(data, size));
+                        if (!data) {
+                            Py_DECREF(item);
+                            PyErr_Clear();
+                            return false;
                         }
+                        sl.push_back(OpenMS::String(data, size));
                     } else if (PyBytes_Check(item)) {
                         char* data;
                         Py_ssize_t size;
-                        if (PyBytes_AsStringAndSize(item, &data, &size) == 0) {
-                            sl.push_back(OpenMS::String(data, size));
+                        if (PyBytes_AsStringAndSize(item, &data, &size) != 0) {
+                            Py_DECREF(item);
+                            PyErr_Clear();
+                            return false;
                         }
+                        sl.push_back(OpenMS::String(data, size));
+                    } else {
+                        Py_DECREF(item);
+                        return false;  // reject non-string items
                     }
                     Py_DECREF(item);
                 }
@@ -176,6 +186,9 @@ public:
                     if (PyErr_Occurred()) {
                         PyErr_Clear();
                         return false;
+                    }
+                    if (val > std::numeric_limits<int>::max() || val < std::numeric_limits<int>::min()) {
+                        return false;  // overflow
                     }
                     il.push_back(static_cast<int>(val));
                 }
@@ -421,6 +434,9 @@ public:
                         PyErr_Clear();
                         return false;
                     }
+                    if (val > std::numeric_limits<int>::max() || val < std::numeric_limits<int>::min()) {
+                        return false;  // overflow
+                    }
                     il.push_back(static_cast<int>(val));
                 }
                 value = OpenMS::ParamValue(il);
@@ -461,7 +477,7 @@ public:
                 return none().release();
 
             case ValueType::INT_VALUE:
-                return PyLong_FromLongLong(static_cast<long long>(static_cast<int>(src)));
+                return PyLong_FromLongLong(static_cast<long long>(static_cast<int>(src)));  // ParamValue stores int
 
             case ValueType::DOUBLE_VALUE:
                 return PyFloat_FromDouble(static_cast<double>(src));

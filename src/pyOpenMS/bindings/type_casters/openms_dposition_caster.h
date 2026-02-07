@@ -132,9 +132,14 @@ public:
     }
 
     static handle from_cpp(const OpenMS::DPosition<2>& src, rv_policy policy, cleanup_list* cleanup) noexcept {
-        return PyTuple_Pack(2,
-                           PyFloat_FromDouble(src[0]),
-                           PyFloat_FromDouble(src[1]));
+        PyObject* f0 = PyFloat_FromDouble(src[0]);
+        if (!f0) return handle();
+        PyObject* f1 = PyFloat_FromDouble(src[1]);
+        if (!f1) { Py_DECREF(f0); return handle(); }
+        PyObject* tup = PyTuple_Pack(2, f0, f1);
+        Py_DECREF(f0);
+        Py_DECREF(f1);
+        return tup;
     }
 
     static handle from_cpp(OpenMS::DPosition<2>& src, rv_policy policy, cleanup_list* cleanup) noexcept {
@@ -224,9 +229,13 @@ public:
         if (!list) return handle();
 
         for (size_t i = 0; i < n; ++i) {
-            PyObject* tuple = PyTuple_Pack(2,
-                PyFloat_FromDouble(src[i][0]),
-                PyFloat_FromDouble(src[i][1]));
+            PyObject* f0 = PyFloat_FromDouble(src[i][0]);
+            if (!f0) { Py_DECREF(list); return handle(); }
+            PyObject* f1 = PyFloat_FromDouble(src[i][1]);
+            if (!f1) { Py_DECREF(f0); Py_DECREF(list); return handle(); }
+            PyObject* tuple = PyTuple_Pack(2, f0, f1);
+            Py_DECREF(f0);
+            Py_DECREF(f1);
             if (!tuple) {
                 Py_DECREF(list);
                 return handle();

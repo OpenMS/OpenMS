@@ -3,6 +3,8 @@
 
 #include "all_casters.h"
 #include <type_traits>
+#include <limits>
+#include <memory>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
 #include <OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>
@@ -178,8 +180,6 @@ NB_MODULE(_pyopenms_kernel, m) {
         .def("setPosition", [](OpenMS::ChromatogramPeak& self, const OpenMS::DPosition<1>& position) { return self.setPosition(position); }, "position"_a, "Sets the position (RT)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("__hash__", [](const OpenMS::ChromatogramPeak& self) { return std::hash<OpenMS::ChromatogramPeak>{}(self); })
-
         .def("__hash__", [](const OpenMS::ChromatogramPeak& self) {
             // Content-based hash using rt and intensity
             size_t h1 = std::hash<double>{}(self.getRT());
@@ -350,15 +350,6 @@ exp.getMetaValue("someMetaName")
         .def("removeMetaValue", [](OpenMS::MetaInfoInterface& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
         .def("removeMetaValue", [](OpenMS::MetaInfoInterface& self, unsigned int index) { return self.removeMetaValue(index); }, "index"_a, "Removes the DataValue corresponding to `name` if it exists")
         .def_static("metaRegistry", []() { return OpenMS::MetaInfoInterface::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
-        
-        .def("getKeys", [](const OpenMS::MetaInfoInterface& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
         
         .def("getKeys", [](const OpenMS::MetaInfoInterface& self, nb::list py_keys) {
             std::vector<OpenMS::String> keys;
@@ -1366,14 +1357,16 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
 
         .def("get_peaks", [](const OpenMS::MSChromatogram& self) {
             const size_t n = self.size();
-            double* rt_data = new double[n];
-            double* int_data = new double[n];
+            std::unique_ptr<double[]> rt_uptr(new double[n]);
+            std::unique_ptr<double[]> int_uptr(new double[n]);
+            double* rt_data = rt_uptr.get();
+            double* int_data = int_uptr.get();
             for (size_t i = 0; i < n; ++i) {
                 rt_data[i] = self[i].getRT();
                 int_data[i] = self[i].getIntensity();
             }
-            nb::capsule rt_owner(rt_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            nb::capsule rt_owner(rt_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            nb::capsule int_owner(int_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
             auto rt_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(rt_data, {n}, rt_owner);
             auto int_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(int_data, {n}, int_owner);
             return nb::make_tuple(rt_arr, int_arr);
@@ -1475,8 +1468,8 @@ mz, intensities = spectrum.get_peaks()
         .def("getMaxMobility", [](const OpenMS::MSExperiment& self) { return self.getMaxMobility(); }, "Get the maximum mobility value from the combined ranges")
         .def("updateRanges", [](OpenMS::MSExperiment& self) { return self.updateRanges(); }, "Recalculate global ranges for both spectra and chromatrograms after changes to the data has been made.")
         .def("getSize", [](const OpenMS::MSExperiment& self) { return self.getSize(); }, "Returns the total number of peaks")
-        .def("sortSpectra", [](OpenMS::MSExperiment& self, bool sort_mz) { return self.sortSpectra(sort_mz); }, "sort_mz"_a = true, "Sorts spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z")
-        .def("sortChromatograms", [](OpenMS::MSExperiment& self, bool sort_rt) { return self.sortChromatograms(sort_rt); }, "sort_rt"_a = true, "Sorts chromatograms by m/z. If sort_rt=True also sort each chromatogram RT")
+        .def("sortSpectra", [](OpenMS::MSExperiment& self, bool sort_mz) { nb::gil_scoped_release release; return self.sortSpectra(sort_mz); }, "sort_mz"_a = true, "Sorts spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z")
+        .def("sortChromatograms", [](OpenMS::MSExperiment& self, bool sort_rt) { nb::gil_scoped_release release; return self.sortChromatograms(sort_rt); }, "sort_rt"_a = true, "Sorts chromatograms by m/z. If sort_rt=True also sort each chromatogram RT")
         .def("isSorted", [](const OpenMS::MSExperiment& self, bool check_mz) { return self.isSorted(check_mz); }, "check_mz"_a = true, "Checks if all spectra are sorted with respect to ascending RT")
         .def("reset", [](OpenMS::MSExperiment& self) { return self.reset(); }, "Clears all data and meta data")
         .def("clearMetaDataArrays", [](OpenMS::MSExperiment& self) { return self.clearMetaDataArrays(); }, "Clears the meta data arrays of all contained spectra")
@@ -1967,7 +1960,12 @@ Used for storing per-peak integer annotations.
                 const size_t n = i64_arr.shape(0);
                 self.resize(n);
                 const int64_t* ptr = static_cast<const int64_t*>(i64_arr.data());
-                for (size_t i = 0; i < n; ++i) self[i] = static_cast<OpenMS::Int>(ptr[i]);
+                for (size_t i = 0; i < n; ++i) {
+                    if (ptr[i] > std::numeric_limits<OpenMS::Int>::max() || ptr[i] < std::numeric_limits<OpenMS::Int>::min()) {
+                        throw std::overflow_error("Integer value at index " + std::to_string(i) + " overflows Int32");
+                    }
+                    self[i] = static_cast<OpenMS::Int>(ptr[i]);
+                }
                 return;
             }
             // Fallback: any iterable (list, etc.)
@@ -2066,14 +2064,16 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
 
         .def("get_peaks", [](const OpenMS::Mobilogram& self) {
             size_t n = self.size();
-            double* mob_data = new double[n];
-            float* int_data = new float[n];
+            std::unique_ptr<double[]> mob_uptr(new double[n]);
+            std::unique_ptr<float[]> int_uptr(new float[n]);
+            double* mob_data = mob_uptr.get();
+            float* int_data = int_uptr.get();
             for (size_t i = 0; i < n; ++i) {
                 mob_data[i] = self[i].getMobility();
                 int_data[i] = self[i].getIntensity();
             }
-            nb::capsule mob_owner(mob_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            nb::capsule mob_owner(mob_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            nb::capsule int_owner(int_uptr.release(), [](void* p) noexcept { delete[] static_cast<float*>(p); });
             auto mob_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(mob_data, {n}, mob_owner);
             auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, int_owner);
             return nb::make_tuple(mob_arr, int_arr);
@@ -2083,6 +2083,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             auto mob_arr = as_numpy_array<double>(mob_obj);
             auto int_arr = as_numpy_array<float>(int_obj);
             size_t n = mob_arr.shape(0);
+            if (int_arr.shape(0) != n) throw std::runtime_error("Mobility and intensity arrays must have the same length");
             self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
@@ -2105,6 +2106,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             auto mob_arr = as_numpy_array<double>(item0);
             auto int_arr = as_numpy_array<float>(item1);
             size_t n = mob_arr.shape(0);
+            if (int_arr.shape(0) != n) throw std::runtime_error("Mobility and intensity arrays must have the same length");
             self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
             const float* int_ptr = static_cast<const float*>(int_arr.data());
@@ -2211,8 +2213,6 @@ If you want to annotate single peaks with meta data, use RichPeak1D instead.
         .def("setPos", [](OpenMS::Peak1D& self, double pos) { return self.setPos(pos); }, "pos"_a, "Sets the position (alias for setMZ)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("__hash__", [](const OpenMS::Peak1D& self) { return std::hash<OpenMS::Peak1D>{}(self); })
-
         .def("__hash__", [](const OpenMS::Peak1D& self) {
             // Content-based hash using mz and intensity
             size_t h1 = std::hash<double>{}(self.getMZ());
@@ -2234,15 +2234,13 @@ If you want to annotated single peaks with meta data, use RichPeak2D instead
         .def(nb::init<OpenMS::DPosition<2>, float>())
         .def(nb::init<const OpenMS::Peak2D &>())
         .def("getIntensity", [](const OpenMS::Peak2D& self) { return self.getIntensity(); }, "Returns the data point intensity (height)")
-        .def("setIntensity", [](OpenMS::Peak2D& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Returns the data point intensity (height)")
+        .def("setIntensity", [](OpenMS::Peak2D& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Sets the data point intensity (height)")
         .def("getMZ", [](const OpenMS::Peak2D& self) { return self.getMZ(); }, "Returns the m/z coordinate (index 1)")
-        .def("setMZ", [](OpenMS::Peak2D& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Returns the m/z coordinate (index 1)")
+        .def("setMZ", [](OpenMS::Peak2D& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
         .def("getRT", [](const OpenMS::Peak2D& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
-        .def("setRT", [](OpenMS::Peak2D& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Returns the RT coordinate (index 0)")
+        .def("setRT", [](OpenMS::Peak2D& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("__hash__", [](const OpenMS::Peak2D& self) { return std::hash<OpenMS::Peak2D>{}(self); })
-
         .def("__hash__", [](const OpenMS::Peak2D& self) {
             // Content-based hash using mz, rt, and intensity
             size_t h1 = std::hash<double>{}(self.getMZ());
@@ -3671,14 +3669,16 @@ MzMLFile().store("testfile.mzML", exp)
             // Return (mz_array, intensity_array) as numpy arrays
             // mz as float64 (double), intensity as float32 (float) matching C++ storage
             const size_t n = self.size();
-            double* mz_data = new double[n];
-            float* int_data = new float[n];
+            std::unique_ptr<double[]> mz_uptr(new double[n]);
+            std::unique_ptr<float[]> int_uptr(new float[n]);
+            double* mz_data = mz_uptr.get();
+            float* int_data = int_uptr.get();
             for (size_t i = 0; i < n; ++i) {
                 mz_data[i] = self[i].getMZ();
                 int_data[i] = self[i].getIntensity();
             }
-            nb::capsule mz_owner(mz_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            nb::capsule mz_owner(mz_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            nb::capsule int_owner(int_uptr.release(), [](void* p) noexcept { delete[] static_cast<float*>(p); });
             auto mz_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(mz_data, {n}, mz_owner);
             auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, int_owner);
             return nb::make_tuple(mz_arr, int_arr);
@@ -3686,15 +3686,16 @@ MzMLFile().store("testfile.mzML", exp)
 
         .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj) {
             // Fast path: direct pointer access from numpy arrays (no intermediate vector copy)
+            // mz is double, intensity is float matching Peak1D storage
             auto mz_arr = as_numpy_array<double>(mz_obj);
-            auto int_arr = as_numpy_array<double>(int_obj);
+            auto int_arr = as_numpy_array<float>(int_obj);
             const size_t n = mz_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("mz and intensity arrays must have same length");
             }
             self.resize(n);
             const double* mz_ptr = static_cast<const double*>(mz_arr.data());
-            const double* int_ptr = static_cast<const double*>(int_arr.data());
+            const float* int_ptr = static_cast<const float*>(int_arr.data());
             for (size_t i = 0; i < n; ++i) {
                 self[i].setMZ(mz_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
@@ -3705,14 +3706,14 @@ MzMLFile().store("testfile.mzML", exp)
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (mz, intensity)");
             }
             auto mz_arr = as_numpy_array<double>(peaks_seq[0]);
-            auto int_arr = as_numpy_array<double>(peaks_seq[1]);
+            auto int_arr = as_numpy_array<float>(peaks_seq[1]);
             const size_t n = mz_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("mz and intensity arrays must have same length");
             }
             self.resize(n);
             const double* mz_ptr = static_cast<const double*>(mz_arr.data());
-            const double* int_ptr = static_cast<const double*>(int_arr.data());
+            const float* int_ptr = static_cast<const float*>(int_arr.data());
             for (size_t i = 0; i < n; ++i) {
                 self[i].setMZ(mz_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
@@ -3774,15 +3775,16 @@ MzMLFile().store("testfile.mzML", exp)
             return std::nullopt;
         }, "Returns drift time array if ion mobility data exists, else None")
 
-        .def("get_drift_time_array_mv", [](OpenMS::MSSpectrum& self) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
+        .def("get_drift_time_array_mv", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
             // Memory view version - returns view into float data array (zero-copy)
+            auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
             if (!self.containsIMData()) return std::nullopt;
             auto& fda = self.getFloatDataArrays();
             for (auto& arr : fda) {
                 if (arr.getName() == "Ion Mobility" || arr.getMetaValue("name") == "Ion Mobility") {
                     if (arr.empty()) return std::nullopt;
                     return nb::ndarray<nb::numpy, float, nb::ndim<1>>(
-                        arr.data(), {arr.size()}, nb::handle()
+                        arr.data(), {arr.size()}, self_obj
                     );
                 }
             }
@@ -4104,11 +4106,11 @@ UniqueIdInterface
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("getIntensity", [](const OpenMS::FeatureHandle& self) { return self.getIntensity(); }, "Returns the data point intensity (height)")
-        .def("setIntensity", [](OpenMS::FeatureHandle& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Returns the data point intensity (height)")
+        .def("setIntensity", [](OpenMS::FeatureHandle& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Sets the data point intensity (height)")
         .def("getMZ", [](const OpenMS::FeatureHandle& self) { return self.getMZ(); }, "Returns the m/z coordinate (index 1)")
-        .def("setMZ", [](OpenMS::FeatureHandle& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Returns the m/z coordinate (index 1)")
+        .def("setMZ", [](OpenMS::FeatureHandle& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
         .def("getRT", [](const OpenMS::FeatureHandle& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
-        .def("setRT", [](OpenMS::FeatureHandle& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Returns the RT coordinate (index 0)")
+        .def("setRT", [](OpenMS::FeatureHandle& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
         .def_static("isValid", [](unsigned long unique_id) { return OpenMS::FeatureHandle::isValid(unique_id); }, "unique_id"_a, "Returns true if the unique_id is valid, false otherwise")
         .def("getUniqueId", [](const OpenMS::FeatureHandle& self) { return self.getUniqueId(); }, "Returns the unique id")
         .def("clearUniqueId", [](OpenMS::FeatureHandle& self) { return self.clearUniqueId(); }, "Clear the unique id. The new unique id will be invalid.  Returns 1 if the unique id was changed, 0 otherwise")
@@ -4308,11 +4310,11 @@ MetaInfoInterface
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("getIntensity", [](const OpenMS::RichPeak2D& self) { return self.getIntensity(); }, "Returns the data point intensity (height)")
-        .def("setIntensity", [](OpenMS::RichPeak2D& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Returns the data point intensity (height)")
+        .def("setIntensity", [](OpenMS::RichPeak2D& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Sets the data point intensity (height)")
         .def("getMZ", [](const OpenMS::RichPeak2D& self) { return self.getMZ(); }, "Returns the m/z coordinate (index 1)")
-        .def("setMZ", [](OpenMS::RichPeak2D& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Returns the m/z coordinate (index 1)")
+        .def("setMZ", [](OpenMS::RichPeak2D& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
         .def("getRT", [](const OpenMS::RichPeak2D& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
-        .def("setRT", [](OpenMS::RichPeak2D& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Returns the RT coordinate (index 0)")
+        .def("setRT", [](OpenMS::RichPeak2D& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
         .def("getMetaValue", [](const OpenMS::RichPeak2D& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
         .def("metaValueExists", [](const OpenMS::RichPeak2D& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
         .def("setMetaValue", [](OpenMS::RichPeak2D& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
@@ -4382,11 +4384,11 @@ RichPeak2D
         .def("setPeptideIdentifications", [](OpenMS::BaseFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a, "Sets the PeptideIdentification vector")
         .def("getAnnotationState", [](const OpenMS::BaseFeature& self) { return self.getAnnotationState(); }, "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
         .def("getIntensity", [](const OpenMS::BaseFeature& self) { return self.getIntensity(); }, "Returns the data point intensity (height)")
-        .def("setIntensity", [](OpenMS::BaseFeature& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Returns the data point intensity (height)")
+        .def("setIntensity", [](OpenMS::BaseFeature& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Sets the data point intensity (height)")
         .def("getMZ", [](const OpenMS::BaseFeature& self) { return self.getMZ(); }, "Returns the m/z coordinate (index 1)")
-        .def("setMZ", [](OpenMS::BaseFeature& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Returns the m/z coordinate (index 1)")
+        .def("setMZ", [](OpenMS::BaseFeature& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
         .def("getRT", [](const OpenMS::BaseFeature& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
-        .def("setRT", [](OpenMS::BaseFeature& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Returns the RT coordinate (index 0)")
+        .def("setRT", [](OpenMS::BaseFeature& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
         .def("getMetaValue", [](const OpenMS::BaseFeature& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
         .def("metaValueExists", [](const OpenMS::BaseFeature& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
         .def("setMetaValue", [](OpenMS::BaseFeature& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
@@ -4486,11 +4488,11 @@ Get access to the underlying features through getFeatureList()
         .def("setPeptideIdentifications", [](OpenMS::ConsensusFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a, "Sets the PeptideIdentification vector")
         .def("getAnnotationState", [](const OpenMS::ConsensusFeature& self) { return self.getAnnotationState(); }, "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
         .def("getIntensity", [](const OpenMS::ConsensusFeature& self) { return self.getIntensity(); }, "Returns the data point intensity (height)")
-        .def("setIntensity", [](OpenMS::ConsensusFeature& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Returns the data point intensity (height)")
+        .def("setIntensity", [](OpenMS::ConsensusFeature& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Sets the data point intensity (height)")
         .def("getMZ", [](const OpenMS::ConsensusFeature& self) { return self.getMZ(); }, "Returns the m/z coordinate (index 1)")
-        .def("setMZ", [](OpenMS::ConsensusFeature& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Returns the m/z coordinate (index 1)")
+        .def("setMZ", [](OpenMS::ConsensusFeature& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
         .def("getRT", [](const OpenMS::ConsensusFeature& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
-        .def("setRT", [](OpenMS::ConsensusFeature& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Returns the RT coordinate (index 0)")
+        .def("setRT", [](OpenMS::ConsensusFeature& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
         .def("getMetaValue", [](const OpenMS::ConsensusFeature& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
         .def("metaValueExists", [](const OpenMS::ConsensusFeature& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
         .def("setMetaValue", [](OpenMS::ConsensusFeature& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
@@ -4570,38 +4572,47 @@ print(f"RT: {feature.getRT()}, m/z: {feature.getMZ()}, charge: {feature.getCharg
         .def(nb::init<>())
         .def(nb::init<OpenMS::BaseFeature>())
         .def(nb::init<const OpenMS::Feature &>())
-        .def("getOverallQuality", [](const OpenMS::Feature& self) { return self.getOverallQuality(); }, 
-            R"doc(
-Sets the quality score for a specific dimension
-:param index: The dimension index (0 for RT, 1 for m/z)
-:param q: Quality score to set (typically 0-1 range)
-)doc")
-        .def("setOverallQuality", [](OpenMS::Feature& self, float q) { return self.setOverallQuality(q); }, "q"_a, 
+        .def("getOverallQuality", [](const OpenMS::Feature& self) { return self.getOverallQuality(); },
             R"doc(
 Returns the overall quality score of the feature
 :return: Overall quality score (typically 0-1, where 1 is highest quality)
 This score represents the overall confidence in the feature detection
 )doc")
-        .def("getQuality", [](const OpenMS::Feature& self, unsigned long index) { return self.getQuality(index); }, "index"_a)
-        .def("setQuality", [](OpenMS::Feature& self, unsigned long index, float q) { return self.setQuality(index, q); }, "index"_a, "q"_a, 
+        .def("setOverallQuality", [](OpenMS::Feature& self, float q) { return self.setOverallQuality(q); }, "q"_a,
+            R"doc(
+Sets the overall quality score of the feature
+:param q: Overall quality score (typically 0-1, where 1 is highest quality)
+)doc")
+        .def("getQuality", [](const OpenMS::Feature& self, unsigned long index) { return self.getQuality(index); }, "index"_a,
             R"doc(
 Returns the quality score in a specific dimension
 :param index: The dimension index (0 for RT, 1 for m/z)
 :return: Quality score for the specified dimension (typically 0-1 range)
 )doc")
-        .def("getConvexHulls", [](OpenMS::Feature& self) -> std::vector<OpenMS::ConvexHull2D> & { return self.getConvexHulls(); }, nb::rv_policy::reference_internal, 
+        .def("setQuality", [](OpenMS::Feature& self, unsigned long index, float q) { return self.setQuality(index, q); }, "index"_a, "q"_a,
             R"doc(
-Returns the overall convex hull of the feature
-:return: The overall 2D convex hull encompassing all mass traces
-This is the union of all individual mass trace convex hulls
+Sets the quality score for a specific dimension
+:param index: The dimension index (0 for RT, 1 for m/z)
+:param q: Quality score to set (typically 0-1 range)
 )doc")
-        .def("setConvexHulls", [](OpenMS::Feature& self, const std::vector<OpenMS::ConvexHull2D>& hulls) { return self.setConvexHulls(hulls); }, "hulls"_a, 
+        .def("getConvexHulls", [](OpenMS::Feature& self) -> std::vector<OpenMS::ConvexHull2D> & { return self.getConvexHulls(); }, nb::rv_policy::reference_internal,
             R"doc(
 Returns the convex hulls of individual mass traces
 :return: List of convex hulls, one for each isotopic mass trace
 Each isotopic peak typically has its own convex hull in RT-m/z space
 )doc")
-        .def("getConvexHull", [](const OpenMS::Feature& self) -> OpenMS::ConvexHull2D & { return self.getConvexHull(); }, nb::rv_policy::reference_internal, 
+        .def("setConvexHulls", [](OpenMS::Feature& self, const std::vector<OpenMS::ConvexHull2D>& hulls) { return self.setConvexHulls(hulls); }, "hulls"_a,
+            R"doc(
+Sets the convex hulls of individual mass traces
+:param hulls: List of convex hulls to associate with this feature
+)doc")
+        .def("getConvexHull", [](const OpenMS::Feature& self) -> OpenMS::ConvexHull2D & { return self.getConvexHull(); }, nb::rv_policy::reference_internal,
+            R"doc(
+Returns the overall convex hull of the feature
+:return: The overall 2D convex hull encompassing all mass traces
+This is the union of all individual mass trace convex hulls
+)doc")
+        .def("encloses", [](const OpenMS::Feature& self, double rt, double mz) { return self.encloses(rt, mz); }, "rt"_a, "mz"_a,
             R"doc(
 Checks if the feature's convex hulls enclose a given position
 :param rt: Retention time in seconds
@@ -4609,63 +4620,62 @@ Checks if the feature's convex hulls enclose a given position
 :return: True if the position (rt, mz) is within the feature's convex hulls, False otherwise
 This uses the feature's convex hull representation to determine spatial containment
 )doc")
-        .def("encloses", [](const OpenMS::Feature& self, double rt, double mz) { return self.encloses(rt, mz); }, "rt"_a, "mz"_a, 
-            R"doc(
-Sets the subordinate features
-:param subordinates: List of subordinate features to associate with this feature
-)doc")
         .def(nb::self == nb::self)
-        .def("getSubordinates", [](OpenMS::Feature& self) -> std::vector<OpenMS::Feature> & { return self.getSubordinates(); }, nb::rv_policy::reference_internal, 
-            R"doc(
-Sets the overall quality score of the feature
-:param q: Overall quality score (typically 0-1, where 1 is highest quality)
-)doc")
-        .def("setSubordinates", [](OpenMS::Feature& self, const std::vector<OpenMS::Feature>& rhs) { return self.setSubordinates(rhs); }, "rhs"_a, 
+        .def("getSubordinates", [](OpenMS::Feature& self) -> std::vector<OpenMS::Feature> & { return self.getSubordinates(); }, nb::rv_policy::reference_internal,
             R"doc(
 Returns subordinate features (e.g., isotopic peaks)
 :return: List of subordinate features associated with this feature
 Subordinate features often represent individual isotopic peaks of the same compound
 )doc")
-        .def("getWidth", [](const OpenMS::Feature& self) { return self.getWidth(); })
-        .def("setWidth", [](OpenMS::Feature& self, float fwhm) { return self.setWidth(fwhm); }, "fwhm"_a, 
+        .def("setSubordinates", [](OpenMS::Feature& self, const std::vector<OpenMS::Feature>& rhs) { return self.setSubordinates(rhs); }, "rhs"_a,
+            R"doc(
+Sets the subordinate features
+:param rhs: List of subordinate features to associate with this feature
+)doc")
+        .def("getWidth", [](const OpenMS::Feature& self) { return self.getWidth(); },
             R"doc(
 Returns the width (FWHM) of the feature in RT dimension
 :return: Full Width at Half Maximum (FWHM) in seconds
 Represents the elution peak width
 )doc")
-        .def("getCharge", [](const OpenMS::Feature& self) { return self.getCharge(); }, 
+        .def("setWidth", [](OpenMS::Feature& self, float fwhm) { return self.setWidth(fwhm); }, "fwhm"_a,
             R"doc(
 Sets the width (FWHM) of the feature in RT dimension
-:param q: Full Width at Half Maximum in seconds
+:param fwhm: Full Width at Half Maximum in seconds
 )doc")
-        .def("setCharge", [](OpenMS::Feature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a, 
+        .def("getCharge", [](const OpenMS::Feature& self) { return self.getCharge(); },
             R"doc(
 Returns the charge state of the feature
 :return: Charge state (e.g., 2 for doubly charged ions, 0 if unknown)
 )doc")
-        .def(nb::self != nb::self)
-        .def("getPeptideIdentifications", [](const OpenMS::Feature& self) -> const OpenMS::PeptideIdentificationList & { return self.getPeptideIdentifications(); }, nb::rv_policy::reference_internal, 
+        .def("setCharge", [](OpenMS::Feature& self, const int& ch) { return self.setCharge(ch); }, "ch"_a,
             R"doc(
-Returns the annotation state of the feature
-:return: Enum indicating the annotation status of this feature
+Sets the charge state of the feature
+:param ch: Charge state (e.g., 2 for doubly charged ions)
 )doc")
-        .def("setPeptideIdentifications", [](OpenMS::Feature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a, 
+        .def(nb::self != nb::self)
+        .def("getPeptideIdentifications", [](const OpenMS::Feature& self) -> const OpenMS::PeptideIdentificationList & { return self.getPeptideIdentifications(); }, nb::rv_policy::reference_internal,
             R"doc(
 Returns the peptide identifications associated with this feature
 :return: List of peptide identifications from database search
 Only relevant for peptide features. Contains results from peptide identification tools
 )doc")
-        .def("getAnnotationState", [](const OpenMS::Feature& self) { return self.getAnnotationState(); }, 
+        .def("setPeptideIdentifications", [](OpenMS::Feature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a,
             R"doc(
-Sets the charge state of the feature
-:param q: Charge state (e.g., 2 for doubly charged ions)
+Sets the peptide identifications associated with this feature
+:param peptides: List of peptide identifications to associate with this feature
+)doc")
+        .def("getAnnotationState", [](const OpenMS::Feature& self) { return self.getAnnotationState(); },
+            R"doc(
+Returns the annotation state of the feature
+:return: Enum indicating the annotation status of this feature
 )doc")
         .def("getIntensity", [](const OpenMS::Feature& self) { return self.getIntensity(); }, "Returns the data point intensity (height)")
-        .def("setIntensity", [](OpenMS::Feature& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Returns the data point intensity (height)")
+        .def("setIntensity", [](OpenMS::Feature& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Sets the data point intensity (height)")
         .def("getMZ", [](const OpenMS::Feature& self) { return self.getMZ(); }, "Returns the m/z coordinate (index 1)")
-        .def("setMZ", [](OpenMS::Feature& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Returns the m/z coordinate (index 1)")
+        .def("setMZ", [](OpenMS::Feature& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
         .def("getRT", [](const OpenMS::Feature& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
-        .def("setRT", [](OpenMS::Feature& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Returns the RT coordinate (index 0)")
+        .def("setRT", [](OpenMS::Feature& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
         .def("getMetaValue", [](const OpenMS::Feature& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
         .def("metaValueExists", [](const OpenMS::Feature& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
         .def("setMetaValue", [](OpenMS::Feature& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")

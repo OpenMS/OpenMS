@@ -388,8 +388,8 @@ C++ implementation of the Biosaur2 feature detection workflow.
         .def("setMSData", [](OpenMS::Biosaur2Algorithm& self, const OpenMS::MSExperiment& ms_data) { return self.setMSData(ms_data); }, "ms_data"_a, "Set the MS data used for feature detection (copy version)")
         .def("setMSData", [](OpenMS::Biosaur2Algorithm& self, OpenMS::MSExperiment& ms_data) { return self.setMSData(ms_data); }, "ms_data"_a, "Set the MS data used for feature detection (copy version)")
         .def("getMSData", [](OpenMS::Biosaur2Algorithm& self) -> OpenMS::MSExperiment & { return self.getMSData(); }, nb::rv_policy::reference_internal, "Get non-const reference to MS data")
-        .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map) { return self.run(feature_map); }, "feature_map"_a, "Run the algorithm storing only the resulting features")
-        .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map, bool /*return_details*/) { std::vector<OpenMS::Biosaur2Algorithm::Hill> hills; std::vector<OpenMS::Biosaur2Algorithm::PeptideFeature> peptide_features; self.run(feature_map, hills, peptide_features); return nb::make_tuple(hills, peptide_features); }, "feature_map"_a, "return_details"_a, "Run the algorithm returning (hills, peptide_features) in addition to modifying feature_map in-place")
+        .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map) { nb::gil_scoped_release release; return self.run(feature_map); }, "feature_map"_a, "Run the algorithm storing only the resulting features")
+        .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map, bool /*return_details*/) { std::vector<OpenMS::Biosaur2Algorithm::Hill> hills; std::vector<OpenMS::Biosaur2Algorithm::PeptideFeature> peptide_features; { nb::gil_scoped_release release; self.run(feature_map, hills, peptide_features); } return nb::make_tuple(hills, peptide_features); }, "feature_map"_a, "return_details"_a, "Run the algorithm returning (hills, peptide_features) in addition to modifying feature_map in-place")
         .def("setParameters", [](OpenMS::Biosaur2Algorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::Biosaur2Algorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::Biosaur2Algorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -617,8 +617,7 @@ DefaultParamHandler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::FIAMSDataProcessor, OpenMS::DefaultParamHandler>(m, "FIAMSDataProcessor", 
         R"doc(
-ADD PYTHON DOCUMENTATION HERE
-DefaultParamHandler
+Processes FIA-MS data for metabolite identification
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FIAMSDataProcessor &>())
@@ -2518,18 +2517,25 @@ print(entry.identifier)
 
         .def("load", [](const OpenMS::FASTAFile& self, const OpenMS::String& filename, nb::list& output) {
             std::vector<OpenMS::FASTAFile::FASTAEntry> entries;
-            self.load(filename, entries);
+            {
+                nb::gil_scoped_release release;
+                self.load(filename, entries);
+            }
             for (const auto& e : entries) {
                 output.append(nb::cast(e));
             }
         }, "filename"_a, "data"_a, "Load a FASTA file. Appends FASTAEntry objects to output list")
         .def("load", [](const OpenMS::FASTAFile& self, const OpenMS::String& filename) {
             std::vector<OpenMS::FASTAFile::FASTAEntry> entries;
-            self.load(filename, entries);
+            {
+                nb::gil_scoped_release release;
+                self.load(filename, entries);
+            }
             return entries;
         }, "filename"_a, "Load a FASTA file. Returns list of FASTAEntry objects")
 
         .def("store", [](const OpenMS::FASTAFile& self, const OpenMS::String& filename, const std::vector<OpenMS::FASTAFile::FASTAEntry>& entries) {
+            nb::gil_scoped_release release;
             self.store(filename, entries);
         }, "filename"_a, "entries"_a, "Store a FASTA file. Takes list of FASTAEntry objects")
         .def("store", [](const OpenMS::FASTAFile& self, const OpenMS::String& filename, const nb::list& entries) {
@@ -2591,7 +2597,7 @@ Constructors
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FLASHDeconvAlgorithm &>())
         .def("getTolerances", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getTolerances(); }, "Get calculated decoy averagine. Call after run() is called.")
-        .def("run", [](OpenMS::FLASHDeconvAlgorithm& self, OpenMS::MSExperiment& map) { std::vector<OpenMS::DeconvolvedSpectrum> deconvolved_spectra; std::vector<OpenMS::FLASHHelperClasses::MassFeature> deconvolved_feature; self.run(map, deconvolved_spectra, deconvolved_feature); return nb::make_tuple(deconvolved_spectra, deconvolved_feature); }, "map"_a)
+        .def("run", [](OpenMS::FLASHDeconvAlgorithm& self, OpenMS::MSExperiment& map) { std::vector<OpenMS::DeconvolvedSpectrum> deconvolved_spectra; std::vector<OpenMS::FLASHHelperClasses::MassFeature> deconvolved_feature; { nb::gil_scoped_release release; self.run(map, deconvolved_spectra, deconvolved_feature); } return nb::make_tuple(deconvolved_spectra, deconvolved_feature); }, "map"_a)
         .def("getAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> const OpenMS::FLASHHelperClasses::PrecalculatedAveragine & { return self.getAveragine(); }, nb::rv_policy::reference_internal, 
             R"doc(
 Run FLASHDeconv algorithm for input_map and store deconvolved_spectra and deconvolved_features.
@@ -2626,7 +2632,7 @@ FeatureFinder algorithm for picked (centroided) data
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("run", [](OpenMS::FeatureFinderAlgorithmPicked& self, OpenMS::MSExperiment& input_map, OpenMS::FeatureMap& features, const OpenMS::Param& param, const OpenMS::FeatureMap& seeds) { return self.run(input_map, features, param, seeds); }, "input_map"_a, "features"_a, "param"_a, "seeds"_a)
+        .def("run", [](OpenMS::FeatureFinderAlgorithmPicked& self, OpenMS::MSExperiment& input_map, OpenMS::FeatureMap& features, const OpenMS::Param& param, const OpenMS::FeatureMap& seeds) { nb::gil_scoped_release release; return self.run(input_map, features, param, seeds); }, "input_map"_a, "features"_a, "param"_a, "seeds"_a)
         .def("setParameters", [](OpenMS::FeatureFinderAlgorithmPicked& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::FeatureFinderAlgorithmPicked& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::FeatureFinderAlgorithmPicked& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -2648,7 +2654,7 @@ spectra. In what follows we outline the algorithm
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("run", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, OpenMS::MSExperiment& exp, bool progress) { return self.run(exp, progress); }, "exp"_a, "progress"_a, "Main method for feature detection")
+        .def("run", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, OpenMS::MSExperiment& exp, bool progress) { nb::gil_scoped_release release; return self.run(exp, progress); }, "exp"_a, "progress"_a, "Main method for feature detection")
         .def("getFeatureMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::FeatureMap & { return self.getFeatureMap(); }, nb::rv_policy::reference_internal)
         .def("getConsensusMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::ConsensusMap & { return self.getConsensusMap(); }, nb::rv_policy::reference_internal)
         .def("setParameters", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
@@ -2670,7 +2676,7 @@ ProgressLogger
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("run", [](OpenMS::FeatureFindingMetabo& self, std::vector<OpenMS::MassTrace> input_mtraces, OpenMS::FeatureMap& output_featmap) { std::vector<std::vector<OpenMS::MSChromatogram>> output_chromatograms; self.run(input_mtraces, output_featmap, output_chromatograms); return nb::make_tuple(input_mtraces, output_chromatograms); }, "input_mtraces"_a, "output_featmap"_a)
+        .def("run", [](OpenMS::FeatureFindingMetabo& self, std::vector<OpenMS::MassTrace> input_mtraces, OpenMS::FeatureMap& output_featmap) { std::vector<std::vector<OpenMS::MSChromatogram>> output_chromatograms; { nb::gil_scoped_release release; self.run(input_mtraces, output_featmap, output_chromatograms); } return nb::make_tuple(input_mtraces, output_chromatograms); }, "input_mtraces"_a, "output_featmap"_a)
         .def("setParameters", [](OpenMS::FeatureFindingMetabo& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::FeatureFindingMetabo& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::FeatureFindingMetabo& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -3417,15 +3423,18 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
 )doc")
         .def(nb::init<>())
         .def("run", [](OpenMS::PeptideIndexing& self, std::vector<OpenMS::FASTAFile::FASTAEntry> proteins, std::vector<OpenMS::ProteinIdentification> prot_ids, OpenMS::PeptideIdentificationList& pep_ids) {
-            auto result = self.run(proteins, prot_ids, pep_ids);
+            decltype(self.run(proteins, prot_ids, pep_ids)) result;
+            { nb::gil_scoped_release release; result = self.run(proteins, prot_ids, pep_ids); }
             return nb::make_tuple(result, proteins, prot_ids);
         }, "proteins"_a, "prot_ids"_a, "pep_ids"_a)
         .def("run", [](OpenMS::PeptideIndexing& self, OpenMS::FASTAContainer<OpenMS::TFI_File>& proteins, std::vector<OpenMS::ProteinIdentification> prot_ids, OpenMS::PeptideIdentificationList& pep_ids) {
-            auto result = self.run(proteins, prot_ids, pep_ids);
+            decltype(self.run(proteins, prot_ids, pep_ids)) result;
+            { nb::gil_scoped_release release; result = self.run(proteins, prot_ids, pep_ids); }
             return nb::make_tuple(result, prot_ids);
         }, "proteins"_a, "prot_ids"_a, "pep_ids"_a)
         .def("run", [](OpenMS::PeptideIndexing& self, OpenMS::FASTAContainer<OpenMS::TFI_Vector>& proteins, std::vector<OpenMS::ProteinIdentification> prot_ids, OpenMS::PeptideIdentificationList& pep_ids) {
-            auto result = self.run(proteins, prot_ids, pep_ids);
+            decltype(self.run(proteins, prot_ids, pep_ids)) result;
+            { nb::gil_scoped_release release; result = self.run(proteins, prot_ids, pep_ids); }
             return nb::make_tuple(result, prot_ids);
         }, "proteins"_a, "prot_ids"_a, "pep_ids"_a)
         .def("getDecoyString", [](const OpenMS::PeptideIndexing& self) { return self.getDecoyString(); })
@@ -3571,7 +3580,8 @@ ProgressLogger
         .def(nb::init<>())
         .def("search", [](const OpenMS::SimpleSearchEngineAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
-            auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
+            decltype(self.search(in_mzML, in_db, prot_ids, pep_ids)) result;
+            { nb::gil_scoped_release release; result = self.search(in_mzML, in_db, prot_ids, pep_ids); }
             return nb::make_tuple(result, prot_ids);
         }, "in_mzML"_a, "in_db"_a, "pep_ids"_a)
         .def("setParameters", [](OpenMS::SimpleSearchEngineAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
@@ -4511,10 +4521,12 @@ print(cf.getRT(), cf.getMZ(), cf.getIntensity())
         .def("getOptions", [](OpenMS::ConsensusXMLFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Mutable access to the options for loading/storing")
 
         .def("load", [](OpenMS::ConsensusXMLFile& self, const OpenMS::String& filename, OpenMS::ConsensusMap& map) {
+            nb::gil_scoped_release release;
             self.load(filename, map);
         }, "filename"_a, "map"_a, "Load a consensusXML file")
 
         .def("store", [](OpenMS::ConsensusXMLFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& map) {
+            nb::gil_scoped_release release;
             self.store(filename, map);
         }, "filename"_a, "map"_a, "Store a ConsensusMap to consensusXML")
         ;
@@ -4540,10 +4552,12 @@ print(feature.getRT(), feature.getMZ(), feature.getIntensity())
         .def("setOptions", [](OpenMS::FeatureXMLFile& self, const OpenMS::FeatureFileOptions& p0) { return self.setOptions(p0); }, "Setter for options for loading/storing")
 
         .def("load", [](OpenMS::FeatureXMLFile& self, const OpenMS::String& filename, OpenMS::FeatureMap& map) {
+            nb::gil_scoped_release release;
             self.load(filename, map);
         }, "filename"_a, "map"_a, "Load a featureXML file")
 
         .def("store", [](OpenMS::FeatureXMLFile& self, const OpenMS::String& filename, const OpenMS::FeatureMap& map) {
+            nb::gil_scoped_release release;
             self.store(filename, map);
         }, "filename"_a, "map"_a, "Store a FeatureMap to featureXML")
         ;
@@ -4567,7 +4581,10 @@ IdXMLFile().load("test.idXML", protein_ids, peptide_ids)
         .def("_load_internal", [](OpenMS::IdXMLFile& self, const OpenMS::String& filename) {
             std::vector<OpenMS::ProteinIdentification> proteins;
             OpenMS::PeptideIdentificationList peptides;
-            self.load(filename, proteins, peptides);
+            {
+                nb::gil_scoped_release release;
+                self.load(filename, proteins, peptides);
+            }
             std::vector<OpenMS::PeptideIdentification> peptide_vec(peptides.begin(), peptides.end());
             return nb::make_tuple(proteins, peptide_vec);
         }, "filename"_a, "Load an idXML file, returns tuple (proteins, peptides)")
@@ -4576,6 +4593,7 @@ IdXMLFile().load("test.idXML", protein_ids, peptide_ids)
                          const std::vector<OpenMS::ProteinIdentification>& proteins,
                          const std::vector<OpenMS::PeptideIdentification>& peptides) {
             OpenMS::PeptideIdentificationList peptide_list(peptides);
+            nb::gil_scoped_release release;
             self.store(filename, proteins, peptide_list);
         }, "filename"_a, "proteins"_a, "peptides"_a, "Store to an idXML file")
         ;
@@ -4603,8 +4621,8 @@ ProgressLogger
         .def(nb::init<>())
         .def("getOptions", [](OpenMS::MzDataFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::MzDataFile& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
-        .def("load", [](OpenMS::MzDataFile& self, const OpenMS::String& filename) { OpenMS::MSExperiment map; self.load(filename, map); return map; }, "filename"_a)
-        .def("store", [](const OpenMS::MzDataFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& map) { return self.store(filename, map); }, "filename"_a, "map"_a, 
+        .def("load", [](OpenMS::MzDataFile& self, const OpenMS::String& filename) { OpenMS::MSExperiment map; { nb::gil_scoped_release release; self.load(filename, map); } return map; }, "filename"_a)
+        .def("store", [](const OpenMS::MzDataFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& map) { nb::gil_scoped_release release; return self.store(filename, map); }, "filename"_a, "map"_a,
             R"doc(
 Loads a map from a MzData file
 :param filename: Directory of the file with the file name
@@ -4705,10 +4723,12 @@ MzMLFile().store("filtered.mzML", exp)
         .def("nextProgress", [](const OpenMS::MzMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("load", [](OpenMS::MzMLFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
+            nb::gil_scoped_release release;
             self.load(filename, exp);
         }, "filename"_a, "exp"_a, "Load an mzML file into an MSExperiment")
 
         .def("store", [](OpenMS::MzMLFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
+            nb::gil_scoped_release release;
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzML file")
 
@@ -4746,10 +4766,12 @@ MzXMLFile().load("test.mzXML", exp)
         .def("nextProgress", [](const OpenMS::MzXMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("load", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
+            nb::gil_scoped_release release;
             self.load(filename, exp);
         }, "filename"_a, "exp"_a, "Load an mzXML file into an MSExperiment")
 
         .def("store", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
+            nb::gil_scoped_release release;
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzXML file")
 
@@ -4942,10 +4964,12 @@ print(transition.getPrecursorMZ(), transition.getProductMZ())
         .def(nb::init<>())
 
         .def("load", [](OpenMS::TraMLFile& self, const OpenMS::String& filename, OpenMS::TargetedExperiment& exp) {
+            nb::gil_scoped_release release;
             self.load(filename, exp);
         }, "filename"_a, "exp"_a, "Load a TraML file")
 
         .def("store", [](OpenMS::TraMLFile& self, const OpenMS::String& filename, const OpenMS::TargetedExperiment& exp) {
+            nb::gil_scoped_release release;
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store to a TraML file")
         ;

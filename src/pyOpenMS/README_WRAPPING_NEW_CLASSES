@@ -102,14 +102,14 @@ Convert to return value:
 Nested enums use nb::enum_ scoped to the class variable:
 
     auto myclass = nb::class_<OpenMS::MyClass>(m, "MyClass");
-    nb::enum_<OpenMS::MyClass::Status>(myclass, "Status", nb::is_arithmetic())
+    nb::enum_<OpenMS::MyClass::Status>(myclass, "Status")
         .value("ACTIVE", OpenMS::MyClass::Status::ACTIVE)
         .value("INACTIVE", OpenMS::MyClass::Status::INACTIVE)
         .export_values();
 
 Standalone enums at module level:
 
-    nb::enum_<OpenMS::FileTypes::Type>(m, "FileType", nb::is_arithmetic())
+    nb::enum_<OpenMS::FileTypes::Type>(m, "FileType")
         .value("MZML", OpenMS::FileTypes::MZML)
         .export_values();
 

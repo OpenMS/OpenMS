@@ -79,6 +79,6 @@ cd /tmp && PYTHONPATH=.../OpenMS-build/pyOpenMS python3 -m pytest .../src/pyOpen
 # Legacy tests only
 python3 -m pytest src/pyOpenMS/tests/unittests/ -v
 
-# Nanobind-specific tests
-python3 -m pytest src/pyOpenMS/tests/nanobind/ -v
+# Specific test file
+python3 -m pytest src/pyOpenMS/tests/unittests/test_type_casters.py -v
 ```
