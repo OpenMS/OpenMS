@@ -11,15 +11,6 @@ def __repr__(self) -> str:
 
 
 @addon("MSExperiment")
-def getMSLevels(self):
-    """Returns a list of unique MS levels in the experiment."""
-    levels = set()
-    for spec in self:
-        levels.add(spec.getMSLevel())
-    return sorted(levels)
-
-
-@addon("MSExperiment")
 def get2DPeakDataLong(self, min_rt, max_rt, min_mz, max_mz, ms_level):
     """Returns (rt_array, mz_array, intensity_array) for all peaks matching filters."""
     all_rt = []

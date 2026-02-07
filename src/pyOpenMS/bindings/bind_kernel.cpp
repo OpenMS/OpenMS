@@ -1345,42 +1345,50 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
 
         .def("get_peaks", [](const OpenMS::MSChromatogram& self) {
             const size_t n = self.size();
-            std::vector<double> rt(n);
-            std::vector<double> intensity(n);
+            double* rt_data = new double[n];
+            double* int_data = new double[n];
             for (size_t i = 0; i < n; ++i) {
-                rt[i] = self[i].getRT();
-                intensity[i] = self[i].getIntensity();
+                rt_data[i] = self[i].getRT();
+                int_data[i] = self[i].getIntensity();
             }
-            return nb::make_tuple(rt, intensity);
-        }, "Returns a tuple of (rt_array, intensity_array)")
+            nb::capsule rt_owner(rt_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            auto rt_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(rt_data, {n}, rt_owner);
+            auto int_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(int_data, {n}, int_owner);
+            return nb::make_tuple(rt_arr, int_arr);
+        }, "Returns a tuple of (rt_array, intensity_array) as numpy arrays")
 
         .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj) {
-            std::vector<double> rt = nb::cast<std::vector<double>>(rt_obj);
-            std::vector<double> intensity = nb::cast<std::vector<double>>(int_obj);
-            const size_t n = rt.size();
-            if (intensity.size() != n) {
+            auto rt_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(rt_obj);
+            auto int_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(int_obj);
+            const size_t n = rt_arr.shape(0);
+            if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
             self.resize(n);
+            const double* rt_ptr = static_cast<const double*>(rt_arr.data());
+            const double* int_ptr = static_cast<const double*>(int_arr.data());
             for (size_t i = 0; i < n; ++i) {
-                self[i].setRT(rt[i]);
-                self[i].setIntensity(intensity[i]);
+                self[i].setRT(rt_ptr[i]);
+                self[i].setIntensity(int_ptr[i]);
             }
         }, "rt"_a, "intensity"_a, "Set peaks from rt and intensity arrays")
         .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object peaks_seq) {
             if (nb::len(peaks_seq) != 2) {
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (rt, intensity)");
             }
-            std::vector<double> rt = nb::cast<std::vector<double>>(peaks_seq[0]);
-            std::vector<double> intensity = nb::cast<std::vector<double>>(peaks_seq[1]);
-            const size_t n = rt.size();
-            if (intensity.size() != n) {
+            auto rt_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(peaks_seq[0]);
+            auto int_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(peaks_seq[1]);
+            const size_t n = rt_arr.shape(0);
+            if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
             self.resize(n);
+            const double* rt_ptr = static_cast<const double*>(rt_arr.data());
+            const double* int_ptr = static_cast<const double*>(int_arr.data());
             for (size_t i = 0; i < n; ++i) {
-                self[i].setRT(rt[i]);
-                self[i].setIntensity(intensity[i]);
+                self[i].setRT(rt_ptr[i]);
+                self[i].setIntensity(int_ptr[i]);
             }
         }, "peaks"_a, "Set peaks from a tuple/list of (rt_array, intensity_array)")
 
@@ -1468,6 +1476,7 @@ mz, intensities = spectrum.get_peaks()
         .def("getChromatogram", [](OpenMS::MSExperiment& self, unsigned long id) -> OpenMS::MSChromatogram& { return self.getChromatogram(id); }, nb::rv_policy::reference_internal, "id"_a, "Returns a single chromatogram by index")
         .def("getNrSpectra", [](const OpenMS::MSExperiment& self) { return self.getNrSpectra(); }, "Returns the number of MS spectra")
         .def("getNrChromatograms", [](const OpenMS::MSExperiment& self) { return self.getNrChromatograms(); }, "Returns the number of chromatograms")
+        .def("getMSLevels", [](const OpenMS::MSExperiment& self) { return self.getMSLevels(); }, "Returns a sorted list of unique MS levels in the experiment")
         .def("calculateTIC", [](const OpenMS::MSExperiment& self, float rt_bin_size, unsigned int ms_level) { return self.calculateTIC(rt_bin_size, ms_level); }, "rt_bin_size"_a = 0, "ms_level"_a = 1, "Returns the total ion chromatogram")
         .def("clear", [](OpenMS::MSExperiment& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a, "Clear all spectra data and meta data (if called with True)")
         .def("spectrumRanges", [](const OpenMS::MSExperiment& self) -> const OpenMS::SpectrumRangeManager & { return self.spectrumRanges(); }, nb::rv_policy::reference_internal, "Returns a reference to the spectrum range manager")
@@ -1819,9 +1828,29 @@ Commonly used for storing ion mobility values or other per-peak float annotation
             );
         }, "Returns a view of the data as numpy array (fast but unsafe, None if empty)")
 
-        .def("set_data", [](OpenMS::DataArrays::FloatDataArray& self, std::vector<float> arr) {
-            self.assign(arr.begin(), arr.end());
-        }, "data"_a, "Set data from a list")
+        .def("set_data", [](OpenMS::DataArrays::FloatDataArray& self, nb::object data_obj) {
+            // Fast path: float32 numpy array — direct memcpy
+            nb::ndarray<nb::numpy, float, nb::ndim<1>> f32_arr;
+            if (nb::try_cast(data_obj, f32_arr)) {
+                const size_t n = f32_arr.shape(0);
+                self.resize(n);
+                std::copy(static_cast<const float*>(f32_arr.data()),
+                          static_cast<const float*>(f32_arr.data()) + n, self.data());
+                return;
+            }
+            // Fast path: float64 numpy array — single-pass narrowing copy
+            nb::ndarray<nb::numpy, double, nb::ndim<1>> f64_arr;
+            if (nb::try_cast(data_obj, f64_arr)) {
+                const size_t n = f64_arr.shape(0);
+                self.resize(n);
+                const double* ptr = static_cast<const double*>(f64_arr.data());
+                for (size_t i = 0; i < n; ++i) self[i] = static_cast<float>(ptr[i]);
+                return;
+            }
+            // Fallback: any iterable (list, etc.)
+            std::vector<float> vec = nb::cast<std::vector<float>>(data_obj);
+            self.assign(vec.begin(), vec.end());
+        }, "data"_a, "Set data from a numpy array or list")
 
         .def("push_back", [](OpenMS::DataArrays::FloatDataArray& self, float val) {
             self.push_back(val);
@@ -1884,13 +1913,46 @@ Used for storing per-peak integer annotations.
         .def(nb::init<const OpenMS::DataArrays::IntegerDataArray&>(), "Copy constructor")
 
         .def("get_data", [](const OpenMS::DataArrays::IntegerDataArray& self) {
-            std::vector<OpenMS::Int> arr(self.begin(), self.end());
-            return arr;
-        }, "Returns a copy of the data as a list")
+            // Return as numpy array — bulk memcpy instead of element-by-element conversion
+            size_t n = self.size();
+            int32_t* data = new int32_t[n];
+            std::copy(self.begin(), self.end(), data);
+            nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<int32_t*>(p); });
+            return nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>(data, {n}, owner);
+        }, "Returns a copy of the data as numpy array")
 
-        .def("set_data", [](OpenMS::DataArrays::IntegerDataArray& self, std::vector<OpenMS::Int> arr) {
-            self.assign(arr.begin(), arr.end());
-        }, "data"_a, "Set data from a list")
+        .def("get_data_mv", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>> {
+            // Return a writable memory view (zero-copy)
+            auto& self = nb::cast<OpenMS::DataArrays::IntegerDataArray&>(self_obj);
+            if (self.empty()) return std::nullopt;
+            return nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>(
+                self.data(), {self.size()}, self_obj
+            );
+        }, "Returns a view of the data as numpy array (fast but unsafe, None if empty)")
+
+        .def("set_data", [](OpenMS::DataArrays::IntegerDataArray& self, nb::object data_obj) {
+            // Fast path: int32 numpy array — direct memcpy
+            nb::ndarray<nb::numpy, int32_t, nb::ndim<1>> i32_arr;
+            if (nb::try_cast(data_obj, i32_arr)) {
+                const size_t n = i32_arr.shape(0);
+                self.resize(n);
+                std::copy(static_cast<const int32_t*>(i32_arr.data()),
+                          static_cast<const int32_t*>(i32_arr.data()) + n, self.data());
+                return;
+            }
+            // Fast path: int64 numpy array — single-pass narrowing copy
+            nb::ndarray<nb::numpy, int64_t, nb::ndim<1>> i64_arr;
+            if (nb::try_cast(data_obj, i64_arr)) {
+                const size_t n = i64_arr.shape(0);
+                self.resize(n);
+                const int64_t* ptr = static_cast<const int64_t*>(i64_arr.data());
+                for (size_t i = 0; i < n; ++i) self[i] = static_cast<OpenMS::Int>(ptr[i]);
+                return;
+            }
+            // Fallback: any iterable (list, etc.)
+            std::vector<OpenMS::Int> vec = nb::cast<std::vector<OpenMS::Int>>(data_obj);
+            self.assign(vec.begin(), vec.end());
+        }, "data"_a, "Set data from a numpy array or list")
 
         .def("push_back", [](OpenMS::DataArrays::IntegerDataArray& self, OpenMS::Int val) {
             self.push_back(val);
@@ -3602,34 +3664,37 @@ MzMLFile().store("testfile.mzML", exp)
         }, "Returns a tuple of (mz_array, intensity_array) as numpy arrays")
 
         .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj) {
-            // Accept two arrays (mz, intensity) for compatibility with pyOpenMS API
-            std::vector<double> mz = nb::cast<std::vector<double>>(mz_obj);
-            std::vector<double> intensity = nb::cast<std::vector<double>>(int_obj);
-            const size_t n = mz.size();
-            if (intensity.size() != n) {
+            // Fast path: direct pointer access from numpy arrays (no intermediate vector copy)
+            auto mz_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(mz_obj);
+            auto int_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(int_obj);
+            const size_t n = mz_arr.shape(0);
+            if (int_arr.shape(0) != n) {
                 throw std::runtime_error("mz and intensity arrays must have same length");
             }
             self.resize(n);
+            const double* mz_ptr = static_cast<const double*>(mz_arr.data());
+            const double* int_ptr = static_cast<const double*>(int_arr.data());
             for (size_t i = 0; i < n; ++i) {
-                self[i].setMZ(mz[i]);
-                self[i].setIntensity(intensity[i]);
+                self[i].setMZ(mz_ptr[i]);
+                self[i].setIntensity(int_ptr[i]);
             }
         }, "mz"_a, "intensity"_a, "Set peaks from mz and intensity arrays")
         .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object peaks_seq) {
-            // Accept a tuple or list of (mz_array, intensity_array) for compatibility with pyOpenMS API
             if (nb::len(peaks_seq) != 2) {
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (mz, intensity)");
             }
-            std::vector<double> mz = nb::cast<std::vector<double>>(peaks_seq[0]);
-            std::vector<double> intensity = nb::cast<std::vector<double>>(peaks_seq[1]);
-            const size_t n = mz.size();
-            if (intensity.size() != n) {
+            auto mz_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(peaks_seq[0]);
+            auto int_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(peaks_seq[1]);
+            const size_t n = mz_arr.shape(0);
+            if (int_arr.shape(0) != n) {
                 throw std::runtime_error("mz and intensity arrays must have same length");
             }
             self.resize(n);
+            const double* mz_ptr = static_cast<const double*>(mz_arr.data());
+            const double* int_ptr = static_cast<const double*>(int_arr.data());
             for (size_t i = 0; i < n; ++i) {
-                self[i].setMZ(mz[i]);
-                self[i].setIntensity(intensity[i]);
+                self[i].setMZ(mz_ptr[i]);
+                self[i].setIntensity(int_ptr[i]);
             }
         }, "peaks"_a, "Set peaks from a tuple of (mz_array, intensity_array)")
 
