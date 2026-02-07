@@ -504,8 +504,8 @@ class TestFileHandlerAdditionalStaticMethods(unittest.TestCase):
         """Test FileHandler.getType static method."""
         file_type = pyopenms.FileHandler.getType("test.mzML")
         self.assertIsNotNone(file_type)
-        # Should return an integer (enum value)
-        self.assertIsInstance(file_type, int)
+        # Should return the correct enum value
+        self.assertEqual(file_type, pyopenms.FileType.MZML)
 
     def test_getTypeByContent(self):
         """Test FileHandler.getTypeByContent static method with a real file."""

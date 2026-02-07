@@ -47,7 +47,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     // Method
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::Math::RankData::Method>(m, "Method", nb::is_arithmetic())
+    nb::enum_<OpenMS::Math::RankData::Method>(m, "Method")
         .value("Average", OpenMS::Math::RankData::Method::Average)
         .value("Min", OpenMS::Math::RankData::Method::Min)
         .value("Max", OpenMS::Math::RankData::Method::Max)
@@ -60,7 +60,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     // NaNPolicy
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::Math::RankData::NaNPolicy>(m, "NaNPolicy", nb::is_arithmetic())
+    nb::enum_<OpenMS::Math::RankData::NaNPolicy>(m, "NaNPolicy")
         .value("Propagate", OpenMS::Math::RankData::NaNPolicy::Propagate)
         .value("Omit", OpenMS::Math::RankData::NaNPolicy::Omit)
         .value("Raise", OpenMS::Math::RankData::NaNPolicy::Raise)
@@ -100,7 +100,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .def_static("debug", [](bool enable) { return OpenMS::BSpline2d::debug(enable); }, "enable"_a, "Enable or disable debug messages from the B-spline library")
         ;
     // BoundaryCondition enum nested under BSpline2d
-    nb::enum_<OpenMS::BSpline2d::BoundaryCondition>(bspline2d_class, "BoundaryCondition", nb::is_arithmetic())
+    nb::enum_<OpenMS::BSpline2d::BoundaryCondition>(bspline2d_class, "BoundaryCondition")
         .value("BC_ZERO_ENDPOINTS", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_ENDPOINTS)
         .value("BC_ZERO_FIRST", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_FIRST)
         .value("BC_ZERO_SECOND", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_SECOND)
@@ -375,7 +375,7 @@ Returns solution status
         .def("getSolver", [](const OpenMS::LPWrapper& self) { return self.getSolver(); }, "Returns currently active solver")
         ;
     // LPWrapper_Type enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::Type>(lpwrapper_class, "LPWrapper_Type", nb::is_arithmetic())
+    nb::enum_<OpenMS::LPWrapper::Type>(lpwrapper_class, "LPWrapper_Type")
         .value("UNBOUNDED", OpenMS::LPWrapper::Type::UNBOUNDED)
         .value("LOWER_BOUND_ONLY", OpenMS::LPWrapper::Type::LOWER_BOUND_ONLY)
         .value("UPPER_BOUND_ONLY", OpenMS::LPWrapper::Type::UPPER_BOUND_ONLY)
@@ -383,28 +383,28 @@ Returns solution status
         .value("FIXED", OpenMS::LPWrapper::Type::FIXED)
         .export_values();
     // VariableType enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::VariableType>(lpwrapper_class, "VariableType", nb::is_arithmetic())
+    nb::enum_<OpenMS::LPWrapper::VariableType>(lpwrapper_class, "VariableType")
         .value("CONTINUOUS", OpenMS::LPWrapper::VariableType::CONTINUOUS)
         .value("INTEGER", OpenMS::LPWrapper::VariableType::INTEGER)
         .value("BINARY", OpenMS::LPWrapper::VariableType::BINARY)
         .export_values();
     // Sense enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::Sense>(lpwrapper_class, "Sense", nb::is_arithmetic())
+    nb::enum_<OpenMS::LPWrapper::Sense>(lpwrapper_class, "Sense")
         .value("MIN", OpenMS::LPWrapper::Sense::MIN)
         .value("MAX", OpenMS::LPWrapper::Sense::MAX)
         .export_values();
     // WriteFormat enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::WriteFormat>(lpwrapper_class, "WriteFormat", nb::is_arithmetic())
+    nb::enum_<OpenMS::LPWrapper::WriteFormat>(lpwrapper_class, "WriteFormat")
         .value("FORMAT_LP", OpenMS::LPWrapper::WriteFormat::FORMAT_LP)
         .value("FORMAT_MPS", OpenMS::LPWrapper::WriteFormat::FORMAT_MPS)
         .value("FORMAT_GLPK", OpenMS::LPWrapper::WriteFormat::FORMAT_GLPK)
         .export_values();
     // SOLVER enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::SOLVER>(lpwrapper_class, "SOLVER", nb::is_arithmetic())
+    nb::enum_<OpenMS::LPWrapper::SOLVER>(lpwrapper_class, "SOLVER")
         .value("SOLVER_GLPK", OpenMS::LPWrapper::SOLVER::SOLVER_GLPK)
         .export_values();
     // SolverStatus enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::SolverStatus>(lpwrapper_class, "SolverStatus", nb::is_arithmetic())
+    nb::enum_<OpenMS::LPWrapper::SolverStatus>(lpwrapper_class, "SolverStatus")
         .value("UNDEFINED", OpenMS::LPWrapper::SolverStatus::UNDEFINED)
         .value("OPTIMAL", OpenMS::LPWrapper::SolverStatus::OPTIMAL)
         .value("FEASIBLE", OpenMS::LPWrapper::SolverStatus::FEASIBLE)
@@ -535,12 +535,12 @@ Example:
            "s"_a, "Convert string to LfdrTransform enum")
         ;
     // Pi0Method enum nested under MultipleTesting
-    nb::enum_<OpenMS::Math::MultipleTesting::Pi0Method>(multipletesting_class, "Pi0Method", nb::is_arithmetic())
+    nb::enum_<OpenMS::Math::MultipleTesting::Pi0Method>(multipletesting_class, "Pi0Method")
         .value("Smoother", OpenMS::Math::MultipleTesting::Pi0Method::Smoother)
         .value("Bootstrap", OpenMS::Math::MultipleTesting::Pi0Method::Bootstrap)
         ;
     // LfdrTransform enum nested under MultipleTesting
-    nb::enum_<OpenMS::Math::MultipleTesting::LfdrTransform>(multipletesting_class, "LfdrTransform", nb::is_arithmetic())
+    nb::enum_<OpenMS::Math::MultipleTesting::LfdrTransform>(multipletesting_class, "LfdrTransform")
         .value("Probit", OpenMS::Math::MultipleTesting::LfdrTransform::Probit)
         .value("Logit", OpenMS::Math::MultipleTesting::LfdrTransform::Logit)
         ;

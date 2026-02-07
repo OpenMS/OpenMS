@@ -526,7 +526,7 @@ By returning only references into the original string this is very fast
         .def("countInternalCleavageSites", [](const OpenMS::EnzymaticDigestion& self, const OpenMS::String& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
         ;
     // Specificity enum nested under EnzymaticDigestion
-    nb::enum_<OpenMS::EnzymaticDigestion::Specificity>(enzymaticdigestion_class, "Specificity", nb::is_arithmetic())
+    nb::enum_<OpenMS::EnzymaticDigestion::Specificity>(enzymaticdigestion_class, "Specificity")
         .value("SPEC_NONE", OpenMS::EnzymaticDigestion::Specificity::SPEC_NONE)
         .value("SPEC_SEMI", OpenMS::EnzymaticDigestion::Specificity::SPEC_SEMI)
         .value("SPEC_FULL", OpenMS::EnzymaticDigestion::Specificity::SPEC_FULL)
@@ -712,7 +712,7 @@ IsotopePatternGenerator
         }, nb::rv_policy::reference_internal)
         ;
     // Sorted enum nested under IsotopeDistribution
-    nb::enum_<OpenMS::IsotopeDistribution::Sorted>(isotopedistribution_class, "Sorted", nb::is_arithmetic())
+    nb::enum_<OpenMS::IsotopeDistribution::Sorted>(isotopedistribution_class, "Sorted")
         .value("INTENSITY", OpenMS::IsotopeDistribution::Sorted::INTENSITY)
         .value("MASS", OpenMS::IsotopeDistribution::Sorted::MASS)
         .value("UNDEFINED", OpenMS::IsotopeDistribution::Sorted::UNDEFINED)
@@ -1065,18 +1065,18 @@ Generate theoretical MS/MS spectrum for a Peptidoform. ion_types uses chars a,b,
         .def_static("peptidoformIonToJSON", [](const OpenMS::ProForma::PeptidoformIon& pfi) { return OpenMS::ProForma::toJSON(pfi); }, "pfi"_a, "Convert PeptidoformIon to JSON string representation")
         ;
     // WriteMode enum nested under ProForma
-    nb::enum_<OpenMS::ProForma::WriteMode>(proforma_class, "WriteMode", nb::is_arithmetic())
+    nb::enum_<OpenMS::ProForma::WriteMode>(proforma_class, "WriteMode")
         .value("LOSSLESS", OpenMS::ProForma::WriteMode::LOSSLESS)
         .value("CANONICAL", OpenMS::ProForma::WriteMode::CANONICAL)
         ;
     // ConversionPolicy enum nested under ProForma
-    nb::enum_<OpenMS::ProForma::ConversionPolicy>(proforma_class, "ConversionPolicy", nb::is_arithmetic())
+    nb::enum_<OpenMS::ProForma::ConversionPolicy>(proforma_class, "ConversionPolicy")
         .value("FAIL_ON_LOSS", OpenMS::ProForma::ConversionPolicy::FAIL_ON_LOSS)
         .value("DROP_UNLOCALISED", OpenMS::ProForma::ConversionPolicy::DROP_UNLOCALISED)
         .value("BEST_EFFORT", OpenMS::ProForma::ConversionPolicy::BEST_EFFORT)
         ;
     // ConversionIssueType enum nested under ProForma
-    nb::enum_<OpenMS::ProForma::ConversionIssueType>(proforma_class, "ConversionIssueType", nb::is_arithmetic())
+    nb::enum_<OpenMS::ProForma::ConversionIssueType>(proforma_class, "ConversionIssueType")
         .value("UNRESOLVED_MOD", OpenMS::ProForma::ConversionIssueType::UNRESOLVED_MOD)
         .value("UNLOCALISED_MOD", OpenMS::ProForma::ConversionIssueType::UNLOCALISED_MOD)
         .value("LABILE_MOD", OpenMS::ProForma::ConversionIssueType::LABILE_MOD)
@@ -1090,7 +1090,7 @@ Generate theoretical MS/MS spectrum for a Peptidoform. ion_types uses chars a,b,
         .value("UNSUPPORTED_FEATURE", OpenMS::ProForma::ConversionIssueType::UNSUPPORTED_FEATURE)
         ;
     // CvDatabase enum nested under ProForma
-    nb::enum_<OpenMS::ProForma::CvDatabase>(proforma_class, "CvDatabase", nb::is_arithmetic())
+    nb::enum_<OpenMS::ProForma::CvDatabase>(proforma_class, "CvDatabase")
         .value("UNIMOD", OpenMS::ProForma::CvDatabase::UNIMOD)
         .value("MOD", OpenMS::ProForma::CvDatabase::MOD)
         .value("RESID", OpenMS::ProForma::CvDatabase::RESID)
@@ -1390,7 +1390,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def("__hash__", [](const OpenMS::Residue& self) { return std::hash<OpenMS::Residue>{}(self); })
         ;
     // ResidueType enum nested under Residue
-    nb::enum_<OpenMS::Residue::ResidueType>(residue_class, "ResidueType", nb::is_arithmetic())
+    nb::enum_<OpenMS::Residue::ResidueType>(residue_class, "ResidueType")
         .value("Full", OpenMS::Residue::ResidueType::Full)
         .value("Internal", OpenMS::Residue::ResidueType::Internal)
         .value("NTerminal", OpenMS::Residue::ResidueType::NTerminal)
@@ -1492,7 +1492,7 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("__hash__", [](const OpenMS::ResidueModification& self) { return std::hash<OpenMS::ResidueModification>{}(self); })
         ;
     // TermSpecificity enum nested under ResidueModification
-    nb::enum_<OpenMS::ResidueModification::TermSpecificity>(residuemodification_class, "TermSpecificity", nb::is_arithmetic())
+    nb::enum_<OpenMS::ResidueModification::TermSpecificity>(residuemodification_class, "TermSpecificity")
         .value("ANYWHERE", OpenMS::ResidueModification::TermSpecificity::ANYWHERE)
         .value("C_TERM", OpenMS::ResidueModification::TermSpecificity::C_TERM)
         .value("N_TERM", OpenMS::ResidueModification::TermSpecificity::N_TERM)
@@ -1501,7 +1501,7 @@ Modified residues get created and added if getModifiedResidue is called.
         .value("NUMBER_OF_TERM_SPECIFICITY", OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)
         .export_values();
     // SourceClassification enum nested under ResidueModification
-    nb::enum_<OpenMS::ResidueModification::SourceClassification>(residuemodification_class, "SourceClassification", nb::is_arithmetic())
+    nb::enum_<OpenMS::ResidueModification::SourceClassification>(residuemodification_class, "SourceClassification")
         .value("ARTIFACT", OpenMS::ResidueModification::SourceClassification::ARTIFACT)
         .value("HYPOTHETICAL", OpenMS::ResidueModification::SourceClassification::HYPOTHETICAL)
         .value("NATURAL", OpenMS::ResidueModification::SourceClassification::NATURAL)
@@ -1558,7 +1558,7 @@ Sets the code of the unmodified base (e.g., "A", "C", ...)
         .def("__hash__", [](const OpenMS::Ribonucleotide& self) { return std::hash<OpenMS::Ribonucleotide>{}(self); })
         ;
     // TermSpecificityNuc enum nested under Ribonucleotide
-    nb::enum_<OpenMS::Ribonucleotide::TermSpecificityNuc>(ribonucleotide_class, "TermSpecificityNuc", nb::is_arithmetic())
+    nb::enum_<OpenMS::Ribonucleotide::TermSpecificityNuc>(ribonucleotide_class, "TermSpecificityNuc")
         .value("ANYWHERE", OpenMS::Ribonucleotide::TermSpecificityNuc::ANYWHERE)
         .value("FIVE_PRIME", OpenMS::Ribonucleotide::TermSpecificityNuc::FIVE_PRIME)
         .value("THREE_PRIME", OpenMS::Ribonucleotide::TermSpecificityNuc::THREE_PRIME)

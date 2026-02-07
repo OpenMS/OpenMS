@@ -1090,7 +1090,7 @@ Exception: MissingInformation is thrown if entries of 'ids' do not contain 'MZ' 
         .def("getSubsections", [](const OpenMS::IDMapper& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     // Measure enum nested under IDMapper
-    nb::enum_<OpenMS::IDMapper::Measure>(idmapper_class, "Measure", nb::is_arithmetic())
+    nb::enum_<OpenMS::IDMapper::Measure>(idmapper_class, "Measure")
         .value("MEASURE_PPM", OpenMS::IDMapper::Measure::MEASURE_PPM)
         .value("MEASURE_DA", OpenMS::IDMapper::Measure::MEASURE_DA)
         .export_values();
@@ -1114,7 +1114,7 @@ DefaultParamHandler
         .def("getSubsections", [](const OpenMS::IDRipper& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     // OriginAnnotationFormat enum nested under IDRipper
-    nb::enum_<OpenMS::IDRipper::OriginAnnotationFormat>(idripper_class, "OriginAnnotationFormat", nb::is_arithmetic())
+    nb::enum_<OpenMS::IDRipper::OriginAnnotationFormat>(idripper_class, "OriginAnnotationFormat")
         .value("FILE_ORIGIN", OpenMS::IDRipper::OriginAnnotationFormat::FILE_ORIGIN)
         .value("MAP_INDEX", OpenMS::IDRipper::OriginAnnotationFormat::MAP_INDEX)
         .value("ID_MERGE_INDEX", OpenMS::IDRipper::OriginAnnotationFormat::ID_MERGE_INDEX)
@@ -1859,7 +1859,7 @@ DefaultParamHandler
         .def_static("getOSInfo", []() { return OpenMS::Internal::OpenMSOSInfo::getOSInfo(); })
         ;
     // OpenMS_OS enum nested under OpenMSOSInfo
-    nb::enum_<OpenMS::Internal::OpenMS_OS>(openmsosinfo_class, "OpenMS_OS", nb::is_arithmetic())
+    nb::enum_<OpenMS::Internal::OpenMS_OS>(openmsosinfo_class, "OpenMS_OS")
         .value("OS_UNKNOWN", OpenMS::Internal::OpenMS_OS::OS_UNKNOWN)
         .value("OS_MACOS", OpenMS::Internal::OpenMS_OS::OS_MACOS)
         .value("OS_WINDOWS", OpenMS::Internal::OpenMS_OS::OS_WINDOWS)
@@ -1867,7 +1867,7 @@ DefaultParamHandler
         .value("SIZE_OF_OPENMS_OS", OpenMS::Internal::OpenMS_OS::SIZE_OF_OPENMS_OS)
         ;
     // OpenMS_Architecture enum nested under OpenMSOSInfo
-    nb::enum_<OpenMS::Internal::OpenMS_Architecture>(openmsosinfo_class, "OpenMS_Architecture", nb::is_arithmetic())
+    nb::enum_<OpenMS::Internal::OpenMS_Architecture>(openmsosinfo_class, "OpenMS_Architecture")
         .value("ARCH_UNKNOWN", OpenMS::Internal::OpenMS_Architecture::ARCH_UNKNOWN)
         .value("ARCH_32BIT", OpenMS::Internal::OpenMS_Architecture::ARCH_32BIT)
         .value("ARCH_64BIT", OpenMS::Internal::OpenMS_Architecture::ARCH_64BIT)
@@ -2070,7 +2070,7 @@ Use startProgress, setProgress and endProgress for the actual logging
         .def("nextProgress", [](const OpenMS::ProgressLogger& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
     // LogType enum nested under ProgressLogger
-    nb::enum_<OpenMS::ProgressLogger::LogType>(progresslogger_class, "LogType", nb::is_arithmetic())
+    nb::enum_<OpenMS::ProgressLogger::LogType>(progresslogger_class, "LogType")
         .value("CMD", OpenMS::ProgressLogger::LogType::CMD)
         .value("GUI", OpenMS::ProgressLogger::LogType::GUI)
         .value("NONE", OpenMS::ProgressLogger::LogType::NONE)
@@ -2211,7 +2211,7 @@ Performs basic aggregation-based inference on single ProteinIdentification run. 
         .def("nextProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
     // AggregationMethod enum nested under BasicProteinInferenceAlgorithm
-    nb::enum_<OpenMS::BasicProteinInferenceAlgorithm::AggregationMethod>(basicproteininferencealgorithm_class, "AggregationMethod", nb::is_arithmetic())
+    nb::enum_<OpenMS::BasicProteinInferenceAlgorithm::AggregationMethod>(basicproteininferencealgorithm_class, "AggregationMethod")
         .value("PROD", OpenMS::BasicProteinInferenceAlgorithm::AggregationMethod::PROD)
         .value("SUM", OpenMS::BasicProteinInferenceAlgorithm::AggregationMethod::SUM)
         .value("BEST", OpenMS::BasicProteinInferenceAlgorithm::AggregationMethod::BEST)
@@ -3253,7 +3253,7 @@ DefaultParamHandler
         .def("getSubsections", [](const OpenMS::OpenPepXLAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     // ExitCodes enum nested under OpenPepXLAlgorithm
-    nb::enum_<OpenMS::OpenPepXLAlgorithm::ExitCodes>(openpepxlalgorithm_class, "ExitCodes", nb::is_arithmetic())
+    nb::enum_<OpenMS::OpenPepXLAlgorithm::ExitCodes>(openpepxlalgorithm_class, "ExitCodes")
         .value("EXECUTION_OK", OpenMS::OpenPepXLAlgorithm::ExitCodes::EXECUTION_OK)
         .value("ILLEGAL_PARAMETERS", OpenMS::OpenPepXLAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
         .value("UNEXPECTED_RESULT", OpenMS::OpenPepXLAlgorithm::ExitCodes::UNEXPECTED_RESULT)
@@ -3438,7 +3438,7 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
         .def("getSubsections", [](const OpenMS::PeptideIndexing& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     // ExitCodes enum nested under PeptideIndexing
-    nb::enum_<OpenMS::PeptideIndexing::ExitCodes>(peptideindexing_class, "ExitCodes", nb::is_arithmetic())
+    nb::enum_<OpenMS::PeptideIndexing::ExitCodes>(peptideindexing_class, "ExitCodes")
         .value("EXECUTION_OK", OpenMS::PeptideIndexing::ExitCodes::EXECUTION_OK)
         .value("DATABASE_EMPTY", OpenMS::PeptideIndexing::ExitCodes::DATABASE_EMPTY)
         .value("PEPTIDE_IDS_EMPTY", OpenMS::PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY)
@@ -3482,7 +3482,7 @@ outputs (ProteinIdentification and PeptideIdentificationList)
         .def("nextProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
     // PeptideSearchEngineFIAlgorithm_ExitCodes enum nested under PeptideSearchEngineFIAlgorithm
-    nb::enum_<OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes>(peptidesearchenginefialgorithm_class, "PeptideSearchEngineFIAlgorithm_ExitCodes", nb::is_arithmetic())
+    nb::enum_<OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes>(peptidesearchenginefialgorithm_class, "PeptideSearchEngineFIAlgorithm_ExitCodes")
         .value("EXECUTION_OK", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK)
         .value("INPUT_FILE_EMPTY", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::INPUT_FILE_EMPTY)
         .value("UNEXPECTED_RESULT", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::UNEXPECTED_RESULT)
@@ -4476,7 +4476,7 @@ DefaultParamHandler
         .def("getSubsections", [](const OpenMS::XFDRAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     // ExitCodes enum nested under XFDRAlgorithm
-    nb::enum_<OpenMS::XFDRAlgorithm::ExitCodes>(xfdralgorithm_class, "ExitCodes", nb::is_arithmetic())
+    nb::enum_<OpenMS::XFDRAlgorithm::ExitCodes>(xfdralgorithm_class, "ExitCodes")
         .value("EXECUTION_OK", OpenMS::XFDRAlgorithm::ExitCodes::EXECUTION_OK)
         .value("ILLEGAL_PARAMETERS", OpenMS::XFDRAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
         .value("UNEXPECTED_RESULT", OpenMS::XFDRAlgorithm::ExitCodes::UNEXPECTED_RESULT)
@@ -5047,12 +5047,12 @@ XMLFile
         .def("write", [](OpenMS::XTandemInfile& self, const OpenMS::String& filename, bool ignore_member_parameters, bool force_default_mods) { return self.write(filename, ignore_member_parameters, force_default_mods); }, "filename"_a, "ignore_member_parameters"_a = false, "force_default_mods"_a = false)
         ;
     // ErrorUnit enum nested under XTandemInfile
-    nb::enum_<OpenMS::XTandemInfile::ErrorUnit>(xtandeminfile_class, "ErrorUnit", nb::is_arithmetic())
+    nb::enum_<OpenMS::XTandemInfile::ErrorUnit>(xtandeminfile_class, "ErrorUnit")
         .value("DALTONS", OpenMS::XTandemInfile::ErrorUnit::DALTONS)
         .value("PPM", OpenMS::XTandemInfile::ErrorUnit::PPM)
         .export_values();
     // MassType enum nested under XTandemInfile
-    nb::enum_<OpenMS::XTandemInfile::MassType>(xtandeminfile_class, "MassType", nb::is_arithmetic())
+    nb::enum_<OpenMS::XTandemInfile::MassType>(xtandeminfile_class, "MassType")
         .value("MONOISOTOPIC", OpenMS::XTandemInfile::MassType::MONOISOTOPIC)
         .value("AVERAGE", OpenMS::XTandemInfile::MassType::AVERAGE)
         .export_values();
