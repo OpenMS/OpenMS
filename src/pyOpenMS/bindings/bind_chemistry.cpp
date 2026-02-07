@@ -86,8 +86,6 @@ Representation of a peptide/protein sequence
 This class represents amino acid sequences in OpenMS. An AASequence
 instance primarily contains a sequence of residues.
 )doc")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::AASequence &>())
         .def(nb::init<OpenMS::String>())
         .def(nb::init<OpenMS::String, bool>())
         .def("empty", [](const OpenMS::AASequence& self) { return self.empty(); }, "Check if sequence is empty")
@@ -118,8 +116,6 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def("getCTerminalModificationName", [](const OpenMS::AASequence& self) { return self.getCTerminalModificationName(); }, "Returns the name (ID) of the C-terminal modification, or an empty string if none is set")
         .def("getCTerminalModification", [](const OpenMS::AASequence& self) { return self.getCTerminalModification(); }, nb::rv_policy::reference_internal, "Returns a copy of the name C-terminal modification object, or None")
         .def("getResidue", [](const OpenMS::AASequence& self, unsigned long index) -> const OpenMS::Residue & { return self.getResidue(index); }, "index"_a, nb::rv_policy::reference_internal, "Returns the residue at position index")
-        .def("__getitem__", [](OpenMS::AASequence& self, size_t i) { if (i >= self.size()) throw nb::index_error(); return self[i]; })
-        .def(nb::self + nb::self)
         .def(nb::self + nb::self)
         .def("size", [](const OpenMS::AASequence& self) { return self.size(); }, "Returns the number of residues")
         .def("getPrefix", [](const OpenMS::AASequence& self, unsigned long index) { return self.getPrefix(index); }, "index"_a, "Returns a peptide sequence of the first index residues")

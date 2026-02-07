@@ -261,8 +261,6 @@ Rough estimation of the peak width at m/z
 Based on the peaks of the dataset (peak position & width) and the peak
 boundaries as reported by the PeakPickerHiRes, the typical peak width is
 estimated for arbitrary m/z using a spline interpolation.
-private
-PeakWidthEstimator() except + nogil
 )doc")
         .def(nb::init<OpenMS::MSExperiment, std::vector<std::vector<OpenMS::PeakPickerHiRes::PeakBoundary>>>())
         .def("getPeakWidth", [](OpenMS::PeakWidthEstimator& self, double mz) { return self.getPeakWidth(mz); }, "mz"_a, "Returns the estimated peak width at m/z")

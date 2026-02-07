@@ -364,7 +364,7 @@ Constructors
     // -----------------------------------------------------------------------
     // FIAMSScheduler
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FIAMSScheduler>(m, "FIAMSScheduler", "ADD PYTHON DOCUMENTATION HERE")
+    nb::class_<OpenMS::FIAMSScheduler>(m, "FIAMSScheduler", "Scheduler for FIA-MS data processing")
         .def(nb::init<>())
         .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, bool>())
         .def(nb::init<const OpenMS::FIAMSScheduler &>())

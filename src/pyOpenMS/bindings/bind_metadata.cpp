@@ -225,26 +225,27 @@ usi = pep_id.buildUSI(mapper, "PXD000561", False)
 Construct mapper from a list of ProteinIdentifications.
 :param prot_ids: List of ProteinIdentification objects
 )doc")
-        .def("hasIdentifier", [](const OpenMS::IdentifierMSRunMapper& self, const OpenMS::String& identifier) { return self.hasIdentifier(identifier); }, "identifier"_a, 
-            R"doc(
-Create/update mapping from a list of ProteinIdentifications.
-:param prot_ids: List of ProteinIdentification objects
-)doc")
-        .def("empty", [](const OpenMS::IdentifierMSRunMapper& self) { return self.empty(); }, 
+        .def("hasIdentifier", [](const OpenMS::IdentifierMSRunMapper& self, const OpenMS::String& identifier) { return self.hasIdentifier(identifier); }, "identifier"_a,
             R"doc(
 Check if the mapping contains an entry for the given identifier.
 :param identifier: ProteinIdentification identifier
 :return: True if identifier exists in mapping
 )doc")
-        .def("size", [](const OpenMS::IdentifierMSRunMapper& self) { return self.size(); }, 
+        .def("empty", [](const OpenMS::IdentifierMSRunMapper& self) { return self.empty(); },
             R"doc(
 Check if the mapping is empty.
 :return: True if no mappings exist
 )doc")
-        .def("getMSRunPaths", [](const OpenMS::IdentifierMSRunMapper& self, const OpenMS::String& identifier) -> const std::vector<OpenMS::String> & { return self.getMSRunPaths(identifier); }, "identifier"_a, nb::rv_policy::reference_internal, 
+        .def("size", [](const OpenMS::IdentifierMSRunMapper& self) { return self.size(); },
             R"doc(
 Get the number of identifier mappings.
 :return: Number of identifiers in the mapping
+)doc")
+        .def("getMSRunPaths", [](const OpenMS::IdentifierMSRunMapper& self, const OpenMS::String& identifier) -> const std::vector<OpenMS::String> & { return self.getMSRunPaths(identifier); }, "identifier"_a, nb::rv_policy::reference_internal,
+            R"doc(
+Get the MS run paths associated with the given identifier.
+:param identifier: ProteinIdentification identifier
+:return: List of MS run file paths associated with this identifier
 )doc")
         .def("__len__", [](OpenMS::IdentifierMSRunMapper& self) { return self.size(); })
         ;

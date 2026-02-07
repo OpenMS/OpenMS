@@ -344,30 +344,29 @@ The following formats are supported:
         .def("setElement", [](OpenMS::LPWrapper& self, int row_index, int column_index, double value) { return self.setElement(row_index, column_index, value); }, "row_index"_a, "column_index"_a, "value"_a, "Sets the element")
         .def("getElement", [](OpenMS::LPWrapper& self, int row_index, int column_index) { return self.getElement(row_index, column_index); }, "row_index"_a, "column_index"_a, "Returns the element")
         .def("readProblem", [](OpenMS::LPWrapper& self, const OpenMS::String& filename, const OpenMS::String& format) { return self.readProblem(filename, format); }, "filename"_a, "format"_a)
-        .def("writeProblem", [](const OpenMS::LPWrapper& self, const OpenMS::String& filename, OpenMS::LPWrapper::WriteFormat format) { return self.writeProblem(filename, format); }, "filename"_a, "format"_a, 
-            R"doc(
-Read LP from file
-:param filename: Filename where to store the LP problem
-:param format: LP, MPS or GLPK
-)doc")
-        .def("solve", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::SolverParam& solver_param, unsigned long verbose_level) { return self.solve(solver_param, verbose_level); }, "solver_param"_a, "verbose_level"_a = 0, 
+        .def("writeProblem", [](const OpenMS::LPWrapper& self, const OpenMS::String& filename, OpenMS::LPWrapper::WriteFormat format) { return self.writeProblem(filename, format); }, "filename"_a, "format"_a,
             R"doc(
 Write LP formulation to a file
 :param filename: Output filename, if the filename ends with '.gz' it will be compressed
 :param format: MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
 )doc")
-        .def("getStatus", [](OpenMS::LPWrapper& self) { return self.getStatus(); }, 
+        .def("solve", [](OpenMS::LPWrapper& self, OpenMS::LPWrapper::SolverParam& solver_param, unsigned long verbose_level) { return self.solve(solver_param, verbose_level); }, "solver_param"_a, "verbose_level"_a = 0,
             R"doc(
-Solve problems, parameters like enabled heuristics can be given via solver_param\n
+Solve problems, parameters like enabled heuristics can be given via solver_param
 The verbose level (0,1,2) determines if the solver prints status messages and internals
 :param solver_param: Parameters of the solver introduced by SolverParam
 :param verbose_level: Sets verbose level
 :return: solver dependent
 )doc")
-        .def("getObjectiveValue", [](OpenMS::LPWrapper& self) { return self.getObjectiveValue(); }, 
+        .def("getStatus", [](OpenMS::LPWrapper& self) { return self.getStatus(); },
             R"doc(
 Returns solution status
 :return: status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
+)doc")
+        .def("getObjectiveValue", [](OpenMS::LPWrapper& self) { return self.getObjectiveValue(); },
+            R"doc(
+Returns the objective value of the solution
+:return: The optimal objective value after solving
 )doc")
         .def("getColumnValue", [](OpenMS::LPWrapper& self, int index) { return self.getColumnValue(index); }, "index"_a)
         .def("getNumberOfNonZeroEntriesInRow", [](OpenMS::LPWrapper& self, int idx) { return self.getNumberOfNonZeroEntriesInRow(idx); }, "idx"_a)
@@ -497,8 +496,8 @@ Example:
 ...     p_values, pi0_result.pi0, True, True,
 ...     pyopenms.MultipleTesting.LfdrTransform.Probit)
 )doc")
-        .def_static("qValue", [](const std::vector<double>& p_values, double pi0, bool pfdr) { return OpenMS::Math::MultipleTesting::qValue(p_values, pi0, pfdr); }, "p_values"_a, "pi0"_a, "pfdr"_a, "Convert string to LfdrTransform enum (case-insensitive)")
-        .def_static("pNorm", [](const std::vector<double>& stat, const std::vector<double>& stat0) { return OpenMS::Math::MultipleTesting::pNorm(stat, stat0); }, "stat"_a, "stat0"_a, "Estimate local false discovery rate (local FDR) from p-values")
+        .def_static("qValue", [](const std::vector<double>& p_values, double pi0, bool pfdr) { return OpenMS::Math::MultipleTesting::qValue(p_values, pi0, pfdr); }, "p_values"_a, "pi0"_a, "pfdr"_a, "Compute q-values from p-values using the Storey-Tibshirani method")
+        .def_static("pNorm", [](const std::vector<double>& stat, const std::vector<double>& stat0) { return OpenMS::Math::MultipleTesting::pNorm(stat, stat0); }, "stat"_a, "stat0"_a, "Compute p-values from observed and null statistics using the empirical distribution")
 
         .def_static("pi0Est", [](std::vector<double> p_values,
                                   std::vector<double> lambda,
