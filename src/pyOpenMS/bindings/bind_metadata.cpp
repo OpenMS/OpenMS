@@ -151,7 +151,7 @@ run.setPeptideIdentifications(my_peptide_ids)
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ExperimentalDesign::SampleSection>(m, "ExperimentalDesign_SampleSection", "OpenMS class ExperimentalDesign_SampleSection")
         .def(nb::init<>())
-        .def(nb::init<std::vector<std::vector<OpenMS::String>>, std::map<OpenMS::String, unsigned long>, std::map<OpenMS::String, unsigned long>>())
+        .def(nb::init<std::vector<std::vector<OpenMS::String>>, std::map<OpenMS::String, size_t>, std::map<OpenMS::String, size_t>>())
         .def("getSamples", [](const OpenMS::ExperimentalDesign::SampleSection& self) { return self.getSamples(); }, "Returns a set of all samples that are present in the sample section")
         .def("getFactors", [](const OpenMS::ExperimentalDesign::SampleSection& self) { return self.getFactors(); }, "Returns a set of all factors (column names) that were defined for the sample section")
         .def("hasSample", [](const OpenMS::ExperimentalDesign::SampleSection& self, const OpenMS::String& sample) { return self.hasSample(sample); }, "sample"_a, "Checks whether sample section has row for a sample number")
@@ -448,14 +448,14 @@ Look up spectrum by retention time (RT)
 :param rt: Retention time to look up
 :returns: Index of the spectrum that matched
 )doc")
-        .def("findByIndex", [](const OpenMS::SpectrumLookup& self, unsigned long index, bool count_from_one) { return self.findByIndex(index, count_from_one); }, "index"_a, "count_from_one"_a = false, 
+        .def("findByIndex", [](const OpenMS::SpectrumLookup& self, size_t index, bool count_from_one) { return self.findByIndex(index, count_from_one); }, "index"_a, "count_from_one"_a = false, 
             R"doc(
 Look up spectrum by native ID
 :param native_id: Native ID to look up
 :returns: Index of the spectrum that matched
 Size findByIndex(Size index)
 )doc")
-        .def("findByScanNumber", [](const OpenMS::SpectrumLookup& self, unsigned long scan_number) { return self.findByScanNumber(scan_number); }, "scan_number"_a, 
+        .def("findByScanNumber", [](const OpenMS::SpectrumLookup& self, size_t scan_number) { return self.findByScanNumber(scan_number); }, "scan_number"_a, 
             R"doc(
 Look up spectrum by index (position in the vector of spectra)
 :param index: Index to look up
