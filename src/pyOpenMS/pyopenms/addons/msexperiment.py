@@ -279,19 +279,19 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
                 if spec.containsIMData():
                     im_idx, _ = spec.getIMData()
                     fda = spec.getFloatDataArrays()[im_idx]
-                    im_data = [fda[i] for i in range(len(fda))]
-                    if mask is not None and len(im_data) == len(mask):
-                        im_data = [im_data[i] for i in range(len(mask)) if mask[i]]
-                    all_im.extend(im_data[:n])
+                    im_arr = np.asarray(fda.get_data(), dtype=np.float32)
+                    if mask is not None and len(im_arr) == len(mask):
+                        im_arr = im_arr[mask]
+                    all_im.append(im_arr[:n])
                 else:
-                    all_im.extend([None] * n)
+                    all_im.append(np.full(n, np.nan, dtype=np.float32))
 
         d = {}
         d['mz'] = np.concatenate(all_mz) if all_mz else np.array([], dtype=np.float64)
         d['intensity'] = np.concatenate(all_int) if all_int else np.array([], dtype=np.float32)
         d['rt'] = np.concatenate(all_rt) if all_rt else np.array([], dtype=np.float32)
         if include_ion_mobility:
-            d['ion_mobility'] = pa.array(all_im, type=pa.float32())
+            d['ion_mobility'] = np.concatenate(all_im) if all_im else np.array([], dtype=np.float32)
         d['spectrum_index'] = np.concatenate(all_idx) if all_idx else np.array([], dtype=np.uint32)
         d['ms_level'] = np.concatenate(all_ms) if all_ms else np.array([], dtype=np.uint8)
         d['native_id'] = np.concatenate(all_nid) if all_nid else np.array([], dtype=object)
@@ -349,8 +349,7 @@ def _build_spectra_arrow(exp, format, columns, ms_levels, min_rt, max_rt,
                 if spec.containsIMData():
                     im_idx, _ = spec.getIMData()
                     fda = spec.getFloatDataArrays()[im_idx]
-                    im_data = [fda[i] for i in range(len(fda))]
-                    all_im.append(im_data)
+                    all_im.append(fda.get_data().tolist())
                 else:
                     all_im.append(None)
 
@@ -494,7 +493,7 @@ def get_massql_df(self, ion_mobility=False):
                 inty = np.asarray(inty, dtype=np.float32)
                 ion_array_idx, ion_unit = spec.getIMData()
                 ion_data_arr = spec.getFloatDataArrays()[ion_array_idx]
-                ion_data = np.array([ion_data_arr[i] for i in range(len(ion_data_arr))], dtype=np.float32)
+                ion_data = np.asarray(ion_data_arr.get_data(), dtype=np.float32)
                 max_inty = np.amax(inty, initial=0)
                 sum_inty = np.sum(inty)
                 i_norm = np.zeros_like(inty) if max_inty == 0 else inty / max_inty

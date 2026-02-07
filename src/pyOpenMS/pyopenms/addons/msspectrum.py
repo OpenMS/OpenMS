@@ -103,9 +103,8 @@ def get_data_dict(self, columns=None, export_meta_values=True):
             im_arrays = self.getFloatDataArrays()
             if want('ion_mobility'):
                 if 0 <= im_index < len(im_arrays):
-                    data_dict['ion_mobility'] = np.array(
-                        [im_arrays[im_index][i] for i in range(cnt)],
-                        dtype=np.float64
+                    data_dict['ion_mobility'] = np.asarray(
+                        im_arrays[im_index].get_data(), dtype=np.float64
                     )
                 else:
                     data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
@@ -140,7 +139,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
         for sda in self.getStringDataArrays():
             if sda.getName() == 'IonNames':
                 if len(sda) == cnt:
-                    annotations = [s for s in sda]
+                    annotations = sda.get_data()
                     max_len = max((len(s) for s in annotations), default=1)
                     ion_annotations = np.array(annotations, dtype=f'U{max_len}')
                 break
@@ -198,7 +197,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
             col_name = f'float_array:{fda.getName()}'
             if col_name in requested:
                 if len(fda) == cnt:
-                    data_dict[col_name] = np.array([fda[j] for j in range(cnt)], dtype=np.float32)
+                    data_dict[col_name] = np.asarray(fda.get_data(), dtype=np.float32)
                 else:
                     data_dict[col_name] = np.full(cnt, np.nan, dtype=np.float32)
 
@@ -206,7 +205,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
             col_name = f'int_array:{ida.getName()}'
             if col_name in requested:
                 if len(ida) == cnt:
-                    data_dict[col_name] = np.array([ida[j] for j in range(cnt)], dtype=np.int64)
+                    data_dict[col_name] = np.asarray(ida.get_data(), dtype=np.int64)
                 else:
                     data_dict[col_name] = np.full(cnt, 0, dtype=np.int64)
 
@@ -214,7 +213,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
             col_name = f'string_array:{sda.getName()}'
             if col_name in requested:
                 if len(sda) == cnt:
-                    strings = [s for s in sda]
+                    strings = sda.get_data()
                     max_len = max((len(s) for s in strings), default=1)
                     data_dict[col_name] = np.array(strings, dtype=f'U{max_len}')
                 else:
