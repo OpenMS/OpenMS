@@ -2,6 +2,7 @@
 // Domain: kernel
 
 #include "all_casters.h"
+#include <type_traits>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
 #include <OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>
@@ -82,6 +83,26 @@
 
 namespace nb = nanobind;
 using namespace nb::literals;
+
+// Helper: ensure an object is a contiguous numpy array of type T.
+// Accepts numpy arrays (zero-copy if already correct dtype) and Python lists/tuples
+// (converts via numpy.asarray). This maintains backward compatibility with code
+// that passes plain Python lists to set_peaks() etc.
+template <typename T>
+nb::ndarray<nb::numpy, T, nb::ndim<1>> as_numpy_array(nb::object obj) {
+    nb::ndarray<nb::numpy, T, nb::ndim<1>> arr;
+    if (nb::try_cast(obj, arr)) return arr;  // already the right type — zero-copy
+    // Convert lists/sequences to numpy array with the right dtype
+    auto np = nb::module_::import_("numpy");
+    nb::object dtype;
+    if constexpr (std::is_same_v<T, float>) dtype = np.attr("float32");
+    else dtype = np.attr("float64");
+    nb::object np_arr = np.attr("asarray")(obj, dtype);
+    if (!nb::try_cast(np_arr, arr)) {
+        throw std::runtime_error("Failed to convert input to numpy array");
+    }
+    return arr;
+}
 
 NB_MODULE(_pyopenms_kernel, m) {
     m.doc() = "pyOpenMS kernel bindings";
@@ -1359,8 +1380,8 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
         }, "Returns a tuple of (rt_array, intensity_array) as numpy arrays")
 
         .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj) {
-            auto rt_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(rt_obj);
-            auto int_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(int_obj);
+            auto rt_arr = as_numpy_array<double>(rt_obj);
+            auto int_arr = as_numpy_array<double>(int_obj);
             const size_t n = rt_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
@@ -1377,8 +1398,8 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
             if (nb::len(peaks_seq) != 2) {
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (rt, intensity)");
             }
-            auto rt_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(peaks_seq[0]);
-            auto int_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(peaks_seq[1]);
+            auto rt_arr = as_numpy_array<double>(peaks_seq[0]);
+            auto int_arr = as_numpy_array<double>(peaks_seq[1]);
             const size_t n = rt_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
@@ -2059,8 +2080,8 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
         }, "Get mobility and intensity arrays as numpy arrays")
 
         .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj) {
-            auto mob_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(mob_obj);
-            auto int_arr = nb::cast<nb::ndarray<nb::numpy, float, nb::ndim<1>>>(int_obj);
+            auto mob_arr = as_numpy_array<double>(mob_obj);
+            auto int_arr = as_numpy_array<float>(int_obj);
             size_t n = mob_arr.shape(0);
             self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
@@ -2081,8 +2102,8 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
                 if (nb::len(lst) != 2) throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays");
                 item0 = lst[0]; item1 = lst[1];
             }
-            auto mob_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(item0);
-            auto int_arr = nb::cast<nb::ndarray<nb::numpy, float, nb::ndim<1>>>(item1);
+            auto mob_arr = as_numpy_array<double>(item0);
+            auto int_arr = as_numpy_array<float>(item1);
             size_t n = mob_arr.shape(0);
             self.resize(n);
             const double* mob_ptr = static_cast<const double*>(mob_arr.data());
@@ -3665,8 +3686,8 @@ MzMLFile().store("testfile.mzML", exp)
 
         .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj) {
             // Fast path: direct pointer access from numpy arrays (no intermediate vector copy)
-            auto mz_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(mz_obj);
-            auto int_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(int_obj);
+            auto mz_arr = as_numpy_array<double>(mz_obj);
+            auto int_arr = as_numpy_array<double>(int_obj);
             const size_t n = mz_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("mz and intensity arrays must have same length");
@@ -3683,8 +3704,8 @@ MzMLFile().store("testfile.mzML", exp)
             if (nb::len(peaks_seq) != 2) {
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (mz, intensity)");
             }
-            auto mz_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(peaks_seq[0]);
-            auto int_arr = nb::cast<nb::ndarray<nb::numpy, double, nb::ndim<1>>>(peaks_seq[1]);
+            auto mz_arr = as_numpy_array<double>(peaks_seq[0]);
+            auto int_arr = as_numpy_array<double>(peaks_seq[1]);
             const size_t n = mz_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("mz and intensity arrays must have same length");
