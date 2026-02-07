@@ -550,7 +550,7 @@ The optional interpretation part uses ProForma proteoform-ion notation.
         .def_static("getCVName", []() { return OpenMS::USI::getCVName(); }, "Get PSI-MS CV name for USI")
         ;
     // IndexType enum nested under USI
-    nb::enum_<OpenMS::USI::IndexType>(usi_class, "IndexType", nb::is_arithmetic())
+    nb::enum_<OpenMS::USI::IndexType>(usi_class, "IndexType")
         .value("SCAN", OpenMS::USI::IndexType::SCAN)
         .value("INDEX", OpenMS::USI::IndexType::INDEX)
         .value("NATIVEID", OpenMS::USI::IndexType::NATIVEID)

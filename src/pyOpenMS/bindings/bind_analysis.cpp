@@ -267,7 +267,7 @@ CVTermList
         }, "map"_a, "acc_filter"_a, "desc_filter"_a, "Computes medians of all maps and returns tuple of (index of map with most features, medians vector)")
         ;
     // NormalizationMethod enum nested under ConsensusMapNormalizerAlgorithmMedian
-    nb::enum_<OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod>(consensusmapnormalizeralgorithmmedian_class, "NormalizationMethod", nb::is_arithmetic())
+    nb::enum_<OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod>(consensusmapnormalizeralgorithmmedian_class, "NormalizationMethod")
         .value("NM_SCALE", OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod::NM_SCALE)
         .value("NM_SHIFT", OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod::NM_SHIFT)
         .export_values();
@@ -572,7 +572,7 @@ void updateChannelMap(StringList & active_channels, ChannelMapType & map_) excep
 )doc")
         ;
     // ITRAQ_TYPES enum nested under ItraqConstants
-    nb::enum_<OpenMS::ItraqConstants::ITRAQ_TYPES>(itraqconstants_class, "ITRAQ_TYPES", nb::is_arithmetic())
+    nb::enum_<OpenMS::ItraqConstants::ITRAQ_TYPES>(itraqconstants_class, "ITRAQ_TYPES")
         .value("FOURPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::FOURPLEX)
         .value("EIGHTPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::EIGHTPLEX)
         .value("TMT_SIXPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::TMT_SIXPLEX)
@@ -1154,14 +1154,14 @@ Resolves overlapping target and decoy transition masses by adding a specifiable 
         .def(nb::init<const OpenMS::OPXLDataStructs &>())
         ;
     // ProteinProteinCrossLinkType enum nested under OPXLDataStructs
-    nb::enum_<OpenMS::OPXLDataStructs::ProteinProteinCrossLinkType>(opxldatastructs_class, "ProteinProteinCrossLinkType", nb::is_arithmetic())
+    nb::enum_<OpenMS::OPXLDataStructs::ProteinProteinCrossLinkType>(opxldatastructs_class, "ProteinProteinCrossLinkType")
         .value("CROSS", OpenMS::OPXLDataStructs::ProteinProteinCrossLinkType::CROSS)
         .value("MONO", OpenMS::OPXLDataStructs::ProteinProteinCrossLinkType::MONO)
         .value("LOOP", OpenMS::OPXLDataStructs::ProteinProteinCrossLinkType::LOOP)
         .value("NUMBER_OF_CROSS_LINK_TYPES", OpenMS::OPXLDataStructs::ProteinProteinCrossLinkType::NUMBER_OF_CROSS_LINK_TYPES)
         .export_values();
     // PeptidePosition enum nested under OPXLDataStructs
-    nb::enum_<OpenMS::OPXLDataStructs::PeptidePosition>(opxldatastructs_class, "PeptidePosition", nb::is_arithmetic())
+    nb::enum_<OpenMS::OPXLDataStructs::PeptidePosition>(opxldatastructs_class, "PeptidePosition")
         .value("INTERNAL", OpenMS::OPXLDataStructs::PeptidePosition::INTERNAL)
         .value("C_TERM", OpenMS::OPXLDataStructs::PeptidePosition::C_TERM)
         .value("N_TERM", OpenMS::OPXLDataStructs::PeptidePosition::N_TERM)
@@ -1416,7 +1416,7 @@ Constructors
         .def("getMonoMass", &OpenMS::PeakGroup::getMonoMass, "Returns the monoisotopic mass")
         ;
     // TargetDecoyType enum nested under PeakGroup
-    nb::enum_<OpenMS::PeakGroup::TargetDecoyType>(peakgroup_class, "TargetDecoyType", nb::is_arithmetic())
+    nb::enum_<OpenMS::PeakGroup::TargetDecoyType>(peakgroup_class, "TargetDecoyType")
         .value("target", OpenMS::PeakGroup::TargetDecoyType::target)
         .value("noise_decoy", OpenMS::PeakGroup::TargetDecoyType::noise_decoy)
         .value("signal_decoy", OpenMS::PeakGroup::TargetDecoyType::signal_decoy)
@@ -1814,7 +1814,7 @@ score types and provides utility methods for score type conversion, comparison, 
             "Check if a score name is a known score type after normalization")
         ;
     // IDType enum nested under Scores
-    nb::enum_<OpenMS::Scores::IDType>(scores_class, "IDType", nb::is_arithmetic())
+    nb::enum_<OpenMS::Scores::IDType>(scores_class, "IDType")
         .value("RAW", OpenMS::Scores::IDType::RAW)
         .value("RAW_EVAL", OpenMS::Scores::IDType::RAW_EVAL)
         .value("PP", OpenMS::Scores::IDType::PP)

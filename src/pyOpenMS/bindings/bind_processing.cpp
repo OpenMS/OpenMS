@@ -59,7 +59,7 @@ NB_MODULE(_pyopenms_processing, m) {
         }, nb::rv_policy::reference_internal)
         ;
     // FilterType enum nested under DataFilters
-    nb::enum_<OpenMS::DataFilters::FilterType>(datafilters_class, "FilterType", nb::is_arithmetic())
+    nb::enum_<OpenMS::DataFilters::FilterType>(datafilters_class, "FilterType")
         .value("INTENSITY", OpenMS::DataFilters::FilterType::INTENSITY)
         .value("QUALITY", OpenMS::DataFilters::FilterType::QUALITY)
         .value("CHARGE", OpenMS::DataFilters::FilterType::CHARGE)
@@ -67,7 +67,7 @@ NB_MODULE(_pyopenms_processing, m) {
         .value("META_DATA", OpenMS::DataFilters::FilterType::META_DATA)
         .export_values();
     // FilterOperation enum nested under DataFilters
-    nb::enum_<OpenMS::DataFilters::FilterOperation>(datafilters_class, "FilterOperation", nb::is_arithmetic())
+    nb::enum_<OpenMS::DataFilters::FilterOperation>(datafilters_class, "FilterOperation")
         .value("GREATER_EQUAL", OpenMS::DataFilters::FilterOperation::GREATER_EQUAL)
         .value("EQUAL", OpenMS::DataFilters::FilterOperation::EQUAL)
         .value("LESS_EQUAL", OpenMS::DataFilters::FilterOperation::LESS_EQUAL)
@@ -119,7 +119,7 @@ and centroid-based distance thresholds.
         .def(nb::init<const OpenMS::FeatureOverlapFilter &>())
         ;
     // MergeIntensityMode enum nested under FeatureOverlapFilter
-    nb::enum_<OpenMS::MergeIntensityMode>(featureoverlapfilter_class, "MergeIntensityMode", nb::is_arithmetic())
+    nb::enum_<OpenMS::MergeIntensityMode>(featureoverlapfilter_class, "MergeIntensityMode")
         .value("SUM", OpenMS::MergeIntensityMode::SUM)
         .value("MAX", OpenMS::MergeIntensityMode::MAX)
         ;
@@ -294,7 +294,7 @@ If you want a constant model, set slope to zero in addition
 )doc")
         ;
     // MODELTYPE enum nested under MZTrafoModel
-    nb::enum_<OpenMS::MZTrafoModel::MODELTYPE>(mztrafomodel_class, "MODELTYPE", nb::is_arithmetic())
+    nb::enum_<OpenMS::MZTrafoModel::MODELTYPE>(mztrafomodel_class, "MODELTYPE")
         .value("LINEAR", OpenMS::MZTrafoModel::MODELTYPE::LINEAR)
         .value("LINEAR_WEIGHTED", OpenMS::MZTrafoModel::MODELTYPE::LINEAR_WEIGHTED)
         .value("QUADRATIC", OpenMS::MZTrafoModel::MODELTYPE::QUADRATIC)

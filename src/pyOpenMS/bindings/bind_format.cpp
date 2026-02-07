@@ -92,7 +92,7 @@ NB_MODULE(_pyopenms_format, m) {
         .def_static("decodeStrings", [](const OpenMS::String& in, bool zlib_compression) { std::vector<OpenMS::String> out; OpenMS::Base64::decodeStrings(in, out, zlib_compression); return out; }, "in"_a, "zlib_compression"_a, "Decodes a Base64 string to a vector of (null-terminated) strings")
         ;
     // ByteOrder enum nested under Base64
-    nb::enum_<OpenMS::Base64::ByteOrder>(base64_class, "ByteOrder", nb::is_arithmetic())
+    nb::enum_<OpenMS::Base64::ByteOrder>(base64_class, "ByteOrder")
         .value("BYTEORDER_BIGENDIAN", OpenMS::Base64::ByteOrder::BYTEORDER_BIGENDIAN)
         .value("BYTEORDER_LITTLEENDIAN", OpenMS::Base64::ByteOrder::BYTEORDER_LITTLEENDIAN)
         .export_values();
@@ -319,7 +319,7 @@ Determines the file type based on the file content
         .def_static("typeToMZML", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToMZML(type); }, "type"_a, "Returns the mzML name")
         ;
     // FileType enum nested under FileTypes
-    nb::enum_<OpenMS::FileTypes::Type>(filetypes_class, "FileType", nb::is_arithmetic())
+    nb::enum_<OpenMS::FileTypes::Type>(filetypes_class, "FileType")
         .value("UNKNOWN", OpenMS::FileTypes::Type::UNKNOWN)
         .value("DTA", OpenMS::FileTypes::Type::DTA)
         .value("DTA2D", OpenMS::FileTypes::Type::DTA2D)
@@ -630,7 +630,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         }, "in"_a, "out"_a, "config"_a, "Decode raw numpress byte array to vector of doubles")
         ;
     // NumpressCompression enum nested under MSNumpressCoder
-    nb::enum_<OpenMS::MSNumpressCoder::NumpressCompression>(msnumpresscoder_class, "NumpressCompression", nb::is_arithmetic())
+    nb::enum_<OpenMS::MSNumpressCoder::NumpressCompression>(msnumpresscoder_class, "NumpressCompression")
         .value("NONE", OpenMS::MSNumpressCoder::NumpressCompression::NONE)
         .value("LINEAR", OpenMS::MSNumpressCoder::NumpressCompression::LINEAR)
         .value("PIC", OpenMS::MSNumpressCoder::NumpressCompression::PIC)
@@ -865,7 +865,7 @@ unrecognized_keys: Unrecognized header keys preserved for round-trip
         .def_rw("unrecognized_keys", &OpenMS::PEFFDatabaseMetadata::unrecognized_keys)
         ;
     // SequenceType enum nested under PEFFDatabaseMetadata
-    nb::enum_<OpenMS::PEFFDatabaseMetadata::SequenceType>(peffdatabasemetadata_class, "SequenceType", nb::is_arithmetic())
+    nb::enum_<OpenMS::PEFFDatabaseMetadata::SequenceType>(peffdatabasemetadata_class, "SequenceType")
         .value("AA", OpenMS::PEFFDatabaseMetadata::SequenceType::AA)
         .value("NA", OpenMS::PEFFDatabaseMetadata::SequenceType::NA)
         ;
@@ -976,7 +976,7 @@ type: Modification type (PSI_MOD, UNIMOD, or GENERIC)
         .def_rw("type", &OpenMS::PEFFModification::type)
         ;
     // ModificationType enum nested under PEFFModification
-    nb::enum_<OpenMS::PEFFModification::Type>(peffmodification_class, "ModificationType", nb::is_arithmetic())
+    nb::enum_<OpenMS::PEFFModification::Type>(peffmodification_class, "ModificationType")
         .value("PSI_MOD", OpenMS::PEFFModification::Type::PSI_MOD)
         .value("UNIMOD", OpenMS::PEFFModification::Type::UNIMOD)
         .value("GENERIC", OpenMS::PEFFModification::Type::GENERIC)
@@ -1243,7 +1243,7 @@ For PSM-level output, the file extension should be ".psms"
         .def("load", [](OpenMS::PercolatorOutfile& self, const OpenMS::String& filename, OpenMS::ProteinIdentification& proteins, OpenMS::PeptideIdentificationList& peptides, OpenMS::SpectrumMetaDataLookup& lookup, OpenMS::PercolatorOutfile::ScoreType output_score) { return self.load(filename, proteins, peptides, lookup, output_score); }, "filename"_a, "proteins"_a, "peptides"_a, "lookup"_a, "output_score"_a, "Loads a Percolator output file")
         ;
     // ScoreType enum nested under PercolatorOutfile
-    nb::enum_<OpenMS::PercolatorOutfile::ScoreType>(percolatoroutfile_class, "ScoreType", nb::is_arithmetic())
+    nb::enum_<OpenMS::PercolatorOutfile::ScoreType>(percolatoroutfile_class, "ScoreType")
         .value("QVALUE", OpenMS::PercolatorOutfile::ScoreType::QVALUE)
         .value("POSTERRPROB", OpenMS::PercolatorOutfile::ScoreType::POSTERRPROB)
         .value("SCORE", OpenMS::PercolatorOutfile::ScoreType::SCORE)

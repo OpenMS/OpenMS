@@ -112,7 +112,7 @@ NB_MODULE(_pyopenms_kernel, m) {
     // -----------------------------------------------------------------------
     // DriftTimeUnit
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::DriftTimeUnit>(m, "DriftTimeUnit", nb::is_arithmetic())
+    nb::enum_<OpenMS::DriftTimeUnit>(m, "DriftTimeUnit")
         .value("NONE", OpenMS::DriftTimeUnit::NONE)
         .value("MILLISECOND", OpenMS::DriftTimeUnit::MILLISECOND)
         .value("VSSC", OpenMS::DriftTimeUnit::VSSC)
@@ -123,7 +123,7 @@ NB_MODULE(_pyopenms_kernel, m) {
     // -----------------------------------------------------------------------
     // IMFormat
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::IMFormat>(m, "IMFormat", nb::is_arithmetic())
+    nb::enum_<OpenMS::IMFormat>(m, "IMFormat")
         .value("NONE", OpenMS::IMFormat::NONE)
         .value("CONCATENATED", OpenMS::IMFormat::CONCATENATED)
         .value("MULTIPLE_SPECTRA", OpenMS::IMFormat::MULTIPLE_SPECTRA)
@@ -613,7 +613,7 @@ about a single chromatogram.
         .def("__hash__", [](const OpenMS::ChromatogramSettings& self) { return std::hash<OpenMS::ChromatogramSettings>{}(self); })
         ;
     // ChromatogramType enum nested under ChromatogramSettings
-    nb::enum_<OpenMS::ChromatogramSettings::ChromatogramType>(chromatogramsettings_class, "ChromatogramType", nb::is_arithmetic())
+    nb::enum_<OpenMS::ChromatogramSettings::ChromatogramType>(chromatogramsettings_class, "ChromatogramType")
         .value("MASS_CHROMATOGRAM", OpenMS::ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM)
         .value("TOTAL_ION_CURRENT_CHROMATOGRAM", OpenMS::ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM)
         .value("SELECTED_ION_CURRENT_CHROMATOGRAM", OpenMS::ChromatogramSettings::ChromatogramType::SELECTED_ION_CURRENT_CHROMATOGRAM)
@@ -811,7 +811,7 @@ MetaInfoInterface
         .def("clearMetaInfo", [](OpenMS::DataProcessing& self) { self.clearMetaInfo(); }, "Removes all meta values")
         ;
     // ProcessingAction enum nested under DataProcessing
-    nb::enum_<OpenMS::DataProcessing::ProcessingAction>(dataprocessing_class, "ProcessingAction", nb::is_arithmetic())
+    nb::enum_<OpenMS::DataProcessing::ProcessingAction>(dataprocessing_class, "ProcessingAction")
         .value("DATA_PROCESSING", OpenMS::DataProcessing::ProcessingAction::DATA_PROCESSING)
         .value("CHARGE_DECONVOLUTION", OpenMS::DataProcessing::ProcessingAction::CHARGE_DECONVOLUTION)
         .value("DEISOTOPING", OpenMS::DataProcessing::ProcessingAction::DEISOTOPING)
@@ -974,7 +974,7 @@ Description of a MS instrument
         .def_rw("id", &OpenMS::TargetedExperimentHelper::Instrument::id)
         ;
     // IonOpticsType enum nested under Instrument
-    nb::enum_<OpenMS::Instrument::IonOpticsType>(instrument_class, "IonOpticsType", nb::is_arithmetic())
+    nb::enum_<OpenMS::Instrument::IonOpticsType>(instrument_class, "IonOpticsType")
         .value("UNKNOWN", OpenMS::Instrument::IonOpticsType::UNKNOWN)
         .value("MAGNETIC_DEFLECTION", OpenMS::Instrument::IonOpticsType::MAGNETIC_DEFLECTION)
         .value("DELAYED_EXTRACTION", OpenMS::Instrument::IonOpticsType::DELAYED_EXTRACTION)
@@ -1035,7 +1035,7 @@ MetaInfoInterface
         .def("clearMetaInfo", [](OpenMS::InstrumentSettings& self) { self.clearMetaInfo(); }, "Removes all meta values")
         ;
     // ScanMode enum nested under InstrumentSettings
-    nb::enum_<OpenMS::InstrumentSettings::ScanMode>(instrumentsettings_class, "ScanMode", nb::is_arithmetic())
+    nb::enum_<OpenMS::InstrumentSettings::ScanMode>(instrumentsettings_class, "ScanMode")
         .value("UNKNOWN", OpenMS::InstrumentSettings::ScanMode::UNKNOWN)
         .value("MASSSPECTRUM", OpenMS::InstrumentSettings::ScanMode::MASSSPECTRUM)
         .value("MS1SPECTRUM", OpenMS::InstrumentSettings::ScanMode::MS1SPECTRUM)
@@ -1107,7 +1107,7 @@ MetaInfoInterface
         .def("__hash__", [](const OpenMS::IonDetector& self) { return std::hash<OpenMS::IonDetector>{}(self); })
         ;
     // Type enum nested under IonDetector
-    nb::enum_<OpenMS::IonDetector::Type>(iondetector_class, "Type", nb::is_arithmetic())
+    nb::enum_<OpenMS::IonDetector::Type>(iondetector_class, "Type")
         .value("TYPENULL", OpenMS::IonDetector::Type::TYPENULL)
         .value("ELECTRONMULTIPLIER", OpenMS::IonDetector::Type::ELECTRONMULTIPLIER)
         .value("PHOTOMULTIPLIER", OpenMS::IonDetector::Type::PHOTOMULTIPLIER)
@@ -1133,7 +1133,7 @@ MetaInfoInterface
         .value("SIZE_OF_TYPE", OpenMS::IonDetector::Type::SIZE_OF_TYPE)
         ;
     // AcquisitionMode enum nested under IonDetector
-    nb::enum_<OpenMS::IonDetector::AcquisitionMode>(iondetector_class, "AcquisitionMode", nb::is_arithmetic())
+    nb::enum_<OpenMS::IonDetector::AcquisitionMode>(iondetector_class, "AcquisitionMode")
         .value("ACQMODENULL", OpenMS::IonDetector::AcquisitionMode::ACQMODENULL)
         .value("PULSECOUNTING", OpenMS::IonDetector::AcquisitionMode::PULSECOUNTING)
         .value("ADC", OpenMS::IonDetector::AcquisitionMode::ADC)
@@ -1196,14 +1196,14 @@ MetaInfoInterface
         .def("__hash__", [](const OpenMS::IonSource& self) { return std::hash<OpenMS::IonSource>{}(self); })
         ;
     // Polarity enum nested under IonSource
-    nb::enum_<OpenMS::IonSource::Polarity>(ionsource_class, "Polarity", nb::is_arithmetic())
+    nb::enum_<OpenMS::IonSource::Polarity>(ionsource_class, "Polarity")
         .value("POLNULL", OpenMS::IonSource::Polarity::POLNULL)
         .value("POSITIVE", OpenMS::IonSource::Polarity::POSITIVE)
         .value("NEGATIVE", OpenMS::IonSource::Polarity::NEGATIVE)
         .value("SIZE_OF_POLARITY", OpenMS::IonSource::Polarity::SIZE_OF_POLARITY)
         ;
     // InletType enum nested under IonSource
-    nb::enum_<OpenMS::IonSource::InletType>(ionsource_class, "InletType", nb::is_arithmetic())
+    nb::enum_<OpenMS::IonSource::InletType>(ionsource_class, "InletType")
         .value("INLETNULL", OpenMS::IonSource::InletType::INLETNULL)
         .value("DIRECT", OpenMS::IonSource::InletType::DIRECT)
         .value("BATCH", OpenMS::IonSource::InletType::BATCH)
@@ -1227,7 +1227,7 @@ MetaInfoInterface
         .value("SIZE_OF_INLETTYPE", OpenMS::IonSource::InletType::SIZE_OF_INLETTYPE)
         ;
     // IonizationMethod enum nested under IonSource
-    nb::enum_<OpenMS::IonSource::IonizationMethod>(ionsource_class, "IonizationMethod", nb::is_arithmetic())
+    nb::enum_<OpenMS::IonSource::IonizationMethod>(ionsource_class, "IonizationMethod")
         .value("IONMETHODNULL", OpenMS::IonSource::IonizationMethod::IONMETHODNULL)
         .value("ESI", OpenMS::IonSource::IonizationMethod::ESI)
         .value("EI", OpenMS::IonSource::IonizationMethod::EI)
@@ -1590,7 +1590,7 @@ mz, intensities = spectrum.get_peaks()
            "Rasterize peak data into a 2D intensity matrix. Output shape is [mz_bins, rt_bins].")
         ;
     // MSExperimentRasterAggregation enum nested under MSExperiment
-    nb::enum_<OpenMS::MSExperiment::RasterAggregation>(msexperiment_class, "MSExperimentRasterAggregation", nb::is_arithmetic())
+    nb::enum_<OpenMS::MSExperiment::RasterAggregation>(msexperiment_class, "MSExperimentRasterAggregation")
         .value("SUM", OpenMS::MSExperiment::RasterAggregation::SUM)
         .value("MAX", OpenMS::MSExperiment::RasterAggregation::MAX)
         ;
@@ -1680,7 +1680,7 @@ MetaInfoInterface
         .def("__hash__", [](const OpenMS::MassAnalyzer& self) { return std::hash<OpenMS::MassAnalyzer>{}(self); })
         ;
     // AnalyzerType enum nested under MassAnalyzer
-    nb::enum_<OpenMS::MassAnalyzer::AnalyzerType>(massanalyzer_class, "AnalyzerType", nb::is_arithmetic())
+    nb::enum_<OpenMS::MassAnalyzer::AnalyzerType>(massanalyzer_class, "AnalyzerType")
         .value("ANALYZERNULL", OpenMS::MassAnalyzer::AnalyzerType::ANALYZERNULL)
         .value("QUADRUPOLE", OpenMS::MassAnalyzer::AnalyzerType::QUADRUPOLE)
         .value("PAULIONTRAP", OpenMS::MassAnalyzer::AnalyzerType::PAULIONTRAP)
@@ -1699,7 +1699,7 @@ MetaInfoInterface
         .value("SIZE_OF_ANALYZERTYPE", OpenMS::MassAnalyzer::AnalyzerType::SIZE_OF_ANALYZERTYPE)
         ;
     // ResolutionMethod enum nested under MassAnalyzer
-    nb::enum_<OpenMS::MassAnalyzer::ResolutionMethod>(massanalyzer_class, "ResolutionMethod", nb::is_arithmetic())
+    nb::enum_<OpenMS::MassAnalyzer::ResolutionMethod>(massanalyzer_class, "ResolutionMethod")
         .value("RESMETHNULL", OpenMS::MassAnalyzer::ResolutionMethod::RESMETHNULL)
         .value("FWHM", OpenMS::MassAnalyzer::ResolutionMethod::FWHM)
         .value("TENPERCENTVALLEY", OpenMS::MassAnalyzer::ResolutionMethod::TENPERCENTVALLEY)
@@ -1707,21 +1707,21 @@ MetaInfoInterface
         .value("SIZE_OF_RESOLUTIONMETHOD", OpenMS::MassAnalyzer::ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD)
         ;
     // ResolutionType enum nested under MassAnalyzer
-    nb::enum_<OpenMS::MassAnalyzer::ResolutionType>(massanalyzer_class, "ResolutionType", nb::is_arithmetic())
+    nb::enum_<OpenMS::MassAnalyzer::ResolutionType>(massanalyzer_class, "ResolutionType")
         .value("RESTYPENULL", OpenMS::MassAnalyzer::ResolutionType::RESTYPENULL)
         .value("CONSTANT", OpenMS::MassAnalyzer::ResolutionType::CONSTANT)
         .value("PROPORTIONAL", OpenMS::MassAnalyzer::ResolutionType::PROPORTIONAL)
         .value("SIZE_OF_RESOLUTIONTYPE", OpenMS::MassAnalyzer::ResolutionType::SIZE_OF_RESOLUTIONTYPE)
         ;
     // ScanDirection enum nested under MassAnalyzer
-    nb::enum_<OpenMS::MassAnalyzer::ScanDirection>(massanalyzer_class, "ScanDirection", nb::is_arithmetic())
+    nb::enum_<OpenMS::MassAnalyzer::ScanDirection>(massanalyzer_class, "ScanDirection")
         .value("SCANDIRNULL", OpenMS::MassAnalyzer::ScanDirection::SCANDIRNULL)
         .value("UP", OpenMS::MassAnalyzer::ScanDirection::UP)
         .value("DOWN", OpenMS::MassAnalyzer::ScanDirection::DOWN)
         .value("SIZE_OF_SCANDIRECTION", OpenMS::MassAnalyzer::ScanDirection::SIZE_OF_SCANDIRECTION)
         ;
     // ScanLaw enum nested under MassAnalyzer
-    nb::enum_<OpenMS::MassAnalyzer::ScanLaw>(massanalyzer_class, "ScanLaw", nb::is_arithmetic())
+    nb::enum_<OpenMS::MassAnalyzer::ScanLaw>(massanalyzer_class, "ScanLaw")
         .value("SCANLAWNULL", OpenMS::MassAnalyzer::ScanLaw::SCANLAWNULL)
         .value("EXPONENTIAL", OpenMS::MassAnalyzer::ScanLaw::EXPONENTIAL)
         .value("LINEAR", OpenMS::MassAnalyzer::ScanLaw::LINEAR)
@@ -1729,7 +1729,7 @@ MetaInfoInterface
         .value("SIZE_OF_SCANLAW", OpenMS::MassAnalyzer::ScanLaw::SIZE_OF_SCANLAW)
         ;
     // ReflectronState enum nested under MassAnalyzer
-    nb::enum_<OpenMS::MassAnalyzer::ReflectronState>(massanalyzer_class, "ReflectronState", nb::is_arithmetic())
+    nb::enum_<OpenMS::MassAnalyzer::ReflectronState>(massanalyzer_class, "ReflectronState")
         .value("REFLSTATENULL", OpenMS::MassAnalyzer::ReflectronState::REFLSTATENULL)
         .value("ON", OpenMS::MassAnalyzer::ReflectronState::ON)
         .value("OFF", OpenMS::MassAnalyzer::ReflectronState::OFF)
@@ -2252,7 +2252,7 @@ If you want to annotated single peaks with meta data, use RichPeak2D instead
         })
         ;
     // DimensionDescription enum nested under Peak2D
-    nb::enum_<OpenMS::Peak2D::DimensionDescription>(peak2d_class, "DimensionDescription", nb::is_arithmetic())
+    nb::enum_<OpenMS::Peak2D::DimensionDescription>(peak2d_class, "DimensionDescription")
         .value("RT", OpenMS::Peak2D::DimensionDescription::RT)
         .value("MZ", OpenMS::Peak2D::DimensionDescription::MZ)
         .value("DIMENSION", OpenMS::Peak2D::DimensionDescription::DIMENSION)
@@ -2706,7 +2706,7 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
         .def("__hash__", [](const OpenMS::Precursor& self) { return std::hash<OpenMS::Precursor>{}(self); })
         ;
     // ActivationMethod enum nested under Precursor
-    nb::enum_<OpenMS::Precursor::ActivationMethod>(precursor_class, "ActivationMethod", nb::is_arithmetic())
+    nb::enum_<OpenMS::Precursor::ActivationMethod>(precursor_class, "ActivationMethod")
         .value("CID", OpenMS::Precursor::ActivationMethod::CID)
         .value("PSD", OpenMS::Precursor::ActivationMethod::PSD)
         .value("PD", OpenMS::Precursor::ActivationMethod::PD)
@@ -3005,7 +3005,7 @@ MetaInfoInterface
         .def("__hash__", [](const OpenMS::ProteinIdentification& self) { return std::hash<OpenMS::ProteinIdentification>{}(self); })
         ;
     // PeakMassType enum nested under ProteinIdentification
-    nb::enum_<OpenMS::ProteinIdentification::PeakMassType>(proteinidentification_class, "PeakMassType", nb::is_arithmetic())
+    nb::enum_<OpenMS::ProteinIdentification::PeakMassType>(proteinidentification_class, "PeakMassType")
         .value("MONOISOTOPIC", OpenMS::ProteinIdentification::PeakMassType::MONOISOTOPIC)
         .value("AVERAGE", OpenMS::ProteinIdentification::PeakMassType::AVERAGE)
         .value("SIZE_OF_PEAKMASSTYPE", OpenMS::ProteinIdentification::PeakMassType::SIZE_OF_PEAKMASSTYPE)
@@ -3223,7 +3223,7 @@ uninitialized
         .def("__hash__", [](const OpenMS::ReactionMonitoringTransition& self) { return std::hash<OpenMS::ReactionMonitoringTransition>{}(self); })
         ;
     // DecoyTransitionType enum nested under ReactionMonitoringTransition
-    nb::enum_<OpenMS::ReactionMonitoringTransition::DecoyTransitionType>(reactionmonitoringtransition_class, "DecoyTransitionType", nb::is_arithmetic())
+    nb::enum_<OpenMS::ReactionMonitoringTransition::DecoyTransitionType>(reactionmonitoringtransition_class, "DecoyTransitionType")
         .value("UNKNOWN", OpenMS::ReactionMonitoringTransition::DecoyTransitionType::UNKNOWN)
         .value("TARGET", OpenMS::ReactionMonitoringTransition::DecoyTransitionType::TARGET)
         .value("DECOY", OpenMS::ReactionMonitoringTransition::DecoyTransitionType::DECOY)
@@ -3332,7 +3332,7 @@ Returns the comment (default "")
         .def("clearMetaInfo", [](OpenMS::Sample& self) { self.clearMetaInfo(); }, "Removes all meta values")
         ;
     // SampleState enum nested under Sample
-    nb::enum_<OpenMS::Sample::SampleState>(sample_class, "SampleState", nb::is_arithmetic())
+    nb::enum_<OpenMS::Sample::SampleState>(sample_class, "SampleState")
         .value("SAMPLENULL", OpenMS::Sample::SampleState::SAMPLENULL)
         .value("SOLID", OpenMS::Sample::SampleState::SOLID)
         .value("LIQUID", OpenMS::Sample::SampleState::LIQUID)
@@ -3444,7 +3444,7 @@ Returns the comment (default "")
         .def("setNativeIDTypeAccession", [](OpenMS::SourceFile& self, const OpenMS::String& accesssion) { return self.setNativeIDTypeAccession(accesssion); }, "accesssion"_a, "Sets the native ID of the spectra")
         ;
     // ChecksumType enum nested under SourceFile
-    nb::enum_<OpenMS::SourceFile::ChecksumType>(sourcefile_class, "ChecksumType", nb::is_arithmetic())
+    nb::enum_<OpenMS::SourceFile::ChecksumType>(sourcefile_class, "ChecksumType")
         .value("UNKNOWN_CHECKSUM", OpenMS::SourceFile::ChecksumType::UNKNOWN_CHECKSUM)
         .value("SHA1", OpenMS::SourceFile::ChecksumType::SHA1)
         .value("MD5", OpenMS::SourceFile::ChecksumType::MD5)
@@ -3535,7 +3535,7 @@ MetaInfoInterface
         .def("__hash__", [](const OpenMS::SpectrumSettings& self) { return std::hash<OpenMS::SpectrumSettings>{}(self); })
         ;
     // SpectrumType enum nested under SpectrumSettings
-    nb::enum_<OpenMS::SpectrumSettings::SpectrumType>(spectrumsettings_class, "SpectrumType", nb::is_arithmetic())
+    nb::enum_<OpenMS::SpectrumSettings::SpectrumType>(spectrumsettings_class, "SpectrumType")
         .value("UNKNOWN", OpenMS::SpectrumSettings::SpectrumType::UNKNOWN)
         .value("CENTROID", OpenMS::SpectrumSettings::SpectrumType::CENTROID)
         .value("PROFILE", OpenMS::SpectrumSettings::SpectrumType::PROFILE)
@@ -3831,7 +3831,7 @@ MzMLFile().store("testfile.mzML", exp)
         }, "n"_a, "Resizes the spectrum to contain n peaks")
         ;
     // MSSpectrumRasterAggregation enum nested under MSSpectrum
-    nb::enum_<OpenMS::MSSpectrum::RasterAggregation>(msspectrum_class, "MSSpectrumRasterAggregation", nb::is_arithmetic())
+    nb::enum_<OpenMS::MSSpectrum::RasterAggregation>(msspectrum_class, "MSSpectrumRasterAggregation")
         .value("SUM", OpenMS::MSSpectrum::RasterAggregation::SUM)
         .value("MAX", OpenMS::MSSpectrum::RasterAggregation::MAX)
         ;
@@ -4429,7 +4429,7 @@ RichPeak2D
         .def("ensureUniqueId", [](OpenMS::BaseFeature& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id if the current one is invalid")
         ;
     // AnnotationState enum nested under BaseFeature
-    nb::enum_<OpenMS::BaseFeature::AnnotationState>(basefeature_class, "AnnotationState", nb::is_arithmetic())
+    nb::enum_<OpenMS::BaseFeature::AnnotationState>(basefeature_class, "AnnotationState")
         .value("FEATURE_ID_NONE", OpenMS::BaseFeature::AnnotationState::FEATURE_ID_NONE)
         .value("FEATURE_ID_SINGLE", OpenMS::BaseFeature::AnnotationState::FEATURE_ID_SINGLE)
         .value("FEATURE_ID_MULTIPLE_SAME", OpenMS::BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_SAME)
