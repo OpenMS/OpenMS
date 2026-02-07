@@ -77,7 +77,7 @@ Fitter for RT profiles using a Gaussian background model * *
         .def("getValue", [](const OpenMS::GaussTraceFitter& self, double rt) { return self.getValue(rt); }, "rt"_a, "Returns value of the fitted gaussian model")
         .def("getArea", [](OpenMS::GaussTraceFitter& self) { return self.getArea(); }, "Returns area of the fitted gaussian model")
         .def("getGnuplotFormula", [](OpenMS::GaussTraceFitter& self, const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, char function_name, double baseline, double rt_shift) { return self.getGnuplotFormula(trace, function_name, baseline, rt_shift); }, "trace"_a, "function_name"_a, "baseline"_a, "rt_shift"_a)
-        .def("computeTheoretical", [](const OpenMS::GaussTraceFitter& self, const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, unsigned long k) { return self.computeTheoretical(trace, k); }, "trace"_a, "k"_a)
+        .def("computeTheoretical", [](const OpenMS::GaussTraceFitter& self, const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, size_t k) { return self.computeTheoretical(trace, k); }, "trace"_a, "k"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -247,8 +247,8 @@ with three isotopic peaks we expect peaks * at relative m/z shifts of
         .def("getMassShifts", [](const OpenMS::MultiplexIsotopicPeakPattern& self) { return self.getMassShifts(); }, "Returns mass shifts")
         .def("getMassShiftIndex", [](const OpenMS::MultiplexIsotopicPeakPattern& self) { return self.getMassShiftIndex(); }, "Returns mass shift index")
         .def("getMassShiftCount", [](const OpenMS::MultiplexIsotopicPeakPattern& self) { return self.getMassShiftCount(); }, "Returns number of mass shifts i.e. the number of peptides in the multiplet")
-        .def("getMassShiftAt", [](const OpenMS::MultiplexIsotopicPeakPattern& self, unsigned long i) { return self.getMassShiftAt(i); }, "i"_a, "Returns mass shift at position i")
-        .def("getMZShiftAt", [](const OpenMS::MultiplexIsotopicPeakPattern& self, unsigned long i) { return self.getMZShiftAt(i); }, "i"_a, "Returns m/z shift at position i")
+        .def("getMassShiftAt", [](const OpenMS::MultiplexIsotopicPeakPattern& self, size_t i) { return self.getMassShiftAt(i); }, "i"_a, "Returns mass shift at position i")
+        .def("getMZShiftAt", [](const OpenMS::MultiplexIsotopicPeakPattern& self, size_t i) { return self.getMZShiftAt(i); }, "i"_a, "Returns m/z shift at position i")
         .def("getMZShiftCount", [](const OpenMS::MultiplexIsotopicPeakPattern& self) { return self.getMZShiftCount(); }, "Returns number of m/z shifts")
         ;
 

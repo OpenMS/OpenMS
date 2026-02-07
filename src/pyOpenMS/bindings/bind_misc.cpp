@@ -407,8 +407,8 @@ Abstract base class for all ConsensusID algorithms (that calculate a
 consensus from multiple ID runs)
 DefaultParamHandler
 )doc")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, unsigned long number_of_runs) { return self.apply(ids, number_of_runs); }, "ids"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, size_t number_of_runs) { return self.apply(ids, number_of_runs); }, "ids"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("setParameters", [](OpenMS::ConsensusIDAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ConsensusIDAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -426,7 +426,7 @@ Abstract base class for ConsensusID algorithms that compare only
 identical sequences
 ConsensusIDAlgorithm
 )doc")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmIdentity& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithmIdentity& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("setParameters", [](OpenMS::ConsensusIDAlgorithmIdentity& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmIdentity& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmIdentity& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -445,7 +445,7 @@ scores
 ConsensusIDAlgorithmIdentity
 )doc")
         .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmAverage& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithmAverage& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("setParameters", [](OpenMS::ConsensusIDAlgorithmAverage& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmAverage& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmAverage& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -464,7 +464,7 @@ search score
 ConsensusIDAlgorithmIdentity
 )doc")
         .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmBest& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithmBest& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("setParameters", [](OpenMS::ConsensusIDAlgorithmBest& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmBest& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmBest& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -483,7 +483,7 @@ the search hits
 ConsensusIDAlgorithmIdentity
 )doc")
         .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmRanks& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithmRanks& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("setParameters", [](OpenMS::ConsensusIDAlgorithmRanks& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmRanks& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmRanks& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -501,7 +501,7 @@ Abstract base class for ConsensusID algorithms that take peptide
 similarity into account
 ConsensusIDAlgorithm
 )doc")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmSimilarity& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithmSimilarity& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("setParameters", [](OpenMS::ConsensusIDAlgorithmSimilarity& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmSimilarity& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmSimilarity& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -520,7 +520,7 @@ ions
 ConsensusIDAlgorithmSimilarity
 )doc")
         .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmPEPIons& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithmPEPIons& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("setParameters", [](OpenMS::ConsensusIDAlgorithmPEPIons& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmPEPIons& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmPEPIons& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -539,7 +539,7 @@ sequence similarities
 ConsensusIDAlgorithmSimilarity
 )doc")
         .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmPEPMatrix& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithmPEPMatrix& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("setParameters", [](OpenMS::ConsensusIDAlgorithmPEPMatrix& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmPEPMatrix& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmPEPMatrix& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -558,7 +558,7 @@ search score (conservative approach)
 ConsensusIDAlgorithmIdentity
 )doc")
         .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmWorst& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, unsigned long number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
+        .def("apply", [](OpenMS::ConsensusIDAlgorithmWorst& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("setParameters", [](OpenMS::ConsensusIDAlgorithmWorst& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmWorst& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmWorst& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -1158,25 +1158,25 @@ Determines whether a higher score type is better given an IDType enum
 :param score_type: The score type to check
 :returns: True if a higher score type is better
 )doc")
-        .def("switchToGeneralScoreType", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::PeptideIdentificationList& pep_ids, OpenMS::Scores::IDType type, unsigned long& counter) { return self.switchToGeneralScoreType(pep_ids, type, counter); }, "pep_ids"_a, "type"_a, "counter"_a, 
+        .def("switchToGeneralScoreType", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::PeptideIdentificationList& pep_ids, OpenMS::Scores::IDType type, size_t counter) { self.switchToGeneralScoreType(pep_ids, type, counter); return counter; }, "pep_ids"_a, "type"_a, "counter"_a,
             R"doc(
 Gets a vector of all score names that are used in OpenMS
 :returns: A vector of all score names (e.g., "q-value", "ln(hyperscore)")
 )doc")
-        .def("switchToGeneralScoreType", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::ConsensusMap& cmap, OpenMS::Scores::IDType type, unsigned long& counter, bool unassigned_peptides_too) { return self.switchToGeneralScoreType(cmap, type, counter, unassigned_peptides_too); }, "cmap"_a, "type"_a, "counter"_a, "unassigned_peptides_too"_a = true, 
+        .def("switchToGeneralScoreType", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::ConsensusMap& cmap, OpenMS::Scores::IDType type, size_t counter, bool unassigned_peptides_too) { self.switchToGeneralScoreType(cmap, type, counter, unassigned_peptides_too); return counter; }, "cmap"_a, "type"_a, "counter"_a, "unassigned_peptides_too"_a = true,
             R"doc(
 Switches the score type of a PeptideIdentificationList to a general score type
 :param pep_ids: The PeptideIdentificationList whose scores need to be switched
 :param type: The desired general score type to switch to
 :param counter: A reference to a counter that will be incremented for each peptide identification processed
 )doc")
-        .def("switchScores", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::ConsensusMap& cmap, unsigned long& counter, bool unassigned_peptides_too) { return self.switchScores(cmap, counter, unassigned_peptides_too); }, "cmap"_a, "counter"_a, "unassigned_peptides_too"_a = true, 
+        .def("switchScores", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::ConsensusMap& cmap, size_t counter, bool unassigned_peptides_too) { self.switchScores(cmap, counter, unassigned_peptides_too); return counter; }, "cmap"_a, "counter"_a, "unassigned_peptides_too"_a = true,
             R"doc(
 Switches the scores of peptide identifications
 :param pep_ids: The peptide identifications whose scores need to be switched
 :param counter: A reference to a counter that will be incremented for each peptide identification processed
 )doc")
-        .def("switchScores", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::PeptideIdentificationList& pep_ids, unsigned long& counter) { return self.switchScores(pep_ids, counter); }, "pep_ids"_a, "counter"_a, 
+        .def("switchScores", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::PeptideIdentificationList& pep_ids, size_t counter) { self.switchScores(pep_ids, counter); return counter; }, "pep_ids"_a, "counter"_a,
             R"doc(
 Switches the score type of a ConsensusMap to a general score type
 :param cmap: The ConsensusMap containing peptide identifications whose scores need to be switched
@@ -1262,7 +1262,7 @@ Switches the score type of a ConsensusMap to a general score type
     nb::class_<OpenMS::Interfaces::IMSDataConsumer>(m, "IMSDataConsumer", "The interface of a consumer of spectra and chromatograms")
         .def("consumeSpectrum", [](OpenMS::Interfaces::IMSDataConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a, "Consume a spectrum. The spectrum will be consumed by the implementation and possibly modified")
         .def("consumeChromatogram", [](OpenMS::Interfaces::IMSDataConsumer& self, OpenMS::MSChromatogram& c) { return self.consumeChromatogram(c); }, "c"_a, "Consume a chromatogram. The chromatogram will be consumed by the implementation and possibly modified")
-        .def("setExpectedSize", [](OpenMS::Interfaces::IMSDataConsumer& self, unsigned long expectedSpectra, unsigned long expectedChromatograms) { return self.setExpectedSize(expectedSpectra, expectedChromatograms); }, "expectedSpectra"_a, "expectedChromatograms"_a)
+        .def("setExpectedSize", [](OpenMS::Interfaces::IMSDataConsumer& self, size_t expectedSpectra, size_t expectedChromatograms) { return self.setExpectedSize(expectedSpectra, expectedChromatograms); }, "expectedSpectra"_a, "expectedChromatograms"_a)
         .def("setExperimentalSettings", [](OpenMS::Interfaces::IMSDataConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a, 
             R"doc(
 Set expected size of spectra and chromatograms to be consumed\n
@@ -1463,18 +1463,18 @@ IsobaricQuantitationMethod
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::KDTreeFeatureMaps, OpenMS::DefaultParamHandler>(m, "KDTreeFeatureMaps", "OpenMS class KDTreeFeatureMaps")
         .def(nb::init<>())
-        .def("rt", [](const OpenMS::KDTreeFeatureMaps& self, unsigned long i) { return self.rt(i); }, "i"_a)
-        .def("mz", [](const OpenMS::KDTreeFeatureMaps& self, unsigned long i) { return self.mz(i); }, "i"_a)
-        .def("intensity", [](const OpenMS::KDTreeFeatureMaps& self, unsigned long i) { return self.intensity(i); }, "i"_a)
-        .def("charge", [](const OpenMS::KDTreeFeatureMaps& self, unsigned long i) { return self.charge(i); }, "i"_a)
-        .def("mapIndex", [](const OpenMS::KDTreeFeatureMaps& self, unsigned long i) { return self.mapIndex(i); }, "i"_a)
+        .def("rt", [](const OpenMS::KDTreeFeatureMaps& self, size_t i) { return self.rt(i); }, "i"_a)
+        .def("mz", [](const OpenMS::KDTreeFeatureMaps& self, size_t i) { return self.mz(i); }, "i"_a)
+        .def("intensity", [](const OpenMS::KDTreeFeatureMaps& self, size_t i) { return self.intensity(i); }, "i"_a)
+        .def("charge", [](const OpenMS::KDTreeFeatureMaps& self, size_t i) { return self.charge(i); }, "i"_a)
+        .def("mapIndex", [](const OpenMS::KDTreeFeatureMaps& self, size_t i) { return self.mapIndex(i); }, "i"_a)
         .def("size", [](const OpenMS::KDTreeFeatureMaps& self) { return self.size(); })
         .def("treeSize", [](const OpenMS::KDTreeFeatureMaps& self) { return self.treeSize(); })
         .def("numMaps", [](const OpenMS::KDTreeFeatureMaps& self) { return self.numMaps(); })
         .def("clear", [](OpenMS::KDTreeFeatureMaps& self) { return self.clear(); })
         .def("optimizeTree", [](OpenMS::KDTreeFeatureMaps& self) { return self.optimizeTree(); })
-        .def("getNeighborhood", [](const OpenMS::KDTreeFeatureMaps& self, unsigned long index, double rt_tol, double mz_tol, bool mz_ppm, bool include_features_from_same_map, double max_pairwise_log_fc) { std::vector<unsigned long> result_indices; self.getNeighborhood(index, result_indices, rt_tol, mz_tol, mz_ppm, include_features_from_same_map, max_pairwise_log_fc); return result_indices; }, "index"_a, "rt_tol"_a, "mz_tol"_a, "mz_ppm"_a, "include_features_from_same_map"_a, "max_pairwise_log_fc"_a, "Fill `result` with indices of all features compatible (wrt. RT, m/z, map index) to the feature with `index`")
-        .def("queryRegion", [](const OpenMS::KDTreeFeatureMaps& self, double rt_low, double rt_high, double mz_low, double mz_high, unsigned long ignored_map_index) { std::vector<unsigned long> result_indices; self.queryRegion(rt_low, rt_high, mz_low, mz_high, result_indices, ignored_map_index); return result_indices; }, "rt_low"_a, "rt_high"_a, "mz_low"_a, "mz_high"_a, "ignored_map_index"_a)
+        .def("getNeighborhood", [](const OpenMS::KDTreeFeatureMaps& self, size_t index, double rt_tol, double mz_tol, bool mz_ppm, bool include_features_from_same_map, double max_pairwise_log_fc) { std::vector<size_t> result_indices; self.getNeighborhood(index, result_indices, rt_tol, mz_tol, mz_ppm, include_features_from_same_map, max_pairwise_log_fc); return result_indices; }, "index"_a, "rt_tol"_a, "mz_tol"_a, "mz_ppm"_a, "include_features_from_same_map"_a, "max_pairwise_log_fc"_a, "Fill `result` with indices of all features compatible (wrt. RT, m/z, map index) to the feature with `index`")
+        .def("queryRegion", [](const OpenMS::KDTreeFeatureMaps& self, double rt_low, double rt_high, double mz_low, double mz_high, size_t ignored_map_index) { std::vector<size_t> result_indices; self.queryRegion(rt_low, rt_high, mz_low, mz_high, result_indices, ignored_map_index); return result_indices; }, "rt_low"_a, "rt_high"_a, "mz_low"_a, "mz_high"_a, "ignored_map_index"_a)
         .def("setParameters", [](OpenMS::KDTreeFeatureMaps& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::KDTreeFeatureMaps& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::KDTreeFeatureMaps& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -1659,7 +1659,7 @@ DefaultParamHandler
     // MSDataAggregatingConsumer
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MSDataAggregatingConsumer, OpenMS::Interfaces::IMSDataConsumer>(m, "MSDataAggregatingConsumer", "Aggregates spectra by retention time")
-        .def("setExpectedSize", [](OpenMS::MSDataAggregatingConsumer& self, unsigned long p0, unsigned long p1) { return self.setExpectedSize(p0, p1); })
+        .def("setExpectedSize", [](OpenMS::MSDataAggregatingConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
         .def("consumeSpectrum", [](OpenMS::MSDataAggregatingConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a)
         .def("consumeChromatogram", [](OpenMS::MSDataAggregatingConsumer& self, OpenMS::MSChromatogram& c) { return self.consumeChromatogram(c); }, "c"_a)
         .def("setExperimentalSettings", [](OpenMS::MSDataAggregatingConsumer& self, const OpenMS::ExperimentalSettings& p0) { return self.setExperimentalSettings(p0); })
@@ -1669,11 +1669,11 @@ DefaultParamHandler
     // MSDataSqlConsumer
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MSDataSqlConsumer, OpenMS::Interfaces::IMSDataConsumer>(m, "MSDataSqlConsumer", "A data consumer that inserts MS data into a SQLite database")
-        .def(nb::init<OpenMS::String, unsigned long, int, bool, bool, double>())
+        .def(nb::init<OpenMS::String, size_t, int, bool, bool, double>())
         .def("flush", [](OpenMS::MSDataSqlConsumer& self) { return self.flush(); })
         .def("consumeSpectrum", [](OpenMS::MSDataSqlConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a, "Write a spectrum to the output file")
         .def("consumeChromatogram", [](OpenMS::MSDataSqlConsumer& self, OpenMS::MSChromatogram& c) { return self.consumeChromatogram(c); }, "c"_a, "Write a chromatogram to the output file")
-        .def("setExpectedSize", [](OpenMS::MSDataSqlConsumer& self, unsigned long p0, unsigned long p1) { return self.setExpectedSize(p0, p1); })
+        .def("setExpectedSize", [](OpenMS::MSDataSqlConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
         .def("setExperimentalSettings", [](OpenMS::MSDataSqlConsumer& self, const OpenMS::ExperimentalSettings& p0) { return self.setExperimentalSettings(p0); })
         ;
 
@@ -1688,7 +1688,7 @@ and the data can be accessed through getData()
 )doc")
         .def(nb::init<>())
         .def("setExperimentalSettings", [](OpenMS::MSDataStoringConsumer& self, const OpenMS::ExperimentalSettings& settings) { return self.setExperimentalSettings(settings); }, "settings"_a, "Sets experimental settings")
-        .def("setExpectedSize", [](OpenMS::MSDataStoringConsumer& self, unsigned long s_size, unsigned long c_size) { return self.setExpectedSize(s_size, c_size); }, "s_size"_a, "c_size"_a, "Sets expected size")
+        .def("setExpectedSize", [](OpenMS::MSDataStoringConsumer& self, size_t s_size, size_t c_size) { return self.setExpectedSize(s_size, c_size); }, "s_size"_a, "c_size"_a, "Sets expected size")
         .def("consumeSpectrum", [](OpenMS::MSDataStoringConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a)
         .def("consumeChromatogram", [](OpenMS::MSDataStoringConsumer& self, OpenMS::MSChromatogram& c) { return self.consumeChromatogram(c); }, "c"_a)
         .def("getData", [](const OpenMS::MSDataStoringConsumer& self) -> const OpenMS::MSExperiment & { return self.getData(); }, nb::rv_policy::reference_internal)
@@ -2065,7 +2065,7 @@ Use startProgress, setProgress and endProgress for the actual logging
         .def("getLogType", [](const OpenMS::ProgressLogger& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::ProgressLogger& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::ProgressLogger& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ProgressLogger& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::ProgressLogger& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::ProgressLogger& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
     // LogType enum nested under ProgressLogger
@@ -2087,8 +2087,8 @@ ProgressLogger
 )doc")
         .def(nb::init<>())
         .def("queryByMZ", [](const OpenMS::AccurateMassSearchEngine& self, const double& observed_mz, const int& observed_charge, const OpenMS::String& ion_mode, const OpenMS::EmpiricalFormula& observed_adduct) { std::vector<OpenMS::AccurateMassSearchResult> results; self.queryByMZ(observed_mz, observed_charge, ion_mode, results, observed_adduct); return results; }, "observed_mz"_a, "observed_charge"_a, "ion_mode"_a, "observed_adduct"_a)
-        .def("queryByFeature", [](const OpenMS::AccurateMassSearchEngine& self, const OpenMS::Feature& feature, const unsigned long& feature_index, const OpenMS::String& ion_mode) { std::vector<OpenMS::AccurateMassSearchResult> results; self.queryByFeature(feature, feature_index, ion_mode, results); return results; }, "feature"_a, "feature_index"_a, "ion_mode"_a)
-        .def("queryByConsensusFeature", [](const OpenMS::AccurateMassSearchEngine& self, const OpenMS::ConsensusFeature& cfeat, const unsigned long& cf_index, const unsigned long& number_of_maps, const OpenMS::String& ion_mode) { std::vector<OpenMS::AccurateMassSearchResult> results; self.queryByConsensusFeature(cfeat, cf_index, number_of_maps, ion_mode, results); return results; }, "cfeat"_a, "cf_index"_a, "number_of_maps"_a, "ion_mode"_a)
+        .def("queryByFeature", [](const OpenMS::AccurateMassSearchEngine& self, const OpenMS::Feature& feature, const size_t& feature_index, const OpenMS::String& ion_mode) { std::vector<OpenMS::AccurateMassSearchResult> results; self.queryByFeature(feature, feature_index, ion_mode, results); return results; }, "feature"_a, "feature_index"_a, "ion_mode"_a)
+        .def("queryByConsensusFeature", [](const OpenMS::AccurateMassSearchEngine& self, const OpenMS::ConsensusFeature& cfeat, const size_t& cf_index, const size_t& number_of_maps, const OpenMS::String& ion_mode) { std::vector<OpenMS::AccurateMassSearchResult> results; self.queryByConsensusFeature(cfeat, cf_index, number_of_maps, ion_mode, results); return results; }, "cfeat"_a, "cf_index"_a, "number_of_maps"_a, "ion_mode"_a)
         .def("run", [](const OpenMS::AccurateMassSearchEngine& self, OpenMS::FeatureMap& p0, OpenMS::MzTab& p1) { return self.run(p0, p1); })
         .def("run", [](const OpenMS::AccurateMassSearchEngine& self, OpenMS::FeatureMap& p0, OpenMS::MzTabM& p1) { return self.run(p0, p1); })
         .def("run", [](const OpenMS::AccurateMassSearchEngine& self, OpenMS::ConsensusMap& p0, OpenMS::MzTab& p1) { return self.run(p0, p1); })
@@ -2103,7 +2103,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::AccurateMassSearchEngine& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::AccurateMassSearchEngine& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::AccurateMassSearchEngine& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::AccurateMassSearchEngine& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::AccurateMassSearchEngine& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::AccurateMassSearchEngine& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2134,7 +2134,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::BaseGroupFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::BaseGroupFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::BaseGroupFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::BaseGroupFinder& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::BaseGroupFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::BaseGroupFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2206,7 +2206,7 @@ Performs basic aggregation-based inference on single ProteinIdentification run. 
         .def("getLogType", [](const OpenMS::BasicProteinInferenceAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
     // AggregationMethod enum nested under BasicProteinInferenceAlgorithm
@@ -2283,7 +2283,7 @@ Currently only takes first proteinID run and all peptides
         .def("getLogType", [](const OpenMS::BayesianProteinInferenceAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2301,13 +2301,13 @@ ProgressLogger
         .def("writeMetadata", [](OpenMS::Internal::CachedMzMLHandler& self, OpenMS::MSExperiment exp, const OpenMS::String& out_meta, bool addCacheMetaValue) { return self.writeMetadata(exp, out_meta, addCacheMetaValue); }, "exp"_a, "out_meta"_a, "addCacheMetaValue"_a = false, "Write only the meta data of an MSExperiment")
         .def("readMemdump", [](const OpenMS::Internal::CachedMzMLHandler& self, const OpenMS::String& filename) { OpenMS::MSExperiment exp_reading; self.readMemdump(exp_reading, filename); return exp_reading; }, "filename"_a, "Read all spectra from a dump from the disk")
         .def("createMemdumpIndex", [](OpenMS::Internal::CachedMzMLHandler& self, const OpenMS::String& filename) { return self.createMemdumpIndex(filename); }, "filename"_a, "Create an index on the location of all the spectra and chromatograms")
-        .def("getSpectraIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::fpos<__mbstate_t>> & { return self.getSpectraIndex(); }, nb::rv_policy::reference_internal)
-        .def("getChromatogramIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::fpos<__mbstate_t>> & { return self.getChromatogramIndex(); }, nb::rv_policy::reference_internal)
+        .def("getSpectraIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::streampos> & { return self.getSpectraIndex(); }, nb::rv_policy::reference_internal)
+        .def("getChromatogramIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::streampos> & { return self.getChromatogramIndex(); }, nb::rv_policy::reference_internal)
         .def("setLogType", [](const OpenMS::Internal::CachedMzMLHandler& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
         .def("getLogType", [](const OpenMS::Internal::CachedMzMLHandler& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::Internal::CachedMzMLHandler& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2348,7 +2348,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::ChromatogramExtractor& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::ChromatogramExtractor& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::ChromatogramExtractor& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ChromatogramExtractor& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::ChromatogramExtractor& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::ChromatogramExtractor& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("extractChromatograms", [](OpenMS::ChromatogramExtractor& self,
@@ -2412,7 +2412,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::ChromatogramExtractorAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("extractChromatograms", [](OpenMS::ChromatogramExtractorAlgorithm& self,
@@ -2432,7 +2432,7 @@ ProgressLogger
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ConfidenceScoring, OpenMS::ProgressLogger>(m, "ConfidenceScoring", "OpenMS class ConfidenceScoring")
         .def(nb::init<bool>())
-        .def("initialize", [](OpenMS::ConfidenceScoring& self, const OpenMS::TargetedExperiment& library, unsigned long n_decoys, unsigned long n_transitions, const OpenMS::TransformationDescription& rt_trafo) { return self.initialize(library, n_decoys, n_transitions, rt_trafo); }, "library"_a, "n_decoys"_a, "n_transitions"_a, "rt_trafo"_a)
+        .def("initialize", [](OpenMS::ConfidenceScoring& self, const OpenMS::TargetedExperiment& library, size_t n_decoys, size_t n_transitions, const OpenMS::TransformationDescription& rt_trafo) { return self.initialize(library, n_decoys, n_transitions, rt_trafo); }, "library"_a, "n_decoys"_a, "n_transitions"_a, "rt_trafo"_a)
         .def("initializeGlm", [](OpenMS::ConfidenceScoring& self, double intercept, double rt_coef, double int_coef) { return self.initializeGlm(intercept, rt_coef, int_coef); }, "intercept"_a, "rt_coef"_a, "int_coef"_a)
         .def("scoreMap", [](OpenMS::ConfidenceScoring& self, OpenMS::FeatureMap& features) { return self.scoreMap(features); }, "features"_a, "Score a feature map -> make sure the class is properly initialized")
         ;
@@ -2451,7 +2451,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::DTA2DFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::DTA2DFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::DTA2DFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::DTA2DFile& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::DTA2DFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::DTA2DFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2471,7 +2471,7 @@ DefaultParamHandler
         .def("computeMassTraceNoise", [](OpenMS::ElutionPeakDetection& self, const OpenMS::MassTrace& p0) { return self.computeMassTraceNoise(p0); }, "Compute noise level (as RMSE of the actual signal and the smoothed signal)")
         .def("computeMassTraceSNR", [](OpenMS::ElutionPeakDetection& self, const OpenMS::MassTrace& p0) { return self.computeMassTraceSNR(p0); }, "Compute the signal to noise ratio (estimated by computeMassTraceNoise)")
         .def("computeApexSNR", [](OpenMS::ElutionPeakDetection& self, const OpenMS::MassTrace& p0) { return self.computeApexSNR(p0); }, "Compute the signal to noise ratio at the apex (estimated by computeMassTraceNoise)")
-        .def("findLocalExtrema", [](const OpenMS::ElutionPeakDetection& self, const OpenMS::MassTrace& tr, const unsigned long& num_neighboring_peaks) { std::vector<unsigned long> chrom_maxes; std::vector<unsigned long> chrom_mins; self.findLocalExtrema(tr, num_neighboring_peaks, chrom_maxes, chrom_mins); return std::make_tuple(chrom_maxes, chrom_mins); }, "tr"_a, "num_neighboring_peaks"_a)
+        .def("findLocalExtrema", [](const OpenMS::ElutionPeakDetection& self, const OpenMS::MassTrace& tr, const size_t& num_neighboring_peaks) { std::vector<size_t> chrom_maxes; std::vector<size_t> chrom_mins; self.findLocalExtrema(tr, num_neighboring_peaks, chrom_maxes, chrom_mins); return std::make_tuple(chrom_maxes, chrom_mins); }, "tr"_a, "num_neighboring_peaks"_a)
         .def("smoothData", [](const OpenMS::ElutionPeakDetection& self, OpenMS::MassTrace& mt, int win_size) { return self.smoothData(mt, win_size); }, "mt"_a, "win_size"_a)
         .def("setParameters", [](OpenMS::ElutionPeakDetection& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::ElutionPeakDetection& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
@@ -2483,7 +2483,7 @@ DefaultParamHandler
         .def("getLogType", [](const OpenMS::ElutionPeakDetection& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::ElutionPeakDetection& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::ElutionPeakDetection& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ElutionPeakDetection& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::ElutionPeakDetection& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::ElutionPeakDetection& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2608,7 +2608,7 @@ Averagine access
 )doc")
         .def("getDecoyAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> const OpenMS::FLASHHelperClasses::PrecalculatedAveragine & { return self.getDecoyAveragine(); }, nb::rv_policy::reference_internal, "Get calculated averagine. Call after run() is called.")
         .def("getNoiseDecoyWeight", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getNoiseDecoyWeight(); }, "Get mass tolerances per MS level.")
-        .def_static("getScanNumber", [](const OpenMS::MSExperiment& map, unsigned long index) { return OpenMS::FLASHDeconvAlgorithm::getScanNumber(map, index); }, "map"_a, "index"_a, "Get noise decoy weight determined during q-value calculation.")
+        .def_static("getScanNumber", [](const OpenMS::MSExperiment& map, size_t index) { return OpenMS::FLASHDeconvAlgorithm::getScanNumber(map, index); }, "map"_a, "index"_a, "Get noise decoy weight determined during q-value calculation.")
         .def("setParameters", [](OpenMS::FLASHDeconvAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::FLASHDeconvAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::FLASHDeconvAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -2619,7 +2619,7 @@ Averagine access
         .def("getLogType", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2687,7 +2687,7 @@ DefaultParamHandler
         .def("getLogType", [](const OpenMS::FeatureFindingMetabo& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::FeatureFindingMetabo& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::FeatureFindingMetabo& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::FeatureFindingMetabo& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::FeatureFindingMetabo& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::FeatureFindingMetabo& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2711,7 +2711,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::FeatureGroupingAlgorithmKD& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2742,7 +2742,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::GaussFilter& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::GaussFilter& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::GaussFilter& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::GaussFilter& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::GaussFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::GaussFilter& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("setParameters", [](OpenMS::GaussFilter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::GaussFilter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
@@ -2834,7 +2834,7 @@ The MSExperiment will be sorted by RT and m/z if unsorted.
         .def("getLogType", [](const OpenMS::InternalCalibration& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::InternalCalibration& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::InternalCalibration& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::InternalCalibration& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::InternalCalibration& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::InternalCalibration& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2858,7 +2858,7 @@ BaseGroupFinder
         .def("getLogType", [](const OpenMS::LabeledPairFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::LabeledPairFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::LabeledPairFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::LabeledPairFinder& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::LabeledPairFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::LabeledPairFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2886,7 +2886,7 @@ Annotates and filters transitions in a TargetedExperiment
         .def("getLogType", [](const OpenMS::LinearResampler& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::LinearResampler& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::LinearResampler& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::LinearResampler& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::LinearResampler& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::LinearResampler& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2910,7 +2910,7 @@ LinearResampler
         .def("getLogType", [](const OpenMS::LinearResamplerAlign& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::LinearResamplerAlign& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::LinearResamplerAlign& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::LinearResamplerAlign& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::LinearResamplerAlign& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::LinearResamplerAlign& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2961,7 +2961,7 @@ Filters target and decoy transitions by intensity, only keeping the top N transi
         .def("getLogType", [](const OpenMS::MRMAssay& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MRMAssay& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MRMAssay& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MRMAssay& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MRMAssay& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MRMAssay& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2995,7 +2995,7 @@ Bruderer et al. Mol Cell Proteomics. 2017. 10.1074/mcp.RA117.000314.
         .def("getLogType", [](const OpenMS::MRMDecoy& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MRMDecoy& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MRMDecoy& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MRMDecoy& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MRMDecoy& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MRMDecoy& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3012,7 +3012,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::MS2File& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MS2File& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MS2File& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MS2File& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MS2File& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MS2File& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3033,7 +3033,7 @@ cached to disk using the functions provided in CachedMzMLHandler.
 Write a spectrum to the output file
 May delete data from spectrum (if clearData is set)
 )doc")
-        .def("setExpectedSize", [](OpenMS::MSDataCachedConsumer& self, unsigned long p0, unsigned long p1) { return self.setExpectedSize(p0, p1); })
+        .def("setExpectedSize", [](OpenMS::MSDataCachedConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
         .def("setExperimentalSettings", [](OpenMS::MSDataCachedConsumer& self, const OpenMS::ExperimentalSettings& p0) { return self.setExperimentalSettings(p0); }, 
             R"doc(
 Write a chromatogram to the output file
@@ -3062,7 +3062,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::MapAlignmentAlgorithmIdentification& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3086,7 +3086,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3114,7 +3114,7 @@ Exception: FileNotFound is thrown if the given file could not be found
         .def("getLogType", [](const OpenMS::MascotGenericFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MascotGenericFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MascotGenericFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MascotGenericFile& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MascotGenericFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MascotGenericFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("setParameters", [](OpenMS::MascotGenericFile& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::MascotGenericFile& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
@@ -3145,7 +3145,7 @@ DefaultParamHandler
         .def("getLogType", [](const OpenMS::MassTraceDetection& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MassTraceDetection& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MassTraceDetection& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MassTraceDetection& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MassTraceDetection& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MassTraceDetection& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3159,7 +3159,7 @@ DefaultParamHandler
 ProgressLogger
 )doc")
         .def(nb::init<>())
-        .def("createPseudoSpectra", [](OpenMS::MasstraceCorrelator& self, const OpenMS::ConsensusMap& map, OpenMS::MSExperiment& pseudo_spectra, unsigned long min_peak_nr, double min_correlation, int max_lag, double max_rt_apex_difference) { return self.createPseudoSpectra(map, pseudo_spectra, min_peak_nr, min_correlation, max_lag, max_rt_apex_difference); }, "map"_a, "pseudo_spectra"_a, "min_peak_nr"_a, "min_correlation"_a, "max_lag"_a, "max_rt_apex_difference"_a)
+        .def("createPseudoSpectra", [](OpenMS::MasstraceCorrelator& self, const OpenMS::ConsensusMap& map, OpenMS::MSExperiment& pseudo_spectra, size_t min_peak_nr, double min_correlation, int max_lag, double max_rt_apex_difference) { return self.createPseudoSpectra(map, pseudo_spectra, min_peak_nr, min_correlation, max_lag, max_rt_apex_difference); }, "map"_a, "pseudo_spectra"_a, "min_peak_nr"_a, "min_correlation"_a, "max_lag"_a, "max_rt_apex_difference"_a)
         .def("setParameters", [](OpenMS::MasstraceCorrelator& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::MasstraceCorrelator& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         .def("getDefaults", [](const OpenMS::MasstraceCorrelator& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
@@ -3170,7 +3170,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::MasstraceCorrelator& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MasstraceCorrelator& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MasstraceCorrelator& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MasstraceCorrelator& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MasstraceCorrelator& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MasstraceCorrelator& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3200,7 +3200,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::MetaboliteSpectralMatching& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MetaboliteSpectralMatching& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MetaboliteSpectralMatching& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MetaboliteSpectralMatching& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MetaboliteSpectralMatching& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MetaboliteSpectralMatching& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3232,7 +3232,7 @@ number
         .def("getLogType", [](const OpenMS::MorphologicalFilter& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MorphologicalFilter& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MorphologicalFilter& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MorphologicalFilter& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MorphologicalFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MorphologicalFilter& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("setParameters", [](OpenMS::MorphologicalFilter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::MorphologicalFilter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
@@ -3368,7 +3368,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::PeakPickerHiRes& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::PeakPickerHiRes& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::PeakPickerHiRes& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::PeakPickerHiRes& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::PeakPickerHiRes& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::PeakPickerHiRes& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3403,7 +3403,7 @@ The output are the remaining peaks
         .def("getLogType", [](const OpenMS::PeakPickerIterative& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::PeakPickerIterative& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::PeakPickerIterative& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::PeakPickerIterative& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::PeakPickerIterative& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::PeakPickerIterative& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3487,7 +3487,7 @@ outputs (ProteinIdentification and PeptideIdentificationList)
         .def("getLogType", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
     // PeptideSearchEngineFIAlgorithm_ExitCodes enum nested under PeptideSearchEngineFIAlgorithm
@@ -3519,7 +3519,7 @@ BaseGroupFinder
         .def("getLogType", [](const OpenMS::QTClusterFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::QTClusterFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::QTClusterFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::QTClusterFinder& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::QTClusterFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::QTClusterFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3563,7 +3563,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::SavitzkyGolayFilter& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::SavitzkyGolayFilter& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::SavitzkyGolayFilter& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::SavitzkyGolayFilter& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::SavitzkyGolayFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::SavitzkyGolayFilter& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("setParameters", [](OpenMS::SavitzkyGolayFilter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::SavitzkyGolayFilter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
@@ -3594,7 +3594,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::SimpleSearchEngineAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3608,8 +3608,8 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SimpleTSGXLMS &>())
-        .def("getLinearIonSpectrum", [](const OpenMS::SimpleTSGXLMS& self, unsigned long link_pos, int charge, unsigned long link_pos_2) { std::vector<OpenMS::SimpleTSGXLMS::SimplePeak> spectrum; OpenMS::AASequence peptide; self.getLinearIonSpectrum(spectrum, peptide, link_pos, charge, link_pos_2); return std::make_tuple(spectrum, peptide); }, "link_pos"_a, "charge"_a, "link_pos_2"_a)
-        .def("getXLinkIonSpectrum", [](const OpenMS::SimpleTSGXLMS& self, unsigned long link_pos, double precursor_mass, int min_charge, int max_charge, unsigned long link_pos_2) { std::vector<OpenMS::SimpleTSGXLMS::SimplePeak> spectrum; OpenMS::AASequence peptide; self.getXLinkIonSpectrum(spectrum, peptide, link_pos, precursor_mass, min_charge, max_charge, link_pos_2); return std::make_tuple(spectrum, peptide); }, "link_pos"_a, "precursor_mass"_a, "min_charge"_a, "max_charge"_a, "link_pos_2"_a, 
+        .def("getLinearIonSpectrum", [](const OpenMS::SimpleTSGXLMS& self, size_t link_pos, int charge, size_t link_pos_2) { std::vector<OpenMS::SimpleTSGXLMS::SimplePeak> spectrum; OpenMS::AASequence peptide; self.getLinearIonSpectrum(spectrum, peptide, link_pos, charge, link_pos_2); return std::make_tuple(spectrum, peptide); }, "link_pos"_a, "charge"_a, "link_pos_2"_a)
+        .def("getXLinkIonSpectrum", [](const OpenMS::SimpleTSGXLMS& self, size_t link_pos, double precursor_mass, int min_charge, int max_charge, size_t link_pos_2) { std::vector<OpenMS::SimpleTSGXLMS::SimplePeak> spectrum; OpenMS::AASequence peptide; self.getXLinkIonSpectrum(spectrum, peptide, link_pos, precursor_mass, min_charge, max_charge, link_pos_2); return std::make_tuple(spectrum, peptide); }, "link_pos"_a, "precursor_mass"_a, "min_charge"_a, "max_charge"_a, "link_pos_2"_a, 
             R"doc(
 Generates fragment ions not containing the cross-linker for one peptide
 B-ions are generated from the beginning of the peptide up to the first linked position,
@@ -3890,7 +3890,7 @@ BaseGroupFinder
         .def("getLogType", [](const OpenMS::StablePairFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::StablePairFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::StablePairFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::StablePairFinder& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::StablePairFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::StablePairFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3918,7 +3918,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::SwathFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::SwathFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::SwathFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::SwathFile& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::SwathFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::SwathFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -4282,7 +4282,7 @@ Does NOT support comment lines!
         .def("store", [](OpenMS::CsvFile& self, const OpenMS::String& filename) { return self.store(filename); }, "filename"_a, "Stores the buffer's content into a file")
         .def("addRow", [](OpenMS::CsvFile& self, const std::vector<OpenMS::String>& list) { return self.addRow(list); }, "list"_a, "Add a row to the buffer")
         .def("clear", [](OpenMS::CsvFile& self) { return self.clear(); }, "Clears the buffer")
-        .def("getRow", [](const OpenMS::CsvFile& self, unsigned long row) {
+        .def("getRow", [](const OpenMS::CsvFile& self, size_t row) {
             std::vector<OpenMS::String> list;
             auto result = self.getRow(row, list);
             return nb::make_tuple(result, list);
@@ -4365,7 +4365,7 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::TheoreticalSpectrumGeneratorXLMS &>())
-        .def("getLinearIonSpectrum", [](const OpenMS::TheoreticalSpectrumGeneratorXLMS& self, unsigned long link_pos, bool frag_alpha, int charge, unsigned long link_pos_2) { OpenMS::MSSpectrum spectrum; OpenMS::AASequence peptide; self.getLinearIonSpectrum(spectrum, peptide, link_pos, frag_alpha, charge, link_pos_2); return std::make_tuple(spectrum, peptide); }, "link_pos"_a, "frag_alpha"_a, "charge"_a, "link_pos_2"_a)
+        .def("getLinearIonSpectrum", [](const OpenMS::TheoreticalSpectrumGeneratorXLMS& self, size_t link_pos, bool frag_alpha, int charge, size_t link_pos_2) { OpenMS::MSSpectrum spectrum; OpenMS::AASequence peptide; self.getLinearIonSpectrum(spectrum, peptide, link_pos, frag_alpha, charge, link_pos_2); return std::make_tuple(spectrum, peptide); }, "link_pos"_a, "frag_alpha"_a, "charge"_a, "link_pos_2"_a)
         .def("getXLinkIonSpectrum", [](const OpenMS::TheoreticalSpectrumGeneratorXLMS& self, bool frag_alpha, int mincharge, int maxcharge) { OpenMS::MSSpectrum spectrum; OpenMS::OPXLDataStructs::ProteinProteinCrossLink crosslink; self.getXLinkIonSpectrum(spectrum, crosslink, frag_alpha, mincharge, maxcharge); return std::make_tuple(spectrum, crosslink); }, "frag_alpha"_a, "mincharge"_a, "maxcharge"_a, 
             R"doc(
 Generates fragment ions containing the cross-linker for one peptide
@@ -4430,7 +4430,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::TransitionTSVFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::TransitionTSVFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::TransitionTSVFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::TransitionTSVFile& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::TransitionTSVFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::TransitionTSVFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -4642,7 +4642,7 @@ Exception: ParseError is thrown if an error occurs during parsing
         .def("getLogType", [](const OpenMS::MzDataFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MzDataFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MzDataFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzDataFile& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MzDataFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MzDataFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -4670,7 +4670,7 @@ Exception: UnableToCreateFile is thrown if the file could not be created
         .def("getLogType", [](const OpenMS::MzIdentMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MzIdentMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MzIdentMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzIdentMLFile& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MzIdentMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MzIdentMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("_load_internal", [](OpenMS::MzIdentMLFile& self, const OpenMS::String& filename) {
@@ -4719,7 +4719,7 @@ MzMLFile().store("filtered.mzML", exp)
         .def("getLogType", [](const OpenMS::MzMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MzMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MzMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzMLFile& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MzMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MzMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("load", [](OpenMS::MzMLFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
@@ -4762,7 +4762,7 @@ MzXMLFile().load("test.mzXML", exp)
         .def("getLogType", [](const OpenMS::MzXMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MzXMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MzXMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzXMLFile& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MzXMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MzXMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("load", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
@@ -4941,7 +4941,7 @@ This Class is supposed to internally collect the data for the qcML File
         .def("getLogType", [](const OpenMS::QcMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::QcMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::QcMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::QcMLFile& self, unsigned long bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::QcMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::QcMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 

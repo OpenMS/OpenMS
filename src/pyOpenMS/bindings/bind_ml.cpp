@@ -160,7 +160,7 @@ LocalClustering
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Math::RANSACParam>(m, "RANSACParam", "OpenMS class RANSACParam")
         .def(nb::init<>())
-        .def(nb::init<unsigned long, unsigned long, double, unsigned long, bool>())
+        .def(nb::init<size_t, size_t, double, size_t, bool>())
         .def("toString", [](const OpenMS::Math::RANSACParam& self) { return self.toString(); })
         .def_rw("n", &OpenMS::Math::RANSACParam::n)
         .def_rw("k", &OpenMS::Math::RANSACParam::k)
