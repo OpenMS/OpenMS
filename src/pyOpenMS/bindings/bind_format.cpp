@@ -235,70 +235,75 @@ Determines the file type based on the file name and/or content
 :param filename: Path to the file
 :returns: Integer representation of the file type
 )doc")
-        .def_static("hasValidExtension", [](const OpenMS::String& filename, OpenMS::FileTypes::Type type) { return OpenMS::FileHandler::hasValidExtension(filename, type); }, "filename"_a, "type"_a, 
-            R"doc(
-Checks whether the given file type is supported
-:param type_: The file type to check
-:returns: True if the file type is supported
-)doc")
-        .def_static("stripExtension", [](const OpenMS::String& filename) { return OpenMS::FileHandler::stripExtension(filename); }, "filename"_a, 
+        .def_static("hasValidExtension", [](const OpenMS::String& filename, OpenMS::FileTypes::Type type) { return OpenMS::FileHandler::hasValidExtension(filename, type); }, "filename"_a, "type"_a,
             R"doc(
 Checks whether the file has a valid extension for the given type
 :param filename: Path to the file
-:param type_: The expected file type
+:param type: The expected file type
 :returns: True if the extension matches the file type
 )doc")
-        .def_static("swapExtension", [](const OpenMS::String& filename, OpenMS::FileTypes::Type new_type) { return OpenMS::FileHandler::swapExtension(filename, new_type); }, "filename"_a, "new_type"_a, 
+        .def_static("stripExtension", [](const OpenMS::String& filename) { return OpenMS::FileHandler::stripExtension(filename); }, "filename"_a,
             R"doc(
 Returns the file name without the extension
-:param file: Path to the file
+:param filename: Path to the file
 :returns: File path without extension
 )doc")
-        .def_static("getTypeByContent", [](const OpenMS::String& filename) { return OpenMS::FileHandler::getTypeByContent(filename); }, "filename"_a, 
+        .def_static("swapExtension", [](const OpenMS::String& filename, OpenMS::FileTypes::Type new_type) { return OpenMS::FileHandler::swapExtension(filename, new_type); }, "filename"_a, "new_type"_a,
             R"doc(
-Determines the file type based on the file extension
+Replaces the file extension with the extension for the given type
 :param filename: Path to the file
-:returns: The file type based on the extension
+:param new_type: The new file type whose extension to use
+:returns: File path with the new extension
 )doc")
-        .def_static("isSupported", [](OpenMS::FileTypes::Type type) { return OpenMS::FileHandler::isSupported(type); }, "type"_a, 
-            R"doc(
-Computes a SHA-1 hash of the file content
-:param filename: Path to the file
-:returns: SHA-1 hash string of the file content
-)doc")
-        .def("getOptions", [](OpenMS::FileHandler& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Access to the options for loading/storing")
-        .def("setOptions", [](OpenMS::FileHandler& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
-        .def("loadFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, std::vector<OpenMS::FileTypes::Type> allowed_types, OpenMS::ProgressLogger::LogType log) { OpenMS::FeatureMap map; self.loadFeatures(filename, map, allowed_types, log); return map; }, "filename"_a, "allowed_types"_a, "log"_a, 
-            R"doc(
-Stores an MSExperiment to a file\n
-The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used
-:param filename: The name of the file to store the data in
-:param exp: The experiment to store
-:param log: Progress logging mode
-:raises:
-Exception: UnableToCreateFile is thrown if the file could not be written
-)doc")
-        .def_static("computeFileHash", [](const OpenMS::String& filename) { return OpenMS::FileHandler::computeFileHash(filename); }, "filename"_a, 
+        .def_static("getTypeByContent", [](const OpenMS::String& filename) { return OpenMS::FileHandler::getTypeByContent(filename); }, "filename"_a,
             R"doc(
 Determines the file type based on the file content
 :param filename: Path to the file
 :returns: The file type based on file content analysis
 )doc")
+        .def_static("isSupported", [](OpenMS::FileTypes::Type type) { return OpenMS::FileHandler::isSupported(type); }, "type"_a,
+            R"doc(
+Checks whether the given file type is supported
+:param type: The file type to check
+:returns: True if the file type is supported
+)doc")
+        .def("getOptions", [](OpenMS::FileHandler& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Access to the options for loading/storing")
+        .def("setOptions", [](OpenMS::FileHandler& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
+        .def("loadFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, std::vector<OpenMS::FileTypes::Type> allowed_types, OpenMS::ProgressLogger::LogType log) { OpenMS::FeatureMap map; self.loadFeatures(filename, map, allowed_types, log); return map; }, "filename"_a, "allowed_types"_a, "log"_a,
+            R"doc(
+Loads features from a file into a FeatureMap
+:param filename: The name of the file to load features from
+:param allowed_types: List of allowed file types
+:param log: Progress logging mode
+:returns: FeatureMap containing the loaded features
+:raises:
+Exception: FileNotFound is thrown if the file could not be opened
+)doc")
+        .def_static("computeFileHash", [](const OpenMS::String& filename) { return OpenMS::FileHandler::computeFileHash(filename); }, "filename"_a,
+            R"doc(
+Computes a SHA-1 hash of the file content
+:param filename: Path to the file
+:returns: SHA-1 hash string of the file content
+)doc")
 
         .def("loadExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
+            nb::gil_scoped_release release;
             self.loadExperiment(filename, exp);
         }, "filename"_a, "exp"_a, "Load experiment from file")
         .def("loadExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log,
              bool rewrite_source_file, bool compute_hash) {
+            nb::gil_scoped_release release;
             self.loadExperiment(filename, exp, allowed_types, log, rewrite_source_file, compute_hash);
         }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "rewrite_source_file"_a = false, "compute_hash"_a = false, "Load experiment with options")
 
         .def("storeExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp) {
+            nb::gil_scoped_release release;
             self.storeExperiment(filename, exp);
         }, "filename"_a, "exp"_a, "Store experiment to file")
         .def("storeExperiment", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::MSExperiment& exp,
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            nb::gil_scoped_release release;
             self.storeExperiment(filename, exp, allowed_types, log);
         }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "Store experiment with options")
 
@@ -441,8 +446,8 @@ to all spectra and chromatogram offsets
         .def(nb::init<>())
         .def("getOptions", [](OpenMS::IndexedMzMLFileLoader& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Returns the options for loading/storing")
-        .def("load", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::String& filename, OpenMS::OnDiscMSExperiment& exp) { return self.load(filename, exp); }, "filename"_a, "exp"_a)
-        .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::String& filename, OpenMS::OnDiscMSExperiment& exp) { return self.store(filename, exp); }, "filename"_a, "exp"_a, 
+        .def("load", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::String& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.load(filename, exp); }, "filename"_a, "exp"_a)
+        .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::String& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.store(filename, exp); }, "filename"_a, "exp"_a,
             R"doc(
 Load a file\n
 Tries to parse the file, success needs to be checked with the return value
@@ -450,7 +455,7 @@ Tries to parse the file, success needs to be checked with the return value
 :param exp: Object which will contain the data after the call
 :return: Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed)
 )doc")
-        .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) { return self.store(filename, exp); }, "filename"_a, "exp"_a, 
+        .def("store", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) { nb::gil_scoped_release release; return self.store(filename, exp); }, "filename"_a, "exp"_a,
             R"doc(
 Load a file\n
 Tries to parse the file, success needs to be checked with the return value

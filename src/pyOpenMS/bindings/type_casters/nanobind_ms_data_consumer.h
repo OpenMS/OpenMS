@@ -17,21 +17,41 @@ public:
 
     void consumeSpectrum(SpectrumType& s) override {
         nb::gil_scoped_acquire gil;
-        py_consumer_.attr("consumeSpectrum")(nb::cast(s, nb::rv_policy::reference));
+        try {
+            py_consumer_.attr("consumeSpectrum")(nb::cast(s, nb::rv_policy::reference));
+        } catch (nb::python_error& e) {
+            e.restore();
+            throw std::runtime_error("Python callback consumeSpectrum raised an exception");
+        }
     }
 
     void consumeChromatogram(ChromatogramType& c) override {
         nb::gil_scoped_acquire gil;
-        py_consumer_.attr("consumeChromatogram")(nb::cast(c, nb::rv_policy::reference));
+        try {
+            py_consumer_.attr("consumeChromatogram")(nb::cast(c, nb::rv_policy::reference));
+        } catch (nb::python_error& e) {
+            e.restore();
+            throw std::runtime_error("Python callback consumeChromatogram raised an exception");
+        }
     }
 
     void setExpectedSize(size_t expectedSpectra, size_t expectedChromatograms) override {
         nb::gil_scoped_acquire gil;
-        py_consumer_.attr("setExpectedSize")(expectedSpectra, expectedChromatograms);
+        try {
+            py_consumer_.attr("setExpectedSize")(expectedSpectra, expectedChromatograms);
+        } catch (nb::python_error& e) {
+            e.restore();
+            throw std::runtime_error("Python callback setExpectedSize raised an exception");
+        }
     }
 
     void setExperimentalSettings(const OpenMS::ExperimentalSettings& exp) override {
         nb::gil_scoped_acquire gil;
-        py_consumer_.attr("setExperimentalSettings")(nb::cast(exp, nb::rv_policy::copy));
+        try {
+            py_consumer_.attr("setExperimentalSettings")(nb::cast(exp, nb::rv_policy::copy));
+        } catch (nb::python_error& e) {
+            e.restore();
+            throw std::runtime_error("Python callback setExperimentalSettings raised an exception");
+        }
     }
 };

@@ -170,6 +170,10 @@ public:
                 if (PyBytes_AsStringAndSize(item, &data, &size) == 0) {
                     value.insert(OpenMS::String(data, size));
                 }
+            } else {
+                Py_DECREF(item);
+                Py_DECREF(iter);
+                return false;  // reject non-string items
             }
             Py_DECREF(item);
         }
@@ -287,11 +291,13 @@ public:
             }
 
             if (PyDict_SetItem(dict, key, val_handle.ptr()) == -1) {
+                Py_DECREF(val_handle.ptr());
                 Py_DECREF(key);
                 Py_DECREF(dict);
                 return handle();
             }
 
+            Py_DECREF(val_handle.ptr());
             Py_DECREF(key);
         }
 
