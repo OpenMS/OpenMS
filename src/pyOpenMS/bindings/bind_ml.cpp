@@ -131,7 +131,7 @@ LocalClustering
         "Solve Ax=b (x>=0) in-place. Returns tuple(status, x). Modifies A and b internally.")
         ;
     // RETURN_STATUS enum nested under NonNegativeLeastSquaresSolver
-    nb::enum_<OpenMS::NonNegativeLeastSquaresSolver::RETURN_STATUS>(nonnegativeleastsquaressolver_class, "RETURN_STATUS", nb::is_arithmetic())
+    nb::enum_<OpenMS::NonNegativeLeastSquaresSolver::RETURN_STATUS>(nonnegativeleastsquaressolver_class, "RETURN_STATUS")
         .value("SOLVED", OpenMS::NonNegativeLeastSquaresSolver::RETURN_STATUS::SOLVED)
         .value("ITERATION_EXCEEDED", OpenMS::NonNegativeLeastSquaresSolver::RETURN_STATUS::ITERATION_EXCEEDED)
         .export_values();

@@ -179,7 +179,7 @@ This is a m/z-value not necessarily the monoisotopic mass
 )doc")
         ;
     // Averagines enum nested under IsotopeModel
-    nb::enum_<OpenMS::IsotopeModel::Averagines>(isotopemodel_class, "Averagines", nb::is_arithmetic())
+    nb::enum_<OpenMS::IsotopeModel::Averagines>(isotopemodel_class, "Averagines")
         .value("C", OpenMS::IsotopeModel::Averagines::C)
         .value("H", OpenMS::IsotopeModel::Averagines::H)
         .value("N", OpenMS::IsotopeModel::Averagines::N)
