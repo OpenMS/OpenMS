@@ -119,9 +119,10 @@ include = [
     "pyopenms/*.pyi",
     "pyopenms/py.typed",
     "pyopenms/addons/*.py",
-    "bindings/generated/*.cpp",
-    "bindings/type_casters/*.h",
+    "bindings/bind_*.cpp",
+    "bindings/main_module.cpp",
     "bindings/arrow_zerocopy.cpp",
+    "bindings/type_casters/*.h",
     "fix_stubs.py",
     "stubs.patch",
 ]
