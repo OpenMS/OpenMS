@@ -639,8 +639,6 @@ of the resulting spectrum is saved.
 :param load_cached_spectrum: Load the cached picked spectrum if exists
 :param output: Output of the accurate mass search results
 :return: A boolean indicating if the picked spectrum was loaded from the cached file
-void cutForTime(MSExperiment & experiment, float & n_seconds, libcpp_vector[ MSSpectrum ] & output) except + nogil
-NAMESPACE # MSSpectrum mergeAlongTime(libcpp_vector[ OpenMS::MSSpectrum ] & input_) except + nogil
 )doc")
         .def("convertToFeatureMap", [](OpenMS::FIAMSDataProcessor& self, const OpenMS::MSSpectrum& input) { return self.convertToFeatureMap(input); }, "input"_a, 
             R"doc(
@@ -1385,8 +1383,6 @@ Long et al, doi:10.1038/s41596-019-0204-0
 :param normalized_feature: Feature with normalized values for each component and the number of heavy labeled e.g., carbons. Out is a Feature with the calculated isotopic purity for the component group
 :param experiment_data: Vector of experiment data in percent
 :param isotopic_purity_name: Name of the isotopic purity tracer to be saved as a meta value
-const FeatureMap & normalized_feature,
-const libcpp_vector[ DoubleList ] & experiment_data, const libcpp_vector[String] & isotopic_purity_name) except + nogil
 )doc")
         .def("calculateMDV", [](OpenMS::IsotopeLabelingMDVs& self, const OpenMS::Feature& measured_feature, const OpenMS::IsotopeLabelingMDVs::MassIntensityType& mass_intensity_type, const OpenMS::String& feature_name) { OpenMS::Feature normalized_feature; self.calculateMDV(measured_feature, normalized_feature, mass_intensity_type, feature_name); return normalized_feature; }, "measured_feature"_a, "mass_intensity_type"_a, "feature_name"_a, 
             R"doc(

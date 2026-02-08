@@ -567,8 +567,6 @@ Useful to update the matrix with user isotope correction values
 :param itraq_type: Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
 :param channels: New channel isotope values as strings
 :param isotope_corrections: Vector of the two matrices (4plex, 8plex)
-void initChannelMap(int itraq_type, ChannelMapType & map_) except + nogil
-void updateChannelMap(StringList & active_channels, ChannelMapType & map_) except + nogil
 )doc")
         ;
     // ITRAQ_TYPES enum nested under ItraqConstants
@@ -585,7 +583,6 @@ void updateChannelMap(StringList & active_channels, ChannelMapType & map_) excep
     nb::class_<OpenMS::KDTreeFeatureNode>(m, "KDTreeFeatureNode", 
         R"doc(
 A node of the kD-tree with pointer to corresponding data and index
-KDTreeFeatureNode() except + nogil
 )doc")
         .def(nb::init<const OpenMS::KDTreeFeatureNode &>())
         .def("__getitem__", [](OpenMS::KDTreeFeatureNode& self, size_t i) { return self[i]; })
@@ -1066,7 +1063,7 @@ metabolomics
     // -----------------------------------------------------------------------
     // MetaboTargetedAssay_CompoundTargetDecoyPair
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MetaboTargetedAssay::CompoundTargetDecoyPair>(m, "MetaboTargetedAssay_CompoundTargetDecoyPair", "size_t in_files_size) except + nogil")
+    nb::class_<OpenMS::MetaboTargetedAssay::CompoundTargetDecoyPair>(m, "MetaboTargetedAssay_CompoundTargetDecoyPair", "Compound target-decoy pair for metabolite targeted assays")
         .def(nb::init<>())
         .def(nb::init<OpenMS::SiriusMSFile::CompoundInfo, OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra>())
         .def_rw("compound_info", &OpenMS::MetaboTargetedAssay::CompoundTargetDecoyPair::compound_info)
@@ -1748,8 +1745,6 @@ These metrics are combined over the previous and the next MS1 spectrum
         .def(nb::init<const OpenMS::PrecursorPurity &>())
         .def_static("computePrecursorPurity", [](const OpenMS::MSSpectrum& ms1, const OpenMS::Precursor& pre, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) { return OpenMS::PrecursorPurity::computePrecursorPurity(ms1, pre, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm); }, "ms1"_a, "pre"_a, "precursor_mass_tolerance"_a, "precursor_mass_tolerance_unit_ppm"_a, 
             R"doc(
-double precursor_mass_tolerance,
-bool precursor_mass_tolerance_unit_ppm) except + nogil
 )doc")
         ;
 
