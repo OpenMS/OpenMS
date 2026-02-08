@@ -476,15 +476,16 @@ Look up spectrum by reference
 )doc")
         .def_static("extractScanNumber", [](const OpenMS::String& native_id, const boost::basic_regex<char>& scan_regexp, bool no_error) { return OpenMS::SpectrumLookup::extractScanNumber(native_id, scan_regexp, no_error); }, "native_id"_a, "scan_regexp"_a, "no_error"_a, 
             R"doc(
-Register a possible format for a spectrum reference
-:param regexp: Regular expression defining the format
-# NAMESPACE # Int extractScanNumber(const String & native_id, boost::regex & scan_regexp, bool no_error) except + nogil
+Extract scan number from a native ID using a regular expression
+:param native_id: The native spectrum ID string
+:param scan_regexp: Regular expression for extracting the scan number
+:param no_error: If true, do not throw on failure
 )doc")
-        .def_static("extractScanNumber", [](const OpenMS::String& native_id, const OpenMS::String& native_id_type_accession) { return OpenMS::SpectrumLookup::extractScanNumber(native_id, native_id_type_accession); }, "native_id"_a, "native_id_type_accession"_a, 
+        .def_static("extractScanNumber", [](const OpenMS::String& native_id, const OpenMS::String& native_id_type_accession) { return OpenMS::SpectrumLookup::extractScanNumber(native_id, native_id_type_accession); }, "native_id"_a, "native_id_type_accession"_a,
             R"doc(
-Register a possible format for a spectrum reference
-:param regexp: Regular expression defining the format
-# NAMESPACE # Int extractScanNumber(const String & native_id, boost::regex & scan_regexp, bool no_error) except + nogil
+Extract scan number from a native ID using the accession type
+:param native_id: The native spectrum ID string
+:param native_id_type_accession: The native ID type accession
 )doc")
         .def_rw("rt_tolerance", &OpenMS::SpectrumLookup::rt_tolerance)
         ;

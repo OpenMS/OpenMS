@@ -34,7 +34,7 @@ namespace detail {
 template <>
 struct type_caster<std::vector<OpenMS::String>> {
 public:
-    NB_TYPE_CASTER(std::vector<OpenMS::String>, const_name("List[str]"))
+    NB_TYPE_CASTER(std::vector<OpenMS::String>, const_name("list[str]"))
 
     bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
@@ -139,7 +139,7 @@ public:
 template <>
 struct type_caster<std::set<OpenMS::String>> {
 public:
-    NB_TYPE_CASTER(std::set<OpenMS::String>, const_name("Set[str]"))
+    NB_TYPE_CASTER(std::set<OpenMS::String>, const_name("set[str]"))
 
     bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
@@ -226,7 +226,7 @@ template <typename V>
 struct type_caster<std::map<OpenMS::String, V>> {
 public:
     using MapType = std::map<OpenMS::String, V>;
-    NB_TYPE_CASTER(MapType, const_name("Dict[str, ") + make_caster<V>::Name + const_name("]"))
+    NB_TYPE_CASTER(MapType, const_name("dict[str, ") + make_caster<V>::Name + const_name("]"))
 
     bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {

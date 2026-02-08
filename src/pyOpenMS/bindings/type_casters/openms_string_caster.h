@@ -117,7 +117,7 @@ struct type_caster<const OpenMS::String&> : type_caster<OpenMS::String> {};
  */
 template <>
 struct type_caster<OpenMS::String*> {
-    NB_TYPE_CASTER(OpenMS::String*, const_name("Optional[str]"))
+    NB_TYPE_CASTER(OpenMS::String*, const_name("str | None"))
 
     bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {

@@ -51,8 +51,8 @@ template <>
 struct type_caster<OpenMS::DataValue> {
 public:
     NB_TYPE_CASTER(OpenMS::DataValue,
-                   const_name("Union[None, int, float, str, bytes, "
-                             "List[str], List[int], List[float]]"))
+                   const_name("None | int | float | str | bytes | "
+                             "list[str] | list[int] | list[float]"))
 
     bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         // Handle None -> Empty DataValue
@@ -311,8 +311,8 @@ template <>
 struct type_caster<OpenMS::ParamValue> {
 public:
     NB_TYPE_CASTER(OpenMS::ParamValue,
-                   const_name("Union[None, int, float, str, bytes, "
-                             "List[str], List[int], List[float]]"))
+                   const_name("None | int | float | str | bytes | "
+                             "list[str] | list[int] | list[float]"))
 
     bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         // Handle None -> Empty ParamValue

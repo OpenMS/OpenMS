@@ -6,6 +6,8 @@ Fixes issues that nanobind's stubgen cannot handle:
 2. Malformed NDArray type annotations
 3. nanobind emits ``None_`` instead of ``None`` for return types
 4. RST ``.. code-block::`` directives need blank line + indented body
+5. C++ type annotations leaked as string literals
+6. Duplicate identical overloads from const/non-const C++ methods
 """
 
 import re
@@ -23,12 +25,14 @@ PYTHON_KEYWORDS = {
 
 
 def fix_keyword_params(line: str) -> str:
-    """Rename Python keyword parameter names by appending underscore."""
-    # Match 'keyword:' or 'keyword =' in function signatures
+    """Rename Python keyword parameter names by appending underscore.
+
+    Uses negative lookbehind ``(?<!:)`` to avoid mangling RST directives
+    like ``:return:`` or ``:param from:``.
+    """
     for kw in PYTHON_KEYWORDS:
-        # Match keyword as a parameter name (preceded by comma/paren and space, followed by colon or =)
         line = re.sub(
-            rf'(\b){kw}(\s*[:=])',
+            rf'(?<!:)(\b){kw}(\s*[:=])',
             rf'\g<1>{kw}_\2',
             line,
         )
@@ -71,6 +75,38 @@ def fix_none_type(line: str) -> str:
     ``None_`` is never imported or defined.
     """
     return re.sub(r'\bNone_\b', 'None', line)
+
+
+def fix_cpp_type_annotations(line: str) -> str:
+    """Replace C++ type string annotations with ``Any``.
+
+    nanobind stubgen emits C++ types as string-literal annotations when it
+    cannot resolve a type to a Python equivalent, e.g.::
+
+        def foo(self, arg: "OpenMS::SomeType") -> None: ...
+
+    These are replaced with ``Any`` since the C++ types are not valid Python.
+    """
+    return re.sub(
+        r'"(?:OpenMS::|std::|__gnu_cxx::)[^"]*"',
+        'Any',
+        line,
+    )
+
+
+def fix_capitalized_builtins(line: str) -> str:
+    """Convert capitalized typing forms to PEP 585 lowercase builtins.
+
+    nanobind's built-in type casters emit ``Set[T]``, ``List[T]``, etc.
+    which require ``from typing import Set, List, ...``.  The lowercase
+    ``set[T]``, ``list[T]`` forms work natively in Python 3.9+.
+    """
+    line = re.sub(r'\bList\[', 'list[', line)
+    line = re.sub(r'\bDict\[', 'dict[', line)
+    line = re.sub(r'\bSet\[', 'set[', line)
+    line = re.sub(r'\bTuple\[', 'tuple[', line)
+    line = re.sub(r'\bFrozenSet\[', 'frozenset[', line)
+    return line
 
 
 def fix_code_blocks(content: str) -> str:
@@ -134,6 +170,81 @@ def fix_code_blocks(content: str) -> str:
     return '\n'.join(result)
 
 
+def fix_duplicate_overloads(content: str) -> str:
+    """Remove consecutive duplicate ``@overload`` definitions.
+
+    nanobind may emit identical overloads for const/non-const C++ methods.
+    This pass removes exact consecutive duplicates.
+    """
+    lines = content.split('\n')
+    result: list[str] = []
+    i = 0
+    last_overload_block: str | None = None
+
+    while i < len(lines):
+        stripped = lines[i].strip()
+
+        if stripped == '@overload':
+            # Collect this overload block (until blank line or next @overload)
+            block = [lines[i]]
+            i += 1
+
+            while i < len(lines):
+                s = lines[i].strip()
+                if s == '':
+                    block.append(lines[i])
+                    i += 1
+                    break
+                if s == '@overload':
+                    break  # next overload starts, don't consume
+                block.append(lines[i])
+                i += 1
+
+            block_text = '\n'.join(block)
+
+            if block_text == last_overload_block:
+                continue  # skip duplicate
+
+            last_overload_block = block_text
+            result.extend(block)
+        else:
+            if stripped:  # non-blank, non-overload line resets tracking
+                last_overload_block = None
+            result.append(lines[i])
+            i += 1
+
+    return '\n'.join(result)
+
+
+def ensure_any_import(content: str) -> str:
+    """Add ``Any`` to typing imports if ``Any`` is used but not imported."""
+    if 'Any' not in content:
+        return content
+
+    # Already imported
+    if re.search(r'from typing import.*\bAny\b', content):
+        return content
+
+    # Add to existing typing import
+    new_content = re.sub(
+        r'(from typing import )',
+        r'\1Any, ',
+        content,
+        count=1,
+    )
+    if new_content != content:
+        return new_content
+
+    # No typing import exists — add one after the module docstring
+    new_content = re.sub(
+        r'("""[^"]*""")\n',
+        r'\1\nfrom typing import Any\n',
+        content,
+        count=1,
+    )
+    return new_content
+
+
 def fix_stub_file(path: Path) -> bool:
     """Fix a single .pyi file. Returns True if modified."""
     content = path.read_text()
@@ -141,7 +252,8 @@ def fix_stub_file(path: Path) -> bool:
     # Multi-line fixes (operate on full content)
     new_content = fix_code_blocks(content)
 
-    # Line-by-line fixes
+    # Line-by-line fixes (run before dedup since type replacements
+    # like C++ types -> Any can create new duplicates)
     lines = new_content.splitlines(keepends=True)
     new_lines = []
     for line in lines:
@@ -150,9 +262,18 @@ def fix_stub_file(path: Path) -> bool:
         new_line = fix_ndarray_annotations(new_line)
         new_line = fix_singleton_types(new_line)
         new_line = fix_none_type(new_line)
+        new_line = fix_cpp_type_annotations(new_line)
+        new_line = fix_capitalized_builtins(new_line)
         new_lines.append(new_line)
 
     new_content = "".join(new_lines)
+
+    # Dedup after line-level fixes (C++ type -> Any may create duplicates)
+    new_content = fix_duplicate_overloads(new_content)
+
+    # Ensure imports for added types
+    new_content = ensure_any_import(new_content)
+
     modified = new_content != content
     if modified:
         path.write_text(new_content)
