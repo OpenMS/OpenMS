@@ -262,6 +262,10 @@ for class_name, enum_names in _MODULE_LEVEL_NESTED_ENUMS.items():
                 globals()[enum_name] = getattr(cls, enum_name)
 
 del _MODULE_LEVEL_NESTED_ENUMS
+# Clean up loop variables to prevent leaking into stubs
+for _cleanup_var in ('class_name', 'enum_names', 'cls', 'enum_name'):
+    globals().pop(_cleanup_var, None)
+del _cleanup_var
 
 # Add backward-compatible aliases
 if "MSExperiment" in globals():
