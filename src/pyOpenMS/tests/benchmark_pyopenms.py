@@ -3,7 +3,7 @@
 Comprehensive pyOpenMS benchmark suite.
 
 Compares performance-critical paths across the Python bindings.
-Designed to later compare nanobind vs Cython implementations with identical API.
+Benchmarks the nanobind-based Python bindings.
 
 Usage:
     PYTHONPATH=OpenMS-build/pyOpenMS python3 src/pyOpenMS/tests/benchmark_pyopenms.py
@@ -705,7 +705,7 @@ def bench_arrow_export(suite: BenchmarkSuite, exp):
     has_zerocopy = False
     try:
         from pyopenms._arrow_zerocopy import spectra_to_arrow, chromatograms_to_arrow
-        # Verify it actually works (Cython _arrow_zerocopy can't cast Cython objects)
+        # Verify it actually works
         spectra_to_arrow(exp, format='long', ms_levels=[1])
         has_zerocopy = True
         print("  [info] Zero-copy C++ Arrow export available and functional")
