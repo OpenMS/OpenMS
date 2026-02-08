@@ -4,6 +4,8 @@
 Fixes issues that nanobind's stubgen cannot handle:
 1. Python keywords used as parameter names (from C++ parameter names)
 2. Malformed NDArray type annotations
+3. nanobind emits ``None_`` instead of ``None`` for return types
+4. RST ``.. code-block::`` directives need blank line + indented body
 """
 
 import re
@@ -61,24 +63,99 @@ def fix_singleton_types(line: str) -> str:
     return line
 
 
+def fix_none_type(line: str) -> str:
+    r"""Replace nanobind's ``None_`` with ``None`` in type annotations.
+
+    nanobind stubgen emits ``None_`` (with trailing underscore) instead of
+    the standard Python ``None`` type.  This is invalid in .pyi stubs since
+    ``None_`` is never imported or defined.
+    """
+    return re.sub(r'\bNone_\b', 'None', line)
+
+
+def fix_code_blocks(content: str) -> str:
+    """Fix RST ``.. code-block::`` directives in docstrings.
+
+    nanobind copies docstrings verbatim from C++ bindings where the code
+    examples lack the blank line and extra indentation required by RST::
+
+        Before (broken):
+            .. code-block:: python
+            exp = MSExperiment()
+
+        After (valid RST):
+            .. code-block:: python
+
+                exp = MSExperiment()
+    """
+    lines = content.split('\n')
+    result: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        m = re.match(r'^(\s*)\.\. code-block::\s*\w+\s*$', line)
+        if m:
+            directive_indent = m.group(1)
+            code_indent = directive_indent + '    '
+            result.append(line)
+
+            # Check if the next line is already blank (already formatted)
+            next_is_blank = (i + 1 < len(lines) and lines[i + 1].strip() == '')
+            if not next_is_blank:
+                result.append('')  # insert required blank line after directive
+            i += 1
+
+            # Indent subsequent lines until end of docstring
+            while i < len(lines):
+                code_line = lines[i]
+                # Stop at docstring closing quotes
+                if code_line.strip() in ('"""', "'''"):
+                    result.append(code_line)
+                    i += 1
+                    break
+                # Blank lines pass through unchanged
+                if code_line.strip() == '':
+                    result.append('')
+                    i += 1
+                    continue
+                # Only add indentation if content is not already indented
+                # beyond the directive level
+                stripped = code_line.lstrip()
+                current_indent = len(code_line) - len(stripped)
+                directive_indent_len = len(directive_indent)
+                if current_indent <= directive_indent_len:
+                    result.append(code_indent + stripped)
+                else:
+                    result.append(code_line)
+                i += 1
+        else:
+            result.append(line)
+            i += 1
+    return '\n'.join(result)
+
+
 def fix_stub_file(path: Path) -> bool:
     """Fix a single .pyi file. Returns True if modified."""
     content = path.read_text()
-    lines = content.splitlines(keepends=True)
-    modified = False
 
+    # Multi-line fixes (operate on full content)
+    new_content = fix_code_blocks(content)
+
+    # Line-by-line fixes
+    lines = new_content.splitlines(keepends=True)
     new_lines = []
     for line in lines:
         new_line = line
         new_line = fix_keyword_params(new_line)
         new_line = fix_ndarray_annotations(new_line)
         new_line = fix_singleton_types(new_line)
-        if new_line != line:
-            modified = True
+        new_line = fix_none_type(new_line)
         new_lines.append(new_line)
 
+    new_content = "".join(new_lines)
+    modified = new_content != content
     if modified:
-        path.write_text("".join(new_lines))
+        path.write_text(new_content)
     return modified
 
 
