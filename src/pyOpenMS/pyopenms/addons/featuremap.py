@@ -1,6 +1,7 @@
 """Addon methods for FeatureMap class."""
 
 from __future__ import annotations
+import warnings
 import numpy as np
 from . import addon
 
@@ -34,8 +35,7 @@ def _get_prot_id_filename_from_pep_id(self, pep_id):
     """Gets the primary MS run path of the ProteinIdentification linked to the PeptideIdentification."""
     for prot in self.getProteinIdentifications():
         if prot.getIdentifier() == pep_id.getIdentifier():
-            filenames = []
-            prot.getPrimaryMSRunPath(filenames)
+            filenames = prot.getPrimaryMSRunPath()
             if filenames and filenames[0] != '':
                 return filenames[0]
     return 'unknown'
@@ -121,6 +121,26 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
         available_cols = [c for c in columns if c in df.columns]
         df = df[available_cols]
     return df
+
+
+@addon("FeatureMap")
+def get_df(self, *args, **kwargs):
+    """Deprecated: use to_df() instead."""
+    warnings.warn("get_df() is deprecated. Use to_df() instead.",
+                  DeprecationWarning, stacklevel=2)
+    return self.to_df(*args, **kwargs).reset_index()
+
+
+@addon("FeatureMap")
+def get_assigned_peptide_identifications(self):
+    """Returns all PeptideIdentifications assigned to features in this map."""
+    from pyopenms._pyopenms_metadata import PeptideIdentificationList
+    result = PeptideIdentificationList()
+    for f in self:
+        pep_ids = f.getPeptideIdentifications()
+        for pid in pep_ids:
+            result.push_back(pid)
+    return result
 
 
 @addon("FeatureMap")

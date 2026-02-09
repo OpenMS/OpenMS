@@ -409,7 +409,12 @@ This class supports direct iteration in Python.
 
         .def("extend", [](OpenMS::PeptideIdentificationList& self, const OpenMS::PeptideIdentificationList& other) {
             for (const auto& id : other) self.push_back(id);
-        }, "other"_a, "Extend with items from another list")
+        }, "other"_a, "Extend with items from another PeptideIdentificationList")
+        .def("extend", [](OpenMS::PeptideIdentificationList& self, const nb::list& items) {
+            for (auto item : items) {
+                self.push_back(nb::cast<OpenMS::PeptideIdentification>(item));
+            }
+        }, "items"_a, "Extend with items from a Python list")
 
         .def("push_back", [](OpenMS::PeptideIdentificationList& self, const OpenMS::PeptideIdentification& id) {
             self.push_back(id);
@@ -418,6 +423,14 @@ This class supports direct iteration in Python.
         .def("clear", [](OpenMS::PeptideIdentificationList& self) {
             self.clear();
         }, "Clear all identifications")
+
+        .def("empty", [](const OpenMS::PeptideIdentificationList& self) {
+            return self.empty();
+        }, "Returns True if the list is empty")
+
+        .def("__len__", [](const OpenMS::PeptideIdentificationList& self) {
+            return self.size();
+        })
         ;
 
     // -----------------------------------------------------------------------

@@ -6,6 +6,8 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
 #include <OpenMS/FORMAT/ChromeleonFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
@@ -14,6 +16,7 @@
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -146,6 +149,14 @@ chromatograms
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::DTAFile>(m, "DTAFile", "File adapter for DTA files")
         .def(nb::init<>())
+        .def("load", [](OpenMS::DTAFile& self, const OpenMS::String& filename) {
+            OpenMS::MSSpectrum spectrum;
+            self.load(filename, spectrum);
+            return spectrum;
+        }, "filename"_a, "Loads a DTA file into an MSSpectrum")
+        .def("store", [](const OpenMS::DTAFile& self, const OpenMS::String& filename, const OpenMS::MSSpectrum& spectrum) {
+            self.store(filename, spectrum);
+        }, "filename"_a, "spectrum"_a, "Stores an MSSpectrum to a DTA file")
         ;
 
     // -----------------------------------------------------------------------
@@ -168,6 +179,9 @@ for details on the supported format)
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::ExperimentalDesignFile &>())
+        .def_static("load", [](const OpenMS::String& tsv_file, bool require_spectra_files) {
+            return OpenMS::ExperimentalDesignFile::load(tsv_file, require_spectra_files);
+        }, "tsv_file"_a, "require_spectra_files"_a, "Load an experimental design from a TSV file")
         ;
 
     // -----------------------------------------------------------------------
@@ -269,6 +283,14 @@ Checks whether the given file type is supported
 )doc")
         .def("getOptions", [](OpenMS::FileHandler& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Access to the options for loading/storing")
         .def("setOptions", [](OpenMS::FileHandler& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
+        .def("loadFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename) { OpenMS::FeatureMap map; self.loadFeatures(filename, map); return map; }, "filename"_a,
+            R"doc(
+Loads features from a file into a FeatureMap (auto-detect file type)
+:param filename: The name of the file to load features from
+:returns: FeatureMap containing the loaded features
+:raises:
+Exception: FileNotFound is thrown if the file could not be opened
+)doc")
         .def("loadFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, std::vector<OpenMS::FileTypes::Type> allowed_types, OpenMS::ProgressLogger::LogType log) { OpenMS::FeatureMap map; self.loadFeatures(filename, map, allowed_types, log); return map; }, "filename"_a, "allowed_types"_a, "log"_a,
             R"doc(
 Loads features from a file into a FeatureMap
@@ -524,6 +546,7 @@ Specifies the name of a enzyme. "Trypsin", "None", and "Chymotrypsin" are the av
         .def("setInstrument", [](OpenMS::InspectInfile& self, const OpenMS::String& instrument) { return self.setInstrument(instrument); }, "instrument"_a, "If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass")
         .def("getTagCount", [](const OpenMS::InspectInfile& self) { return self.getTagCount(); }, "Number of tags to generate")
         .def("setTagCount", [](OpenMS::InspectInfile& self, int TagCount) { return self.setTagCount(TagCount); }, "TagCount"_a, "Number of tags to generate")
+        .def("getModifications", [](const OpenMS::InspectInfile& self) { return self.getModifications(); }, "Returns the modifications")
         ;
 
     // -----------------------------------------------------------------------
@@ -573,6 +596,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
 )doc")
         .def(nb::init<>())
         .def("load", [](OpenMS::KroenikFile& self, const OpenMS::String& filename) { OpenMS::FeatureMap feature_map; self.load(filename, feature_map); return feature_map; }, "filename"_a)
+        .def("store", [](const OpenMS::KroenikFile& self, const OpenMS::String& filename, const OpenMS::FeatureMap& fmap) { self.store(filename, fmap); }, "filename"_a, "fmap"_a, "Stores a FeatureMap to a Kroenik file")
         ;
 
     // -----------------------------------------------------------------------
@@ -1224,6 +1248,9 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
     nb::class_<OpenMS::PeakTypeEstimator>(m, "PeakTypeEstimator", "Estimates if the data of a spectrum is raw data or peak data")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::PeakTypeEstimator &>())
+        .def("estimateType", [](const OpenMS::PeakTypeEstimator& /*self*/, const OpenMS::MSSpectrum& spec) {
+            return OpenMS::PeakTypeEstimator::estimateType(spec.begin(), spec.end());
+        }, "spectrum"_a, "Estimates the peak type of the given spectrum")
         ;
 
     // -----------------------------------------------------------------------
@@ -1652,5 +1679,46 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
            "Return chromatogram data as a dict")
         ;
 #endif // WITH_PARQUET
+
+    // -----------------------------------------------------------------------
+    // ControlledVocabulary
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::ControlledVocabulary>(m, "ControlledVocabulary",
+        "Representation of a controlled vocabulary")
+        .def(nb::init<>())
+        .def("loadFromOBO", [](OpenMS::ControlledVocabulary& self, const OpenMS::String& name, const OpenMS::String& filename) { self.loadFromOBO(name, filename); }, "name"_a, "filename"_a, "Loads the CV from an OBO file")
+        .def("name", [](const OpenMS::ControlledVocabulary& self) { return self.name(); })
+        .def("exists", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& id) { return self.exists(id); }, "id"_a)
+        .def("hasTermWithName", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& name) { return self.hasTermWithName(name); }, "name"_a)
+        .def("isChildOf", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& child_id, const OpenMS::String& parent_id) { return self.isChildOf(child_id, parent_id); }, "child_id"_a, "parent_id"_a)
+        ;
+
+    // -----------------------------------------------------------------------
+    // CVMappingFile
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::CVMappingFile>(m, "CVMappingFile",
+        "Used to load CvMapping files")
+        .def(nb::init<>())
+        .def("load", [](OpenMS::CVMappingFile& self, const OpenMS::String& filename, OpenMS::CVMappings& cv_mappings, bool strip_namespaces) { self.load(filename, cv_mappings, strip_namespaces); }, "filename"_a, "cv_mappings"_a, "strip_namespaces"_a = false, "Loads CvMappings from the given file")
+        ;
+
+    // -----------------------------------------------------------------------
+    // SemanticValidator
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::Internal::SemanticValidator>(m, "SemanticValidator",
+        "Semantically validates XML files using CVMappings and a ControlledVocabulary")
+        .def(nb::init<const OpenMS::CVMappings &, const OpenMS::ControlledVocabulary &>(), "mapping"_a, "cv"_a)
+        .def("validate", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& filename) {
+            OpenMS::StringList errors, warnings;
+            bool result = self.validate(filename, errors, warnings);
+            return nb::make_tuple(result, errors, warnings);
+        }, "filename"_a, "Validates an XML file. Returns (success, errors, warnings)")
+        .def("setCheckTermValueTypes", [](OpenMS::Internal::SemanticValidator& self, bool check) { self.setCheckTermValueTypes(check); }, "check"_a)
+        .def("setCheckUnits", [](OpenMS::Internal::SemanticValidator& self, bool check) { self.setCheckUnits(check); }, "check"_a)
+        .def("setTag", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& tag) { self.setTag(tag); }, "tag"_a)
+        .def("setAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& accession) { self.setAccessionAttribute(accession); }, "accession"_a)
+        .def("setNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& name) { self.setNameAttribute(name); }, "name"_a)
+        .def("setValueAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& value) { self.setValueAttribute(value); }, "value"_a)
+        ;
 
 }

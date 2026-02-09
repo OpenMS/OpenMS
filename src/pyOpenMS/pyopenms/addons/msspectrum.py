@@ -7,6 +7,7 @@ This file contains pure Python helper methods including DataFrame export.
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Tuple
 
 import numpy as np
@@ -28,7 +29,7 @@ def __repr__(self) -> str:
 
 @addon("MSSpectrum")
 def __str__(self) -> str:
-    return f"MSSpectrum with {len(self)} peaks at RT={self.getRT():.2f}s"
+    return repr(self)
 
 
 @addon("MSSpectrum")
@@ -242,6 +243,14 @@ def to_arrow(self, columns=None, export_meta_values=True):
 def get_tic(self) -> float:
     """Get total ion current (sum of all intensities)."""
     return self.calculateTIC()
+
+
+@addon("MSSpectrum")
+def get_df(self, *args, **kwargs):
+    """Deprecated: use to_df() instead."""
+    warnings.warn("get_df() is deprecated. Use to_df() instead.",
+                  DeprecationWarning, stacklevel=2)
+    return self.to_df(*args, **kwargs)
 
 
 @addon("MSSpectrum")

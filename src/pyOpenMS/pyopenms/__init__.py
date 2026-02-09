@@ -177,19 +177,35 @@ def _import_submodules():
     import pkgutil
 
     _imported_modules = []
-    # Discover all _pyopenms_* modules (domain-based naming)
-    for finder, name, ispkg in pkgutil.iter_modules(__path__):
-        if name.startswith("_pyopenms_"):
-            try:
-                mod = importlib.import_module(f".{name}", package=__name__)
-                _imported_modules.append(mod)
-                for attr in dir(mod):
-                    if not attr.startswith("_"):
-                        globals()[attr] = getattr(mod, attr)
-            except Exception as e:
-                import traceback
-                warnings.warn(f"Failed to import {name}: {type(e).__name__}: {e}")
-                traceback.print_exc()
+
+    # Load order matters for nanobind shared domain type resolution:
+    # modules that define types used by other modules must load first.
+    # e.g. kernel defines RetentionTime used by analysis (Compound.rts).
+    _priority_modules = [
+        "_pyopenms_datastructures",
+        "_pyopenms_kernel",
+        "_pyopenms_metadata",
+        "_pyopenms_chemistry",
+    ]
+
+    all_names = sorted(
+        name for _, name, _ in pkgutil.iter_modules(__path__)
+        if name.startswith("_pyopenms_")
+    )
+    ordered = [n for n in _priority_modules if n in all_names]
+    ordered += [n for n in all_names if n not in _priority_modules]
+
+    for name in ordered:
+        try:
+            mod = importlib.import_module(f".{name}", package=__name__)
+            _imported_modules.append(mod)
+            for attr in dir(mod):
+                if not attr.startswith("_"):
+                    globals()[attr] = getattr(mod, attr)
+        except Exception as e:
+            import traceback
+            warnings.warn(f"Failed to import {name}: {type(e).__name__}: {e}")
+            traceback.print_exc()
 
     if not _imported_modules:
         raise ImportError(
