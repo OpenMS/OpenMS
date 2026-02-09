@@ -50,7 +50,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     // Method
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::Math::RankData::Method>(m, "Method")
+    nb::enum_<OpenMS::Math::RankData::Method>(m, "Method", "Method for resolving ties in rank computation")
         .value("Average", OpenMS::Math::RankData::Method::Average)
         .value("Min", OpenMS::Math::RankData::Method::Min)
         .value("Max", OpenMS::Math::RankData::Method::Max)
@@ -63,7 +63,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     // NaNPolicy
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::Math::RankData::NaNPolicy>(m, "NaNPolicy")
+    nb::enum_<OpenMS::Math::RankData::NaNPolicy>(m, "NaNPolicy", "Policy for handling NaN values in rank computation")
         .value("Propagate", OpenMS::Math::RankData::NaNPolicy::Propagate)
         .value("Omit", OpenMS::Math::RankData::NaNPolicy::Omit)
         .value("Raise", OpenMS::Math::RankData::NaNPolicy::Raise)

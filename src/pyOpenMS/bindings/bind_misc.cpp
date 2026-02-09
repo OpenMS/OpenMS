@@ -2083,7 +2083,7 @@ Use startProgress, setProgress and endProgress for the actual logging
         .def("nextProgress", [](const OpenMS::ProgressLogger& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
     // LogType enum nested under ProgressLogger
-    nb::enum_<OpenMS::ProgressLogger::LogType>(progresslogger_class, "LogType")
+    nb::enum_<OpenMS::ProgressLogger::LogType>(progresslogger_class, "LogType", "Enum for progress logging output type")
         .value("CMD", OpenMS::ProgressLogger::LogType::CMD)
         .value("GUI", OpenMS::ProgressLogger::LogType::GUI)
         .value("NONE", OpenMS::ProgressLogger::LogType::NONE)

@@ -114,7 +114,7 @@ NB_MODULE(_pyopenms_kernel, m) {
     // -----------------------------------------------------------------------
     // DriftTimeUnit
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::DriftTimeUnit>(m, "DriftTimeUnit")
+    nb::enum_<OpenMS::DriftTimeUnit>(m, "DriftTimeUnit", "Unit of drift time for ion mobility")
         .value("NONE", OpenMS::DriftTimeUnit::NONE)
         .value("MILLISECOND", OpenMS::DriftTimeUnit::MILLISECOND)
         .value("VSSC", OpenMS::DriftTimeUnit::VSSC)
@@ -125,7 +125,7 @@ NB_MODULE(_pyopenms_kernel, m) {
     // -----------------------------------------------------------------------
     // IMFormat
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::IMFormat>(m, "IMFormat")
+    nb::enum_<OpenMS::IMFormat>(m, "IMFormat", "Ion mobility data format in an experiment")
         .value("NONE", OpenMS::IMFormat::NONE)
         .value("CONCATENATED", OpenMS::IMFormat::CONCATENATED)
         .value("MULTIPLE_SPECTRA", OpenMS::IMFormat::MULTIPLE_SPECTRA)
