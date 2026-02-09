@@ -346,7 +346,7 @@ Computes a SHA-1 hash of the file content
         .def_static("typeToMZML", [](OpenMS::FileTypes::Type type) { return OpenMS::FileTypes::typeToMZML(type); }, "type"_a, "Returns the mzML name")
         ;
     // FileType enum nested under FileTypes
-    nb::enum_<OpenMS::FileTypes::Type>(filetypes_class, "FileType")
+    nb::enum_<OpenMS::FileTypes::Type>(filetypes_class, "FileType", "Enum for known file types")
         .value("UNKNOWN", OpenMS::FileTypes::Type::UNKNOWN)
         .value("DTA", OpenMS::FileTypes::Type::DTA)
         .value("DTA2D", OpenMS::FileTypes::Type::DTA2D)

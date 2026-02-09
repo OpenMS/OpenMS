@@ -1,4 +1,5 @@
 class SimpleOpenMSSpectraFactory:
+    """A factory that returns ISpectrumAccess implementations for an MSExperiment."""
 
     @staticmethod
     def getSpectrumAccessOpenMSPtr(exp):
