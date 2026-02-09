@@ -336,6 +336,8 @@ The following formats are supported:
 - yyyy-MM-dd+hh:mm (ISO 8601 format)
 )doc")
         .def("__hash__", [](const OpenMS::DateTime& self) { return std::hash<OpenMS::DateTime>{}(self); })
+        .def("isNull", [](const OpenMS::DateTime& self) { return self.isNull(); }, "Returns true if the DateTime is null (default constructed)")
+        .def("isValid", [](const OpenMS::DateTime& self) { return self.isValid(); }, "Returns true if the DateTime is valid")
         ;
 
     // -----------------------------------------------------------------------
@@ -1150,6 +1152,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("__str__", [](const OpenMS::StringView& self) { return self.getString(); })
         .def(nb::self == nb::self)
         .def(nb::self < nb::self)
+        .def("substr", [](const OpenMS::StringView& self, size_t start, size_t length) { return self.substr(start, length); }, "start"_a, "length"_a, "Returns a substring view")
         ;
 
 }
