@@ -2488,6 +2488,9 @@ This struct can be used to store both peak or feature indices
         .def(nb::self != nb::self)
         .def_rw("peak", &OpenMS::PeakIndex::peak)
         .def_rw("spectrum", &OpenMS::PeakIndex::spectrum)
+        .def("getFeature", [](const OpenMS::PeakIndex& self, const OpenMS::FeatureMap& map) -> const OpenMS::Feature& { return self.getFeature(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the feature in the given map")
+        .def("getPeak", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::Peak1D& { return self.getPeak(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the peak in the given map")
+        .def("getSpectrum", [](const OpenMS::PeakIndex& self, const OpenMS::MSExperiment& map) -> const OpenMS::MSSpectrum& { return self.getSpectrum(map); }, "map"_a, nb::rv_policy::reference_internal, "Returns the spectrum in the given map")
         ;
 
     // -----------------------------------------------------------------------
@@ -4226,6 +4229,7 @@ Commonly used for storing ion annotation names or other per-peak string annotati
         .def("clear", [](OpenMS::DataArrays::StringDataArray& self) {
             self.clear();
         }, "Clear the array")
+        .def("getDataProcessing", [](const OpenMS::DataArrays::StringDataArray& self) { return self.getDataProcessing(); }, "Returns the data processing steps")
         ;
 
     // -----------------------------------------------------------------------

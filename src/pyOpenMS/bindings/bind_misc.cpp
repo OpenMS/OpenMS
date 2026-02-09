@@ -120,6 +120,7 @@
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -618,6 +619,7 @@ DefaultParamHandler
             self.getDefaultParameters(params);
             return params;
         }, "Get default parameters (returns Param)")
+        .def("fitEMGPeakModel", [](const OpenMS::EmgGradientDescent& self, const OpenMS::MSChromatogram& input_peak, OpenMS::MSChromatogram& output_peak, double left_pos, double right_pos) { self.fitEMGPeakModel(input_peak, output_peak, left_pos, right_pos); }, "input_peak"_a, "output_peak"_a, "left_pos"_a = 0.0, "right_pos"_a = 0.0, "Fit EMG peak model to chromatographic peak")
         ;
 
     // -----------------------------------------------------------------------
@@ -931,6 +933,7 @@ FeatureGroupingAlgorithm
         .def("getName", [](const OpenMS::FeatureGroupingAlgorithmUnlabeled& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::FeatureGroupingAlgorithmUnlabeled& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("setReference", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self, int map_id, const OpenMS::FeatureMap& map) { self.setReference(map_id, map); }, "map_id"_a, "map"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -1344,6 +1347,7 @@ DefaultParamHandler
         .def("getName", [](const OpenMS::IsobaricQuantifier& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::IsobaricQuantifier& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::IsobaricQuantifier& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("quantify", [](OpenMS::IsobaricQuantifier& self, const OpenMS::ConsensusMap& consensus_map_in, OpenMS::ConsensusMap& consensus_map_out) { self.quantify(consensus_map_in, consensus_map_out); }, "consensus_map_in"_a, "consensus_map_out"_a, "Quantifies isobaric labeled peptides/proteins")
         ;
 
     // -----------------------------------------------------------------------
@@ -1427,6 +1431,7 @@ param fragment_isotopomer_theoretical_formula: A map of ProteinName/peptideRef t
         .def("getName", [](const OpenMS::IsotopeLabelingMDVs& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::IsotopeLabelingMDVs& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::IsotopeLabelingMDVs& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("calculateMDVAccuracies", [](OpenMS::IsotopeLabelingMDVs& self, OpenMS::FeatureMap& normalized_fm, const std::string& feature_name, const std::map<std::string, std::string>& fragment_isotopomer_theoretical_formulas) { self.calculateMDVAccuracies(normalized_fm, feature_name, fragment_isotopomer_theoretical_formulas); }, "normalized_fm"_a, "feature_name"_a, "fragment_isotopomer_theoretical_formulas"_a, "Calculate MDV accuracies")
         ;
 
     // -----------------------------------------------------------------------
@@ -1506,6 +1511,7 @@ IsobaricQuantitationMethod
         .def("setName", [](OpenMS::KDTreeFeatureMaps& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::KDTreeFeatureMaps& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("__len__", [](OpenMS::KDTreeFeatureMaps& self) { return self.size(); })
+        .def("addMaps", [](OpenMS::KDTreeFeatureMaps& self, const std::vector<OpenMS::FeatureMap>& maps) { self.addMaps(maps); }, "maps"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -1640,6 +1646,10 @@ Calculate the retention time difference between two features
         .def("getName", [](const OpenMS::MRMFeatureFilter& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::MRMFeatureFilter& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::MRMFeatureFilter& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("EstimateDefaultMRMFeatureQCValues", [](const OpenMS::MRMFeatureFilter& self, const std::vector<OpenMS::FeatureMap>& samples, OpenMS::MRMFeatureQC& filter_template, const OpenMS::TargetedExperiment& transitions, const bool& init_template_values) { self.EstimateDefaultMRMFeatureQCValues(samples, filter_template, transitions, init_template_values); }, "samples"_a, "filter_template"_a, "transitions"_a, "init_template_values"_a)
+        .def("TransferLLOQAndULOQToCalculatedConcentrationBounds", [](OpenMS::MRMFeatureFilter& self, const std::vector<OpenMS::AbsoluteQuantitationMethod>& quantitation_method, OpenMS::MRMFeatureQC& filter_template) { self.TransferLLOQAndULOQToCalculatedConcentrationBounds(quantitation_method, filter_template); }, "quantitation_method"_a, "filter_template"_a)
+        .def("EstimatePercRSD", [](const OpenMS::MRMFeatureFilter& self, const std::vector<OpenMS::FeatureMap>& samples, OpenMS::MRMFeatureQC& filter_template, const OpenMS::TargetedExperiment& transitions) { self.EstimatePercRSD(samples, filter_template, transitions); }, "samples"_a, "filter_template"_a, "transitions"_a)
+        .def("EstimateBackgroundInterferences", [](const OpenMS::MRMFeatureFilter& self, const std::vector<OpenMS::FeatureMap>& samples, OpenMS::MRMFeatureQC& filter_template, const OpenMS::TargetedExperiment& transitions) { self.EstimateBackgroundInterferences(samples, filter_template, transitions); }, "samples"_a, "filter_template"_a, "transitions"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -1687,6 +1697,7 @@ DefaultParamHandler
             self.findWidestPeakIndices(picked_chroms, chrom_idx, point_idx);
             return nb::make_tuple(chrom_idx, point_idx);
         }, "picked_chroms"_a, "Finds the widest peak across all chromatograms. Returns (chrom_idx, point_idx)")
+        .def("pickTransitionGroup", [](OpenMS::MRMTransitionGroupPicker& self, OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& transition_group) { self.pickTransitionGroup(transition_group); }, "transition_group"_a, "Pick transition group")
         ;
 
     // -----------------------------------------------------------------------
@@ -1974,6 +1985,7 @@ The containers supported by the methods are MSChromatogram and MSSpectrum
         .def("calculatePeakShapeMetrics", [](OpenMS::PeakIntegrator& self, const OpenMS::MSChromatogram& chrom, double left, double right, double height, double apex) {
             return self.calculatePeakShapeMetrics(chrom, left, right, height, apex);
         }, "chromatogram"_a, "left"_a, "right"_a, "peak_height"_a, "peak_apex_pos"_a, "Calculate peak shape metrics")
+        .def("getDefaultParameters", [](OpenMS::PeakIntegrator& self) { OpenMS::Param params; self.getDefaultParameters(params); return params; }, "Returns default parameters")
         ;
 
     // -----------------------------------------------------------------------
@@ -2049,6 +2061,8 @@ Peptide abundances must be computed first with quantifyPeptides(). Optional prot
         .def("getName", [](const OpenMS::PeptideAndProteinQuant& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::PeptideAndProteinQuant& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::PeptideAndProteinQuant& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("readQuantData", [](OpenMS::PeptideAndProteinQuant& self, OpenMS::FeatureMap& features, const OpenMS::ExperimentalDesign& ed) { self.readQuantData(features, ed); }, "features"_a, "ed"_a)
+        .def("readQuantData", [](OpenMS::PeptideAndProteinQuant& self, OpenMS::ConsensusMap& consensus, const OpenMS::ExperimentalDesign& ed) { self.readQuantData(consensus, ed); }, "consensus"_a, "ed"_a, "Read quantification data from ConsensusMap")
         ;
 
     // -----------------------------------------------------------------------
@@ -2510,6 +2524,7 @@ ProgressLogger
         .def("setProgress", [](const OpenMS::DTA2DFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
         .def("endProgress", [](const OpenMS::DTA2DFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::DTA2DFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
+        .def("storeTIC", [](const OpenMS::DTA2DFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& map) { self.storeTIC(filename, map); }, "filename"_a, "map"_a, "Store TIC to file")
         ;
 
     // -----------------------------------------------------------------------
@@ -2782,6 +2797,8 @@ ProgressLogger
         .def("setProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
         .def("endProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
+        .def("group", [](OpenMS::FeatureGroupingAlgorithmKD& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { self.group(maps, out); }, "maps"_a, "out"_a)
+        .def("group", [](OpenMS::FeatureGroupingAlgorithmKD& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { self.group(maps, out); }, "maps"_a, "out"_a, "Group consensus maps")
         ;
 
     // -----------------------------------------------------------------------
@@ -2929,6 +2946,7 @@ BaseGroupFinder
         .def("setProgress", [](const OpenMS::LabeledPairFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
         .def("endProgress", [](const OpenMS::LabeledPairFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::LabeledPairFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
+        .def("run", [](OpenMS::LabeledPairFinder& self, const std::vector<OpenMS::ConsensusMap>& input_maps, OpenMS::ConsensusMap& result_map) { self.run(input_maps, result_map); }, "input_maps"_a, "result_map"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -3032,6 +3050,8 @@ Filters target and decoy transitions by intensity, only keeping the top N transi
         .def("setProgress", [](const OpenMS::MRMAssay& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
         .def("endProgress", [](const OpenMS::MRMAssay& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MRMAssay& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
+        .def("reannotateTransitions", [](OpenMS::MRMAssay& self, OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, const std::vector<OpenMS::String>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow) { self.reannotateTransitions(exp, precursor_mz_threshold, product_mz_threshold, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow); }, "exp"_a, "precursor_mz_threshold"_a, "product_mz_threshold"_a, "fragment_types"_a, "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a, "round_decPow"_a = -4)
+        .def("uisTransitions", [](OpenMS::MRMAssay& self, OpenMS::TargetedExperiment& exp, const std::vector<OpenMS::String>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, const std::vector<std::pair<double, double>>& swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed, bool disable_decoy_transitions) { self.uisTransitions(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, mz_threshold, swathes, round_decPow, max_num_alternative_localizations, shuffle_seed, disable_decoy_transitions); }, "exp"_a, "fragment_types"_a, "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a, "enable_ms2_precursors"_a, "mz_threshold"_a, "swathes"_a, "round_decPow"_a = -4, "max_num_alternative_localizations"_a = 20, "shuffle_seed"_a = -1, "disable_decoy_transitions"_a = false)
         ;
 
     // -----------------------------------------------------------------------
@@ -3111,6 +3131,7 @@ ProgressLogger
         .def("setProgress", [](const OpenMS::MS2File& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
         .def("endProgress", [](const OpenMS::MS2File& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MS2File& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
+        .def("load", [](OpenMS::MS2File& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) { self.load(filename, exp); }, "filename"_a, "exp"_a, "Load MS2 file")
         ;
 
     // -----------------------------------------------------------------------
@@ -3245,6 +3266,7 @@ Exception: FileNotFound is thrown if the given file could not be found
         .def("getName", [](const OpenMS::MascotGenericFile& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::MascotGenericFile& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::MascotGenericFile& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("load", [](OpenMS::MascotGenericFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) { self.load(filename, exp); }, "filename"_a, "exp"_a, "Load MGF file")
         ;
 
     // -----------------------------------------------------------------------
@@ -3457,6 +3479,8 @@ Exception:UnableToCreateFile is thrown if the file cannot be created
         .def("writeEnd", [](OpenMS::PEFFFile& self) { return self.writeEnd(); }, "Writes the next PEFF entry to the file")
         .def_static("isPEFFFile", [](const OpenMS::String& filename) { return OpenMS::PEFFFile::isPEFFFile(filename); }, "filename"_a)
         .def_static("toProForma", [](const OpenMS::PEFFEntry& entry) { return OpenMS::PEFFFile::toProForma(entry); }, "entry"_a)
+        .def("store", [](const OpenMS::PEFFFile& self, const OpenMS::String& filename, const std::vector<OpenMS::PEFFEntry>& entries, const OpenMS::PEFFDatabaseMetadata& header) { self.store(filename, entries, header); }, "filename"_a, "entries"_a, "header"_a, "Store PEFF file with single header")
+        .def("store", [](const OpenMS::PEFFFile& self, const OpenMS::String& filename, const std::vector<OpenMS::PEFFEntry>& entries, const std::vector<OpenMS::PEFFDatabaseMetadata>& headers) { self.store(filename, entries, headers); }, "filename"_a, "entries"_a, "headers"_a, "Store PEFF file with multiple headers")
         ;
 
     // -----------------------------------------------------------------------
@@ -4043,6 +4067,7 @@ BaseGroupFinder
         .def("setProgress", [](const OpenMS::StablePairFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
         .def("endProgress", [](const OpenMS::StablePairFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::StablePairFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
+        .def("run", [](OpenMS::StablePairFinder& self, const std::vector<OpenMS::ConsensusMap>& input_maps, OpenMS::ConsensusMap& result_map) { self.run(input_maps, result_map); }, "input_maps"_a, "result_map"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -4596,6 +4621,8 @@ ProgressLogger
     nb::class_<OpenMS::TransitionPQPFile, OpenMS::TransitionTSVFile>(m, "TransitionPQPFile", "This class supports reading and writing of PQP files")
         .def(nb::init<>())
         .def("validateTargetedExperiment", [](OpenMS::TransitionPQPFile& self, const OpenMS::TargetedExperiment& targeted_exp) { return self.validateTargetedExperiment(targeted_exp); }, "targeted_exp"_a)
+        .def("convertPQPToTargetedExperiment", [](OpenMS::TransitionPQPFile& self, const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id) { self.convertPQPToTargetedExperiment(filename, targeted_exp, legacy_traml_id); }, "filename"_a, "targeted_exp"_a, "legacy_traml_id"_a = false)
+        .def("convertTargetedExperimentToPQP", [](OpenMS::TransitionPQPFile& self, const char* filename, OpenMS::TargetedExperiment& targeted_exp) { self.convertTargetedExperimentToPQP(filename, targeted_exp); }, "filename"_a, "targeted_exp"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -4620,6 +4647,7 @@ DefaultParamHandler
         .def("filterPeakSpectrumForTopNInSlidingWindow", [](OpenMS::WindowMower& self, OpenMS::MSSpectrum& spectrum) {
             self.filterPeakSpectrumForTopNInSlidingWindow(spectrum);
         }, "spectrum"_a, "Sliding window version (slower)")
+        .def("filterPeakSpectrumForTopNInJumpingWindow", [](OpenMS::WindowMower& self, OpenMS::MSSpectrum& spectrum) { self.filterPeakSpectrumForTopNInJumpingWindow(spectrum); }, "spectrum"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -4764,6 +4792,8 @@ XMLFile
 )doc")
         .def(nb::init<>())
         .def("getVersion", [](const OpenMS::MascotXMLFile& self) { return self.getVersion(); }, "Return the version of the schema")
+        .def_static("initializeLookup", [](OpenMS::SpectrumMetaDataLookup& lookup, const OpenMS::PeakMap& experiment, const OpenMS::String& scan_regex) { OpenMS::MascotXMLFile::initializeLookup(lookup, experiment, scan_regex); }, "lookup"_a, "experiment"_a, "scan_regex"_a = "", "Initialize spectrum lookup")
+        .def("load", [](OpenMS::MascotXMLFile& self, const OpenMS::String& filename, OpenMS::ProteinIdentification& protein_identification, OpenMS::PeptideIdentificationList& id_data, const OpenMS::SpectrumMetaDataLookup& lookup) { self.load(filename, protein_identification, id_data, lookup); }, "filename"_a, "protein_identification"_a, "id_data"_a, "lookup"_a, "Load Mascot XML file")
         ;
 
     // -----------------------------------------------------------------------
@@ -4909,6 +4939,7 @@ MzMLFile().store("filtered.mzML", exp)
             self.transform(filename, &wrapper, skip_full_count, skip_first_pass);
         }, "filename"_a, "consumer"_a, "skip_full_count"_a = false, "skip_first_pass"_a = false,
         "Transform an mzML file using a consumer object (streaming processing)")
+        .def("isSemanticallyValid", [](OpenMS::MzMLFile& self, const OpenMS::String& filename) { OpenMS::StringList errors; OpenMS::StringList warnings; bool result = self.isSemanticallyValid(filename, errors, warnings); return nb::make_tuple(result, errors, warnings); }, "filename"_a, "Check semantic validity and return (is_valid, errors, warnings)")
         ;
 
     // -----------------------------------------------------------------------
@@ -5167,6 +5198,7 @@ print(transition.getPrecursorMZ(), transition.getProductMZ())
             nb::gil_scoped_release release;
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store to a TraML file")
+        .def("isSemanticallyValid", [](OpenMS::TraMLFile& self, const OpenMS::String& filename) { OpenMS::StringList errors; OpenMS::StringList warnings; bool result = self.isSemanticallyValid(filename, errors, warnings); return nb::make_tuple(result, errors, warnings); }, "filename"_a, "Check semantic validity and return (is_valid, errors, warnings)")
         ;
 
     // -----------------------------------------------------------------------
@@ -5219,6 +5251,8 @@ XMLFile
             OpenMS::PeptideIdentificationList peptide_list(peptides);
             self.store(filename, proteins, peptide_list);
         }, "filename"_a, "proteins"_a, "peptides"_a, "Store to an xQuest result XML file")
+        .def("load", [](OpenMS::XQuestResultXMLFile& self, const OpenMS::String& filename, OpenMS::PeptideIdentificationList& pep_ids, std::vector<OpenMS::ProteinIdentification>& prot_ids) { self.load(filename, pep_ids, prot_ids); }, "filename"_a, "pep_ids"_a, "prot_ids"_a)
+        .def("store", [](const OpenMS::XQuestResultXMLFile& self, const OpenMS::String& filename, const std::vector<OpenMS::ProteinIdentification>& poid, const OpenMS::PeptideIdentificationList& peid) { self.store(filename, poid, peid); }, "filename"_a, "poid"_a, "peid"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -5321,6 +5355,7 @@ XMLFile
             return nb::make_tuple(bseries_score, yseries_score);
         }, "spectrum"_a, "sequence"_a, "charge"_a, "im_range"_a, "bseries_score"_a, "yseries_score"_a,
         "Score the DIA window for b/y ion series")
+        .def("dia_ms1_massdiff_score", [](const OpenMS::DIAScoring& self, double precursor_mz, const std::vector<OpenSwath::SpectrumPtr>& spectrum, const OpenMS::RangeMobility& im_range) { double ppm_score; bool result = self.dia_ms1_massdiff_score(precursor_mz, spectrum, im_range, ppm_score); return nb::make_tuple(result, ppm_score); }, "precursor_mz"_a, "spectrum"_a, "im_range"_a, "Score MS1 mass difference")
         ;
 
 
@@ -5341,6 +5376,8 @@ XMLFile
         .def("setMS1Map", [](OpenMS::MRMFeatureFinderScoring& self, std::shared_ptr<OpenMS::SpectrumAccessOpenMS> ms1_map) {
             self.setMS1Map(ms1_map);
         }, "ms1_map"_a)
+        .def("setLogType", [](OpenMS::MRMFeatureFinderScoring& self, OpenMS::ProgressLogger::LogType type) { self.setLogType(type); }, "type"_a)
+        .def("getLogType", [](const OpenMS::MRMFeatureFinderScoring& self) { return self.getLogType(); })
         ;
 
 }

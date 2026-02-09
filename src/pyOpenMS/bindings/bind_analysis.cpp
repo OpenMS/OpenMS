@@ -76,6 +76,7 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
+#include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -134,6 +135,9 @@ NB_MODULE(_pyopenms_analysis, m) {
         .def_rw("rt_difference", &OpenMS::OpenSwath_Scores::rt_difference)
         .def_rw("normalized_experimental_rt", &OpenMS::OpenSwath_Scores::normalized_experimental_rt)
         .def_rw("raw_rt_score", &OpenMS::OpenSwath_Scores::raw_rt_score)
+        .def("calculate_lda_prescore", [](const OpenMS::OpenSwath_Scores& self, const OpenMS::OpenSwath_Scores& scores) { return self.calculate_lda_prescore(scores); }, "scores"_a, "Calculate LDA prescore")
+        .def("calculate_swath_lda_prescore", [](const OpenMS::OpenSwath_Scores& self, const OpenMS::OpenSwath_Scores& scores) { return self.calculate_swath_lda_prescore(scores); }, "scores"_a, "Calculate SWATH LDA prescore")
+        .def("get_quick_lda_score", [](const OpenMS::OpenSwath_Scores& self, double library_corr_, double library_norm_manhattan_, double norm_rt_score_, double xcorr_coelution_score_, double xcorr_shape_score_, double log_sn_score_) { return self.get_quick_lda_score(library_corr_, library_norm_manhattan_, norm_rt_score_, xcorr_coelution_score_, xcorr_shape_score_, log_sn_score_); }, "library_corr"_a, "library_norm_manhattan"_a, "norm_rt_score"_a, "xcorr_coelution_score"_a, "xcorr_shape_score"_a, "log_sn_score"_a, "Get quick LDA score")
         ;
 
     // -----------------------------------------------------------------------
@@ -319,6 +323,7 @@ CVTermList
         .def_rw("theoretical_mass", &OpenMS::TargetedExperimentHelper::Compound::theoretical_mass)
         .def_rw("rts", &OpenMS::TargetedExperimentHelper::Compound::rts)
         .def_rw("id", &OpenMS::TargetedExperimentHelper::Compound::id)
+        .def("replaceCVTerms", [](OpenMS::TargetedExperimentHelper::Compound& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { self.replaceCVTerms(cv_term_map); }, "cv_term_map"_a, "Replaces all CV terms with the given map")
         ;
 
     // -----------------------------------------------------------------------
@@ -351,6 +356,7 @@ CVTermList
             return data_out;
         }, "data_in"_a, "n_resampling_points"_a, "Resamples data_in and returns the resampled data")
         .def_static("extractIntensityVectors", [](const OpenMS::ConsensusMap& map) { std::vector<std::vector<double>> out_intensities; OpenMS::ConsensusMapNormalizerAlgorithmQuantile::extractIntensityVectors(map, out_intensities); return out_intensities; }, "map"_a, "Extracts the intensities of the features of the different maps")
+        .def_static("setNormalizedIntensityValues", [](const std::vector<std::vector<double>>& feature_ints, OpenMS::ConsensusMap& map) { return OpenMS::ConsensusMapNormalizerAlgorithmQuantile::setNormalizedIntensityValues(feature_ints, map); }, "feature_ints"_a, "map"_a, "Sets the normalized intensity values to the consensus map")
         ;
 
     // -----------------------------------------------------------------------
@@ -412,6 +418,10 @@ Constructors
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, nb::rv_policy::reference_internal)
+        .def("__setitem__", [](OpenMS::DeconvolvedSpectrum& self, size_t i, const OpenMS::PeakGroup& val) {
+            if (i >= self.size()) throw nb::index_error();
+            self[i] = val;
+        }, "i"_a, "val"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -557,6 +567,11 @@ isobaric labeling experiments
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IsobaricIsotopeCorrector &>())
+        .def_static("correctIsotopicImpurities", [](const OpenMS::ConsensusMap& consensus_map_in, const OpenMS::IsobaricQuantitationMethod* quant_method) {
+            OpenMS::ConsensusMap consensus_map_out;
+            auto stats = OpenMS::IsobaricIsotopeCorrector::correctIsotopicImpurities(consensus_map_in, consensus_map_out, quant_method);
+            return std::make_pair(consensus_map_out, stats);
+        }, "consensus_map_in"_a, "quant_method"_a, "Correct isotopic impurities in a ConsensusMap, returns (corrected_map, statistics)")
         ;
 
     // -----------------------------------------------------------------------
@@ -1127,6 +1142,9 @@ metabolomics
         .def_rw("compound_adduct", &OpenMS::MetaboTargetedAssay::compound_adduct)
         .def_rw("potential_cmp", &OpenMS::MetaboTargetedAssay::potential_cmp)
         .def_rw("potential_rmts", &OpenMS::MetaboTargetedAssay::potential_rmts)
+        .def_static("extractMetaboTargetedAssay", [](const OpenMS::MSExperiment& spectra, const OpenMS::FeatureMapping::FeatureToMs2Indices& feature_ms2_index, const double& precursor_rt_tol, const double& precursor_mz_distance, const double& cosine_sim_threshold, const double& transition_threshold, const double& min_fragment_mz, const double& max_fragment_mz, const bool& method_consensus_spectrum, const bool& exclude_ms2_precursor, const unsigned int& file_counter) { return OpenMS::MetaboTargetedAssay::extractMetaboTargetedAssay(spectra, feature_ms2_index, precursor_rt_tol, precursor_mz_distance, cosine_sim_threshold, transition_threshold, min_fragment_mz, max_fragment_mz, method_consensus_spectrum, exclude_ms2_precursor, file_counter); }, "spectra"_a, "feature_ms2_index"_a, "precursor_rt_tol"_a, "precursor_mz_distance"_a, "cosine_sim_threshold"_a, "transition_threshold"_a, "min_fragment_mz"_a, "max_fragment_mz"_a, "method_consensus_spectrum"_a, "exclude_ms2_precursor"_a, "file_counter"_a, "Extract a vector of MetaboTargetedAssays without using fragment annotation")
+        .def_static("extractMetaboTargetedAssayFragmentAnnotation", [](const std::vector<OpenMS::MetaboTargetedAssay::CompoundTargetDecoyPair>& v_cmp_spec, const double& transition_threshold, const double& min_fragment_mz, const double& max_fragment_mz, const bool& use_exact_mass, const bool& exclude_ms2_precursor) { return OpenMS::MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec, transition_threshold, min_fragment_mz, max_fragment_mz, use_exact_mass, exclude_ms2_precursor); }, "v_cmp_spec"_a, "transition_threshold"_a, "min_fragment_mz"_a, "max_fragment_mz"_a, "use_exact_mass"_a, "exclude_ms2_precursor"_a, "Extract a vector of MetaboTargetedAssays using fragment annotation")
+        .def_static("pairCompoundWithAnnotatedTDSpectraPairs", [](const std::vector<OpenMS::SiriusMSFile::CompoundInfo>& v_cmpinfo, const std::vector<OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra) { return OpenMS::MetaboTargetedAssay::pairCompoundWithAnnotatedTDSpectraPairs(v_cmpinfo, annotated_spectra); }, "v_cmpinfo"_a, "annotated_spectra"_a, "Pair compound information with annotated target and decoy spectra")
         ;
 
     // -----------------------------------------------------------------------
@@ -1266,6 +1284,12 @@ duplicated code
         }, "peptide_ids"_a, "number_top_hits"_a)
         .def_static("combineTopRanksFromPairs", [](OpenMS::PeptideIdentificationList& peptide_ids, size_t number_top_hits) { return OpenMS::OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits); }, "peptide_ids"_a, "number_top_hits"_a)
         .def_static("computePrecursorError", [](const OpenMS::OPXLDataStructs::CrossLinkSpectrumMatch& csm, double precursor_mz, int precursor_charge) { return OpenMS::OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge); }, "csm"_a, "precursor_mz"_a, "precursor_charge"_a)
+        .def_static("addProteinPositionMetaValues", [](std::vector<OpenMS::PeptideIdentification> peptide_ids) {
+            OpenMS::OPXLHelper::addProteinPositionMetaValues(peptide_ids);
+            return peptide_ids;
+        }, "peptide_ids"_a, "Adds MetaValues for cross-link positions to PeptideHits")
+        .def_static("addProteinPositionMetaValues", [](OpenMS::PeptideIdentificationList& peptide_ids) { return OpenMS::OPXLHelper::addProteinPositionMetaValues(peptide_ids); }, "peptide_ids"_a)
+        .def_static("isoPeakMeans", [](OpenMS::OPXLDataStructs::CrossLinkSpectrumMatch& csm, const OpenMS::DataArrays::IntegerDataArray& num_iso_peaks_array, const std::vector<std::pair<size_t, size_t>>& matched_spec_linear_alpha, const std::vector<std::pair<size_t, size_t>>& matched_spec_linear_beta, const std::vector<std::pair<size_t, size_t>>& matched_spec_xlinks_alpha, const std::vector<std::pair<size_t, size_t>>& matched_spec_xlinks_beta) { OpenMS::OPXLHelper::isoPeakMeans(csm, num_iso_peaks_array, matched_spec_linear_alpha, matched_spec_linear_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta); }, "csm"_a, "num_iso_peaks_array"_a, "matched_spec_linear_alpha"_a, "matched_spec_linear_beta"_a, "matched_spec_xlinks_alpha"_a, "matched_spec_xlinks_beta"_a, "Computes the mean of alpha, beta, xlinks-alpha and xlinks-beta iso peak counts")
         ;
 
     // -----------------------------------------------------------------------
@@ -1276,6 +1300,17 @@ duplicated code
         .def(nb::init<const OpenMS::OPXLSpectrumProcessingAlgorithms &>())
         .def_static("mergeAnnotatedSpectra", [](OpenMS::MSSpectrum& first_spectrum, OpenMS::MSSpectrum& second_spectrum) { return OpenMS::OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(first_spectrum, second_spectrum); }, "first_spectrum"_a, "second_spectrum"_a)
         .def_static("preprocessSpectra", [](OpenMS::MSExperiment& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, size_t peptide_min_size, int min_precursor_charge, int max_precursor_charge, bool deisotope, bool labeled) { return OpenMS::OPXLSpectrumProcessingAlgorithms::preprocessSpectra(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peptide_min_size, min_precursor_charge, max_precursor_charge, deisotope, labeled); }, "exp"_a, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "peptide_min_size"_a, "min_precursor_charge"_a, "max_precursor_charge"_a, "deisotope"_a, "labeled"_a)
+        .def_static("getSpectrumAlignmentFastCharge", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& theo_spectrum, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& theo_charges, const OpenMS::DataArrays::IntegerDataArray& exp_charges, double intensity_cutoff) {
+            std::vector<std::pair<size_t, size_t>> alignment;
+            OpenMS::DataArrays::FloatDataArray ppm_error_array;
+            OpenMS::OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, theo_spectrum, exp_spectrum, theo_charges, exp_charges, ppm_error_array, intensity_cutoff);
+            return std::make_pair(alignment, ppm_error_array);
+        }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "theo_spectrum"_a, "exp_spectrum"_a, "theo_charges"_a, "exp_charges"_a, "intensity_cutoff"_a = 0.0, "Computes a spectrum alignment considering fragment charges, returns (alignment, ppm_error_array)")
+        .def_static("getSpectrumAlignmentSimple", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::vector<OpenMS::SimpleTSGXLMS::SimplePeak>& theo_spectrum, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& exp_charges) {
+            std::vector<std::pair<size_t, size_t>> alignment;
+            OpenMS::OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(alignment, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, theo_spectrum, exp_spectrum, exp_charges);
+            return alignment;
+        }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "theo_spectrum"_a, "exp_spectrum"_a, "exp_charges"_a, "Computes a spectrum alignment using SimplePeak for the theoretical spectrum")
         ;
 
     // -----------------------------------------------------------------------
@@ -1405,6 +1440,8 @@ The peak rank is defined as the number of neighboring peaks in +/- (mz_window/2)
 :param peak_map: Fragment spectra used for rank calculation. Typically a peak map after removal of all MS1 spectra
 :param mz_window: Window in Thomson centered at each peak
 )doc")
+        .def_static("computePScore", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<size_t, OpenMS::MSSpectrum>& peak_level_spectra, const std::vector<OpenMS::MSSpectrum>& theo_spectra, double mz_window) { return OpenMS::PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theo_spectra, mz_window); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "peak_level_spectra"_a, "theo_spectra"_a, "mz_window"_a = 100.0, "Compute the PScore for a vector of theoretical spectra")
+        .def_static("computePScore", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<size_t, OpenMS::MSSpectrum>& peak_level_spectra, const OpenMS::MSSpectrum& theo_spectrum, double mz_window) { return OpenMS::PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theo_spectrum, mz_window); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "peak_level_spectra"_a, "theo_spectrum"_a, "mz_window"_a = 100.0, "Compute the PScore for a single theoretical spectrum")
         ;
 
     // -----------------------------------------------------------------------
@@ -1539,6 +1576,7 @@ CVTermList
         .def_rw("mods", &OpenMS::TargetedExperimentHelper::Peptide::mods)
         .def_rw("rts", &OpenMS::TargetedExperimentHelper::Peptide::rts)
         .def_rw("id", &OpenMS::TargetedExperimentHelper::Peptide::id)
+        .def("replaceCVTerms", [](OpenMS::TargetedExperimentHelper::Peptide& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { self.replaceCVTerms(cv_term_map); }, "cv_term_map"_a, "Replaces all CV terms with the given map")
         ;
 
     // -----------------------------------------------------------------------
@@ -2100,6 +2138,7 @@ production ions
         .def("addSourceFile", [](OpenMS::TargetedExperiment& self, const OpenMS::SourceFile& source_file) { return self.addSourceFile(source_file); }, "source_file"_a)
         .def("sortTransitionsByProductMZ", [](OpenMS::TargetedExperiment& self) { return self.sortTransitionsByProductMZ(); })
         .def("containsInvalidReferences", [](const OpenMS::TargetedExperiment& self) { return self.containsInvalidReferences(); })
+        .def("__iadd__", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperiment& rhs) -> OpenMS::TargetedExperiment& { self += rhs; return self; }, "rhs"_a, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -2195,6 +2234,7 @@ TransformationModel
         .def("unWeightDatum", [](const OpenMS::TransformationModelLinear& self, const double& datum, const OpenMS::String& weight) { return self.unWeightDatum(datum, weight); }, "datum"_a, "weight"_a, "Apply the reverse of the weighting function to the data")
         .def("getValidXWeights", [](const OpenMS::TransformationModelLinear& self) { return self.getValidXWeights(); }, "Returns a list of valid x weight function stringss")
         .def("getValidYWeights", [](const OpenMS::TransformationModelLinear& self) { return self.getValidYWeights(); }, "Returns a list of valid y weight function strings")
+        .def("getParameters", [](const OpenMS::TransformationModelLinear& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
 
         .def_static("getDefaultParameters", [](OpenMS::Param& params) {
             OpenMS::TransformationModelLinear::getDefaultParameters(params);
@@ -2407,6 +2447,21 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     nb::class_<OpenMS::TransformationModelBSpline>(m, "TransformationModelBSpline", "B-spline model for transformations")
         .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
         .def("evaluate", [](const OpenMS::TransformationModelBSpline& self, double value) { return self.evaluate(value); }, "value"_a)
+        .def("getParameters", [](const OpenMS::TransformationModelBSpline& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("weightData", [](OpenMS::TransformationModelBSpline& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
+            self.weightData(data);
+            return data;
+        }, "data"_a, "Weight the data by the given weight function, returns weighted data")
+        .def("unWeightData", [](OpenMS::TransformationModelBSpline& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
+            self.unWeightData(data);
+            return data;
+        }, "data"_a, "Unweight the data by the given weight function, returns unweighted data")
+        .def("checkValidWeight", [](const OpenMS::TransformationModelBSpline& self, const OpenMS::String& weight, const std::vector<OpenMS::String>& valid_weights) { return self.checkValidWeight(weight, valid_weights); }, "weight"_a, "valid_weights"_a, "Check for a valid weighting function string")
+        .def("checkDatumRange", [](OpenMS::TransformationModelBSpline& self, const double& datum, const double& datum_min, const double& datum_max) { return self.checkDatumRange(datum, datum_min, datum_max); }, "datum"_a, "datum_min"_a, "datum_max"_a, "Check that the datum is within the valid min and max bounds")
+        .def("weightDatum", [](const OpenMS::TransformationModelBSpline& self, const double& datum, const OpenMS::String& weight) { return self.weightDatum(datum, weight); }, "datum"_a, "weight"_a, "Weight the data according to the weighting function")
+        .def("unWeightDatum", [](const OpenMS::TransformationModelBSpline& self, const double& datum, const OpenMS::String& weight) { return self.unWeightDatum(datum, weight); }, "datum"_a, "weight"_a, "Apply the reverse of the weighting function to the data")
+        .def("getValidXWeights", [](const OpenMS::TransformationModelBSpline& self) { return self.getValidXWeights(); }, "Returns a list of valid x weight function strings")
+        .def("getValidYWeights", [](const OpenMS::TransformationModelBSpline& self) { return self.getValidYWeights(); }, "Returns a list of valid y weight function strings")
         .def_static("getDefaultParameters", [](OpenMS::Param& params) {
             OpenMS::TransformationModelBSpline::getDefaultParameters(params);
         }, "params"_a, "Get default parameters")
@@ -2418,6 +2473,21 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     nb::class_<OpenMS::TransformationModelLowess>(m, "TransformationModelLowess", "Lowess model for transformations")
         .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
         .def("evaluate", [](const OpenMS::TransformationModelLowess& self, double value) { return self.evaluate(value); }, "value"_a)
+        .def("getParameters", [](const OpenMS::TransformationModelLowess& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("weightData", [](OpenMS::TransformationModelLowess& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
+            self.weightData(data);
+            return data;
+        }, "data"_a, "Weight the data by the given weight function, returns weighted data")
+        .def("unWeightData", [](OpenMS::TransformationModelLowess& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
+            self.unWeightData(data);
+            return data;
+        }, "data"_a, "Unweight the data by the given weight function, returns unweighted data")
+        .def("checkValidWeight", [](const OpenMS::TransformationModelLowess& self, const OpenMS::String& weight, const std::vector<OpenMS::String>& valid_weights) { return self.checkValidWeight(weight, valid_weights); }, "weight"_a, "valid_weights"_a, "Check for a valid weighting function string")
+        .def("checkDatumRange", [](OpenMS::TransformationModelLowess& self, const double& datum, const double& datum_min, const double& datum_max) { return self.checkDatumRange(datum, datum_min, datum_max); }, "datum"_a, "datum_min"_a, "datum_max"_a, "Check that the datum is within the valid min and max bounds")
+        .def("weightDatum", [](const OpenMS::TransformationModelLowess& self, const double& datum, const OpenMS::String& weight) { return self.weightDatum(datum, weight); }, "datum"_a, "weight"_a, "Weight the data according to the weighting function")
+        .def("unWeightDatum", [](const OpenMS::TransformationModelLowess& self, const double& datum, const OpenMS::String& weight) { return self.unWeightDatum(datum, weight); }, "datum"_a, "weight"_a, "Apply the reverse of the weighting function to the data")
+        .def("getValidXWeights", [](const OpenMS::TransformationModelLowess& self) { return self.getValidXWeights(); }, "Returns a list of valid x weight function strings")
+        .def("getValidYWeights", [](const OpenMS::TransformationModelLowess& self) { return self.getValidYWeights(); }, "Returns a list of valid y weight function strings")
         .def_static("getDefaultParameters", [](OpenMS::Param& params) {
             OpenMS::TransformationModelLowess::getDefaultParameters(params);
         }, "params"_a, "Get default parameters")
@@ -2523,6 +2593,21 @@ TransformationModel
 )doc")
         .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
         .def("evaluate", [](const OpenMS::TransformationModelInterpolated& self, double value) { return self.evaluate(value); }, "value"_a)
+        .def("getParameters", [](const OpenMS::TransformationModelInterpolated& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal, "Gets the (actual) parameters")
+        .def("weightData", [](OpenMS::TransformationModelInterpolated& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
+            self.weightData(data);
+            return data;
+        }, "data"_a, "Weight the data by the given weight function, returns weighted data")
+        .def("unWeightData", [](OpenMS::TransformationModelInterpolated& self, std::vector<OpenMS::TransformationModel::DataPoint> data) {
+            self.unWeightData(data);
+            return data;
+        }, "data"_a, "Unweight the data by the given weight function, returns unweighted data")
+        .def("checkValidWeight", [](const OpenMS::TransformationModelInterpolated& self, const OpenMS::String& weight, const std::vector<OpenMS::String>& valid_weights) { return self.checkValidWeight(weight, valid_weights); }, "weight"_a, "valid_weights"_a, "Check for a valid weighting function string")
+        .def("checkDatumRange", [](OpenMS::TransformationModelInterpolated& self, const double& datum, const double& datum_min, const double& datum_max) { return self.checkDatumRange(datum, datum_min, datum_max); }, "datum"_a, "datum_min"_a, "datum_max"_a, "Check that the datum is within the valid min and max bounds")
+        .def("weightDatum", [](const OpenMS::TransformationModelInterpolated& self, const double& datum, const OpenMS::String& weight) { return self.weightDatum(datum, weight); }, "datum"_a, "weight"_a, "Weight the data according to the weighting function")
+        .def("unWeightDatum", [](const OpenMS::TransformationModelInterpolated& self, const double& datum, const OpenMS::String& weight) { return self.unWeightDatum(datum, weight); }, "datum"_a, "weight"_a, "Apply the reverse of the weighting function to the data")
+        .def("getValidXWeights", [](const OpenMS::TransformationModelInterpolated& self) { return self.getValidXWeights(); }, "Returns a list of valid x weight function strings")
+        .def("getValidYWeights", [](const OpenMS::TransformationModelInterpolated& self) { return self.getValidYWeights(); }, "Returns a list of valid y weight function strings")
         .def_static("getDefaultParameters", []() {
             OpenMS::Param params;
             OpenMS::TransformationModelInterpolated::getDefaultParameters(params);
