@@ -45,6 +45,8 @@ interpolation
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::BiGaussFitter1D &>())
+        .def("__copy__", [](const OpenMS::BiGaussFitter1D& self) { return OpenMS::BiGaussFitter1D(self); })
+        .def("__deepcopy__", [](const OpenMS::BiGaussFitter1D& self, nb::dict) { return OpenMS::BiGaussFitter1D(self); }, "memo"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -67,6 +69,8 @@ Fitter for RT profiles using a Gaussian background model * *
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::GaussTraceFitter &>())
+        .def("__copy__", [](const OpenMS::GaussTraceFitter& self) { return OpenMS::GaussTraceFitter(self); })
+        .def("__deepcopy__", [](const OpenMS::GaussTraceFitter& self, nb::dict) { return OpenMS::GaussTraceFitter(self); }, "memo"_a)
         .def("fit", [](OpenMS::GaussTraceFitter& self, OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces) { return self.fit(traces); }, "traces"_a, "Override important methods")
         .def("getLowerRTBound", [](const OpenMS::GaussTraceFitter& self) { return self.getLowerRTBound(); }, "Returns the lower RT bound")
         .def("getUpperRTBound", [](const OpenMS::GaussTraceFitter& self) { return self.getUpperRTBound(); }, "Returns the upper RT bound")
@@ -92,6 +96,8 @@ interpolation
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::InterpolationModel &>())
+        .def("__copy__", [](const OpenMS::InterpolationModel& self) { return OpenMS::InterpolationModel(self); })
+        .def("__deepcopy__", [](const OpenMS::InterpolationModel& self, nb::dict) { return OpenMS::InterpolationModel(self); }, "memo"_a)
         .def("getIntensity", [](const OpenMS::InterpolationModel& self, const OpenMS::DPosition<1>& pos) { return self.getIntensity(pos); }, "pos"_a, "Access model predicted intensity at position 'pos'")
         .def("getIntensity", [](const OpenMS::InterpolationModel& self, double coord) { return self.getIntensity(coord); }, "coord"_a, "Access model predicted intensity at position 'pos'")
         .def("getInterpolation", [](const OpenMS::InterpolationModel& self) -> const OpenMS::Math::LinearInterpolation<> & { return self.getInterpolation(); }, nb::rv_policy::reference_internal, "Returns the interpolation class")
@@ -112,6 +118,8 @@ Returns the "center" of the model, particular definition (depends on the derived
     nb::class_<OpenMS::BiGaussModel, OpenMS::InterpolationModel>(m, "BiGaussModel", "BiGaussian distribution approximated using linear interpolation")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::BiGaussModel &>())
+        .def("__copy__", [](const OpenMS::BiGaussModel& self) { return OpenMS::BiGaussModel(self); })
+        .def("__deepcopy__", [](const OpenMS::BiGaussModel& self, nb::dict) { return OpenMS::BiGaussModel(self); }, "memo"_a)
         .def("setOffset", [](OpenMS::BiGaussModel& self, double offset) { return self.setOffset(offset); }, "offset"_a)
         .def("setSamples", [](OpenMS::BiGaussModel& self) { return self.setSamples(); })
         .def("getCenter", [](const OpenMS::BiGaussModel& self) { return self.getCenter(); })
@@ -128,6 +136,8 @@ InterpolationModel
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::EmgModel &>())
+        .def("__copy__", [](const OpenMS::EmgModel& self) { return OpenMS::EmgModel(self); })
+        .def("__deepcopy__", [](const OpenMS::EmgModel& self, nb::dict) { return OpenMS::EmgModel(self); }, "memo"_a)
         .def("setOffset", [](OpenMS::EmgModel& self, double offset) { return self.setOffset(offset); }, "offset"_a, "Sets the offset of the model")
         .def("setSamples", [](OpenMS::EmgModel& self) { return self.setSamples(); }, "Sets sample/supporting points of interpolation wrt params")
         .def("getCenter", [](const OpenMS::EmgModel& self) { return self.getCenter(); }, 
@@ -151,6 +161,8 @@ interpolation
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IsotopeFitter1D &>())
+        .def("__copy__", [](const OpenMS::IsotopeFitter1D& self) { return OpenMS::IsotopeFitter1D(self); })
+        .def("__deepcopy__", [](const OpenMS::IsotopeFitter1D& self, nb::dict) { return OpenMS::IsotopeFitter1D(self); }, "memo"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -168,6 +180,8 @@ Peak widening is achieved by either a Gaussian or Lorentzian shape
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::IsotopeModel &>())
+        .def("__copy__", [](const OpenMS::IsotopeModel& self) { return OpenMS::IsotopeModel(self); })
+        .def("__deepcopy__", [](const OpenMS::IsotopeModel& self, nb::dict) { return OpenMS::IsotopeModel(self); }, "memo"_a)
         .def("getCharge", [](const OpenMS::IsotopeModel& self) { return self.getCharge(); })
         .def("setOffset", [](OpenMS::IsotopeModel& self, double offset) { return self.setOffset(offset); }, "offset"_a)
         .def("getOffset", [](OpenMS::IsotopeModel& self) { return self.getOffset(); }, "Get the offset of the model")
