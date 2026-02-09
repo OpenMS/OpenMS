@@ -674,4 +674,15 @@ Inherits lookup-by-RT, lookup-by-native-ID, and lookup-by-index from SpectrumLoo
         }, "peptides"_a, "filename"_a, "stop_on_error"_a = false, "override_spectra_data"_a = false, "override_spectra_references"_a = false, "Add missing spectrum references")
         ;
 
+    // Free function aliases for backward compatibility
+    m.def("extractScanNumber", [](const OpenMS::String& native_id, const OpenMS::String& native_id_type_accession) {
+        return OpenMS::SpectrumNativeIDParser::extractScanNumber(native_id, native_id_type_accession);
+    }, "native_id"_a, "native_id_type_accession"_a, "Extract scan number from native ID string");
+    m.def("getRegExFromNativeID", [](const OpenMS::String& native_id) {
+        return OpenMS::SpectrumNativeIDParser::getRegExFromNativeID(native_id);
+    }, "native_id"_a, "Get regular expression from native ID string");
+    m.def("isNativeID", [](const OpenMS::String& id) {
+        return OpenMS::SpectrumNativeIDParser::isNativeID(id);
+    }, "id"_a, "Check if string is a native ID");
+
 }

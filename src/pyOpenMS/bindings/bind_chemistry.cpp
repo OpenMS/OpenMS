@@ -667,6 +667,8 @@ Folding with itself is done using Russian Multiplication Scheme
         .def("normalize", [](OpenMS::ims::IMSIsotopeDistribution& self) { return self.normalize(); }, "Normalizes distribution, i.e. scaling abundances to be summed up to 1 with an error")
         .def("empty", [](const OpenMS::ims::IMSIsotopeDistribution& self) { return self.empty(); }, "Returns true if the distribution has no peaks, false - otherwise")
         .def("__len__", [](OpenMS::ims::IMSIsotopeDistribution& self) { return self.size(); })
+        .def_ro_static("ABUNDANCES_SUM_ERROR", &OpenMS::ims::IMSIsotopeDistribution::ABUNDANCES_SUM_ERROR)
+        .def_ro_static("SIZE", &OpenMS::ims::IMSIsotopeDistribution::SIZE)
         ;
 
     // -----------------------------------------------------------------------
@@ -996,6 +998,72 @@ Examples:
         .def(nb::self == nb::self)
         .def_rw("annotations", &OpenMS::MzPAFPeakAnnotations::annotations)
         .def("__len__", [](OpenMS::MzPAFPeakAnnotations& self) { return self.size(); })
+        ;
+
+    // -----------------------------------------------------------------------
+    // MzPAFIonSeries
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::MzPAFIonSeries>(m, "MzPAFIonSeries", "Ion series types for mzPAF peak annotations")
+        .value("A", OpenMS::MzPAFIonSeries::A)
+        .value("B", OpenMS::MzPAFIonSeries::B)
+        .value("C", OpenMS::MzPAFIonSeries::C)
+        .value("X", OpenMS::MzPAFIonSeries::X)
+        .value("Y", OpenMS::MzPAFIonSeries::Y)
+        .value("Z", OpenMS::MzPAFIonSeries::Z)
+        .value("PRECURSOR", OpenMS::MzPAFIonSeries::PRECURSOR)
+        .value("IMMONIUM", OpenMS::MzPAFIonSeries::IMMONIUM)
+        .value("INTERNAL", OpenMS::MzPAFIonSeries::INTERNAL)
+        .value("REPORTER", OpenMS::MzPAFIonSeries::REPORTER)
+        .value("FORMULA", OpenMS::MzPAFIonSeries::FORMULA)
+        .value("NAMED", OpenMS::MzPAFIonSeries::NAMED)
+        .value("UNKNOWN", OpenMS::MzPAFIonSeries::UNKNOWN)
+        ;
+
+    // -----------------------------------------------------------------------
+    // MzPAFDeltaUnit
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::MzPAFDeltaUnit>(m, "MzPAFDeltaUnit", "Unit for mass delta values in mzPAF annotations")
+        .value("DALTON", OpenMS::MzPAFDeltaUnit::DALTON)
+        .value("PPM", OpenMS::MzPAFDeltaUnit::PPM)
+        ;
+
+    // -----------------------------------------------------------------------
+    // MzPAFErrorCode
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::MzPAFErrorCode>(m, "MzPAFErrorCode", "Error codes for mzPAF parsing errors")
+        .value("UNEXPECTED_CHARACTER", OpenMS::MzPAFErrorCode::UNEXPECTED_CHARACTER)
+        .value("UNCLOSED_BRACKET", OpenMS::MzPAFErrorCode::UNCLOSED_BRACKET)
+        .value("INVALID_ION_SERIES", OpenMS::MzPAFErrorCode::INVALID_ION_SERIES)
+        .value("INVALID_NUMBER", OpenMS::MzPAFErrorCode::INVALID_NUMBER)
+        .value("INVALID_FORMULA", OpenMS::MzPAFErrorCode::INVALID_FORMULA)
+        .value("INVALID_CHARGE", OpenMS::MzPAFErrorCode::INVALID_CHARGE)
+        .value("INVALID_DELTA", OpenMS::MzPAFErrorCode::INVALID_DELTA)
+        .value("INVALID_CONFIDENCE", OpenMS::MzPAFErrorCode::INVALID_CONFIDENCE)
+        .value("EMPTY_INPUT", OpenMS::MzPAFErrorCode::EMPTY_INPUT)
+        .value("UNEXPECTED_END_OF_INPUT", OpenMS::MzPAFErrorCode::UNEXPECTED_END_OF_INPUT)
+        .value("INTERNAL_ERROR", OpenMS::MzPAFErrorCode::INTERNAL_ERROR)
+        ;
+
+    // -----------------------------------------------------------------------
+    // MzPAF (static utility class)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::MzPAF>(m, "MzPAF", "Parser and writer for mzPAF (Peak Annotation Format) notation")
+        .def_static("parse", [](const OpenMS::String& input) { return OpenMS::MzPAF::parse(input); }, "input"_a, "Parse an mzPAF string into a single annotation")
+        .def_static("parseMultiple", [](const OpenMS::String& input) { return OpenMS::MzPAF::parseMultiple(input); }, "input"_a, "Parse an mzPAF string with potentially multiple annotations")
+        .def_static("tryParse", [](const OpenMS::String& input) { return OpenMS::MzPAF::tryParse(input); }, "input"_a, "Try to parse an mzPAF string (returns None on failure)")
+        .def_static("tryParseMultiple", [](const OpenMS::String& input) { return OpenMS::MzPAF::tryParseMultiple(input); }, "input"_a, "Try to parse multiple annotations (returns None on failure)")
+        .def_static("toString", [](const OpenMS::MzPAFAnnotation& ann) { return OpenMS::MzPAF::toString(ann); }, "ann"_a, "Convert an annotation to mzPAF string")
+        .def_static("toStringMultiple", [](const OpenMS::MzPAFPeakAnnotations& anns) { return OpenMS::MzPAF::toString(anns); }, "anns"_a, "Convert multiple annotations to mzPAF string")
+        .def_static("toPeakAnnotation", [](const OpenMS::MzPAFAnnotation& mzpaf, double mz, double intensity) { return OpenMS::MzPAF::toPeakAnnotation(mzpaf, mz, intensity); }, "mzpaf"_a, "mz"_a, "intensity"_a, "Create a PeakAnnotation from mzPAF data")
+        .def_static("fromPeakAnnotation", [](const OpenMS::PeptideHit::PeakAnnotation& peak_annotation) { return OpenMS::MzPAF::fromPeakAnnotation(peak_annotation); }, "peak_annotation"_a, "Parse mzPAF annotations from a PeakAnnotation")
+        .def_static("isMzPAFFormat", [](const OpenMS::String& annotation) { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a, "Check if a string appears to be in mzPAF format")
+        .def_static("isStandardFragmentIon", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::isStandardFragmentIon(series); }, "series"_a, "Check if ion series is a standard fragment ion (a, b, c, x, y, z)")
+        .def_static("ionSeriesToChar", [](OpenMS::MzPAFIonSeries series) { return OpenMS::MzPAF::ionSeriesToChar(series); }, "series"_a, "Get the ion series character for an annotation")
+        .def_static("charToIonSeries", [](char c) -> std::optional<OpenMS::MzPAFIonSeries> {
+            OpenMS::MzPAFIonSeries series;
+            if (OpenMS::MzPAF::charToIonSeries(c, series)) return series;
+            return std::nullopt;
+        }, "c"_a, "Parse ion series from character (returns None if invalid)")
         ;
 
     // -----------------------------------------------------------------------

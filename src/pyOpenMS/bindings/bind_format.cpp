@@ -1847,4 +1847,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("getChromatogramById", [](OpenMS::SpectrumAccessSqMass& self, int id) { return self.getChromatogramById(id); }, "id"_a)
         ;
 
+    // Free function alias for backward compatibility
+    m.def("fromFASTAEntry", [](const OpenMS::FASTAFile::FASTAEntry& fasta) {
+        return OpenMS::PEFFEntry::fromFASTAEntry(fasta);
+    }, "fasta"_a, "Create a PEFFEntry from a FASTAEntry");
+
 }
