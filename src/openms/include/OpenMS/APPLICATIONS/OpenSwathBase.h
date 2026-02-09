@@ -163,60 +163,6 @@ namespace OpenMS
                                                           const String& tr_file,
                                                           const Param& tsv_reader_param);
 
-    /**
-     * @brief Perform retention time and m/z calibration
-     *
-     * This function will create the retention time transformation either by
-     * loading a provided .trafoXML file or determine it from the data itself by
-     * extracting the transitions specified in the irt_tr_file TraML file. It
-     * will also perform the m/z calibration (when an irt_tr_file is provided).
-     *
-     * @note Internally, the retention time and @p m/z calibration are performed
-     * by OpenMS::OpenSwathCalibrationWorkflow::performRTNormalization
-     *
-     * @param[in] trafo_in Input trafoXML file (if not empty, transformation will be
-     *                 loaded from this file)
-     * @param[in] irt_transitions  Input iRT transition experiment (if trafo_in
-     *                     is empty, this will be used for iRT extraction)
-     * @param[in,out] swath_maps The raw data (swath maps)
-     * @param[in] min_rsq Minimal R^2 value that is expected for the RT regression
-     * @param[in] min_coverage Minimal coverage of the chromatographic space that needs to be achieved
-     * @param[in] feature_finder_param Parameter set for the feature finding in chromatographic dimension
-     * @param[in] cp_irt Parameter set for the chromatogram extraction
-     * @param[in] irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-     * @param[in] calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
-     * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
-     * @param[in] debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
-     * @param[in] pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor centered around IM) is chosen.
-     * @param[in] load_into_memory Whether to cache the current SWATH map in memory
-     * @param[in] irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
-     *        the transformation parameters will be stored in this file)
-     * @param[in] irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
-     *        iRT chromatograms will be stored in this file)
-     *
-     * @return CalibrationResult with: \n
-     *           - rt_trafo              : the RT normalization transformation \n
-     *           - ms2_mz_window_ppm     : auto-estimated MS2 m/z window (full width, ppm) \n
-     *           - ms2_im_window         : auto-estimated MS2 IM window (full width, native units) \n
-     *           - ms1_mz_window_ppm     : auto-estimated MS1 m/z window (full width, ppm) \n
-     *           - ms1_im_window         : auto-estimated MS1 IM window (full width, native units)
-     */
-    CalibrationResult performCalibration(String trafo_in,
-                                         const OpenSwath::LightTargetedExperiment& irt_transitions,
-                                         std::vector< OpenSwath::SwathMap > & swath_maps,
-                                         double min_rsq,
-                                         double min_coverage,
-                                         const Param& feature_finder_param,
-                                         const ChromExtractParams& cp_irt,
-                                         const Param& irt_detection_param,
-                                         const Param& calibration_param,
-                                         const Param& mrm_mapping_param,
-                                         Size debug_level,
-                                         bool pasef,
-                                         bool load_into_memory,
-                                         const String& irt_trafo_out,
-                                         const String& irt_mzml_out);
-
   private:
     void loadSwathFiles_(const StringList& file_list,
                          const bool split_file,

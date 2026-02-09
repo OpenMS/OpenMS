@@ -27,6 +27,10 @@ add_subdirectory(openms)
 option(PYOPENMS "Build pyOpenMS Python bindings" OFF)
 option(WITH_UV "Install Python dependencies with uv" ON)
 
+# Optional: Python version to use when creating the pyOpenMS venv with uv
+# Example: "3.11". Only used when WITH_UV=ON.
+set(PYOPENMS_UV_PYTHON_VERSION "" CACHE STRING "Python version (e.g. 3.11) for creating pyOpenMS .venv when WITH_UV=ON")
+
 if(PYOPENMS)
   if(WITH_UV)
     # Discover uv executable
@@ -37,24 +41,7 @@ if(PYOPENMS)
     message(STATUS "Found uv: ${UV_EXECUTABLE}")
 
     set(Python_FIND_VIRTUALENV FIRST)
-    # Install only build dependencies (not pyOpenMS itself)
-    message(STATUS "Installing pyOpenMS build dependencies with uv...")
-    execute_process(
-      COMMAND ${UV_EXECUTABLE} sync --only-group dev
-      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/pyOpenMS
-      RESULT_VARIABLE _uv_install_result
-      ERROR_VARIABLE _uv_install_error
-    )
-    if(NOT _uv_install_result EQUAL 0)
-      message(WARNING "Failed to install pyOpenMS build dependencies with uv: ${_uv_install_error}")
-    endif()
-    if(WIN32)
-      set(Python_EXECUTABLE "${CMAKE_CURRENT_LIST_DIR}/pyOpenMS/.venv/Scripts/python.exe")
-    else()
-      set(Python_EXECUTABLE "${CMAKE_CURRENT_LIST_DIR}/pyOpenMS/.venv/bin/python")
-    endif()
-  elseif(NOT DEFINED Python_EXECUTABLE)
-    set(Python_EXECUTABLE "python")
+    # We found uv; pyOpenMS will decide later whether to run it and where to place the .venv
   endif()
 
   message(STATUS "pyOpenMS Python environment: ${Python_EXECUTABLE}")

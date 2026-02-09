@@ -219,184 +219,6 @@ protected:
 };
 
   /**
-   * @brief Execute all steps for retention time and m/z calibration of SWATH-MS data
-   *
-   * Uses a set of robust calibrant peptides (e.g. iRT peptides, common
-   * calibrants) perform RT and m/z correction in SWATH-MS data. Currently
-   * supports (non-)linear correction of RT against library RT as well
-   * as (non-)linear correction of m/z error as a function of m/z.
-   *
-   * @note The relevant algorithms are implemented in MRMRTNormalizer for RT
-   * calibration and SwathMapMassCorrection for m/z calibration.
-   *
-   * The overall execution flow in this class is as follows (see performRTNormalization() function):
-   *   - Extract chromatograms across the whole RT range using simpleExtractChromatograms_()
-   *   - Compute calibration functions for RT and m/z using doDataNormalization_()
-   *
-  */
-  class OPENMS_DLLAPI OpenSwathCalibrationWorkflow :
-    public OpenSwathWorkflowBase
-  {
-  public:
-
-    OpenSwathCalibrationWorkflow() :
-      OpenSwathWorkflowBase()
-    {
-    }
-
-    explicit OpenSwathCalibrationWorkflow(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces, false, false, false, false, -1)
-    {
-    }
-
-    /** @brief Perform RT and m/z correction of the input data using RT-normalization peptides.
-     *
-     * This function extracts the RT normalization chromatograms using
-     * simpleExtractChromatograms_() and then uses the chromatograms to find
-     * features (in doDataNormalization_()).  If desired, also m/z correction
-     * is performed using the lock masses of the given peptides. The provided
-     * raw data (swath_maps) are therefore not constant but may be changed in
-     * this function.
-     *
-     * @param[in] irt_transitions A set of transitions used for the RT normalization peptides
-     * @param[in] swath_maps The raw data (swath maps)
-     * @param[out] im_trafo Ion mobility trafo values on the RT-normalization peptides
-     * @param[in] min_rsq Minimal R^2 value that is expected for the RT regression
-     * @param[in] min_coverage Minimal coverage of the chromatographic space that needs to be achieved
-     * @param[in] feature_finder_param Parameter set for the feature finding in chromatographic dimension
-     * @param[in] cp_irt Parameter set for the chromatogram extraction
-     * @param[in] irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-     * @param[in] calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
-     * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
-     * @param[in] debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
-     * @param[out] irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
-     *        iRT chromatograms will be stored in this file)
-     * @param[in] pasef whether the data is PASEF data (should match transitions by their IM)
-     * @param[in] load_into_memory Whether to cache the current SWATH map in memory
-     *
-    */
-    TransformationDescription performRTNormalization(const OpenSwath::LightTargetedExperiment & irt_transitions,
-      std::vector< OpenSwath::SwathMap > & swath_maps,
-      TransformationDescription& im_trafo,
-      double min_rsq,
-      double min_coverage,
-      const Param & feature_finder_param,
-      const ChromExtractParams & cp_irt,
-      const Param& irt_detection_param,
-      const Param& calibration_param,
-      const Param& mrm_mapping_param,
-      const String& irt_mzml_out,
-      Size debug_level,
-      bool pasef = false,
-      bool load_into_memory = false);
-
-  public:
-
-    /** @brief Perform retention time and m/z calibration
-     *
-     * Uses MRMRTNormalizer for RT calibration and SwathMapMassCorrection for m/z calibration.
-     *
-     * The overall execution flow is as follows:
-     *   - Estimate the retention time range of the iRT peptides over all assays (see OpenSwathHelper::estimateRTRange())
-     *   - Store the peptide retention times in an intermediate map
-     *   - Pick input chromatograms to identify RT pairs from the input data
-     *   using MRMFeatureFinderScoring, which will be used without the RT
-     *   scoring enabled
-     *   - Find most likely correct feature for each compound (see OpenSwathHelper::simpleFindBestFeature())
-     *   - Perform the outlier detection (see MRMRTNormalizer)
-     *   - Check whether the found peptides fulfill the binned coverage criteria set by the user.
-     *   - Select the "correct" peaks for m/z correction (e.g. remove those not
-     *   part of the linear regression)
-     *   - Perform m/z and IM calibration (see SwathMapMassCorrection)
-     *   - Store transformation, using the selected model
-     *
-     * @param[in] transition_exp_ The transitions for the normalization peptides
-     * @param[out] chromatograms The extracted chromatograms
-     * @param[out] im_trafo Ion mobility trafo values on the RT-normalization peptides
-     * @param[in] swath_maps The raw data (swath maps)     
-     * @param[in] min_rsq Minimal R^2 value that is expected for the RT regression
-     * @param[in] min_coverage Minimal coverage of the chromatographic space that needs to be achieved
-     * @param[in] default_ffparam Parameter set for the feature finding in chromatographic dimension
-     * @param[in] irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-     * @param[in] calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
-     * @param[in] pasef whether this data is pasef data with potentially overlapping m/z windows (differing by IM)
-     *
-     * @note This function is based on the algorithm inside the OpenSwathRTNormalizer tool
-     *
-    */
-    TransformationDescription doDataNormalization_(const OpenSwath::LightTargetedExperiment& transition_exp_,
-      const std::vector< OpenMS::MSChromatogram >& chromatograms,
-      TransformationDescription& im_trafo,
-      std::vector< OpenSwath::SwathMap > & swath_maps,
-      double min_rsq,
-      double min_coverage,
-      const Param& default_ffparam,
-      const Param& irt_detection_param,
-      const Param& calibration_param,
-      const bool pasef);
-
-    /** @brief Simple method to extract chromatograms (for the RT-normalization peptides)
-     *
-     * @param[in] swath_maps The raw data (swath maps)
-     * @param[in] irt_transitions A set of transitions used for the RT normalization peptides
-     * @param[in] chromatograms The extracted chromatograms (output)
-     * @param[in] trafo Transformation description for RT normalization
-     * @param[in] cp Parameter set for the chromatogram extraction
-     * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
-     * @param[in] load_into_memory Whether to cache the current SWATH map in memory
-     * @param[in] pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility)
-     *
-    */
-    void simpleExtractChromatograms_(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                                     const OpenSwath::LightTargetedExperiment & irt_transitions,
-                                     std::vector< OpenMS::MSChromatogram > & chromatograms,
-                                     const TransformationDescription& trafo,
-                                     const ChromExtractParams & cp,
-                                     const Param & mrm_mapping_param,
-                                     bool pasef,
-                                     bool load_into_memory);
-
-    /** @brief Add two chromatograms
-     *
-     * @param[in] base_chrom The base chromatogram to which we will add intensity
-     * @param[in] newchrom The chromatogram to be added
-     *
-    */
-    static void addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom);
-
-    /// Retrieve the estimated fragment m/z window (ppm)
-    double getEstimatedMzWindow() const;
-
-    /// Set the estimated fragment m/z window (ppm)
-    void setEstimatedMzWindow(double estimatedMzWindow);
-
-    /// Retrieve the estimated fragment ion mobility
-    double getEstimatedImWindow() const;
-
-    /// Set the estimated fragment ion mobility
-    void setEstimatedImWindow(double estimatedImWindow);
-
-    /// Retrieve the estimated MS1 m/z window (ppm)
-    double getEstimatedMs1MzWindow() const;
-
-    /// Set the estimated MS1 m/z window (ppm)
-    void setEstimatedMs1MzWindow(double estimatedMs1MzWindow);
-
-    /// Retrieve the estimated MS1 ion mobility window
-    double getEstimatedMs1ImWindow() const;
-
-    /// Set the estimated MS1 ion mobility window
-    void setEstimatedMs1ImWindow(double estimatedMs1ImWindow);
-
-  protected:
-    /// estimated extraction windows
-    double estimated_mz_window_ = -1;
-    double estimated_im_window_ = -1;
-    double estimated_ms1_mz_window_ = -1;
-    double estimated_ms1_im_window_ = -1;
-  };
-
-  /**
    * @brief Execute all steps in an \ref TOPP_OpenSwathWorkflow "OpenSwath" analysis
    *
    * The workflow will perform a complete OpenSWATH analysis. Optionally,
@@ -452,6 +274,19 @@ protected:
     OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, mrm, threads_outer_loop)
     {
     }
+
+    /** @brief Load MS1 SpectrumAccessPtr from given swath maps.
+     *
+     * Searches through the provided swath maps and returns a SpectrumAccessPtr
+     * to the first MS1 map found. If no MS1 map is present, returns nullptr.
+     *
+     * @param[in] swath_maps Vector of SWATH maps to search for MS1 data
+     * @param[in] load_into_memory Whether to cache the MS1 map in memory for faster access
+     * @return SpectrumAccessPtr to the first MS1 map, or nullptr if no MS1 map exists
+     *
+     * @note The returned pointer may be cached on disk or in memory depending on load_into_memory parameter
+    */
+    OpenSwath::SpectrumAccessPtr loadMS1Map(const std::vector<OpenSwath::SwathMap>& swath_maps, bool load_into_memory);
 
     /** @brief Execute OpenSWATH analysis on a set of SwathMaps and transitions.
      *

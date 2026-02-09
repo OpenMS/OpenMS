@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/ArrowExport.h>
+#include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 
 #ifdef WITH_PARQUET
 
@@ -743,10 +743,8 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   return arrow::Table::Make(schema, arrays);
 }
 
-} // anonymous namespace
-
-
-std::shared_ptr<arrow::Table> ArrowExport::exportSpectraToArrow(
+// Internal function - not part of public API
+std::shared_ptr<arrow::Table> exportSpectraToArrow(
   const MSExperiment& exp,
   const ArrowSpectraExportConfig& config)
 {
@@ -764,8 +762,10 @@ std::shared_ptr<arrow::Table> ArrowExport::exportSpectraToArrow(
   }
 }
 
+} // anonymous namespace
 
-std::vector<std::string> ArrowExport::getSpectraArrowColumnNames(
+
+std::vector<std::string> MSExperimentArrowExport::getSpectraArrowColumnNames(
   const MSExperiment& exp,
   const ArrowSpectraExportConfig& config)
 {
@@ -827,7 +827,11 @@ std::vector<std::string> ArrowExport::getSpectraArrowColumnNames(
 }
 
 
-std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
+namespace
+{
+
+// Internal function - not part of public API
+std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
   const MSExperiment& exp,
   const ArrowChromatogramExportConfig& config)
 {
@@ -993,8 +997,10 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
   }
 }
 
+} // anonymous namespace
 
-std::vector<std::string> ArrowExport::getChromatogramArrowColumnNames(
+
+std::vector<std::string> MSExperimentArrowExport::getChromatogramArrowColumnNames(
   const MSExperiment& /* exp */,
   const ArrowChromatogramExportConfig& config)
 {
@@ -1027,7 +1033,7 @@ std::vector<std::string> ArrowExport::getChromatogramArrowColumnNames(
 }
 
 
-bool ArrowExport::exportSpectraToArrowCDataInterface(
+bool MSExperimentArrowExport::exportSpectraToArrowCDataInterface(
   const MSExperiment& exp,
   const ArrowSpectraExportConfig& config,
   ::ArrowSchema* out_schema,
@@ -1037,7 +1043,7 @@ bool ArrowExport::exportSpectraToArrowCDataInterface(
   auto table = exportSpectraToArrow(exp, config);
   if (!table)
   {
-    OPENMS_LOG_ERROR << "ArrowExport: Failed to create Arrow table for spectra" << std::endl;
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Failed to create Arrow table for spectra" << std::endl;
     return false;
   }
 
@@ -1045,7 +1051,7 @@ bool ArrowExport::exportSpectraToArrowCDataInterface(
   auto batch_result = table->CombineChunksToBatch();
   if (!batch_result.ok())
   {
-    OPENMS_LOG_ERROR << "ArrowExport: Failed to combine table chunks: "
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Failed to combine table chunks: "
                      << batch_result.status().ToString() << std::endl;
     return false;
   }
@@ -1055,7 +1061,7 @@ bool ArrowExport::exportSpectraToArrowCDataInterface(
   auto schema_status = arrow::ExportSchema(*batch->schema(), out_schema);
   if (!schema_status.ok())
   {
-    OPENMS_LOG_ERROR << "ArrowExport: Failed to export schema: "
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Failed to export schema: "
                      << schema_status.ToString() << std::endl;
     return false;
   }
@@ -1064,7 +1070,7 @@ bool ArrowExport::exportSpectraToArrowCDataInterface(
   auto array_status = arrow::ExportRecordBatch(*batch, out_array);
   if (!array_status.ok())
   {
-    OPENMS_LOG_ERROR << "ArrowExport: Failed to export record batch: "
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Failed to export record batch: "
                      << array_status.ToString() << std::endl;
     // Release the schema on error
     if (out_schema->release)
@@ -1078,7 +1084,7 @@ bool ArrowExport::exportSpectraToArrowCDataInterface(
 }
 
 
-bool ArrowExport::exportChromatogramsToArrowCDataInterface(
+bool MSExperimentArrowExport::exportChromatogramsToArrowCDataInterface(
   const MSExperiment& exp,
   const ArrowChromatogramExportConfig& config,
   ::ArrowSchema* out_schema,
@@ -1088,7 +1094,7 @@ bool ArrowExport::exportChromatogramsToArrowCDataInterface(
   auto table = exportChromatogramsToArrow(exp, config);
   if (!table)
   {
-    OPENMS_LOG_ERROR << "ArrowExport: Failed to create Arrow table for chromatograms" << std::endl;
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Failed to create Arrow table for chromatograms" << std::endl;
     return false;
   }
 
@@ -1096,7 +1102,7 @@ bool ArrowExport::exportChromatogramsToArrowCDataInterface(
   auto batch_result = table->CombineChunksToBatch();
   if (!batch_result.ok())
   {
-    OPENMS_LOG_ERROR << "ArrowExport: Failed to combine table chunks: "
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Failed to combine table chunks: "
                      << batch_result.status().ToString() << std::endl;
     return false;
   }
@@ -1106,7 +1112,7 @@ bool ArrowExport::exportChromatogramsToArrowCDataInterface(
   auto schema_status = arrow::ExportSchema(*batch->schema(), out_schema);
   if (!schema_status.ok())
   {
-    OPENMS_LOG_ERROR << "ArrowExport: Failed to export schema: "
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Failed to export schema: "
                      << schema_status.ToString() << std::endl;
     return false;
   }
@@ -1115,7 +1121,7 @@ bool ArrowExport::exportChromatogramsToArrowCDataInterface(
   auto array_status = arrow::ExportRecordBatch(*batch, out_array);
   if (!array_status.ok())
   {
-    OPENMS_LOG_ERROR << "ArrowExport: Failed to export record batch: "
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Failed to export record batch: "
                      << array_status.ToString() << std::endl;
     // Release the schema on error
     if (out_schema->release)
@@ -1232,7 +1238,7 @@ bool writeTableToParquet(
 } // anonymous namespace
 
 
-bool ArrowExport::exportSpectraToParquet(
+bool MSExperimentArrowExport::exportSpectraToParquet(
   const MSExperiment& exp,
   const String& filename,
   const ArrowSpectraExportConfig& config,
@@ -1251,7 +1257,7 @@ bool ArrowExport::exportSpectraToParquet(
 }
 
 
-bool ArrowExport::exportChromatogramsToParquet(
+bool MSExperimentArrowExport::exportChromatogramsToParquet(
   const MSExperiment& exp,
   const String& filename,
   const ArrowChromatogramExportConfig& config,

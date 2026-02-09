@@ -62,6 +62,7 @@ namespace OpenMS
       HARDKLOER,          ///< hardkloer file (.hardkloer)
       KROENIK,            ///< kroenik file (.kroenik)
       FASTA,              ///< FASTA file (.fasta)
+      PEFF,               ///< PEFF file (.peff)
       EDTA,               ///< enhanced comma separated files (RT, m/z, Intensity, [meta])
       CSV,                ///< general comma separated files format (might also be tab or space separated!!!), data should be regular, i.e. matrix form
       TXT,                ///< any text format, which has only loose definition of what it actually contains -- thus it is usually hard to say where the file actually came from (e.g. PepNovo).
@@ -73,6 +74,7 @@ namespace OpenMS
       MRM,                ///< SpectraST MRM List
       SQMASS,             ///< SqLite format for mass and chromatograms, see SqMassFile
       PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB, see TransitionPQPFile
+      CHROMPARQUET,       ///< OpenSWATH Parquet chromatogram output (.xic)
       PQPPARQUET,         ///< OpenSWATH PQP Parquet library input
       OSWPARQUET,         ///< OpenSWATH Parquet feature output
       CHROMPARQUET,       ///< OpenSWATH Parquet chromatogram output (.xic)

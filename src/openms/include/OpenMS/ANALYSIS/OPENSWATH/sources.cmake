@@ -3,6 +3,7 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH)
 
 ### list all header files of the directory here
 set(sources_list_h
+  CalibrationWorkflow.h
   ChromatogramExtractor.h
   ChromatogramExtractorAlgorithm.h
   ConfidenceScoring.h

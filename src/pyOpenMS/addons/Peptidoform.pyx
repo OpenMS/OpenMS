@@ -250,10 +250,7 @@
         Args:
             min_charge: Minimum fragment ion charge state (default: 1)
             max_charge: Maximum fragment ion charge state (default: 1)
-            ion_types: String specifying which ion types to generate (default: "by"):
-                       'a','b','c','x','y','z' for ion series,
-                       'M' for precursor peaks, 'I' for immonium ions.
-                       Example: "by" for b/y ions, "abyM" for a/b/y + precursor
+            ion_types: Ion types to generate, e.g. "by" (default) or "abyM". Use a/b/c/x/y/z for ion series, M for precursor, I for immonium.
             add_losses: If True, include neutral loss peaks (H2O, NH3) (default: False)
             add_metainfo: If True, include ion annotations in spectrum (default: True)
 
@@ -264,6 +261,7 @@
             RuntimeError: If spectrum generation fails (e.g., unresolved modifications)
 
         Example:
+
             >>> pf = Peptidoform.fromString("PEPTIDE")
             >>> if pf.canGenerateSpectrum():
             ...     spec = pf.generateSpectrum(1, 2, "by", add_metainfo=True)

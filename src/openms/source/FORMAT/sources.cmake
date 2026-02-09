@@ -68,6 +68,7 @@ ParamCTDFile.cpp
 ParamCWLFile.cpp
 ParamJSONFile.cpp
 ParamXMLFile.cpp
+PEFFFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp
 PepNovoInfile.cpp
@@ -106,8 +107,11 @@ if (WITH_HDF5)
 endif()
 
 if (WITH_PARQUET)
+  list(APPEND sources_list MSExperimentArrowExport.cpp)
+  list(APPEND sources_list ConsensusMapArrowExport.cpp)
+  list(APPEND sources_list ParquetFilter.cpp)
   list(APPEND sources_list QuantmsIO.cpp)
-  list(APPEND sources_list ArrowExport.cpp)
+  list(APPEND sources_list XICParquetFile.cpp)
 endif()
 
 ### add path to the filenames

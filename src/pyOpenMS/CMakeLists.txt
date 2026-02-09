@@ -58,6 +58,11 @@ else()
   if(NOT TARGET OpenMS)
     # Standalone build - find installed/built OpenMS
     find_package(OpenMS REQUIRED)
+    # pyOpenMS builds its own Arrow-based modules (arrow_zerocopy, parquet_filter)
+    # when WITH_PARQUET is enabled, so it needs Arrow targets directly.
+    if(WITH_PARQUET)
+      find_package(Arrow QUIET)
+    endif()
     # TODO the following is just a fallback.
     # CF_OPENMS_PACKAGE_VERSION is what is written into pyopenms/_version.py
     # which is the old way of getting the version.
@@ -90,6 +95,47 @@ else()
   # Find Python
   #------------------------------------------------------------------------------
   # py-build-cmake sets Python_EXECUTABLE and hints
+  # If requested, run `uv sync` first in the build dir so that uv creates
+  # a virtualenv there. This must happen before calling find_package(Python)
+  # so that CMake can pick up the created interpreter.
+  if(WITH_UV AND DEFINED UV_EXECUTABLE AND NOT DEFINED PY_BUILD_CMAKE_VERSION)
+    message(STATUS "Found uv executable: ${UV_EXECUTABLE} — ensuring .venv in ${PYOPENMS_BUILD_DIR}")
+    file(MAKE_DIRECTORY "${PYOPENMS_BUILD_DIR}")
+    # Copy pyproject.toml before uv sync so that uv can read the project configuration
+    configure_file(${PROJECT_SOURCE_DIR}/pyproject.toml ${PYOPENMS_BUILD_DIR}/pyproject.toml COPYONLY)
+    if(DEFINED PYOPENMS_UV_PYTHON_VERSION AND NOT "${PYOPENMS_UV_PYTHON_VERSION}" STREQUAL "")
+      message(STATUS "Invoking uv sync with Python version: ${PYOPENMS_UV_PYTHON_VERSION}")
+      execute_process(
+        COMMAND ${UV_EXECUTABLE} sync --only-group dev --python ${PYOPENMS_UV_PYTHON_VERSION}
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+        RESULT_VARIABLE _uv_install_result
+        ERROR_VARIABLE _uv_install_error
+      )
+    else()
+      execute_process(
+        COMMAND ${UV_EXECUTABLE} sync --only-group dev
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+        RESULT_VARIABLE _uv_install_result
+        ERROR_VARIABLE _uv_install_error
+      )
+    endif()
+    if(NOT _uv_install_result EQUAL 0)
+      message(WARNING "uv sync failed: ${_uv_install_error}")
+    endif()
+
+    if(WIN32)
+      set(_py_venv_python "${PYOPENMS_BUILD_DIR}/.venv/Scripts/python.exe")
+    else()
+      set(_py_venv_python "${PYOPENMS_BUILD_DIR}/.venv/bin/python")
+    endif()
+    if(EXISTS "${_py_venv_python}")
+      set(Python_EXECUTABLE "${_py_venv_python}")
+      message(STATUS "Using venv Python at ${Python_EXECUTABLE}")
+    else()
+      message(STATUS "No venv Python found at ${_py_venv_python}; falling back to system Python discovery")
+    endif()
+  endif()
+
   find_package(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
   message(STATUS "Python found at ${Python_EXECUTABLE} with version ${Python_VERSION}")
@@ -139,6 +185,7 @@ else()
   # Use Qt6 version from the find module instead of querying qmake
   set(QT_QMAKE_VERSION_INFO "${Qt6_VERSION}")
 
+  
   # Get Autowrap include dirs
   execute_process(
       COMMAND ${Python_EXECUTABLE} -c "import autowrap; print(autowrap.__path__[0] + '/data_files/autowrap/')"
@@ -210,8 +257,11 @@ else()
   # Convert CMake boolean to Python boolean for env.py
   if(WITH_PARQUET)
     set(_PY_WITH_PARQUET "True")
+    message(STATUS "pyOpenMS: WITH_PARQUET=ON, including Parquet-related bindings")
+    message(STATUS "pyOpenMS: OPENMS_ARROW_TARGET=${OPENMS_ARROW_TARGET}")
   else()
     set(_PY_WITH_PARQUET "False")
+    message(STATUS "pyOpenMS: WITH_PARQUET=OFF, excluding Parquet-related bindings")
   endif()
 
   file(WRITE ${PYOPENMS_BUILD_DIR}/env.py
@@ -257,8 +307,11 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
   #------------------------------------------------------------------------------
   set(PYGEN_SENTINEL "${PYOPENMS_BUILD_DIR}/.cpp_extension_generated")
 
+  # Note: All generated outputs must be listed in a single add_custom_command.
+  # Using a separate add_custom_command with DEPENDS but no COMMAND breaks on
+  # Windows/MSBuild, which generates empty .rule files that never produce outputs.
   add_custom_command(
-    OUTPUT ${PYGEN_SENTINEL}
+    OUTPUT ${PYGEN_SENTINEL} ${PYCPPFILES} ${PYPYXFILES} ${PYGEN_EXTRA_FILES}
     # Fake dependency on OpenMS to trigger rebuild when headers change
     # TODO: Should depend on .pxd files instead for more accurate rebuilds
     DEPENDS OpenMS
@@ -267,12 +320,6 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
     COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
     USES_TERMINAL
-  )
-
-  add_custom_command(
-    OUTPUT ${PYCPPFILES} ${PYPYXFILES} ${PYGEN_EXTRA_FILES}
-    DEPENDS ${PYGEN_SENTINEL}
-    COMMENT "Generated files depend on successful code generation"
   )
 
   add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
@@ -343,6 +390,30 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
   if(WITH_PARQUET)
     message(STATUS "Building Arrow zerocopy module for pyOpenMS")
 
+    # For standalone builds, OPENMS_ARROW_TARGET may not be defined (it's set in
+    # cmake_findExternalLibs.cmake during main OpenMS build but not exported).
+    # Find Arrow ourselves if needed.
+    if(NOT DEFINED OPENMS_ARROW_TARGET OR "${OPENMS_ARROW_TARGET}" STREQUAL "")
+      # Workaround for Arrow 23+ CMake configuration issue where CURL dependency
+      # is not properly exported. See: https://github.com/apache/arrow/issues/48885
+      find_package(CURL QUIET)
+      find_package(Arrow CONFIG REQUIRED)
+
+      # Determine Arrow target based on ARROW_USE_STATIC preference
+      if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
+        set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+      elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
+        set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+      elseif(TARGET Arrow::arrow_static)
+        set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+      elseif(TARGET Arrow::arrow_shared)
+        set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+      else()
+        message(FATAL_ERROR "No suitable Arrow target found for pyOpenMS arrow_zerocopy module")
+      endif()
+      message(STATUS "Found Arrow target for pyOpenMS: ${OPENMS_ARROW_TARGET}")
+    endif()
+
     # Get Arrow include directories from the target
     get_target_property(ARROW_INCLUDE_DIRS ${OPENMS_ARROW_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
     if(NOT ARROW_INCLUDE_DIRS)
@@ -408,6 +479,73 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
       LIBRARY DESTINATION pyopenms
       RUNTIME DESTINATION pyopenms
     )
+
+    #------------------------------------------------------------------------------
+    # Parquet filter builder module (only when WITH_PARQUET is enabled)
+    #------------------------------------------------------------------------------
+    if(WITH_PARQUET)
+      message(STATUS "Building Parquet filter builder module for pyOpenMS")
+
+      configure_file(
+        ${PROJECT_SOURCE_DIR}/pyopenms/_parquet_filter.pyx
+        ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
+        COPYONLY
+      )
+      configure_file(
+        ${PROJECT_SOURCE_DIR}/pyopenms/_parquet_filter.pxd
+        ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pxd
+        COPYONLY
+      )
+
+      add_custom_command(
+        OUTPUT ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
+        COMMAND ${Python_EXECUTABLE} -m cython --cplus
+          ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
+          -o ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
+        DEPENDS ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pyx
+                ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.pxd
+        COMMENT "Cythonizing _parquet_filter.pyx"
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+      )
+
+      Python_add_library(parquet_filter MODULE
+        ${PYOPENMS_BUILD_DIR}/pyopenms/_parquet_filter.cpp
+        WITH_SOABI
+      )
+      target_link_libraries(parquet_filter PRIVATE OpenMS)
+      target_compile_definitions(parquet_filter PRIVATE
+        WITH_PARQUET=1
+      )
+      target_include_directories(parquet_filter SYSTEM PRIVATE
+        ${AUTOWRAP_INCLUDE_DIR}
+        ${PYOPENMS_BUILD_DIR}/extra_includes
+      )
+      target_compile_options(parquet_filter PRIVATE ${EXTRA_WARNINGS})
+      set_target_properties(parquet_filter PROPERTIES
+        OUTPUT_NAME _parquet_filter
+        LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
+      )
+      if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
+        set_target_properties(parquet_filter PROPERTIES
+          INSTALL_RPATH "${PY_RPATH}"
+          BUILD_WITH_INSTALL_RPATH 1
+          BUILD_WITH_INSTALL_NAME_DIR 1
+        )
+      else()
+        set_target_properties(parquet_filter PROPERTIES
+          INSTALL_RPATH_USE_LINK_PATH TRUE
+          INSTALL_NAME_DIR ""
+        )
+      endif()
+      add_dependencies(parquet_filter compile_pxds)
+
+      install(TARGETS parquet_filter
+        COMPONENT python_modules
+        LIBRARY DESTINATION pyopenms
+        RUNTIME DESTINATION pyopenms
+      )
+    endif()
   endif()
 
   #------------------------------------------------------------------------------
@@ -523,7 +661,7 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
     if(APPLE)
       # macOS: Fix dependencies and codesign after copying
       add_custom_target(pyopenms_fix_deps ALL
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -f -v
+        COMMAND ${PROJECT_SOURCE_DIR}/mac_fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -r "@loader_path/" -f -v
         COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
         COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib || true
         COMMENT "Fixing deps and codesigning pyopenms binaries in build dir"

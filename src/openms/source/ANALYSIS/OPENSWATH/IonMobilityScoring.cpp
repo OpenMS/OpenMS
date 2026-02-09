@@ -283,10 +283,12 @@ namespace OpenMS
       }
     }
 
-    double eps = 1e-5; // eps for two grid cells to be considered equal
-
     // extend IM range by drift_extra
     im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
+
+    // Compute eps as a fraction of the IM range to be scale-invariant across different IM units
+    // For VSSC (~0.8-1.5 range), this gives ~1e-5; for CCS (~300-500 range), this gives ~0.002
+    double eps = std::max(1e-8, im_range.getSpan() * 1e-5);
 
     // Step 1: MS2 extraction
     std::vector< Mobilogram > ms2_mobilograms;
@@ -425,9 +427,11 @@ namespace OpenMS
       }
     }
 
-    double eps = 1e-5; // eps for two grid cells to be considered equal
-
     im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
+
+    // Compute eps as a fraction of the IM range to be scale-invariant across different IM units
+    // For VSSC (~0.8-1.5 range), this gives ~1e-5; for CCS (~300-500 range), this gives ~0.002
+    double eps = std::max(1e-8, im_range.getSpan() * 1e-5);
 
     double delta_drift = 0;
     double delta_drift_abs = 0;
@@ -576,9 +580,11 @@ namespace OpenMS
         }
       }
 
-      double eps = 1e-5; // eps for two grid cells to be considered equal
-
       im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
+
+      // Compute eps as a fraction of the IM range to be scale-invariant across different IM units
+      // For VSSC (~0.8-1.5 range), this gives ~1e-5; for CCS (~300-500 range), this gives ~0.002
+      double eps = std::max(1e-8, im_range.getSpan() * 1e-5);
 
       Mobilogram res;
       double im(0), intensity(0);

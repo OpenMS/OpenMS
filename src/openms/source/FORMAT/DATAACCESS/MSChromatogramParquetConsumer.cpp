@@ -10,9 +10,11 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
+#include <exception>
 #include <memory>
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
@@ -21,6 +23,7 @@
 #endif
 
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace OpenMS
@@ -34,6 +37,15 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       String("Failed to append value for ") + column, status.ToString());
+      }
+    }
+
+    void reserveOrThrow_(const arrow::Status& status, const char* column)
+    {
+      if (!status.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      String("Failed to reserve capacity for ") + column, status.ToString());
       }
     }
 
@@ -103,21 +115,30 @@ namespace OpenMS
       String annotation;
     };
 
-    int64_t parseOrAssignId_(const String& text, int64_t& next_id)
+    int64_t parseOrAssignId_(const String& text, int64_t& next_id, std::unordered_set<int64_t>& used_ids)
     {
       try
       {
         int64_t value = text.toInt64();
-        if (value >= next_id)
+        if (used_ids.insert(value).second)
         {
-          next_id = value + 1;
+          if (value >= next_id)
+          {
+            next_id = value + 1;
+          }
+          return value;
         }
-        return value;
       }
       catch (Exception::ConversionError&)
       {
-        return next_id++;
+        // fall through to auto-assigned ID
       }
+      while (used_ids.count(next_id))
+      {
+        ++next_id;
+      }
+      used_ids.insert(next_id);
+      return next_id++;
     }
 
     String buildAnnotation_(const String& transition_type, int64_t ordinal, int64_t charge)
@@ -160,8 +181,7 @@ namespace OpenMS
     {
 #ifndef WITH_PARQUET
       (void)transition_exp;
-      throw Exception::MissingFeature(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "OpenMS was built without Parquet support");
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
       buildTransitionMaps_(transition_exp);
 #endif
@@ -170,8 +190,15 @@ namespace OpenMS
     ~MSChromatogramParquetConsumerImpl()
     {
 #ifdef WITH_PARQUET
-      if (wrote_) return;
-      write_();
+      try
+      {
+        finalize();
+      }
+      catch (const Exception::BaseException& e)
+      {
+        OPENMS_LOG_ERROR << "Failed to write chromatogram parquet file '" << filename_
+                         << "': " << e.what() << "\n";
+      }
 #endif
     }
 
@@ -265,30 +292,41 @@ namespace OpenMS
 #ifdef WITH_PARQUET
       if (expectedChromatograms > 0)
       {
-        run_id_builder_.Reserve(expectedChromatograms);
-        source_file_builder_.Reserve(expectedChromatograms);
-        ms_level_builder_.Reserve(expectedChromatograms);
-        precursor_id_builder_.Reserve(expectedChromatograms);
-        transition_id_builder_.Reserve(expectedChromatograms);
-        modified_sequence_builder_.Reserve(expectedChromatograms);
-        precursor_charge_builder_.Reserve(expectedChromatograms);
-        product_charge_builder_.Reserve(expectedChromatograms);
-        detecting_transition_builder_.Reserve(expectedChromatograms);
-        precursor_decoy_builder_.Reserve(expectedChromatograms);
-        product_decoy_builder_.Reserve(expectedChromatograms);
-        transition_ordinal_builder_.Reserve(expectedChromatograms);
-        transition_type_builder_.Reserve(expectedChromatograms);
-        annotation_builder_.Reserve(expectedChromatograms);
-        rt_data_builder_.Reserve(expectedChromatograms);
-        intensity_data_builder_.Reserve(expectedChromatograms);
-        rt_compression_builder_.Reserve(expectedChromatograms);
-        intensity_compression_builder_.Reserve(expectedChromatograms);
+        reserveOrThrow_(run_id_builder_.Reserve(expectedChromatograms), "RUN_ID");
+        reserveOrThrow_(source_file_builder_.Reserve(expectedChromatograms), "SOURCE_FILE");
+        reserveOrThrow_(ms_level_builder_.Reserve(expectedChromatograms), "MS_LEVEL");
+        reserveOrThrow_(precursor_id_builder_.Reserve(expectedChromatograms), "PRECURSOR_ID");
+        reserveOrThrow_(transition_id_builder_.Reserve(expectedChromatograms), "TRANSITION_ID");
+        reserveOrThrow_(modified_sequence_builder_.Reserve(expectedChromatograms), "MODIFIED_SEQUENCE");
+        reserveOrThrow_(precursor_charge_builder_.Reserve(expectedChromatograms), "PRECURSOR_CHARGE");
+        reserveOrThrow_(product_charge_builder_.Reserve(expectedChromatograms), "PRODUCT_CHARGE");
+        reserveOrThrow_(detecting_transition_builder_.Reserve(expectedChromatograms), "DETECTING_TRANSITION");
+        reserveOrThrow_(precursor_decoy_builder_.Reserve(expectedChromatograms), "PRECURSOR_DECOY");
+        reserveOrThrow_(product_decoy_builder_.Reserve(expectedChromatograms), "PRODUCT_DECOY");
+        reserveOrThrow_(transition_ordinal_builder_.Reserve(expectedChromatograms), "TRANSITION_ORDINAL");
+        reserveOrThrow_(transition_type_builder_.Reserve(expectedChromatograms), "TRANSITION_TYPE");
+        reserveOrThrow_(annotation_builder_.Reserve(expectedChromatograms), "ANNOTATION");
+        reserveOrThrow_(rt_data_builder_.Reserve(expectedChromatograms), "RT_DATA");
+        reserveOrThrow_(intensity_data_builder_.Reserve(expectedChromatograms), "INTENSITY_DATA");
+        reserveOrThrow_(rt_compression_builder_.Reserve(expectedChromatograms), "RT_COMPRESSION");
+        reserveOrThrow_(intensity_compression_builder_.Reserve(expectedChromatograms), "INTENSITY_COMPRESSION");
       }
 #endif
     }
 
     void setExperimentalSettings(const ExperimentalSettings&)
     {
+    }
+
+    void finalize()
+    {
+#ifdef WITH_PARQUET
+      if (wrote_)
+      {
+        return;
+      }
+      write_();
+#endif
     }
 
   private:
@@ -299,8 +337,11 @@ namespace OpenMS
 #ifdef WITH_PARQUET
     void buildTransitionMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
     {
+      // Build lookup tables for precursor- and transition-level metadata.
       int64_t next_precursor_id = 1;
       int64_t next_transition_id = 1;
+      std::unordered_set<int64_t> used_precursor_ids;
+      std::unordered_set<int64_t> used_transition_ids;
 
       std::unordered_map<String, int64_t> precursor_ids;
       precursor_ids.reserve(transition_exp.getCompounds().size());
@@ -311,7 +352,7 @@ namespace OpenMS
       for (const auto& compound : transition_exp.getCompounds())
       {
         const String compound_id = compound.id;
-        const int64_t precursor_id = parseOrAssignId_(compound_id, next_precursor_id);
+        const int64_t precursor_id = parseOrAssignId_(compound_id, next_precursor_id, used_precursor_ids);
         precursor_ids[compound_id] = precursor_id;
         precursor_decoy[compound_id] = 0;
 
@@ -332,7 +373,7 @@ namespace OpenMS
         auto it = transition_ids_.find(transition_name);
         if (it == transition_ids_.end())
         {
-          transition_id = parseOrAssignId_(transition_name, next_transition_id);
+          transition_id = parseOrAssignId_(transition_name, next_transition_id, used_transition_ids);
           transition_ids_[transition_name] = transition_id;
         }
         else
@@ -343,7 +384,7 @@ namespace OpenMS
         auto precursor_it = precursor_ids.find(peptide_ref);
         if (precursor_it == precursor_ids.end())
         {
-          const int64_t precursor_id = parseOrAssignId_(peptide_ref, next_precursor_id);
+          const int64_t precursor_id = parseOrAssignId_(peptide_ref, next_precursor_id, used_precursor_ids);
           precursor_ids[peptide_ref] = precursor_id;
           precursor_decoy[peptide_ref] = 0;
 
@@ -390,6 +431,7 @@ namespace OpenMS
 
     void encodeChromatogram_(const MSChromatogramParquetConsumer::ChromatogramType& c)
     {
+      // Marshal chromatogram data into RT/intensity arrays for encoding.
       std::vector<double> rt_data;
       std::vector<double> intensity_data;
       rt_data.reserve(c.size());
@@ -416,6 +458,7 @@ namespace OpenMS
       }
       if (use_lossy_compression)
       {
+        // MSNumpress encodes doubles to byte strings, then zlib compresses.
         MSNumpressCoder::NumpressConfig npconfig_mz;
         npconfig_mz.estimate_fixed_point = true;
         npconfig_mz.numpressErrorTolerance = -1.0;
@@ -437,6 +480,7 @@ namespace OpenMS
       }
       else
       {
+        // Raw doubles are zlib-compressed without MSNumpress.
         std::string rt_bytes(reinterpret_cast<const char*>(rt_data.data()), rt_data.size() * sizeof(double));
         ZlibCompression::compressString(rt_bytes, rt_encoded);
         std::string int_bytes(reinterpret_cast<const char*>(intensity_data.data()), intensity_data.size() * sizeof(double));
@@ -451,6 +495,7 @@ namespace OpenMS
 
     void write_()
     {
+      // Build Arrow schema for the chromatogram table.
       auto schema = arrow::schema({
         arrow::field("RUN_ID", arrow::int64()),
         arrow::field("SOURCE_FILE", arrow::utf8()),
@@ -472,6 +517,7 @@ namespace OpenMS
         arrow::field("INTENSITY_COMPRESSION", arrow::int64())
       });
 
+      // Finalize builders into arrays and assemble the table.
       auto table = arrow::Table::Make(schema, {
         finishArray_(run_id_builder_, "RUN_ID"),
         finishArray_(source_file_builder_, "SOURCE_FILE"),
@@ -493,13 +539,18 @@ namespace OpenMS
         finishArray_(intensity_compression_builder_, "INTENSITY_COMPRESSION")
       });
 
+      // Open output file and write the parquet table.
       auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename_));
       if (!outfile_result.ok())
       {
         throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
       }
       auto outfile = outfile_result.ValueOrDie();
-      auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024);
+      parquet::WriterProperties::Builder builder;
+      builder.compression(parquet::Compression::ZSTD);
+      builder.compression_level(11);
+      auto props = builder.build();
+      auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024, props);
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -563,6 +614,11 @@ namespace OpenMS
   {
     (void)exp;
     impl_->setExperimentalSettings(exp);
+  }
+
+  void MSChromatogramParquetConsumer::finalize()
+  {
+    impl_->finalize();
   }
 
 } // namespace OpenMS
