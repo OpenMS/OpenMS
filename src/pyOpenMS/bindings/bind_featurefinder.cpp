@@ -3,6 +3,8 @@
 
 #include "all_casters.h"
 #include <OpenMS/FEATUREFINDER/BiGaussFitter1D.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/FEATUREFINDER/BiGaussModel.h>
 #include <OpenMS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/FEATUREFINDER/EmgScoring.h>
@@ -264,6 +266,48 @@ estimated for arbitrary m/z using a spline interpolation.
 )doc")
         .def(nb::init<OpenMS::MSExperiment, std::vector<std::vector<OpenMS::PeakPickerHiRes::PeakBoundary>>>())
         .def("getPeakWidth", [](OpenMS::PeakWidthEstimator& self, double mz) { return self.getPeakWidth(mz); }, "mz"_a, "Returns the estimated peak width at m/z")
+        ;
+
+    // -----------------------------------------------------------------------
+    // FeatureFinderMetaboIdentCompound
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>(m, "FeatureFinderMetaboIdentCompound",
+        R"doc(
+Represents a compound in the assay library for FeatureFinderAlgorithmMetaboIdent.
+)doc")
+        .def(nb::init<const OpenMS::String&, const OpenMS::String&, double, const std::vector<int>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&, const std::vector<double>&>(),
+            "name"_a, "formula"_a, "mass"_a, "charges"_a, "rts"_a, "rt_ranges"_a, "iso_distrib"_a, "ion_mobilities"_a = std::vector<double>())
+        .def("getName", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const OpenMS::String& { return self.getName(); }, nb::rv_policy::reference_internal, "Returns the compound name")
+        .def("getFormula", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const OpenMS::String& { return self.getFormula(); }, nb::rv_policy::reference_internal, "Returns the molecular formula")
+        .def("getMass", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) { return self.getMass(); }, "Returns the neutral mass")
+        .def("getCharges", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<int>& { return self.getCharges(); }, nb::rv_policy::reference_internal, "Returns the charge states")
+        .def("getRTs", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getRTs(); }, nb::rv_policy::reference_internal, "Returns the expected retention times")
+        .def("getRTRanges", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) { return self.getRTRanges(); }, "Returns the RT ranges")
+        .def("getIsotopeDistribution", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIsotopeDistribution(); }, nb::rv_policy::reference_internal, "Returns the isotope distribution")
+        .def("getIonMobilities", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIonMobilities(); }, nb::rv_policy::reference_internal, "Returns the expected ion mobility values")
+        ;
+
+    // -----------------------------------------------------------------------
+    // MassTraces
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces>(m, "MassTraces",
+        R"doc(
+Helper struct for a collection of mass traces used in FeatureFinderAlgorithmPicked.
+)doc")
+        .def(nb::init<>())
+        .def("size", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.size(); }, "Returns the number of mass traces")
+        .def("__len__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.size(); })
+        .def("__getitem__", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self, size_t i) -> const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& {
+            if (i >= self.size()) throw nb::index_error();
+            return self[i];
+        }, nb::rv_policy::reference_internal)
+        .def("getPeakCount", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.getPeakCount(); }, "Returns the peak count of all traces")
+        .def("getTheoreticalmaxPosition", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.getTheoreticalmaxPosition(); }, "Returns the theoretical maximum trace index")
+        .def("updateBaseline", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { self.updateBaseline(); }, "Sets the baseline to the lowest contained peak of the trace")
+        .def("getRTBounds", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self) { return self.getRTBounds(); }, "Returns the RT boundaries of the mass traces")
+        .def("isValid", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces& self, double seed_mz, double trace_tolerance) { return self.isValid(seed_mz, trace_tolerance); }, "seed_mz"_a, "trace_tolerance"_a, "Checks if still valid (seed still contained and enough traces)")
+        .def_rw("max_trace", &OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces::max_trace)
+        .def_rw("baseline", &OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces::baseline)
         ;
 
     // -----------------------------------------------------------------------

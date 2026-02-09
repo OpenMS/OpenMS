@@ -268,6 +268,14 @@ del _NESTED_ENUM_ALIASES
 _MODULE_LEVEL_NESTED_ENUMS = {
     "Scores": ["IDType"],
     "ProgressLogger": ["LogType"],
+    "BaseFeature": ["AnnotationState"],
+    "BSpline2d": ["BoundaryCondition"],
+    "ReactionMonitoringTransition": ["DecoyTransitionType"],
+    "Peak2D": ["DimensionDescription"],
+    "IDMapper": ["Measure"],
+    "ConsensusMapNormalizerAlgorithmMedian": ["NormalizationMethod"],
+    "IDRipper": ["OriginAnnotationFormat"],
+    "SourceFile": ["ChecksumType"],
 }
 
 for class_name, enum_names in _MODULE_LEVEL_NESTED_ENUMS.items():
@@ -288,9 +296,20 @@ if "MSExperiment" in globals():
     globals()["PeakMap"] = globals()["MSExperiment"]
 if "MSSpectrum" in globals():
     globals()["PeakSpectrum"] = globals()["MSSpectrum"]
+if "MassTrace" in globals():
+    globals()["Kernel_MassTrace"] = globals()["MassTrace"]
+# Date alias (Cython pyOpenMS used Date as an alias for DateTime)
+if "DateTime" in globals():
+    globals()["Date"] = globals()["DateTime"]
+# MZTrafoModel_MODELTYPE alias (Cython used ClassName_EnumName convention for some nested enums)
+if "MZTrafoModel" in globals() and hasattr(globals()["MZTrafoModel"], "MODELTYPE"):
+    globals()["MZTrafoModel_MODELTYPE"] = globals()["MZTrafoModel"].MODELTYPE
 # FileTypes.FileType nested enum is exported as "FileType" in old pyOpenMS for convenience
 if "FileTypes" in globals() and hasattr(globals()["FileTypes"], "FileType"):
     globals()["FileType"] = globals()["FileTypes"].FileType
+# TargetedExperiment_Instrument: Now a separate nanobind class (no longer an alias for Instrument)
+# Both "Instrument" (OpenMS::Instrument from METADATA) and "TargetedExperiment_Instrument"
+# (TargetedExperimentHelper::Instrument) are exported natively by the kernel module.
 
 # Create Interfaces namespace for pyopenms.Interfaces.Spectrum / Chromatogram
 class _InterfacesNamespace:

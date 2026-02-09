@@ -56,6 +56,9 @@
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/TargetedDataFileLoader.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 #ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/XICParquetFile.h>
 #endif
@@ -93,6 +96,26 @@ NB_MODULE(_pyopenms_format, m) {
         .def(nb::init<>())
         .def_static("encodeStrings", [](const std::vector<OpenMS::String>& in, bool zlib_compression, bool append_null_byte) { OpenMS::String out; OpenMS::Base64::encodeStrings(in, out, zlib_compression, append_null_byte); return out; }, "in"_a, "zlib_compression"_a, "append_null_byte"_a, "Encodes a vector of strings to a Base64 string")
         .def_static("decodeStrings", [](const OpenMS::String& in, bool zlib_compression) { std::vector<OpenMS::String> out; OpenMS::Base64::decodeStrings(in, out, zlib_compression); return out; }, "in"_a, "zlib_compression"_a, "Decodes a Base64 string to a vector of (null-terminated) strings")
+        .def_static("encode64", [](std::vector<double> in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
+            OpenMS::String out;
+            OpenMS::Base64::encode(in, byte_order, out, zlib_compression);
+            return out;
+        }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Encodes a vector of 64-bit floats (doubles) to a Base64 string")
+        .def_static("decode64", [](const OpenMS::String& in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
+            std::vector<double> out;
+            OpenMS::Base64::decode(in, byte_order, out, zlib_compression);
+            return out;
+        }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Decodes a Base64 string to a vector of 64-bit floats (doubles)")
+        .def_static("encode32", [](std::vector<float> in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
+            OpenMS::String out;
+            OpenMS::Base64::encode(in, byte_order, out, zlib_compression);
+            return out;
+        }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Encodes a vector of 32-bit floats to a Base64 string")
+        .def_static("decode32", [](const OpenMS::String& in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
+            std::vector<float> out;
+            OpenMS::Base64::decode(in, byte_order, out, zlib_compression);
+            return out;
+        }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Decodes a Base64 string to a vector of 32-bit floats")
         ;
     // ByteOrder enum nested under Base64
     nb::enum_<OpenMS::Base64::ByteOrder>(base64_class, "ByteOrder")
@@ -1243,6 +1266,16 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         ;
 
     // -----------------------------------------------------------------------
+    // DRangeIntersection (DRange::DRangeIntersection)
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::DRange<1>::DRangeIntersection>(m, "DRangeIntersection",
+        "Result of range intersection check")
+        .value("Disjoint", OpenMS::DRange<1>::Disjoint)
+        .value("Intersects", OpenMS::DRange<1>::Intersects)
+        .value("Inside", OpenMS::DRange<1>::Inside)
+        ;
+
+    // -----------------------------------------------------------------------
     // PeakTypeEstimator
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::PeakTypeEstimator>(m, "PeakTypeEstimator", "Estimates if the data of a spectrum is raw data or peak data")
@@ -1691,6 +1724,41 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("exists", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& id) { return self.exists(id); }, "id"_a)
         .def("hasTermWithName", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& name) { return self.hasTermWithName(name); }, "name"_a)
         .def("isChildOf", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& child_id, const OpenMS::String& parent_id) { return self.isChildOf(child_id, parent_id); }, "child_id"_a, "parent_id"_a)
+        .def("getTerm", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& id) {
+            const auto& term = self.getTerm(id);
+            nb::dict d;
+            d["id"] = nb::str(term.id.c_str());
+            d["name"] = nb::str(term.name.c_str());
+            d["description"] = nb::str(term.description.c_str());
+            return d;
+        }, "id"_a, "Returns the term with the given id as a dict")
+        .def("getTermByName", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& name, const OpenMS::String& desc) {
+            const auto& term = self.getTermByName(name, desc);
+            nb::dict d;
+            d["id"] = nb::str(term.id.c_str());
+            d["name"] = nb::str(term.name.c_str());
+            d["description"] = nb::str(term.description.c_str());
+            return d;
+        }, "name"_a, "desc"_a = "", "Returns the term with the given name as a dict")
+        .def("getAllChildTerms", [](const OpenMS::ControlledVocabulary& self, const OpenMS::String& parent_id) { std::set<OpenMS::String> terms; self.getAllChildTerms(terms, parent_id); return terms; }, "parent_id"_a, "Returns all child terms of the given parent term")
+        ;
+
+    // -----------------------------------------------------------------------
+    // XRefType_CVTerm_ControlledVocabulary (ControlledVocabulary::CVTerm::XRefType)
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::ControlledVocabulary::CVTerm::XRefType>(m, "XRefType_CVTerm_ControlledVocabulary",
+        "Cross-reference type for CV terms")
+        .value("XSD_STRING", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
+        .value("XSD_INTEGER", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER)
+        .value("XSD_DECIMAL", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL)
+        .value("XSD_NEGATIVE_INTEGER", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER)
+        .value("XSD_POSITIVE_INTEGER", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER)
+        .value("XSD_NON_NEGATIVE_INTEGER", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER)
+        .value("XSD_NON_POSITIVE_INTEGER", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER)
+        .value("XSD_BOOLEAN", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN)
+        .value("XSD_DATE", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_DATE)
+        .value("XSD_ANYURI", OpenMS::ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI)
+        .value("NONE", OpenMS::ControlledVocabulary::CVTerm::XRefType::NONE)
         ;
 
     // -----------------------------------------------------------------------
@@ -1719,6 +1787,58 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("setAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& accession) { self.setAccessionAttribute(accession); }, "accession"_a)
         .def("setNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& name) { self.setNameAttribute(name); }, "name"_a)
         .def("setValueAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& value) { self.setValueAttribute(value); }, "value"_a)
+        ;
+
+
+    // -----------------------------------------------------------------------
+    // MzMLSqliteHandler
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::Internal::MzMLSqliteHandler>(m, "MzMLSqliteHandler",
+        "SQLite-based handler for mzML data (sqMass format)")
+        .def(nb::init<const OpenMS::String&, const OpenMS::UInt64>(), "filename"_a, "run_id"_a)
+        .def("readExperiment", [](const OpenMS::Internal::MzMLSqliteHandler& self, OpenMS::MSExperiment& exp, bool meta_only) { self.readExperiment(exp, meta_only); }, "exp"_a, "meta_only"_a = false)
+        .def("writeExperiment", [](OpenMS::Internal::MzMLSqliteHandler& self, const OpenMS::MSExperiment& exp) { self.writeExperiment(exp); }, "exp"_a)
+        .def("createTables", [](OpenMS::Internal::MzMLSqliteHandler& self) { self.createTables(); })
+        .def("writeSpectra", [](OpenMS::Internal::MzMLSqliteHandler& self, const std::vector<OpenMS::MSSpectrum>& spectra) { self.writeSpectra(spectra); }, "spectra"_a)
+        .def("writeChromatograms", [](OpenMS::Internal::MzMLSqliteHandler& self, const std::vector<OpenMS::MSChromatogram>& chroms) { self.writeChromatograms(chroms); }, "chromatograms"_a)
+        .def("writeRunLevelInformation", [](OpenMS::Internal::MzMLSqliteHandler& self, const OpenMS::MSExperiment& exp, bool write_full_meta) { self.writeRunLevelInformation(exp, write_full_meta); }, "exp"_a, "write_full_meta"_a)
+        .def("readSpectra", [](const OpenMS::Internal::MzMLSqliteHandler& self, std::vector<OpenMS::MSSpectrum>& spectra, const std::vector<int>& indices, bool meta_only) { self.readSpectra(spectra, indices, meta_only); }, "spectra"_a, "indices"_a, "meta_only"_a = false)
+        .def("readChromatograms", [](const OpenMS::Internal::MzMLSqliteHandler& self, std::vector<OpenMS::MSChromatogram>& chroms, const std::vector<int>& indices, bool meta_only) { self.readChromatograms(chroms, indices, meta_only); }, "chromatograms"_a, "indices"_a, "meta_only"_a = false)
+        .def("getNrSpectra", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getNrSpectra(); })
+        .def("getNrChromatograms", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getNrChromatograms(); })
+        .def("getRunID", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getRunID(); })
+        .def("getSpectraIndicesbyRT", [](const OpenMS::Internal::MzMLSqliteHandler& self, double RT, double deltaRT, const std::vector<int>& indices) { return self.getSpectraIndicesbyRT(RT, deltaRT, indices); }, "RT"_a, "deltaRT"_a, "indices"_a)
+        .def("setConfig", [](OpenMS::Internal::MzMLSqliteHandler& self, bool write_full_meta, bool use_lossy, double linear_abs, int batch_size) { self.setConfig(write_full_meta, use_lossy, linear_abs, batch_size); }, "write_full_meta"_a, "use_lossy_compression"_a, "linear_abs_mass_acc"_a, "sql_batch_size"_a = 500)
+        ;
+
+    // -----------------------------------------------------------------------
+    // MSPGenericFile
+    // -----------------------------------------------------------------------
+    // Note: DefaultParamHandler base not specified because it's in _pyopenms_misc
+    // which loads after _pyopenms_format. Methods added directly instead.
+    nb::class_<OpenMS::MSPGenericFile>(m, "MSPGenericFile",
+        "MSP spectral library file reader/writer")
+        .def(nb::init<>())
+        .def("load", [](OpenMS::MSPGenericFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& library) { self.load(filename, library); }, "filename"_a, "library"_a)
+        .def("store", [](const OpenMS::MSPGenericFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& library) { self.store(filename, library); }, "filename"_a, "library"_a)
+        .def("setParameters", [](OpenMS::MSPGenericFile& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a)
+        .def("getParameters", [](const OpenMS::MSPGenericFile& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal)
+        .def("getDefaults", [](const OpenMS::MSPGenericFile& self) -> const OpenMS::Param& { return self.getDefaults(); }, nb::rv_policy::reference_internal)
+        .def("getName", [](const OpenMS::MSPGenericFile& self) { return self.getName(); })
+        .def("setName", [](OpenMS::MSPGenericFile& self, const OpenMS::String& name) { self.setName(name); }, "name"_a)
+        ;
+
+    // -----------------------------------------------------------------------
+    // SpectrumAccessSqMass
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::SpectrumAccessSqMass>(m, "SpectrumAccessSqMass",
+        "SQL-based spectrum access via sqMass files")
+        .def(nb::init<const OpenMS::Internal::MzMLSqliteHandler&>(), "handler"_a)
+        .def(nb::init<const OpenMS::Internal::MzMLSqliteHandler&, const std::vector<int>&>(), "handler"_a, "indices"_a)
+        .def("getNrSpectra", [](const OpenMS::SpectrumAccessSqMass& self) { return self.getNrSpectra(); })
+        .def("getNrChromatograms", [](const OpenMS::SpectrumAccessSqMass& self) { return self.getNrChromatograms(); })
+        .def("getSpectrumById", [](OpenMS::SpectrumAccessSqMass& self, int id) { return self.getSpectrumById(id); }, "id"_a)
+        .def("getChromatogramById", [](OpenMS::SpectrumAccessSqMass& self, int id) { return self.getChromatogramById(id); }, "id"_a)
         ;
 
 }

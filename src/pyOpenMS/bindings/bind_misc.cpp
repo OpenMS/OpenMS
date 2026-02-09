@@ -374,6 +374,13 @@ Apply calibration to calculate concentration
         .def("getQuantMethods", [](OpenMS::AbsoluteQuantitation& self) {
             return self.getQuantMethods();
         }, "Get the quantitation methods")
+        .def("fitCalibration", [](OpenMS::AbsoluteQuantitation& self, const std::vector<OpenMS::AbsoluteQuantitationStandards::featureConcentration>& component_concentrations, const OpenMS::String& feature_name, const OpenMS::String& transformation_model, const OpenMS::Param& transformation_model_params) { return self.fitCalibration(component_concentrations, feature_name, transformation_model, transformation_model_params); }, "component_concentrations"_a, "feature_name"_a, "transformation_model"_a, "transformation_model_params"_a, "Fit a calibration curve")
+        .def("calculateBiasAndR", [](OpenMS::AbsoluteQuantitation& self, const std::vector<OpenMS::AbsoluteQuantitationStandards::featureConcentration>& component_concentrations, const OpenMS::String& feature_name, const OpenMS::String& transformation_model, const OpenMS::Param& transformation_model_params) {
+            std::vector<double> biases;
+            double correlation_coefficient;
+            self.calculateBiasAndR(component_concentrations, feature_name, transformation_model, transformation_model_params, biases, correlation_coefficient);
+            return nb::make_tuple(biases, correlation_coefficient);
+        }, "component_concentrations"_a, "feature_name"_a, "transformation_model"_a, "transformation_model_params"_a, "Calculate bias values and R for calibration")
         ;
 
     // -----------------------------------------------------------------------
@@ -690,6 +697,10 @@ DefaultParamHandler
         .def("getName", [](const OpenMS::FalseDiscoveryRate& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::FalseDiscoveryRate& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::FalseDiscoveryRate& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("applyBasic", [](OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& ids, bool higher_score_better, int charge, OpenMS::String identifier, bool only_best_per_pep) { self.applyBasic(ids, higher_score_better, charge, identifier, only_best_per_pep); }, "ids"_a, "higher_score_better"_a, "charge"_a = 0, "identifier"_a = "", "only_best_per_pep"_a = false, "Applies basic FDR calculation")
+        .def("applyEstimated", [](const OpenMS::FalseDiscoveryRate& self, std::vector<OpenMS::ProteinIdentification> ids) { self.applyEstimated(ids); return ids; }, "ids"_a, "Applies estimated FDR calculation on protein IDs")
+        .def("rocN", [](const OpenMS::FalseDiscoveryRate& self, const OpenMS::PeptideIdentificationList& ids, size_t fp_cutoff) { return self.rocN(ids, fp_cutoff); }, "ids"_a, "fp_cutoff"_a, "Calculates the ROC-N value (AUC) for peptide IDs")
+        .def("rocN", [](const OpenMS::FalseDiscoveryRate& self, const OpenMS::PeptideIdentificationList& ids, size_t fp_cutoff, const OpenMS::String& identifier) { return self.rocN(ids, fp_cutoff, identifier); }, "ids"_a, "fp_cutoff"_a, "identifier"_a, "Calculates the ROC-N value for a specific identifier")
         ;
 
     // -----------------------------------------------------------------------
@@ -755,6 +766,22 @@ ff.run(library, fm, path_to_file)
         .def("getName", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("run", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self,
+                       const std::vector<OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
+                       OpenMS::FeatureMap& features,
+                       const OpenMS::String& spectra_file) {
+            self.run(metaboIdentTable, features, spectra_file);
+        }, "metaboIdentTable"_a, "features"_a, "spectra_file"_a = "",
+            R"doc(Perform targeted feature extraction of compounds and store them in features.
+
+If spectra_file is provided it will be used as a fall-back to setPrimaryMSRunPath
+in the feature map in case a proper primaryMSRunPath is not annotated in the MSExperiment.
+If there are no MS1 scans in the MSData, features will be returned unchanged.
+
+:param metaboIdentTable: List of FeatureFinderMetaboIdentCompound objects defining targets
+:param features: FeatureMap to store detected features (modified in-place)
+:param spectra_file: Optional path to spectra file for annotation
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -1650,6 +1677,16 @@ DefaultParamHandler
         .def("getName", [](const OpenMS::MRMTransitionGroupPicker& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::MRMTransitionGroupPicker& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::MRMTransitionGroupPicker& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("findLargestPeak", [](OpenMS::MRMTransitionGroupPicker& self, const std::vector<OpenMS::MSChromatogram>& picked_chroms) {
+            int chr_idx = -1, peak_idx = -1;
+            self.findLargestPeak(picked_chroms, chr_idx, peak_idx);
+            return nb::make_tuple(chr_idx, peak_idx);
+        }, "picked_chroms"_a, "Finds the largest peak across all chromatograms. Returns (chrom_idx, peak_idx)")
+        .def("findWidestPeakIndices", [](const OpenMS::MRMTransitionGroupPicker& self, const std::vector<OpenMS::MSChromatogram>& picked_chroms) {
+            OpenMS::Int chrom_idx = -1, point_idx = -1;
+            self.findWidestPeakIndices(picked_chroms, chrom_idx, point_idx);
+            return nb::make_tuple(chrom_idx, point_idx);
+        }, "picked_chroms"_a, "Finds the widest peak across all chromatograms. Returns (chrom_idx, point_idx)")
         ;
 
     // -----------------------------------------------------------------------
@@ -2534,6 +2571,18 @@ print(entry.identifier)
         .def("atEnd", [](OpenMS::FASTAFile& self) { return self.atEnd(); }, "Boolean function to check if streams is at end of file")
         .def("writeStart", [](OpenMS::FASTAFile& self, const OpenMS::String& filename) { return self.writeStart(filename); }, "filename"_a)
         .def("writeEnd", [](OpenMS::FASTAFile& self) { return self.writeEnd(); }, "Closes the file (flush). Called implicitly when FASTAFile object does out of scope")
+        .def("readNext", [](OpenMS::FASTAFile& self) {
+            OpenMS::FASTAFile::FASTAEntry entry;
+            bool success = self.readNext(entry);
+            if (!success) return nb::make_tuple(nb::bool_(false), nb::cast(OpenMS::FASTAFile::FASTAEntry()));
+            return nb::make_tuple(nb::bool_(true), nb::cast(entry));
+        }, "Reads the next FASTA entry from file. Returns (success, FASTAEntry) tuple")
+        .def("readNext", [](OpenMS::FASTAFile& self, OpenMS::FASTAFile::FASTAEntry& entry) {
+            return self.readNext(entry);
+        }, "entry"_a, "Reads the next FASTA entry from file into the given FASTAEntry. Returns True if entry was read, False if EOF")
+        .def("writeNext", [](OpenMS::FASTAFile& self, const OpenMS::FASTAFile::FASTAEntry& entry) {
+            self.writeNext(entry);
+        }, "entry"_a, "Writes the given FASTAEntry to the file. Call writeStart() before and writeEnd() after")
 
         .def("load", [](const OpenMS::FASTAFile& self, const OpenMS::String& filename, nb::list& output) {
             std::vector<OpenMS::FASTAFile::FASTAEntry> entries;
@@ -3221,6 +3270,17 @@ DefaultParamHandler
         .def("setProgress", [](const OpenMS::MassTraceDetection& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
         .def("endProgress", [](const OpenMS::MassTraceDetection& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MassTraceDetection& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
+        .def("run", [](OpenMS::MassTraceDetection& self, const OpenMS::PeakMap& input, size_t max_traces) {
+            std::vector<OpenMS::MassTrace> found_masstraces;
+            self.run(input, found_masstraces, max_traces);
+            return found_masstraces;
+        }, "input"_a, "max_traces"_a = 0,
+            R"doc(Main method of MassTraceDetection. Extracts mass traces of a MSExperiment.
+
+:param input: MSExperiment (PeakMap) holding the raw data
+:param max_traces: Maximum number of mass traces to extract (0 = no limit)
+:return: List of found MassTrace objects
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -3786,6 +3846,9 @@ DefaultParamHandler
         .def("getName", [](const OpenMS::SpectraMerger& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::SpectraMerger& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::SpectraMerger& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("mergeSpectraBlockWise", [](OpenMS::SpectraMerger& self, OpenMS::MSExperiment& exp) { self.mergeSpectraBlockWise(exp); }, "exp"_a, "Merges spectra block-wise")
+        .def("mergeSpectraPrecursors", [](OpenMS::SpectraMerger& self, OpenMS::MSExperiment& exp) { self.mergeSpectraPrecursors(exp); }, "exp"_a, "Merges spectra with similar precursors")
+        .def("average", [](OpenMS::SpectraMerger& self, OpenMS::MSExperiment& exp, const OpenMS::String& average_type, int ms_level) { self.average(exp, average_type, ms_level); }, "exp"_a, "average_type"_a, "ms_level"_a = -1, "Averages spectra")
         ;
 
     // -----------------------------------------------------------------------
@@ -4354,6 +4417,7 @@ Store spectra in MSP format
         .def(nb::init<OpenMS::String, bool, int, bool, OpenMS::String>())
         .def("load", [](OpenMS::TextFile& self, const OpenMS::String& filename, bool trim_lines, int first_n, bool skip_empty_lines, const OpenMS::String& comment_symbol) { return self.load(filename, trim_lines, first_n, skip_empty_lines, comment_symbol); }, "filename"_a, "trim_lines"_a = false, "first_n"_a = -1, "skip_empty_lines"_a = false, "comment_symbol"_a = "")
         .def("store", [](OpenMS::TextFile& self, const OpenMS::String& filename) { return self.store(filename); }, "filename"_a, "Writes the data to a file")
+        .def("addLine", [](OpenMS::TextFile& self, const OpenMS::String& line) { self.addLine(line); }, "line"_a, "Appends a line to the internal buffer")
         ;
 
     // -----------------------------------------------------------------------

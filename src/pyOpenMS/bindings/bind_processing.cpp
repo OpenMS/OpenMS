@@ -3,6 +3,7 @@
 
 #include "all_casters.h"
 #include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -75,6 +76,28 @@ NB_MODULE(_pyopenms_processing, m) {
         .export_values();
 
     // -----------------------------------------------------------------------
+    // DataFilter (nested struct of DataFilters)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::DataFilters::DataFilter>(m, "DataFilter",
+        "Representation of a peak/feature filter combining FilterType, FilterOperation and a value")
+        .def(nb::init<>())
+        .def(nb::init<OpenMS::DataFilters::FilterType, OpenMS::DataFilters::FilterOperation, double, const OpenMS::String&>(),
+            "type"_a, "op"_a, "val"_a, "meta_name"_a = "")
+        .def(nb::init<OpenMS::DataFilters::FilterType, OpenMS::DataFilters::FilterOperation, const OpenMS::String&, const OpenMS::String&>(),
+            "type"_a, "op"_a, "val"_a, "meta_name"_a = "")
+        .def_rw("field", &OpenMS::DataFilters::DataFilter::field)
+        .def_rw("op", &OpenMS::DataFilters::DataFilter::op)
+        .def_rw("value", &OpenMS::DataFilters::DataFilter::value)
+        .def_rw("value_string", &OpenMS::DataFilters::DataFilter::value_string)
+        .def_rw("meta_name", &OpenMS::DataFilters::DataFilter::meta_name)
+        .def_rw("value_is_numerical", &OpenMS::DataFilters::DataFilter::value_is_numerical)
+        .def("toString", [](const OpenMS::DataFilters::DataFilter& self) { return self.toString(); }, "Returns a string representation of the filter")
+        .def("fromString", [](OpenMS::DataFilters::DataFilter& self, const OpenMS::String& filter) { self.fromString(filter); }, "filter"_a, "Parses filter string and sets the filter properties accordingly")
+        .def("__eq__", [](const OpenMS::DataFilters::DataFilter& self, const OpenMS::DataFilters::DataFilter& rhs) { return self == rhs; })
+        .def("__ne__", [](const OpenMS::DataFilters::DataFilter& self, const OpenMS::DataFilters::DataFilter& rhs) { return self != rhs; })
+        ;
+
+    // -----------------------------------------------------------------------
     // Deisotoper
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Deisotoper>(m, "Deisotoper", "OpenMS class Deisotoper")
@@ -103,6 +126,59 @@ NB_MODULE(_pyopenms_processing, m) {
            "start_intensity_check"_a = 2, "add_up_intensity"_a = false,
            "annotate_features"_a = false,
            "Deisotope and single charge a spectrum")
+
+        .def_static("deisotopeAndSingleChargeDefault", [](OpenMS::MSSpectrum& spectrum,
+             double fragment_tolerance, bool fragment_unit_ppm) {
+            OpenMS::Deisotoper::deisotopeAndSingleCharge(spectrum,
+                fragment_tolerance, fragment_unit_ppm);
+        }, "spectrum"_a, "fragment_tolerance"_a, "fragment_unit_ppm"_a,
+           R"doc(Convenience method: deisotope and single charge a spectrum with default parameters.
+
+Calls deisotopeAndSingleCharge with all default parameters except the required ones.
+
+:param spectrum: Input spectrum (sorted by m/z), modified in-place
+:param fragment_tolerance: The tolerance used to match isotopic peaks
+:param fragment_unit_ppm: Whether ppm or m/z is used as tolerance
+)doc")
+
+        .def_static("deisotopeWithAveragineModel", [](OpenMS::MSSpectrum& spectrum,
+             double fragment_tolerance, bool fragment_unit_ppm,
+             int number_of_final_peaks, int min_charge, int max_charge,
+             bool keep_only_deisotoped, unsigned int min_isopeaks,
+             unsigned int max_isopeaks, bool make_single_charged,
+             bool annotate_charge, bool annotate_iso_peak_count,
+             bool add_up_intensity) {
+            OpenMS::Deisotoper::deisotopeWithAveragineModel(spectrum,
+                fragment_tolerance, fragment_unit_ppm, number_of_final_peaks,
+                min_charge, max_charge, keep_only_deisotoped, min_isopeaks,
+                max_isopeaks, make_single_charged, annotate_charge,
+                annotate_iso_peak_count, add_up_intensity);
+        }, "spectrum"_a, "fragment_tolerance"_a, "fragment_unit_ppm"_a,
+           "number_of_final_peaks"_a = 5000, "min_charge"_a = 1, "max_charge"_a = 3,
+           "keep_only_deisotoped"_a = false, "min_isopeaks"_a = 2,
+           "max_isopeaks"_a = 10, "make_single_charged"_a = true,
+           "annotate_charge"_a = false, "annotate_iso_peak_count"_a = false,
+           "add_up_intensity"_a = false,
+           R"doc(Detect isotopic clusters in a mass spectrum using an averagine model.
+
+Deisotoping is based on C13 abundance and will try to identify isotopic
+clusters fitting to an averagine model, taking into account the corresponding
+charge state. This only makes sense for peptide fragment ion spectra.
+
+:param spectrum: Input spectrum (sorted by m/z), modified in-place
+:param fragment_tolerance: The tolerance used to match isotopic peaks
+:param fragment_unit_ppm: Whether ppm or m/z is used as tolerance
+:param number_of_final_peaks: Only the largest N peaks are kept. If 0, no filtering. For open search 1000, else 5000.
+:param min_charge: The minimum charge considered
+:param max_charge: The maximum charge considered
+:param keep_only_deisotoped: Only monoisotopic peaks of fragments with isotopic pattern are retained
+:param min_isopeaks: The minimum number of isotopic peaks (at least 2) required for an isotopic cluster
+:param max_isopeaks: The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
+:param make_single_charged: Convert deisotoped monoisotopic peak to single charge
+:param annotate_charge: Annotate the charge to peaks in IntegerDataArray "charge"
+:param annotate_iso_peak_count: Annotate the number of isotopic peaks in IntegerDataArray "iso_peak_count"
+:param add_up_intensity: Sum up total intensity of each isotopic pattern into the monoisotopic peak
+)doc")
         ;
 
     // -----------------------------------------------------------------------
@@ -203,6 +279,7 @@ Removes hits annotated as decoys from peptide or protein identifications. Checks
 )doc")
         .def_static("filterHitsByScore", [](OpenMS::PeptideIdentificationList& ids, double threshold_score) { return OpenMS::IDFilter::filterHitsByScore(ids, threshold_score); }, "ids"_a, "threshold_score"_a, "Filters peptide or protein identifications according to the score of the hits. The score orientation has to be set to higherscorebetter in each PeptideIdentification. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept")
         .def_static("removeUnreferencedProteins", [](std::vector<OpenMS::ProteinIdentification> proteins, OpenMS::PeptideIdentificationList& ids) { OpenMS::IDFilter::removeUnreferencedProteins(proteins, ids); return proteins; }, "proteins"_a, "ids"_a, "Removes protein hits from the protein IDs in a 'cmap' that are not referenced by a peptide in the features or if requested in the unassigned peptide list")
+        .def_static("countHits", [](const OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDFilter::countHits(ids); }, "ids"_a, "Counts the number of peptide hits in the given identifications")
         ;
 
     // -----------------------------------------------------------------------
@@ -320,6 +397,10 @@ If you want a constant model, set slope to zero in addition
     nb::class_<OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMeanIterative", "OpenMS class SignalToNoiseEstimatorMeanIterative")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>&>())
+        .def("init", [](OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, const OpenMS::MSSpectrum& c) { self.init(c); }, "c"_a, "Initialize the estimator with the given spectrum")
+        .def("getSignalToNoise", [](const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, OpenMS::Size index) { return self.getSignalToNoise(index); }, "index"_a, "Returns the signal to noise ratio for the given index")
+        .def("setParameters", [](OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
+        .def("getParameters", [](const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         ;
 
 
@@ -331,10 +412,25 @@ If you want a constant model, set slope to zero in addition
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>&>())
         .def("init", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, const OpenMS::MSSpectrum& c) { self.init(c); }, "c"_a, "Initialize the estimator with the given spectrum")
         .def("getSignalToNoise", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, OpenMS::Size index) { return self.getSignalToNoise(index); }, "index"_a, "Returns the signal to noise ratio for the given index")
+        .def("getSparseWindowPercent", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self) { return self.getSparseWindowPercent(); }, "Returns the percentage of windows that are sparse")
+        .def("getHistogramRightmostPercent", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self) { return self.getHistogramRightmostPercent(); }, "Returns the percentage of rightmost histogram bin")
         .def("setParameters", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         ;
 
+
+    // -----------------------------------------------------------------------
+    // SignalToNoiseEstimatorMedianChrom (chromatogram version)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>>(m, "SignalToNoiseEstimatorMedianChrom",
+        "SignalToNoiseEstimatorMedian specialized for MSChromatogram data")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>&>())
+        .def("init", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, const OpenMS::MSChromatogram& c) { self.init(c); }, "c"_a, "Initialize the estimator with the given chromatogram")
+        .def("getSignalToNoise", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, OpenMS::Size index) { return self.getSignalToNoise(index); }, "index"_a, "Returns the signal to noise ratio for the given index")
+        .def("setParameters", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
+        .def("getParameters", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
+        ;
 
     // -----------------------------------------------------------------------
     // SignalToNoiseEstimatorMedianRapid

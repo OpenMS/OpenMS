@@ -2813,20 +2813,57 @@ def testHPLC():
 @report
 def testInstrument():
     """
-    @tests: Instrument (TargetedExperimentHelper::Instrument)
+    @tests: Instrument (OpenMS::Instrument from METADATA)
      Instrument.__init__
-     Instrument.id
+     Instrument.getName
+     Instrument.setName
+     Instrument.getVendor
+     Instrument.setVendor
+     Instrument.getModel
+     Instrument.setModel
+     Instrument.getCustomizations
+     Instrument.setCustomizations
+     Instrument.getIonOptics
+     Instrument.setIonOptics
+     Instrument.getIonSources
+     Instrument.setIonSources
+     Instrument.getIonDetectors
+     Instrument.setIonDetectors
+     Instrument.getMassAnalyzers
+     Instrument.setMassAnalyzers
+     Instrument.getSoftware
+     Instrument.setSoftware
+     Instrument.getAllNamesOfIonOpticsType
      Instrument.setMetaValue
      Instrument.getMetaValue
     """
-    # Note: The bound Instrument class is TargetedExperimentHelper::Instrument,
-    # not the full metadata Instrument class which has setName/setVendor/etc.
     ins = pyopenms.Instrument()
     assert ins == ins
 
-    # Test the id attribute
-    ins.id = "test_instrument"
-    assert ins.id == "test_instrument"
+    ins.setName("test_instrument")
+    assert ins.getName() == "test_instrument"
+
+    ins.setVendor("TestVendor")
+    assert ins.getVendor() == "TestVendor"
+
+    ins.setModel("TestModel")
+    assert ins.getModel() == "TestModel"
+
+    ins.setCustomizations("custom_mods")
+    assert ins.getCustomizations() == "custom_mods"
+
+    ins.setIonOptics(pyopenms.Instrument.IonOpticsType.REFLECTRON)
+    assert ins.getIonOptics() == pyopenms.Instrument.IonOpticsType.REFLECTRON
+
+    assert isinstance(ins.getIonSources(), list)
+    assert isinstance(ins.getMassAnalyzers(), list)
+    assert isinstance(ins.getIonDetectors(), list)
+
+    sw = ins.getSoftware()
+    assert sw is not None
+
+    names = pyopenms.Instrument.getAllNamesOfIonOpticsType()
+    assert len(names) > 0
 
     # Test MetaInfoInterface methods
     ins.setMetaValue("test_key", 42)
@@ -2835,6 +2872,26 @@ def testInstrument():
 
     # Test IonOpticsType enum
     assert pyopenms.Instrument.IonOpticsType.REFLECTRON is not None
+    assert pyopenms.Instrument.IonOpticsType.UNKNOWN is not None
+
+@report
+def testTargetedExperiment_Instrument():
+    """
+    @tests: TargetedExperiment_Instrument (TargetedExperimentHelper::Instrument)
+     TargetedExperiment_Instrument.__init__
+     TargetedExperiment_Instrument.id
+     TargetedExperiment_Instrument.setMetaValue
+     TargetedExperiment_Instrument.getMetaValue
+    """
+    tei = pyopenms.TargetedExperiment_Instrument()
+    assert tei == tei
+
+    tei.id = "test_id"
+    assert tei.id == "test_id"
+
+    tei.setMetaValue("test_key", 42)
+    assert tei.metaValueExists("test_key")
+    assert tei.getMetaValue("test_key") == 42
 
 @report
 def testIonDetector():

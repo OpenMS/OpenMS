@@ -15,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>
@@ -31,6 +32,7 @@
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
@@ -188,6 +190,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
             self.getAAFrequencies(freq);
             return freq;
         }, "Returns the amino acid frequencies of the peptide")
+        .def("__iadd__", [](OpenMS::AASequence& self, const OpenMS::AASequence& rhs) -> OpenMS::AASequence& { return self += rhs; }, "rhs"_a, "In-place concatenation of sequences", nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -229,6 +232,12 @@ for 2 peaks and below 0.6 for >=6 peaks by Guo Ci Teo et al.
 
         .def(nb::init<>())
         .def(nb::init<OpenMS::Size>(), "max_isotope"_a)
+        .def("calcFragmentIsotopeDist", [](const OpenMS::CoarseIsotopePatternGenerator& self, const OpenMS::IsotopeDistribution& fragment_isotope_dist, const OpenMS::IsotopeDistribution& comp_fragment_isotope_dist, const std::set<unsigned int>& precursor_isotopes, double fragment_mono_mass) { return self.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes, fragment_mono_mass); }, "fragment_isotope_dist"_a, "comp_fragment_isotope_dist"_a, "precursor_isotopes"_a, "fragment_mono_mass"_a, "Calculates fragment isotope distribution")
+        .def("estimateForFragmentFromPeptideWeight", [](OpenMS::CoarseIsotopePatternGenerator& self, double average_weight_precursor, double average_weight_fragment, const std::set<unsigned int>& precursor_isotopes) { return self.estimateForFragmentFromPeptideWeight(average_weight_precursor, average_weight_fragment, precursor_isotopes); }, "average_weight_precursor"_a, "average_weight_fragment"_a, "precursor_isotopes"_a, "Estimate fragment isotope distribution from peptide weights")
+        .def("estimateForFragmentFromPeptideWeightAndS", [](const OpenMS::CoarseIsotopePatternGenerator& self, double average_weight_precursor, unsigned int S_precursor, double average_weight_fragment, unsigned int S_fragment, const std::set<unsigned int>& precursor_isotopes) { return self.estimateForFragmentFromPeptideWeightAndS(average_weight_precursor, S_precursor, average_weight_fragment, S_fragment, precursor_isotopes); }, "average_weight_precursor"_a, "S_precursor"_a, "average_weight_fragment"_a, "S_fragment"_a, "precursor_isotopes"_a, "Estimate fragment isotope distribution from peptide weight and sulfur count")
+        .def("estimateForFragmentFromDNAWeight", [](OpenMS::CoarseIsotopePatternGenerator& self, double average_weight_precursor, double average_weight_fragment, const std::set<unsigned int>& precursor_isotopes) { return self.estimateForFragmentFromDNAWeight(average_weight_precursor, average_weight_fragment, precursor_isotopes); }, "average_weight_precursor"_a, "average_weight_fragment"_a, "precursor_isotopes"_a, "Estimate fragment isotope distribution from DNA weights")
+        .def("estimateForFragmentFromRNAWeight", [](OpenMS::CoarseIsotopePatternGenerator& self, double average_weight_precursor, double average_weight_fragment, const std::set<unsigned int>& precursor_isotopes) { return self.estimateForFragmentFromRNAWeight(average_weight_precursor, average_weight_fragment, precursor_isotopes); }, "average_weight_precursor"_a, "average_weight_fragment"_a, "precursor_isotopes"_a, "Estimate fragment isotope distribution from RNA weights")
+        .def("estimateForFragmentFromWeightAndComp", [](const OpenMS::CoarseIsotopePatternGenerator& self, double average_weight_precursor, double average_weight_fragment, const std::set<unsigned int>& precursor_isotopes, double C, double H, double N, double O, double S, double P) { return self.estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, C, H, N, O, S, P); }, "average_weight_precursor"_a, "average_weight_fragment"_a, "precursor_isotopes"_a, "C"_a, "H"_a, "N"_a, "O"_a, "S"_a, "P"_a, "Estimate fragment isotope distribution from weight and composition")
         ;
 
     // -----------------------------------------------------------------------
@@ -491,6 +500,8 @@ The elements are initialized with data from IUPAC tables.
         .def("__str__", [](const OpenMS::EmpiricalFormula& self) {
             return std::string(self.toString());
         }, "Returns the formula as a string")
+        .def("__iadd__", [](OpenMS::EmpiricalFormula& self, const OpenMS::EmpiricalFormula& rhs) -> OpenMS::EmpiricalFormula& { return self += rhs; }, "rhs"_a, "In-place addition of empirical formulas", nb::rv_policy::reference_internal)
+        .def("getConditionalFragmentIsotopeDist", [](const OpenMS::EmpiricalFormula& self, const OpenMS::EmpiricalFormula& precursor, const std::set<unsigned int>& precursor_isotopes, const OpenMS::CoarseIsotopePatternGenerator& method) { return self.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, method); }, "precursor"_a, "precursor_isotopes"_a, "method"_a, "Returns the conditional fragment isotope distribution")
         ;
 
     // -----------------------------------------------------------------------
@@ -1499,6 +1510,7 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("setFormula", [](OpenMS::ResidueModification& self, const OpenMS::String& composition) { return self.setFormula(composition); }, "composition"_a, "Sets the formula (no masses will be changed)")
         .def("getFormula", [](const OpenMS::ResidueModification& self) { return self.getFormula(); }, "Returns the chemical formula if set")
         .def("setDiffFormula", [](OpenMS::ResidueModification& self, const OpenMS::EmpiricalFormula& diff_formula) { return self.setDiffFormula(diff_formula); }, "diff_formula"_a, "Sets diff formula (no masses will be changed)")
+        .def("getDiffFormula", [](const OpenMS::ResidueModification& self) -> const OpenMS::EmpiricalFormula& { return self.getDiffFormula(); }, nb::rv_policy::reference_internal, "Returns the diff formula if one was set")
         .def("setSynonyms", [](OpenMS::ResidueModification& self, const std::set<OpenMS::String>& synonyms) { return self.setSynonyms(synonyms); }, "synonyms"_a, "Sets the synonyms of that modification")
         .def("addSynonym", [](OpenMS::ResidueModification& self, const OpenMS::String& synonym) { return self.addSynonym(synonym); }, "synonym"_a, "Adds a synonym to the unique list")
         .def("getSynonyms", [](const OpenMS::ResidueModification& self) -> const std::set<OpenMS::String> & { return self.getSynonyms(); }, nb::rv_policy::reference_internal, "Returns the set of synonyms")
@@ -1699,6 +1711,19 @@ the fixed and variable modifications given to the constructor
             return nb::make_iterator<nb::rv_policy::reference>(nb::handle(), "NASequence_iter",
                 self.begin(), self.end());
         })
+        .def("get", [](OpenMS::NASequence& self, size_t index) -> const OpenMS::Ribonucleotide* {
+            return self.get(index);
+        }, "index"_a, nb::rv_policy::reference, "Returns the ribonucleotide at the given index")
+        .def("getPrefix", [](const OpenMS::NASequence& self, size_t length) { return self.getPrefix(length); }, "length"_a, "Returns the prefix of the given length")
+        .def("getSuffix", [](const OpenMS::NASequence& self, size_t length) { return self.getSuffix(length); }, "length"_a, "Returns the suffix of the given length")
+        .def("getSubsequence", [](const OpenMS::NASequence& self, size_t start, size_t length) { return self.getSubsequence(start, length); }, "start"_a, "length"_a, "Returns a subsequence starting at start with the given length")
+        .def("set", [](OpenMS::NASequence& self, size_t index, const OpenMS::Ribonucleotide* r) { self.set(index, r); }, "index"_a, "ribonucleotide"_a, "Sets the ribonucleotide at the given index")
+        .def("getFivePrimeMod", [](const OpenMS::NASequence& self) -> const OpenMS::Ribonucleotide* { return self.getFivePrimeMod(); }, nb::rv_policy::reference, "Returns the 5' modification, or None if not set")
+        .def("getThreePrimeMod", [](const OpenMS::NASequence& self) -> const OpenMS::Ribonucleotide* { return self.getThreePrimeMod(); }, nb::rv_policy::reference, "Returns the 3' modification, or None if not set")
+        .def("setFivePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setFivePrimeMod(mod); }, "mod"_a, "Sets the 5' modification")
+        .def("setThreePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setThreePrimeMod(mod); }, "mod"_a, "Sets the 3' modification")
+        .def("hasFivePrimeMod", &OpenMS::NASequence::hasFivePrimeMod, "Returns true if the sequence has a 5' modification")
+        .def("hasThreePrimeMod", &OpenMS::NASequence::hasThreePrimeMod, "Returns true if the sequence has a 3' modification")
         ;
 
     // NASFragmentType enum nested under NASequence
@@ -1716,6 +1741,36 @@ the fixed and variable modifications given to the constructor
         .value("Precursor", OpenMS::NASequence::NASFragmentType::Precursor)
         .value("WIon", OpenMS::NASequence::NASFragmentType::WIon)
         .value("DIon", OpenMS::NASequence::NASFragmentType::DIon)
+        ;
+
+    // -----------------------------------------------------------------------
+    // IMSAlphabet
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::ims::IMSAlphabet>(m, "IMSAlphabet",
+        "Indexed container of bio-chemical elements for mass decomposition")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ims::IMSAlphabet&>())
+        .def("size", [](const OpenMS::ims::IMSAlphabet& self) { return self.size(); })
+        .def("getElement", [](const OpenMS::ims::IMSAlphabet& self, size_t index) -> const OpenMS::ims::IMSElement& { return self.getElement(index); }, "index"_a, nb::rv_policy::reference_internal)
+        .def("getName", [](const OpenMS::ims::IMSAlphabet& self, size_t index) { return self.getName(index); }, "index"_a)
+        .def("getMass", [](const OpenMS::ims::IMSAlphabet& self, size_t index) { return self.getMass(index); }, "index"_a)
+        .def("hasName", [](const OpenMS::ims::IMSAlphabet& self, const std::string& name) { return self.hasName(name); }, "name"_a)
+        .def("push_back", [](OpenMS::ims::IMSAlphabet& self, const std::string& name, double mass) { self.push_back(name, mass); }, "name"_a, "mass"_a)
+        .def("clear", [](OpenMS::ims::IMSAlphabet& self) { self.clear(); })
+        .def("sortByNames", [](OpenMS::ims::IMSAlphabet& self) { self.sortByNames(); })
+        .def("sortByValues", [](OpenMS::ims::IMSAlphabet& self) { self.sortByValues(); })
+        .def("__len__", [](const OpenMS::ims::IMSAlphabet& self) { return self.size(); })
+        ;
+
+    // -----------------------------------------------------------------------
+    // SimplePeak
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::SimpleTSGXLMS::SimplePeak>(m, "SimplePeak",
+        "Simple peak struct with m/z and charge")
+        .def(nb::init<>())
+        .def(nb::init<double, int>(), "mz"_a, "charge"_a)
+        .def_rw("mz", &OpenMS::SimpleTSGXLMS::SimplePeak::mz)
+        .def_rw("charge", &OpenMS::SimpleTSGXLMS::SimplePeak::charge)
         ;
 
 }
