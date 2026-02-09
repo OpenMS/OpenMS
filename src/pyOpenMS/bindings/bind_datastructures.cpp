@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/CVReference.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
@@ -22,6 +23,8 @@
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
@@ -195,6 +198,53 @@ depending on axis labelling
         .def("addPointXY", [](OpenMS::ConvexHull2D& self, double x, double y) {
             return self.addPoint(OpenMS::DPosition<2>(x, y));
         }, "x"_a, "y"_a, "Adds a point (x, y) to the hull")
+        .def("enclosesXY", [](const OpenMS::ConvexHull2D& self, double x, double y) {
+            return self.encloses(OpenMS::DPosition<2>(x, y));
+        }, "x"_a, "y"_a, "Returns if the point (x, y) lies in the feature hull")
+        .def("getBoundingBox2D", [](const OpenMS::ConvexHull2D& self) {
+            return self.getBoundingBox();
+        }, "Returns the bounding box of the feature hull points as a DBoundingBox2")
+        .def("addPointsNPY", [](OpenMS::ConvexHull2D& self, nb::ndarray<double, nb::ndim<2>, nb::c_contig> arr) {
+            if (arr.shape(1) != 2)
+            {
+                throw std::invalid_argument("Expected array with 2 columns (x, y)");
+            }
+            std::vector<OpenMS::DPosition<2>> points;
+            points.reserve(arr.shape(0));
+            const double* data = arr.data();
+            for (size_t i = 0; i < arr.shape(0); ++i)
+            {
+                points.emplace_back(data[i * 2], data[i * 2 + 1]);
+            }
+            self.addPoints(points);
+        }, "points"_a, "Adds points from a numpy array of shape (N, 2) to the hull")
+        .def("getHullPointsNPY", [](const OpenMS::ConvexHull2D& self) {
+            const auto& pts = self.getHullPoints();
+            size_t n = pts.size();
+            double* buf = new double[n * 2];
+            for (size_t i = 0; i < n; ++i)
+            {
+                buf[i * 2] = pts[i][0];
+                buf[i * 2 + 1] = pts[i][1];
+            }
+            size_t shape[2] = {n, 2};
+            nb::capsule deleter(buf, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            return nb::ndarray<nb::numpy, double, nb::ndim<2>>(buf, 2, shape, deleter);
+        }, "Returns the hull points as a numpy array of shape (N, 2)")
+        .def("setHullPointsNPY", [](OpenMS::ConvexHull2D& self, nb::ndarray<double, nb::ndim<2>, nb::c_contig> arr) {
+            if (arr.shape(1) != 2)
+            {
+                throw std::invalid_argument("Expected array with 2 columns (x, y)");
+            }
+            std::vector<OpenMS::DPosition<2>> points;
+            points.reserve(arr.shape(0));
+            const double* data = arr.data();
+            for (size_t i = 0; i < arr.shape(0); ++i)
+            {
+                points.emplace_back(data[i * 2], data[i * 2 + 1]);
+            }
+            self.setHullPoints(points);
+        }, "points"_a, "Sets the hull points from a numpy array of shape (N, 2)")
         .def("__hash__", [](const OpenMS::ConvexHull2D& self) { return std::hash<OpenMS::ConvexHull2D>{}(self); })
         ;
 
@@ -295,6 +345,15 @@ The following formats are supported:
         .def(nb::init<>())
         .def(nb::init<const OpenMS::DistanceMatrix<float>&>())
         .def(nb::init<size_t, float>())
+        .def("clear", [](OpenMS::DistanceMatrix<float>& self) { self.clear(); }, "Clears the matrix")
+        .def("dimensionsize", [](const OpenMS::DistanceMatrix<float>& self) { return self.dimensionsize(); }, "Returns the number of rows/columns")
+        .def("getMinElementCoordinates", [](const OpenMS::DistanceMatrix<float>& self) { return self.getMinElementCoordinates(); }, "Returns coordinates of minimum element")
+        .def("getValue", [](const OpenMS::DistanceMatrix<float>& self, size_t i, size_t j) { return self.getValue(i, j); }, "i"_a, "j"_a, "Returns the value at (i,j)")
+        .def("reduce", [](OpenMS::DistanceMatrix<float>& self, size_t j) { self.reduce(j); }, "j"_a, "Reduces the matrix by removing the j-th row and column")
+        .def("resize", [](OpenMS::DistanceMatrix<float>& self, size_t dimensionsize, float value) { self.resize(dimensionsize, value); }, "dimensionsize"_a, "value"_a = 0.0f, "Resizes the matrix")
+        .def("setValue", [](OpenMS::DistanceMatrix<float>& self, size_t i, size_t j, float value) { self.setValue(i, j, value); }, "i"_a, "j"_a, "value"_a, "Sets the value at (i,j)")
+        .def("setValueQuick", [](OpenMS::DistanceMatrix<float>& self, size_t i, size_t j, float value) { self.setValueQuick(i, j, value); }, "i"_a, "j"_a, "value"_a, "Sets the value at (i,j) without checking bounds")
+        .def("updateMinElement", [](OpenMS::DistanceMatrix<float>& self) { self.updateMinElement(); }, "Updates the minimum element")
         ;
 
 
@@ -738,6 +797,18 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def("size", &OpenMS::Param::ParamNode::size)
         .def("suffix", &OpenMS::Param::ParamNode::suffix, "key"_a)
         .def("__eq__", &OpenMS::Param::ParamNode::operator==)
+        .def("findEntryRecursive", [](OpenMS::Param::ParamNode& self, const std::string& name) -> OpenMS::Param::ParamEntry* {
+            return self.findEntryRecursive(name);
+        }, "name"_a, nb::rv_policy::reference_internal, "Finds an entry by name recursively")
+        .def("findParentOf", [](OpenMS::Param::ParamNode& self, const std::string& name) -> OpenMS::Param::ParamNode* {
+            return self.findParentOf(name);
+        }, "name"_a, nb::rv_policy::reference_internal, "Finds the parent node of the entry with the given name")
+        .def("insert", [](OpenMS::Param::ParamNode& self, const OpenMS::Param::ParamNode& node, const std::string& prefix) {
+            self.insert(node, prefix);
+        }, "node"_a, "prefix"_a = "", "Inserts a node")
+        .def("insert", [](OpenMS::Param::ParamNode& self, const OpenMS::Param::ParamEntry& entry, const std::string& prefix) {
+            self.insert(entry, prefix);
+        }, "entry"_a, "prefix"_a = "", "Inserts an entry")
         ;
 
     // -----------------------------------------------------------------------
@@ -925,6 +996,21 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("add", [](OpenMS::Compomer& self, const OpenMS::Adduct& a, OpenMS::UInt side) { self.add(a, side); }, "a"_a, "side"_a)
         .def(nb::self == nb::self)
         .def("__hash__", [](const OpenMS::Compomer& self) { return std::hash<OpenMS::Compomer>{}(self); })
+        .def("getLabels", [](const OpenMS::Compomer& self, OpenMS::UInt side) { return self.getLabels(side); }, "side"_a, "Returns the labels for the given side")
+        .def("isConflicting", [](const OpenMS::Compomer& self, const OpenMS::Compomer& cmp, OpenMS::UInt side_this, OpenMS::UInt side_other) { return self.isConflicting(cmp, side_this, side_other); }, "cmp"_a, "side_this"_a, "side_other"_a, "Returns true if the compomers are conflicting")
+        .def("isSingleAdduct", [](const OpenMS::Compomer& self, OpenMS::Adduct& a, OpenMS::UInt side) { return self.isSingleAdduct(a, side); }, "a"_a, "side"_a, "Returns true if the compomer has a single adduct on the given side")
+        .def("removeAdduct", [](const OpenMS::Compomer& self, const OpenMS::Adduct& a) { return self.removeAdduct(a); }, "a"_a, "Returns a new compomer without the given adduct")
+        .def("removeAdduct", [](const OpenMS::Compomer& self, const OpenMS::Adduct& a, OpenMS::UInt side) { return self.removeAdduct(a, side); }, "a"_a, "side"_a, "Returns a new compomer without the given adduct on the given side")
+        ;
+
+    // -----------------------------------------------------------------------
+    // SIDE (Compomer::SIDE)
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::Compomer::SIDE>(m, "SIDE",
+        "Side enum for adduct decomposition (LEFT, RIGHT, BOTH)")
+        .value("LEFT", OpenMS::Compomer::LEFT)
+        .value("RIGHT", OpenMS::Compomer::RIGHT)
+        .value("BOTH", OpenMS::Compomer::BOTH)
         ;
 
     // -----------------------------------------------------------------------
@@ -960,6 +1046,110 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::init<const OpenMS::CVMappings &>())
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
+        .def("setCVReferences", [](OpenMS::CVMappings& self, const std::vector<OpenMS::CVReference>& cv_references) { self.setCVReferences(cv_references); }, "cv_references"_a, "Sets the CV references")
+        .def("getCVReferences", [](const OpenMS::CVMappings& self) -> const std::vector<OpenMS::CVReference>& { return self.getCVReferences(); }, nb::rv_policy::reference_internal, "Returns the CV references")
+        .def("addCVReference", [](OpenMS::CVMappings& self, const OpenMS::CVReference& cv_reference) { self.addCVReference(cv_reference); }, "cv_reference"_a, "Adds a CV reference")
+        .def("hasCVReference", [](OpenMS::CVMappings& self, const OpenMS::String& identifier) { return self.hasCVReference(identifier); }, "identifier"_a, "Returns true if a CV reference with the given identifier exists")
+        .def("setMappingRules", [](OpenMS::CVMappings& self, const std::vector<OpenMS::CVMappingRule>& cv_mapping_rules) { self.setMappingRules(cv_mapping_rules); }, "cv_mapping_rules"_a, "Sets the mapping rules")
+        .def("getMappingRules", [](const OpenMS::CVMappings& self) -> const std::vector<OpenMS::CVMappingRule>& { return self.getMappingRules(); }, nb::rv_policy::reference_internal, "Returns the mapping rules")
+        .def("addMappingRule", [](OpenMS::CVMappings& self, const OpenMS::CVMappingRule& cv_mapping_rule) { self.addMappingRule(cv_mapping_rule); }, "cv_mapping_rule"_a, "Adds a mapping rule")
+        ;
+
+    // -----------------------------------------------------------------------
+    // QuotingMethod (String::QuotingMethod)
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::String::QuotingMethod>(m, "QuotingMethod",
+        "Method for quoting strings in CSV output")
+        .value("NONE", OpenMS::String::NONE)
+        .value("ESCAPE", OpenMS::String::ESCAPE)
+        .value("DOUBLE", OpenMS::String::DOUBLE)
+        ;
+
+    // -----------------------------------------------------------------------
+    // UnitType (DataValue::UnitType)
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::DataValue::UnitType>(m, "UnitType",
+        "Unit ontology type for DataValue")
+        .value("UNIT_ONTOLOGY", OpenMS::DataValue::UNIT_ONTOLOGY)
+        .value("MS_ONTOLOGY", OpenMS::DataValue::MS_ONTOLOGY)
+        .value("OTHER", OpenMS::DataValue::OTHER)
+        ;
+
+    // -----------------------------------------------------------------------
+    // ValueType (ParamValue::ValueType)
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::ParamValue::ValueType>(m, "ValueType",
+        "Type tag for ParamValue")
+        .value("STRING_VALUE", OpenMS::ParamValue::STRING_VALUE)
+        .value("INT_VALUE", OpenMS::ParamValue::INT_VALUE)
+        .value("DOUBLE_VALUE", OpenMS::ParamValue::DOUBLE_VALUE)
+        .value("STRING_LIST", OpenMS::ParamValue::STRING_LIST)
+        .value("INT_LIST", OpenMS::ParamValue::INT_LIST)
+        .value("DOUBLE_LIST", OpenMS::ParamValue::DOUBLE_LIST)
+        .value("EMPTY_VALUE", OpenMS::ParamValue::EMPTY_VALUE)
+        ;
+
+    // -----------------------------------------------------------------------
+    // CVMappingRule
+    // -----------------------------------------------------------------------
+    nb::enum_<OpenMS::CVMappingRule::RequirementLevel>(m, "RequirementLevel")
+        .value("MUST", OpenMS::CVMappingRule::MUST)
+        .value("SHOULD", OpenMS::CVMappingRule::SHOULD)
+        .value("MAY", OpenMS::CVMappingRule::MAY)
+        ;
+
+    nb::enum_<OpenMS::CVMappingRule::CombinationsLogic>(m, "CombinationsLogic")
+        .value("OR", OpenMS::CVMappingRule::OR)
+        .value("AND", OpenMS::CVMappingRule::AND)
+        .value("XOR", OpenMS::CVMappingRule::XOR)
+        ;
+
+    nb::class_<OpenMS::CVMappingRule>(m, "CVMappingRule",
+        "Representation of a CV mapping rule")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::CVMappingRule &>())
+        .def("setIdentifier", [](OpenMS::CVMappingRule& self, const OpenMS::String& id) { self.setIdentifier(id); }, "identifier"_a)
+        .def("getIdentifier", [](const OpenMS::CVMappingRule& self) { return self.getIdentifier(); })
+        .def("setElementPath", [](OpenMS::CVMappingRule& self, const OpenMS::String& path) { self.setElementPath(path); }, "element_path"_a)
+        .def("getElementPath", [](const OpenMS::CVMappingRule& self) { return self.getElementPath(); })
+        .def("setRequirementLevel", [](OpenMS::CVMappingRule& self, OpenMS::CVMappingRule::RequirementLevel level) { self.setRequirementLevel(level); }, "level"_a)
+        .def("getRequirementLevel", [](const OpenMS::CVMappingRule& self) { return self.getRequirementLevel(); })
+        .def("setCombinationsLogic", [](OpenMS::CVMappingRule& self, OpenMS::CVMappingRule::CombinationsLogic logic) { self.setCombinationsLogic(logic); }, "logic"_a)
+        .def("getCombinationsLogic", [](const OpenMS::CVMappingRule& self) { return self.getCombinationsLogic(); })
+        .def("setScopePath", [](OpenMS::CVMappingRule& self, const OpenMS::String& path) { self.setScopePath(path); }, "path"_a)
+        .def("getScopePath", [](const OpenMS::CVMappingRule& self) { return self.getScopePath(); })
+        .def("setCVTerms", [](OpenMS::CVMappingRule& self, const std::vector<OpenMS::CVMappingTerm>& terms) { self.setCVTerms(terms); }, "cv_terms"_a)
+        .def("getCVTerms", [](const OpenMS::CVMappingRule& self) { return self.getCVTerms(); })
+        .def("addCVTerm", [](OpenMS::CVMappingRule& self, const OpenMS::CVMappingTerm& term) { self.addCVTerm(term); }, "cv_term"_a)
+        .def(nb::self == nb::self)
+        .def(nb::self != nb::self)
+        ;
+
+    // -----------------------------------------------------------------------
+    // UniqueIdGenerator
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::UniqueIdGenerator>(m, "UniqueIdGenerator",
+        "Generates unique 64-bit IDs")
+        .def_static("getUniqueId", []() { return OpenMS::UniqueIdGenerator::getUniqueId(); },
+            "Returns a new unique ID")
+        .def_static("setSeed", [](OpenMS::UInt64 seed) { OpenMS::UniqueIdGenerator::setSeed(seed); },
+            "seed"_a, "Set the random generator seed")
+        .def_static("getSeed", []() { return OpenMS::UniqueIdGenerator::getSeed(); },
+            "Get the current seed value")
+        ;
+
+    // -----------------------------------------------------------------------
+    // StringView
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::StringView>(m, "StringView",
+        "Lightweight non-owning view on a string")
+        .def(nb::init<>())
+        .def("size", [](const OpenMS::StringView& self) { return self.size(); })
+        .def("getString", [](const OpenMS::StringView& self) { return self.getString(); })
+        .def("__len__", [](const OpenMS::StringView& self) { return self.size(); })
+        .def("__str__", [](const OpenMS::StringView& self) { return self.getString(); })
+        .def(nb::self == nb::self)
+        .def(nb::self < nb::self)
         ;
 
 }
