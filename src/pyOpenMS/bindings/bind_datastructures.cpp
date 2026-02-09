@@ -16,6 +16,7 @@
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
+#include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
@@ -111,6 +112,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .value("BC_ZERO_ENDPOINTS", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_ENDPOINTS)
         .value("BC_ZERO_FIRST", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_FIRST)
         .value("BC_ZERO_SECOND", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_SECOND)
+
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -297,6 +299,29 @@ Numerical Analysis, 4th ed. PWS-Kent, 1989, ISBN 0-53491-585-X, pp.
         ;
 
     // -----------------------------------------------------------------------
+    // Date
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::Date>(m, "Date", "Date class for date handling")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::Date &>())
+        .def("__copy__", [](const OpenMS::Date& self) { return OpenMS::Date(self); })
+        .def("__deepcopy__", [](const OpenMS::Date& self, nb::dict) { return OpenMS::Date(self); }, "memo"_a)
+        .def("set", static_cast<void (OpenMS::Date::*)(const OpenMS::String&)>(&OpenMS::Date::set), "date"_a, "Sets date from a string (mm/dd/yyyy, dd.mm.yyyy, or yyyy-mm-dd)")
+        .def("set", static_cast<void (OpenMS::Date::*)(OpenMS::UInt, OpenMS::UInt, OpenMS::UInt)>(&OpenMS::Date::set), "month"_a, "day"_a, "year"_a, "Sets date from three integers")
+        .def_static("today", []() { return OpenMS::Date::today(); }, "Returns the current date")
+        .def("get", static_cast<OpenMS::String (OpenMS::Date::*)() const>(&OpenMS::Date::get), "Returns the date as string in iso/ansi format: yyyy-mm-dd")
+        .def("clear", [](OpenMS::Date& self) { self.clear(); }, "Sets the undefined date: 00/00/0000")
+        .def("isValid", [](const OpenMS::Date& self) { return self.isValid(); }, "Returns if the date is valid")
+        .def("isNull", [](const OpenMS::Date& self) { return self.isNull(); }, "Returns if the date is null")
+        .def("year", [](const OpenMS::Date& self) { return self.year(); }, "Returns the year")
+        .def("month", [](const OpenMS::Date& self) { return self.month(); }, "Returns the month")
+        .def("day", [](const OpenMS::Date& self) { return self.day(); }, "Returns the day")
+        .def(nb::self == nb::self)
+        .def(nb::self != nb::self)
+        .def(nb::self < nb::self)
+        ;
+
+    // -----------------------------------------------------------------------
     // DateTime
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::DateTime>(m, "DateTime", "DateTime Class")
@@ -390,6 +415,7 @@ The following formats are supported:
         .def_rw("A", &OpenMS::Math::GaussFitter::GaussFitResult::A)
         .def_rw("x0", &OpenMS::Math::GaussFitter::GaussFitResult::x0)
         .def_rw("sigma", &OpenMS::Math::GaussFitter::GaussFitResult::sigma)
+        .def("eval", [](const OpenMS::Math::GaussFitter::GaussFitResult& self, double x) { return self.eval(x); }, "x"_a, "Evaluates the Gaussian model at the specified point")
         ;
 
     // -----------------------------------------------------------------------
@@ -1040,6 +1066,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .value("LEFT", OpenMS::Compomer::LEFT)
         .value("RIGHT", OpenMS::Compomer::RIGHT)
         .value("BOTH", OpenMS::Compomer::BOTH)
+
         ;
 
     // -----------------------------------------------------------------------
@@ -1096,6 +1123,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .value("NONE", OpenMS::String::NONE)
         .value("ESCAPE", OpenMS::String::ESCAPE)
         .value("DOUBLE", OpenMS::String::DOUBLE)
+
         ;
 
     // -----------------------------------------------------------------------
@@ -1106,6 +1134,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .value("UNIT_ONTOLOGY", OpenMS::DataValue::UNIT_ONTOLOGY)
         .value("MS_ONTOLOGY", OpenMS::DataValue::MS_ONTOLOGY)
         .value("OTHER", OpenMS::DataValue::OTHER)
+
         ;
 
     // -----------------------------------------------------------------------
@@ -1120,6 +1149,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .value("INT_LIST", OpenMS::ParamValue::INT_LIST)
         .value("DOUBLE_LIST", OpenMS::ParamValue::DOUBLE_LIST)
         .value("EMPTY_VALUE", OpenMS::ParamValue::EMPTY_VALUE)
+
         ;
 
     // -----------------------------------------------------------------------
@@ -1199,5 +1229,13 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         "ppm"_a, "mz_ref"_a, "Compute the mass diff in Th, given a ppm value and a reference point");
     m.def("ppmToMassAbs", [](double ppm, double mz_ref) { return OpenMS::Math::ppmToMassAbs(ppm, mz_ref); },
         "ppm"_a, "mz_ref"_a, "Compute the absolute mass diff in Th, given a ppm value and a reference point");
+
+    // -----------------------------------------------------------------------
+    // __static_* module-level wrappers for Math
+    // -----------------------------------------------------------------------
+    m.def("__static_Math_getPPM", [](double mz_obs, double mz_ref) -> double { return OpenMS::Math::getPPM(mz_obs, mz_ref); }, "mz_obs"_a, "mz_ref"_a);
+    m.def("__static_Math_getPPMAbs", [](double mz_obs, double mz_ref) -> double { return OpenMS::Math::getPPMAbs(mz_obs, mz_ref); }, "mz_obs"_a, "mz_ref"_a);
+    m.def("__static_Math_ppmToMass", [](double ppm, double mz_ref) -> double { return OpenMS::Math::ppmToMass(ppm, mz_ref); }, "ppm"_a, "mz_ref"_a);
+    m.def("__static_Math_ppmToMassAbs", [](double ppm, double mz_ref) -> double { return OpenMS::Math::ppmToMassAbs(ppm, mz_ref); }, "ppm"_a, "mz_ref"_a);
 
 }

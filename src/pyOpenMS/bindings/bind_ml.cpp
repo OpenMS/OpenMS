@@ -169,6 +169,12 @@ LocalClustering
         .def("__copy__", [](const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>& self) { return OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>(self); })
         .def("__deepcopy__", [](const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>& self, nb::dict) { return OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>(self); }, "memo"_a)
         .def(nb::init<OpenMS::UInt64>())
+        .def("ransac", [](OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>& self, const std::vector<std::pair<double, double>>& pairs, size_t n, size_t k, double t, size_t d, bool relative_d) {
+            return self.ransac(pairs, n, k, t, d, relative_d);
+        }, "pairs"_a, "n"_a, "k"_a, "t"_a, "d"_a, "relative_d"_a = false, "RANSAC outlier detection algorithm")
+        .def("ransac", [](OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>& self, const std::vector<std::pair<double, double>>& pairs, const OpenMS::Math::RANSACParam& p) {
+            return self.ransac(pairs, p);
+        }, "pairs"_a, "p"_a, "RANSAC outlier detection with RANSACParam")
         ;
 
     // -----------------------------------------------------------------------
@@ -180,6 +186,12 @@ LocalClustering
         .def("__copy__", [](const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>& self) { return OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>(self); })
         .def("__deepcopy__", [](const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>& self, nb::dict) { return OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>(self); }, "memo"_a)
         .def(nb::init<OpenMS::UInt64>())
+        .def("ransac", [](OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>& self, const std::vector<std::pair<double, double>>& pairs, size_t n, size_t k, double t, size_t d, bool relative_d) {
+            return self.ransac(pairs, n, k, t, d, relative_d);
+        }, "pairs"_a, "n"_a, "k"_a, "t"_a, "d"_a, "relative_d"_a = false, "RANSAC outlier detection algorithm")
+        .def("ransac", [](OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>& self, const std::vector<std::pair<double, double>>& pairs, const OpenMS::Math::RANSACParam& p) {
+            return self.ransac(pairs, p);
+        }, "pairs"_a, "p"_a, "RANSAC outlier detection with RANSACParam")
         ;
 
 

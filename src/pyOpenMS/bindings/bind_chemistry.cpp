@@ -1073,6 +1073,7 @@ Examples:
         .value("FORMULA", OpenMS::MzPAFIonSeries::FORMULA)
         .value("NAMED", OpenMS::MzPAFIonSeries::NAMED)
         .value("UNKNOWN", OpenMS::MzPAFIonSeries::UNKNOWN)
+
         ;
 
     // -----------------------------------------------------------------------
@@ -1081,6 +1082,7 @@ Examples:
     nb::enum_<OpenMS::MzPAFDeltaUnit>(m, "MzPAFDeltaUnit", "Unit for mass delta values in mzPAF annotations")
         .value("DALTON", OpenMS::MzPAFDeltaUnit::DALTON)
         .value("PPM", OpenMS::MzPAFDeltaUnit::PPM)
+
         ;
 
     // -----------------------------------------------------------------------
@@ -1944,6 +1946,11 @@ the fixed and variable modifications given to the constructor
         .def("sortByNames", [](OpenMS::ims::IMSAlphabet& self) { self.sortByNames(); })
         .def("sortByValues", [](OpenMS::ims::IMSAlphabet& self) { self.sortByValues(); })
         .def("__len__", [](const OpenMS::ims::IMSAlphabet& self) { return self.size(); })
+        .def("erase", [](OpenMS::ims::IMSAlphabet& self, const std::string& name) { return self.erase(name); }, "name"_a, "Removes the element with the given name")
+        .def("getMasses", [](const OpenMS::ims::IMSAlphabet& self, size_t isotope_index) { return self.getMasses(isotope_index); }, "isotope_index"_a = 0, "Gets masses of elements isotopes given by isotope_index")
+        .def("getAverageMasses", [](const OpenMS::ims::IMSAlphabet& self) { return self.getAverageMasses(); }, "Gets average masses of elements")
+        .def("load", [](OpenMS::ims::IMSAlphabet& self, const std::string& fname) { self.load(fname); }, "fname"_a, "Loads the alphabet data from the file")
+        .def("setElement", [](OpenMS::ims::IMSAlphabet& self, const std::string& name, double mass, bool forced) { self.setElement(name, mass, forced); }, "name"_a, "mass"_a, "forced"_a = false, "Overwrites an element in the alphabet")
         ;
 
     // -----------------------------------------------------------------------
@@ -1956,5 +1963,44 @@ the fixed and variable modifications given to the constructor
         .def_rw("mz", &OpenMS::SimpleTSGXLMS::SimplePeak::mz)
         .def_rw("charge", &OpenMS::SimpleTSGXLMS::SimplePeak::charge)
         ;
+
+    // -----------------------------------------------------------------------
+    // __static_* module-level wrappers for ProForma
+    // -----------------------------------------------------------------------
+    m.def("__static_ProForma_parse", [](const OpenMS::String& input) -> OpenMS::ProForma::Peptidoform { return OpenMS::ProForma::parse(input); }, "input"_a);
+    m.def("__static_ProForma_parseIon", [](const OpenMS::String& input) -> OpenMS::ProForma::PeptidoformIon { return OpenMS::ProForma::parseIon(input); }, "input"_a);
+    m.def("__static_ProForma_toString", [](const OpenMS::ProForma::Peptidoform& pf, OpenMS::ProForma::WriteMode mode) -> OpenMS::String { return OpenMS::ProForma::toString(pf, mode); }, "pf"_a, "mode"_a);
+    m.def("__static_ProForma_toStringIon", [](const OpenMS::ProForma::PeptidoformIon& pfi, OpenMS::ProForma::WriteMode mode) -> OpenMS::String { return OpenMS::ProForma::toString(pfi, mode); }, "pfi"_a, "mode"_a);
+    m.def("__static_ProForma_peptidoformFromJSON", [](const OpenMS::String& json_str) -> OpenMS::ProForma::Peptidoform { return OpenMS::ProForma::peptidoformFromJSON(json_str); }, "json_str"_a);
+    m.def("__static_ProForma_peptidoformIonFromJSON", [](const OpenMS::String& json_str) -> OpenMS::ProForma::PeptidoformIon { return OpenMS::ProForma::peptidoformIonFromJSON(json_str); }, "json_str"_a);
+    m.def("__static_ProForma_resolveModifications", [](OpenMS::ProForma::Peptidoform& pf) -> void { OpenMS::ProForma::resolveModifications(pf); }, "pf"_a);
+    m.def("__static_ProForma_toAASequence", [](const OpenMS::ProForma::Peptidoform& pf, OpenMS::ProForma::ConversionPolicy policy) -> OpenMS::AASequence { return OpenMS::ProForma::toAASequence(pf, policy); }, "pf"_a, "policy"_a);
+    m.def("__static_ProForma_fromAASequence", [](const OpenMS::AASequence& seq) -> OpenMS::ProForma::Peptidoform { return OpenMS::ProForma::fromAASequence(seq); }, "seq"_a);
+    m.def("__static_ProForma_isRepresentableAsAASequence", [](const OpenMS::ProForma::Peptidoform& pf) -> bool { return OpenMS::ProForma::isRepresentableAsAASequence(pf); }, "pf"_a);
+    m.def("__static_ProForma_getAASequenceConversionIssues", [](const OpenMS::ProForma::Peptidoform& pf) -> std::vector<OpenMS::ProForma::ConversionIssue> { return OpenMS::ProForma::getAASequenceConversionIssues(pf); }, "pf"_a);
+    m.def("__static_ProForma_canCalculateMass", [](const OpenMS::ProForma::Peptidoform& pf) -> bool { return OpenMS::ProForma::canCalculateMass(pf); }, "pf"_a);
+    m.def("__static_ProForma_getMassCalculationIssues", [](const OpenMS::ProForma::Peptidoform& pf) -> std::vector<OpenMS::ProForma::ConversionIssue> { return OpenMS::ProForma::getMassCalculationIssues(pf); }, "pf"_a);
+    m.def("__static_ProForma_getMonoWeight", [](const OpenMS::ProForma::Peptidoform& pf) -> double { return OpenMS::ProForma::getMonoWeight(pf); }, "pf"_a);
+    m.def("__static_ProForma_getMZ", [](const OpenMS::ProForma::PeptidoformIon& pfi) -> double { return OpenMS::ProForma::getMZ(pfi); }, "pfi"_a);
+    m.def("__static_ProForma_getMZCharge", [](const OpenMS::ProForma::Peptidoform& pf, int charge) -> double { return OpenMS::ProForma::getMZ(pf, charge); }, "pf"_a, "charge"_a);
+    m.def("__static_ProForma_canGenerateSpectrum", [](const OpenMS::ProForma::Peptidoform& pf) -> bool { return OpenMS::ProForma::canGenerateSpectrum(pf); }, "pf"_a);
+    m.def("__static_ProForma_getSpectrumGenerationIssues", [](const OpenMS::ProForma::Peptidoform& pf) -> std::vector<OpenMS::ProForma::ConversionIssue> { return OpenMS::ProForma::getSpectrumGenerationIssues(pf); }, "pf"_a);
+    m.def("__static_ProForma_generateSpectrum", [](const OpenMS::ProForma::Peptidoform& pf, int min_charge, int max_charge, const OpenMS::String& ion_types, bool add_losses, bool add_metainfo) -> OpenMS::MSSpectrum { return OpenMS::ProForma::generateSpectrum(pf, min_charge, max_charge, ion_types, add_losses, add_metainfo); }, "pf"_a, "min_charge"_a, "max_charge"_a, "ion_types"_a, "add_losses"_a, "add_metainfo"_a);
+    m.def("__static_ProForma_peptidoformToJSON", [](const OpenMS::ProForma::Peptidoform& pf) -> OpenMS::String { return OpenMS::ProForma::toJSON(pf); }, "pf"_a);
+    m.def("__static_ProForma_peptidoformIonToJSON", [](const OpenMS::ProForma::PeptidoformIon& pfi) -> OpenMS::String { return OpenMS::ProForma::toJSON(pfi); }, "pfi"_a);
+    m.def("__static_ProForma_toJSON", [](const OpenMS::ProForma::Peptidoform& pf) -> OpenMS::String { return OpenMS::ProForma::toJSON(pf); }, "pf"_a);
+
+    // -----------------------------------------------------------------------
+    // __static_* module-level wrappers for MzPAF
+    // -----------------------------------------------------------------------
+    m.def("__static_MzPAF_parse", [](const OpenMS::String& annotation) -> OpenMS::MzPAFAnnotation { return OpenMS::MzPAF::parse(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_parseMultiple", [](const OpenMS::String& annotation) -> OpenMS::MzPAFPeakAnnotations { return OpenMS::MzPAF::parseMultiple(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_tryParse", [](const OpenMS::String& annotation) -> std::optional<OpenMS::MzPAFAnnotation> { return OpenMS::MzPAF::tryParse(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_tryParseMultiple", [](const OpenMS::String& annotation) -> std::optional<OpenMS::MzPAFPeakAnnotations> { return OpenMS::MzPAF::tryParseMultiple(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_toString", [](const OpenMS::MzPAFAnnotation& annotation) -> OpenMS::String { return OpenMS::MzPAF::toString(annotation); }, "annotation"_a);
+    m.def("__static_MzPAF_toStringMultiple", [](const OpenMS::MzPAFPeakAnnotations& annotations) -> OpenMS::String { return OpenMS::MzPAF::toString(annotations); }, "annotations"_a);
+    m.def("__static_MzPAF_toPeakAnnotation", [](const OpenMS::MzPAFAnnotation& annotation, double mz, double intensity) -> OpenMS::PeptideHit::PeakAnnotation { return OpenMS::MzPAF::toPeakAnnotation(annotation, mz, intensity); }, "annotation"_a, "mz"_a, "intensity"_a);
+    m.def("__static_MzPAF_fromPeakAnnotation", [](const OpenMS::PeptideHit::PeakAnnotation& pa) -> OpenMS::MzPAFPeakAnnotations { return OpenMS::MzPAF::fromPeakAnnotation(pa); }, "pa"_a);
+    m.def("__static_MzPAF_isMzPAFFormat", [](const OpenMS::String& annotation) -> bool { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a);
 
 }

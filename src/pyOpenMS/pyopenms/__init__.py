@@ -200,7 +200,7 @@ def _import_submodules():
             mod = importlib.import_module(f".{name}", package=__name__)
             _imported_modules.append(mod)
             for attr in dir(mod):
-                if not attr.startswith("_"):
+                if not attr.startswith("_") or attr.startswith("__static_"):
                     globals()[attr] = getattr(mod, attr)
         except Exception as e:
             import traceback
@@ -298,9 +298,8 @@ if "MSSpectrum" in globals():
     globals()["PeakSpectrum"] = globals()["MSSpectrum"]
 if "MassTrace" in globals():
     globals()["Kernel_MassTrace"] = globals()["MassTrace"]
-# Date alias (Cython pyOpenMS used Date as an alias for DateTime)
-if "DateTime" in globals():
-    globals()["Date"] = globals()["DateTime"]
+# Date: Now a proper OpenMS::Date class with day(), month(), year(), today()
+# In old Cython pyOpenMS, Date was an alias for DateTime; now it's its own class.
 # MZTrafoModel_MODELTYPE alias (Cython used ClassName_EnumName convention for some nested enums)
 if "MZTrafoModel" in globals() and hasattr(globals()["MZTrafoModel"], "MODELTYPE"):
     globals()["MZTrafoModel_MODELTYPE"] = globals()["MZTrafoModel"].MODELTYPE

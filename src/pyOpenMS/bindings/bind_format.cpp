@@ -117,6 +117,16 @@ NB_MODULE(_pyopenms_format, m) {
             OpenMS::Base64::decode(in, byte_order, out, zlib_compression);
             return out;
         }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Decodes a Base64 string to a vector of 32-bit floats")
+        .def_static("encodeIntegers", [](std::vector<int32_t> in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
+            OpenMS::String out;
+            OpenMS::Base64::encodeIntegers(in, byte_order, out, zlib_compression);
+            return out;
+        }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Encodes a vector of 32-bit integers to a Base64 string")
+        .def_static("decodeIntegers", [](const OpenMS::String& in, OpenMS::Base64::ByteOrder byte_order, bool zlib_compression) {
+            std::vector<int32_t> out;
+            OpenMS::Base64::decodeIntegers(in, byte_order, out, zlib_compression);
+            return out;
+        }, "in"_a, "byte_order"_a, "zlib_compression"_a = false, "Decodes a Base64 string to a vector of 32-bit integers")
         ;
     // ByteOrder enum nested under Base64
     nb::enum_<OpenMS::Base64::ByteOrder>(base64_class, "ByteOrder")
@@ -443,6 +453,7 @@ Computes a SHA-1 hash of the file content
         .value("GZ", OpenMS::FileTypes::Type::GZ)
         .value("PARQUET", OpenMS::FileTypes::Type::PARQUET)
         .value("SIZE_OF_TYPE", OpenMS::FileTypes::Type::SIZE_OF_TYPE)
+
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -627,6 +638,12 @@ Exception: FileEmpty is thrown if the given file is empty
         .def("getSequences", [](OpenMS::InspectOutfile& self, const OpenMS::String& database_filename, const std::map<size_t, size_t>& wanted_records) { std::vector<OpenMS::String> sequences; self.getSequences(database_filename, wanted_records, sequences); return sequences; }, "database_filename"_a, "wanted_records"_a, "Retrieve sequences from a trie database")
         .def("getExperiment", [](OpenMS::InspectOutfile& self, const OpenMS::String& in_filename) { OpenMS::MSExperiment exp; OpenMS::String type; self.getExperiment(exp, type, in_filename); return std::make_tuple(exp, type); }, "in_filename"_a, "Get the experiment from a file")
         .def("getSearchEngineAndVersion", [](OpenMS::InspectOutfile& self, const OpenMS::String& cmd_output, OpenMS::ProteinIdentification& protein_identification) { return self.getSearchEngineAndVersion(cmd_output, protein_identification); }, "cmd_output"_a, "protein_identification"_a, "Get the search engine and its version from the output of the InsPecT executable without parameters. Returns true on success, false otherwise")
+        .def("readOutHeader", [](OpenMS::InspectOutfile& self, const OpenMS::String& filename, const OpenMS::String& header_line) {
+            OpenMS::Int spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column;
+            OpenMS::Size number_of_columns;
+            self.readOutHeader(filename, header_line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
+            return nb::make_tuple(spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
+        }, "filename"_a, "header_line"_a, "Reads the header of an inspect output file and returns column indices as a tuple")
         ;
 
     // -----------------------------------------------------------------------
@@ -728,6 +745,7 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def_rw("np_compression", &OpenMS::MSNumpressCoder::NumpressConfig::np_compression)
         .def_rw("estimate_fixed_point", &OpenMS::MSNumpressCoder::NumpressConfig::estimate_fixed_point)
         .def_rw("linear_fp_mass_acc", &OpenMS::MSNumpressCoder::NumpressConfig::linear_fp_mass_acc)
+        .def("setCompression", [](OpenMS::MSNumpressCoder::NumpressConfig& self, const std::string& compression) { self.setCompression(compression); }, "compression"_a, "Sets compression from string ('none', 'linear', 'pic', 'slof')")
         ;
 
     // -----------------------------------------------------------------------
@@ -1038,6 +1056,18 @@ Uses default region accession "PEFF:0001021" (signal peptide).
         .def_rw("disulfide_bonds", &OpenMS::PEFFEntry::disulfide_bonds)
         .def_rw("proteoforms", &OpenMS::PEFFEntry::proteoforms)
         .def_rw("custom_annotations", &OpenMS::PEFFEntry::custom_annotations)
+        .def("digestWithVariants", [](const OpenMS::PEFFEntry& self, const OpenMS::ProteaseDigestion& digestor, OpenMS::Size min_length, OpenMS::Size max_length, bool include_reference, bool include_variants, bool include_modifications) {
+            std::vector<std::string> descriptions;
+            std::vector<OpenMS::AASequence> sequences;
+            self.digestWithVariants(digestor, descriptions, sequences, min_length, max_length, include_reference, include_variants, include_modifications);
+            return nb::make_tuple(descriptions, sequences);
+        }, "digestor"_a, "min_length"_a = 6, "max_length"_a = 40, "include_reference"_a = true, "include_variants"_a = true, "include_modifications"_a = false, "Digest with variants. Returns (descriptions, sequences)")
+        .def("generatePeptides", [](const OpenMS::PEFFEntry& self, const OpenMS::ProteaseDigestion& digestor, const std::vector<std::string>& fixed_mods, const std::vector<std::string>& variable_mods, OpenMS::Size max_variable_mods_per_peptide, OpenMS::Size min_length, OpenMS::Size max_length, bool include_reference, bool include_peff_variants, bool include_peff_modifications) {
+            std::vector<std::string> descriptions;
+            std::vector<OpenMS::AASequence> sequences;
+            self.generatePeptides(digestor, descriptions, sequences, fixed_mods, variable_mods, max_variable_mods_per_peptide, min_length, max_length, include_reference, include_peff_variants, include_peff_modifications);
+            return nb::make_tuple(descriptions, sequences);
+        }, "digestor"_a, "fixed_mods"_a = std::vector<std::string>{}, "variable_mods"_a = std::vector<std::string>{}, "max_variable_mods_per_peptide"_a = 2, "min_length"_a = 6, "max_length"_a = 40, "include_reference"_a = true, "include_peff_variants"_a = true, "include_peff_modifications"_a = true, "Generate peptides with PEFF annotations. Returns (descriptions, sequences)")
         ;
 
     // -----------------------------------------------------------------------
@@ -1317,6 +1347,7 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .value("Disjoint", OpenMS::DRange<1>::Disjoint)
         .value("Intersects", OpenMS::DRange<1>::Intersects)
         .value("Inside", OpenMS::DRange<1>::Inside)
+
         ;
 
     // -----------------------------------------------------------------------
@@ -1849,6 +1880,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("setAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& accession) { self.setAccessionAttribute(accession); }, "accession"_a)
         .def("setNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& name) { self.setNameAttribute(name); }, "name"_a)
         .def("setValueAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& value) { self.setValueAttribute(value); }, "value"_a)
+        .def("setUnitAccessionAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& accession) { self.setUnitAccessionAttribute(accession); }, "accession"_a, "Sets the name of the unit accession attribute")
+        .def("setUnitNameAttribute", [](OpenMS::Internal::SemanticValidator& self, const OpenMS::String& name) { self.setUnitNameAttribute(name); }, "name"_a, "Sets the name of the unit name attribute")
         ;
 
 
@@ -1888,6 +1921,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("getDefaults", [](const OpenMS::MSPGenericFile& self) -> const OpenMS::Param& { return self.getDefaults(); }, nb::rv_policy::reference_internal)
         .def("getName", [](const OpenMS::MSPGenericFile& self) { return self.getName(); })
         .def("setName", [](OpenMS::MSPGenericFile& self, const OpenMS::String& name) { self.setName(name); }, "name"_a)
+        .def("getDefaultParameters", [](OpenMS::MSPGenericFile& self) { OpenMS::Param p; self.getDefaultParameters(p); return p; }, "Gets the class' default parameters")
+        .def("getSubsections", [](const OpenMS::MSPGenericFile& self) -> const std::vector<OpenMS::String>& { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1901,6 +1936,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("getNrChromatograms", [](const OpenMS::SpectrumAccessSqMass& self) { return self.getNrChromatograms(); })
         .def("getSpectrumById", [](OpenMS::SpectrumAccessSqMass& self, int id) { return self.getSpectrumById(id); }, "id"_a)
         .def("getChromatogramById", [](OpenMS::SpectrumAccessSqMass& self, int id) { return self.getChromatogramById(id); }, "id"_a)
+        .def("getChromatogramNativeID", [](const OpenMS::SpectrumAccessSqMass& self, int id) { return self.getChromatogramNativeID(id); }, "id"_a, "Returns the native ID of the chromatogram with the given id")
+        .def("getSpectraByRT", [](const OpenMS::SpectrumAccessSqMass& self, double RT, double deltaRT) { return self.getSpectraByRT(RT, deltaRT); }, "RT"_a, "deltaRT"_a, "Returns indices of spectra within RT +/- deltaRT")
         ;
 
     // Free function alias for backward compatibility

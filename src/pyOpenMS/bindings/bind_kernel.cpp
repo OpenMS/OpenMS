@@ -121,6 +121,7 @@ NB_MODULE(_pyopenms_kernel, m) {
         .value("FAIMS_COMPENSATION_VOLTAGE", OpenMS::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
         .value("CCS", OpenMS::DriftTimeUnit::CCS)
         .value("SIZE_OF_DRIFTTIMEUNIT", OpenMS::DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT)
+
         .export_values();
 
 
@@ -136,6 +137,7 @@ NB_MODULE(_pyopenms_kernel, m) {
         .value("CENTROIDED", OpenMS::IMFormat::CENTROIDED)
         .value("UNKNOWN", OpenMS::IMFormat::UNKNOWN)
         .value("SIZE_OF_IMFORMAT", OpenMS::IMFormat::SIZE_OF_IMFORMAT)
+
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -378,6 +380,10 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("updateWeightedMZsd", [](OpenMS::MassTrace& self) { self.updateWeightedMZsd(); })
         .def_rw("fwhm_mz_avg", &OpenMS::MassTrace::fwhm_mz_avg)
         .def_rw("fwhm_im_avg", &OpenMS::MassTrace::fwhm_im_avg)
+        .def("computeIntensitySum", [](const OpenMS::MassTrace& self) { return self.computeIntensitySum(); }, "Sum all peak intensities in the mass trace")
+        .def("getQuantMethod", [](const OpenMS::MassTrace& self) { return self.getQuantMethod(); }, "Returns the quantification method")
+        .def("setQuantMethod", [](OpenMS::MassTrace& self, OpenMS::MassTrace::MT_QUANTMETHOD method) { self.setQuantMethod(method); }, "method"_a, "Sets the quantification method")
+        .def("getAvgMZ", [](const OpenMS::MassTrace& self) { return self.getCentroidMZ(); }, "Returns the centroid m/z (alias for getCentroidMZ)")
         ;
 
     // -----------------------------------------------------------------------
@@ -389,6 +395,7 @@ The template parameters for the base RangeManager are ordered differently than i
         .value("MT_QUANT_MEDIAN", OpenMS::MassTrace::MT_QUANT_MEDIAN)
         .value("MT_QUANT_HEIGHT", OpenMS::MassTrace::MT_QUANT_HEIGHT)
         .value("SIZE_OF_MT_QUANTMETHOD", OpenMS::MassTrace::SIZE_OF_MT_QUANTMETHOD)
+
         ;
 
     // -----------------------------------------------------------------------
@@ -2546,6 +2553,7 @@ If you want to annotated single peaks with meta data, use RichPeak2D instead
         .value("RT", OpenMS::Peak2D::DimensionDescription::RT)
         .value("MZ", OpenMS::Peak2D::DimensionDescription::MZ)
         .value("DIMENSION", OpenMS::Peak2D::DimensionDescription::DIMENSION)
+
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -3613,6 +3621,7 @@ uninitialized
         .value("UNKNOWN", OpenMS::ReactionMonitoringTransition::DecoyTransitionType::UNKNOWN)
         .value("TARGET", OpenMS::ReactionMonitoringTransition::DecoyTransitionType::TARGET)
         .value("DECOY", OpenMS::ReactionMonitoringTransition::DecoyTransitionType::DECOY)
+
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -4974,6 +4983,7 @@ RichPeak2D
         .value("FEATURE_ID_MULTIPLE_SAME", OpenMS::BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_SAME)
         .value("FEATURE_ID_MULTIPLE_DIVERGENT", OpenMS::BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT)
         .value("SIZE_OF_ANNOTATIONSTATE", OpenMS::BaseFeature::AnnotationState::SIZE_OF_ANNOTATIONSTATE)
+
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -5311,5 +5321,17 @@ Returns the annotation state of the feature
         .def("__eq__", [](const OpenMS::MRMFeature& a, const OpenMS::MRMFeature& b) { return a == b; })
         .def("__ne__", [](const OpenMS::MRMFeature& a, const OpenMS::MRMFeature& b) { return a != b; })
         ;
+
+    // -----------------------------------------------------------------------
+    // __static_* module-level wrappers for SpectrumSettings
+    // -----------------------------------------------------------------------
+    m.def("__static_SpectrumSettings_spectrumTypeToString", [](OpenMS::SpectrumSettings::SpectrumType type) -> OpenMS::String { return OpenMS::SpectrumSettings::spectrumTypeToString(type); }, "type"_a);
+    m.def("__static_SpectrumSettings_toSpectrumType", [](const OpenMS::String& name) -> OpenMS::SpectrumSettings::SpectrumType { return OpenMS::SpectrumSettings::toSpectrumType(name); }, "name"_a);
+
+    // -----------------------------------------------------------------------
+    // __static_* module-level wrappers for SpectrumHelper
+    // -----------------------------------------------------------------------
+    m.def("__static_SpectrumHelper_removePeaks", [](OpenMS::MSSpectrum& spec, double min_mz, double max_mz) -> void { OpenMS::removePeaks(spec, min_mz, max_mz); }, "spectrum"_a, "min_mz"_a, "max_mz"_a);
+    m.def("__static_SpectrumHelper_subtractMinimumIntensity", [](OpenMS::MSSpectrum& spec) -> void { OpenMS::subtractMinimumIntensity(spec); }, "spectrum"_a);
 
 }

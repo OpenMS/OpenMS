@@ -389,6 +389,7 @@ CVTermList
     nb::enum_<OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod>(consensusmapnormalizeralgorithmmedian_class, "NormalizationMethod")
         .value("NM_SCALE", OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod::NM_SCALE)
         .value("NM_SHIFT", OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod::NM_SHIFT)
+
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -730,6 +731,7 @@ Useful to update the matrix with user isotope correction values
         .value("EIGHTPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::EIGHTPLEX)
         .value("TMT_SIXPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::TMT_SIXPLEX)
         .value("SIZE_OF_ITRAQ_TYPES", OpenMS::ItraqConstants::ITRAQ_TYPES::SIZE_OF_ITRAQ_TYPES)
+
         .export_values();
     // Module-level alias so pyopenms.ITRAQ_TYPES works
     m.attr("ITRAQ_TYPES") = itraq_types_enum;
@@ -1075,6 +1077,7 @@ MRMDecoy
 )doc")
         .def(nb::init<>())
         .def("annotateTransitionCV", [](OpenMS::MRMIonSeries& self, OpenMS::ReactionMonitoringTransition& tr, const OpenMS::String& annotation) { return self.annotateTransitionCV(tr, annotation); }, "tr"_a, "annotation"_a)
+        .def("annotateTransition", [](OpenMS::MRMIonSeries& self, OpenMS::ReactionMonitoringTransition& tr, const OpenMS::TargetedExperiment::Peptide& peptide, double precursor_mz_threshold, double product_mz_threshold, bool enable_reannotation, const std::vector<OpenMS::String>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow) { self.annotateTransition(tr, peptide, precursor_mz_threshold, product_mz_threshold, enable_reannotation, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow); }, "tr"_a, "peptide"_a, "precursor_mz_threshold"_a, "product_mz_threshold"_a, "enable_reannotation"_a, "fragment_types"_a, "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a, "round_decPow"_a = -4, "Annotates a transition with the corresponding fragment ion")
         ;
 
     // -----------------------------------------------------------------------
@@ -1124,6 +1127,7 @@ and 0 means no correlation.
         .def("calcMIPrecursorContrastScore", [](OpenSwath::MRMScoring& self) { return self.calcMIPrecursorContrastScore(); })
         .def("calcMIPrecursorCombinedScore", [](OpenSwath::MRMScoring& self) { return self.calcMIPrecursorCombinedScore(); })
         .def("calcSeparateMIContrastScore", [](OpenSwath::MRMScoring& self) { return self.calcSeparateMIContrastScore(); })
+        .def("getMIMatrix", [](const OpenSwath::MRMScoring& self) -> const OpenMS::Matrix<double>& { return self.getMIMatrix(); }, nb::rv_policy::reference_internal, "Returns the MI matrix")
         ;
 
     // -----------------------------------------------------------------------
@@ -1451,6 +1455,11 @@ implement the OpenSWATH interfaces
         .def_static("convertToOpenMSChromatogramFilter", [](OpenMS::MSChromatogram& chromatogram, const std::shared_ptr<OpenSwath::OSChromatogram>& cptr, double rt_min, double rt_max) { return OpenMS::OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(chromatogram, cptr, rt_min, rt_max); }, "chromatogram"_a, "cptr"_a, "rt_min"_a, "rt_max"_a)
         .def_static("convertTargetedExp", [](const OpenMS::TargetedExperiment& transition_exp_, OpenSwath::LightTargetedExperiment& transition_exp) { return OpenMS::OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp); }, "transition_exp_"_a, "transition_exp"_a, "Converts from the OpenMS TargetedExperiment to the OpenMs LightTargetedExperiment")
         .def_static("convertPeptideToAASequence", [](const OpenSwath::LightCompound& peptide, OpenMS::AASequence& aa_sequence) { return OpenMS::OpenSwathDataAccessHelper::convertPeptideToAASequence(peptide, aa_sequence); }, "peptide"_a, "aa_sequence"_a, "Converts from the LightCompound to an OpenMS AASequence (with correct modifications)")
+        .def_static("convertTargetedCompound", [](const OpenMS::TargetedExperiment::Peptide& pep) {
+            OpenSwath::LightCompound comp;
+            OpenMS::OpenSwathDataAccessHelper::convertTargetedCompound(pep, comp);
+            return comp;
+        }, "pep"_a, "Converts a TargetedExperiment Peptide to a LightCompound")
         ;
 
     // -----------------------------------------------------------------------
@@ -1468,6 +1477,11 @@ Estimate the retention time span of a targeted experiment by returning the min/m
 :return: A std `pair` that contains (min,max)
 )doc")
         .def_static("estimateRTRange", [](const OpenSwath::LightTargetedExperiment& exp) { return OpenMS::OpenSwathHelper::estimateRTRange(exp); }, "exp"_a)
+        .def_static("checkSwathMapAndSelectTransitions", [](const OpenMS::PeakMap& exp, const OpenMS::TargetedExperiment& targeted_exp, double min_upper_edge_dist) {
+            OpenMS::TargetedExperiment selected_transitions;
+            bool result = OpenMS::OpenSwathHelper::checkSwathMapAndSelectTransitions(exp, targeted_exp, selected_transitions, min_upper_edge_dist);
+            return nb::make_tuple(result, selected_transitions);
+        }, "exp"_a, "targeted_exp"_a, "min_upper_edge_dist"_a, "Checks a swath map and selects appropriate transitions. Returns (success, selected_transitions)")
         ;
 
     // -----------------------------------------------------------------------
@@ -1494,6 +1508,9 @@ The result can be flushed to disk using writeLines (either line by line or after
 :param id: The transition group identifier (peptide/metabolite id)
 :return: A String to be written using writeLines
 )doc")
+        .def("prepareLine", [](const OpenMS::OpenSwathOSWWriter& self, const OpenSwath::LightCompound& pep, const OpenSwath::LightTransition& transition, const OpenMS::FeatureMap& output, const OpenMS::String& id) {
+            return self.prepareLine(pep, &transition, output, id);
+        }, "pep"_a, "transition"_a, "output"_a, "id"_a, "Prepare a single line (feature) for output")
         ;
 
     // -----------------------------------------------------------------------
@@ -2455,6 +2472,8 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         .def_static("weightedTICScore", [](size_t alpha_size, size_t beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link) { return OpenMS::XQuestScores::weightedTICScore(alpha_size, beta_size, intsum_alpha, intsum_beta, total_current, type_is_cross_link); }, "alpha_size"_a, "beta_size"_a, "intsum_alpha"_a, "intsum_beta"_a, "total_current"_a, "type_is_cross_link"_a)
         .def_static("xCorrelation", [](const OpenMS::MSSpectrum& spec1, const OpenMS::MSSpectrum& spec2, int maxshift, double tolerance) { return OpenMS::XQuestScores::xCorrelation(spec1, spec2, maxshift, tolerance); }, "spec1"_a, "spec2"_a, "maxshift"_a, "tolerance"_a)
         .def_static("xCorrelationPrescore", [](const OpenMS::MSSpectrum& spec1, const OpenMS::MSSpectrum& spec2, double tolerance) { return OpenMS::XQuestScores::xCorrelationPrescore(spec1, spec2, tolerance); }, "spec1"_a, "spec2"_a, "tolerance"_a)
+        .def_static("matchedCurrentChain", [](const std::vector<std::pair<size_t, size_t>>& matched_spec_linear, const std::vector<std::pair<size_t, size_t>>& matched_spec_xlinks, const OpenMS::MSSpectrum& spectrum_linear_peaks, const OpenMS::MSSpectrum& spectrum_xlink_peaks) { return OpenMS::XQuestScores::matchedCurrentChain(matched_spec_linear, matched_spec_xlinks, spectrum_linear_peaks, spectrum_xlink_peaks); }, "matched_spec_linear"_a, "matched_spec_xlinks"_a, "spectrum_linear_peaks"_a, "spectrum_xlink_peaks"_a, "Computes sum of peak intensities of matched peaks for either alpha or beta peptide")
+        .def_static("totalMatchedCurrent", [](const std::vector<std::pair<size_t, size_t>>& matched_spec_linear_alpha, const std::vector<std::pair<size_t, size_t>>& matched_spec_linear_beta, const std::vector<std::pair<size_t, size_t>>& matched_spec_xlinks_alpha, const std::vector<std::pair<size_t, size_t>>& matched_spec_xlinks_beta, const OpenMS::MSSpectrum& spectrum_linear_peaks, const OpenMS::MSSpectrum& spectrum_xlink_peaks) { return OpenMS::XQuestScores::totalMatchedCurrent(matched_spec_linear_alpha, matched_spec_linear_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta, spectrum_linear_peaks, spectrum_xlink_peaks); }, "matched_spec_linear_alpha"_a, "matched_spec_linear_beta"_a, "matched_spec_xlinks_alpha"_a, "matched_spec_xlinks_beta"_a, "spectrum_linear_peaks"_a, "spectrum_xlink_peaks"_a, "Computes sum of peak intensities of all matched peaks")
         ;
 
 

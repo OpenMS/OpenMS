@@ -271,22 +271,30 @@ class TestAMSEAdductInfo:
 # Only testing the most important ones
 
 class TestDate:
-    """Date — alias for DateTime in nanobind (Cython had separate Date class)."""
+    """Date — proper OpenMS::Date class with date-only methods."""
 
     def test_exists(self):
         assert hasattr(pyopenms, 'Date')
 
-    def test_alias_is_datetime(self):
-        assert pyopenms.Date is pyopenms.DateTime
+    def test_is_separate_class(self):
+        assert pyopenms.Date is not pyopenms.DateTime
 
     def test_today(self):
-        d = pyopenms.Date.now()
+        d = pyopenms.Date.today()
         assert d is not None
+        assert d.year() > 2020
 
     def test_get_set(self):
         d = pyopenms.Date()
-        d.set("2024-01-01 00:00:00")
+        d.set("2024-01-15")
         assert "2024" in d.get()
+
+    def test_components(self):
+        d = pyopenms.Date()
+        d.set(1, 15, 2024)  # month, day, year
+        assert d.year() == 2024
+        assert d.month() == 1
+        assert d.day() == 15
 
 
 class TestUniqueIdGenerator:
