@@ -946,12 +946,12 @@
 			<UserParam type="string" name="sample_name" value="BSA3"/>
 		</map>
 		<map id="3" name="/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="16735227066174993168" label="label-free" size="0">
-			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction_group" value="2"/>
 			<UserParam type="int" name="fraction" value="3"/>
 			<UserParam type="string" name="sample_name" value="BSA2"/>
 		</map>
 		<map id="4" name="/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="17913703819525749873" label="label-free" size="0">
-			<UserParam type="int" name="fraction_group" value="2"/>
+			<UserParam type="int" name="fraction_group" value="4"/>
 			<UserParam type="int" name="fraction" value="3"/>
 			<UserParam type="string" name="sample_name" value="BSA1"/>
 		</map>
