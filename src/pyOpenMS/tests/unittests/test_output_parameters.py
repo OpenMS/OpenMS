@@ -414,12 +414,12 @@ class TestPosteriorErrorProbabilityModel:
         assert sorted_scores == sorted(sorted_scores)
 
     def test_fit_with_probabilities(self):
-        """fit(scores, outlier_handling, compute_probs) must return (bool, sorted_scores, probabilities)."""
+        """fit(scores, probabilities, outlier_handling) must return (bool, sorted_scores, probabilities)."""
         from pyopenms import PosteriorErrorProbabilityModel
 
         model = PosteriorErrorProbabilityModel()
         scores = [5.0, 1.0, 3.0, 2.0, 4.0, 0.5, 6.0, 7.0, 8.0, 9.0, 10.0]
-        result = model.fit(scores, "", True)
+        result = model.fit(scores, [], "")
         assert isinstance(result, tuple), f"Expected tuple, got {type(result)}"
         assert len(result) == 3
         success, sorted_scores, probabilities = result
