@@ -183,6 +183,11 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def("toBracketString", &OpenMS::AASequence::toBracketString,
             "integer_mass"_a = true, "mass_delta"_a = false, "fixed_modifications"_a = std::vector<OpenMS::String>(),
             "Returns the bracket string representation of the peptide")
+        .def("getAAFrequencies", [](const OpenMS::AASequence& self) {
+            std::map<OpenMS::String, OpenMS::Size> freq;
+            self.getAAFrequencies(freq);
+            return freq;
+        }, "Returns the amino acid frequencies of the peptide")
         ;
 
     // -----------------------------------------------------------------------
@@ -845,7 +850,8 @@ The modifications are read from the unimod.xml file on construction.
         .def("has", [](const OpenMS::ModificationsDB& self, const OpenMS::String& modification) { return self.has(modification); }, "modification"_a, "Returns True if the modification exists")
         .def("findModificationIndex", [](const OpenMS::ModificationsDB& self, const OpenMS::String& mod_name) { return self.findModificationIndex(mod_name); }, "mod_name"_a, "Returns the index of the modification in the mods_ vector; a unique name must be given")
 
-        .def("searchModifications", [](const OpenMS::ModificationsDB& self, const OpenMS::String& mod_name, const OpenMS::String& residue, int term_spec) {
+        .def("searchModifications", [](const OpenMS::ModificationsDB& self, const OpenMS::String& mod_name, const OpenMS::String& residue, nb::object term_spec_obj) {
+            int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
             std::set<const OpenMS::ResidueModification*> mods;
             self.searchModifications(mods, mod_name, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
             nb::list result;
@@ -853,11 +859,27 @@ The modifications are read from the unimod.xml file on construction.
                 result.append(nb::cast(m, nb::rv_policy::reference));
             }
             return result;
-        }, "mod_name"_a, "residue"_a = "", "term_spec"_a = static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY), "Search for modifications by name")
+        }, "mod_name"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), "Search for modifications by name")
 
         .def("getNumberOfModifications", [](const OpenMS::ModificationsDB& self) {
             return self.getNumberOfModifications();
         }, "Get the number of modifications")
+        .def("getModification", [](const OpenMS::ModificationsDB& self, OpenMS::Size index) {
+            return self.getModification(index);
+        }, "index"_a, nb::rv_policy::reference, "Returns the modification with the given index")
+        .def("getModification", [](const OpenMS::ModificationsDB& self, const OpenMS::String& mod_name, const OpenMS::String& residue, nb::object term_spec_obj) {
+            int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
+            return self.getModification(mod_name, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
+        }, "mod_name"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), nb::rv_policy::reference, "Returns the modification with the given name, residue, and term specificity")
+        .def("getAllSearchModifications", [](const OpenMS::ModificationsDB& self) {
+            std::vector<OpenMS::String> mods;
+            self.getAllSearchModifications(mods);
+            return mods;
+        }, "Returns all modifications that can be used for identification searches")
+        .def("getBestModificationByDiffMonoMass", [](OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
+            int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
+            return self.getBestModificationByDiffMonoMass(mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
+        }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), nb::rv_policy::reference, "Returns the best modification by diff mono mass")
         .def_static("getInstance", []() -> OpenMS::ModificationsDB* { return OpenMS::ModificationsDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
         ;
 
@@ -1288,6 +1310,11 @@ By returning only references into the original string this is very fast
 :return: Number of discarded digestion products (which are not matching length restrictions)
 )doc")
         .def("countInternalCleavageSites", [](const OpenMS::RNaseDigestion& self, const OpenMS::String& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
+        .def("digest", [](const OpenMS::RNaseDigestion& self, const OpenMS::NASequence& rna, OpenMS::Size min_length, OpenMS::Size max_length) {
+            std::vector<OpenMS::NASequence> output;
+            self.digest(rna, output, min_length, max_length);
+            return output;
+        }, "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Digest an RNA sequence and return the fragments")
         ;
 
     // -----------------------------------------------------------------------
@@ -1488,7 +1515,7 @@ Modified residues get created and added if getModifiedResidue is called.
         .def("__hash__", [](const OpenMS::ResidueModification& self) { return std::hash<OpenMS::ResidueModification>{}(self); })
         ;
     // TermSpecificity enum nested under ResidueModification
-    nb::enum_<OpenMS::ResidueModification::TermSpecificity>(residuemodification_class, "TermSpecificity")
+    nb::enum_<OpenMS::ResidueModification::TermSpecificity>(residuemodification_class, "TermSpecificity", nb::is_arithmetic())
         .value("ANYWHERE", OpenMS::ResidueModification::TermSpecificity::ANYWHERE)
         .value("C_TERM", OpenMS::ResidueModification::TermSpecificity::C_TERM)
         .value("N_TERM", OpenMS::ResidueModification::TermSpecificity::N_TERM)
@@ -1521,6 +1548,7 @@ Modified residues get created and added if getModifiedResidue is called.
     // Ribonucleotide
     // -----------------------------------------------------------------------
     auto ribonucleotide_class = nb::class_<OpenMS::Ribonucleotide>(m, "Ribonucleotide", "Ribonucleotide")
+        .def(nb::init<>())
         .def(nb::init<OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::String, OpenMS::EmpiricalFormula, char, double, double, OpenMS::Ribonucleotide::TermSpecificityNuc, OpenMS::EmpiricalFormula>())
         .def(nb::init<const OpenMS::Ribonucleotide &>())
         .def(nb::self == nb::self)
@@ -1646,7 +1674,7 @@ the fixed and variable modifications given to the constructor
     // -----------------------------------------------------------------------
     // NASequence
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::NASequence>(m, "NASequence", "OpenMS class NASequence")
+    auto nasequence_class = nb::class_<OpenMS::NASequence>(m, "NASequence", "OpenMS class NASequence")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::NASequence&>())
         .def("toString", &OpenMS::NASequence::toString, "Get string representation")
@@ -1654,11 +1682,40 @@ the fixed and variable modifications given to the constructor
         .def("size", &OpenMS::NASequence::size, "Get number of residues")
         .def("empty", &OpenMS::NASequence::empty, "Check if empty")
         .def("getFormula", [](const OpenMS::NASequence& self) { return self.getFormula(); }, "Get empirical formula")
+        .def("getFormula", [](const OpenMS::NASequence& self, OpenMS::NASequence::NASFragmentType type, int charge) { return self.getFormula(type, charge); }, "type"_a, "charge"_a = 0, "Get empirical formula for a fragment type")
         .def("getMonoWeight", [](const OpenMS::NASequence& self) { return self.getMonoWeight(); }, "Get monoisotopic weight")
+        .def("getMonoWeight", [](const OpenMS::NASequence& self, OpenMS::NASequence::NASFragmentType type, int charge) { return self.getMonoWeight(type, charge); }, "type"_a, "charge"_a = 0, "Get monoisotopic weight for a fragment type")
         .def("getAverageWeight", [](const OpenMS::NASequence& self) { return self.getAverageWeight(); }, "Get average weight")
+        .def("getAverageWeight", [](const OpenMS::NASequence& self, OpenMS::NASequence::NASFragmentType type, int charge) { return self.getAverageWeight(type, charge); }, "type"_a, "charge"_a = 0, "Get average weight for a fragment type")
         .def_static("fromString", [](const std::string& s) { return OpenMS::NASequence::fromString(s); }, "s"_a, "Create NASequence from string")
         .def("__eq__", [](const OpenMS::NASequence& self, const OpenMS::NASequence& other) { return self == other; }, "other"_a)
         .def("__ne__", [](const OpenMS::NASequence& self, const OpenMS::NASequence& other) { return self != other; }, "other"_a)
+        .def("__len__", [](const OpenMS::NASequence& self) { return self.size(); })
+        .def("__getitem__", [](const OpenMS::NASequence& self, size_t i) -> const OpenMS::Ribonucleotide* {
+            if (i >= self.size()) throw nb::index_error();
+            return self[i];
+        }, nb::rv_policy::reference, "i"_a)
+        .def("__iter__", [](const OpenMS::NASequence& self) {
+            return nb::make_iterator<nb::rv_policy::reference>(nb::handle(), "NASequence_iter",
+                self.begin(), self.end());
+        })
+        ;
+
+    // NASFragmentType enum nested under NASequence
+    nb::enum_<OpenMS::NASequence::NASFragmentType>(nasequence_class, "NASFragmentType")
+        .value("Full", OpenMS::NASequence::NASFragmentType::Full)
+        .value("Internal", OpenMS::NASequence::NASFragmentType::Internal)
+        .value("FivePrime", OpenMS::NASequence::NASFragmentType::FivePrime)
+        .value("ThreePrime", OpenMS::NASequence::NASFragmentType::ThreePrime)
+        .value("AIon", OpenMS::NASequence::NASFragmentType::AIon)
+        .value("BIon", OpenMS::NASequence::NASFragmentType::BIon)
+        .value("CIon", OpenMS::NASequence::NASFragmentType::CIon)
+        .value("XIon", OpenMS::NASequence::NASFragmentType::XIon)
+        .value("YIon", OpenMS::NASequence::NASFragmentType::YIon)
+        .value("ZIon", OpenMS::NASequence::NASFragmentType::ZIon)
+        .value("Precursor", OpenMS::NASequence::NASFragmentType::Precursor)
+        .value("WIon", OpenMS::NASequence::NASFragmentType::WIon)
+        .value("DIon", OpenMS::NASequence::NASFragmentType::DIon)
         ;
 
 }

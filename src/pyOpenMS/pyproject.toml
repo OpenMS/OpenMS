@@ -217,5 +217,5 @@ repair-wheel-command = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-python_functions = ["test_*"]
+python_functions = ["test*"]
 addopts = "-v --tb=short"

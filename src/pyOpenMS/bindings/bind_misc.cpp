@@ -3,6 +3,7 @@
 
 #include "all_casters.h"
 #include "nanobind_ms_data_consumer.h"
+#include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
@@ -1741,6 +1742,22 @@ An algorithm to decharge small molecule features (i.e. as found by FeatureFinder
         ;
 
     // -----------------------------------------------------------------------
+    // FeatureDeconvolution
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureDeconvolution, OpenMS::DefaultParamHandler>(m, "FeatureDeconvolution",
+        "An algorithm to decharge features (i.e. as found by FeatureFinder)")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::FeatureDeconvolution &>())
+        .def("compute", [](OpenMS::FeatureDeconvolution& self, const OpenMS::FeatureMap& fm_in, OpenMS::FeatureMap& fm_out, OpenMS::ConsensusMap& cons_map, OpenMS::ConsensusMap& cons_map_p) { self.compute(fm_in, fm_out, cons_map, cons_map_p); }, "fm_in"_a, "fm_out"_a, "cons_map"_a, "cons_map_p"_a)
+        .def("setParameters", [](OpenMS::FeatureDeconvolution& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
+        .def("getParameters", [](const OpenMS::FeatureDeconvolution& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
+        .def("getDefaults", [](const OpenMS::FeatureDeconvolution& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
+        .def("getName", [](const OpenMS::FeatureDeconvolution& self) { return self.getName(); }, "Returns the name")
+        .def("setName", [](OpenMS::FeatureDeconvolution& self, const OpenMS::String& name) { self.setName(name); }, "name"_a, "Sets the name")
+        .def("getSubsections", [](const OpenMS::FeatureDeconvolution& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        ;
+
+    // -----------------------------------------------------------------------
     // MultiplexDeltaMassesGenerator
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MultiplexDeltaMassesGenerator, OpenMS::DefaultParamHandler>(m, "MultiplexDeltaMassesGenerator", 
@@ -2014,17 +2031,18 @@ computeProbability can be used afterwards.
 :param search_engine_scores: A vector which holds the data points
 :return: Tuple of (success, sorted_scores). Note: scores are sorted from smallest to biggest value
 )doc")
-        .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> search_engine_scores, const OpenMS::String& outlier_handling, bool /*compute_probabilities*/) { std::vector<double> probabilities; bool result = self.fit(search_engine_scores, probabilities, outlier_handling); return nb::make_tuple(result, search_engine_scores, probabilities); }, "search_engine_scores"_a, "outlier_handling"_a, "compute_probabilities"_a,
+        .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> search_engine_scores, std::vector<double> probabilities, const OpenMS::String& outlier_handling) { bool result = self.fit(search_engine_scores, probabilities, outlier_handling); return nb::make_tuple(result, search_engine_scores, probabilities); }, "search_engine_scores"_a, "probabilities"_a, "outlier_handling"_a,
             R"doc(
 Fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables
 computeProbability can be used afterwards
 Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate final probabilities
 :param search_engine_scores: A vector which holds the data points
-:param compute_probabilities: Pass True to use the overload that also computes probabilities
+:param probabilities: Output vector for computed probabilities
+:param outlier_handling: Outlier handling strategy
 :return: Tuple of (success, sorted_scores, probabilities). success is `true` if algorithm has run through
 )doc")
-        .def("fillDensities", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& x_scores) { std::vector<double> incorrect_density; std::vector<double> correct_density; self.fillDensities(x_scores, incorrect_density, correct_density); return std::make_tuple(incorrect_density, correct_density); }, "x_scores"_a, "Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences")
-        .def("fillLogDensities", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& x_scores) { std::vector<double> incorrect_density; std::vector<double> correct_density; self.fillLogDensities(x_scores, incorrect_density, correct_density); return std::make_tuple(incorrect_density, correct_density); }, "x_scores"_a, "Writes the log distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences")
+        .def("fillDensities", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& x_scores) { std::vector<double> incorrect_density; std::vector<double> correct_density; self.fillDensities(x_scores, incorrect_density, correct_density); return nb::make_tuple(incorrect_density, correct_density); }, "x_scores"_a, "Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences")
+        .def("fillLogDensities", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& x_scores) { std::vector<double> incorrect_density; std::vector<double> correct_density; self.fillLogDensities(x_scores, incorrect_density, correct_density); return nb::make_tuple(incorrect_density, correct_density); }, "x_scores"_a, "Writes the log distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences")
         .def("computeLogLikelihood", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& incorrect_density, const std::vector<double>& correct_density) { return self.computeLogLikelihood(incorrect_density, correct_density); }, "incorrect_density"_a, "correct_density"_a, "Computes the Maximum Likelihood with a log-likelihood function")
         .def("pos_neg_mean_weighted_posteriors", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& x_scores, const std::vector<double>& incorrect_posteriors) { return self.pos_neg_mean_weighted_posteriors(x_scores, incorrect_posteriors); }, "x_scores"_a, "incorrect_posteriors"_a)
         .def("getCorrectlyAssignedFitResult", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getCorrectlyAssignedFitResult(); }, "Returns estimated parameters for correctly assigned sequences. Fit should be used before")
@@ -2099,7 +2117,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::AccurateMassSearchEngine& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::AccurateMassSearchEngine& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::AccurateMassSearchEngine& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::AccurateMassSearchEngine& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::AccurateMassSearchEngine& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::AccurateMassSearchEngine& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2130,7 +2148,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::BaseGroupFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::BaseGroupFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::BaseGroupFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::BaseGroupFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::BaseGroupFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::BaseGroupFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2202,7 +2220,7 @@ Performs basic aggregation-based inference on single ProteinIdentification run. 
         .def("getLogType", [](const OpenMS::BasicProteinInferenceAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
     // AggregationMethod enum nested under BasicProteinInferenceAlgorithm
@@ -2279,7 +2297,7 @@ Currently only takes first proteinID run and all peptides
         .def("getLogType", [](const OpenMS::BayesianProteinInferenceAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2303,7 +2321,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::Internal::CachedMzMLHandler& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::Internal::CachedMzMLHandler& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2344,7 +2362,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::ChromatogramExtractor& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::ChromatogramExtractor& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::ChromatogramExtractor& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ChromatogramExtractor& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::ChromatogramExtractor& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::ChromatogramExtractor& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("extractChromatograms", [](OpenMS::ChromatogramExtractor& self,
@@ -2408,7 +2426,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::ChromatogramExtractorAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("extractChromatograms", [](OpenMS::ChromatogramExtractorAlgorithm& self,
@@ -2427,7 +2445,7 @@ ProgressLogger
     // ConfidenceScoring
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ConfidenceScoring, OpenMS::ProgressLogger>(m, "ConfidenceScoring", "OpenMS class ConfidenceScoring")
-        .def(nb::init<bool>())
+        .def(nb::init<bool>(), "test_mode"_a = false)
         .def("initialize", [](OpenMS::ConfidenceScoring& self, const OpenMS::TargetedExperiment& library, size_t n_decoys, size_t n_transitions, const OpenMS::TransformationDescription& rt_trafo) { return self.initialize(library, n_decoys, n_transitions, rt_trafo); }, "library"_a, "n_decoys"_a, "n_transitions"_a, "rt_trafo"_a)
         .def("initializeGlm", [](OpenMS::ConfidenceScoring& self, double intercept, double rt_coef, double int_coef) { return self.initializeGlm(intercept, rt_coef, int_coef); }, "intercept"_a, "rt_coef"_a, "int_coef"_a)
         .def("scoreMap", [](OpenMS::ConfidenceScoring& self, OpenMS::FeatureMap& features) { return self.scoreMap(features); }, "features"_a, "Score a feature map -> make sure the class is properly initialized")
@@ -2442,12 +2460,18 @@ DTA2D File adapter
 ProgressLogger
 )doc")
         .def(nb::init<>())
+        .def("load", [](OpenMS::DTA2DFile& self, const OpenMS::String& filename) {
+            OpenMS::PeakMap exp;
+            self.load(filename, exp);
+            return exp;
+        }, "filename"_a, "Loads a DTA2D file into an MSExperiment")
+        .def("store", [](OpenMS::DTA2DFile& self, const OpenMS::String& filename, const OpenMS::PeakMap& map) { self.store(filename, map); }, "filename"_a, "map"_a, "Stores an MSExperiment to a DTA2D file")
         .def("getOptions", [](OpenMS::DTA2DFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal)
         .def("setLogType", [](const OpenMS::DTA2DFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
         .def("getLogType", [](const OpenMS::DTA2DFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::DTA2DFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::DTA2DFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::DTA2DFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::DTA2DFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::DTA2DFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2479,7 +2503,7 @@ DefaultParamHandler
         .def("getLogType", [](const OpenMS::ElutionPeakDetection& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::ElutionPeakDetection& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::ElutionPeakDetection& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ElutionPeakDetection& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::ElutionPeakDetection& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::ElutionPeakDetection& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2615,7 +2639,7 @@ Averagine access
         .def("getLogType", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2683,7 +2707,7 @@ DefaultParamHandler
         .def("getLogType", [](const OpenMS::FeatureFindingMetabo& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::FeatureFindingMetabo& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::FeatureFindingMetabo& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::FeatureFindingMetabo& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::FeatureFindingMetabo& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::FeatureFindingMetabo& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2707,7 +2731,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::FeatureGroupingAlgorithmKD& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2738,7 +2762,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::GaussFilter& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::GaussFilter& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::GaussFilter& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::GaussFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::GaussFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::GaussFilter& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("setParameters", [](OpenMS::GaussFilter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::GaussFilter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
@@ -2830,7 +2854,7 @@ The MSExperiment will be sorted by RT and m/z if unsorted.
         .def("getLogType", [](const OpenMS::InternalCalibration& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::InternalCalibration& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::InternalCalibration& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::InternalCalibration& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::InternalCalibration& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::InternalCalibration& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2854,7 +2878,7 @@ BaseGroupFinder
         .def("getLogType", [](const OpenMS::LabeledPairFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::LabeledPairFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::LabeledPairFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::LabeledPairFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::LabeledPairFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::LabeledPairFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2882,7 +2906,7 @@ Annotates and filters transitions in a TargetedExperiment
         .def("getLogType", [](const OpenMS::LinearResampler& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::LinearResampler& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::LinearResampler& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::LinearResampler& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::LinearResampler& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::LinearResampler& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2906,7 +2930,7 @@ LinearResampler
         .def("getLogType", [](const OpenMS::LinearResamplerAlign& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::LinearResamplerAlign& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::LinearResamplerAlign& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::LinearResamplerAlign& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::LinearResamplerAlign& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::LinearResamplerAlign& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2957,7 +2981,7 @@ Filters target and decoy transitions by intensity, only keeping the top N transi
         .def("getLogType", [](const OpenMS::MRMAssay& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MRMAssay& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MRMAssay& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MRMAssay& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MRMAssay& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MRMAssay& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -2991,8 +3015,36 @@ Bruderer et al. Mol Cell Proteomics. 2017. 10.1074/mcp.RA117.000314.
         .def("getLogType", [](const OpenMS::MRMDecoy& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MRMDecoy& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MRMDecoy& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MRMDecoy& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MRMDecoy& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MRMDecoy& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
+        .def("generateDecoys", [](const OpenMS::MRMDecoy& self,
+                                  const OpenMS::TargetedExperiment& exp,
+                                  const OpenMS::String& method,
+                                  double aim_decoy_fraction,
+                                  bool switchKR,
+                                  const OpenMS::String& decoy_tag,
+                                  int max_attempts,
+                                  double identity_threshold,
+                                  double precursor_mz_shift,
+                                  double product_mz_shift,
+                                  double product_mz_threshold,
+                                  const std::vector<OpenMS::String>& fragment_types,
+                                  const std::vector<size_t>& fragment_charges,
+                                  bool enable_specific_losses,
+                                  bool enable_unspecific_losses,
+                                  int round_decPow) {
+            OpenMS::TargetedExperiment dec;
+            self.generateDecoys(exp, dec, method, aim_decoy_fraction, switchKR, decoy_tag,
+                                max_attempts, identity_threshold, precursor_mz_shift,
+                                product_mz_shift, product_mz_threshold, fragment_types,
+                                fragment_charges, enable_specific_losses, enable_unspecific_losses,
+                                round_decPow);
+            return dec;
+        }, "exp"_a, "method"_a, "aim_decoy_fraction"_a, "switchKR"_a, "decoy_tag"_a,
+           "max_attempts"_a, "identity_threshold"_a, "precursor_mz_shift"_a,
+           "product_mz_shift"_a, "product_mz_threshold"_a, "fragment_types"_a,
+           "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a,
+           "round_decPow"_a = -4, "Generate decoys from a TargetedExperiment")
         ;
 
     // -----------------------------------------------------------------------
@@ -3008,7 +3060,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::MS2File& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MS2File& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MS2File& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MS2File& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MS2File& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MS2File& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3058,8 +3110,22 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::MapAlignmentAlgorithmIdentification& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
+        .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::FeatureMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (FeatureMap)")
+        .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::ConsensusMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (ConsensusMap)")
+        .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::FeatureMap& map) {
+            std::vector<OpenMS::FeatureMap> maps = {map};
+            std::vector<OpenMS::TransformationDescription> trafos;
+            self.align(maps, trafos);
+            return trafos.empty() ? OpenMS::TransformationDescription() : trafos[0];
+        }, "map"_a, "Aligns a FeatureMap and returns the transformation")
+        .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::ConsensusMap& map) {
+            std::vector<OpenMS::ConsensusMap> maps = {map};
+            std::vector<OpenMS::TransformationDescription> trafos;
+            self.align(maps, trafos);
+            return trafos.empty() ? OpenMS::TransformationDescription() : trafos[0];
+        }, "map"_a, "Aligns a ConsensusMap and returns the transformation")
         ;
 
     // -----------------------------------------------------------------------
@@ -3082,8 +3148,20 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
+        .def("setReference", [](OpenMS::MapAlignmentAlgorithmPoseClustering& self, const OpenMS::FeatureMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference map for alignment (FeatureMap)")
+        .def("setReference", [](OpenMS::MapAlignmentAlgorithmPoseClustering& self, const OpenMS::PeakMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference map for alignment (PeakMap)")
+        .def("align", [](OpenMS::MapAlignmentAlgorithmPoseClustering& self, const OpenMS::FeatureMap& map) {
+            OpenMS::TransformationDescription trafo;
+            self.align(map, trafo);
+            return trafo;
+        }, "map"_a, "Aligns a FeatureMap to the reference and returns the transformation")
+        .def("align", [](OpenMS::MapAlignmentAlgorithmPoseClustering& self, const OpenMS::PeakMap& map) {
+            OpenMS::TransformationDescription trafo;
+            self.align(map, trafo);
+            return trafo;
+        }, "map"_a, "Aligns a PeakMap to the reference and returns the transformation")
         ;
 
     // -----------------------------------------------------------------------
@@ -3110,7 +3188,7 @@ Exception: FileNotFound is thrown if the given file could not be found
         .def("getLogType", [](const OpenMS::MascotGenericFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MascotGenericFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MascotGenericFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MascotGenericFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MascotGenericFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MascotGenericFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("setParameters", [](OpenMS::MascotGenericFile& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::MascotGenericFile& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
@@ -3141,7 +3219,7 @@ DefaultParamHandler
         .def("getLogType", [](const OpenMS::MassTraceDetection& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MassTraceDetection& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MassTraceDetection& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MassTraceDetection& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MassTraceDetection& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MassTraceDetection& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3166,7 +3244,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::MasstraceCorrelator& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MasstraceCorrelator& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MasstraceCorrelator& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MasstraceCorrelator& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MasstraceCorrelator& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MasstraceCorrelator& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3196,7 +3274,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::MetaboliteSpectralMatching& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MetaboliteSpectralMatching& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MetaboliteSpectralMatching& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MetaboliteSpectralMatching& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MetaboliteSpectralMatching& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MetaboliteSpectralMatching& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3228,7 +3306,7 @@ number
         .def("getLogType", [](const OpenMS::MorphologicalFilter& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MorphologicalFilter& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MorphologicalFilter& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MorphologicalFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MorphologicalFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MorphologicalFilter& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("setParameters", [](OpenMS::MorphologicalFilter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::MorphologicalFilter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
@@ -3360,11 +3438,16 @@ ProgressLogger
         .def("getName", [](const OpenMS::PeakPickerHiRes& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::PeakPickerHiRes& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::PeakPickerHiRes& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("pickExperiment", [](const OpenMS::PeakPickerHiRes& self, OpenMS::PeakMap& input, bool check_spectrum_type) {
+            OpenMS::PeakMap output;
+            self.pickExperiment(input, output, check_spectrum_type);
+            return output;
+        }, "input"_a, "check_spectrum_type"_a = true, "Picks peaks in a full experiment (MSExperiment)")
         .def("setLogType", [](const OpenMS::PeakPickerHiRes& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
         .def("getLogType", [](const OpenMS::PeakPickerHiRes& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::PeakPickerHiRes& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::PeakPickerHiRes& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::PeakPickerHiRes& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::PeakPickerHiRes& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::PeakPickerHiRes& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3399,7 +3482,7 @@ The output are the remaining peaks
         .def("getLogType", [](const OpenMS::PeakPickerIterative& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::PeakPickerIterative& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::PeakPickerIterative& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::PeakPickerIterative& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::PeakPickerIterative& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::PeakPickerIterative& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3483,7 +3566,7 @@ outputs (ProteinIdentification and PeptideIdentificationList)
         .def("getLogType", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
     // PeptideSearchEngineFIAlgorithm_ExitCodes enum nested under PeptideSearchEngineFIAlgorithm
@@ -3515,7 +3598,7 @@ BaseGroupFinder
         .def("getLogType", [](const OpenMS::QTClusterFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::QTClusterFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::QTClusterFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::QTClusterFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::QTClusterFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::QTClusterFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3559,7 +3642,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::SavitzkyGolayFilter& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::SavitzkyGolayFilter& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::SavitzkyGolayFilter& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::SavitzkyGolayFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::SavitzkyGolayFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::SavitzkyGolayFilter& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("setParameters", [](OpenMS::SavitzkyGolayFilter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::SavitzkyGolayFilter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
@@ -3590,7 +3673,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::SimpleSearchEngineAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3807,6 +3890,15 @@ Note: Intensity is ignored.
         .def("getName", [](const OpenMS::SpectrumAlignment& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::SpectrumAlignment& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::SpectrumAlignment& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        .def("getSpectrumAlignment", [](const OpenMS::SpectrumAlignment& self, const OpenMS::MSSpectrum& s1, const OpenMS::MSSpectrum& s2) {
+            std::vector<std::pair<OpenMS::Size, OpenMS::Size>> alignment;
+            self.getSpectrumAlignment(alignment, s1, s2);
+            nb::list result;
+            for (const auto& p : alignment) {
+                result.append(nb::make_tuple(p.first, p.second));
+            }
+            return result;
+        }, "s1"_a, "s2"_a, "Aligns two spectra and returns a list of (index_s1, index_s2) tuples")
         ;
 
     // -----------------------------------------------------------------------
@@ -3886,7 +3978,7 @@ BaseGroupFinder
         .def("getLogType", [](const OpenMS::StablePairFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::StablePairFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::StablePairFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::StablePairFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::StablePairFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::StablePairFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -3914,7 +4006,7 @@ ProgressLogger
         .def("getLogType", [](const OpenMS::SwathFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::SwathFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::SwathFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::SwathFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::SwathFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::SwathFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -4422,11 +4514,15 @@ ProgressLogger
 )doc")
         .def(nb::init<>())
         .def("validateTargetedExperiment", [](OpenMS::TransitionTSVFile& self, const OpenMS::TargetedExperiment& targeted_exp) { return self.validateTargetedExperiment(targeted_exp); }, "targeted_exp"_a, "Validate a TargetedExperiment (check that all ids are unique)")
+        .def("convertTargetedExperimentToTSV", [](OpenMS::TransitionTSVFile& self, const char* filename, OpenMS::TargetedExperiment& targeted_exp) { self.convertTargetedExperimentToTSV(filename, targeted_exp); }, "filename"_a, "targeted_exp"_a, "Write a TargetedExperiment to a TSV file")
+        .def("convertTSVToTargetedExperiment", [](OpenMS::TransitionTSVFile& self, const char* filename, OpenMS::TargetedExperiment& targeted_exp) {
+            self.convertTSVToTargetedExperiment(filename, OpenMS::FileTypes::TSV, targeted_exp);
+        }, "filename"_a, "targeted_exp"_a, "Read a TSV file into a TargetedExperiment")
         .def("setLogType", [](const OpenMS::TransitionTSVFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
         .def("getLogType", [](const OpenMS::TransitionTSVFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::TransitionTSVFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::TransitionTSVFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::TransitionTSVFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::TransitionTSVFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::TransitionTSVFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -4618,6 +4714,7 @@ ProgressLogger
         .def("getOptions", [](OpenMS::MzDataFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::MzDataFile& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
         .def("load", [](OpenMS::MzDataFile& self, const OpenMS::String& filename) { OpenMS::MSExperiment map; { nb::gil_scoped_release release; self.load(filename, map); } return map; }, "filename"_a)
+        .def("load", [](OpenMS::MzDataFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& map) { nb::gil_scoped_release release; self.load(filename, map); }, "filename"_a, "map"_a, "Loads a map from a MzData file into the given MSExperiment")
         .def("store", [](const OpenMS::MzDataFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& map) { nb::gil_scoped_release release; return self.store(filename, map); }, "filename"_a, "map"_a,
             R"doc(
 Loads a map from a MzData file
@@ -4638,7 +4735,7 @@ Exception: ParseError is thrown if an error occurs during parsing
         .def("getLogType", [](const OpenMS::MzDataFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MzDataFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MzDataFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzDataFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MzDataFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MzDataFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -4666,7 +4763,7 @@ Exception: UnableToCreateFile is thrown if the file could not be created
         .def("getLogType", [](const OpenMS::MzIdentMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MzIdentMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MzIdentMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzIdentMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MzIdentMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MzIdentMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("_load_internal", [](OpenMS::MzIdentMLFile& self, const OpenMS::String& filename) {
@@ -4715,7 +4812,7 @@ MzMLFile().store("filtered.mzML", exp)
         .def("getLogType", [](const OpenMS::MzMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MzMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MzMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MzMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MzMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("load", [](OpenMS::MzMLFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
@@ -4727,6 +4824,20 @@ MzMLFile().store("filtered.mzML", exp)
             nb::gil_scoped_release release;
             self.store(filename, exp);
         }, "filename"_a, "exp"_a, "Store an MSExperiment to an mzML file")
+
+        .def("storeBuffer", [](OpenMS::MzMLFile& self, nb::object output_str, const OpenMS::MSExperiment& exp) {
+            std::string buf;
+            {
+                nb::gil_scoped_release release;
+                self.storeBuffer(buf, exp);
+            }
+            output_str.attr("_value") = nb::cast(buf);
+        }, "output"_a, "exp"_a, "Store an MSExperiment to an in-memory mzML string buffer")
+
+        .def("loadBuffer", [](OpenMS::MzMLFile& self, const std::string& buffer, OpenMS::MSExperiment& exp) {
+            nb::gil_scoped_release release;
+            self.loadBuffer(buffer, exp);
+        }, "buffer"_a, "exp"_a, "Load an MSExperiment from an in-memory mzML string buffer")
 
         .def("transform", [](OpenMS::MzMLFile& self, const OpenMS::String& filename, nb::object consumer,
                              bool skip_full_count, bool skip_first_pass) {
@@ -4758,7 +4869,7 @@ MzXMLFile().load("test.mzXML", exp)
         .def("getLogType", [](const OpenMS::MzXMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::MzXMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::MzXMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzXMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::MzXMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::MzXMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("load", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
@@ -4816,6 +4927,7 @@ Exception: FileNotFound is thrown if the file could not be found
 Exception: ParseError is thrown if an error occurs during parsing
 )doc")
         .def("load", [](OpenMS::ParamXMLFile& self, const OpenMS::String& filename) { OpenMS::Param param; self.load(filename, param); return param; }, "filename"_a)
+        .def("load", [](OpenMS::ParamXMLFile& self, const OpenMS::String& filename, OpenMS::Param& param) { self.load(filename, param); }, "filename"_a, "param"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -4885,9 +4997,32 @@ Not implemented
         ;
 
     // -----------------------------------------------------------------------
+    // Attachment (QcMLFile::Attachment)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::QcMLFile::Attachment>(m, "Attachment",
+        "Attachment for QcMLFile quality parameters")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::QcMLFile::Attachment &>())
+        .def_rw("name", &OpenMS::QcMLFile::Attachment::name)
+        .def_rw("value", &OpenMS::QcMLFile::Attachment::value)
+        .def_rw("cvRef", &OpenMS::QcMLFile::Attachment::cvRef)
+        .def_rw("cvAcc", &OpenMS::QcMLFile::Attachment::cvAcc)
+        .def_rw("unitRef", &OpenMS::QcMLFile::Attachment::unitRef)
+        .def_rw("unitAcc", &OpenMS::QcMLFile::Attachment::unitAcc)
+        .def_rw("binary", &OpenMS::QcMLFile::Attachment::binary)
+        .def_rw("qualityRef", &OpenMS::QcMLFile::Attachment::qualityRef)
+        .def_rw("colTypes", &OpenMS::QcMLFile::Attachment::colTypes)
+        .def_rw("tableRows", &OpenMS::QcMLFile::Attachment::tableRows)
+        .def("toXMLString", [](const OpenMS::QcMLFile::Attachment& self, OpenMS::UInt indentation_level) { return self.toXMLString(indentation_level); }, "indentation_level"_a)
+        .def("toCSVString", [](const OpenMS::QcMLFile::Attachment& self, const OpenMS::String& separator) { return self.toCSVString(separator); }, "separator"_a)
+        .def(nb::self == nb::self)
+        .def(nb::self < nb::self)
+        ;
+
+    // -----------------------------------------------------------------------
     // QcMLFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::QcMLFile, OpenMS::Internal::XMLFile>(m, "QcMLFile", 
+    nb::class_<OpenMS::QcMLFile, OpenMS::Internal::XMLFile>(m, "QcMLFile",
         R"doc(
 XMLHandler
 XMLFile
@@ -4937,7 +5072,7 @@ This Class is supposed to internally collect the data for the qcML File
         .def("getLogType", [](const OpenMS::QcMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
         .def("startProgress", [](const OpenMS::QcMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
         .def("setProgress", [](const OpenMS::QcMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::QcMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a, "Ends the progress display")
+        .def("endProgress", [](const OpenMS::QcMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
         .def("nextProgress", [](const OpenMS::QcMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
@@ -4976,6 +5111,7 @@ print(transition.getPrecursorMZ(), transition.getProductMZ())
     nb::class_<OpenMS::TransformationXMLFile, OpenMS::Internal::XMLFile>(m, "TransformationXMLFile", "Used to load and store TransformationXML files")
         .def(nb::init<>())
         .def("load", [](OpenMS::TransformationXMLFile& self, const OpenMS::String& filename, bool fit_model) { OpenMS::TransformationDescription transformation; self.load(filename, transformation, fit_model); return transformation; }, "filename"_a, "fit_model"_a)
+        .def("load", [](OpenMS::TransformationXMLFile& self, const OpenMS::String& filename, OpenMS::TransformationDescription& td, bool fit_model) { self.load(filename, td, fit_model); }, "filename"_a, "td"_a, "fit_model"_a)
         .def("store", [](OpenMS::TransformationXMLFile& self, const OpenMS::String& filename, const OpenMS::TransformationDescription& transformation) { return self.store(filename, transformation); }, "filename"_a, "transformation"_a)
         ;
 
