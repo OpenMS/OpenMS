@@ -77,7 +77,7 @@ public:
     };
 
     /// Description of the columns in a consensus map
-    struct  ColumnHeader :
+    struct OPENMS_DLLAPI ColumnHeader :
       public MetaInfoInterface
     {
       /// Default constructor
