@@ -1133,6 +1133,7 @@ Exception: MissingInformation is thrown if entries of 'ids' do not contain 'MZ' 
     nb::enum_<OpenMS::IDMapper::Measure>(idmapper_class, "Measure")
         .value("MEASURE_PPM", OpenMS::IDMapper::Measure::MEASURE_PPM)
         .value("MEASURE_DA", OpenMS::IDMapper::Measure::MEASURE_DA)
+
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -1160,6 +1161,7 @@ DefaultParamHandler
         .value("ID_MERGE_INDEX", OpenMS::IDRipper::OriginAnnotationFormat::ID_MERGE_INDEX)
         .value("UNKNOWN_OAF", OpenMS::IDRipper::OriginAnnotationFormat::UNKNOWN_OAF)
         .value("SIZE_OF_ORIGIN_ANNOTATION_FORMAT", OpenMS::IDRipper::OriginAnnotationFormat::SIZE_OF_ORIGIN_ANNOTATION_FORMAT)
+
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -2192,6 +2194,7 @@ Use startProgress, setProgress and endProgress for the actual logging
         .value("CMD", OpenMS::ProgressLogger::LogType::CMD)
         .value("GUI", OpenMS::ProgressLogger::LogType::GUI)
         .value("NONE", OpenMS::ProgressLogger::LogType::NONE)
+
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -5478,6 +5481,11 @@ XMLFile
         }, "ms1_map"_a)
         .def("setLogType", [](OpenMS::MRMFeatureFinderScoring& self, OpenMS::ProgressLogger::LogType type) { self.setLogType(type); }, "type"_a)
         .def("getLogType", [](const OpenMS::MRMFeatureFinderScoring& self) { return self.getLogType(); })
+        .def("startProgress", [](const OpenMS::MRMFeatureFinderScoring& self, long begin, long end, const OpenMS::String& label) { self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a, "Initializes the progress display")
+        .def("setProgress", [](const OpenMS::MRMFeatureFinderScoring& self, long value) { self.setProgress(value); }, "value"_a, "Sets the current progress")
+        .def("endProgress", [](const OpenMS::MRMFeatureFinderScoring& self, size_t bytes_processed) { self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
+        .def("nextProgress", [](const OpenMS::MRMFeatureFinderScoring& self) { self.nextProgress(); }, "Increment progress by 1")
+        .def("prepareProteinPeptideMaps_", [](OpenMS::MRMFeatureFinderScoring& self, const OpenSwath::LightTargetedExperiment& transition_exp) { self.prepareProteinPeptideMaps_(transition_exp); }, "transition_exp"_a, "Prepares the internal mappings of peptides and proteins")
         ;
 
     // Free function aliases for backward compatibility
@@ -5487,5 +5495,13 @@ XMLFile
     m.def("toProForma", [](const OpenMS::PEFFEntry& entry) {
         return OpenMS::PEFFFile::toProForma(entry);
     }, "entry"_a, "Convert a PEFFEntry to ProForma notation");
+
+    // -----------------------------------------------------------------------
+    // __static_* module-level wrappers for IMTypes
+    // -----------------------------------------------------------------------
+    m.def("__static_IMTypes_determineIMFormat", [](const OpenMS::MSExperiment& exp) -> OpenMS::IMFormat { return OpenMS::IMTypes::determineIMFormat(exp); }, "exp"_a);
+    m.def("__static_IMTypes_toDriftTimeUnit", [](const OpenMS::String& dtu_string) -> OpenMS::DriftTimeUnit { return OpenMS::toDriftTimeUnit(dtu_string); }, "dtu_string"_a);
+    m.def("__static_IMTypes_driftTimeUnitToString", [](OpenMS::DriftTimeUnit value) -> OpenMS::String { return OpenMS::driftTimeUnitToString(value); }, "value"_a);
+    m.def("__static_IMTypes_toIMFormat", [](const OpenMS::String& im_format) -> OpenMS::IMFormat { return OpenMS::toIMFormat(im_format); }, "im_format"_a);
 
 }
