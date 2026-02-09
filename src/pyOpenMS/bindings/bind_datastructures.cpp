@@ -7,7 +7,10 @@
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/CVReference.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
@@ -189,6 +192,9 @@ depending on axis labelling
         .def("compress", [](OpenMS::ConvexHull2D& self) { return self.compress(); }, "Allows to reduce the disk/memory footprint of a hull")
         .def("expandToBoundingBox", [](OpenMS::ConvexHull2D& self) { return self.expandToBoundingBox(); }, "Expand a convex hull to its bounding box.")
         .def("encloses", [](const OpenMS::ConvexHull2D& self, const OpenMS::DPosition<2>& point) { return self.encloses(point); }, "point"_a, "Returns if the `point` lies in the feature hull")
+        .def("addPointXY", [](OpenMS::ConvexHull2D& self, double x, double y) {
+            return self.addPoint(OpenMS::DPosition<2>(x, y));
+        }, "x"_a, "y"_a, "Adds a point (x, y) to the hull")
         .def("__hash__", [](const OpenMS::ConvexHull2D& self) { return std::hash<OpenMS::ConvexHull2D>{}(self); })
         ;
 
@@ -299,6 +305,17 @@ The following formats are supported:
         .def(nb::init<>())
         .def("setInitialParameters", [](OpenMS::Math::GaussFitter& self, const OpenMS::Math::GaussFitter::GaussFitResult& result) { return self.setInitialParameters(result); }, "result"_a, "Sets the initial parameters used by the fit method as initial guess for the Gaussian")
         .def("fit", [](const OpenMS::Math::GaussFitter& self, std::vector<OpenMS::DPosition<2>>& points) { return self.fit(points); }, "points"_a, "Fits a Gaussian distribution to the given data points")
+        ;
+
+    // -----------------------------------------------------------------------
+    // GaussFitResult
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::Math::GaussFitter::GaussFitResult>(m, "GaussFitResult", "Result of a Gaussian fit")
+        .def(nb::init<>())
+        .def(nb::init<double, double, double>())
+        .def_rw("A", &OpenMS::Math::GaussFitter::GaussFitResult::A)
+        .def_rw("x0", &OpenMS::Math::GaussFitter::GaussFitResult::x0)
+        .def_rw("sigma", &OpenMS::Math::GaussFitter::GaussFitResult::sigma)
         ;
 
     // -----------------------------------------------------------------------
@@ -473,6 +490,68 @@ A classical configuration would contain a list of settings e.g.
         .def("size", [](OpenMS::Matrix<double>& self) { return self.size(); })
         .def("resize", [](OpenMS::Matrix<double>& self, size_t rows, size_t cols) { self.resize(rows, cols); }, "rows"_a, "cols"_a)
         .def("__len__", [](OpenMS::Matrix<double>& self) { return self.size(); })
+        .def("get_matrix_as_view", [](nb::object self_obj) -> nb::object {
+            // C++ Matrix stores data in column-major order: data[col * rows + row]
+            // Create as (cols, rows) C-contiguous (matching column-major layout), then transpose
+            auto& self = nb::cast<OpenMS::Matrix<double>&>(self_obj);
+            size_t rows = self.rows();
+            size_t cols = self.cols();
+            // Shape (cols, rows) in C order: arr[j,i] = data[j*rows + i] = getValue(i,j)
+            auto arr = nb::ndarray<nb::numpy, double, nb::ndim<2>>(
+                self.data(), {cols, rows}, self_obj
+            );
+            // Transpose to (rows, cols): view[i,j] = arr[j,i] = getValue(i,j)
+            return nb::cast(arr).attr("T");
+        }, "Returns a numpy view of the matrix data (modifications affect the C++ object)")
+        .def("get_matrix", [](const OpenMS::Matrix<double>& self) {
+            // Return a copy as a row-major numpy array
+            size_t rows = self.rows();
+            size_t cols = self.cols();
+            // Allocate and copy, converting from column-major to row-major
+            double* buf = new double[rows * cols];
+            for (size_t i = 0; i < rows; ++i) {
+                for (size_t j = 0; j < cols; ++j) {
+                    buf[i * cols + j] = self.getValue(i, j);
+                }
+            }
+            size_t shape[2] = {rows, cols};
+            nb::capsule deleter(buf, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            return nb::ndarray<nb::numpy, double, nb::ndim<2>>(buf, 2, shape, deleter);
+        }, "Returns a copy of the matrix as a numpy array")
+        .def("set_matrix", [](OpenMS::Matrix<double>& self, nb::ndarray<double, nb::ndim<2>, nb::c_contig> arr) {
+            size_t rows = arr.shape(0);
+            size_t cols = arr.shape(1);
+            self.resize(rows, cols);
+            const double* data = arr.data();
+            for (size_t i = 0; i < rows; ++i) {
+                for (size_t j = 0; j < cols; ++j) {
+                    self.setValue(i, j, data[i * cols + j]);
+                }
+            }
+        }, "matrix"_a, "Sets the matrix from a numpy array")
+        .def_static("fromNdArray", [](nb::ndarray<double, nb::ndim<2>, nb::c_contig> arr) {
+            size_t rows = arr.shape(0);
+            size_t cols = arr.shape(1);
+            OpenMS::Matrix<double> mat(rows, cols, 0.0);
+            const double* data = arr.data();
+            for (size_t i = 0; i < rows; ++i) {
+                for (size_t j = 0; j < cols; ++j) {
+                    mat.setValue(i, j, data[i * cols + j]);
+                }
+            }
+            return mat;
+        }, "array"_a, "Creates a MatrixDouble from a 2D numpy array")
+        .def("__str__", [](const OpenMS::Matrix<double>& self) {
+            std::ostringstream oss;
+            for (size_t i = 0; i < self.rows(); ++i) {
+                for (size_t j = 0; j < self.cols(); ++j) {
+                    if (j > 0) oss << " ";
+                    oss << self.getValue(i, j);
+                }
+                oss << "\n";
+            }
+            return oss.str();
+        })
         ;
 
 
@@ -562,10 +641,12 @@ Each parameter can be annotated with an arbitrary number of tags (e.g., 'advance
         .def("getValue", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.getValue(key); }, "key"_a, "Returns the value of the parameter specified by key. Raises exception if not found")
         .def("getValueType", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.getValueType(key); }, "key"_a, "Returns the type of the parameter specified by key. Raises exception if not found")
         .def("getEntry", [](const OpenMS::Param& self, const OpenMS::String& key) -> const OpenMS::Param::ParamEntry & { return self.getEntry(key); }, "key"_a, nb::rv_policy::reference_internal, "Returns the whole parameter entry (value, description, tags, restrictions). Raises exception if not found")
+        .def("getDescription", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.getDescription(key); }, "key"_a, "Returns the description of the parameter specified by key")
         .def("exists", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.exists(key); }, "key"_a, "Returns True if the parameter exists, False otherwise")
         .def("addTag", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::String& tag) { return self.addTag(key, tag); }, "key"_a, "tag"_a, "Adds a tag to the entry specified by key (e.g., 'advanced', 'required', 'input file')")
         .def("addTags", [](OpenMS::Param& self, const OpenMS::String& key, const std::vector<std::basic_string<char>>& tags) { return self.addTags(key, tags); }, "key"_a, "tags"_a, "Adds multiple tags to the entry specified by key")
         .def("hasTag", [](const OpenMS::Param& self, const OpenMS::String& key, const OpenMS::String& tag) { return self.hasTag(key, tag); }, "key"_a, "tag"_a, "Returns True if the parameter has the specified tag")
+        .def("getTags", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.getTags(key); }, "key"_a, "Returns the tags of the entry specified by key")
         .def("clearTags", [](OpenMS::Param& self, const OpenMS::String& key) { return self.clearTags(key); }, "key"_a, "Removes all tags from the entry specified by key")
         .def("setSectionDescription", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::String& description) { return self.setSectionDescription(key, description); }, "key"_a, "description"_a, "Sets a description for an existing section (not for values)")
         .def("getSectionDescription", [](const OpenMS::Param& self, const OpenMS::String& key) { return self.getSectionDescription(key); }, "key"_a, "Returns the description of the section specified by key (empty string if not found)")
@@ -600,6 +681,13 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def("setMaxFloat", [](OpenMS::Param& self, const OpenMS::String& key, double max) { return self.setMaxFloat(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for a float parameter")
         .def("__iter__", [](OpenMS::Param& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "Param_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::Param& self) { return self.size(); })
+        .def("_get_all_keys", [](const OpenMS::Param& self) {
+            std::vector<std::string> keys;
+            for (auto it = self.begin(); it != self.end(); ++it) {
+                keys.push_back(it.getName());
+            }
+            return keys;
+        })
 
         .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value, const OpenMS::String& description, const std::vector<std::string>& tags) {
             self.setValue(key, value, description, tags);
@@ -622,6 +710,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def_rw("name", &OpenMS::Param::ParamEntry::name)
         .def_rw("description", &OpenMS::Param::ParamEntry::description)
         .def_rw("value", &OpenMS::Param::ParamEntry::value)
+        .def_rw("tags", &OpenMS::Param::ParamEntry::tags)
         .def_rw("valid_strings", &OpenMS::Param::ParamEntry::valid_strings)
         .def_rw("max_float", &OpenMS::Param::ParamEntry::max_float)
         .def_rw("min_float", &OpenMS::Param::ParamEntry::min_float)
@@ -783,6 +872,8 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def("getDefaults", [](const OpenMS::SpectrumAlignmentScore& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
         .def("getName", [](const OpenMS::SpectrumAlignmentScore& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::SpectrumAlignmentScore& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
+        .def("__call__", [](const OpenMS::SpectrumAlignmentScore& self, const OpenMS::MSSpectrum& spec1, const OpenMS::MSSpectrum& spec2) { return self(spec1, spec2); }, "spec1"_a, "spec2"_a, "Compute the similarity score between two spectra")
+        .def("__call__", [](const OpenMS::SpectrumAlignmentScore& self, const OpenMS::MSSpectrum& spec) { return self(spec); }, "spec"_a, "Compute the self-similarity score of a spectrum")
         .def("getSubsections", [](const OpenMS::SpectrumAlignmentScore& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
@@ -795,6 +886,80 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def_static("getVersionStruct", []() { return OpenMS::VersionInfo::getVersionStruct(); })
         .def_static("getRevision", []() { return OpenMS::VersionInfo::getRevision(); })
         .def_static("getBranch", []() { return OpenMS::VersionInfo::getBranch(); })
+        ;
+
+    // -----------------------------------------------------------------------
+    // VersionDetails
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::VersionInfo::VersionDetails>(m, "VersionDetails", "Version details struct")
+        .def(nb::init<>())
+        .def_rw("version_major", &OpenMS::VersionInfo::VersionDetails::version_major)
+        .def_rw("version_minor", &OpenMS::VersionInfo::VersionDetails::version_minor)
+        .def_rw("version_patch", &OpenMS::VersionInfo::VersionDetails::version_patch)
+        .def_rw("pre_release_identifier", &OpenMS::VersionInfo::VersionDetails::pre_release_identifier)
+        .def_static("create", &OpenMS::VersionInfo::VersionDetails::create, "version"_a)
+        .def("__eq__", [](const OpenMS::VersionInfo::VersionDetails& a, const OpenMS::VersionInfo::VersionDetails& b) { return a == b; })
+        .def("__ne__", [](const OpenMS::VersionInfo::VersionDetails& a, const OpenMS::VersionInfo::VersionDetails& b) { return a != b; })
+        .def("__lt__", [](const OpenMS::VersionInfo::VersionDetails& a, const OpenMS::VersionInfo::VersionDetails& b) { return a < b; })
+        .def("__gt__", [](const OpenMS::VersionInfo::VersionDetails& a, const OpenMS::VersionInfo::VersionDetails& b) { return a > b; })
+        ;
+
+    // -----------------------------------------------------------------------
+    // Compomer
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::Compomer>(m, "Compomer",
+        "Holds information on an edge connecting two features from a (putative) charge ladder")
+        .def(nb::init<>())
+        .def(nb::init<OpenMS::Int, double, double>(), "net_charge"_a, "mass"_a, "log_p"_a)
+        .def(nb::init<const OpenMS::Compomer &>())
+        .def("setID", [](OpenMS::Compomer& self, const OpenMS::Size& id) { self.setID(id); }, "id"_a)
+        .def("getID", [](const OpenMS::Compomer& self) { return self.getID(); })
+        .def("getNetCharge", [](const OpenMS::Compomer& self) { return self.getNetCharge(); })
+        .def("getMass", [](const OpenMS::Compomer& self) { return self.getMass(); })
+        .def("getPositiveCharges", [](const OpenMS::Compomer& self) { return self.getPositiveCharges(); })
+        .def("getNegativeCharges", [](const OpenMS::Compomer& self) { return self.getNegativeCharges(); })
+        .def("getLogP", [](const OpenMS::Compomer& self) { return self.getLogP(); })
+        .def("getRTShift", [](const OpenMS::Compomer& self) { return self.getRTShift(); })
+        .def("getAdductsAsString", [](const OpenMS::Compomer& self) { return self.getAdductsAsString(); })
+        .def("getAdductsAsString", [](const OpenMS::Compomer& self, OpenMS::UInt side) { return self.getAdductsAsString(side); }, "side"_a)
+        .def("add", [](OpenMS::Compomer& self, const OpenMS::Adduct& a, OpenMS::UInt side) { self.add(a, side); }, "a"_a, "side"_a)
+        .def(nb::self == nb::self)
+        .def("__hash__", [](const OpenMS::Compomer& self) { return std::hash<OpenMS::Compomer>{}(self); })
+        ;
+
+    // -----------------------------------------------------------------------
+    // ChargePair
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::ChargePair>(m, "ChargePair",
+        "Representation of a (putative) link between two Features with different charge")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ChargePair &>())
+        .def("getCharge", [](const OpenMS::ChargePair& self, OpenMS::UInt pairID) { return self.getCharge(pairID); }, "pairID"_a)
+        .def("setCharge", [](OpenMS::ChargePair& self, OpenMS::UInt pairID, OpenMS::Int e) { self.setCharge(pairID, e); }, "pairID"_a, "e"_a)
+        .def("getElementIndex", [](const OpenMS::ChargePair& self, OpenMS::UInt pairID) { return self.getElementIndex(pairID); }, "pairID"_a)
+        .def("setElementIndex", [](OpenMS::ChargePair& self, OpenMS::UInt pairID, OpenMS::Size e) { self.setElementIndex(pairID, e); }, "pairID"_a, "e"_a)
+        .def("getCompomer", [](const OpenMS::ChargePair& self) -> const OpenMS::Compomer& { return self.getCompomer(); }, nb::rv_policy::reference_internal)
+        .def("setCompomer", [](OpenMS::ChargePair& self, const OpenMS::Compomer& compomer) { self.setCompomer(compomer); }, "compomer"_a)
+        .def("getMassDiff", [](const OpenMS::ChargePair& self) { return self.getMassDiff(); })
+        .def("setMassDiff", [](OpenMS::ChargePair& self, double mass_diff) { self.setMassDiff(mass_diff); }, "mass_diff"_a)
+        .def("getEdgeScore", [](const OpenMS::ChargePair& self) { return self.getEdgeScore(); })
+        .def("setEdgeScore", [](OpenMS::ChargePair& self, double score) { self.setEdgeScore(score); }, "score"_a)
+        .def("isActive", [](const OpenMS::ChargePair& self) { return self.isActive(); })
+        .def("setActive", [](OpenMS::ChargePair& self, bool active) { self.setActive(active); }, "active"_a)
+        .def(nb::self == nb::self)
+        .def(nb::self != nb::self)
+        .def("__hash__", [](const OpenMS::ChargePair& self) { return std::hash<OpenMS::ChargePair>{}(self); })
+        ;
+
+    // -----------------------------------------------------------------------
+    // CVMappings
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::CVMappings>(m, "CVMappings",
+        "Representation of controlled vocabulary mapping rules (for PSI formats)")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::CVMappings &>())
+        .def(nb::self == nb::self)
+        .def(nb::self != nb::self)
         ;
 
 }

@@ -329,6 +329,10 @@ If you want a constant model, set slope to zero in addition
     nb::class_<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMedian", "OpenMS class SignalToNoiseEstimatorMedian")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>&>())
+        .def("init", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, const OpenMS::MSSpectrum& c) { self.init(c); }, "c"_a, "Initialize the estimator with the given spectrum")
+        .def("getSignalToNoise", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, OpenMS::Size index) { return self.getSignalToNoise(index); }, "index"_a, "Returns the signal to noise ratio for the given index")
+        .def("setParameters", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
+        .def("getParameters", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         ;
 
 

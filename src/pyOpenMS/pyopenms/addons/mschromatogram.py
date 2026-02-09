@@ -1,6 +1,7 @@
 """Addon methods for MSChromatogram class."""
 
 from __future__ import annotations
+import warnings
 import numpy as np
 from . import addon
 
@@ -68,7 +69,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
             6: 'ELECTROMAGNETIC_RADIATION_CHROMATOGRAM',
             7: 'ABSORPTION_CHROMATOGRAM', 8: 'EMISSION_CHROMATOGRAM'
         }
-        type_name = type_names.get(chrom_type, f'UNKNOWN_{chrom_type}')
+        type_name = type_names.get(int(chrom_type), f'UNKNOWN_{chrom_type}')
         data_dict['chromatogram_type'] = np.full(cnt, type_name, dtype='U100')
 
     if want_explicit('comment'):
@@ -127,6 +128,14 @@ def to_df(self, columns=None, export_meta_values=True):
     """Returns a pandas DataFrame representation."""
     import pandas as pd
     return pd.DataFrame(self.get_data_dict(columns=columns, export_meta_values=export_meta_values))
+
+
+@addon("MSChromatogram")
+def get_df(self, *args, **kwargs):
+    """Deprecated: use to_df() instead."""
+    warnings.warn("get_df() is deprecated. Use to_df() instead.",
+                  DeprecationWarning, stacklevel=2)
+    return self.to_df(*args, **kwargs)
 
 
 @addon("MSChromatogram")

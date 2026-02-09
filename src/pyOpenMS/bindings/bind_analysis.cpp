@@ -101,6 +101,66 @@ NB_MODULE(_pyopenms_analysis, m) {
     m.doc() = "pyOpenMS analysis bindings";
 
     // -----------------------------------------------------------------------
+    // OpenSwath_Scores
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OpenSwath_Scores>(m, "OpenSwath_Scores", "OpenSWATH scoring results struct")
+        .def(nb::init<>())
+        .def_rw("elution_model_fit_score", &OpenMS::OpenSwath_Scores::elution_model_fit_score)
+        .def_rw("library_corr", &OpenMS::OpenSwath_Scores::library_corr)
+        .def_rw("library_norm_manhattan", &OpenMS::OpenSwath_Scores::library_norm_manhattan)
+        .def_rw("library_rootmeansquare", &OpenMS::OpenSwath_Scores::library_rootmeansquare)
+        .def_rw("library_sangle", &OpenMS::OpenSwath_Scores::library_sangle)
+        .def_rw("norm_rt_score", &OpenMS::OpenSwath_Scores::norm_rt_score)
+        .def_rw("isotope_correlation", &OpenMS::OpenSwath_Scores::isotope_correlation)
+        .def_rw("isotope_overlap", &OpenMS::OpenSwath_Scores::isotope_overlap)
+        .def_rw("massdev_score", &OpenMS::OpenSwath_Scores::massdev_score)
+        .def_rw("xcorr_coelution_score", &OpenMS::OpenSwath_Scores::xcorr_coelution_score)
+        .def_rw("xcorr_shape_score", &OpenMS::OpenSwath_Scores::xcorr_shape_score)
+        .def_rw("yseries_score", &OpenMS::OpenSwath_Scores::yseries_score)
+        .def_rw("bseries_score", &OpenMS::OpenSwath_Scores::bseries_score)
+        .def_rw("log_sn_score", &OpenMS::OpenSwath_Scores::log_sn_score)
+        .def_rw("weighted_coelution_score", &OpenMS::OpenSwath_Scores::weighted_coelution_score)
+        .def_rw("weighted_xcorr_shape", &OpenMS::OpenSwath_Scores::weighted_xcorr_shape)
+        .def_rw("weighted_massdev_score", &OpenMS::OpenSwath_Scores::weighted_massdev_score)
+        .def_rw("intensity", &OpenMS::OpenSwath_Scores::intensity)
+        .def_rw("total_xic", &OpenMS::OpenSwath_Scores::total_xic)
+        .def_rw("nr_peaks", &OpenMS::OpenSwath_Scores::nr_peaks)
+        .def_rw("sn_ratio", &OpenMS::OpenSwath_Scores::sn_ratio)
+        .def_rw("mi_score", &OpenMS::OpenSwath_Scores::mi_score)
+        .def_rw("weighted_mi_score", &OpenMS::OpenSwath_Scores::weighted_mi_score)
+        .def_rw("rt_difference", &OpenMS::OpenSwath_Scores::rt_difference)
+        .def_rw("normalized_experimental_rt", &OpenMS::OpenSwath_Scores::normalized_experimental_rt)
+        .def_rw("raw_rt_score", &OpenMS::OpenSwath_Scores::raw_rt_score)
+        ;
+
+    // -----------------------------------------------------------------------
+    // OpenSwath_Scores_Usage
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OpenSwath_Scores_Usage>(m, "OpenSwath_Scores_Usage", "OpenSWATH scores usage flags")
+        .def(nb::init<>())
+        .def_rw("use_coelution_score_", &OpenMS::OpenSwath_Scores_Usage::use_coelution_score_)
+        .def_rw("use_shape_score_", &OpenMS::OpenSwath_Scores_Usage::use_shape_score_)
+        .def_rw("use_rt_score_", &OpenMS::OpenSwath_Scores_Usage::use_rt_score_)
+        .def_rw("use_library_score_", &OpenMS::OpenSwath_Scores_Usage::use_library_score_)
+        .def_rw("use_elution_model_score_", &OpenMS::OpenSwath_Scores_Usage::use_elution_model_score_)
+        .def_rw("use_intensity_score_", &OpenMS::OpenSwath_Scores_Usage::use_intensity_score_)
+        .def_rw("use_total_xic_score_", &OpenMS::OpenSwath_Scores_Usage::use_total_xic_score_)
+        .def_rw("use_total_mi_score_", &OpenMS::OpenSwath_Scores_Usage::use_total_mi_score_)
+        .def_rw("use_nr_peaks_score_", &OpenMS::OpenSwath_Scores_Usage::use_nr_peaks_score_)
+        .def_rw("use_sn_score_", &OpenMS::OpenSwath_Scores_Usage::use_sn_score_)
+        .def_rw("use_mi_score_", &OpenMS::OpenSwath_Scores_Usage::use_mi_score_)
+        .def_rw("use_dia_scores_", &OpenMS::OpenSwath_Scores_Usage::use_dia_scores_)
+        .def_rw("use_im_scores", &OpenMS::OpenSwath_Scores_Usage::use_im_scores)
+        .def_rw("use_ms1_correlation", &OpenMS::OpenSwath_Scores_Usage::use_ms1_correlation)
+        .def_rw("use_ms1_fullscan", &OpenMS::OpenSwath_Scores_Usage::use_ms1_fullscan)
+        .def_rw("use_ms1_mi", &OpenMS::OpenSwath_Scores_Usage::use_ms1_mi)
+        .def_rw("use_uis_scores", &OpenMS::OpenSwath_Scores_Usage::use_uis_scores)
+        .def_rw("use_ionseries_scores", &OpenMS::OpenSwath_Scores_Usage::use_ionseries_scores)
+        .def_rw("use_ms2_isotope_scores", &OpenMS::OpenSwath_Scores_Usage::use_ms2_isotope_scores)
+        .def_rw("use_peak_shape_metrics", &OpenMS::OpenSwath_Scores_Usage::use_peak_shape_metrics)
+        ;
+
+    // -----------------------------------------------------------------------
     // AbsoluteQuantitationMethod
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::AbsoluteQuantitationMethod>(m, "AbsoluteQuantitationMethod", 
@@ -252,6 +312,8 @@ CVTermList
         .def_rw("molecular_formula", &OpenMS::TargetedExperimentHelper::Compound::molecular_formula)
         .def_rw("smiles_string", &OpenMS::TargetedExperimentHelper::Compound::smiles_string)
         .def_rw("theoretical_mass", &OpenMS::TargetedExperimentHelper::Compound::theoretical_mass)
+        .def_rw("rts", &OpenMS::TargetedExperimentHelper::Compound::rts)
+        .def_rw("id", &OpenMS::TargetedExperimentHelper::Compound::id)
         ;
 
     // -----------------------------------------------------------------------
@@ -570,12 +632,14 @@ Useful to update the matrix with user isotope correction values
 )doc")
         ;
     // ITRAQ_TYPES enum nested under ItraqConstants
-    nb::enum_<OpenMS::ItraqConstants::ITRAQ_TYPES>(itraqconstants_class, "ITRAQ_TYPES")
+    auto itraq_types_enum = nb::enum_<OpenMS::ItraqConstants::ITRAQ_TYPES>(itraqconstants_class, "ITRAQ_TYPES")
         .value("FOURPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::FOURPLEX)
         .value("EIGHTPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::EIGHTPLEX)
         .value("TMT_SIXPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::TMT_SIXPLEX)
         .value("SIZE_OF_ITRAQ_TYPES", OpenMS::ItraqConstants::ITRAQ_TYPES::SIZE_OF_ITRAQ_TYPES)
         .export_values();
+    // Module-level alias so pyopenms.ITRAQ_TYPES works
+    m.attr("ITRAQ_TYPES") = itraq_types_enum;
 
     // -----------------------------------------------------------------------
     // KDTreeFeatureNode
@@ -1467,6 +1531,8 @@ CVTermList
         .def_rw("evidence", &OpenMS::TargetedExperimentHelper::Peptide::evidence)
         .def_rw("sequence", &OpenMS::TargetedExperimentHelper::Peptide::sequence)
         .def_rw("mods", &OpenMS::TargetedExperimentHelper::Peptide::mods)
+        .def_rw("rts", &OpenMS::TargetedExperimentHelper::Peptide::rts)
+        .def_rw("id", &OpenMS::TargetedExperimentHelper::Peptide::id)
         ;
 
     // -----------------------------------------------------------------------
@@ -1971,6 +2037,8 @@ production ions
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::TargetedExperiment &>())
+        .def("__copy__", [](const OpenMS::TargetedExperiment& self) { return OpenMS::TargetedExperiment(self); })
+        .def("__deepcopy__", [](const OpenMS::TargetedExperiment& self, nb::dict) { return OpenMS::TargetedExperiment(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def(nb::self + nb::self)
@@ -2073,6 +2141,10 @@ Get the deviations between the data pairs
         .def("apply", [](const OpenMS::TransformationDescription& self, double value) {
             return self.apply(value);
         }, "value"_a, "Apply the transformation to a value")
+
+        .def("fitModel", [](OpenMS::TransformationDescription& self, const OpenMS::String& model_type, const OpenMS::Param& params) {
+            self.fitModel(model_type, params);
+        }, "model_type"_a, "params"_a = OpenMS::Param(), "Fits a model to the data")
 
         .def_static("getModelTypes", [](nb::list result) {
             std::vector<OpenMS::String> types;
@@ -2314,22 +2386,23 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         ;
 
 
-    struct TransformationModelBSpline_Dummy {};
     // -----------------------------------------------------------------------
     // TransformationModelBSpline
     // -----------------------------------------------------------------------
-    nb::class_<TransformationModelBSpline_Dummy>(m, "TransformationModelBSpline", "OpenMS class TransformationModelBSpline")
+    nb::class_<OpenMS::TransformationModelBSpline>(m, "TransformationModelBSpline", "B-spline model for transformations")
+        .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
+        .def("evaluate", [](const OpenMS::TransformationModelBSpline& self, double value) { return self.evaluate(value); }, "value"_a)
         .def_static("getDefaultParameters", [](OpenMS::Param& params) {
             OpenMS::TransformationModelBSpline::getDefaultParameters(params);
         }, "params"_a, "Get default parameters")
         ;
 
-
-    struct TransformationModelLowess_Dummy {};
     // -----------------------------------------------------------------------
     // TransformationModelLowess
     // -----------------------------------------------------------------------
-    nb::class_<TransformationModelLowess_Dummy>(m, "TransformationModelLowess", "OpenMS class TransformationModelLowess")
+    nb::class_<OpenMS::TransformationModelLowess>(m, "TransformationModelLowess", "Lowess model for transformations")
+        .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
+        .def("evaluate", [](const OpenMS::TransformationModelLowess& self, double value) { return self.evaluate(value); }, "value"_a)
         .def_static("getDefaultParameters", [](OpenMS::Param& params) {
             OpenMS::TransformationModelLowess::getDefaultParameters(params);
         }, "params"_a, "Get default parameters")
@@ -2353,11 +2426,8 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SpectrumAccessOpenMS>(m, "SpectrumAccessOpenMS", "OpenMS class SpectrumAccessOpenMS")
         .def(nb::init<std::shared_ptr<OpenMS::MSExperiment>>(), "ms_experiment"_a)
-        .def("getSpectrumById", &OpenMS::SpectrumAccessOpenMS::getSpectrumById, "id"_a, "Get spectrum by index")
-        .def("getChromatogramById", &OpenMS::SpectrumAccessOpenMS::getChromatogramById, "id"_a, "Get chromatogram by index")
-        .def("getNrSpectra", &OpenMS::SpectrumAccessOpenMS::getNrSpectra, "Get number of spectra")
-        .def("getNrChromatograms", &OpenMS::SpectrumAccessOpenMS::getNrChromatograms, "Get number of chromatograms")
-        .def("getSpectrumMetaById", &OpenMS::SpectrumAccessOpenMS::getSpectrumMetaById, "id"_a, "Get spectrum metadata by index")
+        .def("getNrSpectra", [](const OpenMS::SpectrumAccessOpenMS& self) { return self.getNrSpectra(); }, "Get number of spectra")
+        .def("getNrChromatograms", [](const OpenMS::SpectrumAccessOpenMS& self) { return self.getNrChromatograms(); }, "Get number of chromatograms")
         ;
 
 
@@ -2368,10 +2438,8 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         .def("__init__", [](OpenMS::SpectrumAccessOpenMSInMemory* self, OpenMS::SpectrumAccessOpenMS& other) {
             new (self) OpenMS::SpectrumAccessOpenMSInMemory(other);
         }, "other"_a)
-        .def("getSpectrumById", &OpenMS::SpectrumAccessOpenMSInMemory::getSpectrumById, "id"_a)
-        .def("getChromatogramById", &OpenMS::SpectrumAccessOpenMSInMemory::getChromatogramById, "id"_a)
-        .def("getNrSpectra", &OpenMS::SpectrumAccessOpenMSInMemory::getNrSpectra)
-        .def("getNrChromatograms", &OpenMS::SpectrumAccessOpenMSInMemory::getNrChromatograms)
+        .def("getNrSpectra", [](const OpenMS::SpectrumAccessOpenMSInMemory& self) { return self.getNrSpectra(); })
+        .def("getNrChromatograms", [](const OpenMS::SpectrumAccessOpenMSInMemory& self) { return self.getNrChromatograms(); })
         ;
 
 

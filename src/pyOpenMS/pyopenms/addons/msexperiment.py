@@ -1,6 +1,7 @@
 """Addon methods for MSExperiment class."""
 
 from __future__ import annotations
+import warnings
 import numpy as np
 from . import addon
 
@@ -537,3 +538,42 @@ def get_massql_df(self, ion_mobility=False):
         ms2_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
 
     return ms1_df, ms2_df
+
+
+@addon("MSExperiment")
+def get_df(self, *args, **kwargs):
+    """Deprecated: use to_df() instead."""
+    warnings.warn("get_df() is deprecated. Use to_df() instead.",
+                  DeprecationWarning, stacklevel=2)
+    return self.to_df(*args, **kwargs)
+
+
+@addon("MSExperiment")
+def get_ion_df(self):
+    """Returns a DataFrame with RT, mz, intensity, and ion mobility columns for MS1 spectra."""
+    import pandas as pd
+    all_data = []
+    for spec in self:
+        if spec.getMSLevel() != 1:
+            continue
+        mz, inty = spec.get_peaks()
+        n = len(mz)
+        if n == 0:
+            continue
+        try:
+            im_idx, im_unit = spec.getIMData()
+        except RuntimeError:
+            continue
+        fdas = spec.getFloatDataArrays()
+        if im_idx >= len(fdas):
+            continue
+        im_data = np.asarray(fdas[im_idx].get_data())
+        if len(im_data) != n:
+            continue
+        rt_arr = np.full(n, spec.getRT())
+        data = np.column_stack([rt_arr, mz, inty, im_data])
+        all_data.append(data)
+    if not all_data:
+        return pd.DataFrame(columns=['RT', 'mz', 'inty', 'IM'])
+    result = np.vstack(all_data)
+    return pd.DataFrame(result, columns=['RT', 'mz', 'inty', 'IM'])
