@@ -34,6 +34,8 @@ NB_MODULE(_pyopenms_ml, m) {
     nb::class_<OpenMS::Math::BilinearInterpolation<double, double>>(m, "BilinearInterpolation", "OpenMS class BilinearInterpolation")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::BilinearInterpolation<double, double>&>())
+        .def("__copy__", [](const OpenMS::Math::BilinearInterpolation<double, double>& self) { return OpenMS::Math::BilinearInterpolation<double, double>(self); })
+        .def("__deepcopy__", [](const OpenMS::Math::BilinearInterpolation<double, double>& self, nb::dict) { return OpenMS::Math::BilinearInterpolation<double, double>(self); }, "memo"_a)
         .def("value", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double arg_pos_0, double arg_pos_1) { return self.value(arg_pos_0, arg_pos_1); }, "arg_pos_0"_a, "arg_pos_1"_a)
         .def("addValue", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double arg_pos_0, double arg_pos_1, double arg_value) { self.addValue(arg_pos_0, arg_pos_1, arg_value); }, "arg_pos_0"_a, "arg_pos_1"_a, "arg_value"_a)
         .def("getData", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getData(); })
@@ -105,6 +107,8 @@ LocalClustering
     nb::class_<OpenMS::Math::LinearInterpolation<double, double>>(m, "LinearInterpolation", "OpenMS class LinearInterpolation")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::LinearInterpolation<double, double>&>())
+        .def("__copy__", [](const OpenMS::Math::LinearInterpolation<double, double>& self) { return OpenMS::Math::LinearInterpolation<double, double>(self); })
+        .def("__deepcopy__", [](const OpenMS::Math::LinearInterpolation<double, double>& self, nb::dict) { return OpenMS::Math::LinearInterpolation<double, double>(self); }, "memo"_a)
         .def(nb::init<double, double>())
         .def("value", [](const OpenMS::Math::LinearInterpolation<double, double>& self, double pos) { return self.value(pos); }, "pos"_a, "Returns interpolated value at position")
         .def("addValue", [](OpenMS::Math::LinearInterpolation<double, double>& self, double pos, double value) { self.addValue(pos, value); }, "pos"_a, "value"_a, "Adds a value at the given position")
@@ -133,6 +137,8 @@ LocalClustering
     auto nonnegativeleastsquaressolver_class = nb::class_<OpenMS::NonNegativeLeastSquaresSolver>(m, "NonNegativeLeastSquaresSolver", "Wrapper for a non-negative least squares (NNLS) solver")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::NonNegativeLeastSquaresSolver &>())
+        .def("__copy__", [](const OpenMS::NonNegativeLeastSquaresSolver& self) { return OpenMS::NonNegativeLeastSquaresSolver(self); })
+        .def("__deepcopy__", [](const OpenMS::NonNegativeLeastSquaresSolver& self, nb::dict) { return OpenMS::NonNegativeLeastSquaresSolver(self); }, "memo"_a)
         .def_static("solve", [](const OpenMS::Matrix<double>& A, const OpenMS::Matrix<double>& b) {
             OpenMS::Matrix<double> x;
             auto status = OpenMS::NonNegativeLeastSquaresSolver::solve(A, b, x);
@@ -160,6 +166,8 @@ LocalClustering
     nb::class_<OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>>(m, "RANSAC", "OpenMS class RANSAC")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>&>())
+        .def("__copy__", [](const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>& self) { return OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>(self); })
+        .def("__deepcopy__", [](const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>& self, nb::dict) { return OpenMS::Math::RANSAC<OpenMS::Math::RansacModelLinear>(self); }, "memo"_a)
         .def(nb::init<OpenMS::UInt64>())
         ;
 
@@ -169,6 +177,8 @@ LocalClustering
     nb::class_<OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>>(m, "RANSACQuadratic", "OpenMS class RANSACQuadratic")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>&>())
+        .def("__copy__", [](const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>& self) { return OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>(self); })
+        .def("__deepcopy__", [](const OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>& self, nb::dict) { return OpenMS::Math::RANSAC<OpenMS::Math::RansacModelQuadratic>(self); }, "memo"_a)
         .def(nb::init<OpenMS::UInt64>())
         ;
 
@@ -193,6 +203,8 @@ LocalClustering
     nb::class_<OpenMS::Math::RansacModelLinear>(m, "RansacModelLinear", "Implementation of a linear RANSAC model fit")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::RansacModelLinear &>())
+        .def("__copy__", [](const OpenMS::Math::RansacModelLinear& self) { return OpenMS::Math::RansacModelLinear(self); })
+        .def("__deepcopy__", [](const OpenMS::Math::RansacModelLinear& self, nb::dict) { return OpenMS::Math::RansacModelLinear(self); }, "memo"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -201,6 +213,8 @@ LocalClustering
     nb::class_<OpenMS::Math::RansacModelQuadratic>(m, "RansacModelQuadratic", "Implementation of a quadratic RANSAC model fit")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Math::RansacModelQuadratic &>())
+        .def("__copy__", [](const OpenMS::Math::RansacModelQuadratic& self) { return OpenMS::Math::RansacModelQuadratic(self); })
+        .def("__deepcopy__", [](const OpenMS::Math::RansacModelQuadratic& self, nb::dict) { return OpenMS::Math::RansacModelQuadratic(self); }, "memo"_a)
         ;
 
 }

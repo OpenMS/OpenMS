@@ -106,6 +106,8 @@ NB_MODULE(_pyopenms_processing, m) {
     nb::class_<OpenMS::Deisotoper>(m, "Deisotoper", "OpenMS class Deisotoper")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Deisotoper &>())
+        .def("__copy__", [](const OpenMS::Deisotoper& self) { return OpenMS::Deisotoper(self); })
+        .def("__deepcopy__", [](const OpenMS::Deisotoper& self, nb::dict) { return OpenMS::Deisotoper(self); }, "memo"_a)
 
         .def_static("deisotopeAndSingleCharge", [](OpenMS::MSSpectrum& spectrum,
              double fragment_tolerance, bool fragment_unit_ppm,
@@ -196,6 +198,8 @@ and centroid-based distance thresholds.
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FeatureOverlapFilter &>())
+        .def("__copy__", [](const OpenMS::FeatureOverlapFilter& self) { return OpenMS::FeatureOverlapFilter(self); })
+        .def("__deepcopy__", [](const OpenMS::FeatureOverlapFilter& self, nb::dict) { return OpenMS::FeatureOverlapFilter(self); }, "memo"_a)
         ;
     // MergeIntensityMode enum nested under FeatureOverlapFilter
     nb::enum_<OpenMS::MergeIntensityMode>(featureoverlapfilter_class, "MergeIntensityMode")
@@ -416,6 +420,8 @@ If you want a constant model, set slope to zero in addition
     nb::class_<OpenMS::PrecursorCorrection>(m, "PrecursorCorrection", "This class provides methods for precursor correction")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::PrecursorCorrection &>())
+        .def("__copy__", [](const OpenMS::PrecursorCorrection& self) { return OpenMS::PrecursorCorrection(self); })
+        .def("__deepcopy__", [](const OpenMS::PrecursorCorrection& self, nb::dict) { return OpenMS::PrecursorCorrection(self); }, "memo"_a)
         .def_static("getPrecursors", [](const OpenMS::MSExperiment& exp) { std::vector<OpenMS::Precursor> precursors; std::vector<double> precursors_rt; std::vector<size_t> precursor_scan_index; OpenMS::PrecursorCorrection::getPrecursors(exp, precursors, precursors_rt, precursor_scan_index); return nb::make_tuple(precursors, precursors_rt, precursor_scan_index); }, "exp"_a)
         .def_static("writeHist", [](const OpenMS::String& out_csv, const std::vector<double>& delta_mzs, const std::vector<double>& mzs, const std::vector<double>& rts) { return OpenMS::PrecursorCorrection::writeHist(out_csv, delta_mzs, mzs, rts); }, "out_csv"_a, "delta_mzs"_a, "mzs"_a, "rts"_a)
         .def_static("correctToNearestMS1Peak", [](OpenMS::MSExperiment& exp, double mz_tolerance, bool ppm) { std::vector<double> delta_mzs, mzs, rts; auto result = OpenMS::PrecursorCorrection::correctToNearestMS1Peak(exp, mz_tolerance, ppm, delta_mzs, mzs, rts); return nb::make_tuple(result, delta_mzs, mzs, rts); }, "exp"_a, "mz_tolerance"_a, "ppm"_a)
@@ -429,6 +435,8 @@ If you want a constant model, set slope to zero in addition
     nb::class_<OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMeanIterative", "OpenMS class SignalToNoiseEstimatorMeanIterative")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>&>())
+        .def("__copy__", [](const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self) { return OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>(self); })
+        .def("__deepcopy__", [](const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, nb::dict) { return OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>(self); }, "memo"_a)
         .def("init", [](OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, const OpenMS::MSSpectrum& c) { self.init(c); }, "c"_a, "Initialize the estimator with the given spectrum")
         .def("getSignalToNoise", [](const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, OpenMS::Size index) { return self.getSignalToNoise(index); }, "index"_a, "Returns the signal to noise ratio for the given index")
         .def("setParameters", [](OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
@@ -442,6 +450,8 @@ If you want a constant model, set slope to zero in addition
     auto signaltonoiseestimatormedian_class = nb::class_<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMedian", "OpenMS class SignalToNoiseEstimatorMedian")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>&>())
+        .def("__copy__", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self) { return OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>(self); })
+        .def("__deepcopy__", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, nb::dict) { return OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>(self); }, "memo"_a)
         .def("init", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, const OpenMS::MSSpectrum& c) { self.init(c); }, "c"_a, "Initialize the estimator with the given spectrum")
         .def("getSignalToNoise", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, OpenMS::Size index) { return self.getSignalToNoise(index); }, "index"_a, "Returns the signal to noise ratio for the given index")
         .def("getSparseWindowPercent", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self) { return self.getSparseWindowPercent(); }, "Returns the percentage of windows that are sparse")
@@ -457,6 +467,8 @@ If you want a constant model, set slope to zero in addition
         "SignalToNoiseEstimatorMedian specialized for MSChromatogram data")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>&>())
+        .def("__copy__", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self) { return OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>(self); })
+        .def("__deepcopy__", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, nb::dict) { return OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>(self); }, "memo"_a)
         .def("init", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, const OpenMS::MSChromatogram& c) { self.init(c); }, "c"_a, "Initialize the estimator with the given chromatogram")
         .def("getSignalToNoise", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, OpenMS::Size index) { return self.getSignalToNoise(index); }, "index"_a, "Returns the signal to noise ratio for the given index")
         .def("setParameters", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
