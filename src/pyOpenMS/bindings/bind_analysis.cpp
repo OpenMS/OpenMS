@@ -632,7 +632,7 @@ Useful to update the matrix with user isotope correction values
 )doc")
         ;
     // ITRAQ_TYPES enum nested under ItraqConstants
-    auto itraq_types_enum = nb::enum_<OpenMS::ItraqConstants::ITRAQ_TYPES>(itraqconstants_class, "ITRAQ_TYPES")
+    auto itraq_types_enum = nb::enum_<OpenMS::ItraqConstants::ITRAQ_TYPES>(itraqconstants_class, "ITRAQ_TYPES", "Enum for iTRAQ/TMT channel types")
         .value("FOURPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::FOURPLEX)
         .value("EIGHTPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::EIGHTPLEX)
         .value("TMT_SIXPLEX", OpenMS::ItraqConstants::ITRAQ_TYPES::TMT_SIXPLEX)
@@ -1875,7 +1875,7 @@ score types and provides utility methods for score type conversion, comparison, 
             "Check if a score name is a known score type after normalization")
         ;
     // IDType enum nested under Scores
-    nb::enum_<OpenMS::Scores::IDType>(scores_class, "IDType")
+    nb::enum_<OpenMS::Scores::IDType>(scores_class, "IDType", "Enum for identification score types")
         .value("RAW", OpenMS::Scores::IDType::RAW)
         .value("RAW_EVAL", OpenMS::Scores::IDType::RAW_EVAL)
         .value("PP", OpenMS::Scores::IDType::PP)
