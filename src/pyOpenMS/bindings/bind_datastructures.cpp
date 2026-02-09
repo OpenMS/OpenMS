@@ -27,6 +27,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
 #include <OpenMS/MATH/STATISTICS/RankData.h>
@@ -1154,5 +1155,17 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::self < nb::self)
         .def("substr", [](const OpenMS::StringView& self, size_t start, size_t length) { return self.substr(start, length); }, "start"_a, "length"_a, "Returns a substring view")
         ;
+
+    // -----------------------------------------------------------------------
+    // Math PPM/mass functions
+    // -----------------------------------------------------------------------
+    m.def("getPPM", [](double mz_obs, double mz_ref) { return OpenMS::Math::getPPM(mz_obs, mz_ref); },
+        "mz_obs"_a, "mz_ref"_a, "Compute parts-per-million of two m/z values (can be negative)");
+    m.def("getPPMAbs", [](double mz_obs, double mz_ref) { return OpenMS::Math::getPPMAbs(mz_obs, mz_ref); },
+        "mz_obs"_a, "mz_ref"_a, "Compute absolute parts-per-million of two m/z values (always >= 0)");
+    m.def("ppmToMass", [](double ppm, double mz_ref) { return OpenMS::Math::ppmToMass(ppm, mz_ref); },
+        "ppm"_a, "mz_ref"_a, "Compute the mass diff in Th, given a ppm value and a reference point");
+    m.def("ppmToMassAbs", [](double ppm, double mz_ref) { return OpenMS::Math::ppmToMassAbs(ppm, mz_ref); },
+        "ppm"_a, "mz_ref"_a, "Compute the absolute mass diff in Th, given a ppm value and a reference point");
 
 }

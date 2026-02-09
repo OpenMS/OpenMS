@@ -202,6 +202,33 @@ and centroid-based distance thresholds.
         .value("SUM", OpenMS::MergeIntensityMode::SUM)
         .value("MAX", OpenMS::MergeIntensityMode::MAX)
         ;
+    // FeatureOverlapMode enum nested under FeatureOverlapFilter
+    nb::enum_<OpenMS::FeatureOverlapMode>(featureoverlapfilter_class, "FeatureOverlapMode")
+        .value("CONVEX_HULL", OpenMS::FeatureOverlapMode::CONVEX_HULL)
+        .value("TRACE_LEVEL", OpenMS::FeatureOverlapMode::TRACE_LEVEL)
+        .value("CENTROID_BASED", OpenMS::FeatureOverlapMode::CENTROID_BASED)
+        ;
+    // Static methods (after enum registration)
+    featureoverlapfilter_class
+        .def_static("mergeOverlappingFeatures", [](OpenMS::FeatureMap& feature_map, double max_rt_diff, double max_mz_diff, bool require_same_charge, bool require_same_im, OpenMS::MergeIntensityMode intensity_mode, bool write_meta_values) {
+            OpenMS::FeatureOverlapFilter::mergeOverlappingFeatures(feature_map, max_rt_diff, max_mz_diff, require_same_charge, require_same_im, intensity_mode, write_meta_values);
+        }, "feature_map"_a, "max_rt_diff"_a = 5.0, "max_mz_diff"_a = 0.05, "require_same_charge"_a = true, "require_same_im"_a = false, "intensity_mode"_a = OpenMS::MergeIntensityMode::SUM, "write_meta_values"_a = true,
+            "Merge overlapping features based on centroid distances")
+        .def_static("mergeFAIMSFeatures", [](OpenMS::FeatureMap& feature_map, double max_rt_diff, double max_mz_diff) {
+            OpenMS::FeatureOverlapFilter::mergeFAIMSFeatures(feature_map, max_rt_diff, max_mz_diff);
+        }, "feature_map"_a, "max_rt_diff"_a = 5.0, "max_mz_diff"_a = 0.05,
+            "Merge FAIMS features that represent the same analyte at different CV values")
+        ;
+
+    // Free function aliases for FeatureOverlapFilter
+    m.def("mergeOverlappingFeatures", [](OpenMS::FeatureMap& feature_map, double max_rt_diff, double max_mz_diff, bool require_same_charge, bool require_same_im, OpenMS::MergeIntensityMode intensity_mode, bool write_meta_values) {
+        OpenMS::FeatureOverlapFilter::mergeOverlappingFeatures(feature_map, max_rt_diff, max_mz_diff, require_same_charge, require_same_im, intensity_mode, write_meta_values);
+    }, "feature_map"_a, "max_rt_diff"_a = 5.0, "max_mz_diff"_a = 0.05, "require_same_charge"_a = true, "require_same_im"_a = false, "intensity_mode"_a = OpenMS::MergeIntensityMode::SUM, "write_meta_values"_a = true,
+        "Merge overlapping features based on centroid distances");
+    m.def("mergeFAIMSFeatures", [](OpenMS::FeatureMap& feature_map, double max_rt_diff, double max_mz_diff) {
+        OpenMS::FeatureOverlapFilter::mergeFAIMSFeatures(feature_map, max_rt_diff, max_mz_diff);
+    }, "feature_map"_a, "max_rt_diff"_a = 5.0, "max_mz_diff"_a = 0.05,
+        "Merge FAIMS features that represent the same analyte at different CV values");
 
     // -----------------------------------------------------------------------
     // IDFilter
@@ -412,7 +439,7 @@ If you want a constant model, set slope to zero in addition
     // -----------------------------------------------------------------------
     // SignalToNoiseEstimatorMedian
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMedian", "OpenMS class SignalToNoiseEstimatorMedian")
+    auto signaltonoiseestimatormedian_class = nb::class_<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMedian", "OpenMS class SignalToNoiseEstimatorMedian")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>&>())
         .def("init", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, const OpenMS::MSSpectrum& c) { self.init(c); }, "c"_a, "Initialize the estimator with the given spectrum")
@@ -422,7 +449,6 @@ If you want a constant model, set slope to zero in addition
         .def("setParameters", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
         .def("getParameters", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         ;
-
 
     // -----------------------------------------------------------------------
     // SignalToNoiseEstimatorMedianChrom (chromatogram version)
