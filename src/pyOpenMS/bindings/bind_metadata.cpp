@@ -131,6 +131,10 @@ run.setPeptideIdentifications(my_peptide_ids)
         .def_static("fromIdentifications", [](const std::vector<OpenMS::ProteinIdentification>& proteins) {
             return OpenMS::ExperimentalDesign::fromIdentifications(proteins);
         }, "proteins"_a, "Extract experimental design from identifications")
+        .def("getMSFileSection", [](const OpenMS::ExperimentalDesign& self) { return self.getMSFileSection(); }, "Returns the MS file section")
+        .def("setMSFileSection", [](OpenMS::ExperimentalDesign& self, const OpenMS::ExperimentalDesign::MSFileSection& msfile_section) { self.setMSFileSection(msfile_section); }, "msfile_section"_a, "Sets the MS file section")
+        .def("getSampleSection", [](const OpenMS::ExperimentalDesign& self) { return self.getSampleSection(); }, "Returns the sample section")
+        .def("setSampleSection", [](OpenMS::ExperimentalDesign& self, const OpenMS::ExperimentalDesign::SampleSection& sample_section) { self.setSampleSection(sample_section); }, "sample_section"_a, "Sets the sample section")
         ;
 
     // -----------------------------------------------------------------------
@@ -431,6 +435,22 @@ This class supports direct iteration in Python.
         .def("__len__", [](const OpenMS::PeptideIdentificationList& self) {
             return self.size();
         })
+        .def("__iter__", [](OpenMS::PeptideIdentificationList& self) {
+            return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "PeptideIdentificationList_iter", self.begin(), self.end());
+        })
+        .def("__setitem__", [](OpenMS::PeptideIdentificationList& self, size_t i, const OpenMS::PeptideIdentification& val) {
+            if (i >= self.size()) throw nb::index_error();
+            self[i] = val;
+        }, "i"_a, "val"_a)
+        .def("at", [](OpenMS::PeptideIdentificationList& self, size_t i) -> OpenMS::PeptideIdentification& {
+            return self.at(i);
+        }, "i"_a, nb::rv_policy::reference_internal, "Returns reference to element at index (with bounds checking)")
+        .def("front", [](OpenMS::PeptideIdentificationList& self) -> OpenMS::PeptideIdentification& {
+            return self.front();
+        }, nb::rv_policy::reference_internal, "Returns reference to first element")
+        .def("back", [](OpenMS::PeptideIdentificationList& self) -> OpenMS::PeptideIdentification& {
+            return self.back();
+        }, nb::rv_policy::reference_internal, "Returns reference to last element")
         ;
 
     // -----------------------------------------------------------------------
@@ -572,24 +592,86 @@ The optional interpretation part uses ProForma proteoform-ion notation.
         ;
 
 
-    struct SpectrumMetaDataLookup_Dummy {};
-
-    auto smld_addMissingRTs = [](OpenMS::PeptideIdentificationList& peptides, const OpenMS::MSExperiment& exp) -> bool {
-        return OpenMS::SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptides, exp);
-    };
-
-    auto smld_addMissingRefs = [](OpenMS::PeptideIdentificationList& peptides,
-            const std::string& filename, bool stop_on_error, bool override_spectra_data, bool override_spectra_references) -> bool {
-        std::vector<OpenMS::ProteinIdentification> proteins;
-        return OpenMS::SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, stop_on_error, override_spectra_data, override_spectra_references, proteins);
-    };
-
     // -----------------------------------------------------------------------
     // SpectrumMetaDataLookup
     // -----------------------------------------------------------------------
-    nb::class_<SpectrumMetaDataLookup_Dummy>(m, "SpectrumMetaDataLookup", "OpenMS class SpectrumMetaDataLookup")
-        .def_static("addMissingRTsToPeptideIDs", smld_addMissingRTs, "peptides"_a, "exp"_a, "Add missing RTs to peptide IDs")
-        .def_static("addMissingSpectrumReferences", smld_addMissingRefs, "peptides"_a, "filename"_a, "stop_on_error"_a = false, "override_spectra_data"_a = false, "override_spectra_references"_a = false, "Add missing spectrum references")
+    nb::class_<OpenMS::SpectrumMetaDataLookup, OpenMS::SpectrumLookup>(m, "SpectrumMetaDataLookup",
+        R"doc(Helper class for looking up spectrum meta data.
+
+Provides functions for extracting and looking up meta data of spectra,
+including retention time, precursor m/z, MS level, scan number, and native ID.
+Inherits lookup-by-RT, lookup-by-native-ID, and lookup-by-index from SpectrumLookup.
+)doc")
+        .def(nb::init<>())
+        .def("readSpectra", [](OpenMS::SpectrumMetaDataLookup& self, const OpenMS::MSExperiment& spectra, const OpenMS::String& scan_regexp, bool get_precursor_rt) {
+            self.readSpectra(spectra, scan_regexp, get_precursor_rt);
+        }, "spectra"_a, "scan_regexp"_a = OpenMS::SpectrumLookup::default_scan_regexp, "get_precursor_rt"_a = false,
+            R"doc(Read spectra and store their meta data for later look-up.
+
+:param spectra: MSExperiment containing the spectra
+:param scan_regexp: Regular expression for matching scan numbers in spectrum native IDs
+:param get_precursor_rt: Assign precursor retention times?
+)doc")
+        .def("findByNativeID", [](const OpenMS::SpectrumMetaDataLookup& self, const OpenMS::String& native_id) {
+            return self.findByNativeID(native_id);
+        }, "native_id"_a,
+            R"doc(Look up spectrum by native ID.
+
+:param native_id: Native ID to look up
+:returns: Index of the spectrum that matched
+)doc")
+        .def("findByRT", [](const OpenMS::SpectrumMetaDataLookup& self, double rt) {
+            return self.findByRT(rt);
+        }, "rt"_a,
+            R"doc(Look up spectrum by retention time (RT).
+
+:param rt: Retention time to look up
+:returns: Index of the spectrum that matched
+)doc")
+        .def("findByIndex", [](const OpenMS::SpectrumMetaDataLookup& self, size_t index, bool count_from_one) {
+            return self.findByIndex(index, count_from_one);
+        }, "index"_a, "count_from_one"_a = false,
+            R"doc(Look up spectrum by index (position in the vector of spectra).
+
+:param index: Index to look up
+:param count_from_one: Do indexes start counting at one (default: zero)?
+:returns: Index of the spectrum that matched
+)doc")
+        .def("findByScanNumber", [](const OpenMS::SpectrumMetaDataLookup& self, size_t scan_number) {
+            return self.findByScanNumber(scan_number);
+        }, "scan_number"_a,
+            R"doc(Look up spectrum by scan number (extracted from the native ID).
+
+:param scan_number: Scan number to look up
+:returns: Index of the spectrum that matched
+)doc")
+        .def("findByReference", [](const OpenMS::SpectrumMetaDataLookup& self, const OpenMS::String& spectrum_ref) {
+            return self.findByReference(spectrum_ref);
+        }, "spectrum_ref"_a,
+            R"doc(Look up spectrum by reference string.
+
+:param spectrum_ref: Spectrum reference to parse
+:returns: Index of the spectrum that matched
+)doc")
+        .def("addReferenceFormat", [](OpenMS::SpectrumMetaDataLookup& self, const OpenMS::String& regexp) {
+            self.addReferenceFormat(regexp);
+        }, "regexp"_a,
+            R"doc(Register a possible format for a spectrum reference.
+
+:param regexp: Regular expression defining the format
+)doc")
+        .def("empty", [](const OpenMS::SpectrumMetaDataLookup& self) { return self.empty(); }, "Check if any spectra were set")
+        .def("setSpectraDataRef", [](OpenMS::SpectrumMetaDataLookup& self, const OpenMS::String& spectra_data) {
+            self.setSpectraDataRef(spectra_data);
+        }, "spectra_data"_a, "Set spectra data reference (filename)")
+        .def_static("addMissingRTsToPeptideIDs", [](OpenMS::PeptideIdentificationList& peptides, const OpenMS::MSExperiment& exp) -> bool {
+            return OpenMS::SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptides, exp);
+        }, "peptides"_a, "exp"_a, "Add missing RTs to peptide IDs")
+        .def_static("addMissingSpectrumReferences", [](OpenMS::PeptideIdentificationList& peptides,
+                const std::string& filename, bool stop_on_error, bool override_spectra_data, bool override_spectra_references) -> bool {
+            std::vector<OpenMS::ProteinIdentification> proteins;
+            return OpenMS::SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, stop_on_error, override_spectra_data, override_spectra_references, proteins);
+        }, "peptides"_a, "filename"_a, "stop_on_error"_a = false, "override_spectra_data"_a = false, "override_spectra_references"_a = false, "Add missing spectrum references")
         ;
 
 }

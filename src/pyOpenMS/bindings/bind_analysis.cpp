@@ -30,12 +30,15 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
+// #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
+// #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMBatchFeatureSelector.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeaturePicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
@@ -237,6 +240,7 @@ the transformation model used for concentration calculation
         .def("setMasstraceIntensities", [](OpenMS::AccurateMassSearchResult& self, const std::vector<double>& p0) { return self.setMasstraceIntensities(p0); })
         .def("getIsotopesSimScore", [](const OpenMS::AccurateMassSearchResult& self) { return self.getIsotopesSimScore(); })
         .def("setIsotopesSimScore", [](OpenMS::AccurateMassSearchResult& self, const double& p0) { return self.setIsotopesSimScore(p0); })
+        .def("setIndividualIntensities", [](OpenMS::AccurateMassSearchResult& self, const std::vector<double>& intensities) { self.setIndividualIntensities(intensities); }, "intensities"_a, "Sets the individual intensities")
         ;
 
     // -----------------------------------------------------------------------
@@ -290,6 +294,7 @@ CVTermList
         .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::Compound& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
         .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::Compound& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
         .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::Compound& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
+        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::Compound& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self != nb::self)
         .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::Compound& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
         .def("empty", [](const OpenMS::TargetedExperimentHelper::Compound& self) { return self.empty(); })
@@ -1508,6 +1513,7 @@ CVTermList
         .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::Peptide& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
         .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::Peptide& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
         .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::Peptide& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
+        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::Peptide& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self != nb::self)
         .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::Peptide& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
         .def("empty", [](const OpenMS::TargetedExperimentHelper::Peptide& self) { return self.empty(); })
@@ -2050,6 +2056,15 @@ production ions
         .def("getTargetCVTerms", [](const OpenMS::TargetedExperiment& self) -> const OpenMS::CVTermList & { return self.getTargetCVTerms(); }, nb::rv_policy::reference_internal)
         .def("addTargetCVTerm", [](OpenMS::TargetedExperiment& self, const OpenMS::CVTerm& cv_term) { return self.addTargetCVTerm(cv_term); }, "cv_term"_a)
         .def("setTargetMetaValue", [](OpenMS::TargetedExperiment& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setTargetMetaValue(name, value); }, "name"_a, "value"_a)
+        .def("setContacts", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::Contact>& contacts) { return self.setContacts(contacts); }, "contacts"_a)
+        .def("getContacts", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Contact> & { return self.getContacts(); }, nb::rv_policy::reference_internal)
+        .def("addContact", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::Contact& contact) { return self.addContact(contact); }, "contact"_a)
+        .def("setPublications", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::Publication>& publications) { return self.setPublications(publications); }, "publications"_a)
+        .def("getPublications", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Publication> & { return self.getPublications(); }, nb::rv_policy::reference_internal)
+        .def("addPublication", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::Publication& publication) { return self.addPublication(publication); }, "publication"_a)
+        .def("setInstruments", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::TargetedExperimentHelper::Instrument>& instruments) { return self.setInstruments(instruments); }, "instruments"_a)
+        .def("getInstruments", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::TargetedExperimentHelper::Instrument> & { return self.getInstruments(); }, nb::rv_policy::reference_internal)
+        .def("addInstrument", [](OpenMS::TargetedExperiment& self, const OpenMS::TargetedExperimentHelper::Instrument& instrument) { return self.addInstrument(instrument); }, "instrument"_a)
         .def("setSoftware", [](OpenMS::TargetedExperiment& self, const std::vector<OpenMS::Software>& software) { return self.setSoftware(software); }, "software"_a)
         .def("getSoftware", [](const OpenMS::TargetedExperiment& self) -> const std::vector<OpenMS::Software> & { return self.getSoftware(); }, nb::rv_policy::reference_internal)
         .def("addSoftware", [](OpenMS::TargetedExperiment& self, const OpenMS::Software& software) { return self.addSoftware(software); }, "software"_a)
@@ -2430,6 +2445,8 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         .def("getNrChromatograms", [](const OpenMS::SpectrumAccessOpenMS& self) { return self.getNrChromatograms(); }, "Get number of chromatograms")
         .def("getSpectrumById", [](OpenMS::SpectrumAccessOpenMS& self, int id) { return self.getSpectrumById(id); }, "id"_a, "Get spectrum by index")
         .def("getChromatogramById", [](OpenMS::SpectrumAccessOpenMS& self, int id) { return self.getChromatogramById(id); }, "id"_a, "Get chromatogram by index")
+        .def("getChromatogramNativeID", [](const OpenMS::SpectrumAccessOpenMS& self, int id) { return self.getChromatogramNativeID(id); }, "id"_a, "Returns the native ID of the chromatogram")
+        .def("getSpectraByRT", [](const OpenMS::SpectrumAccessOpenMS& self, double RT, double deltaRT) { return self.getSpectraByRT(RT, deltaRT); }, "RT"_a, "deltaRT"_a, "Returns spectra indices within RT range")
         ;
 
 
@@ -2444,6 +2461,8 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         .def("getNrChromatograms", [](const OpenMS::SpectrumAccessOpenMSInMemory& self) { return self.getNrChromatograms(); })
         .def("getSpectrumById", [](OpenMS::SpectrumAccessOpenMSInMemory& self, int id) { return self.getSpectrumById(id); }, "id"_a, "Get spectrum by index")
         .def("getChromatogramById", [](OpenMS::SpectrumAccessOpenMSInMemory& self, int id) { return self.getChromatogramById(id); }, "id"_a, "Get chromatogram by index")
+        .def("getChromatogramNativeID", [](const OpenMS::SpectrumAccessOpenMSInMemory& self, int id) { return self.getChromatogramNativeID(id); }, "id"_a, "Returns the native ID of the chromatogram")
+        .def("getSpectraByRT", [](const OpenMS::SpectrumAccessOpenMSInMemory& self, double RT, double deltaRT) { return self.getSpectraByRT(RT, deltaRT); }, "RT"_a, "deltaRT"_a, "Returns spectra indices within RT range")
         ;
 
 
@@ -2489,5 +2508,30 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             "spectrum_merge_method_type"_a, "use_ms1_ion_mobility"_a,
             "apply_im_peak_picking"_a)
         ;
+
+
+    // -----------------------------------------------------------------------
+    // TransformationModelInterpolated
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::TransformationModelInterpolated>(m, "TransformationModelInterpolated",
+        R"doc(
+Interpolation model for transformations
+
+Between the data points, the interpolation uses the neighboring points.
+Supports linear, cspline, and akima interpolation methods.
+TransformationModel
+)doc")
+        .def(nb::init<const std::vector<OpenMS::TransformationModel::DataPoint>&, const OpenMS::Param&>(), "data"_a, "params"_a)
+        .def("evaluate", [](const OpenMS::TransformationModelInterpolated& self, double value) { return self.evaluate(value); }, "value"_a)
+        .def_static("getDefaultParameters", []() {
+            OpenMS::Param params;
+            OpenMS::TransformationModelInterpolated::getDefaultParameters(params);
+            return params;
+        }, "Get default parameters")
+        ;
+
+    // SpectrumAccessOpenMSCached, SpectrumAccessQuadMZTransforming: cannot bind
+    // in analysis because they inherit from ISpectrumAccess/CachedmzML which
+    // are not bound as nanobind base classes. Mark as xfail in tests.
 
 }
