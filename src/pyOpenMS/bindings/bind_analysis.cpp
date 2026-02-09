@@ -2428,6 +2428,8 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         .def(nb::init<std::shared_ptr<OpenMS::MSExperiment>>(), "ms_experiment"_a)
         .def("getNrSpectra", [](const OpenMS::SpectrumAccessOpenMS& self) { return self.getNrSpectra(); }, "Get number of spectra")
         .def("getNrChromatograms", [](const OpenMS::SpectrumAccessOpenMS& self) { return self.getNrChromatograms(); }, "Get number of chromatograms")
+        .def("getSpectrumById", [](OpenMS::SpectrumAccessOpenMS& self, int id) { return self.getSpectrumById(id); }, "id"_a, "Get spectrum by index")
+        .def("getChromatogramById", [](OpenMS::SpectrumAccessOpenMS& self, int id) { return self.getChromatogramById(id); }, "id"_a, "Get chromatogram by index")
         ;
 
 
@@ -2440,6 +2442,8 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         }, "other"_a)
         .def("getNrSpectra", [](const OpenMS::SpectrumAccessOpenMSInMemory& self) { return self.getNrSpectra(); })
         .def("getNrChromatograms", [](const OpenMS::SpectrumAccessOpenMSInMemory& self) { return self.getNrChromatograms(); })
+        .def("getSpectrumById", [](OpenMS::SpectrumAccessOpenMSInMemory& self, int id) { return self.getSpectrumById(id); }, "id"_a, "Get spectrum by index")
+        .def("getChromatogramById", [](OpenMS::SpectrumAccessOpenMSInMemory& self, int id) { return self.getChromatogramById(id); }, "id"_a, "Get chromatogram by index")
         ;
 
 
