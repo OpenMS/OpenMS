@@ -12,6 +12,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
@@ -502,6 +503,7 @@ The elements are initialized with data from IUPAC tables.
         }, "Returns the formula as a string")
         .def("__iadd__", [](OpenMS::EmpiricalFormula& self, const OpenMS::EmpiricalFormula& rhs) -> OpenMS::EmpiricalFormula& { return self += rhs; }, "rhs"_a, "In-place addition of empirical formulas", nb::rv_policy::reference_internal)
         .def("getConditionalFragmentIsotopeDist", [](const OpenMS::EmpiricalFormula& self, const OpenMS::EmpiricalFormula& precursor, const std::set<unsigned int>& precursor_isotopes, const OpenMS::CoarseIsotopePatternGenerator& method) { return self.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, method); }, "precursor"_a, "precursor_isotopes"_a, "method"_a, "Returns the conditional fragment isotope distribution")
+        .def("__isub__", [](OpenMS::EmpiricalFormula& self, const OpenMS::EmpiricalFormula& rhs) -> OpenMS::EmpiricalFormula& { return self -= rhs; }, "rhs"_a, "In-place subtraction of empirical formulas", nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -536,6 +538,16 @@ By returning only references into the original string this is very fast
 :return: Number of discarded digestion products (which are not matching length restrictions)
 )doc")
         .def("countInternalCleavageSites", [](const OpenMS::EnzymaticDigestion& self, const OpenMS::String& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
+        .def("digestUnmodified", [](const OpenMS::EnzymaticDigestion& self, const std::string& sequence_str, size_t min_length, size_t max_length) {
+            OpenMS::StringView sequence(sequence_str);
+            std::vector<OpenMS::StringView> output;
+            OpenMS::Size discarded = self.digestUnmodified(sequence, output, min_length, max_length);
+            // Convert StringViews to strings for Python
+            std::vector<std::string> result;
+            result.reserve(output.size());
+            for (const auto& sv : output) result.push_back(std::string(sv.getString()));
+            return nb::make_tuple(result, discarded);
+        }, "sequence"_a, "min_length"_a = 1, "max_length"_a = 0, "Digest unmodified sequence, returns (products, num_discarded)")
         ;
     // Specificity enum nested under EnzymaticDigestion
     nb::enum_<OpenMS::EnzymaticDigestion::Specificity>(enzymaticdigestion_class, "Specificity")
@@ -1092,6 +1104,8 @@ Generate theoretical MS/MS spectrum for a Peptidoform. ion_types uses chars a,b,
         .def_static("generateSpectrumIon", [](const OpenMS::ProForma::PeptidoformIon& pfi, int min_charge, int max_charge, const std::string& ion_types, bool add_losses, bool add_metainfo) { return OpenMS::ProForma::generateSpectrum(pfi, min_charge, max_charge, ion_types, add_losses, add_metainfo); }, "pfi"_a, "min_charge"_a, "max_charge"_a, "ion_types"_a, "add_losses"_a, "add_metainfo"_a, "Generate theoretical MS/MS spectrum for a PeptidoformIon (supports cross-linked peptides). ion_types uses chars a,b,c,x,y,z for ion series, M for precursor, I for immonium")
         .def_static("peptidoformToJSON", [](const OpenMS::ProForma::Peptidoform& pf) { return OpenMS::ProForma::toJSON(pf); }, "pf"_a, "Convert Peptidoform to JSON string representation")
         .def_static("peptidoformIonToJSON", [](const OpenMS::ProForma::PeptidoformIon& pfi) { return OpenMS::ProForma::toJSON(pfi); }, "pfi"_a, "Convert PeptidoformIon to JSON string representation")
+        .def_static("toJSON", [](const OpenMS::ProForma::Peptidoform& pf) { return OpenMS::ProForma::toJSON(pf); }, "pf"_a, "Convert Peptidoform to JSON string")
+        .def_static("toJSONIon", [](const OpenMS::ProForma::PeptidoformIon& pfi) { return OpenMS::ProForma::toJSON(pfi); }, "pfi"_a, "Convert PeptidoformIon to JSON string")
         ;
     // WriteMode enum nested under ProForma
     nb::enum_<OpenMS::ProForma::WriteMode>(proforma_class, "WriteMode")
@@ -1248,6 +1262,15 @@ print(len(result_digest_unmodified)) # 42 peptides
         .def("isValidProduct", nb::overload_cast<const OpenMS::String&, int, int, bool, bool, bool>(&OpenMS::ProteaseDigestion::isValidProduct, nb::const_),
             "protein"_a, "pep_pos"_a, "pep_length"_a, "ignore_missed_cleavages"_a = true, "allow_nterm_protein_cleavage"_a = false, "allow_random_asp_pro_cleavage"_a = false,
             "Check if peptide is a valid digestion product of protein (String version)")
+        .def("digestUnmodified", [](const OpenMS::ProteaseDigestion& self, const std::string& sequence_str, size_t min_length, size_t max_length) {
+            OpenMS::StringView sequence(sequence_str);
+            std::vector<OpenMS::StringView> output;
+            OpenMS::Size discarded = self.digestUnmodified(sequence, output, min_length, max_length);
+            std::vector<std::string> result;
+            result.reserve(output.size());
+            for (const auto& sv : output) result.push_back(std::string(sv.getString()));
+            return nb::make_tuple(result, discarded);
+        }, "sequence"_a, "min_length"_a = 1, "max_length"_a = 0, "Digest unmodified sequence, returns (products, num_discarded)")
         ;
 
     // -----------------------------------------------------------------------
@@ -1326,6 +1349,15 @@ By returning only references into the original string this is very fast
             self.digest(rna, output, min_length, max_length);
             return output;
         }, "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Digest an RNA sequence and return the fragments")
+        .def("digestUnmodified", [](const OpenMS::RNaseDigestion& self, const std::string& sequence_str, size_t min_length, size_t max_length) {
+            OpenMS::StringView sequence(sequence_str);
+            std::vector<OpenMS::StringView> output;
+            OpenMS::Size discarded = self.digestUnmodified(sequence, output, min_length, max_length);
+            std::vector<std::string> result;
+            result.reserve(output.size());
+            for (const auto& sv : output) result.push_back(std::string(sv.getString()));
+            return nb::make_tuple(result, discarded);
+        }, "sequence"_a, "min_length"_a = 1, "max_length"_a = 0, "Digest unmodified sequence, returns (products, num_discarded)")
         ;
 
     // -----------------------------------------------------------------------
@@ -1724,6 +1756,8 @@ the fixed and variable modifications given to the constructor
         .def("setThreePrimeMod", [](OpenMS::NASequence& self, const OpenMS::Ribonucleotide* mod) { self.setThreePrimeMod(mod); }, "mod"_a, "Sets the 3' modification")
         .def("hasFivePrimeMod", &OpenMS::NASequence::hasFivePrimeMod, "Returns true if the sequence has a 5' modification")
         .def("hasThreePrimeMod", &OpenMS::NASequence::hasThreePrimeMod, "Returns true if the sequence has a 3' modification")
+        .def("getSequence", [](const OpenMS::NASequence& self) { return self.getSequence(); }, nb::rv_policy::reference_internal, "Returns the sequence of ribonucleotides")
+        .def("setSequence", [](OpenMS::NASequence& self, const std::vector<const OpenMS::Ribonucleotide*>& seq) { self.setSequence(seq); }, "seq"_a, "Sets the sequence of ribonucleotides")
         ;
 
     // NASFragmentType enum nested under NASequence

@@ -54,10 +54,13 @@ NB_MODULE(_pyopenms_processing, m) {
         .def("setActive", [](OpenMS::DataFilters& self, bool is_active) { return self.setActive(is_active); }, "is_active"_a)
         .def("isActive", [](const OpenMS::DataFilters& self) { return self.isActive(); })
         .def("__len__", [](OpenMS::DataFilters& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::DataFilters& self, size_t i) -> const OpenMS::DataFilters::DataFilter & { 
+        .def("__getitem__", [](OpenMS::DataFilters& self, size_t i) -> const OpenMS::DataFilters::DataFilter & {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, nb::rv_policy::reference_internal)
+        .def("passes", [](const OpenMS::DataFilters& self, const OpenMS::Feature& feature) { return self.passes(feature); }, "feature"_a, "Check if a Feature passes the filters")
+        .def("passes", [](const OpenMS::DataFilters& self, const OpenMS::ConsensusFeature& consensus_feature) { return self.passes(consensus_feature); }, "consensus_feature"_a, "Check if a ConsensusFeature passes the filters")
+        .def("passes", [](const OpenMS::DataFilters& self, const OpenMS::MSSpectrum& spectrum, size_t peak_index) { return self.passes(spectrum, peak_index); }, "spectrum"_a, "peak_index"_a, "Check if a peak in a spectrum passes the filters")
         ;
     // FilterType enum nested under DataFilters
     nb::enum_<OpenMS::DataFilters::FilterType>(datafilters_class, "FilterType")
@@ -369,6 +372,7 @@ If you want a constant model, set slope to zero in addition
 :param slope: The slope
 :param power: The x*x coefficient (for quadratic models)
 )doc")
+        .def_static("findNearest", [](const std::vector<OpenMS::MZTrafoModel>& tms, double rt) { return OpenMS::MZTrafoModel::findNearest(tms, rt); }, "tms"_a, "rt"_a, "Find the model nearest to the given RT")
         ;
     // MODELTYPE enum nested under MZTrafoModel
     nb::enum_<OpenMS::MZTrafoModel::MODELTYPE>(mztrafomodel_class, "MODELTYPE")
@@ -389,6 +393,7 @@ If you want a constant model, set slope to zero in addition
         .def_static("writeHist", [](const OpenMS::String& out_csv, const std::vector<double>& delta_mzs, const std::vector<double>& mzs, const std::vector<double>& rts) { return OpenMS::PrecursorCorrection::writeHist(out_csv, delta_mzs, mzs, rts); }, "out_csv"_a, "delta_mzs"_a, "mzs"_a, "rts"_a)
         .def_static("correctToNearestMS1Peak", [](OpenMS::MSExperiment& exp, double mz_tolerance, bool ppm) { std::vector<double> delta_mzs, mzs, rts; auto result = OpenMS::PrecursorCorrection::correctToNearestMS1Peak(exp, mz_tolerance, ppm, delta_mzs, mzs, rts); return nb::make_tuple(result, delta_mzs, mzs, rts); }, "exp"_a, "mz_tolerance"_a, "ppm"_a)
         .def_static("correctToHighestIntensityMS1Peak", [](OpenMS::MSExperiment& exp, double mz_tolerance, bool ppm) { std::vector<double> delta_mzs, mzs, rts; auto result = OpenMS::PrecursorCorrection::correctToHighestIntensityMS1Peak(exp, mz_tolerance, ppm, delta_mzs, mzs, rts); return nb::make_tuple(result, delta_mzs, mzs, rts); }, "exp"_a, "mz_tolerance"_a, "ppm"_a)
+        .def_static("correctToNearestFeature", [](const OpenMS::FeatureMap& features, OpenMS::MSExperiment& exp, double rt_tolerance_s, double mz_tolerance, bool ppm, bool believe_charge, bool keep_original, bool all_matching_features, int max_trace, int debug_level) { return OpenMS::PrecursorCorrection::correctToNearestFeature(features, exp, rt_tolerance_s, mz_tolerance, ppm, believe_charge, keep_original, all_matching_features, max_trace, debug_level); }, "features"_a, "exp"_a, "rt_tolerance_s"_a = 0.0, "mz_tolerance"_a = 0.0, "ppm"_a = true, "believe_charge"_a = false, "keep_original"_a = false, "all_matching_features"_a = false, "max_trace"_a = 2, "debug_level"_a = 0)
         ;
 
     // -----------------------------------------------------------------------

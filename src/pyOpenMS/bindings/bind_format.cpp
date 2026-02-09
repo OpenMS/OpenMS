@@ -87,6 +87,7 @@ NB_MODULE(_pyopenms_format, m) {
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::AbsoluteQuantitationStandardsFile>(m, "AbsoluteQuantitationStandardsFile", "Load files containing runConcentration data")
         .def(nb::init<>())
+        .def("load", [](const OpenMS::AbsoluteQuantitationStandardsFile& self, const OpenMS::String& filename, std::vector<OpenMS::AbsoluteQuantitationStandards::runConcentration>& run_concentrations) { self.load(filename, run_concentrations); }, "filename"_a, "run_concentrations"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -708,6 +709,8 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MSstatsFile>(m, "MSstatsFile", "File adapter for MSstats files")
         .def(nb::init<>())
+        .def("storeLFQ", [](OpenMS::MSstatsFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const bool is_isotope_label_type, const OpenMS::String& bioreplicate, const OpenMS::String& condition, const OpenMS::String& retention_time_summarization_method) { self.storeLFQ(filename, consensus_map, design, reannotate_filenames, is_isotope_label_type, bioreplicate, condition, retention_time_summarization_method); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "is_isotope_label_type"_a, "bioreplicate"_a, "condition"_a, "retention_time_summarization_method"_a)
+        .def("storeISO", [](OpenMS::MSstatsFile& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& consensus_map, const OpenMS::ExperimentalDesign& design, const OpenMS::StringList& reannotate_filenames, const OpenMS::String& bioreplicate, const OpenMS::String& condition, const OpenMS::String& mixture, const OpenMS::String& retention_time_summarization_method) { self.storeISO(filename, consensus_map, design, reannotate_filenames, bioreplicate, condition, mixture, retention_time_summarization_method); }, "filename"_a, "consensus_map"_a, "design"_a, "reannotate_filenames"_a, "bioreplicate"_a, "condition"_a, "mixture"_a, "retention_time_summarization_method"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -715,6 +718,8 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MsInspectFile>(m, "MsInspectFile", "File adapter for MsInspect files")
         .def(nb::init<>())
+        .def("load", [](OpenMS::MsInspectFile& self, const OpenMS::String& filename, OpenMS::FeatureMap& feature_map) { self.load(filename, feature_map); }, "filename"_a, "feature_map"_a)
+        .def("store", [](const OpenMS::MsInspectFile& self, const OpenMS::String& filename, const OpenMS::MSSpectrum& spectrum) { self.store(filename, spectrum); }, "filename"_a, "spectrum"_a)
         ;
 
     // -----------------------------------------------------------------------
@@ -776,6 +781,7 @@ File adapter for mzQC files used to load and store mzQC files
 This class collects the data for the mzQC File
 )doc")
         .def(nb::init<>())
+        .def("store", [](const OpenMS::MzQCFile& self, const OpenMS::String& input_file, const OpenMS::String& output_file, const OpenMS::MSExperiment& exp, const OpenMS::String& contact_name, const OpenMS::String& contact_address, const OpenMS::String& description, const OpenMS::String& label, const OpenMS::FeatureMap& feature_map, std::vector<OpenMS::ProteinIdentification>& prot_ids, OpenMS::PeptideIdentificationList& pep_ids) { self.store(input_file, output_file, exp, contact_name, contact_address, description, label, feature_map, prot_ids, pep_ids); }, "input_file"_a, "output_file"_a, "exp"_a, "contact_name"_a, "contact_address"_a, "description"_a, "label"_a, "feature_map"_a, "prot_ids"_a, "pep_ids"_a)
         ;
 
     // -----------------------------------------------------------------------
