@@ -77,7 +77,6 @@ namespace OpenMS
       CHROMPARQUET,       ///< OpenSWATH Parquet chromatogram output (.xic)
       PQPPARQUET,         ///< OpenSWATH PQP Parquet library input
       OSWPARQUET,         ///< OpenSWATH Parquet feature output
-      CHROMPARQUET,       ///< OpenSWATH Parquet chromatogram output (.xic)
       MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
       PSMS,               ///< Percolator tab-delimited output (PSM level)
