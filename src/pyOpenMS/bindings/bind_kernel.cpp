@@ -118,6 +118,9 @@ NB_MODULE(_pyopenms_kernel, m) {
         .value("NONE", OpenMS::DriftTimeUnit::NONE)
         .value("MILLISECOND", OpenMS::DriftTimeUnit::MILLISECOND)
         .value("VSSC", OpenMS::DriftTimeUnit::VSSC)
+        .value("FAIMS_COMPENSATION_VOLTAGE", OpenMS::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+        .value("CCS", OpenMS::DriftTimeUnit::CCS)
+        .value("SIZE_OF_DRIFTTIMEUNIT", OpenMS::DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT)
         .export_values();
 
 
@@ -132,6 +135,7 @@ NB_MODULE(_pyopenms_kernel, m) {
         .value("MIXED", OpenMS::IMFormat::MIXED)
         .value("CENTROIDED", OpenMS::IMFormat::CENTROIDED)
         .value("UNKNOWN", OpenMS::IMFormat::UNKNOWN)
+        .value("SIZE_OF_IMFORMAT", OpenMS::IMFormat::SIZE_OF_IMFORMAT)
         .export_values();
 
     // -----------------------------------------------------------------------
@@ -364,6 +368,7 @@ The template parameters for the base RangeManager are ordered differently than i
         .value("MT_QUANT_AREA", OpenMS::MassTrace::MT_QUANT_AREA)
         .value("MT_QUANT_MEDIAN", OpenMS::MassTrace::MT_QUANT_MEDIAN)
         .value("MT_QUANT_HEIGHT", OpenMS::MassTrace::MT_QUANT_HEIGHT)
+        .value("SIZE_OF_MT_QUANTMETHOD", OpenMS::MassTrace::SIZE_OF_MT_QUANTMETHOD)
         ;
 
     // -----------------------------------------------------------------------

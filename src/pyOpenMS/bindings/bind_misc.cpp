@@ -1788,11 +1788,17 @@ An algorithm to decharge small molecule features (i.e. as found by FeatureFinder
         .def("setName", [](OpenMS::MetaboliteFeatureDeconvolution& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::MetaboliteFeatureDeconvolution& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
+    nb::enum_<OpenMS::MetaboliteFeatureDeconvolution::CHARGEMODE>(metabolitefeaturedeconvolution_class, "CHARGEMODE",
+        "Charge determination mode")
+        .value("QFROMFEATURE", OpenMS::MetaboliteFeatureDeconvolution::CHARGEMODE::QFROMFEATURE)
+        .value("QHEURISTIC", OpenMS::MetaboliteFeatureDeconvolution::CHARGEMODE::QHEURISTIC)
+        .value("QALL", OpenMS::MetaboliteFeatureDeconvolution::CHARGEMODE::QALL)
+        ;
 
     // -----------------------------------------------------------------------
     // FeatureDeconvolution
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FeatureDeconvolution, OpenMS::DefaultParamHandler>(m, "FeatureDeconvolution",
+    auto featuredeconvolution_class = nb::class_<OpenMS::FeatureDeconvolution, OpenMS::DefaultParamHandler>(m, "FeatureDeconvolution",
         "An algorithm to decharge features (i.e. as found by FeatureFinder)")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::FeatureDeconvolution &>())
@@ -1803,6 +1809,12 @@ An algorithm to decharge small molecule features (i.e. as found by FeatureFinder
         .def("getName", [](const OpenMS::FeatureDeconvolution& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::FeatureDeconvolution& self, const OpenMS::String& name) { self.setName(name); }, "name"_a, "Sets the name")
         .def("getSubsections", [](const OpenMS::FeatureDeconvolution& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
+        ;
+    nb::enum_<OpenMS::FeatureDeconvolution::CHARGEMODE>(featuredeconvolution_class, "CHARGEMODE",
+        "Charge determination mode")
+        .value("QFROMFEATURE", OpenMS::FeatureDeconvolution::CHARGEMODE::QFROMFEATURE)
+        .value("QHEURISTIC", OpenMS::FeatureDeconvolution::CHARGEMODE::QHEURISTIC)
+        .value("QALL", OpenMS::FeatureDeconvolution::CHARGEMODE::QALL)
         ;
 
     // -----------------------------------------------------------------------
@@ -5379,5 +5391,13 @@ XMLFile
         .def("setLogType", [](OpenMS::MRMFeatureFinderScoring& self, OpenMS::ProgressLogger::LogType type) { self.setLogType(type); }, "type"_a)
         .def("getLogType", [](const OpenMS::MRMFeatureFinderScoring& self) { return self.getLogType(); })
         ;
+
+    // Free function aliases for backward compatibility
+    m.def("isPEFFFile", [](const OpenMS::String& filename) {
+        return OpenMS::PEFFFile::isPEFFFile(filename);
+    }, "filename"_a, "Check if a file is in PEFF format");
+    m.def("toProForma", [](const OpenMS::PEFFEntry& entry) {
+        return OpenMS::PEFFFile::toProForma(entry);
+    }, "entry"_a, "Convert a PEFFEntry to ProForma notation");
 
 }
