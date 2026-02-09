@@ -92,6 +92,39 @@ def apply_addons(namespace: Dict[str, Any]) -> None:
             for method_name, method in methods.items():
                 setattr(cls, method_name, method)
 
+    # Add getMapping() to all enum types for Cython API compatibility
+    import enum
+    def _enum_getMapping(self):
+        """Returns a dict mapping int values to enum member name strings."""
+        mapping = {}
+        for name, val in type(self).__members__.items():
+            mapping[val.value] = name
+        return mapping
+
+    _seen_enums = set()
+    def _patch_enums(obj):
+        """Recursively patch getMapping onto enum types."""
+        obj_id = id(obj)
+        if obj_id in _seen_enums:
+            return
+        _seen_enums.add(obj_id)
+        if isinstance(obj, type) and issubclass(obj, enum.Enum):
+            obj.getMapping = _enum_getMapping
+        elif isinstance(obj, type):
+            # Check nested attributes for enum types
+            for attr_name in dir(obj):
+                if attr_name.startswith("_"):
+                    continue
+                try:
+                    attr = getattr(obj, attr_name)
+                    if isinstance(attr, type) and issubclass(attr, enum.Enum):
+                        attr.getMapping = _enum_getMapping
+                except Exception:
+                    pass
+
+    for obj in namespace.values():
+        _patch_enums(obj)
+
 
 def _import_addon_modules() -> None:
     """Import all addon modules in this package."""

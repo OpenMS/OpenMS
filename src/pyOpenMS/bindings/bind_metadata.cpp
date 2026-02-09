@@ -48,6 +48,14 @@ AbsoluteQuantitationStandards is a class to handle the relationship
 between runs, components, and their actual concentrations
 )doc")
         .def(nb::init<>())
+        .def("getComponentFeatureConcentrations", [](const OpenMS::AbsoluteQuantitationStandards& self,
+            const std::vector<OpenMS::AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
+            const std::vector<OpenMS::FeatureMap>& feature_maps,
+            const OpenMS::String& component_name) {
+            std::vector<OpenMS::AbsoluteQuantitationStandards::featureConcentration> feature_concentrations;
+            self.getComponentFeatureConcentrations(run_concentrations, feature_maps, component_name, feature_concentrations);
+            return feature_concentrations;
+        }, "run_concentrations"_a, "feature_maps"_a, "component_name"_a, "Gets the feature concentrations from run concentrations and feature maps")
         ;
 
     // -----------------------------------------------------------------------
@@ -314,6 +322,11 @@ member and is more memory efficient if no meta info gets added
         .def("empty", [](const OpenMS::MetaInfo& self) { return self.empty(); }, "Returns if the MetaInfo is empty")
         .def("clear", [](OpenMS::MetaInfo& self) { return self.clear(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::MetaInfo& self) { return std::hash<OpenMS::MetaInfo>{}(self); })
+        .def("getKeysAsIntegers", [](const OpenMS::MetaInfo& self) {
+            std::vector<OpenMS::UInt> keys;
+            self.getKeys(keys);
+            return keys;
+        }, "Returns a list of all integer keys for which a value is set")
         ;
 
     // -----------------------------------------------------------------------
@@ -539,6 +552,7 @@ Extract scan number from a native ID using the accession type
 :param native_id_type_accession: The native ID type accession
 )doc")
         .def_rw("rt_tolerance", &OpenMS::SpectrumLookup::rt_tolerance)
+        .def("readSpectra", [](OpenMS::SpectrumLookup& self, const OpenMS::MSExperiment& spectra, const OpenMS::String& scan_regexp) { self.readSpectra(spectra, scan_regexp); }, "spectra"_a, "scan_regexp"_a = OpenMS::SpectrumLookup::default_scan_regexp, "Read and index spectra for later look-up")
         ;
 
     // -----------------------------------------------------------------------
