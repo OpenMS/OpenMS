@@ -176,7 +176,7 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
   ss.addSample("S2");
 
   ExperimentalDesign design(fs, ss);
-  TEST_EXCEPTION(Exception::MissingInformation, design.getPathLabelToSampleMapping(true));
+  TEST_EXCEPTION(Exception::InvalidValue, design.getPathLabelToSampleMapping(true));
 }
 END_SECTION
 
@@ -602,9 +602,8 @@ END_SECTION
 
 START_SECTION((ProteomicsLFQ subset output keeps design fraction_group assignments across fractions))
 {
-  const String source_dir = File::path(String(__FILE__));
-  const String design_file = source_dir + "/../../../../../share/OpenMS/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv";
-  const String subset_output = source_dir + "/../../../topp/ProteomicsLFQ_1_subset_out.consensusXML";
+  const String design_file = OPENMS_GET_TEST_DATA_PATH("BSA_design_onetable_nonconsec.tsv");
+  const String subset_output = OPENMS_GET_TEST_DATA_PATH("ProteomicsLFQ_1_subset_out.consensusXML");
   TEST_EQUAL(File::exists(design_file), true);
   TEST_EQUAL(File::exists(subset_output), true);
 

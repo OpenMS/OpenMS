@@ -276,11 +276,12 @@ namespace OpenMS
         if (!inserted && it->second != mapped_value)
         {
           const String key_type = basename ? "basename" : "path";
-          throw Exception::MissingInformation(
+          throw Exception::InvalidValue(
             __FILE__,
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
-            "Ambiguous " + key_type + "+label mapping for '" + tpl.first + "', label " + String(tpl.second) + ".");
+            "Ambiguous " + key_type + "+label mapping.",
+            "'" + tpl.first + "', label " + String(tpl.second));
         }
       }
       return ret;
