@@ -184,6 +184,9 @@ def _import_submodules():
     _priority_modules = [
         "_pyopenms_datastructures",
         "_pyopenms_kernel",
+        "_pyopenms_spectrum",
+        "_pyopenms_chromatogram",
+        "_pyopenms_experiment",
         "_pyopenms_metadata",
         "_pyopenms_chemistry",
     ]
