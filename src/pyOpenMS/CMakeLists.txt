@@ -126,6 +126,9 @@ else()
 
   find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
 
+  # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
+  set(Python_EXECUTABLE "${Python_EXECUTABLE}" PARENT_SCOPE)
+
   # Find or fetch nanobind
   if(NOT TARGET nanobind::nanobind)
     # Try find_package first (installed via pip or system package)
@@ -466,7 +469,7 @@ endif()
 # --------------------------------------------------------------------------
 # Tests (only when building as part of OpenMS, not standalone with py-build-cmake)
 # --------------------------------------------------------------------------
-if(TARGET ${OPENMS_TARGET} OR TARGET OpenMS)
+if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   # Copy tests to build directory so pytest doesn't import from source tree
   file(COPY ${PROJECT_SOURCE_DIR}/tests DESTINATION ${PYOPENMS_BUILD_DIR})
 
