@@ -4,6 +4,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from libcpp.map cimport map as libcpp_map
 from String cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespace "OpenMS":
 
