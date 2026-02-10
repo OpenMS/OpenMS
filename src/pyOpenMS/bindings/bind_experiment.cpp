@@ -141,6 +141,73 @@ mz, intensities = spectrum.get_peaks()
         }, "i"_a, "val"_a, "Sets spectrum at index i")
         .def("getSpectrum", [](OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSSpectrum& { return self.getSpectrum(id); }, nb::rv_policy::reference_internal, "id"_a, "Returns a single spectrum by index")
 
+        .def("get2DPeakData", [](const OpenMS::MSExperiment& self,
+                                double min_rt, double max_rt,
+                                double min_mz, double max_mz,
+                                size_t ms_level) {
+            std::vector<float> rt, mz, intensity;
+            self.get2DPeakData(min_rt, max_rt, min_mz, max_mz, ms_level, rt, mz, intensity);
+            const size_t n = rt.size();
+
+            std::unique_ptr<float[]> rt_uptr(new float[n]);
+            std::unique_ptr<float[]> mz_uptr(new float[n]);
+            std::unique_ptr<float[]> int_uptr(new float[n]);
+            std::copy(rt.begin(), rt.end(), rt_uptr.get());
+            std::copy(mz.begin(), mz.end(), mz_uptr.get());
+            std::copy(intensity.begin(), intensity.end(), int_uptr.get());
+
+            float* rt_data = rt_uptr.release();
+            float* mz_data = mz_uptr.release();
+            float* int_data = int_uptr.release();
+
+            nb::capsule rt_owner(rt_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            nb::capsule mz_owner(mz_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+
+            return nb::make_tuple(
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(rt_data, {n}, rt_owner),
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(mz_data, {n}, mz_owner),
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, int_owner)
+            );
+        }, "min_rt"_a, "max_rt"_a, "min_mz"_a, "max_mz"_a, "ms_level"_a,
+           "Retrieves peak data in the given mz-rt range as (rt, mz, intensity) numpy arrays")
+
+        .def("get2DPeakDataIM", [](const OpenMS::MSExperiment& self,
+                                   double min_rt, double max_rt,
+                                   double min_mz, double max_mz,
+                                   size_t ms_level) {
+            std::vector<float> rt, mz, intensity, ion_mobility;
+            self.get2DPeakDataIM(min_rt, max_rt, min_mz, max_mz, ms_level, rt, mz, intensity, ion_mobility);
+            const size_t n = rt.size();
+
+            std::unique_ptr<float[]> rt_uptr(new float[n]);
+            std::unique_ptr<float[]> mz_uptr(new float[n]);
+            std::unique_ptr<float[]> int_uptr(new float[n]);
+            std::unique_ptr<float[]> im_uptr(new float[n]);
+            std::copy(rt.begin(), rt.end(), rt_uptr.get());
+            std::copy(mz.begin(), mz.end(), mz_uptr.get());
+            std::copy(intensity.begin(), intensity.end(), int_uptr.get());
+            std::copy(ion_mobility.begin(), ion_mobility.end(), im_uptr.get());
+
+            float* rt_data = rt_uptr.release();
+            float* mz_data = mz_uptr.release();
+            float* int_data = int_uptr.release();
+            float* im_data = im_uptr.release();
+
+            nb::capsule rt_owner(rt_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            nb::capsule mz_owner(mz_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            nb::capsule im_owner(im_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+
+            return nb::make_tuple(
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(rt_data, {n}, rt_owner),
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(mz_data, {n}, mz_owner),
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, int_owner),
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(im_data, {n}, im_owner)
+            );
+        }, "min_rt"_a, "max_rt"_a, "min_mz"_a, "max_mz"_a, "ms_level"_a,
+           "Retrieves peak data with ion mobility in the given mz-rt range as (rt, mz, intensity, ion_mobility) numpy arrays")
+
         .def("rasterizeRTMZ", [](OpenMS::MSExperiment& self,
                                 nb::ndarray<float, nb::ndim<2>, nb::device::cpu> output,
                                 double min_rt, double max_rt,

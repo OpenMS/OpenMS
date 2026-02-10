@@ -115,7 +115,7 @@ NB_MODULE(_pyopenms_kernel, m) {
     // -----------------------------------------------------------------------
     // DriftTimeUnit
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::DriftTimeUnit>(m, "DriftTimeUnit", "Unit of drift time for ion mobility")
+    nb::enum_<OpenMS::DriftTimeUnit>(m, "DriftTimeUnit", nb::is_arithmetic(), "Unit of drift time for ion mobility")
         .value("NONE", OpenMS::DriftTimeUnit::NONE)
         .value("MILLISECOND", OpenMS::DriftTimeUnit::MILLISECOND)
         .value("VSSC", OpenMS::DriftTimeUnit::VSSC)
