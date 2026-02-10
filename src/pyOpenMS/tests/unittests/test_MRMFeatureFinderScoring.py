@@ -6,7 +6,6 @@ import pyopenms
 
 eps = 2
 
-@pytest.mark.skip(reason="Requires openms_test_data_dir fixture not available in standalone tests")
 class TestMRMFeatureFinderScoring(unittest.TestCase):
 
     @pytest.fixture(autouse=True)

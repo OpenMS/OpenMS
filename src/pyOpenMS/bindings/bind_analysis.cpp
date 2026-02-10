@@ -101,6 +101,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include <sstream>
+#include "binding_utils.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -329,7 +330,7 @@ the transformation model used for concentration calculation
     // -----------------------------------------------------------------------
     // Compound
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::TargetedExperimentHelper::Compound>(m, "Compound", 
+    auto compound_class = nb::class_<OpenMS::TargetedExperimentHelper::Compound>(m, "Compound", 
         R"doc(
 Represents a compound in a targeted experiment (e.g. used by
 ReactionMonitoringTransition and IncludeExcludeTarget)
@@ -347,46 +348,16 @@ CVTermList
         .def("getRetentionTime", [](const OpenMS::TargetedExperimentHelper::Compound& self) { return self.getRetentionTime(); }, "Gets compound or peptide retention time")
         .def("getRetentionTimeType", [](const OpenMS::TargetedExperimentHelper::Compound& self) { return self.getRetentionTimeType(); }, "Get compound or peptide retentiontime type")
         .def("getRetentionTimeUnit", [](const OpenMS::TargetedExperimentHelper::Compound& self) { return self.getRetentionTimeUnit(); }, "Get compound or peptide retentiontime type")
-        .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Compound& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::Compound& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::Compound& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::Compound& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::Compound& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self != nb::self)
-        .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::Compound& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::TargetedExperimentHelper::Compound& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::TargetedExperimentHelper::Compound& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::TargetedExperimentHelper::Compound& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::TargetedExperimentHelper::Compound& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::TargetedExperimentHelper::Compound& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::TargetedExperimentHelper::Compound::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::Compound& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::Compound& self) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            nb::list result;
-            for (const auto& k : keys) {
-                result.append(nb::str(k.c_str()));
-            }
-            return result;
-        }, "Returns all meta value keys as a list")
-        .def("isMetaEmpty", [](const OpenMS::TargetedExperimentHelper::Compound& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::TargetedExperimentHelper::Compound& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("molecular_formula", &OpenMS::TargetedExperimentHelper::Compound::molecular_formula)
         .def_rw("smiles_string", &OpenMS::TargetedExperimentHelper::Compound::smiles_string)
         .def_rw("theoretical_mass", &OpenMS::TargetedExperimentHelper::Compound::theoretical_mass)
         .def_rw("rts", &OpenMS::TargetedExperimentHelper::Compound::rts)
         .def_rw("id", &OpenMS::TargetedExperimentHelper::Compound::id)
-        .def("replaceCVTerms", [](OpenMS::TargetedExperimentHelper::Compound& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { self.replaceCVTerms(cv_term_map); }, "cv_term_map"_a, "Replaces all CV terms with the given map")
         ;
+    def_CVTermList<OpenMS::TargetedExperimentHelper::Compound>(compound_class);
+    def_MetaInfoInterface<OpenMS::TargetedExperimentHelper::Compound>(compound_class);
 
     // -----------------------------------------------------------------------
     // ConsensusMapNormalizerAlgorithmMedian
@@ -401,7 +372,7 @@ CVTermList
         }, "map"_a, "acc_filter"_a, "desc_filter"_a, "Computes medians of all maps and returns tuple of (index of map with most features, medians vector)")
         ;
     // NormalizationMethod enum nested under ConsensusMapNormalizerAlgorithmMedian
-    nb::enum_<OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod>(consensusmapnormalizeralgorithmmedian_class, "NormalizationMethod", nb::is_arithmetic())
+    nb::enum_<OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod>(consensusmapnormalizeralgorithmmedian_class, "NormalizationMethod", nb::is_arithmetic(), "Normalization method for consensus map alignment (scale or shift)")
         .value("NM_SCALE", OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod::NM_SCALE)
         .value("NM_SHIFT", OpenMS::ConsensusMapNormalizerAlgorithmMedian::NormalizationMethod::NM_SHIFT)
 
@@ -1985,7 +1956,7 @@ Constructors
     // -----------------------------------------------------------------------
     // Peptide
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::TargetedExperimentHelper::Peptide>(m, "Peptide", 
+    auto peptide_class = nb::class_<OpenMS::TargetedExperimentHelper::Peptide>(m, "Peptide", 
         R"doc(
 Represents a peptide in a targeted experiment (e.g. used by
 ReactionMonitoringTransition and IncludeExcludeTarget)
@@ -2005,47 +1976,17 @@ CVTermList
         .def("getRetentionTime", [](const OpenMS::TargetedExperimentHelper::Peptide& self) { return self.getRetentionTime(); }, "Gets compound or peptide retention time")
         .def("getRetentionTimeType", [](const OpenMS::TargetedExperimentHelper::Peptide& self) { return self.getRetentionTimeType(); }, "Get compound or peptide retentiontime type")
         .def("getRetentionTimeUnit", [](const OpenMS::TargetedExperimentHelper::Peptide& self) { return self.getRetentionTimeUnit(); }, "Get compound or peptide retentiontime unit (minute/seconds)")
-        .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Peptide& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::Peptide& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::Peptide& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::Peptide& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::Peptide& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self != nb::self)
-        .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::Peptide& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::TargetedExperimentHelper::Peptide& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::TargetedExperimentHelper::Peptide& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::TargetedExperimentHelper::Peptide& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::TargetedExperimentHelper::Peptide& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::TargetedExperimentHelper::Peptide& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::TargetedExperimentHelper::Peptide::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::Peptide& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::Peptide& self) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            nb::list result;
-            for (const auto& k : keys) {
-                result.append(nb::str(k.c_str()));
-            }
-            return result;
-        }, "Returns all meta value keys as a list")
-        .def("isMetaEmpty", [](const OpenMS::TargetedExperimentHelper::Peptide& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::TargetedExperimentHelper::Peptide& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("protein_refs", &OpenMS::TargetedExperimentHelper::Peptide::protein_refs)
         .def_rw("evidence", &OpenMS::TargetedExperimentHelper::Peptide::evidence)
         .def_rw("sequence", &OpenMS::TargetedExperimentHelper::Peptide::sequence)
         .def_rw("mods", &OpenMS::TargetedExperimentHelper::Peptide::mods)
         .def_rw("rts", &OpenMS::TargetedExperimentHelper::Peptide::rts)
         .def_rw("id", &OpenMS::TargetedExperimentHelper::Peptide::id)
-        .def("replaceCVTerms", [](OpenMS::TargetedExperimentHelper::Peptide& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { self.replaceCVTerms(cv_term_map); }, "cv_term_map"_a, "Replaces all CV terms with the given map")
         ;
+    def_CVTermList<OpenMS::TargetedExperimentHelper::Peptide>(peptide_class);
+    def_MetaInfoInterface<OpenMS::TargetedExperimentHelper::Peptide>(peptide_class);
 
     // -----------------------------------------------------------------------
     // PeptideAndProteinQuant_PeptideData

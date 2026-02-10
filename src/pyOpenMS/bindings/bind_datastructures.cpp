@@ -45,6 +45,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include <sstream>
+#include "binding_utils.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -112,7 +113,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .def_static("debug", [](bool enable) { return OpenMS::BSpline2d::debug(enable); }, "enable"_a, "Enable or disable debug messages from the B-spline library")
         ;
     // BoundaryCondition enum nested under BSpline2d
-    nb::enum_<OpenMS::BSpline2d::BoundaryCondition>(bspline2d_class, "BoundaryCondition", nb::is_arithmetic())
+    nb::enum_<OpenMS::BSpline2d::BoundaryCondition>(bspline2d_class, "BoundaryCondition", nb::is_arithmetic(), "Boundary condition type for B-spline interpolation")
         .value("BC_ZERO_ENDPOINTS", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_ENDPOINTS)
         .value("BC_ZERO_FIRST", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_FIRST)
         .value("BC_ZERO_SECOND", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_SECOND)
@@ -1022,7 +1023,7 @@ Calculates the normalized distance between top_hit and runner_up
     // -----------------------------------------------------------------------
     // SpectrumAlignmentScore
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SpectrumAlignmentScore>(m, "SpectrumAlignmentScore", 
+    auto spectrumalignmentscore_class = nb::class_<OpenMS::SpectrumAlignmentScore>(m, "SpectrumAlignmentScore",
         R"doc(
 DefaultParamHandler
 
@@ -1039,15 +1040,10 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
         .def(nb::init<const OpenMS::SpectrumAlignmentScore &>())
         .def("__copy__", [](const OpenMS::SpectrumAlignmentScore& self) { return OpenMS::SpectrumAlignmentScore(self); })
         .def("__deepcopy__", [](const OpenMS::SpectrumAlignmentScore& self, nb::dict) { return OpenMS::SpectrumAlignmentScore(self); }, "memo"_a)
-        .def("setParameters", [](OpenMS::SpectrumAlignmentScore& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SpectrumAlignmentScore& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::SpectrumAlignmentScore& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::SpectrumAlignmentScore& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::SpectrumAlignmentScore& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
         .def("__call__", [](const OpenMS::SpectrumAlignmentScore& self, const OpenMS::MSSpectrum& spec1, const OpenMS::MSSpectrum& spec2) { return self(spec1, spec2); }, "spec1"_a, "spec2"_a, "Compute the similarity score between two spectra")
         .def("__call__", [](const OpenMS::SpectrumAlignmentScore& self, const OpenMS::MSSpectrum& spec) { return self(spec); }, "spec"_a, "Compute the self-similarity score of a spectrum")
-        .def("getSubsections", [](const OpenMS::SpectrumAlignmentScore& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
+    def_DefaultParamHandler<OpenMS::SpectrumAlignmentScore>(spectrumalignmentscore_class);
 
     // -----------------------------------------------------------------------
     // VersionInfo
@@ -1205,13 +1201,13 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     // -----------------------------------------------------------------------
     // CVMappingRule
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::CVMappingRule::RequirementLevel>(m, "RequirementLevel", nb::is_arithmetic())
+    nb::enum_<OpenMS::CVMappingRule::RequirementLevel>(m, "RequirementLevel", nb::is_arithmetic(), "Requirement level for CV mapping rules (MUST, SHOULD, MAY)")
         .value("MUST", OpenMS::CVMappingRule::MUST)
         .value("SHOULD", OpenMS::CVMappingRule::SHOULD)
         .value("MAY", OpenMS::CVMappingRule::MAY)
         ;
 
-    nb::enum_<OpenMS::CVMappingRule::CombinationsLogic>(m, "CombinationsLogic", nb::is_arithmetic())
+    nb::enum_<OpenMS::CVMappingRule::CombinationsLogic>(m, "CombinationsLogic", nb::is_arithmetic(), "Logic for combining CV mapping rule terms (OR, AND, XOR)")
         .value("OR", OpenMS::CVMappingRule::OR)
         .value("AND", OpenMS::CVMappingRule::AND)
         .value("XOR", OpenMS::CVMappingRule::XOR)

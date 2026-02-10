@@ -574,10 +574,11 @@ class TestFLASHDeconvAlgorithm:
     requires realistic MS data with proper parameter initialization.
     """
 
-    @pytest.mark.skip(reason="C++ upstream: FLASHDeconvAlgorithm.run() requires realistic MS data; segfaults with empty input")
-    def test_run_returns_tuple(self):
-        """run() must return (deconvolved_spectra, mass_features) tuple."""
-        pass
+    def test_run_exists(self):
+        """run() method must exist on FLASHDeconvAlgorithm."""
+        from pyopenms import FLASHDeconvAlgorithm
+        algo = FLASHDeconvAlgorithm()
+        assert hasattr(algo, 'run')
 
 
 class TestIDRipper:
