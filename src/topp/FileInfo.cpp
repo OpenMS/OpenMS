@@ -814,27 +814,16 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      std::cout << "Checking mzML file for valid indices ... " << std::endl;
+      os << "Checking mzML file for valid indices ... " << std::endl;
       Internal::IndexedMzMLHandler ifile;
       ifile.openFile(in);
       if (ifile.getParsingSuccess())
       {
-        // Validate that we can access each single spectrum and chromatogram
-        for (int i = 0; i < (int)ifile.getNrSpectra(); i++)
-        {
-          OpenMS::Interfaces::SpectrumPtr p = ifile.getSpectrumById(i);
-        }
-        for (int i = 0; i < (int)ifile.getNrChromatograms(); i++)
-        {
-          OpenMS::Interfaces::ChromatogramPtr p = ifile.getChromatogramById(i);
-        }
-
-        std::cout << "Found a valid indexed mzML XML File with " << ifile.getNrSpectra() << " spectra and " << ifile.getNrChromatograms() << " chromatograms." << std::endl
-                  << std::endl;
+        os << "Found a valid indexed mzML XML File with " << ifile.getNrSpectra() << " spectra and " << ifile.getNrChromatograms() << " chromatograms.\n";
       }
       else
       {
-        std::cout << "Could not detect a valid index for the mzML file " << in << "\nEither the index is not present or is not correct." << std::endl;
+        os << "Could not detect a valid index for the mzML file " << in << "\nEither the index is not present or is not correct.\n";
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -861,7 +850,7 @@ protected:
       Size dup_header(0);
       Size dup_seq(0);
 
-      typedef std::unordered_map<size_t, vector<ptrdiff_t> > SHashmap;
+      using SHashmap = std::unordered_map<size_t, vector<ptrdiff_t> >;
       SHashmap m_headers;
       SHashmap m_seqs;
 
