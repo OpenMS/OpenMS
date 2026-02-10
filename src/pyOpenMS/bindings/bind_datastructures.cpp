@@ -828,7 +828,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def("setMaxInt", [](OpenMS::Param& self, const OpenMS::String& key, int max) { return self.setMaxInt(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for an integer parameter")
         .def("setMinFloat", [](OpenMS::Param& self, const OpenMS::String& key, double min) { return self.setMinFloat(key, min); }, "key"_a, "min"_a, "Sets the minimum allowed value for a float parameter")
         .def("setMaxFloat", [](OpenMS::Param& self, const OpenMS::String& key, double max) { return self.setMaxFloat(key, max); }, "key"_a, "max"_a, "Sets the maximum allowed value for a float parameter")
-        .def("__iter__", [](OpenMS::Param& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "Param_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::Param& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::Param>(), "Param_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::Param& self) { return self.size(); })
         .def("_get_all_keys", [](const OpenMS::Param& self) {
             std::vector<std::string> keys;

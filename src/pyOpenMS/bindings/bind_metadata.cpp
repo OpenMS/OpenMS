@@ -40,6 +40,39 @@ NB_MODULE(_pyopenms_metadata, m) {
     m.doc() = "pyOpenMS metadata bindings";
 
     // -----------------------------------------------------------------------
+    // AQS_runConcentration (AbsoluteQuantitationStandards::runConcentration)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::AbsoluteQuantitationStandards::runConcentration>(m, "AQS_runConcentration",
+        "Structure to hold a single run with its known concentration")
+        .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::AbsoluteQuantitationStandards::runConcentration& self) { return OpenMS::AbsoluteQuantitationStandards::runConcentration(self); })
+        .def("__deepcopy__", [](const OpenMS::AbsoluteQuantitationStandards::runConcentration& self, nb::dict) { return OpenMS::AbsoluteQuantitationStandards::runConcentration(self); }, "memo"_a)
+        .def_rw("sample_name", &OpenMS::AbsoluteQuantitationStandards::runConcentration::sample_name)
+        .def_rw("component_name", &OpenMS::AbsoluteQuantitationStandards::runConcentration::component_name)
+        .def_rw("IS_component_name", &OpenMS::AbsoluteQuantitationStandards::runConcentration::IS_component_name)
+        .def_rw("actual_concentration", &OpenMS::AbsoluteQuantitationStandards::runConcentration::actual_concentration)
+        .def_rw("IS_actual_concentration", &OpenMS::AbsoluteQuantitationStandards::runConcentration::IS_actual_concentration)
+        .def_rw("concentration_units", &OpenMS::AbsoluteQuantitationStandards::runConcentration::concentration_units)
+        .def_rw("dilution_factor", &OpenMS::AbsoluteQuantitationStandards::runConcentration::dilution_factor)
+        ;
+
+    // -----------------------------------------------------------------------
+    // AQS_featureConcentration (AbsoluteQuantitationStandards::featureConcentration)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::AbsoluteQuantitationStandards::featureConcentration>(m, "AQS_featureConcentration",
+        "Structure to hold a single component with its corresponding known concentration")
+        .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::AbsoluteQuantitationStandards::featureConcentration& self) { return OpenMS::AbsoluteQuantitationStandards::featureConcentration(self); })
+        .def("__deepcopy__", [](const OpenMS::AbsoluteQuantitationStandards::featureConcentration& self, nb::dict) { return OpenMS::AbsoluteQuantitationStandards::featureConcentration(self); }, "memo"_a)
+        .def_rw("feature", &OpenMS::AbsoluteQuantitationStandards::featureConcentration::feature)
+        .def_rw("IS_feature", &OpenMS::AbsoluteQuantitationStandards::featureConcentration::IS_feature)
+        .def_rw("actual_concentration", &OpenMS::AbsoluteQuantitationStandards::featureConcentration::actual_concentration)
+        .def_rw("IS_actual_concentration", &OpenMS::AbsoluteQuantitationStandards::featureConcentration::IS_actual_concentration)
+        .def_rw("concentration_units", &OpenMS::AbsoluteQuantitationStandards::featureConcentration::concentration_units)
+        .def_rw("dilution_factor", &OpenMS::AbsoluteQuantitationStandards::featureConcentration::dilution_factor)
+        ;
+
+    // -----------------------------------------------------------------------
     // AbsoluteQuantitationStandards
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::AbsoluteQuantitationStandards>(m, "AbsoluteQuantitationStandards", 
@@ -48,6 +81,8 @@ AbsoluteQuantitationStandards is a class to handle the relationship
 between runs, components, and their actual concentrations
 )doc")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::AbsoluteQuantitationStandards& self) { return OpenMS::AbsoluteQuantitationStandards(self); })
+        .def("__deepcopy__", [](const OpenMS::AbsoluteQuantitationStandards& self, nb::dict) { return OpenMS::AbsoluteQuantitationStandards(self); }, "memo"_a)
         .def("getComponentFeatureConcentrations", [](const OpenMS::AbsoluteQuantitationStandards& self,
             const std::vector<OpenMS::AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
             const std::vector<OpenMS::FeatureMap>& feature_maps,
@@ -93,6 +128,23 @@ run.setPeptideIdentifications(my_peptide_ids)
         ;
 
     // -----------------------------------------------------------------------
+    // Unit (CVTerm::Unit)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::CVTerm::Unit>(m, "Unit",
+        "Unit for a controlled vocabulary term")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::String&, const OpenMS::String&, const OpenMS::String&>(), "accession"_a, "name"_a, "cv_ref"_a)
+        .def(nb::init<const OpenMS::CVTerm::Unit &>())
+        .def("__copy__", [](const OpenMS::CVTerm::Unit& self) { return OpenMS::CVTerm::Unit(self); })
+        .def("__deepcopy__", [](const OpenMS::CVTerm::Unit& self, nb::dict) { return OpenMS::CVTerm::Unit(self); }, "memo"_a)
+        .def_rw("accession", &OpenMS::CVTerm::Unit::accession)
+        .def_rw("name", &OpenMS::CVTerm::Unit::name)
+        .def_rw("cv_ref", &OpenMS::CVTerm::Unit::cv_ref)
+        .def(nb::self == nb::self)
+        .def(nb::self != nb::self)
+        ;
+
+    // -----------------------------------------------------------------------
     // CVTerm
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::CVTerm>(m, "CVTerm", "Representation of controlled vocabulary term")
@@ -122,6 +174,8 @@ run.setPeptideIdentifications(my_peptide_ids)
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ExperimentalDesign>(m, "ExperimentalDesign", "Representation of an experimental design in OpenMS. Instances can be loaded with the ExperimentalDesignFile class")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::ExperimentalDesign& self) { return OpenMS::ExperimentalDesign(self); })
+        .def("__deepcopy__", [](const OpenMS::ExperimentalDesign& self, nb::dict) { return OpenMS::ExperimentalDesign(self); }, "memo"_a)
         .def(nb::init<std::vector<OpenMS::ExperimentalDesign::MSFileSectionEntry>, OpenMS::ExperimentalDesign::SampleSection>())
         .def("getNumberOfSamples", [](const OpenMS::ExperimentalDesign& self) { return self.getNumberOfSamples(); }, "Returns the number of samples measured (= highest sample index)")
         .def("getNumberOfFractions", [](const OpenMS::ExperimentalDesign& self) { return self.getNumberOfFractions(); }, "Returns the number of fractions (= highest fraction index)")
@@ -310,6 +364,15 @@ member and is more memory efficient if no meta info gets added
                 py_keys.append(nb::str(k.c_str()));
             }
         }, "keys"_a, "Fills the given list with all meta value keys")
+        .def("getKeys", [](const OpenMS::MetaInfo& self) {
+            std::vector<OpenMS::String> keys;
+            self.getKeys(keys);
+            nb::list result;
+            for (const auto& k : keys) {
+                result.append(nb::str(k.c_str()));
+            }
+            return result;
+        }, "Returns all meta value keys as a list")
         
         .def("getKeys", [](const OpenMS::MetaInfo& self, nb::list py_keys) {
             std::vector<OpenMS::String> keys;
@@ -319,6 +382,15 @@ member and is more memory efficient if no meta info gets added
                 py_keys.append(nb::str(k.c_str()));
             }
         }, "keys"_a, "Fills the given list with all meta value keys")
+        .def("getKeys", [](const OpenMS::MetaInfo& self) {
+            std::vector<OpenMS::String> keys;
+            self.getKeys(keys);
+            nb::list result;
+            for (const auto& k : keys) {
+                result.append(nb::str(k.c_str()));
+            }
+            return result;
+        }, "Returns all meta value keys as a list")
         .def("empty", [](const OpenMS::MetaInfo& self) { return self.empty(); }, "Returns if the MetaInfo is empty")
         .def("clear", [](OpenMS::MetaInfo& self) { return self.clear(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::MetaInfo& self) { return std::hash<OpenMS::MetaInfo>{}(self); })
@@ -394,6 +466,21 @@ Indices from 1 to 1023 are reserved for fast access and will never change:
         ;
 
     // -----------------------------------------------------------------------
+    // PeptideHit_AnalysisResult (PeptideHit::PepXMLAnalysisResult)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::PeptideHit::PepXMLAnalysisResult>(m, "PeptideHit_AnalysisResult",
+        "Analysis result from pepXML post-processing tools (e.g. PeptideProphet, iProphet)")
+        .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::PeptideHit::PepXMLAnalysisResult& self) { return OpenMS::PeptideHit::PepXMLAnalysisResult(self); })
+        .def("__deepcopy__", [](const OpenMS::PeptideHit::PepXMLAnalysisResult& self, nb::dict) { return OpenMS::PeptideHit::PepXMLAnalysisResult(self); }, "memo"_a)
+        .def_rw("score_type", &OpenMS::PeptideHit::PepXMLAnalysisResult::score_type)
+        .def_rw("higher_is_better", &OpenMS::PeptideHit::PepXMLAnalysisResult::higher_is_better)
+        .def_rw("main_score", &OpenMS::PeptideHit::PepXMLAnalysisResult::main_score)
+        .def_rw("sub_scores", &OpenMS::PeptideHit::PepXMLAnalysisResult::sub_scores)
+        .def(nb::self == nb::self)
+        ;
+
+    // -----------------------------------------------------------------------
     // PeptideHit_PeakAnnotation
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::PeptideHit::PeakAnnotation>(m, "PeptideHit_PeakAnnotation", "OpenMS class PeptideHit_PeakAnnotation")
@@ -465,7 +552,7 @@ This class supports direct iteration in Python.
             return self.size();
         })
         .def("__iter__", [](OpenMS::PeptideIdentificationList& self) {
-            return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "PeptideIdentificationList_iter", self.begin(), self.end());
+            return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::PeptideIdentificationList>(), "PeptideIdentificationList_iter", self.begin(), self.end());
         })
         .def("__setitem__", [](OpenMS::PeptideIdentificationList& self, size_t i, const OpenMS::PeptideIdentification& val) {
             if (i >= self.size()) throw nb::index_error();
@@ -619,12 +706,28 @@ The optional interpretation part uses ProForma proteoform-ion notation.
         .def_static("getCVName", []() { return OpenMS::USI::getCVName(); }, "Get PSI-MS CV name for USI")
         ;
     // IndexType enum nested under USI
-    nb::enum_<OpenMS::USI::IndexType>(usi_class, "IndexType")
+    nb::enum_<OpenMS::USI::IndexType>(usi_class, "IndexType", nb::is_arithmetic())
         .value("SCAN", OpenMS::USI::IndexType::SCAN)
         .value("INDEX", OpenMS::USI::IndexType::INDEX)
         .value("NATIVEID", OpenMS::USI::IndexType::NATIVEID)
         ;
 
+
+    // -----------------------------------------------------------------------
+    // SpectrumMetaData (nested struct of SpectrumMetaDataLookup)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::SpectrumMetaDataLookup::SpectrumMetaData>(m, "SpectrumMetaData", "Spectrum metadata (RT, precursor info, MS level, etc.)")
+        .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::SpectrumMetaDataLookup::SpectrumMetaData& self) { return OpenMS::SpectrumMetaDataLookup::SpectrumMetaData(self); })
+        .def("__deepcopy__", [](const OpenMS::SpectrumMetaDataLookup::SpectrumMetaData& self, nb::dict) { return OpenMS::SpectrumMetaDataLookup::SpectrumMetaData(self); }, "memo"_a)
+        .def_rw("rt", &OpenMS::SpectrumMetaDataLookup::SpectrumMetaData::rt)
+        .def_rw("precursor_rt", &OpenMS::SpectrumMetaDataLookup::SpectrumMetaData::precursor_rt)
+        .def_rw("precursor_mz", &OpenMS::SpectrumMetaDataLookup::SpectrumMetaData::precursor_mz)
+        .def_rw("precursor_charge", &OpenMS::SpectrumMetaDataLookup::SpectrumMetaData::precursor_charge)
+        .def_rw("ms_level", &OpenMS::SpectrumMetaDataLookup::SpectrumMetaData::ms_level)
+        .def_rw("scan_number", &OpenMS::SpectrumMetaDataLookup::SpectrumMetaData::scan_number)
+        .def_rw("native_id", &OpenMS::SpectrumMetaDataLookup::SpectrumMetaData::native_id)
+        ;
 
     // -----------------------------------------------------------------------
     // SpectrumMetaDataLookup
@@ -706,6 +809,14 @@ Inherits lookup-by-RT, lookup-by-native-ID, and lookup-by-index from SpectrumLoo
             std::vector<OpenMS::ProteinIdentification> proteins;
             return OpenMS::SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, stop_on_error, override_spectra_data, override_spectra_references, proteins);
         }, "peptides"_a, "filename"_a, "stop_on_error"_a = false, "override_spectra_data"_a = false, "override_spectra_references"_a = false, "Add missing spectrum references")
+        .def_static("getSpectrumMetaData", [](const OpenMS::MSSpectrum& spectrum) {
+            OpenMS::SpectrumMetaDataLookup::SpectrumMetaData result;
+            OpenMS::SpectrumMetaDataLookup::getSpectrumMetaData(spectrum, result);
+            return result;
+        }, "spectrum"_a, "Extract meta data from a spectrum")
+        .def_static("addMissingIMToPeptideIDs", [](OpenMS::PeptideIdentificationList& pep_ids, const OpenMS::MSExperiment& exp) {
+            return OpenMS::SpectrumMetaDataLookup::addMissingIMToPeptideIDs(pep_ids, exp);
+        }, "peptide_ids"_a, "exp"_a, "Add missing ion mobility information to peptide identifications")
         ;
 
     // Free function aliases for backward compatibility

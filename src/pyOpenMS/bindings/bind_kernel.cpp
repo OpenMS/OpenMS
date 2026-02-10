@@ -1551,7 +1551,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
 )doc")
         .def("isSorted", [](const OpenMS::Mobilogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending mobility")
         .def("calculateTIC", [](const OpenMS::Mobilogram& self) { return self.calculateTIC(); }, "Compute the total ion count (sum of all peak intensities)")
-        .def("__iter__", [](OpenMS::Mobilogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "Mobilogram_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::Mobilogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::Mobilogram>(), "Mobilogram_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::Mobilogram& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::Mobilogram& self, size_t i) -> OpenMS::MobilityPeak1D& {
             if (i >= self.size()) throw nb::index_error();
@@ -3131,7 +3131,7 @@ This class supports direct iteration in Python.
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         
-        .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "ConsensusMap_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::ConsensusMap>(), "ConsensusMap_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::ConsensusMap& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature & {
             if (i >= self.size()) throw nb::index_error();
@@ -3331,7 +3331,7 @@ Clears all feature data and metadata
 After calling this, the map will be empty (size() returns 0)
 )doc")
         
-        .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "FeatureMap_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::FeatureMap>(), "FeatureMap_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::FeatureMap& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature & {
             if (i >= self.size()) throw nb::index_error();
