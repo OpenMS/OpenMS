@@ -1802,7 +1802,7 @@ If you want to annotated single peaks with meta data, use RichPeak2D instead
         })
         ;
     // DimensionDescription enum nested under Peak2D
-    nb::enum_<OpenMS::Peak2D::DimensionDescription>(peak2d_class, "DimensionDescription")
+    nb::enum_<OpenMS::Peak2D::DimensionDescription>(peak2d_class, "DimensionDescription", "Names of the dimensions of a 2D peak")
         .value("RT", OpenMS::Peak2D::DimensionDescription::RT)
         .value("MZ", OpenMS::Peak2D::DimensionDescription::MZ)
         .value("DIMENSION", OpenMS::Peak2D::DimensionDescription::DIMENSION)
@@ -2679,7 +2679,7 @@ uninitialized
         })
         ;
     // DecoyTransitionType enum nested under ReactionMonitoringTransition
-    nb::enum_<OpenMS::ReactionMonitoringTransition::DecoyTransitionType>(reactionmonitoringtransition_class, "DecoyTransitionType")
+    nb::enum_<OpenMS::ReactionMonitoringTransition::DecoyTransitionType>(reactionmonitoringtransition_class, "DecoyTransitionType", "Whether a transition is target or decoy")
         .value("UNKNOWN", OpenMS::ReactionMonitoringTransition::DecoyTransitionType::UNKNOWN)
         .value("TARGET", OpenMS::ReactionMonitoringTransition::DecoyTransitionType::TARGET)
         .value("DECOY", OpenMS::ReactionMonitoringTransition::DecoyTransitionType::DECOY)
@@ -2860,7 +2860,7 @@ Returns the comment (default "")
         .def("setNativeIDTypeAccession", [](OpenMS::SourceFile& self, const OpenMS::String& accesssion) { return self.setNativeIDTypeAccession(accesssion); }, "accesssion"_a, "Sets the native ID of the spectra")
         ;
     // ChecksumType enum nested under SourceFile
-    nb::enum_<OpenMS::SourceFile::ChecksumType>(sourcefile_class, "ChecksumType")
+    nb::enum_<OpenMS::SourceFile::ChecksumType>(sourcefile_class, "ChecksumType", "Type of file checksum")
         .value("UNKNOWN_CHECKSUM", OpenMS::SourceFile::ChecksumType::UNKNOWN_CHECKSUM)
         .value("SHA1", OpenMS::SourceFile::ChecksumType::SHA1)
         .value("MD5", OpenMS::SourceFile::ChecksumType::MD5)
@@ -3438,7 +3438,7 @@ RichPeak2D
         
         ;
     // AnnotationState enum nested under BaseFeature
-    nb::enum_<OpenMS::BaseFeature::AnnotationState>(basefeature_class, "AnnotationState")
+    nb::enum_<OpenMS::BaseFeature::AnnotationState>(basefeature_class, "AnnotationState", "State of peptide identification annotation for a feature")
         .value("FEATURE_ID_NONE", OpenMS::BaseFeature::AnnotationState::FEATURE_ID_NONE)
         .value("FEATURE_ID_SINGLE", OpenMS::BaseFeature::AnnotationState::FEATURE_ID_SINGLE)
         .value("FEATURE_ID_MULTIPLE_SAME", OpenMS::BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_SAME)
