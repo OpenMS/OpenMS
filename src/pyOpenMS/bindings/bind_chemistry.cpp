@@ -3,6 +3,8 @@
 
 #include "all_casters.h"
 #include <OpenMS/CHEMISTRY/AAIndex.h>
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
+#include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
@@ -134,7 +136,7 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::AASequence& self) { return std::hash<OpenMS::AASequence>{}(self); })
-        .def("__iter__", [](OpenMS::AASequence& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "AASequence_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::AASequence& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::AASequence>(), "AASequence_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::AASequence& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::AASequence& self, size_t i) -> const OpenMS::Residue & { 
             if (i >= self.size()) throw nb::index_error();
@@ -277,6 +279,8 @@ Methods to generate isobaric decoy sequences for DDA target-decoy
 searches
 )doc")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::DecoyGenerator& self) { return OpenMS::DecoyGenerator(self); })
+        .def("__deepcopy__", [](const OpenMS::DecoyGenerator& self, nb::dict) { return OpenMS::DecoyGenerator(self); }, "memo"_a)
         .def("setSeed", [](OpenMS::DecoyGenerator& self, size_t seed) { return self.setSeed(seed); }, "seed"_a)
         .def("reverseProtein", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein) { return self.reverseProtein(protein); }, "protein"_a, "Reverses the protein sequence")
         .def("reversePeptides", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const OpenMS::String& protease) { return self.reversePeptides(protein, protease); }, "protein"_a, "protease"_a, "Reverses the protein's peptide sequences between enzymatic cutting positions")
@@ -568,7 +572,7 @@ By returning only references into the original string this is very fast
         }, "sequence"_a, "min_length"_a = 1, "max_length"_a = 0, "Digest unmodified sequence, returns (products, num_discarded)")
         ;
     // Specificity enum nested under EnzymaticDigestion
-    nb::enum_<OpenMS::EnzymaticDigestion::Specificity>(enzymaticdigestion_class, "Specificity")
+    nb::enum_<OpenMS::EnzymaticDigestion::Specificity>(enzymaticdigestion_class, "Specificity", nb::is_arithmetic())
         .value("SPEC_NONE", OpenMS::EnzymaticDigestion::Specificity::SPEC_NONE)
         .value("SPEC_SEMI", OpenMS::EnzymaticDigestion::Specificity::SPEC_SEMI)
         .value("SPEC_FULL", OpenMS::EnzymaticDigestion::Specificity::SPEC_FULL)
@@ -758,7 +762,7 @@ IsotopePatternGenerator
         .def("end", [](const OpenMS::IsotopeDistribution& self) { return self.end(); })
         .def("insert", [](OpenMS::IsotopeDistribution& self, const double& mass, const float& intensity) { return self.insert(mass, intensity); }, "mass"_a, "intensity"_a)
         .def("__hash__", [](const OpenMS::IsotopeDistribution& self) { return std::hash<OpenMS::IsotopeDistribution>{}(self); })
-        .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "IsotopeDistribution_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::IsotopeDistribution>(), "IsotopeDistribution_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::IsotopeDistribution& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::IsotopeDistribution& self, size_t i) -> OpenMS::Peak1D & { 
             if (i >= self.size()) throw nb::index_error();
@@ -766,7 +770,7 @@ IsotopePatternGenerator
         }, nb::rv_policy::reference_internal)
         ;
     // Sorted enum nested under IsotopeDistribution
-    nb::enum_<OpenMS::IsotopeDistribution::Sorted>(isotopedistribution_class, "Sorted")
+    nb::enum_<OpenMS::IsotopeDistribution::Sorted>(isotopedistribution_class, "Sorted", nb::is_arithmetic())
         .value("INTENSITY", OpenMS::IsotopeDistribution::Sorted::INTENSITY)
         .value("MASS", OpenMS::IsotopeDistribution::Sorted::MASS)
         .value("UNDEFINED", OpenMS::IsotopeDistribution::Sorted::UNDEFINED)
@@ -949,7 +953,40 @@ The modifications are read from the unimod.xml file on construction.
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
             return self.getBestModificationByDiffMonoMass(mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
         }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), nb::rv_policy::reference, "Returns the best modification by diff mono mass")
+        .def("searchModificationsByDiffMonoMass", [](OpenMS::ModificationsDB& self, double mass, double max_error, const OpenMS::String& residue, nb::object term_spec_obj) {
+            int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
+            std::vector<OpenMS::String> mods;
+            self.searchModificationsByDiffMonoMass(mods, mass, max_error, residue, static_cast<OpenMS::ResidueModification::TermSpecificity>(term_spec));
+            return mods;
+        }, "mass"_a, "max_error"_a, "residue"_a = "", "term_spec"_a = nb::int_(static_cast<int>(OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)), "Search modifications by difference in mono mass (returns list of modification names)")
+        .def("addModification", [](OpenMS::ModificationsDB& self, const OpenMS::ResidueModification& new_mod) {
+            return self.addModification(new_mod);
+        }, "new_mod"_a, nb::rv_policy::reference, "Add a new modification to the database (makes a copy)")
         .def_static("getInstance", []() -> OpenMS::ModificationsDB* { return OpenMS::ModificationsDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        ;
+
+    // -----------------------------------------------------------------------
+    // CrossLinksDB
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::CrossLinksDB, OpenMS::ModificationsDB>(m, "CrossLinksDB",
+        R"doc(
+Database of cross-linker modifications. This is a singleton class that inherits from ModificationsDB.
+The cross-linker modifications are read from an OBO file.
+)doc")
+        .def_static("getInstance", []() -> OpenMS::CrossLinksDB* { return OpenMS::CrossLinksDB::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
+        .def_static("isInstantiated", []() {
+            // Access getInstance and check — CrossLinksDB doesn't override isInstantiated,
+            // but we need to ensure the DB is loaded
+            return OpenMS::CrossLinksDB::getInstance() != nullptr;
+        }, "Check whether CrossLinksDB was instantiated")
+        .def("readFromOBOFile", [](OpenMS::CrossLinksDB& self, const OpenMS::String& filename) {
+            self.readFromOBOFile(filename);
+        }, "filename"_a, "Add cross-link modifications from an OBO file")
+        .def("getAllSearchModifications", [](const OpenMS::CrossLinksDB& self) {
+            std::vector<OpenMS::String> mods;
+            self.getAllSearchModifications(mods);
+            return mods;
+        }, "Returns all cross-link modifications that can be used for identification searches")
         ;
 
     // -----------------------------------------------------------------------
@@ -1059,7 +1096,7 @@ Examples:
     // -----------------------------------------------------------------------
     // MzPAFIonSeries
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::MzPAFIonSeries>(m, "MzPAFIonSeries", "Ion series types for mzPAF peak annotations")
+    nb::enum_<OpenMS::MzPAFIonSeries>(m, "MzPAFIonSeries", "Ion series types for mzPAF peak annotations", nb::is_arithmetic())
         .value("A", OpenMS::MzPAFIonSeries::A)
         .value("B", OpenMS::MzPAFIonSeries::B)
         .value("C", OpenMS::MzPAFIonSeries::C)
@@ -1079,7 +1116,7 @@ Examples:
     // -----------------------------------------------------------------------
     // MzPAFDeltaUnit
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::MzPAFDeltaUnit>(m, "MzPAFDeltaUnit", "Unit for mass delta values in mzPAF annotations")
+    nb::enum_<OpenMS::MzPAFDeltaUnit>(m, "MzPAFDeltaUnit", "Unit for mass delta values in mzPAF annotations", nb::is_arithmetic())
         .value("DALTON", OpenMS::MzPAFDeltaUnit::DALTON)
         .value("PPM", OpenMS::MzPAFDeltaUnit::PPM)
 
@@ -1088,7 +1125,7 @@ Examples:
     // -----------------------------------------------------------------------
     // MzPAFErrorCode
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::MzPAFErrorCode>(m, "MzPAFErrorCode", "Error codes for mzPAF parsing errors")
+    nb::enum_<OpenMS::MzPAFErrorCode>(m, "MzPAFErrorCode", "Error codes for mzPAF parsing errors", nb::is_arithmetic())
         .value("UNEXPECTED_CHARACTER", OpenMS::MzPAFErrorCode::UNEXPECTED_CHARACTER)
         .value("UNCLOSED_BRACKET", OpenMS::MzPAFErrorCode::UNCLOSED_BRACKET)
         .value("INVALID_ION_SERIES", OpenMS::MzPAFErrorCode::INVALID_ION_SERIES)
@@ -1240,18 +1277,18 @@ Generate theoretical MS/MS spectrum for a Peptidoform. ion_types uses chars a,b,
         .def_static("toJSONIon", [](const OpenMS::ProForma::PeptidoformIon& pfi) { return OpenMS::ProForma::toJSON(pfi); }, "pfi"_a, "Convert PeptidoformIon to JSON string")
         ;
     // WriteMode enum nested under ProForma
-    nb::enum_<OpenMS::ProForma::WriteMode>(proforma_class, "WriteMode")
+    nb::enum_<OpenMS::ProForma::WriteMode>(proforma_class, "WriteMode", nb::is_arithmetic())
         .value("LOSSLESS", OpenMS::ProForma::WriteMode::LOSSLESS)
         .value("CANONICAL", OpenMS::ProForma::WriteMode::CANONICAL)
         ;
     // ConversionPolicy enum nested under ProForma
-    nb::enum_<OpenMS::ProForma::ConversionPolicy>(proforma_class, "ConversionPolicy")
+    nb::enum_<OpenMS::ProForma::ConversionPolicy>(proforma_class, "ConversionPolicy", nb::is_arithmetic())
         .value("FAIL_ON_LOSS", OpenMS::ProForma::ConversionPolicy::FAIL_ON_LOSS)
         .value("DROP_UNLOCALISED", OpenMS::ProForma::ConversionPolicy::DROP_UNLOCALISED)
         .value("BEST_EFFORT", OpenMS::ProForma::ConversionPolicy::BEST_EFFORT)
         ;
     // ConversionIssueType enum nested under ProForma
-    nb::enum_<OpenMS::ProForma::ConversionIssueType>(proforma_class, "ConversionIssueType")
+    nb::enum_<OpenMS::ProForma::ConversionIssueType>(proforma_class, "ConversionIssueType", nb::is_arithmetic())
         .value("UNRESOLVED_MOD", OpenMS::ProForma::ConversionIssueType::UNRESOLVED_MOD)
         .value("UNLOCALISED_MOD", OpenMS::ProForma::ConversionIssueType::UNLOCALISED_MOD)
         .value("LABILE_MOD", OpenMS::ProForma::ConversionIssueType::LABILE_MOD)
@@ -1265,7 +1302,7 @@ Generate theoretical MS/MS spectrum for a Peptidoform. ion_types uses chars a,b,
         .value("UNSUPPORTED_FEATURE", OpenMS::ProForma::ConversionIssueType::UNSUPPORTED_FEATURE)
         ;
     // CvDatabase enum nested under ProForma
-    nb::enum_<OpenMS::ProForma::CvDatabase>(proforma_class, "CvDatabase")
+    nb::enum_<OpenMS::ProForma::CvDatabase>(proforma_class, "CvDatabase", nb::is_arithmetic())
         .value("UNIMOD", OpenMS::ProForma::CvDatabase::UNIMOD)
         .value("MOD", OpenMS::ProForma::CvDatabase::MOD)
         .value("RESID", OpenMS::ProForma::CvDatabase::RESID)
@@ -1308,6 +1345,12 @@ The enzymes are read from share/CHEMISTRY/Enzymes.xml.
         .def("hasEnzyme", [](const OpenMS::ProteaseDB& self, const OpenMS::String& name) {
             return self.hasEnzyme(name);
         }, "name"_a, "Check if an enzyme with the given name exists")
+        .def("getEnzymeByRegEx", [](const OpenMS::ProteaseDB& self, const OpenMS::String& cleavage_regex) -> const OpenMS::DigestionEnzymeProtein* {
+            return self.getEnzymeByRegEx(cleavage_regex);
+        }, "cleavage_regex"_a, nb::rv_policy::reference, "Returns the enzyme with the given cleavage regex")
+        .def("hasRegEx", [](const OpenMS::ProteaseDB& self, const OpenMS::String& cleavage_regex) {
+            return self.hasRegEx(cleavage_regex);
+        }, "cleavage_regex"_a, "Check if an enzyme with the given regex exists")
         ;
 
     // -----------------------------------------------------------------------
@@ -1594,7 +1637,7 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def("__hash__", [](const OpenMS::Residue& self) { return std::hash<OpenMS::Residue>{}(self); })
         ;
     // ResidueType enum nested under Residue
-    nb::enum_<OpenMS::Residue::ResidueType>(residue_class, "ResidueType")
+    nb::enum_<OpenMS::Residue::ResidueType>(residue_class, "ResidueType", nb::is_arithmetic())
         .value("Full", OpenMS::Residue::ResidueType::Full)
         .value("Internal", OpenMS::Residue::ResidueType::Internal)
         .value("NTerminal", OpenMS::Residue::ResidueType::NTerminal)
@@ -1708,7 +1751,7 @@ Modified residues get created and added if getModifiedResidue is called.
         .value("NUMBER_OF_TERM_SPECIFICITY", OpenMS::ResidueModification::TermSpecificity::NUMBER_OF_TERM_SPECIFICITY)
         .export_values();
     // SourceClassification enum nested under ResidueModification
-    nb::enum_<OpenMS::ResidueModification::SourceClassification>(residuemodification_class, "SourceClassification")
+    nb::enum_<OpenMS::ResidueModification::SourceClassification>(residuemodification_class, "SourceClassification", nb::is_arithmetic())
         .value("ARTIFACT", OpenMS::ResidueModification::SourceClassification::ARTIFACT)
         .value("HYPOTHETICAL", OpenMS::ResidueModification::SourceClassification::HYPOTHETICAL)
         .value("NATURAL", OpenMS::ResidueModification::SourceClassification::NATURAL)
@@ -1768,7 +1811,7 @@ Sets the code of the unmodified base (e.g., "A", "C", ...)
         .def("__hash__", [](const OpenMS::Ribonucleotide& self) { return std::hash<OpenMS::Ribonucleotide>{}(self); })
         ;
     // TermSpecificityNuc enum nested under Ribonucleotide
-    nb::enum_<OpenMS::Ribonucleotide::TermSpecificityNuc>(ribonucleotide_class, "TermSpecificityNuc")
+    nb::enum_<OpenMS::Ribonucleotide::TermSpecificityNuc>(ribonucleotide_class, "TermSpecificityNuc", nb::is_arithmetic())
         .value("ANYWHERE", OpenMS::Ribonucleotide::TermSpecificityNuc::ANYWHERE)
         .value("FIVE_PRIME", OpenMS::Ribonucleotide::TermSpecificityNuc::FIVE_PRIME)
         .value("THREE_PRIME", OpenMS::Ribonucleotide::TermSpecificityNuc::THREE_PRIME)
@@ -1793,6 +1836,13 @@ The ribonucleotides are read from data/CHEMISTRY/Modomics.tsv and Custom_RNA_mod
         .def("getRibonucleotidePrefix", [](OpenMS::RibonucleotideDB& self, const OpenMS::String& seq) -> const OpenMS::Ribonucleotide* {
             return self.getRibonucleotidePrefix(seq);
         }, "seq"_a, nb::rv_policy::reference, "Returns the ribonucleotide matching the longest prefix")
+        .def("getRibonucleotideAlternatives", [](OpenMS::RibonucleotideDB& self, const std::string& code) {
+            auto result = self.getRibonucleotideAlternatives(code);
+            return nb::make_tuple(
+                nb::cast(result.first, nb::rv_policy::reference),
+                nb::cast(result.second, nb::rv_policy::reference)
+            );
+        }, "code"_a, "Returns the two alternatives for an ambiguous modification code as a tuple")
         ;
 
     // -----------------------------------------------------------------------
@@ -1837,6 +1887,8 @@ Also `max_tag_length` should be >= `min_tag_length`
 :param fixed_mods: A list of modification names. The modified residues replace the unmodified versions
 :param var_mods: A list of modification names. The modified residues are added as additional entries to the list of residues
 )doc")
+        .def("__copy__", [](const OpenMS::Tagger& self) { return OpenMS::Tagger(self); })
+        .def("__deepcopy__", [](const OpenMS::Tagger& self, nb::dict) { return OpenMS::Tagger(self); }, "memo"_a)
         .def(nb::init<size_t, double, size_t, size_t, size_t, std::vector<OpenMS::String>, std::vector<OpenMS::String>, bool>())
         .def("getTag", [](const OpenMS::Tagger& self, const std::vector<double>& mzs) { std::vector<std::string> tags; self.getTag(mzs, tags); return tags; }, "mzs"_a)
         .def("getTag", [](const OpenMS::Tagger& self, const OpenMS::MSSpectrum& spec) { std::vector<std::string> tags; self.getTag(spec, tags); return tags; }, "spec"_a)
@@ -1890,7 +1942,7 @@ the fixed and variable modifications given to the constructor
             return self[i];
         }, nb::rv_policy::reference, "i"_a)
         .def("__iter__", [](const OpenMS::NASequence& self) {
-            return nb::make_iterator<nb::rv_policy::reference>(nb::handle(), "NASequence_iter",
+            return nb::make_iterator<nb::rv_policy::reference>(nb::type<OpenMS::NASequence>(), "NASequence_iter",
                 self.begin(), self.end());
         })
         .def("get", [](OpenMS::NASequence& self, size_t index) -> const OpenMS::Ribonucleotide* {
@@ -1911,7 +1963,7 @@ the fixed and variable modifications given to the constructor
         ;
 
     // NASFragmentType enum nested under NASequence
-    nb::enum_<OpenMS::NASequence::NASFragmentType>(nasequence_class, "NASFragmentType")
+    nb::enum_<OpenMS::NASequence::NASFragmentType>(nasequence_class, "NASFragmentType", nb::is_arithmetic())
         .value("Full", OpenMS::NASequence::NASFragmentType::Full)
         .value("Internal", OpenMS::NASequence::NASFragmentType::Internal)
         .value("FivePrime", OpenMS::NASequence::NASFragmentType::FivePrime)
@@ -1959,6 +2011,8 @@ the fixed and variable modifications given to the constructor
     nb::class_<OpenMS::SimpleTSGXLMS::SimplePeak>(m, "SimplePeak",
         "Simple peak struct with m/z and charge")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::SimpleTSGXLMS::SimplePeak& self) { return OpenMS::SimpleTSGXLMS::SimplePeak(self); })
+        .def("__deepcopy__", [](const OpenMS::SimpleTSGXLMS::SimplePeak& self, nb::dict) { return OpenMS::SimpleTSGXLMS::SimplePeak(self); }, "memo"_a)
         .def(nb::init<double, int>(), "mz"_a, "charge"_a)
         .def_rw("mz", &OpenMS::SimpleTSGXLMS::SimplePeak::mz)
         .def_rw("charge", &OpenMS::SimpleTSGXLMS::SimplePeak::charge)
@@ -2002,5 +2056,30 @@ the fixed and variable modifications given to the constructor
     m.def("__static_MzPAF_toPeakAnnotation", [](const OpenMS::MzPAFAnnotation& annotation, double mz, double intensity) -> OpenMS::PeptideHit::PeakAnnotation { return OpenMS::MzPAF::toPeakAnnotation(annotation, mz, intensity); }, "annotation"_a, "mz"_a, "intensity"_a);
     m.def("__static_MzPAF_fromPeakAnnotation", [](const OpenMS::PeptideHit::PeakAnnotation& pa) -> OpenMS::MzPAFPeakAnnotations { return OpenMS::MzPAF::fromPeakAnnotation(pa); }, "pa"_a);
     m.def("__static_MzPAF_isMzPAFFormat", [](const OpenMS::String& annotation) -> bool { return OpenMS::MzPAF::isMzPAFFormat(annotation); }, "annotation"_a);
+
+    // -----------------------------------------------------------------------
+    // AdductInfo (AMSE_AdductInfo)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::AdductInfo>(m, "AMSE_AdductInfo",
+        "Representation of an adduct for metabolite identification")
+        .def(nb::init<const OpenMS::String&, const OpenMS::EmpiricalFormula&, int, OpenMS::UInt>(),
+            "name"_a, "adduct"_a, "charge"_a, "mol_multiplier"_a = 1)
+        .def("getNeutralMass", &OpenMS::AdductInfo::getNeutralMass, "observed_mz"_a,
+            "Returns the neutral mass of the small molecule without adduct")
+        .def("getMZ", &OpenMS::AdductInfo::getMZ, "neutral_mass"_a,
+            "Returns the m/z of the small molecule with the adduct added")
+        .def("getMassShift", &OpenMS::AdductInfo::getMassShift, "use_avg_mass"_a = false,
+            "Returns the mass shift caused by this adduct")
+        .def("isCompatible", &OpenMS::AdductInfo::isCompatible, "db_entry"_a,
+            "Checks if adduct is compatible with the given formula")
+        .def("getCharge", &OpenMS::AdductInfo::getCharge, "Returns the charge of the adduct")
+        .def("getName", &OpenMS::AdductInfo::getName, "Returns the original name string")
+        .def("getEmpiricalFormula", &OpenMS::AdductInfo::getEmpiricalFormula, "Returns the sum formula of the adduct")
+        .def("getMolMultiplier", &OpenMS::AdductInfo::getMolMultiplier, "Returns the molecular multiplier")
+        .def_static("parseAdductString", &OpenMS::AdductInfo::parseAdductString, "adduct"_a,
+            "Parse an adduct string containing a formula and charge")
+        .def("__eq__", &OpenMS::AdductInfo::operator==)
+        ;
+    m.def("__static_AdductInfo_parseAdductString", [](const OpenMS::String& adduct) -> OpenMS::AdductInfo { return OpenMS::AdductInfo::parseAdductString(adduct); }, "adduct"_a);
 
 }

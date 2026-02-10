@@ -152,7 +152,7 @@ Usage:
         .def("setDataProcessing", [](OpenMS::MSSpectrum& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a)
         .def("getDataProcessing", [](OpenMS::MSSpectrum& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal)
 
-        .def("__iter__", [](OpenMS::MSSpectrum& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "MSSpectrum_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::MSSpectrum& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::MSSpectrum>(), "MSSpectrum_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::MSSpectrum& self) { return self.size(); })
 
         .def("getIMData", [](const OpenMS::MSSpectrum& self) {
