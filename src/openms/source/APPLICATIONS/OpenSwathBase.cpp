@@ -294,6 +294,7 @@ namespace OpenMS
       else if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
 #ifndef WITH_PARQUET
+        (void*)&source_file; // to suppress unused variable warning
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
         auto * chromConsumer = new MSChromatogramParquetConsumer(out_chrom, run_id, source_file, transition_exp);
