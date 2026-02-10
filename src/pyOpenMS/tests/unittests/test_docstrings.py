@@ -36,8 +36,14 @@ def _get_all_classes():
 
 def _get_public_methods(cls):
     """Return public method names for a class (including __init__)."""
+    import enum
+    skip = set()
+    if issubclass(cls, enum.IntEnum):
+        skip = set(dir(int)) - set(dir(enum.Enum))
     methods = []
     for name in sorted(dir(cls)):
+        if name in skip:
+            continue
         if name.startswith("_") and name != "__init__":
             continue
         obj = getattr(cls, name, None)

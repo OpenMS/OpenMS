@@ -448,7 +448,7 @@ Constructors
         .def(nb::self < nb::self)
         .def(nb::self > nb::self)
         .def(nb::self == nb::self)
-        .def("__iter__", [](OpenMS::DeconvolvedSpectrum& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "DeconvolvedSpectrum_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::DeconvolvedSpectrum& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::DeconvolvedSpectrum>(), "DeconvolvedSpectrum_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::DeconvolvedSpectrum& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::DeconvolvedSpectrum& self, size_t i) -> OpenMS::PeakGroup & { 
             if (i >= self.size()) throw nb::index_error();
@@ -1925,7 +1925,7 @@ Constructors
         .def("reserve", [](OpenMS::PeakGroup& self, size_t n) { return self.reserve(n); }, "n"_a, "Reserves space for n peaks")
         .def("empty", [](const OpenMS::PeakGroup& self) { return self.empty(); }, "Returns true if no peaks")
         .def("sort", [](OpenMS::PeakGroup& self) { return self.sort(); }, "Sorts peaks by log m/z")
-        .def("__iter__", [](OpenMS::PeakGroup& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "PeakGroup_iter", self.begin(), self.end()); })
+        .def("__iter__", [](OpenMS::PeakGroup& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::PeakGroup>(), "PeakGroup_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::PeakGroup& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::PeakGroup& self, size_t i) -> const OpenMS::FLASHHelperClasses::LogMzPeak & { 
             if (i >= self.size()) throw nb::index_error();
