@@ -332,6 +332,51 @@ Usage:
         .def("resize", [](OpenMS::MSSpectrum& self, size_t n) {
             self.resize(n);
         }, "n"_a, "Resizes the spectrum to contain n peaks")
+
+        .def("rasterizeIMFrame", [](const OpenMS::MSSpectrum& self,
+                nb::ndarray<float, nb::ndim<2>, nb::device::cpu> output,
+                double min_im, double max_im,
+                double min_mz, double max_mz,
+                const std::string& aggregation) {
+            // Check for C-contiguous array (required for correct pointer arithmetic)
+            if (output.stride(1) != 1 ||
+                output.stride(0) != static_cast<int64_t>(output.shape(1))) {
+                throw std::invalid_argument("Output array must be C-contiguous. "
+                    "Use numpy.ascontiguousarray() to convert.");
+            }
+            const size_t mz_bins = output.shape(0);
+            const size_t im_bins = output.shape(1);
+            float* output_ptr = output.data();
+            OpenMS::MSSpectrum::RasterAggregation agg_mode;
+            if (aggregation == "sum" || aggregation == "SUM")
+                agg_mode = OpenMS::MSSpectrum::RasterAggregation::SUM;
+            else if (aggregation == "max" || aggregation == "MAX")
+                agg_mode = OpenMS::MSSpectrum::RasterAggregation::MAX;
+            else
+                throw std::invalid_argument("Invalid aggregation mode '" + aggregation + "'. Must be 'sum' or 'max'.");
+            self.rasterizeIMFrame(output_ptr, im_bins, mz_bins, min_im, max_im, min_mz, max_mz, agg_mode);
+        }, "output"_a, "min_im"_a, "max_im"_a, "min_mz"_a, "max_mz"_a, "aggregation"_a = "sum",
+        R"doc(Rasterize an ion mobility frame into a 2D intensity matrix (IM vs m/z).
+
+Creates a 2D heatmap representation by binning peak intensities into a regular grid.
+Designed for spectra in CONCATENATED format where each peak has an associated ion mobility value.
+
+Parameters
+----------
+output : numpy.ndarray
+    Pre-allocated 2D float32 C-contiguous array with shape (mz_bins, im_bins).
+    Will be filled in-place (zero-initialize before calling).
+min_im : float
+    Minimum ion mobility value for the output range.
+max_im : float
+    Maximum ion mobility value for the output range.
+min_mz : float
+    Minimum m/z value for the output range.
+max_mz : float
+    Maximum m/z value for the output range.
+aggregation : str, optional
+    Aggregation mode: "sum" (default) or "max".
+)doc")
         ;
     def_MetaInfoInterface<OpenMS::MSSpectrum>(msspectrum_class);
     // MSSpectrumRasterAggregation enum nested under MSSpectrum
