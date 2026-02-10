@@ -255,13 +255,13 @@ class TestFeatureFinderMetaboIdentCompound:
         assert c is not None
 
 
-@pytest.mark.xfail(reason="AMSE_AdductInfo class not found in OpenMS codebase — may have been removed or renamed")
 class TestAMSEAdductInfo:
     """AMSE_AdductInfo — adduct information."""
 
     def test_exists(self):
         assert hasattr(pyopenms, 'AMSE_AdductInfo')
 
+    @pytest.mark.xfail(reason="AMSE_AdductInfo default constructor not yet bound")
     def test_construct(self):
         ai = pyopenms.AMSE_AdductInfo()
         assert ai is not None
