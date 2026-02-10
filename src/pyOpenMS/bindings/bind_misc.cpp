@@ -188,6 +188,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include <sstream>
+#include "binding_utils.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -268,12 +269,6 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def("compute", [](OpenMS::AScore& self, const OpenMS::PeptideHit& hit, OpenMS::MSSpectrum& real_spectrum) { return self.compute(hit, real_spectrum); }, "hit"_a, "real_spectrum"_a)
-        .def("setParameters", [](OpenMS::AScore& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::AScore& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::AScore& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::AScore& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::AScore& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::AScore& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -364,12 +359,6 @@ Apply calibration to calculate concentration
 :param transformation_model_params: Fitted model parameters
 :returns: Calculated concentration
 )doc")
-        .def("setParameters", [](OpenMS::AbsoluteQuantitation& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::AbsoluteQuantitation& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::AbsoluteQuantitation& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::AbsoluteQuantitation& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::AbsoluteQuantitation& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::AbsoluteQuantitation& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
 
         .def("setQuantMethods", [](OpenMS::AbsoluteQuantitation& self, const std::vector<OpenMS::AbsoluteQuantitationMethod>& quant_methods) {
             std::vector<OpenMS::AbsoluteQuantitationMethod> methods_copy(quant_methods);
@@ -403,12 +392,6 @@ C++ implementation of the Biosaur2 feature detection workflow.
         .def("getMSData", [](OpenMS::Biosaur2Algorithm& self) -> OpenMS::MSExperiment & { return self.getMSData(); }, nb::rv_policy::reference_internal, "Get non-const reference to MS data")
         .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map) { nb::gil_scoped_release release; return self.run(feature_map); }, "feature_map"_a, "Run the algorithm storing only the resulting features")
         .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map, bool /*return_details*/) { std::vector<OpenMS::Biosaur2Algorithm::Hill> hills; std::vector<OpenMS::Biosaur2Algorithm::PeptideFeature> peptide_features; { nb::gil_scoped_release release; self.run(feature_map, hills, peptide_features); } return nb::make_tuple(hills, peptide_features); }, "feature_map"_a, "return_details"_a, "Run the algorithm returning (hills, peptide_features) in addition to modifying feature_map in-place")
-        .def("setParameters", [](OpenMS::Biosaur2Algorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::Biosaur2Algorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::Biosaur2Algorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::Biosaur2Algorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::Biosaur2Algorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::Biosaur2Algorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -422,12 +405,6 @@ DefaultParamHandler
 )doc")
         .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, size_t number_of_runs) { return self.apply(ids, number_of_runs); }, "ids"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("setParameters", [](OpenMS::ConsensusIDAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ConsensusIDAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ConsensusIDAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ConsensusIDAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ConsensusIDAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -440,12 +417,6 @@ identical sequences
 ConsensusIDAlgorithm
 )doc")
         .def("apply", [](OpenMS::ConsensusIDAlgorithmIdentity& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("setParameters", [](OpenMS::ConsensusIDAlgorithmIdentity& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmIdentity& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmIdentity& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ConsensusIDAlgorithmIdentity& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ConsensusIDAlgorithmIdentity& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ConsensusIDAlgorithmIdentity& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -459,12 +430,6 @@ ConsensusIDAlgorithmIdentity
 )doc")
         .def(nb::init<>())
         .def("apply", [](OpenMS::ConsensusIDAlgorithmAverage& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("setParameters", [](OpenMS::ConsensusIDAlgorithmAverage& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmAverage& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmAverage& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ConsensusIDAlgorithmAverage& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ConsensusIDAlgorithmAverage& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ConsensusIDAlgorithmAverage& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -478,12 +443,6 @@ ConsensusIDAlgorithmIdentity
 )doc")
         .def(nb::init<>())
         .def("apply", [](OpenMS::ConsensusIDAlgorithmBest& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("setParameters", [](OpenMS::ConsensusIDAlgorithmBest& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmBest& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmBest& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ConsensusIDAlgorithmBest& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ConsensusIDAlgorithmBest& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ConsensusIDAlgorithmBest& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -497,12 +456,6 @@ ConsensusIDAlgorithmIdentity
 )doc")
         .def(nb::init<>())
         .def("apply", [](OpenMS::ConsensusIDAlgorithmRanks& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("setParameters", [](OpenMS::ConsensusIDAlgorithmRanks& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmRanks& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmRanks& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ConsensusIDAlgorithmRanks& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ConsensusIDAlgorithmRanks& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ConsensusIDAlgorithmRanks& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -515,12 +468,6 @@ similarity into account
 ConsensusIDAlgorithm
 )doc")
         .def("apply", [](OpenMS::ConsensusIDAlgorithmSimilarity& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("setParameters", [](OpenMS::ConsensusIDAlgorithmSimilarity& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmSimilarity& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmSimilarity& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ConsensusIDAlgorithmSimilarity& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ConsensusIDAlgorithmSimilarity& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ConsensusIDAlgorithmSimilarity& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -534,12 +481,6 @@ ConsensusIDAlgorithmSimilarity
 )doc")
         .def(nb::init<>())
         .def("apply", [](OpenMS::ConsensusIDAlgorithmPEPIons& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("setParameters", [](OpenMS::ConsensusIDAlgorithmPEPIons& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmPEPIons& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmPEPIons& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ConsensusIDAlgorithmPEPIons& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ConsensusIDAlgorithmPEPIons& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ConsensusIDAlgorithmPEPIons& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -553,12 +494,6 @@ ConsensusIDAlgorithmSimilarity
 )doc")
         .def(nb::init<>())
         .def("apply", [](OpenMS::ConsensusIDAlgorithmPEPMatrix& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("setParameters", [](OpenMS::ConsensusIDAlgorithmPEPMatrix& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmPEPMatrix& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmPEPMatrix& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ConsensusIDAlgorithmPEPMatrix& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ConsensusIDAlgorithmPEPMatrix& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ConsensusIDAlgorithmPEPMatrix& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -572,12 +507,6 @@ ConsensusIDAlgorithmIdentity
 )doc")
         .def(nb::init<>())
         .def("apply", [](OpenMS::ConsensusIDAlgorithmWorst& self, OpenMS::PeptideIdentificationList& ids, const std::map<OpenMS::String, OpenMS::String>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("setParameters", [](OpenMS::ConsensusIDAlgorithmWorst& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ConsensusIDAlgorithmWorst& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ConsensusIDAlgorithmWorst& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ConsensusIDAlgorithmWorst& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ConsensusIDAlgorithmWorst& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ConsensusIDAlgorithmWorst& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -590,12 +519,6 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def("fitElutionModels", [](OpenMS::ElutionModelFitter& self, OpenMS::FeatureMap& features) { return self.fitElutionModels(features); }, "features"_a, "Fit models of elution profiles to all features (and validate them)")
-        .def("setParameters", [](OpenMS::ElutionModelFitter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ElutionModelFitter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ElutionModelFitter& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ElutionModelFitter& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ElutionModelFitter& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ElutionModelFitter& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -608,12 +531,6 @@ gradient descent
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("setParameters", [](OpenMS::EmgGradientDescent& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::EmgGradientDescent& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::EmgGradientDescent& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::EmgGradientDescent& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::EmgGradientDescent& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::EmgGradientDescent& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
 
         .def("getDefaultParameters", [](OpenMS::EmgGradientDescent& self, OpenMS::Param& params) {
             self.getDefaultParameters(params);
@@ -669,12 +586,6 @@ Applies `SavitzkyGolayFilter` and `PeakPickerHiRes`
 :param input: Input a picked spectrum
 :return: A feature map with the peaks converted to features and polarity from the parameters
 )doc")
-        .def("setParameters", [](OpenMS::FIAMSDataProcessor& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FIAMSDataProcessor& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FIAMSDataProcessor& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FIAMSDataProcessor& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FIAMSDataProcessor& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FIAMSDataProcessor& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -699,12 +610,6 @@ DefaultParamHandler
         .def("applyEvaluateProteinIDs", [](const OpenMS::FalseDiscoveryRate& self, const std::vector<OpenMS::ProteinIdentification>& ids, double pepCutoff, unsigned int fpCutoff, double diffWeight) { return self.applyEvaluateProteinIDs(ids, pepCutoff, fpCutoff, diffWeight); }, "ids"_a, "pepCutoff"_a = 1.0, "fpCutoff"_a = 50, "diffWeight"_a = 0.2)
         .def("applyEvaluateProteinIDs", [](const OpenMS::FalseDiscoveryRate& self, const OpenMS::ProteinIdentification& ids, double pepCutoff, unsigned int fpCutoff, double diffWeight) { return self.applyEvaluateProteinIDs(ids, pepCutoff, fpCutoff, diffWeight); }, "ids"_a, "pepCutoff"_a = 1.0, "fpCutoff"_a = 50, "diffWeight"_a = 0.2)
         .def("applyPickedProteinFDR", [](OpenMS::FalseDiscoveryRate& self, OpenMS::ProteinIdentification& id, OpenMS::String decoy_string, bool prefix, bool groups_too) { return self.applyPickedProteinFDR(id, decoy_string, prefix, groups_too); }, "id"_a, "decoy_string"_a = "", "prefix"_a = true, "groups_too"_a = true)
-        .def("setParameters", [](OpenMS::FalseDiscoveryRate& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FalseDiscoveryRate& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FalseDiscoveryRate& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FalseDiscoveryRate& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FalseDiscoveryRate& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FalseDiscoveryRate& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("applyBasic", [](OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& ids, bool higher_score_better, int charge, OpenMS::String identifier, bool only_best_per_pep) { self.applyBasic(ids, higher_score_better, charge, identifier, only_best_per_pep); }, "ids"_a, "higher_score_better"_a, "charge"_a = 0, "identifier"_a = "", "only_best_per_pep"_a = false, "Applies basic FDR calculation")
         .def("applyBasic", [](OpenMS::FalseDiscoveryRate& self, const std::vector<OpenMS::ProteinIdentification>& run_info, OpenMS::PeptideIdentificationList& ids) { self.applyBasic(run_info, ids); }, "run_info"_a, "ids"_a, "Applies basic FDR calculation using run info")
         .def("applyBasic", [](OpenMS::FalseDiscoveryRate& self, OpenMS::ConsensusMap& cmap, bool use_unassigned_peptides) { self.applyBasic(cmap, use_unassigned_peptides); }, "cmap"_a, "use_unassigned_peptides"_a = true, "Applies basic FDR calculation on ConsensusMap")
@@ -726,12 +631,6 @@ consensus features
 DefaultParamHandler
 )doc")
         .def(nb::init<double, bool>())
-        .def("setParameters", [](OpenMS::FeatureDistance& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureDistance& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureDistance& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureDistance& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureDistance& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureDistance& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -773,12 +672,6 @@ ff.run(library, fm, path_to_file)
         .def("getLibrary", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> const OpenMS::TargetedExperiment & { return self.getLibrary(); }, nb::rv_policy::reference_internal, "Retrieves the assay library (e.g., to store as TraML, empty if run was not executed)")
         .def("getTransformations", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> const OpenMS::TransformationDescription & { return self.getTransformations(); }, nb::rv_policy::reference_internal, "Retrieves deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)")
         .def("getNShared", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) { return self.getNShared(); }, "Retrieves number of features with shared identifications")
-        .def("setParameters", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("run", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self,
                        const std::vector<OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
                        OpenMS::FeatureMap& features,
@@ -860,12 +753,6 @@ Run feature detection
         .def("setMSData", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::MSExperiment& ms_data) { return self.setMSData(ms_data); }, "ms_data"_a, "Sets ms data")
         .def("getChromatograms", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment & { return self.getChromatograms(); }, nb::rv_policy::reference_internal, "Returns chromatogram data as MSExperiment")
         .def("getLibrary", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::TargetedExperiment & { return self.getLibrary(); }, nb::rv_policy::reference_internal, "Returns constructed assay library")
-        .def("setParameters", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureFinderIdentificationAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureFinderIdentificationAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureFinderIdentificationAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureFinderIdentificationAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -877,12 +764,6 @@ Base class for all feature grouping algorithms
 DefaultParamHandler
 )doc")
         .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithm& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
-        .def("setParameters", [](OpenMS::FeatureGroupingAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureGroupingAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureGroupingAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureGroupingAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureGroupingAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureGroupingAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -897,12 +778,6 @@ FeatureGroupingAlgorithm
         .def(nb::init<>())
         .def("group", [](OpenMS::FeatureGroupingAlgorithmLabeled& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmLabeled& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
-        .def("setParameters", [](OpenMS::FeatureGroupingAlgorithmLabeled& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureGroupingAlgorithmLabeled& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureGroupingAlgorithmLabeled& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureGroupingAlgorithmLabeled& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureGroupingAlgorithmLabeled& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureGroupingAlgorithmLabeled& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -917,12 +792,6 @@ FeatureGroupingAlgorithm
         .def("group", [](OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("group", [](OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmQT& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
-        .def("setParameters", [](OpenMS::FeatureGroupingAlgorithmQT& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureGroupingAlgorithmQT& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureGroupingAlgorithmQT& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureGroupingAlgorithmQT& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureGroupingAlgorithmQT& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureGroupingAlgorithmQT& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -938,12 +807,6 @@ FeatureGroupingAlgorithm
         .def("group", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { return self.group(maps, out); }, "maps"_a, "out"_a)
         .def("addToGroup", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self, int map_id, const OpenMS::FeatureMap& feature_map) { return self.addToGroup(map_id, feature_map); }, "map_id"_a, "feature_map"_a)
         .def("transferSubelements", [](const OpenMS::FeatureGroupingAlgorithmUnlabeled& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { return self.transferSubelements(maps, out); }, "maps"_a, "out"_a, "Transfers subelements (grouped features) from input consensus maps to the result consensus map")
-        .def("setParameters", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureGroupingAlgorithmUnlabeled& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureGroupingAlgorithmUnlabeled& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureGroupingAlgorithmUnlabeled& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureGroupingAlgorithmUnlabeled& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("setReference", [](OpenMS::FeatureGroupingAlgorithmUnlabeled& self, int map_id, const OpenMS::FeatureMap& map) { self.setReference(map_id, map); }, "map_id"_a, "map"_a)
         ;
 
@@ -1022,12 +885,6 @@ DefaultParamHandler
         .def(nb::init<const OpenMS::Fitter1D &>())
         .def("__copy__", [](const OpenMS::Fitter1D& self) { return OpenMS::Fitter1D(self); })
         .def("__deepcopy__", [](const OpenMS::Fitter1D& self, nb::dict) { return OpenMS::Fitter1D(self); }, "memo"_a)
-        .def("setParameters", [](OpenMS::Fitter1D& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::Fitter1D& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::Fitter1D& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::Fitter1D& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::Fitter1D& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::Fitter1D& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1050,12 +907,6 @@ Converts the forward and reverse identification into probabilities
 :param fwd_ids: Input parameter which represents the identifications of the forward search
 :param rev_ids: Input parameter which represents the identifications of the reversed search
 )doc")
-        .def("setParameters", [](OpenMS::IDDecoyProbability& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::IDDecoyProbability& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::IDDecoyProbability& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::IDDecoyProbability& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::IDDecoyProbability& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::IDDecoyProbability& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1127,15 +978,9 @@ If several features (incl. tolerance) overlap the position of a peptide identifi
 :raises:
 Exception: MissingInformation is thrown if entries of 'ids' do not contain 'MZ' and 'RT' information
 )doc")
-        .def("setParameters", [](OpenMS::IDMapper& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::IDMapper& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::IDMapper& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::IDMapper& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::IDMapper& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::IDMapper& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     // Measure enum nested under IDMapper
-    nb::enum_<OpenMS::IDMapper::Measure>(idmapper_class, "Measure", nb::is_arithmetic())
+    nb::enum_<OpenMS::IDMapper::Measure>(idmapper_class, "Measure", nb::is_arithmetic(), "Mass tolerance measure (PPM or Dalton)")
         .value("MEASURE_PPM", OpenMS::IDMapper::Measure::MEASURE_PPM)
         .value("MEASURE_DA", OpenMS::IDMapper::Measure::MEASURE_DA)
 
@@ -1172,15 +1017,9 @@ DefaultParamHandler
         .def(nb::init<>())
         .def("rip", [](OpenMS::IDRipper& self, std::vector<OpenMS::ProteinIdentification> proteins, OpenMS::PeptideIdentificationList& peptides, bool numeric_filenames, bool split_ident_runs) { std::map<OpenMS::IDRipper::RipFileIdentifier, OpenMS::IDRipper::RipFileContent, OpenMS::IDRipper::RipFileIdentifierIdxComparator> ripped; self.rip(ripped, proteins, peptides, numeric_filenames, split_ident_runs); return ripped; }, "proteins"_a, "peptides"_a, "numeric_filenames"_a, "split_ident_runs"_a)
         .def("rip", [](OpenMS::IDRipper& self, std::vector<OpenMS::ProteinIdentification> proteins, OpenMS::PeptideIdentificationList& peptides, bool numeric_filenames, bool split_ident_runs, bool /*use_vector_output*/) { std::vector<OpenMS::IDRipper::RipFileIdentifier> rfis; std::vector<OpenMS::IDRipper::RipFileContent> rfcs; self.rip(rfis, rfcs, proteins, peptides, numeric_filenames, split_ident_runs); return nb::make_tuple(rfis, rfcs); }, "proteins"_a, "peptides"_a, "numeric_filenames"_a, "split_ident_runs"_a, "use_vector_output"_a)
-        .def("setParameters", [](OpenMS::IDRipper& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::IDRipper& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::IDRipper& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::IDRipper& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::IDRipper& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::IDRipper& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     // OriginAnnotationFormat enum nested under IDRipper
-    nb::enum_<OpenMS::IDRipper::OriginAnnotationFormat>(idripper_class, "OriginAnnotationFormat", nb::is_arithmetic())
+    nb::enum_<OpenMS::IDRipper::OriginAnnotationFormat>(idripper_class, "OriginAnnotationFormat", nb::is_arithmetic(), "Format for annotating the origin of identifications")
         .value("FILE_ORIGIN", OpenMS::IDRipper::OriginAnnotationFormat::FILE_ORIGIN)
         .value("MAP_INDEX", OpenMS::IDRipper::OriginAnnotationFormat::MAP_INDEX)
         .value("ID_MERGE_INDEX", OpenMS::IDRipper::OriginAnnotationFormat::ID_MERGE_INDEX)
@@ -1252,12 +1091,6 @@ Switches the score type of a ConsensusMap to a general score type
 :param counter: A reference to a counter that will be incremented for each peptide identification processed
 :param unassigned_peptides_too: Whether to include unassigned peptides in the score switching process
 )doc")
-        .def("setParameters", [](OpenMS::IDScoreSwitcherAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::IDScoreSwitcherAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::IDScoreSwitcherAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::IDScoreSwitcherAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::IDScoreSwitcherAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::IDScoreSwitcherAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
 
         .def("findScoreType", [](OpenMS::IDScoreSwitcherAlgorithm& self, OpenMS::PeptideIdentification& id, OpenMS::Scores::IDType score_type) {
             return self.findScoreType(id, score_type);
@@ -1385,12 +1218,6 @@ DefaultParamHandler
         .def(nb::init<const OpenMS::IsobaricQuantifier &>())
         .def("__copy__", [](const OpenMS::IsobaricQuantifier& self) { return OpenMS::IsobaricQuantifier(self); })
         .def("__deepcopy__", [](const OpenMS::IsobaricQuantifier& self, nb::dict) { return OpenMS::IsobaricQuantifier(self); }, "memo"_a)
-        .def("setParameters", [](OpenMS::IsobaricQuantifier& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::IsobaricQuantifier& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::IsobaricQuantifier& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::IsobaricQuantifier& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::IsobaricQuantifier& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::IsobaricQuantifier& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("quantify", [](OpenMS::IsobaricQuantifier& self, const OpenMS::ConsensusMap& consensus_map_in, OpenMS::ConsensusMap& consensus_map_out) { self.quantify(consensus_map_in, consensus_map_out); }, "consensus_map_in"_a, "consensus_map_out"_a, "Quantifies isobaric labeled peptides/proteins")
         ;
 
@@ -1408,12 +1235,6 @@ DefaultParamHandler
         .def("getChannelInformation", [](const OpenMS::IsobaricQuantitationMethod& self) -> const std::vector<OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation> & { return self.getChannelInformation(); }, nb::rv_policy::reference_internal, "Returns information on the different channels used by this quantitation method")
         .def("getNumberOfChannels", [](const OpenMS::IsobaricQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getReferenceChannel", [](const OpenMS::IsobaricQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
-        .def("setParameters", [](OpenMS::IsobaricQuantitationMethod& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::IsobaricQuantitationMethod& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::IsobaricQuantitationMethod& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::IsobaricQuantitationMethod& self) { return self.getName(); }, "Returns the unique name or identifier of the quantitation method")
-        .def("setName", [](OpenMS::IsobaricQuantitationMethod& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::IsobaricQuantitationMethod& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
 
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::IsobaricQuantitationMethod& self) {
             return self.getIsotopeCorrectionMatrix();
@@ -1469,12 +1290,6 @@ param fragment_isotopomer_measured: Measured scan values
 param fragment_isotopomer_theoretical_formula: A map of ProteinName/peptideRef to Empirical formula from which the theoretical values will be generated
 )doc")
         .def("calculateMDVs", [](OpenMS::IsotopeLabelingMDVs& self, const OpenMS::FeatureMap& measured_fm, const OpenMS::IsotopeLabelingMDVs::MassIntensityType& mass_intensity_type, const OpenMS::String& feature_name) { OpenMS::FeatureMap normalized_fm; self.calculateMDVs(measured_fm, normalized_fm, mass_intensity_type, feature_name); return normalized_fm; }, "measured_fm"_a, "mass_intensity_type"_a, "feature_name"_a)
-        .def("setParameters", [](OpenMS::IsotopeLabelingMDVs& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::IsotopeLabelingMDVs& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::IsotopeLabelingMDVs& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::IsotopeLabelingMDVs& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::IsotopeLabelingMDVs& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::IsotopeLabelingMDVs& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("calculateMDVAccuracies", [](OpenMS::IsotopeLabelingMDVs& self, OpenMS::FeatureMap& normalized_fm, const std::string& feature_name, const std::map<std::string, std::string>& fragment_isotopomer_theoretical_formulas) { self.calculateMDVAccuracies(normalized_fm, feature_name, fragment_isotopomer_theoretical_formulas); }, "normalized_fm"_a, "feature_name"_a, "fragment_isotopomer_theoretical_formulas"_a, "Calculate MDV accuracies")
         ;
 
@@ -1494,12 +1309,6 @@ IsobaricQuantitationMethod
         .def("getNumberOfChannels", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
-        .def("setParameters", [](OpenMS::ItraqEightPlexQuantitationMethod& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) { return self.getName(); }, "Returns the unique name or identifier of the quantitation method")
-        .def("setName", [](OpenMS::ItraqEightPlexQuantitationMethod& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ItraqEightPlexQuantitationMethod& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1518,12 +1327,6 @@ IsobaricQuantitationMethod
         .def("getNumberOfChannels", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
-        .def("setParameters", [](OpenMS::ItraqFourPlexQuantitationMethod& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) { return self.getName(); }, "Returns the unique name or identifier of the quantitation method")
-        .def("setName", [](OpenMS::ItraqFourPlexQuantitationMethod& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ItraqFourPlexQuantitationMethod& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1554,12 +1357,6 @@ IsobaricQuantitationMethod
         .def("optimizeTree", [](OpenMS::KDTreeFeatureMaps& self) { return self.optimizeTree(); })
         .def("getNeighborhood", [](const OpenMS::KDTreeFeatureMaps& self, size_t index, double rt_tol, double mz_tol, bool mz_ppm, bool include_features_from_same_map, double max_pairwise_log_fc) { std::vector<size_t> result_indices; self.getNeighborhood(index, result_indices, rt_tol, mz_tol, mz_ppm, include_features_from_same_map, max_pairwise_log_fc); return result_indices; }, "index"_a, "rt_tol"_a, "mz_tol"_a, "mz_ppm"_a, "include_features_from_same_map"_a, "max_pairwise_log_fc"_a, "Fill `result` with indices of all features compatible (wrt. RT, m/z, map index) to the feature with `index`")
         .def("queryRegion", [](const OpenMS::KDTreeFeatureMaps& self, double rt_low, double rt_high, double mz_low, double mz_high, size_t ignored_map_index) { std::vector<size_t> result_indices; self.queryRegion(rt_low, rt_high, mz_low, mz_high, result_indices, ignored_map_index); return result_indices; }, "rt_low"_a, "rt_high"_a, "mz_low"_a, "mz_high"_a, "ignored_map_index"_a)
-        .def("setParameters", [](OpenMS::KDTreeFeatureMaps& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::KDTreeFeatureMaps& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::KDTreeFeatureMaps& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::KDTreeFeatureMaps& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::KDTreeFeatureMaps& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::KDTreeFeatureMaps& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("__len__", [](OpenMS::KDTreeFeatureMaps& self) { return self.size(); })
         .def("addMaps", [](OpenMS::KDTreeFeatureMaps& self, const std::vector<OpenMS::FeatureMap>& maps) { self.addMaps(maps); }, "maps"_a)
         .def("applyTransformations", [](OpenMS::KDTreeFeatureMaps& self, const std::vector<OpenMS::TransformationModelLowess*>& trafos) { self.applyTransformations(trafos); }, "trafos"_a, "Apply transformations to RT values")
@@ -1573,12 +1370,6 @@ IsobaricQuantitationMethod
         .def(nb::init<const OpenMS::LevMarqFitter1D &>())
         .def("__copy__", [](const OpenMS::LevMarqFitter1D& self) { return OpenMS::LevMarqFitter1D(self); })
         .def("__deepcopy__", [](const OpenMS::LevMarqFitter1D& self, nb::dict) { return OpenMS::LevMarqFitter1D(self); }, "memo"_a)
-        .def("setParameters", [](OpenMS::LevMarqFitter1D& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::LevMarqFitter1D& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::LevMarqFitter1D& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::LevMarqFitter1D& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::LevMarqFitter1D& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::LevMarqFitter1D& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1595,12 +1386,6 @@ LevMarqFitter1D
         .def(nb::init<const OpenMS::EmgFitter1D &>())
         .def("__copy__", [](const OpenMS::EmgFitter1D& self) { return OpenMS::EmgFitter1D(self); })
         .def("__deepcopy__", [](const OpenMS::EmgFitter1D& self, nb::dict) { return OpenMS::EmgFitter1D(self); }, "memo"_a)
-        .def("setParameters", [](OpenMS::EmgFitter1D& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::EmgFitter1D& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::EmgFitter1D& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::EmgFitter1D& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::EmgFitter1D& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::EmgFitter1D& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1613,12 +1398,6 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def("smoothData", [](OpenMS::LowessSmoothing& self, const std::vector<double>& x_vals, const std::vector<double>& y_vals) { std::vector<double> smoothed; self.smoothData(x_vals, y_vals, smoothed); return smoothed; }, "x_vals"_a, "y_vals"_a, "Smoothing method that receives x and y coordinates (e.g., RT and intensities) and returns smoothed intensities")
-        .def("setParameters", [](OpenMS::LowessSmoothing& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::LowessSmoothing& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::LowessSmoothing& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::LowessSmoothing& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::LowessSmoothing& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::LowessSmoothing& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1695,12 +1474,6 @@ Calculate the retention time difference between two features
 :param component_2: Second feature
 :returns: The absolute RT difference in seconds
 )doc")
-        .def("setParameters", [](OpenMS::MRMFeatureFilter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MRMFeatureFilter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MRMFeatureFilter& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MRMFeatureFilter& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MRMFeatureFilter& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MRMFeatureFilter& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("EstimateDefaultMRMFeatureQCValues", [](const OpenMS::MRMFeatureFilter& self, const std::vector<OpenMS::FeatureMap>& samples, OpenMS::MRMFeatureQC& filter_template, const OpenMS::TargetedExperiment& transitions, const bool& init_template_values) { self.EstimateDefaultMRMFeatureQCValues(samples, filter_template, transitions, init_template_values); }, "samples"_a, "filter_template"_a, "transitions"_a, "init_template_values"_a)
         .def("TransferLLOQAndULOQToCalculatedConcentrationBounds", [](OpenMS::MRMFeatureFilter& self, const std::vector<OpenMS::AbsoluteQuantitationMethod>& quantitation_method, OpenMS::MRMFeatureQC& filter_template) { self.TransferLLOQAndULOQToCalculatedConcentrationBounds(quantitation_method, filter_template); }, "quantitation_method"_a, "filter_template"_a)
         .def("EstimatePercRSD", [](const OpenMS::MRMFeatureFilter& self, const std::vector<OpenMS::FeatureMap>& samples, OpenMS::MRMFeatureQC& filter_template, const OpenMS::TargetedExperiment& transitions) { self.EstimatePercRSD(samples, filter_template, transitions); }, "samples"_a, "filter_template"_a, "transitions"_a)
@@ -1718,12 +1491,6 @@ DefaultParamHandler
         .def(nb::init<>())
         .def("mapExperiment", [](const OpenMS::MRMMapping& self, const OpenMS::MSExperiment& input_chromatograms, const OpenMS::TargetedExperiment& targeted_exp, OpenMS::MSExperiment& output) { return self.mapExperiment(input_chromatograms, targeted_exp, output); }, "input_chromatograms"_a, "targeted_exp"_a, "output"_a)
         .def("mapExperiment", [](const OpenMS::MRMMapping& self, const OpenMS::MSExperiment& input_chromatograms, const OpenSwath::LightTargetedExperiment& targeted_exp, OpenMS::MSExperiment& output) { return self.mapExperiment(input_chromatograms, targeted_exp, output); }, "input_chromatograms"_a, "targeted_exp"_a, "output"_a)
-        .def("setParameters", [](OpenMS::MRMMapping& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MRMMapping& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MRMMapping& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MRMMapping& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MRMMapping& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MRMMapping& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1736,12 +1503,6 @@ to the same precursors
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("setParameters", [](OpenMS::MRMTransitionGroupPicker& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MRMTransitionGroupPicker& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MRMTransitionGroupPicker& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MRMTransitionGroupPicker& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MRMTransitionGroupPicker& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MRMTransitionGroupPicker& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("findLargestPeak", [](OpenMS::MRMTransitionGroupPicker& self, const std::vector<OpenMS::MSChromatogram>& picked_chroms) {
             int chr_idx = -1, peak_idx = -1;
             self.findLargestPeak(picked_chroms, chr_idx, peak_idx);
@@ -1835,12 +1596,6 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def("getDecompositions", [](OpenMS::MassDecompositionAlgorithm& self, double weight) { std::vector<OpenMS::MassDecomposition> decomps; self.getDecompositions(decomps, weight); return decomps; }, "weight"_a, "Returns the possible decompositions given the weight")
-        .def("setParameters", [](OpenMS::MassDecompositionAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MassDecompositionAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MassDecompositionAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MassDecompositionAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MassDecompositionAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MassDecompositionAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1857,12 +1612,6 @@ An algorithm to decharge small molecule features (i.e. as found by FeatureFinder
         .def("__copy__", [](const OpenMS::MetaboliteFeatureDeconvolution& self) { return OpenMS::MetaboliteFeatureDeconvolution(self); })
         .def("__deepcopy__", [](const OpenMS::MetaboliteFeatureDeconvolution& self, nb::dict) { return OpenMS::MetaboliteFeatureDeconvolution(self); }, "memo"_a)
         .def("compute", [](OpenMS::MetaboliteFeatureDeconvolution& self, const OpenMS::FeatureMap& fm_in, OpenMS::FeatureMap& fm_out, OpenMS::ConsensusMap& cons_map, OpenMS::ConsensusMap& cons_map_p) { return self.compute(fm_in, fm_out, cons_map, cons_map_p); }, "fm_in"_a, "fm_out"_a, "cons_map"_a, "cons_map_p"_a)
-        .def("setParameters", [](OpenMS::MetaboliteFeatureDeconvolution& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MetaboliteFeatureDeconvolution& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MetaboliteFeatureDeconvolution& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MetaboliteFeatureDeconvolution& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MetaboliteFeatureDeconvolution& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MetaboliteFeatureDeconvolution& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     nb::enum_<OpenMS::MetaboliteFeatureDeconvolution::CHARGEMODE>(metabolitefeaturedeconvolution_class, "CHARGEMODE",
         "Charge determination mode", nb::is_arithmetic())
@@ -1881,12 +1630,6 @@ An algorithm to decharge small molecule features (i.e. as found by FeatureFinder
         .def("__copy__", [](const OpenMS::FeatureDeconvolution& self) { return OpenMS::FeatureDeconvolution(self); })
         .def("__deepcopy__", [](const OpenMS::FeatureDeconvolution& self, nb::dict) { return OpenMS::FeatureDeconvolution(self); }, "memo"_a)
         .def("compute", [](OpenMS::FeatureDeconvolution& self, const OpenMS::FeatureMap& fm_in, OpenMS::FeatureMap& fm_out, OpenMS::ConsensusMap& cons_map, OpenMS::ConsensusMap& cons_map_p) { self.compute(fm_in, fm_out, cons_map, cons_map_p); }, "fm_in"_a, "fm_out"_a, "cons_map"_a, "cons_map_p"_a)
-        .def("setParameters", [](OpenMS::FeatureDeconvolution& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureDeconvolution& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureDeconvolution& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureDeconvolution& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureDeconvolution& self, const OpenMS::String& name) { self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureDeconvolution& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     nb::enum_<OpenMS::FeatureDeconvolution::CHARGEMODE>(featuredeconvolution_class, "CHARGEMODE",
         "Charge determination mode", nb::is_arithmetic())
@@ -1915,12 +1658,6 @@ DefaultParamHandler
         .def("getDeltaMassesList", [](const OpenMS::MultiplexDeltaMassesGenerator& self) -> const std::vector<OpenMS::MultiplexDeltaMasses> & { return self.getDeltaMassesList(); }, nb::rv_policy::reference_internal)
         .def("getLabelShort", [](OpenMS::MultiplexDeltaMassesGenerator& self, const OpenMS::String& label) { return self.getLabelShort(label); }, "label"_a)
         .def("getLabelLong", [](OpenMS::MultiplexDeltaMassesGenerator& self, const OpenMS::String& label) { return self.getLabelLong(label); }, "label"_a)
-        .def("setParameters", [](OpenMS::MultiplexDeltaMassesGenerator& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MultiplexDeltaMassesGenerator& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MultiplexDeltaMassesGenerator& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MultiplexDeltaMassesGenerator& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MultiplexDeltaMassesGenerator& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MultiplexDeltaMassesGenerator& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1939,12 +1676,6 @@ NLargest removes all but the n largest peaks
         .def("__deepcopy__", [](const OpenMS::NLargest& self, nb::dict) { return OpenMS::NLargest(self); }, "memo"_a)
         .def("filterPeakSpectrum", [](OpenMS::NLargest& self, OpenMS::MSSpectrum& spectrum) { return self.filterPeakSpectrum(spectrum); }, "spectrum"_a, "Keep only n-largest peaks in spectrum")
         .def("filterPeakMap", [](OpenMS::NLargest& self, OpenMS::MSExperiment& exp) { return self.filterPeakMap(exp); }, "exp"_a, "Keep only n-largest peaks in each spectrum of a peak map")
-        .def("setParameters", [](OpenMS::NLargest& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::NLargest& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::NLargest& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::NLargest& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::NLargest& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::NLargest& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1962,12 +1693,6 @@ Normalizes the peak intensities spectrum-wise
         .def("__deepcopy__", [](const OpenMS::Normalizer& self, nb::dict) { return OpenMS::Normalizer(self); }, "memo"_a)
         .def("filterPeakSpectrum", [](const OpenMS::Normalizer& self, OpenMS::MSSpectrum& spectrum) { return self.filterPeakSpectrum(spectrum); }, "spectrum"_a, "Normalizes the peak spectrum")
         .def("filterPeakMap", [](const OpenMS::Normalizer& self, OpenMS::MSExperiment& exp) { return self.filterPeakMap(exp); }, "exp"_a, "Normalizes the peak map")
-        .def("setParameters", [](OpenMS::Normalizer& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::Normalizer& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::Normalizer& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::Normalizer& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::Normalizer& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::Normalizer& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -1983,12 +1708,6 @@ DefaultParamHandler
         .def("__copy__", [](const OpenMS::NucleicAcidSpectrumGenerator& self) { return OpenMS::NucleicAcidSpectrumGenerator(self); })
         .def("__deepcopy__", [](const OpenMS::NucleicAcidSpectrumGenerator& self, nb::dict) { return OpenMS::NucleicAcidSpectrumGenerator(self); }, "memo"_a)
         .def("getSpectrum", [](const OpenMS::NucleicAcidSpectrumGenerator& self, const OpenMS::NASequence& oligo, int min_charge, int max_charge) { OpenMS::MSSpectrum spectrum; self.getSpectrum(spectrum, oligo, min_charge, max_charge); return spectrum; }, "oligo"_a, "min_charge"_a, "max_charge"_a, "Generates a spectrum for a peptide sequence, with the ion types that are set in the tool parameters. If precursor_charge is set to 0 max_charge + 1 will be used")
-        .def("setParameters", [](OpenMS::NucleicAcidSpectrumGenerator& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::NucleicAcidSpectrumGenerator& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::NucleicAcidSpectrumGenerator& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::NucleicAcidSpectrumGenerator& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::NucleicAcidSpectrumGenerator& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::NucleicAcidSpectrumGenerator& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -2063,12 +1782,6 @@ The containers supported by the methods are MSChromatogram and MSSpectrum
         .def("estimateBackground", [](const OpenMS::PeakIntegrator& self, const OpenMS::MSSpectrum& spectrum, double left, double right, double peak_apex_pos) { return self.estimateBackground(spectrum, left, right, peak_apex_pos); }, "spectrum"_a, "left"_a, "right"_a, "peak_apex_pos"_a)
         .def("calculatePeakShapeMetrics", [](const OpenMS::PeakIntegrator& self, const OpenMS::MSChromatogram& chromatogram, double left, double right, double peak_height, double peak_apex_pos) { return self.calculatePeakShapeMetrics(chromatogram, left, right, peak_height, peak_apex_pos); }, "chromatogram"_a, "left"_a, "right"_a, "peak_height"_a, "peak_apex_pos"_a)
         .def("calculatePeakShapeMetrics", [](const OpenMS::PeakIntegrator& self, const OpenMS::MSSpectrum& spectrum, double left, double right, double peak_height, double peak_apex_pos) { return self.calculatePeakShapeMetrics(spectrum, left, right, peak_height, peak_apex_pos); }, "spectrum"_a, "left"_a, "right"_a, "peak_height"_a, "peak_apex_pos"_a)
-        .def("setParameters", [](OpenMS::PeakIntegrator& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::PeakIntegrator& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::PeakIntegrator& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::PeakIntegrator& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::PeakIntegrator& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::PeakIntegrator& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
 
         .def("integratePeak", [](OpenMS::PeakIntegrator& self, const OpenMS::MSChromatogram& chrom, double left, double right) {
             return self.integratePeak(chrom, left, right);
@@ -2104,12 +1817,6 @@ Additionally, overlapping peaks can be removed
         .def(nb::init<>())
         .def("pickChromatogram", [](OpenMS::PeakPickerChromatogram& self, const OpenMS::MSChromatogram& chromatogram, OpenMS::MSChromatogram& picked_chrom) { return self.pickChromatogram(chromatogram, picked_chrom); }, "chromatogram"_a, "picked_chrom"_a)
         .def("pickChromatogram", [](OpenMS::PeakPickerChromatogram& self, const OpenMS::MSChromatogram& chromatogram, OpenMS::MSChromatogram& picked_chrom, OpenMS::MSChromatogram& smoothed_chrom) { return self.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom); }, "chromatogram"_a, "picked_chrom"_a, "smoothed_chrom"_a)
-        .def("setParameters", [](OpenMS::PeakPickerChromatogram& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::PeakPickerChromatogram& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::PeakPickerChromatogram& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::PeakPickerChromatogram& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::PeakPickerChromatogram& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::PeakPickerChromatogram& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -2120,12 +1827,6 @@ Additionally, overlapping peaks can be removed
         .def("pickIMTraces", [](OpenMS::PeakPickerIM& self, OpenMS::MSSpectrum& spectrum) { return self.pickIMTraces(spectrum); }, "spectrum"_a, "Use trace detection for IM peak picking.")
         .def("pickIMCluster", [](const OpenMS::PeakPickerIM& self, OpenMS::MSSpectrum& spec) { return self.pickIMCluster(spec); }, "spec"_a, "Use clustering for IM peak picking.")
         .def("pickIMElutionProfiles", [](const OpenMS::PeakPickerIM& self, OpenMS::MSSpectrum& input) { return self.pickIMElutionProfiles(input); }, "input"_a, "Use elution profile detection for IM peak picking.")
-        .def("setParameters", [](OpenMS::PeakPickerIM& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::PeakPickerIM& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::PeakPickerIM& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::PeakPickerIM& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::PeakPickerIM& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::PeakPickerIM& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -2155,12 +1856,6 @@ Optional (peptide-level) protein inference information (e.g. from Fido or Protei
 Compute protein abundances
 Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. from Fido or ProteinProphet) can be supplied via `proteins`
 )doc")
-        .def("setParameters", [](OpenMS::PeptideAndProteinQuant& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::PeptideAndProteinQuant& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::PeptideAndProteinQuant& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::PeptideAndProteinQuant& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::PeptideAndProteinQuant& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::PeptideAndProteinQuant& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("readQuantData", [](OpenMS::PeptideAndProteinQuant& self, OpenMS::FeatureMap& features, const OpenMS::ExperimentalDesign& ed) { self.readQuantData(features, ed); }, "features"_a, "ed"_a)
         .def("readQuantData", [](OpenMS::PeptideAndProteinQuant& self, OpenMS::ConsensusMap& consensus, const OpenMS::ExperimentalDesign& ed) { self.readQuantData(consensus, ed); }, "consensus"_a, "ed"_a, "Read quantification data from ConsensusMap")
         ;
@@ -2207,12 +1902,6 @@ Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate
         .def("plotTargetDecoyEstimation", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> target, std::vector<double> decoy) { self.plotTargetDecoyEstimation(target, decoy); }, "target"_a, "decoy"_a, "Plots the estimated distribution against target and decoy hits")
         .def("getSmallestScore", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getSmallestScore(); }, "Returns the smallest score used in the last fit")
         .def("tryGnuplot", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::String& gp_file) { return self.tryGnuplot(gp_file); }, "gp_file"_a)
-        .def("setParameters", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -2246,7 +1935,7 @@ Use startProgress, setProgress and endProgress for the actual logging
     // -----------------------------------------------------------------------
     // AccurateMassSearchEngine
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::AccurateMassSearchEngine, OpenMS::DefaultParamHandler>(m, "AccurateMassSearchEngine", 
+    auto accuratemasssearchengine_class = nb::class_<OpenMS::AccurateMassSearchEngine, OpenMS::DefaultParamHandler>(m, "AccurateMassSearchEngine", 
         R"doc(
 An algorithm to search for exact mass matches from a spectrum against
 a database (e.g. HMDB)
@@ -2261,19 +1950,8 @@ ProgressLogger
         .def("run", [](const OpenMS::AccurateMassSearchEngine& self, OpenMS::FeatureMap& p0, OpenMS::MzTabM& p1) { return self.run(p0, p1); })
         .def("run", [](const OpenMS::AccurateMassSearchEngine& self, OpenMS::ConsensusMap& p0, OpenMS::MzTab& p1) { return self.run(p0, p1); })
         .def("init", [](OpenMS::AccurateMassSearchEngine& self) { return self.init(); })
-        .def("setParameters", [](OpenMS::AccurateMassSearchEngine& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::AccurateMassSearchEngine& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::AccurateMassSearchEngine& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::AccurateMassSearchEngine& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::AccurateMassSearchEngine& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::AccurateMassSearchEngine& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::AccurateMassSearchEngine& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::AccurateMassSearchEngine& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::AccurateMassSearchEngine& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::AccurateMassSearchEngine& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::AccurateMassSearchEngine& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::AccurateMassSearchEngine& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::AccurateMassSearchEngine>(accuratemasssearchengine_class);
 
     // -----------------------------------------------------------------------
     // AverageLinkage
@@ -2288,25 +1966,14 @@ ProgressLogger
     // -----------------------------------------------------------------------
     // BaseGroupFinder
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::BaseGroupFinder, OpenMS::DefaultParamHandler>(m, "BaseGroupFinder", 
+    auto basegroupfinder_class = nb::class_<OpenMS::BaseGroupFinder, OpenMS::DefaultParamHandler>(m, "BaseGroupFinder", 
         R"doc(
 The base class of all element group finding algorithms
 DefaultParamHandler
 ProgressLogger
 )doc")
-        .def("setParameters", [](OpenMS::BaseGroupFinder& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::BaseGroupFinder& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::BaseGroupFinder& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::BaseGroupFinder& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::BaseGroupFinder& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::BaseGroupFinder& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::BaseGroupFinder& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::BaseGroupFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::BaseGroupFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::BaseGroupFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::BaseGroupFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::BaseGroupFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::BaseGroupFinder>(basegroupfinder_class);
 
     // -----------------------------------------------------------------------
     // BasicProteinInferenceAlgorithm
@@ -2366,19 +2033,8 @@ Performs basic aggregation-based inference on single ProteinIdentification run. 
 :param prot_id: ProteinIdentification run with possible proteins. Scores will be overwritten and groups added.
 :return: Writes its results into prot_ids
 )doc")
-        .def("setParameters", [](OpenMS::BasicProteinInferenceAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::BasicProteinInferenceAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::BasicProteinInferenceAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::BasicProteinInferenceAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::BasicProteinInferenceAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::BasicProteinInferenceAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::BasicProteinInferenceAlgorithm& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::BasicProteinInferenceAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::BasicProteinInferenceAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::BasicProteinInferenceAlgorithm>(basicproteininferencealgorithm_class);
     // AggregationMethod enum nested under BasicProteinInferenceAlgorithm
     nb::enum_<OpenMS::BasicProteinInferenceAlgorithm::AggregationMethod>(basicproteininferencealgorithm_class, "AggregationMethod", nb::is_arithmetic())
         .value("PROD", OpenMS::BasicProteinInferenceAlgorithm::AggregationMethod::PROD)
@@ -2389,7 +2045,7 @@ Performs basic aggregation-based inference on single ProteinIdentification run. 
     // -----------------------------------------------------------------------
     // BayesianProteinInferenceAlgorithm
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::BayesianProteinInferenceAlgorithm, OpenMS::DefaultParamHandler>(m, "BayesianProteinInferenceAlgorithm", 
+    auto bayesianproteininferencealgorithm_class = nb::class_<OpenMS::BayesianProteinInferenceAlgorithm, OpenMS::DefaultParamHandler>(m, "BayesianProteinInferenceAlgorithm", 
         R"doc(
 DefaultParamHandler
 ProgressLogger
@@ -2443,19 +2099,8 @@ Currently only takes first proteinID run and all peptides
 :returns: Updated proteinIDs with posterior probabilities
 )doc")
         .def("inferPosteriorProbabilities", [](OpenMS::BayesianProteinInferenceAlgorithm& self, OpenMS::ConsensusMap& cmap, bool greedy_group_resolution, std::optional<OpenMS::ExperimentalDesign> exp_des) { return self.inferPosteriorProbabilities(cmap, greedy_group_resolution, exp_des); }, "cmap"_a, "greedy_group_resolution"_a, "exp_des"_a)
-        .def("setParameters", [](OpenMS::BayesianProteinInferenceAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::BayesianProteinInferenceAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::BayesianProteinInferenceAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::BayesianProteinInferenceAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::BayesianProteinInferenceAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::BayesianProteinInferenceAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::BayesianProteinInferenceAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::BayesianProteinInferenceAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::BayesianProteinInferenceAlgorithm>(bayesianproteininferencealgorithm_class);
 
     // -----------------------------------------------------------------------
     // CachedMzMLHandler
@@ -2473,12 +2118,6 @@ ProgressLogger
         .def("createMemdumpIndex", [](OpenMS::Internal::CachedMzMLHandler& self, const OpenMS::String& filename) { return self.createMemdumpIndex(filename); }, "filename"_a, "Create an index on the location of all the spectra and chromatograms")
         .def("getSpectraIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::streampos> & { return self.getSpectraIndex(); }, nb::rv_policy::reference_internal)
         .def("getChromatogramIndex", [](const OpenMS::Internal::CachedMzMLHandler& self) -> const std::vector<std::streampos> & { return self.getChromatogramIndex(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::Internal::CachedMzMLHandler& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::Internal::CachedMzMLHandler& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::Internal::CachedMzMLHandler& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::Internal::CachedMzMLHandler& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
     // -----------------------------------------------------------------------
@@ -2516,12 +2155,6 @@ ProgressLogger
         .def(nb::init<const OpenMS::ChromatogramExtractor &>())
         .def("__copy__", [](const OpenMS::ChromatogramExtractor& self) { return OpenMS::ChromatogramExtractor(self); })
         .def("__deepcopy__", [](const OpenMS::ChromatogramExtractor& self, nb::dict) { return OpenMS::ChromatogramExtractor(self); }, "memo"_a)
-        .def("setLogType", [](const OpenMS::ChromatogramExtractor& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::ChromatogramExtractor& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::ChromatogramExtractor& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::ChromatogramExtractor& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ChromatogramExtractor& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::ChromatogramExtractor& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("extractChromatograms", [](OpenMS::ChromatogramExtractor& self,
                 std::shared_ptr<OpenMS::SpectrumAccessOpenMS> input,
@@ -2582,12 +2215,6 @@ ProgressLogger
         .def(nb::init<const OpenMS::ChromatogramExtractorAlgorithm &>())
         .def("__copy__", [](const OpenMS::ChromatogramExtractorAlgorithm& self) { return OpenMS::ChromatogramExtractorAlgorithm(self); })
         .def("__deepcopy__", [](const OpenMS::ChromatogramExtractorAlgorithm& self, nb::dict) { return OpenMS::ChromatogramExtractorAlgorithm(self); }, "memo"_a)
-        .def("setLogType", [](const OpenMS::ChromatogramExtractorAlgorithm& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::ChromatogramExtractorAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::ChromatogramExtractorAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("extractChromatograms", [](OpenMS::ChromatogramExtractorAlgorithm& self,
                 std::shared_ptr<OpenMS::SpectrumAccessOpenMS> input,
@@ -2627,19 +2254,13 @@ ProgressLogger
         }, "filename"_a, "Loads a DTA2D file into an MSExperiment")
         .def("store", [](OpenMS::DTA2DFile& self, const OpenMS::String& filename, const OpenMS::PeakMap& map) { self.store(filename, map); }, "filename"_a, "map"_a, "Stores an MSExperiment to a DTA2D file")
         .def("getOptions", [](OpenMS::DTA2DFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::DTA2DFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::DTA2DFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::DTA2DFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::DTA2DFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::DTA2DFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::DTA2DFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("storeTIC", [](const OpenMS::DTA2DFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& map) { self.storeTIC(filename, map); }, "filename"_a, "map"_a, "Store TIC to file")
         ;
 
     // -----------------------------------------------------------------------
     // ElutionPeakDetection
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ElutionPeakDetection, OpenMS::DefaultParamHandler>(m, "ElutionPeakDetection", 
+    auto elutionpeakdetection_class = nb::class_<OpenMS::ElutionPeakDetection, OpenMS::DefaultParamHandler>(m, "ElutionPeakDetection", 
         R"doc(
 Extracts chromatographic peaks from a mass trace
 ProgressLogger
@@ -2654,19 +2275,8 @@ DefaultParamHandler
         .def("computeApexSNR", [](OpenMS::ElutionPeakDetection& self, const OpenMS::MassTrace& p0) { return self.computeApexSNR(p0); }, "Compute the signal to noise ratio at the apex (estimated by computeMassTraceNoise)")
         .def("findLocalExtrema", [](const OpenMS::ElutionPeakDetection& self, const OpenMS::MassTrace& tr, const size_t& num_neighboring_peaks) { std::vector<size_t> chrom_maxes; std::vector<size_t> chrom_mins; self.findLocalExtrema(tr, num_neighboring_peaks, chrom_maxes, chrom_mins); return std::make_tuple(chrom_maxes, chrom_mins); }, "tr"_a, "num_neighboring_peaks"_a)
         .def("smoothData", [](const OpenMS::ElutionPeakDetection& self, OpenMS::MassTrace& mt, int win_size) { return self.smoothData(mt, win_size); }, "mt"_a, "win_size"_a)
-        .def("setParameters", [](OpenMS::ElutionPeakDetection& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ElutionPeakDetection& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ElutionPeakDetection& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ElutionPeakDetection& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ElutionPeakDetection& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ElutionPeakDetection& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::ElutionPeakDetection& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::ElutionPeakDetection& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::ElutionPeakDetection& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::ElutionPeakDetection& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::ElutionPeakDetection& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::ElutionPeakDetection& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::ElutionPeakDetection>(elutionpeakdetection_class);
 
     // -----------------------------------------------------------------------
     // FASTAFile
@@ -2776,7 +2386,7 @@ print(entry.identifier)
     // -----------------------------------------------------------------------
     // FLASHDeconvAlgorithm
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FLASHDeconvAlgorithm, OpenMS::DefaultParamHandler>(m, "FLASHDeconvAlgorithm", 
+    auto flashdeconvalgorithm_class = nb::class_<OpenMS::FLASHDeconvAlgorithm, OpenMS::DefaultParamHandler>(m, "FLASHDeconvAlgorithm", 
         R"doc(
 DefaultParamHandler
 ProgressLogger
@@ -2806,19 +2416,8 @@ Averagine access
         .def("getDecoyAveragine", [](OpenMS::FLASHDeconvAlgorithm& self) -> const OpenMS::FLASHHelperClasses::PrecalculatedAveragine & { return self.getDecoyAveragine(); }, nb::rv_policy::reference_internal, "Get calculated averagine. Call after run() is called.")
         .def("getNoiseDecoyWeight", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getNoiseDecoyWeight(); }, "Get mass tolerances per MS level.")
         .def_static("getScanNumber", [](const OpenMS::MSExperiment& map, size_t index) { return OpenMS::FLASHDeconvAlgorithm::getScanNumber(map, index); }, "map"_a, "index"_a, "Get noise decoy weight determined during q-value calculation.")
-        .def("setParameters", [](OpenMS::FLASHDeconvAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FLASHDeconvAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FLASHDeconvAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FLASHDeconvAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FLASHDeconvAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::FLASHDeconvAlgorithm& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::FLASHDeconvAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::FLASHDeconvAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::FLASHDeconvAlgorithm>(flashdeconvalgorithm_class);
 
     // -----------------------------------------------------------------------
     // FeatureFinderAlgorithmPicked
@@ -2830,12 +2429,6 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def("run", [](OpenMS::FeatureFinderAlgorithmPicked& self, OpenMS::MSExperiment& input_map, OpenMS::FeatureMap& features, const OpenMS::Param& param, const OpenMS::FeatureMap& seeds) { nb::gil_scoped_release release; return self.run(input_map, features, param, seeds); }, "input_map"_a, "features"_a, "param"_a, "seeds"_a)
-        .def("setParameters", [](OpenMS::FeatureFinderAlgorithmPicked& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureFinderAlgorithmPicked& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureFinderAlgorithmPicked& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureFinderAlgorithmPicked& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureFinderAlgorithmPicked& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureFinderAlgorithmPicked& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -2854,18 +2447,12 @@ DefaultParamHandler
         .def("run", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, OpenMS::MSExperiment& exp, bool progress) { nb::gil_scoped_release release; return self.run(exp, progress); }, "exp"_a, "progress"_a, "Main method for feature detection")
         .def("getFeatureMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::FeatureMap & { return self.getFeatureMap(); }, nb::rv_policy::reference_internal)
         .def("getConsensusMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::ConsensusMap & { return self.getConsensusMap(); }, nb::rv_policy::reference_internal)
-        .def("setParameters", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureFinderMultiplexAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureFinderMultiplexAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureFinderMultiplexAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureFinderMultiplexAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
     // FeatureFindingMetabo
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FeatureFindingMetabo, OpenMS::DefaultParamHandler>(m, "FeatureFindingMetabo", 
+    auto featurefindingmetabo_class = nb::class_<OpenMS::FeatureFindingMetabo, OpenMS::DefaultParamHandler>(m, "FeatureFindingMetabo", 
         R"doc(
 Internal structure used in @ref FeatureFindingMetabo that keeps track
 of a feature hypothesis (isotope group hypothesis)
@@ -2874,45 +2461,23 @@ DefaultParamHandler
 )doc")
         .def(nb::init<>())
         .def("run", [](OpenMS::FeatureFindingMetabo& self, std::vector<OpenMS::MassTrace> input_mtraces, OpenMS::FeatureMap& output_featmap) { std::vector<std::vector<OpenMS::MSChromatogram>> output_chromatograms; { nb::gil_scoped_release release; self.run(input_mtraces, output_featmap, output_chromatograms); } return nb::make_tuple(input_mtraces, output_chromatograms); }, "input_mtraces"_a, "output_featmap"_a)
-        .def("setParameters", [](OpenMS::FeatureFindingMetabo& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureFindingMetabo& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureFindingMetabo& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureFindingMetabo& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureFindingMetabo& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureFindingMetabo& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::FeatureFindingMetabo& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::FeatureFindingMetabo& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::FeatureFindingMetabo& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::FeatureFindingMetabo& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::FeatureFindingMetabo& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::FeatureFindingMetabo& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::FeatureFindingMetabo>(featurefindingmetabo_class);
 
     // -----------------------------------------------------------------------
     // FeatureGroupingAlgorithmKD
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FeatureGroupingAlgorithmKD, OpenMS::FeatureGroupingAlgorithm>(m, "FeatureGroupingAlgorithmKD", 
+    auto featuregroupingalgorithmkd_class = nb::class_<OpenMS::FeatureGroupingAlgorithmKD, OpenMS::FeatureGroupingAlgorithm>(m, "FeatureGroupingAlgorithmKD", 
         R"doc(
 Proxy for a (potential) cluster
 FeatureGroupingAlgorithm
 ProgressLogger
 )doc")
         .def(nb::init<>())
-        .def("setParameters", [](OpenMS::FeatureGroupingAlgorithmKD& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::FeatureGroupingAlgorithmKD& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::FeatureGroupingAlgorithmKD& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::FeatureGroupingAlgorithmKD& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::FeatureGroupingAlgorithmKD& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::FeatureGroupingAlgorithmKD& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::FeatureGroupingAlgorithmKD& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::FeatureGroupingAlgorithmKD& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::FeatureGroupingAlgorithmKD& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("group", [](OpenMS::FeatureGroupingAlgorithmKD& self, const std::vector<OpenMS::FeatureMap>& maps, OpenMS::ConsensusMap& out) { self.group(maps, out); }, "maps"_a, "out"_a)
         .def("group", [](OpenMS::FeatureGroupingAlgorithmKD& self, const std::vector<OpenMS::ConsensusMap>& maps, OpenMS::ConsensusMap& out) { self.group(maps, out); }, "maps"_a, "out"_a, "Group consensus maps")
         ;
+    def_ProgressLogger<OpenMS::FeatureGroupingAlgorithmKD>(featuregroupingalgorithmkd_class);
 
     // -----------------------------------------------------------------------
     // GNPSMGFFile
@@ -2920,36 +2485,19 @@ ProgressLogger
     nb::class_<OpenMS::GNPSMGFFile, OpenMS::DefaultParamHandler>(m, "GNPSMGFFile", "OpenMS class GNPSMGFFile")
         .def(nb::init<>())
         .def("store", [](const OpenMS::GNPSMGFFile& self, const OpenMS::String& consensus_file_path, const std::vector<OpenMS::String>& mzml_file_paths, const OpenMS::String& out) { return self.store(consensus_file_path, mzml_file_paths, out); }, "consensus_file_path"_a, "mzml_file_paths"_a, "out"_a, "Export consensus file from default workflow to GNPS MGF format")
-        .def("setParameters", [](OpenMS::GNPSMGFFile& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::GNPSMGFFile& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::GNPSMGFFile& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::GNPSMGFFile& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::GNPSMGFFile& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::GNPSMGFFile& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
     // GaussFilter
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::GaussFilter, OpenMS::ProgressLogger>(m, "GaussFilter", "OpenMS class GaussFilter")
+    auto gaussfilter_class = nb::class_<OpenMS::GaussFilter, OpenMS::ProgressLogger>(m, "GaussFilter", "OpenMS class GaussFilter")
         .def(nb::init<>())
         .def("filter", [](OpenMS::GaussFilter& self, OpenMS::MSSpectrum& spectrum) { return self.filter(spectrum); }, "spectrum"_a, "Smoothes an MSSpectrum containing profile data")
         .def("filter", [](OpenMS::GaussFilter& self, OpenMS::MSChromatogram& chromatogram) { return self.filter(chromatogram); }, "chromatogram"_a, "Smoothes an MSSpectrum containing profile data")
         .def("filter", [](OpenMS::GaussFilter& self, OpenMS::Mobilogram& mobilogram) { return self.filter(mobilogram); }, "mobilogram"_a, "Smoothes an MSSpectrum containing profile data")
         .def("filterExperiment", [](OpenMS::GaussFilter& self, OpenMS::MSExperiment& map) { return self.filterExperiment(map); }, "map"_a, "Smoothes an MSExperiment containing profile data")
-        .def("setLogType", [](const OpenMS::GaussFilter& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::GaussFilter& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::GaussFilter& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::GaussFilter& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::GaussFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::GaussFilter& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
-        .def("setParameters", [](OpenMS::GaussFilter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::GaussFilter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::GaussFilter& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::GaussFilter& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::GaussFilter& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::GaussFilter& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
+    def_DefaultParamHandler<OpenMS::GaussFilter>(gaussfilter_class);
 
     // -----------------------------------------------------------------------
     // InternalCalibration
@@ -3029,43 +2577,26 @@ The MSExperiment will be sorted by RT and m/z if unsorted.
            "Calibrate an experiment using previously collected calibration points")
         .def_static("applyTransformation", [](OpenMS::MSSpectrum& spec, const std::vector<int>& target_mslvl, const OpenMS::MZTrafoModel& trafo) { return OpenMS::InternalCalibration::applyTransformation(spec, target_mslvl, trafo); }, "spec"_a, "target_mslvl"_a, "trafo"_a)
         .def_static("applyTransformation", [](OpenMS::MSExperiment& exp, const std::vector<int>& target_mslvl, const OpenMS::MZTrafoModel& trafo) { return OpenMS::InternalCalibration::applyTransformation(exp, target_mslvl, trafo); }, "exp"_a, "target_mslvl"_a, "trafo"_a)
-        .def("setLogType", [](const OpenMS::InternalCalibration& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::InternalCalibration& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::InternalCalibration& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::InternalCalibration& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::InternalCalibration& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::InternalCalibration& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
     // -----------------------------------------------------------------------
     // LabeledPairFinder
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::LabeledPairFinder, OpenMS::BaseGroupFinder>(m, "LabeledPairFinder", 
+    auto labeledpairfinder_class = nb::class_<OpenMS::LabeledPairFinder, OpenMS::BaseGroupFinder>(m, "LabeledPairFinder", 
         R"doc(
 The LabeledPairFinder allows the matching of labeled features (features with a fixed distance)
 Finds feature pairs that have a defined distance in RT and m/z in the same map
 BaseGroupFinder
 )doc")
         .def(nb::init<>())
-        .def("setParameters", [](OpenMS::LabeledPairFinder& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::LabeledPairFinder& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::LabeledPairFinder& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::LabeledPairFinder& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::LabeledPairFinder& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::LabeledPairFinder& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::LabeledPairFinder& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::LabeledPairFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::LabeledPairFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::LabeledPairFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::LabeledPairFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::LabeledPairFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("run", [](OpenMS::LabeledPairFinder& self, const std::vector<OpenMS::ConsensusMap>& input_maps, OpenMS::ConsensusMap& result_map) { self.run(input_maps, result_map); }, "input_maps"_a, "result_map"_a)
         ;
+    def_ProgressLogger<OpenMS::LabeledPairFinder>(labeledpairfinder_class);
 
     // -----------------------------------------------------------------------
     // LinearResampler
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::LinearResampler, OpenMS::DefaultParamHandler>(m, "LinearResampler", 
+    auto linearresampler_class = nb::class_<OpenMS::LinearResampler, OpenMS::DefaultParamHandler>(m, "LinearResampler", 
         R"doc(
 DefaultParamHandler
 ProgressLogger
@@ -3076,43 +2607,21 @@ Annotates and filters transitions in a TargetedExperiment
         .def(nb::init<>())
         .def("raster", [](const OpenMS::LinearResampler& self, OpenMS::MSSpectrum& spectrum) { return self.raster(spectrum); }, "spectrum"_a, "Applies the resampling algorithm to an MSSpectrum")
         .def("rasterExperiment", [](OpenMS::LinearResampler& self, OpenMS::MSExperiment& exp) { return self.rasterExperiment(exp); }, "exp"_a, "Resamples the data in an MSExperiment")
-        .def("setParameters", [](OpenMS::LinearResampler& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::LinearResampler& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::LinearResampler& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::LinearResampler& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::LinearResampler& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::LinearResampler& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::LinearResampler& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::LinearResampler& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::LinearResampler& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::LinearResampler& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::LinearResampler& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::LinearResampler& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::LinearResampler>(linearresampler_class);
 
     // -----------------------------------------------------------------------
     // LinearResamplerAlign
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::LinearResamplerAlign, OpenMS::LinearResampler>(m, "LinearResamplerAlign", 
+    auto linearresampleralign_class = nb::class_<OpenMS::LinearResamplerAlign, OpenMS::LinearResampler>(m, "LinearResamplerAlign", 
         R"doc(
 Linear Resampling of raw data with alignment
 LinearResampler
 )doc")
         .def(nb::init<>())
         .def("rasterExperiment", [](OpenMS::LinearResamplerAlign& self, OpenMS::MSExperiment& exp) { return self.rasterExperiment(exp); }, "exp"_a, "Resamples the data in an MSExperiment")
-        .def("setParameters", [](OpenMS::LinearResamplerAlign& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::LinearResamplerAlign& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::LinearResamplerAlign& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::LinearResamplerAlign& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::LinearResamplerAlign& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::LinearResamplerAlign& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::LinearResamplerAlign& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::LinearResamplerAlign& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::LinearResamplerAlign& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::LinearResamplerAlign& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::LinearResamplerAlign& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::LinearResamplerAlign& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::LinearResamplerAlign>(linearresampleralign_class);
 
     // -----------------------------------------------------------------------
     // MRMAssay
@@ -3157,12 +2666,6 @@ Filters target and decoy transitions by intensity, only keeping the top N transi
 :param min_transitions: The minimum number of transitions required per assay (targets only)
 :param max_transitions: The maximum number of transitions allowed per assay
 )doc")
-        .def("setLogType", [](const OpenMS::MRMAssay& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MRMAssay& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MRMAssay& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MRMAssay& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MRMAssay& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MRMAssay& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("reannotateTransitions", [](OpenMS::MRMAssay& self, OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, const std::vector<OpenMS::String>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow) { self.reannotateTransitions(exp, precursor_mz_threshold, product_mz_threshold, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow); }, "exp"_a, "precursor_mz_threshold"_a, "product_mz_threshold"_a, "fragment_types"_a, "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a, "round_decPow"_a = -4)
         .def("uisTransitions", [](OpenMS::MRMAssay& self, OpenMS::TargetedExperiment& exp, const std::vector<OpenMS::String>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, const std::vector<std::pair<double, double>>& swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed, bool disable_decoy_transitions) { self.uisTransitions(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, mz_threshold, swathes, round_decPow, max_num_alternative_localizations, shuffle_seed, disable_decoy_transitions); }, "exp"_a, "fragment_types"_a, "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a, "enable_ms2_precursors"_a, "mz_threshold"_a, "swathes"_a, "round_decPow"_a = -4, "max_num_alternative_localizations"_a = 20, "shuffle_seed"_a = -1, "disable_decoy_transitions"_a = false)
         ;
@@ -3170,7 +2673,7 @@ Filters target and decoy transitions by intensity, only keeping the top N transi
     // -----------------------------------------------------------------------
     // MRMDecoy
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MRMDecoy, OpenMS::DefaultParamHandler>(m, "MRMDecoy", 
+    auto mrmdecoy_class = nb::class_<OpenMS::MRMDecoy, OpenMS::DefaultParamHandler>(m, "MRMDecoy", 
         R"doc(
 This class generates a TargetedExperiment object with decoys based on
 a TargetedExperiment object
@@ -3193,12 +2696,6 @@ different precursor m/z and ensures that the y ion series has a different
 mass. For a description of the procedure, see (supplemental material)
 Bruderer et al. Mol Cell Proteomics. 2017. 10.1074/mcp.RA117.000314.
 )doc")
-        .def("setLogType", [](const OpenMS::MRMDecoy& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MRMDecoy& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MRMDecoy& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MRMDecoy& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MRMDecoy& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MRMDecoy& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("generateDecoys", [](const OpenMS::MRMDecoy& self,
                                   const OpenMS::TargetedExperiment& exp,
                                   const OpenMS::String& method,
@@ -3228,6 +2725,7 @@ Bruderer et al. Mol Cell Proteomics. 2017. 10.1074/mcp.RA117.000314.
            "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a,
            "round_decPow"_a = -4, "Generate decoys from a TargetedExperiment")
         ;
+    def_ProgressLogger<OpenMS::MRMDecoy>(mrmdecoy_class);
 
     // -----------------------------------------------------------------------
     // MS2File
@@ -3238,12 +2736,6 @@ MS2 input file adapter
 ProgressLogger
 )doc")
         .def(nb::init<>())
-        .def("setLogType", [](const OpenMS::MS2File& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MS2File& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MS2File& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MS2File& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MS2File& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MS2File& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("load", [](OpenMS::MS2File& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) { self.load(filename, exp); }, "filename"_a, "exp"_a, "Load MS2 file")
         ;
 
@@ -3275,7 +2767,7 @@ May delete data from chromatogram (if clearData is set)
     // -----------------------------------------------------------------------
     // MapAlignmentAlgorithmIdentification
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MapAlignmentAlgorithmIdentification, OpenMS::DefaultParamHandler>(m, "MapAlignmentAlgorithmIdentification", 
+    auto mapalignmentalgorithmidentification_class = nb::class_<OpenMS::MapAlignmentAlgorithmIdentification, OpenMS::DefaultParamHandler>(m, "MapAlignmentAlgorithmIdentification", 
         R"doc(
 A map alignment algorithm based on peptide identifications from MS2
 spectra
@@ -3283,18 +2775,6 @@ DefaultParamHandler
 ProgressLogger
 )doc")
         .def(nb::init<>())
-        .def("setParameters", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MapAlignmentAlgorithmIdentification& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MapAlignmentAlgorithmIdentification& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MapAlignmentAlgorithmIdentification& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MapAlignmentAlgorithmIdentification& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MapAlignmentAlgorithmIdentification& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MapAlignmentAlgorithmIdentification& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::FeatureMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (FeatureMap)")
         .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::ConsensusMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (ConsensusMap)")
         .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::FeatureMap& map) {
@@ -3310,29 +2790,18 @@ ProgressLogger
             return trafos.empty() ? OpenMS::TransformationDescription() : trafos[0];
         }, "map"_a, "Aligns a ConsensusMap and returns the transformation")
         ;
+    def_ProgressLogger<OpenMS::MapAlignmentAlgorithmIdentification>(mapalignmentalgorithmidentification_class);
 
     // -----------------------------------------------------------------------
     // MapAlignmentAlgorithmPoseClustering
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MapAlignmentAlgorithmPoseClustering, OpenMS::DefaultParamHandler>(m, "MapAlignmentAlgorithmPoseClustering", 
+    auto mapalignmentalgorithmposeclustering_class = nb::class_<OpenMS::MapAlignmentAlgorithmPoseClustering, OpenMS::DefaultParamHandler>(m, "MapAlignmentAlgorithmPoseClustering", 
         R"doc(
 A map alignment algorithm based on pose clustering
 DefaultParamHandler
 ProgressLogger
 )doc")
         .def(nb::init<>())
-        .def("setParameters", [](OpenMS::MapAlignmentAlgorithmPoseClustering& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MapAlignmentAlgorithmPoseClustering& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MapAlignmentAlgorithmPoseClustering& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("setReference", [](OpenMS::MapAlignmentAlgorithmPoseClustering& self, const OpenMS::FeatureMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference map for alignment (FeatureMap)")
         .def("setReference", [](OpenMS::MapAlignmentAlgorithmPoseClustering& self, const OpenMS::PeakMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference map for alignment (PeakMap)")
         .def("align", [](OpenMS::MapAlignmentAlgorithmPoseClustering& self, const OpenMS::FeatureMap& map) {
@@ -3346,11 +2815,12 @@ ProgressLogger
             return trafo;
         }, "map"_a, "Aligns a PeakMap to the reference and returns the transformation")
         ;
+    def_ProgressLogger<OpenMS::MapAlignmentAlgorithmPoseClustering>(mapalignmentalgorithmposeclustering_class);
 
     // -----------------------------------------------------------------------
     // MascotGenericFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MascotGenericFile, OpenMS::ProgressLogger>(m, "MascotGenericFile", 
+    auto mascotgenericfile_class = nb::class_<OpenMS::MascotGenericFile, OpenMS::ProgressLogger>(m, "MascotGenericFile", 
         R"doc(
 Read/write Mascot generic files (MGF)
 ProgressLogger
@@ -3367,25 +2837,14 @@ Loads a Mascot Generic File into a PeakMap
 :raises:
 Exception: FileNotFound is thrown if the given file could not be found
 )doc")
-        .def("setLogType", [](const OpenMS::MascotGenericFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MascotGenericFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MascotGenericFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MascotGenericFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MascotGenericFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MascotGenericFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
-        .def("setParameters", [](OpenMS::MascotGenericFile& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MascotGenericFile& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MascotGenericFile& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MascotGenericFile& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MascotGenericFile& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MascotGenericFile& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("load", [](OpenMS::MascotGenericFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) { self.load(filename, exp); }, "filename"_a, "exp"_a, "Load MGF file")
         ;
+    def_DefaultParamHandler<OpenMS::MascotGenericFile>(mascotgenericfile_class);
 
     // -----------------------------------------------------------------------
     // MassTraceDetection
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MassTraceDetection, OpenMS::DefaultParamHandler>(m, "MassTraceDetection", 
+    auto masstracedetection_class = nb::class_<OpenMS::MassTraceDetection, OpenMS::DefaultParamHandler>(m, "MassTraceDetection", 
         R"doc(
 A mass trace extraction method that gathers peaks similar in m/z and
 moving along retention time
@@ -3393,18 +2852,6 @@ ProgressLogger
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("setParameters", [](OpenMS::MassTraceDetection& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MassTraceDetection& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MassTraceDetection& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MassTraceDetection& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MassTraceDetection& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MassTraceDetection& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::MassTraceDetection& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MassTraceDetection& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MassTraceDetection& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MassTraceDetection& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MassTraceDetection& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MassTraceDetection& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("run", [](OpenMS::MassTraceDetection& self, const OpenMS::PeakMap& input, size_t max_traces) {
             std::vector<OpenMS::MassTrace> found_masstraces;
             self.run(input, found_masstraces, max_traces);
@@ -3417,11 +2864,12 @@ DefaultParamHandler
 :return: List of found MassTrace objects
 )doc")
         ;
+    def_ProgressLogger<OpenMS::MassTraceDetection>(masstracedetection_class);
 
     // -----------------------------------------------------------------------
     // MasstraceCorrelator
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MasstraceCorrelator, OpenMS::DefaultParamHandler>(m, "MasstraceCorrelator", 
+    auto masstracecorrelator_class = nb::class_<OpenMS::MasstraceCorrelator, OpenMS::DefaultParamHandler>(m, "MasstraceCorrelator", 
         R"doc(
 Correlates individual masstraces found in mass spectrometric maps
 DefaultParamHandler
@@ -3429,24 +2877,13 @@ ProgressLogger
 )doc")
         .def(nb::init<>())
         .def("createPseudoSpectra", [](OpenMS::MasstraceCorrelator& self, const OpenMS::ConsensusMap& map, OpenMS::MSExperiment& pseudo_spectra, size_t min_peak_nr, double min_correlation, int max_lag, double max_rt_apex_difference) { return self.createPseudoSpectra(map, pseudo_spectra, min_peak_nr, min_correlation, max_lag, max_rt_apex_difference); }, "map"_a, "pseudo_spectra"_a, "min_peak_nr"_a, "min_correlation"_a, "max_lag"_a, "max_rt_apex_difference"_a)
-        .def("setParameters", [](OpenMS::MasstraceCorrelator& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MasstraceCorrelator& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MasstraceCorrelator& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MasstraceCorrelator& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MasstraceCorrelator& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MasstraceCorrelator& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::MasstraceCorrelator& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MasstraceCorrelator& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MasstraceCorrelator& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MasstraceCorrelator& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MasstraceCorrelator& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MasstraceCorrelator& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::MasstraceCorrelator>(masstracecorrelator_class);
 
     // -----------------------------------------------------------------------
     // MetaboliteSpectralMatching
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MetaboliteSpectralMatching, OpenMS::DefaultParamHandler>(m, "MetaboliteSpectralMatching", "OpenMS class MetaboliteSpectralMatching")
+    auto metabolitespectralmatching_class = nb::class_<OpenMS::MetaboliteSpectralMatching, OpenMS::DefaultParamHandler>(m, "MetaboliteSpectralMatching", "OpenMS class MetaboliteSpectralMatching")
         .def(nb::init<>())
         .def_static("computeHyperScore", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) { return OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, mz_lower_bound); }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a)
         .def_static("computeHyperScoreWithAnnotations", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) {
@@ -3459,24 +2896,13 @@ ProgressLogger
             self.run(p0, p1, p2, out_spectra);
             return out_spectra;
         })
-        .def("setParameters", [](OpenMS::MetaboliteSpectralMatching& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MetaboliteSpectralMatching& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MetaboliteSpectralMatching& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MetaboliteSpectralMatching& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MetaboliteSpectralMatching& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MetaboliteSpectralMatching& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::MetaboliteSpectralMatching& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MetaboliteSpectralMatching& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MetaboliteSpectralMatching& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MetaboliteSpectralMatching& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MetaboliteSpectralMatching& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MetaboliteSpectralMatching& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::MetaboliteSpectralMatching>(metabolitespectralmatching_class);
 
     // -----------------------------------------------------------------------
     // MorphologicalFilter
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MorphologicalFilter, OpenMS::ProgressLogger>(m, "MorphologicalFilter", 
+    auto morphologicalfilter_class = nb::class_<OpenMS::MorphologicalFilter, OpenMS::ProgressLogger>(m, "MorphologicalFilter", 
         R"doc(
 An iterator wrapper to access peak intensities instead of the peak
 itself
@@ -3497,19 +2923,8 @@ total number of peaks in the input range
 from struc_size and the average spacing, and rounded up to an odd
 number
 )doc")
-        .def("setLogType", [](const OpenMS::MorphologicalFilter& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MorphologicalFilter& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MorphologicalFilter& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MorphologicalFilter& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MorphologicalFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MorphologicalFilter& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
-        .def("setParameters", [](OpenMS::MorphologicalFilter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::MorphologicalFilter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::MorphologicalFilter& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::MorphologicalFilter& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MorphologicalFilter& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::MorphologicalFilter& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
+    def_DefaultParamHandler<OpenMS::MorphologicalFilter>(morphologicalfilter_class);
 
     // -----------------------------------------------------------------------
     // OpenPepXLAlgorithm
@@ -3520,12 +2935,6 @@ Search for peptide pairs linked with a labeled cross-linker
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("setParameters", [](OpenMS::OpenPepXLAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::OpenPepXLAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::OpenPepXLAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::OpenPepXLAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::OpenPepXLAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::OpenPepXLAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("run", [](OpenMS::OpenPepXLAlgorithm& self,
                 OpenMS::PeakMap& unprocessed_spectra,
                 OpenMS::ConsensusMap& cfeatures,
@@ -3627,7 +3036,7 @@ Exception:UnableToCreateFile is thrown if the file cannot be created
     // -----------------------------------------------------------------------
     // PeakPickerHiRes
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeakPickerHiRes, OpenMS::DefaultParamHandler>(m, "PeakPickerHiRes", 
+    auto peakpickerhires_class = nb::class_<OpenMS::PeakPickerHiRes, OpenMS::DefaultParamHandler>(m, "PeakPickerHiRes", 
         R"doc(
 This class implements a fast peak-picking algorithm best suited for
 high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution
@@ -3657,29 +3066,18 @@ ProgressLogger
             self.pick(input, output, boundaries, check_spacings);
             return boundaries;
         }, "input"_a, "output"_a, "check_spacings"_a)
-        .def("setParameters", [](OpenMS::PeakPickerHiRes& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::PeakPickerHiRes& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::PeakPickerHiRes& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::PeakPickerHiRes& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::PeakPickerHiRes& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::PeakPickerHiRes& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("pickExperiment", [](const OpenMS::PeakPickerHiRes& self, OpenMS::PeakMap& input, bool check_spectrum_type) {
             OpenMS::PeakMap output;
             self.pickExperiment(input, output, check_spectrum_type);
             return output;
         }, "input"_a, "check_spectrum_type"_a = true, "Picks peaks in a full experiment (MSExperiment)")
-        .def("setLogType", [](const OpenMS::PeakPickerHiRes& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::PeakPickerHiRes& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::PeakPickerHiRes& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::PeakPickerHiRes& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::PeakPickerHiRes& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::PeakPickerHiRes& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::PeakPickerHiRes>(peakpickerhires_class);
 
     // -----------------------------------------------------------------------
     // PeakPickerIterative
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeakPickerIterative, OpenMS::DefaultParamHandler>(m, "PeakPickerIterative", 
+    auto peakpickeriterative_class = nb::class_<OpenMS::PeakPickerIterative, OpenMS::DefaultParamHandler>(m, "PeakPickerIterative", 
         R"doc(
 Iterative peak picker that uses seed-based centroiding to detect and
 integrate peaks in profile spectra
@@ -3697,19 +3095,8 @@ Finally, other peaks that would fall within the primary peak are
 discarded
 The output are the remaining peaks
 )doc")
-        .def("setParameters", [](OpenMS::PeakPickerIterative& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::PeakPickerIterative& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::PeakPickerIterative& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::PeakPickerIterative& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::PeakPickerIterative& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::PeakPickerIterative& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::PeakPickerIterative& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::PeakPickerIterative& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::PeakPickerIterative& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::PeakPickerIterative& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::PeakPickerIterative& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::PeakPickerIterative& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::PeakPickerIterative>(peakpickeriterative_class);
 
     // -----------------------------------------------------------------------
     // PeptideIndexing
@@ -3743,12 +3130,6 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
         }, "proteins"_a, "prot_ids"_a, "pep_ids"_a)
         .def("getDecoyString", [](const OpenMS::PeptideIndexing& self) { return self.getDecoyString(); })
         .def("isPrefix", [](const OpenMS::PeptideIndexing& self) { return self.isPrefix(); })
-        .def("setParameters", [](OpenMS::PeptideIndexing& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::PeptideIndexing& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::PeptideIndexing& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::PeptideIndexing& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::PeptideIndexing& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::PeptideIndexing& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     // ExitCodes enum nested under PeptideIndexing
     nb::enum_<OpenMS::PeptideIndexing::ExitCodes>(peptideindexing_class, "ExitCodes", nb::is_arithmetic())
@@ -3781,19 +3162,8 @@ outputs (ProteinIdentification and PeptideIdentificationList)
             auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
             return nb::make_tuple(result, prot_ids);
         }, "in_mzML"_a, "in_db"_a, "pep_ids"_a)
-        .def("setParameters", [](OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::PeptideSearchEngineFIAlgorithm>(peptidesearchenginefialgorithm_class);
     // PeptideSearchEngineFIAlgorithm_ExitCodes enum nested under PeptideSearchEngineFIAlgorithm
     nb::enum_<OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes>(peptidesearchenginefialgorithm_class, "PeptideSearchEngineFIAlgorithm_ExitCodes", nb::is_arithmetic())
         .value("EXECUTION_OK", OpenMS::PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK)
@@ -3806,26 +3176,15 @@ outputs (ProteinIdentification and PeptideIdentificationList)
     // -----------------------------------------------------------------------
     // QTClusterFinder
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::QTClusterFinder, OpenMS::BaseGroupFinder>(m, "QTClusterFinder", 
+    auto qtclusterfinder_class = nb::class_<OpenMS::QTClusterFinder, OpenMS::BaseGroupFinder>(m, "QTClusterFinder", 
         R"doc(
 A variant of QT clustering for the detection of feature groups
 BaseGroupFinder
 )doc")
         .def(nb::init<>())
         .def("run", [](OpenMS::QTClusterFinder& self, const std::vector<OpenMS::FeatureMap>& input_maps, OpenMS::ConsensusMap& result_map) { return self.run(input_maps, result_map); }, "input_maps"_a, "result_map"_a)
-        .def("setParameters", [](OpenMS::QTClusterFinder& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::QTClusterFinder& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::QTClusterFinder& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::QTClusterFinder& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::QTClusterFinder& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::QTClusterFinder& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::QTClusterFinder& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::QTClusterFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::QTClusterFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::QTClusterFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::QTClusterFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::QTClusterFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::QTClusterFinder>(qtclusterfinder_class);
 
     // -----------------------------------------------------------------------
     // RankScaler
@@ -3842,18 +3201,12 @@ DefaultParamHandler
         .def("__deepcopy__", [](const OpenMS::RankScaler& self, nb::dict) { return OpenMS::RankScaler(self); }, "memo"_a)
         .def("filterPeakSpectrum", [](OpenMS::RankScaler& self, OpenMS::MSSpectrum& spectrum) { return self.filterPeakSpectrum(spectrum); }, "spectrum"_a)
         .def("filterPeakMap", [](OpenMS::RankScaler& self, OpenMS::MSExperiment& exp) { return self.filterPeakMap(exp); }, "exp"_a)
-        .def("setParameters", [](OpenMS::RankScaler& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::RankScaler& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::RankScaler& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::RankScaler& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::RankScaler& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::RankScaler& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
     // SavitzkyGolayFilter
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SavitzkyGolayFilter, OpenMS::ProgressLogger>(m, "SavitzkyGolayFilter", 
+    auto savitzkygolayfilter_class = nb::class_<OpenMS::SavitzkyGolayFilter, OpenMS::ProgressLogger>(m, "SavitzkyGolayFilter", 
         R"doc(
 Computes the Savitzky-Golay filter coefficients using QR
 decomposition
@@ -3865,24 +3218,13 @@ ProgressLogger
         .def("filter", [](OpenMS::SavitzkyGolayFilter& self, OpenMS::MSChromatogram& chromatogram) { return self.filter(chromatogram); }, "chromatogram"_a, "Removed the noise from an MSSpectrum containing profile data")
         .def("filter", [](OpenMS::SavitzkyGolayFilter& self, OpenMS::Mobilogram& mobilogram) { return self.filter(mobilogram); }, "mobilogram"_a, "Removed the noise from an MSSpectrum containing profile data")
         .def("filterExperiment", [](OpenMS::SavitzkyGolayFilter& self, OpenMS::MSExperiment& map) { return self.filterExperiment(map); }, "map"_a, "Removed the noise from an MSExperiment containing profile data")
-        .def("setLogType", [](const OpenMS::SavitzkyGolayFilter& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::SavitzkyGolayFilter& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::SavitzkyGolayFilter& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::SavitzkyGolayFilter& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::SavitzkyGolayFilter& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::SavitzkyGolayFilter& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
-        .def("setParameters", [](OpenMS::SavitzkyGolayFilter& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SavitzkyGolayFilter& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::SavitzkyGolayFilter& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::SavitzkyGolayFilter& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::SavitzkyGolayFilter& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::SavitzkyGolayFilter& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
+    def_DefaultParamHandler<OpenMS::SavitzkyGolayFilter>(savitzkygolayfilter_class);
 
     // -----------------------------------------------------------------------
     // SimpleSearchEngineAlgorithm
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SimpleSearchEngineAlgorithm, OpenMS::DefaultParamHandler>(m, "SimpleSearchEngineAlgorithm", "OpenMS class SimpleSearchEngineAlgorithm")
+    auto simplesearchenginealgorithm_class = nb::class_<OpenMS::SimpleSearchEngineAlgorithm, OpenMS::DefaultParamHandler>(m, "SimpleSearchEngineAlgorithm", "OpenMS class SimpleSearchEngineAlgorithm")
         .def(nb::init<>())
         .def("search", [](const OpenMS::SimpleSearchEngineAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
@@ -3890,19 +3232,8 @@ ProgressLogger
             { nb::gil_scoped_release release; result = self.search(in_mzML, in_db, prot_ids, pep_ids); }
             return nb::make_tuple(result, prot_ids);
         }, "in_mzML"_a, "in_db"_a, "pep_ids"_a)
-        .def("setParameters", [](OpenMS::SimpleSearchEngineAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SimpleSearchEngineAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::SimpleSearchEngineAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::SimpleSearchEngineAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::SimpleSearchEngineAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::SimpleSearchEngineAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::SimpleSearchEngineAlgorithm& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::SimpleSearchEngineAlgorithm& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::SimpleSearchEngineAlgorithm& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::SimpleSearchEngineAlgorithm>(simplesearchenginealgorithm_class);
 
     // -----------------------------------------------------------------------
     // SimpleTSGXLMS
@@ -3952,12 +3283,6 @@ The generated ion types and other additional settings are determined by the tool
 :param maxcharge: The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
 :param link_pos_2: A second position for the linker, in case it is a loop link
 )doc")
-        .def("setParameters", [](OpenMS::SimpleTSGXLMS& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SimpleTSGXLMS& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::SimpleTSGXLMS& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::SimpleTSGXLMS& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::SimpleTSGXLMS& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::SimpleTSGXLMS& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -3990,12 +3315,6 @@ Prints the number of features and spectra used (OPENMS_LOG_INFO)
 :param feature_ms2_indices: FeatureToMs2Indices with feature mapping
 :param spectra: Input of MSExperiment with spectra information
 )doc")
-        .def("setParameters", [](OpenMS::SiriusExportAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SiriusExportAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::SiriusExportAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::SiriusExportAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::SiriusExportAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::SiriusExportAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -4011,12 +3330,6 @@ DefaultParamHandler
         .def(nb::init<const OpenMS::SpectraMerger &>())
         .def("__copy__", [](const OpenMS::SpectraMerger& self) { return OpenMS::SpectraMerger(self); })
         .def("__deepcopy__", [](const OpenMS::SpectraMerger& self, nb::dict) { return OpenMS::SpectraMerger(self); }, "memo"_a)
-        .def("setParameters", [](OpenMS::SpectraMerger& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SpectraMerger& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::SpectraMerger& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::SpectraMerger& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::SpectraMerger& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::SpectraMerger& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("mergeSpectraBlockWise", [](OpenMS::SpectraMerger& self, OpenMS::MSExperiment& exp) { self.mergeSpectraBlockWise(exp); }, "exp"_a, "Merges spectra block-wise")
         .def("mergeSpectraPrecursors", [](OpenMS::SpectraMerger& self, OpenMS::MSExperiment& exp) { self.mergeSpectraPrecursors(exp); }, "exp"_a, "Merges spectra with similar precursors")
         .def("average", [](OpenMS::SpectraMerger& self, OpenMS::MSExperiment& exp, const OpenMS::String& average_type, int ms_level) { self.average(exp, average_type, ms_level); }, "exp"_a, "average_type"_a, "ms_level"_a = -1, "Averages spectra")
@@ -4063,12 +3376,6 @@ Result access
             return nb::make_tuple(cosine, offset);
         }, "mono_mass"_a, "per_isotope_intensities"_a, "avg"_a, "iso_int_shift"_a, "window_width"_a, "excluded_masses"_a, "Calculate cosine between two vectors with optimization parameters")
         .def("setTargetDecoyType", [](OpenMS::SpectralDeconvolution& self, OpenMS::PeakGroup::TargetDecoyType target_decoy_type, const OpenMS::DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion) { return self.setTargetDecoyType(target_decoy_type, target_dspec_for_decoy_calcualtion); }, "target_decoy_type"_a, "target_dspec_for_decoy_calcualtion"_a, "When estimating tolerance, set max_mass_dalton_tolerance to a large value")
-        .def("setParameters", [](OpenMS::SpectralDeconvolution& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SpectralDeconvolution& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::SpectralDeconvolution& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::SpectralDeconvolution& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::SpectralDeconvolution& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::SpectralDeconvolution& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -4122,12 +3429,6 @@ Note: Intensity is ignored.
         .def(nb::init<const OpenMS::SpectrumAlignment &>())
         .def("__copy__", [](const OpenMS::SpectrumAlignment& self) { return OpenMS::SpectrumAlignment(self); })
         .def("__deepcopy__", [](const OpenMS::SpectrumAlignment& self, nb::dict) { return OpenMS::SpectrumAlignment(self); }, "memo"_a)
-        .def("setParameters", [](OpenMS::SpectrumAlignment& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SpectrumAlignment& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::SpectrumAlignment& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::SpectrumAlignment& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::SpectrumAlignment& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::SpectrumAlignment& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         .def("getSpectrumAlignment", [](const OpenMS::SpectrumAlignment& self, const OpenMS::MSSpectrum& s1, const OpenMS::MSSpectrum& s2) {
             std::vector<std::pair<OpenMS::Size, OpenMS::Size>> alignment;
             self.getSpectrumAlignment(alignment, s1, s2);
@@ -4170,12 +3471,6 @@ Adds ion match statistics to `pi` PeptideIdentifcation
 :param tg: A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
 :param sa: A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
 )doc")
-        .def("setParameters", [](OpenMS::SpectrumAnnotator& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SpectrumAnnotator& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::SpectrumAnnotator& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::SpectrumAnnotator& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::SpectrumAnnotator& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::SpectrumAnnotator& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -4193,37 +3488,20 @@ Scales the intensity of peaks to the sqrt
         .def("__deepcopy__", [](const OpenMS::SqrtScaler& self, nb::dict) { return OpenMS::SqrtScaler(self); }, "memo"_a)
         .def("filterPeakSpectrum", [](OpenMS::SqrtScaler& self, OpenMS::MSSpectrum& spectrum) { return self.filterPeakSpectrum(spectrum); }, "spectrum"_a)
         .def("filterPeakMap", [](OpenMS::SqrtScaler& self, OpenMS::MSExperiment& exp) { return self.filterPeakMap(exp); }, "exp"_a)
-        .def("setParameters", [](OpenMS::SqrtScaler& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SqrtScaler& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::SqrtScaler& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::SqrtScaler& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::SqrtScaler& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::SqrtScaler& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
     // StablePairFinder
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::StablePairFinder, OpenMS::BaseGroupFinder>(m, "StablePairFinder", 
+    auto stablepairfinder_class = nb::class_<OpenMS::StablePairFinder, OpenMS::BaseGroupFinder>(m, "StablePairFinder", 
         R"doc(
 This class implements a pair finding algorithm for consensus features
 BaseGroupFinder
 )doc")
         .def(nb::init<>())
-        .def("setParameters", [](OpenMS::StablePairFinder& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::StablePairFinder& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::StablePairFinder& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::StablePairFinder& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::StablePairFinder& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::StablePairFinder& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
-        .def("setLogType", [](const OpenMS::StablePairFinder& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::StablePairFinder& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::StablePairFinder& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::StablePairFinder& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::StablePairFinder& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::StablePairFinder& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         .def("run", [](OpenMS::StablePairFinder& self, const std::vector<OpenMS::ConsensusMap>& input_maps, OpenMS::ConsensusMap& result_map) { self.run(input_maps, result_map); }, "input_maps"_a, "result_map"_a)
         ;
+    def_ProgressLogger<OpenMS::StablePairFinder>(stablepairfinder_class);
 
     // -----------------------------------------------------------------------
     // SwathFile
@@ -4247,12 +3525,6 @@ ProgressLogger
         .def("loadSplit", [](OpenMS::SwathFile& self, std::vector<OpenMS::String> file_list, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const OpenMS::String& readoptions) { return self.loadSplit(file_list, tmp, exp_meta, readoptions); }, "file_list"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "Loads a Swath run from a list of split mzML files")
         .def("loadMzML", [](OpenMS::SwathFile& self, const OpenMS::String& file, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const OpenMS::String& readoptions, OpenMS::Interfaces::IMSDataConsumer * plugin_consumer) { return self.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "plugin_consumer"_a)
         .def("loadMzXML", [](OpenMS::SwathFile& self, const OpenMS::String& file, const OpenMS::String& tmp, std::shared_ptr<OpenMS::ExperimentalSettings>& exp_meta, const OpenMS::String& readoptions) { return self.loadMzXML(file, tmp, exp_meta, readoptions); }, "file"_a, "tmp"_a, "exp_meta"_a, "readoptions"_a = "normal", "Loads a Swath run from a single mzXML file")
-        .def("setLogType", [](const OpenMS::SwathFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::SwathFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::SwathFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::SwathFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::SwathFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::SwathFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
     // -----------------------------------------------------------------------
@@ -4286,12 +3558,6 @@ IsobaricQuantitationMethod
         .def("getNumberOfChannels", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
-        .def("setParameters", [](OpenMS::TMTEighteenPlexQuantitationMethod& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) { return self.getName(); }, "Returns the unique name or identifier of the quantitation method")
-        .def("setName", [](OpenMS::TMTEighteenPlexQuantitationMethod& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::TMTEighteenPlexQuantitationMethod& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -4312,12 +3578,6 @@ IsobaricQuantitationMethod
         .def("getNumberOfChannels", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
-        .def("setParameters", [](OpenMS::TMTElevenPlexQuantitationMethod& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) { return self.getName(); }, "Returns the unique name or identifier of the quantitation method")
-        .def("setName", [](OpenMS::TMTElevenPlexQuantitationMethod& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::TMTElevenPlexQuantitationMethod& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -4338,12 +3598,6 @@ IsobaricQuantitationMethod
         .def("getNumberOfChannels", [](const OpenMS::TMTSixPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::TMTSixPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::TMTSixPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
-        .def("setParameters", [](OpenMS::TMTSixPlexQuantitationMethod& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::TMTSixPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::TMTSixPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::TMTSixPlexQuantitationMethod& self) { return self.getName(); }, "Returns the unique name or identifier of the quantitation method")
-        .def("setName", [](OpenMS::TMTSixPlexQuantitationMethod& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::TMTSixPlexQuantitationMethod& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -4364,12 +3618,6 @@ IsobaricQuantitationMethod
         .def("getNumberOfChannels", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
-        .def("setParameters", [](OpenMS::TMTSixteenPlexQuantitationMethod& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) { return self.getName(); }, "Returns the unique name or identifier of the quantitation method")
-        .def("setName", [](OpenMS::TMTSixteenPlexQuantitationMethod& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::TMTSixteenPlexQuantitationMethod& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -4390,12 +3638,6 @@ IsobaricQuantitationMethod
         .def("getNumberOfChannels", [](const OpenMS::TMTTenPlexQuantitationMethod& self) { return self.getNumberOfChannels(); }, "Returns the number of channels available for this quantitation method")
         .def("getIsotopeCorrectionMatrix", [](const OpenMS::TMTTenPlexQuantitationMethod& self) { return self.getIsotopeCorrectionMatrix(); }, "Returns the isotope correction matrix for correcting reporter ion intensities")
         .def("getReferenceChannel", [](const OpenMS::TMTTenPlexQuantitationMethod& self) { return self.getReferenceChannel(); }, "Returns the index of the reference channel used for ratio calculation")
-        .def("setParameters", [](OpenMS::TMTTenPlexQuantitationMethod& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::TMTTenPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::TMTTenPlexQuantitationMethod& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::TMTTenPlexQuantitationMethod& self) { return self.getName(); }, "Returns the unique name or identifier of the quantitation method")
-        .def("setName", [](OpenMS::TMTTenPlexQuantitationMethod& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::TMTTenPlexQuantitationMethod& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -4597,12 +3839,6 @@ Store spectra in MSP format
 :param filename: Output filename
 :param experiment: Experiment to store
 )doc")
-        .def("setParameters", [](OpenMS::TargetedSpectraExtractor& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::TargetedSpectraExtractor& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::TargetedSpectraExtractor& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::TargetedSpectraExtractor& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::TargetedSpectraExtractor& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::TargetedSpectraExtractor& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
 
         .def("getDefaultParameters", [](const OpenMS::TargetedSpectraExtractor& self, OpenMS::Param& params) {
             self.getDefaultParameters(params);
@@ -4706,12 +3942,6 @@ DefaultParamHandler
         .def(nb::init<const OpenMS::TheoreticalSpectrumGenerator &>())
         .def("__copy__", [](const OpenMS::TheoreticalSpectrumGenerator& self) { return OpenMS::TheoreticalSpectrumGenerator(self); })
         .def("__deepcopy__", [](const OpenMS::TheoreticalSpectrumGenerator& self, nb::dict) { return OpenMS::TheoreticalSpectrumGenerator(self); }, "memo"_a)
-        .def("setParameters", [](OpenMS::TheoreticalSpectrumGenerator& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::TheoreticalSpectrumGenerator& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::TheoreticalSpectrumGenerator& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::TheoreticalSpectrumGenerator& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::TheoreticalSpectrumGenerator& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::TheoreticalSpectrumGenerator& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
 
         .def("getSpectrum", [](OpenMS::TheoreticalSpectrumGenerator& self, OpenMS::MSSpectrum& spec, const OpenMS::AASequence& peptide, int min_charge, int max_charge) {
             self.getSpectrum(spec, peptide, min_charge, max_charge);
@@ -4753,12 +3983,6 @@ The generated ion types and other additional settings are determined by the tool
 :param maxcharge: The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
 :param link_pos_2: A second position for the linker, in case it is a loop link
 )doc")
-        .def("setParameters", [](OpenMS::TheoreticalSpectrumGeneratorXLMS& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::TheoreticalSpectrumGeneratorXLMS& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::TheoreticalSpectrumGeneratorXLMS& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::TheoreticalSpectrumGeneratorXLMS& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::TheoreticalSpectrumGeneratorXLMS& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::TheoreticalSpectrumGeneratorXLMS& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -4775,12 +3999,6 @@ DefaultParamHandler
         .def("__deepcopy__", [](const OpenMS::ThresholdMower& self, nb::dict) { return OpenMS::ThresholdMower(self); }, "memo"_a)
         .def("filterPeakSpectrum", [](OpenMS::ThresholdMower& self, OpenMS::MSSpectrum& spectrum) { return self.filterPeakSpectrum(spectrum); }, "spectrum"_a)
         .def("filterPeakMap", [](OpenMS::ThresholdMower& self, OpenMS::MSExperiment& exp) { return self.filterPeakMap(exp); }, "exp"_a)
-        .def("setParameters", [](OpenMS::ThresholdMower& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::ThresholdMower& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::ThresholdMower& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::ThresholdMower& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::ThresholdMower& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::ThresholdMower& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
 
     // -----------------------------------------------------------------------
@@ -4797,12 +4015,6 @@ ProgressLogger
         .def("convertTSVToTargetedExperiment", [](OpenMS::TransitionTSVFile& self, const char* filename, OpenMS::TargetedExperiment& targeted_exp) {
             self.convertTSVToTargetedExperiment(filename, OpenMS::FileTypes::TSV, targeted_exp);
         }, "filename"_a, "targeted_exp"_a, "Read a TSV file into a TargetedExperiment")
-        .def("setLogType", [](const OpenMS::TransitionTSVFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::TransitionTSVFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::TransitionTSVFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::TransitionTSVFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::TransitionTSVFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::TransitionTSVFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
 
     // -----------------------------------------------------------------------
@@ -4829,12 +4041,6 @@ DefaultParamHandler
         .def("__deepcopy__", [](const OpenMS::WindowMower& self, nb::dict) { return OpenMS::WindowMower(self); }, "memo"_a)
         .def("filterPeakSpectrum", [](OpenMS::WindowMower& self, OpenMS::MSSpectrum& spectrum) { return self.filterPeakSpectrum(spectrum); }, "spectrum"_a)
         .def("filterPeakMap", [](OpenMS::WindowMower& self, OpenMS::MSExperiment& exp) { return self.filterPeakMap(exp); }, "exp"_a)
-        .def("setParameters", [](OpenMS::WindowMower& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::WindowMower& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::WindowMower& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::WindowMower& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::WindowMower& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::WindowMower& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
 
         .def("filterPeakSpectrumForTopNInSlidingWindow", [](OpenMS::WindowMower& self, OpenMS::MSSpectrum& spectrum) {
             self.filterPeakSpectrumForTopNInSlidingWindow(spectrum);
@@ -4854,12 +4060,6 @@ DefaultParamHandler
         .def(nb::init<>())
         .def("run", [](OpenMS::XFDRAlgorithm& self, OpenMS::PeptideIdentificationList& peptide_ids, OpenMS::ProteinIdentification& protein_id) { return self.run(peptide_ids, protein_id); }, "peptide_ids"_a, "protein_id"_a)
         .def("validateClassArguments", [](const OpenMS::XFDRAlgorithm& self) { return self.validateClassArguments(); })
-        .def("setParameters", [](OpenMS::XFDRAlgorithm& self, const OpenMS::Param& param) { return self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::XFDRAlgorithm& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
-        .def("getDefaults", [](const OpenMS::XFDRAlgorithm& self) -> const OpenMS::Param & { return self.getDefaults(); }, nb::rv_policy::reference_internal, "Returns the default parameters")
-        .def("getName", [](const OpenMS::XFDRAlgorithm& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::XFDRAlgorithm& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getSubsections", [](const OpenMS::XFDRAlgorithm& self) -> const std::vector<OpenMS::String> & { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
     // ExitCodes enum nested under XFDRAlgorithm
     nb::enum_<OpenMS::XFDRAlgorithm::ExitCodes>(xfdralgorithm_class, "ExitCodes", nb::is_arithmetic())
@@ -4987,7 +4187,6 @@ XMLFile
         .def(nb::init<>())
         .def("__copy__", [](const OpenMS::MascotXMLFile& self) { return OpenMS::MascotXMLFile(self); })
         .def("__deepcopy__", [](const OpenMS::MascotXMLFile& self, nb::dict) { return OpenMS::MascotXMLFile(self); }, "memo"_a)
-        .def("getVersion", [](const OpenMS::MascotXMLFile& self) { return self.getVersion(); }, "Return the version of the schema")
         .def_static("initializeLookup", [](OpenMS::SpectrumMetaDataLookup& lookup, const OpenMS::PeakMap& experiment, const OpenMS::String& scan_regex) { OpenMS::MascotXMLFile::initializeLookup(lookup, experiment, scan_regex); }, "lookup"_a, "experiment"_a, "scan_regex"_a = "", "Initialize spectrum lookup")
         .def("load", [](OpenMS::MascotXMLFile& self, const OpenMS::String& filename, OpenMS::ProteinIdentification& protein_identification, OpenMS::PeptideIdentificationList& id_data, const OpenMS::SpectrumMetaDataLookup& lookup) { self.load(filename, protein_identification, id_data, lookup); }, "filename"_a, "protein_identification"_a, "id_data"_a, "lookup"_a, "Load Mascot XML file")
         ;
@@ -4995,7 +4194,7 @@ XMLFile
     // -----------------------------------------------------------------------
     // MzDataFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MzDataFile, OpenMS::Internal::XMLFile>(m, "MzDataFile", 
+    auto mzdatafile_class = nb::class_<OpenMS::MzDataFile, OpenMS::Internal::XMLFile>(m, "MzDataFile", 
         R"doc(
 File adapter for MzData files
 ProgressLogger
@@ -5023,18 +4222,13 @@ Exception: ParseError is thrown if an error occurs during parsing
             auto result = self.isSemanticallyValid(filename, errors, warnings);
             return nb::make_tuple(result, errors, warnings);
         }, "filename"_a)
-        .def("setLogType", [](const OpenMS::MzDataFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MzDataFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MzDataFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MzDataFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzDataFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MzDataFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::MzDataFile>(mzdatafile_class);
 
     // -----------------------------------------------------------------------
     // MzIdentMLFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MzIdentMLFile, OpenMS::Internal::XMLFile>(m, "MzIdentMLFile", 
+    auto mzidentmlfile_class = nb::class_<OpenMS::MzIdentMLFile, OpenMS::Internal::XMLFile>(m, "MzIdentMLFile", 
         R"doc(
 File adapter for MzIdentML files
 ProgressLogger
@@ -5053,12 +4247,6 @@ Stores the identifications in a MzIdentML file
 :raises:
 Exception: UnableToCreateFile is thrown if the file could not be created
 )doc")
-        .def("setLogType", [](const OpenMS::MzIdentMLFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MzIdentMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MzIdentMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MzIdentMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzIdentMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MzIdentMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("_load_internal", [](OpenMS::MzIdentMLFile& self, const OpenMS::String& filename) {
             std::vector<OpenMS::ProteinIdentification> proteins;
@@ -5075,11 +4263,12 @@ Exception: UnableToCreateFile is thrown if the file could not be created
             self.store(filename, proteins, peptide_list);
         }, "filename"_a, "proteins"_a, "peptides"_a, "Store to an mzIdentML file")
         ;
+    def_ProgressLogger<OpenMS::MzIdentMLFile>(mzidentmlfile_class);
 
     // -----------------------------------------------------------------------
     // MzMLFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MzMLFile, OpenMS::Internal::XMLFile>(m, "MzMLFile", 
+    auto mzmlfile_class = nb::class_<OpenMS::MzMLFile, OpenMS::Internal::XMLFile>(m, "MzMLFile", 
         R"doc(
 ProgressLogger
 
@@ -5104,12 +4293,6 @@ MzMLFile().store("filtered.mzML", exp)
         .def("__deepcopy__", [](const OpenMS::MzMLFile& self, nb::dict) { return OpenMS::MzMLFile(self); }, "memo"_a)
         .def("getOptions", [](OpenMS::MzMLFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::MzMLFile& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Set PeakFileOptions to perform filtering during loading. E.g., to load only MS1 spectra or meta data only")
-        .def("setLogType", [](const OpenMS::MzMLFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MzMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MzMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MzMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MzMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("load", [](OpenMS::MzMLFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
@@ -5143,11 +4326,12 @@ MzMLFile().store("filtered.mzML", exp)
         "Transform an mzML file using a consumer object (streaming processing)")
         .def("isSemanticallyValid", [](OpenMS::MzMLFile& self, const OpenMS::String& filename) { OpenMS::StringList errors; OpenMS::StringList warnings; bool result = self.isSemanticallyValid(filename, errors, warnings); return nb::make_tuple(result, errors, warnings); }, "filename"_a, "Check semantic validity and return (is_valid, errors, warnings)")
         ;
+    def_ProgressLogger<OpenMS::MzMLFile>(mzmlfile_class);
 
     // -----------------------------------------------------------------------
     // MzXMLFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MzXMLFile, OpenMS::Internal::XMLFile>(m, "MzXMLFile", 
+    auto mzxmlfile_class = nb::class_<OpenMS::MzXMLFile, OpenMS::Internal::XMLFile>(m, "MzXMLFile", 
         R"doc(
 ProgressLogger
 
@@ -5164,12 +4348,6 @@ MzXMLFile().load("test.mzXML", exp)
         .def("__deepcopy__", [](const OpenMS::MzXMLFile& self, nb::dict) { return OpenMS::MzXMLFile(self); }, "memo"_a)
         .def("getOptions", [](OpenMS::MzXMLFile& self) -> OpenMS::PeakFileOptions & { return self.getOptions(); }, nb::rv_policy::reference_internal, "Returns the options for loading/storing")
         .def("setOptions", [](OpenMS::MzXMLFile& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
-        .def("setLogType", [](const OpenMS::MzXMLFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::MzXMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::MzXMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::MzXMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MzXMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MzXMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
 
         .def("load", [](OpenMS::MzXMLFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
@@ -5188,6 +4366,7 @@ MzXMLFile().load("test.mzXML", exp)
         }, "filename"_a, "consumer"_a, "skip_full_count"_a = false,
         "Transform an mzXML file using a consumer object (streaming processing)")
         ;
+    def_ProgressLogger<OpenMS::MzXMLFile>(mzxmlfile_class);
 
     // -----------------------------------------------------------------------
     // OMSSAXMLFile
@@ -5203,7 +4382,6 @@ the schema of OMSSAXML files
         .def(nb::init<>())
         .def("load", [](OpenMS::OMSSAXMLFile& self, const OpenMS::String& filename, bool load_proteins, bool load_empty_hits) { OpenMS::ProteinIdentification protein_identification; OpenMS::PeptideIdentificationList id_data; self.load(filename, protein_identification, id_data, load_proteins, load_empty_hits); return std::make_tuple(protein_identification, id_data); }, "filename"_a, "load_proteins"_a, "load_empty_hits"_a)
         .def("setModificationDefinitionsSet", [](OpenMS::OMSSAXMLFile& self, const OpenMS::ModificationDefinitionsSet& rhs) { return self.setModificationDefinitionsSet(rhs); }, "rhs"_a, "Sets the valid modifications")
-        .def("getVersion", [](const OpenMS::OMSSAXMLFile& self) { return self.getVersion(); }, "Return the version of the schema")
         ;
 
     // -----------------------------------------------------------------------
@@ -5348,7 +4526,7 @@ Not implemented
     // -----------------------------------------------------------------------
     // QcMLFile
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::QcMLFile, OpenMS::Internal::XMLFile>(m, "QcMLFile",
+    auto qcmlfile_class = nb::class_<OpenMS::QcMLFile, OpenMS::Internal::XMLFile>(m, "QcMLFile",
         R"doc(
 XMLHandler
 XMLFile
@@ -5394,14 +4572,8 @@ This Class is supposed to internally collect the data for the qcML File
         .def("reset", [](OpenMS::QcMLFile& self) { return self.reset(); })
         .def("error", [](OpenMS::QcMLFile& self, const xercesc::SAXParseException& exception) { return self.error(exception); }, "exception"_a)
         .def("warning", [](OpenMS::QcMLFile& self, const xercesc::SAXParseException& exception) { return self.warning(exception); }, "exception"_a)
-        .def("getVersion", [](const OpenMS::QcMLFile& self) { return self.getVersion(); }, "Return the version of the schema")
-        .def("setLogType", [](const OpenMS::QcMLFile& self, OpenMS::ProgressLogger::LogType type) { return self.setLogType(type); }, "type"_a, "Sets the progress log that should be used. The default type is NONE!")
-        .def("getLogType", [](const OpenMS::QcMLFile& self) { return self.getLogType(); }, "Returns the type of progress log being used")
-        .def("startProgress", [](const OpenMS::QcMLFile& self, long begin, long end, const OpenMS::String& label) { return self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a)
-        .def("setProgress", [](const OpenMS::QcMLFile& self, long value) { return self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::QcMLFile& self, size_t bytes_processed) { return self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::QcMLFile& self) { return self.nextProgress(); }, "Increment progress by 1 (according to range begin-end)")
         ;
+    def_ProgressLogger<OpenMS::QcMLFile>(qcmlfile_class);
 
     // -----------------------------------------------------------------------
     // TraMLFile
@@ -5454,7 +4626,6 @@ Used to load XML files from unimod.org files
 XMLFile
 )doc")
         .def(nb::init<>())
-        .def("getVersion", [](const OpenMS::UnimodXMLFile& self) { return self.getVersion(); }, "Return the version of the schema")
         ;
 
     // -----------------------------------------------------------------------
@@ -5471,7 +4642,6 @@ XMLFile
         .def("getNumberOfHits", [](const OpenMS::XQuestResultXMLFile& self) { return self.getNumberOfHits(); }, "Returns the total number of hits in the file")
         .def("getMinScore", [](const OpenMS::XQuestResultXMLFile& self) { return self.getMinScore(); }, "Returns minimum score among the hits in the file")
         .def("getMaxScore", [](const OpenMS::XQuestResultXMLFile& self) { return self.getMaxScore(); }, "Returns maximum score among the hits in the file")
-        .def("getVersion", [](const OpenMS::XQuestResultXMLFile& self) { return self.getVersion(); }, "Return the version of the schema")
 
         .def("_load_internal", [](OpenMS::XQuestResultXMLFile& self, const OpenMS::String& filename) {
             OpenMS::PeptideIdentificationList peptides;
@@ -5641,7 +4811,7 @@ XMLFile
     // -----------------------------------------------------------------------
     // MRMFeatureFinderScoring
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MRMFeatureFinderScoring, OpenMS::DefaultParamHandler>(m, "MRMFeatureFinderScoring", "OpenMS class MRMFeatureFinderScoring")
+    auto mrmfeaturefinderscoring_class = nb::class_<OpenMS::MRMFeatureFinderScoring, OpenMS::DefaultParamHandler>(m, "MRMFeatureFinderScoring", "OpenMS class MRMFeatureFinderScoring")
         .def(nb::init<>())
         .def("pickExperiment", [](OpenMS::MRMFeatureFinderScoring& self,
                 OpenMS::MSExperiment& chromatograms,
@@ -5655,12 +4825,6 @@ XMLFile
         .def("setMS1Map", [](OpenMS::MRMFeatureFinderScoring& self, std::shared_ptr<OpenMS::SpectrumAccessOpenMS> ms1_map) {
             self.setMS1Map(ms1_map);
         }, "ms1_map"_a)
-        .def("setLogType", [](OpenMS::MRMFeatureFinderScoring& self, OpenMS::ProgressLogger::LogType type) { self.setLogType(type); }, "type"_a)
-        .def("getLogType", [](const OpenMS::MRMFeatureFinderScoring& self) { return self.getLogType(); })
-        .def("startProgress", [](const OpenMS::MRMFeatureFinderScoring& self, long begin, long end, const OpenMS::String& label) { self.startProgress(begin, end, label); }, "begin"_a, "end"_a, "label"_a, "Initializes the progress display")
-        .def("setProgress", [](const OpenMS::MRMFeatureFinderScoring& self, long value) { self.setProgress(value); }, "value"_a, "Sets the current progress")
-        .def("endProgress", [](const OpenMS::MRMFeatureFinderScoring& self, size_t bytes_processed) { self.endProgress(bytes_processed); }, "bytes_processed"_a = 0, "Ends the progress display")
-        .def("nextProgress", [](const OpenMS::MRMFeatureFinderScoring& self) { self.nextProgress(); }, "Increment progress by 1")
         .def("prepareProteinPeptideMaps_", [](OpenMS::MRMFeatureFinderScoring& self, const OpenSwath::LightTargetedExperiment& transition_exp) { self.prepareProteinPeptideMaps_(transition_exp); }, "transition_exp"_a, "Prepares the internal mappings of peptides and proteins")
         .def("scorePeakgroups", [](const OpenMS::MRMFeatureFinderScoring& self,
                 OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenSwath::LightTransition>& transition_group,
@@ -5672,6 +4836,7 @@ XMLFile
         }, "transition_group"_a, "trafo"_a, "swath_maps"_a, "output"_a, "ms1only"_a = false,
            "Score peak groups in a transition group")
         ;
+    def_ProgressLogger<OpenMS::MRMFeatureFinderScoring>(mrmfeaturefinderscoring_class);
 
     // Free function aliases for backward compatibility
     m.def("isPEFFFile", [](const OpenMS::String& filename) {

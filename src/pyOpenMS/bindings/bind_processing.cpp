@@ -33,6 +33,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include <sstream>
+#include "binding_utils.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -406,7 +407,7 @@ If you want a constant model, set slope to zero in addition
         .def_static("findNearest", [](const std::vector<OpenMS::MZTrafoModel>& tms, double rt) { return OpenMS::MZTrafoModel::findNearest(tms, rt); }, "tms"_a, "rt"_a, "Find the model nearest to the given RT")
         ;
     // MODELTYPE enum nested under MZTrafoModel
-    nb::enum_<OpenMS::MZTrafoModel::MODELTYPE>(mztrafomodel_class, "MODELTYPE")
+    nb::enum_<OpenMS::MZTrafoModel::MODELTYPE>(mztrafomodel_class, "MODELTYPE", "Model type for m/z calibration transformation")
         .value("LINEAR", OpenMS::MZTrafoModel::MODELTYPE::LINEAR)
         .value("LINEAR_WEIGHTED", OpenMS::MZTrafoModel::MODELTYPE::LINEAR_WEIGHTED)
         .value("QUADRATIC", OpenMS::MZTrafoModel::MODELTYPE::QUADRATIC)
@@ -432,16 +433,15 @@ If you want a constant model, set slope to zero in addition
     // -----------------------------------------------------------------------
     // SignalToNoiseEstimatorMeanIterative
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMeanIterative", "OpenMS class SignalToNoiseEstimatorMeanIterative")
+    auto signaltonoiseestimatormeaniterative_class = nb::class_<OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>>(m, "SignalToNoiseEstimatorMeanIterative", "OpenMS class SignalToNoiseEstimatorMeanIterative")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>&>())
         .def("__copy__", [](const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self) { return OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>(self); })
         .def("__deepcopy__", [](const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, nb::dict) { return OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>(self); }, "memo"_a)
         .def("init", [](OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, const OpenMS::MSSpectrum& c) { self.init(c); }, "c"_a, "Initialize the estimator with the given spectrum")
         .def("getSignalToNoise", [](const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, OpenMS::Size index) { return self.getSignalToNoise(index); }, "index"_a, "Returns the signal to noise ratio for the given index")
-        .def("setParameters", [](OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         ;
+    def_DefaultParamHandler<OpenMS::SignalToNoiseEstimatorMeanIterative<OpenMS::MSSpectrum>>(signaltonoiseestimatormeaniterative_class);
 
 
     // -----------------------------------------------------------------------
@@ -456,14 +456,13 @@ If you want a constant model, set slope to zero in addition
         .def("getSignalToNoise", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, OpenMS::Size index) { return self.getSignalToNoise(index); }, "index"_a, "Returns the signal to noise ratio for the given index")
         .def("getSparseWindowPercent", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self) { return self.getSparseWindowPercent(); }, "Returns the percentage of windows that are sparse")
         .def("getHistogramRightmostPercent", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self) { return self.getHistogramRightmostPercent(); }, "Returns the percentage of rightmost histogram bin")
-        .def("setParameters", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         ;
+    def_DefaultParamHandler<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum>>(signaltonoiseestimatormedian_class);
 
     // -----------------------------------------------------------------------
     // SignalToNoiseEstimatorMedianChrom (chromatogram version)
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>>(m, "SignalToNoiseEstimatorMedianChrom",
+    auto signaltonoiseestimatormedianchrom_class = nb::class_<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>>(m, "SignalToNoiseEstimatorMedianChrom",
         "SignalToNoiseEstimatorMedian specialized for MSChromatogram data")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>&>())
@@ -471,9 +470,8 @@ If you want a constant model, set slope to zero in addition
         .def("__deepcopy__", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, nb::dict) { return OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>(self); }, "memo"_a)
         .def("init", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, const OpenMS::MSChromatogram& c) { self.init(c); }, "c"_a, "Initialize the estimator with the given chromatogram")
         .def("getSignalToNoise", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, OpenMS::Size index) { return self.getSignalToNoise(index); }, "index"_a, "Returns the signal to noise ratio for the given index")
-        .def("setParameters", [](OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a, "Sets the parameters")
-        .def("getParameters", [](const OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>& self) -> const OpenMS::Param & { return self.getParameters(); }, nb::rv_policy::reference_internal, "Returns the parameters")
         ;
+    def_DefaultParamHandler<OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSChromatogram>>(signaltonoiseestimatormedianchrom_class);
 
     // -----------------------------------------------------------------------
     // SignalToNoiseEstimatorMedianRapid
