@@ -7,6 +7,8 @@
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/DATASTRUCTURES/OSWData.h>
+#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
@@ -55,7 +57,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     // Method
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::Math::RankData::Method>(m, "Method", "Method for resolving ties in rank computation")
+    nb::enum_<OpenMS::Math::RankData::Method>(m, "Method", "Method for resolving ties in rank computation", nb::is_arithmetic())
         .value("Average", OpenMS::Math::RankData::Method::Average)
         .value("Min", OpenMS::Math::RankData::Method::Min)
         .value("Max", OpenMS::Math::RankData::Method::Max)
@@ -68,7 +70,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     // NaNPolicy
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::Math::RankData::NaNPolicy>(m, "NaNPolicy", "Policy for handling NaN values in rank computation")
+    nb::enum_<OpenMS::Math::RankData::NaNPolicy>(m, "NaNPolicy", "Policy for handling NaN values in rank computation", nb::is_arithmetic())
         .value("Propagate", OpenMS::Math::RankData::NaNPolicy::Propagate)
         .value("Omit", OpenMS::Math::RankData::NaNPolicy::Omit)
         .value("Raise", OpenMS::Math::RankData::NaNPolicy::Raise)
@@ -79,6 +81,8 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Adduct>(m, "Adduct", "OpenMS class Adduct")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::Adduct& self) { return OpenMS::Adduct(self); })
+        .def("__deepcopy__", [](const OpenMS::Adduct& self, nb::dict) { return OpenMS::Adduct(self); }, "memo"_a)
         .def(nb::init<int>())
         .def(nb::init<int, int, double, OpenMS::String, double, double, OpenMS::String>())
         .def("getCharge", [](const OpenMS::Adduct& self) { return self.getCharge(); })
@@ -108,7 +112,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
         .def_static("debug", [](bool enable) { return OpenMS::BSpline2d::debug(enable); }, "enable"_a, "Enable or disable debug messages from the B-spline library")
         ;
     // BoundaryCondition enum nested under BSpline2d
-    nb::enum_<OpenMS::BSpline2d::BoundaryCondition>(bspline2d_class, "BoundaryCondition")
+    nb::enum_<OpenMS::BSpline2d::BoundaryCondition>(bspline2d_class, "BoundaryCondition", nb::is_arithmetic())
         .value("BC_ZERO_ENDPOINTS", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_ENDPOINTS)
         .value("BC_ZERO_FIRST", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_FIRST)
         .value("BC_ZERO_SECOND", OpenMS::BSpline2d::BoundaryCondition::BC_ZERO_SECOND)
@@ -162,6 +166,8 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::CalibrationData>(m, "CalibrationData", "A helper class, holding all calibration points")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::CalibrationData& self) { return OpenMS::CalibrationData(self); })
+        .def("__deepcopy__", [](const OpenMS::CalibrationData& self, nb::dict) { return OpenMS::CalibrationData(self); }, "memo"_a)
         .def("getMZ", [](const OpenMS::CalibrationData& self, size_t i) { return self.getMZ(i); }, "i"_a, "Retrieve the observed m/z of the i'th calibration point")
         .def("getRT", [](const OpenMS::CalibrationData& self, size_t i) { return self.getRT(i); }, "i"_a, "Retrieve the observed RT of the i'th calibration point")
         .def("getIntensity", [](const OpenMS::CalibrationData& self, size_t i) { return self.getIntensity(i); }, "i"_a, "Retrieve the intensity of the i'th calibration point")
@@ -266,6 +272,8 @@ cubic spline interpolation as described in R.L. Burden, J.D. Faires,
 Numerical Analysis, 4th ed. PWS-Kent, 1989, ISBN 0-53491-585-X, pp.
 126-131
 )doc")
+        .def("__copy__", [](const OpenMS::CubicSpline2d& self) { return OpenMS::CubicSpline2d(self); })
+        .def("__deepcopy__", [](const OpenMS::CubicSpline2d& self, nb::dict) { return OpenMS::CubicSpline2d(self); }, "memo"_a)
         .def(nb::init<std::vector<double>, std::vector<double>>())
         .def(nb::init<std::map<double, double>>())
         .def("eval", [](const OpenMS::CubicSpline2d& self, double x) { return self.eval(x); }, "x"_a, "Evaluates the cubic spline")
@@ -411,6 +419,8 @@ The following formats are supported:
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Math::GaussFitter::GaussFitResult>(m, "GaussFitResult", "Result of a Gaussian fit")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::Math::GaussFitter::GaussFitResult& self) { return OpenMS::Math::GaussFitter::GaussFitResult(self); })
+        .def("__deepcopy__", [](const OpenMS::Math::GaussFitter::GaussFitResult& self, nb::dict) { return OpenMS::Math::GaussFitter::GaussFitResult(self); }, "memo"_a)
         .def(nb::init<double, double, double>())
         .def_rw("A", &OpenMS::Math::GaussFitter::GaussFitResult::A)
         .def_rw("x0", &OpenMS::Math::GaussFitter::GaussFitResult::x0)
@@ -419,12 +429,46 @@ The following formats are supported:
         ;
 
     // -----------------------------------------------------------------------
+    // ChargedIndexSet (IsotopeCluster::ChargedIndexSet)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::IsotopeCluster::ChargedIndexSet>(m, "ChargedIndexSet",
+        "Index set with associated charge estimate for isotope clusters")
+        .def(nb::init<>())
+        .def_rw("charge", &OpenMS::IsotopeCluster::ChargedIndexSet::charge)
+        ;
+
+    // -----------------------------------------------------------------------
     // IsotopeCluster
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::IsotopeCluster>(m, "IsotopeCluster", "OpenMS class IsotopeCluster")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::IsotopeCluster& self) { return OpenMS::IsotopeCluster(self); })
+        .def("__deepcopy__", [](const OpenMS::IsotopeCluster& self, nb::dict) { return OpenMS::IsotopeCluster(self); }, "memo"_a)
         .def_rw("peaks", &OpenMS::IsotopeCluster::peaks)
         .def_rw("scans", &OpenMS::IsotopeCluster::scans)
+        ;
+
+    // -----------------------------------------------------------------------
+    // SolverParam (LPWrapper::SolverParam)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::LPWrapper::SolverParam>(m, "SolverParam",
+        "Parameters for LP/MIP solver configuration")
+        .def(nb::init<>())
+        .def_rw("message_level", &OpenMS::LPWrapper::SolverParam::message_level)
+        .def_rw("branching_tech", &OpenMS::LPWrapper::SolverParam::branching_tech)
+        .def_rw("backtrack_tech", &OpenMS::LPWrapper::SolverParam::backtrack_tech)
+        .def_rw("preprocessing_tech", &OpenMS::LPWrapper::SolverParam::preprocessing_tech)
+        .def_rw("enable_feas_pump_heuristic", &OpenMS::LPWrapper::SolverParam::enable_feas_pump_heuristic)
+        .def_rw("enable_gmi_cuts", &OpenMS::LPWrapper::SolverParam::enable_gmi_cuts)
+        .def_rw("enable_mir_cuts", &OpenMS::LPWrapper::SolverParam::enable_mir_cuts)
+        .def_rw("enable_cov_cuts", &OpenMS::LPWrapper::SolverParam::enable_cov_cuts)
+        .def_rw("enable_clq_cuts", &OpenMS::LPWrapper::SolverParam::enable_clq_cuts)
+        .def_rw("mip_gap", &OpenMS::LPWrapper::SolverParam::mip_gap)
+        .def_rw("time_limit", &OpenMS::LPWrapper::SolverParam::time_limit)
+        .def_rw("output_freq", &OpenMS::LPWrapper::SolverParam::output_freq)
+        .def_rw("output_delay", &OpenMS::LPWrapper::SolverParam::output_delay)
+        .def_rw("enable_presolve", &OpenMS::LPWrapper::SolverParam::enable_presolve)
+        .def_rw("enable_binarization", &OpenMS::LPWrapper::SolverParam::enable_binarization)
         ;
 
     // -----------------------------------------------------------------------
@@ -491,7 +535,7 @@ Returns the objective value of the solution
         .def("getSolver", [](const OpenMS::LPWrapper& self) { return self.getSolver(); }, "Returns currently active solver")
         ;
     // LPWrapper_Type enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::Type>(lpwrapper_class, "LPWrapper_Type")
+    nb::enum_<OpenMS::LPWrapper::Type>(lpwrapper_class, "LPWrapper_Type", nb::is_arithmetic())
         .value("UNBOUNDED", OpenMS::LPWrapper::Type::UNBOUNDED)
         .value("LOWER_BOUND_ONLY", OpenMS::LPWrapper::Type::LOWER_BOUND_ONLY)
         .value("UPPER_BOUND_ONLY", OpenMS::LPWrapper::Type::UPPER_BOUND_ONLY)
@@ -499,28 +543,28 @@ Returns the objective value of the solution
         .value("FIXED", OpenMS::LPWrapper::Type::FIXED)
         .export_values();
     // VariableType enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::VariableType>(lpwrapper_class, "VariableType")
+    nb::enum_<OpenMS::LPWrapper::VariableType>(lpwrapper_class, "VariableType", nb::is_arithmetic())
         .value("CONTINUOUS", OpenMS::LPWrapper::VariableType::CONTINUOUS)
         .value("INTEGER", OpenMS::LPWrapper::VariableType::INTEGER)
         .value("BINARY", OpenMS::LPWrapper::VariableType::BINARY)
         .export_values();
     // Sense enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::Sense>(lpwrapper_class, "Sense")
+    nb::enum_<OpenMS::LPWrapper::Sense>(lpwrapper_class, "Sense", nb::is_arithmetic())
         .value("MIN", OpenMS::LPWrapper::Sense::MIN)
         .value("MAX", OpenMS::LPWrapper::Sense::MAX)
         .export_values();
     // WriteFormat enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::WriteFormat>(lpwrapper_class, "WriteFormat")
+    nb::enum_<OpenMS::LPWrapper::WriteFormat>(lpwrapper_class, "WriteFormat", nb::is_arithmetic())
         .value("FORMAT_LP", OpenMS::LPWrapper::WriteFormat::FORMAT_LP)
         .value("FORMAT_MPS", OpenMS::LPWrapper::WriteFormat::FORMAT_MPS)
         .value("FORMAT_GLPK", OpenMS::LPWrapper::WriteFormat::FORMAT_GLPK)
         .export_values();
     // SOLVER enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::SOLVER>(lpwrapper_class, "SOLVER")
+    nb::enum_<OpenMS::LPWrapper::SOLVER>(lpwrapper_class, "SOLVER", nb::is_arithmetic())
         .value("SOLVER_GLPK", OpenMS::LPWrapper::SOLVER::SOLVER_GLPK)
         .export_values();
     // SolverStatus enum nested under LPWrapper
-    nb::enum_<OpenMS::LPWrapper::SolverStatus>(lpwrapper_class, "SolverStatus")
+    nb::enum_<OpenMS::LPWrapper::SolverStatus>(lpwrapper_class, "SolverStatus", nb::is_arithmetic())
         .value("UNDEFINED", OpenMS::LPWrapper::SolverStatus::UNDEFINED)
         .value("OPTIMAL", OpenMS::LPWrapper::SolverStatus::OPTIMAL)
         .value("FEASIBLE", OpenMS::LPWrapper::SolverStatus::FEASIBLE)
@@ -715,12 +759,12 @@ Example:
            "s"_a, "Convert string to LfdrTransform enum")
         ;
     // Pi0Method enum nested under MultipleTesting
-    nb::enum_<OpenMS::Math::MultipleTesting::Pi0Method>(multipletesting_class, "Pi0Method")
+    nb::enum_<OpenMS::Math::MultipleTesting::Pi0Method>(multipletesting_class, "Pi0Method", nb::is_arithmetic())
         .value("Smoother", OpenMS::Math::MultipleTesting::Pi0Method::Smoother)
         .value("Bootstrap", OpenMS::Math::MultipleTesting::Pi0Method::Bootstrap)
         ;
     // LfdrTransform enum nested under MultipleTesting
-    nb::enum_<OpenMS::Math::MultipleTesting::LfdrTransform>(multipletesting_class, "LfdrTransform")
+    nb::enum_<OpenMS::Math::MultipleTesting::LfdrTransform>(multipletesting_class, "LfdrTransform", nb::is_arithmetic())
         .value("Probit", OpenMS::Math::MultipleTesting::LfdrTransform::Probit)
         .value("Logit", OpenMS::Math::MultipleTesting::LfdrTransform::Logit)
         ;
@@ -810,7 +854,9 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Param::ParamEntry>(m, "ParamEntry", "OpenMS class ParamEntry")
         .def(nb::init<>())
-        .def(nb::init<const std::string&, const OpenMS::ParamValue&, const std::string&>(), "name"_a, "value"_a, "description"_a)
+        .def("__copy__", [](const OpenMS::Param::ParamEntry& self) { return OpenMS::Param::ParamEntry(self); })
+        .def("__deepcopy__", [](const OpenMS::Param::ParamEntry& self, nb::dict) { return OpenMS::Param::ParamEntry(self); }, "memo"_a)
+        .def(nb::init<const std::string&, const OpenMS::ParamValue&, const std::string&, const std::vector<std::string>&>(), "name"_a, "value"_a, "description"_a, "tags"_a = std::vector<std::string>())
         .def_rw("name", &OpenMS::Param::ParamEntry::name)
         .def_rw("description", &OpenMS::Param::ParamEntry::description)
         .def_rw("value", &OpenMS::Param::ParamEntry::value)
@@ -834,6 +880,8 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::Param::ParamNode>(m, "ParamNode", "OpenMS class ParamNode")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::Param::ParamNode& self) { return OpenMS::Param::ParamNode(self); })
+        .def("__deepcopy__", [](const OpenMS::Param::ParamNode& self, nb::dict) { return OpenMS::Param::ParamNode(self); }, "memo"_a)
         .def(nb::init<const std::string&, const std::string&>(), "name"_a, "description"_a)
         .def_rw("name", &OpenMS::Param::ParamNode::name)
         .def_rw("description", &OpenMS::Param::ParamNode::description)
@@ -1017,6 +1065,8 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::VersionInfo::VersionDetails>(m, "VersionDetails", "Version details struct")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::VersionInfo::VersionDetails& self) { return OpenMS::VersionInfo::VersionDetails(self); })
+        .def("__deepcopy__", [](const OpenMS::VersionInfo::VersionDetails& self, nb::dict) { return OpenMS::VersionInfo::VersionDetails(self); }, "memo"_a)
         .def_rw("version_major", &OpenMS::VersionInfo::VersionDetails::version_major)
         .def_rw("version_minor", &OpenMS::VersionInfo::VersionDetails::version_minor)
         .def_rw("version_patch", &OpenMS::VersionInfo::VersionDetails::version_patch)
@@ -1062,7 +1112,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     // SIDE (Compomer::SIDE)
     // -----------------------------------------------------------------------
     nb::enum_<OpenMS::Compomer::SIDE>(m, "SIDE",
-        "Side enum for adduct decomposition (LEFT, RIGHT, BOTH)")
+        "Side enum for adduct decomposition (LEFT, RIGHT, BOTH)", nb::is_arithmetic())
         .value("LEFT", OpenMS::Compomer::LEFT)
         .value("RIGHT", OpenMS::Compomer::RIGHT)
         .value("BOTH", OpenMS::Compomer::BOTH)
@@ -1119,7 +1169,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     // QuotingMethod (String::QuotingMethod)
     // -----------------------------------------------------------------------
     nb::enum_<OpenMS::String::QuotingMethod>(m, "QuotingMethod",
-        "Method for quoting strings in CSV output")
+        "Method for quoting strings in CSV output", nb::is_arithmetic())
         .value("NONE", OpenMS::String::NONE)
         .value("ESCAPE", OpenMS::String::ESCAPE)
         .value("DOUBLE", OpenMS::String::DOUBLE)
@@ -1130,7 +1180,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     // UnitType (DataValue::UnitType)
     // -----------------------------------------------------------------------
     nb::enum_<OpenMS::DataValue::UnitType>(m, "UnitType",
-        "Unit ontology type for DataValue")
+        "Unit ontology type for DataValue", nb::is_arithmetic())
         .value("UNIT_ONTOLOGY", OpenMS::DataValue::UNIT_ONTOLOGY)
         .value("MS_ONTOLOGY", OpenMS::DataValue::MS_ONTOLOGY)
         .value("OTHER", OpenMS::DataValue::OTHER)
@@ -1141,7 +1191,7 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     // ValueType (ParamValue::ValueType)
     // -----------------------------------------------------------------------
     nb::enum_<OpenMS::ParamValue::ValueType>(m, "ValueType",
-        "Type tag for ParamValue")
+        "Type tag for ParamValue", nb::is_arithmetic())
         .value("STRING_VALUE", OpenMS::ParamValue::STRING_VALUE)
         .value("INT_VALUE", OpenMS::ParamValue::INT_VALUE)
         .value("DOUBLE_VALUE", OpenMS::ParamValue::DOUBLE_VALUE)
@@ -1155,13 +1205,13 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     // -----------------------------------------------------------------------
     // CVMappingRule
     // -----------------------------------------------------------------------
-    nb::enum_<OpenMS::CVMappingRule::RequirementLevel>(m, "RequirementLevel")
+    nb::enum_<OpenMS::CVMappingRule::RequirementLevel>(m, "RequirementLevel", nb::is_arithmetic())
         .value("MUST", OpenMS::CVMappingRule::MUST)
         .value("SHOULD", OpenMS::CVMappingRule::SHOULD)
         .value("MAY", OpenMS::CVMappingRule::MAY)
         ;
 
-    nb::enum_<OpenMS::CVMappingRule::CombinationsLogic>(m, "CombinationsLogic")
+    nb::enum_<OpenMS::CVMappingRule::CombinationsLogic>(m, "CombinationsLogic", nb::is_arithmetic())
         .value("OR", OpenMS::CVMappingRule::OR)
         .value("AND", OpenMS::CVMappingRule::AND)
         .value("XOR", OpenMS::CVMappingRule::XOR)
@@ -1209,6 +1259,8 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     nb::class_<OpenMS::StringView>(m, "StringView",
         "Lightweight non-owning view on a string")
         .def(nb::init<>())
+        .def("__copy__", [](const OpenMS::StringView& self) { return OpenMS::StringView(self); })
+        .def("__deepcopy__", [](const OpenMS::StringView& self, nb::dict) { return OpenMS::StringView(self); }, "memo"_a)
         .def("size", [](const OpenMS::StringView& self) { return self.size(); })
         .def("getString", [](const OpenMS::StringView& self) { return self.getString(); })
         .def("__len__", [](const OpenMS::StringView& self) { return self.size(); })
@@ -1237,5 +1289,131 @@ sum1 and sum2 are the sum of the intensities squared for each peak of both spect
     m.def("__static_Math_getPPMAbs", [](double mz_obs, double mz_ref) -> double { return OpenMS::Math::getPPMAbs(mz_obs, mz_ref); }, "mz_obs"_a, "mz_ref"_a);
     m.def("__static_Math_ppmToMass", [](double ppm, double mz_ref) -> double { return OpenMS::Math::ppmToMass(ppm, mz_ref); }, "ppm"_a, "mz_ref"_a);
     m.def("__static_Math_ppmToMassAbs", [](double ppm, double mz_ref) -> double { return OpenMS::Math::ppmToMassAbs(ppm, mz_ref); }, "ppm"_a, "mz_ref"_a);
+
+    // -----------------------------------------------------------------------
+    // MassExplainer
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::MassExplainer>(m, "MassExplainer",
+        "Computes empirical formulas for given mass differences using a set of allowed elements")
+        .def(nb::init<>())
+        .def(nb::init<OpenMS::MassExplainer::AdductsType>(), "adduct_base"_a)
+        .def(nb::init<OpenMS::Int, OpenMS::Int, OpenMS::Int, double>(),
+            "q_min"_a, "q_max"_a, "max_span"_a, "thresh_logp"_a)
+        .def(nb::init<OpenMS::MassExplainer::AdductsType, OpenMS::Int, OpenMS::Int, OpenMS::Int, double, OpenMS::Size>(),
+            "adduct_base"_a, "q_min"_a, "q_max"_a, "max_span"_a, "thresh_logp"_a, "max_neutrals"_a)
+        .def("__copy__", [](const OpenMS::MassExplainer& self) { return OpenMS::MassExplainer(self); })
+        .def("__deepcopy__", [](const OpenMS::MassExplainer& self, nb::dict) { return OpenMS::MassExplainer(self); }, "memo"_a)
+        .def("compute", &OpenMS::MassExplainer::compute,
+            "Compute all possible mass differences and their explanations")
+        .def("setAdductBase", &OpenMS::MassExplainer::setAdductBase, "adduct_base"_a,
+            "Set the base set of allowed adducts")
+        .def("getAdductBase", &OpenMS::MassExplainer::getAdductBase,
+            "Get the current set of allowed adducts")
+        .def("getCompomerById", &OpenMS::MassExplainer::getCompomerById, "id"_a,
+            nb::rv_policy::reference_internal, "Get a specific compomer by its ID")
+        .def("query", [](const OpenMS::MassExplainer& self, OpenMS::Int net_charge, float mass_to_explain, float mass_delta, float thresh_log_p) {
+            std::vector<OpenMS::Compomer>::const_iterator first, last;
+            OpenMS::SignedSize count = self.query(net_charge, mass_to_explain, mass_delta, thresh_log_p, first, last);
+            std::vector<OpenMS::Compomer> results(first, last);
+            return nb::make_tuple(count, results);
+        }, "net_charge"_a, "mass_to_explain"_a, "mass_delta"_a, "thresh_log_p"_a,
+            "Search for explanations of a given mass difference, returns (count, explanations)")
+        ;
+
+    // -----------------------------------------------------------------------
+    // OSWHierarchy
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OSWHierarchy> osw_hierarchy(m, "OSWHierarchy", "Hierarchy levels of the OSWData tree");
+    nb::enum_<OpenMS::OSWHierarchy::Level>(osw_hierarchy, "Level")
+        .value("PROTEIN", OpenMS::OSWHierarchy::Level::PROTEIN)
+        .value("PEPTIDE", OpenMS::OSWHierarchy::Level::PEPTIDE)
+        .value("FEATURE", OpenMS::OSWHierarchy::Level::FEATURE)
+        .value("TRANSITION", OpenMS::OSWHierarchy::Level::TRANSITION)
+        .export_values();
+
+    // -----------------------------------------------------------------------
+    // OSWIndexTrace
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OSWIndexTrace>(m, "OSWIndexTrace", "Describes a node in the OSWData model tree")
+        .def(nb::init<>())
+        .def_rw("idx_prot", &OpenMS::OSWIndexTrace::idx_prot)
+        .def_rw("idx_pep", &OpenMS::OSWIndexTrace::idx_pep)
+        .def_rw("idx_feat", &OpenMS::OSWIndexTrace::idx_feat)
+        .def_rw("idx_trans", &OpenMS::OSWIndexTrace::idx_trans)
+        .def_rw("lowest", &OpenMS::OSWIndexTrace::lowest)
+        .def("isSet", &OpenMS::OSWIndexTrace::isSet)
+        ;
+
+    // -----------------------------------------------------------------------
+    // OSWTransition
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OSWTransition>(m, "OSWTransition", "High-level meta data of a transition")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OSWTransition&>())
+        .def(nb::init<const OpenMS::String&, const OpenMS::UInt32, const float, const char, const bool>(),
+            "annotation"_a, "id"_a, "product_mz"_a, "type"_a, "is_decoy"_a)
+        .def("getAnnotation", &OpenMS::OSWTransition::getAnnotation, nb::rv_policy::reference_internal)
+        .def("getID", &OpenMS::OSWTransition::getID)
+        .def("getProductMZ", &OpenMS::OSWTransition::getProductMZ)
+        .def("getType", [](const OpenMS::OSWTransition& self) { return std::string(1, self.getType()); })
+        .def("isDecoy", &OpenMS::OSWTransition::isDecoy)
+        ;
+
+    // -----------------------------------------------------------------------
+    // OSWPeakGroup
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OSWPeakGroup>(m, "OSWPeakGroup", "A peak group (feature) defined on a small RT range")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OSWPeakGroup&>())
+        .def("getRTExperimental", &OpenMS::OSWPeakGroup::getRTExperimental)
+        .def("getRTLeftWidth", &OpenMS::OSWPeakGroup::getRTLeftWidth)
+        .def("getRTRightWidth", &OpenMS::OSWPeakGroup::getRTRightWidth)
+        .def("getRTDelta", &OpenMS::OSWPeakGroup::getRTDelta)
+        .def("getQValue", &OpenMS::OSWPeakGroup::getQValue)
+        .def("getTransitionIDs", &OpenMS::OSWPeakGroup::getTransitionIDs, nb::rv_policy::reference_internal)
+        ;
+
+    // -----------------------------------------------------------------------
+    // OSWPeptidePrecursor
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OSWPeptidePrecursor>(m, "OSWPeptidePrecursor", "A peptide with a charge state")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OSWPeptidePrecursor&>())
+        .def("getSequence", &OpenMS::OSWPeptidePrecursor::getSequence, nb::rv_policy::reference_internal)
+        .def("getCharge", &OpenMS::OSWPeptidePrecursor::getCharge)
+        .def("isDecoy", &OpenMS::OSWPeptidePrecursor::isDecoy)
+        .def("getPCMz", &OpenMS::OSWPeptidePrecursor::getPCMz)
+        .def("getFeatures", &OpenMS::OSWPeptidePrecursor::getFeatures, nb::rv_policy::reference_internal)
+        ;
+
+    // -----------------------------------------------------------------------
+    // OSWProtein
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OSWProtein>(m, "OSWProtein", "A protein containing one or more peptides")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OSWProtein&>())
+        .def("getAccession", &OpenMS::OSWProtein::getAccession, nb::rv_policy::reference_internal)
+        .def("getID", &OpenMS::OSWProtein::getID)
+        .def("getPeptidePrecursors", &OpenMS::OSWProtein::getPeptidePrecursors, nb::rv_policy::reference_internal)
+        ;
+
+    // -----------------------------------------------------------------------
+    // OSWData
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OSWData>(m, "OSWData", "Holds all or partial information from an OSW file")
+        .def(nb::init<>())
+        .def("addTransition", [](OpenMS::OSWData& self, const OpenMS::OSWTransition& tr) { self.addTransition(tr); }, "tr"_a)
+        .def("addProtein", [](OpenMS::OSWData& self, OpenMS::OSWProtein prot) { self.addProtein(std::move(prot)); }, "prot"_a)
+        .def("getProteins", &OpenMS::OSWData::getProteins, nb::rv_policy::reference_internal)
+        .def("transitionCount", &OpenMS::OSWData::transitionCount)
+        .def("getTransition", &OpenMS::OSWData::getTransition, "id"_a, nb::rv_policy::reference_internal)
+        .def("setSqlSourceFile", &OpenMS::OSWData::setSqlSourceFile, "filename"_a)
+        .def("getSqlSourceFile", &OpenMS::OSWData::getSqlSourceFile, nb::rv_policy::reference_internal)
+        .def("setRunID", &OpenMS::OSWData::setRunID, "run_id"_a)
+        .def("getRunID", &OpenMS::OSWData::getRunID)
+        .def("clear", &OpenMS::OSWData::clear)
+        .def("clearProteins", &OpenMS::OSWData::clearProteins)
+        .def("fromNativeID", &OpenMS::OSWData::fromNativeID, "transition_id"_a)
+        ;
 
 }
