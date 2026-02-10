@@ -33,6 +33,7 @@ option(PYOPENMS_PREPARE_WHEEL_REPAIR "Set RPATH for wheel repair tools (auditwhe
 set(PYOPENMS_DOMAINS
     kernel metadata chemistry analysis featurefinder
     format processing datastructures ml misc
+    spectrum chromatogram experiment
 )
 
 # Set default build directory (may be overridden by PYOPENMS_USE_PREBUILT)

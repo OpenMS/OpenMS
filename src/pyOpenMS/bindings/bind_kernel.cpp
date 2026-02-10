@@ -82,6 +82,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include <sstream>
+#include "binding_utils.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -481,34 +482,13 @@ MetaInfoInterface
         .def(nb::self != nb::self)
         .def("getIdentifier", [](const OpenMS::Acquisition& self) { return self.getIdentifier(); })
         .def("setIdentifier", [](OpenMS::Acquisition& self, const OpenMS::String& identifier) { return self.setIdentifier(identifier); }, "identifier"_a)
-        .def("getMetaValue", [](const OpenMS::Acquisition& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::Acquisition& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::Acquisition& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::Acquisition& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::Acquisition::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::Acquisition& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::Acquisition& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::Acquisition& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::Acquisition& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::Acquisition& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::Acquisition& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::Acquisition& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::Acquisition& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::Acquisition& self) { self.clearMetaInfo(); }, "Removes all meta values")
         ;
 
     // -----------------------------------------------------------------------
     // AcquisitionInfo
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::AcquisitionInfo>(m, "AcquisitionInfo", 
+    auto acquisitioninfo_class = nb::class_<OpenMS::AcquisitionInfo>(m, "AcquisitionInfo", 
         R"doc(
 Description of the combination of raw data to a single spectrum
 MetaInfoInterface
@@ -521,28 +501,7 @@ MetaInfoInterface
         .def(nb::self != nb::self)
         .def("getMethodOfCombination", [](const OpenMS::AcquisitionInfo& self) { return self.getMethodOfCombination(); }, "Returns the method of combination")
         .def("setMethodOfCombination", [](OpenMS::AcquisitionInfo& self, const OpenMS::String& method_of_combination) { return self.setMethodOfCombination(method_of_combination); }, "method_of_combination"_a, "Sets the method of combination")
-        .def("getMetaValue", [](const OpenMS::AcquisitionInfo& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::AcquisitionInfo& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::AcquisitionInfo& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::AcquisitionInfo& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::AcquisitionInfo::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::AcquisitionInfo& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::AcquisitionInfo& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::AcquisitionInfo& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::AcquisitionInfo& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::AcquisitionInfo& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::AcquisitionInfo& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::AcquisitionInfo& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::AcquisitionInfo& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::AcquisitionInfo& self) { self.clearMetaInfo(); }, "Removes all meta values")
 
         .def("size", [](const OpenMS::AcquisitionInfo& self) -> size_t {
             return self.size();
@@ -566,11 +525,12 @@ MetaInfoInterface
             self[i] = acq;
         }, "i"_a, "acq"_a)
         ;
+    def_MetaInfoInterface<OpenMS::AcquisitionInfo>(acquisitioninfo_class);
 
     // -----------------------------------------------------------------------
     // CVTermList
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::CVTermList, OpenMS::MetaInfoInterface>(m, "CVTermList", "OpenMS class CVTermList")
+    auto cvtermlist_class = nb::class_<OpenMS::CVTermList>(m, "CVTermList", "OpenMS class CVTermList")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::CVTermList &>())
         .def("__copy__", [](const OpenMS::CVTermList& self) { return OpenMS::CVTermList(self); })
@@ -585,30 +545,10 @@ MetaInfoInterface
         .def(nb::self != nb::self)
         .def("hasCVTerm", [](const OpenMS::CVTermList& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
         .def("empty", [](const OpenMS::CVTermList& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::CVTermList& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::CVTermList& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::CVTermList& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::CVTermList& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::CVTermList::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::CVTermList& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::CVTermList& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::CVTermList& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::CVTermList& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::CVTermList& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::CVTermList& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::CVTermList& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::CVTermList& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::CVTermList& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::CVTermList& self) { return std::hash<OpenMS::CVTermList>{}(self); })
         ;
+    def_MetaInfoInterface<OpenMS::CVTermList>(cvtermlist_class);
 
     // -----------------------------------------------------------------------
     // CVTermListInterface
@@ -633,34 +573,13 @@ MetaInfoInterface
         .def("setCVTerms", [](OpenMS::CVTermListInterface& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def("hasCVTerm", [](const OpenMS::CVTermListInterface& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a, "Checks whether the term has a value")
         .def("empty", [](const OpenMS::CVTermListInterface& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::CVTermListInterface& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::CVTermListInterface& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::CVTermListInterface& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::CVTermListInterface& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::CVTermListInterface::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::CVTermListInterface& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::CVTermListInterface& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::CVTermListInterface& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::CVTermListInterface& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::CVTermListInterface& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::CVTermListInterface& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::CVTermListInterface& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::CVTermListInterface& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::CVTermListInterface& self) { self.clearMetaInfo(); }, "Removes all meta values")
         ;
 
     // -----------------------------------------------------------------------
     // ChromatogramSettings
     // -----------------------------------------------------------------------
-    auto chromatogramsettings_class = nb::class_<OpenMS::ChromatogramSettings, OpenMS::MetaInfoInterface>(m, "ChromatogramSettings", 
+    auto chromatogramsettings_class = nb::class_<OpenMS::ChromatogramSettings>(m, "ChromatogramSettings", 
         R"doc(
 MetaInfoInterface
 
@@ -691,28 +610,7 @@ about a single chromatogram.
         .def("setChromatogramType", [](OpenMS::ChromatogramSettings& self, OpenMS::ChromatogramSettings::ChromatogramType type) { return self.setChromatogramType(type); }, "type"_a, "Sets the chromatogram type")
         .def("setDataProcessing", [](OpenMS::ChromatogramSettings& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
         .def("getDataProcessing", [](OpenMS::ChromatogramSettings& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal, "Returns the description of the applied processing")
-        .def("getMetaValue", [](const OpenMS::ChromatogramSettings& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::ChromatogramSettings& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::ChromatogramSettings& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::ChromatogramSettings& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::ChromatogramSettings::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::ChromatogramSettings& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::ChromatogramSettings& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ChromatogramSettings& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::ChromatogramSettings& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::ChromatogramSettings& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::ChromatogramSettings& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::ChromatogramSettings& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::ChromatogramSettings& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ChromatogramSettings& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::ChromatogramSettings& self) { return std::hash<OpenMS::ChromatogramSettings>{}(self); })
         ;
     // ChromatogramType enum nested under ChromatogramSettings
@@ -728,6 +626,7 @@ about a single chromatogram.
         .value("EMISSION_CHROMATOGRAM", OpenMS::ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM)
         .value("SIZE_OF_CHROMATOGRAM_TYPE", OpenMS::ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)
         ;
+    def_MetaInfoInterface<OpenMS::ChromatogramSettings>(chromatogramsettings_class);
 
     // -----------------------------------------------------------------------
     // ColumnHeader
@@ -737,12 +636,6 @@ about a single chromatogram.
         .def(nb::init<const OpenMS::ConsensusMap::ColumnHeader &>())
         .def("__copy__", [](const OpenMS::ConsensusMap::ColumnHeader& self) { return OpenMS::ConsensusMap::ColumnHeader(self); })
         .def("__deepcopy__", [](const OpenMS::ConsensusMap::ColumnHeader& self, nb::dict) { return OpenMS::ConsensusMap::ColumnHeader(self); }, "memo"_a)
-        .def("getMetaValue", [](OpenMS::ConsensusMap::ColumnHeader& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::ConsensusMap::ColumnHeader& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::ConsensusMap::ColumnHeader& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::ConsensusMap::ColumnHeader& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::ConsensusMap::ColumnHeader& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ConsensusMap::ColumnHeader& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("filename", &OpenMS::ConsensusMap::ColumnHeader::filename)
         .def_rw("label", &OpenMS::ConsensusMap::ColumnHeader::label)
         .def_rw("size", &OpenMS::ConsensusMap::ColumnHeader::size)
@@ -754,31 +647,9 @@ about a single chromatogram.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::TargetedExperimentHelper::Configuration, OpenMS::CVTermList>(m, "Configuration", "OpenMS class Configuration")
         .def(nb::init<>())
-        .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Configuration& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::Configuration& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::Configuration& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::Configuration& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::Configuration& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::Configuration& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::TargetedExperimentHelper::Configuration& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::TargetedExperimentHelper::Configuration& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::TargetedExperimentHelper::Configuration& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::TargetedExperimentHelper::Configuration& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::TargetedExperimentHelper::Configuration& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::TargetedExperimentHelper::Configuration::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::Configuration& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::TargetedExperimentHelper::Configuration& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::TargetedExperimentHelper::Configuration& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("contact_ref", &OpenMS::TargetedExperimentHelper::Configuration::contact_ref)
         .def_rw("instrument_ref", &OpenMS::TargetedExperimentHelper::Configuration::instrument_ref)
         .def_rw("validations", &OpenMS::TargetedExperimentHelper::Configuration::validations)
@@ -790,30 +661,8 @@ about a single chromatogram.
     nb::class_<OpenMS::TargetedExperimentHelper::Contact, OpenMS::CVTermList>(m, "Contact", "OpenMS class Contact")
         .def(nb::init<>())
         .def(nb::self == nb::self)
-        .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Contact& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::Contact& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::Contact& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::Contact& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::Contact& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self != nb::self)
-        .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::Contact& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::TargetedExperimentHelper::Contact& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::TargetedExperimentHelper::Contact& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::TargetedExperimentHelper::Contact& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::TargetedExperimentHelper::Contact& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::TargetedExperimentHelper::Contact& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::TargetedExperimentHelper::Contact::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::Contact& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::TargetedExperimentHelper::Contact& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::TargetedExperimentHelper::Contact& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("id", &OpenMS::TargetedExperimentHelper::Contact::id)
         ;
 
@@ -852,28 +701,7 @@ Sets the URL associated with the contact person (e.g., the institute webpage "ht
         .def("setAddress", [](OpenMS::ContactPerson& self, const OpenMS::String& email) { return self.setAddress(email); }, "email"_a, "Sets the address")
         .def("getContactInfo", [](const OpenMS::ContactPerson& self) { return self.getContactInfo(); }, "Returns miscellaneous info about the contact person")
         .def("setContactInfo", [](OpenMS::ContactPerson& self, const OpenMS::String& contact_info) { return self.setContactInfo(contact_info); }, "contact_info"_a, "Sets miscellaneous info about the contact person")
-        .def("getMetaValue", [](const OpenMS::ContactPerson& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::ContactPerson& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::ContactPerson& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::ContactPerson& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::ContactPerson::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::ContactPerson& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::ContactPerson& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ContactPerson& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::ContactPerson& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::ContactPerson& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::ContactPerson& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::ContactPerson& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::ContactPerson& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ContactPerson& self) { self.clearMetaInfo(); }, "Removes all meta values")
         ;
 
     // -----------------------------------------------------------------------
@@ -899,28 +727,7 @@ MetaInfoInterface
         .def("setProcessingActions", [](OpenMS::DataProcessing& self, const std::set<OpenMS::DataProcessing::ProcessingAction>& actions) { return self.setProcessingActions(actions); }, "actions"_a)
         .def("getCompletionTime", [](const OpenMS::DataProcessing& self) -> const OpenMS::DateTime & { return self.getCompletionTime(); }, nb::rv_policy::reference_internal)
         .def("setCompletionTime", [](OpenMS::DataProcessing& self, const OpenMS::DateTime& completion_time) { return self.setCompletionTime(completion_time); }, "completion_time"_a)
-        .def("getMetaValue", [](const OpenMS::DataProcessing& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::DataProcessing& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::DataProcessing& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::DataProcessing& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::DataProcessing::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::DataProcessing& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::DataProcessing& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::DataProcessing& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::DataProcessing& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::DataProcessing& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::DataProcessing& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::DataProcessing& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::DataProcessing& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::DataProcessing& self) { self.clearMetaInfo(); }, "Removes all meta values")
         ;
     // ProcessingAction enum nested under DataProcessing
     nb::enum_<OpenMS::DataProcessing::ProcessingAction>(dataprocessing_class, "ProcessingAction")
@@ -952,7 +759,7 @@ MetaInfoInterface
     // -----------------------------------------------------------------------
     // ExperimentalSettings
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ExperimentalSettings>(m, "ExperimentalSettings", 
+    auto experimentalsettings_class = nb::class_<OpenMS::ExperimentalSettings>(m, "ExperimentalSettings", 
         R"doc(
 DocumentIdentifier
 MetaInfoInterface
@@ -982,37 +789,10 @@ about an LC-MS/MS injection.
         .def("setComment", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
         .def("getFractionIdentifier", [](const OpenMS::ExperimentalSettings& self) { return self.getFractionIdentifier(); }, "Returns fraction identifier")
         .def("setFractionIdentifier", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& fraction_identifier) { return self.setFractionIdentifier(fraction_identifier); }, "fraction_identifier"_a, "Sets the fraction identifier")
-        .def("getMetaValue", [](const OpenMS::ExperimentalSettings& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::ExperimentalSettings& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::ExperimentalSettings::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::ExperimentalSettings& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::ExperimentalSettings& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ExperimentalSettings& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("setIdentifier", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& id) { return self.setIdentifier(id); }, "id"_a, "Sets document identifier (e.g. an LSID)")
-        .def("getIdentifier", [](const OpenMS::ExperimentalSettings& self) { return self.getIdentifier(); }, "Retrieve document identifier (e.g. an LSID)")
-        .def("setLoadedFilePath", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& file_name) { return self.setLoadedFilePath(file_name); }, "file_name"_a, "Sets the file_name according to absolute path of the file loaded, preferably done whilst loading")
-        .def("getLoadedFilePath", [](const OpenMS::ExperimentalSettings& self) { return self.getLoadedFilePath(); }, "Returns the file_name which is the absolute path to the file loaded")
-        .def("setLoadedFileType", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& file_name) { return self.setLoadedFileType(file_name); }, "file_name"_a, "Sets the file_type according to the type of the file loaded from, preferably done whilst loading")
-        .def("getLoadedFileType", [](const OpenMS::ExperimentalSettings& self) -> const OpenMS::FileTypes::Type & { return self.getLoadedFileType(); }, nb::rv_policy::reference_internal, "Returns the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded")
-        .def("getMetaValue", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::ExperimentalSettings& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ExperimentalSettings& self) { self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getIdentifier", [](OpenMS::ExperimentalSettings& self) { return self.getIdentifier(); }, "Returns the document identifier")
-        .def("setIdentifier", [](OpenMS::ExperimentalSettings& self, const OpenMS::String& id) { self.setIdentifier(id); }, "id"_a, "Sets the document identifier")
         ;
+    def_MetaInfoInterface<OpenMS::ExperimentalSettings>(experimentalsettings_class);
+    def_DocumentIdentifier<OpenMS::ExperimentalSettings>(experimentalsettings_class);
 
     // -----------------------------------------------------------------------
     // IncludeExcludeTarget
@@ -1051,12 +831,6 @@ about an LC-MS/MS injection.
         .def("getRetentionTime", [](const OpenMS::IncludeExcludeTarget& self) -> const OpenMS::TargetedExperimentHelper::RetentionTime & { return self.getRetentionTime(); }, nb::rv_policy::reference_internal)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("replaceCVTerm", [](OpenMS::IncludeExcludeTarget& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a)
-        .def("getCVTerms", [](const OpenMS::IncludeExcludeTarget& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal)
-        .def("addCVTerm", [](OpenMS::IncludeExcludeTarget& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a)
-        .def("setCVTerms", [](OpenMS::IncludeExcludeTarget& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
-        .def("hasCVTerm", [](const OpenMS::IncludeExcludeTarget& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::IncludeExcludeTarget& self) { return self.empty(); })
         .def("__hash__", [](const OpenMS::IncludeExcludeTarget& self) { return std::hash<OpenMS::IncludeExcludeTarget>{}(self); })
         ;
 
@@ -1075,22 +849,7 @@ For the full MS instrument description, use the Instrument class instead.
         .def(nb::init<>())
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getMetaValue", [](const OpenMS::TargetedExperimentHelper::Instrument& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::TargetedExperimentHelper::Instrument& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::TargetedExperimentHelper::Instrument& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::TargetedExperimentHelper::Instrument& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::TargetedExperimentHelper::Instrument::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
 
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::Instrument& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::TargetedExperimentHelper::Instrument& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::TargetedExperimentHelper::Instrument& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("id", &OpenMS::TargetedExperimentHelper::Instrument::id)
         ;
 
@@ -1128,21 +887,6 @@ software, vendor, model, and ion optics configuration.
         .def("getIonOptics", [](const OpenMS::Instrument& self) { return self.getIonOptics(); }, "Returns the ion optics type")
         .def("setIonOptics", [](OpenMS::Instrument& self, OpenMS::Instrument::IonOpticsType ion_optics) { return self.setIonOptics(ion_optics); }, "ion_optics"_a, "Sets the ion optics type")
         .def_static("getAllNamesOfIonOpticsType", []() { return OpenMS::Instrument::getAllNamesOfIonOpticsType(); }, "Returns all ion optics type names known to OpenMS")
-        .def("getMetaValue", [](const OpenMS::Instrument& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::Instrument& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::Instrument& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::Instrument& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::Instrument::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
-        .def("getKeys", [](const OpenMS::Instrument& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::Instrument& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::Instrument& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         ;
     // IonOpticsType enum nested under Instrument
     nb::enum_<OpenMS::Instrument::IonOpticsType>(instrument_class, "IonOpticsType")
@@ -1184,30 +928,9 @@ MetaInfoInterface
         .def("setZoomScan", [](OpenMS::InstrumentSettings& self, bool zoom_scan) { return self.setZoomScan(zoom_scan); }, "zoom_scan"_a, "Sets if this scan is a zoom (enhanced resolution) scan")
         .def("getPolarity", [](const OpenMS::InstrumentSettings& self) { return self.getPolarity(); }, "Returns the polarity")
         .def("setPolarity", [](OpenMS::InstrumentSettings& self, OpenMS::IonSource::Polarity polarity) { return self.setPolarity(polarity); }, "polarity"_a, "Sets the polarity")
-        .def("getMetaValue", [](const OpenMS::InstrumentSettings& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::InstrumentSettings& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::InstrumentSettings& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::InstrumentSettings& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::InstrumentSettings::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         .def("getScanWindows", [](const OpenMS::InstrumentSettings& self) -> const std::vector<OpenMS::ScanWindow>& { return self.getScanWindows(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of scan windows")
         .def("setScanWindows", [](OpenMS::InstrumentSettings& self, std::vector<OpenMS::ScanWindow> scan_windows) { return self.setScanWindows(scan_windows); }, "scan_windows"_a, "Sets the scan windows")
 
-        .def("getKeys", [](const OpenMS::InstrumentSettings& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::InstrumentSettings& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::InstrumentSettings& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::InstrumentSettings& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::InstrumentSettings& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::InstrumentSettings& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::InstrumentSettings& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::InstrumentSettings& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::InstrumentSettings& self) { self.clearMetaInfo(); }, "Removes all meta values")
         ;
     // ScanMode enum nested under InstrumentSettings
     nb::enum_<OpenMS::InstrumentSettings::ScanMode>(instrumentsettings_class, "ScanMode")
@@ -1259,28 +982,7 @@ MetaInfoInterface
         .def("setADCSamplingFrequency", [](OpenMS::IonDetector& self, double ADC_sampling_frequency) { return self.setADCSamplingFrequency(ADC_sampling_frequency); }, "ADC_sampling_frequency"_a, "Sets the analog-to-digital converter sampling frequency (in Hz)")
         .def("getOrder", [](const OpenMS::IonDetector& self) { return self.getOrder(); }, "Returns the order")
         .def("setOrder", [](OpenMS::IonDetector& self, int order) { return self.setOrder(order); }, "order"_a, "Sets the order")
-        .def("getMetaValue", [](const OpenMS::IonDetector& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::IonDetector& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::IonDetector& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::IonDetector& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::IonDetector::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::IonDetector& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::IonDetector& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::IonDetector& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::IonDetector& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::IonDetector& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::IonDetector& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::IonDetector& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::IonDetector& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::IonDetector& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::IonDetector& self) { return std::hash<OpenMS::IonDetector>{}(self); })
         ;
     // Type enum nested under IonDetector
@@ -1350,28 +1052,7 @@ MetaInfoInterface
         .def("setPolarity", [](OpenMS::IonSource& self, OpenMS::IonSource::Polarity polarity) { return self.setPolarity(polarity); }, "polarity"_a, "Sets the ionization mode")
         .def("getOrder", [](const OpenMS::IonSource& self) { return self.getOrder(); })
         .def("setOrder", [](OpenMS::IonSource& self, int order) { return self.setOrder(order); }, "order"_a, "Sets the order")
-        .def("getMetaValue", [](const OpenMS::IonSource& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::IonSource& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::IonSource& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::IonSource& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::IonSource::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::IonSource& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::IonSource& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::IonSource& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::IonSource& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::IonSource& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::IonSource& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::IonSource& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::IonSource& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::IonSource& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::IonSource& self) { return std::hash<OpenMS::IonSource>{}(self); })
         ;
     // Polarity enum nested under IonSource
@@ -1463,364 +1144,6 @@ MetaInfoInterface
         ;
 
     // -----------------------------------------------------------------------
-    // MSChromatogram
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MSChromatogram>(m, "MSChromatogram", 
-        R"doc(
-ChromatogramSettings
-RangeManagerRtInt
-
-The representation of a chromatogram.
-Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
-Iterations yields access to underlying peak objects but is slower
-Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
-See help(ChromatogramSettings) for information about meta-information
-Usage:
-.. code-block:: python
-precursor = chromatogram.getPrecursor()
-product = chromatogram.getProduct()
-rt, intensities = chromatogram.get_peaks()
-)doc")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::MSChromatogram &>())
-        .def("__copy__", [](const OpenMS::MSChromatogram& self) { return OpenMS::MSChromatogram(self); })
-        .def("__deepcopy__", [](const OpenMS::MSChromatogram& self, nb::dict) { return OpenMS::MSChromatogram(self); }, "memo"_a)
-        .def(nb::self == nb::self)
-        .def(nb::self != nb::self)
-        .def("updateRanges", [](OpenMS::MSChromatogram& self) { return self.updateRanges(); }, "Recalculates the RT and intensity ranges of the chromatogram")
-        .def("clearRanges", [](OpenMS::MSChromatogram& self) { return self.clearRanges(); }, "Clear all ranges")
-        .def("resize", [](OpenMS::MSChromatogram& self, size_t new_size) { return self.resize(new_size); }, "new_size"_a, "Resize the peak array")
-        .def("reserve", [](OpenMS::MSChromatogram& self, size_t new_size) { return self.reserve(new_size); }, "new_size"_a, "Reserve space for peaks")
-        .def("getMinRT", [](const OpenMS::MSChromatogram& self) { return self.getMinRT(); }, "Get the minimum RT value")
-        .def("getMaxRT", [](const OpenMS::MSChromatogram& self) { return self.getMaxRT(); }, "Get the maximum RT value")
-        .def("getMinIntensity", [](const OpenMS::MSChromatogram& self) { return self.getMinIntensity(); }, "Get the minimum intensity value")
-        .def("getMaxIntensity", [](const OpenMS::MSChromatogram& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
-        .def("getName", [](const OpenMS::MSChromatogram& self) { return self.getName(); }, "Returns the name")
-        .def("setName", [](OpenMS::MSChromatogram& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name")
-        .def("getMZ", [](const OpenMS::MSChromatogram& self) { return self.getMZ(); }, "Returns the mz of the product entry, makes sense especially for MRM scans")
-        .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false)
-        .def("sortByPosition", [](OpenMS::MSChromatogram& self) { return self.sortByPosition(); }, 
-            R"doc(
-Lexicographically sorts the peaks by their intensity
-Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
-)doc")
-        .def("isSorted", [](const OpenMS::MSChromatogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending RT")
-        .def("findNearest", [](const OpenMS::MSChromatogram& self, double rt) { return self.findNearest(rt); }, "rt"_a, 
-            R"doc(
-Lexicographically sorts the peaks by their position
-The chromatogram is sorted with respect to position. Meta data arrays will be sorted accordingly
-)doc")
-        .def("clear", [](OpenMS::MSChromatogram& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a)
-        .def("getNativeID", [](const OpenMS::MSChromatogram& self) { return self.getNativeID(); }, "Returns the native identifier for the spectrum, used by the acquisition software.")
-        .def("setNativeID", [](OpenMS::MSChromatogram& self, const OpenMS::String& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software.")
-        .def("getComment", [](const OpenMS::MSChromatogram& self) { return self.getComment(); }, "Returns the free-text comment")
-        .def("setComment", [](OpenMS::MSChromatogram& self, const OpenMS::String& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
-        .def("getInstrumentSettings", [](const OpenMS::MSChromatogram& self) -> const OpenMS::InstrumentSettings & { return self.getInstrumentSettings(); }, nb::rv_policy::reference_internal, "Returns the instrument settings of the current spectrum")
-        .def("setInstrumentSettings", [](OpenMS::MSChromatogram& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
-        .def("getAcquisitionInfo", [](const OpenMS::MSChromatogram& self) -> const OpenMS::AcquisitionInfo & { return self.getAcquisitionInfo(); }, nb::rv_policy::reference_internal, "Returns the acquisition info")
-        .def("setAcquisitionInfo", [](OpenMS::MSChromatogram& self, const OpenMS::AcquisitionInfo& acquisition_info) { return self.setAcquisitionInfo(acquisition_info); }, "acquisition_info"_a, "Sets the acquisition info")
-        .def("getSourceFile", [](const OpenMS::MSChromatogram& self) -> const OpenMS::SourceFile & { return self.getSourceFile(); }, nb::rv_policy::reference_internal, "Returns the source file")
-        .def("setSourceFile", [](OpenMS::MSChromatogram& self, const OpenMS::SourceFile& source_file) { return self.setSourceFile(source_file); }, "source_file"_a, "Sets the source file")
-        .def("getPrecursor", [](const OpenMS::MSChromatogram& self) -> const OpenMS::Precursor & { return self.getPrecursor(); }, nb::rv_policy::reference_internal, "Returns the precursors")
-        .def("setPrecursor", [](OpenMS::MSChromatogram& self, const OpenMS::Precursor& precursor) { return self.setPrecursor(precursor); }, "precursor"_a, "Sets the precursors")
-        .def("getProduct", [](const OpenMS::MSChromatogram& self) -> const OpenMS::Product & { return self.getProduct(); }, nb::rv_policy::reference_internal, "Returns the product ion")
-        .def("setProduct", [](OpenMS::MSChromatogram& self, const OpenMS::Product& product) { return self.setProduct(product); }, "product"_a, "Sets the product ion")
-        .def("getChromatogramType", [](const OpenMS::MSChromatogram& self) { return self.getChromatogramType(); }, "Get the chromatogram type")
-        .def("setChromatogramType", [](OpenMS::MSChromatogram& self, OpenMS::ChromatogramSettings::ChromatogramType type) { return self.setChromatogramType(type); }, "type"_a, "Sets the chromatogram type")
-        .def("setDataProcessing", [](OpenMS::MSChromatogram& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
-        .def("getDataProcessing", [](OpenMS::MSChromatogram& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal, "Returns the description of the applied processing")
-        .def("getMetaValue", [](const OpenMS::MSChromatogram& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::MSChromatogram& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::MSChromatogram& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::MSChromatogram& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::MSChromatogram::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
-        
-        .def("getKeys", [](const OpenMS::MSChromatogram& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::MSChromatogram& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::MSChromatogram& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("__iter__", [](OpenMS::MSChromatogram& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "MSChromatogram_iter", self.begin(), self.end()); })
-        .def("__len__", [](OpenMS::MSChromatogram& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::MSChromatogram& self, size_t i) -> OpenMS::ChromatogramPeak& {
-            if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, nb::rv_policy::reference_internal)
-        .def("__setitem__", [](OpenMS::MSChromatogram& self, size_t i, const OpenMS::ChromatogramPeak& val) {
-            if (i >= self.size()) throw nb::index_error();
-            self[i] = val;
-        }, "i"_a, "val"_a, "Sets peak at index i")
-
-        .def("get_peaks", [](const OpenMS::MSChromatogram& self) {
-            const size_t n = self.size();
-            std::unique_ptr<double[]> rt_uptr(new double[n]);
-            std::unique_ptr<double[]> int_uptr(new double[n]);
-            double* rt_data = rt_uptr.get();
-            double* int_data = int_uptr.get();
-            for (size_t i = 0; i < n; ++i) {
-                rt_data[i] = self[i].getRT();
-                int_data[i] = self[i].getIntensity();
-            }
-            nb::capsule rt_owner(rt_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            nb::capsule int_owner(int_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            auto rt_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(rt_data, {n}, rt_owner);
-            auto int_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(int_data, {n}, int_owner);
-            return nb::make_tuple(rt_arr, int_arr);
-        }, "Returns a tuple of (rt_array, intensity_array) as numpy arrays")
-
-        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj) {
-            auto rt_arr = as_numpy_array<double>(rt_obj);
-            auto int_arr = as_numpy_array<double>(int_obj);
-            const size_t n = rt_arr.shape(0);
-            if (int_arr.shape(0) != n) {
-                throw std::runtime_error("rt and intensity arrays must have same length");
-            }
-            self.resize(n);
-            const double* rt_ptr = static_cast<const double*>(rt_arr.data());
-            const double* int_ptr = static_cast<const double*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setRT(rt_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "rt"_a, "intensity"_a, "Set peaks from rt and intensity arrays")
-        .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object peaks_seq) {
-            if (nb::len(peaks_seq) != 2) {
-                throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (rt, intensity)");
-            }
-            auto rt_arr = as_numpy_array<double>(peaks_seq[0]);
-            auto int_arr = as_numpy_array<double>(peaks_seq[1]);
-            const size_t n = rt_arr.shape(0);
-            if (int_arr.shape(0) != n) {
-                throw std::runtime_error("rt and intensity arrays must have same length");
-            }
-            self.resize(n);
-            const double* rt_ptr = static_cast<const double*>(rt_arr.data());
-            const double* int_ptr = static_cast<const double*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setRT(rt_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "peaks"_a, "Set peaks from a tuple/list of (rt_array, intensity_array)")
-
-        .def("size", [](const OpenMS::MSChromatogram& self) {
-            return self.size();
-        }, "Returns the number of peaks")
-
-        .def("push_back", [](OpenMS::MSChromatogram& self, const OpenMS::ChromatogramPeak& peak) {
-            self.push_back(peak);
-        }, "peak"_a, "Append a peak")
-
-        .def("getFloatDataArrays", [](OpenMS::MSChromatogram& self) -> std::vector<OpenMS::DataArrays::FloatDataArray>& {
-            return self.getFloatDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the float data arrays")
-
-        .def("setFloatDataArrays", [](OpenMS::MSChromatogram& self, const std::vector<OpenMS::DataArrays::FloatDataArray>& arrays) {
-            self.setFloatDataArrays(arrays);
-        }, "arrays"_a, "Set the float data arrays")
-
-        .def("getIntegerDataArrays", [](OpenMS::MSChromatogram& self) -> std::vector<OpenMS::DataArrays::IntegerDataArray>& {
-            return self.getIntegerDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the integer data arrays")
-
-        .def("setIntegerDataArrays", [](OpenMS::MSChromatogram& self, const std::vector<OpenMS::DataArrays::IntegerDataArray>& arrays) {
-            self.setIntegerDataArrays(arrays);
-        }, "arrays"_a, "Set the integer data arrays")
-
-        .def("getStringDataArrays", [](OpenMS::MSChromatogram& self) -> std::vector<OpenMS::DataArrays::StringDataArray>& {
-            return self.getStringDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the string data arrays")
-
-        .def("setStringDataArrays", [](OpenMS::MSChromatogram& self, const std::vector<OpenMS::DataArrays::StringDataArray>& arrays) {
-            self.setStringDataArrays(arrays);
-        }, "arrays"_a, "Set the string data arrays")
-        ;
-
-    // -----------------------------------------------------------------------
-    // MSExperiment
-    // -----------------------------------------------------------------------
-    auto msexperiment_class = nb::class_<OpenMS::MSExperiment, OpenMS::ExperimentalSettings>(m, "MSExperiment", 
-        R"doc(
-ExperimentalSettings
-
-In-Memory representation of a mass spectrometry experiment.
-Contains the data and metadata of an experiment performed with an MS (or
-HPLC and MS). This representation of an MS experiment is organized as list
-of spectra and chromatograms and provides an in-memory representation of
-popular mass-spectrometric file formats such as mzXML or mzML. The
-meta-data associated with an experiment is contained in
-ExperimentalSettings (by inheritance) while the raw data (as well as
-spectra and chromatogram level meta data) is stored in objects of type
-MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
-and getChromatogram functions.
-Spectra can be accessed by direct iteration or by getSpectrum(),
-while chromatograms are accessed through getChromatogram().
-See help(ExperimentalSettings) for information about meta-data.
-Usage:
-.. code-block:: python
-exp = MSExperiment()
-MzMLFile().load(path_to_file, exp)
-for spectrum in exp:
-print(spectrum.size()) # prints number of peaks
-mz, intensities = spectrum.get_peaks()
-)doc")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::MSExperiment &>())
-        .def("__copy__", [](const OpenMS::MSExperiment& self) { return OpenMS::MSExperiment(self); })
-        .def("__deepcopy__", [](const OpenMS::MSExperiment& self, nb::dict) { return OpenMS::MSExperiment(self); }, "memo"_a)
-        .def(nb::self == nb::self)
-        .def(nb::self != nb::self)
-        .def("size", [](const OpenMS::MSExperiment& self) { return self.size(); }, "Returns the number of spectra")
-        .def("resize", [](OpenMS::MSExperiment& self, size_t n) { return self.resize(n); }, "n"_a, "Resizes the spectrum container to the specified number of spectra")
-        .def("empty", [](const OpenMS::MSExperiment& self) { return self.empty(); }, "Returns True if the experiment contains no spectra")
-        .def("reserve", [](OpenMS::MSExperiment& self, size_t n) { return self.reserve(n); }, "n"_a, "Reserves space for the specified number of spectra")
-        .def("begin", [](const OpenMS::MSExperiment& self) { return self.begin(); })
-        .def("end", [](const OpenMS::MSExperiment& self) { return self.end(); })
-        .def("reserveSpaceSpectra", [](OpenMS::MSExperiment& self, size_t s) { return self.reserveSpaceSpectra(s); }, "s"_a, "Reserves space for the specified number of spectra")
-        .def("reserveSpaceChromatograms", [](OpenMS::MSExperiment& self, size_t s) { return self.reserveSpaceChromatograms(s); }, "s"_a, "Reserves space for the specified number of chromatograms")
-        .def("aggregateFromMatrix", [](const OpenMS::MSExperiment& self, const OpenMS::Matrix<double>& ranges, unsigned int ms_level, const OpenMS::String& mz_agg) { return self.aggregateFromMatrix(ranges, ms_level, mz_agg); }, "ranges"_a, "ms_level"_a, "mz_agg"_a, "Aggregates intensity values for multiple m/z and RT ranges specified in a matrix")
-        .def("extractXICsFromMatrix", [](const OpenMS::MSExperiment& self, const OpenMS::Matrix<double>& ranges, unsigned int ms_level, const OpenMS::String& mz_agg) { return self.extractXICsFromMatrix(ranges, ms_level, mz_agg); }, "ranges"_a, "ms_level"_a, "mz_agg"_a, "Extracts XIC chromatograms for multiple m/z and RT ranges specified in a matrix")
-        .def("clearRanges", [](OpenMS::MSExperiment& self) { return self.clearRanges(); }, "Clear all ranges in all range managers")
-        .def("getMinRT", [](const OpenMS::MSExperiment& self) { return self.getMinRT(); }, "Get the minimum RT value from the combined ranges")
-        .def("getMaxRT", [](const OpenMS::MSExperiment& self) { return self.getMaxRT(); }, "Get the maximum RT value from the combined ranges")
-        .def("getMinMZ", [](const OpenMS::MSExperiment& self) { return self.getMinMZ(); }, "Get the minimum m/z value from the combined ranges")
-        .def("getMaxMZ", [](const OpenMS::MSExperiment& self) { return self.getMaxMZ(); }, "Get the maximum m/z value from the combined ranges")
-        .def("getMinIntensity", [](const OpenMS::MSExperiment& self) { return self.getMinIntensity(); }, "Get the minimum intensity value from the combined ranges")
-        .def("getMaxIntensity", [](const OpenMS::MSExperiment& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value from the combined ranges")
-        .def("getMinMobility", [](const OpenMS::MSExperiment& self) { return self.getMinMobility(); }, "Get the minimum mobility value from the combined ranges")
-        .def("getMaxMobility", [](const OpenMS::MSExperiment& self) { return self.getMaxMobility(); }, "Get the maximum mobility value from the combined ranges")
-        .def("updateRanges", [](OpenMS::MSExperiment& self) { return self.updateRanges(); }, "Recalculate global ranges for both spectra and chromatrograms after changes to the data has been made.")
-        .def("getSize", [](const OpenMS::MSExperiment& self) { return self.getSize(); }, "Returns the total number of peaks")
-        .def("sortSpectra", [](OpenMS::MSExperiment& self, bool sort_mz) { nb::gil_scoped_release release; return self.sortSpectra(sort_mz); }, "sort_mz"_a = true, "Sorts spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z")
-        .def("sortChromatograms", [](OpenMS::MSExperiment& self, bool sort_rt) { nb::gil_scoped_release release; return self.sortChromatograms(sort_rt); }, "sort_rt"_a = true, "Sorts chromatograms by m/z. If sort_rt=True also sort each chromatogram RT")
-        .def("isSorted", [](const OpenMS::MSExperiment& self, bool check_mz) { return self.isSorted(check_mz); }, "check_mz"_a = true, "Checks if all spectra are sorted with respect to ascending RT")
-        .def("reset", [](OpenMS::MSExperiment& self) { return self.reset(); }, "Clears all data and meta data")
-        .def("clearMetaDataArrays", [](OpenMS::MSExperiment& self) { return self.clearMetaDataArrays(); }, "Clears the meta data arrays of all contained spectra")
-        .def("getExperimentalSettings", [](OpenMS::MSExperiment& self) -> OpenMS::ExperimentalSettings & { return self.getExperimentalSettings(); }, nb::rv_policy::reference_internal, "Returns the meta information of this experiment")
-        .def("getPrimaryMSRunPath", [](const OpenMS::MSExperiment& self) { std::vector<OpenMS::String> toFill; self.getPrimaryMSRunPath(toFill); return toFill; }, "References to the first MS file(s) after conversions. Used to trace results back to original data.")
-        .def("getPrecursorSpectrum", [](const OpenMS::MSExperiment& self, int zero_based_index) { return self.getPrecursorSpectrum(zero_based_index); }, "zero_based_index"_a, "Returns the index of the precursor spectrum for spectrum at index @p zero_based_index")
-        .def("swap", [](OpenMS::MSExperiment& self, OpenMS::MSExperiment& from) { return self.swap(from); }, "from"_a, "Swaps the content of this experiment with another")
-        .def("setSpectra", [](OpenMS::MSExperiment& self, const std::vector<OpenMS::MSSpectrum>& spectra) { return self.setSpectra(spectra); }, "spectra"_a, "Sets the spectrum list")
-        .def("setSpectra", [](OpenMS::MSExperiment& self, std::vector<OpenMS::MSSpectrum>& spectra) { return self.setSpectra(spectra); }, "spectra"_a, "Sets the spectrum list")
-        .def("addSpectrum", [](OpenMS::MSExperiment& self, const OpenMS::MSSpectrum& spectrum) { return self.addSpectrum(spectrum); }, "spectrum"_a, "Adds a spectrum to the experiment")
-        .def("addSpectrum", [](OpenMS::MSExperiment& self, OpenMS::MSSpectrum& spectrum) { return self.addSpectrum(spectrum); }, "spectrum"_a, "Adds a spectrum to the experiment")
-        .def("getSpectra", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSSpectrum> & { return self.getSpectra(); }, nb::rv_policy::reference_internal, "Returns the list of spectra")
-        .def("setChromatograms", [](OpenMS::MSExperiment& self, const std::vector<OpenMS::MSChromatogram>& chromatograms) { return self.setChromatograms(chromatograms); }, "chromatograms"_a, "Sets the chromatogram list")
-        .def("setChromatograms", [](OpenMS::MSExperiment& self, std::vector<OpenMS::MSChromatogram>& chromatograms) { return self.setChromatograms(chromatograms); }, "chromatograms"_a, "Sets the chromatogram list")
-        .def("addChromatogram", [](OpenMS::MSExperiment& self, const OpenMS::MSChromatogram& chromatogram) { return self.addChromatogram(chromatogram); }, "chromatogram"_a, "Adds a chromatogram to the experiment")
-        .def("addChromatogram", [](OpenMS::MSExperiment& self, OpenMS::MSChromatogram& chrom) { return self.addChromatogram(chrom); }, "chrom"_a, "Adds a chromatogram to the experiment")
-        .def("getChromatograms", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram> & { return self.getChromatograms(); }, nb::rv_policy::reference_internal, "Returns the list of chromatograms")
-        .def("getChromatogram", [](OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSChromatogram& { return self.getChromatogram(id); }, nb::rv_policy::reference_internal, "id"_a, "Returns a single chromatogram by index")
-        .def("getNrSpectra", [](const OpenMS::MSExperiment& self) { return self.getNrSpectra(); }, "Returns the number of MS spectra")
-        .def("getNrChromatograms", [](const OpenMS::MSExperiment& self) { return self.getNrChromatograms(); }, "Returns the number of chromatograms")
-        .def("getMSLevels", [](const OpenMS::MSExperiment& self) { return self.getMSLevels(); }, "Returns a sorted list of unique MS levels in the experiment")
-        .def("calculateTIC", [](const OpenMS::MSExperiment& self, float rt_bin_size, unsigned int ms_level) { return self.calculateTIC(rt_bin_size, ms_level); }, "rt_bin_size"_a = 0, "ms_level"_a = 1, "Returns the total ion chromatogram")
-        .def("clear", [](OpenMS::MSExperiment& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a, "Clear all spectra data and meta data (if called with True)")
-        .def("spectrumRanges", [](const OpenMS::MSExperiment& self) -> const OpenMS::SpectrumRangeManager & { return self.spectrumRanges(); }, nb::rv_policy::reference_internal, "Returns a reference to the spectrum range manager")
-        .def("chromatogramRanges", [](const OpenMS::MSExperiment& self) -> const OpenMS::ChromatogramRangeManager & { return self.chromatogramRanges(); }, nb::rv_policy::reference_internal, "Returns a reference to the chromatogram range manager")
-        .def("getSample", [](const OpenMS::MSExperiment& self) -> const OpenMS::Sample & { return self.getSample(); }, nb::rv_policy::reference_internal, "Returns a reference to the sample description")
-        .def("setSample", [](OpenMS::MSExperiment& self, const OpenMS::Sample& sample) { return self.setSample(sample); }, "sample"_a, "Sets the sample description")
-        .def("getSourceFiles", [](const OpenMS::MSExperiment& self) -> const std::vector<OpenMS::SourceFile> & { return self.getSourceFiles(); }, nb::rv_policy::reference_internal, "Returns a reference to the source data file")
-        .def("setSourceFiles", [](OpenMS::MSExperiment& self, const std::vector<OpenMS::SourceFile>& source_files) { return self.setSourceFiles(source_files); }, "source_files"_a, "Sets the source data file")
-        .def("getContacts", [](const OpenMS::MSExperiment& self) -> const std::vector<OpenMS::ContactPerson> & { return self.getContacts(); }, nb::rv_policy::reference_internal, "Returns a reference to the list of contact persons")
-        .def("setContacts", [](OpenMS::MSExperiment& self, const std::vector<OpenMS::ContactPerson>& contacts) { return self.setContacts(contacts); }, "contacts"_a, "Sets the list of contact persons")
-        .def("getInstrument", [](const OpenMS::MSExperiment& self) -> const OpenMS::Instrument & { return self.getInstrument(); }, nb::rv_policy::reference_internal, "Returns a reference to the MS instrument description")
-        .def("setInstrument", [](OpenMS::MSExperiment& self, const OpenMS::Instrument& instrument) { return self.setInstrument(instrument); }, "instrument"_a, "Sets the MS instrument description")
-        .def("getHPLC", [](const OpenMS::MSExperiment& self) -> const OpenMS::HPLC & { return self.getHPLC(); }, nb::rv_policy::reference_internal, "Returns a reference to the description of the HPLC run")
-        .def("setHPLC", [](OpenMS::MSExperiment& self, const OpenMS::HPLC& hplc) { return self.setHPLC(hplc); }, "hplc"_a, "Sets the description of the HPLC run")
-        .def("getDateTime", [](const OpenMS::MSExperiment& self) -> const OpenMS::DateTime & { return self.getDateTime(); }, nb::rv_policy::reference_internal, "Returns the date the experiment was performed")
-        .def("setDateTime", [](OpenMS::MSExperiment& self, const OpenMS::DateTime& date) { return self.setDateTime(date); }, "date"_a, "Sets the date the experiment was performed")
-        .def("getComment", [](const OpenMS::MSExperiment& self) { return self.getComment(); }, "Returns the free-text comment")
-        .def("setComment", [](OpenMS::MSExperiment& self, const OpenMS::String& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
-        .def("getFractionIdentifier", [](const OpenMS::MSExperiment& self) { return self.getFractionIdentifier(); }, "Returns fraction identifier")
-        .def("setFractionIdentifier", [](OpenMS::MSExperiment& self, const OpenMS::String& fraction_identifier) { return self.setFractionIdentifier(fraction_identifier); }, "fraction_identifier"_a, "Sets the fraction identifier")
-        .def("getMetaValue", [](const OpenMS::MSExperiment& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::MSExperiment& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::MSExperiment& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::MSExperiment& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::MSExperiment::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
-        
-        .def("getKeys", [](const OpenMS::MSExperiment& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::MSExperiment& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::MSExperiment& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("setIdentifier", [](OpenMS::MSExperiment& self, const OpenMS::String& id) { return self.setIdentifier(id); }, "id"_a, "Sets document identifier (e.g. an LSID)")
-        .def("getIdentifier", [](const OpenMS::MSExperiment& self) { return self.getIdentifier(); }, "Retrieve document identifier (e.g. an LSID)")
-        .def("setLoadedFilePath", [](OpenMS::MSExperiment& self, const OpenMS::String& file_name) { return self.setLoadedFilePath(file_name); }, "file_name"_a, "Sets the file_name according to absolute path of the file loaded, preferably done whilst loading")
-        .def("getLoadedFilePath", [](const OpenMS::MSExperiment& self) { return self.getLoadedFilePath(); }, "Returns the file_name which is the absolute path to the file loaded")
-        .def("setLoadedFileType", [](OpenMS::MSExperiment& self, const OpenMS::String& file_name) { return self.setLoadedFileType(file_name); }, "file_name"_a, "Sets the file_type according to the type of the file loaded from, preferably done whilst loading")
-        .def("getLoadedFileType", [](const OpenMS::MSExperiment& self) -> const OpenMS::FileTypes::Type & { return self.getLoadedFileType(); }, nb::rv_policy::reference_internal, "Returns the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded")
-        .def("getMetaValue", [](OpenMS::MSExperiment& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::MSExperiment& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::MSExperiment& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::MSExperiment& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::MSExperiment& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::MSExperiment& self) { self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getIdentifier", [](OpenMS::MSExperiment& self) { return self.getIdentifier(); }, "Returns the document identifier")
-        .def("setIdentifier", [](OpenMS::MSExperiment& self, const OpenMS::String& id) { self.setIdentifier(id); }, "id"_a, "Sets the document identifier")
-        .def("__iter__", [](OpenMS::MSExperiment& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "MSExperiment_iter", self.begin(), self.end()); })
-        .def("__len__", [](OpenMS::MSExperiment& self) { return self.size(); })
-
-        .def("__getitem__", [](OpenMS::MSExperiment& self, size_t i) -> OpenMS::MSSpectrum& {
-            if (i >= self.size()) throw nb::index_error();
-            return self[i];
-        }, "i"_a, nb::rv_policy::reference_internal)
-        .def("__setitem__", [](OpenMS::MSExperiment& self, size_t i, const OpenMS::MSSpectrum& val) {
-            if (i >= self.size()) throw nb::index_error();
-            self[i] = val;
-        }, "i"_a, "val"_a, "Sets spectrum at index i")
-        .def("getSpectrum", [](OpenMS::MSExperiment& self, size_t id) -> OpenMS::MSSpectrum& { return self.getSpectrum(id); }, nb::rv_policy::reference_internal, "id"_a, "Returns a single spectrum by index")
-
-        .def("rasterizeRTMZ", [](OpenMS::MSExperiment& self,
-                                nb::ndarray<float, nb::ndim<2>, nb::device::cpu> output,
-                                double min_rt, double max_rt,
-                                double min_mz, double max_mz,
-                                unsigned int ms_level,
-                                const std::string& aggregation) {
-            // Check for C-contiguous array (legacy pyOpenMS compatibility)
-            // DLTensor strides are in elements, not bytes
-            // C-contiguous: stride(1)=1, stride(0)=shape(1)
-            if (output.stride(1) != 1 ||
-                output.stride(0) != static_cast<int64_t>(output.shape(1))) {
-                throw std::invalid_argument("Output array must be C-contiguous. "
-                    "Use numpy.ascontiguousarray() to convert.");
-            }
-
-            // Output array has shape [mz_bins, rt_bins]
-            size_t mz_bins = output.shape(0);
-            size_t rt_bins = output.shape(1);
-            float* output_ptr = output.data();
-
-            OpenMS::MSExperiment::RasterAggregation agg_mode;
-            if (aggregation == "sum" || aggregation == "SUM") {
-                agg_mode = OpenMS::MSExperiment::RasterAggregation::SUM;
-            } else if (aggregation == "max" || aggregation == "MAX") {
-                agg_mode = OpenMS::MSExperiment::RasterAggregation::MAX;
-            } else {
-                throw std::invalid_argument("Invalid aggregation mode '" + aggregation + "'. Must be 'sum' or 'max'.");
-            }
-
-            self.rasterizeRTMZ(output_ptr, rt_bins, mz_bins, min_rt, max_rt, min_mz, max_mz, ms_level, agg_mode);
-        }, "output"_a, "min_rt"_a, "max_rt"_a, "min_mz"_a, "max_mz"_a, "ms_level"_a, "aggregation"_a = "sum",
-           "Rasterize peak data into a 2D intensity matrix. Output shape is [mz_bins, rt_bins].")
-        ;
-    // MSExperimentRasterAggregation enum nested under MSExperiment
-    nb::enum_<OpenMS::MSExperiment::RasterAggregation>(msexperiment_class, "MSExperimentRasterAggregation")
-        .value("SUM", OpenMS::MSExperiment::RasterAggregation::SUM)
-        .value("MAX", OpenMS::MSExperiment::RasterAggregation::MAX)
-        ;
-
-    // -----------------------------------------------------------------------
     // MassAnalyzer
     // -----------------------------------------------------------------------
     auto massanalyzer_class = nb::class_<OpenMS::MassAnalyzer, OpenMS::MetaInfoInterface>(m, "MassAnalyzer", 
@@ -1882,28 +1205,7 @@ MetaInfoInterface
         .def("setMagneticFieldStrength", [](OpenMS::MassAnalyzer& self, double magnetic_field_strength) { return self.setMagneticFieldStrength(magnetic_field_strength); }, "magnetic_field_strength"_a, "Sets the strength of the magnetic field (in T)")
         .def("getOrder", [](const OpenMS::MassAnalyzer& self) { return self.getOrder(); }, "Returns the position of this part in the whole Instrument")
         .def("setOrder", [](OpenMS::MassAnalyzer& self, int order) { return self.setOrder(order); }, "order"_a, "Sets the order")
-        .def("getMetaValue", [](const OpenMS::MassAnalyzer& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::MassAnalyzer& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::MassAnalyzer& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::MassAnalyzer& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::MassAnalyzer::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::MassAnalyzer& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::MassAnalyzer& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::MassAnalyzer& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::MassAnalyzer& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::MassAnalyzer& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::MassAnalyzer& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::MassAnalyzer& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::MassAnalyzer& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::MassAnalyzer& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::MassAnalyzer& self) { return std::hash<OpenMS::MassAnalyzer>{}(self); })
         ;
     // AnalyzerType enum nested under MassAnalyzer
@@ -1982,34 +1284,13 @@ MetaInfoInterface
         .def("setName", [](OpenMS::MetaInfoDescription& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the peak annotations")
         .def("getDataProcessing", [](OpenMS::MetaInfoDescription& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal, "Returns a reference to the description of the applied processing")
         .def("setDataProcessing", [](OpenMS::MetaInfoDescription& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
-        .def("getMetaValue", [](const OpenMS::MetaInfoDescription& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::MetaInfoDescription& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::MetaInfoDescription& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::MetaInfoDescription& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::MetaInfoDescription::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::MetaInfoDescription& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::MetaInfoDescription& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::MetaInfoDescription& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::MetaInfoDescription& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::MetaInfoDescription& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::MetaInfoDescription& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::MetaInfoDescription& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::MetaInfoDescription& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::MetaInfoDescription& self) { self.clearMetaInfo(); }, "Removes all meta values")
         ;
 
     // -----------------------------------------------------------------------
     // FloatDataArray
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::DataArrays::FloatDataArray>(m, "FloatDataArray", 
+    auto floatdataarray_class = nb::class_<OpenMS::DataArrays::FloatDataArray>(m, "FloatDataArray", 
         R"doc(
 MetaInfoDescription
 
@@ -2024,22 +1305,7 @@ Commonly used for storing ion mobility values or other per-peak float annotation
         .def(nb::self != nb::self)
         .def(nb::self == nb::self)
         .def("setDataProcessing", [](OpenMS::DataArrays::FloatDataArray& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
-        .def("getMetaValue", [](const OpenMS::DataArrays::FloatDataArray& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::DataArrays::FloatDataArray& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::DataArrays::FloatDataArray& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::DataArrays::FloatDataArray& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::DataArrays::FloatDataArray::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::DataArrays::FloatDataArray& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::DataArrays::FloatDataArray& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::DataArrays::FloatDataArray& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def("__len__", [](OpenMS::DataArrays::FloatDataArray& self) { return self.size(); })
         .def("size", [](const OpenMS::DataArrays::FloatDataArray& self) { return self.size(); }, "Returns the number of elements")
         .def("__getitem__", [](OpenMS::DataArrays::FloatDataArray& self, size_t i) -> float& {
@@ -2121,11 +1387,12 @@ Commonly used for storing ion mobility values or other per-peak float annotation
         .def("reserve", [](OpenMS::DataArrays::FloatDataArray& self, size_t n) { self.reserve(n); }, "n"_a, "Reserve memory for n elements")
         .def("getDataProcessing", [](const OpenMS::DataArrays::FloatDataArray& self) { return self.getDataProcessing(); }, "Returns the data processing objects")
         ;
+    def_MetaInfoInterface<OpenMS::DataArrays::FloatDataArray>(floatdataarray_class);
 
     // -----------------------------------------------------------------------
     // IntegerDataArray
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::DataArrays::IntegerDataArray>(m, "IntegerDataArray", 
+    auto integerdataarray_class = nb::class_<OpenMS::DataArrays::IntegerDataArray>(m, "IntegerDataArray", 
         R"doc(
 MetaInfoDescription
 
@@ -2142,22 +1409,7 @@ Used for storing per-peak integer annotations.
         .def("getName", [](const OpenMS::DataArrays::IntegerDataArray& self) { return self.getName(); }, "Returns the name of the peak annotations")
         .def("setName", [](OpenMS::DataArrays::IntegerDataArray& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the peak annotations")
         .def("setDataProcessing", [](OpenMS::DataArrays::IntegerDataArray& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
-        .def("getMetaValue", [](const OpenMS::DataArrays::IntegerDataArray& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::DataArrays::IntegerDataArray& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::DataArrays::IntegerDataArray& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::DataArrays::IntegerDataArray& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::DataArrays::IntegerDataArray::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::DataArrays::IntegerDataArray& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::DataArrays::IntegerDataArray& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::DataArrays::IntegerDataArray& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def("__len__", [](OpenMS::DataArrays::IntegerDataArray& self) { return self.size(); })
         .def("size", [](const OpenMS::DataArrays::IntegerDataArray& self) { return self.size(); }, "Returns the number of elements")
         .def("__getitem__", [](OpenMS::DataArrays::IntegerDataArray& self, size_t i) -> int& {
@@ -2235,6 +1487,7 @@ Used for storing per-peak integer annotations.
         .def("reserve", [](OpenMS::DataArrays::IntegerDataArray& self, size_t n) { self.reserve(n); }, "n"_a, "Reserve memory for n elements")
         .def("getDataProcessing", [](const OpenMS::DataArrays::IntegerDataArray& self) { return self.getDataProcessing(); }, "Returns the data processing objects")
         ;
+    def_MetaInfoInterface<OpenMS::DataArrays::IntegerDataArray>(integerdataarray_class);
 
     // -----------------------------------------------------------------------
     // MobilityPeak1D
@@ -2581,7 +1834,7 @@ This struct can be used to store both peak or feature indices
     // -----------------------------------------------------------------------
     // PeptideHit
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeptideHit, OpenMS::MetaInfoInterface>(m, "PeptideHit", 
+    auto peptidehit_class = nb::class_<OpenMS::PeptideHit>(m, "PeptideHit",
         R"doc(
 MetaInfoInterface
 
@@ -2715,35 +1968,15 @@ Empty accessions are excluded from the result
 Adds a single protein mapping
 :param evidence: Protein location information to add
 )doc")
-        .def("getMetaValue", [](const OpenMS::PeptideHit& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::PeptideHit& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::PeptideHit& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::PeptideHit& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::PeptideHit::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::PeptideHit& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::PeptideHit& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::PeptideHit& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::PeptideHit& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::PeptideHit& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::PeptideHit& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::PeptideHit& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::PeptideHit& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::PeptideHit& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::PeptideHit& self) { return std::hash<OpenMS::PeptideHit>{}(self); })
         ;
+    def_MetaInfoInterface<OpenMS::PeptideHit>(peptidehit_class);
 
     // -----------------------------------------------------------------------
     // PeptideIdentification
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::PeptideIdentification, OpenMS::MetaInfoInterface>(m, "PeptideIdentification", 
+    auto peptideidentification_class = nb::class_<OpenMS::PeptideIdentification>(m, "PeptideIdentification",
         R"doc(
 MetaInfoInterface
 
@@ -2897,30 +2130,10 @@ Get the spectrum reference (native ID) for this identification.
         .def_static("getReferencingHits", [](const std::vector<OpenMS::PeptideHit>& p0, const std::set<OpenMS::String>& accession) { return OpenMS::PeptideIdentification::getReferencingHits(p0, accession); }, "Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)")
         .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const OpenMS::String& ms_run_name, const OpenMS::String& dataset_id, bool include_interpretation) { return self.buildUSI(ms_run_name, dataset_id, include_interpretation); }, "ms_run_name"_a, "dataset_id"_a = "local", "include_interpretation"_a = false)
         .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const OpenMS::IdentifierMSRunMapper& mapping, const OpenMS::String& dataset_id, bool include_interpretation) { return self.buildUSI(mapping, dataset_id, include_interpretation); }, "mapping"_a, "dataset_id"_a = "local", "include_interpretation"_a = false)
-        .def("getMetaValue", [](const OpenMS::PeptideIdentification& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::PeptideIdentification& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::PeptideIdentification& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::PeptideIdentification& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::PeptideIdentification::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::PeptideIdentification& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::PeptideIdentification& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::PeptideIdentification& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::PeptideIdentification& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::PeptideIdentification& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::PeptideIdentification& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::PeptideIdentification& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::PeptideIdentification& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::PeptideIdentification& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::PeptideIdentification& self) { return std::hash<OpenMS::PeptideIdentification>{}(self); })
         ;
+    def_MetaInfoInterface<OpenMS::PeptideIdentification>(peptideidentification_class);
 
     // -----------------------------------------------------------------------
     // Precursor
@@ -2981,29 +2194,7 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
         .def("getPossibleChargeStates", [](OpenMS::Precursor& self) -> std::vector<int> & { return self.getPossibleChargeStates(); }, nb::rv_policy::reference_internal, "Returns the possible charge states")
         .def("setPossibleChargeStates", [](OpenMS::Precursor& self, const std::vector<int>& possible_charge_states) { return self.setPossibleChargeStates(possible_charge_states); }, "possible_charge_states"_a, "Sets the possible charge states")
         .def("getUnchargedMass", [](const OpenMS::Precursor& self) { return self.getUnchargedMass(); }, "Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged")
-        .def("replaceCVTerm", [](OpenMS::Precursor& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::Precursor& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::Precursor& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::Precursor& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::Precursor& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
-        .def("hasCVTerm", [](const OpenMS::Precursor& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::Precursor& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::Precursor& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::Precursor& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::Precursor& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::Precursor& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::Precursor::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::Precursor& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::Precursor& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::Precursor& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def("getIntensity", [](const OpenMS::Precursor& self) { return self.getIntensity(); }, "Returns the intensity (height) of the peak")
         .def("setIntensity", [](OpenMS::Precursor& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Sets the intensity (height) of the peak")
         .def("getMZ", [](const OpenMS::Precursor& self) { return self.getMZ(); }, "Returns the m/z (mass-to-charge) value of the peak")
@@ -3048,30 +2239,8 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     nb::class_<OpenMS::TargetedExperimentHelper::Prediction, OpenMS::CVTermList>(m, "Prediction", "OpenMS class Prediction")
         .def(nb::init<>())
         .def(nb::self == nb::self)
-        .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Prediction& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::Prediction& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::Prediction& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::Prediction& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::Prediction& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self != nb::self)
-        .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::Prediction& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::TargetedExperimentHelper::Prediction& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::TargetedExperimentHelper::Prediction& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::TargetedExperimentHelper::Prediction& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::TargetedExperimentHelper::Prediction& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::TargetedExperimentHelper::Prediction& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::TargetedExperimentHelper::Prediction::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::Prediction& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::TargetedExperimentHelper::Prediction& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::TargetedExperimentHelper::Prediction& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("software_ref", &OpenMS::TargetedExperimentHelper::Prediction::software_ref)
         .def_rw("contact_ref", &OpenMS::TargetedExperimentHelper::Prediction::contact_ref)
         ;
@@ -3101,30 +2270,8 @@ Returns the abbreviations (e.g., "CID") of the activation methods set on this in
     nb::class_<OpenMS::TargetedExperimentHelper::Protein, OpenMS::CVTermList>(m, "Protein", "OpenMS class Protein")
         .def(nb::init<>())
         .def(nb::self == nb::self)
-        .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Protein& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::Protein& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::Protein& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::Protein& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::Protein& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self != nb::self)
-        .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::Protein& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::TargetedExperimentHelper::Protein& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::TargetedExperimentHelper::Protein& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::TargetedExperimentHelper::Protein& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::TargetedExperimentHelper::Protein& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::TargetedExperimentHelper::Protein& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::TargetedExperimentHelper::Protein::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::Protein& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::TargetedExperimentHelper::Protein& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::TargetedExperimentHelper::Protein& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("id", &OpenMS::TargetedExperimentHelper::Protein::id)
         .def_rw("sequence", &OpenMS::TargetedExperimentHelper::Protein::sequence)
         ;
@@ -3232,35 +2379,14 @@ Sets the protein description
 Sets the sequence coverage percentage
 :param coverage: Percentage (0-100) of sequence covered by peptides
 )doc")
-        .def("getMetaValue", [](const OpenMS::ProteinHit& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::ProteinHit& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::ProteinHit& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::ProteinHit& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::ProteinHit::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::ProteinHit& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::ProteinHit& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ProteinHit& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::ProteinHit& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::ProteinHit& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::ProteinHit& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::ProteinHit& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::ProteinHit& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ProteinHit& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::ProteinHit& self) { return std::hash<OpenMS::ProteinHit>{}(self); })
         ;
 
     // -----------------------------------------------------------------------
     // ProteinIdentification
     // -----------------------------------------------------------------------
-    auto proteinidentification_class = nb::class_<OpenMS::ProteinIdentification, OpenMS::MetaInfoInterface>(m, "ProteinIdentification", 
+    auto proteinidentification_class = nb::class_<OpenMS::ProteinIdentification>(m, "ProteinIdentification",
         R"doc(
 Representation of a protein identification run
 MetaInfoInterface
@@ -3329,28 +2455,7 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
         .def("addPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const OpenMS::String& s, bool raw) { return self.addPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a = false)
         .def("addPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const std::vector<OpenMS::String>& s, bool raw) { return self.addPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a = false)
         .def("getPrimaryMSRunPath", [](const OpenMS::ProteinIdentification& self, bool raw) { std::vector<OpenMS::String> output; self.getPrimaryMSRunPath(output, raw); return output; }, "raw"_a = false)
-        .def("getMetaValue", [](const OpenMS::ProteinIdentification& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::ProteinIdentification& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::ProteinIdentification& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::ProteinIdentification& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::ProteinIdentification::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::ProteinIdentification& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::ProteinIdentification& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ProteinIdentification& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::ProteinIdentification& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::ProteinIdentification& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::ProteinIdentification& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::ProteinIdentification& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::ProteinIdentification& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ProteinIdentification& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::ProteinIdentification& self) { return std::hash<OpenMS::ProteinIdentification>{}(self); })
         ;
     // PeakMassType enum nested under ProteinIdentification
@@ -3359,6 +2464,7 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
         .value("AVERAGE", OpenMS::ProteinIdentification::PeakMassType::AVERAGE)
         .value("SIZE_OF_PEAKMASSTYPE", OpenMS::ProteinIdentification::PeakMassType::SIZE_OF_PEAKMASSTYPE)
         ;
+    def_MetaInfoInterface<OpenMS::ProteinIdentification>(proteinidentification_class);
 
     // -----------------------------------------------------------------------
     // Publication
@@ -3366,30 +2472,8 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
     nb::class_<OpenMS::TargetedExperimentHelper::Publication, OpenMS::CVTermList>(m, "Publication", "CVTermList")
         .def(nb::init<>())
         .def(nb::self == nb::self)
-        .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::Publication& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::Publication& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::Publication& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::Publication& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::Publication& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
         .def(nb::self != nb::self)
-        .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::Publication& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::TargetedExperimentHelper::Publication& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::TargetedExperimentHelper::Publication& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::TargetedExperimentHelper::Publication& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::TargetedExperimentHelper::Publication& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::TargetedExperimentHelper::Publication& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::TargetedExperimentHelper::Publication::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::Publication& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::TargetedExperimentHelper::Publication& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::TargetedExperimentHelper::Publication& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("id", &OpenMS::TargetedExperimentHelper::Publication::id)
         ;
 
@@ -3564,29 +2648,7 @@ uninitialized
         .def("setQuantifyingTransition", [](OpenMS::ReactionMonitoringTransition& self, bool val) { return self.setQuantifyingTransition(val); }, "val"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("replaceCVTerm", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::ReactionMonitoringTransition& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::ReactionMonitoringTransition& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::ReactionMonitoringTransition& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
-        .def("hasCVTerm", [](const OpenMS::ReactionMonitoringTransition& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::ReactionMonitoringTransition& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::ReactionMonitoringTransition& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::ReactionMonitoringTransition& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::ReactionMonitoringTransition& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::ReactionMonitoringTransition::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::ReactionMonitoringTransition& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::ReactionMonitoringTransition& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ReactionMonitoringTransition& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::ReactionMonitoringTransition& self) { return std::hash<OpenMS::ReactionMonitoringTransition>{}(self); })
         .def("__repr__", [](const OpenMS::ReactionMonitoringTransition& self) {
             std::ostringstream oss;
@@ -3641,30 +2703,7 @@ CVTermList
         .def("setRT", [](OpenMS::TargetedExperimentHelper::RetentionTime& self, double rt) { return self.setRT(rt); }, "rt"_a)
         .def("getRT", [](const OpenMS::TargetedExperimentHelper::RetentionTime& self) { return self.getRT(); })
         .def(nb::self != nb::self)
-        .def("replaceCVTerms", [](OpenMS::TargetedExperimentHelper::RetentionTime& self, std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_terms) { return self.replaceCVTerms(cv_terms); }, "cv_terms"_a)
-        .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::RetentionTime& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::RetentionTime& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::RetentionTime& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::RetentionTime& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::RetentionTime& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
-        .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::RetentionTime& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::TargetedExperimentHelper::RetentionTime& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::TargetedExperimentHelper::RetentionTime& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::TargetedExperimentHelper::RetentionTime& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::TargetedExperimentHelper::RetentionTime& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::TargetedExperimentHelper::RetentionTime& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::TargetedExperimentHelper::RetentionTime::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::RetentionTime& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::TargetedExperimentHelper::RetentionTime& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::TargetedExperimentHelper::RetentionTime& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("software_ref", &OpenMS::TargetedExperimentHelper::RetentionTime::software_ref)
         .def_rw("retention_time_unit", &OpenMS::TargetedExperimentHelper::RetentionTime::retention_time_unit)
         .def_rw("retention_time_type", &OpenMS::TargetedExperimentHelper::RetentionTime::retention_time_type)
@@ -3725,28 +2764,7 @@ Returns the comment (default "")
         .def("getSubsamples", [](OpenMS::Sample& self) -> std::vector<OpenMS::Sample> & { return self.getSubsamples(); }, nb::rv_policy::reference_internal, "Returns a reference to the vector of subsamples that were combined to create this sample")
         .def("setSubsamples", [](OpenMS::Sample& self, const std::vector<OpenMS::Sample>& subsamples) { return self.setSubsamples(subsamples); }, "subsamples"_a, "Sets the vector of subsamples that were combined to create this sample")
         .def(nb::self != nb::self)
-        .def("getMetaValue", [](const OpenMS::Sample& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::Sample& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::Sample& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::Sample& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::Sample::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::Sample& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::Sample& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::Sample& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::Sample& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::Sample& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::Sample& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::Sample& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::Sample& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::Sample& self) { self.clearMetaInfo(); }, "Removes all meta values")
         ;
     // SampleState enum nested under Sample
     nb::enum_<OpenMS::Sample::SampleState>(sample_class, "SampleState")
@@ -3770,28 +2788,7 @@ Returns the comment (default "")
         .def("__deepcopy__", [](const OpenMS::ScanWindow& self, nb::dict) { return OpenMS::ScanWindow(self); }, "memo"_a)
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getMetaValue", [](const OpenMS::ScanWindow& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::ScanWindow& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::ScanWindow& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::ScanWindow& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::ScanWindow::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::ScanWindow& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::ScanWindow& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ScanWindow& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::ScanWindow& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::ScanWindow& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::ScanWindow& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::ScanWindow& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::ScanWindow& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ScanWindow& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("begin", &OpenMS::ScanWindow::begin)
         .def_rw("end", &OpenMS::ScanWindow::end)
         ;
@@ -3804,12 +2801,6 @@ Returns the comment (default "")
         .def(nb::init<const OpenMS::ProteinIdentification::SearchParameters &>())
         .def("__copy__", [](const OpenMS::ProteinIdentification::SearchParameters& self) { return OpenMS::ProteinIdentification::SearchParameters(self); })
         .def("__deepcopy__", [](const OpenMS::ProteinIdentification::SearchParameters& self, nb::dict) { return OpenMS::ProteinIdentification::SearchParameters(self); }, "memo"_a)
-        .def("getMetaValue", [](OpenMS::ProteinIdentification::SearchParameters& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::ProteinIdentification::SearchParameters& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::ProteinIdentification::SearchParameters& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::ProteinIdentification::SearchParameters& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::ProteinIdentification::SearchParameters& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ProteinIdentification::SearchParameters& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def_rw("db", &OpenMS::ProteinIdentification::SearchParameters::db)
         .def_rw("db_version", &OpenMS::ProteinIdentification::SearchParameters::db_version)
         .def_rw("taxonomy", &OpenMS::ProteinIdentification::SearchParameters::taxonomy)
@@ -3947,28 +2938,7 @@ MetaInfoInterface
         .def("setProducts", [](OpenMS::SpectrumSettings& self, const std::vector<OpenMS::Product>& products) { return self.setProducts(products); }, "products"_a, "Sets the products")
         .def("setDataProcessing", [](OpenMS::SpectrumSettings& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a)
         .def("getDataProcessing", [](OpenMS::SpectrumSettings& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal)
-        .def("getMetaValue", [](const OpenMS::SpectrumSettings& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::SpectrumSettings& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::SpectrumSettings& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::SpectrumSettings& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::SpectrumSettings::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::SpectrumSettings& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::SpectrumSettings& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::SpectrumSettings& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getMetaValue", [](OpenMS::SpectrumSettings& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::SpectrumSettings& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::SpectrumSettings& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::SpectrumSettings& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::SpectrumSettings& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::SpectrumSettings& self) { self.clearMetaInfo(); }, "Removes all meta values")
         .def("__hash__", [](const OpenMS::SpectrumSettings& self) { return std::hash<OpenMS::SpectrumSettings>{}(self); })
         ;
     // SpectrumType enum nested under SpectrumSettings
@@ -3980,318 +2950,9 @@ MetaInfoInterface
         ;
 
     // -----------------------------------------------------------------------
-    // MSSpectrum
-    // -----------------------------------------------------------------------
-    auto msspectrum_class = nb::class_<OpenMS::MSSpectrum>(m, "MSSpectrum", 
-        R"doc(
-SpectrumSettings
-RangeManagerMzInt
-
-The representation of a 1D spectrum.
-Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
-Iterations yields access to underlying peak objects but is slower
-Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
-See help(SpectrumSettings) for information about meta-information
-Usage:
-
-.. code-block:: python
-
-  # Access data from an existing spectrum
-  ms_level = spectrum.getMSLevel()
-  rt = spectrum.getRT()
-  mz, intensities = spectrum.get_peaks()
-
-  # Create a new spectrum from scratch
-  from pyopenms import *
-  spectrum = MSSpectrum()
-  spectrum.setDriftTime(25) # 25 ms
-  spectrum.setRT(205.2) # 205.2 s
-  spectrum.setMSLevel(3) # MS3
-  p = Precursor()
-  p.setIsolationWindowLowerOffset(1.5)
-  p.setIsolationWindowUpperOffset(1.5)
-  p.setMZ(600) # isolation at 600 +/- 1.5 Th
-  p.setActivationEnergy(40) # 40 eV
-  p.setCharge(4) # 4+ ion
-  spectrum.setPrecursors( [p] )
-  # Add raw data to spectrum
-  spectrum.set_peaks( ([401.5], [900]) )
-  # Additional data arrays / peak annotations
-  fda = FloatDataArray()
-  fda.setName("Signal to Noise Array")
-  fda.push_back(15)
-  sda = StringDataArray()
-  sda.setName("Peak annotation")
-  sda.push_back("y15++")
-  spectrum.setFloatDataArrays( [fda] )
-  spectrum.setStringDataArrays( [sda] )
-  # Add spectrum to MSExperiment
-  exp = MSExperiment()
-  exp.addSpectrum(spectrum)
-  # Add second spectrum and store as mzML file
-  spectrum2 = MSSpectrum()
-  spectrum2.set_peaks( ([1, 2], [1, 2]) )
-  exp.addSpectrum(spectrum2)
-  MzMLFile().store("testfile.mzML", exp)
-)doc")
-        .def(nb::init<>())
-        .def(nb::init<std::initializer_list<OpenMS::Peak1D>>())
-        .def(nb::init<const OpenMS::MSSpectrum &>())
-        .def("__copy__", [](const OpenMS::MSSpectrum& self) { return OpenMS::MSSpectrum(self); })
-        .def("__deepcopy__", [](const OpenMS::MSSpectrum& self, nb::dict) { return OpenMS::MSSpectrum(self); }, "memo"_a)
-        .def(nb::self == nb::self)
-        .def(nb::self != nb::self)
-        .def("updateRanges", [](OpenMS::MSSpectrum& self) { return self.updateRanges(); }, "Recalculates the m/z and intensity ranges of the spectrum")
-        .def("getRT", [](const OpenMS::MSSpectrum& self) { return self.getRT(); }, "Returns the absolute retention time (in seconds)")
-        .def("setRT", [](OpenMS::MSSpectrum& self, double rt) { return self.setRT(rt); }, "rt"_a, "Sets the absolute retention time (in seconds)")
-        .def("getDriftTime", [](const OpenMS::MSSpectrum& self) { return self.getDriftTime(); }, "Returns the drift time (-1 if not set)")
-        .def("setDriftTime", [](OpenMS::MSSpectrum& self, double dt) { return self.setDriftTime(dt); }, "dt"_a, "Sets the drift time (-1 if not set)")
-        .def("getDriftTimeUnit", [](const OpenMS::MSSpectrum& self) { return self.getDriftTimeUnit(); }, "Returns the ion mobility drift time unit")
-        .def("getDriftTimeUnitAsString", [](const OpenMS::MSSpectrum& self) { return self.getDriftTimeUnitAsString(); }, "Returns the ion mobility drift time unit as string")
-        .def("setDriftTimeUnit", [](OpenMS::MSSpectrum& self, OpenMS::DriftTimeUnit dt) { return self.setDriftTimeUnit(dt); }, "dt"_a, "Sets the ion mobility drift time unit")
-        .def("getMSLevel", [](const OpenMS::MSSpectrum& self) { return self.getMSLevel(); }, "Returns the MS level")
-        .def("setMSLevel", [](OpenMS::MSSpectrum& self, unsigned int ms_level) { return self.setMSLevel(ms_level); }, "ms_level"_a, "Sets the MS level")
-        .def("getName", [](const OpenMS::MSSpectrum& self) { return self.getName(); }, "Returns the name of the spectrum")
-        .def("setName", [](OpenMS::MSSpectrum& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the spectrum")
-        .def("sortByIntensity", [](OpenMS::MSSpectrum& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false, "Sorts the peaks by intensity (ascending if reverse is False, descending if True)")
-        .def("sortByPosition", [](OpenMS::MSSpectrum& self) { return self.sortByPosition(); }, "Sorts the peaks by m/z position")
-        .def("isSorted", [](const OpenMS::MSSpectrum& self) { return self.isSorted(); }, "Returns True if the spectrum is sorted by m/z")
-        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz) { return self.findNearest(mz); }, "mz"_a, "Returns the index of the closest peak in m/z")
-        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz, double tolerance) { return self.findNearest(mz, tolerance); }, "mz"_a, "tolerance"_a, "Returns the index of the closest peak in the provided +/- m/z tolerance window (-1 if none match)")
-        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz, double tolerance_left, double tolerance_right) { return self.findNearest(mz, tolerance_left, tolerance_right); }, "mz"_a, "tolerance_left"_a, "tolerance_right"_a, "Returns the index of the closest peak in the provided abs. m/z tolerance window to the left and right (-1 if none match)")
-        .def("containsIMData", [](const OpenMS::MSSpectrum& self) { return self.containsIMData(); }, "Returns whether the spectrum contains ion mobility data")
-        .def("clear", [](OpenMS::MSSpectrum& self, bool clear_meta_data) { return self.clear(clear_meta_data); }, "clear_meta_data"_a, "Clears all data (and meta data if clear_meta_data is True)")
-        .def("getType", [](const OpenMS::MSSpectrum& self, bool query_data) { return self.getType(query_data); }, "query_data"_a = false, "Returns the spectrum type (centroided, profile or unknown). If SpectrumSettings and DataProcessing information are not sufficient and query_data is True, the data will be queried (potentially expensive)")
-        .def_static("getAllNamesOfSpectrumType", []() { return OpenMS::MSSpectrum::getAllNamesOfSpectrumType(); }, "Returns all spectrum type names known to OpenMS")
-        .def_static("spectrumTypeToString", [](OpenMS::SpectrumSettings::SpectrumType type) { return OpenMS::SpectrumSettings::spectrumTypeToString(type); }, "type"_a, "Convert a SpectrumType enum to String. Throws Exception::InvalidValue if type is SIZE_OF_SPECTRUMTYPE")
-        .def_static("toSpectrumType", [](const OpenMS::String& name) { return OpenMS::SpectrumSettings::toSpectrumType(name); }, "name"_a, "Convert a string to SpectrumType enum. Throws Exception::InvalidValue if name is not a valid spectrum type")
-        .def("unify", [](OpenMS::MSSpectrum& self, const OpenMS::SpectrumSettings& rhs) { return self.unify(rhs); }, "rhs"_a)
-        .def("setType", [](OpenMS::MSSpectrum& self, OpenMS::SpectrumSettings::SpectrumType type) { return self.setType(type); }, "type"_a, "Sets the spectrum type")
-        .def("setIMFormat", [](OpenMS::MSSpectrum& self, const OpenMS::IMFormat& im_type) { return self.setIMFormat(im_type); }, "im_type"_a, "Sets the ion mobility format")
-        .def("getIMFormat", [](const OpenMS::MSSpectrum& self) { return self.getIMFormat(); }, "Returns the ion mobility format")
-        .def("getNativeID", [](const OpenMS::MSSpectrum& self) { return self.getNativeID(); }, "Returns the native identifier for the spectrum, used by the acquisition software")
-        .def("setNativeID", [](OpenMS::MSSpectrum& self, const OpenMS::String& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software")
-        .def("getComment", [](const OpenMS::MSSpectrum& self) { return self.getComment(); }, "Returns the free-text comment")
-        .def("setComment", [](OpenMS::MSSpectrum& self, const OpenMS::String& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
-        .def("getInstrumentSettings", [](const OpenMS::MSSpectrum& self) -> const OpenMS::InstrumentSettings & { return self.getInstrumentSettings(); }, nb::rv_policy::reference_internal, "Returns a const reference to the instrument settings of the current spectrum")
-        .def("setInstrumentSettings", [](OpenMS::MSSpectrum& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
-        .def("getAcquisitionInfo", [](const OpenMS::MSSpectrum& self) -> const OpenMS::AcquisitionInfo & { return self.getAcquisitionInfo(); }, nb::rv_policy::reference_internal, "Returns a const reference to the acquisition info")
-        .def("setAcquisitionInfo", [](OpenMS::MSSpectrum& self, const OpenMS::AcquisitionInfo& acquisition_info) { return self.setAcquisitionInfo(acquisition_info); }, "acquisition_info"_a, "Sets the acquisition info")
-        .def("getSourceFile", [](const OpenMS::MSSpectrum& self) -> const OpenMS::SourceFile & { return self.getSourceFile(); }, nb::rv_policy::reference_internal, "Returns a const reference to the source file")
-        .def("setSourceFile", [](OpenMS::MSSpectrum& self, const OpenMS::SourceFile& source_file) { return self.setSourceFile(source_file); }, "source_file"_a, "Sets the source file")
-        .def("getPrecursors", [](const OpenMS::MSSpectrum& self) -> const std::vector<OpenMS::Precursor> & { return self.getPrecursors(); }, nb::rv_policy::reference_internal, "Returns a const reference to the precursors")
-        .def("setPrecursors", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::Precursor>& precursors) { return self.setPrecursors(precursors); }, "precursors"_a, "Sets the precursors")
-        .def("getProducts", [](const OpenMS::MSSpectrum& self) -> const std::vector<OpenMS::Product> & { return self.getProducts(); }, nb::rv_policy::reference_internal, "Returns a const reference to the products")
-        .def("setProducts", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::Product>& products) { return self.setProducts(products); }, "products"_a, "Sets the products")
-        .def("setDataProcessing", [](OpenMS::MSSpectrum& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a)
-        .def("getDataProcessing", [](OpenMS::MSSpectrum& self) -> std::vector<std::shared_ptr<OpenMS::DataProcessing>> & { return self.getDataProcessing(); }, nb::rv_policy::reference_internal)
-        .def("getMetaValue", [](const OpenMS::MSSpectrum& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::MSSpectrum& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::MSSpectrum& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::MSSpectrum& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::MSSpectrum::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
-        
-        .def("getKeys", [](const OpenMS::MSSpectrum& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::MSSpectrum& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::MSSpectrum& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("__iter__", [](OpenMS::MSSpectrum& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "MSSpectrum_iter", self.begin(), self.end()); })
-        .def("__len__", [](OpenMS::MSSpectrum& self) { return self.size(); })
-
-        .def("getIMData", [](const OpenMS::MSSpectrum& self) {
-            auto result = self.getIMData();
-            return nb::make_tuple((int)result.first, (int)result.second);
-        }, "Returns (index, drift_time_unit) for ion mobility data")
-
-        .def("get_peaks", [](const OpenMS::MSSpectrum& self) {
-            // Return (mz_array, intensity_array) as numpy arrays
-            // mz as float64 (double), intensity as float32 (float) matching C++ storage
-            const size_t n = self.size();
-            std::unique_ptr<double[]> mz_uptr(new double[n]);
-            std::unique_ptr<float[]> int_uptr(new float[n]);
-            double* mz_data = mz_uptr.get();
-            float* int_data = int_uptr.get();
-            for (size_t i = 0; i < n; ++i) {
-                mz_data[i] = self[i].getMZ();
-                int_data[i] = self[i].getIntensity();
-            }
-            nb::capsule mz_owner(mz_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            nb::capsule int_owner(int_uptr.release(), [](void* p) noexcept { delete[] static_cast<float*>(p); });
-            auto mz_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(mz_data, {n}, mz_owner);
-            auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, int_owner);
-            return nb::make_tuple(mz_arr, int_arr);
-        }, "Returns a tuple of (mz_array, intensity_array) as numpy arrays")
-
-        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj) {
-            // Fast path: direct pointer access from numpy arrays (no intermediate vector copy)
-            // mz is double, intensity is float matching Peak1D storage
-            auto mz_arr = as_numpy_array<double>(mz_obj);
-            auto int_arr = as_numpy_array<float>(int_obj);
-            const size_t n = mz_arr.shape(0);
-            if (int_arr.shape(0) != n) {
-                throw std::runtime_error("mz and intensity arrays must have same length");
-            }
-            self.resize(n);
-            const double* mz_ptr = static_cast<const double*>(mz_arr.data());
-            const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMZ(mz_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "mz"_a, "intensity"_a, "Set peaks from mz and intensity arrays")
-        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object peaks_seq) {
-            if (nb::len(peaks_seq) != 2) {
-                throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (mz, intensity)");
-            }
-            auto mz_arr = as_numpy_array<double>(peaks_seq[0]);
-            auto int_arr = as_numpy_array<float>(peaks_seq[1]);
-            const size_t n = mz_arr.shape(0);
-            if (int_arr.shape(0) != n) {
-                throw std::runtime_error("mz and intensity arrays must have same length");
-            }
-            self.resize(n);
-            const double* mz_ptr = static_cast<const double*>(mz_arr.data());
-            const float* int_ptr = static_cast<const float*>(int_arr.data());
-            for (size_t i = 0; i < n; ++i) {
-                self[i].setMZ(mz_ptr[i]);
-                self[i].setIntensity(int_ptr[i]);
-            }
-        }, "peaks"_a, "Set peaks from a tuple of (mz_array, intensity_array)")
-
-        .def("push_back", [](OpenMS::MSSpectrum& self, const OpenMS::Peak1D& p) {
-            self.push_back(p);
-        }, "peak"_a, "Add a peak to the spectrum")
-
-        .def("size", [](const OpenMS::MSSpectrum& self) {
-            return self.size();
-        }, "Returns the number of peaks")
-
-        .def("__getitem__", [](const OpenMS::MSSpectrum& self, size_t i) {
-            if (i >= self.size()) throw nb::index_error();
-            return self[i];  // Return by value (copy)
-        }, "i"_a, "Returns a copy of the peak at index i")
-        .def("__setitem__", [](OpenMS::MSSpectrum& self, size_t i, const OpenMS::Peak1D& val) {
-            if (i >= self.size()) throw nb::index_error();
-            self[i] = val;
-        }, "i"_a, "val"_a, "Sets peak at index i")
-        .def("findHighestInWindow", [](const OpenMS::MSSpectrum& self, double mz, double tolerance_left, double tolerance_right) { return self.findHighestInWindow(mz, tolerance_left, tolerance_right); }, "mz"_a, "tolerance_left"_a, "tolerance_right"_a, "Returns the index of the highest peak in the provided abs. m/z tolerance window (-1 if none match)")
-        .def("select", [](OpenMS::MSSpectrum& self, const std::vector<size_t>& indices) -> OpenMS::MSSpectrum& { return self.select(indices); }, nb::rv_policy::reference_internal, "indices"_a, "Selects peaks by indices, removing all others")
-
-        .def("getMinMZ", &OpenMS::MSSpectrum::getMinMZ, "Returns minimum m/z value")
-
-        .def("getMaxMZ", &OpenMS::MSSpectrum::getMaxMZ, "Returns maximum m/z value")
-
-        .def("getMinIntensity", &OpenMS::MSSpectrum::getMinIntensity, "Returns minimum intensity value")
-
-        .def("getMaxIntensity", &OpenMS::MSSpectrum::getMaxIntensity, "Returns maximum intensity value")
-
-        .def("clearRanges", &OpenMS::MSSpectrum::clearRanges, "Resets all range dimensions")
-
-        .def("get_mz_array", [](const OpenMS::MSSpectrum& self) {
-            size_t n = self.size();
-            double* data = new double[n];
-            for (size_t i = 0; i < n; ++i) data[i] = self[i].getMZ();
-            nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            return nb::ndarray<nb::numpy, double, nb::ndim<1>>(data, {n}, owner);
-        }, "Returns m/z values as numpy array")
-
-        .def("get_intensity_array", [](const OpenMS::MSSpectrum& self) {
-            size_t n = self.size();
-            float* data = new float[n];
-            for (size_t i = 0; i < n; ++i) data[i] = self[i].getIntensity();
-            nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
-            return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
-        }, "Returns intensity values as numpy array")
-
-        .def("get_drift_time_array", [](const OpenMS::MSSpectrum& self) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
-            // Check if IM data exists
-            if (!self.containsIMData()) return std::nullopt;
-            const auto& fda = self.getFloatDataArrays();
-            for (const auto& arr : fda) {
-                if (arr.getName() == "Ion Mobility" || arr.getMetaValue("name") == "Ion Mobility") {
-                    size_t n = arr.size();
-                    float* data = new float[n];
-                    std::copy(arr.begin(), arr.end(), data);
-                    nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
-                    return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
-                }
-            }
-            return std::nullopt;
-        }, "Returns drift time array if ion mobility data exists, else None")
-
-        .def("get_drift_time_array_mv", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
-            // Memory view version - returns view into float data array (zero-copy)
-            auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
-            if (!self.containsIMData()) return std::nullopt;
-            auto& fda = self.getFloatDataArrays();
-            for (auto& arr : fda) {
-                if (arr.getName() == "Ion Mobility" || arr.getMetaValue("name") == "Ion Mobility") {
-                    if (arr.empty()) return std::nullopt;
-                    return nb::ndarray<nb::numpy, float, nb::ndim<1>>(
-                        arr.data(), {arr.size()}, self_obj
-                    );
-                }
-            }
-            return std::nullopt;
-        }, "Returns view of drift time array if ion mobility data exists, else None")
-
-        .def("getFloatDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::FloatDataArray>& {
-            return self.getFloatDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the float data arrays")
-
-        .def("setFloatDataArrays", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::DataArrays::FloatDataArray>& arrays) {
-            self.setFloatDataArrays(arrays);
-        }, "arrays"_a, "Set the float data arrays")
-
-        .def("getIntegerDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::IntegerDataArray>& {
-            return self.getIntegerDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the integer data arrays")
-
-        .def("setIntegerDataArrays", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::DataArrays::IntegerDataArray>& arrays) {
-            self.setIntegerDataArrays(arrays);
-        }, "arrays"_a, "Set the integer data arrays")
-
-        .def("getStringDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::StringDataArray>& {
-            return self.getStringDataArrays();
-        }, nb::rv_policy::reference_internal, "Returns the string data arrays")
-
-        .def("setStringDataArrays", [](OpenMS::MSSpectrum& self, const std::vector<OpenMS::DataArrays::StringDataArray>& arrays) {
-            self.setStringDataArrays(arrays);
-        }, "arrays"_a, "Set the string data arrays")
-
-        .def("get_drift_time_unit", [](const OpenMS::MSSpectrum& self) -> std::optional<OpenMS::DriftTimeUnit> {
-            if (!self.containsIMData()) return std::nullopt;
-            return self.getDriftTimeUnit();
-        }, "Returns drift time unit if ion mobility data exists, else None")
-
-        .def("calculateTIC", [](const OpenMS::MSSpectrum& self) -> double {
-            return static_cast<double>(self.calculateTIC());
-        }, "Returns the total ion current (sum of all peak intensities)")
-
-        .def("reserve", [](OpenMS::MSSpectrum& self, size_t n) {
-            self.reserve(n);
-        }, "n"_a, "Reserves space for n peaks in the underlying container")
-
-        .def("resize", [](OpenMS::MSSpectrum& self, size_t n) {
-            self.resize(n);
-        }, "n"_a, "Resizes the spectrum to contain n peaks")
-        ;
-    // MSSpectrumRasterAggregation enum nested under MSSpectrum
-    nb::enum_<OpenMS::MSSpectrum::RasterAggregation>(msspectrum_class, "MSSpectrumRasterAggregation")
-        .value("SUM", OpenMS::MSSpectrum::RasterAggregation::SUM)
-        .value("MAX", OpenMS::MSSpectrum::RasterAggregation::MAX)
-        ;
-
-    // -----------------------------------------------------------------------
     // StringDataArray
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::DataArrays::StringDataArray>(m, "StringDataArray", 
+    auto stringdataarray_class = nb::class_<OpenMS::DataArrays::StringDataArray>(m, "StringDataArray", 
         R"doc(
 MetaInfoDescription
 
@@ -4307,22 +2968,7 @@ Commonly used for storing ion annotation names or other per-peak string annotati
         .def("getName", [](const OpenMS::DataArrays::StringDataArray& self) { return self.getName(); }, "Returns the name of the peak annotations")
         .def("setName", [](OpenMS::DataArrays::StringDataArray& self, const OpenMS::String& name) { return self.setName(name); }, "name"_a, "Sets the name of the peak annotations")
         .def("setDataProcessing", [](OpenMS::DataArrays::StringDataArray& self, const std::vector<std::shared_ptr<OpenMS::DataProcessing>>& data_processing) { return self.setDataProcessing(data_processing); }, "data_processing"_a, "Sets the description of the applied processing")
-        .def("getMetaValue", [](const OpenMS::DataArrays::StringDataArray& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::DataArrays::StringDataArray& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::DataArrays::StringDataArray& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::DataArrays::StringDataArray& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::DataArrays::StringDataArray::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::DataArrays::StringDataArray& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::DataArrays::StringDataArray& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::DataArrays::StringDataArray& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         .def("__len__", [](OpenMS::DataArrays::StringDataArray& self) { return self.size(); })
         .def("size", [](const OpenMS::DataArrays::StringDataArray& self) { return self.size(); }, "Returns the number of elements")
         .def("__getitem__", [](OpenMS::DataArrays::StringDataArray& self, size_t i) -> OpenMS::String& {
@@ -4361,6 +3007,7 @@ Commonly used for storing ion annotation names or other per-peak string annotati
         }, "Clear the array")
         .def("getDataProcessing", [](const OpenMS::DataArrays::StringDataArray& self) { return self.getDataProcessing(); }, "Returns the data processing steps")
         ;
+    def_MetaInfoInterface<OpenMS::DataArrays::StringDataArray>(stringdataarray_class);
 
     // -----------------------------------------------------------------------
     // TargetedExperiment_Interpretation
@@ -4397,30 +3044,7 @@ CVTermListInterface
         .def("addInterpretation", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, const OpenMS::TargetedExperimentHelper::Interpretation& interpretation) { return self.addInterpretation(interpretation); }, "interpretation"_a)
         .def("resetInterpretations", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return self.resetInterpretations(); })
         .def(nb::self != nb::self)
-        .def("replaceCVTerms", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_terms) { return self.replaceCVTerms(cv_terms); }, "cv_terms"_a)
-        .def("replaceCVTerm", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, const OpenMS::CVTerm& cv_term) { return self.replaceCVTerm(cv_term); }, "cv_term"_a, "Replaces the specified CV term")
-        .def("consumeCVTerms", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>>& cv_term_map) { return self.consumeCVTerms(cv_term_map); }, "cv_term_map"_a, "Merges the given map into the member map, no duplicate checking")
-        .def("getCVTerms", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) -> const std::map<OpenMS::String, std::vector<OpenMS::CVTerm>> & { return self.getCVTerms(); }, nb::rv_policy::reference_internal, "Returns the accession string of the term")
-        .def("addCVTerm", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, const OpenMS::CVTerm& term) { return self.addCVTerm(term); }, "term"_a, "Adds a CV term")
-        .def("setCVTerms", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, const std::vector<OpenMS::CVTerm>& terms) { return self.setCVTerms(terms); }, "terms"_a, "Sets the CV terms from a vector")
-        .def("hasCVTerm", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self, const OpenMS::String& accession) { return self.hasCVTerm(accession); }, "accession"_a)
-        .def("empty", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return self.empty(); })
-        .def("getMetaValue", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::TargetedExperimentHelper::TraMLProduct::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::TargetedExperimentHelper::TraMLProduct& self) { return self.clearMetaInfo(); }, "Removes all meta values")
         ;
 
     // -----------------------------------------------------------------------
@@ -4448,7 +3072,7 @@ unique id
     // -----------------------------------------------------------------------
     // ConsensusMap
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusMap>(m, "ConsensusMap", 
+    auto consensusmap_class = nb::class_<OpenMS::ConsensusMap>(m, "ConsensusMap", 
         R"doc(
 UniqueIdInterface
 DocumentIdentifier
@@ -4506,48 +3130,7 @@ This class supports direct iteration in Python.
         .def("getPrimaryMSRunPath", [](const OpenMS::ConsensusMap& self) { std::vector<OpenMS::String> toFill; self.getPrimaryMSRunPath(toFill); return toFill; }, "Returns the MS run path (stored in ColumnHeaders)")
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("getMetaValue", [](const OpenMS::ConsensusMap& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::ConsensusMap& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::ConsensusMap& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::ConsensusMap& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::ConsensusMap::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::ConsensusMap& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::ConsensusMap& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ConsensusMap& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("setIdentifier", [](OpenMS::ConsensusMap& self, const OpenMS::String& id) { return self.setIdentifier(id); }, "id"_a, "Sets document identifier (e.g. an LSID)")
-        .def("getIdentifier", [](const OpenMS::ConsensusMap& self) { return self.getIdentifier(); }, "Retrieve document identifier (e.g. an LSID)")
-        .def("setLoadedFilePath", [](OpenMS::ConsensusMap& self, const OpenMS::String& file_name) { return self.setLoadedFilePath(file_name); }, "file_name"_a, "Sets the file_name according to absolute path of the file loaded, preferably done whilst loading")
-        .def("getLoadedFilePath", [](const OpenMS::ConsensusMap& self) { return self.getLoadedFilePath(); }, "Returns the file_name which is the absolute path to the file loaded")
-        .def("setLoadedFileType", [](OpenMS::ConsensusMap& self, const OpenMS::String& file_name) { return self.setLoadedFileType(file_name); }, "file_name"_a, "Sets the file_type according to the type of the file loaded from, preferably done whilst loading")
-        .def("getLoadedFileType", [](const OpenMS::ConsensusMap& self) -> const OpenMS::FileTypes::Type & { return self.getLoadedFileType(); }, nb::rv_policy::reference_internal, "Returns the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded")
-        .def_static("isValid", [](size_t unique_id) { return OpenMS::ConsensusMap::isValid(unique_id); }, "unique_id"_a, "Returns true if the unique_id is valid, false otherwise")
-        .def("getUniqueId", [](const OpenMS::ConsensusMap& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("clearUniqueId", [](OpenMS::ConsensusMap& self) { return self.clearUniqueId(); }, "Clear the unique id. The new unique id will be invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("hasValidUniqueId", [](const OpenMS::ConsensusMap& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid.  Returns 1 if the unique id is valid, 0 otherwise")
-        .def("hasInvalidUniqueId", [](const OpenMS::ConsensusMap& self) { return self.hasInvalidUniqueId(); }, "Returns whether the unique id is invalid.  Returns 1 if the unique id is invalid, 0 otherwise")
-        .def("setUniqueId", [](OpenMS::ConsensusMap& self) { return self.setUniqueId(); }, "Assigns a new, valid unique id.  Always returns 1")
-        .def("ensureUniqueId", [](OpenMS::ConsensusMap& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id, but only if the present one is invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("getMetaValue", [](OpenMS::ConsensusMap& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::ConsensusMap& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::ConsensusMap& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::ConsensusMap& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::ConsensusMap& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ConsensusMap& self) { self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getUniqueId", [](OpenMS::ConsensusMap& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("setUniqueId", [](OpenMS::ConsensusMap& self, uint64_t id) { self.setUniqueId(id); }, "id"_a, "Sets the unique id")
-        .def("hasValidUniqueId", [](OpenMS::ConsensusMap& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid")
-        .def("clearUniqueId", [](OpenMS::ConsensusMap& self) { self.clearUniqueId(); }, "Clears the unique id")
-        .def("ensureUniqueId", [](OpenMS::ConsensusMap& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id if the current one is invalid")
-        .def("getIdentifier", [](OpenMS::ConsensusMap& self) { return self.getIdentifier(); }, "Returns the document identifier")
-        .def("setIdentifier", [](OpenMS::ConsensusMap& self, const OpenMS::String& id) { self.setIdentifier(id); }, "id"_a, "Sets the document identifier")
         .def("__iter__", [](OpenMS::ConsensusMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "ConsensusMap_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::ConsensusMap& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::ConsensusMap& self, size_t i) -> OpenMS::ConsensusFeature & {
@@ -4592,11 +3175,14 @@ This class supports direct iteration in Python.
             self.applyMemberFunction(&OpenMS::UniqueIdInterface::setUniqueId);
         }, "Sets unique IDs on the map and all its child consensus features")
         ;
+    def_MetaInfoInterface<OpenMS::ConsensusMap>(consensusmap_class);
+    def_DocumentIdentifier<OpenMS::ConsensusMap>(consensusmap_class);
+    def_UniqueIdInterface<OpenMS::ConsensusMap>(consensusmap_class);
 
     // -----------------------------------------------------------------------
     // FeatureHandle
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FeatureHandle>(m, "FeatureHandle", 
+    auto featurehandle_class = nb::class_<OpenMS::FeatureHandle>(m, "FeatureHandle", 
         R"doc(
 Representation of a Peak2D, RichPeak2D or Feature
 Peak2D
@@ -4622,31 +3208,20 @@ UniqueIdInterface
         .def("setMZ", [](OpenMS::FeatureHandle& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
         .def("getRT", [](const OpenMS::FeatureHandle& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
         .def("setRT", [](OpenMS::FeatureHandle& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
-        .def_static("isValid", [](size_t unique_id) { return OpenMS::FeatureHandle::isValid(unique_id); }, "unique_id"_a, "Returns true if the unique_id is valid, false otherwise")
-        .def("getUniqueId", [](const OpenMS::FeatureHandle& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("clearUniqueId", [](OpenMS::FeatureHandle& self) { return self.clearUniqueId(); }, "Clear the unique id. The new unique id will be invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("hasValidUniqueId", [](const OpenMS::FeatureHandle& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid.  Returns 1 if the unique id is valid, 0 otherwise")
-        .def("hasInvalidUniqueId", [](const OpenMS::FeatureHandle& self) { return self.hasInvalidUniqueId(); }, "Returns whether the unique id is invalid.  Returns 1 if the unique id is invalid, 0 otherwise")
-        .def("setUniqueId", [](OpenMS::FeatureHandle& self) { return self.setUniqueId(); }, "Assigns a new, valid unique id.  Always returns 1")
-        .def("ensureUniqueId", [](OpenMS::FeatureHandle& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id, but only if the present one is invalid.  Returns 1 if the unique id was changed, 0 otherwise")
         .def("getRT", [](OpenMS::FeatureHandle& self) { return self.getRT(); }, "Returns the retention time")
         .def("setRT", [](OpenMS::FeatureHandle& self, double rt) { self.setRT(rt); }, "rt"_a, "Sets the retention time")
         .def("getMZ", [](OpenMS::FeatureHandle& self) { return self.getMZ(); }, "Returns the m/z")
         .def("setMZ", [](OpenMS::FeatureHandle& self, double mz) { self.setMZ(mz); }, "mz"_a, "Sets the m/z")
         .def("getIntensity", [](OpenMS::FeatureHandle& self) { return self.getIntensity(); }, "Returns the intensity")
         .def("setIntensity", [](OpenMS::FeatureHandle& self, float intensity) { self.setIntensity(intensity); }, "intensity"_a, "Sets the intensity")
-        .def("getUniqueId", [](OpenMS::FeatureHandle& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("setUniqueId", [](OpenMS::FeatureHandle& self, uint64_t id) { self.setUniqueId(id); }, "id"_a, "Sets the unique id")
-        .def("hasValidUniqueId", [](OpenMS::FeatureHandle& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid")
-        .def("clearUniqueId", [](OpenMS::FeatureHandle& self) { self.clearUniqueId(); }, "Clears the unique id")
-        .def("ensureUniqueId", [](OpenMS::FeatureHandle& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id if the current one is invalid")
         .def("__hash__", [](const OpenMS::FeatureHandle& self) { return std::hash<OpenMS::FeatureHandle>{}(self); })
         ;
+    def_UniqueIdInterface<OpenMS::FeatureHandle>(featurehandle_class);
 
     // -----------------------------------------------------------------------
     // FeatureMap
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::FeatureMap>(m, "FeatureMap", 
+    auto featuremap_class = nb::class_<OpenMS::FeatureMap>(m, "FeatureMap", 
         R"doc(
 UniqueIdInterface
 DocumentIdentifier
@@ -4755,48 +3330,7 @@ These are peptide IDs that could not be matched to features, possibly due to fea
 Clears all feature data and metadata
 After calling this, the map will be empty (size() returns 0)
 )doc")
-        .def("getMetaValue", [](const OpenMS::FeatureMap& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::FeatureMap& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::FeatureMap& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::FeatureMap& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::FeatureMap::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::FeatureMap& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::FeatureMap& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::FeatureMap& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def("setIdentifier", [](OpenMS::FeatureMap& self, const OpenMS::String& id) { return self.setIdentifier(id); }, "id"_a, "Sets document identifier (e.g. an LSID)")
-        .def("getIdentifier", [](const OpenMS::FeatureMap& self) { return self.getIdentifier(); }, "Retrieve document identifier (e.g. an LSID)")
-        .def("setLoadedFilePath", [](OpenMS::FeatureMap& self, const OpenMS::String& file_name) { return self.setLoadedFilePath(file_name); }, "file_name"_a, "Sets the file_name according to absolute path of the file loaded, preferably done whilst loading")
-        .def("getLoadedFilePath", [](const OpenMS::FeatureMap& self) { return self.getLoadedFilePath(); }, "Returns the file_name which is the absolute path to the file loaded")
-        .def("setLoadedFileType", [](OpenMS::FeatureMap& self, const OpenMS::String& file_name) { return self.setLoadedFileType(file_name); }, "file_name"_a, "Sets the file_type according to the type of the file loaded from, preferably done whilst loading")
-        .def("getLoadedFileType", [](const OpenMS::FeatureMap& self) -> const OpenMS::FileTypes::Type & { return self.getLoadedFileType(); }, nb::rv_policy::reference_internal, "Returns the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded")
-        .def_static("isValid", [](size_t unique_id) { return OpenMS::FeatureMap::isValid(unique_id); }, "unique_id"_a, "Returns true if the unique_id is valid, false otherwise")
-        .def("getUniqueId", [](const OpenMS::FeatureMap& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("clearUniqueId", [](OpenMS::FeatureMap& self) { return self.clearUniqueId(); }, "Clear the unique id. The new unique id will be invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("hasValidUniqueId", [](const OpenMS::FeatureMap& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid.  Returns 1 if the unique id is valid, 0 otherwise")
-        .def("hasInvalidUniqueId", [](const OpenMS::FeatureMap& self) { return self.hasInvalidUniqueId(); }, "Returns whether the unique id is invalid.  Returns 1 if the unique id is invalid, 0 otherwise")
-        .def("setUniqueId", [](OpenMS::FeatureMap& self) { return self.setUniqueId(); }, "Assigns a new, valid unique id.  Always returns 1")
-        .def("ensureUniqueId", [](OpenMS::FeatureMap& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id, but only if the present one is invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("getMetaValue", [](OpenMS::FeatureMap& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::FeatureMap& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::FeatureMap& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::FeatureMap& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::FeatureMap& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::FeatureMap& self) { self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getUniqueId", [](OpenMS::FeatureMap& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("setUniqueId", [](OpenMS::FeatureMap& self, uint64_t id) { self.setUniqueId(id); }, "id"_a, "Sets the unique id")
-        .def("hasValidUniqueId", [](OpenMS::FeatureMap& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid")
-        .def("clearUniqueId", [](OpenMS::FeatureMap& self) { self.clearUniqueId(); }, "Clears the unique id")
-        .def("ensureUniqueId", [](OpenMS::FeatureMap& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id if the current one is invalid")
-        .def("getIdentifier", [](OpenMS::FeatureMap& self) { return self.getIdentifier(); }, "Returns the document identifier")
-        .def("setIdentifier", [](OpenMS::FeatureMap& self, const OpenMS::String& id) { self.setIdentifier(id); }, "id"_a, "Sets the document identifier")
         .def("__iter__", [](OpenMS::FeatureMap& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "FeatureMap_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::FeatureMap& self) { return self.size(); })
         .def("__getitem__", [](OpenMS::FeatureMap& self, size_t i) -> OpenMS::Feature & {
@@ -4834,11 +3368,14 @@ After calling this, the map will be empty (size() returns 0)
             self.applyMemberFunction(&OpenMS::UniqueIdInterface::setUniqueId);
         }, "Sets unique IDs on the map and all its child features")
         ;
+    def_MetaInfoInterface<OpenMS::FeatureMap>(featuremap_class);
+    def_DocumentIdentifier<OpenMS::FeatureMap>(featuremap_class);
+    def_UniqueIdInterface<OpenMS::FeatureMap>(featuremap_class);
 
     // -----------------------------------------------------------------------
     // RichPeak2D
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::RichPeak2D>(m, "RichPeak2D", 
+    auto richpeak2d_class = nb::class_<OpenMS::RichPeak2D>(m, "RichPeak2D", 
         R"doc(
 A 2-dimensional raw data point or peak with meta information
 Peak2D
@@ -4859,47 +3396,16 @@ MetaInfoInterface
         .def("setMZ", [](OpenMS::RichPeak2D& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
         .def("getRT", [](const OpenMS::RichPeak2D& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
         .def("setRT", [](OpenMS::RichPeak2D& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
-        .def("getMetaValue", [](const OpenMS::RichPeak2D& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::RichPeak2D& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::RichPeak2D& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::RichPeak2D& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::RichPeak2D::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::RichPeak2D& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::RichPeak2D& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::RichPeak2D& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def_static("isValid", [](size_t unique_id) { return OpenMS::RichPeak2D::isValid(unique_id); }, "unique_id"_a, "Returns true if the unique_id is valid, false otherwise")
-        .def("getUniqueId", [](const OpenMS::RichPeak2D& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("clearUniqueId", [](OpenMS::RichPeak2D& self) { return self.clearUniqueId(); }, "Clear the unique id. The new unique id will be invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("hasValidUniqueId", [](const OpenMS::RichPeak2D& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid.  Returns 1 if the unique id is valid, 0 otherwise")
-        .def("hasInvalidUniqueId", [](const OpenMS::RichPeak2D& self) { return self.hasInvalidUniqueId(); }, "Returns whether the unique id is invalid.  Returns 1 if the unique id is invalid, 0 otherwise")
-        .def("setUniqueId", [](OpenMS::RichPeak2D& self) { return self.setUniqueId(); }, "Assigns a new, valid unique id.  Always returns 1")
-        .def("ensureUniqueId", [](OpenMS::RichPeak2D& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id, but only if the present one is invalid.  Returns 1 if the unique id was changed, 0 otherwise")
         .def("getRT", [](OpenMS::RichPeak2D& self) { return self.getRT(); }, "Returns the retention time")
         .def("setRT", [](OpenMS::RichPeak2D& self, double rt) { self.setRT(rt); }, "rt"_a, "Sets the retention time")
         .def("getMZ", [](OpenMS::RichPeak2D& self) { return self.getMZ(); }, "Returns the m/z")
         .def("setMZ", [](OpenMS::RichPeak2D& self, double mz) { self.setMZ(mz); }, "mz"_a, "Sets the m/z")
         .def("getIntensity", [](OpenMS::RichPeak2D& self) { return self.getIntensity(); }, "Returns the intensity")
         .def("setIntensity", [](OpenMS::RichPeak2D& self, float intensity) { self.setIntensity(intensity); }, "intensity"_a, "Sets the intensity")
-        .def("getMetaValue", [](OpenMS::RichPeak2D& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::RichPeak2D& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::RichPeak2D& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::RichPeak2D& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::RichPeak2D& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::RichPeak2D& self) { self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getUniqueId", [](OpenMS::RichPeak2D& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("setUniqueId", [](OpenMS::RichPeak2D& self, uint64_t id) { self.setUniqueId(id); }, "id"_a, "Sets the unique id")
-        .def("hasValidUniqueId", [](OpenMS::RichPeak2D& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid")
-        .def("clearUniqueId", [](OpenMS::RichPeak2D& self) { self.clearUniqueId(); }, "Clears the unique id")
-        .def("ensureUniqueId", [](OpenMS::RichPeak2D& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id if the current one is invalid")
         ;
+    def_MetaInfoInterface<OpenMS::RichPeak2D>(richpeak2d_class);
+    def_UniqueIdInterface<OpenMS::RichPeak2D>(richpeak2d_class);
 
     // -----------------------------------------------------------------------
     // BaseFeature
@@ -4929,52 +3435,7 @@ RichPeak2D
         .def("getPeptideIdentifications", [](OpenMS::BaseFeature& self) -> OpenMS::PeptideIdentificationList & { return self.getPeptideIdentifications(); }, nb::rv_policy::reference_internal, "Returns the PeptideIdentification vector")
         .def("setPeptideIdentifications", [](OpenMS::BaseFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a, "Sets the PeptideIdentification vector")
         .def("getAnnotationState", [](const OpenMS::BaseFeature& self) { return self.getAnnotationState(); }, "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
-        .def("getIntensity", [](const OpenMS::BaseFeature& self) { return self.getIntensity(); }, "Returns the data point intensity (height)")
-        .def("setIntensity", [](OpenMS::BaseFeature& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Sets the data point intensity (height)")
-        .def("getMZ", [](const OpenMS::BaseFeature& self) { return self.getMZ(); }, "Returns the m/z coordinate (index 1)")
-        .def("setMZ", [](OpenMS::BaseFeature& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
-        .def("getRT", [](const OpenMS::BaseFeature& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
-        .def("setRT", [](OpenMS::BaseFeature& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
-        .def("getMetaValue", [](const OpenMS::BaseFeature& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::BaseFeature& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::BaseFeature& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::BaseFeature& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::BaseFeature::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::BaseFeature& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::BaseFeature& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::BaseFeature& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def_static("isValid", [](size_t unique_id) { return OpenMS::BaseFeature::isValid(unique_id); }, "unique_id"_a, "Returns true if the unique_id is valid, false otherwise")
-        .def("getUniqueId", [](const OpenMS::BaseFeature& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("clearUniqueId", [](OpenMS::BaseFeature& self) { return self.clearUniqueId(); }, "Clear the unique id. The new unique id will be invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("hasValidUniqueId", [](const OpenMS::BaseFeature& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid.  Returns 1 if the unique id is valid, 0 otherwise")
-        .def("hasInvalidUniqueId", [](const OpenMS::BaseFeature& self) { return self.hasInvalidUniqueId(); }, "Returns whether the unique id is invalid.  Returns 1 if the unique id is invalid, 0 otherwise")
-        .def("setUniqueId", [](OpenMS::BaseFeature& self) { return self.setUniqueId(); }, "Assigns a new, valid unique id.  Always returns 1")
-        .def("ensureUniqueId", [](OpenMS::BaseFeature& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id, but only if the present one is invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("getRT", [](OpenMS::BaseFeature& self) { return self.getRT(); }, "Returns the retention time")
-        .def("setRT", [](OpenMS::BaseFeature& self, double rt) { self.setRT(rt); }, "rt"_a, "Sets the retention time")
-        .def("getMZ", [](OpenMS::BaseFeature& self) { return self.getMZ(); }, "Returns the m/z")
-        .def("setMZ", [](OpenMS::BaseFeature& self, double mz) { self.setMZ(mz); }, "mz"_a, "Sets the m/z")
-        .def("getIntensity", [](OpenMS::BaseFeature& self) { return self.getIntensity(); }, "Returns the intensity")
-        .def("setIntensity", [](OpenMS::BaseFeature& self, float intensity) { self.setIntensity(intensity); }, "intensity"_a, "Sets the intensity")
-        .def("getMetaValue", [](OpenMS::BaseFeature& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::BaseFeature& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::BaseFeature& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::BaseFeature& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::BaseFeature& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::BaseFeature& self) { self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getUniqueId", [](OpenMS::BaseFeature& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("setUniqueId", [](OpenMS::BaseFeature& self, uint64_t id) { self.setUniqueId(id); }, "id"_a, "Sets the unique id")
-        .def("hasValidUniqueId", [](OpenMS::BaseFeature& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid")
-        .def("clearUniqueId", [](OpenMS::BaseFeature& self) { self.clearUniqueId(); }, "Clears the unique id")
-        .def("ensureUniqueId", [](OpenMS::BaseFeature& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id if the current one is invalid")
         ;
     // AnnotationState enum nested under BaseFeature
     nb::enum_<OpenMS::BaseFeature::AnnotationState>(basefeature_class, "AnnotationState")
@@ -5036,53 +3497,8 @@ Get access to the underlying features through getFeatureList()
         .def("getPeptideIdentifications", [](const OpenMS::ConsensusFeature& self) -> const OpenMS::PeptideIdentificationList & { return self.getPeptideIdentifications(); }, nb::rv_policy::reference_internal, "Returns the PeptideIdentification vector")
         .def("setPeptideIdentifications", [](OpenMS::ConsensusFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); }, "peptides"_a, "Sets the PeptideIdentification vector")
         .def("getAnnotationState", [](const OpenMS::ConsensusFeature& self) { return self.getAnnotationState(); }, "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
-        .def("getIntensity", [](const OpenMS::ConsensusFeature& self) { return self.getIntensity(); }, "Returns the data point intensity (height)")
-        .def("setIntensity", [](OpenMS::ConsensusFeature& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Sets the data point intensity (height)")
-        .def("getMZ", [](const OpenMS::ConsensusFeature& self) { return self.getMZ(); }, "Returns the m/z coordinate (index 1)")
-        .def("setMZ", [](OpenMS::ConsensusFeature& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
-        .def("getRT", [](const OpenMS::ConsensusFeature& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
-        .def("setRT", [](OpenMS::ConsensusFeature& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
-        .def("getMetaValue", [](const OpenMS::ConsensusFeature& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::ConsensusFeature& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::ConsensusFeature& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::ConsensusFeature& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::ConsensusFeature::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         .def("computeDechargeConsensus", [](OpenMS::ConsensusFeature& self, const OpenMS::FeatureMap& fm, bool intensity_weighted_averaging) { return self.computeDechargeConsensus(fm, intensity_weighted_averaging); }, "fm"_a, "intensity_weighted_averaging"_a = false, "Computes and updates the consensus position, intensity, and charge using decharge grouping")
 
-        .def("getKeys", [](const OpenMS::ConsensusFeature& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::ConsensusFeature& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ConsensusFeature& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def_static("isValid", [](size_t unique_id) { return OpenMS::ConsensusFeature::isValid(unique_id); }, "unique_id"_a, "Returns true if the unique_id is valid, false otherwise")
-        .def("getUniqueId", [](const OpenMS::ConsensusFeature& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("clearUniqueId", [](OpenMS::ConsensusFeature& self) { return self.clearUniqueId(); }, "Clear the unique id. The new unique id will be invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("hasValidUniqueId", [](const OpenMS::ConsensusFeature& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid.  Returns 1 if the unique id is valid, 0 otherwise")
-        .def("hasInvalidUniqueId", [](const OpenMS::ConsensusFeature& self) { return self.hasInvalidUniqueId(); }, "Returns whether the unique id is invalid.  Returns 1 if the unique id is invalid, 0 otherwise")
-        .def("setUniqueId", [](OpenMS::ConsensusFeature& self) { return self.setUniqueId(); }, "Assigns a new, valid unique id.  Always returns 1")
-        .def("ensureUniqueId", [](OpenMS::ConsensusFeature& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id, but only if the present one is invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("getRT", [](OpenMS::ConsensusFeature& self) { return self.getRT(); }, "Returns the retention time")
-        .def("setRT", [](OpenMS::ConsensusFeature& self, double rt) { self.setRT(rt); }, "rt"_a, "Sets the retention time")
-        .def("getMZ", [](OpenMS::ConsensusFeature& self) { return self.getMZ(); }, "Returns the m/z")
-        .def("setMZ", [](OpenMS::ConsensusFeature& self, double mz) { self.setMZ(mz); }, "mz"_a, "Sets the m/z")
-        .def("getIntensity", [](OpenMS::ConsensusFeature& self) { return self.getIntensity(); }, "Returns the intensity")
-        .def("setIntensity", [](OpenMS::ConsensusFeature& self, float intensity) { self.setIntensity(intensity); }, "intensity"_a, "Sets the intensity")
-        .def("getMetaValue", [](OpenMS::ConsensusFeature& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::ConsensusFeature& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::ConsensusFeature& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::ConsensusFeature& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::ConsensusFeature& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::ConsensusFeature& self) { self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getUniqueId", [](OpenMS::ConsensusFeature& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("setUniqueId", [](OpenMS::ConsensusFeature& self, uint64_t id) { self.setUniqueId(id); }, "id"_a, "Sets the unique id")
-        .def("hasValidUniqueId", [](OpenMS::ConsensusFeature& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid")
-        .def("clearUniqueId", [](OpenMS::ConsensusFeature& self) { self.clearUniqueId(); }, "Clears the unique id")
-        .def("ensureUniqueId", [](OpenMS::ConsensusFeature& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id if the current one is invalid")
         .def("__len__", [](OpenMS::ConsensusFeature& self) { return self.size(); })
         ;
 
@@ -5222,52 +3638,7 @@ Sets the peptide identifications associated with this feature
 Returns the annotation state of the feature
 :return: Enum indicating the annotation status of this feature
 )doc")
-        .def("getIntensity", [](const OpenMS::Feature& self) { return self.getIntensity(); }, "Returns the data point intensity (height)")
-        .def("setIntensity", [](OpenMS::Feature& self, float intensity) { return self.setIntensity(intensity); }, "intensity"_a, "Sets the data point intensity (height)")
-        .def("getMZ", [](const OpenMS::Feature& self) { return self.getMZ(); }, "Returns the m/z coordinate (index 1)")
-        .def("setMZ", [](OpenMS::Feature& self, double coordinate) { return self.setMZ(coordinate); }, "coordinate"_a, "Sets the m/z coordinate (index 1)")
-        .def("getRT", [](const OpenMS::Feature& self) { return self.getRT(); }, "Returns the RT coordinate (index 0)")
-        .def("setRT", [](OpenMS::Feature& self, double coordinate) { return self.setRT(coordinate); }, "coordinate"_a, "Sets the RT coordinate (index 0)")
-        .def("getMetaValue", [](const OpenMS::Feature& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string, or DataValue::EMPTY if not found")
-        .def("metaValueExists", [](const OpenMS::Feature& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("setMetaValue", [](OpenMS::Feature& self, const OpenMS::String& name, const OpenMS::DataValue& value) { return self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("removeMetaValue", [](OpenMS::Feature& self, const OpenMS::String& name) { return self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def_static("metaRegistry", []() { return OpenMS::Feature::metaRegistry(); }, "Returns a reference to the MetaInfoRegistry")
         
-        .def("getKeys", [](const OpenMS::Feature& self, nb::list py_keys) {
-            std::vector<OpenMS::String> keys;
-            self.getKeys(keys);
-            py_keys.attr("clear")();
-            for (const auto& k : keys) {
-                py_keys.append(nb::str(k.c_str()));
-            }
-        }, "keys"_a, "Fills the given list with all meta value keys")
-        .def("isMetaEmpty", [](const OpenMS::Feature& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::Feature& self) { return self.clearMetaInfo(); }, "Removes all meta values")
-        .def_static("isValid", [](size_t unique_id) { return OpenMS::Feature::isValid(unique_id); }, "unique_id"_a, "Returns true if the unique_id is valid, false otherwise")
-        .def("getUniqueId", [](const OpenMS::Feature& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("clearUniqueId", [](OpenMS::Feature& self) { return self.clearUniqueId(); }, "Clear the unique id. The new unique id will be invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("hasValidUniqueId", [](const OpenMS::Feature& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid.  Returns 1 if the unique id is valid, 0 otherwise")
-        .def("hasInvalidUniqueId", [](const OpenMS::Feature& self) { return self.hasInvalidUniqueId(); }, "Returns whether the unique id is invalid.  Returns 1 if the unique id is invalid, 0 otherwise")
-        .def("setUniqueId", [](OpenMS::Feature& self) { return self.setUniqueId(); }, "Assigns a new, valid unique id.  Always returns 1")
-        .def("ensureUniqueId", [](OpenMS::Feature& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id, but only if the present one is invalid.  Returns 1 if the unique id was changed, 0 otherwise")
-        .def("getRT", [](OpenMS::Feature& self) { return self.getRT(); }, "Returns the retention time")
-        .def("setRT", [](OpenMS::Feature& self, double rt) { self.setRT(rt); }, "rt"_a, "Sets the retention time")
-        .def("getMZ", [](OpenMS::Feature& self) { return self.getMZ(); }, "Returns the m/z")
-        .def("setMZ", [](OpenMS::Feature& self, double mz) { self.setMZ(mz); }, "mz"_a, "Sets the m/z")
-        .def("getIntensity", [](OpenMS::Feature& self) { return self.getIntensity(); }, "Returns the intensity")
-        .def("setIntensity", [](OpenMS::Feature& self, float intensity) { self.setIntensity(intensity); }, "intensity"_a, "Sets the intensity")
-        .def("getMetaValue", [](OpenMS::Feature& self, const OpenMS::String& name) { return self.getMetaValue(name); }, "name"_a, "Returns the value corresponding to a string")
-        .def("setMetaValue", [](OpenMS::Feature& self, const OpenMS::String& name, const OpenMS::DataValue& value) { self.setMetaValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("metaValueExists", [](OpenMS::Feature& self, const OpenMS::String& name) { return self.metaValueExists(name); }, "name"_a, "Returns whether an entry with the given name exists")
-        .def("removeMetaValue", [](OpenMS::Feature& self, const OpenMS::String& name) { self.removeMetaValue(name); }, "name"_a, "Removes the DataValue corresponding to name")
-        .def("isMetaEmpty", [](OpenMS::Feature& self) { return self.isMetaEmpty(); }, "Returns if the MetaInfo is empty")
-        .def("clearMetaInfo", [](OpenMS::Feature& self) { self.clearMetaInfo(); }, "Removes all meta values")
-        .def("getUniqueId", [](OpenMS::Feature& self) { return self.getUniqueId(); }, "Returns the unique id")
-        .def("setUniqueId", [](OpenMS::Feature& self, uint64_t id) { self.setUniqueId(id); }, "id"_a, "Sets the unique id")
-        .def("hasValidUniqueId", [](OpenMS::Feature& self) { return self.hasValidUniqueId(); }, "Returns whether the unique id is valid")
-        .def("clearUniqueId", [](OpenMS::Feature& self) { self.clearUniqueId(); }, "Clears the unique id")
-        .def("ensureUniqueId", [](OpenMS::Feature& self) { return self.ensureUniqueId(); }, "Assigns a valid unique id if the current one is invalid")
         .def("__copy__", [](const OpenMS::Feature& self) { return OpenMS::Feature(self); })
         .def("__deepcopy__", [](const OpenMS::Feature& self, nb::dict) { return OpenMS::Feature(self); }, "memo"_a)
         ;
