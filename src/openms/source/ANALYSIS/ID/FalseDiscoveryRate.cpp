@@ -1221,6 +1221,8 @@ namespace OpenMS
 
   void FalseDiscoveryRate::applyBasicPeptideLevel(PeptideIdentificationList & ids)
   {
+    if (ids.empty()) return;
+
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
     const string& score_type = q_value ? Constants::UserParam::PEPTIDE_Q_VALUE : "peptide FDR";
