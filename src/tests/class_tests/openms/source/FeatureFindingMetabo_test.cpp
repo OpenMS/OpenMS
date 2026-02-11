@@ -108,7 +108,7 @@ START_SECTION(([EXTRA] run with ion mobility data))
 {
   // Load LC-IMS-MS data
   PeakMap im_input;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_input2.mzML"), im_input);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("../../../topp/FeatureFinderMetabo_6_input.mzML"), im_input);
 
   // Run MassTraceDetection with ion mobility tolerance
   MassTraceDetection mtd_im;
