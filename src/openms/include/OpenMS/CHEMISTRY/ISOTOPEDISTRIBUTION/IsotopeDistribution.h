@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <functional>
 #include <vector>
 
@@ -213,4 +214,22 @@ protected:
 
 
 } // namespace OpenMS
+
+// Hash function specialization for IsotopeDistribution
+namespace std
+{
+  template<>
+  struct hash<OpenMS::IsotopeDistribution>
+  {
+    std::size_t operator()(const OpenMS::IsotopeDistribution& id) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_int(id.size());
+      for (const auto& peak : id)
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::Peak1D>{}(peak));
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

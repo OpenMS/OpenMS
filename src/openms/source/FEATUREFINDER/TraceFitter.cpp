@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,6 +13,31 @@
 
 namespace OpenMS
 {
+  /// Internal adapter to wrap GenericFunctor for Eigen's LM solver
+  class GenericFunctorEigenAdapter
+  {
+  public:
+    GenericFunctorEigenAdapter(TraceFitter::GenericFunctor& functor)
+      : functor_(functor)
+    {
+    }
+
+    int inputs() const { return functor_.inputs(); }
+    int values() const { return functor_.values(); }
+
+    int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+    {
+      return functor_(x.data(), fvec.data());
+    }
+
+    int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+    {
+      return functor_.df(x.data(), J.data());
+    }
+
+  private:
+    TraceFitter::GenericFunctor& functor_;
+  };
 
   int TraceFitter::GenericFunctor::inputs() const
   {
@@ -73,22 +98,28 @@ namespace OpenMS
     weighted_ = this->param_.getValue("weighted") == "true";
   }
 
-  void TraceFitter::optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor)
+  void TraceFitter::optimize_(std::vector<double>& x_init, GenericFunctor& functor)
   {
     //TODO: this function is copy&paste from LevMarqFitter1d.h. Make a generic wrapper for
     //LM optimization
     int data_count = functor.values();
     int num_params = functor.inputs();
 
-    // LM always expects N>=p, cause Jacobian be rectangular M x N with M>=N
+    // LM always expects N>=p, because the Jacobian is rectangular M x N with M>=N
     if (data_count < num_params)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-FinalSet", "Skipping feature, we always expects N>=p");
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-FinalSet", "Skipping feature, we always expect N>=p");
     }
 
-    Eigen::LevenbergMarquardt<GenericFunctor> lmSolver(functor);
+    // Create Eigen vector and copy data from std::vector
+    Eigen::VectorXd x_eigen = Eigen::Map<Eigen::VectorXd>(x_init.data(), x_init.size());
+
+    // Create adapter to wrap our functor for Eigen's LM solver
+    GenericFunctorEigenAdapter adapter(functor);
+
+    Eigen::LevenbergMarquardt<GenericFunctorEigenAdapter> lmSolver(adapter);
     lmSolver.parameters.maxfev = max_iterations_;
-    Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
+    Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_eigen);
 
     //the states are poorly documented. after checking the source, we believe that
     //all states except NotStarted, Running and ImproperInputParameters are good
@@ -98,6 +129,8 @@ namespace OpenMS
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-FinalSet", "Could not fit the gaussian to the data: Error " + String(status));
     }
 
+    // Copy results back to x_init
+    std::copy(x_eigen.data(), x_eigen.data() + x_eigen.size(), x_init.begin());
     getOptimizedParameters_(x_init);
   }
 

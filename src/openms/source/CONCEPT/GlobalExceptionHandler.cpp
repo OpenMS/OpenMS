@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,12 +17,9 @@
 #include <iostream>
 
 #ifndef OPENMS_WINDOWSPLATFORM
-#ifdef OPENMS_HAS_UNISTD_H
-#include <unistd.h> // for getpid
-#endif
-#ifdef OPENMS_HAS_PROCESS_H
-#include <process.h>
-#endif
+  #ifdef OPENMS_HAS_UNISTD_H
+  #include <unistd.h> // for getpid
+  #endif
 #endif
 
 #define OPENMS_CORE_DUMP_ENVNAME "OPENMS_DUMP_CORE"
@@ -114,5 +111,71 @@ namespace OpenMS::Exception
       GlobalExceptionHandler::line_() = line;
     }
 
+    GlobalExceptionHandler & GlobalExceptionHandler::getInstance()
+    {
+      static GlobalExceptionHandler * globalExceptionHandler_;
 
-} // namespace OpenMS // namespace Exception
+      if (globalExceptionHandler_ == nullptr)
+      {
+        globalExceptionHandler_ = new GlobalExceptionHandler;
+      }
+      return *globalExceptionHandler_;
+    }
+
+    std::string & GlobalExceptionHandler::file_()
+    {
+      static std::string * file_ = nullptr;
+      if (file_ == nullptr)
+      {
+        file_  = new std::string;
+        *file_ = "unknown";
+      }
+      return *file_;
+    }
+
+    int & GlobalExceptionHandler::line_()
+    {
+      static int * line_ = nullptr;
+      if (line_ == nullptr)
+      {
+        line_  = new int;
+        *line_ = -1;
+      }
+      return *line_;
+    }
+
+    std::string & GlobalExceptionHandler::function_()
+    {
+      static std::string * function_ = nullptr;
+      if (function_ == nullptr)
+      {
+        function_  = new std::string;
+        *function_ = "unknown";
+      }
+      return *function_;
+    }
+
+    std::string & GlobalExceptionHandler::name_()
+    {
+      static std::string * name_ = nullptr;
+      if (name_ == nullptr)
+      {
+        name_  = new std::string;
+        *name_ = "unknown exception";
+      }
+      return *name_;
+    }
+
+    std::string & GlobalExceptionHandler::what_()
+    {
+      static std::string * what_ = nullptr;
+      if (what_ == nullptr)
+      {
+        what_  = new std::string;
+        *what_ = " - ";
+      }
+      return *what_;
+    }
+
+
+} // namespace OpenMS::Exception

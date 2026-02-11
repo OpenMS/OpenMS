@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,8 @@
 #pragma once
 
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <functional>
 
 namespace OpenMS
 {
@@ -66,4 +68,26 @@ protected:
     double window_up_ = 0.0;
   };
 } // namespace OpenMS
+
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::Product.
+   *
+   * Hashes mz, isolation window offsets, and the CVTermList base class.
+   * Consistent with operator==.
+   */
+  template<>
+  struct hash<OpenMS::Product>
+  {
+    std::size_t operator()(const OpenMS::Product& p) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(p.getMZ());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowUpperOffset()));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTermList>{}(p));
+      return seed;
+    }
+  };
+} // namespace std
 

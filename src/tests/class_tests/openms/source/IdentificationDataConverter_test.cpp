@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -39,10 +39,10 @@ START_TEST(IdentificationDataConverter, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentification>&, const vector<PeptideIdentification>&)))
+START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentification>&, const PeptideIdentificationList&)))
 {
   vector<ProteinIdentification> proteins_in;
-  vector<PeptideIdentification> peptides_in;
+  PeptideIdentificationList peptides_in;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), proteins_in, peptides_in);
   // IdentificationData doesn't allow score types with the same name, but different orientations:
   peptides_in[0].setHigherScoreBetter(true);
@@ -51,7 +51,7 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
 
   vector<ProteinIdentification> proteins_out;
-  vector<PeptideIdentification> peptides_out;
+  PeptideIdentificationList peptides_out;
   IdentificationDataConverter::exportIDs(ids, proteins_out, peptides_out);
 
   TEST_EQUAL(peptides_in.size(), peptides_out.size());
@@ -135,10 +135,10 @@ START_SECTION((void importSequences(IdentificationData&, const vector<FASTAFile:
 }
 END_SECTION
 
-START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentification>&, vector<PeptideIdentification>&)))
+START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentification>&, PeptideIdentificationList&)))
 {
   vector<ProteinIdentification> proteins_in;
-  vector<PeptideIdentification> peptides_in;
+  PeptideIdentificationList peptides_in;
 
   String filename = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/FidoAdapter_4_output.idXML");
   //String filename = OPENMS_GET_TEST_DATA_PATH("debug_fraction_1_IDs_after_transfer.idXML");
@@ -148,7 +148,7 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
 
   vector<ProteinIdentification> proteins_out;
-  vector<PeptideIdentification> peptides_out;
+  PeptideIdentificationList peptides_out;
   IdentificationDataConverter::exportIDs(ids, proteins_out, peptides_out);
 
   TEST_EQUAL(proteins_in.size(), proteins_out.size());
@@ -217,7 +217,7 @@ END_SECTION
 START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
 {
   vector<ProteinIdentification> proteins_in;
-  vector<PeptideIdentification> peptides_in;
+  PeptideIdentificationList peptides_in;
   String filename = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/FidoAdapter_4_output.idXML");
   IdXMLFile().load(filename, proteins_in, peptides_in);
 
@@ -250,11 +250,11 @@ END_SECTION
 
 /*
 // performance test on a large file:
-START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<ProteinIdentification>&, const vector<PeptideIdentification>&)))
+START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<ProteinIdentification>&, const PeptideIdentificationList&)))
 {
   SysInfo::MemUsage mem_usage;
   vector<ProteinIdentification> proteins_in;
-  vector<PeptideIdentification> peptides_in;
+  PeptideIdentificationList peptides_in;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("large_test.idXML"), proteins_in, peptides_in);
   STATUS(mem_usage.delta("PeptideIdentification/ProteinIdentification"));
 

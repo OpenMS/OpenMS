@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -37,7 +37,7 @@ using namespace std;
     <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
     </tr>
     <tr>
-    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter </td>
     <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCExporter </td>
     </tr>
   </table>
@@ -71,9 +71,10 @@ The output file specified by the user determines which output file format will b
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 class TOPPQCCalculator :
   public TOPPBase
@@ -132,7 +133,7 @@ protected:
     // prepare input
     cout << "Reading mzML file..." << endl;
     MSExperiment exp;
-    FileHandler().loadExperiment(inputfile_name, exp, {FileTypes::MZML});
+    FileHandler().loadExperiment(inputfile_name, exp, {FileTypes::MZML}, log_type_);
     exp.sortSpectra();
     exp.updateRanges();
 
@@ -140,7 +141,7 @@ protected:
     if (!inputfile_feature.empty())
     {
       cout << "Reading featureXML file..." << endl;
-      FileHandler().loadFeatures(inputfile_feature, feature_map, {FileTypes::FEATUREXML});
+      FileHandler().loadFeatures(inputfile_feature, feature_map, {FileTypes::FEATUREXML}, log_type_);
       feature_map.updateRanges();
       feature_map.sortByRT();
     }
@@ -149,15 +150,15 @@ protected:
     if (!inputfile_consensus.empty())
     {
       cout << "Reading consensusXML file..." << endl;
-      FileHandler().loadConsensusFeatures(inputfile_consensus, consensus_map, {FileTypes::CONSENSUSXML});
+      FileHandler().loadConsensusFeatures(inputfile_consensus, consensus_map, {FileTypes::CONSENSUSXML}, log_type_);
     }
 
     vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     if (!inputfile_id.empty())
     {
       cout << "Reading idXML file..." << endl;
-      FileHandler().loadIdentifications(inputfile_id, prot_ids, pep_ids, {FileTypes::IDXML});
+      FileHandler().loadIdentifications(inputfile_id, prot_ids, pep_ids, {FileTypes::IDXML}, log_type_);
     }
     
     // collect QC data and store according to output file extension
@@ -170,8 +171,9 @@ protected:
   }
 
 };
-
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 
 int main(int argc, const char** argv)
 {

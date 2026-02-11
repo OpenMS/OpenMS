@@ -3,24 +3,27 @@ from String cimport *
 from Peak1D cimport *
 from InstrumentSettings cimport *
 from SourceFile cimport *
-from PeptideIdentification cimport *
 from Precursor cimport *
 from DataProcessing cimport *
 from Product cimport *
 from AcquisitionInfo cimport *
 from MetaInfoInterface cimport *
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
 
     cdef cppclass SpectrumSettings(MetaInfoInterface):
         # wrap-inherits:
         #  MetaInfoInterface
+        # wrap-hash:
+        #  std
 
-        SpectrumSettings() except + nogil 
+        SpectrumSettings() except + nogil
         SpectrumSettings(SpectrumSettings &) except + nogil 
 
         void unify(SpectrumSettings) except + nogil 
-        int  getType() except + nogil  # wrap-doc:Returns the spectrum type (centroided (PEAKS) or profile data (RAW))
+        SpectrumType getType() except + nogil  # wrap-doc:Returns the spectrum type (centroided (PEAKS) or profile data (RAW))
         void setType(SpectrumType) except + nogil  # wrap-doc:Sets the spectrum type
         String getNativeID() except + nogil  # wrap-doc:Returns the native identifier for the spectrum, used by the acquisition software
         void setNativeID(String) except + nogil  # wrap-doc:Sets the native identifier for the spectrum, used by the acquisition software
@@ -42,15 +45,20 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
         libcpp_vector[Product] getProducts() except + nogil  # wrap-doc:Returns a const reference to the products
         void setProducts(libcpp_vector[Product]) except + nogil  # wrap-doc:Sets the products
 
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() except + nogil  # wrap-doc:Returns a const reference to the PeptideIdentification vector
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification]) except + nogil  # wrap-doc:Sets the PeptideIdentification vector
-
         libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() except + nogil 
         void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ]) except + nogil 
 
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfSpectrumType() except + nogil  # wrap-doc:Returns all spectrum type names known to OpenMS
+
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS::SpectrumSettings":
 
-    cdef enum SpectrumType:
+    cdef enum class SpectrumType "OpenMS::SpectrumSettings::SpectrumType":
         # wrap-attach:
         #    SpectrumSettings
         UNKNOWN, CENTROID, PROFILE, SIZE_OF_SPECTRUMTYPE
+
+    # Static methods for enum-to-string conversion
+    libcpp_utf8_output_string spectrumTypeToString(SpectrumType type) except + nogil  # wrap-attach:SpectrumSettings wrap-doc:Convert a SpectrumType enum to String. Throws Exception::InvalidValue if type is SIZE_OF_SPECTRUMTYPE
+
+    SpectrumType toSpectrumType(const libcpp_utf8_string& name) except + nogil  # wrap-attach:SpectrumSettings wrap-doc:Convert a string to SpectrumType enum. Throws Exception::InvalidValue if name is not a valid spectrum type

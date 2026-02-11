@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -25,12 +25,12 @@ namespace OpenMS
         
     SpectrumAccessQuadMZTransforming::~SpectrumAccessQuadMZTransforming() = default;
 
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessQuadMZTransforming::lightClone() const
+    std::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessQuadMZTransforming::lightClone() const
     {
       // Create a light clone of *this by initializing a new
       // SpectrumAccessQuadMZTransforming with a light clone of the underlying
       // SpectrumAccess object and the parameters.
-      return boost::shared_ptr<SpectrumAccessQuadMZTransforming>(
+      return std::shared_ptr<SpectrumAccessQuadMZTransforming>(
           new SpectrumAccessQuadMZTransforming(sptr_->lightClone(), a_, b_, c_, ppm_));
     }
 

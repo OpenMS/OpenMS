@@ -21,25 +21,30 @@ Please cite:
     Proteomics. 2014 Jan;14(1):74-7. doi: 10.1002/pmic.201300246.
 
 """
-from __future__ import print_function
-
+import os
+import sys
 import warnings
 
 from ._sysinfo import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
-from ._version import version as __version__
 
-import os
+try:
+    import importlib.metadata
+    __version__ = importlib.metadata.version("pyopenms")
+except Exception:
+    __version__ = "0+unknown"
+
 here = os.path.abspath(os.path.dirname(__file__))
 
-default_openms_data_path = os.path.join(here, "share/OpenMS")
+default_openms_data_path = os.path.join(here, "share", "OpenMS")
 env_openms_data_path = os.environ.get("OPENMS_DATA_PATH")
 
 if os.path.exists(default_openms_data_path):
     if not env_openms_data_path:
         os.environ["OPENMS_DATA_PATH"] = default_openms_data_path
-    else:
+    elif os.path.abspath(env_openms_data_path) != os.path.abspath(default_openms_data_path):
         warnings.warn(
-            "Warning: OPENMS_DATA_PATH environment variable already exists. "
+            "Warning: OPENMS_DATA_PATH environment exists and points to a different location "
+            "than the default share directory. "
             "pyOpenMS will use it ({env}) to locate data in the OpenMS share folder "
             "(e.g., the unimod database), instead of the default ({default})."
             .format(env=env_openms_data_path, default=default_openms_data_path)
@@ -51,7 +56,96 @@ else:
             "Some functionality might not work as expected."
         )
 
-import sys
+# Patch pyarrow to handle filesystem registration conflicts with OpenMS Arrow C++.
+# When OpenMS is built with WITH_PARQUET, both pyarrow and C++ Arrow try to register
+# filesystem factories for the 'file' scheme, causing ArrowKeyError.
+# This patch caches LocalFileSystem instances created before C++ loads and reuses them.
+# See: https://github.com/apache/arrow/issues/44696#issuecomment-3532192904
+def _patch_pyarrow_filesystem():
+    try:
+        import pyarrow.fs as _pa_fs
+        from pyarrow._fs import FileSystem, LocalFileSystem
+        from pyarrow.lib import ArrowKeyError
+    except ImportError:
+        return  # pyarrow not installed, no conflict possible
+
+    # Verify required internal APIs exist (may change between pyarrow versions)
+    if not all(hasattr(_pa_fs, attr) for attr in
+               ('_resolve_filesystem_and_path', '_is_path_like', '_stringify_path', '_ensure_filesystem')):
+        return  # Incompatible pyarrow version, skip patching
+
+    # Create cached LocalFileSystem instances BEFORE C++ Arrow loads
+    # This claims the 'file://' scheme registration for pyarrow
+    try:
+        _cached_local_fs = {
+            False: LocalFileSystem(use_mmap=False),
+            True: LocalFileSystem(use_mmap=True),
+        }
+    except ArrowKeyError:
+        # C++ Arrow already registered - too late to cache, patching won't help
+        return
+
+    def _patched_resolve(path, filesystem=None, *, memory_map=False):
+        """Patched version that reuses cached LocalFileSystem instances."""
+        # Handle file-like objects
+        if not _pa_fs._is_path_like(path):
+            if filesystem is not None:
+                raise ValueError(
+                    "'filesystem' passed but the specified path is file-like, so"
+                    " there is nothing to open with 'filesystem'."
+                )
+            return filesystem, path
+
+        # Handle explicit filesystem
+        if filesystem is not None:
+            filesystem = _pa_fs._ensure_filesystem(filesystem, use_mmap=memory_map)
+            if isinstance(filesystem, LocalFileSystem):
+                path = _pa_fs._stringify_path(path)
+            elif not isinstance(path, str):
+                raise TypeError(
+                    "Expected string path; path-like objects are only allowed "
+                    "with a local filesystem"
+                )
+            path = filesystem.normalize_path(path)
+            return filesystem, path
+
+        path = _pa_fs._stringify_path(path)
+
+        # PATCH: Reuse cached LocalFileSystem instead of creating new one
+        # Cache is populated before C++ Arrow loads, so this should always hit
+        filesystem = _cached_local_fs.get(memory_map)
+        if filesystem is None:
+            # Cache miss - create and cache (may fail if C++ already registered)
+            filesystem = LocalFileSystem(use_mmap=memory_map)
+            _cached_local_fs[memory_map] = filesystem
+
+        try:
+            file_info = filesystem.get_file_info(path)
+        except ValueError:
+            file_info = None
+            exists_locally = False
+        else:
+            exists_locally = file_info.type != _pa_fs.FileType.NotFound
+
+        # If file doesn't exist locally, try parsing as URI
+        if not exists_locally:
+            try:
+                filesystem, path = FileSystem.from_uri(path)
+            except ValueError as e:
+                if "empty scheme" in str(e) or "Cannot parse URI" in str(e):
+                    pass  # Neither URI nor local path - will propagate file not found
+                else:
+                    raise
+        else:
+            path = filesystem.normalize_path(path)
+
+        return filesystem, path
+
+    _pa_fs._resolve_filesystem_and_path = _patched_resolve
+
+_patch_pyarrow_filesystem()
+del _patch_pyarrow_filesystem
+
 # on conda the libs will be installed to the general conda lib path which is available during load.
 # try to skip this loading if we do not ship the libraries in the package (e.g. as wheel via pip)
 # TODO check if this can be completely removed by now or e.g. by baking in an RPATH into the pyopenms*.so's
@@ -65,47 +159,48 @@ if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOp
 
 try:
     from ._all_modules import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
-    from ._python_extras import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
     # This has to be imported after all_modules so it can augment the core datastructures with dataframe
     # export capabilities
     from ._dataframes import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
+    from ._python_extras import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
 except Exception as e:
-    print("")
-    print("="*70)
-    print("Error when loading pyOpenMS libraries!")
-    print("Libraries could not be found / could not be loaded.")
-    print("")
-    print("To debug this error, please run ldd (on linux), otool -L (on macOS) or dependency walker (on windows) on ")
-    print("")
-    print(os.path.join(here, "pyopenms*.so"))
-    print("")
-    print("="*70)
+    print(f"""
+======================================================================
+Error when loading pyOpenMS libraries!
+Libraries could not be found / could not be loaded.
+
+To debug this error, please run ldd (on linux), otool -L (on macOS) or dependency walker (on windows) on
+
+{os.path.join(here, "pyopenms*.so")}
+
+======================================================================
+""")
 
     try:
-        import PyQt5.QtCore
+        import PyQt6.QtCore
     except:
         pass
     else:
-        from ._qt_version_info import info
+        from ._dependency_version_info import qt_version
 
-        info = "\n    ".join(info.split("\n"))
+        info = "\n    ".join(qt_version.split("\n"))
 
-        print("""PyQt5 was found to be installed. When building pyopenms qmake said:
+        warnings.warn(
+            f"""PyQt6 was found to be installed.
+    pyopenms was built with Qt version: {info}
+    PyQt6 version detected: {PyQt6.QtCore.PYQT_VERSION_STR}
 
-    %s
-PYQT has version %s
+    This may cause a conflict if both are loaded. To test for issues, try importing pyopenms
+    first, then import PyQt6.QtCore.
 
-This might cause a conflict if both are loaded.  You can test this by importing pyopenms
-first and then import PyQt5.QtCore.
-        """ % (info, PyQt5.QtCore.PYQT_VERSION_STR) )
-        
-        print("Note: when using the Spyder IDE, the usage of PyQt might be circumvented")
-        print("by not using the 'Automatic' backend. Please change this in Tools ->")
-        print("Preferences -> IPython -> Graphics to 'Inline'.")
-        print("In general, try to install everything with conda in the same environment to make sure Qt is used in the same version.")
-        print("")
-        print("="*70)
-        print("\n")
+    Note: If you are using the Spyder IDE, you can avoid PyQt conflicts by setting
+    the graphics backend to 'Inline' (Tools → Preferences → IPython Console → Graphics).
+    In general, ensure all dependencies are installed within the same environment (e.g., via conda)
+    to guarantee compatible Qt versions.
+
+    {"="*70}
+    """
+        )
     raise e
 
 del os, here, sys

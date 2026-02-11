@@ -17,15 +17,15 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h>" namespace "OpenMS
         OpenPepXLAlgorithm() except + nogil 
         OpenPepXLAlgorithm(OpenPepXLAlgorithm &) except + nogil  # compiler
 
-        OpenPepXLAlgorithm_ExitCodes run(MSExperiment& unprocessed_spectra,
-                                         ConsensusMap& cfeatures,
-                                         libcpp_vector[ FASTAEntry ]& fasta_db,
-                                         libcpp_vector[ ProteinIdentification ]& protein_ids,
-                                         libcpp_vector[ PeptideIdentification ]& peptide_ids,
-                                         OPXL_PreprocessedPairSpectra& preprocessed_pair_spectra,
-                                         libcpp_vector[libcpp_pair[ size_t, size_t ] ]& spectrum_pairs,
-                                         libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ]& all_top_csms,
-                                         MSExperiment& spectra) except + nogil 
+        ExitCodes run(MSExperiment& unprocessed_spectra,
+                      ConsensusMap& cfeatures,
+                      libcpp_vector[ FASTAEntry ]& fasta_db,
+                      libcpp_vector[ ProteinIdentification ]& protein_ids,
+                      PeptideIdentificationList& peptide_ids,
+                      OPXL_PreprocessedPairSpectra& preprocessed_pair_spectra,
+                      libcpp_vector[libcpp_pair[ size_t, size_t ] ]& spectrum_pairs,
+                      libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ]& all_top_csms,
+                      MSExperiment& spectra) except + nogil
             # wrap-doc:
                 #  Performs the main function of this class, the search for cross-linked peptides
                 #  
@@ -41,9 +41,9 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h>" namespace "OpenMS
                 #  :param spectra: A result vector containing the input spectra after preprocessing and filtering. Should be empty. This is only necessary for writing out xQuest type spectrum files
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h>" namespace "OpenMS::OpenPepXLAlgorithm":
-    cdef enum OpenPepXLAlgorithm_ExitCodes "OpenMS::OpenPepXLAlgorithm::ExitCodes":
-        #wrap-attach:
-        #   OpenPepXLAlgorithm
+    cdef enum class ExitCodes "OpenMS::OpenPepXLAlgorithm::ExitCodes":
+        # wrap-attach:
+        #    OpenPepXLAlgorithm
         EXECUTION_OK
         ILLEGAL_PARAMETERS
         UNEXPECTED_RESULT

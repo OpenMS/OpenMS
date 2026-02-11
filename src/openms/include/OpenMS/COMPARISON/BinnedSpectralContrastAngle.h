@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -48,8 +48,8 @@ public:
 
     /** function call operator, calculates the similarity of the given arguments
 
-      @param spec1 First spectrum given in a binned representation
-      @param spec2 Second spectrum given in a binned representation
+      @param[in] spec1 First spectrum given in a binned representation
+      @param[in] spec2 Second spectrum given in a binned representation
       @throw IncompatibleBinning is thrown if the bins of the spectra are not the same
     */
     double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const override;

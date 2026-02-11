@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -15,11 +15,14 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <optional>
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
 
 namespace OpenMS
 {
@@ -278,7 +281,7 @@ public:
     /**
       @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
 
-      @param peptide_evidences Vector of PeptideEvidence holding internal data.
+      @param[in] peptide_evidences Vector of PeptideEvidence holding internal data.
     */
 
     void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences);
@@ -552,7 +555,7 @@ public:
     */
     static MzTab exportIdentificationsToMzTab(
         const std::vector<ProteinIdentification>& prot_ids,
-        const std::vector<PeptideIdentification>& peptide_ids,
+        const PeptideIdentificationList& peptide_ids,
         const String& filename,
         bool first_run_inference_only,
         bool export_empty_pep_ids = false,
@@ -569,15 +572,15 @@ public:
 	/**
 	 * @brief export linked peptide features aka consensus map
 	 *
-	 * @param consensus_map		data structure of the linked peptide features
-	 * @param filename		input consensusXML file name
-   * @param first_run_inference_only Is all protein inference information (groups and scores) stored in the first run?
-	 * @param export_unidentified_features		Should not identified peptide features be exported?
-	 * @param export_unassigned_ids		Should unassigned identifications be exported?
-	 * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
-   * @param export_empty_pep_ids		Export spectra without PSMs as well?
-	 * @param export_all_psms		Instead of just the best PSM per spectrum, should other PSMs be exported as well?
-   * @param title The title for the metadata section
+	 * @param[in] consensus_map		data structure of the linked peptide features
+	 * @param[in] filename		input consensusXML file name
+   * @param[out] first_run_inference_only Is all protein inference information (groups and scores) stored in the first run?
+	 * @param[in] export_unidentified_features		Should not identified peptide features be exported?
+	 * @param[in] export_unassigned_ids		Should unassigned identifications be exported?
+	 * @param[in] export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
+   * @param[in] export_empty_pep_ids		Export spectra without PSMs as well?
+	 * @param[in] export_all_psms		Instead of just the best PSM per spectrum, should other PSMs be exported as well?
+   * @param[in] title The title for the metadata section
 	 *
 	 * @return mzTab object
 	 */
@@ -859,7 +862,7 @@ public:
     // otherwise as CHEMMOD (see MzTab specification for details)
     static MzTabString getModificationIdentifier_(const ResidueModification& r);
 
-    static void checkSequenceUniqueness_(const std::vector<PeptideIdentification>& curr_pep_ids);
+    static void checkSequenceUniqueness_(const PeptideIdentificationList& curr_pep_ids);
 
     MzTabMetaData meta_data_;
     MzTabProteinSectionRows protein_data_;
@@ -874,5 +877,6 @@ public:
   };
 
 } // namespace OpenMS
-
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif

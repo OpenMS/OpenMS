@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -35,9 +35,7 @@ namespace OpenMS
     }
 
     /// copy constructor
-    BaseModel(const BaseModel& source) : DefaultParamHandler(source), cut_off_(source.cut_off_)
-    {
-    }
+    BaseModel(const BaseModel& source) = default;
 
     /// Destructor
     ~BaseModel() override
@@ -45,16 +43,7 @@ namespace OpenMS
     }
 
     /// assignment operator
-    BaseModel& operator=(const BaseModel& source)
-    {
-      if (&source == this)
-        return *this;
-
-      DefaultParamHandler::operator=(source);
-      cut_off_ = source.cut_off_;
-
-      return *this;
-    }
+    BaseModel& operator=(const BaseModel& source) = default;
 
     /// access model predicted intensity at position @p pos
     virtual IntensityType getIntensity(const PositionType& pos) const = 0;
@@ -108,9 +97,9 @@ namespace OpenMS
     {
       SamplesType samples;
       getSamples(samples);
-      for (typename SamplesType::const_iterator it = samples.begin(); it != samples.end(); ++it)
+      for (const auto& sample : samples)
       {
-        os << *it << std::endl;
+        os << sample << std::endl;
       }
     }
 

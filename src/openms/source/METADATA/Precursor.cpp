@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,13 +7,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-  const std::string Precursor::NamesOfActivationMethod[] = {
+  const std::string Precursor::NamesOfActivationMethod[static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)] = {
     "Collision-induced dissociation", 
     "Post-source decay", 
     "Plasma desorption", 
@@ -35,19 +38,19 @@ namespace OpenMS
     "Bruker proprietary method"
     };
   
-  const std::string Precursor::NamesOfActivationMethodShort[] = { 
-    "CID", 
-    "PSD", 
-    "PD", 
-    "SID", 
-    "BIRD", 
-    "ECD", 
-    "IMD", 
-    "SORI", 
-    "HCID", 
-    "LCID", 
-    "PHD", 
-    "ETD", 
+  const std::string Precursor::NamesOfActivationMethodShort[static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)] = {
+    "CID",
+    "PSD",
+    "PD",
+    "SID",
+    "BIRD",
+    "ECD",
+    "IMD",
+    "SORI",
+    "HCID",
+    "LCID",
+    "PHD",
+    "ETD",
     "ETciD",
     "EThcD",
     "PQD",
@@ -56,6 +59,14 @@ namespace OpenMS
     "INSOURCE",
     "LIFT"
   };
+
+  // Compile-time assertions to ensure array sizes match enum size
+  static_assert(sizeof(Precursor::NamesOfActivationMethod) / sizeof(Precursor::NamesOfActivationMethod[0]) ==
+                static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD),
+                "NamesOfActivationMethod array size must match ActivationMethod enum size");
+  static_assert(sizeof(Precursor::NamesOfActivationMethodShort) / sizeof(Precursor::NamesOfActivationMethodShort[0]) ==
+                static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD),
+                "NamesOfActivationMethodShort array size must match ActivationMethod enum size");
 
   Precursor::Precursor(Precursor&& rhs) noexcept :
       CVTermList(std::move(rhs)),
@@ -110,9 +121,83 @@ namespace OpenMS
     am.reserve(activation_methods_.size());
     for (const auto& m : activation_methods_)
     {
-      am.push_back(NamesOfActivationMethod[m]);
+      am.push_back(NamesOfActivationMethod[static_cast<size_t>(m)]);
     }
     return am;
+  }
+
+  StringList Precursor::getActivationMethodsAsShortString() const
+  {
+    StringList am;
+    am.reserve(activation_methods_.size());
+    for (const auto& m : activation_methods_)
+    {
+      am.push_back(NamesOfActivationMethodShort[static_cast<size_t>(m)]);
+    }
+    return am;
+  }
+
+  StringList Precursor::getAllNamesOfActivationMethods()
+  {
+    StringList am;
+    am.reserve(static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD));
+    for (size_t i = 0; i < static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
+    {
+      am.push_back(NamesOfActivationMethod[i]);
+    }
+    return am;
+  }
+
+  StringList Precursor::getAllShortNamesOfActivationMethods()
+  {
+    StringList am;
+    am.reserve(static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD));
+    for (size_t i = 0; i < static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
+    {
+      am.push_back(NamesOfActivationMethodShort[i]);
+    }
+    return am;
+  }
+
+  const std::string& Precursor::activationMethodToString(ActivationMethod m)
+  {
+    if (m == ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ACTIVATIONMETHOD");
+    }
+    return NamesOfActivationMethod[static_cast<size_t>(m)];
+  }
+
+  const std::string& Precursor::activationMethodToShortString(ActivationMethod m)
+  {
+    if (m == ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ACTIVATIONMETHOD");
+    }
+    return NamesOfActivationMethodShort[static_cast<size_t>(m)];
+  }
+
+  Precursor::ActivationMethod Precursor::toActivationMethod(const std::string& name)
+  {
+    // Search in full names
+    auto first_full = &NamesOfActivationMethod[0];
+    auto last_full = &NamesOfActivationMethod[static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
+    auto it_full = std::find(first_full, last_full, name);
+    if (it_full != last_full)
+    {
+      return static_cast<ActivationMethod>(it_full - first_full);
+    }
+
+    // Search in short names
+    auto first_short = &NamesOfActivationMethodShort[0];
+    auto last_short = &NamesOfActivationMethodShort[static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
+    auto it_short = std::find(first_short, last_short, name);
+    if (it_short != last_short)
+    {
+      return static_cast<ActivationMethod>(it_short - first_short);
+    }
+
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown activation method", name);
   }
 
   void Precursor::setActivationMethods(const set<Precursor::ActivationMethod> & activation_methods)

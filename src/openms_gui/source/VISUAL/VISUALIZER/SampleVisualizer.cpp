@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -44,12 +44,12 @@ namespace OpenMS
   {
     if (!isEditable())
     {
-      fillComboBox_(samplestate_, &temp_.NamesOfSampleState[temp_.getState()], 1);
+      fillComboBox_(samplestate_, &temp_.NamesOfSampleState[static_cast<size_t>(temp_.getState())], 1);
     }
     else
     {
-      fillComboBox_(samplestate_, temp_.NamesOfSampleState, Sample::SIZE_OF_SAMPLESTATE);
-      samplestate_->setCurrentIndex(temp_.getState());
+      fillComboBox_(samplestate_, temp_.NamesOfSampleState, static_cast<size_t>(Sample::SampleState::SIZE_OF_SAMPLESTATE));
+      samplestate_->setCurrentIndex(static_cast<int>(temp_.getState()));
     }
 
     samplename_->setText(temp_.getName().c_str());

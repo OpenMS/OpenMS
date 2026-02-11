@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -37,7 +37,7 @@ using namespace std;
         <th ALIGN = "center"> potential successor tools </td>
     </tr>
     <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
     </tr>
     <tr>
@@ -159,7 +159,7 @@ protected:
     // OPENMS_LOG_DEBUG << "Loading idXML..." << endl;
     String id = getStringOption_("id");
     vector<ProteinIdentification> protein_ids;
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     FileTypes::Type in_type = FileHandler::getType(id);
     FileHandler().loadIdentifications(id, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
 
@@ -193,7 +193,7 @@ protected:
       PeakMap exp;
       if (!spectra.empty())
       {
-        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML});
+        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML}, log_type_);
       }
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
@@ -224,7 +224,7 @@ protected:
 
       if (!spectra.empty())
       {
-        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML});
+        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML}, log_type_);
       }
 
       mapper.annotate(map, peptide_ids, protein_ids, (getStringOption_("feature:use_centroid_rt") == "true"), (getStringOption_("feature:use_centroid_mz") == "true"), exp);

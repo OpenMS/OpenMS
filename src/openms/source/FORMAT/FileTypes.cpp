@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -75,6 +75,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::HARDKLOER, "hardkloer", "hardkloer file", {}),
     TypeNameBinding(FileTypes::KROENIK, "kroenik", "kroenik file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::FASTA, "fasta", "FASTA file", {PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::PEFF, "peff", "PEFF protein file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::EDTA, "edta", "enhanced dta file", {PROP::PROVIDES_FEATURES, PROP::PROVIDES_CONSENSUSFEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::CSV, "csv", "comma-separated values file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::TXT, "txt", "generic text file", {}),
@@ -88,6 +89,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::PQP, "pqp", "pqp file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::MS, "ms", "SIRIUS file", {}),
     TypeNameBinding(FileTypes::OSW, "osw", "OpenSwath output files", {PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::CHROMPARQUET, "xic", "OpenSwath Parquet chromatogram output", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::PSMS, "psms", "Percolator tab-delimited output (PSM level)", {PROP::READABLE}),
     TypeNameBinding(FileTypes::PIN, "pin", "Percolator tab-delimited input (PSM level)", {}),
     TypeNameBinding(FileTypes::PARAMXML, "paramXML", "OpenMS internal XML file", {}),
@@ -101,6 +103,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {PROP::READABLE}),
     TypeNameBinding(FileTypes::GZ, "gz", "gzip compressed file", {PROP::READABLE}),
+    TypeNameBinding(FileTypes::PARQUET, "parquet", "Apache Parquet file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
@@ -215,6 +218,12 @@ namespace OpenMS
   FileTypes::Type FileTypes::nameToType(const String& name)
   {
     String name_upper = String(name).toUpper();
+
+    // Special case for multiple extensions for PARQUET
+    if (name_upper == "PQT")
+    {
+      return FileTypes::PARQUET;
+    }
 
     for (const auto& t_info : type_with_annotation__)
     {

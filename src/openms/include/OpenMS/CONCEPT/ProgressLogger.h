@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -73,7 +73,7 @@ public:
     LogType getLogType() const;
 
     /// @brief  Sets the logger to be used for progress logging
-    /// @param logger 
+    /// @param[in] logger
     void setLogger(ProgressLoggerImpl* logger);
 
     /**

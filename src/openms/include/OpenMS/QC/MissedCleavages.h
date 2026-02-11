@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/QC/QCBase.h>
 #include <map>
@@ -49,10 +50,10 @@ namespace OpenMS
      * Additionally the first PeptideHit in each PeptideIdentification of the FeatureMap is annotated with metavalue 'missed_cleavages'.
      * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParameter therein) within the FeatureMap itself.
      *
-     * @param fmap FeatureMap with Peptide and ProteinIdentifications
+     * @param[in,out] fmap FeatureMap with Peptide and ProteinIdentifications
      */
     void compute(FeatureMap& fmap);
-    void compute(std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    void compute(std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     /// returns the name of the metric
     const String& getName() const override;

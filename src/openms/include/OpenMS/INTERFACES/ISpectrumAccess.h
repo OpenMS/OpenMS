@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 
 #include <vector>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace OpenMS
 {
@@ -46,7 +46,7 @@ public:
     ConstSpectraIterator endSpectra() const;
     */
   };
-  typedef boost::shared_ptr<ISpectraReader> SpectraReaderPtr;
+  typedef std::shared_ptr<ISpectraReader> SpectraReaderPtr;
 
 
   /**
@@ -75,7 +75,7 @@ public:
     ConstChromatogramIterator endChromatograms() const;
     */
   };
-  typedef boost::shared_ptr<IChromatogramsReader> ChromatogramsReaderPtr;
+  typedef std::shared_ptr<IChromatogramsReader> ChromatogramsReaderPtr;
 
 
   class OPENMS_DLLAPI ISpectraWriter
@@ -87,7 +87,7 @@ public:
     /// write all cached data to disk
     virtual void flush() = 0;
   };
-  typedef boost::shared_ptr<ISpectraWriter> SpectraWriterPtr;
+  typedef std::shared_ptr<ISpectraWriter> SpectraWriterPtr;
 
 
   class OPENMS_DLLAPI IChromatogramsWriter
@@ -99,7 +99,7 @@ public:
     /// write all cached data to disk
     virtual void flush() = 0;
   };
-  typedef boost::shared_ptr<IChromatogramsWriter> ChromatogramsWriterPtr;
+  typedef std::shared_ptr<IChromatogramsWriter> ChromatogramsWriterPtr;
 
 } //end namespace Interfaces
 } //end namespace OpenMS

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -36,7 +36,7 @@ namespace OpenMS
     {
       no_mzml_ = false;
       // check for Calibration
-      auto is_not_elem = [](const boost::shared_ptr<const OpenMS::DataProcessing>& dp) { return (dp->getProcessingActions().count(DataProcessing::CALIBRATION) == 0); };
+      auto is_not_elem = [](const std::shared_ptr<const OpenMS::DataProcessing>& dp) { return (dp->getProcessingActions().count(DataProcessing::CALIBRATION) == 0); };
       auto vdp = exp[0].getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
       if (all_of(vdp.begin(), vdp.end(), is_not_elem))
       {

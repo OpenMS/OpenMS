@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -192,7 +192,7 @@ protected:
 
     // initialize solution vectors
     vector<ProteinIdentification> protein_ids(1);
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
 
     // these are mainly necessary for writing out xQuest type spectrum files
     OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra(0);
@@ -203,7 +203,7 @@ protected:
     OpenPepXLAlgorithm search_algorithm;
     Param this_param = getParam_();
     Param algo_param = search_algorithm.getParameters();
-    algo_param.update(this_param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
+    algo_param.update(this_param, false, false, false, false, getGlobalLogDebug()); // suppress param. update message
     search_algorithm.setParameters(algo_param);
     search_algorithm.setLogType(this->log_type_);
 
@@ -223,9 +223,9 @@ protected:
     // run algorithm
     OpenPepXLAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spectra, cfeatures, fasta_db, protein_ids, peptide_ids, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
 
-    if (exit_code != OpenPepXLAlgorithm::EXECUTION_OK)
+    if (exit_code != OpenPepXLAlgorithm::ExitCodes::EXECUTION_OK)
     {
-      if (exit_code == OpenPepXLAlgorithm::ILLEGAL_PARAMETERS)
+      if (exit_code == OpenPepXLAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
       {
         return ILLEGAL_PARAMETERS;
       }

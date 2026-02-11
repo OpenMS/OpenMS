@@ -7,6 +7,8 @@ from EmpiricalFormula cimport *
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" namespace "OpenMS":
 
     cdef cppclass IsotopeDistribution:
+        # wrap-hash:
+        #  std
         # wrap-doc:
             #  Isotope distribution class
             #  
@@ -35,9 +37,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
 
         libcpp_vector[ Peak1D ]& getContainer() except + nogil  # wrap-doc:Returns the container which holds the distribution
 
-        Size getMax() except + nogil  # wrap-doc:Returns the maximal weight isotope which is stored in the distribution
+        double getMax() except + nogil  # wrap-doc:Returns the maximal weight isotope which is stored in the distribution
 
-        Size getMin() except + nogil  # wrap-doc:Returns the minimal weight isotope which is stored in the distribution
+        double getMin() except + nogil  # wrap-doc:Returns the minimal weight isotope which is stored in the distribution
 
         Peak1D getMostAbundant() except + nogil  # wrap-doc:Returns the most abundant isotope which is stored in the distribution
 
@@ -153,24 +155,24 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
         IsotopeDistribution approximateFromPeptideWeight(double mass, UInt num_peaks, UInt charge) except + nogil 
 
             # wrap-doc:
-                #  Roughly approximate peptide IsotopeDistribution from monoisotopic weight using Poisson distribution.
-                #  m/z values approximated by adding one neutron mass (divided by charge) for every peak, starting at 
-		#  the given monoisotopic weight. Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
-		#  This method is around 50 times faster than estimateFromPeptideWeight, but only an approximation.
-		#  The following are the intensities of the first 6 peaks generated for a monoisotopic mass of 1000:
-		#  estimateFromPeptideWeight:    0.571133000;0.306181000;0.095811100;0.022036900;0.004092170;0.000644568
-		#  approximateFromPeptideWeight: 0.573753000;0.318752000;0.088542200;0.016396700;0.002277320;0.000253036
-		#  KL divergences of the first 20 intensities of estimateFromPeptideWeight and this approximation range from 4.97E-5 for a
-		#  monoisotopic mass of 20 to 0.0144 for a mass of 2500. For comparison, when comparing an observed pattern with a 
-		#  theoretical ground truth, the observed pattern is said to be an isotopic pattern if the KL between the two is below 0.05
-		#  for 2 peaks and below 0.6 for >=6 peaks by Guo Ci Teo et al.
+            #  Roughly approximate peptide IsotopeDistribution from monoisotopic weight using Poisson distribution.
+            #  m/z values approximated by adding one neutron mass (divided by charge) for every peak, starting at
+            #  the given monoisotopic weight. Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
+            #  This method is around 50 times faster than estimateFromPeptideWeight, but only an approximation.
+            #  The following are the intensities of the first 6 peaks generated for a monoisotopic mass of 1000:
+            #  estimateFromPeptideWeight:    0.571133000;0.306181000;0.095811100;0.022036900;0.004092170;0.000644568
+            #  approximateFromPeptideWeight: 0.573753000;0.318752000;0.088542200;0.016396700;0.002277320;0.000253036
+            #  KL divergences of the first 20 intensities of estimateFromPeptideWeight and this approximation range from 4.97E-5 for a
+            #  monoisotopic mass of 20 to 0.0144 for a mass of 2500. For comparison, when comparing an observed pattern with a
+            #  theoretical ground truth, the observed pattern is said to be an isotopic pattern if the KL between the two is below 0.05
+            #  for 2 peaks and below 0.6 for >=6 peaks by Guo Ci Teo et al.
 
         libcpp_vector[ double ] approximateIntensities(double mass, UInt num_peaks) except + nogil 
 
             # wrap-doc:
-                #  Roughly approximate peptidic isotope pattern intensities from monoisotopic weight using Poisson distribution.
-                #  Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
-		#  This method is around 100 times faster than estimateFromPeptideWeight, but only an approximation, see approximateFromPeptideWeight.
+            #  Roughly approximate peptidic isotope pattern intensities from monoisotopic weight using Poisson distribution.
+            #  Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
+            #  This method is around 100 times faster than estimateFromPeptideWeight, but only an approximation, see approximateFromPeptideWeight.
 
         IsotopeDistribution estimateForFragmentFromRNAWeight(double average_weight_precursor,
                                                              double average_weight_fragment,

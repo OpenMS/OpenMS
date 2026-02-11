@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -53,7 +53,7 @@ public:
     /**
       @brief Workhorse of this class.
 
-      @param spectrum Input/output spectrum containing peaks
+      @param[in,out] spectrum Input/output spectrum containing peaks
       @throws Exception::InvalidValue if 'method_' has unknown value
     */
     template <typename SpectrumType>

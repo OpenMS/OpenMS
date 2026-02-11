@@ -15,5 +15,5 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmTh
                                                  const String & desc_filter) except + nogil  # wrap-doc:Determines the ratio of all maps to the map with the most features
 
         void normalizeMaps(ConsensusMap & input_map,
-                           libcpp_vector[double] & ratios) except + nogil  # wrap-doc:Applies the given ratio to the maps of the consensusMap
+                           const libcpp_vector[double] & ratios) except + nogil  # wrap-doc:Applies the given ratio to the maps of the consensusMap
 

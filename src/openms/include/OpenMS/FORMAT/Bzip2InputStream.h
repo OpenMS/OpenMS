@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -48,8 +48,8 @@ public:
       *
       * @note Implementation of the xerces-c input stream interface
       *
-      * @param to_fill is the buffer which is written to
-      * @param max_to_read is the size of the buffer
+      * @param[out] to_fill is the buffer which is written to
+      * @param[in] max_to_read is the size of the buffer
       *
       * @return returns the number of bytes which were actually read
       *

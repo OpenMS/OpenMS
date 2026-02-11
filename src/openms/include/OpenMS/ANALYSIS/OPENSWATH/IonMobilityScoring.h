@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,9 +17,14 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 #include <OpenMS/KERNEL/Mobilogram.h>
 
-// scoring
-#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+// Kernel classes
+#include <OpenMS/KERNEL/MRMTransitionGroup.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
+// scoring
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMobilogram.h>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <vector>
 namespace OpenMS
 {
@@ -42,6 +47,7 @@ namespace OpenMS
   {
     typedef OpenSwath::LightCompound CompoundType;
     typedef OpenSwath::LightTransition TransitionType;
+    typedef MRMTransitionGroup< MSChromatogram, TransitionType> MRMTransitionGroupType;
 
   public:
 
@@ -56,15 +62,17 @@ namespace OpenMS
 
       Populates additional scores in the @p scores object
 
-      @param spectra Sequence of segments of the DIA MS2 spectrum found at (and around) the peak apex
-      @param transitions The transitions used for scoring
-      @param scores The output scores
-      @param drift_target Ion Mobility extraction target
-      @param im_range Ion Mobility extraction range
-      @param dia_extraction_window_ m/z extraction width
-      @param dia_extraction_ppm_ Whether m/z extraction width is in ppm
-      @param use_spline Whether to use spline for fitting
-      @param drift_extra Extend the extraction window to gain a larger field of view beyond drift_upper - drift_lower (in percent)
+      If @p apply_im_peak_picking is set to true, peak picking is performed on the Savitzky-Golay smoothed ion mobilogram. This is useful for minimizing interference from co-eluting analytes in the ion mobility dimension (IM) that fall within the current extraction window. This process improves the specificity of analyte detection by dynamically adjusting the IM extraction window to extract only over the IM elution of the highest intensity species. If multiple peaks are present in the IM dimension, lower intensity peaks get discarded.
+
+      @param[in] spectra Sequence of segments of the DIA MS2 spectrum found at (and around) the peak apex
+      @param[in] transitions The transitions used for scoring
+      @param[out] scores The output scores
+      @param[out] drift_target Ion Mobility extraction target
+      @param[in] im_range Ion Mobility extraction range
+      @param[in] dia_extraction_window_ m/z extraction width
+      @param[in] dia_extraction_ppm_ Whether m/z extraction width is in ppm
+      @param[in] drift_extra Extend the extraction window to gain a larger field of view beyond drift_upper - drift_lower (in percent)
+      @param[in] apply_im_peak_picking Apply peak picking on the ion mobilogram
     */
     static void driftScoring(const SpectrumSequence& spectra,
                              const std::vector<TransitionType> & transitions,
@@ -73,23 +81,22 @@ namespace OpenMS
                              RangeMobility im_range,
                              const double dia_extraction_window_,
                              const bool dia_extraction_ppm_,
-                             const bool use_spline,
-                             const double drift_extra);
+                             const double drift_extra,
+                             const bool apply_im_peak_picking);
 
     /**
       @brief Performs scoring of the ion mobility dimension in MS1
 
       Populates additional scores in the @p scores object
 
-      @param spectra vector containing the DIA MS1 spectra found at (or around) the peak apex
-      @param transitions The transitions used for scoring
-      @param scores The output scores
-      @param im_range Ion Mobility extraction range
-      @param drift_target Ion Mobility extraction target
-      @param dia_extraction_window_ m/z extraction width
-      @param dia_extraction_ppm_ Whether m/z extraction width is in ppm
-      @param use_spline Whether to use spline for fitting
-      @param drift_extra Extra extraction to use for drift time (in percent)
+      @param[in] spectra vector containing the DIA MS1 spectra found at (or around) the peak apex
+      @param[in] transitions The transitions used for scoring
+      @param[out] scores The output scores
+      @param[in] im_range Ion Mobility extraction range
+      @param[out] drift_target Ion Mobility extraction target
+      @param[in] dia_extraction_window_ m/z extraction width
+      @param[in] dia_extraction_ppm_ Whether m/z extraction width is in ppm
+      @param[in] drift_extra Extra extraction to use for drift time (in percent)
     */
     static void driftScoringMS1(const SpectrumSequence& spectra,
                                 const std::vector<TransitionType> & transitions,
@@ -98,7 +105,6 @@ namespace OpenMS
                                 RangeMobility im_range,
                                 const double dia_extraction_window_,
                                 const bool dia_extraction_ppm_,
-                                const bool use_spline,
                                 const double drift_extra);
 
     /**
@@ -106,14 +112,14 @@ namespace OpenMS
 
       Populates additional scores in the @p scores object
 
-      @param spectra Vector of the DIA MS2 spectrum found in SpectrumSequence object (can contain 1 or multiple spectra centered around peak apex)
-      @param ms1spectrum The DIA MS1 spectrum found in SpectrumSequence object (can contain 1 or multiple spectra centered around peak apex)
-      @param transitions The transitions used for scoring
-      @param scores The output scores
-      @param im_range the ion mobility range
-      @param dia_extraction_window_ m/z extraction width
-      @param dia_extraction_ppm_ Whether m/z extraction width is in ppm
-      @param drift_extra Extra extraction to use for drift time (in percent)
+      @param[in] spectra Vector of the DIA MS2 spectrum found in SpectrumSequence object (can contain 1 or multiple spectra centered around peak apex)
+      @param[in] ms1spectrum The DIA MS1 spectrum found in SpectrumSequence object (can contain 1 or multiple spectra centered around peak apex)
+      @param[in] transitions The transitions used for scoring
+      @param[out] scores The output scores
+      @param[in] im_range the ion mobility range
+      @param[in] dia_extraction_window_ m/z extraction width
+      @param[in] dia_extraction_ppm_ Whether m/z extraction width is in ppm
+      @param[in] drift_extra Extra extraction to use for drift time (in percent)
     */
     static void driftScoringMS1Contrast(const SpectrumSequence& spectra, const SpectrumSequence& ms1spectrum,
                                         const std::vector<TransitionType> & transitions,
@@ -122,6 +128,31 @@ namespace OpenMS
                                         const double dia_extraction_window_,
                                         const bool dia_extraction_ppm_,
                                         const double drift_extra);
+
+    /**
+      @brief Performs scoring of the ion mobility dimension for identification transitions against detection transitions
+
+      @param[in] spectra Vector of the DIA MS2 spectrum found in SpectrumSequence object (can contain 1 or multiple spectra centered around peak apex)
+      @param[in] transitions The transitions used for scoring
+      @param[in] transition_group_detection The detection transition group
+      @param[out] scores The output scores
+      @param[out] drift_target Ion Mobility extraction target
+      @param[in] im_range Ion Mobility extraction range
+      @param[in] dia_extract_window_ m/z extraction width
+      @param[in] dia_extraction_ppm_ Whether m/z extraction width is in ppm
+      @param[in] drift_extra Extra extraction to use for drift time (in percent)
+      @param[in] apply_im_peak_picking Apply peak pickng on the ion mobilogram
+    */
+    static void driftIdScoring(const SpectrumSequence& spectra,
+                                const std::vector<TransitionType> & transitions,
+                                MRMTransitionGroupType& transition_group_detection,
+                                OpenSwath_Scores & scores,
+                                const double drift_target,
+                                RangeMobility im_range,
+                                const double dia_extract_window_,
+                                const bool dia_extraction_ppm_,
+                                const double drift_extra,
+                                const bool apply_im_peak_picking);
 
     /**
      * @brief computes ion mobilogram to be used in scoring based on mz_range and im_range.
@@ -159,10 +190,10 @@ namespace OpenMS
      for the ion mobilogram: intensity (y) and ion mobility (x). Zero values are
      inserted if no data point was found for a given grid value.
 
-     @param profile The ion mobility data
-     @param im_grid The grid to be used
-     @param eps Epsilon used for computing the ion mobility grid
-     @param max_peak_idx The grid position of the maximum
+     @param[in] profile The ion mobility data
+     @param[in] im_grid The grid to be used
+     @param[in] eps Epsilon used for computing the ion mobility grid
+     @param[in] max_peak_idx The grid position of the maximum
     */
     static void alignToGrid_(const Mobilogram& profile,
                  const std::vector<double>& im_grid,
@@ -186,6 +217,29 @@ namespace OpenMS
     static void extractIntensities(const std::vector< Mobilogram >& mobilograms,
                                    std::vector<std::vector<double>>& int_values);
 
-  };
-}
+    /**
+     * @brief Extracts intensity values from a single Mobilogram object
+     *
+     * This function takes a single Mobilogram object and extracts the intensity
+     * values, returning them as a vector of doubles.
+     *
+     * @param[in] mobilogram [in] A const reference to a Mobilogram object from which to extract intensity values.
+     * @return A vector of doubles containing the extracted intensity values.
+     */
+    static std::vector<double> extractIntensities(const Mobilogram& mobilogram);
 
+  };
+
+  /*
+  @brief Helper function to sum up aligned mobilograms
+
+  This function takes a vector of aligned mobilograms and sums them up to create a single Mobilogram object. The resulting Mobilogram object will contain the sum of the intensity values from all the input mobilograms.
+
+  @note the input vector of Mobilograms all need to have the same size, otherwise the function will throw a pre-condition exception.
+
+  @param[in] aligned_mobilograms A vector of aligned mobilograms
+  @return  A Mobilogram object that is the sum of the input mobilograms
+  */
+  OpenMS::Mobilogram sumAlignedMobilograms(const std::vector<OpenMS::Mobilogram>& aligned_mobilograms);
+
+  } // namespace OpenMS

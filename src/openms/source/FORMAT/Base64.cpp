@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,10 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Base64.h>
-
-#include <QtCore/QList>
-#include <QtCore/QString>
-
 #include <OpenMS/SYSTEM/SIMDe.h>
 
 using namespace std;
@@ -126,25 +122,28 @@ namespace OpenMS
     in.resize(in.size() + 4, '\0');
     // otherwise there are cases where register encoder isnt allowed to access last bytes
 
+    // IMPORTANT: The pointer cast must use simde__m128i* (not simde__m128*) to match the data type.
+    // Using the wrong SIMD pointer type (float vs integer) violates strict aliasing rules and
+    // causes undefined behavior that manifests as SIGBUS on ARM64 platforms.
     simde__m128i data {};
-    // loop  through input as long as it's safe to access memory
+
     for (int i = 0; i < loop; i++)
     {
-      // each time the last 4 out of 16 byte string data get lost through processing, therefore jumps of 12 bytes (/characters)
-      data = simde_mm_lddqu_si128((simde__m128i*)&in[12 * i]);
+      // Each iteration: 12 input bytes -> 16 output bytes (last 4 of 16 loaded bytes are discarded)
+      data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(&in[12 * i]));
       registerEncoder_(data);
-      simde_mm_storeu_si128((simde__m128*)&out[i * 16], data);
+      simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(&out[i * 16]), data);
     }
 
     size_t read = loop * 12;
     size_t written = loop * 16;
 
-    // create buffer to translate last bytes without accessing memory that hasn't been allocated
+    // Handle remaining bytes using a stack buffer to avoid out-of-bounds access
     std::array<char, 16> buffer {};
     memcpy(&buffer[0], &in[read], in.size() - read - 4); // minus 4 because of 4 appended null bytes
-    data = simde_mm_lddqu_si128((simde__m128i*)&buffer[0]);
+    data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(&buffer[0]));
     registerEncoder_(data);
-    simde_mm_storeu_si128((simde__m128*)&out[written], data);
+    simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(&out[written]), data);
 
     in.resize(in.size() - 4); // remove null bytes
 
@@ -177,27 +176,31 @@ namespace OpenMS
       g++;
 
     unsigned outsize = (in.size() / 16) * 12 + 16;
-    // not final size (final rezize later to cutoff unwanted characters)
+    // not final size (final resize later to cutoff unwanted characters)
     out.resize(outsize);
     char* outPtr = &out[0];
     int loop = in.size() / 16;
 
+    // Use unaligned SIMD load/store for portability (see stringSimdEncoder_ for rationale).
     for (int i = 0; i < loop; i++)
     {
-      simde__m128i data = simde_mm_lddqu_si128((simde__m128i*)(inPtr + i * 16));
+      // IMPORTANT: Pointer cast must use simde__m128i* to match data type (strict aliasing).
+      simde__m128i data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(inPtr + i * 16));
       registerDecoder_(data);
-      simde_mm_storeu_si128((simde__m128*)(outPtr + i * 12), data);
+      simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + i * 12), data);
     }
 
     size_t read = loop * 16;
+    size_t written = loop * 12;
+
+    // Handle remaining bytes using a stack buffer padded with placeholder chars
     std::array<char, 16> rest;
     std::fill(rest.begin(), rest.end(), 'x');
     std::copy(in.begin() + read, in.end(), rest.begin());
 
-    simde__m128i data = simde_mm_lddqu_si128((simde__m128i*)&rest[0]);
+    simde__m128i data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(&rest[0]));
     registerDecoder_(data);
-    size_t written = loop * 12;
-    simde_mm_storeu_si128((simde__m128*)(outPtr + written), data);
+    simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + written), data);
 
     // cutting off decoding of appendix
     outsize = (in.size() / 4) * 3 - g;
@@ -247,20 +250,24 @@ namespace OpenMS
     {
       return;
     }
+    String decoded;
+    decodeSingleString(in, decoded, zlib_compression);
 
-    QByteArray base64_uncompressed;
-    decodeSingleString(in, base64_uncompressed, zlib_compression);    //////////////////////////////////////////////the magic happenes here
-    QList<QByteArray> null_strings = base64_uncompressed.split('\0');
-    for (QList<QByteArray>::iterator it = null_strings.begin(); it < null_strings.end(); ++it)
+    const char* first_sep = decoded.data(); // start of current string
+    const char* next_sep = 0;  // end of current string (past the end)
+    while (first_sep < decoded.data() + decoded.size())
     {
-      if (!it->isEmpty())
-      {
-        out.emplace_back(QString(*it).toStdString());
+      next_sep = strchr(first_sep, '\0');
+     
+      if (first_sep + 1 < next_sep) // non-empty string
+      { 
+        out.push_back(String(first_sep, next_sep - first_sep));
       }
+      first_sep = next_sep + 1; // move to substring
     }
   }
 
-  void Base64::decodeSingleString(const String& in, QByteArray& base64_uncompressed, bool zlib_compression)
+  void Base64::decodeSingleString(const String& in, String& out, bool zlib_compression)
   {
     // The length of a base64 string is a always a multiple of 4 (always 3
     // bytes are encoded as 4 characters)
@@ -268,24 +275,16 @@ namespace OpenMS
     {
       return;
     }
-    ////////////////////compare our decoding to QT decoding, and possibly decode first using simde, then copy into QByte Array
-    QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
-    base64_uncompressed = QByteArray::fromBase64(herewego);
+
     if (zlib_compression)
     {
-      QByteArray czip;
-      czip.resize(4);
-      czip[0] = (base64_uncompressed.size() & 0xff000000) >> 24;
-      czip[1] = (base64_uncompressed.size() & 0x00ff0000) >> 16;
-      czip[2] = (base64_uncompressed.size() & 0x0000ff00) >> 8;
-      czip[3] = (base64_uncompressed.size() & 0x000000ff);
-      czip += base64_uncompressed;
-      base64_uncompressed = qUncompress(czip);
-
-      if (base64_uncompressed.isEmpty())
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
-      }
+      String decoded;
+      stringSimdDecoder_(in, decoded);
+      ZlibCompression::uncompressString(decoded, out);
+    }
+    else
+    {
+      stringSimdDecoder_(in, out);
     }
   }
 

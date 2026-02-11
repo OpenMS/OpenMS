@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/COMPARISON/SpectrumAlignmentScore.h>" namespace "OpenM
     cdef cppclass SpectrumAlignmentScore(DefaultParamHandler):
         # wrap-inherits:
         #  DefaultParamHandler
-        SpectrumAlignmentScore() except + nogil 
+
         # wrap-doc:
                 #  Similarity score via spectra alignment
                 #  
@@ -20,6 +20,8 @@ cdef extern from "<OpenMS/COMPARISON/SpectrumAlignmentScore.h>" namespace "OpenM
                 #  The scoring is done via the simple formula score = sum / (sqrt(sum1 * sum2)). sum is the
                 #  product of the intensities of the aligned peaks, with the given exponent (default is 2)
                 #  sum1 and sum2 are the sum of the intensities squared for each peak of both spectra respectively
+
+        SpectrumAlignmentScore() except + nogil
 
         SpectrumAlignmentScore(SpectrumAlignmentScore &) except + nogil 
 

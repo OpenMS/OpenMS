@@ -46,13 +46,12 @@ using std::min;
 using std::max;
 using std::abs;
 
-// This is only valid on systems were ints use more bytes than chars...
-
+// MSNumpress uses big-endian byte order; little-endian systems require byte swapping.
 const int ONE = 1;
-static bool is_big_endian() {
+static bool is_little_endian() {
 	return *((char*)&(ONE)) == 1;
 }
-bool IS_BIG_ENDIAN = is_big_endian();
+bool IS_LITTLE_ENDIAN = is_little_endian();
 
 
 
@@ -65,7 +64,7 @@ static void encodeFixedPoint(
 	int i;
 	unsigned char *fp = (unsigned char*)&fixedPoint;
 	for (i=0; i<8; i++) {
-		result[i] = fp[IS_BIG_ENDIAN ? (7-i) : i];
+		result[i] = fp[IS_LITTLE_ENDIAN ? (7-i) : i];
 	}
 }
 
@@ -80,7 +79,7 @@ static double decodeFixedPoint(
 		
 	for (i=0; i<8; i++)
 	{
-		fp[i] = data[IS_BIG_ENDIAN ? (7-i) : i];
+		fp[i] = data[IS_LITTLE_ENDIAN ? (7-i) : i];
 	}
 	
 	return fixedPoint;
@@ -538,7 +537,7 @@ size_t encodeSafe(
 	fp = (unsigned char*)data;
 	for (i=0; i<8; i++)
 	{
-		result[ri++] = fp[IS_BIG_ENDIAN ? (7-i) : i];
+		result[ri++] = fp[IS_LITTLE_ENDIAN ? (7-i) : i];
 	}
 	
 	if (dataSize == 1)
@@ -549,7 +548,7 @@ size_t encodeSafe(
 	fp = (unsigned char*)&(data[1]);
 	for (i=0; i<8; i++)
 	{
-		result[ri++] = fp[IS_BIG_ENDIAN ? (7-i) : i];
+		result[ri++] = fp[IS_LITTLE_ENDIAN ? (7-i) : i];
 	}
 
 	fp = (unsigned char*)&diff;
@@ -562,7 +561,7 @@ size_t encodeSafe(
 		//printf("%f %f %f %f %f\n", latest[0], latest[1], latest[2], extrapol, diff);
 		for (j=0; j<8; j++)
 		{
-			result[ri++] = fp[IS_BIG_ENDIAN ? (7-j) : j];
+			result[ri++] = fp[IS_LITTLE_ENDIAN ? (7-j) : j];
 		}
 	}
 	
@@ -591,7 +590,7 @@ size_t decodeSafe(
 		fp = (unsigned char*)&(latest[1]);
 		for (i=0; i<8; i++)
 		{
-			fp[i] = data[IS_BIG_ENDIAN ? (7-i) : i];
+			fp[i] = data[IS_LITTLE_ENDIAN ? (7-i) : i];
 		}
 		result[0] = latest[1];
 
@@ -602,7 +601,7 @@ size_t decodeSafe(
 		fp = (unsigned char*)&(latest[2]);
 		for (i=0; i<8; i++)
 		{
-			fp[i] = data[8 + (IS_BIG_ENDIAN ? (7-i) : i)];
+			fp[i] = data[8 + (IS_LITTLE_ENDIAN ? (7-i) : i)];
 		}
 		result[1] = latest[2];
 		
@@ -616,7 +615,7 @@ size_t decodeSafe(
 			
 			for (i=0; i<8; i++)
 			{
-				fp[i] = data[di + (IS_BIG_ENDIAN ? (7-i) : i)];
+				fp[i] = data[di + (IS_LITTLE_ENDIAN ? (7-i) : i)];
 			}
 			
 			extrapol = latest[1] + (latest[1] - latest[0]);

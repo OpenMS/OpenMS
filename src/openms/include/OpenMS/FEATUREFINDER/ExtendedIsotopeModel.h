@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,7 +20,7 @@ namespace OpenMS
     If you only want the distribution (no widening), use either
     EmpiricalFormula::getIsotopeDistribution() // for a certain sum formula
     or
-    IsotopeDistribution::estimateFromPeptideWeight (double average_weight)  // for averagine
+    CoarseIsotopePatternGenerator::estimateFromPeptideWeight (double average_weight)  // for averagine
 
     Peak widening is achieved by a Gaussian shape.
 

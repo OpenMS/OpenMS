@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -542,6 +542,9 @@ namespace OpenMS
 
   bool Residue::operator==(const Residue& residue) const
   {
+    // usually, its the same address (from ResidueDB)
+    if (this == &residue) return true;
+    // otherwise compare members
     return name_ == residue.name_ &&
            synonyms_ == residue.synonyms_ &&
            three_letter_code_ == residue.three_letter_code_ &&
@@ -554,8 +557,6 @@ namespace OpenMS
            loss_formulas_ == residue.loss_formulas_ &&
            NTerm_loss_names_ == residue.NTerm_loss_names_ &&
            NTerm_loss_formulas_ == residue.NTerm_loss_formulas_ &&
-           loss_average_weight_ == residue.loss_average_weight_ &&
-           loss_mono_weight_ == residue.loss_mono_weight_ &&
            low_mass_ions_ == residue.low_mass_ions_ &&
            pka_ == residue.pka_ &&
            pkb_ == residue.pkb_ &&

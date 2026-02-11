@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -88,7 +88,7 @@ namespace OpenMS
 
     int param_index_src = e->getSourceOutParam();
     int param_index_me = e->getTargetInParam();
-    for (Size round = 0; round < round_total_; ++round)
+    for (Size round = 0; round < static_cast<Size>(round_total_); ++round)
     {
       for (const QString &src_dir : pkg[round][param_index_src].filenames.get())
       {

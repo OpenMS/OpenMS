@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -95,7 +95,7 @@ namespace OpenMS
   {
     insert(FeatureHandle(map_index, element));
     // annotate map index to peptide identification
-    std::vector<PeptideIdentification> ids(element.getPeptideIdentifications());
+    PeptideIdentificationList ids(element.getPeptideIdentifications());
     for (PeptideIdentification& it : ids)
     {
       it.setMetaValue("map_index", map_index);
@@ -389,28 +389,28 @@ namespace OpenMS
   std::ostream& operator<<(std::ostream& os, const ConsensusFeature& cons)
   {
     os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
-    os << "Position: " << cons.getPosition() << std::endl;
-    os << "Intensity " << precisionWrapper(cons.getIntensity()) << std::endl;
-    os << "Quality " << precisionWrapper(cons.getQuality()) << std::endl;
-    os << "Grouped features: " << std::endl;
+    os << "Position: " << cons.getPosition() << '\n';
+    os << "Intensity " << precisionWrapper(cons.getIntensity()) << '\n';
+    os << "Quality " << precisionWrapper(cons.getQuality()) << '\n';
+    os << "Grouped features: \n";
 
     for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
-      os << " - Map index: " << it->getMapIndex() << std::endl
-         << "   Feature id: " << it->getUniqueId() << std::endl
-         << "   RT: " << precisionWrapper(it->getRT()) << std::endl
-         << "   m/z: " << precisionWrapper(it->getMZ()) << std::endl
-         << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
+      os << " - Map index: " << it->getMapIndex() << '\n'
+         << "   Feature id: " << it->getUniqueId() << '\n'
+         << "   RT: " << precisionWrapper(it->getRT()) << '\n'
+         << "   m/z: " << precisionWrapper(it->getMZ()) << '\n'
+         << "   Intensity: " << precisionWrapper(it->getIntensity()) << '\n';
     }
 
-    os << "Meta information: " << std::endl;
+    os << "Meta information: \n";
     std::vector<String> keys;
     cons.getKeys(keys);
     for (const String& it : keys)
     {
-      os << "   " << (it) << ": " << cons.getMetaValue(it) << std::endl;
+      os << "   " << (it) << ": " << cons.getMetaValue(it) << '\n';
     }
-    os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
+    os << "---------- CONSENSUS ELEMENT END ----------------- \n";
 
     return os;
   }

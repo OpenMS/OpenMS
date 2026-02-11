@@ -157,7 +157,10 @@
 			<UserParam type="float" name="var_im_delta_score" value="0.020000002980232"/>
 			<UserParam type="float" name="var_im_ms1_delta_score" value="5.584907036907283e-03"/>
 			<UserParam type="float" name="im_drift" value="0.699999997019768"/>
+			<UserParam type="float" name="im_drift_left" value="0.0"/>
+			<UserParam type="float" name="im_drift_right" value="0.0"/>
 			<UserParam type="float" name="im_drift_weighted" value="0.699999997019768"/>
+			<UserParam type="float" name="im_log_intensity" value="9.61587214452889"/>
 			<UserParam type="float" name="im_ms1_drift" value="0.714415092963093"/>
 			<UserParam type="float" name="im_ms1_delta" value="5.584907036907283e-03"/>
 			<UserParam type="float" name="im_delta" value="0.020000002980232"/>
@@ -276,7 +279,7 @@
 			<UserParam type="float" name="leftWidth" value="2.299999952316284"/>
 			<UserParam type="float" name="rightWidth" value="48.299999237060547"/>
 			<UserParam type="float" name="peak_apices_sum" value="2.5875e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 1.393084473600824e-10, 0.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.0, 0.0, 1.393084473600823e-10, 0.0, 0.0]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="1.0"/>
@@ -299,8 +302,8 @@
 			<UserParam type="float" name="xx_lda_prelim_score" value="4.853113243883652"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.465697732516052"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.0"/>
-			<UserParam type="float" name="var_massdev_score" value="2.786168947201647e-11"/>
-			<UserParam type="float" name="var_massdev_score_weighted" value="2.786168947201647e-11"/>
+			<UserParam type="float" name="var_massdev_score" value="2.786168947201648e-11"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="2.786168947201648e-11"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.286000290978012"/>
@@ -318,7 +321,10 @@
 			<UserParam type="float" name="var_im_delta_score" value="0.025855071060899"/>
 			<UserParam type="float" name="var_im_ms1_delta_score" value="8.43882503724136e-04"/>
 			<UserParam type="float" name="im_drift" value="0.904144928939101"/>
+			<UserParam type="float" name="im_drift_left" value="0.0"/>
+			<UserParam type="float" name="im_drift_right" value="0.0"/>
 			<UserParam type="float" name="im_drift_weighted" value="0.904144928939101"/>
+			<UserParam type="float" name="im_log_intensity" value="10.161071177163876"/>
 			<UserParam type="float" name="im_ms1_drift" value="0.930843882503724"/>
 			<UserParam type="float" name="im_ms1_delta" value="-8.43882503724136e-04"/>
 			<UserParam type="float" name="im_delta" value="0.025855071060899"/>
@@ -479,7 +485,10 @@
 			<UserParam type="float" name="var_im_delta_score" value="9.999997615814271e-03"/>
 			<UserParam type="float" name="var_im_ms1_delta_score" value="4.415092888118144e-03"/>
 			<UserParam type="float" name="im_drift" value="1.100000002384186"/>
+			<UserParam type="float" name="im_drift_left" value="0.0"/>
+			<UserParam type="float" name="im_drift_right" value="0.0"/>
 			<UserParam type="float" name="im_drift_weighted" value="1.100000002384186"/>
+			<UserParam type="float" name="im_log_intensity" value="9.61587214452889"/>
 			<UserParam type="float" name="im_ms1_drift" value="1.114415092888118"/>
 			<UserParam type="float" name="im_ms1_delta" value="-4.415092888118144e-03"/>
 			<UserParam type="float" name="im_delta" value="9.999997615814271e-03"/>

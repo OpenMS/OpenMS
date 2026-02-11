@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
 
     cdef cppclass PepXMLFile:
 
-        PepXMLFile() except + nogil 
+        PepXMLFile() except + nogil
         #  copy constructor of 'PepXMLFile' is implicitly deleted because base class 'Internal::XMLHandler' has a deleted copy constructor protected Internal::XMLHandler,
         PepXMLFile(PepXMLFile &) except + nogil  # wrap-ignore
 
@@ -21,36 +21,35 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
 
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
-                  libcpp_vector[PeptideIdentification] & peptide_ids
-                  ) except + nogil 
+                  PeptideIdentificationList & peptide_ids
+                  ) except + nogil  # wrap-ignore
 
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
-                  libcpp_vector[PeptideIdentification] & peptide_ids,
+                  PeptideIdentificationList & peptide_ids,
                   String experiment_name
-                  ) except + nogil 
+                  ) except + nogil  # wrap-ignore
 
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
-                  libcpp_vector[PeptideIdentification] & peptide_ids,
+                  PeptideIdentificationList & peptide_ids,
                   String experiment_name,
                   SpectrumMetaDataLookup lookup
-                  ) except + nogil 
+                  ) except + nogil  # wrap-ignore
 
         void store(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
-                  libcpp_vector[PeptideIdentification] & peptide_ids
-                  ) except + nogil 
+                  PeptideIdentificationList & peptide_ids
+                  ) except + nogil  # wrap-ignore
 
         void store(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
-                  libcpp_vector[PeptideIdentification] & peptide_ids,
+                  PeptideIdentificationList & peptide_ids,
                   String mz_file,
                   String mz_name,
                   bool peptideprophet_analyzed,
                   double rt_tolerance
-                  ) except + nogil 
+                  ) except + nogil  # wrap-ignore
 
-        void keepNativeSpectrumName(bool keep) except + nogil 
-        void setParseUnknownScores(bool parse_unknown_scores) except + nogil 
-
+        void keepNativeSpectrumName(bool keep) except + nogil
+        void setParseUnknownScores(bool parse_unknown_scores) except + nogil

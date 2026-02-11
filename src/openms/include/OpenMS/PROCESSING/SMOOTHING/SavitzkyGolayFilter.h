@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/Mobilogram.h> 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
@@ -180,6 +181,19 @@ public:
       filter(chromatogram.begin(), chromatogram.end(), output.begin());
       // swap back
       std::swap(chromatogram, output);
+    }
+
+    /**
+      @brief Removed the noise from an Mobilogram
+    */
+    void filter(Mobilogram & mobilogram)
+    {
+      // copy the data AND META DATA to the output container
+      Mobilogram output = mobilogram;
+      // filter
+      filter(mobilogram.begin(), mobilogram.end(), output.begin());
+      // swap back
+      std::swap(mobilogram, output);
     }
 
     /**

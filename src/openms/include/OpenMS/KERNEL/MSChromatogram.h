@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,7 +31,7 @@ namespace OpenMS
 
 public:
 
-    /// Comparator for the retention time.
+    /// Comparator for the precursor m/z time.
     struct OPENMS_DLLAPI MZLess
     {
       bool operator()(const MSChromatogram& a, const MSChromatogram& b) const;
@@ -82,6 +82,7 @@ public:
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;
+    using ContainerType::emplace_back;
     using ContainerType::pop_back;
     using ContainerType::empty;
     using ContainerType::front;
@@ -129,15 +130,7 @@ public:
     }
 
     // Docu in base class (RangeManager)
-    void updateRanges() override
-    {
-      clearRanges();
-      for (const auto& peak : (ContainerType&) *this)
-      {
-        extendRT(peak.getRT());
-        extendIntensity(peak.getIntensity());
-      }
-    }
+    void updateRanges() override;
 
     ///@name Accessors for meta information
     ///@{
@@ -230,7 +223,7 @@ public:
     /**
       @brief Binary search for the peak nearest to a specific RT
 
-      @param rt The searched for mass-to-charge ratio searched
+      @param[in] rt The searched for mass-to-charge ratio searched
       @return Returns the index of the peak.
 
       @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined.
@@ -294,8 +287,6 @@ public:
       undefined.
     */
     ConstIterator RTEnd(CoordinateType rt) const;
-
-    ConstIterator MZEnd(CoordinateType rt) const;
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
@@ -388,9 +379,21 @@ public:
     /**
       @brief Clears all data and meta data
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
+
+    /**
+      @brief Subset the chromatogram by selecting only indices in @p indices, in that order
+
+      @param[in] indices Indices to keep. The order is retained.
+      @return Reference to this MSChromatogram
+
+      @note The indices are NOT checked for validity!
+      @note DataArrays must have the same size as the chromatogram. If not, an exception is thrown.
+      @note This method is useful for filtering chromatograms while properly maintaining DataArrays.
+    */
+    MSChromatogram& select(const std::vector<Size>& indices);
 
     ///@}
 
@@ -402,10 +405,10 @@ public:
 
       @note Peak level metadata stored in float_array string_array and int_array of the destination MSChromatogram is not guaranteed to be correct after merging
 
-      MZ of the destination MSChromatogram remains unchanged. 
+      MZ of the destination MSChromatogram remains unchanged.
 
-      @param other A reference to the MSChromatogram to take ChromatogramPeaks from
-      @param add_meta If true, a metavalue "merged_chromatogram_mzs" is added with the m/z of @p other
+      @param[in,out] other A reference to the MSChromatogram to take ChromatogramPeaks from
+      @param[in] add_meta If true, a metavalue "merged_chromatogram_mzs" is added with the m/z of @p other
     */
     void mergePeaks(MSChromatogram& other, bool add_meta=false);
 

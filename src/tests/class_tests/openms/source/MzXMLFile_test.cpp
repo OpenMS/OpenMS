@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -166,12 +166,12 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "");
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "RAWData");
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
-  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
+  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(),SourceFile::ChecksumType::SHA1)
     TEST_STRING_EQUAL(e.getSourceFiles()[1].getNameOfFile(), "File_test_2.raw");
   TEST_STRING_EQUAL(e.getSourceFiles()[1].getPathToFile(), "");
   TEST_STRING_EQUAL(e.getSourceFiles()[1].getFileType(), "processedData");
   TEST_STRING_EQUAL(e.getSourceFiles()[1].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb13");
-  TEST_EQUAL(e.getSourceFiles()[1].getChecksumType(),SourceFile::SHA1)
+  TEST_EQUAL(e.getSourceFiles()[1].getChecksumType(),SourceFile::ChecksumType::SHA1)
 
     //---------------------------------------------------------------------------
     // data processing (assigned to each spectrum)
@@ -212,21 +212,21 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
     TEST_EQUAL(inst.getName(), "")
     TEST_EQUAL(inst.getCustomizations(), "")
     TEST_EQUAL(inst.getIonSources().size(),1)
-    TEST_EQUAL(inst.getIonSources()[0].getIonizationMethod(), IonSource::ESI)
-    TEST_EQUAL(inst.getIonSources()[0].getInletType(), IonSource::INLETNULL)
-    TEST_EQUAL(inst.getIonSources()[0].getPolarity(), IonSource::POLNULL)
+    TEST_EQUAL(inst.getIonSources()[0].getIonizationMethod(), IonSource::IonizationMethod::ESI)
+    TEST_EQUAL(inst.getIonSources()[0].getInletType(), IonSource::InletType::INLETNULL)
+    TEST_EQUAL(inst.getIonSources()[0].getPolarity(), IonSource::Polarity::POLNULL)
     TEST_EQUAL(inst.getIonDetectors().size(),1)
-    TEST_EQUAL(inst.getIonDetectors()[0].getType(), IonDetector::FARADAYCUP)
+    TEST_EQUAL(inst.getIonDetectors()[0].getType(), IonDetector::Type::FARADAYCUP)
     TEST_REAL_SIMILAR(inst.getIonDetectors()[0].getResolution(), 0.0f)
     TEST_REAL_SIMILAR(inst.getIonDetectors()[0].getADCSamplingFrequency(), 0.0f)
-    TEST_EQUAL(inst.getIonDetectors()[0].getAcquisitionMode(), IonDetector::ACQMODENULL)
+    TEST_EQUAL(inst.getIonDetectors()[0].getAcquisitionMode(), IonDetector::AcquisitionMode::ACQMODENULL)
     TEST_EQUAL(inst.getMassAnalyzers().size(), 1)
-    TEST_EQUAL(inst.getMassAnalyzers()[0].getType(), MassAnalyzer::PAULIONTRAP)
-    TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionMethod(), MassAnalyzer::FWHM)
-    TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionType(), MassAnalyzer::RESTYPENULL)
-    TEST_EQUAL(inst.getMassAnalyzers()[0].getScanDirection(), MassAnalyzer::SCANDIRNULL)
-    TEST_EQUAL(inst.getMassAnalyzers()[0].getScanLaw(), MassAnalyzer::SCANLAWNULL)
-    TEST_EQUAL(inst.getMassAnalyzers()[0].getReflectronState(), MassAnalyzer::REFLSTATENULL)
+    TEST_EQUAL(inst.getMassAnalyzers()[0].getType(), MassAnalyzer::AnalyzerType::PAULIONTRAP)
+    TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionMethod(), MassAnalyzer::ResolutionMethod::FWHM)
+    TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionType(), MassAnalyzer::ResolutionType::RESTYPENULL)
+    TEST_EQUAL(inst.getMassAnalyzers()[0].getScanDirection(), MassAnalyzer::ScanDirection::SCANDIRNULL)
+    TEST_EQUAL(inst.getMassAnalyzers()[0].getScanLaw(), MassAnalyzer::ScanLaw::SCANLAWNULL)
+    TEST_EQUAL(inst.getMassAnalyzers()[0].getReflectronState(), MassAnalyzer::ReflectronState::REFLSTATENULL)
     TEST_EQUAL(inst.getMassAnalyzers()[0].getResolution(), 0.0f)
     TEST_EQUAL(inst.getMassAnalyzers()[0].getAccuracy(), 0.0f)
     TEST_EQUAL(inst.getMassAnalyzers()[0].getScanRate(), 0.0f)
@@ -255,7 +255,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
     //---------------------------------------------------------------------------
     TEST_EQUAL(e.getSample().getName(), "")
     TEST_EQUAL(e.getSample().getNumber(), "")
-    TEST_EQUAL(e.getSample().getState(), Sample::SAMPLENULL)
+    TEST_EQUAL(e.getSample().getState(), Sample::SampleState::SAMPLENULL)
     TEST_EQUAL(e.getSample().getMass(), 0.0f)
     TEST_EQUAL(e.getSample().getVolume(), 0.0f)
     TEST_EQUAL(e.getSample().getConcentration(), 0.0f)

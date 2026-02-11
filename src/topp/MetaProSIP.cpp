@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -66,6 +66,101 @@ typedef vector<IsotopePattern> IsotopePatterns;
 @page TOPP_MetaProSIP MetaProSIP
 
 @brief Performs proteinSIP on peptide features for elemental flux analysis.
+
+MetaProSIP detects and quantifies stable isotope incorporation in peptides from protein-SIP experiments.
+It takes centroided mzML data, featureXML with identifications (from IDMapper), and a protein FASTA database
+as input and produces incorporation reports as tab-separated CSV files.
+
+Relative isotope abundances (RIA) are calculated on the peptide level and then transferred to the protein
+level using the median of all peptide RIAs. Protein-level RIAs are further summarized at the group level
+(also as medians). Groups cluster proteins with similar incorporation behavior.
+
+@section MetaProSIP_csv_outputs CSV Output Formats
+
+@subsection MetaProSIP_out_csv Group-Centric Report (-out_csv)
+
+The group-centric report is organized hierarchically with three levels:
+
+<b>Group level</b> (one row per group):
+| Column | Description |
+|--------|-------------|
+| Group N | Group identifier (1-based) |
+| \# Distinct Peptides | Number of distinct peptide sequences in the group |
+| \# Unambiguous Proteins | Number of proteins identified by unique peptides only |
+| Median Global LR | Median labeling ratio across all peptides in the group |
+| median RIA 1, 2, ... | Median relative isotope abundance for each incorporation level |
+
+<b>Protein level</b> (one row per protein within a group):
+| Column | Description |
+|--------|-------------|
+| Protein Accession | Protein identifier from the FASTA database |
+| Description | Protein description from the FASTA header |
+| \# Unique Peptides | Number of peptides unique to this protein (not shared with other proteins) |
+| Median Global LR | Median labeling ratio across all peptides of this protein |
+| median RIA 1, 2, ... | Median relative isotope abundance for each incorporation level |
+
+<b>Unique peptide level</b> (one row per peptide within a protein):
+| Column | Description |
+|--------|-------------|
+| Peptide Sequence | Amino acid sequence |
+| RT | Retention time of the feature apex (minutes) |
+| Exp. m/z | Experimentally observed m/z |
+| Theo. m/z | Theoretical m/z computed from the sequence and charge |
+| Charge | Charge state |
+| Score | Identification score (e.g., search engine score or q-value) |
+| TIC fraction | Fraction of the MS1 TIC explained by the isotope pattern decomposition |
+| \#non-natural weights | Number of non-zero decomposition coefficients beyond the natural isotope pattern |
+| RIA N | Relative isotope abundance (%) for the Nth incorporation level |
+| INT N | Intensity (abundance) for the Nth incorporation level |
+| Cor. N | Correlation between observed and theoretical isotope pattern for the Nth level |
+| Peak intensities | Space-separated list of isotopic peak intensities across the mass range |
+| Global LR | Labeling ratio: fraction of total ion current in higher (non-natural) labeling states |
+
+<b>Non-unique peptides</b> are listed separately at the end (not grouped by incorporation) with additional columns:
+| Column | Description |
+|--------|-------------|
+| Accessions | Comma-separated list of all protein accessions this peptide maps to |
+| Descriptions | Comma-separated protein descriptions |
+
+The remaining columns (Peptide Sequence, Score, RT, Exp. m/z, Theo. m/z, Charge, \#non-natural weights,
+RIA/INT/Cor., Peak intensities, Global LR) are the same as for unique peptides.
+
+@subsection MetaProSIP_out_peptide_csv Peptide-Centric Report (-out_peptide_centric_csv)
+
+The peptide-centric report lists one row per peptide (PSM) with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| Peptide Sequence | Amino acid sequence |
+| Feature | Feature type: "feature" (identified from feature), "id" (identified from ID), or "unidentified" |
+| Quality Report Spectrum | File path to the spectrum quality report plot (if quality report output is enabled) |
+| Quality report scores | File path to the scores quality report plot |
+| Sample Name | Name of the input mzML file |
+| Protein Accessions | Comma-separated protein accessions |
+| Description | Comma-separated protein descriptions from the FASTA header |
+| Unique | Whether the peptide maps to a single protein (true/false) |
+| \#Ambiguity members | Number of proteins this peptide maps to |
+| Score | Identification score |
+| RT | Retention time of the feature apex (minutes) |
+| Exp. m/z | Experimentally observed m/z |
+| Theo. m/z | Theoretical m/z (for unidentified features this equals the precursor m/z) |
+| Charge | Charge state |
+| TIC fraction | Fraction of MS1 TIC explained by the decomposition |
+| \#non-natural weights | Number of non-zero decomposition coefficients beyond the natural pattern |
+| Peak intensities | Space-separated list of isotopic peak intensities |
+| Group | Group/cluster index assigned by incorporation-based clustering |
+| Global Peptide LR | Global labeling ratio for this peptide |
+| RIA N | Relative isotope abundance (%) for incorporation level N (columns for up to 10 levels) |
+| LR of RIA N | Labeling ratio corresponding to RIA N |
+| INT N | Intensity for incorporation level N |
+| Cor. N | Correlation coefficient for incorporation level N |
+
+@note For unidentified features (Feature = "unidentified"), no amino acid sequence is available. The Theo. m/z
+column contains the precursor m/z value. Only identified features allow reliable calculation of elemental
+composition and thus accurate incorporation analysis.
+
+@note Protein Accessions may be empty if the FASTA database passed via @p -in_fasta does not contain the
+identified accessions.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_MetaProSIP.cli
@@ -1899,10 +1994,13 @@ public:
       xic_mzs.push_back(mz);
     }
 
+    cout << "Element count (+ additional isotopes): " << element_count << endl;
+
     // extract xics
     vector<vector<double> > xics = extractXICs(seed_rt, xic_mzs, mz_tolerance_ppm, rt_tolerance_s, peak_map);
 
     vector<double> xic_intensities(xics.size(), 0.0);
+
     if (min_corr_mono > 0)
     {
       // calculate correlation to mono-isotopic peak
@@ -1922,6 +2020,8 @@ public:
         xic_intensities[i] = std::accumulate(xics[i].begin(), xics[i].end(), 0.0);
       }
     }
+
+    cout << "XICs: " << xic_intensities.size() << endl;
 
     return xic_intensities;
   }
@@ -2031,10 +2131,21 @@ protected:
     registerInputFile_("in_fasta", "<file>", "", "Protein sequence database");
     setValidFormats_("in_fasta", ListUtils::create<String>("fasta"));
 
-    registerOutputFile_("out_csv", "<file>", "", "Column separated file with feature fitting result.");
+    registerOutputFile_("out_csv", "<file>", "", "Tab-separated, group-centric report of SIP incorporation results. "
+      "Organized hierarchically by groups, proteins, and peptides. "
+      "Columns for unique peptides: Peptide Sequence, RT (min), Exp. m/z, Theo. m/z, Charge, Score, TIC fraction, "
+      "#non-natural weights, then for each incorporation: RIA (relative isotope abundance, %), INT (intensity), "
+      "Cor. (correlation), followed by Peak intensities and Global LR (labeling ratio). "
+      "Non-unique peptides additionally list protein Accessions and Descriptions. "
+      "Group and protein summary rows report median Global LR and median RIA values.");
     setValidFormats_("out_csv", ListUtils::create<String>("csv"));
 
-    registerOutputFile_("out_peptide_centric_csv", "<file>", "", "Column separated file with peptide centric result.");
+    registerOutputFile_("out_peptide_centric_csv", "<file>", "", "Tab-separated, peptide-centric report of SIP incorporation results. "
+      "Columns: Peptide Sequence, Feature, Quality Report Spectrum (path), Quality report scores (path), "
+      "Sample Name, Protein Accessions, Description, Unique (bool), #Ambiguity members, Score, RT (min), "
+      "Exp. m/z, Theo. m/z, Charge, TIC fraction, #non-natural weights, Peak intensities, Group, "
+      "Global Peptide LR (labeling ratio), then for each incorporation (up to 10): RIA (%), LR of RIA, "
+      "INT (intensity), Cor. (correlation).");
     setValidFormats_("out_peptide_centric_csv", ListUtils::create<String>("csv"));
 
     registerInputFile_("in_featureXML", "<file>", "", "Feature data annotated with identifications (IDMapper)");
@@ -2127,7 +2238,7 @@ protected:
   {
     if (std::distance(pattern_begin, pattern_end) != std::distance(intensities_begin, intensities_end))
     {
-      OPENMS_LOG_ERROR << "Error: size of pattern and collected intensities don't match!: (pattern " << std::distance(pattern_begin, pattern_end) << ") (intensities " << std::distance(intensities_begin, intensities_end) << ")" << endl;
+      cout << "Error: size of pattern and collected intensities don't match!: (pattern " << std::distance(pattern_begin, pattern_end) << ") (intensities " << std::distance(intensities_begin, intensities_end) << ")" << endl;
     }
 
     if (pattern_begin == pattern_end)
@@ -2315,6 +2426,7 @@ protected:
   ///< Returns highest scoring rate and score pair in the map
   void getBestRateScorePair(const MapRateToScoreType& map_rate_to_score, double& best_rate, double& best_score)
   {
+    best_rate = 0.0;
     best_score = -1;
     for (MapRateToScoreType::const_iterator mit = map_rate_to_score.begin(); mit != map_rate_to_score.end(); ++mit)
     {
@@ -3013,9 +3125,9 @@ protected:
     // if also unassigned ids are used create a pseudo feature
     if (use_unassigned_ids)
     {
-      const vector<PeptideIdentification> unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
+      const PeptideIdentificationList unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
       Size unassigned_id_features = 0;
-      for (vector<PeptideIdentification>::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
+      for (PeptideIdentificationList::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
       {
         vector<PeptideHit> hits = it->getHits();
         if (!hits.empty())
@@ -3032,7 +3144,7 @@ protected:
           double mz =  hits[0].getSequence().getMZ(charge);
           f.setMZ(mz);
           // add id to pseudo feature
-          vector<PeptideIdentification> id;
+          PeptideIdentificationList id;
           id.push_back(*it);
           f.setPeptideIdentifications(id);
           feature_map.push_back(f);
@@ -3060,8 +3172,8 @@ protected:
       // in features
       for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
       {
-        const vector<PeptideIdentification>& f_ids = feature_it->getPeptideIdentifications();
-        for (vector<PeptideIdentification>::const_iterator id_it = f_ids.begin(); id_it != f_ids.end(); ++id_it)
+        const PeptideIdentificationList& f_ids = feature_it->getPeptideIdentifications();
+        for (PeptideIdentificationList::const_iterator id_it = f_ids.begin(); id_it != f_ids.end(); ++id_it)
         {
           if (!id_it->getHits().empty())
           {
@@ -3075,8 +3187,8 @@ protected:
       }
 
       // and in unassigned ids
-      const vector<PeptideIdentification> unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
-      for (vector<PeptideIdentification>::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
+      const PeptideIdentificationList unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
+      for (PeptideIdentificationList::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
       {
         const vector<PeptideHit> hits = it->getHits();
         if (!hits.empty())
@@ -3121,7 +3233,7 @@ protected:
           vector<PeptideHit> pseudo_hits;
           pseudo_hits.push_back(pseudo_hit);
           pseudo_id.setHits(pseudo_hits);
-          vector<PeptideIdentification> id;
+          PeptideIdentificationList id;
           id.push_back(pseudo_id);
           f.setPeptideIdentifications(id);
           f.setRT(peak_map[i].getRT());
@@ -3172,7 +3284,7 @@ protected:
       }
 
       // Extract 1 or more MS/MS with identifications assigned to the feature by IDMapper
-      vector<PeptideIdentification> pep_ids = feature_it->getPeptideIdentifications();
+      PeptideIdentificationList pep_ids = feature_it->getPeptideIdentifications();
 
       nPSMs += pep_ids.size();
 
@@ -3187,7 +3299,7 @@ protected:
       tmp_pepid.setHigherScoreBetter(pep_ids[0].isHigherScoreBetter());
       for (Size i = 0; i != pep_ids.size(); ++i)
       {
-        pep_ids[i].assignRanks();
+        pep_ids[i].sort();
         const vector<PeptideHit>& hits = pep_ids[i].getHits();
         if (!hits.empty())
         {
@@ -3199,7 +3311,7 @@ protected:
         }
       }
 
-      tmp_pepid.assignRanks();
+      tmp_pepid.sort();
 
       SIPPeptide sip_peptide;
       sip_peptide.feature_type = feature_it->getMetaValue("feature_type"); // used to annotate feature type in reporting
@@ -3279,9 +3391,11 @@ protected:
       if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
       {
         element_count = MetaProSIPDecomposition::getNumberOfLabelingElements(labeling_element, feature_hit_aaseq);
+        cout << "Numver of labeling elements: " << element_count << "\t" << feature_hit_aaseq.toString() << endl;
       }
       else // if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
+        cout << "Unidentified" << endl;
         // calculate number of expected labeling elements using averagine model C:4.9384 H:7.7583 N:1.3577 O:1.4773 S:0.0417 divided by average weight 111.1254
         if (labeling_element == "C")
         {
@@ -3436,6 +3550,7 @@ protected:
       sip_peptide.patterns = patterns;
       for (IsotopePatterns::const_iterator pit = sip_peptide.patterns.begin(); pit != sip_peptide.patterns.end(); ++pit)
       {
+        cout << pit->first << "\t" << pit->second.size() << endl;
         PeakSpectrum p = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, sip_peptide.mass_diff, feature_hit_charge, pit->second);
         p.setMetaValue("rate", (double)pit->first);
         p.setMSLevel(2);

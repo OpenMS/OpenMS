@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <unordered_map>
 
@@ -90,14 +91,14 @@ public:
         /// Protein identifications
         std::vector<ProteinIdentification> prot_idents;
         /// Peptide identifications
-        std::vector<PeptideIdentification> pep_idents;
+        PeptideIdentificationList pep_idents;
         /// Constructs a new RipFileContent object
-        RipFileContent(const std::vector<ProteinIdentification>& prot_idents, const std::vector<PeptideIdentification>& pep_idents)
+        RipFileContent(const std::vector<ProteinIdentification>& prot_idents, const PeptideIdentificationList& pep_idents)
             : prot_idents(prot_idents), pep_idents(pep_idents) {}
         /// Get protein identifications
         const std::vector<ProteinIdentification> & getProteinIdentifications();
         /// Get peptide identifications
-        const std::vector<PeptideIdentification> & getPeptideIdentifications();
+        const PeptideIdentificationList & getPeptideIdentifications();
     };
 
     /// Represents the result of an IDRipper process, a map assigning file content to output file identifiers
@@ -115,16 +116,16 @@ public:
       Iteration over all @p peptides. For each annotated file origin create a map entry and store the
       respective @p peptides and @p proteins.
 
-      @param ripped Contains the protein identification and peptide identification for each file origin annotated in proteins and peptides
-      @param proteins Protein identification
-      @param peptides Peptide identification annotated with file origin
-      @param numeric_filenames If false, deduce output files using basenames of origin annotations. Throws an exception if they are not unique. If true, assemble output files based on numerical IDs only.
-      @param split_ident_runs Split identification runs into different files.
+      @param[in] ripped Contains the protein identification and peptide identification for each file origin annotated in proteins and peptides
+      @param[in] proteins Protein identification
+      @param[in] peptides Peptide identification annotated with file origin
+      @param[out] numeric_filenames If false, deduce output files using basenames of origin annotations. Throws an exception if they are not unique. If true, assemble output files based on numerical IDs only.
+      @param[in] split_ident_runs Split identification runs into different files.
     */
     void rip(
             RipFileMap& ripped,
             std::vector<ProteinIdentification>& proteins,
-            std::vector<PeptideIdentification>& peptides,
+            PeptideIdentificationList& peptides,
             bool numeric_filenames,
             bool split_ident_runs);
 
@@ -136,17 +137,17 @@ public:
 
       @param[out] rfis File info relating to @p rfcs
       @param[out] rfcs Contains the protein identification and peptide identification for each file origin annotated in proteins and peptides
-      @param proteins Protein identification
-      @param peptides Peptide identification annotated with file origin
-      @param numeric_filenames If false, deduce output files using basenames of origin annotations. Throws an exception if they are not unique. If true, assemble output files based on numerical IDs only.
-      @param split_ident_runs Split identification runs into different files.
+      @param[in] proteins Protein identification
+      @param[in] peptides Peptide identification annotated with file origin
+      @param[out] numeric_filenames If false, deduce output files using basenames of origin annotations. Throws an exception if they are not unique. If true, assemble output files based on numerical IDs only.
+      @param[in] split_ident_runs Split identification runs into different files.
     */
     // Autowrap compatible wrapper for rip(RipFileMap,...)
     void rip(
             std::vector<RipFileIdentifier>& rfis,
             std::vector<RipFileContent>& rfcs,
             std::vector<ProteinIdentification>& proteins,
-            std::vector<PeptideIdentification>& peptides,
+            PeptideIdentificationList& peptides,
             bool numeric_filenames,
             bool split_ident_runs);
 
@@ -160,7 +161,7 @@ private:
     IDRipper & operator=(const IDRipper & rhs);
 
     /// helper function, detects file origin annotation standard from collections of protein and peptide hits
-    OriginAnnotationFormat detectOriginAnnotationFormat_(std::map<String, UInt> & file_origin_map, const std::vector<PeptideIdentification> & peptide_idents);
+    OriginAnnotationFormat detectOriginAnnotationFormat_(std::map<String, UInt> & file_origin_map, const PeptideIdentificationList & peptide_idents);
     /// helper function, extracts all protein hits that match the protein accession
     void getProteinHits_(std::vector<ProteinHit> & result, const std::unordered_map<String, const ProteinHit*> & acc2protein_hits, const std::set<String> & protein_accessions);
     /// helper function, returns the string representation of the peptide hit accession

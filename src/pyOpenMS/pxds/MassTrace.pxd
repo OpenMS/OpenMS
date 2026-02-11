@@ -32,6 +32,7 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
 
         double computeSmoothedPeakArea() except + nogil  # wrap-doc:Sums all non-negative (smoothed!) intensities in the mass trace
         double computePeakArea() except + nogil  # wrap-doc:Sums intensities of all peaks in the mass trace
+        double computeIntensitySum() except + nogil  # wrap-doc:Sum all peak intensities in the mass trace
         Size findMaxByIntPeak(bool) except + nogil  # wrap-doc:Returns the index of the mass trace's highest peak within the MassTrace container (based either on raw or smoothed intensities)
         Size estimateFWHM(bool) except + nogil  # wrap-doc:Estimates FWHM of chromatographic peak in seconds (based on either raw or smoothed intensities)
         double computeFwhmArea() except + nogil # TODO

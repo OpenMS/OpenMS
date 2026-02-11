@@ -7,6 +7,7 @@ from MetaInfoInterface cimport *
 from ProteinHit cimport *
 from DigestionEnzymeProtein cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 from DateTime cimport *
 # from MSExperiment cimport *
 
@@ -15,8 +16,10 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
     cdef cppclass ProteinIdentification(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  std
 
-        ProteinIdentification() except + nogil 
+        ProteinIdentification() except + nogil
         ProteinIdentification(ProteinIdentification &) except + nogil 
 
         bool operator==(ProteinIdentification) except + nogil 
@@ -55,11 +58,8 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void setHigherScoreBetter(bool higher_is_better) except + nogil  # wrap-doc:Sets the orientation of the score (is higher better?)
         
         void sort() except + nogil  # wrap-doc:Sorts the protein hits according to their score
-        
-        void assignRanks() except + nogil  # wrap-doc:Sorts the protein hits by score and assigns ranks (best score has rank 1)
-
-        
-        void computeCoverage(libcpp_vector[PeptideIdentification] pep_ids) except + nogil  # wrap-doc:Compute the coverage (in percent) of all ProteinHits given PeptideHits
+                
+        void computeCoverage(PeptideIdentificationList pep_ids) except + nogil  # wrap-doc:Compute the coverage (in percent) of all ProteinHits given PeptideHits
 
         
         DateTime getDateTime() except + nogil  # wrap-doc:Returns the date of the protein identification run
@@ -101,9 +101,12 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         # TODO: use addons if we really need this
         # void setPrimaryMSRunPath(StringList& s, MSExperiment& e) except + nogil 
 
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfPeakMassType() except + nogil  # wrap-doc:Returns all peak mass type names known to OpenMS
+
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::ProteinIdentification":
 
-    cdef enum PeakMassType:
+    cdef enum class PeakMassType "OpenMS::ProteinIdentification::PeakMassType":
         # wrap-attach:
         #   ProteinIdentification
         MONOISOTOPIC, AVERAGE, SIZE_OF_PEAKMASSTYPE

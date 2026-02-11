@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -49,8 +49,8 @@ namespace OpenMS
       
         Takes as input a standard vector of a standard pair of points in a 2D space.
         
-        @param begin Iterator to first pair
-        @param end Past-end iterator to last pair
+        @param[in] begin Iterator to first pair
+        @param[in] end Past-end iterator to last pair
         @return: R-squared value
       */
       double rm_rsq(const DVecIt& begin, const DVecIt& end) const

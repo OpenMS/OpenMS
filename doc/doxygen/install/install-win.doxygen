@@ -25,8 +25,9 @@
 
   <b>Notation of this tutorial</b>
      <ul>
-        <li>A string in &lt;&gt; is something the user needs to choose e.g. &lt;path_to_contrib&gt; means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
-        <li>Whenever you added a path to your Windows PATH Environment variable, every Command Prompt which is already open will not be refreshed. You will need a to open a new one.
+        <li>A string in &lt;&gt; is something the user needs to choose e.g. &lt;path_to_contrib&gt; means that this string should be replaced by the path where the user put the %OpenMS contrib package.
+            Usually all commands where this is necessary come with examples, so don't worry.
+        <li>Whenever you added a path to your Windows PATH Environment variable, every Command Prompt which is already open will not contain these changes. Please open a new Command Prompt.
      </ul>
 
 
@@ -38,147 +39,116 @@
           Microsoft Visual Studio Build Tools</a>. Scroll to the bottom of the page to get the build tools only.
           If you want, you can also download the full Visual Studio (Community/Pro/Enterprise) IDE.<br>
         <b>%OpenMS requires at least Visual Studio 2019 (version 16.8.4 from January 2021) or later.
-        Earlier versions have compiler bugs and may not compile without modifications.</b>
+        Earlier versions have compiler bugs and may not compile without modifications to the %OpenMS codebase.</b>
         <br><b>Not supported (or at least not tested) is MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with or load vcvarsall.sh (see below).</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
       <li><b>CMake</b>: Have CMake (>= 3.24) installed (see http://www.cmake.org). <br>
 	      If you are using Visual Studio 2019+ as IDE, make sure CMake's Generator (-G flag) supports your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
       <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
-        <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
+        <br>7z.exe is searched in `C:\Program Files\7-Zip\` and `C:\Programme\7-Zip\`. Make sure it is in either of these locations or add
         the installation directory to your PATH.
     </ul>
 
-
   @section install_win_required Installing required dependency libraries
 
-    %OpenMS depends on several other libraries. On a Windows system, these are usually not present.
+	@subsection install_qt QT installation
 
+    Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website.
+    For several recent Qt6 versions, there are binary development versions available for the most recent compilers. 
+
+    <b>Installation of Qt6 via the Qt6 installer (requires an admin account)</b>:<br>
+    Go to https://www.qt.io/download and find the download for the Qt binaries installer, download it and run the Qt binary installer.
+    You will need to create a free user account with Qt, and log into that account during installation.
+    The installer will ask for an installation directory, choose, e.g. `c:\dev\qt6`.
+    From the components choose a matching version, e.g. Qt 6.7.1 and pick the MSVC binaries (e.g. `MSVC 2019 64-bit`), the `Sources` (for Qt headers) and `Qt Debug Information files` (optional).
+    
+    @image html qt6_windows_installer.png
+    @image latex qt6_windows_installer.png "" width=10cm
+    
+    If your Visual Studio version is more recent than the VS offered by the Qt installer, choose the closest available -- they should be compatible.
+    Resulting files appear under `c:\dev\qt6\$VERSION` (if you chose `c:\dev\qt6` as installation directory).
+
+    <b>Alternatively (no admin account required)</b>, compile Qt from sources. We cannot cover all the details here. See https://wiki.qt.io/Building_Qt_6_from_Git for details.
+    
+    Finally, add the Qt bin directory (i.e the location of <b>Qt6Core.dll</b>, e.g. `C:\dev\qt6\6.7.1\msvc2019_64\bin`)to your Windows PATH Environment variable.
+    If you forget this, starting any %OpenMS executable will result in an error such as `The program can't start because Qt6Networkd.dll is missing from your computer.`
+    
+    In addition, to run any of %OpenMS' GUI apps (such as TOPPView), you need set the `QT_PLUGIN_PATH` environment variable to the `plugins` subdir of your Qt installation.
+    E.g. set `QT_PLUGIN_PATH` to `c:\dev\qt6_2\6.7.3\msvc2019_64\plugins`.
+
+  @subsection correct_cmd_line Using the correct command line
+  
+  For most of the steps below you need a command prompt which is aware of where components of Visual Studio (compiler, linker etc) are installed.
+  Do not use a plain 'cmd' Command prompt. Certain steps will fail or find the wrong components (mostly when running CMake).
+  
+  Open a <b>VisualStudio Developer Command prompt for x64 (64-bit) since %OpenMS only builds as 64-bit!</b> (by default you may get a 32-bit environment)<br>
+  @note Recent versions of Visual Studio have a (well hidden) batch-file which correctly configures your environment for 64-bit builds. 
+  It should be located at
+  <ul>
+  <li>VS2019:<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>
+  <li>VS2022:<tt>"C:\Program Files\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>
+  </ul>
+  <br>Use our <tt>tools/load_vcvarsall.sh</tt> if you are building in bash on Windows.
+  
   @subsection install_win_contrib Contrib installation
-        In order to make the
-        installation of the remaining required libraries easier, we composed a
-        "contrib-package" containing the libraries Boost, Eigen, CoinMP, libSVM, libHDF5, glpk, zlib, libbz2 and Xerces-C.
-        This contrib package has several advantages over manual installation
-        <ul>
-            <li>You get all the libraries in versions tested with %OpenMS.</li>
-            <li>It contains a batch script that builds all the libraries in one step.</li>
-            <li>You don't have to spend hours reading installation instructions of all the libraries.</li>
-            <li>We applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b></li>
-        </ul>
+        
+    %OpenMS depends on several other libraries. On a Windows system, these are usually not present.
+    In order to make the installation of the remaining required libraries easier, we composed a
+    "contrib-package" containing the libraries Boost, Eigen, CoinMP, libSVM, libHDF5, glpk, zlib, libbz2 and Xerces-C.
+    This contrib package has several advantages over manual installation
+    <ul>
+        <li>You get all the libraries in versions tested with %OpenMS.</li>
+        <li>It contains a batch script that builds all the libraries in one step.</li>
+        <li>You don't have to spend hours reading installation instructions of all the libraries.</li>
+        <li>We applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b></li>
+    </ul>
 
     @b Download:
 
-    If you plan to use the development version of %OpenMS, clone %OpenMS and checkout the optional contrib submodule with
+    For development and cutting edge functionalities we recommend using the Git version of %OpenMS from GitHub.
+
+    We will now clone %OpenMS and checkout with the <b>contrib submodule</b> (and other submodules e.g. for search engines along with it).<br>
+    The contrib sources are located in the `contrib` subfolder of the %OpenMS source repository.
+    
+    To obtain the latest (potentially unstable) version of %OpenMS (and its contrib) use:
     \code
-    git clone https://github.com/OpenMS/OpenMS
-    cd OpenMS
-    git submodule update --init contrib
+    git clone --recurse-submodules https://github.com/OpenMS/OpenMS
     \endcode
-    to obtain the latest potentially unstable version.
+    
     If you want to use a release version of %OpenMS, use the corresponding Release-tagged version
-    on GitHub (https://github.com/OpenMS/contrib/releases) or download the contrib source from a .tar.gz
-    for older releases.
+    on GitHub (https://github.com/OpenMS/OpenMS/tags), e.g.
+    \code
+    git clone --recurse-submodules https://github.com/OpenMS/OpenMS --branch release/3.2.0
+    \endcode
+    
 
     @b Installation:
 
     After you got the source code for the contrib package follow these steps:
 
     <ol>
-      <li>Open a <b>VisualStudio Developer Command prompt</b> (by default you will get a 32-bit environment which you most likely do not want; use a x64 environment if you want 64 bit apps!)<br>
-					@note VS2019 and above have a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
-					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>. (Same goes for VS2022)
-          <br>Use our tools/load_vcvarsall.sh if you are building in bash on Windows.
       <li>Create a build directory for the %OpenMS contrib<br>
-          e.g. <tt>mkdir contrib_win64_build</tt>
+          e.g. <tt>mkdir contrib_build</tt>
       <li>Call CMake to build the contrib<br>
-        Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be
-        able to run 64bit apps in this case. You might also need to disable incremental linking due to the smaller address space.
 
         \code
         cd <path_to_contrib_build>
-        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "<generator>" -A x64 "<path_to_contrib>"
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=8 -G "<generator>" -A x64 "<path_to_contrib>"
         \endcode
 
         The <tt>&lt;generator&gt;</tt> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
-        If you are lucky, CMake chooses the correct Generator even without specifying. Default architecture/platform is the same as your Windows.
+        If you are lucky, CMake chooses the correct Generator even without specifying.
         Use the <tt>-A x64</tt> flag to build 64-bit libraries for the contrib to make double sure you build 64-bit. (32-bit does not really make any sense for LC-MS data processing)
         Type <tt>cmake -help</tt> to see a list of available generators.<br>
 
         Example:
         \code
-        cd c:\dev\contrib_win64_build
-        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "Visual Studio 16 2019" -A x64 "c:\dev\OpenMS\contrib"
+        cd c:\dev\contrib_build
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=8 -G "Visual Studio 16 2019" -A x64 "c:\dev\OpenMS\contrib"
         \endcode
 
-      <li>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
+      <li>Add the <tt>&lt;path_to_contrib_build&gt;/lib</tt> directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
     </ol>
-
-	@subsection install_qt QT installation
-
-    Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website.
-    For several recent Qt5 versions, there are binary development versions available for the most recent compilers. 
-
-    <b>Installation of Qt5 via the Qt5 installer (requires an admin account)</b>:<br>
-    Go to https://www.qt.io/download and click on "Go open source" at the end of the right column to download the installer. Follow steps, download, save and run the installer.
-    Create a Qt account. Choose a folder like "C:\dev\QT". From the components choose a matching version, e.g. QT 5.12.2 and the MSVC component that fits
-    your Visual Studio version and architecture (most likely only 64bit is supported; if your Visual Studio version is more recent than the VS offered by the Qt installer, 
-    choose the closest available -- they should be compatible). You can deselect QtCreator under Tools.
-    Accept the license, choose startmenu entries if wanted and install. Resulting files appear under "c:\dev\QT\$VERSION".
-
-    <b>Alternatively (no admin account required)</b>, compile Qt from sources by following the steps below:
-
-    <ol>
-      <li>non-commercial:
-        <ol>
-          <li>install perl (e.g. Strawberry Perl), Python and git
-          <li>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-          <li>Make sure that Python, Perl (both required to build Qt5) and git are in your PATH, e.g.
-             \code
-             where python
-             \endcode
-             and if python is not found, then add it. e.g.
-             \code
-             set PATH=%PATH%;C:\Python27\
-             \endcode
-             Warning: <b>APPEND</b> these directories to your PATH (like shown above); do NOT PREPEND them, since some versions of Perl ship their own link.exe, which should not be listed before the VS's native link.exe.
-          <li>download <b>Qt5 source</b> via git or as a source package from the website:
-            \code
-            git clone https://code.qt.io/qt/qt5.git
-            cd qt5
-            git checkout 5.15
-            \endcode
-          <li>activate the needed modules via:
-            \code
-             perl init-repository --module-subset="essential,qtsvg" --branch
-            \endcode
-          <li>To save disk space, we use the <tt>-prefix</tt> switch to install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/qt_5.15_build/</tt>).
-          The git source repository of Qt5 can be deleted safely at the very end. 
-          <li>If you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
-          <li>Check more options and supported compilers here: http://doc.qt.io/qt-5/configure-options.html (especially for developers).
-            \code
-            configure -opensource -skip speech -skip location -nomake tests -nomake examples -confirm-license -opengl dynamic -platform win32-msvc -prefix <path-to-qt_build>
-            \endcode
-          <li>
-            \code
-            nmake
-            \endcode
-          <li>
-            \code
-            nmake install
-            \endcode
-          <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories.
-          <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" and subsequently "jom install" in your Qt build directory to use multiple cores (builds a lot faster usually)
-        </ol>
-      <li>commercial:
-        <ol>
-          <li>we have no experience here, but it should be possible to get the DLL's and Link-Libraries here as well.
-        </ol>
-      <li>add the <tt>&lt;path-to-qt&gt;/bin</tt> (!) directory to your PATH Environment Variable, so the dlls are found during runtime.
-      <li>set the environment variable QT_QPA_PLATFORM_PLUGIN_PATH to <tt>&lt;path-to-qt&gt;/plugins/platforms</tt>,
-          otherwise you might get an error "This application failed to start because it could not find or load the Qt platform plugin 'windows'".
-          Alternatively, you can copy the entire platforms-folder into the folder where your %OpenMS executables will be created (but they will depend on the build-type, i.e. release, debug etc.).
-    </ol>
-
-
 
   @section create_doc Building the documentation (optional)
 
@@ -202,7 +172,7 @@
     <li> GPL Ghostscript (e.g. 8.60, 9.19) for Windows
       <ul>
          <li> Download binaries for Windows (http://www.ghostscript.com/) and install
-         <li> Add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows PATH Environment
+         <li> Add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. `c:\programs\gs\gs8.60\bin`) to the Windows PATH Environment
       </ul>
     <li>
       Optional:<br>
@@ -219,31 +189,22 @@
 
   @section install_win_openms Installing OpenMS
 
-    For development and cutting edge functionalities we recommend using the Git version from GitHub.
-    Since you already cloned OpenMS above when building the contrib, you can usually <b>skip</b> this step:
-    \code
-    git clone https://github.com/OpenMS/OpenMS
-    \endcode
-    Certain stable releases can found on the GitHub release page https://github.com/OpenMS/OpenMS/releases.
+    This part assumes section @ref install_win_contrib and @ref install_qt have been completed!
+    I.e. we assume you have the %OpenMS source code and will now build the %OpenMS library, TOPP tools, class tests etc.    
 
-    If you have not installed the libraries which %OpenMS requires,
-    please refer to the section @ref install_win_contrib above (and skip the clone step).
-    <br>
-
-    Now, we create the build system:
+    To create the build system:
     <ol>
       <li>Open a Visual Studio Command Line (use x64 version if you want 64bit apps -- and yes, you want that!)
-      <li>Create a build directory for %OpenMS, e.g. <tt>mkdir OpenMS_Win64</tt>
+      <li>Create a build directory for %OpenMS, e.g. <tt>mkdir OpenMS_build</tt>
       @note Due to Windows restrictions concerning the maximum length of a file path (of 260 characters) and the rather deep folder hierarchies created by CMake and Visual Studio, we advise to restrict the length of the base path to your build directory. We suggest less than 40 characters if possible.
       <li>Call CMake to create the build system
         \code
         cd <path_to_OpenMS_build>
-        cmake -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -D CMAKE_PREFIX_PATH=<path_to_QT5_prefix> -G "<generator>" -A x64 -T host=x64 "<path_to_OpenMS>"
+        cmake -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -D CMAKE_PREFIX_PATH=<path_to_QT6_prefix> -G "<generator>" -A x64 -T host=x64 "<path_to_OpenMS>"
         \endcode
 
-        The CMAKE_PREFIX_PATH should hold the path to your Qt5 build directory (see example below). Note that it is NOT the main Qt5 directory, but the subfolder which is named after the toolchain it was build with (e.g. "5.6/msvc2015_64").
-        @note If you build Qt5 from source, the build directories will be located at <tt>&lt;path_to_qt&gt;\\mkspecs</tt>. Here you will need to choose the matching directory for your architecture and Visual Studio version.
-        @note Example CMAKE_PREFIX_PATH: <tt>C:\\dev\\qt-5.9\\mkspecs\\winrt-x64-msvc2017</tt>
+        The CMAKE_PREFIX_PATH should hold the path to your Qt6 build/binary directory where `Qt6Config.cmake` resides (see example below). Note that it is NOT the main Qt6 directory, 
+        but the subfolder which is named after the toolchain it was build with (e.g. `CMAKE_PREFIX_PATH=C:\dev\qt6_2\6.7.3\msvc2019_64\lib\cmake\Qt6`).
         
         The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake --help</tt> to see a list of available generators.
         
@@ -252,25 +213,25 @@
         The <tt>-T host=x64</tt> flag instructs Visual Studio to use a 64bit compiler and linker toolchain to avoid linker errors (<tt>LNK1210: exceeded internal ILK size limit; link with /INCREMNTAL:NO</tt>) during development (if the flag is omitted the 32bit toolchain is used to generate 64bit binaries).
         
         Example:
-        \code
-        cd c:\dev\OpenMS_Win64
-        cmake -D OPENMS_CONTRIB_LIBS="C:/dev/contrib_win64_build" -D CMAKE_PREFIX_PATH=c:/dev/Qt5.6.2/5.6/msvc2015_64/ -G "Visual Studio 16 2019" -A x64 -T host=x64 ../OpenMS
-        \endcode
-       
-    </ol>
 
+        \code
+        cd c:\dev\OpenMS_build
+        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_build" -D CMAKE_PREFIX_PATH=C:\dev\qt6_2\6.7.3\msvc2019_64\lib\cmake\Qt6 -G "Visual Studio 16 2019" -A x64 -T host=x64 ../OpenMS
+        \endcode
+
+    </ol>
+    
     \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
 
-
     Now there should be a <tt>OpenMS_host.sln</tt> file in your build directory, which you can open using Visual Studio.
-    If you want to work on only a subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the src/ folder of your
-    build folder and below (e.g., src/openms_gui/OpenMS_GUI.sln).
+    If you want to work on only a subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the `src/` folder of your
+    build folder and below (e.g. `src/openms_gui/OpenMS_GUI.sln`).
 
-    In Visual Studio execute the 'targets' project, which will show you the most prominent targets.
 
-    Try to build the %OpenMS library - the target is called '%OpenMS'. This will create the %OpenMS.dll library. If you used the debug configuration it will be called
-    OpenMSd.dll, in release mode its called OpenMS.dll.<br>
-    As a last step you should add the location of the %OpenMS.dll to your PATH environment. This makes calling TOPPView and TOPP tools more convenient if you are working the command line. Also, external projects (see @subpage external_code) require the %OpenMS dll (OpenMS.dll or OpenMSd.dll) to be in the PATH. Depending on the generator and
+    Try to build the %OpenMS library - the target is called '%OpenMS'. This will create the %OpenMS Dll library. If you used the debug configuration it will be called
+    `OpenMSd.dll`, in release mode its called `OpenMS.dll`.<br>
+    As a last step you should add the location of the binaries (dll's and executables) to your PATH environment. This makes calling TOPPView and TOPP tools more convenient if you are working the command line.
+    Also, external projects (see @subpage external_code) require the %OpenMS dll (OpenMS.dll or OpenMSd.dll) to be in the PATH. Depending on the generator and
     configuration used you will find the dll in [OpenMS_build]/bin/Release or [OpenMS_build]/bin/Debug (for VS) or just [OpenMS_build]/bin (nmake). In the same folder the
     TOPP tools will reside once build (see next section).
     Be aware that the order of directories in the PATH variable determines which dll or executable is used, if no absolute path was given when the executable was called.
@@ -335,7 +296,7 @@
         \code
         "cmake.configureArgs": [
           "-DOPENMS_CONTRIB_LIBS=C:\\git\\contrib-build",
-          "-DCMAKE_PREFIX_PATH=C:\\dev\\Qt\\5.15.2\\msvc2019_64"
+          "-DCMAKE_PREFIX_PATH=C:\\dev\\qt6_2\\6.7.3\\msvc2019_64\\lib\\cmake\\Qt6"
         ]
         \endcode
         to your settings or configure manually in your user-config.yml or via the VS Code command runner.
@@ -351,14 +312,7 @@
   @section install_win_create_installer Creating an installer 
   
     <ol>
-      <li> Download <a href="https://sourceforge.net/projects/nsis/" target="_blank">NSIS</a> (we tested nsis-3.06.1 successfully) and extract it somewhere
-
-      <li> Install the <a href="https://nsis.sourceforge.io/Special_Builds" target="_blank">large-string-build NSIS installer</a> on top (just extract into the same directory as NSIS; and use a matching version!).
-           This is required for PATH manipulation of up to 8k length; the default NSIS handles up to 1k strings, which might be too short and potentially leads to a broken PATH environment variable.
-      
-      <li> Install the <a href="https://github.com/SuperPat45/UltraModernUI" target="_blank">UltraModernUI-plugin</a> on top (just extract into the same directory as NSIS). 
-           We tested <a href="https://github.com/SuperPat45/UltraModernUI/releases/tag/2.0b6" target="_blank">version 2.0b6</a> successfully.
-
+      <li> Download <a href="https://github.com/OpenMS/NSIS" target="_blank">NSIS</a> (our special build with 8k-PATH support and a more modern UI). Extract the archive to an NSIS folder on your hard drive.
       <li> Add the NSIS folder (which contains 'makensis.exe') to your PATH, so CMake can find it.
 
       <li> Checkout the <a href="https://github.com/OpenMS/THIRDPARTY" target="_blank">THIRDPARTY GitHub Repository</a> and flatten the structure for the target platform, e.g. copy all subdirectories in <tt>./all/</tt> to <tt>./Windows/64bit/</tt>.
@@ -368,10 +322,10 @@
       
       \code
       cd <build-tree>
-      cmake ... -DSEARCH_ENGINES_DIRECTORY=C:/dev/THIRDPARTY/Windows/64bit -DPACKAGE_TYPE="nsis" <path-to-source-tree>
+      cmake ... -DSEARCH_ENGINES_DIRECTORY=C:\dev\THIRDPARTY\Windows\64bit -DPACKAGE_TYPE="nsis" <path-to-source-tree>
       \endcode
       
-      <li> Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode (copy the Qt5 plugin to the <code>[OpenMS_build]/bin/Release</code> and <code>[OpenMS_build]/doc/doxygen/parameters/Release/</code> directories first)
+      <li> Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode (copy the Qt6 plugin to the <code>[OpenMS_build]/bin/Release</code> and <code>[OpenMS_build]/doc/doxygen/parameters/Release/</code> directories first)
       \code
       cd <build-tree>
       build.bat - r

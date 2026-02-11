@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -78,6 +78,8 @@ namespace OpenMS
     boost::replace_all(temp_labels_string, "()", "no_label");
     boost::replace_all(temp_labels_string, "{}", "no_label");
     boost::split(temp_samples, temp_labels_string, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+
+    samples_labels_.reserve(temp_samples.size()); // Pre-allocate for performance
 
     for (String::size_type i = 0; i < temp_samples.size(); ++i)
     {
@@ -356,7 +358,7 @@ namespace OpenMS
     if (delta_masses_list_.empty())
     {
       // Even in the case of a singlet search, there should be one mass shift (zero mass shift) in the list.
-      throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
+      throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0, "delta_masses_list_ must not be empty");
     }
 
     unsigned n = delta_masses_list_[0].getDeltaMasses().size();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
@@ -503,13 +505,15 @@ namespace OpenMS
         MultiplexDeltaMasses::LabelSet label_set = delta_masses_list_[i].getDeltaMasses()[j].label_set;
 
         stream << mass_shift << " (";
-        for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)
+        bool first = true;
+        for (const auto& label : label_set)
         {
-          if (it != label_set.begin())
+          if (!first)
           {
             stream << ",";
           }
-          stream << *it;
+          stream << label;
+          first = false;
         }
         stream << ")    ";
       }

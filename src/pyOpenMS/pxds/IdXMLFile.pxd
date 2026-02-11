@@ -6,20 +6,38 @@ from PeptideIdentification cimport *
 cdef extern from "<OpenMS/FORMAT/IdXMLFile.h>" namespace "OpenMS":
 
     cdef cppclass IdXMLFile:
+        # wrap-doc:
+        #  File adapter for idXML files
+        #  
+        #  Provides methods to load and store identification data in idXML format.
+        #  idXML files store protein and peptide identifications from database search engines.
+        #  
+        #  Usage:
+        #  
+        #  .. code-block:: python
+        #  
+        #    protein_ids = []
+        #    peptide_ids = []
+        #    IdXMLFile().load("test.idXML", protein_ids, peptide_ids)
 
-        IdXMLFile() except + nogil  # wrap-doc:Used to load and store idXML files
+        IdXMLFile() except + nogil
 
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
-                  libcpp_vector[PeptideIdentification] & peptide_ids,
-                  ) except + nogil  # wrap-doc:Loads the identifications of an idXML file without identifier
+                  PeptideIdentificationList & peptide_ids
+                  ) except + nogil  # wrap-ignore
+
+        void load(String filename,
+                  libcpp_vector[ProteinIdentification] & protein_ids,
+                  PeptideIdentificationList & peptide_ids,
+                  String & document_id) except + nogil  # wrap-ignore
 
         void store(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
-                  libcpp_vector[PeptideIdentification] & peptide_ids,
-                  String document_id) except + nogil  # wrap-doc:Stores the data in an idXML file
+                  PeptideIdentificationList & peptide_ids,
+                  String document_id) except + nogil  # wrap-ignore
 
         void store(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
-                  libcpp_vector[PeptideIdentification] & peptide_ids
-                  ) except + nogil 
+                  PeptideIdentificationList & peptide_ids
+                  ) except + nogil  # wrap-ignore

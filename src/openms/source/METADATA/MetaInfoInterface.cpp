@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,12 +14,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  MetaInfoInterface::MetaInfoInterface() :
-    meta_(nullptr)
-  {
-  }
-
   /// Copy constructor
   MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface& rhs) :
     meta_(nullptr)
@@ -247,15 +241,31 @@ namespace OpenMS
     }
   }
 
-  //TODO get a MetaValue list to copy only those that have been set
   void MetaInfoInterface::addMetaValues(const MetaInfoInterface& from)
   {
-    std::vector<String> keys;
-    from.getKeys(keys);
-    for (String& key : keys)
+    if (from.meta_ == nullptr || from.meta_->empty())
     {
-      this->setMetaValue(key, from.getMetaValue(key));
+      return;
     }
+    createIfNotExists_();
+    *meta_ += *(from.meta_);
+  }
+
+  MetaInfoInterface::MetaInfoConstIterator MetaInfoInterface::metaBegin() const
+  {
+    static const MetaInfo empty;
+    return meta_ ? meta_->begin() : empty.begin();
+  }
+
+  MetaInfoInterface::MetaInfoConstIterator MetaInfoInterface::metaEnd() const
+  {
+    static const MetaInfo empty;
+    return meta_ ? meta_->end() : empty.end();
+  }
+
+  Size MetaInfoInterface::metaSize() const
+  {
+    return meta_ ? meta_->size() : 0;
   }
 
 } //namespace

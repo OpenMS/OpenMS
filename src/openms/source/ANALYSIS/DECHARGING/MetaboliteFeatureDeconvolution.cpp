@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -68,12 +68,12 @@ namespace OpenMS
     // Comparator
     bool operator<(const CmpInfo_& other) const
     {
-      if (s_comp < other.s_comp) return true; else return false;
+      return s_comp < other.s_comp;
     }
 
     bool operator==(const CmpInfo_& other) const
     {
-      if (s_comp == other.s_comp) return true; else return false;
+      return s_comp == other.s_comp;
     }
 
   };
@@ -139,11 +139,11 @@ namespace OpenMS
     map_label_[0] = param_.getValue("default_map_label").toString();
 
     if (param_.getValue("q_try") == "feature")
-      q_try_ = QFROMFEATURE;
+      q_try_ = CHARGEMODE::QFROMFEATURE;
     else if (param_.getValue("q_try") == "heuristic")
-      q_try_ = QHEURISTIC;
+      q_try_ = CHARGEMODE::QHEURISTIC;
     else
-      q_try_ = QALL;
+      q_try_ = CHARGEMODE::QALL;
 
 
     StringList potential_adducts_s = ListUtils::toStringList<std::string>(param_.getValue("potential_adducts"));
@@ -833,7 +833,7 @@ namespace OpenMS
 
 
         ConsensusFeature cf(fm_out[f0_idx]);
-        cf.setPeptideIdentifications(vector<PeptideIdentification>()); // delete ID's as they are added later again
+        cf.setPeptideIdentifications(PeptideIdentificationList()); // delete ID's as they are added later again
         cf.setQuality(0.0);
         cf.setUniqueId();
         cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
@@ -1259,11 +1259,11 @@ namespace OpenMS
     const Int abs_putative_charge = abs(putative_charge);
 
     // if no charge given or all-charges is selected. Assume no charge detected -> charge 0
-    if ((abs_feature_charge == 0) || (q_try_ == QALL))
+    if ((abs_feature_charge == 0) || (q_try_ == CHARGEMODE::QALL))
     {
       return true;
     }
-    else if (q_try_ == QHEURISTIC)
+    else if (q_try_ == CHARGEMODE::QHEURISTIC)
     {
       // do not allow two charges to change at the same time
       if (!other_unchanged && abs_feature_charge != abs_putative_charge)
@@ -1280,12 +1280,12 @@ namespace OpenMS
 
       return false;
     }
-    else if (q_try_ == QFROMFEATURE)
+    else if (q_try_ == CHARGEMODE::QFROMFEATURE)
     {
       return abs_feature_charge == abs_putative_charge;
     }
 
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q_try_ has unhandled enum value!", String((Int)q_try_));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q_try_ has unhandled enum value!", String(static_cast<Int>(q_try_)));
   }
 
   void MetaboliteFeatureDeconvolution::checkSolution_(const ConsensusMap& cons_map) const

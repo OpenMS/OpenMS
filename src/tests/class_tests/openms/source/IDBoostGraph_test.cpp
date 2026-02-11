@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,7 +17,7 @@ using namespace std;
 using Internal::IDBoostGraph;
 
 static void runIBGResolve(vector<ProteinIdentification>& inferred_protein_ids,
-                          vector<PeptideIdentification>& inferred_peptide_ids)
+                          PeptideIdentificationList& inferred_peptide_ids)
 {
   IDBoostGraph ibg(inferred_protein_ids[0], inferred_peptide_ids, 1, false, false);
   ibg.computeConnectedComponents();
@@ -39,7 +39,7 @@ START_TEST(IDBoostGraph, "$Id$")
     START_SECTION(IDBoostGraph only best PSMs)
     {
       vector<ProteinIdentification> prots;
-      vector<PeptideIdentification> peps;
+      PeptideIdentificationList peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       IDBoostGraph idb{prots[0], peps, 1, false, false};
@@ -65,7 +65,7 @@ START_TEST(IDBoostGraph, "$Id$")
     START_SECTION(IDBoostGraph graph-based group resolution)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
           IDBoostGraph idb{prots[0], peps, 1, false};
@@ -92,7 +92,7 @@ START_TEST(IDBoostGraph, "$Id$")
     START_SECTION(IDBoostGraph all PSMs)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
           IDBoostGraph idb{prots[0], peps, 0, false, false};
@@ -113,7 +113,7 @@ START_TEST(IDBoostGraph, "$Id$")
     START_SECTION(IDBoostGraph only best PSMs with runinfo)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("IDBoostGraph_test_in.idXML"),prots,peps);
 
@@ -139,7 +139,7 @@ START_TEST(IDBoostGraph, "$Id$")
     START_SECTION(IDBoostGraph graph-based group resolution)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
           IDBoostGraph idb{prots[0], peps, 1, false, false};
@@ -176,7 +176,7 @@ START_TEST(IDBoostGraph, "$Id$")
       //  therefore resolution on the graph will redo groups and assign new scores.
       //  Therefore we need slightly different test files.
       vector<ProteinIdentification> prots;
-      vector<PeptideIdentification> peps;
+      PeptideIdentificationList peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);
       runIBGResolve(prots, peps);

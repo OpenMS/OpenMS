@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -35,8 +35,8 @@ using namespace std;
 MascotXMLFile xml_file;
 MascotXMLFile* ptr;
 ProteinIdentification protein_identification;
-vector<PeptideIdentification> peptide_identifications;
-vector<PeptideIdentification> peptide_identifications2;
+PeptideIdentificationList peptide_identifications;
+PeptideIdentificationList peptide_identifications2;
 DateTime date;
 PeptideHit peptide_hit;
 vector<String> references;
@@ -60,7 +60,7 @@ START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, Peak
 }
 END_SECTION
 
-START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, SpectrumMetaDataLookup& lookup)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, SpectrumMetaDataLookup& lookup)))
 {
   SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
@@ -70,7 +70,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
     TEST_EQUAL(search_parameters.missed_cleavages, 1);
     TEST_EQUAL(search_parameters.taxonomy, ". . Eukaryota (eucaryotes)");
-    TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::AVERAGE);
+    TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::PeakMassType::AVERAGE);
     TEST_EQUAL(search_parameters.db, "MSDB_chordata");
     TEST_EQUAL(search_parameters.db_version, "MSDB_chordata_20070910.fasta");
     TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.2);
@@ -148,7 +148,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
     TEST_EQUAL(search_parameters.missed_cleavages, 7);
     TEST_EQUAL(search_parameters.taxonomy, "All entries");
-    TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::MONOISOTOPIC);
+    TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::PeakMassType::MONOISOTOPIC);
     TEST_EQUAL(search_parameters.db, "IPI_human");
     TEST_EQUAL(search_parameters.db_version, "ipi.HUMAN.v3.61.fasta");
     TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.3);
@@ -232,7 +232,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
 }
 END_SECTION
 
-START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
   std::map<String, vector<AASequence> > modified_peptides;
   AASequence aa_sequence_1;
   AASequence aa_sequence_2;

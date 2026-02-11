@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -190,8 +190,8 @@ public:
       difference.
 
       where
-      @param filename_1 first input file
-      @param filename_2 second input file
+      @param[in] filename_1 first input file
+      @param[in] filename_2 second input file
       @return true in case of no differences found
 
       @sa ratio_max_allowed_

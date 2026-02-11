@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -42,7 +42,6 @@
 #include <QNetworkProxyFactory>
 #include <QNetworkReply>
 #include <QSvgGenerator>
-#include <QTextCodec>
 #include <QTextStream>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -51,7 +50,6 @@
 #include <QtCore/QSettings>
 #include <QtCore/QUrl>
 #include <QtWidgets/QCheckBox>
-#include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QInputDialog>
@@ -101,11 +99,11 @@ namespace OpenMS
 
     // center main window
     setGeometry(
-      (int)(0.1 * QApplication::desktop()->width()),
-      (int)(0.1 * QApplication::desktop()->height()),
-      (int)(0.8 * QApplication::desktop()->width()),
-      (int)(0.8 * QApplication::desktop()->height())
-      );
+      (int)(0.1 * QGuiApplication::primaryScreen()->geometry().width()),
+      (int)(0.1 * QGuiApplication::primaryScreen()->geometry().height()),
+      (int)(0.8 * QGuiApplication::primaryScreen()->geometry().width()),
+      (int)(0.8 * QGuiApplication::primaryScreen()->geometry().height())
+    );
 
     // create dummy widget (to be able to have a layout), Tab bar and workspace
     QWidget* dummy = new QWidget(this);
@@ -131,16 +129,16 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
-    file->addAction("&New", this, SLOT(newPipeline()), Qt::CTRL + Qt::Key_N);
-    file->addAction("&Open", this, SLOT(openFilesByDialog()), Qt::CTRL + Qt::Key_O);
-    file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL + Qt::Key_E);
-    file->addAction("&Include", this, SLOT(includePipeline()), Qt::CTRL + Qt::Key_I);
-    //file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL + Qt::Key_R);
-    file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL + Qt::Key_S);
-    file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL + Qt::SHIFT + Qt::Key_S);
-    file->addAction("E&xport as image", this, SLOT(exportAsImage()));
-    file->addAction("Refresh &parameters", this, SLOT(refreshParameters()), Qt::CTRL + Qt::SHIFT + Qt::Key_P);
-    file->addAction("&Close pipeline", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
+    file->addAction("&New", this, &TOPPASBase::newPipeline)->setShortcut(Qt::CTRL | Qt::Key_N);
+    file->addAction("&Open", this, &TOPPASBase::openFilesByDialog)->setShortcut(Qt::CTRL | Qt::Key_O);
+    file->addAction("Open &example file", this, &TOPPASBase::openExampleDialog)->setShortcut(Qt::CTRL | Qt::Key_E);
+    file->addAction("&Include", this, &TOPPASBase::includePipeline)->setShortcut(Qt::CTRL | Qt::Key_I);
+    //file->addAction("Online &Repository", this, &TOPPASBase::openOnlinePipelineRepository)->setShortcut(Qt::CTRL | Qt::Key_R);
+    file->addAction("&Save", this, &TOPPASBase::savePipeline)->setShortcut(Qt::CTRL | Qt::Key_S);
+    file->addAction("Save &As", this, &TOPPASBase::saveCurrentPipelineAs)->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
+    file->addAction("E&xport as image", this, &TOPPASBase::exportAsImage);
+    file->addAction("Refresh &parameters", this, &TOPPASBase::refreshParameters)->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_P);
+    file->addAction("&Close pipeline", this, &TOPPASBase::closeFile)->setShortcut(Qt::CTRL | Qt::Key_W);
 
     file->addSeparator();
     // Recent files
@@ -166,9 +164,10 @@ namespace OpenMS
     //Help menu
     QMenu* help = new QMenu("&Help", this);
     menuBar()->addMenu(help);
-    QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
+    QAction* action = help->addAction("OpenMS website", this, &TOPPASBase::showURL);
     action->setData("http://www.OpenMS.de");
-    action = help->addAction("TOPPAS tutorial", this, SLOT(showURL()), Qt::Key_F1);
+    action = help->addAction("TOPPAS tutorial", this, &TOPPASBase::showURL);
+    action->setShortcut(Qt::Key_F1);
     action->setData(String("html/TOPPAS_tutorial.html").toQString());
 
     help->addSeparator();
@@ -1499,21 +1498,14 @@ namespace OpenMS
         QMessageBox::Question,
         tr("Open files with overlay?"),
         tr("How do you want to open the output files?"),
-        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-      msgBox.setButtonText(QMessageBox::Yes, tr("&Single Tab - Overlay"));
-      msgBox.setButtonText(QMessageBox::No, tr("&Separate tabs"));
-      int ret = msgBox.exec();
-      if (ret == QMessageBox::Cancel) return; // Escape was pressed
-      if (ret == QMessageBox::Yes)
-      {
-        /*
-         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
-         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
-         */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
-#pragma GCC diagnostic pop
+        QMessageBox::Cancel);
+      QPushButton* overlayButton = msgBox.addButton(tr("&Single Tab - Overlay"), QMessageBox::YesRole);
+      msgBox.addButton(tr("&Separate tabs"), QMessageBox::NoRole);
+      msgBox.exec();
+      if (msgBox.clickedButton() == nullptr) return; // Escape was pressed
+      if (msgBox.clickedButton() == overlayButton)
+      { // put a '+' in between the files (TOPPView's command line will interpret this as overlay)
+        files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", Qt::SkipEmptyParts);
       }
     }
     

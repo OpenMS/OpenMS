@@ -1,7 +1,7 @@
 
 -- General information --
 
-File name: C:/dev/openms_test/src/tests/topp/FileInfo_1_input.dta
+File name: /home/sachsenb/Development/OpenMS/src/tests/topp/FileInfo_1_input.dta
 File type: dta
 
 Instrument: 
@@ -10,11 +10,28 @@ MS levels: 2
 Total number of peaks: 57
 Number of spectra: 1
 
-Ranges:
+Combined Ranges (spectra + chromatograms):
   retention time: -1.00 .. -1.00 sec (0.0 min)
   mass-to-charge: 261.30 .. 783.50
-    ion mobility: <none>
-       intensity: 3672.00 .. 272411.00
+  ion mobility: <none> .. <none>
+  intensity: 3672.00 .. 272411.00
+
+Spectrum Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 261.30 .. 783.50
+  ion mobility: <none> .. <none>
+  intensity: 3672.00 .. 272411.00
+
+MS Level 2 Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 261.30 .. 783.50
+  ion mobility: <none> .. <none>
+  intensity: 3672.00 .. 272411.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
 
 Number of spectra per MS level:
   level 2: 1

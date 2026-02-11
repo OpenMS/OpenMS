@@ -7,7 +7,7 @@
 	</dataProcessing>
 	<featureList count="2">
 		<feature id="f_4835329514588776807">
-			<position dim="0">25.199999999999999</position>
+			<position dim="0">25.199999523162841</position>
 			<position dim="1">412.5</position>
 			<intensity>1.4904e05</intensity>
 			<quality dim="0">0.0</quality>
@@ -16,7 +16,7 @@
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_4835329514588776807_17749660155506638460">
-					<position dim="0">25.199999999999999</position>
+					<position dim="0">25.199999523162841</position>
 					<position dim="1">100.010000000000005</position>
 					<intensity>2.484e04</intensity>
 					<quality dim="0">0.0</quality>
@@ -32,7 +32,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_4835329514588776807_7804704400743266335">
-					<position dim="0">25.199999999999999</position>
+					<position dim="0">25.199999523162841</position>
 					<position dim="1">101.010000000000005</position>
 					<intensity>4.968e04</intensity>
 					<quality dim="0">0.0</quality>
@@ -48,7 +48,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_4835329514588776807_15004869347769368353">
-					<position dim="0">25.199999999999999</position>
+					<position dim="0">25.199999523162841</position>
 					<position dim="1">102.019999999999996</position>
 					<intensity>7.452e04</intensity>
 					<quality dim="0">0.0</quality>
@@ -64,7 +64,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_4835329514588776807_3332699010107892018">
-					<position dim="0">25.199999999999999</position>
+					<position dim="0">25.199999523162841</position>
 					<position dim="1">412.5</position>
 					<intensity>0.0</intensity>
 					<quality dim="0">0.0</quality>
@@ -94,16 +94,16 @@
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.297451451929797"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.404623178469163"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.897255754044998"/>
-			<UserParam type="float" name="delta_rt" value="24.699999999999999"/>
+			<UserParam type="float" name="delta_rt" value="24.699999523162841"/>
 			<UserParam type="float" name="assay_rt" value="0.5"/>
-			<UserParam type="float" name="norm_RT" value="25.199999999999999"/>
-			<UserParam type="float" name="rt_score" value="24.699999999999999"/>
-			<UserParam type="float" name="var_norm_rt_score" value="0.247"/>
+			<UserParam type="float" name="norm_RT" value="25.199999523162841"/>
+			<UserParam type="float" name="rt_score" value="24.699999523162841"/>
+			<UserParam type="float" name="var_norm_rt_score" value="0.246999995231628"/>
 			<UserParam type="float" name="var_intensity_score" value="0.993599999545956"/>
 			<UserParam type="float" name="nr_peaks" value="3.0"/>
 			<UserParam type="float" name="sn_ratio" value="2.089455969256671"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.736903730301262"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="3.402621399879225"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="3.402621433519914"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.195614066940133"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score" value="131.676697386154046"/>
@@ -119,13 +119,16 @@
 			<UserParam type="float" name="var_ms1_ppm_diff" value="121.21212121201097"/>
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.0"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.0"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-12.082493348369374"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-12.082493321480206"/>
 			<UserParam type="float" name="var_im_xcorr_shape" value="1.0"/>
 			<UserParam type="float" name="var_im_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_im_delta_score" value="2.98023217215615e-10"/>
 			<UserParam type="float" name="var_im_ms1_delta_score" value="0.0"/>
 			<UserParam type="float" name="im_drift" value="0.200000000298023"/>
+			<UserParam type="float" name="im_drift_left" value="0.0"/>
+			<UserParam type="float" name="im_drift_right" value="0.0"/>
 			<UserParam type="float" name="im_drift_weighted" value="0.200000000298023"/>
+			<UserParam type="float" name="im_log_intensity" value="8.699681400989514"/>
 			<UserParam type="float" name="im_ms1_drift" value="0.0"/>
 			<UserParam type="float" name="im_ms1_delta" value="-1.0"/>
 			<UserParam type="float" name="im_delta" value="-2.98023217215615e-10"/>
@@ -254,7 +257,10 @@
 			<UserParam type="float" name="var_im_delta_score" value="5.198080854640352e-11"/>
 			<UserParam type="float" name="var_im_ms1_delta_score" value="0.0"/>
 			<UserParam type="float" name="im_drift" value="0.300000000051981"/>
+			<UserParam type="float" name="im_drift_left" value="0.0"/>
+			<UserParam type="float" name="im_drift_right" value="0.0"/>
 			<UserParam type="float" name="im_drift_weighted" value="0.300000000051981"/>
+			<UserParam type="float" name="im_log_intensity" value="9.241935933565934"/>
 			<UserParam type="float" name="im_ms1_drift" value="0.0"/>
 			<UserParam type="float" name="im_ms1_delta" value="-1.0"/>
 			<UserParam type="float" name="im_delta" value="-5.198080854640352e-11"/>

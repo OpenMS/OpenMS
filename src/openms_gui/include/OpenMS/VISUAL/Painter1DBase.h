@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -34,9 +34,9 @@ namespace OpenMS
     /**
        @brief Paints items using the given painter onto the canvas.
  
-       @param painter The painter used for drawing 
-       @param canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
-       @param layer_index Which layer is currently painted (FIXME: remove when Canvas1D::DrawMode and PenStyle are factored out) 
+       @param[in] painter The painter used for drawing 
+       @param[in] canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
+       @param[in] layer_index Which layer is currently painted (FIXME: remove when Canvas1D::DrawMode and PenStyle are factored out) 
     */
     virtual void paint(QPainter* painter, Plot1DCanvas* canvas, int layer_index) = 0;
 

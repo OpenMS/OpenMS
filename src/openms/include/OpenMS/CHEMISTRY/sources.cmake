@@ -21,8 +21,12 @@ ModificationDefinitionsSet.h
 ModifiedNASequenceGenerator.h
 ModifiedPeptideGenerator.h
 ModificationsDB.h
+MzPAF.h
+MonosaccharideDB.h
 NASequence.h
 NucleicAcidSpectrumGenerator.h
+ProForma.h
+ProFormaDataJson.h
 ProteaseDB.h
 ProteaseDigestion.h
 Residue.h
@@ -32,6 +36,7 @@ RNaseDB.h
 RNaseDigestion.h
 Ribonucleotide.h
 RibonucleotideDB.h
+SequenceCoverage.h
 SimpleTSGXLMS.h
 SpectrumAnnotator.h
 Tagger.h

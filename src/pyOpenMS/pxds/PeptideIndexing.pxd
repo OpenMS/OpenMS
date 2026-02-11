@@ -21,21 +21,20 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideIndexing.h>" namespace "OpenMS":
         PeptideIndexing() except + nogil 
         PeptideIndexing(PeptideIndexing &) except + nogil  # compiler
 
-        PeptideIndexing_ExitCodes run(libcpp_vector[ FASTAEntry ] & proteins,
-                                      libcpp_vector[ ProteinIdentification ] & prot_ids,
-                                      libcpp_vector[ PeptideIdentification ] & pep_ids) except + nogil 
+        ExitCodes run(libcpp_vector[ FASTAEntry ] & proteins,
+                      libcpp_vector[ ProteinIdentification ] & prot_ids,
+                      PeptideIdentificationList & pep_ids) except + nogil 
 
         String getDecoyString() except + nogil 
         bool isPrefix() except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideIndexing.h>" namespace "OpenMS::PeptideIndexing":
-    cdef enum PeptideIndexing_ExitCodes "OpenMS::PeptideIndexing::ExitCodes":
-        #wrap-attach:
-        #   PeptideIndexing
+    cdef enum class ExitCodes "OpenMS::PeptideIndexing::ExitCodes":
+        # wrap-attach:
+        #    PeptideIndexing
         EXECUTION_OK
         DATABASE_EMPTY
         PEPTIDE_IDS_EMPTY
         ILLEGAL_PARAMETERS
         UNEXPECTED_RESULT
-        DECOYSTRING_EMPTY
 

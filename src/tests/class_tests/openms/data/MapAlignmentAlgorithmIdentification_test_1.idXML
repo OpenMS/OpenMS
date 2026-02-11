@@ -5,7 +5,9 @@
   </SearchParameters>
   <IdentificationRun date="2009-10-12T12:00:00" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
 	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="579.74" RT="1" >
-	  <PeptideHit score="27.1" sequence="VTAFIPPWVK" charge="2" aa_before="K" aa_after="D" >
+	  <PeptideHit score="27.1" sequence="IGNORETHISSECONDBEST" charge="2" aa_before="K" aa_after="D" >
+	  </PeptideHit>
+      <PeptideHit score="29.1" sequence="VTAFIPPWVK" charge="2" aa_before="K" aa_after="D" >
 	  </PeptideHit>
 	</PeptideIdentification>
 	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="650.777" RT="2" >

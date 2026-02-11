@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,7 +41,7 @@ public:
     bool operator==(const SequestInfile & sequest_infile) const;
 
     /** stores the experiment data in a Sequest input file that can be used as input for Sequest shell execution
-            @param filename the name of the file in which the infile is stored into
+            @param[out] filename the name of the file in which the infile is stored into
             @throw Exception::UnableToCreateFile is thrown if the file could not be created
     */
     void store(const String & filename);
@@ -203,9 +203,9 @@ public:
 
     /** retrieves the name, mass change, affected residues, type and position for all modifications from a string
 
-            @param modification_line
-            @param modifications_filename
-            @param monoisotopic
+            @param[in] modification_line
+            @param[in] modifications_filename
+            @param[in] monoisotopic
 
             @throw Exception::FileNotFound is thrown if the given file is not found
             @throw Exception::FileNotReadable is thrown if the given file could not be read

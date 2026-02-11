@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -63,6 +63,9 @@ START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMa
   feat4.setIntensity(100.0f);
   input[1].push_back(ConsensusFeature(feat3));
   input[1].push_back(ConsensusFeature(feat4));
+
+  input[0].updateRanges();
+  input[1].updateRanges();
 
   TransformationDescription transformation;
   PoseClusteringShiftSuperimposer pcat;

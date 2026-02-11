@@ -12,6 +12,7 @@ ConsensusIDAlgorithm.h
 ConsensusIDAlgorithmAverage.h
 ConsensusIDAlgorithmBest.h
 ConsensusIDAlgorithmIdentity.h
+CometModification.h
 ConsensusIDAlgorithmPEPIons.h
 ConsensusIDAlgorithmPEPMatrix.h
 ConsensusIDAlgorithmRanks.h
@@ -21,6 +22,7 @@ ConsensusMapMergerAlgorithm.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
+FragmentIndex.h
 HyperScore.h
 IDBoostGraph.h
 IDDecoyProbability.h
@@ -31,15 +33,17 @@ IDRipper.h
 IDScoreGetterSetter.h
 IDScoreSwitcherAlgorithm.h
 IonIdentityMolecularNetworking.h
-MessagePasserFactory.h
 MetaboliteSpectralMatching.h
+PeptideSearchEngineFIAlgorithm.h
 MorpheusScore.h
 NeighborSeq.h
+OpenSearchModificationAnalysis.h
 PeptideIndexing.h
 PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h
 PrecursorPurity.h
 PScore.h
+Scores.h
 SimpleSearchEngineAlgorithm.h
 SiriusExportAlgorithm.h
 SiriusMSConverter.h

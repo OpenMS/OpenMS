@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS::Ribonu
 
     cdef enum TermSpecificityNuc:
       # wrap-attach:
-      # Ribonucleotide
+      #  Ribonucleotide
       ANYWHERE = 0,
       FIVE_PRIME,
       THREE_PRIME,
@@ -18,9 +18,9 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
 
     cdef cppclass Ribonucleotide:
         # wrap-hash:
-        #  getName().c_str()
+        #  std
 
-        Ribonucleotide() except + nogil 
+        Ribonucleotide() except + nogil
         Ribonucleotide(Ribonucleotide &) except + nogil 
 
         # detailed constructor

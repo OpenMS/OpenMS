@@ -10,19 +10,31 @@ from ExperimentalSettings cimport *
 from DateTime cimport *
 from RangeManager cimport *
 from Matrix cimport *
+from SpectrumRangeManager cimport *
+from ChromatogramRangeManager cimport *
+from libcpp.string cimport string as libcpp_utf8_string
 
 # this class has addons, see the ./addons folder
 
+cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS::MSExperiment":
+
+    cdef enum class MSExperimentRasterAggregation "OpenMS::MSExperiment::RasterAggregation":
+        # wrap-attach:
+        #   MSExperiment
+        # wrap-as:
+        #   RasterAggregation
+        SUM "OpenMS::MSExperiment::RasterAggregation::SUM"
+        MAX "OpenMS::MSExperiment::RasterAggregation::MAX"
+
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment(ExperimentalSettings, RangeManagerRtMzInt):
+    cdef cppclass MSExperiment(ExperimentalSettings):
         # wrap-inherits:
         #  ExperimentalSettings
-        #  RangeManagerRtMzInt
         #
         # wrap-doc:
         #  In-Memory representation of a mass spectrometry experiment.
-        #  
+        #
         #  Contains the data and metadata of an experiment performed with an MS (or
         #  HPLC and MS). This representation of an MS experiment is organized as list
         #  of spectra and chromatograms and provides an in-memory representation of
@@ -32,45 +44,46 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #  spectra and chromatogram level meta data) is stored in objects of type
         #  MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
         #  and getChromatogram functions.
-        #  
+        #
         #  Spectra can be accessed by direct iteration or by getSpectrum(),
         #  while chromatograms are accessed through getChromatogram().
         #  See help(ExperimentalSettings) for information about meta-data.
-        #  
+        #
         #  Usage:
         #
         #  .. code-block:: python
-        #  
+        #
         #    exp = MSExperiment()
         #    MzMLFile().load(path_to_file, exp)
         #    for spectrum in exp:
         #      print(spectrum.size()) # prints number of peaks
         #      mz, intensities = spectrum.get_peaks()
-        #  
+        #
 
-        MSExperiment() except + nogil 
-        MSExperiment(MSExperiment &) except + nogil 
+        MSExperiment() except + nogil  # wrap-doc:Constructor
+        MSExperiment(MSExperiment &) except + nogil  # wrap-doc:Copy constructor
 
-        ExperimentalSettings getExperimentalSettings() except + nogil 
-        
+        ExperimentalSettings getExperimentalSettings() except + nogil  # wrap-doc:Returns the meta information of this experiment
+
         # COMMENT: Spectra functions
         MSSpectrum& operator[](size_t) except + nogil  # wrap-upper-limit:size()
         MSSpectrum getSpectrum(Size id_) except + nogil  # wrap-ignore
-        void addSpectrum(MSSpectrum spec) except + nogil 
-        void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) except + nogil 
-        libcpp_vector[MSSpectrum] getSpectra() except + nogil 
+        void addSpectrum(MSSpectrum spec) except + nogil  # wrap-doc:Adds a spectrum to the experiment
+        void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) except + nogil  # wrap-doc:Sets the spectrum list
+        libcpp_vector[MSSpectrum] getSpectra() except + nogil  # wrap-doc:Returns the list of spectra
         void get2DPeakData(double min_rt, double max_rt, double min_mz, double max_mz, unsigned int ms_level, libcpp_vector[float] & rt, libcpp_vector[float] & mz, libcpp_vector[float] & intensity) except + nogil  # wrap-ignore
         void get2DPeakDataIM(double min_rt, double max_rt, double min_mz, double max_mz, unsigned int ms_level, libcpp_vector[float] & rt, libcpp_vector[float] & mz, libcpp_vector[float] & intensity, libcpp_vector[float] & ion_mobility) except + nogil  # wrap-ignore
         void get2DPeakDataPerSpectrum(double min_rt, double max_rt, double min_mz, double max_mz, unsigned int ms_level, libcpp_vector[float] & rt, libcpp_vector[libcpp_vector[float]] & mz, libcpp_vector[libcpp_vector[float]] & intensity) except + nogil  # wrap-ignore
         void get2DPeakDataIMPerSpectrum(double min_rt, double max_rt, double min_mz, double max_mz, unsigned int ms_level, libcpp_vector[float] & rt, libcpp_vector[libcpp_vector[float]] & mz, libcpp_vector[libcpp_vector[float]] & intensity, libcpp_vector[libcpp_vector[float]] & ion_mobility) except + nogil  # wrap-ignore
-        libcpp_vector[libcpp_vector[double]] aggregateFromMatrix(Matrix[double] & ranges, unsigned int ms_level, libcpp_string mz_agg) except + nogil # wrap-doc:Aggregates intensity values for multiple m/z and RT ranges specified in a matrix
-        libcpp_vector[MSChromatogram] extractXICsFromMatrix(Matrix[double] & ranges, unsigned int ms_level, libcpp_string mz_agg) except + nogil # wrap-doc:Extracts XIC chromatograms for multiple m/z and RT ranges specified in a matrix
+        void rasterizeRTMZ(float* output, Size rt_bins, Size mz_bins, double min_rt, double max_rt, double min_mz, double max_mz, unsigned int ms_level, MSExperimentRasterAggregation aggregation) except + nogil  # wrap-ignore
+        libcpp_vector[libcpp_vector[double]] aggregateFromMatrix(Matrix[double] & ranges, unsigned int ms_level, libcpp_utf8_string mz_agg) except + nogil # wrap-doc:Aggregates intensity values for multiple m/z and RT ranges specified in a matrix
+        libcpp_vector[MSChromatogram] extractXICsFromMatrix(Matrix[double] & ranges, unsigned int ms_level, libcpp_utf8_string mz_agg) except + nogil # wrap-doc:Extracts XIC chromatograms for multiple m/z and RT ranges specified in a matrix
 
         # COMMENT: Chromatogram functions
         MSChromatogram getChromatogram(Size id_) except + nogil  # wrap-ignore
-        void addChromatogram(MSChromatogram chromatogram) except + nogil 
-        void setChromatograms(libcpp_vector[MSChromatogram] chromatograms) except + nogil 
-        libcpp_vector[MSChromatogram] getChromatograms() except + nogil 
+        void addChromatogram(MSChromatogram chromatogram) except + nogil  # wrap-doc:Adds a chromatogram to the experiment
+        void setChromatograms(libcpp_vector[MSChromatogram] chromatograms) except + nogil  # wrap-doc:Sets the chromatogram list
+        libcpp_vector[MSChromatogram] getChromatograms() except + nogil  # wrap-doc:Returns the list of chromatograms
 
         # COMMENT: Spectra iteration
         libcpp_vector[MSSpectrum].iterator begin() except + nogil         # wrap-iter-begin:__iter__(MSSpectrum)
@@ -79,36 +92,50 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         MSChromatogram calculateTIC() except + nogil  # wrap-doc:Returns the total ion chromatogram
         void clear(bool clear_meta_data) except + nogil  # wrap-doc:Clear all spectra data and meta data (if called with True)
 
-        void updateRanges() except + nogil  # wrap-doc:Recalculate global RT and m/z ranges after changes to the data has been made.
-        void updateRanges(int msLevel) except + nogil  # wrap-doc:Recalculate RT and m/z ranges for a specific MS level
+        void updateRanges() except + nogil  # wrap-doc:Recalculate global ranges for both spectra and chromatrograms after changes to the data has been made.
 
-        void reserveSpaceSpectra(Size s) except + nogil 
-        void reserveSpaceChromatograms(Size s) except + nogil 
+        void reserveSpaceSpectra(Size s) except + nogil  # wrap-doc:Reserves space for the specified number of spectra
+        void reserveSpaceChromatograms(Size s) except + nogil  # wrap-doc:Reserves space for the specified number of chromatograms
 
         # Size of experiment
         UInt64 getSize() except + nogil  # wrap-doc:Returns the total number of peaks
-        int size() except + nogil 
-        void resize(Size s) except + nogil 
-        bool empty() except + nogil 
-        void reserve(Size s) except + nogil 
+        int size() except + nogil  # wrap-doc:Returns the number of spectra
+        void resize(Size s) except + nogil  # wrap-doc:Resizes the spectrum container to the specified number of spectra
+        bool empty() except + nogil  # wrap-doc:Returns True if the experiment contains no spectra
+        void reserve(Size s) except + nogil  # wrap-doc:Reserves space for the specified number of spectra
         Size getNrSpectra() except + nogil  # wrap-doc:Returns the number of MS spectra
         Size getNrChromatograms() except + nogil  # wrap-doc:Returns the number of chromatograms
         libcpp_vector[unsigned int] getMSLevels() except + nogil   # wrap-ignore
 
         void sortSpectra(bool sort_mz) except + nogil  # wrap-doc:Sorts spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z
-        void sortSpectra() except + nogil  
+        void sortSpectra() except + nogil  # wrap-doc:Sorts spectra by retention time
         void sortChromatograms(bool sort_rt) except + nogil  # wrap-doc:Sorts chromatograms by m/z. If sort_rt=True also sort each chromatogram RT
-        void sortChromatograms() except + nogil 
+        void sortChromatograms() except + nogil  # wrap-doc:Sorts chromatograms by m/z
 
         bool isSorted(bool check_mz) except + nogil  # wrap-doc:Checks if all spectra are sorted with respect to ascending RT
-        bool isSorted() except + nogil 
+        bool isSorted() except + nogil  # wrap-doc:Checks if all spectra are sorted with respect to ascending RT
 
         void getPrimaryMSRunPath(StringList& toFill) except + nogil  # wrap-doc:References to the first MS file(s) after conversions. Used to trace results back to original data.
-        void swap(MSExperiment) except + nogil 
+        void swap(MSExperiment) except + nogil  # wrap-doc:Swaps the content of this experiment with another
 
-        bool operator==(MSExperiment) except + nogil 
-        void reset() except + nogil 
-        bool clearMetaDataArrays() except + nogil 
+        bool operator==(MSExperiment) except + nogil  # wrap-doc:Equality operator
+        void reset() except + nogil  # wrap-doc:Clears all data and meta data
+        bool clearMetaDataArrays() except + nogil  # wrap-doc:Clears the meta data arrays of all contained spectra
 
         int getPrecursorSpectrum(int zero_based_index) except + nogil  # wrap-doc:Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
-        
+
+        # Range manager accessors
+        SpectrumRangeManager spectrumRanges() except + nogil  # wrap-doc:Returns a reference to the spectrum range manager
+        ChromatogramRangeManager chromatogramRanges() except + nogil  # wrap-doc:Returns a reference to the chromatogram range manager
+        # TODO: not working yet RangeManagerRtMzIntMob combinedRanges() except + nogil  # wrap-doc:Returns a reference to the combined range manager (for backward compatibility)
+
+        # Range convenience methods (delegate to combined_ranges_)
+        double getMinRT() except + nogil  # wrap-doc:Get the minimum RT value from the combined ranges
+        double getMaxRT() except + nogil  # wrap-doc:Get the maximum RT value from the combined ranges
+        double getMinMZ() except + nogil  # wrap-doc:Get the minimum m/z value from the combined ranges
+        double getMaxMZ() except + nogil  # wrap-doc:Get the maximum m/z value from the combined ranges
+        double getMinIntensity() except + nogil  # wrap-doc:Get the minimum intensity value from the combined ranges
+        double getMaxIntensity() except + nogil  # wrap-doc:Get the maximum intensity value from the combined ranges
+        double getMinMobility() except + nogil  # wrap-doc:Get the minimum mobility value from the combined ranges
+        double getMaxMobility() except + nogil  # wrap-doc:Get the maximum mobility value from the combined ranges
+        void clearRanges() except + nogil  # wrap-doc:Clear all ranges in all range managers

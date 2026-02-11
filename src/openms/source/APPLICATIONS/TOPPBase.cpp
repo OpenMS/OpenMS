@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -392,7 +392,7 @@ namespace OpenMS
         // note the copy(getIniLocation_(),..) as we want the param tree without instance
         // information
         param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
-        if (!param_.update(finalParam, false, false, true, true, OpenMS_Log_warn))
+        if (!param_.update(finalParam, false, false, true, true, getGlobalLogWarn()))
         {
           OPENMS_LOG_ERROR << "Parameters passed to '" << this->tool_name_ << "' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
           return ILLEGAL_PARAMETERS;
@@ -448,7 +448,7 @@ namespace OpenMS
       //-------------------------------------------------------------
       debug_level_ = getParamAsInt_("debug", 0);
       writeDebug_(String("Debug level (after ini file): ") + String(debug_level_), 1);
-      if (debug_level_ > 0) OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+      if (debug_level_ > 0) getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
 
       //-------------------------------------------------------------
       //progress logging
@@ -494,6 +494,12 @@ namespace OpenMS
       writeLogError_(String("Error: File not found (") + e.what() + ")");
       writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
       return INPUT_FILE_NOT_FOUND;
+    }
+    catch (ExternalExecutableNotFound& e)
+    {
+      writeLogError_(String("Error: Executable not found (") + e.what() + ")");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return EXTERNAL_PROGRAM_NOTFOUND;
     }
     catch (FileNotReadable& e)
     {
@@ -1447,7 +1453,7 @@ namespace OpenMS
                           param_name + "' option or fix your PATH environment !" +
                     (p.required ? "" : " Since this file is not strictly required, you might also pass the empty string \"\" as "
                     "argument to prevent its usage (this might limit the usability of the tool)."));
-          throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_value);
+          throw ExternalExecutableNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_value);
         }
       }
       if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(param_value, param_name);
@@ -1675,13 +1681,13 @@ namespace OpenMS
     }
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir, const std::map<QString, QString>& env) const
   {
     String proc_stdout, proc_stderr; // collect all output (might be useful if program crashes, see below)
-    return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir);
+    return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir, env);
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir, const std::map<QString, QString>& env) const
   {
     proc_stdout.clear();
     proc_stderr.clear();
@@ -1691,18 +1697,24 @@ namespace OpenMS
     auto lam_err = [&](const String& out) { proc_stderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
     ExternalProcess ep(lam_out, lam_err);
 
-    const auto& rt = ep.run(executable, arguments, workdir, true); // does automatic escaping etc... start
+    const auto& rt = ep.run(executable, arguments, workdir, true, ExternalProcess::IO_MODE::READ_WRITE, env); // does automatic escaping etc... start
     if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
     { // error occurred: if not written already in callback, do it now
       writeLogError_("Standard output: " + proc_stdout);
       writeLogError_("Standard error: " + proc_stderr);
     }
-    if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
+    switch (rt)
     {
-      return EXTERNAL_PROGRAM_ERROR;
+      case ExternalProcess::RETURNSTATE::SUCCESS:
+        return EXECUTION_OK;
+      case ExternalProcess::RETURNSTATE::NONZERO_EXIT:
+      case ExternalProcess::RETURNSTATE::CRASH:
+        return EXTERNAL_PROGRAM_ERROR;
+      case ExternalProcess::RETURNSTATE::FAILED_TO_START:
+        return EXTERNAL_PROGRAM_NOTFOUND;
+      default:
+        throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown return state of external process.");
     }
-
-    return EXECUTION_OK;
   }
 
   String TOPPBase::getParamAsString_(const String& key, const String& default_value) const
@@ -2341,7 +2353,7 @@ namespace OpenMS
 
   void TOPPBase::addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
   {
-    boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+    std::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
     for (Size i = 0; i < map.size(); ++i)
     {
       map[i].getDataProcessing().push_back(dp_);
@@ -2493,6 +2505,19 @@ namespace OpenMS
           if (pos->second->type == ParameterInformation::FLAG) // flag
           {
             value = "true";
+            // Check if there are trailing arguments after the flag - this is an error
+            if (!queue.empty())
+            {
+              // Collect the trailing arguments for the error message
+              String trailing_args;
+              for (list<String>::const_iterator it = queue.begin(); it != queue.end(); ++it)
+              {
+                if (it != queue.begin()) trailing_args += " ";
+                trailing_args += *it;
+              }
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                String("Command line error: Trailing arguments after flag '") + arg + "': " + trailing_args);
+            }
           }
           else // option with argument(s)
           {
@@ -2560,7 +2585,21 @@ namespace OpenMS
               queue.pop_front(); // argument was already used
           }
           OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
-          cmd_params.setValue(pos->second->name, value);
+          
+          // Check for duplicate parameters
+          // Note: This is intentionally allowed to support nextflow workflows where ${ext.args} 
+          // can be appended to command lines to allow users to override default arguments.
+          // Since we parse in reverse order, we only keep the first occurrence we encounter,
+          // which is the LAST occurrence on the command line.
+          if (cmd_params.exists(pos->second->name))
+          {
+            ParamValue existing_value = cmd_params.getValue(pos->second->name);
+            writeLogWarn_(String("Warning: Duplicate parameter '") + arg + "' given. Using last occurrence with value '" + String(existing_value.toString()) + "' (ignoring '" + String(value.toString()) + "').");
+          }
+          else
+          {
+            cmd_params.setValue(pos->second->name, value);
+          }
         }
         else // unknown argument -> append to "unknown" list
         {

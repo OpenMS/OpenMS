@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Julianus Pfeuffer $
 # --------------------------------------------------------------------------
+
 
 ## Very useful for debugging purposes: Disables the dependency on the "make install" target.
 ## In our case e.g. "make install" always builds the documentation etc. 
@@ -57,9 +32,8 @@ endif()
 # The template would go in cmake/Modules which is already in our Module path.
 # Official template is here: https://gitlab.kitware.com/cmake/cmake/-/blob/v3.27.4/Modules/Internal/CPack/CPack.distribution.dist.in?ref_type=tags
 
-# reuse signing identity from signing app bundles (as in dmg)
-if(NOT DEFINED CPACK_PKGBUILD_IDENTITY_NAME)
-  message(WARNING "CPACK_PKGBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
+if(NOT DEFINED CPACK_PRODUCTBUILD_IDENTITY_NAME)
+  message(WARNING "CPACK_PRODUCTBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
 endif()
 
 set(MACOS_TARGET_ARCHS ${CMAKE_OSX_ARCHITECTURES})
@@ -136,8 +110,8 @@ install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_
 # prefix to the other prefix. This is unfortunately very unrobust.
 # TODO find better order or rewrite fix_dependencies script to be called separately
 install(CODE "
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
         message('\${topp_sign_out}')"
         COMPONENT Dependencies
         )
@@ -145,10 +119,21 @@ install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_
         COMPONENT library
         )
 install(CODE "
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
         message('\${lib_sign_out}')"
         COMPONENT library
         )
+
+## Sign thirdparty components
+foreach(component IN LISTS THIRDPARTY_COMPONENT_GROUP)
+  install(CODE "
+          if(EXISTS \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/${component}/)
+            execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/${component}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.thirdparty.${component}.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE thirdparty_sign_out ERROR_VARIABLE thirdparty_sign_out)
+            message('\${thirdparty_sign_out}')
+          endif()"
+          COMPONENT ${component}
+          )
+endforeach()
 
 ## When Applications are installed (which is the FIRST in alphabetical order AND the main component),
 ## a postinstall script runs to set file icon
@@ -164,11 +149,4 @@ add_custom_target(dist
   COMMAND cpack -G ${CPACK_GENERATOR}
   COMMENT "Building ${CPACK_GENERATOR} package"
 )
-
-add_custom_target(finalized_dist
-                  COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
-                  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-                  COMMENT "Finalizing dmg image"
-                  DEPENDS dist)
-
 

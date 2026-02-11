@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,11 +32,8 @@ namespace OpenMS
     {
       for (Size i = 0; i != exp.size(); ++i)
       {
-        vector<Precursor> pcs = exp[i].getPrecursors();
-        if (pcs.empty())
-        {
-          continue;
-        }
+        const vector<Precursor>& pcs = exp[i].getPrecursors();
+        if (pcs.empty()) { continue; }
         vector<double> pcs_rt(pcs.size(), exp[i].getRT());
         copy(pcs.begin(), pcs.end(), back_inserter(precursors));
         copy(pcs_rt.begin(), pcs_rt.end(), back_inserter(precursors_rt));
@@ -228,10 +225,12 @@ namespace OpenMS
                                                            int debug_level)
     {
       set<Size> corrected_precursors;
+
       // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
       // if believe_charge is set, only add features that match the precursor charge
       map<Size, set<Size> > scan_idx_to_feature_idx;
 
+      size_t overlap_checks(0);
       for (Size scan = 0; scan != exp.size(); ++scan)
       {
         // skip non-tandem mass spectra
@@ -254,7 +253,14 @@ namespace OpenMS
           {
             scan_idx_to_feature_idx[scan].insert(f);
           }
+          ++overlap_checks;
         }
+      }
+
+      if (debug_level > 0)
+      {
+        OPENMS_LOG_INFO << "Total number of overlap checks: " << overlap_checks << endl;
+        OPENMS_LOG_INFO << "Number of precursors with overlapping features: " << scan_idx_to_feature_idx.size() << endl;
       }
 
       // filter sets to retain compatible features:
@@ -265,12 +271,12 @@ namespace OpenMS
         const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
         const double mz_tolerance_da = ppm ? pc_mz * mz_tolerance * 1e-6  : mz_tolerance;
 
-        // Note: This is the "delete while iterating" pattern so mind the pre- and postincrement
+        // Note: This is the "delete while iterating" pattern
         for (set<Size>::iterator sit = it->second.begin(); sit != it->second.end(); )
         {
           if (!compatible_(features[*sit], pc_mz, mz_tolerance_da, max_trace))
           {
-            it->second.erase(sit++);
+            sit = it->second.erase(sit);
           }
           else
           {
@@ -280,12 +286,12 @@ namespace OpenMS
       }
 
       // remove entries with no compatible features (empty sets).
-      // Note: This is the "delete while iterating" pattern so mind the pre- and postincrement
+      // Note: This is the "delete while iterating" pattern
       for (map<Size, set<Size> >::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end(); )
       {
         if (it->second.empty())
         {
-          scan_idx_to_feature_idx.erase(it++);
+          it = scan_idx_to_feature_idx.erase(it);
         }
         else
         {
@@ -321,12 +327,12 @@ namespace OpenMS
           }
 
           // delete all except the nearest/best feature
-          // Note: This is the "delete while iterating" pattern so mind the pre- and postincrement
+          // Note: This is the "delete while iterating" pattern
           for (set<Size>::iterator sit = it->second.begin(); sit != it->second.end(); )
           {
             if (sit != best_feature)
             {
-              it->second.erase(sit++);
+              sit = it->second.erase(sit);
             }
             else
             {

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,8 +26,8 @@ public:
       /**
         @brief Constructor
 
-                @param mapping The mapping rules
-                @param cv @em All controlled vocabularies required for the mapping
+                @param[in] mapping The mapping rules
+                @param[in] cv @em All controlled vocabularies required for the mapping
             */
       MzIdentMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 

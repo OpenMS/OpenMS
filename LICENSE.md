@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Copyright (c) 2002-present, The OpenMS Team -- Eberhard Karls University Tuebingen, ETH Zurich, and Freie Universitaet Berlin
+Copyright (c) 2002-present, OpenMS Inc. -- Eberhard Karls University Tuebingen, ETH Zurich, and Freie Universitaet Berlin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

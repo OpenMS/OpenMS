@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -64,6 +64,16 @@ public:
       }
     };
 
+    /**
+     * @brief Container for organizing and managing multiple chunks in a spectrum.
+     *
+     * This structure is used to track multiple chunks (segments) within a spectrum.
+     * Each chunk represents a portion of the spectrum that may or may not be sorted.
+     * This information is used to optimize sorting operations on spectra, particularly
+     * when only parts of the spectrum need to be sorted or have been modified.
+     *
+     * @see Chunk
+     */
     struct Chunks {
       public:
         Chunks(const MSSpectrum& s) : spec_(s) {}
@@ -136,6 +146,7 @@ public:
     using ContainerType::erase;
     using ContainerType::swap;
     using ContainerType::data;
+    using ContainerType::shrink_to_fit;
 
     using typename ContainerType::iterator;
     using typename ContainerType::const_iterator;
@@ -310,7 +321,7 @@ public:
 
     /**
       @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
-      @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
+      @param[in] chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
     */
     void sortByPositionPresorted(const std::vector<Chunk>& chunks);
 
@@ -362,7 +373,7 @@ public:
     /**
       @brief Binary search for the peak nearest to a specific m/z
 
-      @param mz The searched for mass-to-charge ratio searched
+      @param[in] mz The searched for mass-to-charge ratio searched
       @return Returns the index of the peak.
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
@@ -374,8 +385,8 @@ public:
     /**
       @brief Binary search for the peak nearest to a specific m/z given a +/- tolerance windows in Th
 
-      @param mz The searched for mass-to-charge ratio searched
-      @param tolerance The non-negative tolerance applied to both sides of mz
+      @param[in] mz The searched for mass-to-charge ratio searched
+      @param[in] tolerance The non-negative tolerance applied to both sides of mz
 
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
 
@@ -387,9 +398,9 @@ public:
     /**
       @brief Search for the peak nearest to a specific m/z given two +/- tolerance windows in Th
 
-      @param mz The searched for mass-to-charge ratio searched
-      @param tolerance_left The non-negative tolerance applied left of mz
-      @param tolerance_right The non-negative tolerance applied right of mz
+      @param[in] mz The searched for mass-to-charge ratio searched
+      @param[in] tolerance_left The non-negative tolerance applied left of mz
+      @param[in] tolerance_right The non-negative tolerance applied right of mz
 
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
 
@@ -402,9 +413,9 @@ public:
     /**
       @brief Search for the peak with highest intensity among the peaks near to a specific m/z given two +/- tolerance windows in Th
 
-      @param mz The searched for mass-to-charge ratio searched
-      @param tolerance_left The non-negative tolerance applied left of mz
-      @param tolerance_right The non-negative tolerance applied right of mz
+      @param[in] mz The searched for mass-to-charge ratio searched
+      @param[in] tolerance_left The non-negative tolerance applied left of mz
+      @param[in] tolerance_right The non-negative tolerance applied right of mz
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
@@ -574,14 +585,14 @@ public:
       also all meta data (such as RT, drift time, ms level etc) will be
       deleted.
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
 
     /*
       @brief Select a (subset of) spectrum and its data_arrays, only retaining the indices given in @p indices
 
-      @param indices Vector of indices to keep
+      @param[in] indices Vector of indices to keep
       @return Reference to this MSSpectrum
 
     */
@@ -611,6 +622,68 @@ public:
 
     /// compute the total ion count (sum of all peak intensities)
     PeakType::IntensityType calculateTIC() const;
+
+    /**
+     * @brief Aggregation mode for rasterizeIMFrame
+     */
+    enum class RasterAggregation
+    {
+      SUM,  ///< Sum intensities of all peaks falling into a pixel
+      MAX   ///< Take maximum intensity of all peaks falling into a pixel
+    };
+
+    /**
+     * @brief Rasterizes an ion mobility frame into a 2D intensity matrix (IM vs m/z).
+     *
+     * This method creates a 2D heatmap/image representation of an IM frame by binning peak
+     * intensities into a regular grid of pixels. It is designed for spectra in CONCATENATED
+     * format where each peak has an associated ion mobility value stored in a float data array.
+     *
+     * The output matrix has dimensions [mz_bins x im_bins] where:
+     * - Rows correspond to m/z bins (y-axis in visualization)
+     * - Columns correspond to IM bins (x-axis in visualization)
+     * - Values are aggregated intensities (sum or max)
+     *
+     * The output buffer must be pre-allocated with size (mz_bins * im_bins) and will be
+     * filled in row-major order (C-style: mz varies slowest, im varies fastest).
+     *
+     * @param[out] output Pre-allocated buffer of size (mz_bins * im_bins) to store the
+     *                    aggregated intensity values. Must not be nullptr.
+     * @param[in] im_bins Number of bins along the IM axis (image width)
+     * @param[in] mz_bins Number of bins along the m/z axis (image height)
+     * @param[in] min_im Minimum IM value for the output range
+     * @param[in] max_im Maximum IM value for the output range
+     * @param[in] min_mz Minimum m/z value for the output range
+     * @param[in] max_mz Maximum m/z value for the output range
+     * @param[in] aggregation RasterAggregation mode: SUM (default) or MAX
+     *
+     * @note This method requires the spectrum to have IM data (containsIMData() returns true).
+     * @note Unlike rasterizeRTMZ, this method does NOT require the spectrum to be sorted by m/z,
+     *       as IM frame data is typically unsorted. All peaks are iterated linearly.
+     * @note The output buffer is zero-initialized at the start of this method.
+     *
+     * @throws Exception::MissingInformation if the spectrum does not contain IM data
+     * @throws Exception::NullPointer if output is nullptr
+     * @throws Exception::InvalidValue if im_bins or mz_bins is zero
+     * @throws Exception::InvalidRange if min_im >= max_im or min_mz >= max_mz
+     *
+     * Example usage with numpy (via pyOpenMS):
+     * @code
+     * import numpy as np
+     * im_bins, mz_bins = 800, 600
+     * output = np.zeros((mz_bins, im_bins), dtype=np.float32)
+     * spec.rasterizeIMFrame(output, im_bins, mz_bins, min_im, max_im, min_mz, max_mz)
+     * @endcode
+     */
+    void rasterizeIMFrame(
+      float* output,
+      Size im_bins,
+      Size mz_bins,
+      CoordinateType min_im,
+      CoordinateType max_im,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      RasterAggregation aggregation = RasterAggregation::SUM) const;
 
 protected:
     /// Retention time

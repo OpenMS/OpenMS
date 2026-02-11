@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
@@ -28,7 +29,7 @@ namespace OpenMS
     defaults_.setValidStrings("parse_headers", parse_strings);
     defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
     defaults_.setValidStrings("parse_peakinfo", parse_strings);
-    defaults_.setValue("parse_firstpeakinfo_only", "true", "Flag whether only the first (default for 1:1 correspondence in SpecLibSearcher) or all peak annotation information should be parsed and stored for each peak.");
+    defaults_.setValue("parse_firstpeakinfo_only", "true", "Flag whether only the first or all peak annotation information should be parsed and stored for each peak.");
     defaults_.setValidStrings("parse_firstpeakinfo_only", parse_strings);
     defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
     defaults_.setValidStrings("instrument", {"","it","qtof","toftof"});
@@ -49,7 +50,7 @@ namespace OpenMS
 
   MSPFile::~MSPFile() = default;
 
-  void MSPFile::load(const String & filename, vector<PeptideIdentification> & ids, PeakMap & exp)
+  void MSPFile::load(const String & filename, PeptideIdentificationList & ids, PeakMap & exp)
   {
     if (!File::exists(filename))
     {
@@ -322,6 +323,18 @@ namespace OpenMS
     }
   }
 
+  void MSPFile::load(const String & filename, AnnotatedMSRun & annot_exp)
+  {
+    // use existing load function
+    PeptideIdentificationList ids;
+    MSExperiment exp;
+    this->load(filename, ids, exp);
+
+    // Convert to the new data structure (one PeptideIdentification per spectrum)
+    annot_exp.setPeptideIdentifications(std::move(ids));
+    annot_exp.getMSExperiment() = std::move(exp);
+  }
+
   void MSPFile::parseHeader_(const String & header, PeakSpectrum & spec)
   {
     // first header from std_protein of NIST spectra DB
@@ -343,7 +356,7 @@ namespace OpenMS
   }
 
   //TODO adapt store to write new? format
-  void MSPFile::store(const String & filename, const PeakMap & exp) const
+  void MSPFile::store(const String & filename, const AnnotatedMSRun & exp) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
     {
@@ -358,11 +371,11 @@ namespace OpenMS
 
     ofstream out(filename.c_str());
 
-    for (const MSSpectrum& it : exp)
+    for (auto [spectrum, peptide_id] : exp)
     {
-      if (!it.getPeptideIdentifications().empty() && !it.getPeptideIdentifications().begin()->getHits().empty())
+      if (!peptide_id.getHits().empty())
       {
-        PeptideHit hit = *it.getPeptideIdentifications().begin()->getHits().begin();
+        PeptideHit hit = peptide_id.getHits()[0];
         String peptide;
         for (const Residue& pit : hit.getSequence())
         {
@@ -419,10 +432,10 @@ namespace OpenMS
           out << " Mods=0";
         }
         out << " Inst=it\n";         // @improvement write instrument type, protein...and other information
-        out << "Num peaks: " << it.size() << "\n";
+        out << "Num peaks: " << spectrum.size() << "\n";
 
         // normalize to 10,000
-        PeakSpectrum rich_spec = it;
+        PeakSpectrum rich_spec = spectrum;
         double max_int(0);
         for (const Peak1D& sit : rich_spec)
         {

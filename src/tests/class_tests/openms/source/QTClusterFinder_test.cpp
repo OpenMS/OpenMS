@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -192,6 +192,8 @@ START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap
   input[2].push_back(feat6);
   input[2].push_back(feat7);
 
+  input[2].updateRanges();
+  
 	finder.run(input, result);
 	TEST_EQUAL(result.size(), 4);
 	ABORT_IF(result.size() != 4);

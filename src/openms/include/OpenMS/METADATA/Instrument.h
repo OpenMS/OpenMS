@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/MassAnalyzer.h>
 #include <OpenMS/METADATA/IonDetector.h>
 #include <OpenMS/METADATA/Software.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <vector>
 
@@ -41,7 +42,7 @@ namespace OpenMS
 public:
 
     /// ion optics type
-    enum IonOpticsType
+    enum class IonOpticsType
     {
       UNKNOWN,                  ///< unknown
       MAGNETIC_DEFLECTION,      ///< magnetic deflection
@@ -59,7 +60,10 @@ public:
     };
 
     /// Names of inlet types
-    static const std::string NamesOfIonOpticsType[SIZE_OF_IONOPTICSTYPE];
+    static const std::string NamesOfIonOpticsType[static_cast<size_t>(IonOpticsType::SIZE_OF_IONOPTICSTYPE)];
+
+    /// returns all ion optics type names known to OpenMS
+    static StringList getAllNamesOfIonOpticsType();
 
     /// Constructor
     Instrument();

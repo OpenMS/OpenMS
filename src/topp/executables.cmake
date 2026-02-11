@@ -7,6 +7,7 @@ AccurateMassSearch
 AssayGeneratorMetabo
 AssayGeneratorMetaboSirius
 BaselineFilter
+FeatureFinderLFQ
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CometAdapter
@@ -49,7 +50,6 @@ IDExtractor
 IDFileConverter
 IDFilter
 IDMapper
-IDMassAccuracy
 IDMerger
 IDPosteriorErrorProbability
 IDRipper
@@ -59,6 +59,7 @@ IDSplitter
 InternalCalibration
 IonMobilityBinning
 IsobaricAnalyzer
+IsobaricWorkflow
 JSONExporter
 LuciphorAdapter
 MapAlignerIdentification
@@ -68,7 +69,6 @@ MapNormalizer
 MapRTTransformer
 MapStatistics
 MaRaClusterAdapter
-MascotAdapter
 MascotAdapterOnline
 MassCalculator
 MassTraceExtractor
@@ -89,8 +89,8 @@ NovorAdapter
 NucleicAcidSearchEngine
 OpenMSDatabasesInfo
 OpenMSInfo
+OpenNuXL
 OpenPepXL
-OpenPepXLLF
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
@@ -100,7 +100,9 @@ OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative
+PeakPickerIM
 PeptideIndexer
+PeptideDataBaseSearchFI
 PercolatorAdapter
 PhosphoScoring
 ProteinInference
@@ -124,8 +126,6 @@ SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
 SiriusExport
-SpecLibCreator
-SpecLibSearcher
 SpectraFilterNLargest
 SpectraFilterNormalizer
 SpectraFilterThresholdMower
@@ -137,7 +137,6 @@ TICCalculator
 TextExporter
 TriqlerConverter
 XFDR
-XTandemAdapter
 XMLValidator
 )
 
@@ -153,6 +152,13 @@ if(NOT DISABLE_OPENSWATH)
     MRMTransitionGroupPicker
   )
 endif(NOT DISABLE_OPENSWATH)
+
+if(WITH_PARQUET)
+  set(TOPP_executables
+    ${TOPP_executables}
+    QuantmsIOConverter
+  )
+endif(WITH_PARQUET)
 
 ## all targets requiring OpenMS_GUI
 set(TOPP_executables_with_GUIlib

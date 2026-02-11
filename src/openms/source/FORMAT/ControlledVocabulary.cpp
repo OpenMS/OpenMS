@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -30,7 +30,7 @@ namespace OpenMS
     description(),
     synonyms(),
     unparsed(),
-    xref_type(NONE),
+    xref_type(XRefType::NONE),
     xref_binary()
   {
   }
@@ -60,25 +60,25 @@ namespace OpenMS
   {
     switch (type)
     {
-    case XSD_STRING: return "xsd:string";
+    case XRefType::XSD_STRING: return "xsd:string";
 
-    case XSD_INTEGER: return "xsd:integer";
+    case XRefType::XSD_INTEGER: return "xsd:integer";
 
-    case XSD_DECIMAL: return "xsd:decimal";
+    case XRefType::XSD_DECIMAL: return "xsd:decimal";
 
-    case XSD_NEGATIVE_INTEGER: return "xsd:negativeInteger";
+    case XRefType::XSD_NEGATIVE_INTEGER: return "xsd:negativeInteger";
 
-    case XSD_POSITIVE_INTEGER: return "xsd:positiveInteger";
+    case XRefType::XSD_POSITIVE_INTEGER: return "xsd:positiveInteger";
 
-    case XSD_NON_NEGATIVE_INTEGER: return "xsd:nonNegativeInteger";
+    case XRefType::XSD_NON_NEGATIVE_INTEGER: return "xsd:nonNegativeInteger";
 
-    case XSD_NON_POSITIVE_INTEGER: return "xsd:nonPositiveInteger";
+    case XRefType::XSD_NON_POSITIVE_INTEGER: return "xsd:nonPositiveInteger";
 
-    case XSD_BOOLEAN: return "xsd:boolean";
+    case XRefType::XSD_BOOLEAN: return "xsd:boolean";
 
-    case XSD_DATE: return "xsd:date";
+    case XRefType::XSD_DATE: return "xsd:date";
 
-    case XSD_ANYURI: return "xsd:anyURI";
+    case XRefType::XSD_ANYURI: return "xsd:anyURI";
 
     default: return "none";
     }
@@ -137,12 +137,7 @@ namespace OpenMS
     return s;
   }
 
-  ControlledVocabulary::ControlledVocabulary() :
-    terms_(),
-    name_("")
-  {
-
-  }
+  ControlledVocabulary::ControlledVocabulary() = default;
 
   ControlledVocabulary::~ControlledVocabulary() = default;
 
@@ -154,7 +149,18 @@ namespace OpenMS
     ifstream is(filename.c_str());
     if (!is)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
 
     String line, line_wo_spaces;
@@ -337,54 +343,54 @@ namespace OpenMS
           line_wo_spaces.remove('\\');
           if (line_wo_spaces.hasSubstring("value-type:xsd:string"))
           {
-            term.xref_type = CVTerm::XSD_STRING;
+            term.xref_type = CVTerm::XRefType::XSD_STRING;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:integer") || line_wo_spaces.hasSubstring("value-type:xsd:int"))
           {
-            term.xref_type = CVTerm::XSD_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:decimal") ||
               line_wo_spaces.hasSubstring("value-type:xsd:float") ||
               line_wo_spaces.hasSubstring("value-type:xsd:double"))
           {
-            term.xref_type = CVTerm::XSD_DECIMAL;
+            term.xref_type = CVTerm::XRefType::XSD_DECIMAL;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:negativeInteger"))
           {
-            term.xref_type = CVTerm::XSD_NEGATIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NEGATIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:positiveInteger"))
           {
-            term.xref_type = CVTerm::XSD_POSITIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_POSITIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:nonNegativeInteger"))
           {
-            term.xref_type = CVTerm::XSD_NON_NEGATIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:nonPositiveInteger"))
           {
-            term.xref_type = CVTerm::XSD_NON_POSITIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:boolean") || line_wo_spaces.hasSubstring("value-type:xsd:bool"))
           {
-            term.xref_type = CVTerm::XSD_BOOLEAN;
+            term.xref_type = CVTerm::XRefType::XSD_BOOLEAN;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:date"))
           {
-            term.xref_type = CVTerm::XSD_DATE;
+            term.xref_type = CVTerm::XRefType::XSD_DATE;
             continue;
           }
           if (line_wo_spaces.hasSubstring("value-type:xsd:anyURI"))
           {
-            term.xref_type = CVTerm::XSD_ANYURI;
+            term.xref_type = CVTerm::XRefType::XSD_ANYURI;
             continue;
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
@@ -393,56 +399,56 @@ namespace OpenMS
         {
           if (line_wo_spaces.hasSubstring("xsd:string"))
           {
-            term.xref_type = CVTerm::XSD_STRING;
+            term.xref_type = CVTerm::XRefType::XSD_STRING;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:integer") 
           || line_wo_spaces.hasSubstring("xsd:int"))
           {
-            term.xref_type = CVTerm::XSD_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:decimal") ||
               line_wo_spaces.hasSubstring("xsd:float") ||
               line_wo_spaces.hasSubstring("xsd:double"))
           {
-            term.xref_type = CVTerm::XSD_DECIMAL;
+            term.xref_type = CVTerm::XRefType::XSD_DECIMAL;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:negativeInteger"))
           {
-            term.xref_type = CVTerm::XSD_NEGATIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NEGATIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:positiveInteger"))
           {
-            term.xref_type = CVTerm::XSD_POSITIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_POSITIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:nonNegativeInteger"))
           {
-            term.xref_type = CVTerm::XSD_NON_NEGATIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:nonPositiveInteger"))
           {
-            term.xref_type = CVTerm::XSD_NON_POSITIVE_INTEGER;
+            term.xref_type = CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:boolean") 
           || line_wo_spaces.hasSubstring("xsd:bool"))
           {
-            term.xref_type = CVTerm::XSD_BOOLEAN;
+            term.xref_type = CVTerm::XRefType::XSD_BOOLEAN;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:date"))
           {
-            term.xref_type = CVTerm::XSD_DATE;
+            term.xref_type = CVTerm::XRefType::XSD_DATE;
             continue;
           }
           if (line_wo_spaces.hasSubstring("xsd:anyURI"))
           {
-            term.xref_type = CVTerm::XSD_ANYURI;
+            term.xref_type = CVTerm::XRefType::XSD_ANYURI;
             continue;
           }
           if (
@@ -451,7 +457,7 @@ namespace OpenMS
             line_wo_spaces.hasSubstring("MS:1002713")
           )
           {
-            term.xref_type = CVTerm::XSD_STRING; // store list as string
+            term.xref_type = CVTerm::XRefType::XSD_STRING; // store list as string
             continue;
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
@@ -484,16 +490,16 @@ namespace OpenMS
     }
 
     // now build all child terms
-    for (std::map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
+    for (auto it = terms_.begin(); it != terms_.end(); ++it)
     {
       //cerr << it->first << "\n";
-      for (set<String>::const_iterator pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
+      for (auto pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
       {
         //cerr << "Parent: " << *pit << "\n";
         terms_[*pit].children.insert(it->first);
       }
 
-      std::map<String, String>::iterator mit = namesToIds_.find(it->second.name);
+      auto mit = namesToIds_.find(it->second.name);
       if (mit == namesToIds_.end())
       {
         namesToIds_.insert(pair<String, String>(it->second.name, it->first));
@@ -509,12 +515,14 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
   {
-    std::map<String, CVTerm>::const_iterator it = terms_.find(id);
-    if (it == terms_.end())
+    if (const auto it = terms_.find(id); it == terms_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
     }
-    return it->second;
+    else
+    {
+      return it->second;
+    }
   }
 
   const std::map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
@@ -536,7 +544,7 @@ namespace OpenMS
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const
   {
     //slow, but Vocabulary is very finite and this method will be called only a few times during write of a ML file using a CV
-    std::map<String, String>::const_iterator it = namesToIds_.find(name);
+    auto it = namesToIds_.find(name);
     if (it == namesToIds_.end())
     {
       if (!desc.empty())
@@ -563,14 +571,14 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const
   {
-    std::map<String, String>::const_iterator it = namesToIds_.find(name);
+    const auto it = namesToIds_.find(name);
     if (it == namesToIds_.end()) return nullptr;
     return &terms_.at(it->second);
   }
 
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const
   {
-    std::map<String, String>::const_iterator it = namesToIds_.find(name);
+    const auto it = namesToIds_.find(name);
     return it != namesToIds_.end();
   }
 

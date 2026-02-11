@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,10 +14,11 @@
 #include <QtCore/QObject>
 
 #include <functional> // for std::function
+#include <map> // for std::map
 
 class QProcess; // forward declare to avoid header include
 class QString;
-class QStringList;
+#include <QtCore/qcontainerfwd.h> // for QStringList
 
 namespace OpenMS
 {
@@ -72,20 +73,21 @@ namespace OpenMS
     /**
       @brief Runs a program and calls the callback functions from time to time if output from the external program is available.
 
-      @param exe The program to call (can contain spaces in path, no problem)
-      @param args A list of extra arguments (can be empty)
-      @param working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
-      @param verbose Report the call command and errors via the callbacks (default: false)
+      @param[in] exe The program to call (can contain spaces in path, no problem)
+      @param[in] args A list of extra arguments (can be empty)
+      @param[in] working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
+      @param[in] verbose Report the call command and errors via the callbacks (default: false)
       @param[out] error_msg Message to display to the user if something went wrong (if return != SUCCESS)
-      @param io_mode Open mode for the process (read access, write access, ...)
+      @param[in] io_mode Open mode for the process (read access, write access, ...)
+      @param[in] env Additional environment variables to pass to the process (key-value pairs). These will be added to the system environment.
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */
-    RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode = IO_MODE::READ_WRITE);
+    RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode = IO_MODE::READ_WRITE, const std::map<QString, QString>& env = std::map<QString, QString>());
     
     /**
       @brief Same as other overload, just without a returned error message
      */
-    ExternalProcess::RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, IO_MODE io_mode = IO_MODE::READ_WRITE);
+    ExternalProcess::RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, IO_MODE io_mode = IO_MODE::READ_WRITE, const std::map<QString, QString>& env = std::map<QString, QString>());
 
   private slots:
     void processStdOut_();

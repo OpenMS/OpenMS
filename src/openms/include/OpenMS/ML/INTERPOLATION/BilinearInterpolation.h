@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -506,7 +507,7 @@ public:
       /// Returns \c true if getData() is empty.
       bool empty() const
       {
-        return data_.getEigenMatrix().size() == 0;
+        return data_.empty();
       }
 
       //@}

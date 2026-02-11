@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -936,7 +936,7 @@ START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(empty==edit, false);
+  TEST_TRUE(empty == edit);
 
 }
 END_SECTION
@@ -979,14 +979,14 @@ START_SECTION((bool operator!=(const MSChromatogram &rhs) const ))
   //name is not checked => no change
   edit = empty;
   edit.setName("bla");
-  TEST_EQUAL(edit!=empty,false);
+  TEST_EQUAL(edit == empty, true);
 
   edit = empty;
   edit.push_back(p1);
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(empty == edit);
 }
 END_SECTION
 

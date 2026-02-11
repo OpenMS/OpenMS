@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -83,9 +83,9 @@ namespace OpenMS
     }
     
     // spline interpolate the profile data
-    for (MSExperiment::Iterator it = exp_profile.begin(); it < exp_profile.end(); ++it)
+    for (const auto& spectrum : exp_profile)
     {
-      exp_spline_profile_.emplace_back(*it);
+      exp_spline_profile_.emplace_back(spectrum);
     }
     
     // TODO: Constructing the navigators here instead in the beginning of the filter() method results in segmentation faults. Why?
@@ -332,7 +332,7 @@ namespace OpenMS
       // Calculate Pearson and Spearman rank correlations
       if ((intensities_model.size() < isotopes_per_peptide_min_) || (intensities_data.size() < isotopes_per_peptide_min_))
       {
-        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
+        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0, "intensity vectors too small for correlation calculation");
       }
       double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
       double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());

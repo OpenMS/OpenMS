@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,9 +8,13 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -32,6 +36,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
@@ -50,6 +55,7 @@
 #include <limits>
 #include <locale>
 #include <iomanip>
+#include <set>
 
 using namespace std;
 using namespace OpenMS;
@@ -60,7 +66,9 @@ using namespace OpenMS;
 
 /**
 @page TOPP_FeatureFinderMultiplex FeatureFinderMultiplex
+
 @brief Detects peptide pairs in LC-MS data and determines their relative abundance.
+
 <CENTER>
   <table>
     <tr>
@@ -77,15 +85,33 @@ using namespace OpenMS;
     </tr>
   </table>
 </CENTER>
-FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It detects pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we outline the algorithm.
+FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It detects pairs of isotopic envelopes with fixed m/z separation.
+It requires no prior sequence identification of the peptides and works on both profile or centroided spectra. In what follows we outline the algorithm.
+
 <b>Algorithm</b>
-The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f). In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a). It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance. Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5. The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
-We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c). Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
+The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f).
+In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a).
+It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance.
+Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5.
+The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
+We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c).
+
+Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. 
+Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
 - all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold,
 - the intensity profiles in neighbourhoods around all six m/z positions show a good correlation and
 - the relative intensity ratios within a peptide agree up to a factor with the ratios of a theoretic averagine model.
-Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e). Each cluster corresponds to the mono-isotopic mass trace of the lightest peptide of a SILAC pattern. We now use hierarchical clustering methods to assign each data point to a specific cluster. The optimum number of clusters is determined by maximizing the silhouette width of the partitioning. Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]). A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f). Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
+
+Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e).
+Each cluster corresponds to the mono-isotopic mass trace of the lightest peptide of a SILAC pattern. We now use hierarchical clustering methods to assign each data point to a specific cluster.
+The optimum number of clusters is determined by maximizing the silhouette width of the partitioning.
+Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]).
+A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f).
+Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
+
 @image html SILACAnalyzer_algorithm.png
+
+
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_FeatureFinderMultiplex.cli
 <B>INI file documentation of this tool:</B>
@@ -123,6 +149,13 @@ public:
     registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted).", false, true);
     setValidFormats_("out_blacklist", ListUtils::create<String>("mzML"));
 
+    addEmptyLine_();
+    registerStringOption_("faims_merge_features", "<true/false>", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features representing the same analyte "
+      "detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values "
+      "are merged (same CV = different analytes). Has no effect on non-FAIMS data.", false);
+    setValidStrings_("faims_merge_features", {"true", "false"});
+
     registerFullParam_(FeatureFinderMultiplexAlgorithm().getDefaults());
   }
 
@@ -140,8 +173,8 @@ public:
   /**
    * @brief Write feature map to featureXML file.
    *
-   * @param filename    name of featureXML file
-   * @param map    feature map for output
+   * @param[in] filename    name of featureXML file
+   * @param[out] map    feature map for output
    */
   void writeFeatureMap_(const String& filename, FeatureMap& map) const
   {
@@ -151,8 +184,8 @@ public:
   /**
    * @brief Write consensus map to consensusXML file.
    *
-   * @param filename    name of consensusXML file
-   * @param map    consensus map for output
+   * @param[in] filename    name of consensusXML file
+   * @param[out] map    consensus map for output
    */
   void writeConsensusMap_(const String& filename, ConsensusMap& map) const
   {
@@ -166,8 +199,8 @@ public:
   /**
    * @brief Write blacklist to mzML file.
    *
-   * @param filename    name of mzML file
-   * @param blacklist    blacklist for output
+   * @param[in] filename    name of mzML file
+   * @param[out] blacklist    blacklist for output
    */
   void writeBlacklist_(const String& filename, const MSExperiment& blacklist) const
   {
@@ -178,7 +211,7 @@ public:
    * @brief determine the number of samples
    * for example n=2 for SILAC, or n=1 for simple feature detection
    *
-   * @param labels    string describing the labels
+   * @param[in] labels    string describing the labels
    */
   static size_t numberOfSamples(String labels)
   {
@@ -223,8 +256,7 @@ public:
     OPENMS_LOG_DEBUG << "Loading input..." << endl;
     file.loadExperiment(in_, exp, {FileTypes::MZML}, log_type_);
 
-    FeatureFinderMultiplexAlgorithm algorithm;
-    // pass only relevant parameters to the algorithm and set the log type
+    // Prepare algorithm parameters
     Param params = getParam_();
     params.remove("in");
     params.remove("out");
@@ -236,28 +268,111 @@ public:
     params.remove("no_progress");
     params.remove("force");
     params.remove("test");
-    algorithm.setParameters(params);
-    algorithm.setLogType(this->log_type_);
-    // run feature detection algorithm
-    algorithm.run(exp, true);
+
+    // Split by FAIMS CV (returns single NaN-keyed element for non-FAIMS data)
+    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(exp));
+
+    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+    }
+
+    FeatureMap combined_feature_map;
+    ConsensusMap combined_consensus_map;
+    MSExperiment combined_blacklist;
+    bool first_group = true;
+
+    // Process each FAIMS CV group (or single group for non-FAIMS data)
+    for (auto& [group_cv, faims_group] : faims_groups)
+    {
+      if (has_faims)
+      {
+        OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V (" << faims_group.size() << " spectra)" << endl;
+      }
+
+      // Create algorithm instance for this group
+      FeatureFinderMultiplexAlgorithm algorithm_cv;
+      algorithm_cv.setParameters(params);
+      algorithm_cv.setLogType(this->log_type_);
+      algorithm_cv.run(faims_group, true);
+
+      // Annotate features with FAIMS CV (if FAIMS data) and add to combined results
+      FeatureMap& feature_map_cv = algorithm_cv.getFeatureMap();
+      for (auto& feat : feature_map_cv)
+      {
+        if (has_faims)
+        {
+          feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        combined_feature_map.push_back(feat);
+      }
+
+      // Copy ColumnHeaders from first group (they're the same across all groups)
+      ConsensusMap& consensus_map_cv = algorithm_cv.getConsensusMap();
+      if (first_group)
+      {
+        combined_consensus_map.setColumnHeaders(consensus_map_cv.getColumnHeaders());
+        combined_consensus_map.setExperimentType(consensus_map_cv.getExperimentType());
+        first_group = false;
+      }
+
+      // Annotate consensus features with FAIMS CV
+      for (auto& cf : consensus_map_cv)
+      {
+        if (has_faims)
+        {
+          cf.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        combined_consensus_map.push_back(cf);
+      }
+
+      // Combine blacklist
+      MSExperiment& blacklist_cv = algorithm_cv.getBlacklist();
+      for (auto& spec : blacklist_cv)
+      {
+        if (has_faims)
+        {
+          spec.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        combined_blacklist.addSpectrum(std::move(spec));
+      }
+    }
+
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "Combined " << combined_feature_map.size() << " features from all FAIMS CV groups." << endl;
+
+      // Optionally merge features representing the same analyte at different CV values
+      if (getStringOption_("faims_merge_features") == "true")
+      {
+        Size before_merge = combined_feature_map.size();
+        FeatureOverlapFilter::mergeFAIMSFeatures(combined_feature_map, 5.0, 0.05);
+        OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << combined_feature_map.size()
+                        << " features (merged " << (before_merge - combined_feature_map.size()) << ")" << endl;
+      }
+    }
+
+    // ensure unique IDs for the combined maps
+    combined_feature_map.ensureUniqueId();
+    combined_consensus_map.ensureUniqueId();
 
     // write feature map, consensus maps and blacklist
+    // Note: use simple setPrimaryMSRunPath since exp was moved
     if (!(out_.empty()))
     {
-      FeatureMap& feature_map = algorithm.getFeatureMap();
-      feature_map.setPrimaryMSRunPath({in_}, exp);
-      writeFeatureMap_(out_, feature_map);
+      combined_feature_map.setPrimaryMSRunPath({in_});
+      writeFeatureMap_(out_, combined_feature_map);
     }
     if (!(out_multiplets_.empty()))
     {
-      ConsensusMap& consensus_map = algorithm.getConsensusMap();
       StringList ms_run_paths(numberOfSamples(params.getValue("algorithm:labels").toString()), in_);
-      consensus_map.setPrimaryMSRunPath(ms_run_paths, exp);
-      writeConsensusMap_(out_multiplets_, consensus_map);
+      combined_consensus_map.setPrimaryMSRunPath(ms_run_paths);
+      writeConsensusMap_(out_multiplets_, combined_consensus_map);
     }
     if (!(out_blacklist_.empty()))
     {
-      writeBlacklist_(out_blacklist_, algorithm.getBlacklist());
+      writeBlacklist_(out_blacklist_, combined_blacklist);
     }
 
     return EXECUTION_OK;

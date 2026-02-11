@@ -57,7 +57,6 @@ MSNumpressCoder.h
 MSPFile.h
 MSPGenericFile.h
 MSstatsFile.h
-MascotInfile.h
 MascotGenericFile.h
 MascotRemoteQuery.h
 MascotXMLFile.h
@@ -79,6 +78,7 @@ OMSSAXMLFile.h
 OSWFile.h
 ParamCTDFile.h
 ParamXMLFile.h
+PEFFFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
 PepNovoInfile.h
@@ -109,11 +109,20 @@ MzIdentMLFile.h
 TraMLFile.h
 XMassFile.h
 XQuestResultXMLFile.h
+MRMFile.h
+TargetedDataFileLoader.h
 ZlibCompression.h
 )
 
 if (WITH_HDF5)
-  list(APPEND sources_list_h HDF5Connector.h)  
+  list(APPEND sources_list_h HDF5Connector.h)
+endif()
+
+if (WITH_PARQUET)
+  list(APPEND sources_list_h MSExperimentArrowExport.h)
+  list(APPEND sources_list_h ConsensusMapArrowExport.h)
+  list(APPEND sources_list_h ParquetFilter.h)
+  list(APPEND sources_list_h XICParquetFile.h)
 endif()
 
 ### add path to the filenames

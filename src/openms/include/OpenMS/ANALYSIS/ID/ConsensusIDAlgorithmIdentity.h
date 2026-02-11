@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -35,17 +36,17 @@ namespace OpenMS
 
        Checks whether the score types are the same (warns if not) and whether the score orientations agree (error if not).
 
-       @param ids Input/output peptide identifications
+       @param[in,out] ids Input/output peptide identifications
 
        @throw Exception::InvalidValue Score orientations do not agree
     */
-    virtual void preprocess_(std::vector<PeptideIdentification>& ids);
+    virtual void preprocess_(PeptideIdentificationList& ids);
 
     /**
        @brief Aggregate peptide scores into one final score (to be implemented by subclasses).
 
-       @param scores List of scores for the same peptide by different search engines
-       @param higher_better Whether higher or lower scores are better
+       @param[in,out] scores List of scores for the same peptide by different search engines
+       @param[in] higher_better Whether higher or lower scores are better
 
        @return Final score for the respective peptide
     */
@@ -60,7 +61,7 @@ namespace OpenMS
     ConsensusIDAlgorithmIdentity& operator=(const ConsensusIDAlgorithmIdentity&);
 
     /// Consensus scoring
-    void apply_(std::vector<PeptideIdentification>& ids,
+    void apply_(PeptideIdentificationList& ids,
         const std::map<String, String>& se_info,
         SequenceGrouping& results) override;
   };

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -48,8 +48,8 @@ public:
     /**
       @brief Constructor
 
-      @param data The known data points.
-      @param params Param object holding information on which model to choose.
+      @param[in] data The known data points.
+      @param[in] params Param object holding information on which model to choose.
 
       @exception IllegalArgument is thrown if there are not enough data points or if an unknown interpolation type is given.
     */
@@ -62,7 +62,7 @@ public:
     /**
      * @brief Evaluate the interpolation model at the given value
      *
-     * @param value The position where the interpolation should be evaluated.
+     * @param[in] value The position where the interpolation should be evaluated.
      *
      * @return The interpolated value.
      */
@@ -85,15 +85,15 @@ public:
       /**
        * @brief Initialize the Interpolator.
        *
-       * @param x The x data.
-       * @param y The y data.
+       * @param[in] x The x data.
+       * @param[in] y The y data.
        */
       virtual void init(std::vector<double>& x, std::vector<double>& y) = 0;
 
       /**
        * @brief Evaluate the underlying interpolation at a specific position x.
        *
-       * @param x The position where the interpolation should be evaluated.
+       * @param[in] x The position where the interpolation should be evaluated.
        *
        * @return The interpolated value.
        */

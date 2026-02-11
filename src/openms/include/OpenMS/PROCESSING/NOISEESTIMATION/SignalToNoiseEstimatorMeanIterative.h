@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -136,7 +136,7 @@ protected:
 
 
     /** calculate StN values for all datapoints given, by using a sliding window approach
-                  @param c raw data
+                  @param[in] c raw data
                   @exception Throws Exception::InvalidValue
            */
     void computeSTN_(const Container& c) override

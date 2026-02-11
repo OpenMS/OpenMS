@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -42,7 +42,7 @@ namespace OpenMS::Internal
 
     // reader
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
-                                                   std::vector< PeptideIdentification > & pep_ids,
+                                                   PeptideIdentificationList & pep_ids,
                                                    std::vector< ProteinIdentification > & prot_ids
                                                   ) :
       XMLHandler(filename, "1.0"),
@@ -69,7 +69,7 @@ namespace OpenMS::Internal
 
     // writer
     XQuestResultXMLHandler::XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
-                                                   const std::vector<PeptideIdentification>& pep_id,
+                                                   const PeptideIdentificationList& pep_id,
                                                    const String& filename,
                                                    const String& version
                                                  ) :

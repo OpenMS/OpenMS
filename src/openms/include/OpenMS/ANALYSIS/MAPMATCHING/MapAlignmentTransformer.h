@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -49,7 +50,7 @@ namespace OpenMS
 
     /// Applies the given transformation to peptide identifications
     static void transformRetentionTimes(
-      std::vector<PeptideIdentification>& pep_ids,
+      PeptideIdentificationList& pep_ids,
       const TransformationDescription& trafo, bool store_original_rt = false);
 
     /// Applies the given transformation to input items in IdentificationData

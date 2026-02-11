@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,13 +17,19 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/ANALYSIS/ID/CometModification.h>
+
 #include <fstream>
+#include <iomanip>
 
 #include <QStringList>
 #include <QRegularExpression>
@@ -342,10 +348,6 @@ protected:
     //     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
     vector<String> variable_modifications_names = getStringList_("variable_modifications");
     const vector<const ResidueModification*> variable_modifications = getModifications_(variable_modifications_names);
-    if (variable_modifications.size() > 9)
-    {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Comet supports at most 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
-    }
 
     IntList binary_modifications = getIntList_("binary_modifications");
     if (!binary_modifications.empty() && binary_modifications.size() != variable_modifications.size())
@@ -354,88 +356,45 @@ protected:
     }
 
     int max_variable_mods_in_peptide = getIntOption_("max_variable_mods_in_peptide");
-    Size var_mod_index = 0;
 
-    // write out user specified modifications
-    for (; var_mod_index < variable_modifications.size(); ++var_mod_index)
+    // Convert all modifications to CometModification objects
+    vector<CometModification> all_mods;
+    all_mods.reserve(variable_modifications.size());
+    for (Size i = 0; i < variable_modifications.size(); ++i)
     {
-      const ResidueModification* mod = variable_modifications[var_mod_index];
-      double mass = mod->getDiffMonoMass();
-      String residues = mod->getOrigin();
+      int binary_group = binary_modifications.empty() ? 0 : binary_modifications[i];
+      all_mods.emplace_back(variable_modifications[i], binary_group, max_variable_mods_in_peptide);
+    }
 
-      // support for binary groups, e.g. for SILAC
-      int binary_group{0};
-      if (!binary_modifications.empty())
-      {
-        binary_group = binary_modifications[var_mod_index];
-      }
+    // Merge compatible modifications (same mass, compatible terminal specificity)
+    vector<CometModification> merged_mods = CometModification::mergeModifications(all_mods);
 
-      //TODO support mod-specific limit (default for now is the overall max per peptide)
-      int max_current_mod_per_peptide = max_variable_mods_in_peptide;
-      //TODO support term-distances?
-      int term_distance = -1;
-      int nc_term = 0;
+    if (merged_mods.size() < all_mods.size())
+    {
+      OPENMS_LOG_INFO << "Merged " << all_mods.size() << " variable modifications into "
+                      << merged_mods.size() << " Comet entries." << std::endl;
+    }
 
-      //TODO support agglomeration of Modifications to same AA. Watch out for nc_term value then.
-      if (mod->getTermSpecificity() == ResidueModification::C_TERM)
-      {
-        if (mod->getOrigin() == 'X')
-        {
-          residues = "c";
-        } // else stays mod.getOrigin()
-        term_distance = 0;
-        // Since users need to specify mods that apply to multiple residues/terms separately
-        // 3 and -1 should be equal for now.
-        nc_term = 3;
-      }
-      else if (mod->getTermSpecificity() == ResidueModification::N_TERM)
-      {
-        if (mod->getOrigin() == 'X')
-        {
-          residues = "n";
-        } // else stays mod.getOrigin()
-        term_distance = 0;
-        // Since users need to specify mods that apply to multiple residues/terms separately
-        // 2 and -1 should be equal for now.
-        nc_term = 2;
-      }
-      else if (mod->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
-      {
-        if (mod->getOrigin() == 'X')
-        {
-          residues = "n";
-        } // else stays mod.getOrigin()
-        term_distance = 0;
-        nc_term = 0;
-      }
-      else if (mod->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
-      {
-        if (mod->getOrigin() == 'X')
-        {
-          residues = "c";
-        } // else stays mod.getOrigin()
-        term_distance = 0;
-        nc_term = 1;
-      }
+    // Check if we have too many modifications after merging
+    if (merged_mods.size() > 9)
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Error: Comet supports at most 9 variable modification entries. After merging compatible modifications, "
+        + String(merged_mods.size()) + " entries remain. Consider using fewer distinct modification types.");
+    }
 
-      //TODO support required variable mods
-      bool required = false;
-
-      os << "variable_mod0" << var_mod_index+1 << " = " 
-         << mass << " " << residues << " " 
-         << binary_group << " " 
-         << max_current_mod_per_peptide << " " 
-         << term_distance << " " 
-         << nc_term << " " 
-         << required << " " 
-         << "0.0" // TODO: add neutral losses (from Residue or user defined?)
-         << "\n";
+    // Write out merged modifications
+    Size var_mod_index = 0;
+    for (; var_mod_index < merged_mods.size(); ++var_mod_index)
+    {
+      os << merged_mods[var_mod_index].toCometString(var_mod_index + 1) << "\n";
     }
 
     // fill remaining modification slots (if any) in Comet with "no modification"
     for (; var_mod_index < 9; ++var_mod_index)
     {
-      os << "variable_mod0" << var_mod_index+1 << " = " << "0.0 X 0 3 -1 0 0 0.0" << "\n";
+      os << "variable_mod" << std::setw(2) << std::setfill('0') << var_mod_index + 1
+         << " = " << "0.0 X 0 3 -1 0 0 0.0" << "\n";
     }
 
     os << "max_variable_mods_in_peptide = " << getIntOption_("max_variable_mods_in_peptide") << "\n";
@@ -594,7 +553,6 @@ protected:
       os << mod.first << " = " << mod.second << "\n";
     }
 
-    //TODO register cut_before and cut_after in Enzymes.xml plus datastructures to add all our Enzymes with our names instead.
     // COMET_ENZYME_INFO _must_ be at the end of this parameters file
     os << "[COMET_ENZYME_INFO]" << "\n";
     os << "0.  No_enzyme              0      -           -" << "\n";
@@ -612,6 +570,24 @@ protected:
     os << "12. Arg-C/P                1.     R           _" << "\n";
     os << "13. Lys-C/P                1      K           -" << "\n";
     os << "14. Leukocyte_elastase     1      ALIV        -" << "\n";
+    os << "15. Chymotrypsin/P         1      FWYL        -" << "\n";
+    os << "16. Asp-N/B                0      D           -" << "\n";
+    os << "17. Asp-N_ambic            0      DE          -" << "\n";
+    os << "18. Formic_acid            1      D           -" << "\n";
+    os << "19. TrypChymo              1      FYWLKR      P" << "\n";
+    os << "20. V8-DE                  1      DE          P" << "\n";
+    os << "21. V8-E                   1      E           P" << "\n";
+    os << "22. proline_endopeptidase  1      P           -" << "\n";
+    os << "23. Alpha-lytic_protease   1      TASV        -" << "\n";
+    os << "24. 2-iodobenzoate         1      W           -" << "\n";
+    os << "25. iodosobenzoate         1      W           -" << "\n";
+    os << "26. staphylococcal_protease/D 1   E           -" << "\n";
+    os << "27. proline-endopeptidase/HKR 1   P           -" << "\n";
+    os << "28. Glu-CP                 1      DE          P" << "\n";
+    os << "29. PepsinA__P             1      FL          P" << "\n";
+    os << "30. cyanogen-bromide       1      M           -" << "\n";
+    os << "31. Clostripain/P          1      R           -" << "\n";
+    os << "32. elastase-trypsin-chymotrypsin 1 ALIVKRWFY P" << "\n";
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -631,7 +607,7 @@ protected:
     TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
     if (exit_code != EXECUTION_OK)
     {
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code; // will do the right thing, since it's correctly mapping TOPPBase exit codes
     }
     // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
     String comet_version; 
@@ -692,8 +668,13 @@ protected:
       input_file_with_index = tmp_file;
     }
 
-    mzml_file.getOptions().setMetadataOnly(true);
-    mzml_file.load(inputfile_name, exp); // always load metadata for raw file name
+	// Load spectra metadata to map to idXML
+    mzml_file.getOptions().setMetadataOnly(false);
+	mzml_file.getOptions().setFillData(false);
+	mzml_file.getOptions().clearMSLevels();
+	// Ion mobility data is currently stored in MS2
+	mzml_file.getOptions().addMSLevel(2);
+    mzml_file.load(inputfile_name, exp);
 
     //-------------------------------------------------------------
     // calculations
@@ -721,7 +702,7 @@ protected:
     vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
     vector<String> variable_modifications_names = getStringList_("variable_modifications");
 
-    vector<PeptideIdentification> peptide_identifications;
+    PeptideIdentificationList peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
 
     writeDebug_("load PepXMLFile", 1);
@@ -750,6 +731,22 @@ protected:
 
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
+
+    // Parse ion mobility information if present
+    bool all_ids_have_im = SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptide_identifications, exp);
+    if (all_ids_have_im)
+    {
+      protein_identifications[0].setMetaValue(Constants::UserParam::IM, exp.getSpectrum(0).getDriftTimeUnitAsString());
+    }
+
+    // Parse FAIMS compensation voltage if present
+    SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_identifications, exp);
+
+    // remove base_name meta value from peptide identifications
+    for (auto& peptide_identification : peptide_identifications)
+    {      
+      peptide_identification.removeMetaValue("base_name");
+    }
 
     // add percolator features
     StringList feature_set;

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -62,7 +62,7 @@ namespace OpenMS
     : keep_dir_(keep_dir)
   {
     temp_dir_ = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
-    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'" << std::endl;
+    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
     QDir d;
     d.mkpath(temp_dir_.toQString());
   };
@@ -71,7 +71,7 @@ namespace OpenMS
   {
     if (keep_dir_)
     {
-      OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << std::endl;
+      OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << '\n';
       return;
     }
 
@@ -94,7 +94,7 @@ namespace OpenMS
 
 #ifdef OPENMS_WINDOWSPLATFORM
         int size = sizeof(path);
-        if (GetModuleFileName(NULL, path, size))
+        if (GetModuleFileNameA(NULL, path, size))
 #elif  defined(__APPLE__)
         uint size = sizeof(path);
         if (_NSGetExecutablePath(path, &size) == 0)
@@ -195,7 +195,7 @@ namespace OpenMS
     // check canonical path
     if (canonical_source_dir == canonical_target_dir)
     {
-      OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given." << std::endl;
+      OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given.\n";
       return false;
     }
 
@@ -229,7 +229,7 @@ namespace OpenMS
               case CopyOptions::CANCEL:
                 return false;
               case CopyOptions::SKIP:
-                OPENMS_LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl;
+                OPENMS_LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped.\n";
                 continue;
               case CopyOptions::OVERWRITE:
                 target_dir.remove(entry.fileName());
@@ -305,7 +305,7 @@ namespace OpenMS
     {
       if (!dir.remove(file_name))
       {
-        OPENMS_LOG_WARN << "Could not remove file " << String(file_name) << "!" << std::endl;
+        OPENMS_LOG_WARN << "Could not remove file " << String(file_name) << "!\n";
         fail = true;
       }
     }
@@ -631,11 +631,11 @@ namespace OpenMS
     try
     {
       full_db_name = find(db_name, ListUtils::toStringList<std::string>(sys_p.getValue("id_db_dir")));
-      OPENMS_LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'" << std::endl;
+      OPENMS_LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'\n";
     }
     catch (Exception::FileNotFound& e)
     {
-      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.what() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
+      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.what() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!\n";
       throw;
     }
 
@@ -690,13 +690,13 @@ namespace OpenMS
       {
         if (!p.exists("version"))
         {
-          OPENMS_LOG_WARN << "Broken file '" << filename << "' discovered. The 'version' tag is missing." << std::endl;
+          OPENMS_LOG_WARN << "Broken file '" << filename << "' discovered. The 'version' tag is missing.\n";
         }
         else // old version
         {
-          OPENMS_LOG_WARN << "File '" << filename << "' is deprecated." << std::endl;
+          OPENMS_LOG_WARN << "File '" << filename << "' is deprecated.\n";
         }
-        OPENMS_LOG_WARN << "Updating missing/wrong entries in '" << filename << "' with defaults!" << std::endl;
+        OPENMS_LOG_WARN << "Updating missing/wrong entries in '" << filename << "' with defaults!\n";
         Param p_new = getSystemParameterDefaults_();
         p.setValue("version", VersionInfo::getVersion()); // update old version, such that p_new:version does not get overwritten during update()
         p_new.update(p);
@@ -958,7 +958,7 @@ void File::download(const std::string& url, const std::string& download_folder)
   else
   {
     String error = "Download of '" + url + "' failed!. Error: " + String(query->getErrorString()) + '\n';
-    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
+    throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
   }
 
   delete query;

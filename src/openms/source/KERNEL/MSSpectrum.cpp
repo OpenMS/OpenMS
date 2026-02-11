@@ -1,10 +1,13 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -102,7 +105,7 @@ namespace OpenMS
   {
     SpectrumSettings::SpectrumType t = SpectrumSettings::getType();
     // easy case: type is known
-    if (t != SpectrumSettings::UNKNOWN)
+    if (t != SpectrumSettings::SpectrumType::UNKNOWN)
     {
       return t;
     }
@@ -112,7 +115,7 @@ namespace OpenMS
     {
       if (dp->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
       {
-        return SpectrumSettings::CENTROID;
+        return SpectrumSettings::SpectrumType::CENTROID;
       }
     }
 
@@ -120,7 +123,7 @@ namespace OpenMS
     {
       return PeakTypeEstimator::estimateType(begin(), end());
     }
-    return SpectrumSettings::UNKNOWN;
+    return SpectrumSettings::SpectrumType::UNKNOWN;
   }
 
   MSSpectrum::ConstIterator MSSpectrum::getBasePeak() const
@@ -471,11 +474,12 @@ namespace OpenMS
 
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const
   {
-    //name_ can differ => it is not checked
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
+    //name_ can differ => it is not checked, range is not checked
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
     return std::operator==(*this, rhs) &&
-           RangeManagerType::operator==(rhs) &&
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
            drift_time_ == rhs.drift_time_ &&
@@ -485,7 +489,9 @@ namespace OpenMS
            string_data_arrays_ == rhs.string_data_arrays_ &&
            integer_data_arrays_ == rhs.integer_data_arrays_;
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
   }
 
   MSSpectrum &MSSpectrum::operator=(const MSSpectrum &source)
@@ -495,8 +501,8 @@ namespace OpenMS
       return *this;
     }
     ContainerType::operator=(source);
-    RangeManagerType::operator=(source);
     SpectrumSettings::operator=(source);
+    RangeManagerType::operator=(source);
 
     retention_time_ = source.retention_time_;
     drift_time_ = source.drift_time_;
@@ -527,6 +533,15 @@ namespace OpenMS
 
   void MSSpectrum::updateRanges()
   {
+    #ifdef OPENMS_ASSERTIONS
+      double im_min = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double mz_min = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+    #endif
+
     clearRanges();
     for (const auto& peak : (ContainerType&)*this)
     {
@@ -548,6 +563,22 @@ namespace OpenMS
     { 
       this->extendMobility(getDriftTime());
     }
+    #ifdef OPENMS_ASSERTIONS
+      double im_min_new = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max_new = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double mz_min_new = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max_new = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min_new = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max_new = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+
+      // check if all are equal and no update range was necessary
+      if (im_min_new == im_min && im_max_new == im_max
+        && int_min_new == int_min && int_max_new == int_max
+        && mz_min_new == mz_min && mz_max_new == mz_max)
+      {
+        OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
+      }      
+    #endif
   }
 
   double MSSpectrum::getRT() const
@@ -783,5 +814,116 @@ namespace OpenMS
     }
     return {unit, this->getFloatDataArrays()[index]};
   }
-  
+
+  void MSSpectrum::rasterizeIMFrame(
+    float* output,
+    Size im_bins,
+    Size mz_bins,
+    CoordinateType min_im,
+    CoordinateType max_im,
+    CoordinateType min_mz,
+    CoordinateType max_mz,
+    RasterAggregation aggregation) const
+  {
+    // Runtime checks
+    if (output == nullptr)
+    {
+      throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    if (im_bins == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Number of IM bins must be positive", String(im_bins));
+    }
+    if (mz_bins == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Number of m/z bins must be positive", String(mz_bins));
+    }
+    if (min_im >= max_im)
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    if (min_mz >= max_mz)
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    // Check for IM data - this will throw if not present
+    auto [im_data_index, im_unit] = getIMData();
+    const auto& im_data = getFloatDataArrays()[im_data_index];
+
+    const Size total_pixels = im_bins * mz_bins;
+
+    // Zero-initialize the output buffer
+    std::fill(output, output + total_pixels, 0.0f);
+
+    // If spectrum is empty, return early
+    if (this->empty())
+    {
+      return;
+    }
+
+    // Verify IM data array size matches peak count
+    if (im_data.size() != this->size())
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "IM data array size (" + String(im_data.size()) +
+        ") does not match spectrum size (" + String(this->size()) + ")");
+    }
+
+    // Precompute bin sizes for mapping coordinates to pixel indices
+    const double im_range = max_im - min_im;
+    const double mz_range = max_mz - min_mz;
+    const double im_scale = static_cast<double>(im_bins) / im_range;
+    const double mz_scale = static_cast<double>(mz_bins) / mz_range;
+
+    const Int64 im_bins_minus_one = static_cast<Int64>(im_bins) - 1;
+    const Int64 mz_bins_minus_one = static_cast<Int64>(mz_bins) - 1;
+
+    // Process all peaks - IM frame data is typically NOT sorted by m/z
+    // so we iterate through all peaks linearly
+    for (Size peak_idx = 0; peak_idx < this->size(); ++peak_idx)
+    {
+      const double mz = (*this)[peak_idx].getMZ();
+      const double im = im_data[peak_idx];
+
+      // Skip peaks outside the requested ranges
+      if (mz < min_mz || mz > max_mz || im < min_im || im > max_im)
+      {
+        continue;
+      }
+
+      // Compute bin indices
+      Int64 mz_bin = static_cast<Int64>((mz - min_mz) * mz_scale);
+      Int64 im_bin = static_cast<Int64>((im - min_im) * im_scale);
+
+      // Clamp to valid range: values exactly at max should go in last bin
+      if (mz_bin > mz_bins_minus_one)
+      {
+        mz_bin = mz_bins_minus_one;
+      }
+      if (im_bin > im_bins_minus_one)
+      {
+        im_bin = im_bins_minus_one;
+      }
+
+      // Row-major order: mz_bin * im_bins + im_bin
+      const Size pixel_idx = static_cast<Size>(mz_bin) * im_bins + static_cast<Size>(im_bin);
+      const float intensity = (*this)[peak_idx].getIntensity();
+
+      if (aggregation == RasterAggregation::SUM)
+      {
+        output[pixel_idx] += intensity;
+      }
+      else // MAX aggregation
+      {
+        if (intensity > output[pixel_idx])
+        {
+          output[pixel_idx] = intensity;
+        }
+      }
+    }
+  }
+
 } // namespace OpenMS

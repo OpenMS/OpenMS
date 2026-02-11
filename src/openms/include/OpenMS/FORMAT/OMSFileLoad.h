@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,8 +41,8 @@ namespace OpenMS
 
         Opens the connection to the database file (in read-only mode).
 
-        @param filename Path to the .oms input file (SQLite database)
-        @param log_type Type of logging to use
+        @param[in] filename Path to the .oms input file (SQLite database)
+        @param[in] log_type Type of logging to use
 
         @throw Exception::FailedAPICall Database cannot be opened
       */

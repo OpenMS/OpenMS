@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -46,7 +46,7 @@ namespace OpenMS
       param_ = getParam(); // get our own defaults
 
       // make sure the params we write (using getParam) are the same as the ones we can read
-      param_.update(param, true, true, true, true, OpenMS_Log_info);
+      param_.update(param, true, true, true, true, getGlobalLogInfo());
 
       // general tab
       ui_->default_path->setText(String(param_.getValue("default_path").toString()).toQString());

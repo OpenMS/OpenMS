@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -37,7 +37,7 @@ namespace OpenMS
     /**
        @brief Obtain header names, either from all, or only the visible columns
 
-       @param which With or without invisible columns?
+       @param[in] which With or without invisible columns?
        @return List of header names
     */
     QStringList getHeaderNames(const WidgetHeader which) const;

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iosfwd>
@@ -52,10 +53,7 @@ public:
     {}
 
     /// Copy constructor
-    inline ChromatogramPeak(const ChromatogramPeak & p) :
-      position_(p.position_),
-      intensity_(p.intensity_)
-    {}
+    ChromatogramPeak(const ChromatogramPeak & p) = default;
 
     /// Constructor with position and intensity
     inline ChromatogramPeak(const PositionType retention_time, const IntensityType intensity) :
@@ -109,18 +107,6 @@ public:
       position_[0] = pos;
     }
 
-    /// Alias for getRT()
-    inline CoordinateType getMZ() const
-    {
-      return position_[0];
-    }
-
-    /// Alias for setRT()
-    inline void setMZ(CoordinateType rt)
-    {
-      position_[0] = rt;
-    }
-
     /// Non-mutable access to the position
     inline PositionType const & getPosition() const
     {
@@ -142,24 +128,10 @@ public:
     //@}
 
     /// Assignment operator
-    inline ChromatogramPeak & operator=(const ChromatogramPeak & rhs)
-    {
-      if (this == &rhs) return *this;
-
-      intensity_ = rhs.intensity_;
-      position_ = rhs.position_;
-
-      return *this;
-    }
+    ChromatogramPeak & operator=(const ChromatogramPeak & rhs) = default;
 
     /// Equality operator
-    inline bool operator==(const ChromatogramPeak & rhs) const
-    {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
-#pragma clang diagnostic pop
-    }
+    inline bool operator==(const ChromatogramPeak& rhs) const = default;
 
     /// Equality operator
     inline bool operator!=(const ChromatogramPeak & rhs) const
@@ -259,4 +231,19 @@ protected:
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ChromatogramPeak & point);
 
 } // namespace OpenMS
+
+// Hash function specialization for ChromatogramPeak
+namespace std
+{
+  template<>
+  struct hash<OpenMS::ChromatogramPeak>
+  {
+    std::size_t operator()(const OpenMS::ChromatogramPeak& p) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(p.getRT());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIntensity()));
+      return seed;
+    }
+  };
+} // namespace std
 

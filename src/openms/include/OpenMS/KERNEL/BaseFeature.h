@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <optional>
@@ -42,7 +43,7 @@ public:
     typedef float WidthType;
 
     /// state of identification, use getAnnotationState() to query it
-    enum AnnotationState
+    enum class AnnotationState
     {
       FEATURE_ID_NONE,
       FEATURE_ID_SINGLE,
@@ -51,7 +52,7 @@ public:
       SIZE_OF_ANNOTATIONSTATE
     };
 
-    static const std::string NamesOfAnnotationState[SIZE_OF_ANNOTATIONSTATE];
+    static const std::string NamesOfAnnotationState[static_cast<size_t>(AnnotationState::SIZE_OF_ANNOTATIONSTATE)];
     ///@}
 
     /// @name Constructors and Destructor
@@ -152,13 +153,13 @@ public:
     /// @name Functions for dealing with identifications in legacy format
     ///@{
     /// returns a const reference to the PeptideIdentification vector
-    const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
+    const PeptideIdentificationList& getPeptideIdentifications() const;
 
     /// returns a mutable reference to the PeptideIdentification vector
-    std::vector<PeptideIdentification>& getPeptideIdentifications();
+    PeptideIdentificationList& getPeptideIdentifications();
 
     /// sets the PeptideIdentification vector
-    void setPeptideIdentifications(const std::vector<PeptideIdentification>& peptides);
+    void setPeptideIdentifications(const PeptideIdentificationList& peptides);
 
     /// sorts PeptideIdentifications, assuming they have the same scoreType.
     void sortPeptideIdentifications();
@@ -214,7 +215,7 @@ protected:
     WidthType width_;
 
     /// PeptideIdentifications belonging to the feature
-    std::vector<PeptideIdentification> peptides_;
+    PeptideIdentificationList peptides_;
 
     /// primary ID (peptide, RNA, compound) assigned to this feature
     std::optional<IdentificationData::IdentifiedMolecule> primary_id_;

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 namespace OpenMS
 {
@@ -159,4 +160,47 @@ protected:
   };
 
 } // namespace OpenMS
+
+// Hash function specializations for CVTerm and CVTerm::Unit
+namespace std
+{
+  /**
+   * @brief Hash function for CVTerm::Unit.
+   *
+   * Hashes based on accession, name, and cv_ref fields.
+   */
+  template<>
+  struct hash<OpenMS::CVTerm::Unit>
+  {
+    std::size_t operator()(const OpenMS::CVTerm::Unit& unit) const noexcept
+    {
+      std::size_t seed = 0;
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(unit.accession));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(unit.name));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(unit.cv_ref));
+      return seed;
+    }
+  };
+
+  /**
+   * @brief Hash function for CVTerm.
+   *
+   * Hashes based on all fields: accession, name, cv_identifier_ref, unit, and value.
+   * This is consistent with operator== which compares all fields.
+   */
+  template<>
+  struct hash<OpenMS::CVTerm>
+  {
+    std::size_t operator()(const OpenMS::CVTerm& term) const noexcept
+    {
+      std::size_t seed = 0;
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getAccession()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getName()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getCVIdentifierRef()));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTerm::Unit>{}(term.getUnit()));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::DataValue>{}(term.getValue()));
+      return seed;
+    }
+  };
+} // namespace std
 

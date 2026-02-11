@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,8 +10,10 @@
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <functional>
 #include <iosfwd>
 #include <vector>
 
@@ -416,8 +418,8 @@ namespace OpenMS
     /**
      * @brief Get the Monoisotopic Weight of a NASequence. NB returns the uncharged mass + or - proton masses to match the charge param
      *
-     * @param type fragment type to return
-     * @param charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
+     * @param[in] type fragment type to return
+     * @param[in] charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
      *
      * @return double
      */
@@ -426,8 +428,8 @@ namespace OpenMS
     /**
      * @brief Get the Average Weight of a NASequence. NB returns the uncharged mass + or - proton masses to match the charge param
      *
-     * @param type fragment type to return
-     * @param charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
+     * @param[in] type fragment type to return
+     * @param[out] charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
      *
      * @return double
      */
@@ -436,8 +438,8 @@ namespace OpenMS
     /**
      * @brief Get the formula for a NASequence
      *
-     * @param type fragment type for formula
-     * @param charge how many H to add or subtract
+     * @param[in] type fragment type for formula
+     * @param[out] charge how many H to add or subtract
      *
      * @return EmpiricalFormula
      */
@@ -446,7 +448,7 @@ namespace OpenMS
     /**
      * @brief Return sequence prefix of the given length (not end index!)
      *
-     * @param length
+     * @param[in] length
 
      * @return NASequence
      */
@@ -455,7 +457,7 @@ namespace OpenMS
     /**
      * @brief Return sequence suffix of the given length (not start index!)
      *
-     * @param length
+     * @param[in] length
 
      * @return NASequence
      */
@@ -464,8 +466,8 @@ namespace OpenMS
     /**
      * @brief Return subsequence with given starting position and length
      *
-     * @param start
-     * @param length
+     * @param[in] start
+     * @param[in] length
      *
      * @return NASequence
      */
@@ -474,7 +476,7 @@ namespace OpenMS
     /**
        @brief create NASequence object by parsing an OpenMS string
 
-       @param s Input string
+       @param[in] s Input string
 
        @throws Exception::ParseError if an invalid string representation of a nucleic acid sequence is passed
     */
@@ -488,7 +490,7 @@ namespace OpenMS
     /**
        @brief create NASequence object by parsing a C string (character array)
 
-       @param s Input string
+       @param[in] s Input string
 
        @throws Exception::ParseError if an invalid string representation of a nucleic acid sequence is passed
     */
@@ -503,9 +505,9 @@ namespace OpenMS
     /**
        @brief Parses modifications in square brackets
 
-       @param str_it Current position in the string to be parsed
-       @param str Full input string
-       @param nas Current AASequence object (will be modified with the correct ribo added)
+       @param[in] str_it Current position in the string to be parsed
+       @param[in] str Full input string
+       @param[in,out] nas Current AASequence object (will be modified with the correct ribo added)
 
        @return Position at which to continue parsing
     */
@@ -519,3 +521,63 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
+
+// Hash function specialization for NASequence
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::NASequence.
+   *
+   * Computes a hash based on the ribonucleotide sequence (codes),
+   * and the 5' and 3' terminal modifications.
+   *
+   * Design decisions:
+   * - Uses ribonucleotide codes instead of pointers for portability
+   * - Includes 5' and 3' terminal modification codes
+   * - Hash is consistent with operator== when all Ribonucleotide pointers originate
+   *   from RibonucleotideDB (the singleton guarantees identical codes map to identical pointers)
+   *
+   * @pre All Ribonucleotide* in the sequence must originate from RibonucleotideDB.
+   *      If pointers from different sources with identical codes are used,
+   *      hash equality may not imply object equality (violating hash contract).
+   *
+   * @note Hash is reproducible across process runs for equal sequences.
+   */
+  template<>
+  struct hash<OpenMS::NASequence>
+  {
+    std::size_t operator()(const OpenMS::NASequence& seq) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash each ribonucleotide in the sequence
+      for (const auto& ribo : seq)
+      {
+        // Hash the code (stable identifier)
+        const OpenMS::String& code = ribo.getCode();
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(code));
+      }
+
+      // Hash 5' terminal modification if present
+      const OpenMS::RibonucleotideChainEnd* five_prime = seq.getFivePrimeMod();
+      if (five_prime != nullptr)
+      {
+        // Use a different seed offset for 5' to distinguish from 3'
+        std::size_t five_hash = OpenMS::fnv1a_hash_string(five_prime->getCode());
+        OpenMS::hash_combine(seed, five_hash ^ 0x355052494dULL); // "5PRIM" in hex-like
+      }
+
+      // Hash 3' terminal modification if present
+      const OpenMS::RibonucleotideChainEnd* three_prime = seq.getThreePrimeMod();
+      if (three_prime != nullptr)
+      {
+        // Use a different seed offset for 3'
+        std::size_t three_hash = OpenMS::fnv1a_hash_string(three_prime->getCode());
+        OpenMS::hash_combine(seed, three_hash ^ 0x335052494dULL); // "3PRIM" in hex-like
+      }
+
+      return seed;
+    }
+  };
+} // namespace std

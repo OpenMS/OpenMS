@@ -83,7 +83,7 @@ FivePrimeGain - a string with the short name of a modomics entry that gets added
     </NODE>
     <NODE name="RNase_4">
       <ITEM name="Name" value="RNase_4" type="string" />
-      <ITEM name="RegExDescription" value="RNase 4 cuts after U (or modified U) only if followed by A or G. NB: 3' ends are Heterogenous, run in parallel with RNase_4p to get 3'p as well" type="string" />
+      <ITEM name="RegExDescription" value="RNase 4 cuts after U (or modified U) only if followed by A or G. NB: 3' ends are Heterogenous, run in parallel with RNase_4p and RNase_4c to get 3'p and 3'c as well" type="string" />
       <ITEM name="CutsAfter" value="U|P|\]|D|5" type="string" />
       <ITEM name="CutsBefore" value="G|A" type="string" />
       <ITEM name="ThreePrimeGain" value="" type="string" />
@@ -91,10 +91,18 @@ FivePrimeGain - a string with the short name of a modomics entry that gets added
     </NODE>
     <NODE name="RNase_4p">
       <ITEM name="Name" value="RNase_4p" type="string" />
-      <ITEM name="RegExDescription" value="RNase 4 cuts after U (or modified U) only if followed by A or G. NB: 3' ends are Heterogenous, run in parallel with RNase_4 to get 3'OH as well" type="string" />
+      <ITEM name="RegExDescription" value="RNase 4 cuts after U (or modified U) only if followed by A or G. NB: 3' ends are Heterogenous, run in parallel with RNase_4 and RNase_4c to get 3'OH and 3'c as well" type="string" />
       <ITEM name="CutsAfter" value="U|P|m1Y|D|5" type="string" />
       <ITEM name="CutsBefore" value="G|A" type="string" />
       <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
+    <NODE name="RNase_4c">
+      <ITEM name="Name" value="RNase_4c" type="string" />
+      <ITEM name="RegExDescription" value="RNase 4 cuts after U (or modified U) only if followed by A or G. NB: 3' ends are Heterogenous, run in parallel with RNase_4 and RNase_4p to get 3'OH and 3'p as well" type="string" />
+      <ITEM name="CutsAfter" value="U|P|m1Y|D|5" type="string" />
+      <ITEM name="CutsBefore" value="G|A" type="string" />
+      <ITEM name="ThreePrimeGain" value="c" type="string" />
       <ITEM name="FivePrimeGain" value="" type="string" />
     </NODE>        
     <NODE name="mazF">

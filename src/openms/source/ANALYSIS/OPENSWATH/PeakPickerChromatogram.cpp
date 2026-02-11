@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -78,7 +79,7 @@ namespace OpenMS
     {
         OPENMS_LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
         " with " << chromatogram.size() << " peaks (start at RT " << chromatogram[0].getRT() << " to RT " << chromatogram.back().getRT() << ") "
-        "using method \'" << method_ << "\'" << std::endl;
+        "using method \'" << method_ << "\'\n";
     }
     picked_chrom.clear(true);
     // Crawdad has its own methods, so we can call the wrapper directly
@@ -101,7 +102,7 @@ namespace OpenMS
 
     // Find initial seeds (peak picking)
     pp_.pick(smoothed_chrom, picked_chrom);
-    OPENMS_LOG_DEBUG << "Picked " << picked_chrom.size() << " chromatographic peaks." << std::endl;
+    OPENMS_LOG_DEBUG << "Picked " << picked_chrom.size() << " chromatographic peaks.\n";
 
     if (method_ == "legacy")
     {
@@ -204,7 +205,7 @@ namespace OpenMS
 #ifdef WITH_CRAWDAD
   void PeakPickerChromatogram::pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
-    OPENMS_LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
+    OPENMS_LOG_DEBUG << "Picking chromatogram using crawdad \n";
 
     // copy meta data of the input chromatogram
     picked_chrom.clear(true);
@@ -259,7 +260,7 @@ namespace OpenMS
   void PeakPickerChromatogram::removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     if (picked_chrom.empty()) {return; }
-    OPENMS_LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")" << std::endl;
+    OPENMS_LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")\n";
     Size current_peak = 0;
     // Find overlapping peaks
     for (Size i = 0; i < picked_chrom.size() - 1; i++)
@@ -273,14 +274,14 @@ namespace OpenMS
         const int current_right_idx = right_width_[i];
         const int next_left_idx = left_width_[i + 1];
         const int next_right_idx = right_width_[i + 1];
-        OPENMS_LOG_DEBUG << " Found overlapping " << i << " : " << current_left_idx << " " << current_right_idx << std::endl;
-        OPENMS_LOG_DEBUG << "                   -- with  " << i + 1 << " : " << next_left_idx << " " << next_right_idx << std::endl;
+        OPENMS_LOG_DEBUG << " Found overlapping " << i << " : " << current_left_idx << " " << current_right_idx << '\n';
+        OPENMS_LOG_DEBUG << "                   -- with  " << i + 1 << " : " << next_left_idx << " " << next_right_idx << '\n';
 
         // Find the peak width and best RT
-        double central_peak_mz = picked_chrom[i].getMZ();
-        double next_peak_mz = picked_chrom[i + 1].getMZ();
-        current_peak = findClosestPeak_(chromatogram, central_peak_mz, current_peak);
-        Size next_peak = findClosestPeak_(chromatogram, next_peak_mz, current_peak);
+        double central_peak_rt = picked_chrom[i].getPos();
+        double next_peak_rt = picked_chrom[i + 1].getPos();
+        current_peak = findClosestPeak_(chromatogram, central_peak_rt, current_peak);
+        Size next_peak = findClosestPeak_(chromatogram, next_peak_rt, current_peak);
 
         // adjust the right border of the current and left border of next
         Size k = 1;
@@ -301,14 +302,18 @@ namespace OpenMS
         // assert that the peaks are now not overlapping any more ...
         if (new_left_border < new_right_border)
         {
-          std::cerr << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean" << std::endl;
+          OPENMS_LOG_ERROR << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean\n";
           new_left_border = (new_left_border + new_right_border) / 2;
           new_right_border = (new_left_border + new_right_border) / 2;
 
         }
 
-        OPENMS_LOG_DEBUG << "New peak l: " << chromatogram[current_left_idx].getMZ() << " " << chromatogram[new_right_border].getMZ() << " int " << integrated_intensities_[i] << std::endl;
-        OPENMS_LOG_DEBUG << "New peak r: " << chromatogram[new_left_border].getMZ() << " " << chromatogram[next_right_idx].getMZ() << " int " << integrated_intensities_[i + 1] << std::endl;
+        OPENMS_LOG_DEBUG << "New peak l: " << chromatogram[current_left_idx].getPos() 
+          << " " << chromatogram[new_right_border].getPos() 
+          << " int " << integrated_intensities_[i] << '\n';
+        OPENMS_LOG_DEBUG << "New peak r: " << chromatogram[new_left_border].getPos() 
+          << " " << chromatogram[next_right_idx].getPos() 
+          << " int " << integrated_intensities_[i + 1] << '\n';
 
 
         right_width_[i] = new_right_border;

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -25,9 +25,9 @@ namespace OpenMS
       // see GNPSExport tool documentation
       /**
       * @brief Create file for GNPS molecular networking.
-      * @param consensus_file_path path to consensusXML with spectrum references
-      * @param mzml_file_paths path to mzML files referenced in consensusXML. Used to extract spectra as MGF.
-      * @param out MGF file with MS2 peak data for molecular networking.
+      * @param[in] consensus_file_path path to consensusXML with spectrum references
+      * @param[in] mzml_file_paths path to mzML files referenced in consensusXML. Used to extract spectra as MGF.
+      * @param[in] out MGF file with MS2 peak data for molecular networking.
       */
       void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -139,7 +139,7 @@ protected:
     /**
       @brief Returns the highest scoring peptide hit in the the given peptide identification.
 
-      @param peptideIdentification The peptideIdentification to scan.
+      @param[in] peptideIdentification The peptideIdentification to scan.
     */
     const AASequence& getBestHitSequence_(const PeptideIdentification& peptideIdentification) const;
   };

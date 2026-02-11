@@ -44,7 +44,6 @@ MSNumpressCoder.cpp
 MSPFile.cpp
 MSPGenericFile.cpp
 MSstatsFile.cpp
-MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp
 MascotXMLFile.cpp
@@ -69,6 +68,7 @@ ParamCTDFile.cpp
 ParamCWLFile.cpp
 ParamJSONFile.cpp
 ParamXMLFile.cpp
+PEFFFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp
 PepNovoInfile.cpp
@@ -98,10 +98,20 @@ XQuestResultXMLFile.cpp
 XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
+MRMFile.cpp
+TargetedDataFileLoader.cpp
 )
 
 if (WITH_HDF5)
   list(APPEND sources_list HDF5Connector.cpp)  
+endif()
+
+if (WITH_PARQUET)
+  list(APPEND sources_list MSExperimentArrowExport.cpp)
+  list(APPEND sources_list ConsensusMapArrowExport.cpp)
+  list(APPEND sources_list ParquetFilter.cpp)
+  list(APPEND sources_list QuantmsIO.cpp)
+  list(APPEND sources_list XICParquetFile.cpp)
 endif()
 
 ### add path to the filenames

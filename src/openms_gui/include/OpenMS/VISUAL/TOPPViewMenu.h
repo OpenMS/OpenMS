@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -60,9 +60,9 @@ namespace OpenMS
   public:
     /** @brief Constructor which connects slots/signals of this class with the objects given as arguments
 
-    @param parent Base class which actually shows the menu (as part of a QMainWindow)
-    @param ws Workspace to connect some signals to
-    @param recent_files A submenu for recent files which will be integrated as part of 'File -> Recent files'
+    @param[in] parent Base class which actually shows the menu (as part of a QMainWindow)
+    @param[in] ws Workspace to connect some signals to
+    @param[in] recent_files A submenu for recent files which will be integrated as part of 'File -> Recent files'
     **/
     TOPPViewMenu(TOPPViewBase* const parent, EnhancedWorkspace* const ws, RecentFilesMenu* const recent_files);
 

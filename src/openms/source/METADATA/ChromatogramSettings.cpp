@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,7 +31,7 @@ namespace OpenMS
     precursor_(),
     product_(),
     data_processing_(),
-    type_(MASS_CHROMATOGRAM)
+    type_(ChromatogramType::MASS_CHROMATOGRAM)
   {
   }
 
@@ -183,7 +183,7 @@ namespace OpenMS
     return data_processing_;
   }
 
-  const std::vector< boost::shared_ptr<const DataProcessing > > ChromatogramSettings::getDataProcessing() const 
+  const std::vector< std::shared_ptr<const DataProcessing > > ChromatogramSettings::getDataProcessing() const 
   {
     return OpenMS::Helpers::constifyPointerVector(data_processing_);
   }

@@ -29,11 +29,9 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>"
 
 cdef extern from "<OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>" namespace "OpenMS::MetaboliteFeatureDeconvolution":
 
-    cdef enum CHARGEMODE_MFD "OpenMS::MetaboliteFeatureDeconvolution::CHARGEMODE":
-        #wrap-attach:
+    cdef enum class CHARGEMODE "OpenMS::MetaboliteFeatureDeconvolution::CHARGEMODE":
+        # wrap-attach:
         #   MetaboliteFeatureDeconvolution
-        #wrap-instances:
-        #   CHARGEMODE := CHARGEMODE_MFD
 
         QFROMFEATURE
         QHEURISTIC

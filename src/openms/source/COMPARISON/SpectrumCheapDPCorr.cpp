@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -309,10 +309,10 @@ namespace OpenMS
   }
 
   /**
-   @param posa position of peak a
-   @param posb position of peak b
-   @param inta intensity of peak a
-   @param intb intensity of peak b
+   @param[in] posa position of peak a
+   @param[in] posb position of peak b
+   @param[in] inta intensity of peak a
+   @param[in] intb intensity of peak b
    @return score
    */
   double SpectrumCheapDPCorr::comparepeaks_(double posa, double posb, double inta, double intb) const

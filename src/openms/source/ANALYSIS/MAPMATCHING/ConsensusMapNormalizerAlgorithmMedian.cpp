@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -167,9 +167,9 @@ namespace OpenMS
     }
 
     const vector<ProteinIdentification>& prot_ids = map.getProteinIdentifications();
-    const vector<PeptideIdentification>& pep_ids = cf_it->getPeptideIdentifications();
+    const PeptideIdentificationList& pep_ids = cf_it->getPeptideIdentifications();
 
-    for (vector<PeptideIdentification>::const_iterator p_it = pep_ids.begin(); p_it != pep_ids.end(); ++p_it)
+    for (PeptideIdentificationList::const_iterator p_it = pep_ids.begin(); p_it != pep_ids.end(); ++p_it)
     {
       const vector<PeptideHit>& hits = p_it->getHits();
       for (vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -90,7 +91,7 @@ namespace OpenMS
 public:
 
     /// Exit codes
-    enum ExitCodes
+    enum class ExitCodes
     {
       EXECUTION_OK,
       ILLEGAL_PARAMETERS,
@@ -107,17 +108,17 @@ public:
     /**
      * @brief Performs the main function of this class, the search for cross-linked peptides
 
-     @param unprocessed_spectra The input PeakMap of experimental spectra
-     @param cfeatures Consensus features linking light and heavy mass pairs; e.g. created by FeatureFinderMultiplex
-     @param fasta_db The protein database containing targets and decoys
-     @param protein_ids A result vector containing search settings. Should contain one PeptideIdentification.
-     @param peptide_ids A result vector containing cross-link spectrum matches as PeptideIdentifications and PeptideHits. Should be empty.
-     @param preprocessed_pair_spectra A result structure containing linear and cross-linked ion spectra. Will be overwritten. This is only necessary for writing out xQuest type spectrum files.
-     @param spectrum_pairs A result vector containing paired spectra indices. Should be empty. This is only necessary for writing out xQuest type spectrum files.
-     @param all_top_csms A result vector containing cross-link spectrum matches as CrossLinkSpectrumMatches. Should be empty. This is only necessary for writing out xQuest type spectrum files.
-     @param spectra A result vector containing the input spectra after preprocessing and filtering. Should be empty. This is only necessary for writing out xQuest type spectrum files.
+     @param[in,out] unprocessed_spectra The input PeakMap of experimental spectra
+     @param[in] cfeatures Consensus features linking light and heavy mass pairs; e.g. created by FeatureFinderMultiplex
+     @param[in] fasta_db The protein database containing targets and decoys
+     @param[in,out] protein_ids A result vector containing search settings. Should contain one PeptideIdentification.
+     @param[out] peptide_ids A result vector containing cross-link spectrum matches as PeptideIdentifications and PeptideHits. Should be empty.
+     @param[out] preprocessed_pair_spectra A result structure containing linear and cross-linked ion spectra. Will be overwritten. This is only necessary for writing out xQuest type spectrum files.
+     @param[out] spectrum_pairs A result vector containing paired spectra indices. Should be empty. This is only necessary for writing out xQuest type spectrum files.
+     @param[out] all_top_csms A result vector containing cross-link spectrum matches as CrossLinkSpectrumMatches. Should be empty. This is only necessary for writing out xQuest type spectrum files.
+     @param[out] spectra A result vector containing the input spectra after preprocessing and filtering. Should be empty. This is only necessary for writing out xQuest type spectrum files.
      */
-    ExitCodes run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra);
+    ExitCodes run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra);
 
 private:
     void updateMembers_() override;

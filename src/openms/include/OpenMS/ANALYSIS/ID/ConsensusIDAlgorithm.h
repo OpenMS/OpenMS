@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <map>
 #include <vector>
 
@@ -38,14 +39,14 @@ namespace OpenMS
 
         Make sure that the score type (PeptideIdentification::getScoreType()) and the score orientation (PeptideIdentification::isHigherScoreBetter()) are set properly!
 
-        @param ids Peptide identifications (input: more than one, output: one)
-        @param number_of_runs Number of ID runs (default: size of "ids")
-        @param se_info map from run identifiers to search engine infos to retain original search engine information
+        @param[in,out] ids Peptide identifications (input: more than one, output: one)
+        @param[in] number_of_runs Number of ID runs (default: size of "ids")
+        @param[in] se_info map from run identifiers to search engine infos to retain original search engine information
         @todo we could pass the score_types that we want to carry over in the map as well (right now it always takes main)
      */
-    void apply(std::vector<PeptideIdentification>& ids, const std::map<String, String>& se_info, Size number_of_runs = 0);
+    void apply(PeptideIdentificationList& ids, const std::map<String, String>& se_info, Size number_of_runs = 0);
 
-    void apply(std::vector<PeptideIdentification>& ids, Size number_of_runs = 0);
+    void apply(PeptideIdentificationList& ids, Size number_of_runs = 0);
 
     /// Virtual destructor
     ~ConsensusIDAlgorithm() override;
@@ -91,11 +92,11 @@ namespace OpenMS
     /**
        @brief Consensus computation (to be implemented by subclasses).
 
-       @param ids Peptide identifications (input)
-       @param se_info mapping from run identifier to search engine to carry over infos to result
-       @param results Algorithm results (output). For each peptide sequence, two scores are expected: the actual consensus score and the "support" value, in this order.
+       @param[in,out] ids Peptide identifications (input)
+       @param[in] se_info mapping from run identifier to search engine to carry over infos to result
+       @param[out] results Algorithm results (output). For each peptide sequence, two scores are expected: the actual consensus score and the "support" value, in this order.
     */
-    virtual void apply_(std::vector<PeptideIdentification>& ids, const std::map<String, String>& se_info, SequenceGrouping& results) = 0;
+    virtual void apply_(PeptideIdentificationList& ids, const std::map<String, String>& se_info, SequenceGrouping& results) = 0;
 
     /// Docu in base class
     void updateMembers_() override;

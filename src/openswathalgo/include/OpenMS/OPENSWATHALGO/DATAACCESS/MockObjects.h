@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <map>
 #include <vector>
 #include <string>
@@ -57,9 +57,9 @@ public:
 
     ~MockMRMFeature() override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
+    std::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) override;
+    std::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) override;
 
     std::vector<std::string> getNativeIDs() const override;
 
@@ -69,12 +69,15 @@ public:
 
     double getRT() const override;
 
+    double getMetaValue(std::string name) const override;
+
     size_t size() const override;
 
-    std::map<std::string, boost::shared_ptr<MockFeature> > m_features;
-    std::map<std::string, boost::shared_ptr<MockFeature> > m_precursor_features;
+    std::map<std::string, std::shared_ptr<MockFeature> > m_features;
+    std::map<std::string, std::shared_ptr<MockFeature> > m_precursor_features;
     float m_intensity;
     double m_rt;
+    double m_metavalue;
   };
 
   /**

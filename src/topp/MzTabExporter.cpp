@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -65,9 +65,10 @@ See the mzTab specification for details on the format.
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 namespace OpenMS
 {
@@ -119,12 +120,12 @@ protected:
         FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML});
 
         // calculate coverage
-        vector<PeptideIdentification> pep_ids;
+        PeptideIdentificationList pep_ids;
         vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();        
 
         for (Size i = 0; i < feature_map.size(); ++i) // collect all (assigned and unassigned to a feature) peptide ids
         {
-          const vector<PeptideIdentification>& pep_ids_bf = feature_map[i].getPeptideIdentifications();
+          const PeptideIdentificationList& pep_ids_bf = feature_map[i].getPeptideIdentifications();
           pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
         }
 
@@ -150,7 +151,7 @@ protected:
       if (in_type == FileTypes::IDXML)
       {
         vector<ProteinIdentification> prot_ids;
-        vector<PeptideIdentification> pep_ids;
+        PeptideIdentificationList pep_ids;
         FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 
         MzTabFile().store(out,
@@ -167,7 +168,7 @@ protected:
       {
         String document_id;
         vector<ProteinIdentification> prot_ids;
-        vector<PeptideIdentification> pep_ids;
+        PeptideIdentificationList pep_ids;
         FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::MZIDENTML});
 
         MzTabFile().store(out,
@@ -202,7 +203,9 @@ protected:
   };
 } //namespace OpenMS
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 
 int main(int argc, const char** argv)
 {

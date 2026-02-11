@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -70,8 +70,8 @@ public:
     /**
        @brief Constructor
 
-       @param max_intensity Maximum intensity of features (for normalization)
-       @param force_constraints Check "max. difference" constraints given in the parameters and return @ref infinity if violated?
+       @param[in] max_intensity Maximum intensity of features (for normalization)
+       @param[in] force_constraints Check "max. difference" constraints given in the parameters and return @ref infinity if violated?
     */
     FeatureDistance(double max_intensity = 1.0,
                     bool force_constraints = false);

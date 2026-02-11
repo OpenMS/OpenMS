@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -95,29 +95,13 @@ public:
       {
       }
 
-      Ratio(const Ratio& rhs)
-      {
-        ratio_value_ = rhs.ratio_value_;
-        denominator_ref_ = rhs.denominator_ref_;
-        numerator_ref_ = rhs.numerator_ref_;
-        description_ = rhs.description_;
-      }
+      Ratio(const Ratio& rhs) = default;
 
       virtual ~Ratio()
       {
       }
 
-      Ratio& operator=(const Ratio& rhs)
-      {
-        if (&rhs != this)
-        {
-          ratio_value_ = rhs.ratio_value_;
-          denominator_ref_ = rhs.denominator_ref_;
-          numerator_ref_ = rhs.numerator_ref_;
-          description_ = rhs.description_;
-        }
-        return *this;
-      }
+      Ratio& operator=(const Ratio& rhs) = default;
 
       // @TODO: members are public, names shouldn't end in underscores
       double ratio_value_;
@@ -257,8 +241,8 @@ public:
 
       @note This method has to be called explicitly, <i>after</i> adding the feature handles.
 
-      @param fm Input feature map, which provides additional information on the features
-      @param intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
+      @param[in] fm Input feature map, which provides additional information on the features
+      @param[in] intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
     */
     void computeDechargeConsensus(const FeatureMap& fm, bool intensity_weighted_averaging = false);
 

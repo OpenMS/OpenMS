@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -695,7 +695,7 @@ namespace OpenMS
     // filter FeatureMap to only have entries with an identification
     if (!keep_unidentified_masses_)
     {
-      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return f.getPeptideIdentifications().size() == 0; }), fmap.end());
+      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return f.getPeptideIdentifications().empty(); }), fmap.end());
     }
 
     // add dummy ProteinIdentification which is required to keep PeptideHits alive during store()

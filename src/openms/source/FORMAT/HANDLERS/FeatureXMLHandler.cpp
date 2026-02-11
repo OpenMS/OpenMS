@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -122,11 +122,11 @@ namespace OpenMS::Internal
          << "db=\"" << writeXMLEscape(search_param.db) << "\" "
          << "db_version=\"" << writeXMLEscape(search_param.db_version) << "\" "
          << "taxonomy=\"" << writeXMLEscape(search_param.taxonomy) << "\" ";
-      if (search_param.mass_type == ProteinIdentification::MONOISOTOPIC)
+      if (search_param.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
       {
         os << "mass_type=\"monoisotopic\" ";
       }
-      else if (search_param.mass_type == ProteinIdentification::AVERAGE)
+      else if (search_param.mass_type == ProteinIdentification::PeakMassType::AVERAGE)
       {
         os << "mass_type=\"average\" ";
       }
@@ -474,11 +474,11 @@ namespace OpenMS::Internal
       String mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
       {
-        search_param_.mass_type = ProteinIdentification::MONOISOTOPIC;
+        search_param_.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
       }
       else if (mass_type == "average")
       {
-        search_param_.mass_type = ProteinIdentification::AVERAGE;
+        search_param_.mass_type = ProteinIdentification::PeakMassType::AVERAGE;
       }
       //enzyme
       String enzyme;
@@ -1023,9 +1023,10 @@ namespace OpenMS::Internal
       os << indent << "\t</PeptideHit>\n";
     }
 
-    //do not write "spectrum_reference" since it is written as attribute already
+    //do not write "spectrum_reference" and Constants::UserParam::SIGNIFICANCE_THRESHOLD since it is written as attribute already
     MetaInfoInterface tmp = id;
     tmp.removeMetaValue("spectrum_reference");
+    tmp.removeMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
     writeUserParam_("UserParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
   }

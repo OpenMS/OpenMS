@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -18,7 +18,7 @@ namespace OpenMS
 {
   // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therefor have a entry in the featureMap)
   // MS2 spectra without mate are returned as vector of unassigned PeptideIdentifications (with empty sequence but some metavalue)
-  std::vector<PeptideIdentification> Ms2SpectrumStats::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
+  PeptideIdentificationList Ms2SpectrumStats::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (exp.empty())
     {
@@ -63,7 +63,7 @@ namespace OpenMS
     }
     if (!spectrum.getPrecursors().empty() && !spectrum.getPrecursors()[0].getActivationMethods().empty())
     {
-      peptide_ID.setMetaValue("activation_method", Precursor::NamesOfActivationMethodShort[*spectrum.getPrecursors()[0].getActivationMethods().begin()]);
+      peptide_ID.setMetaValue("activation_method", Precursor::NamesOfActivationMethodShort[static_cast<size_t>(*spectrum.getPrecursors()[0].getActivationMethods().begin())]);
     }
   }
 
@@ -89,9 +89,9 @@ namespace OpenMS
     }
   }
 
-  std::vector<PeptideIdentification> Ms2SpectrumStats::getUnassignedPeptideIdentifications_(const MSExperiment& exp)
+  PeptideIdentificationList Ms2SpectrumStats::getUnassignedPeptideIdentifications_(const MSExperiment& exp)
   {
-    std::vector<PeptideIdentification> result;
+    PeptideIdentificationList result;
     for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)
     {
       if (it->ms2_presence)

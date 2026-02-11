@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -127,7 +127,7 @@ namespace OpenMS
     //param_->remove("debug");
 
     //remove parameters already explained by edges and the "type" parameter
-    foreach(const String &name, hidden_entries_)
+    for (const String &name : hidden_entries_)
     {
       param_->remove(name);
     }

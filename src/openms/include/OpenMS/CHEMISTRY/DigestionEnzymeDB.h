@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -152,6 +153,27 @@ namespace OpenMS
     DigestionEnzymeDB& operator=(const DigestionEnzymeDB& enzymes_db) = delete;
     //@}
 
+    /**
+     * @brief Reads enzymes from the given file if it exists
+     * 
+     * @return true if file was found and loaded successfully, false if file was not found
+     * @note Only FileNotFound exceptions are caught. ParseError exceptions are intentionally
+     *       re-thrown to indicate XML parsing issues with an existing file.
+     */
+    bool readEnzymesFromFileIfPresent_(const String& filename)
+    {
+      try
+      {
+        readEnzymesFromFile_(filename);
+        return true;
+      }
+      catch (Exception::FileNotFound&)
+      {
+        // file not found - that's OK, we will use built-in enzymes
+        return false;
+      }
+    }
+
     /// reads enzymes from the given file
     void readEnzymesFromFile_(const String& filename)
     {
@@ -212,13 +234,37 @@ namespace OpenMS
       return enzy_ptr;
     }
 
-    /// add to internal data; also update indices for search by name and regex
+    /// add to internal data; also update indices for search by name and regex.
+    /// If an enzyme with the same name already exists, it is replaced.
     void addEnzyme_(const DigestionEnzymeType* enzyme)
     {
+      String name = enzyme->getName();
+
+      // if an enzyme with the same name exists, remove the old one first
+      auto existing = enzyme_names_.find(name);
+      if (existing != enzyme_names_.end())
+      {
+        const DigestionEnzymeType* old = existing->second;
+        const_enzymes_.erase(old);
+        // remove old name/synonym entries
+        String old_name = old->getName();
+        enzyme_names_.erase(old_name);
+        enzyme_names_.erase(old_name.toLower());
+        for (const auto& syn : old->getSynonyms())
+        {
+          enzyme_names_.erase(syn);
+        }
+        // remove old regex entry
+        if (!old->getRegEx().empty())
+        {
+          enzyme_regex_.erase(old->getRegEx());
+        }
+        delete old;
+      }
+
       // add to internal storage
       const_enzymes_.insert(enzyme);
       // add to internal indices (by name and its synonyms)
-      String name = enzyme->getName();
       enzyme_names_[name] = enzyme;
       enzyme_names_[name.toLower()] = enzyme;
       for (std::set<String>::const_iterator it = enzyme->getSynonyms().begin(); it != enzyme->getSynonyms().end(); ++it)

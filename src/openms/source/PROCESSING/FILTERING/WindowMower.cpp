@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -56,15 +56,15 @@ namespace OpenMS
   void WindowMower::filterPeakMap(PeakMap & exp)
   {
     bool sliding = param_.getValue("movetype").toString() == "slide" ? true : false;
-    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (auto& spectrum : exp)
     {
       if (sliding)
       {
-        filterPeakSpectrumForTopNInSlidingWindow(*it);
+        filterPeakSpectrumForTopNInSlidingWindow(spectrum);
       }
       else
       {
-        filterPeakSpectrumForTopNInJumpingWindow(*it);
+        filterPeakSpectrumForTopNInJumpingWindow(spectrum);
       }
     }
   }

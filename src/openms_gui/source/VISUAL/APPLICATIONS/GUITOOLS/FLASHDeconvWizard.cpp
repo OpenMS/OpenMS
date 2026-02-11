@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -19,9 +19,9 @@
   The main output of the Wizard is deconvolved feature files (*.tsv) from FLASHDeconv. Optional output files are as follows:
     - deconvoluted MSn spectra files (*.tsv)
     - deconvoluted mzML spectra file (*.mzML)
-    - deconvoluted MS1 in ProMex output format (*.ms1ft)
+    - Isobarically quantified deconvoluted MS2 in tsv format (*_quant.tsv)
     - deconvoluted MSn spectra files in TopFD output format (*.msalign)
-    - deconvoluted MS1 feature file in TopFD output format (*.feature)
+    - deconvoluted MSn feature files in TopFD output format (*.feature)
 */
 
 // QT
@@ -56,7 +56,7 @@ const char* tool_name = "FLASHDeconvWizard";
 // description of the usage of this TOPP tool
 //-------------------------------------------------------------
 
-void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
+void print_usage(Logger::LogStream& stream = getGlobalLogInfo())
 {
   stream << "\n"
          << tool_name << " -- An assistant for FLASHDeconv.\n"
@@ -72,6 +72,10 @@ void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 
 int main(int argc, const char** argv)
 {
+#ifdef OPENMS_WINDOWSPLATFORM
+  qputenv("QT_QPA_PLATFORM", "windows:darkmode=0"); // disable dark mode on Windows, since our buttons etc are not designed for it
+#endif
+
   // list of all the valid options
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
@@ -91,7 +95,7 @@ int main(int argc, const char** argv)
   if (param.exists("debug"))
   {
     OPENMS_LOG_INFO << "Debug flag provided. Enabling 'OPENMS_LOG_DEBUG' ..." << std::endl;
-    OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+    getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
   }
 
   // test if unknown options were given
@@ -103,7 +107,7 @@ int main(int argc, const char** argv)
     if (!(String(param.getValue("unknown").toString()).hasSubstring("-psn") && !String(param.getValue("unknown").toString()).hasSubstring(", ")))
     {
       OPENMS_LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
-      print_usage(OpenMS_Log_error);
+      print_usage(getGlobalLogError());
       return 1;
     }
   }

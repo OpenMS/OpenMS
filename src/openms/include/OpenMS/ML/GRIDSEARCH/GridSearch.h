@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,11 +12,19 @@
 #include <vector>
 #include <cmath>
 #include <tuple>
+#include <concepts>
+#include <ranges>
+#include <functional>
 
 namespace OpenMS
 {
   namespace Internal
   {
+    template<typename F, typename... Args>
+    concept Evaluator = requires(F f, Args... args) {
+      { std::invoke(f, args...) } -> std::convertible_to<double>;
+    };
+
     // The general class template
     template <size_t param_index, size_t grid_size, typename EvalResult, typename Tuple, typename... TupleTypes>
     struct Looper
@@ -24,41 +32,40 @@ namespace OpenMS
     };
 
     // Specialization for the base case
-    // - shape_index == shape_size
-    // - TupleTypes is empty here
-    // - All indices in Functor are bound (i.e. can be called with empty arguments)
     template <size_t grid_size, typename EvalResult, typename Tuple, typename... TupleTypes>
     struct Looper<grid_size, grid_size, EvalResult, Tuple, TupleTypes...>
     {
       template <typename Functor>
-      double operator()(const Tuple&, Functor functor, EvalResult /*bestValue*/, std::array<size_t, grid_size>& /*bestIndices*/)
+        requires Evaluator<Functor, TupleTypes...>
+      constexpr auto operator()(const Tuple&, Functor functor, EvalResult /*bestValue*/, std::array<size_t, grid_size>& /*bestIndices*/) const
       {
-        return functor();
+        return std::invoke(functor);
       }
     };
 
     // Specialization for the loop case
-    // - increment shape_index
-    // - create new Functor with one argument less and the first being bound to it
-    // - loop over all values in the current vector and update best score and best indices
     template <size_t param_index, size_t grid_size, typename EvalResult, typename Tuple, typename FirstTupleType, typename... TupleTypes>
     struct Looper<param_index, grid_size, EvalResult, Tuple, FirstTupleType, TupleTypes...>
     {
       template <typename Functor>
-      EvalResult operator()(const Tuple& grid, Functor functor, EvalResult bestValue, std::array<size_t, grid_size>& bestIndices)
+        requires Evaluator<Functor, FirstTupleType, TupleTypes...>
+      constexpr auto operator()(const Tuple& grid, Functor functor, EvalResult bestValue, std::array<size_t, grid_size>& bestIndices) const
       {
-        for (size_t index = 0; index < std::get<param_index>(grid).size(); ++index)
-        {
-          double currVal = Looper<param_index + 1, grid_size, EvalResult, Tuple, TupleTypes...>()
+        const auto& current_vector = std::get<param_index>(grid);
+        
+        for (size_t index = 0; index < current_vector.size(); ++index) {
+          const auto& value = current_vector[index];
+          auto currVal = Looper<param_index + 1, grid_size, EvalResult, Tuple, TupleTypes...>{}
               (
                   grid,
-                  [&grid, index, &functor](TupleTypes... rest){ return functor(std::get<param_index>(grid)[index], rest...);},
+                  [&value, &functor](TupleTypes... rest){ 
+                    return std::invoke(functor, value, rest...);
+                  },
                   bestValue,
                   bestIndices
               );
 
-          if ( currVal > bestValue )
-          {
+          if (currVal > bestValue) {
             bestValue = currVal;
             bestIndices[param_index] = index;
           }
@@ -72,72 +79,65 @@ namespace OpenMS
   class GridSearch
   {
   public:
-    explicit GridSearch(std::vector<TupleTypes>... gridValues):
-        grid_(std::make_tuple<std::vector<TupleTypes>...>(std::move(gridValues)...))
+    explicit GridSearch(std::vector<TupleTypes>... gridValues)
+        : grid_(std::make_tuple<std::vector<TupleTypes>...>(std::move(gridValues)...))
     {}
 
-    //Specific implementation for function objects
+    // Implementation for function objects using concepts
     template <typename Functor>
-    typename std::result_of<Functor(TupleTypes...)>::type evaluate(Functor evaluator,
-                                                                   typename std::result_of<Functor(TupleTypes...)>::type startValue,
-                                                                   std::array<size_t,std::tuple_size<std::tuple<std::vector<TupleTypes>...>>::value>& resultIndices)
+      requires Internal::Evaluator<Functor, TupleTypes...>
+    constexpr auto evaluate(
+        Functor evaluator,
+        std::invoke_result_t<Functor, TupleTypes...> startValue,
+        std::array<size_t, std::tuple_size_v<std::tuple<std::vector<TupleTypes>...>>>& resultIndices) const
     {
-      return Internal::Looper<0,
-          std::tuple_size<std::tuple<std::vector<TupleTypes>...>>::value,
-          typename std::result_of<Functor(TupleTypes...)>::type,
+      return Internal::Looper<
+          0,
+          std::tuple_size_v<std::tuple<std::vector<TupleTypes>...>>,
+          std::invoke_result_t<Functor, TupleTypes...>,
           std::tuple<std::vector<TupleTypes>...>,
-          TupleTypes...> ()
-          (grid_, evaluator, startValue, resultIndices);
+          TupleTypes...>{}(grid_, evaluator, startValue, resultIndices);
     }
 
-
-    //Specific implementation for function pointers
+    // Implementation for function pointers using concepts
     template <typename EvalResult>
-    EvalResult evaluate(EvalResult evaluator(TupleTypes...),
-                        EvalResult startValue,
-                        std::array<size_t,std::tuple_size<std::tuple<std::vector<TupleTypes>...>>::value>& resultIndices)
+      requires std::convertible_to<EvalResult, double>
+    [[nodiscard]] constexpr auto evaluate(
+        EvalResult (*evaluator)(TupleTypes...),
+        EvalResult startValue,
+        std::array<size_t, std::tuple_size_v<std::tuple<std::vector<TupleTypes>...>>>& resultIndices) const
     {
-      return Internal::Looper<0,
-          std::tuple_size<std::tuple<std::vector<TupleTypes>...>>::value,
+      return Internal::Looper<
+          0,
+          std::tuple_size_v<std::tuple<std::vector<TupleTypes>...>>,
           EvalResult,
           std::tuple<std::vector<TupleTypes>...>,
-          TupleTypes...>()
-          (grid_, evaluator, startValue, resultIndices);
+          TupleTypes...>{}(grid_, evaluator, startValue, resultIndices);
     }
 
-
-    unsigned int getNrCombos()
+    [[nodiscard]] constexpr auto getNrCombos() const -> unsigned int
     {
-      if (combos_ready_)
-      {
+      if (combos_ready_) {
         return combos_;
       }
-      else
-      {
-        return nrCombos();
-      }
+      return calculateCombos();
     }
 
   private:
     std::tuple<std::vector<TupleTypes>...> grid_;
-    unsigned int combos_ = 1;
-    bool combos_ready_ = false;
+    mutable unsigned int combos_ = 1;
+    mutable bool combos_ready_ = false;
 
     template<std::size_t I = 0>
-    typename std::enable_if<I == sizeof...(TupleTypes), unsigned int>::type
-    nrCombos()
+    [[nodiscard]] constexpr unsigned int calculateCombos() const
     {
-      combos_ready_ = true;
-      return combos_;
-    }
-
-    template<std::size_t I = 0>
-    typename std::enable_if<I < sizeof...(TupleTypes), unsigned int>::type
-    nrCombos()
-    {
-      combos_ *= std::get<I>(grid_).size();
-      return nrCombos<I + 1>();
+      if constexpr (I == sizeof...(TupleTypes)) {
+        combos_ready_ = true;
+        return combos_;
+      } else {
+        combos_ *= std::get<I>(grid_).size();
+        return calculateCombos<I + 1>();
+      }
     }
   };
 } // namespace OpenMS
-

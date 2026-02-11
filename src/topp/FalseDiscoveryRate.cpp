@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -28,7 +28,7 @@ using namespace std;
             <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDFilter </td>
         </tr>
         <tr>
@@ -99,7 +99,7 @@ protected:
 
     registerStringOption_("protein_score", "<type>", "", "The protein score used to calculate the protein FDR. If empty, the main score is used.", false, true);
     auto ids = IDScoreSwitcherAlgorithm();
-    setValidStrings_("protein_score", ids.getScoreTypeNames()); // lists all scores (including PSM only scores)
+    setValidStrings_("protein_score", ids.getScoreNames()); // lists all scores (including PSM only scores)
 
     registerStringOption_("protein_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for protein (group) level.", false);
     registerStringOption_("protein_base_score_orientation", "<higher/lower>", "", "Set if you want to choose a different score than the last calculated main score for protein (group) level.", false, true);
@@ -151,7 +151,7 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     vector<ProteinIdentification> prot_ids;
 
     FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
@@ -173,7 +173,7 @@ protected:
         {
           try 
           {
-            IDScoreSwitcherAlgorithm::ScoreType score_type = IDScoreSwitcherAlgorithm::getScoreType(protein_score);
+            IDScoreSwitcherAlgorithm::ScoreType score_type = IDScoreSwitcherAlgorithm::toScoreTypeEnum(protein_score);
             IDScoreSwitcherAlgorithm switcher;
             Size c = 0;
             switcher.switchToGeneralScoreType(prot_ids, score_type, c);
@@ -265,7 +265,7 @@ protected:
         IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
       }
       //remove_psms_without_proteins
-      IDFilter::updateProteinReferences(pep_ids,
+      IDFilter::removeDanglingProteinReferences(pep_ids,
                                         prot_ids,
                                         getStringOption_("FDR:cleanup:remove_psms_without_proteins") == "true");
       //remove_spectra_without_psms
@@ -273,9 +273,6 @@ protected:
       {
         IDFilter::removeEmptyIdentifications(pep_ids);
       }
-
-      IDFilter::updateHitRanks(prot_ids);
-      IDFilter::updateHitRanks(pep_ids);
 
       // we want to keep "empty" protein ID runs because they contain search meta data
 

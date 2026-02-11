@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
@@ -44,11 +45,11 @@ public:
     /**
       @brief loads data from a OMSSAXML file
 
-      @param filename The file to be loaded
-      @param protein_identification Protein identifications belonging to the whole experiment
-      @param id_data The identifications with m/z and RT
-      @param load_proteins If this flag is set to false, the protein identifications are not loaded
-      @param load_empty_hits Many spectra will not return a hit. Report empty peptide identifications?
+      @param[in] filename The file to be loaded
+      @param[in] protein_identification Protein identifications belonging to the whole experiment
+      @param[in] id_data The identifications with m/z and RT
+      @param[in] load_proteins If this flag is set to false, the protein identifications are not loaded
+      @param[in] load_empty_hits Many spectra will not return a hit. Report empty peptide identifications?
 
       This class serves to read in a OMSSAXML file. The information can be
       retrieved via the load function.
@@ -60,7 +61,7 @@ public:
     */
     void load(const String& filename,
               ProteinIdentification& protein_identification,
-              std::vector<PeptideIdentification>& id_data,
+              PeptideIdentificationList& id_data,
               bool load_proteins = true,
               bool load_empty_hits = true);
 
@@ -87,7 +88,7 @@ private:
     void readMappingFile_();
 
     /// the identifications (storing the peptide hits)
-    std::vector<PeptideIdentification>* peptide_identifications_;
+    PeptideIdentificationList* peptide_identifications_;
 
     ProteinHit actual_protein_hit_;
 

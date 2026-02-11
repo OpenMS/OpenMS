@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/QC/Contaminants.h>
 #include <OpenMS/QC/FragmentMassError.h>
@@ -258,7 +259,7 @@ protected:
     QCBase::SpectraMap spec_map;
 
     // Loop through featuremaps...
-    vector<PeptideIdentification> all_new_upep_ids;
+    PeptideIdentificationList all_new_upep_ids;
 
 
     String out_txt_dir = getOutputDirOption("out_txt:directory");
@@ -275,7 +276,7 @@ protected:
       //-------------------------------------------------------------
       if (i < in_raw.size())
       { // we either have 'n' or 1 mzML ... use the correct one in each iteration
-        FileHandler().loadExperiment(in_raw[i], exp, {FileTypes::MZML});
+        FileHandler().loadExperiment(in_raw[i], exp, {FileTypes::MZML}, log_type_);
         spec_map.calculateMap(exp);
       }
 
@@ -283,7 +284,7 @@ protected:
       FeatureMap fmap_local;
       if (!in_postFDR.empty())
       {
-        FileHandler().loadFeatures(in_postFDR[i], fmap_local, {FileTypes::FEATUREXML});
+        FileHandler().loadFeatures(in_postFDR[i], fmap_local, {FileTypes::FEATUREXML}, log_type_);
         fmap = &fmap_local;
       }
       else
@@ -359,18 +360,25 @@ protected:
       if (qc_ms2stats.isRunnable(status))
       {
         // copies FWHM metavalue to PepIDs as well
-        vector<PeptideIdentification> new_upep_ids = qc_ms2stats.compute(exp, *fmap, spec_map);
+        PeptideIdentificationList new_upep_ids = qc_ms2stats.compute(exp, *fmap, spec_map);
         // use identifier of CMap for just calculated pepIDs (via common MS-run-path)
-        const auto& f_runpath = mp_f.runpath_to_identifier.begin()->first; // just get any runpath from fmap
-        const auto ptr_cmap = mp_c.runpath_to_identifier.find(f_runpath);
-        if (ptr_cmap == mp_c.runpath_to_identifier.end())
+        // Get the first identifier from the feature map and its corresponding MS run paths
+        const auto f_identifiers = mp_f.getIdentifiers();
+        if (f_identifiers.empty())
+        {
+          OPENMS_LOG_ERROR << "FeatureXML has no protein identifications with MS run paths.\n";
+          return ILLEGAL_PARAMETERS;
+        }
+        const StringList& f_runpath = mp_f.getMSRunPaths(f_identifiers[0]);
+        String cmap_identifier;
+        if (!mp_c.tryGetIdentifier(f_runpath, cmap_identifier))
         {
           OPENMS_LOG_ERROR << "FeatureXML (MS run '" << ListUtils::concatenate(f_runpath, ", ") << "') does not correspond to ConsensusXML (run not found). Check input!\n";
           return ILLEGAL_PARAMETERS;
         }
         for (PeptideIdentification& pep_id : new_upep_ids)
         {
-          pep_id.setIdentifier(ptr_cmap->second);
+          pep_id.setIdentifier(cmap_identifier);
         }
 
         // annotate the RT alignment
@@ -387,19 +395,19 @@ protected:
       StringList out_feat = getStringList_("out_feat");
       if (!out_feat.empty())
       {
-        FileHandler().storeFeatures(out_feat[i], *fmap, {FileTypes::FEATUREXML});
+        FileHandler().storeFeatures(out_feat[i], *fmap, {FileTypes::FEATUREXML}, log_type_);
       }
       //-------------------------------------------------------------
       // Annotate calculated meta values from FeatureMap to given ConsensusMap
       //-------------------------------------------------------------
 
       // copy MetaValues of unassigned PepIDs
-      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
+      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f, cmap);
 
       // copy MetaValues of assigned PepIDs
       for (Feature& feature : *fmap)
       {
-        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
+        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f, cmap);
       }
 
       if (MQExporterHelper::isValid(out_txt_dir))
@@ -460,7 +468,7 @@ protected:
     String out_cm = getStringOption_("out_cm");
     if (!out_cm.empty())
     {
-      FileHandler().storeConsensusFeatures(out_cm, cmap, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(out_cm, cmap, {FileTypes::CONSENSUSXML}, log_type_);
     }
 
     String out = getStringOption_("out");
@@ -499,7 +507,7 @@ private:
     return files;
   }
 
-  void sortVectorOfPeptideIDsbyScore_(std::vector<PeptideIdentification>& pep_ids)
+  void sortVectorOfPeptideIDsbyScore_(PeptideIdentificationList& pep_ids)
   {
     for (PeptideIdentification& pep_id : pep_ids)
     {
@@ -516,9 +524,9 @@ private:
   }
 
   void addPepIDMetaValues_(
-    const vector<PeptideIdentification>& f_pep_ids,
+    const PeptideIdentificationList& f_pep_ids,
     const multimap<String, pair<Size, Size>>& customID_to_cpepID,
-    const map<String, StringList>& fidentifier_to_msrunpath,
+    const IdentifierMSRunMapper& mapping,
     ConsensusMap& cmap) const
   {
     for (const PeptideIdentification& f_pep_id : f_pep_ids)
@@ -528,7 +536,7 @@ private:
       {
         continue;
       }
-      String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id,fidentifier_to_msrunpath);
+      String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id, mapping);
       const auto range = customID_to_cpepID.equal_range(UID);
 
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE

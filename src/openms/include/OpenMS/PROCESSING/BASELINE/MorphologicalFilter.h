@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -158,9 +158,9 @@ namespace OpenMS
     Input and output range must be valid, i.e. allocated before.
     InputIterator must be a random access iterator type.
 
-    @param input_begin the begin of the input range
-    @param input_end  the end of the input range
-    @param output_begin the begin of the output range
+    @param[in] input_begin the begin of the input range
+    @param[in] input_end  the end of the input range
+    @param[out] output_begin the begin of the output range
 
     @exception Exception::IllegalArgument The given method is not one of the values defined in the @em method parameter.
     */
@@ -261,7 +261,7 @@ namespace OpenMS
     void filter(MSSpectrum& spectrum)
     {
       // make sure the right peak type is set
-      spectrum.setType(SpectrumSettings::PROFILE);
+      spectrum.setType(SpectrumSettings::SpectrumType::PROFILE);
 
       // Abort if there is nothing to do
       if (spectrum.size() <= 1)

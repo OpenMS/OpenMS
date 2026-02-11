@@ -1,13 +1,13 @@
 #RUN	run_id	score_type	score_direction	date_time	search_engine_version	parameters
 #PROTEIN	score	rank	accession	protein_description	coverage	sequence
-#PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions	start	end	predicted_rt	predicted_pt
+#PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions	start	end	predicted_rt	predicted_pt	peak_annotations
 RUN	Mascot_2006-01-12T12:13:14_5233264595117471314	MOWSE	higher-score-better	2006-01-12T12:13:14	2.1.0	db=MSDB, db_version=1.0, taxonomy=, charges=+1, +2, mass_type=average, fixed_modifications=, variable_modifications=, enzyme=Trypsin, missed_cleavages=0, peak_mass_tolerance=0.3, precursor_mass_tolerance=1.0
-PROTEIN	34.4000015258789	0	PROT1	14-3-3 protein beta/alpha OS=Homo sapiens GN=YWHAB PE=1 SV=3	-1	ABCDEFGZZZZ
-PROTEIN	24.3999996185303	0	PROT2		-1	DEFGHIGK
-PEPTIDE	1234.5	675.9	0.9	0	DEF	1	A	B	MOWSE	Mascot_2006-01-12T12:13:14_5233264595117471314	PROT1;PROT2	3;0	5;2	-1	-1
-PEPTIDE	1234.5	675.9	1.4	0	ZZZZ	1	X	X	MOWSE	Mascot_2006-01-12T12:13:14_5233264595117471314	PROT1			-1	-1
-PEPTIDE	-1	-1	44.4	0	PEPTIDERRR	2	X	X	MOWSE	Mascot_2006-01-12T12:13:14_5233264595117471314				-1	-1
-PEPTIDE	-1	-1	33.3	0	PEPTIDERRRR	2	X	X	MOWSE	Mascot_2006-01-12T12:13:14_5233264595117471314				-1	-1
+PROTEIN	34.399999999999999	0	PROT1	14-3-3 protein beta/alpha OS=Homo sapiens GN=YWHAB PE=1 SV=3	-1.0	ABCDEFGZZZZ
+PROTEIN	24.399999999999999	0	PROT2		-1.0	DEFGHIGK
+PEPTIDE	1234.5	675.899999999999977	0.9	0	DEF	1	A	B	MOWSE	Mascot_2006-01-12T12:13:14_5233264595117471314	PROT1;PROT2	3;0	5;2	-1	-1	-1
+PEPTIDE	1234.5	675.899999999999977	1.4	0	ZZZZ	1	X	X	MOWSE	Mascot_2006-01-12T12:13:14_5233264595117471314	PROT1			-1	-1	-1
+PEPTIDE	-1	-1	44.399999999999999	0	PEPTIDERRR	2	X	X	MOWSE	Mascot_2006-01-12T12:13:14_5233264595117471314				-1	-1	-1
+PEPTIDE	-1	-1	33.299999999999997	0	PEPTIDERRRR	2	X	X	MOWSE	Mascot_2006-01-12T12:13:14_5233264595117471314				-1	-1	-1
 RUN	Mascot_2007-01-12T12:13:14_4835329514588776807	MOWSE	higher-score-better	2007-01-12T12:13:14	2.1.1	db=MSDB, db_version=1.1, taxonomy=, charges=+1, +2, +3, mass_type=monoisotopic, fixed_modifications=Fixed;Fixed2, variable_modifications=Variable;Variable2, enzyme=unknown_enzyme, missed_cleavages=0, peak_mass_tolerance=0.3, precursor_mass_tolerance=1.0
-PROTEIN	100	0	PROT3	Ankyrin repeat domain-containing protein 20A3 OS=Homo sapiens GN=ANKRD20A3 PE=4 SV=1	-1	
-PEPTIDE	-1	-1	1.4	0	PEPTIDERRRRR	1	X	X	MOWSE	Mascot_2007-01-12T12:13:14_4835329514588776807	PROT3			-1	-1
+PROTEIN	100.0	0	PROT3	Ankyrin repeat domain-containing protein 20A3 OS=Homo sapiens GN=ANKRD20A3 PE=4 SV=1	-1.0	
+PEPTIDE	-1	-1	1.4	0	PEPTIDERRRRR	1	X	X	MOWSE	Mascot_2007-01-12T12:13:14_4835329514588776807	PROT3			-1	-1	-1

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -103,7 +103,7 @@ signals:
     /**
         @brief Signal emitted whenever the visible area changes.
 
-        @param area The new visible area.
+        @param[in] area The new visible area.
     */
     void visibleAreaChanged(DRange<2> area);
     /// Requests to display the spectrum with index @p index in 1D

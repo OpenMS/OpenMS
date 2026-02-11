@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -46,8 +46,8 @@ public:
     /**
      @brief Constructor
 
-     @param parent The parent widget
-     @param canvas_3d The main 3d canvas
+     @param[in] parent The parent widget
+     @param[in] canvas_3d The main 3d canvas
     */
     Plot3DOpenGLCanvas(QWidget * parent, Plot3DCanvas & canvas_3d);
     /**

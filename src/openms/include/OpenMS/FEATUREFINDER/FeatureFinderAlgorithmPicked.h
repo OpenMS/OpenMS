@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -58,6 +58,23 @@ protected:
   /**
     @brief FeatureFinderAlgorithm for picked peaks.
 
+    This module identifies "features" in a LC/MS map. By feature, we understand a peptide in an MS sample that
+    reveals a characteristic isotope distribution over time. The algorithm
+    computes positions in RT and m/z dimension and a charge estimate
+    of each peptide.
+
+    The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
+    The user can provide a list of seeds (e.g. from an identification run of MS/MS spectra) or the algorithm can compute seeds itself.
+
+    In the next step, we iteratively fit a model of the isotope profile and the retention time to
+    the initial seed data points. Data points with a low probability under this model are removed from the
+    feature region. The intensity of the feature is then given by the sum of the data points included
+    in its regions.
+
+    How to find suitable parameters and details of the different algorithms implemented are described
+    in the "TOPP tutorial" (on https://openms.readthedocs.io/).
+
+
     @htmlinclude OpenMS_FeatureFinderAlgorithmPicked.parameters
 
     @improvement RT model with tailing/fronting (Marc)
@@ -95,6 +112,23 @@ public:
 
     void setData(const MSExperiment& map, FeatureMap& features);
 
+    /**
+      @brief Main method of the FeatureFinderAlgorithmPicked.
+
+      @note The input map has to be sorted by RT and m/z. If this is not the case, the algorithm will sort the input data internally.
+
+      @note The algorithm will not work on profile data and throw an exception.
+
+      @note: The algorithm will not work on data with negative m/z values and throw an exception.
+
+      @note: the input data will be copied internally (leading to a memory overhead).
+
+      @param[in] input_map The input map of centroided spectra with MS level 1.
+      @param[out] features The output feature map.
+      @param[in] param The parameters for the algorithm.
+      @param[in] seeds The seeds that should be used for the feature finding. Provide an empty feature map if you want the algorithm to find seeds.
+
+    */
     void run(PeakMap& input_map, 
       FeatureMap& features, 
       const Param& param, 
@@ -174,18 +208,18 @@ protected:
     /**
       @brief Finds the best fitting position of the isotopic pattern estimate defined by @p center
 
-      @param center the maximum peak of the isotope distribution (contains charge as well)
-      @param charge The charge of the pattern
-      @param best_pattern Returns the indices of the isotopic peaks. If a isotopic peak is missing -1 is returned.
+      @param[in] center the maximum peak of the isotope distribution (contains charge as well)
+      @param[in] charge The charge of the pattern
+      @param[out] best_pattern Returns the indices of the isotopic peaks. If a isotopic peak is missing -1 is returned.
     */
     double findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern) const;
 
     /**
       Extends all mass traces of an isotope pattern in one step
 
-      @param pattern The IsotopePattern that should be extended.
-      @param traces The MassTraces datastructure where the extended mass traces will be stored in.
-      @param meta_index_overall The index of the data array where the quality scores for the given charge are stored.
+      @param[out] pattern The IsotopePattern that should be extended.
+      @param[in] traces The MassTraces datastructure where the extended mass traces will be stored in.
+      @param[in] meta_index_overall The index of the data array where the quality scores for the given charge are stored.
     */
     void extendMassTraces_(const IsotopePattern& pattern, MassTraces& traces, Size meta_index_overall) const;
 
@@ -196,13 +230,13 @@ protected:
         - Add the starting peak to the @p trace
         - Indicate using @c increase_rt whether to extend in downstream or upstream direction
 
-      @param trace The trace that should be extended
-      @param spectrum_index The index of the spectrum from which on the mass trace should be extended
-      @param mz The mz location (center) of the trace
-      @param increase_rt Indicator whether the extension is done in forward or backward direction (with respect to the current spectrum)
-      @param meta_index_overall The index of the overall score
-      @param min_rt The rt minimum up to which the trace will be extended.
-      @param max_rt The rt maximum up to which the trace will be extended.
+      @param[in] trace The trace that should be extended
+      @param[in] spectrum_index The index of the spectrum from which on the mass trace should be extended
+      @param[in] mz The mz location (center) of the trace
+      @param[in] increase_rt Indicator whether the extension is done in forward or backward direction (with respect to the current spectrum)
+      @param[out] meta_index_overall The index of the overall score
+      @param[in] min_rt The rt minimum up to which the trace will be extended.
+      @param[in] max_rt The rt maximum up to which the trace will be extended.
 
       @note This method assumes that it extends from a local maximum.
       @note If @c min_rt or @c max_rt are set to 0.0 no boundary is assumed in the respective direction.
@@ -215,11 +249,11 @@ protected:
     /**
       @brief Searches for an isotopic peak in the current spectrum and the adjacent spectra
 
-      @param pos m/z position of the searched for peak
-      @param spectrum_index index of the central spectrum
-      @param pattern IsotopePattern to store found peaks
-      @param pattern_index index of the isotope in the pattern
-      @param peak_index starting index of the search (to avoid multiple binary searches)
+      @param[in] pos m/z position of the searched for peak
+      @param[in] spectrum_index index of the central spectrum
+      @param[in] pattern IsotopePattern to store found peaks
+      @param[in] pattern_index index of the isotope in the pattern
+      @param[in] peak_index starting index of the search (to avoid multiple binary searches)
     */
     void findIsotope_(double pos, Size spectrum_index, IsotopePattern& pattern, Size pattern_index, Size& peak_index) const;
 
@@ -236,8 +270,8 @@ protected:
       bins. The scores from the different bins are weighted by the distance of the bin center to
       the peak.
 
-      @param spectrum Index of the spectrum we are currently looking at
-      @param peak Index of the peak that should be scored inside the spectrum @p spectrum
+      @param[in] spectrum Index of the spectrum we are currently looking at
+      @param[in] peak Index of the peak that should be scored inside the spectrum @p spectrum
     */
     double intensityScore_(Size spectrum, Size peak) const;
 
@@ -262,9 +296,9 @@ protected:
       @brief Creates new mass traces @p new_traces based on the fitting result and the
       original traces @p traces.
 
-      @param fitter The TraceFitter containing the results from the rt profile fitting step.
-      @param traces Original mass traces found in the experiment.
-      @param new_traces Mass traces created by cropping the original mass traces.
+      @param[out] fitter The TraceFitter containing the results from the rt profile fitting step.
+      @param[in] traces Original mass traces found in the experiment.
+      @param[in] new_traces Mass traces created by cropping the original mass traces.
      */
     void cropFeature_(const std::shared_ptr<TraceFitter>& fitter,
                       const MassTraces& traces,
@@ -282,14 +316,14 @@ protected:
         <li>Feature quality too low after fit</li>
       </ul>
 
-      @param fitter The TraceFitter containing the results from the rt profile fitting step.
-      @param feature_traces Cropped feature mass traces.
-      @param seed_mz Mz of the seed
-      @param min_feature_score Minimal required feature score
-      @param error_msg Will be filled with the error message, if the feature is invalid
-      @param fit_score Will be filled with the fit score
-      @param correlation Will be filled with correlation between feature and model
-      @param final_score Will be filled with the final score
+      @param[out] fitter The TraceFitter containing the results from the rt profile fitting step.
+      @param[in] feature_traces Cropped feature mass traces.
+      @param[in] seed_mz Mz of the seed
+      @param[in] min_feature_score Minimal required feature score
+      @param[in] error_msg Will be filled with the error message, if the feature is invalid
+      @param[out] fit_score Will be filled with the fit score
+      @param[out] correlation Will be filled with correlation between feature and model
+      @param[in] final_score Will be filled with the final score
 
       @return true if the feature is valid
      */
@@ -301,15 +335,15 @@ protected:
     /**
       @brief Creates several files containing plots and viewable data of the fitted mass trace
 
-      @param fitter The TraceFitter containing the results from the rt profile fitting step.
-      @param traces Original mass traces found in the spectra
-      @param new_traces Cropped feature mass traces
-      @param feature_ok Status of the feature
-      @param error_msg If the feature is invalid, @p error_msg contains the reason
-      @param final_score Final score of the feature
-      @param plot_nr Index of the feature
-      @param peak The Seed Peak
-      @param path The path where to put the debug files (default is debug/features)
+      @param[out] fitter The TraceFitter containing the results from the rt profile fitting step.
+      @param[out] traces Original mass traces found in the spectra
+      @param[in] new_traces Cropped feature mass traces
+      @param[in] feature_ok Status of the feature
+      @param[out] error_msg If the feature is invalid, @p error_msg contains the reason
+      @param[out] final_score Final score of the feature
+      @param[in] plot_nr Index of the feature
+      @param[in] peak The Seed Peak
+      @param[in] path The path where to put the debug files (default is debug/features)
     */
     void writeFeatureDebugInfo_(const std::shared_ptr<TraceFitter>& fitter,
                                 const MassTraces& traces,

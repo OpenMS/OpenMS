@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
+ 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -210,30 +210,43 @@ namespace OpenMS
 
       typedef std::basic_string<XMLCh> XercesString;
 
-      // Converts from a narrow-character string to a wide-character string.
+      /// Converts from a narrow-character string to a wide-character string.
       inline static unique_xerces_ptr<XMLCh> fromNative_(const char* str)
       {
         return unique_xerces_ptr<XMLCh>(xercesc::XMLString::transcode(str));
       }
 
-      // Converts from a narrow-character string to a wide-character string.
+      /// Converts from a narrow-character string to a wide-character string.
       inline static unique_xerces_ptr<XMLCh> fromNative_(const String& str)
       {
         return fromNative_(str.c_str());
       }
 
-      // Converts from a wide-character string to a narrow-character string.
+      /// Converts from a wide-character string to a narrow-character string.
       inline static String toNative_(const XMLCh* str)
-      {
-        return String(unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
+      { 
+        String r;
+        XMLSize_t l = strLength(str);
+        if(isASCII(str, l))
+        {
+          appendASCII(str,l,r);
+        }
+        else
+        {
+          r = (unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
+        }
+        return r;
       }
 
-      // Converts from a wide-character string to a narrow-character string.
+      /// Converts from a wide-character string to a narrow-character string.
       inline static String toNative_(const unique_xerces_ptr<XMLCh>& str)
       {
         return toNative_(str.get());
       }
 
+protected:
+      /// Compresses eight 8x16bit Chars in XMLCh* to 8x8bit Chars by cutting upper byte
+      static void compress64_ (const XMLCh * input_it, char* output_it);
 
 public:
       /// Constructor
@@ -241,6 +254,15 @@ public:
 
       /// Destructor
       ~StringManager();
+
+      /// Calculates the length of a XMLCh* string using SIMDe
+      // https://github.com/OpenMS/OpenMS/issues/8122
+      #if defined(__GNUC__)
+      __attribute__((no_sanitize("address")))
+      #elif defined(_MSC_VER)
+      __declspec(no_sanitize_address) 
+      #endif
+      static XMLSize_t strLength(const XMLCh* input_ptr);
 
       /// Transcode the supplied C string to a xerces string
       inline static XercesString convert(const char * str)
@@ -283,7 +305,11 @@ public:
       {
         return toNative_(str);
       }
+      /// Checks if supplied chars in XMLCh* can be encoded with ASCII (i.e. the upper byte of each char is 0)
+      static bool isASCII(const XMLCh * chars, const XMLSize_t length);
 
+      
+      
       /**
        * @brief Transcodes the supplied XMLCh* and appends it to the OpenMS String
        *
@@ -399,8 +425,8 @@ public:
       *  Thus, if the @p value contains a large UInt64, conversion will fail.
       *  Value ranges are currently also not checked, only for XSD types which happen to match the internal representation.
       * 
-      *  @param type An XSD type. If the type is not supported, the returned type will be a string
-      *  @param value The value in sting format, e.g. "123.34"
+      *  @param[out] type An XSD type. If the type is not supported, the returned type will be a string
+      *  @param[in] value The value in sting format, e.g. "123.34"
       *  @return The Datavalue with the respective type (double, int or string)
       *  @throws Exception::ConversionError if the value does not fit into the internal representation or (for few types) exceeds the XSD specs.
       * 
@@ -442,12 +468,12 @@ public:
          @brief Convert the value of a <em>\<cvParam value=.\></em> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
                 the type stored in the CV (usually PSI-MS CV), as well as set its unit.
 
-         @param cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
-         @param parent_tag The tag which encloses the \<cvParam\>
-         @param accession The accession from the 'accession' attribute of the \<cvParam\>
-         @param name The name from the 'name' attribute of the \<cvParam\>
-         @param value The value from the 'value' attribute of the \<cvParam\>
-         @param unit_accession The unit_accession from the 'unitAccession' attribute of the \<cvParam\>
+         @param[in] cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
+         @param[in] parent_tag The tag which encloses the \<cvParam\>
+         @param[in] accession The accession from the 'accession' attribute of the \<cvParam\>
+         @param[in] name The name from the 'name' attribute of the \<cvParam\>
+         @param[in] value The value from the 'value' attribute of the \<cvParam\>
+         @param[in] unit_accession The unit_accession from the 'unitAccession' attribute of the \<cvParam\>
          @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
       */
       DataValue cvParamToValue(const ControlledVocabulary& cv, const String& parent_tag, 
@@ -458,8 +484,8 @@ public:
          @brief Convert the value of a <em>\<cvParam value=.\></em> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
                 the type stored in the CV (usually PSI-MS CV), as well as set its unit.
 
-         @param cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
-         @param raw_term Represenation of the raw data (i.e. all strings) from a \<cvParam ...\> without the conversion to a specific value type
+         @param[in] cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
+         @param[in] raw_term Represenation of the raw data (i.e. all strings) from a \<cvParam ...\> without the conversion to a specific value type
          @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
       */
       DataValue cvParamToValue(const ControlledVocabulary& cv, const CVTerm& raw_term) const;

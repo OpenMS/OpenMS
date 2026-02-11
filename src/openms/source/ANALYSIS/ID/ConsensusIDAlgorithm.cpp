@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -49,7 +49,7 @@ namespace OpenMS
   }
 
 
-  void ConsensusIDAlgorithm::apply(vector<PeptideIdentification>& ids,
+  void ConsensusIDAlgorithm::apply(PeptideIdentificationList& ids,
                                    const map<String, String>& se_info,
                                    Size number_of_runs)
   {
@@ -114,10 +114,10 @@ namespace OpenMS
                 << hit.getScore() << endl;
 #endif
     }
-    ids[0].assignRanks();
+    ids[0].sort();
   }
 
-  void ConsensusIDAlgorithm::apply(vector<PeptideIdentification>& ids,
+  void ConsensusIDAlgorithm::apply(PeptideIdentificationList& ids,
                                    Size number_of_runs)
   {
     const auto empty = map<String,String>();

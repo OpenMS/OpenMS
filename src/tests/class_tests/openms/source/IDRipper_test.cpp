@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -29,7 +29,7 @@ START_TEST(IDRipper, "$Id$")
 
 ///load input data
 std::vector< ProteinIdentification > protein_identifications;
-std::vector< PeptideIdentification > identifications;
+PeptideIdentificationList identifications;
 String document_id;
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test.idXML"), protein_identifications, identifications, document_id);
 PeptideIdentification identification = identifications[0];

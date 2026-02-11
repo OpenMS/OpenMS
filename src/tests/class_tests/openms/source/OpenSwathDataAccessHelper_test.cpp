@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -213,10 +213,10 @@ START_SECTION((void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::
   TEST_REAL_SIMILAR(tr.precursor_mz, 501.2)
   TEST_REAL_SIMILAR(tr.product_mz, 301.2)
   TEST_EQUAL(tr.fragment_charge, 4)
-  TEST_EQUAL(tr.decoy, true)
-  TEST_EQUAL(tr.detecting_transition, false)
-  TEST_EQUAL(tr.quantifying_transition, true)
-  TEST_EQUAL(tr.identifying_transition, true)
+  TEST_EQUAL(tr.getDecoy(), true)
+  TEST_EQUAL(tr.isDetectingTransition(), false)
+  TEST_EQUAL(tr.isQuantifyingTransition(), true)
+  TEST_EQUAL(tr.isIdentifyingTransition(), true)
 }
 
 END_SECTION

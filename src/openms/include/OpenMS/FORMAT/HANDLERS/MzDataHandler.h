@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -181,7 +181,7 @@ protected:
       inline void writeBinary_(std::ostream & os, Size size, const String & tag, const String & name = "", SignedSize id = -1);
 
       //Data processing auxiliary variable
-      boost::shared_ptr< DataProcessing > data_processing_;
+      std::shared_ptr< DataProcessing > data_processing_;
 
     };
 

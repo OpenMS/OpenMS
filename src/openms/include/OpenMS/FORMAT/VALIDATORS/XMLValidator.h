@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -35,9 +35,9 @@ public:
 
       Error messages are printed to the error stream, unless redirected with the attribute @p os .
 
-      @param filename The file to validated.
-      @param schema The filename of the schema that should be used for validation.
-      @param os The stream where error messages should be send to.
+      @param[in] filename The file to validated.
+      @param[in] schema The filename of the schema that should be used for validation.
+      @param[in] os The stream where error messages should be send to.
 
       @exception Exception::FileNotFound is thrown if the file cannot be found
       @exception Exception::ParseError is thrown if the parser could not be initialized

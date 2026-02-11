@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -47,10 +47,10 @@ namespace OpenMS
     /// @p max_lines gives the upper limit of lines returned after breaking is finished.
     /// Excess lines are removed and replaced by '...', BUT the last line will be preserved.
     /// 
-    /// @param input String to be split
-    /// @param indentation Number of spaces to use for lines 2 until last line (should not exceed the console width)
-    /// @param max_lines Limit of output lines (all others are removed)
-    /// @param first_line_prefill Assume this many chars were already written in the current line of the console (should not exceed the console width)
+    /// @param[in] input String to be split
+    /// @param[in] indentation Number of spaces to use for lines 2 until last line (should not exceed the console width)
+    /// @param[in] max_lines Limit of output lines (all others are removed)
+    /// @param[in] first_line_prefill Assume this many chars were already written in the current line of the console (should not exceed the console width)
     static StringList breakStringList(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
 
     /// same as breakStringList(), but concatenates the result using '\n' for convenience

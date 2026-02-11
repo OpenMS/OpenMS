@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -15,6 +15,7 @@
 
 #include <tuple>
 #include <vector>
+#include <utility>
 
 namespace OpenMS
 {
@@ -33,18 +34,28 @@ namespace OpenMS
     {
     public:
       /**
-        @brief Splits a PeakMap into one PeakMap per FAIMS compensation voltage
+        @brief Splits a PeakMap into one PeakMap per FAIMS compensation voltage (CV)
 
-        This only works with a PeakMap that has a FAIMS compensation voltage 
-        (obtained via 'spec.getDriftTime()') associated with each spectrum.
-        The spectra from the original PeakMap are moved to new PeakMaps,
-        so the original PeakMap is unusable afterwards.
+        The spectra from the original PeakMap are moved to new PeakMaps, so the original
+        PeakMap is unusable afterwards (it is moved-from).
 
-        @param exp The PeakMap
-        @return Several maps, one for each CV
-        @throws Exception::MissingInformation if @p exp is not FAIMS data
+        Behavior:
+        - If the dataset contains FAIMS spectra (MS1 with DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE),
+          returns a vector of (CV, MSExperiment) pairs, one per unique FAIMS CV. Each experiment
+          contains all spectra assigned to that CV.
+        - MS2+ spectra without an explicit FAIMS CV are assigned to the last seen FAIMS CV
+          (based on run order). Spectra without a prior FAIMS CV context are skipped with a warning.
+        - If the dataset contains no FAIMS spectra at all, an informational message is logged and a
+          single-element vector is returned. This element contains the original PeakMap (i.e. no
+          splitting took place) under a synthetic key (NaN). Callers that specifically work on
+          FAIMS data should usually check for FAIMS CVs via FAIMSHelper::getCompensationVoltages()
+          instead of relying on this special case.
+
+        @param[in,out] exp The PeakMap (will be moved-from)
+        @return A vector of (FAIMS compensation voltage (CV), MSExperiment) pairs; for non-FAIMS data,
+                a single-element vector containing the original, unsplit PeakMap with a NaN CV key
       */
-      static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
+      static std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV(PeakMap&& exp);
 
       
       /**
@@ -58,7 +69,7 @@ namespace OpenMS
 
         The reverse operation is `reshapeIMFrameToSingle()`.
 
-        @param im_frame Concatenated spectrum representing an IM frame
+        @param[in] im_frame Concatenated spectrum representing an IM frame
         @return IM frame split into spectra (one per distinct IM value), sorted by m/z, with updated ranges
 
         @throws Exception::MissingInformation if @p im_frame does not have IM data in floatDataArrays
@@ -76,11 +87,11 @@ namespace OpenMS
 
          @note All MS levels are binned. If you want to bin only a specific MS level, you need to filter the input MSExperiment before calling this function.
 
-         @param in The PeakMap containing many 'wide' IM-frame spectra (where one spectrum contains multiple IM values).
-         @param number_of_IM_bins Into how many bins should the ion mobility range be sliced?
-         @param bin_extension_abs How much should each bin be extended at its borders? (in absolute IM units). The actual overlap between adjacent bins is thus `2*bin_extension_abs`.
-         @param mz_binning_width The width of the m/z binning window, when merging spectra of the same IM-bin (in Da or ppm, see @p mz_binning_width_unit)
-         @param mz_binning_width_unit The unit of the m/z binning window (Da or ppm)
+         @param[in,out] in The PeakMap containing many 'wide' IM-frame spectra (where one spectrum contains multiple IM values).
+         @param[in] number_of_IM_bins Into how many bins should the ion mobility range be sliced?
+         @param[in] bin_extension_abs How much should each bin be extended at its borders? (in absolute IM units). The actual overlap between adjacent bins is thus `2*bin_extension_abs`.
+         @param[in] mz_binning_width The width of the m/z binning window, when merging spectra of the same IM-bin (in Da or ppm, see @p mz_binning_width_unit)
+         @param[in] mz_binning_width_unit The unit of the m/z binning window (Da or ppm)
          @return One MSExperiment per IM-bin and the corresponding binning borders
 
          @throws Exception::InvalidValue if any spectrum in @p in is missing an IM-float data array (see IMTypes::determineIMFormat(), or MSSpectrum::containsIMData())
@@ -103,7 +114,7 @@ namespace OpenMS
   
         If a spectrum does not have drift time (spec.getDriftTime()), it is simply copied to the output and ignored during the collapsing process.
 
-        @param in The input experiment with multiple spectra per frame
+        @param[in] in The input experiment with multiple spectra per frame
         @return result The output spectra collapsed to a single spectrum per frame
 
         @note This requires that spectra from the same frame have the same RT ("scan start time")

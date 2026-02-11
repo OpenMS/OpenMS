@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -47,13 +47,13 @@ START_SECTION((DriftTimeUnit toDriftTimeUnit(const String& dtu_string)))
   TEST_EXCEPTION(Exception::InvalidValue, toDriftTimeUnit("haha"));
 END_SECTION
 
-START_SECTION(const String& toString(const DriftTimeUnit value))
-  TEST_EQUAL(toString(DriftTimeUnit::NONE), "<NONE>")
+START_SECTION(const String& driftTimeUnitToString(const DriftTimeUnit value))
+  TEST_EQUAL(driftTimeUnitToString(DriftTimeUnit::NONE), "<NONE>")
   for (size_t i = 0; i < (size_t)DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT; ++i)
   {
-    TEST_EQUAL(toString(DriftTimeUnit(i)), NamesOfDriftTimeUnit[i])
+    TEST_EQUAL(driftTimeUnitToString(DriftTimeUnit(i)), NamesOfDriftTimeUnit[i])
   }
-  TEST_EXCEPTION(Exception::InvalidValue, toString(DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT));
+  TEST_EXCEPTION(Exception::InvalidValue, driftTimeUnitToString(DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT));
 END_SECTION
 
 
@@ -66,13 +66,13 @@ START_SECTION((IMFormat toIMFormat(const String& IM_format)))
   TEST_EXCEPTION(Exception::InvalidValue, toIMFormat("haha"));
 END_SECTION
 
-START_SECTION(const String& toString(const IMFormat value))
-  TEST_EQUAL(toString(IMFormat::NONE), "none")
+START_SECTION(const String& imFormatToString(const IMFormat value))
+  TEST_EQUAL(imFormatToString(IMFormat::NONE), "none")
   for (size_t i = 0; i < (size_t)IMFormat::SIZE_OF_IMFORMAT; ++i)
   {
-    TEST_EQUAL(toString(IMFormat(i)), NamesOfIMFormat[i])
+    TEST_EQUAL(imFormatToString(IMFormat(i)), NamesOfIMFormat[i])
   }
-  TEST_EXCEPTION(Exception::InvalidValue, toString(IMFormat::SIZE_OF_IMFORMAT));
+  TEST_EXCEPTION(Exception::InvalidValue, imFormatToString(IMFormat::SIZE_OF_IMFORMAT));
 
 END_SECTION
 
@@ -126,14 +126,14 @@ START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
   }
 
   {
-    // set both ... invalid!
+    // set both ... is valid (typically concatenated + some average value)
     auto IMwithFDA2 = IMwithFDA;
     IMwithFDA2.setDriftTime(123.4);
     MSExperiment exp;
     exp.addSpectrum(IMwithDrift);
     exp.addSpectrum(IMwithFDA);
     exp.addSpectrum(IMwithFDA2);
-    TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(exp))
+    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MIXED, true)
   }
 
 END_SECTION
@@ -147,11 +147,10 @@ START_SECTION(static IMFormat determineIMFormat(const MSSpectrum& spec))
    // convert to IM-Frame with float meta-data array
    TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA) == IMFormat::CONCATENATED, true)
 
-   // set both ... invalid!
+   // set both ... is valid (typically concatenated + some average value)
    auto IMwithFDA2 = IMwithFDA;
    IMwithFDA2.setDriftTime(123.4);
-   TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(IMwithFDA2))
-
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::CONCATENATED, true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

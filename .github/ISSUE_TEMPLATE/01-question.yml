@@ -1,0 +1,58 @@
+name: Request for Help
+description: Ask a question or request support
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <br>
+  - type: markdown
+    attributes:
+      value: "## Please Read Before Continuing"
+  - type: markdown
+    attributes:
+      value: |
+        Before opening an issue *please* consider using the following options instead:
+
+        * [Search existing issues](/OpenMS/OpenMS/issues) for similar requests.
+        * Start a [new discussion](/OpenMS/OpenMS/discussions/categories/q-a) in the Q&A section.
+
+        Thank you!
+
+        <br>
+  - type: markdown
+    attributes:
+      value: "## Details About Your Environment"
+  - type: input
+    id: os
+    attributes:
+      label: Operating System and Hardware
+      description: What operating system are you using?  Which version?  On what hardware?
+      placeholder: "Example: Windows 11 on x86"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: OpenMS Version
+      description: Which version and distribution of OpenMS are you using?
+      placeholder: "Example: pyOpenMS 3.4"
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        <br>
+  - type: markdown
+    attributes:
+      value: "## Describe Your Request"
+  - type: textarea
+    id: description
+    attributes:
+      label: Your Question
+      description: |
+        Please provide a detailed question along with any information
+        you think we would need to help you.
+    validations:
+      required: true

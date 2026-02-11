@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 #include <iostream>
@@ -61,8 +62,8 @@ public:
     /**
       @brief Loads a map from a DTA2D file.
 
-      @param filename The file from which the map should be loaded.
-      @param map has to be a MSExperiment or have the same interface.
+      @param[out] filename The file from which the map should be loaded.
+      @param[in] map has to be a MSExperiment or have the same interface.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -76,7 +77,18 @@ public:
       std::ifstream is(filename.c_str());
       if (!is)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        if (!File::exists(filename))
+        {
+          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        else if (!File::readable(filename))
+        {
+          throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        else
+        {
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
       }
 
       map.reset();
@@ -230,14 +242,15 @@ public:
       }
 
       is.close();
+      map.updateRanges();
       endProgress();
     }
 
     /**
       @brief Stores a map in a DTA2D file.
 
-      @param filename The name of the file where the map should be stored.
-      @param map has to be a MSExperiment or have the same interface.
+      @param[out] filename The name of the file where the map should be stored.
+      @param[in] map has to be a MSExperiment or have the same interface.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
@@ -275,8 +288,8 @@ public:
     /**
       @brief Stores the TIC of a map in a DTA2D file.
 
-      @param filename The name of the file where the map should be stored.
-      @param map has to be a MSExperiment or have the same interface.
+      @param[in] filename The name of the file where the map should be stored.
+      @param[in] map has to be a MSExperiment or have the same interface.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */

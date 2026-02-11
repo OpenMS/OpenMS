@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -68,9 +68,9 @@ namespace OpenMS
         
         /**
          * @brief write all peaks to a consensusXML file
-         * 
-         * @param exp_picked   original (i.e. not white) centroided experimental data
-         * @param debug_out    file name of the debug output
+         *
+         * @param[in] exp_picked   original (i.e. not white) centroided experimental data
+         * @param[in] debug_out    file name of the debug output
          */
         void writeDebugOutput(const MSExperiment& exp_picked, const String& debug_out) const;
         

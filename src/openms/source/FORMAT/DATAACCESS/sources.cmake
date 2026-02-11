@@ -17,6 +17,10 @@ set(sources_list
   SwathFileConsumer.cpp
 )
 
+if (WITH_PARQUET)
+  list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
+endif()
+
 ### add path to the filenames
 set(sources)
 foreach(i ${sources_list})
@@ -28,4 +32,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT\\DATACCESS" FILES ${sources})
-

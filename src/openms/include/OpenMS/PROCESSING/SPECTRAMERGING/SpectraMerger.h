@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,9 +24,19 @@ namespace OpenMS
 {
 
   /**
-  @brief Merges blocks of MS or MS2 spectra
+  @brief Offers spectra merging and averaging algorithms to increase the quality of a spectrum.
 
-  Parameter's are accessible via the DefaultParamHandler.
+  Spectra merging is to merge multiple related spectra into a single one - thus, we often end up with a reduced number of spectra.
+  For instance, MS1 spectra within a pre-defined retention time window or MS2 spectra from the same precursor ion.
+  Merging can be done block wise or by precursor.
+  
+  Spectra averaging incorporates the signal from neighbouring spectra for each spectrum.
+  Thus, the number of spectra remains the same after spectra averaging.
+  The weights of neighbouring spectra (in RT) are either determined by a Gaussian or all identical (TopHat method).
+  
+  Both merging and averaging attempt to increase the quality of a spectrum by increasing its signal to noise ratio.
+
+  Parameters are accessible via the DefaultParamHandler.
 
   @htmlinclude OpenMS_SpectraMerger.parameters
 
@@ -133,11 +143,7 @@ public:
     void mergeSpectraBlockWise(MapType& exp)
     {
       IntList ms_levels = param_.getValue("block_method:ms_levels");
-      // just checking negative values
-      if ((Int)param_.getValue("block_method:rt_block_size") < 1)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The parameter 'block_method:rt_block_size' must be greater than 0.");
-      }
+
       // now actually using an UNSIGNED int, so we can increase it by 1 even if the value is INT_MAX without overflow
       UInt rt_block_size(param_.getValue("block_method:rt_block_size"));
       double rt_max_length = (param_.getValue("block_method:rt_max_length"));
@@ -282,10 +288,10 @@ public:
     /**
      * @brief check if the first and second mzs might be from the same mass
      *
-     * @param mz1 the first m/z value
-     * @param mz2 the second m/z value
-     * @param tol_ppm tolerance in ppm
-     * @param max_c maximum possible charge value
+     * @param[in] mz1 the first m/z value
+     * @param[in] mz2 the second m/z value
+     * @param[in] tol_ppm tolerance in ppm
+     * @param[in] max_c maximum possible charge value
      */
     static bool areMassesMatched(double mz1, double mz2, double tol_ppm, int max_c)
     {
@@ -334,9 +340,9 @@ public:
     /**
      * @brief average over neighbouring spectra
      *
-     * @param exp experimental data to be averaged
-     * @param average_type averaging type to be used ("gaussian" or "tophat")
-     * @param ms_level targe MS level. If it is -1, ms_level will be determined by ms_level parameter.
+     * @param[in,out] exp experimental data to be averaged
+     * @param[in] average_type averaging type to be used ("gaussian" or "tophat")
+     * @param[in] ms_level target MS level. If it is -1, ms_level will be determined by the '&lt;average_type&gt;ms_level' parameter of the DefaultParamHandler
      */
     template <typename MapType>
     void average(MapType& exp, const String& average_type, int ms_level = -1)
@@ -507,7 +513,7 @@ public:
                                           "Input mzML does not have any spectra of MS level specified by ms_level.");
       }
 
-      // normalize weights
+      // normalize weights (such that their sum == 1)
       for (AverageBlocks::iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         double sum(0.0);
@@ -531,11 +537,11 @@ public:
       }
       else if (spectrum_type == "profile")
       {
-        type = SpectrumSettings::PROFILE;
+        type = SpectrumSettings::SpectrumType::PROFILE;
       }
       else if (spectrum_type == "centroid")
       {
-        type = SpectrumSettings::CENTROID;
+        type = SpectrumSettings::SpectrumType::CENTROID;
       }
       else
       {
@@ -543,7 +549,7 @@ public:
       }
 
       // generate new spectra
-      if (type == SpectrumSettings::CENTROID)
+      if (type == SpectrumSettings::SpectrumType::CENTROID)
       {
         averageCentroidSpectra_(exp, spectra_to_average_over, ms_level);
       }
@@ -725,7 +731,7 @@ protected:
       }
 
       char buffer[200];
-      sprintf(buffer, "%d/%d (%.2f %%) of blocked spectra", (int)count_peaks_aligned,
+      std::snprintf(buffer, sizeof(buffer), "%d/%d (%.2f %%) of blocked spectra", (int)count_peaks_aligned,
               (int)count_peaks_overall, float(count_peaks_aligned) / float(count_peaks_overall) * 100.);
       OPENMS_LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
 
@@ -768,9 +774,9 @@ protected:
      * original spectra. The exact m/z position is not crucial, since not the
      * original intensities but the spline-interpolated intensities are used.
      *
-     * @param exp   experimental data to be averaged
-     * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
-     * @param ms_level    MS level of spectra to be averaged
+     * @param[in,out] exp   experimental data to be averaged
+     * @param[in] spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
+     * @param[in] ms_level    MS level of spectra to be averaged
      */
     template <typename MapType>
     void averageProfileSpectra_(MapType& exp, const AverageBlocks& spectra_to_average_over, const UInt ms_level)
@@ -877,9 +883,9 @@ protected:
      * (2) m/z positions closer than mz_binning_width are combined to a single
      *     peak. The m/z are averaged and the corresponding intensities summed.
      *
-     * @param exp   experimental data to be averaged
-     * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
-     * @param ms_level    MS level of spectra to be averaged
+     * @param[in,out] exp   experimental data to be averaged
+     * @param[in] spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
+     * @param[in] ms_level    MS level of spectra to be averaged
      */
     template <typename MapType>
     void averageCentroidSpectra_(MapType& exp, const AverageBlocks& spectra_to_average_over, const UInt ms_level)

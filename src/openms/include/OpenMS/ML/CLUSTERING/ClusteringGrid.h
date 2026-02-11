@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,8 +41,8 @@ class OPENMS_DLLAPI ClusteringGrid
     
     /**
      * @brief constructor taking two vectors
-     * @param grid_spacing_x    grid spacing in x direction
-     * @param grid_spacing_y    grid spacing in y direction
+     * @param[in] grid_spacing_x    grid spacing in x direction
+     * @param[in] grid_spacing_y    grid spacing in y direction
      *
      * @note Vectors are assumed to be sorted.
      */
@@ -61,8 +61,8 @@ class OPENMS_DLLAPI ClusteringGrid
     /**
     * @brief adds a cluster to this grid cell
     * 
-    * @param cell_index    cell index (i,j) on the grid
-    * @param cluster_index    index of the cluster in the cluster list
+    * @param[in] cell_index    cell index (i,j) on the grid
+    * @param[in] cluster_index    index of the cluster in the cluster list
     */
     void addCluster(const CellIndex &cell_index, const int &cluster_index);
     
@@ -70,8 +70,8 @@ class OPENMS_DLLAPI ClusteringGrid
     * @brief removes a cluster from this grid cell
     * and removes the cell if no other cluster left
     * 
-    * @param cell_index    cell index (i,j) on the grid
-    * @param cluster_index    index of the cluster in the cluster list
+    * @param[in] cell_index    cell index (i,j) on the grid
+    * @param[in] cluster_index    index of the cluster in the cluster list
     */
     void removeCluster(const CellIndex &cell_index, const int &cluster_index);
 
@@ -83,7 +83,7 @@ class OPENMS_DLLAPI ClusteringGrid
     /**
     * @brief returns clusters in this grid cell
     * 
-    * @param cell_index    cell index (i,j) on the grid
+    * @param[in] cell_index    cell index (i,j) on the grid
     * @return list of cluster indices (from the list of clusters) which are centred in this cell
     */
     std::list<int> getClusters(const CellIndex &cell_index) const;
@@ -91,7 +91,7 @@ class OPENMS_DLLAPI ClusteringGrid
     /**
     * @brief returns grid cell index (i,j) for the positions (x,y)
     * 
-    * @param position    coordinates (x,y) on the grid
+    * @param[in] position    coordinates (x,y) on the grid
     * @return cell index (i,j) of the cell in which (x,y) lies
     */
     CellIndex getIndex(const Point &position) const;
@@ -99,7 +99,7 @@ class OPENMS_DLLAPI ClusteringGrid
     /**
     * @brief checks if there are clusters at this cell index
     * 
-    * @param cell_index    cell index (i,j) on the grid
+    * @param[in] cell_index    cell index (i,j) on the grid
     * @return true if there are clusters in this cell
     * 
     * @throw Exception::IllegalArgument if the coordinates (x,y) lie outside the grid.

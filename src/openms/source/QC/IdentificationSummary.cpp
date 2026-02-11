@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,7 +16,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  IdentificationSummary::Result IdentificationSummary::compute(vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
+  IdentificationSummary::Result IdentificationSummary::compute(vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
   {
     IdentificationSummary::Result result;
     set<String> peptides;

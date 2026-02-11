@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -209,7 +209,7 @@ signals:
     /// Emitted when the tool crashes
     void toolCrashed();
     /// Emitted when the tool execution fails
-    void toolFailed(const QString& message = "");
+    void toolFailed(int return_code = -1, const QString& message = "");
     /// Emitted from forwardTOPPOutput() to forward the signal outside
     void toppOutputReady(const QString& out);
 

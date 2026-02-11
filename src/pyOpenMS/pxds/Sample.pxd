@@ -58,18 +58,18 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
         
         void setSubsamples(libcpp_vector[Sample] subsamples) except + nogil  # wrap-doc:Sets the vector of subsamples that were combined to create this sample
 
-        # Since SampleTreatment is abstract, we cant wrap it
-        ## void addTreatment(SampleTreatment treatment, Int before_position = -1) except + nogil 
-        ## SampleTreatment getTreatment(UInt position) except + nogil 
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfSampleState() except + nogil  # wrap-doc:Returns all sample state names known to OpenMS
 
-        
-        void removeTreatment(UInt position) except + nogil  # wrap-doc:Brief removes the sample treatment at the given position
-        
-        Int countTreatments() except + nogil  # wrap-doc:Returns the number of sample treatments
+        @staticmethod
+        String sampleStateToString(SampleState state) except + nogil  # wrap-doc:Convert a SampleState enum to string. Throws Exception::InvalidValue if state is SIZE_OF_SAMPLESTATE
+
+        @staticmethod
+        SampleState toSampleState(const String& name) except + nogil  # wrap-doc:Convert a string to SampleState enum. Throws Exception::InvalidValue if name is not found
 
 cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS::Sample":
 
-    cdef enum SampleState:
+    cdef enum class SampleState "OpenMS::Sample::SampleState":
         # wrap-attach:
         #    Sample
     

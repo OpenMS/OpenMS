@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <include/OpenMS/CONCEPT/Constants.h>
@@ -57,6 +58,12 @@ namespace OpenMS
 
   IsotopeDistribution CoarseIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
+    if (formula.getCharge() < 0)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "CoarseIsotopePatternGenerator does not support negative charges (formula: " + formula.toString() + ").");
+    }
+
     IsotopeDistribution result;
 
     auto it = formula.begin();
@@ -66,6 +73,10 @@ namespace OpenMS
       result.set(convolve(result.getContainer(),
                           convolvePow_(tmp.getContainer(), it->second)));
     }
+    
+    // charged adducts are assumed to be H+, but are not part of the actual formula, yet are used in EmpiricalFormula::getMonoWeight();
+    auto proton_charge = ElementDB::getInstance()->getElement("H")->getIsotopeDistribution();
+    result.set(convolve(result.getContainer(), convolvePow_(proton_charge.getContainer(), formula.getCharge())));
 
     // replace atomic numbers with masses.
     result.set(correctMass_(result.getContainer(), formula.getLightestIsotopeWeight()));

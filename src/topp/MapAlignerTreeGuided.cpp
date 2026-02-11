@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -228,6 +228,12 @@ private:
 
     // store transformations
     storeTransformationDescriptions_(transformations, out_trafos);
+
+    // Transform optional spectra files
+    // Note: MapAlignerTreeGuided does not support store_original_rt flag
+    StringList in_spectra_files = getStringList_("in_spectra_files");
+    StringList out_spectra_files = getStringList_("out_spectra_files");
+    transformSpectraFiles_(in_spectra_files, out_spectra_files, transformations, false);
 
     return EXECUTION_OK;
   }

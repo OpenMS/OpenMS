@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -225,8 +225,8 @@ public:
      *
      * When querying for a chromatogram, make sure to use this key.
      *
-     * @param chromatogram Chromatographic traces from the MS1 map to be added
-     * @param key Unique identifier of the chromatogram, e.g. its nativeID
+     * @param[in] chromatogram Chromatographic traces from the MS1 map to be added
+     * @param[in] key Unique identifier of the chromatogram, e.g. its nativeID
      */
     inline void addPrecursorChromatogram(const ChromatogramType& chromatogram, const String& key)
     {

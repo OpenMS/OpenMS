@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iosfwd>
@@ -195,13 +196,7 @@ public:
     ///@}
 
     /// Equality operator
-    bool operator==(const Peak2D & rhs) const
-    {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
-#pragma clang diagnostic pop
-    }
+    bool operator==(const Peak2D& rhs) const = default;
 
     /// Equality operator
     bool operator!=(const Peak2D & rhs) const
@@ -330,4 +325,20 @@ protected:
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Peak2D & point);
 
 } // namespace OpenMS
+
+// Hash function specialization for Peak2D
+namespace std
+{
+  template<>
+  struct hash<OpenMS::Peak2D>
+  {
+    std::size_t operator()(const OpenMS::Peak2D& p) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(p.getRT());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getMZ()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIntensity()));
+      return seed;
+    }
+  };
+} // namespace std
 

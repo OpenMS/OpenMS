@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,8 +9,11 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
+
+#include <functional>
 
 namespace OpenMS
 {
@@ -141,9 +144,9 @@ public:
     }
 
     /**
-         @brief Checks whether this range contains a certain point.
+         @brief Checks whether this range (half open interval!) contains a certain point.
 
-         @param position The point's position.
+         @param[in] position The point's position.
          @returns true if point lies inside this area.
     */
     bool encloses(const PositionType& position) const
@@ -194,7 +197,7 @@ public:
     /**
          @brief Checks how this range intersects with another @p range.
 
-         @param range The max_ range.
+         @param[in] range The max_ range.
     */
     DRangeIntersection intersects(const DRange& range) const
     {
@@ -235,7 +238,7 @@ public:
     /**
          @brief Checks whether this range intersects with another @p range.
 
-         @param range The max_ range.
+         @param[in] range The max_ range.
          @returns True if the areas intersect (i.e. they intersect or one contains the other).
     */
     bool isIntersected(const DRange& range) const
@@ -276,7 +279,7 @@ public:
            factor = 1.01 extends the range by 1% in total, i.e. 0.5% left and right.
            factor = 2.00 doubles the total range, e.g. from [0,100] to [-50,150]
 
-         @param factor Multiplier (allowed is [0, inf)).
+         @param[in] factor Multiplier (allowed is [0, inf)).
          @return A reference to self
     */
     DRange<D>& extend(double factor)
@@ -303,8 +306,8 @@ public:
 
      Examples (for D=1):
        addition = 0.5 extends the range by 1 in total, i.e. 0.5 left and right.
-   
-     @param addition Additive for each dimension (can be negative). Resulting invalid min/max are not fixed automatically!
+
+     @param[in] addition Additive for each dimension (can be negative). Resulting invalid min/max are not fixed automatically!
      @return A reference to self
     */
     DRange<D>& extend(typename Base::PositionType addition)
@@ -346,7 +349,7 @@ public:
 
     /**
      * @brief Make sure @p point is inside the current area
-     * @param point A point potentially outside the current range, which will be pulled into the current range.
+     * @param[in,out] point A point potentially outside the current range, which will be pulled into the current range.
      */
     void pullIn(DPosition<D>& point) const
     {
@@ -371,4 +374,28 @@ public:
   }
 
 } // namespace OpenMS
+
+// Hash function specialization for DRange
+namespace std
+{
+  template<OpenMS::UInt D>
+  struct hash<OpenMS::DRange<D>>
+  {
+    std::size_t operator()(const OpenMS::DRange<D>& range) const noexcept
+    {
+      std::size_t seed = 0;
+      // Hash min_ position (all D coordinates)
+      for (OpenMS::UInt i = 0; i < D; ++i)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(range.minPosition()[i]));
+      }
+      // Hash max_ position (all D coordinates)
+      for (OpenMS::UInt i = 0; i < D; ++i)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(range.maxPosition()[i]));
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

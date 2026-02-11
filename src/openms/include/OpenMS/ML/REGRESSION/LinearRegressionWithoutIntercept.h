@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,16 +32,16 @@ namespace OpenMS
       /**
        * @brief adds an observation (x,y) to the regression data set.
        *
-       * @param x    independent variable value
-       * @param y    dependent variable value
+       * @param[in] x    independent variable value
+       * @param[in] y    dependent variable value
        */
       void addData(double x, double y);
       
       /**
        * @brief adds observations (x,y) to the regression data set.
        *
-       * @param x    vector of independent variable values
-       * @param y    vector of dependent variable values
+       * @param[in] x    vector of independent variable values
+       * @param[in] y    vector of dependent variable values
        */
       void addData(std::vector<double>& x, std::vector<double>& y);
       

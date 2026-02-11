@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -162,12 +162,12 @@ protected:
     setValidFormats_("cal:lock_fail_out", {"mzML"});
     registerFlag_("cal:lock_require_mono", "Require all lock masses to be monoisotopic, i.e. not the iso1, iso2 etc ('charge' column is used to determine the spacing). Peaks which are not mono-isotopic are not used.");
     registerFlag_("cal:lock_require_iso", "Require all lock masses to have at least the +1 isotope. Peaks without isotope pattern are not used.");
-    registerStringOption_("cal:model_type", 
+    registerStringOption_("cal:model_type",
                           "<model>",
-                          MZTrafoModel::enumToName(MZTrafoModel::LINEAR_WEIGHTED),
+                          MZTrafoModel::enumToName(MZTrafoModel::MODELTYPE::LINEAR_WEIGHTED),
                           "Type of function to be fitted to the calibration points.",
                           false);
-    setValidStrings_("cal:model_type", MZTrafoModel::names_of_modeltype, MZTrafoModel::SIZE_OF_MODELTYPE);
+    setValidStrings_("cal:model_type", MZTrafoModel::names_of_modeltype, static_cast<int>(MZTrafoModel::MODELTYPE::SIZE_OF_MODELTYPE));
 
     addEmptyLine_();
     
@@ -250,7 +250,7 @@ protected:
       else if (ftype == FileTypes::IDXML)
       {
         std::vector<ProteinIdentification> prot_ids;
-        std::vector<PeptideIdentification> pep_ids; 
+        PeptideIdentificationList pep_ids; 
         FileHandler().loadIdentifications(cal_id, prot_ids, pep_ids, {FileTypes::IDXML});
         ic.fillCalibrants(pep_ids, tol_ppm);
       }

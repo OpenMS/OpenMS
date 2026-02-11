@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -15,6 +15,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -252,6 +253,24 @@ protected:
         fcons.setRT(m_traces_final[i].getCentroidRT());
         fcons.setMZ(m_traces_final[i].getCentroidMZ());
         fcons.setIntensity(m_traces_final[i].getIntensity(false));
+
+        // attach mz peak FWHM as meta array is available
+        if (mt_ext.hasFwhmMz())
+        {
+          fcons.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
+        }
+        // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
+        if (mt_ext.hasCentroidIm())
+        {
+          //fcons.setMetaValue("Ion Mobility Centroid", m_traces_final[i].getCentroidIM());
+          fcons.setMetaValue(Constants::UserParam::ION_MOBILITY_CENTROID, m_traces_final[i].getCentroidIM());
+        }
+        // if ion mobility peak FWHM is presnt, add to meta data
+        if (mt_ext.hasFwhmIm())
+        {
+          fcons.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
+        }
+
         consensus_map.push_back(fcons);
       }
       consensus_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -299,11 +318,20 @@ protected:
         f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
         f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
         double sd = m_traces_final[i].getCentroidSD();
-        f.setMetaValue("SD", sd);
-        f.setMetaValue("SD_ppm", sd / f.getMZ() * 1e6);
-        if (m_traces_final[i].fwhm_mz_avg > 0)
+        f.setMetaValue(Constants::UserParam::SD, sd);
+        f.setMetaValue(Constants::UserParam::SD_ppm, sd / f.getMZ() * 1e6);
+        if (mt_ext.hasFwhmMz())
         {
-          f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+          f.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
+        }
+        // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
+        if (mt_ext.hasCentroidIm())
+        {
+          f.setMetaValue(Constants::UserParam::ION_MOBILITY_CENTROID, m_traces_final[i].getCentroidIM());
+        }
+        if (mt_ext.hasFwhmIm())
+        {
+          f.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
         }
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);
@@ -321,6 +349,8 @@ protected:
 
 
       ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+      // ensure data is sorted
+      ms_feat_map.sortByPosition();
 
       //-------------------------------------------------------------
       // writing output

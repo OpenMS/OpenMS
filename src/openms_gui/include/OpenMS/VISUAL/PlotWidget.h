@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -144,19 +144,19 @@ public slots:
     /**
         @brief Updates the horizontal scrollbar
 
-        @param min The overall minimum of the range
-        @param disp_min The displayed minimum
-        @param disp_max The displayed maximum
-        @param max The overall maximum of the range
+        @param[in] min The overall minimum of the range
+        @param[in] disp_min The displayed minimum
+        @param[in] disp_max The displayed maximum
+        @param[in] max The overall maximum of the range
     */
     void updateHScrollbar(float min, float disp_min, float disp_max, float max);
     /**
         @brief Updates the vertical scrollbar
 
-        @param min The overall minimum of the range
-        @param disp_min The displayed minimum
-        @param disp_max The displayed maximum
-        @param max The overall maximum of the range
+        @param[in] min The overall minimum of the range
+        @param[in] disp_min The displayed minimum
+        @param[in] disp_max The displayed maximum
+        @param[in] max The overall maximum of the range
     */
     void updateVScrollbar(float min, float disp_min, float disp_max, float max);
     /// Shows a goto dialog

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 
 //! [doxygen_snippet_Precursor]
@@ -34,7 +34,7 @@ int main(int argc, const char** argv)
     const vector<Precursor>& precursors = spectrum.getPrecursors();
 
     // size check & throw exception if needed 
-    if (precursors.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, precursors.size());
+    if (precursors.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, precursors.size(), "precursors vector must not be empty");
 
     // get m/z and intensity of precursor
     double precursor_mz = precursors[0].getMZ();

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -122,7 +122,7 @@ protected:
     setValidFormats_("out", {"idXML","consensusXML"});
 
     registerTOPPSubsection_("precursor", "Filtering by precursor attributes (RT, m/z, charge, length)");
-    registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
+    registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract [s].", false);
     registerStringOption_("precursor:mz", "[min]:[max]", ":", "Mass-to-charge range to extract.", false);
     registerStringOption_("precursor:length", "[min]:[max]", ":", "Keep only peptide hits with a sequence length in this range.", false);
     registerStringOption_("precursor:charge", "[min]:[max]", ":", "Keep only peptide hits with charge states in this range.", false);
@@ -132,11 +132,11 @@ protected:
     registerDoubleOption_("score:psm", "<score>", NAN, "The score which should be reached by a peptide hit to be kept. (use 'NAN' to disable this filter)", false);
     registerDoubleOption_("score:peptide", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
     registerStringOption_("score:type_peptide", "<type>", "", "Score used for filtering. If empty, the main score is used.", false, true);
-    setValidStrings_("score:type_peptide", ids.getScoreTypeNames());
+    setValidStrings_("score:type_peptide", ids.getScoreNames());
 
     registerDoubleOption_("score:protein", "<score>", NAN, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
     registerStringOption_("score:type_protein", "<type>", "", "The type of the score which should be reached by a protein hit to be kept. If empty, the most recently set score is used.", false, true);
-    setValidStrings_("score:type_protein", ids.getScoreTypeNames());
+    setValidStrings_("score:type_protein", ids.getScoreNames());
 
     registerDoubleOption_("score:proteingroup", "<score>", NAN, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
 
@@ -231,7 +231,7 @@ protected:
     String outputfile_name = getStringOption_("out");
 
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
 
     //only used for cxml
     ConsensusMap cmap;
@@ -368,7 +368,7 @@ protected:
     if (!whitelist_peptides.empty())
     {
       OPENMS_LOG_INFO << "Filtering by inclusion peptide whitelisting..." << endl;
-      vector<PeptideIdentification> inclusion_peptides;
+      PeptideIdentificationList inclusion_peptides;
       vector<ProteinIdentification> inclusion_proteins; // ignored
       FileHandler().loadIdentifications(whitelist_peptides, inclusion_proteins,
                        inclusion_peptides, {FileTypes::IDXML});
@@ -418,7 +418,7 @@ protected:
     if (!blacklist_peptides.empty())
     {
       OPENMS_LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
-      vector<PeptideIdentification> exclusion_peptides;
+      PeptideIdentificationList exclusion_peptides;
       vector<ProteinIdentification> exclusion_proteins; // ignored
       FileHandler().loadIdentifications(blacklist_peptides, exclusion_proteins,
                        exclusion_peptides, {FileTypes::IDXML});
@@ -579,7 +579,7 @@ protected:
 
       if (!score_type.empty())
       {
-        IDScoreSwitcherAlgorithm::ScoreType score_type_enum = IDScoreSwitcherAlgorithm::getScoreType(score_type);
+        IDScoreSwitcherAlgorithm::ScoreType score_type_enum = IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type);
         IDFilter::filterHitsByScore(proteins, pep_score, score_type_enum);
       }
       else
@@ -665,7 +665,7 @@ protected:
       OPENMS_LOG_INFO << "Filtering by protein score  (better than " << prot_score << ") ..." << endl;
       if (!score_type_prot.empty())
       {
-        IDScoreSwitcherAlgorithm::ScoreType score_type_prot_enum = IDScoreSwitcherAlgorithm::getScoreType(score_type_prot);
+        IDScoreSwitcherAlgorithm::ScoreType score_type_prot_enum = IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type_prot);
         IDFilter::filterHitsByScore(proteins, prot_score, score_type_prot_enum);
       }
       else
@@ -760,6 +760,13 @@ protected:
       }
     }
 
+    if (getFlag_("remove_decoys"))
+    {
+      OPENMS_LOG_INFO << "Removing decoy hits..." << endl;
+      IDFilter::removeDecoyHits(peptides);
+      IDFilter::removeDecoyHits(proteins);
+    }
+
     // Clean-up:
 
     // propagate filter from PSM level to protein level
@@ -800,13 +807,10 @@ protected:
     {
       OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
     }
-    IDFilter::updateProteinReferences(peptides, proteins, rm_pep);
+    IDFilter::removeDanglingProteinReferences(peptides, proteins, rm_pep);
 
     IDFilter::removeEmptyIdentifications(peptides);
     // we want to keep "empty" protein IDs because they contain search meta data
-
-    IDFilter::updateHitRanks(proteins);
-    IDFilter::updateHitRanks(peptides);
 
     // some stats
     OPENMS_LOG_INFO << "Before filtering:\n"

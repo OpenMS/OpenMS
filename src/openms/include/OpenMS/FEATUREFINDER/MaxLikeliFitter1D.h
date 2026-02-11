@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,9 +26,7 @@ namespace OpenMS
     }
 
     /// copy constructor
-    MaxLikeliFitter1D(const MaxLikeliFitter1D& source) : Fitter1D(source)
-    {
-    }
+    MaxLikeliFitter1D(const MaxLikeliFitter1D& source) = default;
 
     /// destructor
     ~MaxLikeliFitter1D() override
@@ -36,15 +34,7 @@ namespace OpenMS
     }
 
     /// assignment operator
-    MaxLikeliFitter1D& operator=(const MaxLikeliFitter1D& source)
-    {
-      if (&source == this)
-        return *this;
-
-      Fitter1D::operator=(source);
-
-      return *this;
-    }
+    MaxLikeliFitter1D& operator=(const MaxLikeliFitter1D& source) = default;
 
   protected:
     /// fit an offset on the basis of the Pearson correlation coefficient

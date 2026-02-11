@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/ScanWindow.h>
 #include <OpenMS/METADATA/IonSource.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -23,7 +24,7 @@ namespace OpenMS
   {
 public:
     /// scan mode
-    enum ScanMode
+    enum class ScanMode
     {
       UNKNOWN,          ///< Unknown scan method
       MASSSPECTRUM,     ///< general spectrum type
@@ -44,7 +45,32 @@ public:
     };
 
     /// Names of scan modes
-    static const std::string NamesOfScanMode[SIZE_OF_SCANMODE];
+    static const std::string NamesOfScanMode[static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE)];
+
+    /**
+     @brief Returns all scan mode names known to OpenMS
+
+     @return List of all scan mode names
+    */
+    static StringList getAllNamesOfScanMode();
+
+    /**
+     @brief Convert a ScanMode enum to its string representation
+
+     @param mode The scan mode enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p mode is SIZE_OF_SCANMODE
+    */
+    static const std::string& scanModeToString(ScanMode mode);
+
+    /**
+     @brief Convert a string to a ScanMode enum
+
+     @param name The string name to convert
+     @return The corresponding ScanMode enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfScanMode[]
+    */
+    static ScanMode toScanMode(const std::string& name);
 
     /// Constructor
     InstrumentSettings();

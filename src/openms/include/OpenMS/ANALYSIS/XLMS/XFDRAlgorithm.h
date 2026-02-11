@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
@@ -41,7 +42,7 @@ namespace OpenMS
   public:
 
     /// Exit codes
-    enum ExitCodes
+    enum class ExitCodes
     {
       EXECUTION_OK,
       ILLEGAL_PARAMETERS,
@@ -57,11 +58,11 @@ namespace OpenMS
     /**
      @brief Performs the main function of this class, the FDR estimation for cross-linked peptide experiments
 
-     @param peptide_ids The PeptideIdentifications from an XL-MS experiment
-     @param protein_id The ProteinIdentification from an XL-MS experiment
+     @param[in,out] peptide_ids The PeptideIdentifications from an XL-MS experiment
+     @param[in,out] protein_id The ProteinIdentification from an XL-MS experiment
 
      */
-    ExitCodes run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
+    ExitCodes run(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id);
 
     /**
     * @brief Checks whether the parameters of the object are valid
@@ -81,25 +82,25 @@ private:
    *  * Set the identifier of the Peptide Identification if there is only one protein identification
    *
    */
-    void initDataStructures_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
+    void initDataStructures_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id);
 
     /**
      * @brief Inspects a PeptideIdentification and assigns all cross-link types that this identification belongs to
-     * @param pep_id Peptide ID to be assigned.
-     * @param types Result vector containing the names of the crosslink classes
+     * @param[in,out] pep_id Peptide ID to be assigned.
+     * @param[out] types Result vector containing the names of the crosslink classes
      */
     static void assignTypes_(PeptideHit& pep_id, StringList& types);
 
     /** Target counting as performed by the xProphet software package
-     
+
       @brief xprophet  method for target hits counting as implemented in xProphet
-      @param cum_histograms Cumulative score distributions
-      @param targetclass Name of key for targets in @p cum_histograms
-      @param decoyclass Name of key for decoys in @p cum_histograms
-      @param fulldecoyclass Name of key for full decoys in @p cum_histograms
+      @param[in,out] cum_histograms Cumulative score distributions
+      @param[in] targetclass Name of key for targets in @p cum_histograms
+      @param[in] decoyclass Name of key for decoys in @p cum_histograms
+      @param[in] fulldecoyclass Name of key for full decoys in @p cum_histograms
       @param[out] fdr Output FDR values
-      @param mono
-      
+      @param[in] mono
+
      */
     void fdr_xprophet_(std::map< String, Math::Histogram<> >& cum_histograms,
                       const String& targetclass, const String& decoyclass, const String& fulldecoyclass,
@@ -107,12 +108,12 @@ private:
 
     /**
     * @brief Calculates the qFDR values for the provided FDR values, assuming that the FDRs are sorted by score in the input vector
-    * @param fdr Vector with FDR values which should be used for qFDR calculation
-    * @param qfdr Result qFDR values
+    * @param[in] fdr Vector with FDR values which should be used for qFDR calculation
+    * @param[out] qfdr Result qFDR values
     */
     static void calc_qfdr_(const std::vector< double >& fdr, std::vector< double >& qfdr);
 
-    void findTopUniqueHits_(std::vector<PeptideIdentification>& peptide_ids);
+    void findTopUniqueHits_(PeptideIdentificationList& peptide_ids);
 
     void writeArgumentsLog_() const;
 

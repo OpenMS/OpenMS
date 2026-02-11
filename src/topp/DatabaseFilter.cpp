@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -64,7 +64,7 @@ protected:
   }
 
   void filterByProteinAccessions_(const vector<FASTAFile::FASTAEntry>& db,
-                                  const vector<PeptideIdentification>& peptide_identifications,
+                                  const PeptideIdentificationList& peptide_identifications,
                                   bool whitelist,
                                   vector<FASTAFile::FASTAEntry>& db_new)
   {
@@ -128,7 +128,7 @@ protected:
       FileHandler fh;
       FileTypes::Type ids_type = fh.getType(ids);
       vector<ProteinIdentification> protein_identifications;
-      vector<PeptideIdentification> peptide_identifications;
+      PeptideIdentificationList peptide_identifications;
 
       if (ids_type == FileTypes::IDXML || ids_type == FileTypes::MZIDENTML)
       {

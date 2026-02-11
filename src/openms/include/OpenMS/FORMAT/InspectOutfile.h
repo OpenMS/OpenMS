@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
@@ -48,21 +49,21 @@ public:
 
     /** load the results of an Inspect search
 
-            @param result_filename Input parameter which is the file name of the input file
-            @param peptide_identifications Output parameter which holds the peptide identifications from the given file
-            @param protein_identification Output parameter which holds the protein identifications from the given file
-            @param p_value_threshold
-            @param database_filename
+            @param[out] result_filename Input parameter which is the file name of the input file
+            @param[out] peptide_identifications Output parameter which holds the peptide identifications from the given file
+            @param[out] protein_identification Output parameter which holds the protein identifications from the given file
+            @param[in] p_value_threshold
+            @param[in] database_filename
             @throw FileNotFound is thrown if the given file could not be found
             @throw ParseError is thrown if the given file could not be parsed
             @throw FileEmpty is thrown if the given file is empty
     */
-    std::vector<Size> load(const String & result_filename, std::vector<PeptideIdentification> & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, const String & database_filename = "");
+    std::vector<Size> load(const String & result_filename, PeptideIdentificationList & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, const String & database_filename = "");
 
     /** loads only results which exceeds a given P-value threshold
 
-            @param result_filename The filename of the results file
-            @param p_value_threshold Only identifications exceeding this threshold are read
+            @param[in] result_filename The filename of the results file
+            @param[in] p_value_threshold Only identifications exceeding this threshold are read
             @throw FileNotFound is thrown is the file is not found
             @throw FileEmpty is thrown if the given file is empty
     */
@@ -92,7 +93,7 @@ public:
 
             @throw Exception::ParseError
     */
-    void getPrecursorRTandMZ(const std::vector<std::pair<String, std::vector<std::pair<Size, Size> > > > & files_and_peptide_identification_with_scan_number, std::vector<PeptideIdentification> & ids);
+    void getPrecursorRTandMZ(const std::vector<std::pair<String, std::vector<std::pair<Size, Size> > > > & files_and_peptide_identification_with_scan_number, PeptideIdentificationList & ids);
 
     /** retrieve the labels of a given database (at the moment FASTA and Swissprot)
 

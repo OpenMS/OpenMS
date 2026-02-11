@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -363,15 +363,15 @@ namespace OpenMS::Internal
         String tmp_type = attributeAsString_(attributes, s_spectrumtype);
         if (tmp_type == "discrete")
         {
-          spec_.setType(SpectrumSettings::CENTROID);
+          spec_.setType(SpectrumSettings::SpectrumType::CENTROID);
         }
         else if (tmp_type == "continuous")
         {
-          spec_.setType(SpectrumSettings::PROFILE);
+          spec_.setType(SpectrumSettings::SpectrumType::PROFILE);
         }
         else
         {
-          spec_.setType(SpectrumSettings::UNKNOWN);
+          spec_.setType(SpectrumSettings::SpectrumType::UNKNOWN);
           warning(LOAD, String("Invalid spectrum type '") + tmp_type + "'.");
         }
 
@@ -591,14 +591,11 @@ namespace OpenMS::Internal
          << sm.getName()
          << "</sampleName>\n";
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wconversion"
-      if (!sm.getNumber().empty() || sm.getState() || sm.getMass() || sm.getVolume() || sm.getConcentration()  || !sm.isMetaEmpty())
-#pragma clang diagnostic pop
+      if (! sm.getNumber().empty() || sm.getState() != Sample::SampleState::SAMPLENULL || sm.getMass() || sm.getVolume() || sm.getConcentration() || ! sm.isMetaEmpty())
       {
         os << "\t\t\t<sampleDescription>\n";
         writeCVS_(os, sm.getNumber(), "1000001", "SampleNumber");
-        writeCVS_(os, sm.getState(), 0, "1000003", "SampleState");
+        writeCVS_(os, static_cast<UInt>(sm.getState()), 0, "1000003", "SampleState");
         writeCVS_(os, sm.getMass(), "1000004", "SampleMass");
         writeCVS_(os, sm.getVolume(), "1000005", "SampleVolume");
         writeCVS_(os, sm.getConcentration(), "1000006", "SampleConcentration");
@@ -645,9 +642,9 @@ namespace OpenMS::Internal
          << "\t\t\t<source>\n";
       if (!inst.getIonSources().empty())
       {
-        writeCVS_(os, inst.getIonSources()[0].getInletType(), 11, "1000007", "InletType");
-        writeCVS_(os, inst.getIonSources()[0].getIonizationMethod(), 10, "1000008", "IonizationType");
-        writeCVS_(os, inst.getIonSources()[0].getPolarity(), 1, "1000009", "IonizationMode");
+        writeCVS_(os, static_cast<UInt>(inst.getIonSources()[0].getInletType()), 11, "1000007", "InletType");
+        writeCVS_(os, static_cast<UInt>(inst.getIonSources()[0].getIonizationMethod()), 10, "1000008", "IonizationType");
+        writeCVS_(os, static_cast<UInt>(inst.getIonSources()[0].getPolarity()), 1, "1000009", "IonizationMode");
         writeUserParam_(os, inst.getIonSources()[0]);
       }
       if (inst.getIonSources().size() > 1)
@@ -670,16 +667,16 @@ namespace OpenMS::Internal
         {
           os << "\t\t\t\t<analyzer>\n";
           const MassAnalyzer & ana = inst.getMassAnalyzers()[i];
-          writeCVS_(os, ana.getType(), 14, "1000010", "AnalyzerType", 5);
+          writeCVS_(os, static_cast<UInt>(ana.getType()), 14, "1000010", "AnalyzerType", 5);
           writeCVS_(os, ana.getResolution(), "1000011", "MassResolution", 5);
-          writeCVS_(os, ana.getResolutionMethod(), 2, "1000012", "ResolutionMethod", 5);
-          writeCVS_(os, ana.getResolutionType(), 3, "1000013", "ResolutionType", 5);
+          writeCVS_(os, static_cast<UInt>(ana.getResolutionMethod()), 2, "1000012", "ResolutionMethod", 5);
+          writeCVS_(os, static_cast<UInt>(ana.getResolutionType()), 3, "1000013", "ResolutionType", 5);
           writeCVS_(os, ana.getAccuracy(), "1000014", "Accuracy", 5);
           writeCVS_(os, ana.getScanRate(), "1000015", "ScanRate", 5);
           writeCVS_(os, ana.getScanTime(), "1000016", "ScanTime", 5);
-          writeCVS_(os, ana.getScanDirection(), 5, "1000018", "ScanDirection", 5);
-          writeCVS_(os, ana.getScanLaw(), 6, "1000019", "ScanLaw", 5);
-          writeCVS_(os, ana.getReflectronState(), 8, "1000021", "ReflectronState", 5);
+          writeCVS_(os, static_cast<UInt>(ana.getScanDirection()), 5, "1000018", "ScanDirection", 5);
+          writeCVS_(os, static_cast<UInt>(ana.getScanLaw()), 6, "1000019", "ScanLaw", 5);
+          writeCVS_(os, static_cast<UInt>(ana.getReflectronState()), 8, "1000021", "ReflectronState", 5);
           writeCVS_(os, ana.getTOFTotalPathLength(), "1000022", "TOFTotalPathLength", 5);
           writeCVS_(os, ana.getIsolationWidth(), "1000023", "IsolationWidth", 5);
           writeCVS_(os, ana.getFinalMSExponent(), "1000024", "FinalMSExponent", 5);
@@ -693,8 +690,8 @@ namespace OpenMS::Internal
       os << "\t\t\t<detector>\n";
       if (!inst.getIonDetectors().empty())
       {
-        writeCVS_(os, inst.getIonDetectors()[0].getType(), 13, "1000026", "DetectorType");
-        writeCVS_(os, inst.getIonDetectors()[0].getAcquisitionMode(), 9, "1000027", "DetectorAcquisitionMode");
+        writeCVS_(os, static_cast<UInt>(inst.getIonDetectors()[0].getType()), 13, "1000026", "DetectorType");
+        writeCVS_(os, static_cast<UInt>(inst.getIonDetectors()[0].getAcquisitionMode()), 9, "1000027", "DetectorAcquisitionMode");
         writeCVS_(os, inst.getIonDetectors()[0].getResolution(), "1000028", "DetectorResolution");
         writeCVS_(os, inst.getIonDetectors()[0].getADCSamplingFrequency(), "1000029", "SamplingFrequency");
         writeUserParam_(os, inst.getIonDetectors()[0]);
@@ -821,11 +818,11 @@ namespace OpenMS::Internal
           if (!spec.getAcquisitionInfo().empty())
           {
             os << "\t\t\t\t\t<acqSpecification spectrumType=\"";
-            if (spec.getType() == SpectrumSettings::CENTROID)
+            if (spec.getType() == SpectrumSettings::SpectrumType::CENTROID)
             {
               os << "discrete";
             }
-            else if (spec.getType() == SpectrumSettings::PROFILE)
+            else if (spec.getType() == SpectrumSettings::SpectrumType::PROFILE)
             {
               os << "continuous";
             }
@@ -877,13 +874,13 @@ namespace OpenMS::Internal
           //scan mode
           switch (iset.getScanMode())
           {
-          case InstrumentSettings::UNKNOWN:
+          case InstrumentSettings::ScanMode::UNKNOWN:
             //do nothing here
             break;
 
-          case InstrumentSettings::MASSSPECTRUM:
-          case InstrumentSettings::MS1SPECTRUM:
-          case InstrumentSettings::MSNSPECTRUM:
+          case InstrumentSettings::ScanMode::MASSSPECTRUM:
+          case InstrumentSettings::ScanMode::MS1SPECTRUM:
+          case InstrumentSettings::ScanMode::MSNSPECTRUM:
             if (iset.getZoomScan())
             {
               os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"Zoom\"/>\n";
@@ -894,53 +891,53 @@ namespace OpenMS::Internal
             }
             break;
 
-          case InstrumentSettings::SIM:
+          case InstrumentSettings::ScanMode::SIM:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"SelectedIonDetection\"/>\n";
             break;
 
-          case InstrumentSettings::SRM:
+          case InstrumentSettings::ScanMode::SRM:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"SelectedReactionMonitoring\"/>\n";
             break;
 
-          case InstrumentSettings::CRM:
+          case InstrumentSettings::ScanMode::CRM:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"ConsecutiveReactionMonitoring\"/>\n";
             break;
 
-          case InstrumentSettings::CNG:
+          case InstrumentSettings::ScanMode::CNG:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"ConstantNeutralGainScan\"/>\n";
             break;
 
-          case InstrumentSettings::CNL:
+          case InstrumentSettings::ScanMode::CNL:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"ConstantNeutralLossScan\"/>\n";
             break;
 
-          case InstrumentSettings::PRECURSOR:
+          case InstrumentSettings::ScanMode::PRECURSOR:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PrecursorIonScan\"/>\n";
             break;
 
-          case InstrumentSettings::ABSORPTION:
+          case InstrumentSettings::ScanMode::ABSORPTION:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PhotodiodeArrayDetector\"/>\n";
             break;
 
-          case InstrumentSettings::EMC:
+          case InstrumentSettings::ScanMode::EMC:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"EnhancedMultiplyChargedScan\"/>\n";
             break;
 
-          case InstrumentSettings::TDF:
+          case InstrumentSettings::ScanMode::TDF:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"TimeDelayedFragmentationScan\"/>\n";
             break;
 
           default:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n";
-            warning(STORE, String("Scan mode '") + InstrumentSettings::NamesOfScanMode[iset.getScanMode()] + "' not supported by mzData. Using 'MassScan' scan mode!");
+            warning(STORE, String("Scan mode '") + InstrumentSettings::NamesOfScanMode[static_cast<size_t>(iset.getScanMode())] + "' not supported by mzData. Using 'MassScan' scan mode!");
           }
 
           //scan polarity
-          if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
+          if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE)
           {
             os << String(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Positive\"/>\n";
           }
-          else if (spec.getInstrumentSettings().getPolarity() == IonSource::NEGATIVE)
+          else if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::NEGATIVE)
           {
             os << String(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Negative\"/>\n";
           }
@@ -978,7 +975,7 @@ namespace OpenMS::Internal
               {
                 if (!precursor.getActivationMethods().empty())
                 {
-                  writeCVS_(os, *(precursor.getActivationMethods().begin()), 18, "1000044", "ActivationMethod", 7);
+                  writeCVS_(os, static_cast<UInt>(*(precursor.getActivationMethods().begin())), 18, "1000044", "ActivationMethod", 7);
                 }
                 writeCVS_(os, precursor.getActivationEnergy(), "1000045", "CollisionEnergy", 7);
                 os << "\t\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000046\" name=\"EnergyUnit\" value=\"eV\"/>\n";
@@ -1091,55 +1088,55 @@ namespace OpenMS::Internal
           if (value == "Zoom")
           {
             spec_.getInstrumentSettings().setZoomScan(true);
-            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
           }
           else if (value == "MassScan")
           {
-            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
           }
           else if (value == "SelectedIonDetection")
           {
-            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SIM);
           }
           else if (value == "SelectedReactionMonitoring")
           {
-            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
           }
           else if (value == "ConsecutiveReactionMonitoring")
           {
-            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::CRM);
           }
           else if (value == "ConstantNeutralGainScan")
           {
-            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CNG);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::CNG);
           }
           else if (value == "ConstantNeutralLossScan")
           {
-            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CNL);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::CNL);
           }
           else if (value == "ProductIonScan")
           {
-            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
             spec_.setMSLevel(2);
           }
           else if (value == "PrecursorIonScan")
           {
-            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::PRECURSOR);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::PRECURSOR);
           }
           else if (value == "EnhancedResolutionScan")
           {
             spec_.getInstrumentSettings().setZoomScan(true);
-            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
           }
           else
           {
             if (spec_.getMSLevel() >= 2)
             {
-              exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+              exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
             }
             else
             {
-              spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+              spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
               warning(LOAD, String("Unknown scan mode '") + value + "'. Assuming full scan");
             }
           }
@@ -1164,11 +1161,11 @@ namespace OpenMS::Internal
         {
           if (value == "Positive" || value == "positive" || value == "+")     //be flexible here, actually only the first one is correct
           {
-            spec_.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+            spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
           }
           else if (value == "Negative" || value == "negative" || value == "-")     //be flexible here, actually only the first one is correct
           {
-            spec_.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
+            spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
           }
           else
           {
@@ -1184,7 +1181,14 @@ namespace OpenMS::Internal
       {
         if (accession == "PSI:1000040")       //m/z
         {
-          spec_.getPrecursors().back().setMZ(asDouble_(value));
+          double mz = asDouble_(value);
+          spec_.getPrecursors().back().setMZ(mz);
+          // Check if precursor m/z is within specified range
+          if (options_.hasPrecursorMZRange() &&
+              !options_.getPrecursorMZRange().encloses(DPosition<1>(mz)))
+          {
+            skip_spectrum_ = true;
+          }
         }
         else if (accession == "PSI:1000041")       //Charge
         {

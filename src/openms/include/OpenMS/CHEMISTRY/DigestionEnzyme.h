@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,8 +10,10 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <functional>
 #include <iosfwd>
 #include <set>
 #include <vector>
@@ -140,5 +142,26 @@ namespace OpenMS
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzyme& enzyme);
-}
+} // namespace OpenMS
+
+namespace std
+{
+  /// std::hash specialization for DigestionEnzyme
+  template<>
+  struct hash<OpenMS::DigestionEnzyme>
+  {
+    std::size_t operator()(const OpenMS::DigestionEnzyme& enzyme) const noexcept
+    {
+      std::size_t seed = OpenMS::fnv1a_hash_string(enzyme.getName());
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(enzyme.getRegEx()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(enzyme.getRegExDescription()));
+      // Hash the synonyms set
+      for (const auto& syn : enzyme.getSynonyms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(syn));
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

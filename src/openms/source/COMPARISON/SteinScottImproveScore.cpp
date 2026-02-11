@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -44,7 +44,7 @@ namespace OpenMS
 
   This function return the similarity score of itself based on SteinScott.
 
-  @param spec  const PeakSpectrum Spectrum 1
+  @param[in] spec  const PeakSpectrum Spectrum 1
   @see SteinScottImproveScore()
   */
   double SteinScottImproveScore::operator()(const PeakSpectrum & spec) const
@@ -57,8 +57,8 @@ namespace OpenMS
 
   This function return the similarity score of two spectra based on SteinScott.
 
-  @param s1  const PeakSpectrum Spectrum 1
-  @param s2  const PeakSpectrum Spectrum 2
+  @param[in] s1  const PeakSpectrum Spectrum 1
+  @param[in] s2  const PeakSpectrum Spectrum 2
   @see SteinScottImproveScore()
   */
   double SteinScottImproveScore::operator()(const PeakSpectrum & s1, const PeakSpectrum & s2) const

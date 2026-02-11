@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -261,7 +261,7 @@ namespace OpenMS
 
       /*
         *  @brief Constructs the lines and adds them to the TextFile
-        *  @param peptideseq_quantifyable Has to be a set (only) for deterministic  ordered output
+        *  @param[out] peptideseq_quantifyable Has to be a set (only) for deterministic  ordered output
         */
       template <class LineType>
       void constructFile_(const String& retention_time_summarization_method,

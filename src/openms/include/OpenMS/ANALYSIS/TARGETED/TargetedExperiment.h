@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 
+#include <unordered_map>
 #include <vector>
 
 namespace OpenMS
@@ -63,9 +64,9 @@ public:
     typedef ReactionMonitoringTransition Transition;
     typedef Residue IonType; // IonType enum of Interpretation class
 
-    typedef std::map<String, const Protein *> ProteinReferenceMapType;
-    typedef std::map<String, const Peptide *> PeptideReferenceMapType;
-    typedef std::map<String, const Compound *> CompoundReferenceMapType;
+    typedef std::unordered_map<String, const Protein *> ProteinReferenceMapType;
+    typedef std::unordered_map<String, const Peptide *> PeptideReferenceMapType;
+    typedef std::unordered_map<String, const Compound *> CompoundReferenceMapType;
 
     /** @name Constructors and destructors
     */
@@ -107,7 +108,7 @@ public:
     /**
       @brief Add one targeted experiment to another.
 
-      @param rhs The targeted experiment to add to this one.
+      @param[in] rhs The targeted experiment to add to this one.
     */
     TargetedExperiment& operator+=(const TargetedExperiment & rhs);
     TargetedExperiment& operator+=(TargetedExperiment && rhs);
@@ -115,7 +116,7 @@ public:
     /**
       @brief Clears all data and meta data
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
 

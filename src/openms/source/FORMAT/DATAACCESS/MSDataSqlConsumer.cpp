@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,9 +32,29 @@ namespace OpenMS
 
     // Write run level information into the file (e.g. run id, run name and mzML structure)
     peak_meta_.setLoadedFilePath(filename_);
-    handler_->writeRunLevelInformation(peak_meta_, full_meta_);
+    // Only write run-level information if a run hasn't already been written
+    if (!wrote_any_run_)
+    {
+      handler_->writeRunLevelInformation(peak_meta_, full_meta_);
+      wrote_any_run_ = true;
+    }
 
     delete handler_;
+  }
+
+  void MSDataSqlConsumer::addRun(const String& filename, const UInt64 run_id)
+  {
+    // set handler's run id and write run level information
+    handler_->setRunId(run_id);
+    MSExperiment meta;
+    meta.setLoadedFilePath(filename);
+    handler_->writeRunLevelInformation(meta, full_meta_);
+    wrote_any_run_ = true;
+  }
+
+  void MSDataSqlConsumer::setRunId(const UInt64 run_id)
+  {
+    handler_->setRunId(run_id);
   }
 
   void MSDataSqlConsumer::flush()

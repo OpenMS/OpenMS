@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,8 +11,10 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
+#include <functional>
 #include <set>
 
 namespace OpenMS
@@ -55,7 +57,7 @@ public:
     Precursor& operator=(Precursor&&) & = default;
 
     /// Method of activation
-    enum ActivationMethod
+    enum class ActivationMethod
     {
       CID,                      ///< Collision-induced dissociation (MS:1000133) (also CAD; parent term, but unless otherwise stated often used as synonym for trap-type CID)
       PSD,                      ///< Post-source decay
@@ -70,7 +72,7 @@ public:
       PHD,                      ///< Photodissociation
       ETD,                      ///< Electron transfer dissociation
       ETciD,                    ///< Electron transfer and collision-induced dissociation (MS:1003182)
-      EThcD,                    ///< Electron transfer and higher-energy collision dissociation (MS:1002631) 
+      EThcD,                    ///< Electron transfer and higher-energy collision dissociation (MS:1002631)
       PQD,                      ///< Pulsed q dissociation (MS:1000599)
       TRAP,                     ///< trap-type collision-induced dissociation (MS:1002472)
       HCD,                      ///< beam-type collision-induced dissociation (MS:1000422)
@@ -79,8 +81,23 @@ public:
       SIZE_OF_ACTIVATIONMETHOD
     };
     /// Names of activation methods
-    static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
-    static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
+    static const std::string NamesOfActivationMethod[static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
+    static const std::string NamesOfActivationMethodShort[static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
+
+    /// returns all activation method full names (e.g., "Collision-induced dissociation") known to OpenMS
+    static StringList getAllNamesOfActivationMethods();
+    /// returns all activation method abbreviations (e.g., "CID") known to OpenMS
+    static StringList getAllShortNamesOfActivationMethods();
+
+    /// convert an ActivationMethod enum to its full name string
+    /// @throws Exception::InvalidValue if @p m is SIZE_OF_ACTIVATIONMETHOD
+    static const std::string& activationMethodToString(ActivationMethod m);
+    /// convert an ActivationMethod enum to its short (abbreviated) name string
+    /// @throws Exception::InvalidValue if @p m is SIZE_OF_ACTIVATIONMETHOD
+    static const std::string& activationMethodToShortString(ActivationMethod m);
+    /// convert a string (full name or short name) to an ActivationMethod enum
+    /// @throws Exception::InvalidValue if @p name is not found in NamesOfActivationMethod or NamesOfActivationMethodShort
+    static ActivationMethod toActivationMethod(const std::string& name);
 
     /// Equality operator
     bool operator==(const Precursor & rhs) const;
@@ -91,8 +108,12 @@ public:
     const std::set<ActivationMethod>& getActivationMethods() const;
     /// returns a mutable reference to the activation methods
     std::set<ActivationMethod>& getActivationMethods();
-    /// convenience function, returning string representation of getActivationMethods()
+    
+    /// Returns the full names (e.g., "Collision-induced dissociation") of the activation methods set on this instance
     StringList getActivationMethodsAsString() const;    
+    /// Returns the abbreviations (e.g., "CID") of the activation methods set on this instance
+    StringList getActivationMethodsAsShortString() const;
+
     /// sets the activation methods
     void setActivationMethods(const std::set<ActivationMethod> & activation_methods);
 
@@ -213,4 +234,49 @@ protected:
     std::vector<Int> possible_charge_states_;
   };
 } // namespace OpenMS
+
+// Hash function specialization for Precursor
+namespace std
+{
+  template<>
+  struct hash<OpenMS::Precursor>
+  {
+    std::size_t operator()(const OpenMS::Precursor& p) const noexcept
+    {
+      // Hash Peak1D base class
+      std::size_t seed = std::hash<OpenMS::Peak1D>{}(p);
+
+      // Hash CVTermList base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTermList>{}(p));
+
+      // Hash activation_methods_ (std::set is ordered, deterministic iteration)
+      for (const auto& method : p.getActivationMethods())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(method)));
+      }
+
+      // Hash double fields
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getActivationEnergy()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowUpperOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getDriftTime()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getDriftTimeWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getDriftTimeWindowUpperOffset()));
+
+      // Hash drift_time_unit_ (enum class)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(p.getDriftTimeUnit())));
+
+      // Hash charge_
+      OpenMS::hash_combine(seed, OpenMS::hash_int(p.getCharge()));
+
+      // Hash possible_charge_states_
+      for (const auto& charge : p.getPossibleChargeStates())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(charge));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

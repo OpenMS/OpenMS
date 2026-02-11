@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,7 +32,7 @@ namespace OpenMS
     /**
     @brief Sets the 'mass' metavalue to all PeptideHits by computing the theoretical mass
 
-    @param features FeatureMap with PeptideHits
+    @param[in,out] features FeatureMap with PeptideHits
     **/
     void compute(FeatureMap& features);
 

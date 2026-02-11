@@ -1,7 +1,7 @@
-import unittest,os
+import unittest
+import os
+import pytest
 
-## UGLY HACK!! This imports the *FILE* env.py that is configured by CMake. Even uglier since there is a module called env!!
-import env
 import pyopenms
 from collections import defaultdict
 
@@ -28,9 +28,10 @@ def simple_find_best_feature(output, pairs, targeted):
 class TestMRMRTNormalizer(unittest.TestCase):
     """Emulates the behavior of OpenSwathMRMRTNormalizer"""
 
-    def setUp(self):
-        # TODO make the tests self-consistent to only use files under the pyOpenMS directory
-        self.testdirname = os.path.join(env.PYOPENMS_SRC_DIR, "..", "..", "src/tests/topp")
+    @pytest.fixture(autouse=True)
+    def setup_test_data(self, openms_test_data_dir):
+        """Setup test with test data directory from pytest fixture."""
+        self.testdirname = openms_test_data_dir
         # set up files
         self.chromatograms = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.mzML").encode()
         self.tramlfile = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.TraML").encode()

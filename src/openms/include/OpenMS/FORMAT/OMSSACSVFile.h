@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 
@@ -37,14 +38,14 @@ public:
     /**
               @brief Loads a OMSSA file
 
-              @param filename the name of the file to read from
-              @param protein_identification the protein ProteinIdentification data
-              @param id_data the peptide ids of the file
+              @param[in] filename the name of the file to read from
+              @param[in] protein_identification the protein ProteinIdentification data
+              @param[in] id_data the peptide ids of the file
 
               @throw FileNotFound is thrown if the given file could not be found
               @throw ParseError is thrown if the given file could not be parsed
     */
-    void load(const String & filename, ProteinIdentification & protein_identification, std::vector<PeptideIdentification> & id_data) const;
+    void load(const String & filename, ProteinIdentification & protein_identification, PeptideIdentificationList & id_data) const;
   };
 } // namespace OpenMS
 

@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
 # $Authors: Chris Bielow, Stephan Aiche $
 # --------------------------------------------------------------------------
+
 
 #------------------------------------------------------------------------------
 # This cmake file handles finding external libs for OpenMS
@@ -144,12 +119,23 @@ find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
-# Find eigen3
+# Find Eigen
 # creates Eigen3::Eigen3 package
-find_package(Eigen3 3.4.0 REQUIRED)
+# CMake is garbage https://gitlab.kitware.com/cmake/cmake/-/issues/24581
+# We also have to check for 3.4.0 because the configversion file in 3.4.0 tells CMake that 5 is incompatible
+# Try to find any Eigen3 in the range [3.4.0, 6), quietly
+# The package is still called Eigen3.. don't ask!
+find_package(Eigen3 3.4.0...<6 QUIET)
+
 if(TARGET Eigen3::Eigen)
-    message(STATUS "Eigen version found: ${Eigen3_VERSION}")
-endif(TARGET Eigen3::Eigen)
+    message(STATUS "Found Eigen3 version in range 3.4.0...<6: ${Eigen3_VERSION}")
+else()
+    # Fall back to the usual version compatibility check (for old/broken configversion files)
+    find_package(Eigen3 3.4.0 REQUIRED) # fail if not found now
+    if(TARGET Eigen3::Eigen)
+        message(STATUS "Found Eigen3 version compatible to 3.4.0: ${Eigen3_VERSION}")
+    endif()
+endif()
 
 #------------------------------------------------------------------------------
 # Find Crawdad libraries if requested
@@ -174,6 +160,96 @@ if (WITH_HDF5)
   find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 endif()
 
+
+#------------------------------------------------------------------------------
+ # Apache Arrow and Parquet
+ if (WITH_PARQUET)
+   # Workaround for Arrow 23+ CMake configuration issue where CURL dependency
+   # is not properly exported. See: https://github.com/apache/arrow/issues/48885
+   find_package(CURL QUIET)
+   find_package(Arrow CONFIG REQUIRED)
+   find_package(Parquet CONFIG REQUIRED)
+   
+   # Determine Arrow target based on ARROW_USE_STATIC preference
+   if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+   elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_shared)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+   elseif(TARGET Arrow::arrow_static)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+   elseif(TARGET Arrow::arrow_shared)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+   else()
+     message(FATAL_ERROR "No suitable Arrow target found")
+   endif()
+
+   # Determine Arrow Compute target (may be bundled into Arrow::arrow_* on some distros).
+   # We need compute kernels (e.g., "equal") for filter expression binding.
+   if(ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_static)
+     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
+   elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_shared)
+     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
+   elseif(TARGET Arrow::arrow_compute_static)
+     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
+   elseif(TARGET Arrow::arrow_compute_shared)
+     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
+   else()
+     # Fallback: compute might be a plain library without a CMake target.
+     # Use platform-neutral search with optional hints.
+     find_library(OPENMS_ARROW_COMPUTE_LIB
+       NAMES arrow_compute
+       HINTS ${CMAKE_PREFIX_PATH} ${ARROW_HOME}
+       PATH_SUFFIXES lib lib64
+     )
+    if(OPENMS_ARROW_COMPUTE_LIB)
+      set(OPENMS_ARROW_COMPUTE_TARGET ${OPENMS_ARROW_COMPUTE_LIB})
+      message(STATUS "Using Arrow Compute library from find_library: ${OPENMS_ARROW_COMPUTE_LIB}")
+    else()
+      # Last resort: compute is part of the main Arrow target.
+      set(OPENMS_ARROW_COMPUTE_TARGET ${OPENMS_ARROW_TARGET})
+      message(STATUS "Using Arrow Compute from Arrow target: ${OPENMS_ARROW_TARGET} (no separate compute target/library found)")
+    endif()
+  endif()
+   
+   # Determine Parquet target based on ARROW_USE_STATIC preference
+   if(ARROW_USE_STATIC AND TARGET Parquet::parquet_static)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
+   elseif(NOT ARROW_USE_STATIC AND TARGET Parquet::parquet_shared)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
+   elseif(TARGET Parquet::parquet_static)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
+   elseif(TARGET Parquet::parquet_shared)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
+   else()
+     message(FATAL_ERROR "No suitable Parquet target found")
+   endif()
+   
+   message(STATUS "Using Arrow target: ${OPENMS_ARROW_TARGET}")
+   message(STATUS "Using Arrow Compute target: ${OPENMS_ARROW_COMPUTE_TARGET}")
+   message(STATUS "Using Parquet target: ${OPENMS_PARQUET_TARGET}")
+
+   # Optional Arrow Dataset (for predicate pushdown)
+   find_package(ArrowDataset CONFIG QUIET)
+   if(ArrowDataset_FOUND)
+     if(ARROW_USE_STATIC AND TARGET ArrowDataset::arrow_dataset_static)
+       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_static)
+     elseif(NOT ARROW_USE_STATIC AND TARGET ArrowDataset::arrow_dataset_shared)
+       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_shared)
+     elseif(TARGET ArrowDataset::arrow_dataset_static)
+       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_static)
+     elseif(TARGET ArrowDataset::arrow_dataset_shared)
+       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_shared)
+     endif()
+
+   if(OPENMS_ARROW_DATASET_TARGET)
+     message(STATUS "Using Arrow Dataset target: ${OPENMS_ARROW_DATASET_TARGET}")
+     # Arrow Dataset (static) may pull in libxml2 symbols; link explicitly.
+     # This avoids missing xmlBufferFree at runtime when dataset pushdown is enabled.
+     find_package(LibXml2 REQUIRED)
+   endif()
+ endif()
+ endif()
+
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
@@ -186,17 +262,17 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "5.6.0")
+SET(QT_MIN_VERSION "6.1.0")
 
 # find qt
 set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
-find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
-IF (NOT Qt5Core_FOUND)
-  message(STATUS "Qt5Core not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+IF (NOT Qt6Core_FOUND)
+  message(STATUS "Qt6Core not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
 ELSE()
-  message(STATUS "Found Qt ${Qt5Core_VERSION}")
+  message(STATUS "Found Qt ${Qt6Core_VERSION}")
 ENDIF()
 
 
@@ -214,7 +290,7 @@ if (WITH_GUI)
   # --------------------------------------------------------------------------
   # Find additional Qt libs
   #---------------------------------------------------------------------------
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg)
+  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg OpenGLWidgets)
 
   # On macOS the platform plugin of QT requires PrintSupport. We link
   # so it's packaged via the bundling/dependency tools/scripts
@@ -228,53 +304,30 @@ if (WITH_GUI)
     set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
   endif()
 
-  find_package(Qt5 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
+  find_package(Qt6 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
 
-  IF (NOT Qt5Widgets_FOUND OR NOT Qt5Gui_FOUND OR NOT Qt5Svg_FOUND)
-    message(STATUS "Qt5Widgets not found!")
-    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+  IF (NOT Qt6Widgets_FOUND OR NOT Qt6Gui_FOUND OR NOT Qt6Svg_FOUND)
+    message(STATUS "Qt6Widgets not found!")
+    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
   ENDIF()
-
-  ## QuickWidgets is a runtime-only dependency that we need to copy and install when WebEngine is found.
-  # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
-  # https://bugreports.qt.io/browse/QTBUG-110118
-  find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT} QuickWidgets)
+  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
 
   # TODO only works if WebEngineWidgets is the only optional component
   set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-  if(Qt5WebEngineWidgets_FOUND)
+  if(Qt6WebEngineWidgets_FOUND)
     list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
-    # we assume that it is available for now. They should have dependencies when installing Qt.
-    install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QuickWidgets"
-            DESTINATION "${INSTALL_LIB_DIR}"
-            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
-            COMPONENT Dependencies)
   else()
-    message(WARNING "Qt5WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
-  endif()
-
-  # The following can be checked since Qt 5.12 https://github.com/qtwebkit/qtwebkit/issues/846
-  # evaluates to False if it does not exist
-  # TODO check what needs to be done for other values
-  if (${Qt5Gui_OPENGL_IMPLEMENTATION} STREQUAL GLESv2)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_EGL"
-            DESTINATION "${INSTALL_LIB_DIR}"
-            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
-            COMPONENT Dependencies)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_GLESv2"
-            DESTINATION "${INSTALL_LIB_DIR}"
-            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
-            COMPONENT Dependencies)
+    message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
   endif()
 
   set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
 
   foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
+    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
   endforeach()
 
   foreach(COMP IN LISTS OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
+    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
   endforeach()
 
 endif()

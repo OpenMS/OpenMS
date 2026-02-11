@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -241,6 +241,9 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "If the quantification of your computational analysis is not 'LC-MS label-free quantitation analysis'.\n"
                       << "Please contact a OpenMS Developer to add the appropriate tool and description to MzTab-M." << std::endl;
+      
+      ControlledVocabulary::CVTerm cvterm = cv.getTermByName("LC-MS label-free quantitation analysis");
+      quantification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
     }
     m_meta_data.quantification_method = quantification_method;
 
@@ -354,15 +357,14 @@ namespace OpenMS
     // these have to be added to the identification data
     // in the actual tool writes the mztam-m
     MzTabMDatabaseMetaData meta_db;
+    meta_db.prefix.setNull(true);
+    meta_db.version = MzTabString("Unknown");
+    meta_db.database.fromCellString("[,, no database , null]");
+    meta_db.uri = MzTabString("https://hmdb.ca/"); // default if not set
+
     for (const auto& db : id_data.getDBSearchParams())
     {
-      if (db.database == "") // no database
-      {
-        meta_db.prefix.setNull(true);
-        meta_db.version = MzTabString("Unknown");
-        meta_db.database.fromCellString("[,, no database , null]");
-      }
-      else if (db.database.find("custom") != std::string::npos) // custom database
+      if (db.database.find("custom") != std::string::npos) // custom database
       {
         meta_db.prefix.setNull(true);
         meta_db.version = MzTabString(db.database_version);
@@ -385,10 +387,7 @@ namespace OpenMS
         String db_location_uri = ListUtils::concatenate(db_loc, '|');
         meta_db.uri = MzTabString(db_location_uri);
       }
-      else
-      {
-        meta_db.uri.setNull(true);
-      }
+      // else: keep the default URI (https://hmdb.ca/) set at initialization
       m_meta_data.database[m_meta_data.database.size() + 1] = meta_db; // starts at 1
     }
 
@@ -473,40 +472,56 @@ namespace OpenMS
     // set identification method based on OpenMS Tool(s)
     // usually only one identification_method in one featureXML
     MzTabParameter identification_method;
-    identification_method.setNull(true);
+    identification_method.fromCellString("[, , OpenMS TOPP, ]");
     MzTabParameter ms_level;
     ms_level.setNull(true);
     for (const auto& identification_software : action_software_name[DataProcessing::IDENTIFICATION])
     {
-      int id_mslevel = 0;
+      int id_mslevel = 1;
+      ControlledVocabulary::CVTerm cvterm;
       if (identification_software == "AccurateMassSearch")
       {
-        ControlledVocabulary::CVTerm cvterm;
         cvterm = cv.getTermByName("accurate mass");
         identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
         id_mslevel = 1;
       }
-      if (identification_software == "SiriusAdapter")
+      else if (identification_software == "SiriusAdapter")
       {
-        ControlledVocabulary::CVTerm cvterm;
         cvterm = cv.getTermByName("de novo search");
         identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
         id_mslevel = 2;
       }
-      if (identification_software == "MetaboliteSpectralMatcher")
+      else if (identification_software == "MetaboliteSpectralMatcher")
       {
-        ControlledVocabulary::CVTerm cvterm;
         cvterm = cv.getTermByName("TOPP SpecLibSearcher");
         identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
         id_mslevel = 2;
       }
+      else
+      { // default for unknown
+        id_mslevel = 1;
+      }
       ControlledVocabulary::CVTerm cvterm_level = cv.getTermByName("ms level");
       ms_level.fromCellString("[MS, " + cvterm_level.id + ", " + cvterm_level.name + ", " + String(id_mslevel) + "]");
     }
-    if (identification_method.isNull())
+    // Set default values if not set by the loop above
+    if (ms_level.isNull())
     {
-      OPENMS_LOG_WARN << "The identification method of your computational analysis can not be assessed'.\n"
+      // Default to MS level 1 if not specified
+      ControlledVocabulary::CVTerm cvterm_level = cv.getTermByName("ms level");
+      ms_level.fromCellString("[MS, " + cvterm_level.id + ", " + cvterm_level.name + ", 1]");
+    }
+    
+    // Check if identification_method has a valid CV term (not the placeholder with empty CV label/accession)
+    // The placeholder is "[, , OpenMS TOPP, ]" which has empty CV_label_ and accession_
+    if (identification_method.getCVLabel().empty() && identification_method.getAccession().empty())
+    {
+      OPENMS_LOG_WARN << "The identification method of your computational analysis cannot be assessed.\n"
+                      << "Using 'data processing action' as default identification method.\n"
                       << "Please check if the ProcessingActions are set correctly!" << std::endl;
+      // Use a generic CV term for data processing
+      ControlledVocabulary::CVTerm cvterm = cv.getTermByName("data processing action");
+      identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
     }
 
     // ####################################################

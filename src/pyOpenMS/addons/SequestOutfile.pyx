@@ -7,7 +7,7 @@ from libcpp.map cimport map as libcpp_map
         # libcpp_map[ String, Size ] &ac_position_map,
         # libcpp_vector[ String ] &sequences,
         # libcpp_vector[ libcpp_pair[ String, Size ] ] &found,
-        # libcpp_map[ String, Size ] &not_found) nogil except +
+        # libcpp_map[ String, Size ] &not_found) except + nogil 
         assert isinstance(database_filename, String), 'arg database_filename wrong type'
         assert isinstance(sequences, list) and all(isinstance(i, bytes) for i in sequences), 'arg sequences wrong type'
     

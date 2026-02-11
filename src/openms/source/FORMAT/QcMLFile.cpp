@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -1035,7 +1035,7 @@ namespace OpenMS
   }
 
   void QcMLFile::collectQCData(vector<ProteinIdentification>& prot_ids,
-                               vector<PeptideIdentification>& pep_ids,
+                               PeptideIdentificationList& pep_ids,
                                const FeatureMap& feature_map,
                                const ConsensusMap& consensus_map,
                                const String& inputfile_raw, 
@@ -1266,7 +1266,7 @@ namespace OpenMS
       {
         for (Size t = 0; t < chroms.size(); ++t)
         {
-          if (chroms[t].getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
+          if (chroms[t].getChromatogramType() == ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM)
           {
             for (Size i = 0; i < chroms[t].size(); ++i)
             {

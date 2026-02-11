@@ -8,6 +8,8 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
     cdef cppclass ReactionMonitoringTransition(CVTermList):
         # wrap-inherits:
         #   CVTermList
+        # wrap-hash:
+        #  std
         # wrap-doc:
         #  This class stores a SRM/MRM transition
         #  
@@ -73,7 +75,10 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         void setIdentifyingTransition(bool val) except + nogil 
 
         bool isQuantifyingTransition() except + nogil 
-        void setQuantifyingTransition(bool val) except + nogil 
+        void setQuantifyingTransition(bool val) except + nogil
+
+        bool operator==(ReactionMonitoringTransition & rhs) except + nogil 
+        bool operator!=(ReactionMonitoringTransition & rhs) except + nogil
 
 cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespace "OpenMS::ReactionMonitoringTransition":
 

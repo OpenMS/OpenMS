@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,6 +16,13 @@
 
 using namespace OpenMS;
 using namespace std;
+
+/// provide access to private functions
+class MassTraceDetectionAccess : public OpenMS::MassTraceDetection
+{
+public:
+  using OpenMS::MassTraceDetection::updateIterativeWeightedMean_;
+};
 
 START_TEST(MassTraceDetection, "$Id$")
 
@@ -39,7 +46,7 @@ END_SECTION
 
 MassTraceDetection test_mtd;
 
-START_SECTION((void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &)))
+START_SECTION((void updateIterativeWeightedMean_(const double &, const double &, double &, double &, double &)))
 {
     double centroid_mz(150.22), centroid_int(25000000);
     double new_mz1(150.34), new_int1(23043030);
@@ -62,11 +69,12 @@ START_SECTION((void updateIterativeWeightedMeanMZ(const double &, const double &
     double prev_count(centroid_mz * centroid_int);
     double prev_denom(centroid_int);
 
-    test_mtd.updateIterativeWeightedMeanMZ(new_mz1, new_int1, centroid_mz, prev_count, prev_denom);
+    MassTraceDetectionAccess::updateIterativeWeightedMean_(new_mz1, new_int1, centroid_mz, prev_count, prev_denom);
+
 
     TEST_REAL_SIMILAR(centroid_mz, wmean1);
 
-    test_mtd.updateIterativeWeightedMeanMZ(new_mz2, new_int2, centroid_mz, prev_count, prev_denom);
+    MassTraceDetectionAccess::updateIterativeWeightedMean_(new_mz2, new_int2, centroid_mz, prev_count, prev_denom);
 
     TEST_REAL_SIMILAR(centroid_mz, wmean2);
 
@@ -78,7 +86,7 @@ PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_input1.mzML"),input);
 
 Size exp_mt_lengths[3] = {86, 31, 16};
-double exp_mt_rts[3] = {341.063314463158, 339.314891947562, 350.698987241276};
+double exp_mt_rts[3] = {348.667, 347.107, 346.888}; // centroid RTs should be reasonably similar (isotopic traces)
 double exp_mt_mzs[3] = {437.26675, 438.27241, 439.27594};
 double exp_mt_ints[3] = {3381.72226139326, 664.763828332733, 109.490108620676};
 
@@ -210,12 +218,6 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
 }
 END_SECTION
 
-
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

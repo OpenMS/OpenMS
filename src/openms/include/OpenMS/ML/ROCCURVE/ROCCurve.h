@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -82,7 +82,7 @@ private:
       inline void count();
 
       /// calculates area with trapezoidal rule
-      /// @param x1,x2,y1,y2
+      /// @param[in] x1,x2,y1,y2
       inline double trapezoidal_area(double x1, double x2, double y1, double y2);
 
       /// predicate for sort()

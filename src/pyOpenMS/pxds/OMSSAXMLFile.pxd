@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/FORMAT/OMSSAXMLFile.h>" namespace "OpenMS":
 
         void load(const String & filename,
                   ProteinIdentification & protein_identification,
-                  libcpp_vector[ PeptideIdentification ] & id_data,
+                  PeptideIdentificationList & id_data,
                   bool load_proteins,
                   bool load_empty_hits) except + nogil 
             # wrap-doc:

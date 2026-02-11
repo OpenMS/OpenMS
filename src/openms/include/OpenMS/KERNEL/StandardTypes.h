@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,6 +14,7 @@ namespace OpenMS
 {
   class MSSpectrum;
   class MSChromatogram;
+  class Mobilogram;
   class MSExperiment;
 
   //@{
@@ -39,6 +40,7 @@ namespace OpenMS
       @ingroup Kernel
   */
   typedef MSChromatogram Chromatogram;
+
   //@}
 
 }

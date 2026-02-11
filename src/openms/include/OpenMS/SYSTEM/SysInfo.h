@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -30,7 +30,7 @@ namespace OpenMS
       /// On Windows, this is equivalent to 'Peak Working Set (Memory)' in Task Manager.
       /// On other OS this might be very unreliable, depending on operating system and kernel version.
       ///
-			/// @param mem_virtual Total virtual memory currently allocated by this process
+			/// @param[out] mem_virtual Total virtual memory currently allocated by this process
 			/// @return True on success, false otherwise. If false is returned, then @p mem_virtual is set to 0.
 			static bool getProcessMemoryConsumption(size_t& mem_virtual);
   
@@ -38,10 +38,14 @@ namespace OpenMS
       /// On Windows, this is equivalent to 'Working Set (Memory)' in Task Manager.
       /// On other OS this might be very unreliable, depending on operating system and kernel version.
       ///
-      /// @param mem_virtual Total virtual memory allocated by this process
+      /// @param[out] mem_virtual Total virtual memory allocated by this process
       /// @return True on success, false otherwise. If false is returned, then @p mem_virtual is set to 0.
       static bool getProcessPeakMemoryConsumption(size_t& mem_virtual);
 
+      /// `@brief` Get the current process ID
+      ///
+      /// `@return` The process ID of the current process
+      static Int64 getProcessId();
       /**
         @brief A convenience class to report either absolute or delta (between two timepoints) RAM usage
 

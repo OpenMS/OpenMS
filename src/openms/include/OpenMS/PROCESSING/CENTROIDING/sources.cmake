@@ -5,6 +5,7 @@ set(directory include/OpenMS/PROCESSING/CENTROIDING)
 set(sources_list_h
 PeakPickerHiRes.h
 PeakPickerIterative.h
+PeakPickerIM.h
 )
 
 ### add path to the filenames
