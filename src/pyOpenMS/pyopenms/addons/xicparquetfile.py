@@ -85,26 +85,6 @@ def __len__(self):
 
 
 @addon("XICParquetFile")
-def __repr__(self):
-    """Return a detailed string representation."""
-    try:
-        files = self.getFilenames()
-        files = [f if isinstance(f, str) else str(f) for f in files]
-        return f"XICParquetFile(n_files={len(files)}, files={files!r})"
-    except Exception:
-        return "XICParquetFile(<unavailable>)"
-
-
-@addon("XICParquetFile")
-def __str__(self):
-    """Return a concise string representation."""
-    try:
-        return f"XICParquetFile(n_files={len(self.getFilenames())})"
-    except Exception:
-        return "XICParquetFile(n_files=?)"
-
-
-@addon("XICParquetFile")
 def df_columns(self):
     """
     Return the parquet schema column names.

@@ -22,6 +22,8 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include "binding_utils.h"
+#include <iomanip>
+#include <sstream>
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -377,6 +379,14 @@ max_mz : float
 aggregation : str, optional
     Aggregation mode: "sum" (default) or "max".
 )doc")
+        .def("__repr__", [](const OpenMS::MSSpectrum& self) {
+            std::ostringstream oss;
+            oss << "MSSpectrum(n_peaks=" << self.size()
+                << ", rt=" << std::fixed << std::setprecision(2) << self.getRT() << "s"
+                << ", ms_level=" << self.getMSLevel() << ")";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::MSSpectrum& self) { return nb::cast(self).attr("__repr__")(); })
         ;
     def_MetaInfoInterface<OpenMS::MSSpectrum>(msspectrum_class);
     // MSSpectrumRasterAggregation enum nested under MSSpectrum

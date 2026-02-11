@@ -7,24 +7,6 @@ from . import addon
 
 
 @addon("PeptideIdentificationList")
-def __len__(self):
-    """Return the number of peptide identifications in the list."""
-    return self.size()
-
-
-@addon("PeptideIdentificationList")
-def __repr__(self):
-    """Return a string representation of the PeptideIdentificationList object."""
-    return f"PeptideIdentificationList(size={self.size()})"
-
-
-@addon("PeptideIdentificationList")
-def __str__(self):
-    """Return a string representation of the PeptideIdentificationList object."""
-    return self.__repr__()
-
-
-@addon("PeptideIdentificationList")
 def to_df(self, decode_ontology=True, default_missing_values=None, export_unidentified=True, columns=None):
     """Converts peptide identifications to a pandas DataFrame.
 
@@ -896,3 +878,23 @@ def to_psm_qpx(self, *args, **kwargs):
     This is an alias for to_qpx().
     """
     return self.to_qpx(*args, **kwargs)
+
+
+@addon("PeptideIdentificationList")
+def get_psm_columns(self, *args, **kwargs):
+    """Deprecated: Use psm_columns() instead."""
+    warnings.warn(
+        "get_psm_columns() is deprecated. Use psm_columns() instead.",
+        DeprecationWarning, stacklevel=2
+    )
+    return self.psm_columns(*args, **kwargs)
+
+
+@addon("PeptideIdentificationList")
+def get_psm_df(self, *args, **kwargs):
+    """Deprecated: Use to_psm_df() instead."""
+    warnings.warn(
+        "get_psm_df() is deprecated. Use to_psm_df() instead.",
+        DeprecationWarning, stacklevel=2
+    )
+    return self.to_psm_df(*args, **kwargs)
