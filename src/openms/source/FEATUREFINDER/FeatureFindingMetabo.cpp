@@ -878,9 +878,8 @@ namespace OpenMS
     }
 
     // Detect whether the input mass traces contain ion mobility data.
-    // MassTrace uses centroid_im_ == 0.0 to denote absence of IM data.
     has_im_data_ = std::any_of(input_mtraces.begin(), input_mtraces.end(),
-      [](const MassTrace& mt) { return mt.getCentroidIM() != 0.0; });
+      [](const MassTrace& mt) { return mt.containsIMData(); });
 
     // mass traces must be sorted by their centroid MZ
     std::sort(input_mtraces.begin(), input_mtraces.end(), CmpMassTraceByMZ());
