@@ -22,6 +22,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include "binding_utils.h"
+#include <sstream>
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -240,6 +241,13 @@ mz, intensities = spectrum.get_peaks()
             self.rasterizeRTMZ(output_ptr, rt_bins, mz_bins, min_rt, max_rt, min_mz, max_mz, ms_level, agg_mode);
         }, "output"_a, "min_rt"_a, "max_rt"_a, "min_mz"_a, "max_mz"_a, "ms_level"_a, "aggregation"_a = "sum",
            "Rasterize peak data into a 2D intensity matrix. Output shape is [mz_bins, rt_bins].")
+        .def("__repr__", [](const OpenMS::MSExperiment& self) {
+            std::ostringstream oss;
+            oss << "MSExperiment(num_spectra=" << self.getNrSpectra()
+                << ", num_chromatograms=" << self.getNrChromatograms() << ")";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::MSExperiment& self) { return nb::cast(self).attr("__repr__")(); })
         ;
     // MSExperimentRasterAggregation enum nested under MSExperiment
     nb::enum_<OpenMS::MSExperiment::RasterAggregation>(msexperiment_class, "MSExperimentRasterAggregation")

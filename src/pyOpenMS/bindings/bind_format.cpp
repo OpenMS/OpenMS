@@ -75,6 +75,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include <sstream>
+#include "binding_utils.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -1367,12 +1368,12 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         }, "c"_a)
         .def("__repr__", [](const OpenMS::DRange<1>& self) {
             std::ostringstream oss;
-            oss << "DRange1(" << self.minPosition()[0] << ", " << self.maxPosition()[0] << ")";
+            oss << std::showpoint << "DRange1(" << self.minPosition()[0] << ", " << self.maxPosition()[0] << ")";
             return oss.str();
         })
         .def("__str__", [](const OpenMS::DRange<1>& self) {
             std::ostringstream oss;
-            oss << "DRange1(" << self.minPosition()[0] << ", " << self.maxPosition()[0] << ")";
+            oss << std::showpoint << "DRange1(" << self.minPosition()[0] << ", " << self.maxPosition()[0] << ")";
             return oss.str();
         })
         ;
@@ -1416,14 +1417,14 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def("setMaxY", [](OpenMS::DRange<2>& self, double c) { self.max_[1] = c; }, "c"_a)
         .def("__repr__", [](const OpenMS::DRange<2>& self) {
             std::ostringstream oss;
-            oss << "DRange2(" << self.minPosition()[0] << ", " << self.minPosition()[1]
-                << ", " << self.maxPosition()[0] << ", " << self.maxPosition()[1] << ")";
+            oss << std::showpoint << "DRange2((" << self.minPosition()[0] << ", " << self.minPosition()[1]
+                << "), (" << self.maxPosition()[0] << ", " << self.maxPosition()[1] << "))";
             return oss.str();
         })
         .def("__str__", [](const OpenMS::DRange<2>& self) {
             std::ostringstream oss;
-            oss << "DRange2(" << self.minPosition()[0] << ", " << self.minPosition()[1]
-                << ", " << self.maxPosition()[0] << ", " << self.maxPosition()[1] << ")";
+            oss << std::showpoint << "DRange2((" << self.minPosition()[0] << ", " << self.minPosition()[1]
+                << "), (" << self.maxPosition()[0] << ", " << self.maxPosition()[1] << "))";
             return oss.str();
         })
         ;
@@ -1910,6 +1911,11 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
            "precursor_charge"_a = -1, "product_charge"_a = -1, "ms_level"_a = -1,
            "run_id"_a = -1, "filter"_a = "", "explode"_a = false,
            "Return chromatogram data as a dict")
+        .def("__repr__", [](const OpenMS::XICParquetFile& self) {
+            const auto& files = self.getFilenames();
+            return "XICParquetFile(n_files=" + std::to_string(files.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::XICParquetFile& self) { return nb::cast(self).attr("__repr__")(); })
         ;
 #endif // WITH_PARQUET
 
@@ -2058,7 +2064,7 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
     // -----------------------------------------------------------------------
     // Note: DefaultParamHandler base not specified because it's in _pyopenms_misc
     // which loads after _pyopenms_format. Methods added directly instead.
-    nb::class_<OpenMS::MSPGenericFile>(m, "MSPGenericFile",
+    auto mspgenericfile_class = nb::class_<OpenMS::MSPGenericFile>(m, "MSPGenericFile",
         "MSP spectral library file reader/writer")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::String&, OpenMS::MSExperiment&>(), "filename"_a, "library"_a)
@@ -2066,14 +2072,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def("__deepcopy__", [](const OpenMS::MSPGenericFile& self, nb::dict) { return OpenMS::MSPGenericFile(self); }, "memo"_a)
         .def("load", [](OpenMS::MSPGenericFile& self, const OpenMS::String& filename, OpenMS::MSExperiment& library) { self.load(filename, library); }, "filename"_a, "library"_a)
         .def("store", [](const OpenMS::MSPGenericFile& self, const OpenMS::String& filename, const OpenMS::MSExperiment& library) { self.store(filename, library); }, "filename"_a, "library"_a)
-        .def("setParameters", [](OpenMS::MSPGenericFile& self, const OpenMS::Param& param) { self.setParameters(param); }, "param"_a)
-        .def("getParameters", [](const OpenMS::MSPGenericFile& self) -> const OpenMS::Param& { return self.getParameters(); }, nb::rv_policy::reference_internal)
-        .def("getDefaults", [](const OpenMS::MSPGenericFile& self) -> const OpenMS::Param& { return self.getDefaults(); }, nb::rv_policy::reference_internal)
-        .def("getName", [](const OpenMS::MSPGenericFile& self) { return self.getName(); })
-        .def("setName", [](OpenMS::MSPGenericFile& self, const OpenMS::String& name) { self.setName(name); }, "name"_a)
         .def("getDefaultParameters", [](OpenMS::MSPGenericFile& self) { OpenMS::Param p; self.getDefaultParameters(p); return p; }, "Gets the class' default parameters")
-        .def("getSubsections", [](const OpenMS::MSPGenericFile& self) -> const std::vector<OpenMS::String>& { return self.getSubsections(); }, nb::rv_policy::reference_internal)
         ;
+    def_DefaultParamHandler<OpenMS::MSPGenericFile>(mspgenericfile_class);
 
     // -----------------------------------------------------------------------
     // SpectrumAccessSqMass

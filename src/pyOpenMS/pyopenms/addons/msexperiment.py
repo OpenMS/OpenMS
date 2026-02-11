@@ -7,11 +7,6 @@ from . import addon
 
 
 @addon("MSExperiment")
-def __repr__(self) -> str:
-    return f"MSExperiment(num_spectra={self.getNrSpectra()}, num_chromatograms={self.getNrChromatograms()})"
-
-
-@addon("MSExperiment")
 def get2DPeakDataLong(self, min_rt, max_rt, min_mz, max_mz, ms_level):
     """Returns (rt_array, mz_array, intensity_array) for all peaks matching filters."""
     all_rt = []
@@ -546,6 +541,16 @@ def get_df(self, *args, **kwargs):
     warnings.warn("get_df() is deprecated. Use to_df() instead.",
                   DeprecationWarning, stacklevel=2)
     return self.to_df(*args, **kwargs)
+
+
+@addon("MSExperiment")
+def get_df_columns(self, *args, **kwargs):
+    """Deprecated: Use df_columns() instead."""
+    warnings.warn(
+        "get_df_columns() is deprecated. Use df_columns() instead.",
+        DeprecationWarning, stacklevel=2
+    )
+    return self.df_columns(*args, **kwargs)
 
 
 @addon("MSExperiment")

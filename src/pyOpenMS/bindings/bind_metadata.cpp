@@ -463,6 +463,16 @@ Indices from 1 to 1023 are reserved for fast access and will never change:
         .def("setAAAfter", [](OpenMS::PeptideEvidence& self, char acid) { return self.setAAAfter(acid); }, "acid"_a, "Sets the amino acid single letter code after the sequence (subsequent amino acid in the protein). If not available, set to UNKNOWN_AA. If C-terminal set to C_TERMINAL_AA")
         .def("getAAAfter", [](const OpenMS::PeptideEvidence& self) { return self.getAAAfter(); }, "Returns the amino acid single letter code after the sequence (subsequent amino acid in the protein). If not available, UNKNOWN_AA is returned. If C-terminal, C_TERMINAL_AA is returned")
         .def("__hash__", [](const OpenMS::PeptideEvidence& self) { return std::hash<OpenMS::PeptideEvidence>{}(self); })
+        .def("__repr__", [](const OpenMS::PeptideEvidence& self) {
+            std::ostringstream oss;
+            oss << "PeptideEvidence(protein='" << std::string(self.getProteinAccession())
+                << "', start=" << self.getStart()
+                << ", end=" << self.getEnd()
+                << ", aa_before='" << self.getAABefore()
+                << "', aa_after='" << self.getAAAfter() << "')";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::PeptideEvidence& self) { return nb::cast(self).attr("__repr__")(); })
         ;
 
     // -----------------------------------------------------------------------
@@ -567,6 +577,10 @@ This class supports direct iteration in Python.
         .def("back", [](OpenMS::PeptideIdentificationList& self) -> OpenMS::PeptideIdentification& {
             return self.back();
         }, nb::rv_policy::reference_internal, "Returns reference to last element")
+        .def("__repr__", [](const OpenMS::PeptideIdentificationList& self) {
+            return "PeptideIdentificationList(size=" + std::to_string(self.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::PeptideIdentificationList& self) { return nb::cast(self).attr("__repr__")(); })
         ;
 
     // -----------------------------------------------------------------------

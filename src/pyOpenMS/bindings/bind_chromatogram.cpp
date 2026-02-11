@@ -20,6 +20,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include "binding_utils.h"
+#include <sstream>
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -204,6 +205,13 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
         .def("setStringDataArrays", [](OpenMS::MSChromatogram& self, const std::vector<OpenMS::DataArrays::StringDataArray>& arrays) {
             self.setStringDataArrays(arrays);
         }, "arrays"_a, "Set the string data arrays")
+        .def("__repr__", [](const OpenMS::MSChromatogram& self) {
+            std::ostringstream oss;
+            oss << "MSChromatogram(native_id='" << std::string(self.getNativeID())
+                << "', num_peaks=" << self.size() << ")";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::MSChromatogram& self) { return nb::cast(self).attr("__repr__")(); })
         ;
     def_MetaInfoInterface<OpenMS::MSChromatogram>(mschromatogram_class);
 

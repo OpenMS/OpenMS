@@ -196,6 +196,16 @@ Sets the C-terminal modification by the monoisotopic mass difference it introduc
             return freq;
         }, "Returns the amino acid frequencies of the peptide")
         .def("__iadd__", [](OpenMS::AASequence& self, const OpenMS::AASequence& rhs) -> OpenMS::AASequence& { return self += rhs; }, "rhs"_a, "In-place concatenation of sequences", nb::rv_policy::reference_internal)
+        .def("__repr__", [](const OpenMS::AASequence& self) {
+            std::ostringstream oss;
+            oss << "AASequence(sequence=" << '\'' << std::string(self.toString()) << '\''
+                << ", length=" << self.size()
+                << ", mono_mass=" << self.getMonoWeight();
+            if (self.isModified()) oss << ", modified=True";
+            oss << ")";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::AASequence& self) { return nb::cast(self).attr("__repr__")(); })
         ;
 
     // -----------------------------------------------------------------------
@@ -518,6 +528,12 @@ The elements are initialized with data from IUPAC tables.
             return self.getIsotopeDistribution(method);
         }, "method"_a, "Returns isotope distribution using FineIsotopePatternGenerator")
 
+        .def("__repr__", [](const OpenMS::EmpiricalFormula& self) {
+            std::ostringstream oss;
+            oss << "EmpiricalFormula(formula='" << std::string(self.toString())
+                << "', mono_mass=" << self.getMonoWeight() << ")";
+            return oss.str();
+        })
         .def("__str__", [](const OpenMS::EmpiricalFormula& self) {
             return std::string(self.toString());
         }, "Returns the formula as a string")
@@ -764,10 +780,17 @@ IsotopePatternGenerator
         .def("__hash__", [](const OpenMS::IsotopeDistribution& self) { return std::hash<OpenMS::IsotopeDistribution>{}(self); })
         .def("__iter__", [](OpenMS::IsotopeDistribution& self) { return nb::make_iterator<nb::rv_policy::reference_internal>(nb::type<OpenMS::IsotopeDistribution>(), "IsotopeDistribution_iter", self.begin(), self.end()); })
         .def("__len__", [](OpenMS::IsotopeDistribution& self) { return self.size(); })
-        .def("__getitem__", [](OpenMS::IsotopeDistribution& self, size_t i) -> OpenMS::Peak1D & { 
+        .def("__getitem__", [](OpenMS::IsotopeDistribution& self, size_t i) -> OpenMS::Peak1D & {
             if (i >= self.size()) throw nb::index_error();
             return self[i];
         }, nb::rv_policy::reference_internal)
+        .def("__repr__", [](const OpenMS::IsotopeDistribution& self) {
+            std::ostringstream oss;
+            oss << "IsotopeDistribution(num_isotopes=" << self.size()
+                << ", mass_range=(" << self.getMin() << ", " << self.getMax() << "))";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::IsotopeDistribution& self) { return nb::cast(self).attr("__repr__")(); })
         ;
     // Sorted enum nested under IsotopeDistribution
     nb::enum_<OpenMS::IsotopeDistribution::Sorted>(isotopedistribution_class, "Sorted", nb::is_arithmetic())
@@ -1195,6 +1218,12 @@ accessed via the ProForma parser/writer API functions:
         .def_rw("labile_mods", &OpenMS::ProForma::Peptidoform::labile_mods)
         .def_rw("n_term_mods", &OpenMS::ProForma::Peptidoform::n_term_mods)
         .def_rw("c_term_mods", &OpenMS::ProForma::Peptidoform::c_term_mods)
+        .def("__repr__", [](const OpenMS::ProForma::Peptidoform& self) {
+            std::ostringstream oss;
+            oss << "Peptidoform(length=" << self.sequence.size() << ")";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::ProForma::Peptidoform& self) { return nb::cast(self).attr("__repr__")(); })
         ;
 
     // -----------------------------------------------------------------------
@@ -1213,6 +1242,12 @@ accessed via the ProForma parser/writer API functions:
         .def("__copy__", [](const OpenMS::ProForma::PeptidoformIon& self) { return OpenMS::ProForma::PeptidoformIon(self); })
         .def("__deepcopy__", [](const OpenMS::ProForma::PeptidoformIon& self, nb::dict) { return OpenMS::ProForma::PeptidoformIon(self); }, "memo"_a)
         .def_rw("chains", &OpenMS::ProForma::PeptidoformIon::chains)
+        .def("__repr__", [](const OpenMS::ProForma::PeptidoformIon& self) {
+            std::ostringstream oss;
+            oss << "PeptidoformIon(num_chains=" << self.chains.size() << ")";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::ProForma::PeptidoformIon& self) { return nb::cast(self).attr("__repr__")(); })
         ;
 
     // -----------------------------------------------------------------------
@@ -1635,6 +1670,15 @@ Sets the modification by monoisotopic mass difference in Da; checks if present i
         .def_static("residueTypeToIonLetter", [](const OpenMS::Residue::ResidueType& res_type) { return OpenMS::Residue::residueTypeToIonLetter(res_type); }, "res_type"_a, "Helper for mapping residue types to letters for Text annotations and labels")
         .def("toString", [](const OpenMS::Residue& self) { return self.toString(); }, "Returns the residue as string (one letter code with optional modification)")
         .def("__hash__", [](const OpenMS::Residue& self) { return std::hash<OpenMS::Residue>{}(self); })
+        .def("__repr__", [](const OpenMS::Residue& self) {
+            std::ostringstream oss;
+            oss << "Residue(name='" << std::string(self.getName())
+                << "', one_letter='" << std::string(self.getOneLetterCode())
+                << "', three_letter='" << std::string(self.getThreeLetterCode())
+                << "', mono_mass=" << self.getMonoWeight(OpenMS::Residue::ResidueType::Full) << ")";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::Residue& self) { return std::string(self.getOneLetterCode()); })
         ;
     // ResidueType enum nested under Residue
     nb::enum_<OpenMS::Residue::ResidueType>(residue_class, "ResidueType", nb::is_arithmetic())
@@ -1740,6 +1784,14 @@ Modified residues get created and added if getModifiedResidue is called.
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::ResidueModification& self) { return std::hash<OpenMS::ResidueModification>{}(self); })
+        .def("__repr__", [](const OpenMS::ResidueModification& self) {
+            std::ostringstream oss;
+            oss << "ResidueModification(id='" << std::string(self.getId())
+                << "', full_name='" << std::string(self.getFullName())
+                << "', mono_mass=" << self.getDiffMonoMass() << ")";
+            return oss.str();
+        })
+        .def("__str__", [](const OpenMS::ResidueModification& self) { return nb::cast(self).attr("__repr__")(); })
         ;
     // TermSpecificity enum nested under ResidueModification
     nb::enum_<OpenMS::ResidueModification::TermSpecificity>(residuemodification_class, "TermSpecificity", nb::is_arithmetic())
@@ -1960,6 +2012,13 @@ the fixed and variable modifications given to the constructor
         .def("hasThreePrimeMod", &OpenMS::NASequence::hasThreePrimeMod, "Returns true if the sequence has a 3' modification")
         .def("getSequence", [](const OpenMS::NASequence& self) { return self.getSequence(); }, nb::rv_policy::reference_internal, "Returns the sequence of ribonucleotides")
         .def("setSequence", [](OpenMS::NASequence& self, const std::vector<const OpenMS::Ribonucleotide*>& seq) { self.setSequence(seq); }, "seq"_a, "Sets the sequence of ribonucleotides")
+        .def("__repr__", [](const OpenMS::NASequence& self) {
+            std::ostringstream oss;
+            oss << "NASequence(sequence='" << std::string(self.toString())
+                << "', length=" << self.size()
+                << ", mono_mass=" << self.getMonoWeight() << ")";
+            return oss.str();
+        })
         ;
 
     // NASFragmentType enum nested under NASequence
