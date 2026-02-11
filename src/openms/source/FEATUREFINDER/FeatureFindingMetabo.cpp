@@ -294,9 +294,6 @@ namespace OpenMS
 
     defaults_.setValue("elements", "CHNOPS", "Elements assumes to be present in the sample (this influences isotope detection).");
 
-    defaults_.setValue("overlapping_features", "false", "Allow mass traces to be reused to explain lower scoring features. Recommended for peptides.");
-    defaults_.setValidStrings("overlapping_features", {"false","true"});
-
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -343,7 +340,6 @@ namespace OpenMS
     use_mz_scoring_by_element_range_ = param_.getValue("mz_scoring_by_elements").toBool();
     std::string elements_list_ = param_.getValue("elements");
     elements_ = elementsFromString_(elements_list_);
-    overlapping_features_ = param_.getValue("overlapping_features").toBool();
   }
 
 
@@ -994,7 +990,7 @@ namespace OpenMS
 #endif
 
       // Skip hypotheses that contain a mass trace that has already been used
-      if (trace_coll && !overlapping_features_)
+      if (trace_coll)
       {
         continue;
       }

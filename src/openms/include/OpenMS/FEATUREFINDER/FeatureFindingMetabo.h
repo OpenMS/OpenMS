@@ -334,7 +334,6 @@ private:
     bool report_chromatograms_;
 
     bool remove_single_traces_;
-    bool overlapping_features_;
     std::vector<const Element*> elements_;
   };
 
