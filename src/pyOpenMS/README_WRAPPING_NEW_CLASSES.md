@@ -280,6 +280,39 @@ If you need to create an entirely new binding file (rare):
 4. Re-run cmake: `cd OpenMS-build && cmake ..`
 5. Build: `cmake --build OpenMS-build --target pyopenms -j$(nproc)`
 
+## Type Casters
+
+Custom type casters in `bindings/type_casters/` handle automatic C++ ↔ Python conversion:
+
+| C++ type | Python type |
+|---|---|
+| `OpenMS::String` | `str` |
+| `OpenMS::DataValue` | `int` / `float` / `str` / `list` |
+| `OpenMS::ParamValue` | `int` / `float` / `str` / `list` |
+| `DPosition<1>` | `float` |
+| `DPosition<2>` | `tuple` |
+| `std::string` | `str` (also accepts `bytes`) |
+
+## Adding Python-Only Methods (Addons)
+
+For methods better implemented in Python (e.g., DataFrame export), add an addon file
+in `pyopenms/addons/`:
+
+```python
+from pyopenms.addons import addon
+
+@addon("MyClass")
+def my_python_method(self, arg):
+    """This method is injected into MyClass at import time."""
+    return self.someMethod(arg) + 1
+```
+
+## Cross-Module Type Sharing
+
+All domain modules use `NB_DOMAIN "pyopenms"` so types defined in one module
+(e.g., `MSSpectrum` in `_pyopenms_spectrum`) are available in another module
+(e.g., `MzMLFile` in `_pyopenms_format`). No special imports needed.
+
 ## Common Pitfalls
 
 1. **Segfault on MetaInfoInterface methods**: Virtual destructor mismatch. See Step 3.
@@ -290,3 +323,9 @@ If you need to create an entirely new binding file (rare):
    all overloads, not just the no-arg version.
 6. **Object lifetime issues**: Use `nb::rv_policy::reference_internal` for methods
    returning references to internal data.
+7. **"incompatible function arguments"**: Check parameter types match exactly. Use lambdas
+   for explicit conversion.
+8. **"nanobind: type not found"**: The class might be in a different domain module. Check
+   `NB_DOMAIN` is set.
+9. **Linker errors about undefined symbols**: Make sure the `#include` is added and the
+   class is in the OpenMS library.
