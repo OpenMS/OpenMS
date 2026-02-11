@@ -107,6 +107,97 @@ In addition to the usual CMake options you can set for the OpenMS C++ toolkit, e
 | `pyopenms_fix_deps` | Fix library dependencies on macOS (when `NO_DEPENDENCIES=OFF`) |
 | `pyopenms_wheel` | Package pyOpenMS as a wheel file (depends on `pyopenms`, creates wheel in `$BUILDDIR/pyopenms_wheels/`) |
 
+### 3. Building Distributable Wheels
+
+Building wheels that can be installed on other machines requires bundling shared library dependencies
+and rewriting library paths. This is more involved than a simple development build.
+
+#### How the `pyopenms_wheel` target works
+
+The `pyopenms_wheel` CMake target does **not** recompile anything. It runs `python -m build --wheel`
+in **prebuilt mode**, passing the already-compiled extension modules from the build directory:
+
+```
+cmake --build . --target pyopenms_wheel
+```
+
+Under the hood, this invokes py-build-cmake with:
+- `PYOPENMS_USE_PREBUILT=ON` — skip C++ compilation, reuse existing `.so`/`.pyd` files
+- `PYOPENMS_PREBUILT_DIR=$BUILDDIR/pyOpenMS` — path to the compiled modules
+- `NO_DEPENDENCIES=ON` — don't copy OpenMS libraries into the package (wheel repair tools handle this)
+
+The resulting wheel is written to `$BUILDDIR/pyopenms_wheels/`.
+
+#### Wheel repair: bundling shared libraries
+
+The raw wheel from `pyopenms_wheel` does **not** contain OpenMS shared libraries — it only has the
+nanobind extension modules. To create a self-contained, distributable wheel, you must run a
+platform-specific wheel repair tool that copies shared libraries into the wheel and rewrites
+library paths:
+
+| Platform | Tool | Command |
+|----------|------|---------|
+| Linux | `auditwheel` | `auditwheel repair -w repaired/ dist/pyopenms-*.whl` |
+| macOS | `delocate` | `delocate-wheel --require-archs arm64 -w repaired/ -v dist/pyopenms-*.whl` |
+| Windows | `delvewheel` | `delvewheel repair -w repaired/ dist/pyopenms-*.whl` |
+
+**macOS note:** The `-L` flag in `delocate-wheel` specifies a destination subdirectory *inside the
+wheel*, **not** a library search path. Use `--require-archs` and `-w` for the output directory.
+
+**Windows note:** You may need `--add-path` to point delvewheel at directories containing OpenMS
+DLLs, Qt DLLs, and contrib libraries.
+
+For the repair tools to find the OpenMS shared libraries, they must be discoverable via standard
+library search paths (`LD_LIBRARY_PATH`, `DYLD_LIBRARY_PATH`, system paths) or the libraries must
+be installed to a standard location. When building with `PYOPENMS_PREPARE_WHEEL_REPAIR=ON`, the
+extension modules' RPATHs are set to `$ORIGIN` so that repair tools can properly rewrite them.
+
+#### Using cibuildwheel (recommended for CI)
+
+For automated multi-platform wheel building, use [cibuildwheel](https://cibuildwheel.pypa.io/).
+The project includes a full cibuildwheel configuration in `pyproject.toml` and a CI workflow at
+`.github/workflows/pyopenms-wheels-cibuildwheel.yml`.
+
+The CI workflow follows this pattern for each platform:
+
+1. Build and install OpenMS C++ library
+2. Run cibuildwheel, which for each Python version:
+   - Creates an isolated build environment
+   - Runs py-build-cmake (which finds the installed OpenMS and compiles the nanobind modules)
+   - Runs the platform-specific wheel repair tool to bundle shared libraries
+   - Tests the repaired wheel with pytest
+
+Key cibuildwheel settings (in `pyproject.toml`):
+
+```toml
+[tool.cibuildwheel.linux]
+# Custom manylinux containers with pre-built OpenMS dependencies
+manylinux-x86_64-image = "ghcr.io/openms/contrib_manylinux_2_34:latest-amd64"
+repair-wheel-command = ["auditwheel repair -w {dest_dir} {wheel}"]
+
+[tool.cibuildwheel.macos]
+repair-wheel-command = ["delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"]
+
+[tool.cibuildwheel.windows]
+before-build = "pip install delvewheel"
+repair-wheel-command = ["delvewheel repair -w {dest_dir} {wheel}"]
+```
+
+#### Common pitfalls
+
+- **Missing `.so` files in wheel:** If `install(TARGETS)` uses `COMPONENT` incorrectly, CMake
+  silently installs nothing. The `COMPONENT` keyword must be specified per target type
+  (`LIBRARY DESTINATION ... COMPONENT python_modules`), not as a trailing keyword.
+- **macOS library paths:** Build OpenMS and wheels in the same job/environment. If OpenMS is built
+  with absolute install names and then moved, `delocate` cannot find the libraries. Use
+  `CMAKE_INSTALL_NAME_DIR` to set stable paths.
+- **nanobind domain state:** nanobind uses global state for type/enum registration across modules.
+  Never reimport pyopenms by clearing `sys.modules` — this causes "refusing to add duplicate key"
+  aborts. Tests must use the module loaded at collection time.
+- **Arrow/Parquet in standalone builds:** `WITH_PARQUET=ON` requires Arrow to be discoverable
+  independently since `OPENMS_ARROW_TARGET` is not exported in `OpenMSConfig.cmake`. The pyOpenMS
+  CMakeLists.txt handles this with its own `find_package(Arrow)` fallback.
+
 **Run tests:**
 
    ```bash
