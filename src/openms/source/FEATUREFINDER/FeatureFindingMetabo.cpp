@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <fstream>
 
 #include <boost/dynamic_bitset.hpp>
@@ -871,10 +872,15 @@ namespace OpenMS
     output_featmap.clear();
     output_chromatograms.clear();
 
-    if (input_mtraces.empty()) 
+    if (input_mtraces.empty())
     {
       return;
     }
+
+    // Detect whether the input mass traces contain ion mobility data.
+    // MassTrace uses centroid_im_ == 0.0 to denote absence of IM data.
+    has_im_data_ = std::any_of(input_mtraces.begin(), input_mtraces.end(),
+      [](const MassTrace& mt) { return mt.getCentroidIM() != 0.0; });
 
     // mass traces must be sorted by their centroid MZ
     std::sort(input_mtraces.begin(), input_mtraces.end(), CmpMassTraceByMZ());
@@ -922,7 +928,7 @@ namespace OpenMS
       std::vector<const MassTrace*> local_traces;
       double ref_trace_mz(input_mtraces[i].getCentroidMZ());
       double ref_trace_rt(input_mtraces[i].getCentroidRT());
-      double ref_trace_im(input_mtraces[i].getCentroidIM());
+      double ref_trace_im = has_im_data_ ? input_mtraces[i].getCentroidIM() : 0.0;
 
       local_traces.push_back(&input_mtraces[i]);
 
@@ -935,12 +941,20 @@ namespace OpenMS
           break;
         }
         double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
-        double diff_im = std::fabs(input_mtraces[ext_idx].getCentroidIM() - ref_trace_im);
-        if (diff_rt <= local_rt_range_ && diff_im < local_im_range_)
+        if (diff_rt > local_rt_range_)
         {
-          // std::cout << " accepted!\n";
-          local_traces.push_back(&input_mtraces[ext_idx]);
+          continue;
         }
+        if (has_im_data_)
+        {
+          double diff_im = std::fabs(input_mtraces[ext_idx].getCentroidIM() - ref_trace_im);
+          if (diff_im >= local_im_range_)
+          {
+            continue;
+          }
+        }
+        // std::cout << " accepted!\n";
+        local_traces.push_back(&input_mtraces[ext_idx]);
       }
       findLocalFeatures_(local_traces, total_intensity, feat_hypos);
     }
@@ -1051,7 +1065,7 @@ namespace OpenMS
       f.setMetaValue("masstrace_intensity", all_ints);
       f.setMetaValue("masstrace_centroid_rt", feat_hypos[hypo_idx].getAllCentroidRT());
       f.setMetaValue("masstrace_centroid_mz", feat_hypos[hypo_idx].getAllCentroidMZ());
-      f.setMetaValue("masstrace_centroid_im", feat_hypos[hypo_idx].getAllCentroidIM());
+      if (has_im_data_) f.setMetaValue("masstrace_centroid_im", feat_hypos[hypo_idx].getAllCentroidIM());
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
       f.applyMemberFunction(&UniqueIdInterface::setUniqueId);
