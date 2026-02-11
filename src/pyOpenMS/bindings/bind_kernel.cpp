@@ -2868,9 +2868,28 @@ Returns the comment (default "")
         ;
 
     // -----------------------------------------------------------------------
+    // SpectrumRanges (BaseType of SpectrumRangeManager)
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::SpectrumRangeManager::BaseType>(m, "SpectrumRanges",
+        R"doc(
+Range container for a single MS level holding m/z, intensity, RT, and mobility ranges.
+
+Returned by :meth:`SpectrumRangeManager.byMSLevel` to provide per-MS-level range queries.
+)doc")
+        .def("getMinRT", [](const OpenMS::SpectrumRangeManager::BaseType& self) { return self.getMinRT(); }, "Get the minimum RT value")
+        .def("getMaxRT", [](const OpenMS::SpectrumRangeManager::BaseType& self) { return self.getMaxRT(); }, "Get the maximum RT value")
+        .def("getMinMZ", [](const OpenMS::SpectrumRangeManager::BaseType& self) { return self.getMinMZ(); }, "Get the minimum m/z value")
+        .def("getMaxMZ", [](const OpenMS::SpectrumRangeManager::BaseType& self) { return self.getMaxMZ(); }, "Get the maximum m/z value")
+        .def("getMinIntensity", [](const OpenMS::SpectrumRangeManager::BaseType& self) { return self.getMinIntensity(); }, "Get the minimum intensity value")
+        .def("getMaxIntensity", [](const OpenMS::SpectrumRangeManager::BaseType& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
+        .def("getMinMobility", [](const OpenMS::SpectrumRangeManager::BaseType& self) { return self.getMinMobility(); }, "Get the minimum mobility value")
+        .def("getMaxMobility", [](const OpenMS::SpectrumRangeManager::BaseType& self) { return self.getMaxMobility(); }, "Get the maximum mobility value")
+        ;
+
+    // -----------------------------------------------------------------------
     // SpectrumRangeManager
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SpectrumRangeManager>(m, "SpectrumRangeManager", 
+    nb::class_<OpenMS::SpectrumRangeManager>(m, "SpectrumRangeManager",
         R"doc(
 Advanced range manager for MS spectra with separate ranges for each MS level
 This class extends the basic RangeManager to provide separate range tracking for different MS levels
@@ -2900,6 +2919,16 @@ filtering, and processing operations that need to work with specific MS levels.
         .def("getMaxIntensity", [](const OpenMS::SpectrumRangeManager& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
         .def("getMinMobility", [](const OpenMS::SpectrumRangeManager& self) { return self.getMinMobility(); }, "Get the minimum mobility value")
         .def("getMaxMobility", [](const OpenMS::SpectrumRangeManager& self) { return self.getMaxMobility(); }, "Get the maximum mobility value")
+        .def("byMSLevel", [](const OpenMS::SpectrumRangeManager& self, unsigned int ms_level) -> OpenMS::SpectrumRangeManager::BaseType { return self.byMSLevel(ms_level); },
+            "ms_level"_a,
+            R"doc(Get ranges for a specific MS level.
+
+Returns a SpectrumRanges object containing the m/z, RT, intensity, and mobility
+ranges for the specified MS level.
+
+:param ms_level: The MS level (e.g., 1 for MS1, 2 for MS2)
+:raises RuntimeError: If no ranges exist for the specified MS level
+)doc")
         ;
 
     // -----------------------------------------------------------------------
