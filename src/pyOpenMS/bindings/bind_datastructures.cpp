@@ -262,6 +262,10 @@ depending on axis labelling
             self.setHullPoints(points);
         }, "points"_a, "Sets the hull points from a numpy array of shape (N, 2)")
         .def("__hash__", [](const OpenMS::ConvexHull2D& self) { return std::hash<OpenMS::ConvexHull2D>{}(self); })
+        .def("__repr__", [](const OpenMS::ConvexHull2D& self) {
+            return "ConvexHull2D(num_points=" + std::to_string(self.getHullPoints().size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::ConvexHull2D& self) { return nb::cast(self).attr("__repr__")(); })
         ;
 
     // -----------------------------------------------------------------------
@@ -847,6 +851,91 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
         .def("setValue", [](OpenMS::Param& self, const OpenMS::String& key, const OpenMS::ParamValue& value) {
             self.setValue(key, value);
         }, "key"_a, "value"_a, "Set a value for a key")
+
+        // Dict-like API
+        .def("keys", [](const OpenMS::Param& self) {
+            nb::list result;
+            for (auto it = self.begin(); it != self.end(); ++it) {
+                result.append(nb::str(it.getName().c_str()));
+            }
+            return result;
+        }, "Return list of parameter keys as str")
+        .def("values", [](const OpenMS::Param& self) {
+            nb::list result;
+            for (auto it = self.begin(); it != self.end(); ++it) {
+                result.append(nb::cast(self.getValue(it.getName())));
+            }
+            return result;
+        }, "Return list of parameter values")
+        .def("items", [](const OpenMS::Param& self) {
+            nb::list result;
+            for (auto it = self.begin(); it != self.end(); ++it) {
+                std::string key = it.getName();
+                result.append(nb::make_tuple(nb::str(key.c_str()), nb::cast(self.getValue(key))));
+            }
+            return result;
+        }, "Return list of (key, value) tuples")
+        .def("asDict", [](const OpenMS::Param& self) {
+            nb::dict result;
+            for (auto it = self.begin(); it != self.end(); ++it) {
+                std::string key = it.getName();
+                result[nb::str(key.c_str())] = nb::cast(self.getValue(key));
+            }
+            return result;
+        }, "Return dict with str keys")
+        .def("to_dict", [](const OpenMS::Param& self) {
+            nb::dict result;
+            for (auto it = self.begin(); it != self.end(); ++it) {
+                std::string key = it.getName();
+                result[nb::str(key.c_str())] = nb::cast(self.getValue(key));
+            }
+            return result;
+        }, "Return dict with string keys")
+        .def("get", [](const OpenMS::Param& self, const std::string& key, nb::object default_val) -> nb::object {
+            if (self.exists(key)) {
+                return nb::cast(self.getValue(key));
+            }
+            return default_val;
+        }, "key"_a, "default_"_a = nb::none(), "Get a parameter value by key, returning default if not found")
+        .def("__getitem__", [](const OpenMS::Param& self, const std::string& key) {
+            if (!self.exists(key)) {
+                throw nb::key_error(key.c_str());
+            }
+            return self.getValue(key);
+        }, "key"_a, "Get a parameter value by key, raising KeyError if not found")
+        .def("__setitem__", [](OpenMS::Param& self, const std::string& key, const OpenMS::ParamValue& value) {
+            self.setValue(key, value);
+        }, "key"_a, "value"_a, "Set a parameter value by key")
+        .def("__contains__", [](const OpenMS::Param& self, const std::string& key) {
+            return self.exists(key);
+        }, "key"_a, "Check if a parameter key exists")
+        .def("update", [](OpenMS::Param& self, nb::object source, nb::object flag) {
+            // Check if source is a Param
+            try {
+                auto& param_src = nb::cast<const OpenMS::Param&>(source);
+                bool filter = !flag.is_none() && nb::cast<bool>(flag);
+                for (auto it = param_src.begin(); it != param_src.end(); ++it) {
+                    std::string key = it.getName();
+                    if (filter && !self.exists(key)) continue;
+                    self.setValue(key, param_src.getValue(key));
+                }
+            } catch (const nb::cast_error&) {
+                // Assume it's a dict
+                nb::dict d = nb::cast<nb::dict>(source);
+                for (auto [k, v] : d) {
+                    std::string key = nb::cast<std::string>(k);
+                    self.setValue(key, nb::cast<OpenMS::ParamValue>(v));
+                }
+            }
+        }, "source"_a, "flag"_a = nb::none(), "Update parameters from a Param or dict")
+        .def_static("from_dict", [](nb::dict d) {
+            OpenMS::Param p;
+            for (auto [k, v] : d) {
+                std::string key = nb::cast<std::string>(k);
+                p.setValue(key, nb::cast<OpenMS::ParamValue>(v));
+            }
+            return p;
+        }, "d"_a, "Create a Param from a dict")
         ;
 
 

@@ -7,11 +7,6 @@ from . import addon
 
 
 @addon("MSChromatogram")
-def __repr__(self) -> str:
-    return f"MSChromatogram(native_id='{self.getNativeID()}', num_peaks={len(self)})"
-
-
-@addon("MSChromatogram")
 def df_columns(self, columns='default', export_meta_values=True):
     """Returns a list of column names that to_df() would produce."""
     cols = ['rt', 'intensity', 'precursor_mz', 'precursor_charge',
@@ -136,6 +131,16 @@ def get_df(self, *args, **kwargs):
     warnings.warn("get_df() is deprecated. Use to_df() instead.",
                   DeprecationWarning, stacklevel=2)
     return self.to_df(*args, **kwargs)
+
+
+@addon("MSChromatogram")
+def get_df_columns(self, *args, **kwargs):
+    """Deprecated: Use df_columns() instead."""
+    warnings.warn(
+        "get_df_columns() is deprecated. Use df_columns() instead.",
+        DeprecationWarning, stacklevel=2
+    )
+    return self.df_columns(*args, **kwargs)
 
 
 @addon("MSChromatogram")

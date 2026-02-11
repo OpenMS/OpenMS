@@ -7,11 +7,6 @@ from . import addon
 
 
 @addon("FeatureMap")
-def __repr__(self) -> str:
-    return f"FeatureMap(num_features={len(self)})"
-
-
-@addon("FeatureMap")
 def df_columns(self, columns='default', export_peptide_identifications=True):
     """Returns a list of column names that to_df() would produce."""
     cols = ['feature_id']
@@ -129,6 +124,16 @@ def get_df(self, *args, **kwargs):
     warnings.warn("get_df() is deprecated. Use to_df() instead.",
                   DeprecationWarning, stacklevel=2)
     return self.to_df(*args, **kwargs).reset_index()
+
+
+@addon("FeatureMap")
+def get_df_columns(self, *args, **kwargs):
+    """Deprecated: Use df_columns() instead."""
+    warnings.warn(
+        "get_df_columns() is deprecated. Use df_columns() instead.",
+        DeprecationWarning, stacklevel=2
+    )
+    return self.df_columns(*args, **kwargs)
 
 
 @addon("FeatureMap")

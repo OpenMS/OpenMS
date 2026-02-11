@@ -19,20 +19,6 @@ if TYPE_CHECKING:
 
 
 @addon("MSSpectrum")
-def __repr__(self) -> str:
-    return (
-        f"MSSpectrum(n_peaks={len(self)}, "
-        f"rt={self.getRT():.2f}s, "
-        f"ms_level={self.getMSLevel()})"
-    )
-
-
-@addon("MSSpectrum")
-def __str__(self) -> str:
-    return repr(self)
-
-
-@addon("MSSpectrum")
 def df_columns(self, columns='default', export_meta_values=True):
     """Returns a list of column names that to_df() would produce."""
     cols = ['mz', 'intensity', 'rt', 'ms_level', 'native_id']
@@ -251,6 +237,39 @@ def get_df(self, *args, **kwargs):
     warnings.warn("get_df() is deprecated. Use to_df() instead.",
                   DeprecationWarning, stacklevel=2)
     return self.to_df(*args, **kwargs)
+
+
+@addon("MSSpectrum")
+def get_df_columns(self, *args, **kwargs):
+    """Deprecated: Use df_columns() instead."""
+    warnings.warn(
+        "get_df_columns() is deprecated. Use df_columns() instead.",
+        DeprecationWarning, stacklevel=2
+    )
+    return self.df_columns(*args, **kwargs)
+
+
+@addon("MSSpectrum")
+def intensityInRange(self, mz_min: float, mz_max: float) -> float:
+    """Returns the sum of intensities of all peaks within the given m/z range.
+
+    Parameters
+    ----------
+    mz_min : float
+        Minimum m/z value (inclusive)
+    mz_max : float
+        Maximum m/z value (inclusive)
+
+    Returns
+    -------
+    float
+        Sum of intensities of peaks with mz_min <= m/z <= mz_max
+    """
+    if len(self) == 0:
+        return 0.0
+    mz, intensity = self.get_peaks()
+    mask = (mz >= mz_min) & (mz <= mz_max)
+    return float(np.sum(intensity[mask]))
 
 
 @addon("MSSpectrum")

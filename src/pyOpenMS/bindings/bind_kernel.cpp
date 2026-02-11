@@ -199,6 +199,14 @@ NB_MODULE(_pyopenms_kernel, m) {
             size_t h2 = std::hash<float>{}(self.getIntensity());
             return h1 ^ (h2 << 1);
         })
+        .def("__repr__", [](const OpenMS::ChromatogramPeak& self) {
+            std::ostringstream os;
+            os << "ChromatogramPeak(rt=" << self.getRT() << ", intensity=" << self.getIntensity() << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::ChromatogramPeak& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
 
     // -----------------------------------------------------------------------
@@ -288,6 +296,12 @@ The template parameters for the base RangeManager are ordered differently than i
         .def("isInternallyConsistent", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.isInternallyConsistent(); })
         .def("chromatogramIdsMatch", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.chromatogramIdsMatch(); })
         .def("__len__", [](OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) { return self.size(); })
+        .def("__repr__", [](const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) {
+            return "MRMTransitionGroupCP(id='" + self.getTransitionGroupID() + "', size=" + std::to_string(self.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::MRMTransitionGroup<OpenMS::MSChromatogram, OpenMS::ReactionMonitoringTransition>& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
 
     // -----------------------------------------------------------------------
@@ -1386,6 +1400,12 @@ Commonly used for storing ion mobility values or other per-peak float annotation
         }, "Clear the array")
         .def("reserve", [](OpenMS::DataArrays::FloatDataArray& self, size_t n) { self.reserve(n); }, "n"_a, "Reserve memory for n elements")
         .def("getDataProcessing", [](const OpenMS::DataArrays::FloatDataArray& self) { return self.getDataProcessing(); }, "Returns the data processing objects")
+        .def("__repr__", [](const OpenMS::DataArrays::FloatDataArray& self) {
+            return "FloatDataArray(name='" + self.getName() + "', size=" + std::to_string(self.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::DataArrays::FloatDataArray& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
     def_MetaInfoInterface<OpenMS::DataArrays::FloatDataArray>(floatdataarray_class);
 
@@ -1486,6 +1506,12 @@ Used for storing per-peak integer annotations.
         }, "Clear the array")
         .def("reserve", [](OpenMS::DataArrays::IntegerDataArray& self, size_t n) { self.reserve(n); }, "n"_a, "Reserve memory for n elements")
         .def("getDataProcessing", [](const OpenMS::DataArrays::IntegerDataArray& self) { return self.getDataProcessing(); }, "Returns the data processing objects")
+        .def("__repr__", [](const OpenMS::DataArrays::IntegerDataArray& self) {
+            return "IntegerDataArray(name='" + self.getName() + "', size=" + std::to_string(self.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::DataArrays::IntegerDataArray& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
     def_MetaInfoInterface<OpenMS::DataArrays::IntegerDataArray>(integerdataarray_class);
 
@@ -1511,6 +1537,14 @@ etc) is implicit
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
         .def("__hash__", [](const OpenMS::MobilityPeak1D& self) { return std::hash<OpenMS::MobilityPeak1D>{}(self); })
+        .def("__repr__", [](const OpenMS::MobilityPeak1D& self) {
+            std::ostringstream os;
+            os << "MobilityPeak1D(mobility=" << self.getMobility() << ", intensity=" << self.getIntensity() << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::MobilityPeak1D& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
 
     // -----------------------------------------------------------------------
@@ -1678,6 +1712,14 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             }
             return max_int;
         }, "Get maximum intensity value")
+        .def("__repr__", [](const OpenMS::Mobilogram& self) {
+            std::ostringstream os;
+            os << "Mobilogram(num_peaks=" << self.size() << ", rt=" << self.getRT() << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::Mobilogram& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
 
     // -----------------------------------------------------------------------
@@ -1769,6 +1811,16 @@ If you want to annotate single peaks with meta data, use RichPeak1D instead.
             size_t h2 = std::hash<float>{}(self.getIntensity());
             return h1 ^ (h2 << 1);
         })
+        .def("__repr__", [](const OpenMS::Peak1D& self) {
+            std::ostringstream os;
+            os << std::fixed << std::setprecision(4) << "Peak1D(mz=" << self.getMZ() << ", intensity=" << std::setprecision(2) << self.getIntensity() << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::Peak1D& self) {
+            std::ostringstream os;
+            os << std::fixed << std::setprecision(4) << "(" << self.getMZ() << ", " << std::setprecision(2) << self.getIntensity() << ")";
+            return os.str();
+        })
         ;
 
     // -----------------------------------------------------------------------
@@ -1799,6 +1851,14 @@ If you want to annotated single peaks with meta data, use RichPeak2D instead
             size_t h2 = std::hash<double>{}(self.getRT());
             size_t h3 = std::hash<float>{}(self.getIntensity());
             return h1 ^ (h2 << 1) ^ (h3 << 2);
+        })
+        .def("__repr__", [](const OpenMS::Peak2D& self) {
+            std::ostringstream os;
+            os << "Peak2D(rt=" << self.getRT() << ", mz=" << self.getMZ() << ", intensity=" << self.getIntensity() << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::Peak2D& self) {
+            return nb::cast(self).attr("__repr__")();
         })
         ;
     // DimensionDescription enum nested under Peak2D
@@ -1970,6 +2030,26 @@ Adds a single protein mapping
 )doc")
         
         .def("__hash__", [](const OpenMS::PeptideHit& self) { return std::hash<OpenMS::PeptideHit>{}(self); })
+        .def("__repr__", [](const OpenMS::PeptideHit& self) {
+            std::ostringstream os;
+            os << "PeptideHit(score=" << self.getScore()
+               << ", sequence='" << self.getSequence().toString() << "'"
+               << ", charge=" << self.getCharge();
+            const auto& evs = self.getPeptideEvidences();
+            if (!evs.empty()) {
+                os << ", evidences=[";
+                for (size_t i = 0; i < evs.size(); ++i) {
+                    if (i > 0) os << ", ";
+                    os << "PeptideEvidence(accession='" << evs[i].getProteinAccession() << "')";
+                }
+                os << "]";
+            }
+            os << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::PeptideHit& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
     def_MetaInfoInterface<OpenMS::PeptideHit>(peptidehit_class);
 
@@ -2132,6 +2212,22 @@ Get the spectrum reference (native ID) for this identification.
         .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const OpenMS::IdentifierMSRunMapper& mapping, const OpenMS::String& dataset_id, bool include_interpretation) { return self.buildUSI(mapping, dataset_id, include_interpretation); }, "mapping"_a, "dataset_id"_a = "local", "include_interpretation"_a = false)
         
         .def("__hash__", [](const OpenMS::PeptideIdentification& self) { return std::hash<OpenMS::PeptideIdentification>{}(self); })
+        .def("__repr__", [](const OpenMS::PeptideIdentification& self) {
+            std::ostringstream os;
+            os << "PeptideIdentification(rt=" << self.getRT()
+               << ", mz=" << self.getMZ()
+               << ", score_type='" << self.getScoreType() << "'"
+               << ", num_hits=" << self.getHits().size();
+            const auto& hits = self.getHits();
+            if (!hits.empty()) {
+                os << ", top_hit='" << hits[0].getSequence().toString() << "'";
+            }
+            os << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::PeptideIdentification& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
     def_MetaInfoInterface<OpenMS::PeptideIdentification>(peptideidentification_class);
 
@@ -2381,6 +2477,16 @@ Sets the sequence coverage percentage
 )doc")
         
         .def("__hash__", [](const OpenMS::ProteinHit& self) { return std::hash<OpenMS::ProteinHit>{}(self); })
+        .def("__repr__", [](const OpenMS::ProteinHit& self) {
+            std::ostringstream os;
+            os << "ProteinHit(accession='" << self.getAccession() << "'"
+               << ", score=" << self.getScore()
+               << ", coverage=" << self.getCoverage() << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::ProteinHit& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
 
     // -----------------------------------------------------------------------
@@ -3035,6 +3141,12 @@ Commonly used for storing ion annotation names or other per-peak string annotati
             self.clear();
         }, "Clear the array")
         .def("getDataProcessing", [](const OpenMS::DataArrays::StringDataArray& self) { return self.getDataProcessing(); }, "Returns the data processing steps")
+        .def("__repr__", [](const OpenMS::DataArrays::StringDataArray& self) {
+            return "StringDataArray(name='" + self.getName() + "', size=" + std::to_string(self.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::DataArrays::StringDataArray& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
     def_MetaInfoInterface<OpenMS::DataArrays::StringDataArray>(stringdataarray_class);
 
@@ -3203,6 +3315,12 @@ This class supports direct iteration in Python.
             self.setUniqueId();
             self.applyMemberFunction(&OpenMS::UniqueIdInterface::setUniqueId);
         }, "Sets unique IDs on the map and all its child consensus features")
+        .def("__repr__", [](const OpenMS::ConsensusMap& self) {
+            return "ConsensusMap(num_consensus_features=" + std::to_string(self.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::ConsensusMap& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
     def_MetaInfoInterface<OpenMS::ConsensusMap>(consensusmap_class);
     def_DocumentIdentifier<OpenMS::ConsensusMap>(consensusmap_class);
@@ -3396,6 +3514,12 @@ After calling this, the map will be empty (size() returns 0)
             self.setUniqueId();
             self.applyMemberFunction(&OpenMS::UniqueIdInterface::setUniqueId);
         }, "Sets unique IDs on the map and all its child features")
+        .def("__repr__", [](const OpenMS::FeatureMap& self) {
+            return "FeatureMap(num_features=" + std::to_string(self.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::FeatureMap& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
     def_MetaInfoInterface<OpenMS::FeatureMap>(featuremap_class);
     def_DocumentIdentifier<OpenMS::FeatureMap>(featuremap_class);
@@ -3529,6 +3653,16 @@ Get access to the underlying features through getFeatureList()
         .def("computeDechargeConsensus", [](OpenMS::ConsensusFeature& self, const OpenMS::FeatureMap& fm, bool intensity_weighted_averaging) { return self.computeDechargeConsensus(fm, intensity_weighted_averaging); }, "fm"_a, "intensity_weighted_averaging"_a = false, "Computes and updates the consensus position, intensity, and charge using decharge grouping")
 
         .def("__len__", [](OpenMS::ConsensusFeature& self) { return self.size(); })
+        .def("__repr__", [](const OpenMS::ConsensusFeature& self) {
+            std::ostringstream os;
+            os << "ConsensusFeature(rt=" << self.getRT() << ", mz=" << self.getMZ()
+               << ", intensity=" << self.getIntensity() << ", charge=" << self.getCharge()
+               << ", num_features=" << self.size() << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::ConsensusFeature& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
 
     // -----------------------------------------------------------------------
@@ -3670,6 +3804,16 @@ Returns the annotation state of the feature
         
         .def("__copy__", [](const OpenMS::Feature& self) { return OpenMS::Feature(self); })
         .def("__deepcopy__", [](const OpenMS::Feature& self, nb::dict) { return OpenMS::Feature(self); }, "memo"_a)
+        .def("__repr__", [](const OpenMS::Feature& self) {
+            std::ostringstream os;
+            os << "Feature(rt=" << self.getRT() << ", mz=" << self.getMZ()
+               << ", intensity=" << self.getIntensity() << ", charge=" << self.getCharge()
+               << ", quality=" << self.getOverallQuality() << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::Feature& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
 
 
@@ -3720,6 +3864,18 @@ Returns the annotation state of the feature
         })
         .def("__eq__", [](const OpenMS::MRMFeature& a, const OpenMS::MRMFeature& b) { return a == b; })
         .def("__ne__", [](const OpenMS::MRMFeature& a, const OpenMS::MRMFeature& b) { return a != b; })
+        .def("__repr__", [](const OpenMS::MRMFeature& self) {
+            std::ostringstream os;
+            std::vector<OpenMS::String> ids;
+            const_cast<OpenMS::MRMFeature&>(self).getFeatureIDs(ids);
+            os << "MRMFeature(rt=" << self.getRT() << ", mz=" << self.getMZ()
+               << ", intensity=" << self.getIntensity() << ", charge=" << self.getCharge()
+               << ", num_transitions=" << ids.size() << ")";
+            return os.str();
+        })
+        .def("__str__", [](const OpenMS::MRMFeature& self) {
+            return nb::cast(self).attr("__repr__")();
+        })
         ;
 
     // -----------------------------------------------------------------------
