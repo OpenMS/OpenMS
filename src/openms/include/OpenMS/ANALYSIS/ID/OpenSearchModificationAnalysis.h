@@ -271,6 +271,13 @@ namespace OpenMS
 
   private:
 
+    /// Maximum tolerance (Da) for matching delta masses to known modification masses.
+    /// Prevents overly broad matching when the precursor tolerance is large (e.g. open search).
+    static constexpr double MAX_MOD_MAPPING_TOL_ = 0.02; // Da
+
+    /// Delta masses within this threshold of zero are considered unmodified.
+    static constexpr double DELTA_MASS_ZERO_THRESHOLD_ = 0.05; // Da
+
     /// Gaussian function for smoothing
     static double gaussian_(double x, double sigma);
 

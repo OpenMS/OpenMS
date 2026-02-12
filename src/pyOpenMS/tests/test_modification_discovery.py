@@ -88,6 +88,7 @@ TEST_MODIFICATIONS = [
     ("HexNAc (S)",              203.0794),
     ("Acetyl (Protein N-term)",  42.0106),
     ("Formyl (Protein N-term)",  27.9949),
+    ("Unknown (artificial)",    123.4560),  # artificial mass not matching any known modification
 ]
 
 
@@ -246,6 +247,17 @@ def test_synthetic_modification_discovery():
                 break
         assert found, f"Missing delta mass bin for {label} (~{expected_mass} Da)"
         assert count >= 50, f"Low count for {label}: {count}"
+
+    # 6. Verify that the artificial unknown modification (123.456 Da) is present
+    #    in the delta mass histogram but NOT mapped to a known modification.
+    found_unknown = False
+    for e in dm_entries:
+        if abs(e.delta_mass - 123.456) < 0.05:
+            found_unknown = True
+            assert e.count >= 50, f"Low count for unknown mod: {e.count}"
+            assert not e.is_known_modification, "Unknown mod should not be mapped as known"
+            break
+    assert found_unknown, "Missing delta mass bin for artificial unknown modification (~123.456 Da)"
 
 
 def test_closed_search_baseline():

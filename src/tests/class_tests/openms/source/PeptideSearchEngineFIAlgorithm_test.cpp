@@ -79,6 +79,7 @@ START_SECTION(([EXTRA] Synthetic modification discovery - open search))
     {"HexNAc (S)",              203.0794},
     {"Acetyl (Protein N-term)",  42.0106},
     {"Formyl (Protein N-term)",  27.9949},
+    {"Unknown (artificial)",    123.4560},  // artificial mass not matching any known modification
   };
 
   // =========================================================================
@@ -338,6 +339,29 @@ START_SECTION(([EXTRA] Synthetic modification discovery - open search))
       TEST_TRUE(count >= 100)
     }
     TEST_EQUAL(found, true)
+  }
+
+  // ===================================================================
+  // Verify that the artificial unknown modification (123.456 Da) is
+  // present in the delta mass histogram but NOT mapped to a known mod.
+  // ===================================================================
+  {
+    bool found_unknown_bin = false;
+    for (const auto& dm : dm_entries)
+    {
+      if (fabs(dm.delta_mass - 123.456) < 0.05)
+      {
+        found_unknown_bin = true;
+        OPENMS_LOG_INFO << "[TEST] Unknown delta mass bin at " << dm.delta_mass
+                        << ": count=" << dm.count
+                        << " mapped='" << dm.mapped_modification << "'"
+                        << " is_known=" << dm.is_known_modification << std::endl;
+        TEST_TRUE(dm.count >= 50)
+        TEST_EQUAL(dm.is_known_modification, false)
+        break;
+      }
+    }
+    TEST_EQUAL(found_unknown_bin, true)
   }
 }
 END_SECTION

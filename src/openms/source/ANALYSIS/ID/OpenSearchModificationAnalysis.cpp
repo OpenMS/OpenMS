@@ -31,7 +31,6 @@ namespace OpenMS
   {
     // Constants
     constexpr double deltamass_tolerance = 0.0005;
-    constexpr double delta_mass_zero_threshold = 0.05;
 
     // Lambda to round values to the specified tolerance
     auto roundToTolerance = [](double value) {
@@ -57,7 +56,7 @@ namespace OpenMS
         int charge = hit.getCharge();
 
         // Ignore delta masses close to zero
-        if (std::abs(delta_mass) <= delta_mass_zero_threshold)
+        if (std::abs(delta_mass) <= DELTA_MASS_ZERO_THRESHOLD_)
           continue;
 
         // Round delta mass to bin similar values
@@ -101,8 +100,8 @@ namespace OpenMS
   OpenSearchModificationAnalysis::mapDeltaMassesToModifications(const DeltaMassHistogram& delta_mass_histogram,
                                                                const DeltaMassToChargeCount& charge_histogram,
                                                                PeptideIdentificationList& peptide_ids,
-                                                               double /* precursor_mass_tolerance */,
-                                                               bool /* precursor_mass_tolerance_unit_ppm */,
+                                                               double precursor_mass_tolerance,
+                                                               bool precursor_mass_tolerance_unit_ppm,
                                                                const String& output_file) const
   {
     std::map<double, String, FuzzyDoubleComparator> mass_to_modification(FuzzyDoubleComparator(1e-9));
@@ -154,20 +153,23 @@ namespace OpenMS
       }
     };
 
+    // Compute effective tolerance for matching delta masses to known modifications.
+    // Cap at MAX_MOD_MAPPING_TOL_ to prevent overly broad matching in open search
+    // (where precursor tolerance can be e.g. 500 Da).
+    // For ppm mode, use the cap directly (ppm→Da requires a per-mass reference
+    // which is not meaningful for a single tolerance value).
+    const double effective_tol = precursor_mass_tolerance_unit_ppm
+      ? MAX_MOD_MAPPING_TOL_
+      : std::min(precursor_mass_tolerance, MAX_MOD_MAPPING_TOL_);
+    const double epsilon = 1e-8;
+
     // Map delta masses to modifications
     for (const auto& hist_entry : delta_mass_histogram)
     {
       double cluster_mass = hist_entry.first;
       double count = hist_entry.second;
-      
-      // Use a narrow fixed tolerance for matching delta masses to known modifications.
-      // The precursor_mass_tolerance can be very large in open search (e.g. 500 Da)
-      // and must NOT be used for modification mass lookup.
-      constexpr double mod_mapping_tol = 0.02; // Da
-      constexpr double cluster_assign_tol = 0.5; // Da, for assigning nearby bins to known mods
-      const double epsilon = 1e-8;
-      double lower_bound = cluster_mass - mod_mapping_tol;
-      double upper_bound = cluster_mass + mod_mapping_tol;
+      double lower_bound = cluster_mass - effective_tol;
+      double upper_bound = cluster_mass + effective_tol;
 
       // Search for modifications within bounds
       bool mapping_found = false;
@@ -178,7 +180,7 @@ namespace OpenMS
       auto it_lower = mass_to_modification.lower_bound(lower_bound - epsilon);
       bool found_lower = false;
       if (it_lower != mass_to_modification.end() &&
-          std::abs(it_lower->first - cluster_mass) <= mod_mapping_tol)
+          std::abs(it_lower->first - cluster_mass) <= effective_tol)
       {
         found_lower = true;
       }
@@ -188,7 +190,7 @@ namespace OpenMS
       if (it_upper != mass_to_modification.begin())
       {
         --it_upper;
-        if (std::abs(it_upper->first - cluster_mass) <= mod_mapping_tol)
+        if (std::abs(it_upper->first - cluster_mass) <= effective_tol)
         {
           found_upper = true;
         }
@@ -218,14 +220,14 @@ namespace OpenMS
         // Check if modification can be explained by known modifications
         for (const auto& hit : histogram_found)
         {
-          if (std::abs(hit.first - cluster_mass) < cluster_assign_tol)
+          if (std::abs(hit.first - cluster_mass) < effective_tol)
           {
             addOrUpdateModification(hit.second, hit.first, count, charge_histogram.at(cluster_mass));
             mapping_found = true;
             break;
           }
           // Check if modification can be explained by a +1 isotope variant
-          else if (std::abs((hit.first + 1.0) - cluster_mass) < cluster_assign_tol)
+          else if (std::abs((hit.first + 1.0) - cluster_mass) < effective_tol)
           {
             String temp_mod_name = hit.second + "+1Da";
             addOrUpdateModification(temp_mod_name, hit.first + 1.0, count, charge_histogram.at(cluster_mass));
@@ -240,7 +242,7 @@ namespace OpenMS
         {
           auto it = combo_modifications.lower_bound(cluster_mass - epsilon);
           if (it != combo_modifications.end() && 
-              std::abs(it->first - cluster_mass) <= mod_mapping_tol)
+              std::abs(it->first - cluster_mass) <= effective_tol)
           {
             mod_name = it->second;
             mod_mass = it->first;
@@ -249,16 +251,16 @@ namespace OpenMS
         }
       }
 
-      if (std::abs(mod_mass) < 0.05)
-        continue; // Skip if closest mod_mass is too close to 0
-
       if (mapping_found)
       {
+        // Skip if the matched modification mass is near zero (unmodified)
+        if (std::abs(mod_mass) < DELTA_MASS_ZERO_THRESHOLD_)
+          continue;
         addOrUpdateModification(mod_name, mod_mass, count, charge_histogram.at(cluster_mass));
       }
       else
       {
-        // Unknown modification
+        // Unknown modification (cluster_mass is already filtered for near-zero in analyzeDeltaMassPatterns)
         String unknown_mod_name = "Unknown" + String(std::round(cluster_mass));
         addOrUpdateModification(unknown_mod_name, cluster_mass, count, charge_histogram.at(cluster_mass));
       }
@@ -298,7 +300,7 @@ namespace OpenMS
         String ptm = "";
 
         // Check if too close to zero
-        if (std::abs(delta_mass) < 0.05)
+        if (std::abs(delta_mass) < DELTA_MASS_ZERO_THRESHOLD_)
         {
           hit.setMetaValue("PTM", ptm);
           continue;
@@ -308,7 +310,7 @@ namespace OpenMS
         // Check with error tolerance if already present in histogram
         for (const auto& entry : histogram_found)
         {
-          if (std::abs(delta_mass - entry.first) < 0.5)
+          if (std::abs(delta_mass - entry.first) < effective_tol)
           {
             ptm = entry.second;
             found = true;
@@ -561,8 +563,12 @@ namespace OpenMS
                                                               bool precursor_mass_tolerance_unit_ppm) const
   {
     DeltaMassStatistics stats;
-    constexpr double delta_mass_zero_threshold = 0.05;
     constexpr double min_mass_for_ppm = 0.1; // Minimum mass to avoid division issues with ppm
+
+    // Effective tolerance for modification mass matching (capped for open search)
+    const double mod_tol = precursor_mass_tolerance_unit_ppm
+      ? MAX_MOD_MAPPING_TOL_
+      : std::min(precursor_mass_tolerance, MAX_MOD_MAPPING_TOL_);
 
     // Build modification lookup
     auto mod_lookup = buildModificationMassLookup_();
@@ -576,7 +582,7 @@ namespace OpenMS
         if (hit.metaValueExists("DeltaMass"))
         {
           double delta_mass = hit.getMetaValue("DeltaMass");
-          if (std::abs(delta_mass) <= delta_mass_zero_threshold)
+          if (std::abs(delta_mass) <= DELTA_MASS_ZERO_THRESHOLD_)
           {
             stats.unmodified_psms++;
           }
@@ -625,13 +631,10 @@ namespace OpenMS
       // Count unique peptides
       entry.unique_peptides = countUniquePeptides_(peptide_ids, delta_mass, tolerance_da);
 
-      // Try to map to known modification using a narrow fixed tolerance.
-      // The precursor_mass_tolerance can be very large in open search mode
-      // and must not be used for modification mass matching.
-      constexpr double mod_mapping_tol = 0.02; // Da
+      // Try to map to known modification
       for (const auto& [mod_mass, mod_name] : mod_lookup)
       {
-        if (std::abs(mod_mass - delta_mass) <= mod_mapping_tol)
+        if (std::abs(mod_mass - delta_mass) <= mod_tol)
         {
           entry.mapped_modification = mod_name;
           entry.is_known_modification = true;
