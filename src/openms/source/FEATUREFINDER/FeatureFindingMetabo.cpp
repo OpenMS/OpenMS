@@ -946,7 +946,7 @@ namespace OpenMS
         if (has_im_data_)
         {
           double diff_im = std::fabs(input_mtraces[ext_idx].getCentroidIM() - input_mtraces[i].getCentroidIM());
-          if (diff_im >= local_im_range_)
+          if (diff_im > local_im_range_)
           {
             continue;
           }
