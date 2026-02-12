@@ -939,20 +939,11 @@ namespace OpenMS
           break;
         }
         double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
-        if (diff_rt > local_rt_range_)
+        if (diff_rt <= local_rt_range_
+            && (!has_im_data_ || std::fabs(input_mtraces[ext_idx].getCentroidIM() - input_mtraces[i].getCentroidIM()) <= local_im_range_))
         {
-          continue;
+          local_traces.push_back(&input_mtraces[ext_idx]);
         }
-        if (has_im_data_)
-        {
-          double diff_im = std::fabs(input_mtraces[ext_idx].getCentroidIM() - input_mtraces[i].getCentroidIM());
-          if (diff_im > local_im_range_)
-          {
-            continue;
-          }
-        }
-        // std::cout << " accepted!\n";
-        local_traces.push_back(&input_mtraces[ext_idx]);
       }
       findLocalFeatures_(local_traces, total_intensity, feat_hypos);
     }
