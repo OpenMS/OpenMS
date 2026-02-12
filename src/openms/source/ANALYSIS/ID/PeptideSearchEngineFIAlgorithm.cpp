@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <map>
+#include <sstream>
 
 #ifdef _OPENMP
   #include <omp.h>
@@ -813,12 +814,13 @@ if (!pi.getHits().empty())
           String name = ptm.name;
           if (name.size() > 30) name = name.substr(0, 27) + "...";
 
-          OPENMS_LOG_INFO << "  " << std::setw(4) << rank++ << " | "
-                          << std::setw(31) << std::left << name << " | "
-                          << std::setw(5) << std::right << ptm.count << " | "
-                          << std::setw(5) << std::fixed << std::setprecision(1) << ptm.percentage << " | "
-                          << std::setw(9) << std::fixed << std::setprecision(4) << ptm.theoretical_mass
-                          << std::endl;
+          std::ostringstream oss;
+          oss << "  " << std::setw(4) << rank++ << " | "
+              << std::setw(31) << std::left << name << " | "
+              << std::setw(5) << std::right << ptm.count << " | "
+              << std::setw(5) << std::fixed << std::setprecision(1) << ptm.percentage << " | "
+              << std::setw(9) << std::fixed << std::setprecision(4) << ptm.theoretical_mass;
+          OPENMS_LOG_INFO << oss.str() << std::endl;
         }
         OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
       }
@@ -844,11 +846,12 @@ if (!pi.getHits().empty())
         for (const auto& dm : unknown_dm)
         {
           if (rank > 10) break;
-          OPENMS_LOG_INFO << "  " << std::setw(4) << rank++ << " | "
-                          << std::setw(15) << std::fixed << std::setprecision(4) << dm.delta_mass << " | "
-                          << std::setw(5) << dm.count << " | "
-                          << std::setw(15) << dm.unique_peptides
-                          << std::endl;
+          std::ostringstream oss;
+          oss << "  " << std::setw(4) << rank++ << " | "
+              << std::setw(15) << std::fixed << std::setprecision(4) << dm.delta_mass << " | "
+              << std::setw(5) << dm.count << " | "
+              << std::setw(15) << dm.unique_peptides;
+          OPENMS_LOG_INFO << oss.str() << std::endl;
         }
         OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
       }

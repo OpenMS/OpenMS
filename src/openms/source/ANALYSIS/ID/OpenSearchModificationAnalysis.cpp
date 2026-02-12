@@ -695,6 +695,7 @@ namespace OpenMS
     // Map to collect PTM data
     std::map<String, PTMEntry> ptm_map;
     std::map<String, std::unordered_set<std::string>> ptm_unique_peptides;
+    std::map<String, std::unordered_set<int>> ptm_unique_charges;
 
     // Build modification lookup for theoretical masses
     auto mod_lookup = buildModificationMassLookup_();
@@ -755,8 +756,8 @@ namespace OpenMS
           entry.unique_peptides++;
         }
 
-        // Track charge states (simplified - just count hits with different charges)
-        // Note: This is approximate since we don't track unique charges per PTM in this version
+        // Track unique charge states per PTM
+        ptm_unique_charges[ptm_name].insert(hit.getCharge());
 
         // Analyze observed mass and residue frequency if available
         if (hit.metaValueExists("DeltaMass"))
@@ -779,6 +780,9 @@ namespace OpenMS
     // Convert map to vector and calculate derived statistics
     for (auto& [name, entry] : ptm_map)
     {
+      // Set charge state count from tracked unique charges
+      entry.num_charge_states = static_cast<int>(ptm_unique_charges[name].size());
+
       // Calculate mass deviation
       if (entry.theoretical_mass != 0.0)
       {
@@ -917,7 +921,7 @@ namespace OpenMS
   std::map<double, String, OpenSearchModificationAnalysis::FuzzyDoubleComparator>
   OpenSearchModificationAnalysis::buildModificationMassLookup_() const
   {
-    std::map<double, String, FuzzyDoubleComparator> mass_to_mod(FuzzyDoubleComparator(1e-6));
+    std::map<double, String, FuzzyDoubleComparator> mass_to_mod; // uses default epsilon (1e-9)
 
     std::vector<String> modification_names;
     ModificationsDB* mod_db = ModificationsDB::getInstance();
@@ -941,46 +945,87 @@ namespace OpenMS
 
   String OpenSearchModificationAnalysis::getTargetResidues_(const String& mod_name) const
   {
-    String result;
-
-    try
+    // Split compound names (e.g. "Oxidation//Deamidated" or "Oxidation+1Da") and resolve each part
+    std::vector<String> parts;
+    if (mod_name.find("//") != std::string::npos)
     {
-      ModificationsDB* mod_db = ModificationsDB::getInstance();
-      const ResidueModification* mod = mod_db->getModification(mod_name);
-
-      if (mod != nullptr)
+      mod_name.split("//", parts);
+    }
+    else
+    {
+      // Strip isotope suffixes like "+1Da", "+2Da" etc.
+      String base_name = mod_name;
+      auto pos = mod_name.find("+");
+      if (pos != std::string::npos && pos > 0)
       {
-        String origin = mod->getOrigin();
-        if (!origin.empty() && origin != "X")
+        String suffix = mod_name.substr(pos);
+        if (suffix.hasSuffix("Da"))
         {
-          result = origin;
-        }
-
-        // Also check term specificity
-        auto term_spec = mod->getTermSpecificity();
-        if (term_spec == ResidueModification::N_TERM)
-        {
-          result = "N-term" + (result.empty() ? "" : "(" + result + ")");
-        }
-        else if (term_spec == ResidueModification::C_TERM)
-        {
-          result = "C-term" + (result.empty() ? "" : "(" + result + ")");
-        }
-        else if (term_spec == ResidueModification::PROTEIN_N_TERM)
-        {
-          result = "Protein N-term" + (result.empty() ? "" : "(" + result + ")");
-        }
-        else if (term_spec == ResidueModification::PROTEIN_C_TERM)
-        {
-          result = "Protein C-term" + (result.empty() ? "" : "(" + result + ")");
+          base_name = mod_name.substr(0, pos);
         }
       }
-    }
-    catch (const Exception::BaseException&)
-    {
-      // Modification not found in database
+      parts.push_back(base_name);
     }
 
+    std::vector<String> residues;
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+
+    for (const auto& part : parts)
+    {
+      String trimmed = part;
+      trimmed.trim();
+      if (trimmed.empty()) continue;
+
+      try
+      {
+        const ResidueModification* mod = mod_db->getModification(trimmed);
+        if (mod != nullptr)
+        {
+          String result;
+          String origin = mod->getOrigin();
+          if (!origin.empty() && origin != "X")
+          {
+            result = origin;
+          }
+
+          auto term_spec = mod->getTermSpecificity();
+          if (term_spec == ResidueModification::N_TERM)
+          {
+            result = "N-term" + (result.empty() ? "" : "(" + result + ")");
+          }
+          else if (term_spec == ResidueModification::C_TERM)
+          {
+            result = "C-term" + (result.empty() ? "" : "(" + result + ")");
+          }
+          else if (term_spec == ResidueModification::PROTEIN_N_TERM)
+          {
+            result = "Protein N-term" + (result.empty() ? "" : "(" + result + ")");
+          }
+          else if (term_spec == ResidueModification::PROTEIN_C_TERM)
+          {
+            result = "Protein C-term" + (result.empty() ? "" : "(" + result + ")");
+          }
+
+          if (!result.empty())
+          {
+            residues.push_back(result);
+          }
+        }
+      }
+      catch (const Exception::BaseException&)
+      {
+        OPENMS_LOG_WARN << "Could not resolve target residues for modification: " << trimmed
+                        << " (from compound name: " << mod_name << ")" << std::endl;
+      }
+    }
+
+    // Join results from multiple parts
+    String result;
+    for (size_t i = 0; i < residues.size(); ++i)
+    {
+      if (i > 0) result += ",";
+      result += residues[i];
+    }
     return result;
   }
 
