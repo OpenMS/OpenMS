@@ -13,6 +13,8 @@
 #include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
 ///////////////////////////
 
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
@@ -21,6 +23,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <random>
 #include <set>
@@ -363,6 +366,265 @@ START_SECTION(([EXTRA] Synthetic modification discovery - open search))
     }
     TEST_EQUAL(found_unknown_bin, true)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] FDR-filtered modification discovery))
+{
+  // =========================================================================
+  // Same synthetic data as the open search test, but with FDR filtering
+  // before modification analysis. Demonstrates the workflow:
+  //   1. Search with decoys
+  //   2. Compute q-values via FalseDiscoveryRate
+  //   3. Filter by FDR threshold
+  //   4. Remove decoy hits
+  //   5. Run modification analysis on filtered results
+  // =========================================================================
+
+  struct ModDef
+  {
+    string name;
+    double mass;
+  };
+
+  vector<ModDef> test_mods = {
+    {"Oxidation (M)",            15.9949},
+    {"Phospho (S)",              79.9663},
+    {"Phospho (T)",              79.9663},
+    {"Acetyl (K)",               42.0106},
+    {"Deamidated (N)",            0.9840},
+    {"Methyl (R)",               14.0157},
+    {"Dimethyl (K)",             28.0314},
+    {"Carbamyl (K)",             43.0058},
+    {"Dioxidation (M)",          31.9898},
+    {"HexNAc (S)",              203.0794},
+    {"Acetyl (Protein N-term)",  42.0106},
+    {"Formyl (Protein N-term)",  27.9949},
+    {"Unknown (artificial)",    123.4560},
+  };
+
+  // Reuse the same protein database
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Protein01",
+     "MSDEREKVLGFHQRMPNASTICYWDLKEGFVRTHQPSANLDIKCMYKWTE"
+     "RHASGDFLKPIVEQNCTMYRGWSADELKHPFNQGTICMSYREWDAVLKPH"
+     "GITNSEYRQWDLKAPMFHCVSITGNREYWDKLMPAHFQCSTVINEYRWDLK"
+     "APMHSCFTGQNVIREYWDKLMSPAHCFQNTSGIVREYWDKLHMPASCFQGN"},
+    {"P02", "Protein02",
+     "MKAILNHVGSTFREDWQCPYLKMISGDTFNHRVAWQECPLKYMTGISNHFR"
+     "DVEWAQCPLKTMIYGSNHFRDVEWAQCPKLIMTGSYNHFRDVEWAQCKPLIM"
+     "TGSYHFNRDVEWAQCPKLITMGSYHFNRDVEWAQCPKLITMGSYHNFRDVEW"
+     "AQCPKLITMGSYHFNRDVEWAQCPKLITMGSYHFNRDVEWAQCPKLITMGSY"},
+    {"P03", "Protein03",
+     "MGHYIKLTPNRESWDVAFQCKMHGYILKTPNRESWDVAFQCKMHGLIYTKP"
+     "NRESWDVAFQCKHMGIYLTKPNRESWDVAFQCKMHGIYLKTNPRESWDVAFQ"
+     "CKMHGYLIKTPNRESWDVAFQCKMHGIYLTKPNRESWDVAFQCKMHGIYLTK"
+     "PNRESWDVAFQCKMHGIYLTKPNRESWDVAFQCKMHGIYLTKPNRESWDVAF"},
+    {"P04", "Protein04",
+     "MSVDNKTHFRGECAWYPILQMSDKTNHFRGEVAWCYQPILKMSDETKNHFRG"
+     "VAWCEQYPILKMSDTKENHFRGVAWCEYQPILKMSDETKHNFRGVACWEYQPI"
+     "LKMSDETKNHFRGVAWCEYQPILKMSDETKNHFRGVAWCEYQPILKMSDETNK"
+     "HFRGVAWCEYQPILKMSDETKNHFRGVAWCEYQPILKMSDETKNHFRGVAWCE"},
+    {"P05", "Protein05",
+     "MAKLFGYNRSTECWDIPHQVMKALYFGNRSTWECDIPHQVKMALGFYNRSTWE"
+     "CDIPHQVKMALFGYNRSTEWCDIPHQVKMAFGLYNRSTWECDIPHQVKMALFY"
+     "GNRSTEWCDIPHQVKMALFGYNRSTEWCDIPHQVKMALFGYNRSTEWCDIPHQ"
+     "VKMALFGYNRSTEWCDIPHQVKMALFGYNRSTEWCDIPHQVKMALFGYNRSTE"},
+    {"P06", "Protein06",
+     "MTGYLSKFHERNDICWPAQVMTGLYSKHFERNDICWPAQVMTGLYSKFHRNDE"
+     "ICWPAQVKMTGYLSKFHERNDICWPAQVKMTGLYSKHFERNDICWPAQVKMTG"
+     "LYKSFHERNDICWPAQVKMTGLYSKHFERNDICWPAQVKMTGLYSKFHERNDIC"
+     "WPAQVKMTGLYSKFHERNDICWPAQVKMTGLYSKFHERNDICWPAQVKMTGLY"},
+    {"P07", "Protein07",
+     "MDIKHWNRSYPLCTGEFAQVKMDIHKWNRSYPLCTGFAEQVKMDIKHWNRSYP"
+     "LCTGFEAQVKMDIHKWNRSYPLCTGEFAQVKMDIKHWNRSYPLCTGFEAQVKM"
+     "DIHKWNRSYPLCTGEFAQVKMDIHKWNRSYPLCTGFEAQVKMDIHKWNRSYPL"
+     "CTGFEAQVKMDIHKWNRSYPLCTGFEAQVKMDIHKWNRSYPLCTGFEAQVKMD"},
+    {"P08", "Protein08",
+     "MEYKFADLHGSNTCRWQPIVKMEYFKADLHGSNTCRWQPVIKMEYFKADLHGS"
+     "NTCRWQPIVKMEYFKADLHGSNTRWCQPIVKMEYFDKALGHSNTRWCQPIVKM"
+     "EYFKADLGHSNTCRWQPIVKMEYFKADLHGSNTCRWQPIVKMEYFKADLHGSN"
+     "TCRWQPIVKMEYFKADLHGSNTCRWQPIVKMEYFKADLHGSNTCRWQPIVKME"},
+    {"P09", "Protein09",
+     "MQHWVDESYRFTNGPILCKAMQHWVDESYRTFNGPILCKAMQHWVEDYSRTFNG"
+     "PILCKAMQHWVEDYSRFTNGPILCKAMQHWVEDYSRFTNGPILCKAMQHWVEDY"
+     "SRFTNGPILCKAMQHWVEDYSRFTNGPILCKAMQHWVEDYSRFTNGPILCKAMQ"
+     "HWVEDYSRFTNGPILCKAMQHWVEDYSRFTNGPILCKAMQHWVEDYSRFTNGPI"},
+    {"P10", "Protein10",
+     "MTEFLNQGDKSYCRHWPIVAMTEFNLQGDKSYCRHWPIVAMTEFLNQGDKSYCR"
+     "HWPIVAMTEFLNQGDKSYCHRRWPIVAMTEFLNQGDKSYCRHWPIVAMTEFLNQ"
+     "GDKSYCRHWPIVAMTEFLNQGDKSYCRHWPIVAMTEFLNQGDKSYCRHWPIVAM"
+     "TEFLNQGDKSYCRHWPIVAMTEFLNQGDKSYCRHWPIVAMTEFLNQGDKSYCR"},
+  };
+
+  // Digest proteins
+  ProteaseDigestion digester;
+  digester.setEnzyme("Trypsin");
+  digester.setMissedCleavages(1);
+
+  ModifiedPeptideGenerator::MapToResidueType fixed_mods =
+    ModifiedPeptideGenerator::getModifications({"Carbamidomethyl (C)"});
+
+  vector<AASequence> all_peptides;
+  for (const auto& entry : fasta_db)
+  {
+    AASequence protein = AASequence::fromString(entry.sequence);
+    vector<AASequence> peptides;
+    digester.digest(protein, peptides, 7, 40);
+    for (auto& pep : peptides)
+    {
+      ModifiedPeptideGenerator::applyFixedModifications(fixed_mods, pep);
+      all_peptides.push_back(std::move(pep));
+    }
+  }
+  TEST_TRUE(all_peptides.size() > 50)
+
+  // Generate spectra with shifted precursors
+  mt19937 rng(42);
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg_param.setValue("add_metainfo", "true");
+  tsg.setParameters(tsg_param);
+
+  PeakMap spectra;
+  double rt = 100.0;
+  const Size target_per_mod = 400;
+
+  for (const auto& mod_def : test_mods)
+  {
+    vector<size_t> indices(all_peptides.size());
+    iota(indices.begin(), indices.end(), 0);
+    shuffle(indices.begin(), indices.end(), rng);
+
+    Size created = 0;
+    for (size_t idx : indices)
+    {
+      if (created >= target_per_mod) break;
+      const AASequence& pep = all_peptides[idx];
+      if (pep.size() < 8) continue;
+
+      int charge = 2 + (int)(rng() % 3);
+      MSSpectrum spec;
+      tsg.getSpectrum(spec, pep, 1, min(charge - 1, 2));
+      spec.sortByPosition();
+      if (spec.size() < 10) continue;
+
+      spec.setMSLevel(2);
+      spec.setRT(rt);
+      rt += 0.1;
+
+      double unmod_mz = pep.getMZ(charge);
+      double shifted_mz = unmod_mz + mod_def.mass / (double)charge;
+
+      Precursor prec;
+      prec.setMZ(shifted_mz);
+      prec.setCharge(charge);
+      spec.setPrecursors({prec});
+      spec.setNativeID("spectrum=" + String(spectra.size()));
+
+      spectra.addSpectrum(std::move(spec));
+      created++;
+    }
+  }
+  TEST_TRUE(spectra.size() > 2000)
+
+  // =========================================================================
+  // Step 1: Search with decoys enabled
+  // =========================================================================
+  PeptideSearchEngineFIAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string>{});
+  p.setValue("decoys", "true");  // Enable decoys for FDR
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:missed_cleavages", 1);
+  p.setValue("report:top_hits", 1);
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(spectra, fasta_db, prot_ids, pep_ids);
+
+  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  Size total_before = pep_ids.size();
+  OPENMS_LOG_INFO << "[TEST FDR] Total PSMs before filtering: " << total_before << std::endl;
+  TEST_TRUE(total_before > 500)
+
+  // =========================================================================
+  // Step 2: Compute q-values via target-decoy FDR
+  // =========================================================================
+  FalseDiscoveryRate fdr_calculator;
+  fdr_calculator.apply(pep_ids);
+
+  // =========================================================================
+  // Step 3: Filter at 5% FDR, remove decoys, clean up
+  // =========================================================================
+  IDFilter::filterHitsByScore(pep_ids, 0.05);
+  IDFilter::removeDecoyHits(pep_ids);
+  IDFilter::removeEmptyIdentifications(pep_ids);
+
+  Size total_after = pep_ids.size();
+  OPENMS_LOG_INFO << "[TEST FDR] PSMs after FDR filtering: " << total_after << std::endl;
+  TEST_TRUE(total_after > 0)
+  TEST_TRUE(total_after < total_before)
+
+  // =========================================================================
+  // Step 4: Run modification analysis on filtered results
+  // =========================================================================
+  OpenSearchModificationAnalysis mod_analyzer;
+  auto mod_result = mod_analyzer.analyzeModificationsWithStatistics(
+    pep_ids, 500.0, false, false, "");
+
+  const auto& dm_entries = mod_result.delta_mass_stats.entries;
+  TEST_TRUE(!dm_entries.empty())
+
+  OPENMS_LOG_INFO << "[TEST FDR] Delta mass entries after filtering: "
+                  << dm_entries.size() << std::endl;
+  for (const auto& dm : dm_entries)
+  {
+    if (dm.count >= 10)
+    {
+      OPENMS_LOG_INFO << "[TEST FDR] DeltaMass=" << dm.delta_mass
+                      << " count=" << dm.count
+                      << " mapped=" << dm.mapped_modification << std::endl;
+    }
+  }
+
+  // Verify that major modifications survive FDR filtering
+  vector<pair<string, double>> must_find = {
+    {"Oxidation (M)",     15.9949},
+    {"Phospho (S/T/Y)",   79.9663},
+    {"Acetyl (K/N-term)", 42.0106},
+    {"Deamidated (N/Q)",   0.9840},
+    {"Dimethyl (K)",      28.0314},
+    {"Dioxidation (M)",   31.9898},
+    {"HexNAc (S)",       203.0794},
+  };
+
+  Size found_count = 0;
+  for (const auto& [label, expected_mass] : must_find)
+  {
+    for (const auto& dm : dm_entries)
+    {
+      if (fabs(dm.delta_mass - expected_mass) < 0.05 && dm.count >= 10)
+      {
+        OPENMS_LOG_INFO << "[TEST FDR] Found " << label
+                        << ": count=" << dm.count << std::endl;
+        found_count++;
+        break;
+      }
+    }
+  }
+  // At least 4 out of 7 major modifications should survive FDR filtering
+  OPENMS_LOG_INFO << "[TEST FDR] Found " << found_count << "/"
+                  << must_find.size() << " major modifications" << std::endl;
+  TEST_TRUE(found_count >= 4)
 }
 END_SECTION
 

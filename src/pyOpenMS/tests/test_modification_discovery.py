@@ -15,9 +15,12 @@ import pytest
 from pyopenms import (
     AASequence,
     FASTAEntry,
+    FalseDiscoveryRate,
+    IDFilter,
     ModifiedPeptideGenerator,
     MSExperiment,
     MSSpectrum,
+    OpenSearchModificationAnalysis,
     Param,
     Peak1D,
     PeptideIdentificationList,
@@ -335,3 +338,173 @@ def test_empty_spectra():
     ExitCodes = PeptideSearchEngineFIAlgorithm.PeptideSearchEngineFIAlgorithm_ExitCodes
     assert ec == ExitCodes.EXECUTION_OK
     assert pep_ids.size() == 0
+
+
+def test_fdr_filtered_modification_discovery():
+    """FDR-based filtering: search with decoys, apply FDR, filter, then run mod analysis."""
+
+    # 1. Build database, digest, generate spectra
+    fasta_db = _build_fasta_db()
+    peptides = _digest_proteins(fasta_db)
+    assert len(peptides) > 50
+    spectra = _generate_spectra(peptides, TEST_MODIFICATIONS, target_per_mod=300)
+    assert spectra.size() > 1000
+
+    # 2. Configure open search with decoys enabled
+    algo = PeptideSearchEngineFIAlgorithm()
+    p = algo.getParameters()
+    p.setValue("precursor:mass_tolerance", 500.0)
+    p.setValue("precursor:mass_tolerance_unit", "Da")
+    p.setValue("fragment:mass_tolerance", 20.0)
+    p.setValue("fragment:mass_tolerance_unit", "ppm")
+    p.setValue("modifications:fixed", ["Carbamidomethyl (C)"])
+    p.setValue("modifications:variable", [])
+    p.setValue("decoys", "true")  # Required for FDR
+    p.setValue("peptide:min_size", 7)
+    p.setValue("peptide:max_size", 40)
+    p.setValue("peptide:missed_cleavages", 1)
+    p.setValue("report:top_hits", 1)
+    algo.setParameters(p)
+
+    # 3. Search (raw PSMs with target+decoy hits)
+    prot_ids = []
+    pep_ids = PeptideIdentificationList()
+    ec = algo.search(spectra, fasta_db, prot_ids, pep_ids)
+
+    ExitCodes = PeptideSearchEngineFIAlgorithm.PeptideSearchEngineFIAlgorithm_ExitCodes
+    assert ec == ExitCodes.EXECUTION_OK
+    total_before = pep_ids.size()
+    assert total_before > 500
+
+    # 4. Compute q-values via target-decoy FDR
+    fdr = FalseDiscoveryRate()
+    fdr.apply(pep_ids)
+
+    # 5. Filter at 5% FDR, remove decoys, clean up
+    filt = IDFilter()
+    filt.filterHitsByScore(pep_ids, 0.05)
+    filt.removeDecoyHits(pep_ids)
+    filt.removeEmptyIdentifications(pep_ids)
+
+    total_after = pep_ids.size()
+    assert total_after > 0, f"No PSMs survived FDR filtering (had {total_before} before)"
+    assert total_after < total_before, "FDR filtering should remove some PSMs"
+
+    # 6. Run modification analysis on filtered results
+    mod_analyzer = OpenSearchModificationAnalysis()
+    result = mod_analyzer.analyzeModificationsWithStatistics(
+        pep_ids, 500.0, False, False, "")
+
+    # 7. Verify key modifications are still discovered
+    dm_entries = result.delta_mass_stats.entries
+    assert len(dm_entries) > 0, "No delta mass entries after FDR filtering"
+
+    # Major injected modifications should survive filtering
+    expected = [
+        (15.9949, "Oxidation"),
+        (79.9663, "Phospho"),
+        (42.0106, "Acetyl"),
+        (0.9840,  "Deamidated"),
+        (28.0314, "Dimethyl"),
+        (31.9898, "Dioxidation"),
+        (203.0794, "HexNAc"),
+    ]
+    found_count = 0
+    for expected_mass, label in expected:
+        for e in dm_entries:
+            if abs(e.delta_mass - expected_mass) < 0.05 and e.count >= 10:
+                found_count += 1
+                break
+    assert found_count >= 4, (
+        f"Only {found_count}/{len(expected)} major modifications found after FDR filtering"
+    )
+
+
+def test_score_filtered_modification_discovery():
+    """Score-based filtering: search without decoys, filter by raw score, then run mod analysis."""
+
+    # 1. Build database, digest, generate spectra
+    fasta_db = _build_fasta_db()
+    peptides = _digest_proteins(fasta_db)
+    assert len(peptides) > 50
+    spectra = _generate_spectra(peptides, TEST_MODIFICATIONS, target_per_mod=300)
+    assert spectra.size() > 1000
+
+    # 2. Configure open search (no decoys needed)
+    algo = PeptideSearchEngineFIAlgorithm()
+    p = algo.getParameters()
+    p.setValue("precursor:mass_tolerance", 500.0)
+    p.setValue("precursor:mass_tolerance_unit", "Da")
+    p.setValue("fragment:mass_tolerance", 20.0)
+    p.setValue("fragment:mass_tolerance_unit", "ppm")
+    p.setValue("modifications:fixed", ["Carbamidomethyl (C)"])
+    p.setValue("modifications:variable", [])
+    p.setValue("decoys", "false")
+    p.setValue("peptide:min_size", 7)
+    p.setValue("peptide:max_size", 40)
+    p.setValue("peptide:missed_cleavages", 1)
+    p.setValue("report:top_hits", 1)
+    algo.setParameters(p)
+
+    # 3. Search
+    prot_ids = []
+    pep_ids = PeptideIdentificationList()
+    ec = algo.search(spectra, fasta_db, prot_ids, pep_ids)
+
+    ExitCodes = PeptideSearchEngineFIAlgorithm.PeptideSearchEngineFIAlgorithm_ExitCodes
+    assert ec == ExitCodes.EXECUTION_OK
+    total_before = pep_ids.size()
+    assert total_before > 500
+
+    # 4. Filter by raw ln(hyperscore) threshold
+    filt = IDFilter()
+    filt.filterHitsByScore(pep_ids, 5.0)  # keep hits with score >= 5.0
+    filt.removeEmptyIdentifications(pep_ids)
+
+    total_after = pep_ids.size()
+    assert total_after > 0, f"No PSMs survived score filtering (had {total_before} before)"
+    assert total_after <= total_before, "Score filtering should not add PSMs"
+
+    # 5. Run modification analysis on filtered results
+    mod_analyzer = OpenSearchModificationAnalysis()
+    result = mod_analyzer.analyzeModificationsWithStatistics(
+        pep_ids, 500.0, False, False, "")
+
+    # 6. Verify key modifications are still discovered
+    dm_entries = result.delta_mass_stats.entries
+    assert len(dm_entries) > 0, "No delta mass entries after score filtering"
+
+    # Check that the major modifications are found with reasonable counts
+    must_find = [
+        (15.9949, "Oxidation"),
+        (79.9663, "Phospho"),
+        (42.0106, "Acetyl"),
+        (0.9840,  "Deamidated"),
+        (14.0157, "Methyl"),
+        (28.0314, "Dimethyl"),
+        (43.0058, "Carbamyl"),
+        (31.9898, "Dioxidation"),
+        (203.0794, "HexNAc"),
+        (27.9949, "Formyl"),
+    ]
+
+    for expected_mass, label in must_find:
+        found = False
+        count = 0
+        for e in dm_entries:
+            if abs(e.delta_mass - expected_mass) < 0.05:
+                found = True
+                count = e.count
+                break
+        assert found, f"Missing delta mass bin for {label} (~{expected_mass} Da)"
+        assert count >= 50, f"Low count for {label}: {count}"
+
+    # 7. Verify unknown modification is present but not mapped as known
+    found_unknown = False
+    for e in dm_entries:
+        if abs(e.delta_mass - 123.456) < 0.05:
+            found_unknown = True
+            assert e.count >= 50, f"Low count for unknown mod: {e.count}"
+            assert not e.is_known_modification, "Unknown mod should not be mapped as known"
+            break
+    assert found_unknown, "Missing delta mass bin for artificial unknown modification (~123.456 Da)"
