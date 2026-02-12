@@ -99,8 +99,8 @@ namespace PipEcho {
 
   /****************************************************************************/
   void Impl::link_donors_and_acceptors(const RunStatistics& stats,
-                                              const DonorMap& donors,
-                                              AcceptorMap& acceptors)
+                                       const DonorMap& donors,
+                                       AcceptorMap& acceptors)
   {
     for (auto& donor : donors.storage) {
       for (auto window=initial_window(*donor); window.has_value();
@@ -113,11 +113,12 @@ namespace PipEcho {
                               *window);
 
           if (target.has_value()) {
-            target->second->update_donor(&Acceptor::target, target, *donor);
+            auto acceptor = target->second;
+            acceptor->targets.push_back(std::make_pair(target->first, &*donor));
           }
 
           const auto random_donor = find_random_donor(donors, *donor, *window);
-          Acceptor::match_t decoy = {}; // No std::optional::and_then in C++ 20 :(
+          match_t decoy = {}; // No std::optional::and_then in C++ 20 :(
 
           if (random_donor.has_value()) {
             decoy = find_acceptor_for(stats,
@@ -127,7 +128,8 @@ namespace PipEcho {
                                       (*random_donor)->feature.getRT());
 
             if (decoy.has_value()) {
-              decoy->second->update_donor(&Acceptor::decoy, decoy, *donor);
+              auto acceptor = decoy->second;
+              acceptor->decoys.push_back(std::make_pair(decoy->first, &*donor));
             }
           }
 
@@ -139,12 +141,11 @@ namespace PipEcho {
   }
 
   /****************************************************************************/
-  Acceptor::match_t
-  Impl::find_acceptor_for(const RunStatistics& stats,
-                                 const AcceptorMap& acceptors,
-                                 const Donor& donor,
-                                 const Window& window,
-                                 const std::optional<double> rt_override)
+  Impl::match_t Impl::find_acceptor_for(const RunStatistics& stats,
+                                        const AcceptorMap& acceptors,
+                                        const Donor& donor,
+                                        const Window& window,
+                                        const std::optional<double> rt_override)
   {
     // FIXME: What does the paper say about finding acceptor peaks?
     // In FlashLFQ they do some weird envelope cutting and don't use
@@ -154,8 +155,8 @@ namespace PipEcho {
     const AcceptorMap::grid_index_t index = acceptors.grid.cellIndexAtClusterCenter(center);
 
     return acceptors.nearby(
-      index, window.grid_neighbors, Acceptor::match_t{},
-      [&](Acceptor::match_t best_match, Acceptor& acceptor) -> Acceptor::match_t {
+      index, window.grid_neighbors, match_t{},
+      [&](match_t best_match, Acceptor& acceptor) -> match_t {
         if (acceptor.is_donor_compatible(donor, window)) {
           Score score = stats.score(donor.feature, acceptor.feature);
 
@@ -264,11 +265,17 @@ namespace PipEcho {
 
       // Now place the acceptors in there too.
       for (auto& acceptor : run.second.acceptors.storage) {
-        if (acceptor->target.has_value()) {
+        auto best = acceptor->fetch_and_mark_best_donor();
+        if (best.has_value()) {
           ++acceptors_added;
-          insert(*acceptor->target->second, *acceptor);
+          insert(**best, *acceptor);
         }
-        if (acceptor->decoy.has_value()) ++decoys_seen;
+
+        // FIXME:
+        //
+        // IF ACCEPTOR.IS_DECOY
+        // THEN ++decoys_seen
+        // END
       }
 
       // Don't need this anymore.

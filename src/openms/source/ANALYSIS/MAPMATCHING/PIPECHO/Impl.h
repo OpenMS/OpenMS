@@ -30,6 +30,9 @@ namespace PipEcho {
    */
   class Impl {
   public:
+    /// Type used when searching for a matching donor.
+    using match_t = std::optional<std::pair<Score, Acceptor*>>;
+
     /// Construct a new implementation object.
     Impl(const Param& params, const std::pair<double, double>& mz_range);
 
@@ -42,12 +45,11 @@ namespace PipEcho {
                                    const DonorMap&, AcceptorMap&);
 
     /// Search for a matching acceptor.
-    Acceptor::match_t
-    find_acceptor_for(const RunStatistics&,
-                      const AcceptorMap&,
-                      const Donor&,
-                      const Window&,
-                      const std::optional<double> = {});
+    match_t find_acceptor_for(const RunStatistics&,
+                              const AcceptorMap&,
+                              const Donor&,
+                              const Window&,
+                              const std::optional<double> = {});
 
     /// Find a random Donor that is dissimilar to a given Donor.
     std::optional<const Donor*>

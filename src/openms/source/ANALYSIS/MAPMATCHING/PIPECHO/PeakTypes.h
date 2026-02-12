@@ -65,17 +65,14 @@ namespace PipEcho {
    * Donor.
    */
   struct Acceptor : Peak {
-    /// Type used when searching for a matching Acceptor.
-    using match_t = std::optional<std::pair<Score, Acceptor*>>;
+    /// A scored donor.
+    using scored_t = std::pair<Score, const Donor*>;
 
-    /// Type used for tracking targets and decoys.
-    using scored_t = std::optional<std::pair<Score, const Donor*>>;
+    /// Targets.
+    std::vector<scored_t> targets;
 
-    /// Possible target Donor.
-    scored_t target;
-
-    /// Possible decoy Donor.
-    scored_t decoy;
+    /// Decoys.
+    std::vector<scored_t> decoys;
 
     /// Constructor.
     Acceptor(const Peak& peak)
@@ -86,36 +83,9 @@ namespace PipEcho {
     /// Check if a Donor matches this Acceptor.
     bool is_donor_compatible(const Donor&, const Window&) const;
 
-    /// Update a target or decoy slot.
-    template <typename Member>
-    void update_donor(Member, const scored_t&);
-
-    /// Update a target or decoy slot.
-    template <typename Member>
-    void update_donor(Member, const match_t&, const Donor&);
+    /// Return the donor with the highest score.  The feature for this
+    /// acceptor will be marked as either a decoy or target depending
+    /// on how the donor was selected.
+    std::optional<const Donor*> fetch_and_mark_best_donor();
   };
-
-  /****************************************************************************/
-  // NOTE: This method must be in the header due to type magic.
-  template <typename Member>
-  void Acceptor::update_donor(Member slot, const scored_t& donor) {
-    if (!donor.has_value()) return;
-
-    if (!(this->*slot).has_value() ||
-        (this->*slot)->first.mbr_score < donor->first.mbr_score)
-      {
-        this->*slot = donor;
-      }
-  }
-
-  /****************************************************************************/
-  // NOTE: This method must be in the header due to type magic.
-  template <typename Member>
-  void Acceptor::update_donor(Member slot,
-                              const match_t& match,
-                              const Donor& donor)
-  {
-    if (!match.has_value()) return;
-    update_donor(slot, std::make_pair(match->first, &donor));
-  }
 }}
