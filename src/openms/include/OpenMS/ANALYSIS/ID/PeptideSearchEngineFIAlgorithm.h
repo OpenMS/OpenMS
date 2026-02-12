@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -144,6 +145,37 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
                                                 const String& in_db,
                                                 const String& output_base_name = "") const;
 
+    /**
+     * @brief In-memory search: search spectra against a protein database without file I/O.
+     *
+     * Same as the file-based search() but takes pre-loaded spectra and FASTA entries directly.
+     * Spectra are preprocessed in-place (filtered, deisotoped, normalized).
+     *
+     * @param[in,out] spectra  MS/MS spectra to search (preprocessed in-place).
+     * @param[in] fasta_db  Protein sequence database as FASTA entries.
+     * @param[out] prot_ids  Output protein-level identifications.
+     * @param[out] pep_ids   Output spectrum-level peptide identifications (PSMs).
+     * @return ExitCodes indicating success or error.
+     */
+    ExitCodes search(PeakMap& spectra,
+                     const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+                     std::vector<ProteinIdentification>& prot_ids,
+                     PeptideIdentificationList& pep_ids) const;
+
+    /**
+     * @brief In-memory search with modification analysis: no file I/O required.
+     *
+     * Same as the file-based searchWithModificationAnalysis() but takes pre-loaded data.
+     *
+     * @param[in,out] spectra  MS/MS spectra (preprocessed in-place).
+     * @param[in] fasta_db  Protein sequence database as FASTA entries.
+     * @param[in] output_base_name  Optional base name for TSV output files.
+     * @return SearchResult containing identifications and modification analysis.
+     */
+    SearchResult searchWithModificationAnalysis(PeakMap& spectra,
+                                                const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+                                                const String& output_base_name = "") const;
+
   protected:
     void updateMembers_() override;
 
@@ -246,6 +278,10 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     String peptide_motif_;
 
     Size report_top_hits_;
+
+    /// Helper: log the modification analysis summary (shared by in-memory and file-based paths)
+    void logModificationAnalysisSummary_(const SearchResult& result,
+                                         const String& output_base_name) const;
 
     /// Helper function to determine if open search should be used based on tolerance
     bool isOpenSearchMode_() const

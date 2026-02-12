@@ -548,6 +548,7 @@ set(analysis_executables_list
   ReactionMonitoringTransition_test
   NuXLModificationsGenerator_test
   NuXLParameterParsing_test
+  PeptideSearchEngineFIAlgorithm_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   SpectralDeconvolution_test

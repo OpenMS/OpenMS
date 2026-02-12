@@ -464,7 +464,14 @@ if (!pi.getHits().empty())
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
 
-  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
+  // =====================================================================
+  // In-memory search: core logic without file I/O
+  // =====================================================================
+  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
+      PeakMap& spectra,
+      const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+      vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids) const
   {
     bool precursor_mass_tolerance_unit_ppm = (precursor_mass_tolerance_unit_ == "ppm");
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
@@ -481,16 +488,6 @@ if (!pi.getHits().empty())
     bool open_search = isOpenSearchMode_();
     OPENMS_LOG_INFO << "[PDBS-FI] open_search=" << (open_search ? "true" : "false")
                     << " (auto-determined from precursor tolerance)" << std::endl;
-    // load MS2 map
-    PeakMap spectra;
-    FileHandler f;
-
-    PeakFileOptions options;
-    options.clearMSLevels();
-    options.addMSLevel(2);
-    f.getOptions() = options;
-    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
-    spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
@@ -507,52 +504,43 @@ if (!pi.getHits().empty())
     vector<vector<AnnotatedHit_> > annotated_hits(spectra.size(), vector<AnnotatedHit_>());
     for (auto & a : annotated_hits) { a.reserve(report_top_hits_); }
 
-    vector<FASTAFile::FASTAEntry> fasta_db;
-    FASTAFile().load(in_db, fasta_db);
+    // Always work with a mutable local copy (PeptideIndexing::run requires non-const ref)
+    vector<FASTAFile::FASTAEntry> db(fasta_db);
 
-    // generate decoy protein sequences by reversing them
     if (decoys_)
     {
       startProgress(0, 1, "Generate decoys...");
       DecoyGenerator decoy_generator;
 
-      // append decoy proteins
-      const size_t old_size = fasta_db.size();
-      fasta_db.reserve(fasta_db.size() * 2);
+      const size_t old_size = db.size();
+      db.reserve(db.size() * 2);
       for (size_t i = 0; i != old_size; ++i)
       {
-        FASTAFile::FASTAEntry e = fasta_db[i];
+        FASTAFile::FASTAEntry e = db[i];
         e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
         e.identifier = "DECOY_" + e.identifier;
-        fasta_db.push_back(std::move(e));
+        db.push_back(std::move(e));
       }
-      // randomize order of targets and decoys to introduce no global bias in the case that
-      // many targets have the same score as their decoy. (As we always take the first best scoring one)
       Math::RandomShuffler shuffler;
-      shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
+      shuffler.portable_random_shuffle(db.begin(), db.end());
       endProgress();
     }
-    
+
     // build fragment index
-    //TODO: Pass all the other parameters from this class to FragmentIndex
-    //TODO: Can we do it with p.setValue or is there a more sophisticated way?
-    startProgress(0, 1, "Building fragment index...");    
+    startProgress(0, 1, "Building fragment index...");
     FragmentIndex fragment_index_;
     auto this_params = getParameters();
     fragment_index_.setParameters(this_params);
-    fragment_index_.build(fasta_db);
+    fragment_index_.build(db);
     endProgress();
 
     startProgress(0, spectra.size(), "Scoring peptide models against spectra...");
     size_t count_spectra{};
-    
-    // Compute open search mode once before parallel region
+
     bool open_search_mode = open_search;
-    
-    // Create local copy of constant for OpenMP shared access
     const double proton_mass_u = Constants::PROTON_MASS_U;
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, fasta_db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
 
@@ -566,15 +554,14 @@ if (!pi.getHits().empty())
 
       const MSSpectrum& exp_spectrum = spectra[scan_index];
       FragmentIndex::SpectrumMatchesTopN top_sms;
-      fragment_index_.querySpectrum(exp_spectrum, top_sms); // TODO: expose top N as argument here and use report_top_hits_
+      fragment_index_.querySpectrum(exp_spectrum, top_sms);
 
       for (const auto& sms : top_sms.hits_)
       {
         FragmentIndex::Peptide sms_pep = fragment_index_.getPeptides()[sms.peptide_idx_];
         pair<size_t, size_t> candidate_snippet = sms_pep.sequence_;
-        AASequence unmod_candidate = AASequence::fromString(fasta_db[sms_pep.protein_idx].sequence.substr(candidate_snippet.first, candidate_snippet.second));
+        AASequence unmod_candidate = AASequence::fromString(db[sms_pep.protein_idx].sequence.substr(candidate_snippet.first, candidate_snippet.second));
         AASequence mod_candidate;
-        //reapply modifications.
         if (!(modifications_variable_.empty() && modifications_fixed_.empty()))
         {
           vector<AASequence> mod_candidates;
@@ -589,26 +576,18 @@ if (!pi.getHits().empty())
           mod_candidate = unmod_candidate;
         }
 
-
-        // create theoretical spectrum
         PeakSpectrum theo_spectrum;
-
-        // add peaks for b and y ions with charge 1
         spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, 1);
-
-        // sort by mz
         theo_spectrum.sortByPosition();
 
-        // const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
         HyperScore::PSMDetail detail;
         const double& score = HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
         if (score == 0)
-        { 
-          continue; // no hit?
+        {
+          continue;
         }
 
-        // add peptide hit
         AnnotatedHit_ ah;
         ah.sequence = std::move(mod_candidate);
         ah.score = score;
@@ -617,12 +596,10 @@ if (!pi.getHits().empty())
         ah.suffix_fraction = (double)detail.matched_y_ions/seq_length;
         ah.mean_error = detail.mean_error;
 
-        // Set isotope error and charge from FragmentIndex results
         ah.isotope_error = sms.isotope_error_;
         ah.applied_charge = sms.precursor_charge_;
 
-        // Calculate delta_mass for open search
-        ah.delta_mass = 0.0; // Initialize
+        ah.delta_mass = 0.0;
         if (open_search_mode)
         {
           double theo_mh_plus = ah.sequence.getMZ(1);
@@ -637,18 +614,12 @@ if (!pi.getHits().empty())
 
     endProgress();
 
-    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
-    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
-
     startProgress(0, 1, "Post-processing PSMs...");
     PeptideSearchEngineFIAlgorithm::postProcessHits_(spectra,
       annotated_hits,
       protein_ids,
       peptide_ids,
       report_top_hits_,
-      //fixed_modifications, TODO: what about this unused parameter?
-      //variable_modifications, TODO: what about this unused parameter?
-      //modifications_max_variable_mods_per_peptide_, TODO: what about this unused parameter?
       modifications_fixed_,
       modifications_variable_,
       peptide_missed_cleavages_,
@@ -659,7 +630,7 @@ if (!pi.getHits().empty())
       precursor_min_charge_,
       precursor_max_charge_,
       enzyme_,
-      in_db
+      "" // no database filename for in-memory search
       );
     endProgress();
 
@@ -670,28 +641,12 @@ if (!pi.getHits().empty())
       startProgress(0, 1, "Analyzing modification patterns...");
 
       OpenSearchModificationAnalysis mod_analyzer;
-
-      // Generate output table filename based on input database
-      String mod_output_file = "";
-      if (!in_db.empty())
-      {
-        size_t dot_pos = in_db.rfind('.');
-        if (dot_pos != String::npos)
-        {
-          mod_output_file = in_db.substr(0, dot_pos) + "_ModificationAnalysis.idXML";
-        }
-        else
-        {
-          mod_output_file = in_db + "_ModificationAnalysis.idXML";
-        }
-      }
-
       auto modification_summaries = mod_analyzer.analyzeModifications(
         peptide_ids,
         precursor_mass_tolerance_,
         precursor_mass_tolerance_unit_ == "ppm",
-        false, // no smoothing for now
-        mod_output_file
+        false, // no smoothing
+        ""     // no output file for in-memory search
       );
 
       OPENMS_LOG_INFO << "[PDBS-FI] Found " << modification_summaries.size()
@@ -699,9 +654,6 @@ if (!pi.getHits().empty())
 
       endProgress();
     }
-
-    // add meta data on spectra file
-    protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
 
     // reindex peptides to proteins
     PeptideIndexing indexer;
@@ -713,7 +665,7 @@ if (!pi.getHits().empty())
     param_pi.setValue("missing_decoy_action", "silent");
     indexer.setParameters(param_pi);
 
-    PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
+    PeptideIndexing::ExitCodes indexer_exit = indexer.run(db, protein_ids, peptide_ids);
 
     if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
@@ -735,39 +687,74 @@ if (!pi.getHits().empty())
     return ExitCodes::EXECUTION_OK;
   }
 
+  // =====================================================================
+  // File-based search: thin I/O wrapper that delegates to in-memory search
+  // =====================================================================
+  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
+      const String& in_mzML, const String& in_db,
+      vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids) const
+  {
+    // load MS2 map
+    PeakMap spectra;
+    FileHandler f;
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+    f.getOptions() = options;
+    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
+    spectra.sortSpectra(true);
+
+    // load FASTA
+    vector<FASTAFile::FASTAEntry> fasta_db;
+    FASTAFile().load(in_db, fasta_db);
+
+    // delegate to in-memory search
+    ExitCodes ec = search(spectra, fasta_db, protein_ids, peptide_ids);
+
+    if (ec != ExitCodes::EXECUTION_OK)
+    {
+      return ec;
+    }
+
+    // patch file-specific metadata
+    protein_ids[0].getSearchParameters().db = in_db;
+    protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
+
+    return ExitCodes::EXECUTION_OK;
+  }
+
+  // =====================================================================
+  // In-memory searchWithModificationAnalysis
+  // =====================================================================
   PeptideSearchEngineFIAlgorithm::SearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(const String& in_mzML,
-                                                                  const String& in_db,
-                                                                  const String& output_base_name) const
+  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(
+      PeakMap& spectra,
+      const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+      const String& output_base_name) const
   {
     SearchResult result;
     result.is_open_search = isOpenSearchMode_();
 
-    // Perform the basic search
-    result.exit_code = search(in_mzML, in_db, result.protein_ids, result.peptide_ids);
+    result.exit_code = search(spectra, fasta_db, result.protein_ids, result.peptide_ids);
 
     if (result.exit_code != ExitCodes::EXECUTION_OK)
     {
       return result;
     }
 
-    // If open search mode, perform detailed modification analysis
     if (result.is_open_search)
     {
       OPENMS_LOG_INFO << "[PDBS-FI] Running detailed modification analysis for open search results..." << std::endl;
 
       OpenSearchModificationAnalysis mod_analyzer;
 
-      // Generate output file path if base name provided
       String output_file = "";
       if (!output_base_name.empty())
       {
         output_file = output_base_name + "_ModificationAnalysis.idXML";
       }
 
-      // Note: search() already performs basic modification analysis via analyzeModifications(),
-      // annotating peptide hits with PTM/DeltaMass meta values. The call below re-analyzes
-      // and additionally generates structured statistics tables. The annotation is idempotent.
       result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
         result.peptide_ids,
         precursor_mass_tolerance_,
@@ -776,94 +763,7 @@ if (!pi.getHits().empty())
         output_file
       );
 
-      // Log comprehensive summary
-      OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
-      OPENMS_LOG_INFO << "[PDBS-FI] MODIFICATION DISCOVERY SUMMARY" << std::endl;
-      OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
-
-      const auto& dm_stats = result.modification_analysis.delta_mass_stats;
-      OPENMS_LOG_INFO << "[PDBS-FI] Delta Mass Analysis:" << std::endl;
-      OPENMS_LOG_INFO << "  Total PSMs analyzed: " << dm_stats.total_psms << std::endl;
-      OPENMS_LOG_INFO << "  Modified PSMs: " << dm_stats.modified_psms
-                      << " (" << (dm_stats.total_psms > 0 ? (100.0 * dm_stats.modified_psms / dm_stats.total_psms) : 0.0)
-                      << "%)" << std::endl;
-      OPENMS_LOG_INFO << "  Unmodified PSMs: " << dm_stats.unmodified_psms << std::endl;
-      OPENMS_LOG_INFO << "  Mean delta mass: " << dm_stats.mean_delta_mass << " Da" << std::endl;
-      OPENMS_LOG_INFO << "  Median delta mass: " << dm_stats.median_delta_mass << " Da" << std::endl;
-      OPENMS_LOG_INFO << "  Unique delta mass bins: " << dm_stats.entries.size() << std::endl;
-
-      const auto& ptm_stats = result.modification_analysis.ptm_stats;
-      OPENMS_LOG_INFO << "[PDBS-FI] PTM Analysis:" << std::endl;
-      OPENMS_LOG_INFO << "  PSMs with known PTMs: " << ptm_stats.total_modified_psms << std::endl;
-      OPENMS_LOG_INFO << "  PSMs with unknown modifications: " << ptm_stats.unknown_modification_psms << std::endl;
-      OPENMS_LOG_INFO << "  Unique PTMs identified: " << ptm_stats.num_unique_modifications << std::endl;
-
-      // Print top 15 PTMs table
-      if (!ptm_stats.entries.empty())
-      {
-        OPENMS_LOG_INFO << "[PDBS-FI] Top PTMs Discovered:" << std::endl;
-        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-        OPENMS_LOG_INFO << "  Rank | Name                            | Count | %     | Mass (Da)" << std::endl;
-        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-
-        size_t rank = 1;
-        for (const auto& ptm : ptm_stats.entries)
-        {
-          if (rank > 15) break;
-          // Format name to fixed width
-          String name = ptm.name;
-          if (name.size() > 30) name = name.substr(0, 27) + "...";
-
-          std::ostringstream oss;
-          oss << "  " << std::setw(4) << rank++ << " | "
-              << std::setw(31) << std::left << name << " | "
-              << std::setw(5) << std::right << ptm.count << " | "
-              << std::setw(5) << std::fixed << std::setprecision(1) << ptm.percentage << " | "
-              << std::setw(9) << std::fixed << std::setprecision(4) << ptm.theoretical_mass;
-          OPENMS_LOG_INFO << oss.str() << std::endl;
-        }
-        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-      }
-
-      // Print top delta masses not mapped to known modifications
-      std::vector<OpenSearchModificationAnalysis::DeltaMassEntry> unknown_dm;
-      for (const auto& entry : dm_stats.entries)
-      {
-        if (!entry.is_known_modification && entry.count >= 5)
-        {
-          unknown_dm.push_back(entry);
-        }
-      }
-
-      if (!unknown_dm.empty())
-      {
-        OPENMS_LOG_INFO << "[PDBS-FI] Top Unknown Delta Masses (potential novel PTMs):" << std::endl;
-        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-        OPENMS_LOG_INFO << "  Rank | Delta Mass (Da) | Count | Unique Peptides" << std::endl;
-        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-
-        size_t rank = 1;
-        for (const auto& dm : unknown_dm)
-        {
-          if (rank > 10) break;
-          std::ostringstream oss;
-          oss << "  " << std::setw(4) << rank++ << " | "
-              << std::setw(15) << std::fixed << std::setprecision(4) << dm.delta_mass << " | "
-              << std::setw(5) << dm.count << " | "
-              << std::setw(15) << dm.unique_peptides;
-          OPENMS_LOG_INFO << oss.str() << std::endl;
-        }
-        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
-      }
-
-      OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
-
-      if (!output_base_name.empty())
-      {
-        OPENMS_LOG_INFO << "[PDBS-FI] Statistics tables written to:" << std::endl;
-        OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_DeltaMassStats.tsv" << std::endl;
-        OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_PTMStats.tsv" << std::endl;
-      }
+      logModificationAnalysisSummary_(result, output_base_name);
     }
     else
     {
@@ -871,6 +771,133 @@ if (!pi.getHits().empty())
     }
 
     return result;
+  }
+
+  // =====================================================================
+  // File-based searchWithModificationAnalysis: delegates to in-memory version
+  // =====================================================================
+  PeptideSearchEngineFIAlgorithm::SearchResult
+  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(const String& in_mzML,
+                                                                  const String& in_db,
+                                                                  const String& output_base_name) const
+  {
+    // load MS2 map
+    PeakMap spectra;
+    FileHandler f;
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+    f.getOptions() = options;
+    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
+    spectra.sortSpectra(true);
+
+    // load FASTA
+    vector<FASTAFile::FASTAEntry> fasta_db;
+    FASTAFile().load(in_db, fasta_db);
+
+    // delegate to in-memory version
+    SearchResult result = searchWithModificationAnalysis(spectra, fasta_db, output_base_name);
+
+    if (result.exit_code == ExitCodes::EXECUTION_OK && !result.protein_ids.empty())
+    {
+      result.protein_ids[0].getSearchParameters().db = in_db;
+      result.protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
+    }
+
+    return result;
+  }
+
+  // =====================================================================
+  // Helper: log modification analysis summary
+  // =====================================================================
+  void PeptideSearchEngineFIAlgorithm::logModificationAnalysisSummary_(
+      const SearchResult& result,
+      const String& output_base_name) const
+  {
+    OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI] MODIFICATION DISCOVERY SUMMARY" << std::endl;
+    OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
+
+    const auto& dm_stats = result.modification_analysis.delta_mass_stats;
+    OPENMS_LOG_INFO << "[PDBS-FI] Delta Mass Analysis:" << std::endl;
+    OPENMS_LOG_INFO << "  Total PSMs analyzed: " << dm_stats.total_psms << std::endl;
+    OPENMS_LOG_INFO << "  Modified PSMs: " << dm_stats.modified_psms
+                    << " (" << (dm_stats.total_psms > 0 ? (100.0 * dm_stats.modified_psms / dm_stats.total_psms) : 0.0)
+                    << "%)" << std::endl;
+    OPENMS_LOG_INFO << "  Unmodified PSMs: " << dm_stats.unmodified_psms << std::endl;
+    OPENMS_LOG_INFO << "  Mean delta mass: " << dm_stats.mean_delta_mass << " Da" << std::endl;
+    OPENMS_LOG_INFO << "  Median delta mass: " << dm_stats.median_delta_mass << " Da" << std::endl;
+    OPENMS_LOG_INFO << "  Unique delta mass bins: " << dm_stats.entries.size() << std::endl;
+
+    const auto& ptm_stats = result.modification_analysis.ptm_stats;
+    OPENMS_LOG_INFO << "[PDBS-FI] PTM Analysis:" << std::endl;
+    OPENMS_LOG_INFO << "  PSMs with known PTMs: " << ptm_stats.total_modified_psms << std::endl;
+    OPENMS_LOG_INFO << "  PSMs with unknown modifications: " << ptm_stats.unknown_modification_psms << std::endl;
+    OPENMS_LOG_INFO << "  Unique PTMs identified: " << ptm_stats.num_unique_modifications << std::endl;
+
+    if (!ptm_stats.entries.empty())
+    {
+      OPENMS_LOG_INFO << "[PDBS-FI] Top PTMs Discovered:" << std::endl;
+      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+      OPENMS_LOG_INFO << "  Rank | Name                            | Count | %     | Mass (Da)" << std::endl;
+      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+
+      size_t rank = 1;
+      for (const auto& ptm : ptm_stats.entries)
+      {
+        if (rank > 15) break;
+        String name = ptm.name;
+        if (name.size() > 30) name = name.substr(0, 27) + "...";
+
+        std::ostringstream oss;
+        oss << "  " << std::setw(4) << rank++ << " | "
+            << std::setw(31) << std::left << name << " | "
+            << std::setw(5) << std::right << ptm.count << " | "
+            << std::setw(5) << std::fixed << std::setprecision(1) << ptm.percentage << " | "
+            << std::setw(9) << std::fixed << std::setprecision(4) << ptm.theoretical_mass;
+        OPENMS_LOG_INFO << oss.str() << std::endl;
+      }
+      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+    }
+
+    std::vector<OpenSearchModificationAnalysis::DeltaMassEntry> unknown_dm;
+    for (const auto& entry : dm_stats.entries)
+    {
+      if (!entry.is_known_modification && entry.count >= 5)
+      {
+        unknown_dm.push_back(entry);
+      }
+    }
+
+    if (!unknown_dm.empty())
+    {
+      OPENMS_LOG_INFO << "[PDBS-FI] Top Unknown Delta Masses (potential novel PTMs):" << std::endl;
+      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+      OPENMS_LOG_INFO << "  Rank | Delta Mass (Da) | Count | Unique Peptides" << std::endl;
+      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+
+      size_t rank = 1;
+      for (const auto& dm : unknown_dm)
+      {
+        if (rank > 10) break;
+        std::ostringstream oss;
+        oss << "  " << std::setw(4) << rank++ << " | "
+            << std::setw(15) << std::fixed << std::setprecision(4) << dm.delta_mass << " | "
+            << std::setw(5) << dm.count << " | "
+            << std::setw(15) << dm.unique_peptides;
+        OPENMS_LOG_INFO << oss.str() << std::endl;
+      }
+      OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+    }
+
+    OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
+
+    if (!output_base_name.empty())
+    {
+      OPENMS_LOG_INFO << "[PDBS-FI] Statistics tables written to:" << std::endl;
+      OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_DeltaMassStats.tsv" << std::endl;
+      OPENMS_LOG_INFO << "  - " << output_base_name << "_ModificationAnalysis_PTMStats.tsv" << std::endl;
+    }
   }
 
 } // namespace OpenMS

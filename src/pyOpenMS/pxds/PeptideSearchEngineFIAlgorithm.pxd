@@ -1,8 +1,11 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp cimport bool
 from DefaultParamHandler cimport *
+from FASTAFile cimport *
+from MSExperiment cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 from String cimport *
 from ProgressLogger cimport *
 from OpenSearchModificationAnalysis cimport *
@@ -82,6 +85,36 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>" namespa
         #   :param in_mzML: Input path to the mzML file
         #   :param in_db: Input path to the FASTA database
         #   :param output_base_name: Optional base name for output files (TSV tables)
+        #   :returns: SearchResult containing identifications and modification analysis
+
+        PeptideSearchEngineFIAlgorithm_ExitCodes search(MSExperiment & spectra,
+          libcpp_vector[ FASTAEntry ] & fasta_db,
+          libcpp_vector[ ProteinIdentification ] & prot_ids,
+          PeptideIdentificationList & pep_ids) except + nogil
+        # wrap-doc:
+        #   In-memory search: search spectra against a protein database without file I/O.
+        #
+        #   Same as the file-based search() but takes pre-loaded spectra and FASTA entries.
+        #   Spectra are preprocessed in-place (filtered, deisotoped, normalized).
+        #
+        #   :param spectra: MS/MS spectra to search (preprocessed in-place)
+        #   :param fasta_db: Protein sequence database as FASTA entries
+        #   :param prot_ids: Output protein-level identifications
+        #   :param pep_ids: Output spectrum-level peptide identifications (PSMs)
+        #   :returns: ExitCodes indicating success or error
+
+        PeptideSearchEngineFIAlgorithm_SearchResult searchWithModificationAnalysis(
+          MSExperiment & spectra,
+          libcpp_vector[ FASTAEntry ] & fasta_db,
+          String output_base_name) except + nogil
+        # wrap-doc:
+        #   In-memory search with modification analysis: no file I/O required.
+        #
+        #   Same as the file-based searchWithModificationAnalysis() but takes pre-loaded data.
+        #
+        #   :param spectra: MS/MS spectra (preprocessed in-place)
+        #   :param fasta_db: Protein sequence database as FASTA entries
+        #   :param output_base_name: Optional base name for TSV output files
         #   :returns: SearchResult containing identifications and modification analysis
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>" namespace "OpenMS::PeptideSearchEngineFIAlgorithm":
