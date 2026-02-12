@@ -22,11 +22,14 @@
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 #include <unordered_set>
 #include <vector>
 #include <map>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 namespace OpenMS
 {
@@ -671,12 +674,17 @@ bool QPXFile::exportToParquet(
 
   // Add QPX file metadata to the table schema (matches Python to_psm_qpx())
   {
+    // Generate RFC 4122 UUID
+    boost::uuids::random_generator uuid_gen;
+    boost::uuids::uuid uuid = uuid_gen();
+    std::string uuid_str = boost::uuids::to_string(uuid);
+    
     auto metadata = arrow::key_value_metadata({
       {"qpx_version", "1.0"},
       {"creator", "OpenMS"},
       {"file_type", "psm"},
       {"creation_date", DateTime::now().toString("yyyy-MM-ddThh:mm:ss")},
-      {"uuid", String(UniqueIdGenerator::getUniqueId())},
+      {"uuid", uuid_str},
       {"scan_format", "scan"},
       {"software_provider", "OpenMS"}
     });
