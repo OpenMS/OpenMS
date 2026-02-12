@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Erhan Kenar, Holger Franken $
+// $Authors: Erhan Kenar, Holger Franken, Mohammed Alhigaylan $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
@@ -927,7 +927,6 @@ namespace OpenMS
       std::vector<const MassTrace*> local_traces;
       double ref_trace_mz(input_mtraces[i].getCentroidMZ());
       double ref_trace_rt(input_mtraces[i].getCentroidRT());
-      double ref_trace_im = has_im_data_ ? input_mtraces[i].getCentroidIM() : 0.0;
 
       local_traces.push_back(&input_mtraces[i]);
 
@@ -946,7 +945,7 @@ namespace OpenMS
         }
         if (has_im_data_)
         {
-          double diff_im = std::fabs(input_mtraces[ext_idx].getCentroidIM() - ref_trace_im);
+          double diff_im = std::fabs(input_mtraces[ext_idx].getCentroidIM() - input_mtraces[i].getCentroidIM());
           if (diff_im >= local_im_range_)
           {
             continue;

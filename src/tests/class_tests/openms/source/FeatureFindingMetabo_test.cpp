@@ -3,7 +3,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Erhan Kenar$
+// $Authors: Erhan Kenar, Mohammed Alhigaylan$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
