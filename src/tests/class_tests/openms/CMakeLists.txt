@@ -88,7 +88,7 @@ if (WITH_PARQUET)
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
   )
-  target_link_libraries(QuantmsIO_test
+  target_link_libraries(QPXFile_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
   )
