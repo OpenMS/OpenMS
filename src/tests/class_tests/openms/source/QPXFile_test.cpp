@@ -140,10 +140,10 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...))
   auto pf_col = table->GetColumnByName("peptidoform");
   auto pf_arr = std::static_pointer_cast<arrow::StringArray>(pf_col->chunk(0));
   TEST_EQUAL(pf_arr->GetString(0), "PEPTIDER")
-  // Modified peptide should have ProForma notation (contains UNIMOD or mod name)
+  // Modified peptide should have ProForma notation with bracket-enclosed modification
   std::string mod_pf = pf_arr->GetString(1);
-  TEST_EQUAL(mod_pf.find("PEPTIDER") == std::string::npos, true) // Should NOT be unmodified
   TEST_EQUAL(mod_pf.empty(), false)
+  TEST_EQUAL(mod_pf.find('[') != std::string::npos, true) // ProForma bracket notation expected
 
   // Verify is_decoy nullable behavior
   auto decoy_col = table->GetColumnByName("is_decoy");

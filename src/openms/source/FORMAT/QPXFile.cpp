@@ -25,10 +25,8 @@
 #include <unordered_set>
 #include <vector>
 #include <map>
-#include <chrono>
-#include <iomanip>
-#include <random>
-#include <sstream>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 namespace OpenMS
 {
@@ -364,7 +362,17 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       }
 
       // === observed_mz ===
-      (void)observed_mz_builder.Append(pep_id.getMZ());
+      {
+        double obs_mz = pep_id.getMZ();
+        if (obs_mz == obs_mz) // not NaN
+        {
+          (void)observed_mz_builder.Append(obs_mz);
+        }
+        else
+        {
+          (void)observed_mz_builder.AppendNull();
+        }
+      }
 
       // === additional_scores from hit metavalues ===
       (void)additional_scores_builder.Append();
@@ -663,30 +671,12 @@ bool QPXFile::exportToParquet(
 
   // Add QPX file metadata to the table schema (matches Python to_psm_qpx())
   {
-    // Generate creation_date (ISO 8601)
-    auto now = std::chrono::system_clock::now();
-    auto time_t = std::chrono::system_clock::to_time_t(now);
-    std::ostringstream date_ss;
-    date_ss << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
-
-    // Generate UUID v4
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<uint32_t> dist(0, 0xFFFFFFFF);
-    std::ostringstream uuid_ss;
-    uuid_ss << std::hex << std::setfill('0');
-    uuid_ss << std::setw(8) << dist(gen) << "-";
-    uuid_ss << std::setw(4) << (dist(gen) & 0xFFFF) << "-";
-    uuid_ss << std::setw(4) << ((dist(gen) & 0x0FFF) | 0x4000) << "-"; // version 4
-    uuid_ss << std::setw(4) << ((dist(gen) & 0x3FFF) | 0x8000) << "-"; // variant 1
-    uuid_ss << std::setw(8) << dist(gen) << std::setw(4) << (dist(gen) & 0xFFFF);
-
     auto metadata = arrow::key_value_metadata({
       {"qpx_version", "1.0"},
       {"creator", "OpenMS"},
       {"file_type", "psm"},
-      {"creation_date", date_ss.str()},
-      {"uuid", uuid_ss.str()},
+      {"creation_date", DateTime::now().toString("yyyy-MM-ddThh:mm:ss")},
+      {"uuid", String(UniqueIdGenerator::getUniqueId())},
       {"scan_format", "scan"},
       {"software_provider", "OpenMS"}
     });
