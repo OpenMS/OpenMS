@@ -7,6 +7,7 @@ set(sources_list_h
   Impl.h
   MzDiff.h
   PeakTypes.h
+  Pep.h
   Run.h
   RunStatistics.h
   Score.h
@@ -17,6 +18,7 @@ set(sources_list_h
 set(sources_list
   Impl.cpp
   PeakTypes.cpp
+  Pep.cpp
   Run.cpp
   RunStatistics.cpp
   Util.cpp
