@@ -15,65 +15,68 @@
 #include "RunStatistics.h"
 #include "Window.h"
 
-namespace OpenMS {
-namespace PipEcho {
+namespace OpenMS::PipEcho
+{
 
-  /****************************************************************************/
-  // Handy aliases.
-  using DonorMap = GridWithStorage<Donor>;
-  using AcceptorMap = GridWithStorage<Acceptor>;
-  using RunMap = std::map<std::string, Run>;
+/******************************************************************************/
+// Handy aliases.
+using DonorMap = GridWithStorage<Donor>;
+using AcceptorMap = GridWithStorage<Acceptor>;
+using RunMap = std::map<std::string, Run>;
 
-  /****************************************************************************/
-  /**
-   * Internal representation of the PIP-ECHO algorithm.
-   */
-  class Impl {
-  public:
-    /// Type used when searching for a matching donor.
-    using match_t = std::optional<std::pair<Score, Acceptor*>>;
+/******************************************************************************/
+/**
+ * Internal representation of the PIP-ECHO algorithm.
+ */
+class Impl
+{
+public:
+  /// Type used when searching for a matching donor.
+  using match_t = std::optional<std::pair<Score, Acceptor*>>;
 
-    /// Construct a new implementation object.
-    Impl(const Param& params, const std::pair<double, double>& mz_range);
+  /// Construct a new implementation object.
+  Impl(const Param& params, const std::pair<double, double>& mz_range);
 
-    /// Separate donors from acceptors.
-    void partition_features(const std::vector<FeatureMap>&,
-                            RunMap&);
+  /// Separate donors from acceptors.
+  void partition_features(const std::vector<FeatureMap>&, RunMap&);
 
-    /// Match identified features with unidentified features.
-    void link_donors_and_acceptors(const RunStatistics&,
-                                   const DonorMap&, AcceptorMap&);
+  /// Match identified features with unidentified features.
+  void link_donors_and_acceptors(const RunStatistics&,
+                                 const DonorMap&,
+                                 AcceptorMap&);
 
-    /// Search for a matching acceptor.
-    match_t find_acceptor_for(const RunStatistics&,
-                              const AcceptorMap&,
-                              const Donor&,
-                              const Window&,
-                              const std::optional<double> = {});
+  /// Search for a matching acceptor.
+  match_t find_acceptor_for(const RunStatistics&,
+                            const AcceptorMap&,
+                            const Donor&,
+                            const Window&,
+                            const std::optional<double> = {});
 
-    /// Find a random Donor that is dissimilar to a given Donor.
-    std::optional<const Donor*>
-    find_random_donor(const DonorMap&, const Donor&, const Window&) const;
+  /// Find a random Donor that is dissimilar to a given Donor.
+  std::optional<const Donor*>
+  find_random_donor(const DonorMap&, const Donor&, const Window&) const;
 
-    /// Fill in the final ConsensusMap.
-    void generate_consensus_map(RunMap&, ConsensusMap&);
-  public:
-    /// Max allowed m/z difference between donor and acceptor.
-    MzDiff mz_max_diff;
+  /// Fill in the final ConsensusMap.
+  void generate_consensus_map(RunMap&, ConsensusMap&);
 
-    /// Grid center for the m/z dimension.  This is used to decide
-    /// which features are close to one another.
-    double mz_grid_center;
+public:
+  /// Max allowed m/z difference between donor and acceptor.
+  MzDiff mz_max_diff;
 
-    /// Max allowed RT difference between donor and acceptor.
-    double rt_sec_max_window;
+  /// Grid center for the m/z dimension.  This is used to decide
+  /// which features are close to one another.
+  double mz_grid_center;
 
-  private:
-    std::string path_from_feature_map(const FeatureMap&);
-    bool is_donor_feature(const Feature&);
-    Run& get_run_from_file_name(RunMap&, const std::string&);
+  /// Max allowed RT difference between donor and acceptor.
+  double rt_sec_max_window;
 
-    std::optional<Window> initial_window(const Donor& donor);
-    std::optional<Window> next_window(const std::optional<Window>&);
-  };
-}}
+private:
+  std::string path_from_feature_map(const FeatureMap&);
+  bool is_donor_feature(const Feature&);
+  Run& get_run_from_file_name(RunMap&, const std::string&);
+
+  std::optional<Window> initial_window(const Donor& donor);
+  std::optional<Window> next_window(const std::optional<Window>&);
+};
+
+} // namespace OpenMS::PipEcho

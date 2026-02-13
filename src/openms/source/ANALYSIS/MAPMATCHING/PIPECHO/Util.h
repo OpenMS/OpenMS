@@ -8,28 +8,27 @@
 
 #pragma once
 
-#include <optional>
-
 #include "OpenMS/KERNEL/Feature.h"
 #include "OpenMS/METADATA/PeptideHit.h"
 
-namespace OpenMS {
-namespace PipEcho {
-namespace Util {
+#include <optional>
 
-  /****************************************************************************/
-  /**
-   * Return the first peptide hit from a feature.
-   *
-   * This code is here to isolate checking hits because the process
-   * might change in a future version of OpenMS.
-   */
-  std::optional<PeptideHit> feature_hit(const Feature&);
+namespace OpenMS::PipEcho::Util
+{
 
-  /****************************************************************************/
-  /**
-   * Compute the mass error in PPM for the given feature.
-   */
-  std::optional<double> feature_mass_error(const Feature&);
+/******************************************************************************/
+/**
+ * Return the first peptide hit from a feature.
+ *
+ * This code is here to isolate checking hits because the process
+ * might change in a future version of OpenMS.
+ */
+std::optional<PeptideHit> feature_hit(const Feature&);
 
-}}} // Name spaces
+/******************************************************************************/
+/**
+ * Compute the mass error in PPM for the given feature.
+ */
+std::optional<double> feature_mass_error(const Feature&);
+
+} // namespace OpenMS::PipEcho::Util

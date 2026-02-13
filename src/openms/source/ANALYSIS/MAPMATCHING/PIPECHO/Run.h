@@ -8,55 +8,56 @@
 
 #pragma once
 
-#include <string>
-
-#include "OpenMS/KERNEL/Feature.h"
-
 #include "GridWithStorage.h"
+#include "OpenMS/KERNEL/Feature.h"
 #include "PeakTypes.h"
 
-namespace OpenMS {
-namespace PipEcho {
+#include <string>
 
-  /****************************************************************************/
-  class Run {
-  public:
-    /// Construct a new Run object.
-    Run(const std::string &file_name,
-        const double rt_window,
-        const double mz_window)
-      : donors({rt_window, mz_window}),
-        acceptors({rt_window, mz_window}),
-        file_name(file_name)
-    { }
+namespace OpenMS::PipEcho
+{
 
-    /// Insert a donor peak.
-    void insert(const Feature& feature, const std::size_t map_index) {
-      Peak peak(map_index, feature);
+/******************************************************************************/
+class Run
+{
+public:
+  /// Construct a new Run object.
+  Run(const std::string& file_name,
+      const double rt_window,
+      const double mz_window):
+      donors({rt_window, mz_window}),
+      acceptors({rt_window, mz_window}),
+      file_name(file_name)
+  {
+  }
 
-      if (is_donor_feature(feature)) {
-        donors.insert(Donor(peak));
-      } else {
-        acceptors.insert(Acceptor(peak));
-      }
-    }
+  /// Insert a donor peak.
+  void insert(const Feature& feature, const std::size_t map_index)
+  {
+    Peak peak(map_index, feature);
 
-    /// Release all storage.
-    void clear() {
-      donors.clear();
-      acceptors.clear();
-    }
+    if (is_donor_feature(feature)) { donors.insert(Donor(peak)); }
+    else { acceptors.insert(Acceptor(peak)); }
+  }
 
-    // Allow direct access to the grid type.
-    GridWithStorage<Donor> donors;
-    GridWithStorage<Acceptor> acceptors;
+  /// Release all storage.
+  void clear()
+  {
+    donors.clear();
+    acceptors.clear();
+  }
 
-    // The name of the file for this spectrum.
-    // FIXME: Remove this if we don't end up using it.
-    const std::string file_name;
+  // Allow direct access to the grid type.
+  GridWithStorage<Donor> donors;
+  GridWithStorage<Acceptor> acceptors;
 
-  private:
-    bool is_donor_feature(const Feature&);
-  };
+  // The name of the file for this spectrum.
+  // FIXME: Remove this if we don't end up using it.
+  const std::string file_name;
 
-}}
+private:
+  bool is_donor_feature(const Feature&);
+};
+
+
+} // namespace OpenMS::PipEcho

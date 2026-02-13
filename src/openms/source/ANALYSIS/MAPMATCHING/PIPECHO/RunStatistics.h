@@ -8,42 +8,43 @@
 
 #pragma once
 
-#include <boost/math/distributions/normal.hpp>
-
 #include "Run.h"
 #include "Score.h"
 
-namespace OpenMS {
-namespace PipEcho {
+#include <boost/math/distributions/normal.hpp>
 
-  /****************************************************************************/
-  class RunStatistics {
-  public:
-    /// Generate statistics for the given Run object.
-    RunStatistics(const Run&);
+namespace OpenMS::PipEcho
+{
 
-    /// Score the given donor and acceptor.
-    Score score(const Feature&, const Feature&) const;
+/******************************************************************************/
+class RunStatistics
+{
+public:
+  /// Generate statistics for the given Run object.
+  RunStatistics(const Run&);
 
-  private:
-    // Normal distribution: <mean, stddev>.
-    using normal_t = std::optional<boost::math::normal>;
+  /// Score the given donor and acceptor.
+  Score score(const Feature&, const Feature&) const;
 
-    template <typename T>
-    normal_t to_normal(T&, const std::optional<double>&) const;
+private:
+  // Normal distribution: <mean, stddev>.
+  using normal_t = std::optional<boost::math::normal>;
 
-    normal_t init_log_intensity(const Run&) const;
-    normal_t init_mass_error(const Run&) const;
-    double calc_score_using(const normal_t&, double) const;
-    double calc_intensity_score(const Feature&) const;
-    double calc_mass_error_score(const Feature&) const;
+  template<typename T>
+  normal_t to_normal(T&, const std::optional<double>&) const;
 
-  private:
-    // Log intensity distribution.
-    normal_t log_intensity;
+  normal_t init_log_intensity(const Run&) const;
+  normal_t init_mass_error(const Run&) const;
+  double calc_score_using(const normal_t&, double) const;
+  double calc_intensity_score(const Feature&) const;
+  double calc_mass_error_score(const Feature&) const;
 
-    // Mass error (PPM) distribution.
-    normal_t mass_error;
-  };
+private:
+  // Log intensity distribution.
+  normal_t log_intensity;
 
-}}
+  // Mass error (PPM) distribution.
+  normal_t mass_error;
+};
+
+} // namespace OpenMS::PipEcho

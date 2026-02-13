@@ -10,17 +10,18 @@
 
 #include <cstddef>
 
-namespace OpenMS {
-namespace PipEcho {
+namespace OpenMS::PipEcho
+{
 
-  /****************************************************************************/
-  /**
-   * Window used when searching for acceptor features.
-   */
-  struct Window {
-    double rt_tol; // Seconds.
-    double mz_tol; // Daltons.
-    std::size_t grid_neighbors;
-  };
+/******************************************************************************/
+/**
+ * Window used when searching for acceptor features.
+ */
+struct Window
+{
+  double rt_tol; // Seconds.
+  double mz_tol; // Daltons.
+  std::size_t grid_neighbors;
+};
 
-}}
+} // namespace OpenMS::PipEcho
