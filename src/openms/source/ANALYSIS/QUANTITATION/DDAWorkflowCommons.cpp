@@ -204,6 +204,8 @@ namespace OpenMS
         tm.setValue("threshold", intensity_threshold); // TODO: derive from data
         threshold_mower_filter.setParameters(tm);
         threshold_mower_filter.filterPeakMap(e);
+        e.sortSpectra();
+        e.updateRanges();
 
         FeatureFinderMultiplexAlgorithm algorithm;
         Param p = algorithm.getParameters();

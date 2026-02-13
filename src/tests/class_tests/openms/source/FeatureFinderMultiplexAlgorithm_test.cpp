@@ -44,6 +44,7 @@ START_SECTION((virtual void run()))
   
   mzml_file.getOptions().addMSLevel(1);
   mzml_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderMultiplex_1_input.mzML"), exp);
+  exp.sortSpectra();
   exp.updateRanges();
   
   Param param;

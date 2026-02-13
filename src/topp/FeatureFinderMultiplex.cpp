@@ -292,6 +292,9 @@ public:
       }
 
       // Create algorithm instance for this group
+      faims_group.sortSpectra();
+      faims_group.updateRanges();
+
       FeatureFinderMultiplexAlgorithm algorithm_cv;
       algorithm_cv.setParameters(params);
       algorithm_cv.setLogType(this->log_type_);

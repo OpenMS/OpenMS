@@ -4423,6 +4423,18 @@ static void scoreXLIons_(
 
       FeatureMap features;
     {
+      // Extract MS1 spectra for feature finding
+      MSExperiment ms1_centroided;
+      for (const auto& spec : ms_centroided)
+      {
+        if (spec.getMSLevel() == 1)
+        {
+          ms1_centroided.addSpectrum(spec);
+        }
+      }
+      ms1_centroided.sortSpectra();
+      ms1_centroided.updateRanges();
+
       FeatureFinderMultiplexAlgorithm algorithm;
       Param p = algorithm.getParameters();
       p.setValue("algorithm:labels", ""); // label-free
@@ -4432,7 +4444,7 @@ static void scoreXLIons_(
       p.setValue("algorithm:rt_min", 4.0);
       p.setValue("algorithm:spectrum_type", "centroid");
       algorithm.setParameters(p);
-      algorithm.run(ms_centroided, true);
+      algorithm.run(ms1_centroided, true);
       features = algorithm.getFeatureMap();
       writeLogInfo_("Detected peptides: " + String(features.size()));
     }

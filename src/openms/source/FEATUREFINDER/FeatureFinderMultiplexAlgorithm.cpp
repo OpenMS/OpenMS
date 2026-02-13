@@ -910,29 +910,17 @@ namespace OpenMS
 
     progress_ = progress;
 
-    // Extract MS1 spectra only (no mutation of input)
-    MSExperiment exp_ms1;
-    for (const auto& spec : exp)
-    {
-      if (spec.getMSLevel() == 1)
-      {
-        exp_ms1.addSpectrum(spec);
-      }
-    }
-
-    if (exp_ms1.empty())
+    // Precondition: exp must contain only sorted MS1 spectra with updated ranges.
+    // Callers are responsible for filtering to MS1, sorting, and calling updateRanges().
+    if (exp.getSpectra().empty())
     {
       throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
     }
 
-    // sort according to RT and MZ, update ranges for downstream consumers
-    exp_ms1.sortSpectra();
-    exp_ms1.updateRanges();
-
     // determine type of spectral data (profile or centroided)
     if (param_.getValue("algorithm:spectrum_type") == "automatic")
     {
-      SpectrumSettings::SpectrumType spectrum_type = exp_ms1[0].getType(true);
+      SpectrumSettings::SpectrumType spectrum_type = exp[0].getType(true);
       // The following means that UNKNOWN will be handled as profile.
       centroided_ = (spectrum_type == SpectrumSettings::SpectrumType::CENTROID);
     }
@@ -952,11 +940,7 @@ namespace OpenMS
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
 
-    if (centroided_)
-    {
-      exp_centroid = std::move(exp_ms1);
-    }
-    else
+    if (!centroided_)
     {
       PeakPickerHiRes picker;
       Param param = picker.getParameters();
@@ -965,7 +949,7 @@ namespace OpenMS
       param.setValue("signal_to_noise", 0.0); // signal-to-noise estimation switched off
       picker.setParameters(param);
 
-      picker.pickExperiment(exp_ms1, exp_centroid, boundaries_exp_s, boundaries_exp_c);
+      picker.pickExperiment(exp, exp_centroid, boundaries_exp_s, boundaries_exp_c);
     }
 
     /**
@@ -1007,14 +991,14 @@ namespace OpenMS
       /**
        * filter for peak patterns
        */
-      MultiplexFilteringCentroided filtering(exp_centroid, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
+      MultiplexFilteringCentroided filtering(exp, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
       filtering.setLogType(getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
 
       /**
        * cluster filter results
        */
-      MultiplexClustering clustering(exp_centroid, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"));
+      MultiplexClustering clustering(exp, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"));
       clustering.setLogType(getLogType());
       std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
 
@@ -1031,7 +1015,7 @@ namespace OpenMS
       /**
        * filter for peak patterns
        */
-      MultiplexFilteringProfile filtering(exp_ms1, exp_centroid, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
+      MultiplexFilteringProfile filtering(exp, exp_centroid, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
       filtering.setLogType(getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
       exp_blacklist_ = filtering.getBlacklist();
@@ -1039,7 +1023,7 @@ namespace OpenMS
       /**
        * cluster filter results
        */
-      MultiplexClustering clustering(exp_ms1, exp_centroid, boundaries_exp_s, param_.getValue("algorithm:rt_typical"));
+      MultiplexClustering clustering(exp, exp_centroid, boundaries_exp_s, param_.getValue("algorithm:rt_typical"));
       clustering.setLogType(getLogType());
       std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
 
