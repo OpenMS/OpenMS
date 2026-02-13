@@ -114,7 +114,7 @@ namespace OpenMS
     }
     else
     {
-      protein_identification.getSearchEngine() + "_" + datetime.getDate();
+      identifier = protein_identification.getSearchEngine() + "_" + datetime.getDate();
     }
     // to get the precursor retention time and mz values later, save the filename and the numbers of the scans
     vector<pair<String, vector<pair<Size, Size> > > > files_and_peptide_identification_with_scan_number;
@@ -1174,11 +1174,6 @@ namespace OpenMS
         continue;
       }
 
-      // check whether the line has enough columns
-      if (substrings.size() != number_of_columns)
-      {
-        continue;
-      }
       // take only those peptides whose p-value is less or equal the given threshold
       if (substrings[p_value_column].toFloat() > p_value_threshold)
       {
