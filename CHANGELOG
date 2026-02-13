@@ -35,6 +35,13 @@ TOPP tools:
         at the end of commands to override hardcoded defaults. A warning is issued when duplicates are detected.
         Example: tool -param default -param override  # Now uses 'override' (previously used 'default')
       - Improved error messages for command-line parameter errors (#8670)
+    CometAdapter:
+      - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
+    PeptideDataBaseSearchFI:
+      - Expanded fragment index open search with modification discovery and FDR filtering (#8414)
+    ProteomicsLFQ:
+      - Removed unnecessary group reindexing, added stricter validation (#8752)
+      - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
@@ -42,7 +49,7 @@ TOPP tools:
 PyOpenMS:
   - Pythonic convenience methods added:
     - __len__() for ConsensusMap, FeatureMap (#8510)
-    - __str__() and __repr__() for NASequence, FeatureMap, ConsensusMap, ConvexHull2D, DPosition, DRange, FloatDataArray, IntegerDataArray, StringDataArray (#8503)
+    - __str__() and __repr__() for NASequence, FeatureMap, ConsensusMap, ConvexHull2D, DPosition, DRange, FloatDataArray, IntegerDataArray, StringDataArray, Residue (#8503, #8501)
     - __hash__() for 40+ classes enabling use as dictionary keys (AASequence, EmpiricalFormula, Peak1D, PeptideHit, Precursor, etc.) (#8576)
     - append() and extend() for ConsensusMap, FeatureMap, PeptideIdentificationList (#8510)
   - DataFrame support:
@@ -51,12 +58,15 @@ PyOpenMS:
     - MRMTransitionGroupCP: get_chromatogram_df(), get_feature_df() (#8520)
     - Arrow/Parquet export with to_df(), to_chromatogram_df(), to_feature_df() methods (#8655)
     - Zero-copy Python interop via pyarrow for MSExperiment (#8655)
+    - PSM DataFrame export from PeptideIdentificationList (#8632)
+    - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
   - New wrappers:
     - Math.getPPM(), Math.getPPMAbs() (#8525)
     - MSSpectrum.getType(bool) (#8589)
     - DRange1 with conversion provider (#8504)
     - Drift time accessors: get_drift_time_array(), get_drift_time_unit() (#8423)
-    - SpectrumNativeIDParser with static methods for native ID parsing (#8633)
+    - SpectrumNativeIDParser with static methods for native ID parsing (#8637)
+    - MSExperiment.rasterize2D() for rasterizing 2D ion mobility data (#8739)
   - String handling: Functions now accept both str and bytes via libcpp_utf8_string (#8602, #8604)
   - Backward compatibility restored for file I/O methods in IdXMLFile, PepXMLFile, MzIdentMLFile (#8553)
   - Static methods modernized using @staticmethod decorator (#8562)
@@ -88,7 +98,9 @@ PyOpenMS:
     - PEFFDatabaseMetadata for header information
     - Conversion methods: toFASTAEntry(), fromFASTAEntry(), toProForma()
     - Sequence accessors: getSequence(), getModifiedSequence(), getVariantSequences(), getProcessedSequence()
-  - XICParquetFile: Python bindings with multi-file support and filtering for reading XIC data from Parquet files (#8725)
+  - Param to_dict quality-of-life improvements: dict-like API for parameter access (#8631)
+  - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720)
+  - XICParquetFile: Python bindings with multi-file support and filtering for reading XIC data from Parquet files (#8737, #8738)
 
 TOPP tools:
   Changes:
@@ -102,19 +114,20 @@ TOPP tools:
     IsobaricWorkflow:
       - Fixed mzTab export when processing multiple mzML/idXML pairs (#8519)
       - Handles MS2 spectra without corresponding MS3 in SPS-MS3 workflow (#8592)
+      - Arrow/Parquet export for ConsensusMap (#8729)
     SageAdapter:
       - Fixed thread handling - removed duplicate parameter registration (#8441)
     OpenSwathWorkflow:
       - Priority peptide sampling for iRT calibration (#8373)
       - Decoy generation speed optimizations (#8569)
       - Added SRM support (#8700)
-      - Added Parquet chromatogram output support (#8725)
+      - Added Parquet chromatogram output support (#8737)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
     FileMerger:
       - Documented input/output file type combinations (#8615)
     TextExporter:
-      - Added support for XIC Parquet files (#8725)
+      - Added support for XIC Parquet files (#8737, #8738)
 
 OpenMS Library:
   Added:
@@ -130,7 +143,13 @@ OpenMS Library:
     - SpectrumAnnotator: addPeakAnnotationsToPeptideHit() method (#8421)
     - iRT/CiRT transition files in share/OpenMS/CHEMISTRY/ (#8372)
     - CalibrationWorkflow: refactored OpenSwathWorkflowCalibration workflow logic into a separate reusable CalibrationWorkflow class. (#8743)
-    - SpectrumNativeIDParser class for parsing spectrum native IDs (extractScanNumber, getRegExFromNativeID, isNativeID) (#8633)
+    - Fragment index open search expanded with modification discovery and FDR filtering (#8414)
+    - CCS (collisional cross section) support for ion mobility data (#8735)
+    - Rasterize2D function for MSExperiment to rasterize 2D ion mobility data (#8739)
+    - SequenceCoverage: Reusable API extracted for computing protein sequence coverage (#8728)
+    - Arrow/DataFrame/Parquet export for ConsensusMap with batch and streaming APIs (#8729)
+    - PSM DataFrame export from PeptideIdentificationList (#8632)
+    - SpectrumNativeIDParser class for parsing spectrum native IDs (extractScanNumber, getRegExFromNativeID, isNativeID) (#8637)
     - ArrowExport helper for exporting MSExperiment to Apache Arrow/Parquet formats with configurable layouts and compression (#8655)
     - ProFormaParser: Full ProForma v2 notation parser with AST representation (#8648)
       - Recursive descent parser for peptidoforms with modifications, cross-links, and chimeric spectra
@@ -156,6 +175,7 @@ OpenMS Library:
     - BREAKING: Exception::InvalidSize constructor requires mandatory context message parameter (#8437)
     - BREAKING: FileWatcher moved from OpenMS/SYSTEM/ to OpenMS/VISUAL/ (GUI library) (#8591)
     - BREAKING: PeptideAndProteinQuant channel identifiers changed from Int to UInt (#8516)
+    - BREAKING: Plain enums migrated to enum class (Sample::SampleState, OpenMS_OS, etc.) (#8622)
     - ILPDCWrapper: Performance improvement using std::unordered_map (~3.5x speedup) (#8618)
     - OpenSwath: Use unordered_map for O(1) lookups, improving performance (#8651)
     - DataValue: Enhanced conversion error messages with type and value context (#8572)
@@ -165,6 +185,11 @@ OpenMS Library:
     - IDFilter: Eliminate code duplication (#8662)
     - Iterator patterns, container checks, and memory allocation optimized in hot paths (#8656)
     - Simplified redundant boolean return statements (#8659)
+    - OPENMS_LOG_WARN now writes to std::cerr instead of std::cout (#8754)
+    - External Enzymes.xml is now optional — enzyme definitions are built-in by default (#8409)
+    - Date class refactored from QDate inheritance to composition (#8710)
+    - Thread-safe logging with OPENMS_LOG_* macro optimizations (#8620)
+    - MetaInfo: Iterator support and merge optimizations (#8621)
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
@@ -177,6 +202,9 @@ Fixes:
   - Fix UniqueIdGenerator seed collision in parallel pipelines by mixing process ID into seed (#8678)
   - Correct defaultArrayLength in MzMLFile_negative_offsets.mzML test file (#8672)
   - Remove unused variable block_start in FileFilter (#8399)
+  - Fix SIMD type mismatch and unaligned memory access in Base64 decoding (ARM64 crash) (#8689)
+  - Fix empty GENE table causing PQP file reading to return zero transitions (#8688)
+  - Fix PeptideIndexer AhoCorasick segfault for short peptides (#8685)
 
 Documentation:
   - Comprehensive documentation for Targeted Quantitation algorithms (#8588)
@@ -201,6 +229,9 @@ Build System:
   - Configure return value checking in CI packaging (#8515)
   - pyOpenMS build system modernized with py-build-cmake and cibuildwheel (#8530)
   - Claude GitHub Actions workflows added for CI automation (#8675, #8676)
+  - IsoSpec and eol-bspline converted to proper CMake library targets (#8331)
+  - Arrow 23+ compatibility: removed version pin, CURL workaround (#8679)
+  - uv made optional for isolated build environments (#8706)
 
 
 ------------------------------------------------------------------------------------------
