@@ -152,6 +152,9 @@ public:
     /// Returns the current date and time
     static DateTime now();
 
+    /// Returns the current date and time in UTC
+    static DateTime nowUTC();
+
     /// Returns true if the date time is valid
     bool isValid() const;
 

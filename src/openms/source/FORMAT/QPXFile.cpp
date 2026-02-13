@@ -683,7 +683,7 @@ bool QPXFile::exportToParquet(
       {"qpx_version", "1.0"},
       {"creator", "OpenMS"},
       {"file_type", "psm"},
-      {"creation_date", DateTime::now().toString("yyyy-MM-ddThh:mm:ss")},
+      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
       {"uuid", uuid_str},
       {"scan_format", "scan"},
       {"software_provider", "OpenMS"}
