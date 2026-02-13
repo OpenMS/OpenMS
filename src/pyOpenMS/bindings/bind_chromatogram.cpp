@@ -124,19 +124,19 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
         }, "i"_a, "val"_a, "Sets peak at index i")
 
         .def("get_peaks", [](const OpenMS::MSChromatogram& self) {
+            // Single allocation + single capsule to reduce overhead for small arrays
             const size_t n = self.size();
-            std::unique_ptr<double[]> rt_uptr(new double[n]);
-            std::unique_ptr<double[]> int_uptr(new double[n]);
-            double* rt_data = rt_uptr.get();
-            double* int_data = int_uptr.get();
+            const size_t total_bytes = 2 * n * sizeof(double);
+            char* buf = new char[total_bytes];
+            double* rt_data = reinterpret_cast<double*>(buf);
+            double* int_data = reinterpret_cast<double*>(buf + n * sizeof(double));
             for (size_t i = 0; i < n; ++i) {
                 rt_data[i] = self[i].getRT();
                 int_data[i] = self[i].getIntensity();
             }
-            nb::capsule rt_owner(rt_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            nb::capsule int_owner(int_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            auto rt_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(rt_data, {n}, rt_owner);
-            auto int_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(int_data, {n}, int_owner);
+            nb::capsule owner(buf, [](void* p) noexcept { delete[] static_cast<char*>(p); });
+            auto rt_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(rt_data, {n}, owner);
+            auto int_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(int_data, {n}, owner);
             return nb::make_tuple(rt_arr, int_arr);
         }, "Returns a tuple of (rt_array, intensity_array) as numpy arrays")
 

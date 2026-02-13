@@ -254,6 +254,7 @@ else()
 
     nanobind_add_module(${MODULE_NAME}
       NB_DOMAIN pyopenms  # Share types across modules
+      NOMINSIZE            # Use CMake's default -O3 instead of nanobind's -Os
       ${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp
     )
     _pyopenms_module_props(${MODULE_NAME})
@@ -262,6 +263,7 @@ else()
   # Main entry module
   nanobind_add_module(_pyopenms
     NB_DOMAIN pyopenms
+    NOMINSIZE
     ${PYOPENMS_BINDINGS_DIR}/main_module.cpp
   )
   _pyopenms_module_props(_pyopenms)
@@ -286,6 +288,7 @@ else()
     message(STATUS "pyOpenMS: Building _arrow_zerocopy module (WITH_PARQUET detected)")
     nanobind_add_module(_arrow_zerocopy
       NB_DOMAIN pyopenms
+      NOMINSIZE
       ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
     )
     _pyopenms_module_props(_arrow_zerocopy)
