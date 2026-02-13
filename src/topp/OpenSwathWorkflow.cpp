@@ -22,11 +22,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 #ifdef WITH_PARQUET
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
+#include <OpenMS/FORMAT/ParquetFile.h>
 #endif
 #include <OpenMS/SYSTEM/File.h>
-#ifdef WITH_PARQUET
-#include <OpenMS/SYSTEM/ExternalProcess.h>
-#endif
 
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -68,30 +66,6 @@ using namespace OpenMS;
 
 #include <QDir>
 #include <unordered_map>
-
-#ifdef WITH_PARQUET
-namespace
-{
-  void zipParquetOutput_(const String& directory_path, const String& output_zip)
-  {
-    const String output_zip_abs = File::absolutePath(output_zip);
-    if (File::exists(output_zip_abs))
-    {
-      File::remove(output_zip_abs);
-    }
-
-    ExternalProcess zip_process;
-    QStringList args;
-    args << "-0" << "-r" << "-q" << output_zip_abs.toQString() << ".";
-    auto status = zip_process.run("zip", args, directory_path.toQString(), false);
-    if (status != ExternalProcess::RETURNSTATE::SUCCESS)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Failed to zip parquet output", output_zip_abs);
-    }
-  }
-}
-#endif
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -162,7 +136,7 @@ The assay library (transition list) is provided through the @p -tr parameter and
   <ul>
     <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" (Recommended) </li>
     <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
-    <li> @ref OpenMS::TransitionParquetFile "OpenSWATH Parquet library (.pqp_parquet)" </li>
+    <li> @ref OpenMS::TransitionParquetFile "OpenSWATH Parquet library (.oswpq)" </li>
     <li> @ref OpenMS::TraMLFile "TraML" </li>
     <li> SpectraST MRM transition lists </li>
     <li> Skyline transition lists </li>
@@ -251,10 +225,10 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
 
-    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp','pqp_parquet')");
+    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp','oswpq')");
     StringList tr_formats = {"traML", "tsv", "pqp"};
 #ifdef WITH_PARQUET
-    tr_formats.push_back("pqp_parquet");
+    tr_formats.push_back("oswpq");
 #endif
     setValidFormats_("tr", tr_formats);
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
@@ -269,10 +243,10 @@ protected:
     registerStringOption_("enable_ipf", "<true|false>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
     setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
 
-    registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file), .osw_parquet, or .featureXML", false);
+    registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file), .oswpq, or .featureXML", false);
     std::vector<String> out_feature_formats = {"osw", "featureXML"};
 #ifdef WITH_PARQUET
-    out_feature_formats.push_back("osw_parquet");
+    out_feature_formats.push_back("oswpq");
 #endif
     setValidFormats_("out_features", out_feature_formats);
 
@@ -576,9 +550,9 @@ protected:
       return PARSE_ERROR;
     }
 #ifndef WITH_PARQUET
-    if (out_features_type == FileTypes::OSWPARQUET)
+    if (out_features_type == FileTypes::OSWPQ)
     {
-      writeLogError_("Error: OpenMS was built without Parquet support, cannot write osw_parquet output.");
+      writeLogError_("Error: OpenMS was built without Parquet support, cannot write oswpq output.");
       return PARSE_ERROR;
     }
 #endif
@@ -838,7 +812,7 @@ protected:
           }
         }
       }
-      else if (tr_type == FileTypes::PQPPARQUET)
+      else if (tr_type == FileTypes::OSWPQ)
       {
         // Convert parquet library to .PQP for OSW output
         TransitionPQPFile().convertLightTargetedExperimentToPQP(out_features.c_str(), transition_exp);
@@ -961,7 +935,7 @@ protected:
     // Set up shared output objects that persist across files
     FeatureMap out_featureFile;  // accumulates features across all files
     const bool write_osw = (out_features_type == FileTypes::OSW);
-    const bool write_parquet = (out_features_type == FileTypes::OSWPARQUET);
+    const bool write_parquet = (out_features_type == FileTypes::OSWPQ);
     String osw_out_filename = write_osw ? out_features : "";
     OpenSwathOSWWriter oswwriter(osw_out_filename, enable_uis_scoring);
 
@@ -972,11 +946,11 @@ protected:
     OpenSwathOSWParquetWriter parquet_writer;
     if (write_parquet)
     {
-      parquet_zip_output = out_features.hasSuffix(".osw_parquet");
+      parquet_zip_output = out_features.hasSuffix(".oswpq");
       if (parquet_zip_output)
       {
         parquet_temp_dir = std::make_unique<File::TempDir>();
-        parquet_dir = parquet_temp_dir->getPath() + "/osw_parquet";
+        parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
       }
     }
 #endif
@@ -1251,7 +1225,7 @@ protected:
 #ifdef WITH_PARQUET
     if (write_parquet && parquet_zip_output)
     {
-      zipParquetOutput_(parquet_dir, out_features);
+      ParquetFile::zipDirectory(parquet_dir, out_features);
     }
 #endif
 

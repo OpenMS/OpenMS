@@ -1469,13 +1469,13 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
 
 # Parquet library support (requires WITH_PARQUET and external zip/unzip)
 if (WITH_PARQUET)
-  add_test("TOPP_TargetedFileConverter_parquet_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.pqp_parquet -out_type pqp_parquet)
-  add_test("TOPP_TargetedFileConverter_parquet_roundtrip" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.pqp_parquet -in_type pqp_parquet -out ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.tsv -out_type tsv)
+  add_test("TOPP_TargetedFileConverter_parquet_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.oswpq -out_type oswpq)
+  add_test("TOPP_TargetedFileConverter_parquet_roundtrip" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.oswpq -in_type oswpq -out ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.tsv -out_type tsv)
   set_tests_properties("TOPP_TargetedFileConverter_parquet_roundtrip" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_parquet_prepare")
 
-  add_test("TOPP_OpenSwathAssayGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -in_type tsv -out ${TESTS_TEMP_DIR}/OpenSwathAssayGenerator_parquet_output.tmp.pqp_parquet -out_type pqp_parquet)
+  add_test("TOPP_OpenSwathAssayGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -in_type tsv -out ${TESTS_TEMP_DIR}/OpenSwathAssayGenerator_parquet_output.tmp.oswpq -out_type oswpq)
 
-  add_test("TOPP_OpenSwathDecoyGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -in_type TraML -out ${TESTS_TEMP_DIR}/OpenSwathDecoyGenerator_parquet_output.tmp.pqp_parquet -out_type pqp_parquet -method pseudo-reverse -separate -switchKR false)
+  add_test("TOPP_OpenSwathDecoyGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -in_type TraML -out ${TESTS_TEMP_DIR}/OpenSwathDecoyGenerator_parquet_output.tmp.oswpq -out_type oswpq -method pseudo-reverse -separate -switchKR false)
 endif()
 
   # protein group conversion test PQP

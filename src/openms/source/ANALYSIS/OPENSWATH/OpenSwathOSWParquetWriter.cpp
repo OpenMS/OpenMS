@@ -12,6 +12,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
@@ -30,11 +31,6 @@
 #undef signals
 #endif
 #include <arrow/api.h>
-#include <arrow/io/api.h>
-#include <arrow/io/file.h>
-#include <arrow/table.h>
-#include <parquet/arrow/writer.h>
-#include <parquet/arrow/reader.h>
 #include <parquet/file_reader.h>
 #endif
 
@@ -45,37 +41,15 @@ namespace OpenMS
     using OpenMS::Size;
 
 #ifdef WITH_PARQUET
-    void appendOrThrow_(const arrow::Status& status, const char* column)
-    {
-      if (!status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Failed to append value for ") + column, status.ToString());
-      }
-    }
-
-    template <typename Builder>
-    std::shared_ptr<arrow::Array> finishArray_(Builder& builder, const char* name)
-    {
-      std::shared_ptr<arrow::Array> array;
-      auto status = builder.Finish(&array);
-      if (!status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Failed to finish array for ") + name, status.ToString());
-      }
-      return array;
-    }
-
     void appendOptionalFloat_(arrow::DoubleBuilder& builder, bool has_value, double value, const char* column)
     {
       if (!has_value || !std::isfinite(value))
       {
-        appendOrThrow_(builder.AppendNull(), column);
+        ParquetFile::appendOrThrow(builder.AppendNull(), column);
       }
       else
       {
-        appendOrThrow_(builder.Append(value), column);
+        ParquetFile::appendOrThrow(builder.Append(value), column);
       }
     }
 
@@ -83,11 +57,11 @@ namespace OpenMS
     {
       if (!has_value)
       {
-        appendOrThrow_(builder.AppendNull(), column);
+        ParquetFile::appendOrThrow(builder.AppendNull(), column);
       }
       else
       {
-        appendOrThrow_(builder.Append(value), column);
+        ParquetFile::appendOrThrow(builder.Append(value), column);
       }
     }
 
@@ -125,7 +99,7 @@ namespace OpenMS
       }
       else
       {
-        appendOrThrow_(builder.AppendNull(), column);
+        ParquetFile::appendOrThrow(builder.AppendNull(), column);
       }
     }
 
@@ -212,77 +186,8 @@ namespace OpenMS
       }
       else
       {
-        appendOrThrow_(builder.AppendNull(), column);
+        ParquetFile::appendOrThrow(builder.AppendNull(), column);
       }
-    }
-
-    void writeParquetTable_(const std::shared_ptr<arrow::Table>& table, const String& filename)
-    {
-      auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename));
-      if (!outfile_result.ok())
-      {
-        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-      }
-      auto outfile = outfile_result.ValueOrDie();
-      auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024);
-      if (!status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to write parquet table", status.ToString());
-      }
-    }
-
-    std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
-    {
-      auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
-      if (!infile_result.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to open parquet file", filename);
-      }
-      std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
-
-      auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
-      if (!reader_result.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to create parquet reader", filename);
-      }
-      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
-
-      std::shared_ptr<arrow::Table> table;
-      auto read_status = reader->ReadTable(&table);
-      if (!read_status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to read parquet table", filename);
-      }
-
-      auto combined = table->CombineChunks(arrow::default_memory_pool());
-      if (!combined.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to combine parquet chunks", filename);
-      }
-
-      return *combined;
-    }
-
-    std::shared_ptr<arrow::Array> getColumn_(const std::shared_ptr<arrow::Table>& table,
-                                             const std::string& name)
-    {
-      auto column = table->GetColumnByName(name);
-      if (!column)
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Missing required column '" + name + "'");
-      }
-      if (column->num_chunks() == 0)
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Column has no chunks", name);
-      }
-      return column->chunk(0);
     }
 
     struct RunEntry
@@ -316,9 +221,9 @@ namespace OpenMS
         return runs;
       }
 
-      auto runs_table = readParquetTable_(runs_parquet);
-      auto run_id_array = std::static_pointer_cast<arrow::Int64Array>(getColumn_(runs_table, "run_id"));
-      auto filename_array = std::static_pointer_cast<arrow::StringArray>(getColumn_(runs_table, "filename"));
+      auto runs_table = ParquetFile::readTable(runs_parquet);
+      auto run_id_array = std::static_pointer_cast<arrow::Int64Array>(ParquetFile::getColumn(runs_table, "run_id"));
+      auto filename_array = std::static_pointer_cast<arrow::StringArray>(ParquetFile::getColumn(runs_table, "filename"));
 
       const int64_t num_rows = runs_table->num_rows();
       runs.reserve(num_rows);
@@ -521,22 +426,22 @@ namespace OpenMS
     {
       arrow::Int64Builder run_id_builder;
       arrow::StringBuilder filename_builder;
-      appendOrThrow_(run_id_builder.Append(run_id_clean), "run_id");
-      appendOrThrow_(filename_builder.Append(std::string(input_filename)), "filename");
+      ParquetFile::appendOrThrow(run_id_builder.Append(run_id_clean), "run_id");
+      ParquetFile::appendOrThrow(filename_builder.Append(std::string(input_filename)), "filename");
 
       auto runs_schema = arrow::schema({
         arrow::field("run_id", arrow::int64()),
         arrow::field("filename", arrow::utf8())
       });
       auto runs_table = arrow::Table::Make(runs_schema, {
-        finishArray_(run_id_builder, "run_id"),
-        finishArray_(filename_builder, "filename")
+        ParquetFile::finishArray(run_id_builder, "run_id"),
+        ParquetFile::finishArray(filename_builder, "filename")
       });
       const String runs_parquet = runs_dir + "/runs.parquet";
       if (File::exists(runs_parquet))
       {
-        auto existing_table = readParquetTable_(runs_parquet);
-        auto existing_run_ids = std::static_pointer_cast<arrow::Int64Array>(getColumn_(existing_table, "run_id"));
+        auto existing_table = ParquetFile::readTable(runs_parquet);
+        auto existing_run_ids = std::static_pointer_cast<arrow::Int64Array>(ParquetFile::getColumn(existing_table, "run_id"));
         const int64_t existing_rows = existing_table->num_rows();
         for (int64_t row = 0; row < existing_rows; ++row)
         {
@@ -552,11 +457,11 @@ namespace OpenMS
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Failed to append runs table", combined_result.status().ToString());
         }
-        writeParquetTable_(combined_result.ValueOrDie(), runs_parquet);
+        ParquetFile::writeTable(combined_result.ValueOrDie(), runs_parquet);
       }
       else
       {
-        writeParquetTable_(runs_table, runs_parquet);
+        ParquetFile::writeTable(runs_table, runs_parquet);
       }
     }
 
@@ -696,9 +601,9 @@ namespace OpenMS
                                       "Feature references unknown peptide", peptide_ref);
       }
 
-      appendOrThrow_(feature_id_builder.Append(feature_id), "feature_id");
-      appendOrThrow_(feature_run_id_builder.Append(run_id_clean), "run_id");
-      appendOrThrow_(precursor_id_builder.Append(precursor_it->second), "precursor_id");
+      ParquetFile::appendOrThrow(feature_id_builder.Append(feature_id), "feature_id");
+      ParquetFile::appendOrThrow(feature_run_id_builder.Append(run_id_clean), "run_id");
+      ParquetFile::appendOrThrow(precursor_id_builder.Append(precursor_it->second), "precursor_id");
       appendOptionalFloat_(exp_rt_builder, true, feature.getRT(), "exp_rt");
 
       double value = 0.0;
@@ -733,23 +638,23 @@ namespace OpenMS
       }
       else
       {
-        appendOrThrow_(ms1_area_builder.AppendNull(), "ms1_area_intensity");
-        appendOrThrow_(ms1_apex_builder.AppendNull(), "ms1_apex_intensity");
-        appendOrThrow_(ms1_exp_im_builder.AppendNull(), "ms1_exp_im");
-        appendOrThrow_(ms1_delta_im_builder.AppendNull(), "ms1_delta_im");
-        appendOrThrow_(var_ms1_massdev_builder.AppendNull(), "var_ms1_massdev_score");
-        appendOrThrow_(var_ms1_im_ms1_delta_builder.AppendNull(), "var_ms1_im_ms1_delta_score");
-        appendOrThrow_(var_ms1_mi_builder.AppendNull(), "var_ms1_mi_score");
-        appendOrThrow_(var_ms1_mi_contrast_builder.AppendNull(), "var_ms1_mi_contrast_score");
-        appendOrThrow_(var_ms1_mi_combined_builder.AppendNull(), "var_ms1_mi_combined_score");
-        appendOrThrow_(var_ms1_iso_corr_builder.AppendNull(), "var_ms1_isotope_correlation_score");
-        appendOrThrow_(var_ms1_iso_overlap_builder.AppendNull(), "var_ms1_isotope_overlap_score");
-        appendOrThrow_(var_ms1_xcorr_coelution_builder.AppendNull(), "var_ms1_xcorr_coelution");
-        appendOrThrow_(var_ms1_xcorr_coelution_contrast_builder.AppendNull(), "var_ms1_xcorr_coelution_contrast");
-        appendOrThrow_(var_ms1_xcorr_coelution_combined_builder.AppendNull(), "var_ms1_xcorr_coelution_combined");
-        appendOrThrow_(var_ms1_xcorr_shape_builder.AppendNull(), "var_ms1_xcorr_shape");
-        appendOrThrow_(var_ms1_xcorr_shape_contrast_builder.AppendNull(), "var_ms1_xcorr_shape_contrast");
-        appendOrThrow_(var_ms1_xcorr_shape_combined_builder.AppendNull(), "var_ms1_xcorr_shape_combined");
+        ParquetFile::appendOrThrow(ms1_area_builder.AppendNull(), "ms1_area_intensity");
+        ParquetFile::appendOrThrow(ms1_apex_builder.AppendNull(), "ms1_apex_intensity");
+        ParquetFile::appendOrThrow(ms1_exp_im_builder.AppendNull(), "ms1_exp_im");
+        ParquetFile::appendOrThrow(ms1_delta_im_builder.AppendNull(), "ms1_delta_im");
+        ParquetFile::appendOrThrow(var_ms1_massdev_builder.AppendNull(), "var_ms1_massdev_score");
+        ParquetFile::appendOrThrow(var_ms1_im_ms1_delta_builder.AppendNull(), "var_ms1_im_ms1_delta_score");
+        ParquetFile::appendOrThrow(var_ms1_mi_builder.AppendNull(), "var_ms1_mi_score");
+        ParquetFile::appendOrThrow(var_ms1_mi_contrast_builder.AppendNull(), "var_ms1_mi_contrast_score");
+        ParquetFile::appendOrThrow(var_ms1_mi_combined_builder.AppendNull(), "var_ms1_mi_combined_score");
+        ParquetFile::appendOrThrow(var_ms1_iso_corr_builder.AppendNull(), "var_ms1_isotope_correlation_score");
+        ParquetFile::appendOrThrow(var_ms1_iso_overlap_builder.AppendNull(), "var_ms1_isotope_overlap_score");
+        ParquetFile::appendOrThrow(var_ms1_xcorr_coelution_builder.AppendNull(), "var_ms1_xcorr_coelution");
+        ParquetFile::appendOrThrow(var_ms1_xcorr_coelution_contrast_builder.AppendNull(), "var_ms1_xcorr_coelution_contrast");
+        ParquetFile::appendOrThrow(var_ms1_xcorr_coelution_combined_builder.AppendNull(), "var_ms1_xcorr_coelution_combined");
+        ParquetFile::appendOrThrow(var_ms1_xcorr_shape_builder.AppendNull(), "var_ms1_xcorr_shape");
+        ParquetFile::appendOrThrow(var_ms1_xcorr_shape_contrast_builder.AppendNull(), "var_ms1_xcorr_shape_contrast");
+        ParquetFile::appendOrThrow(var_ms1_xcorr_shape_combined_builder.AppendNull(), "var_ms1_xcorr_shape_combined");
       }
 
       appendOptionalFloat_(ms2_area_builder, true, feature.getIntensity(), "ms2_area_intensity");
@@ -814,9 +719,9 @@ namespace OpenMS
             transition_id_value = it->second;
           }
 
-          appendOrThrow_(ft_feature_id_builder.Append(feature_id), "feature_id");
-          appendOrThrow_(ft_run_id_builder.Append(run_id_clean), "run_id");
-          appendOrThrow_(ft_transition_id_builder.Append(transition_id_value), "transition_id");
+          ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
+          ParquetFile::appendOrThrow(ft_run_id_builder.Append(run_id_clean), "run_id");
+          ParquetFile::appendOrThrow(ft_transition_id_builder.Append(transition_id_value), "transition_id");
           appendOptionalFloat_(ft_area_builder, true, sub_it.getIntensity(), "area_intensity");
           appendOptionalFloat_(ft_total_area_builder, extractMetaDouble_(sub_it, "total_xic", value), value, "total_area_intensity");
           appendOptionalFloat_(ft_apex_int_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "apex_intensity");
@@ -824,27 +729,27 @@ namespace OpenMS
           appendOptionalFloat_(ft_rt_fwhm_builder, extractMetaDouble_(sub_it, "width_at_50", value), value, "rt_fwhm");
           appendOptionalFloatFromList_(ft_masserror_builder, masserror_ppm, i, "masserror_ppm");
           appendOptionalFloat_(ft_total_mi_builder, extractMetaDouble_(sub_it, "total_mi", value), value, "total_mi");
-          appendOrThrow_(ft_var_intensity_builder.AppendNull(), "var_intensity_score");
-          appendOrThrow_(ft_var_intensity_ratio_builder.AppendNull(), "var_intensity_ratio_score");
-          appendOrThrow_(ft_var_log_intensity_builder.AppendNull(), "var_log_intensity");
-          appendOrThrow_(ft_var_xcorr_coelution_builder.AppendNull(), "var_xcorr_coelution");
-          appendOrThrow_(ft_var_xcorr_shape_builder.AppendNull(), "var_xcorr_shape");
-          appendOrThrow_(ft_var_log_sn_builder.AppendNull(), "var_log_sn_score");
-          appendOrThrow_(ft_var_massdev_builder.AppendNull(), "var_massdev_score");
-          appendOrThrow_(ft_var_mi_builder.AppendNull(), "var_mi_score");
-          appendOrThrow_(ft_var_mi_ratio_builder.AppendNull(), "var_mi_ratio_score");
-          appendOrThrow_(ft_var_isotope_corr_builder.AppendNull(), "var_isotope_correlation_score");
-          appendOrThrow_(ft_var_isotope_overlap_builder.AppendNull(), "var_isotope_overlap_score");
-          appendOrThrow_(ft_exp_im_builder.AppendNull(), "exp_im");
-          appendOrThrow_(ft_exp_im_left_builder.AppendNull(), "exp_im_leftwidth");
-          appendOrThrow_(ft_exp_im_right_builder.AppendNull(), "exp_im_rightwidth");
-          appendOrThrow_(ft_delta_im_builder.AppendNull(), "delta_im");
-          appendOrThrow_(ft_var_im_delta_builder.AppendNull(), "var_im_delta_score");
-          appendOrThrow_(ft_var_im_log_intensity_builder.AppendNull(), "var_im_log_intensity");
-          appendOrThrow_(ft_var_im_xcorr_coelution_contrast_builder.AppendNull(), "var_im_xcorr_coelution_contrast");
-          appendOrThrow_(ft_var_im_xcorr_shape_contrast_builder.AppendNull(), "var_im_xcorr_shape_contrast");
-          appendOrThrow_(ft_var_im_xcorr_coelution_combined_builder.AppendNull(), "var_im_xcorr_coelution_combined");
-          appendOrThrow_(ft_var_im_xcorr_shape_combined_builder.AppendNull(), "var_im_xcorr_shape_combined");
+          ParquetFile::appendOrThrow(ft_var_intensity_builder.AppendNull(), "var_intensity_score");
+          ParquetFile::appendOrThrow(ft_var_intensity_ratio_builder.AppendNull(), "var_intensity_ratio_score");
+          ParquetFile::appendOrThrow(ft_var_log_intensity_builder.AppendNull(), "var_log_intensity");
+          ParquetFile::appendOrThrow(ft_var_xcorr_coelution_builder.AppendNull(), "var_xcorr_coelution");
+          ParquetFile::appendOrThrow(ft_var_xcorr_shape_builder.AppendNull(), "var_xcorr_shape");
+          ParquetFile::appendOrThrow(ft_var_log_sn_builder.AppendNull(), "var_log_sn_score");
+          ParquetFile::appendOrThrow(ft_var_massdev_builder.AppendNull(), "var_massdev_score");
+          ParquetFile::appendOrThrow(ft_var_mi_builder.AppendNull(), "var_mi_score");
+          ParquetFile::appendOrThrow(ft_var_mi_ratio_builder.AppendNull(), "var_mi_ratio_score");
+          ParquetFile::appendOrThrow(ft_var_isotope_corr_builder.AppendNull(), "var_isotope_correlation_score");
+          ParquetFile::appendOrThrow(ft_var_isotope_overlap_builder.AppendNull(), "var_isotope_overlap_score");
+          ParquetFile::appendOrThrow(ft_exp_im_builder.AppendNull(), "exp_im");
+          ParquetFile::appendOrThrow(ft_exp_im_left_builder.AppendNull(), "exp_im_leftwidth");
+          ParquetFile::appendOrThrow(ft_exp_im_right_builder.AppendNull(), "exp_im_rightwidth");
+          ParquetFile::appendOrThrow(ft_delta_im_builder.AppendNull(), "delta_im");
+          ParquetFile::appendOrThrow(ft_var_im_delta_builder.AppendNull(), "var_im_delta_score");
+          ParquetFile::appendOrThrow(ft_var_im_log_intensity_builder.AppendNull(), "var_im_log_intensity");
+          ParquetFile::appendOrThrow(ft_var_im_xcorr_coelution_contrast_builder.AppendNull(), "var_im_xcorr_coelution_contrast");
+          ParquetFile::appendOrThrow(ft_var_im_xcorr_shape_contrast_builder.AppendNull(), "var_im_xcorr_shape_contrast");
+          ParquetFile::appendOrThrow(ft_var_im_xcorr_coelution_combined_builder.AppendNull(), "var_im_xcorr_coelution_combined");
+          ParquetFile::appendOrThrow(ft_var_im_xcorr_shape_combined_builder.AppendNull(), "var_im_xcorr_shape_combined");
 
           const bool has_peak_shape = sub_it.metaValueExists("start_position_at_5");
           appendOptionalFloat_(ft_start_position_at_5_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_5", value), value, "start_position_at_5");
@@ -874,9 +779,9 @@ namespace OpenMS
           {
             continue;
           }
-          appendOrThrow_(fp_feature_id_builder.Append(feature_id), "feature_id");
-          appendOrThrow_(fp_run_id_builder.Append(run_id_clean), "run_id");
-          appendOrThrow_(fp_isotope_builder.Append(static_cast<int32_t>(isotope_value)), "precursor_isotope");
+          ParquetFile::appendOrThrow(fp_feature_id_builder.Append(feature_id), "feature_id");
+          ParquetFile::appendOrThrow(fp_run_id_builder.Append(run_id_clean), "run_id");
+          ParquetFile::appendOrThrow(fp_isotope_builder.Append(static_cast<int32_t>(isotope_value)), "precursor_isotope");
           appendOptionalFloat_(fp_area_builder, true, sub_it.getIntensity(), "precursor_area_intensity");
           appendOptionalFloat_(fp_apex_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "precursor_apex_intensity");
         }
@@ -934,9 +839,9 @@ namespace OpenMS
           auto it = transition_to_id.find(transition_name);
           if (it == transition_to_id.end()) continue;
 
-          appendOrThrow_(ft_feature_id_builder.Append(feature_id), "feature_id");
-          appendOrThrow_(ft_run_id_builder.Append(run_id_clean), "run_id");
-          appendOrThrow_(ft_transition_id_builder.Append(it->second), "transition_id");
+          ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
+          ParquetFile::appendOrThrow(ft_run_id_builder.Append(run_id_clean), "run_id");
+          ParquetFile::appendOrThrow(ft_transition_id_builder.Append(it->second), "transition_id");
           appendOptionalFloatFromList_(ft_area_builder, id_target_area_intensity, i, "area_intensity");
           appendOptionalFloatFromList_(ft_total_area_builder, id_target_total_area_intensity, i, "total_area_intensity");
           appendOptionalFloatFromList_(ft_apex_int_builder, id_target_apex_intensity, i, "apex_intensity");
@@ -983,19 +888,19 @@ namespace OpenMS
           }
           else
           {
-            appendOrThrow_(ft_start_position_at_5_builder.AppendNull(), "start_position_at_5");
-            appendOrThrow_(ft_end_position_at_5_builder.AppendNull(), "end_position_at_5");
-            appendOrThrow_(ft_start_position_at_10_builder.AppendNull(), "start_position_at_10");
-            appendOrThrow_(ft_end_position_at_10_builder.AppendNull(), "end_position_at_10");
-            appendOrThrow_(ft_start_position_at_50_builder.AppendNull(), "start_position_at_50");
-            appendOrThrow_(ft_end_position_at_50_builder.AppendNull(), "end_position_at_50");
-            appendOrThrow_(ft_total_width_builder.AppendNull(), "total_width");
-            appendOrThrow_(ft_tailing_factor_builder.AppendNull(), "tailing_factor");
-            appendOrThrow_(ft_asymmetry_factor_builder.AppendNull(), "asymmetry_factor");
-            appendOrThrow_(ft_slope_of_baseline_builder.AppendNull(), "slope_of_baseline");
-            appendOrThrow_(ft_baseline_delta_2_height_builder.AppendNull(), "baseline_delta_2_height");
-            appendOrThrow_(ft_points_across_baseline_builder.AppendNull(), "points_across_baseline");
-            appendOrThrow_(ft_points_across_half_height_builder.AppendNull(), "points_across_half_height");
+            ParquetFile::appendOrThrow(ft_start_position_at_5_builder.AppendNull(), "start_position_at_5");
+            ParquetFile::appendOrThrow(ft_end_position_at_5_builder.AppendNull(), "end_position_at_5");
+            ParquetFile::appendOrThrow(ft_start_position_at_10_builder.AppendNull(), "start_position_at_10");
+            ParquetFile::appendOrThrow(ft_end_position_at_10_builder.AppendNull(), "end_position_at_10");
+            ParquetFile::appendOrThrow(ft_start_position_at_50_builder.AppendNull(), "start_position_at_50");
+            ParquetFile::appendOrThrow(ft_end_position_at_50_builder.AppendNull(), "end_position_at_50");
+            ParquetFile::appendOrThrow(ft_total_width_builder.AppendNull(), "total_width");
+            ParquetFile::appendOrThrow(ft_tailing_factor_builder.AppendNull(), "tailing_factor");
+            ParquetFile::appendOrThrow(ft_asymmetry_factor_builder.AppendNull(), "asymmetry_factor");
+            ParquetFile::appendOrThrow(ft_slope_of_baseline_builder.AppendNull(), "slope_of_baseline");
+            ParquetFile::appendOrThrow(ft_baseline_delta_2_height_builder.AppendNull(), "baseline_delta_2_height");
+            ParquetFile::appendOrThrow(ft_points_across_baseline_builder.AppendNull(), "points_across_baseline");
+            ParquetFile::appendOrThrow(ft_points_across_half_height_builder.AppendNull(), "points_across_half_height");
           }
         }
 
@@ -1049,9 +954,9 @@ namespace OpenMS
           auto it = transition_to_id.find(transition_name);
           if (it == transition_to_id.end()) continue;
 
-          appendOrThrow_(ft_feature_id_builder.Append(feature_id), "feature_id");
-          appendOrThrow_(ft_run_id_builder.Append(run_id_clean), "run_id");
-          appendOrThrow_(ft_transition_id_builder.Append(it->second), "transition_id");
+          ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
+          ParquetFile::appendOrThrow(ft_run_id_builder.Append(run_id_clean), "run_id");
+          ParquetFile::appendOrThrow(ft_transition_id_builder.Append(it->second), "transition_id");
           appendOptionalFloatFromList_(ft_area_builder, id_decoy_area_intensity, i, "area_intensity");
           appendOptionalFloatFromList_(ft_total_area_builder, id_decoy_total_area_intensity, i, "total_area_intensity");
           appendOptionalFloatFromList_(ft_apex_int_builder, id_decoy_apex_intensity, i, "apex_intensity");
@@ -1098,19 +1003,19 @@ namespace OpenMS
           }
           else
           {
-            appendOrThrow_(ft_start_position_at_5_builder.AppendNull(), "start_position_at_5");
-            appendOrThrow_(ft_end_position_at_5_builder.AppendNull(), "end_position_at_5");
-            appendOrThrow_(ft_start_position_at_10_builder.AppendNull(), "start_position_at_10");
-            appendOrThrow_(ft_end_position_at_10_builder.AppendNull(), "end_position_at_10");
-            appendOrThrow_(ft_start_position_at_50_builder.AppendNull(), "start_position_at_50");
-            appendOrThrow_(ft_end_position_at_50_builder.AppendNull(), "end_position_at_50");
-            appendOrThrow_(ft_total_width_builder.AppendNull(), "total_width");
-            appendOrThrow_(ft_tailing_factor_builder.AppendNull(), "tailing_factor");
-            appendOrThrow_(ft_asymmetry_factor_builder.AppendNull(), "asymmetry_factor");
-            appendOrThrow_(ft_slope_of_baseline_builder.AppendNull(), "slope_of_baseline");
-            appendOrThrow_(ft_baseline_delta_2_height_builder.AppendNull(), "baseline_delta_2_height");
-            appendOrThrow_(ft_points_across_baseline_builder.AppendNull(), "points_across_baseline");
-            appendOrThrow_(ft_points_across_half_height_builder.AppendNull(), "points_across_half_height");
+            ParquetFile::appendOrThrow(ft_start_position_at_5_builder.AppendNull(), "start_position_at_5");
+            ParquetFile::appendOrThrow(ft_end_position_at_5_builder.AppendNull(), "end_position_at_5");
+            ParquetFile::appendOrThrow(ft_start_position_at_10_builder.AppendNull(), "start_position_at_10");
+            ParquetFile::appendOrThrow(ft_end_position_at_10_builder.AppendNull(), "end_position_at_10");
+            ParquetFile::appendOrThrow(ft_start_position_at_50_builder.AppendNull(), "start_position_at_50");
+            ParquetFile::appendOrThrow(ft_end_position_at_50_builder.AppendNull(), "end_position_at_50");
+            ParquetFile::appendOrThrow(ft_total_width_builder.AppendNull(), "total_width");
+            ParquetFile::appendOrThrow(ft_tailing_factor_builder.AppendNull(), "tailing_factor");
+            ParquetFile::appendOrThrow(ft_asymmetry_factor_builder.AppendNull(), "asymmetry_factor");
+            ParquetFile::appendOrThrow(ft_slope_of_baseline_builder.AppendNull(), "slope_of_baseline");
+            ParquetFile::appendOrThrow(ft_baseline_delta_2_height_builder.AppendNull(), "baseline_delta_2_height");
+            ParquetFile::appendOrThrow(ft_points_across_baseline_builder.AppendNull(), "points_across_baseline");
+            ParquetFile::appendOrThrow(ft_points_across_half_height_builder.AppendNull(), "points_across_half_height");
           }
         }
       }
@@ -1186,74 +1091,74 @@ namespace OpenMS
         arrow::field("var_ms2_im_log_intensity", arrow::float64())
       });
       auto features_table = arrow::Table::Make(features_schema, {
-        finishArray_(feature_id_builder, "feature_id"),
-        finishArray_(feature_run_id_builder, "run_id"),
-        finishArray_(precursor_id_builder, "precursor_id"),
-        finishArray_(exp_rt_builder, "exp_rt"),
-        finishArray_(exp_im_builder, "exp_im"),
-        finishArray_(norm_rt_builder, "norm_rt"),
-        finishArray_(delta_rt_builder, "delta_rt"),
-        finishArray_(left_width_builder, "left_width"),
-        finishArray_(right_width_builder, "right_width"),
-        finishArray_(exp_im_left_builder, "exp_im_leftwidth"),
-        finishArray_(exp_im_right_builder, "exp_im_rightwidth"),
-        finishArray_(ms1_area_builder, "ms1_area_intensity"),
-        finishArray_(ms1_apex_builder, "ms1_apex_intensity"),
-        finishArray_(ms1_exp_im_builder, "ms1_exp_im"),
-        finishArray_(ms1_delta_im_builder, "ms1_delta_im"),
-        finishArray_(var_ms1_massdev_builder, "var_ms1_massdev_score"),
-        finishArray_(var_ms1_im_ms1_delta_builder, "var_ms1_im_ms1_delta_score"),
-        finishArray_(var_ms1_mi_builder, "var_ms1_mi_score"),
-        finishArray_(var_ms1_mi_contrast_builder, "var_ms1_mi_contrast_score"),
-        finishArray_(var_ms1_mi_combined_builder, "var_ms1_mi_combined_score"),
-        finishArray_(var_ms1_iso_corr_builder, "var_ms1_isotope_correlation_score"),
-        finishArray_(var_ms1_iso_overlap_builder, "var_ms1_isotope_overlap_score"),
-        finishArray_(var_ms1_xcorr_coelution_builder, "var_ms1_xcorr_coelution"),
-        finishArray_(var_ms1_xcorr_coelution_contrast_builder, "var_ms1_xcorr_coelution_contrast"),
-        finishArray_(var_ms1_xcorr_coelution_combined_builder, "var_ms1_xcorr_coelution_combined"),
-        finishArray_(var_ms1_xcorr_shape_builder, "var_ms1_xcorr_shape"),
-        finishArray_(var_ms1_xcorr_shape_contrast_builder, "var_ms1_xcorr_shape_contrast"),
-        finishArray_(var_ms1_xcorr_shape_combined_builder, "var_ms1_xcorr_shape_combined"),
-        finishArray_(ms2_area_builder, "ms2_area_intensity"),
-        finishArray_(ms2_total_area_builder, "ms2_total_area_intensity"),
-        finishArray_(ms2_apex_builder, "ms2_apex_intensity"),
-        finishArray_(ms2_exp_im_builder, "ms2_exp_im"),
-        finishArray_(ms2_exp_im_left_builder, "ms2_exp_im_leftwidth"),
-        finishArray_(ms2_exp_im_right_builder, "ms2_exp_im_rightwidth"),
-        finishArray_(ms2_delta_im_builder, "ms2_delta_im"),
-        finishArray_(ms2_total_mi_builder, "ms2_total_mi"),
-        finishArray_(var_ms2_bseries_builder, "var_ms2_bseries_score"),
-        finishArray_(var_ms2_dotprod_builder, "var_ms2_dotprod_score"),
-        finishArray_(var_ms2_intensity_builder, "var_ms2_intensity_score"),
-        finishArray_(var_ms2_iso_corr_builder, "var_ms2_isotope_correlation_score"),
-        finishArray_(var_ms2_iso_overlap_builder, "var_ms2_isotope_overlap_score"),
-        finishArray_(var_ms2_library_corr_builder, "var_ms2_library_corr"),
-        finishArray_(var_ms2_library_dotprod_builder, "var_ms2_library_dotprod"),
-        finishArray_(var_ms2_library_manhattan_builder, "var_ms2_library_manhattan"),
-        finishArray_(var_ms2_library_rmsd_builder, "var_ms2_library_rmsd"),
-        finishArray_(var_ms2_library_rootmeansquare_builder, "var_ms2_library_rootmeansquare"),
-        finishArray_(var_ms2_library_sangle_builder, "var_ms2_library_sangle"),
-        finishArray_(var_ms2_log_sn_builder, "var_ms2_log_sn_score"),
-        finishArray_(var_ms2_manhattan_builder, "var_ms2_manhattan_score"),
-        finishArray_(var_ms2_massdev_builder, "var_ms2_massdev_score"),
-        finishArray_(var_ms2_massdev_weighted_builder, "var_ms2_massdev_score_weighted"),
-        finishArray_(var_ms2_mi_builder, "var_ms2_mi_score"),
-        finishArray_(var_ms2_mi_weighted_builder, "var_ms2_mi_weighted_score"),
-        finishArray_(var_ms2_mi_ratio_builder, "var_ms2_mi_ratio_score"),
-        finishArray_(var_ms2_norm_rt_builder, "var_ms2_norm_rt_score"),
-        finishArray_(var_ms2_xcorr_coelution_builder, "var_ms2_xcorr_coelution"),
-        finishArray_(var_ms2_xcorr_coelution_weighted_builder, "var_ms2_xcorr_coelution_weighted"),
-        finishArray_(var_ms2_xcorr_shape_builder, "var_ms2_xcorr_shape"),
-        finishArray_(var_ms2_xcorr_shape_weighted_builder, "var_ms2_xcorr_shape_weighted"),
-        finishArray_(var_ms2_yseries_builder, "var_ms2_yseries_score"),
-        finishArray_(var_ms2_elution_model_fit_builder, "var_ms2_elution_model_fit_score"),
-        finishArray_(var_ms2_im_xcorr_shape_builder, "var_ms2_im_xcorr_shape"),
-        finishArray_(var_ms2_im_xcorr_coelution_builder, "var_ms2_im_xcorr_coelution"),
-        finishArray_(var_ms2_im_delta_builder, "var_ms2_im_delta_score"),
-        finishArray_(var_ms2_im_log_intensity_builder, "var_ms2_im_log_intensity")
+        ParquetFile::finishArray(feature_id_builder, "feature_id"),
+        ParquetFile::finishArray(feature_run_id_builder, "run_id"),
+        ParquetFile::finishArray(precursor_id_builder, "precursor_id"),
+        ParquetFile::finishArray(exp_rt_builder, "exp_rt"),
+        ParquetFile::finishArray(exp_im_builder, "exp_im"),
+        ParquetFile::finishArray(norm_rt_builder, "norm_rt"),
+        ParquetFile::finishArray(delta_rt_builder, "delta_rt"),
+        ParquetFile::finishArray(left_width_builder, "left_width"),
+        ParquetFile::finishArray(right_width_builder, "right_width"),
+        ParquetFile::finishArray(exp_im_left_builder, "exp_im_leftwidth"),
+        ParquetFile::finishArray(exp_im_right_builder, "exp_im_rightwidth"),
+        ParquetFile::finishArray(ms1_area_builder, "ms1_area_intensity"),
+        ParquetFile::finishArray(ms1_apex_builder, "ms1_apex_intensity"),
+        ParquetFile::finishArray(ms1_exp_im_builder, "ms1_exp_im"),
+        ParquetFile::finishArray(ms1_delta_im_builder, "ms1_delta_im"),
+        ParquetFile::finishArray(var_ms1_massdev_builder, "var_ms1_massdev_score"),
+        ParquetFile::finishArray(var_ms1_im_ms1_delta_builder, "var_ms1_im_ms1_delta_score"),
+        ParquetFile::finishArray(var_ms1_mi_builder, "var_ms1_mi_score"),
+        ParquetFile::finishArray(var_ms1_mi_contrast_builder, "var_ms1_mi_contrast_score"),
+        ParquetFile::finishArray(var_ms1_mi_combined_builder, "var_ms1_mi_combined_score"),
+        ParquetFile::finishArray(var_ms1_iso_corr_builder, "var_ms1_isotope_correlation_score"),
+        ParquetFile::finishArray(var_ms1_iso_overlap_builder, "var_ms1_isotope_overlap_score"),
+        ParquetFile::finishArray(var_ms1_xcorr_coelution_builder, "var_ms1_xcorr_coelution"),
+        ParquetFile::finishArray(var_ms1_xcorr_coelution_contrast_builder, "var_ms1_xcorr_coelution_contrast"),
+        ParquetFile::finishArray(var_ms1_xcorr_coelution_combined_builder, "var_ms1_xcorr_coelution_combined"),
+        ParquetFile::finishArray(var_ms1_xcorr_shape_builder, "var_ms1_xcorr_shape"),
+        ParquetFile::finishArray(var_ms1_xcorr_shape_contrast_builder, "var_ms1_xcorr_shape_contrast"),
+        ParquetFile::finishArray(var_ms1_xcorr_shape_combined_builder, "var_ms1_xcorr_shape_combined"),
+        ParquetFile::finishArray(ms2_area_builder, "ms2_area_intensity"),
+        ParquetFile::finishArray(ms2_total_area_builder, "ms2_total_area_intensity"),
+        ParquetFile::finishArray(ms2_apex_builder, "ms2_apex_intensity"),
+        ParquetFile::finishArray(ms2_exp_im_builder, "ms2_exp_im"),
+        ParquetFile::finishArray(ms2_exp_im_left_builder, "ms2_exp_im_leftwidth"),
+        ParquetFile::finishArray(ms2_exp_im_right_builder, "ms2_exp_im_rightwidth"),
+        ParquetFile::finishArray(ms2_delta_im_builder, "ms2_delta_im"),
+        ParquetFile::finishArray(ms2_total_mi_builder, "ms2_total_mi"),
+        ParquetFile::finishArray(var_ms2_bseries_builder, "var_ms2_bseries_score"),
+        ParquetFile::finishArray(var_ms2_dotprod_builder, "var_ms2_dotprod_score"),
+        ParquetFile::finishArray(var_ms2_intensity_builder, "var_ms2_intensity_score"),
+        ParquetFile::finishArray(var_ms2_iso_corr_builder, "var_ms2_isotope_correlation_score"),
+        ParquetFile::finishArray(var_ms2_iso_overlap_builder, "var_ms2_isotope_overlap_score"),
+        ParquetFile::finishArray(var_ms2_library_corr_builder, "var_ms2_library_corr"),
+        ParquetFile::finishArray(var_ms2_library_dotprod_builder, "var_ms2_library_dotprod"),
+        ParquetFile::finishArray(var_ms2_library_manhattan_builder, "var_ms2_library_manhattan"),
+        ParquetFile::finishArray(var_ms2_library_rmsd_builder, "var_ms2_library_rmsd"),
+        ParquetFile::finishArray(var_ms2_library_rootmeansquare_builder, "var_ms2_library_rootmeansquare"),
+        ParquetFile::finishArray(var_ms2_library_sangle_builder, "var_ms2_library_sangle"),
+        ParquetFile::finishArray(var_ms2_log_sn_builder, "var_ms2_log_sn_score"),
+        ParquetFile::finishArray(var_ms2_manhattan_builder, "var_ms2_manhattan_score"),
+        ParquetFile::finishArray(var_ms2_massdev_builder, "var_ms2_massdev_score"),
+        ParquetFile::finishArray(var_ms2_massdev_weighted_builder, "var_ms2_massdev_score_weighted"),
+        ParquetFile::finishArray(var_ms2_mi_builder, "var_ms2_mi_score"),
+        ParquetFile::finishArray(var_ms2_mi_weighted_builder, "var_ms2_mi_weighted_score"),
+        ParquetFile::finishArray(var_ms2_mi_ratio_builder, "var_ms2_mi_ratio_score"),
+        ParquetFile::finishArray(var_ms2_norm_rt_builder, "var_ms2_norm_rt_score"),
+        ParquetFile::finishArray(var_ms2_xcorr_coelution_builder, "var_ms2_xcorr_coelution"),
+        ParquetFile::finishArray(var_ms2_xcorr_coelution_weighted_builder, "var_ms2_xcorr_coelution_weighted"),
+        ParquetFile::finishArray(var_ms2_xcorr_shape_builder, "var_ms2_xcorr_shape"),
+        ParquetFile::finishArray(var_ms2_xcorr_shape_weighted_builder, "var_ms2_xcorr_shape_weighted"),
+        ParquetFile::finishArray(var_ms2_yseries_builder, "var_ms2_yseries_score"),
+        ParquetFile::finishArray(var_ms2_elution_model_fit_builder, "var_ms2_elution_model_fit_score"),
+        ParquetFile::finishArray(var_ms2_im_xcorr_shape_builder, "var_ms2_im_xcorr_shape"),
+        ParquetFile::finishArray(var_ms2_im_xcorr_coelution_builder, "var_ms2_im_xcorr_coelution"),
+        ParquetFile::finishArray(var_ms2_im_delta_builder, "var_ms2_im_delta_score"),
+        ParquetFile::finishArray(var_ms2_im_log_intensity_builder, "var_ms2_im_log_intensity")
       });
       write_tasks.emplace_back(std::async(std::launch::async, [features_table, run_path]() {
-        writeParquetTable_(features_table, run_path + "/features.parquet");
+        ParquetFile::writeTable(features_table, run_path + "/features.parquet");
       }));
     }
 
@@ -1305,53 +1210,53 @@ namespace OpenMS
         arrow::field("points_across_half_height", arrow::float64())
       });
       auto ft_table = arrow::Table::Make(ft_schema, {
-        finishArray_(ft_feature_id_builder, "feature_id"),
-        finishArray_(ft_run_id_builder, "run_id"),
-        finishArray_(ft_transition_id_builder, "transition_id"),
-        finishArray_(ft_area_builder, "area_intensity"),
-        finishArray_(ft_total_area_builder, "total_area_intensity"),
-        finishArray_(ft_apex_int_builder, "apex_intensity"),
-        finishArray_(ft_apex_rt_builder, "apex_rt"),
-        finishArray_(ft_rt_fwhm_builder, "rt_fwhm"),
-        finishArray_(ft_masserror_builder, "masserror_ppm"),
-        finishArray_(ft_total_mi_builder, "total_mi"),
-        finishArray_(ft_var_intensity_builder, "var_intensity_score"),
-        finishArray_(ft_var_intensity_ratio_builder, "var_intensity_ratio_score"),
-        finishArray_(ft_var_log_intensity_builder, "var_log_intensity"),
-        finishArray_(ft_var_xcorr_coelution_builder, "var_xcorr_coelution"),
-        finishArray_(ft_var_xcorr_shape_builder, "var_xcorr_shape"),
-        finishArray_(ft_var_log_sn_builder, "var_log_sn_score"),
-        finishArray_(ft_var_massdev_builder, "var_massdev_score"),
-        finishArray_(ft_var_mi_builder, "var_mi_score"),
-        finishArray_(ft_var_mi_ratio_builder, "var_mi_ratio_score"),
-        finishArray_(ft_var_isotope_corr_builder, "var_isotope_correlation_score"),
-        finishArray_(ft_var_isotope_overlap_builder, "var_isotope_overlap_score"),
-        finishArray_(ft_exp_im_builder, "exp_im"),
-        finishArray_(ft_exp_im_left_builder, "exp_im_leftwidth"),
-        finishArray_(ft_exp_im_right_builder, "exp_im_rightwidth"),
-        finishArray_(ft_delta_im_builder, "delta_im"),
-        finishArray_(ft_var_im_delta_builder, "var_im_delta_score"),
-        finishArray_(ft_var_im_log_intensity_builder, "var_im_log_intensity"),
-        finishArray_(ft_var_im_xcorr_coelution_contrast_builder, "var_im_xcorr_coelution_contrast"),
-        finishArray_(ft_var_im_xcorr_shape_contrast_builder, "var_im_xcorr_shape_contrast"),
-        finishArray_(ft_var_im_xcorr_coelution_combined_builder, "var_im_xcorr_coelution_combined"),
-        finishArray_(ft_var_im_xcorr_shape_combined_builder, "var_im_xcorr_shape_combined"),
-        finishArray_(ft_start_position_at_5_builder, "start_position_at_5"),
-        finishArray_(ft_end_position_at_5_builder, "end_position_at_5"),
-        finishArray_(ft_start_position_at_10_builder, "start_position_at_10"),
-        finishArray_(ft_end_position_at_10_builder, "end_position_at_10"),
-        finishArray_(ft_start_position_at_50_builder, "start_position_at_50"),
-        finishArray_(ft_end_position_at_50_builder, "end_position_at_50"),
-        finishArray_(ft_total_width_builder, "total_width"),
-        finishArray_(ft_tailing_factor_builder, "tailing_factor"),
-        finishArray_(ft_asymmetry_factor_builder, "asymmetry_factor"),
-        finishArray_(ft_slope_of_baseline_builder, "slope_of_baseline"),
-        finishArray_(ft_baseline_delta_2_height_builder, "baseline_delta_2_height"),
-        finishArray_(ft_points_across_baseline_builder, "points_across_baseline"),
-        finishArray_(ft_points_across_half_height_builder, "points_across_half_height")
+        ParquetFile::finishArray(ft_feature_id_builder, "feature_id"),
+        ParquetFile::finishArray(ft_run_id_builder, "run_id"),
+        ParquetFile::finishArray(ft_transition_id_builder, "transition_id"),
+        ParquetFile::finishArray(ft_area_builder, "area_intensity"),
+        ParquetFile::finishArray(ft_total_area_builder, "total_area_intensity"),
+        ParquetFile::finishArray(ft_apex_int_builder, "apex_intensity"),
+        ParquetFile::finishArray(ft_apex_rt_builder, "apex_rt"),
+        ParquetFile::finishArray(ft_rt_fwhm_builder, "rt_fwhm"),
+        ParquetFile::finishArray(ft_masserror_builder, "masserror_ppm"),
+        ParquetFile::finishArray(ft_total_mi_builder, "total_mi"),
+        ParquetFile::finishArray(ft_var_intensity_builder, "var_intensity_score"),
+        ParquetFile::finishArray(ft_var_intensity_ratio_builder, "var_intensity_ratio_score"),
+        ParquetFile::finishArray(ft_var_log_intensity_builder, "var_log_intensity"),
+        ParquetFile::finishArray(ft_var_xcorr_coelution_builder, "var_xcorr_coelution"),
+        ParquetFile::finishArray(ft_var_xcorr_shape_builder, "var_xcorr_shape"),
+        ParquetFile::finishArray(ft_var_log_sn_builder, "var_log_sn_score"),
+        ParquetFile::finishArray(ft_var_massdev_builder, "var_massdev_score"),
+        ParquetFile::finishArray(ft_var_mi_builder, "var_mi_score"),
+        ParquetFile::finishArray(ft_var_mi_ratio_builder, "var_mi_ratio_score"),
+        ParquetFile::finishArray(ft_var_isotope_corr_builder, "var_isotope_correlation_score"),
+        ParquetFile::finishArray(ft_var_isotope_overlap_builder, "var_isotope_overlap_score"),
+        ParquetFile::finishArray(ft_exp_im_builder, "exp_im"),
+        ParquetFile::finishArray(ft_exp_im_left_builder, "exp_im_leftwidth"),
+        ParquetFile::finishArray(ft_exp_im_right_builder, "exp_im_rightwidth"),
+        ParquetFile::finishArray(ft_delta_im_builder, "delta_im"),
+        ParquetFile::finishArray(ft_var_im_delta_builder, "var_im_delta_score"),
+        ParquetFile::finishArray(ft_var_im_log_intensity_builder, "var_im_log_intensity"),
+        ParquetFile::finishArray(ft_var_im_xcorr_coelution_contrast_builder, "var_im_xcorr_coelution_contrast"),
+        ParquetFile::finishArray(ft_var_im_xcorr_shape_contrast_builder, "var_im_xcorr_shape_contrast"),
+        ParquetFile::finishArray(ft_var_im_xcorr_coelution_combined_builder, "var_im_xcorr_coelution_combined"),
+        ParquetFile::finishArray(ft_var_im_xcorr_shape_combined_builder, "var_im_xcorr_shape_combined"),
+        ParquetFile::finishArray(ft_start_position_at_5_builder, "start_position_at_5"),
+        ParquetFile::finishArray(ft_end_position_at_5_builder, "end_position_at_5"),
+        ParquetFile::finishArray(ft_start_position_at_10_builder, "start_position_at_10"),
+        ParquetFile::finishArray(ft_end_position_at_10_builder, "end_position_at_10"),
+        ParquetFile::finishArray(ft_start_position_at_50_builder, "start_position_at_50"),
+        ParquetFile::finishArray(ft_end_position_at_50_builder, "end_position_at_50"),
+        ParquetFile::finishArray(ft_total_width_builder, "total_width"),
+        ParquetFile::finishArray(ft_tailing_factor_builder, "tailing_factor"),
+        ParquetFile::finishArray(ft_asymmetry_factor_builder, "asymmetry_factor"),
+        ParquetFile::finishArray(ft_slope_of_baseline_builder, "slope_of_baseline"),
+        ParquetFile::finishArray(ft_baseline_delta_2_height_builder, "baseline_delta_2_height"),
+        ParquetFile::finishArray(ft_points_across_baseline_builder, "points_across_baseline"),
+        ParquetFile::finishArray(ft_points_across_half_height_builder, "points_across_half_height")
       });
       write_tasks.emplace_back(std::async(std::launch::async, [ft_table, run_path]() {
-        writeParquetTable_(ft_table, run_path + "/feature_transition.parquet");
+        ParquetFile::writeTable(ft_table, run_path + "/feature_transition.parquet");
       }));
     }
 
@@ -1365,14 +1270,14 @@ namespace OpenMS
         arrow::field("precursor_apex_intensity", arrow::float64())
       });
       auto fp_table = arrow::Table::Make(fp_schema, {
-        finishArray_(fp_feature_id_builder, "feature_id"),
-        finishArray_(fp_run_id_builder, "run_id"),
-        finishArray_(fp_isotope_builder, "precursor_isotope"),
-        finishArray_(fp_area_builder, "precursor_area_intensity"),
-        finishArray_(fp_apex_builder, "precursor_apex_intensity")
+        ParquetFile::finishArray(fp_feature_id_builder, "feature_id"),
+        ParquetFile::finishArray(fp_run_id_builder, "run_id"),
+        ParquetFile::finishArray(fp_isotope_builder, "precursor_isotope"),
+        ParquetFile::finishArray(fp_area_builder, "precursor_area_intensity"),
+        ParquetFile::finishArray(fp_apex_builder, "precursor_apex_intensity")
       });
       write_tasks.emplace_back(std::async(std::launch::async, [fp_table, run_path]() {
-        writeParquetTable_(fp_table, run_path + "/feature_precursor.parquet");
+        ParquetFile::writeTable(fp_table, run_path + "/feature_precursor.parquet");
       }));
     }
 

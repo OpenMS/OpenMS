@@ -90,7 +90,7 @@ START_SECTION(~TransitionParquetFile())
 }
 END_SECTION
 
-START_SECTION(void convertParquetToTargetedExperiment(const String& pqp_parquet_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const)
+START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const)
 {
 #ifdef WITH_PARQUET
   const String input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
@@ -127,7 +127,7 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& pqp_parquet_
   TEST_EQUAL(transitions.size() > 0, true)
 
   File::TempDir tmp_dir;
-  const String base_dir = tmp_dir.getPath() + "/test.pqp_parquet";
+  const String base_dir = tmp_dir.getPath() + "/test.oswpq";
   const String library_dir = base_dir + "/library";
   File::makeDir(base_dir);
   File::makeDir(library_dir);

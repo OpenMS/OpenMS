@@ -20,7 +20,7 @@ namespace OpenMS
 {
 
   /**
-      @brief Read OpenSwath Parquet library input (.pqp_parquet) into LightTargetedExperiment.
+      @brief Read OpenSwath Parquet library input (.oswpq) into LightTargetedExperiment.
 
       The Parquet library format is a directory container with separate tables for
       precursors and transitions. The reader materializes all rows into
@@ -28,7 +28,7 @@ namespace OpenMS
 
       The container layout is:
       @code
-      <library>.pqp_parquet
+      <library>.oswpq
       └── library/
           ├── metadata.json
           ├── precursors.parquet
@@ -107,11 +107,11 @@ namespace OpenMS
     /// Default destructor
     ~TransitionParquetFile() = default;
 
-    /// Read a .pqp_parquet library directory and populate a LightTargetedExperiment
-    void convertParquetToTargetedExperiment(const String& pqp_parquet_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const;
+    /// Read a .oswpq library directory and populate a LightTargetedExperiment
+    void convertParquetToTargetedExperiment(const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const;
 
-    /// Write a LightTargetedExperiment to a .pqp_parquet library (zip file or directory)
-    void convertLightTargetedExperimentToParquet(const String& pqp_parquet_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const;
+    /// Write a LightTargetedExperiment to a .oswpq library (zip file or directory)
+    void convertLightTargetedExperimentToParquet(const String& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const;
   };
 
 } // namespace OpenMS

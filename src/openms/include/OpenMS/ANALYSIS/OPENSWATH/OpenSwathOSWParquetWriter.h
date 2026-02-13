@@ -21,7 +21,7 @@ namespace OpenMS
 {
 
   /**
-      @brief Write OpenSwathWorkflow output to an OSW Parquet directory (.osw_parquet).
+      @brief Write OpenSwathWorkflow output to an OSW Parquet directory (.oswpq).
 
       This writer mirrors the OSW SQLite tables in Parquet:
       - runs.parquet
@@ -31,7 +31,7 @@ namespace OpenMS
 
       The output is a directory or zip archive with the following layout:
       @code
-      <output>.osw_parquet
+      <output>.oswpq
       ├── metadata.json
       ├── library/
       │   ├── precursors.parquet
