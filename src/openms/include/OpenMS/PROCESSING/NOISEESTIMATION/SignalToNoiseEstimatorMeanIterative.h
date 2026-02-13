@@ -11,6 +11,7 @@
 
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <vector>
 #include <algorithm> //for std::max_element
@@ -218,7 +219,7 @@ protected:
 
       if (max_intensity_ < 0)
       {
-        std::cerr << "TODO SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
+        OPENMS_LOG_WARN << "SignalToNoiseEstimatorMeanIterative: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
         return;
       }
 

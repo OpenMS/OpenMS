@@ -77,6 +77,8 @@ OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
 ParamCTDFile.h
+ParamCWLFile.h
+ParamJSONFile.h
 ParamXMLFile.h
 PEFFFile.h
 PTMXMLFile.h
