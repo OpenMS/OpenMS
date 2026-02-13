@@ -1616,19 +1616,20 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
         }, "Clear all peaks")
 
         .def("get_peaks", [](const OpenMS::Mobilogram& self) {
-            size_t n = self.size();
-            std::unique_ptr<double[]> mob_uptr(new double[n]);
-            std::unique_ptr<float[]> int_uptr(new float[n]);
-            double* mob_data = mob_uptr.get();
-            float* int_data = int_uptr.get();
+            // Single allocation + single capsule to reduce overhead for small arrays
+            const size_t n = self.size();
+            const size_t mob_bytes = n * sizeof(double);
+            const size_t int_bytes = n * sizeof(float);
+            char* buf = new char[mob_bytes + int_bytes];
+            double* mob_data = reinterpret_cast<double*>(buf);
+            float* int_data = reinterpret_cast<float*>(buf + mob_bytes);
             for (size_t i = 0; i < n; ++i) {
                 mob_data[i] = self[i].getMobility();
                 int_data[i] = self[i].getIntensity();
             }
-            nb::capsule mob_owner(mob_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            nb::capsule int_owner(int_uptr.release(), [](void* p) noexcept { delete[] static_cast<float*>(p); });
-            auto mob_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(mob_data, {n}, mob_owner);
-            auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, int_owner);
+            nb::capsule owner(buf, [](void* p) noexcept { delete[] static_cast<char*>(p); });
+            auto mob_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(mob_data, {n}, owner);
+            auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, owner);
             return nb::make_tuple(mob_arr, int_arr);
         }, "Get mobility and intensity arrays as numpy arrays")
 
