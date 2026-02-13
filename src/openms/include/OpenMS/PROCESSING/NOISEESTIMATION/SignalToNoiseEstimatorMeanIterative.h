@@ -350,12 +350,12 @@ protected:
       // warn if percentage of sparse windows is above 20%
       if (sparse_window_percent > 20)
       {
-        std::cerr << "WARNING in SignalToNoiseEstimatorMeanIterative: "
-                  << sparse_window_percent
-                  << "% of all windows were sparse. You should consider increasing 'win_len' or increasing 'min_required_elements'"
-                  << " You should also check the MaximalIntensity value (or the parameters for its heuristic estimation)"
-                  << " If it is too low, then too many high intensity peaks will be discarded, which leads to a sparse window!"
-                  << std::endl;
+        OPENMS_LOG_WARN << "WARNING in SignalToNoiseEstimatorMeanIterative: "
+                        << sparse_window_percent
+                        << "% of all windows were sparse. You should consider increasing 'win_len' or increasing 'min_required_elements'"
+                        << " You should also check the MaximalIntensity value (or the parameters for its heuristic estimation)"
+                        << " If it is too low, then too many high intensity peaks will be discarded, which leads to a sparse window!"
+                        << std::endl;
       }
 
       return;
