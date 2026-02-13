@@ -125,6 +125,7 @@ if (WITH_PARQUET)
   list(APPEND sources_list_h ConsensusMapArrowExport.h)
   list(APPEND sources_list_h ParquetFilter.h)
   list(APPEND sources_list_h XICParquetFile.h)
+  list(APPEND sources_list_h QPXFile.h)
 endif()
 
 ### add path to the filenames

@@ -8,7 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/QuantmsIO.h>
+#include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
@@ -21,68 +21,49 @@ using namespace std;
 
 /**
 /// @cond WITH_PARQUET
-@page TOPP_QuantmsIOConverter QuantmsIOConverter
+@page TOPP_QPXConverter QPXConverter
 
-@brief Converts IdXML files to parquet format following quantms.io PSM specification.
+@brief Converts IdXML files to parquet format following QPX PSM specification.
 
 <CENTER>
     <table>
         <tr>
             <th ALIGN = "center"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; QuantmsIOConverter &rarr;</td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; QPXConverter &rarr;</td>
             <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> Any identification tool producing idXML </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> quantms.io analysis tools </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> QPX analysis tools </td>
         </tr>
     </table>
 </CENTER>
 
-QuantmsIOConverter reads peptide and protein identifications from idXML files 
-and converts them to parquet format following the quantms.io PSM (Peptide 
+QPXConverter reads peptide and protein identifications from idXML files
+and converts them to parquet format following the QPX PSM (Peptide
 Spectrum Match) specification.
 
-The output parquet file contains PSM data with columns following the quantms.io PSM specification:
-- sequence: unmodified peptide sequence
-- peptidoform: peptide sequence with modifications
-- modifications: peptide modifications (null for now)
-- precursor_charge: precursor charge
-- posterior_error_probability: PEP score from metavalues (nullable)
-- is_decoy: decoy flag (0=target, 1=decoy) based on target_decoy metavalue
-- calculated_mz: theoretical m/z from sequence
-- observed_mz: experimental precursor m/z
-- additional_scores: additional scores (null for now)
-- mp_accessions: protein accessions (null for now)
-- predicted_rt: predicted retention time (null for now)
-- reference_file_name: reference file name
-- cv_params: CV parameters (null for now)
-- scan: scan identifier
-- rt: retention time in seconds (nullable)
-- ion_mobility: ion mobility value (nullable, null for now)
-- num_peaks: number of peaks (nullable, null for now)
-- mz_array: m/z values array (null for now)
-- intensity_array: intensity values array (null for now)
-
-Only the first peptide hit per peptide identification is processed (no rank field).
-PEP scores are automatically detected from metavalues using known PEP score names.
+The output parquet file contains PSM data with structured columns following
+the QPX PSM specification including ProForma peptidoform notation,
+structured modifications with UniMod accessions, structured additional scores,
+protein accessions as list, and metavalue columns.
 
 <B>The command line parameters of this tool are:</B>
-@verbinclude TOPP_QuantmsIOConverter.cli
+@verbinclude TOPP_QPXConverter.cli
 <B>INI file documentation of this tool:</B>
-@htmlinclude TOPP_QuantmsIOConverter.html
+@htmlinclude TOPP_QPXConverter.html
 /// @endcond
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPQuantmsIOConverter :
+class TOPPQPXConverter :
   public TOPPBase
 {
 public:
-  TOPPQuantmsIOConverter() :
-    TOPPBase("QuantmsIOConverter", "Converts IdXML files to parquet format following quantms.io PSM specification.")
+  TOPPQPXConverter() :
+    TOPPBase("QPXConverter", "Converts IdXML files to parquet format following QPX PSM specification.")
   {
   }
 
@@ -94,6 +75,8 @@ protected:
 
     registerOutputFile_("out", "<file>", "", "Output parquet file", true);
     setValidFormats_("out", ListUtils::create<String>("parquet"));
+
+    registerFlag_("export_all_psms", "Export all PSMs per spectrum (not just the best hit)");
   }
 
   ExitCodes main_(int, const char**) override
@@ -103,6 +86,7 @@ protected:
     //-------------------------------------------------------------
     const String in = getStringOption_("in");
     const String out = getStringOption_("out");
+    const bool export_all = getFlag_("export_all_psms");
 
     //-------------------------------------------------------------
     // reading input
@@ -120,17 +104,20 @@ protected:
       return INPUT_FILE_EMPTY;
     }
 
-    OPENMS_LOG_INFO << "Found " << peptide_identifications.size() 
-                    << " peptide identifications in " 
-                    << protein_identifications.size() 
+    OPENMS_LOG_INFO << "Found " << peptide_identifications.size()
+                    << " peptide identifications in "
+                    << protein_identifications.size()
                     << " protein identification runs." << endl;
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
     OPENMS_LOG_INFO << "Converting to parquet format..." << endl;
-    QuantmsIO quantms_io;
-    quantms_io.store(out, protein_identifications, peptide_identifications);
+    if (!QPXFile::exportToParquet(protein_identifications, peptide_identifications, out, export_all))
+    {
+      OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out << endl;
+      return CANNOT_WRITE_OUTPUT_FILE;
+    }
 
     OPENMS_LOG_INFO << "Conversion completed successfully." << endl;
     return EXECUTION_OK;
@@ -139,7 +126,7 @@ protected:
 
 int main(int argc, const char** argv)
 {
-  TOPPQuantmsIOConverter tool;
+  TOPPQPXConverter tool;
   return tool.main(argc, argv);
 }
 
