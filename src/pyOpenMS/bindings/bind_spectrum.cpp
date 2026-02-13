@@ -165,19 +165,20 @@ Usage:
         .def("get_peaks", [](const OpenMS::MSSpectrum& self) {
             // Return (mz_array, intensity_array) as numpy arrays
             // mz as float64 (double), intensity as float32 (float) matching C++ storage
+            // Single allocation + single capsule to reduce overhead for small arrays
             const size_t n = self.size();
-            std::unique_ptr<double[]> mz_uptr(new double[n]);
-            std::unique_ptr<float[]> int_uptr(new float[n]);
-            double* mz_data = mz_uptr.get();
-            float* int_data = int_uptr.get();
+            const size_t mz_bytes = n * sizeof(double);
+            const size_t int_bytes = n * sizeof(float);
+            char* buf = new char[mz_bytes + int_bytes];
+            double* mz_data = reinterpret_cast<double*>(buf);
+            float* int_data = reinterpret_cast<float*>(buf + mz_bytes);
             for (size_t i = 0; i < n; ++i) {
                 mz_data[i] = self[i].getMZ();
                 int_data[i] = self[i].getIntensity();
             }
-            nb::capsule mz_owner(mz_uptr.release(), [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            nb::capsule int_owner(int_uptr.release(), [](void* p) noexcept { delete[] static_cast<float*>(p); });
-            auto mz_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(mz_data, {n}, mz_owner);
-            auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, int_owner);
+            nb::capsule owner(buf, [](void* p) noexcept { delete[] static_cast<char*>(p); });
+            auto mz_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(mz_data, {n}, owner);
+            auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, owner);
             return nb::make_tuple(mz_arr, int_arr);
         }, "Returns a tuple of (mz_array, intensity_array) as numpy arrays")
 

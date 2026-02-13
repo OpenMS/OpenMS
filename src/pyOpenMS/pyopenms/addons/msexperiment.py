@@ -179,6 +179,11 @@ def to_arrow(self, data='spectra', format='long', columns=None,
         _use_zerocopy = True
     except ImportError:
         _use_zerocopy = False
+        warnings.warn(
+            "pyopenms._arrow_zerocopy not available — falling back to slow Python "
+            "Arrow export. Rebuild with -DWITH_PARQUET=ON for 4-14x faster export.",
+            stacklevel=2,
+        )
 
     if _use_zerocopy:
         result = {}
