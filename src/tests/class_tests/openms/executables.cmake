@@ -480,6 +480,7 @@ set(analysis_executables_list
   FIAMSDataProcessor_test
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
+  OpenSearchModificationAnalysis_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test
@@ -547,6 +548,7 @@ set(analysis_executables_list
   ReactionMonitoringTransition_test
   NuXLModificationsGenerator_test
   NuXLParameterParsing_test
+  PeptideSearchEngineFIAlgorithm_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   SpectralDeconvolution_test
