@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>" name
 
         FeatureFinderMultiplexAlgorithm(FeatureFinderMultiplexAlgorithm &) except + nogil  # compiler
 
-        void run(MSExperiment& exp, bool progress) except + nogil  # wrap-doc:Main method for feature detection
+        void run(const MSExperiment& exp, bool progress) except + nogil  # wrap-doc:Main method for feature detection
 
         FeatureMap getFeatureMap() except + nogil  # TODO
 

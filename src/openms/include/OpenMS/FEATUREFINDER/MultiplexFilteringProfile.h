@@ -45,7 +45,7 @@ public:
     /**
      * @brief constructor
      *
-     * @param[in,out] exp_profile    experimental data in profile mode
+     * @param[in] exp_profile    experimental data in profile mode
      * @param[in] exp_centroided    experimental data in centroid mode
      * @param[in] boundaries    peak boundaries for exp_centroided
      * @param[in] patterns    patterns of isotopic peaks to be searched for
@@ -63,7 +63,7 @@ public:
      * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
      * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
      */
-    MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries,
+    MultiplexFilteringProfile(const MSExperiment& exp_profile, const MSExperiment& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries,
                               const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band,
                               double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 

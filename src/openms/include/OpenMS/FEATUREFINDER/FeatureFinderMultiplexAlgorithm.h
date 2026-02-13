@@ -64,7 +64,7 @@ public:
   FeatureFinderMultiplexAlgorithm();
 
   /// main method for feature detection
-  void run(MSExperiment& exp, bool progress);
+  void run(const MSExperiment& exp, bool progress);
 
   /// get methods
   FeatureMap& getFeatureMap();
@@ -72,10 +72,6 @@ public:
   MSExperiment& getBlacklist();
 
 protected:
-
-  // experimental data
-  MSExperiment exp_profile_;
-  MSExperiment exp_centroid_;
 
   bool centroided_;
 
@@ -134,7 +130,7 @@ protected:
    *
    * @return vector with intensities for each of the peptides
    */
-  std::vector<double> determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites);
+  std::vector<double> determinePeptideIntensitiesCentroided_(const MSExperiment& exp_centroid, const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites);
 
   /**
    * @brief calculate peptide intensities
@@ -153,7 +149,7 @@ protected:
    * @param[in] filter_results    filter results for each of the patterns
    * @param[in,out] cluster_results    clusters of filter results
    */
-  void generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results);
+  void generateMapsCentroided_(const MSExperiment& exp_centroid, const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results);
 
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets

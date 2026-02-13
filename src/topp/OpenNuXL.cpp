@@ -4421,9 +4421,8 @@ static void scoreXLIons_(
         + " ppm  MAD = " + String(MAD_abs));
     }
 
-      FeatureMap features;    
+      FeatureMap features;
     {
-      MSExperiment e(ms_centroided); // FFM seems to delete passed spectra
       FeatureFinderMultiplexAlgorithm algorithm;
       Param p = algorithm.getParameters();
       p.setValue("algorithm:labels", ""); // label-free
@@ -4433,8 +4432,8 @@ static void scoreXLIons_(
       p.setValue("algorithm:rt_min", 4.0);
       p.setValue("algorithm:spectrum_type", "centroid");
       algorithm.setParameters(p);
-      algorithm.run(e, true);
-      features = algorithm.getFeatureMap(); 
+      algorithm.run(ms_centroided, true);
+      features = algorithm.getFeatureMap();
       writeLogInfo_("Detected peptides: " + String(features.size()));
     }
 
