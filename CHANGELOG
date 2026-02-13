@@ -150,6 +150,9 @@ OpenMS Library:
       - TextExporter USI output with optional dataset_id/ms_run parameters
       - pyOpenMS bindings included
   Changes:
+    - BREAKING: FeatureFinderMultiplexAlgorithm::run() now takes const MSExperiment&.
+      Callers must pass sorted, MS1-only data with updated ranges (sortSpectra() + updateRanges()).
+      The method no longer mutates the input experiment.
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
     - BREAKING: IDFilter::updateProteinReferences() renamed to removeDanglingProteinReferences() (#8500)
