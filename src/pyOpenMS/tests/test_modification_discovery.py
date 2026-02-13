@@ -10,8 +10,6 @@ The search engine should discover all injected modifications via delta mass anal
 """
 import random
 
-import pytest
-
 from pyopenms import (
     AASequence,
     FASTAEntry,
