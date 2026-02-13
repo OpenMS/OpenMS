@@ -3,7 +3,6 @@ set(directory source/FORMAT/DATAACCESS)
 
 ### list all filenames of the directory here
 set(sources_list
-  MSChromatogramParquetConsumer.cpp
   MSDataWritingConsumer.cpp
   MSDataTransformingConsumer.cpp
   MSDataAggregatingConsumer.cpp
