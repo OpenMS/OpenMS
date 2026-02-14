@@ -26,6 +26,7 @@
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
@@ -3141,9 +3142,153 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
         ;
 
     // -----------------------------------------------------------------------
+    // OpenSearchModificationAnalysis — nested structs as top-level classes
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OpenSearchModificationAnalysis::ModificationPattern>(m, "ModificationPattern",
+        "Stores details of a modification pattern found in the data")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OpenSearchModificationAnalysis::ModificationPattern&>())
+        .def("__copy__", [](const OpenMS::OpenSearchModificationAnalysis::ModificationPattern& self) { return OpenMS::OpenSearchModificationAnalysis::ModificationPattern(self); })
+        .def("__deepcopy__", [](const OpenMS::OpenSearchModificationAnalysis::ModificationPattern& self, nb::dict) { return OpenMS::OpenSearchModificationAnalysis::ModificationPattern(self); }, "memo"_a)
+        .def_rw("count", &OpenMS::OpenSearchModificationAnalysis::ModificationPattern::count)
+        .def_rw("masses", &OpenMS::OpenSearchModificationAnalysis::ModificationPattern::masses)
+        .def_rw("num_charge_states", &OpenMS::OpenSearchModificationAnalysis::ModificationPattern::num_charge_states)
+        ;
+
+    nb::class_<OpenMS::OpenSearchModificationAnalysis::ModificationSummary>(m, "ModificationSummary",
+        "Modification summary output with count, name, charge states, and masses")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OpenSearchModificationAnalysis::ModificationSummary&>())
+        .def("__copy__", [](const OpenMS::OpenSearchModificationAnalysis::ModificationSummary& self) { return OpenMS::OpenSearchModificationAnalysis::ModificationSummary(self); })
+        .def("__deepcopy__", [](const OpenMS::OpenSearchModificationAnalysis::ModificationSummary& self, nb::dict) { return OpenMS::OpenSearchModificationAnalysis::ModificationSummary(self); }, "memo"_a)
+        .def_rw("count", &OpenMS::OpenSearchModificationAnalysis::ModificationSummary::count)
+        .def_rw("name", &OpenMS::OpenSearchModificationAnalysis::ModificationSummary::name)
+        .def_rw("num_charge_states", &OpenMS::OpenSearchModificationAnalysis::ModificationSummary::num_charge_states)
+        .def_rw("masses", &OpenMS::OpenSearchModificationAnalysis::ModificationSummary::masses)
+        ;
+
+    nb::class_<OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry>(m, "DeltaMassEntry",
+        "Statistics for a single delta mass bin in the histogram")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry&>())
+        .def("__copy__", [](const OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry& self) { return OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry(self); })
+        .def("__deepcopy__", [](const OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry& self, nb::dict) { return OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry(self); }, "memo"_a)
+        .def_rw("delta_mass", &OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry::delta_mass)
+        .def_rw("count", &OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry::count)
+        .def_rw("unique_peptides", &OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry::unique_peptides)
+        .def_rw("num_charge_states", &OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry::num_charge_states)
+        .def_rw("percentage", &OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry::percentage)
+        .def_rw("mapped_modification", &OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry::mapped_modification)
+        .def_rw("is_known_modification", &OpenMS::OpenSearchModificationAnalysis::DeltaMassEntry::is_known_modification)
+        ;
+
+    nb::class_<OpenMS::OpenSearchModificationAnalysis::PTMEntry>(m, "PTMEntry",
+        "Statistics for a mapped PTM with residue localization")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OpenSearchModificationAnalysis::PTMEntry&>())
+        .def("__copy__", [](const OpenMS::OpenSearchModificationAnalysis::PTMEntry& self) { return OpenMS::OpenSearchModificationAnalysis::PTMEntry(self); })
+        .def("__deepcopy__", [](const OpenMS::OpenSearchModificationAnalysis::PTMEntry& self, nb::dict) { return OpenMS::OpenSearchModificationAnalysis::PTMEntry(self); }, "memo"_a)
+        .def_rw("name", &OpenMS::OpenSearchModificationAnalysis::PTMEntry::name)
+        .def_rw("theoretical_mass", &OpenMS::OpenSearchModificationAnalysis::PTMEntry::theoretical_mass)
+        .def_rw("observed_mass", &OpenMS::OpenSearchModificationAnalysis::PTMEntry::observed_mass)
+        .def_rw("mass_deviation", &OpenMS::OpenSearchModificationAnalysis::PTMEntry::mass_deviation)
+        .def_rw("count", &OpenMS::OpenSearchModificationAnalysis::PTMEntry::count)
+        .def_rw("unique_peptides", &OpenMS::OpenSearchModificationAnalysis::PTMEntry::unique_peptides)
+        .def_rw("num_charge_states", &OpenMS::OpenSearchModificationAnalysis::PTMEntry::num_charge_states)
+        .def_rw("percentage", &OpenMS::OpenSearchModificationAnalysis::PTMEntry::percentage)
+        .def_rw("residue_counts", &OpenMS::OpenSearchModificationAnalysis::PTMEntry::residue_counts)
+        .def_rw("target_residues", &OpenMS::OpenSearchModificationAnalysis::PTMEntry::target_residues)
+        ;
+
+    nb::class_<OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics>(m, "DeltaMassStatistics",
+        "Container for delta mass statistics table")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics&>())
+        .def("__copy__", [](const OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics& self) { return OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics(self); })
+        .def("__deepcopy__", [](const OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics& self, nb::dict) { return OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics(self); }, "memo"_a)
+        .def_rw("entries", &OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics::entries)
+        .def_rw("total_psms", &OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics::total_psms)
+        .def_rw("modified_psms", &OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics::modified_psms)
+        .def_rw("unmodified_psms", &OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics::unmodified_psms)
+        .def_rw("mean_delta_mass", &OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics::mean_delta_mass)
+        .def_rw("median_delta_mass", &OpenMS::OpenSearchModificationAnalysis::DeltaMassStatistics::median_delta_mass)
+        ;
+
+    nb::class_<OpenMS::OpenSearchModificationAnalysis::PTMStatistics>(m, "PTMStatistics",
+        "Container for PTM statistics table")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OpenSearchModificationAnalysis::PTMStatistics&>())
+        .def("__copy__", [](const OpenMS::OpenSearchModificationAnalysis::PTMStatistics& self) { return OpenMS::OpenSearchModificationAnalysis::PTMStatistics(self); })
+        .def("__deepcopy__", [](const OpenMS::OpenSearchModificationAnalysis::PTMStatistics& self, nb::dict) { return OpenMS::OpenSearchModificationAnalysis::PTMStatistics(self); }, "memo"_a)
+        .def_rw("entries", &OpenMS::OpenSearchModificationAnalysis::PTMStatistics::entries)
+        .def_rw("total_modified_psms", &OpenMS::OpenSearchModificationAnalysis::PTMStatistics::total_modified_psms)
+        .def_rw("unknown_modification_psms", &OpenMS::OpenSearchModificationAnalysis::PTMStatistics::unknown_modification_psms)
+        .def_rw("num_unique_modifications", &OpenMS::OpenSearchModificationAnalysis::PTMStatistics::num_unique_modifications)
+        ;
+
+    nb::class_<OpenMS::OpenSearchModificationAnalysis::OpenSearchAnalysisResult>(m, "OpenSearchAnalysisResult",
+        "Combined result of open search modification analysis")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OpenSearchModificationAnalysis::OpenSearchAnalysisResult&>())
+        .def("__copy__", [](const OpenMS::OpenSearchModificationAnalysis::OpenSearchAnalysisResult& self) { return OpenMS::OpenSearchModificationAnalysis::OpenSearchAnalysisResult(self); })
+        .def("__deepcopy__", [](const OpenMS::OpenSearchModificationAnalysis::OpenSearchAnalysisResult& self, nb::dict) { return OpenMS::OpenSearchModificationAnalysis::OpenSearchAnalysisResult(self); }, "memo"_a)
+        .def_rw("delta_mass_stats", &OpenMS::OpenSearchModificationAnalysis::OpenSearchAnalysisResult::delta_mass_stats)
+        .def_rw("ptm_stats", &OpenMS::OpenSearchModificationAnalysis::OpenSearchAnalysisResult::ptm_stats)
+        .def_rw("summaries", &OpenMS::OpenSearchModificationAnalysis::OpenSearchAnalysisResult::summaries)
+        ;
+
+    // -----------------------------------------------------------------------
+    // OpenSearchModificationAnalysis
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::OpenSearchModificationAnalysis>(m, "OpenSearchModificationAnalysis",
+        "Utility class for analyzing modification patterns in open search results")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::OpenSearchModificationAnalysis&>())
+        .def("__copy__", [](const OpenMS::OpenSearchModificationAnalysis& self) { return OpenMS::OpenSearchModificationAnalysis(self); })
+        .def("__deepcopy__", [](const OpenMS::OpenSearchModificationAnalysis& self, nb::dict) { return OpenMS::OpenSearchModificationAnalysis(self); }, "memo"_a)
+        .def("analyzeModifications", &OpenMS::OpenSearchModificationAnalysis::analyzeModifications,
+            "peptide_ids"_a, "precursor_mass_tolerance"_a = 5.0,
+            "precursor_mass_tolerance_unit_ppm"_a = true, "use_smoothing"_a = false,
+            "output_file"_a = OpenMS::String(""),
+            "Complete analysis workflow: analyze patterns and map to modifications")
+        .def("analyzeModificationsWithStatistics", &OpenMS::OpenSearchModificationAnalysis::analyzeModificationsWithStatistics,
+            "peptide_ids"_a, "precursor_mass_tolerance"_a = 5.0,
+            "precursor_mass_tolerance_unit_ppm"_a = true, "use_smoothing"_a = false,
+            "output_file"_a = OpenMS::String(""),
+            "Complete analysis returning structured statistics tables")
+        .def("generatePTMStatistics", &OpenMS::OpenSearchModificationAnalysis::generatePTMStatistics,
+            "peptide_ids"_a, "precursor_mass_tolerance"_a = 5.0,
+            "precursor_mass_tolerance_unit_ppm"_a = true,
+            "Generate PTM statistics table with residue localization")
+        .def("analyzeResidueFrequency", &OpenMS::OpenSearchModificationAnalysis::analyzeResidueFrequency,
+            "peptide_ids"_a, "delta_mass"_a, "tolerance"_a = 0.01,
+            "Analyze which amino acid residues are associated with a delta mass")
+        .def("writeDeltaMassStatistics", &OpenMS::OpenSearchModificationAnalysis::writeDeltaMassStatistics,
+            "stats"_a, "output_file"_a,
+            "Write delta mass statistics to a TSV file")
+        .def("writePTMStatistics", &OpenMS::OpenSearchModificationAnalysis::writePTMStatistics,
+            "stats"_a, "output_file"_a,
+            "Write PTM statistics to a TSV file")
+        ;
+
+    // -----------------------------------------------------------------------
     // PeptideSearchEngineFIAlgorithm
     // -----------------------------------------------------------------------
-    auto peptidesearchenginefialgorithm_class = nb::class_<OpenMS::PeptideSearchEngineFIAlgorithm, OpenMS::DefaultParamHandler>(m, "PeptideSearchEngineFIAlgorithm", 
+    // SearchResult struct (nested in PeptideSearchEngineFIAlgorithm)
+    nb::class_<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult>(m, "SearchResult",
+        "Comprehensive search result including modification analysis")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult&>())
+        .def("__copy__", [](const OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult& self) { return OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult(self); })
+        .def("__deepcopy__", [](const OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult& self, nb::dict) { return OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult(self); }, "memo"_a)
+        .def_rw("exit_code", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::exit_code)
+        .def_rw("protein_ids", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::protein_ids)
+        .def_rw("peptide_ids", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::peptide_ids)
+        .def_rw("modification_analysis", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::modification_analysis)
+        .def_rw("is_open_search", &OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult::is_open_search)
+        ;
+
+    auto peptidesearchenginefialgorithm_class = nb::class_<OpenMS::PeptideSearchEngineFIAlgorithm, OpenMS::DefaultParamHandler>(m, "PeptideSearchEngineFIAlgorithm",
         R"doc(
 DefaultParamHandler
 ProgressLogger
@@ -3157,11 +3302,32 @@ outputs (ProteinIdentification and PeptideIdentificationList)
 - Intended for educational/prototyping use and to demonstrate FI-backed searching
 )doc")
         .def(nb::init<>())
+        // file-based search (original overload)
         .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
             return nb::make_tuple(result, prot_ids);
-        }, "in_mzML"_a, "in_db"_a, "pep_ids"_a)
+        }, "in_mzML"_a, "in_db"_a, "pep_ids"_a,
+           "File-based search. Returns (ExitCodes, list[ProteinIdentification])")
+        // in-memory search overload (PeakMap + FASTAEntry vector)
+        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, OpenMS::PeptideIdentificationList& pep_ids) {
+            std::vector<OpenMS::ProteinIdentification> prot_ids;
+            auto result = self.search(spectra, fasta_db, prot_ids, pep_ids);
+            return nb::make_tuple(result, prot_ids);
+        }, "spectra"_a, "fasta_db"_a, "pep_ids"_a,
+           "In-memory search. Returns (ExitCodes, list[ProteinIdentification])")
+        // file-based searchWithModificationAnalysis
+        .def("searchWithModificationAnalysis",
+            static_cast<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult (OpenMS::PeptideSearchEngineFIAlgorithm::*)(const OpenMS::String&, const OpenMS::String&, const OpenMS::String&) const>(
+                &OpenMS::PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis),
+            "in_mzML"_a, "in_db"_a, "output_base_name"_a = OpenMS::String(""),
+            "File-based search with modification analysis. Returns SearchResult")
+        // in-memory searchWithModificationAnalysis
+        .def("searchWithModificationAnalysis",
+            static_cast<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult (OpenMS::PeptideSearchEngineFIAlgorithm::*)(OpenMS::PeakMap&, const std::vector<OpenMS::FASTAFile::FASTAEntry>&, const OpenMS::String&) const>(
+                &OpenMS::PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis),
+            "spectra"_a, "fasta_db"_a, "output_base_name"_a = OpenMS::String(""),
+            "In-memory search with modification analysis. Returns SearchResult")
         ;
     def_ProgressLogger<OpenMS::PeptideSearchEngineFIAlgorithm>(peptidesearchenginefialgorithm_class);
     // PeptideSearchEngineFIAlgorithm_ExitCodes enum nested under PeptideSearchEngineFIAlgorithm

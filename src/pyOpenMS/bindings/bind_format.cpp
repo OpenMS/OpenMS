@@ -61,6 +61,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 #ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/XICParquetFile.h>
+#include <OpenMS/FORMAT/QPXFile.h>
+#include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 #endif
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
@@ -1917,6 +1919,44 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         })
         .def("__str__", [](const OpenMS::XICParquetFile& self) { return nb::cast(self).attr("__repr__")(); })
         ;
+
+    // -----------------------------------------------------------------------
+    // ParquetWriteConfig
+    // -----------------------------------------------------------------------
+    auto parquetwriteconfig_class = nb::class_<OpenMS::ParquetWriteConfig>(m, "ParquetWriteConfig",
+        "Configuration for Parquet file writing (compression, row group size, etc.)")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ParquetWriteConfig&>())
+        .def("__copy__", [](const OpenMS::ParquetWriteConfig& self) { return OpenMS::ParquetWriteConfig(self); })
+        .def("__deepcopy__", [](const OpenMS::ParquetWriteConfig& self, nb::dict) { return OpenMS::ParquetWriteConfig(self); }, "memo"_a)
+        .def_rw("compression", &OpenMS::ParquetWriteConfig::compression)
+        .def_rw("compression_level", &OpenMS::ParquetWriteConfig::compression_level)
+        .def_rw("row_group_size", &OpenMS::ParquetWriteConfig::row_group_size)
+        .def_rw("write_statistics", &OpenMS::ParquetWriteConfig::write_statistics)
+        .def_rw("data_page_size", &OpenMS::ParquetWriteConfig::data_page_size)
+        ;
+
+    nb::enum_<OpenMS::ParquetWriteConfig::Compression>(parquetwriteconfig_class, "Compression", nb::is_arithmetic())
+        .value("NONE", OpenMS::ParquetWriteConfig::Compression::NONE)
+        .value("SNAPPY", OpenMS::ParquetWriteConfig::Compression::SNAPPY)
+        .value("GZIP", OpenMS::ParquetWriteConfig::Compression::GZIP)
+        .value("LZ4", OpenMS::ParquetWriteConfig::Compression::LZ4)
+        .value("ZSTD", OpenMS::ParquetWriteConfig::Compression::ZSTD)
+        .export_values();
+
+    // -----------------------------------------------------------------------
+    // QPXFile
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::QPXFile>(m, "QPXFile",
+        "Export PSM data to Apache Arrow/Parquet format following QPX PSM schema")
+        .def(nb::init<>())
+        .def_static("exportToParquet", &OpenMS::QPXFile::exportToParquet,
+            "protein_identifications"_a, "peptide_identifications"_a,
+            "filename"_a, "export_all_psms"_a = false,
+            "config"_a = OpenMS::ParquetWriteConfig{},
+            "Export PSM data to Parquet file. Returns True on success")
+        ;
+
 #endif // WITH_PARQUET
 
     // -----------------------------------------------------------------------
