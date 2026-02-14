@@ -3,9 +3,17 @@ from FeatureMap cimport *
 from Feature cimport *
 from String cimport *
 from libcpp.string cimport string as libcpp_string
+from libcpp.vector cimport vector as libcpp_vector
 from FileTypes cimport *
 from Types cimport *
 from PeakFileOptions cimport *
+from FeatureFileOptions cimport *
+from ConsensusMap cimport *
+from TargetedExperiment cimport *
+from TransformationDescription cimport *
+from ProteinIdentification cimport *
+from PeptideIdentificationList cimport *
+from MSSpectrum cimport *
 
 cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         # wrap-doc:
@@ -72,8 +80,127 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #  :raises:
             #    Exception: ParseError is thrown if an error occurs during parsing
 
+        void storeFeatures(String, FeatureMap) except + nogil
+            # wrap-doc:
+            #  Stores a FeatureMap to a file
+            #  
+            #  The file type to store the data in is determined by the file name.
+            #  
+            #  :param filename: The name of the file to store the data in
+            #  :param map: The FeatureMap to store
+            #  :raises:
+            #    Exception: UnableToCreateFile is thrown if the file could not be written
+
+        void loadConsensusFeatures(String, ConsensusMap &) except + nogil
+            # wrap-doc:
+            #  Loads a file into a ConsensusMap
+            #  
+            #  :param filename: The file name of the file to load
+            #  :param map: The ConsensusMap to load the data into
+            #  :raises:
+            #    Exception: FileNotFound is thrown if the file could not be opened
+            #  :raises:
+            #    Exception: ParseError is thrown if an error occurs during parsing
+
+        void storeConsensusFeatures(String, ConsensusMap) except + nogil
+            # wrap-doc:
+            #  Stores a ConsensusMap to a file
+            #  
+            #  The file type to store the data in is determined by the file name.
+            #  
+            #  :param filename: The name of the file to store the data in
+            #  :param map: The ConsensusMap to store
+            #  :raises:
+            #    Exception: UnableToCreateFile is thrown if the file could not be written
+
+        void loadIdentifications(String, libcpp_vector[ProteinIdentification] &, PeptideIdentificationList &) except + nogil
+            # wrap-doc:
+            #  Loads an identification file into proteinIdentifications and peptideIdentifications
+            #  
+            #  :param filename: The file name of the file to load
+            #  :param protein_ids: The proteinIdentification vector to load the data into
+            #  :param peptide_ids: The peptideIdentification list to load the data into
+            #  :raises:
+            #    Exception: FileNotFound is thrown if the file could not be opened
+            #  :raises:
+            #    Exception: ParseError is thrown if an error occurs during parsing
+
+        void storeIdentifications(String, libcpp_vector[ProteinIdentification], PeptideIdentificationList) except + nogil
+            # wrap-doc:
+            #  Stores proteins and peptides into an Identification File
+            #  
+            #  :param filename: The file name of the file to write to
+            #  :param protein_ids: The proteinIdentification vector to store
+            #  :param peptide_ids: The peptideIdentification list to store
+            #  :raises:
+            #    Exception: UnableToCreateFile is thrown if the file could not be written
+
+        void loadTransitions(String, TargetedExperiment &) except + nogil
+            # wrap-doc:
+            #  Loads transitions of a spectral library
+            #  
+            #  :param filename: The file name of the file to read
+            #  :param library: The TargetedExperiment to load
+            #  :raises:
+            #    Exception: FileNotFound is thrown if the file could not be opened
+            #  :raises:
+            #    Exception: ParseError is thrown if an error occurs during parsing
+
+        void storeTransitions(String, TargetedExperiment) except + nogil
+            # wrap-doc:
+            #  Stores transitions of a spectral library
+            #  
+            #  :param filename: The file name of the file to write
+            #  :param library: The TargetedExperiment to store
+            #  :raises:
+            #    Exception: UnableToCreateFile is thrown if the file could not be written
+
+        void loadTransformations(String, TransformationDescription &, bool) except + nogil
+            # wrap-doc:
+            #  Loads a file into Transformations
+            #  
+            #  :param filename: The file name of the file to load
+            #  :param transformation: The TransformationDescription to load the data into
+            #  :param fit_model: Call fitModel() on the transformation before returning
+            #  :raises:
+            #    Exception: FileNotFound is thrown if the file could not be opened
+            #  :raises:
+            #    Exception: ParseError is thrown if an error occurs during parsing
+
+        void storeTransformations(String, TransformationDescription) except + nogil
+            # wrap-doc:
+            #  Stores Transformations to a file
+            #  
+            #  :param filename: The file name of the file to write
+            #  :param transformation: The TransformationDescription to store
+            #  :raises:
+            #    Exception: UnableToCreateFile is thrown if the file could not be written
+
+        void loadSpectrum(String, MSSpectrum &) except + nogil
+            # wrap-doc:
+            #  Loads a single MSSpectrum from a file
+            #  
+            #  :param filename: The file name of the file to load
+            #  :param spec: The spectrum to load the data into
+            #  :raises:
+            #    Exception: FileNotFound is thrown if the file could not be opened
+            #  :raises:
+            #    Exception: ParseError is thrown if an error occurs during parsing
+
+        void storeSpectrum(String, MSSpectrum) except + nogil
+            # wrap-doc:
+            #  Stores a single MSSpectrum to a file
+            #  
+            #  :param filename: The file name of the file to store
+            #  :param spec: The spectrum to store the data from
+            #  :raises:
+            #    Exception: UnableToCreateFile is thrown if the file could not be written
+
         PeakFileOptions  getOptions() except + nogil  # wrap-doc:Access to the options for loading/storing
         void setOptions(PeakFileOptions) except + nogil  # wrap-doc:Sets options for loading/storing
+
+        FeatureFileOptions getFeatOptions() except + nogil  # wrap-doc:Access to the feature file options for loading/storing
+        void setFeatOptions(FeatureFileOptions) except + nogil  # wrap-doc:Sets feature file options for loading/storing
 
         @staticmethod
         int getType(const String& filename) except + nogil
@@ -98,6 +225,16 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #
             #  :param filename: Path to the file
             #  :returns: The file type based on file content analysis
+
+        @staticmethod
+        FileType getConsistentOutputfileType(const String & output_filename, const String & requested_type) except + nogil
+            # wrap-doc:
+            #  Useful function for TOPP tools which have an 'out_type' parameter
+            #
+            #  Makes sure that the type derived from output_filename and requested_type are consistent
+            #  :param output_filename: A full filename (with path) whose type is determined
+            #  :param requested_type: A type as string, usually obtained from '-out_type' parameter
+            #  :returns: A consistent file type or UNKNOWN upon conflict
 
         @staticmethod
         String computeFileHash(const String & filename) except + nogil
