@@ -96,7 +96,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             # wrap-doc:
             #  Loads a file into a ConsensusMap
             #  
-            #  
             #  :param filename: The file name of the file to load
             #  :param map: The ConsensusMap to load the data into
             #  :raises:
@@ -119,7 +118,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             # wrap-doc:
             #  Loads an identification file into proteinIdentifications and peptideIdentifications
             #  
-            #  
             #  :param filename: The file name of the file to load
             #  :param protein_ids: The proteinIdentification vector to load the data into
             #  :param peptide_ids: The peptideIdentification list to load the data into
@@ -132,7 +130,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             # wrap-doc:
             #  Stores proteins and peptides into an Identification File
             #  
-            #  
             #  :param filename: The file name of the file to write to
             #  :param protein_ids: The proteinIdentification vector to store
             #  :param peptide_ids: The peptideIdentification list to store
@@ -142,7 +139,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         void loadTransitions(String, TargetedExperiment &) except + nogil
             # wrap-doc:
             #  Loads transitions of a spectral library
-            #  
             #  
             #  :param filename: The file name of the file to read
             #  :param library: The TargetedExperiment to load
@@ -155,7 +151,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             # wrap-doc:
             #  Stores transitions of a spectral library
             #  
-            #  
             #  :param filename: The file name of the file to write
             #  :param library: The TargetedExperiment to store
             #  :raises:
@@ -164,7 +159,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         void loadTransformations(String, TransformationDescription &, bool) except + nogil
             # wrap-doc:
             #  Loads a file into Transformations
-            #  
             #  
             #  :param filename: The file name of the file to load
             #  :param transformation: The TransformationDescription to load the data into
@@ -178,7 +172,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             # wrap-doc:
             #  Stores Transformations to a file
             #  
-            #  
             #  :param filename: The file name of the file to write
             #  :param transformation: The TransformationDescription to store
             #  :raises:
@@ -187,7 +180,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         void loadSpectrum(String, MSSpectrum &) except + nogil
             # wrap-doc:
             #  Loads a single MSSpectrum from a file
-            #  
             #  
             #  :param filename: The file name of the file to load
             #  :param spec: The spectrum to load the data into
@@ -199,7 +191,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         void storeSpectrum(String, MSSpectrum) except + nogil
             # wrap-doc:
             #  Stores a single MSSpectrum to a file
-            #  
             #  
             #  :param filename: The file name of the file to store
             #  :param spec: The spectrum to store the data from
