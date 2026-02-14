@@ -14,7 +14,6 @@ from TransformationDescription cimport *
 from ProteinIdentification cimport *
 from PeptideIdentificationList cimport *
 from MSSpectrum cimport *
-from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         # wrap-doc:
