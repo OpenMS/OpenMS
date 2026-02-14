@@ -167,8 +167,8 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #  
             #  
             #  :param filename: The file name of the file to load
-            #  :param map: The TransformationDescription to load the data into
-            #  :param fit_model: Call fitModel() on the map before returning
+            #  :param transformation: The TransformationDescription to load the data into
+            #  :param fit_model: Call fitModel() on the transformation before returning
             #  :raises:
             #    Exception: FileNotFound is thrown if the file could not be opened
             #  :raises:
@@ -180,7 +180,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #  
             #  
             #  :param filename: The file name of the file to write
-            #  :param map: The TransformationDescription to store
+            #  :param transformation: The TransformationDescription to store
             #  :raises:
             #    Exception: UnableToCreateFile is thrown if the file could not be written
 
