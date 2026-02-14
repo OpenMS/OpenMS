@@ -3302,32 +3302,52 @@ outputs (ProteinIdentification and PeptideIdentificationList)
 - Intended for educational/prototyping use and to demonstrate FI-backed searching
 )doc")
         .def(nb::init<>())
-        // file-based search (original overload)
-        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
+        // in-memory search with prot_ids output parameter (4-arg, most specific — must be first)
+        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, nb::list prot_ids_out, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
-            auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
-            return nb::make_tuple(result, prot_ids);
-        }, "in_mzML"_a, "in_db"_a, "pep_ids"_a,
-           "File-based search. Returns (ExitCodes, list[ProteinIdentification])")
-        // in-memory search overload (PeakMap + FASTAEntry vector)
+            auto result = self.search(spectra, fasta_db, prot_ids, pep_ids);
+            for (auto& p : prot_ids) {
+                prot_ids_out.append(nb::cast(std::move(p)));
+            }
+            return result;
+        }, "spectra"_a, "fasta_db"_a, "prot_ids"_a, "pep_ids"_a,
+           "In-memory search. Populates prot_ids list and returns ExitCodes")
+        // in-memory search overload (PeakMap + FASTAEntry vector, 3-arg returns tuple)
         .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, OpenMS::PeakMap& spectra, const std::vector<OpenMS::FASTAFile::FASTAEntry>& fasta_db, OpenMS::PeptideIdentificationList& pep_ids) {
             std::vector<OpenMS::ProteinIdentification> prot_ids;
             auto result = self.search(spectra, fasta_db, prot_ids, pep_ids);
             return nb::make_tuple(result, prot_ids);
         }, "spectra"_a, "fasta_db"_a, "pep_ids"_a,
            "In-memory search. Returns (ExitCodes, list[ProteinIdentification])")
+        // file-based search with prot_ids output parameter (4-arg)
+        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, nb::list prot_ids_out, OpenMS::PeptideIdentificationList& pep_ids) {
+            std::vector<OpenMS::ProteinIdentification> prot_ids;
+            auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
+            for (auto& p : prot_ids) {
+                prot_ids_out.append(nb::cast(std::move(p)));
+            }
+            return result;
+        }, "in_mzML"_a, "in_db"_a, "prot_ids"_a, "pep_ids"_a,
+           "File-based search. Populates prot_ids list and returns ExitCodes")
+        // file-based search (3-arg returns tuple)
+        .def("search", [](const OpenMS::PeptideSearchEngineFIAlgorithm& self, const OpenMS::String& in_mzML, const OpenMS::String& in_db, OpenMS::PeptideIdentificationList& pep_ids) {
+            std::vector<OpenMS::ProteinIdentification> prot_ids;
+            auto result = self.search(in_mzML, in_db, prot_ids, pep_ids);
+            return nb::make_tuple(result, prot_ids);
+        }, "in_mzML"_a, "in_db"_a, "pep_ids"_a,
+           "File-based search. Returns (ExitCodes, list[ProteinIdentification])")
+        // in-memory searchWithModificationAnalysis (more specific types — must be first)
+        .def("searchWithModificationAnalysis",
+            static_cast<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult (OpenMS::PeptideSearchEngineFIAlgorithm::*)(OpenMS::PeakMap&, const std::vector<OpenMS::FASTAFile::FASTAEntry>&, const OpenMS::String&) const>(
+                &OpenMS::PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis),
+            "spectra"_a, "fasta_db"_a, "output_base_name"_a = OpenMS::String(""),
+            "In-memory search with modification analysis. Returns SearchResult")
         // file-based searchWithModificationAnalysis
         .def("searchWithModificationAnalysis",
             static_cast<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult (OpenMS::PeptideSearchEngineFIAlgorithm::*)(const OpenMS::String&, const OpenMS::String&, const OpenMS::String&) const>(
                 &OpenMS::PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis),
             "in_mzML"_a, "in_db"_a, "output_base_name"_a = OpenMS::String(""),
             "File-based search with modification analysis. Returns SearchResult")
-        // in-memory searchWithModificationAnalysis
-        .def("searchWithModificationAnalysis",
-            static_cast<OpenMS::PeptideSearchEngineFIAlgorithm::SearchResult (OpenMS::PeptideSearchEngineFIAlgorithm::*)(OpenMS::PeakMap&, const std::vector<OpenMS::FASTAFile::FASTAEntry>&, const OpenMS::String&) const>(
-                &OpenMS::PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis),
-            "spectra"_a, "fasta_db"_a, "output_base_name"_a = OpenMS::String(""),
-            "In-memory search with modification analysis. Returns SearchResult")
         ;
     def_ProgressLogger<OpenMS::PeptideSearchEngineFIAlgorithm>(peptidesearchenginefialgorithm_class);
     // PeptideSearchEngineFIAlgorithm_ExitCodes enum nested under PeptideSearchEngineFIAlgorithm
