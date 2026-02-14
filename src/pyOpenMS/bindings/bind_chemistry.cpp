@@ -1454,6 +1454,14 @@ print(len(result_digest_unmodified)) # 42 peptides
         .def_static("getSpecificityByName", [](const OpenMS::String& name) { return OpenMS::ProteaseDigestion::getSpecificityByName(name); }, "name"_a, "Returns the specificity by name. Returns SPEC_UNKNOWN if name is not valid")
         .def("countInternalCleavageSites", [](const OpenMS::ProteaseDigestion& self, const OpenMS::String& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
 
+        .def("digest", [](OpenMS::ProteaseDigestion& self, const OpenMS::AASequence& protein, nb::list output, size_t min_length, size_t max_length) {
+            // Backward-compatible: appends results to the provided Python list (with length filters)
+            std::vector<OpenMS::AASequence> result;
+            self.digest(protein, result, min_length, max_length);
+            for (const auto& seq : result) {
+                output.append(nb::cast(seq));
+            }
+        }, "protein"_a, "output"_a, "min_length"_a, "max_length"_a, "Performs the enzymatic digestion of a protein sequence (appends to output list, with length filters)")
         .def("digest", [](OpenMS::ProteaseDigestion& self, const OpenMS::AASequence& protein, nb::list output) {
             // Backward-compatible: appends results to the provided Python list
             std::vector<OpenMS::AASequence> result;
@@ -1462,6 +1470,11 @@ print(len(result_digest_unmodified)) # 42 peptides
                 output.append(nb::cast(seq));
             }
         }, "protein"_a, "output"_a, "Performs the enzymatic digestion of a protein sequence (appends to output list)")
+        .def("digest", [](OpenMS::ProteaseDigestion& self, const OpenMS::AASequence& protein, size_t min_length, size_t max_length) {
+            std::vector<OpenMS::AASequence> output;
+            self.digest(protein, output, min_length, max_length);
+            return output;
+        }, "protein"_a, "min_length"_a, "max_length"_a, "Performs the enzymatic digestion of a protein sequence with length filters, returns list of peptides")
         .def("digest", [](OpenMS::ProteaseDigestion& self, const OpenMS::AASequence& protein) {
             std::vector<OpenMS::AASequence> output;
             self.digest(protein, output);

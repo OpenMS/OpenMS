@@ -64,7 +64,11 @@
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 #endif
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <iomanip>
 #include <nanobind/make_iterator.h>
@@ -391,6 +395,126 @@ Computes a SHA-1 hash of the file content
         .def_static("getType", [](const OpenMS::String& filename) {
             return OpenMS::FileHandler::getType(filename);
         }, "filename"_a, "Determine the file type from the file name")
+
+        .def_static("getConsistentOutputfileType", [](const OpenMS::String& output_filename, const OpenMS::String& requested_type) {
+            return OpenMS::FileHandler::getConsistentOutputfileType(output_filename, requested_type);
+        }, "output_filename"_a, "requested_type"_a,
+           "Checks consistency of output file type from filename and requested type. Returns consistent type or UNKNOWN on conflict")
+
+        .def("getFeatOptions", [](OpenMS::FileHandler& self) -> OpenMS::FeatureFileOptions& { return self.getFeatOptions(); }, nb::rv_policy::reference_internal,
+            "Mutable access to the feature file options for loading/storing")
+        .def("setFeatOptions", [](OpenMS::FileHandler& self, const OpenMS::FeatureFileOptions& opts) { self.setFeatOptions(opts); }, "options"_a,
+            "Set feature file options for loading/storing")
+
+        .def("loadSpectrum", [](OpenMS::FileHandler& self, const OpenMS::String& filename) {
+            OpenMS::MSSpectrum spec;
+            self.loadSpectrum(filename, spec);
+            return spec;
+        }, "filename"_a, "Load a single MSSpectrum from a file")
+        .def("loadSpectrum", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const std::vector<OpenMS::FileTypes::Type>& allowed_types) {
+            OpenMS::MSSpectrum spec;
+            self.loadSpectrum(filename, spec, allowed_types);
+            return spec;
+        }, "filename"_a, "allowed_types"_a, "Load a single MSSpectrum from a file with allowed types filter")
+
+        .def("storeSpectrum", [](OpenMS::FileHandler& self, const OpenMS::String& filename, OpenMS::MSSpectrum& spec) {
+            self.storeSpectrum(filename, spec);
+        }, "filename"_a, "spec"_a, "Store a single MSSpectrum to a file")
+        .def("storeSpectrum", [](OpenMS::FileHandler& self, const OpenMS::String& filename, OpenMS::MSSpectrum& spec, const std::vector<OpenMS::FileTypes::Type>& allowed_types) {
+            self.storeSpectrum(filename, spec, allowed_types);
+        }, "filename"_a, "spec"_a, "allowed_types"_a, "Store a single MSSpectrum to a file with allowed types filter")
+
+        .def("storeFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::FeatureMap& map) {
+            self.storeFeatures(filename, map);
+        }, "filename"_a, "map"_a, "Store a FeatureMap to a file")
+        .def("storeFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::FeatureMap& map,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            self.storeFeatures(filename, map, allowed_types, log);
+        }, "filename"_a, "map"_a, "allowed_types"_a, "log"_a, "Store a FeatureMap to a file with options")
+
+        .def("loadConsensusFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename) {
+            OpenMS::ConsensusMap map;
+            self.loadConsensusFeatures(filename, map);
+            return map;
+        }, "filename"_a, "Load a ConsensusMap from a file")
+        .def("loadConsensusFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            OpenMS::ConsensusMap map;
+            self.loadConsensusFeatures(filename, map, allowed_types, log);
+            return map;
+        }, "filename"_a, "allowed_types"_a, "log"_a, "Load a ConsensusMap from a file with options")
+
+        .def("storeConsensusFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& map) {
+            self.storeConsensusFeatures(filename, map);
+        }, "filename"_a, "map"_a, "Store a ConsensusMap to a file")
+        .def("storeConsensusFeatures", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::ConsensusMap& map,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            self.storeConsensusFeatures(filename, map, allowed_types, log);
+        }, "filename"_a, "map"_a, "allowed_types"_a, "log"_a, "Store a ConsensusMap to a file with options")
+
+        .def("loadIdentifications", [](OpenMS::FileHandler& self, const OpenMS::String& filename) {
+            std::vector<OpenMS::ProteinIdentification> proteins;
+            OpenMS::PeptideIdentificationList peptides;
+            self.loadIdentifications(filename, proteins, peptides);
+            return nb::make_tuple(proteins, peptides);
+        }, "filename"_a, "Load identifications from file. Returns (list[ProteinIdentification], PeptideIdentificationList)")
+        .def("loadIdentifications", [](OpenMS::FileHandler& self, const OpenMS::String& filename,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            std::vector<OpenMS::ProteinIdentification> proteins;
+            OpenMS::PeptideIdentificationList peptides;
+            self.loadIdentifications(filename, proteins, peptides, allowed_types, log);
+            return nb::make_tuple(proteins, peptides);
+        }, "filename"_a, "allowed_types"_a, "log"_a, "Load identifications from file with options. Returns (list[ProteinIdentification], PeptideIdentificationList)")
+
+        .def("storeIdentifications", [](OpenMS::FileHandler& self, const OpenMS::String& filename,
+             const std::vector<OpenMS::ProteinIdentification>& proteins, const OpenMS::PeptideIdentificationList& peptides) {
+            self.storeIdentifications(filename, proteins, peptides);
+        }, "filename"_a, "proteins"_a, "peptides"_a, "Store identifications to file")
+        .def("storeIdentifications", [](OpenMS::FileHandler& self, const OpenMS::String& filename,
+             const std::vector<OpenMS::ProteinIdentification>& proteins, const OpenMS::PeptideIdentificationList& peptides,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            self.storeIdentifications(filename, proteins, peptides, allowed_types, log);
+        }, "filename"_a, "proteins"_a, "peptides"_a, "allowed_types"_a, "log"_a, "Store identifications to file with options")
+
+        .def("loadTransitions", [](OpenMS::FileHandler& self, const OpenMS::String& filename) {
+            OpenMS::TargetedExperiment library;
+            self.loadTransitions(filename, library);
+            return library;
+        }, "filename"_a, "Load targeted experiment transitions from file")
+        .def("loadTransitions", [](OpenMS::FileHandler& self, const OpenMS::String& filename,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            OpenMS::TargetedExperiment library;
+            self.loadTransitions(filename, library, allowed_types, log);
+            return library;
+        }, "filename"_a, "allowed_types"_a, "log"_a, "Load targeted experiment transitions from file with options")
+
+        .def("storeTransitions", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::TargetedExperiment& library) {
+            self.storeTransitions(filename, library);
+        }, "filename"_a, "library"_a, "Store targeted experiment transitions to file")
+        .def("storeTransitions", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::TargetedExperiment& library,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            self.storeTransitions(filename, library, allowed_types, log);
+        }, "filename"_a, "library"_a, "allowed_types"_a, "log"_a, "Store targeted experiment transitions to file with options")
+
+        .def("loadTransformations", [](OpenMS::FileHandler& self, const OpenMS::String& filename, bool fit_model) {
+            OpenMS::TransformationDescription map;
+            self.loadTransformations(filename, map, fit_model);
+            return map;
+        }, "filename"_a, "fit_model"_a = true, "Load transformation description from file")
+        .def("loadTransformations", [](OpenMS::FileHandler& self, const OpenMS::String& filename, bool fit_model,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types) {
+            OpenMS::TransformationDescription map;
+            self.loadTransformations(filename, map, fit_model, allowed_types);
+            return map;
+        }, "filename"_a, "fit_model"_a, "allowed_types"_a, "Load transformation description from file with allowed types filter")
+
+        .def("storeTransformations", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::TransformationDescription& map) {
+            self.storeTransformations(filename, map);
+        }, "filename"_a, "map"_a, "Store transformation description to file")
+        .def("storeTransformations", [](OpenMS::FileHandler& self, const OpenMS::String& filename, const OpenMS::TransformationDescription& map,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types) {
+            self.storeTransformations(filename, map, allowed_types);
+        }, "filename"_a, "map"_a, "allowed_types"_a, "Store transformation description to file with allowed types filter")
         ;
 
     // -----------------------------------------------------------------------
