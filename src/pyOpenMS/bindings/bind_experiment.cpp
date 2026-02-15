@@ -210,6 +210,65 @@ mz, intensities = spectrum.get_peaks()
         }, "min_rt"_a, "max_rt"_a, "min_mz"_a, "max_mz"_a, "ms_level"_a,
            "Retrieves peak data with ion mobility in the given mz-rt range as (rt, mz, intensity, ion_mobility) numpy arrays")
 
+        .def("get2DPeakDataLong", [](const OpenMS::MSExperiment& self,
+                                     double min_rt, double max_rt,
+                                     double min_mz, double max_mz,
+                                     size_t ms_level) {
+            // Returns (rt, mz, intensity) as flat numpy arrays with full precision
+            // (float64 for rt/mz, float32 for intensity). Replaces the Python addon.
+
+            // Pass 1: count total matching peaks
+            size_t total_peaks = 0;
+            for (size_t i = 0; i < self.size(); ++i) {
+                const auto& spec = self[i];
+                if (spec.getMSLevel() != ms_level) continue;
+                double rt = spec.getRT();
+                if (rt < min_rt || rt > max_rt) continue;
+                for (size_t j = 0; j < spec.size(); ++j) {
+                    double mz = spec[j].getMZ();
+                    if (mz >= min_mz && mz <= max_mz) ++total_peaks;
+                }
+            }
+
+            // Allocate output arrays
+            auto rt_uptr = std::make_unique<double[]>(total_peaks);
+            auto mz_uptr = std::make_unique<double[]>(total_peaks);
+            auto int_uptr = std::make_unique<float[]>(total_peaks);
+
+            // Pass 2: fill arrays
+            size_t pos = 0;
+            for (size_t i = 0; i < self.size(); ++i) {
+                const auto& spec = self[i];
+                if (spec.getMSLevel() != ms_level) continue;
+                double rt = spec.getRT();
+                if (rt < min_rt || rt > max_rt) continue;
+                for (size_t j = 0; j < spec.size(); ++j) {
+                    double mz = spec[j].getMZ();
+                    if (mz >= min_mz && mz <= max_mz) {
+                        rt_uptr[pos] = rt;
+                        mz_uptr[pos] = mz;
+                        int_uptr[pos] = spec[j].getIntensity();
+                        ++pos;
+                    }
+                }
+            }
+
+            double* rt_data = rt_uptr.release();
+            double* mz_data = mz_uptr.release();
+            float* int_data = int_uptr.release();
+
+            nb::capsule rt_owner(rt_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            nb::capsule mz_owner(mz_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+
+            return nb::make_tuple(
+                nb::ndarray<nb::numpy, double, nb::ndim<1>>(rt_data, {total_peaks}, rt_owner),
+                nb::ndarray<nb::numpy, double, nb::ndim<1>>(mz_data, {total_peaks}, mz_owner),
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {total_peaks}, int_owner)
+            );
+        }, "min_rt"_a, "max_rt"_a, "min_mz"_a, "max_mz"_a, "ms_level"_a,
+           "Retrieves peak data in the given mz-rt range as (rt, mz, intensity) numpy arrays with full precision")
+
         .def("get2DPeakDataSemiWide", [](const OpenMS::MSExperiment& self,
                                          std::vector<int> ms_levels) {
             // Returns (rt, ms_level, mz_flat, intensity_flat, offsets) where
