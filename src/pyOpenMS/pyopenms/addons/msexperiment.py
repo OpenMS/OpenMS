@@ -7,33 +7,6 @@ from . import addon
 
 
 @addon("MSExperiment")
-def get2DPeakDataLong(self, min_rt, max_rt, min_mz, max_mz, ms_level):
-    """Returns (rt_array, mz_array, intensity_array) for all peaks matching filters."""
-    all_rt = []
-    all_mz = []
-    all_int = []
-    for spec in self:
-        if spec.getMSLevel() != ms_level:
-            continue
-        rt = spec.getRT()
-        if rt < min_rt or rt > max_rt:
-            continue
-        mzs, intensities = spec.get_peaks()
-        if len(mzs) > 0:
-            mask = (mzs >= min_mz) & (mzs <= max_mz)
-            mzs = mzs[mask]
-            intensities = intensities[mask]
-        n = len(mzs)
-        if n > 0:
-            all_rt.append(np.full(n, rt, dtype=np.float64))
-            all_mz.append(mzs)
-            all_int.append(intensities)
-    if all_rt:
-        return (np.concatenate(all_rt), np.concatenate(all_mz), np.concatenate(all_int))
-    return (np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float32))
-
-
-@addon("MSExperiment")
 def df_columns(self, long_format=False):
     """Returns a list of column names that to_df() would produce."""
     if long_format:
@@ -54,36 +27,18 @@ def to_df(self, columns=None, ms_levels=None, long_format=False):
         ms_levels = self.getMSLevels()
 
     if long_format:
-        # Try fast C++ Arrow path (available when built with WITH_PARQUET)
-        try:
-            from pyopenms._arrow_zerocopy import spectra_to_arrow
-            table = spectra_to_arrow(
-                self, format='long',
-                ms_levels=ms_levels,
-                columns=['mz', 'intensity', 'rt', 'ms_level'],
-                include_precursor_info=False,
-                include_ion_mobility=False,
-            )
-            df = table.to_pandas(types_mapper=pd.ArrowDtype)
-            if columns is not None:
-                available_cols = [c for c in columns if c in df.columns]
-                df = df[available_cols]
-            return df
-        except ImportError:
-            pass
-
-        # Fallback: pure Python path
-        cols = ["rt", "mz", "intensity"]
-        dfs = []
-        for ms_level in ms_levels:
-            spectraarrs2d = self.get2DPeakDataLong(
-                self.getMinRT(), self.getMaxRT(),
-                self.getMinMZ(), self.getMaxMZ(), ms_level
-            )
-            df = pd.DataFrame(dict(zip(cols, spectraarrs2d)))
-            df["ms_level"] = ms_level
-            dfs.append(df)
-        df = pd.concat(dfs, ignore_index=True)
+        # Fast C++ path: reuse get2DPeakDataSemiWide + np.repeat to expand
+        # per-spectrum scalars to per-peak arrays
+        rt_arr, ms_arr, mz_flat, int_flat, offsets = self.get2DPeakDataSemiWide(
+            list(ms_levels)
+        )
+        counts = np.diff(offsets)
+        df = pd.DataFrame({
+            'rt': np.repeat(rt_arr, counts),
+            'mz': mz_flat,
+            'intensity': int_flat,
+            'ms_level': np.repeat(ms_arr, counts),
+        })
     else:
         # Fast C++ path: flat buffers + offsets, then slice for zero-copy views
         rt_arr, ms_arr, mz_flat, int_flat, offsets = self.get2DPeakDataSemiWide(
