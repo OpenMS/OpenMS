@@ -292,6 +292,9 @@ else()
       ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
     )
     _pyopenms_module_props(_arrow_zerocopy)
+    # arrow_zerocopy.cpp includes <arrow/c/abi.h> directly (not via OpenMS headers),
+    # so it needs the Arrow include path explicitly.
+    target_link_libraries(_arrow_zerocopy PRIVATE ${OPENMS_ARROW_TARGET})
   else()
     message(STATUS "pyOpenMS: Skipping _arrow_zerocopy module (WITH_PARQUET not found)")
   endif()

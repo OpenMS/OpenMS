@@ -54,6 +54,25 @@ def to_df(self, columns=None, ms_levels=None, long_format=False):
         ms_levels = self.getMSLevels()
 
     if long_format:
+        # Try fast C++ Arrow path (available when built with WITH_PARQUET)
+        try:
+            from pyopenms._arrow_zerocopy import spectra_to_arrow
+            table = spectra_to_arrow(
+                self, format='long',
+                ms_levels=ms_levels,
+                columns=['mz', 'intensity', 'rt', 'ms_level'],
+                include_precursor_info=False,
+                include_ion_mobility=False,
+            )
+            df = table.to_pandas(types_mapper=pd.ArrowDtype)
+            if columns is not None:
+                available_cols = [c for c in columns if c in df.columns]
+                df = df[available_cols]
+            return df
+        except ImportError:
+            pass
+
+        # Fallback: pure Python path
         cols = ["rt", "mz", "intensity"]
         dfs = []
         for ms_level in ms_levels:
@@ -66,12 +85,19 @@ def to_df(self, columns=None, ms_levels=None, long_format=False):
             dfs.append(df)
         df = pd.concat(dfs, ignore_index=True)
     else:
-        cols = ["rt", "ms_level", "mz_array", "intensity_array"]
-        df = pd.DataFrame(
-            data=((spec.getRT(), spec.getMSLevel(), *spec.get_peaks())
-                  for spec in self if spec.getMSLevel() in ms_levels),
-            columns=cols
+        # Fast C++ path: flat buffers + offsets, then slice for zero-copy views
+        rt_arr, ms_arr, mz_flat, int_flat, offsets = self.get2DPeakDataSemiWide(
+            list(ms_levels)
         )
+        n = len(rt_arr)
+        mz_arrays = [mz_flat[offsets[i]:offsets[i+1]] for i in range(n)]
+        int_arrays = [int_flat[offsets[i]:offsets[i+1]] for i in range(n)]
+        df = pd.DataFrame({
+            'rt': rt_arr,
+            'ms_level': ms_arr,
+            'mz_array': mz_arrays,
+            'intensity_array': int_arrays,
+        })
 
     if columns is not None:
         available_cols = [c for c in columns if c in df.columns]
