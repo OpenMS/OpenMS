@@ -178,15 +178,30 @@ def _import_submodules():
 
     _imported_modules = []
 
-    # Load order matters for nanobind shared domain type resolution:
-    # modules that define types used by other modules must load first.
-    # e.g. kernel defines RetentionTime used by analysis (Compound.rts).
+    # Priority loading order for nanobind shared-domain type resolution.
+    #
+    # Hard constraint (crash on violation):
+    #   nb::class_<Derived, Base> requires Base to be registered first.
+    #   Currently the ONLY cross-module inheritance is:
+    #     MSExperiment (bind_experiment.cpp) -> ExperimentalSettings (bind_kernel.cpp)
+    #   so _pyopenms_kernel MUST load before _pyopenms_experiment.
+    #   All other nb::class_ inheritance pairs live in the same binding file.
+    #
+    # Soft constraint (no crash, but silent None returns):
+    #   Functions accepting/returning types from other modules resolve lazily
+    #   at call time via nb_type_c2p(). Since import pyopenms loads ALL modules
+    #   before any user code runs, order among the remaining modules doesn't
+    #   matter in practice.
+    #
+    # The full list below is kept as defensive documentation of the logical
+    # dependency chain. Only the kernel-before-experiment pair is strictly
+    # required; the rest could be removed without breakage.
     _priority_modules = [
         "_pyopenms_datastructures",
-        "_pyopenms_kernel",
+        "_pyopenms_kernel",           # MUST load before experiment (ExperimentalSettings base)
         "_pyopenms_spectrum",
         "_pyopenms_chromatogram",
-        "_pyopenms_experiment",
+        "_pyopenms_experiment",       # requires kernel (ExperimentalSettings)
         "_pyopenms_metadata",
         "_pyopenms_chemistry",
     ]
