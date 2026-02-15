@@ -23,6 +23,7 @@
 #include <nanobind/stl/vector.h>
 #include "binding_utils.h"
 #include <sstream>
+#include <unordered_set>
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -208,6 +209,76 @@ mz, intensities = spectrum.get_peaks()
             );
         }, "min_rt"_a, "max_rt"_a, "min_mz"_a, "max_mz"_a, "ms_level"_a,
            "Retrieves peak data with ion mobility in the given mz-rt range as (rt, mz, intensity, ion_mobility) numpy arrays")
+
+        .def("get2DPeakDataSemiWide", [](const OpenMS::MSExperiment& self,
+                                         std::vector<int> ms_levels) {
+            // Returns (rt, ms_level, mz_flat, intensity_flat, offsets) where
+            // mz_flat/intensity_flat are contiguous buffers and offsets[i]:offsets[i+1]
+            // gives the slice for spectrum i. Use np.split(mz_flat, offsets[1:-1])
+            // on the Python side to get zero-copy views per spectrum.
+            std::unordered_set<int> level_set(ms_levels.begin(), ms_levels.end());
+
+            // Pass 1: count matching spectra and total peaks
+            size_t n_spectra = 0;
+            size_t total_peaks = 0;
+            for (size_t i = 0; i < self.size(); ++i) {
+                const auto& spec = self[i];
+                if (level_set.count(spec.getMSLevel())) {
+                    ++n_spectra;
+                    total_peaks += spec.size();
+                }
+            }
+
+            // Allocate output arrays
+            auto rt_uptr = std::make_unique<float[]>(n_spectra);
+            auto ms_uptr = std::make_unique<uint8_t[]>(n_spectra);
+            auto off_uptr = std::make_unique<int64_t[]>(n_spectra + 1);
+            auto mz_uptr = std::make_unique<double[]>(total_peaks);
+            auto int_uptr = std::make_unique<float[]>(total_peaks);
+
+            // Pass 2: fill arrays
+            size_t spec_idx = 0;
+            size_t peak_pos = 0;
+            for (size_t i = 0; i < self.size(); ++i) {
+                const auto& spec = self[i];
+                if (!level_set.count(spec.getMSLevel())) continue;
+
+                rt_uptr[spec_idx] = static_cast<float>(spec.getRT());
+                ms_uptr[spec_idx] = static_cast<uint8_t>(spec.getMSLevel());
+                off_uptr[spec_idx] = static_cast<int64_t>(peak_pos);
+
+                for (size_t j = 0; j < spec.size(); ++j) {
+                    mz_uptr[peak_pos] = spec[j].getMZ();
+                    int_uptr[peak_pos] = spec[j].getIntensity();
+                    ++peak_pos;
+                }
+                ++spec_idx;
+            }
+            off_uptr[n_spectra] = static_cast<int64_t>(peak_pos);
+
+            // Transfer ownership to capsules
+            float* rt_data = rt_uptr.release();
+            uint8_t* ms_data = ms_uptr.release();
+            int64_t* off_data = off_uptr.release();
+            double* mz_data = mz_uptr.release();
+            float* int_data = int_uptr.release();
+
+            nb::capsule rt_owner(rt_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            nb::capsule ms_owner(ms_data, [](void* p) noexcept { delete[] static_cast<uint8_t*>(p); });
+            nb::capsule off_owner(off_data, [](void* p) noexcept { delete[] static_cast<int64_t*>(p); });
+            nb::capsule mz_owner(mz_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+
+            return nb::make_tuple(
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(rt_data, {n_spectra}, rt_owner),
+                nb::ndarray<nb::numpy, uint8_t, nb::ndim<1>>(ms_data, {n_spectra}, ms_owner),
+                nb::ndarray<nb::numpy, double, nb::ndim<1>>(mz_data, {total_peaks}, mz_owner),
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {total_peaks}, int_owner),
+                nb::ndarray<nb::numpy, int64_t, nb::ndim<1>>(off_data, {n_spectra + 1}, off_owner)
+            );
+        }, "ms_levels"_a,
+           "Retrieves peak data as flat arrays + offsets for efficient semi-wide DataFrame construction. "
+           "Returns (rt, ms_level, mz_flat, intensity_flat, offsets) numpy arrays.")
 
         .def("rasterizeRTMZ", [](OpenMS::MSExperiment& self,
                                 nb::ndarray<float, nb::ndim<2>, nb::device::cpu> output,
