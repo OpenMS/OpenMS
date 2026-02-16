@@ -265,13 +265,13 @@
 </mzML>
   <indexList count="2">
     <index name="spectrum">
-      <offset idRef="controllerType=0 controllerNumber=1 scan=1">10581</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=2">332162</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=1">10563</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=2">332144</offset>
     </index>
     <index name="chromatogram">
-      <offset idRef="TIC">651965</offset>
+      <offset idRef="TIC">651947</offset>
     </index>
   </indexList>
-  <indexListOffset>655460</indexListOffset>
+  <indexListOffset>655445</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
