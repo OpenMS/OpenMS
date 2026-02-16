@@ -16,7 +16,6 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <atomic>
-#include <map>
 #include <unordered_map>
 #include <array>
 
