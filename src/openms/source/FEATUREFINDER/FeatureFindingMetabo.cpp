@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Erhan Kenar, Holger Franken $
+// $Authors: Erhan Kenar, Holger Franken, Mohammed Alhigaylan $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <fstream>
 
 #include <boost/dynamic_bitset.hpp>
@@ -198,6 +199,17 @@ namespace OpenMS
     return tmp;
   }
 
+  /// formulate a feature with meta values containing MassTrace IM values
+  std::vector<double> FeatureHypothesis::getAllCentroidIM() const
+  {
+    std::vector<double> tmp;
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+      tmp.push_back(iso_pattern_[i]->getCentroidIM());
+    }
+    return tmp;
+  }
+
   std::vector<double> FeatureHypothesis::getIsotopeDistances() const
   {
     std::vector<double> tmp;
@@ -248,6 +260,7 @@ namespace OpenMS
     DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
   {
     defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", {"advanced"}); // 5.0
+    defaults_.setValue("local_im_range", 0.02, "IM range where to look for coeluting mass traces", {"advanced"});
     defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", {"advanced"}); // 6.5
     defaults_.setValue("charge_lower_bound", 1, "Lowest charge state to consider"); // 1
     defaults_.setValue("charge_upper_bound", 3, "Highest charge state to consider"); // 3
@@ -298,6 +311,7 @@ namespace OpenMS
   void FeatureFindingMetabo::updateMembers_()
   {
     local_rt_range_ = (double)param_.getValue("local_rt_range");
+    local_im_range_ = (double)param_.getValue("local_im_range");
     local_mz_range_ = (double)param_.getValue("local_mz_range");
     chrom_fwhm_ = (double)param_.getValue("chrom_fwhm");
 
@@ -858,10 +872,14 @@ namespace OpenMS
     output_featmap.clear();
     output_chromatograms.clear();
 
-    if (input_mtraces.empty()) 
+    if (input_mtraces.empty())
     {
       return;
     }
+
+    // Detect whether the input mass traces contain ion mobility data.
+    has_im_data_ = std::any_of(input_mtraces.begin(), input_mtraces.end(),
+      [](const MassTrace& mt) { return mt.containsIMData(); });
 
     // mass traces must be sorted by their centroid MZ
     std::sort(input_mtraces.begin(), input_mtraces.end(), CmpMassTraceByMZ());
@@ -921,9 +939,9 @@ namespace OpenMS
           break;
         }
         double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
-        if (diff_rt <= local_rt_range_)
+        if (diff_rt <= local_rt_range_
+            && (!has_im_data_ || std::fabs(input_mtraces[ext_idx].getCentroidIM() - input_mtraces[i].getCentroidIM()) <= local_im_range_))
         {
-          // std::cout << " accepted!\n";
           local_traces.push_back(&input_mtraces[ext_idx]);
         }
       }
@@ -975,7 +993,7 @@ namespace OpenMS
 #endif
 
       // Skip hypotheses that contain a mass trace that has already been used
-      if (trace_coll) 
+      if (trace_coll)
       {
         continue;
       }
@@ -1018,7 +1036,7 @@ namespace OpenMS
       {
         f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(report_smoothed_intensities_));
       }
-      
+
       f.setWidth(feat_hypos[hypo_idx].getFWHM());
       f.setCharge(feat_hypos[hypo_idx].getCharge());
       f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
@@ -1031,7 +1049,8 @@ namespace OpenMS
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("masstrace_intensity", all_ints);
       f.setMetaValue("masstrace_centroid_rt", feat_hypos[hypo_idx].getAllCentroidRT());
-      f.setMetaValue("masstrace_centroid_mz", feat_hypos[hypo_idx].getAllCentroidMZ());;
+      f.setMetaValue("masstrace_centroid_mz", feat_hypos[hypo_idx].getAllCentroidMZ());
+      if (has_im_data_) f.setMetaValue("masstrace_centroid_im", feat_hypos[hypo_idx].getAllCentroidIM());
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
       f.applyMemberFunction(&UniqueIdInterface::setUniqueId);
