@@ -822,6 +822,176 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round-tr
 END_SECTION
 
 /////////////////////////////////////////////////////////////
+// PSM completeness round-trip test
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet / importFromParquet - PSM completeness round-trip (metavalues, additional_scores, is_decoy, protein_accessions, higher_score_better))
+{
+  FeatureMap fm;
+
+  // --- ProteinIdentification with higher_score_better=false ---
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_psm_test");
+  prot_id.setSearchEngine("Comet");
+  prot_id.setScoreType("expect");
+  prot_id.setHigherScoreBetter(false);
+
+  ProteinHit ph1;
+  ph1.setAccession("P12345");
+  ph1.setScore(0.001);
+  prot_id.insertHit(ph1);
+
+  ProteinHit ph2;
+  ph2.setAccession("Q67890");
+  ph2.setScore(0.01);
+  prot_id.insertHit(ph2);
+
+  fm.setProteinIdentifications({prot_id});
+
+  // --- Feature with PeptideIdentification ---
+  Feature f1;
+  f1.setRT(100.0);
+  f1.setMZ(500.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(2);
+  f1.setUniqueId(5001);
+
+  PeptideIdentification pep_id1;
+  pep_id1.setIdentifier("run_psm_test");
+  pep_id1.setScoreType("expect");
+  pep_id1.setHigherScoreBetter(false);
+  pep_id1.setRT(100.0);
+  pep_id1.setMZ(500.25);
+  pep_id1.setSpectrumReference("spectrum=42");
+
+  // Hit 1: target with protein accessions, additional scores, metavalues
+  PeptideHit hit1;
+  hit1.setSequence(AASequence::fromString("PEPTIDER"));
+  hit1.setScore(0.001);
+  hit1.setCharge(2);
+  hit1.setRank(1);
+  hit1.setMetaValue("target_decoy", "target");
+  hit1.setMetaValue("MS:1002252", 0.95);  // additional score: xcorr
+  hit1.setMetaValue("MS:1002253", 12.5);  // additional score: deltacn
+  hit1.setMetaValue("predicted_RT", 99.5);
+  hit1.setMetaValue("ion_mobility", 0.85);
+  hit1.setMetaValue("custom_psm_int", 42);
+  hit1.setMetaValue("custom_psm_str", "test_value");
+
+  // Add PeptideEvidence (protein accessions)
+  PeptideEvidence ev1;
+  ev1.setProteinAccession("P12345");
+  hit1.addPeptideEvidence(ev1);
+  PeptideEvidence ev2;
+  ev2.setProteinAccession("Q67890");
+  hit1.addPeptideEvidence(ev2);
+
+  // Hit 2: decoy, single protein accession
+  PeptideHit hit2;
+  hit2.setSequence(AASequence::fromString("ACDEFGHIK"));
+  hit2.setScore(0.5);
+  hit2.setCharge(2);
+  hit2.setRank(2);
+  hit2.setMetaValue("target_decoy", "decoy");
+
+  PeptideEvidence ev3;
+  ev3.setProteinAccession("P12345");
+  hit2.addPeptideEvidence(ev3);
+
+  pep_id1.insertHit(hit1);
+  pep_id1.insertHit(hit2);
+  f1.setPeptideIdentifications({pep_id1});
+
+  fm.push_back(f1);
+
+  // --- Unassigned PeptideIdentification with spectrum-level metavalue ---
+  PeptideIdentification pep_id2;
+  pep_id2.setIdentifier("run_psm_test");
+  pep_id2.setScoreType("expect");
+  pep_id2.setHigherScoreBetter(false);
+  pep_id2.setRT(200.0);
+  pep_id2.setMZ(600.0);
+  pep_id2.setMetaValue("spectrum_custom", "spec_meta_val");
+
+  PeptideHit hit3;
+  hit3.setSequence(AASequence::fromString("ACDEFGHIK"));
+  hit3.setScore(0.1);
+  hit3.setCharge(3);
+  hit3.setRank(1);
+  hit3.setMetaValue("target_decoy", "target");
+  pep_id2.insertHit(hit3);
+  fm.setUnassignedPeptideIdentifications({pep_id2});
+
+  // --- Export and import ---
+  String tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
+
+  FeatureMap imported;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+
+  // --- Verify higher_score_better from ProteinIdentification ---
+  TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
+  const PeptideIdentification& out_pid1 = imported[0].getPeptideIdentifications()[0];
+  TEST_EQUAL(out_pid1.isHigherScoreBetter(), false)
+  TEST_EQUAL(out_pid1.getScoreType(), "expect")
+  TEST_REAL_SIMILAR(out_pid1.getRT(), 100.0)
+  TEST_REAL_SIMILAR(out_pid1.getMZ(), 500.25)
+
+  // --- Verify hit 1 (target with accessions, scores, metavalues) ---
+  TEST_EQUAL(out_pid1.getHits().size(), 2)
+
+  // Find the hit with score ~0.001 (hit1)
+  const PeptideHit* target_hit = nullptr;
+  const PeptideHit* decoy_hit = nullptr;
+  for (const auto& h : out_pid1.getHits())
+  {
+    if (h.getScore() < 0.01) target_hit = &h;
+    else decoy_hit = &h;
+  }
+  TEST_NOT_EQUAL(target_hit, nullptr)
+  TEST_NOT_EQUAL(decoy_hit, nullptr)
+
+  // target hit: sequence, score, charge
+  TEST_EQUAL(target_hit->getSequence().toString(), "PEPTIDER")
+  TEST_REAL_SIMILAR(target_hit->getScore(), 0.001)
+  TEST_EQUAL(target_hit->getCharge(), 2)
+
+  // target hit: is_decoy -> target_decoy metavalue
+  TEST_EQUAL(static_cast<std::string>(target_hit->getMetaValue("target_decoy")), "target")
+
+  // target hit: protein accessions (PeptideEvidence)
+  TEST_EQUAL(target_hit->getPeptideEvidences().size(), 2)
+  std::set<std::string> accs;
+  for (const auto& ev : target_hit->getPeptideEvidences())
+  {
+    accs.insert(ev.getProteinAccession());
+  }
+  TEST_EQUAL(accs.count("P12345"), 1)
+  TEST_EQUAL(accs.count("Q67890"), 1)
+
+  // decoy hit
+  TEST_EQUAL(decoy_hit->getSequence().toString(), "ACDEFGHIK")
+  TEST_REAL_SIMILAR(decoy_hit->getScore(), 0.5)
+  TEST_EQUAL(static_cast<std::string>(decoy_hit->getMetaValue("target_decoy")), "decoy")
+  TEST_EQUAL(decoy_hit->getPeptideEvidences().size(), 1)
+  TEST_EQUAL(decoy_hit->getPeptideEvidences()[0].getProteinAccession(), "P12345")
+
+  // --- Verify unassigned PSM ---
+  TEST_EQUAL(imported.getUnassignedPeptideIdentifications().size(), 1)
+  const PeptideIdentification& out_pid2 = imported.getUnassignedPeptideIdentifications()[0];
+  TEST_EQUAL(out_pid2.isHigherScoreBetter(), false)
+  TEST_REAL_SIMILAR(out_pid2.getRT(), 200.0)
+  TEST_EQUAL(out_pid2.getHits().size(), 1)
+  TEST_EQUAL(out_pid2.getHits()[0].getSequence().toString(), "ACDEFGHIK")
+  TEST_REAL_SIMILAR(out_pid2.getHits()[0].getScore(), 0.1)
+  TEST_EQUAL(out_pid2.getHits()[0].getCharge(), 3)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 END_TEST
