@@ -22,6 +22,8 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <arrow/api.h>
+#include <arrow/io/api.h>
+#include <parquet/arrow/reader.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -554,6 +556,150 @@ START_SECTION(exportSearchParamsToArrow())
   TEST_EQUAL(schema->field(22)->type()->id(), arrow::Type::LIST)     // variable_modifications
   TEST_EQUAL(schema->field(23)->type()->id(), arrow::Type::LIST)     // primary_ms_run_paths
   TEST_EQUAL(schema->field(24)->type()->id(), arrow::Type::LIST)     // metavalues
+}
+END_SECTION
+
+START_SECTION(exportProteinsToParquet())
+{
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_parquet_1");
+  prot_id.setSearchEngine("MS-GF+");
+  prot_id.setScoreType("q-value");
+  prot_id.setHigherScoreBetter(false);
+
+  ProteinHit hit1;
+  hit1.setAccession("P12345");
+  hit1.setScore(0.001);
+  prot_id.setHits({hit1});
+
+  std::vector<ProteinIdentification> prot_ids = {prot_id};
+
+  String tmp_file;
+  NEW_TMP_FILE(tmp_file)
+  tmp_file += ".parquet";
+
+  TEST_EQUAL(ProteinIdentificationArrowExport::exportProteinsToParquet(prot_ids, tmp_file), true)
+
+  // Read back and verify
+  auto infile_result = arrow::io::ReadableFile::Open(std::string(tmp_file));
+  TEST_EQUAL(infile_result.ok(), true)
+  std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+
+  auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
+  TEST_EQUAL(reader_result.ok(), true)
+  std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
+
+  std::shared_ptr<arrow::Table> table;
+  auto read_status = reader->ReadTable(&table);
+  TEST_EQUAL(read_status.ok(), true)
+  TEST_EQUAL(table->num_rows(), 1)
+  TEST_EQUAL(table->num_columns(), 19)
+
+  // Check file metadata
+  auto metadata = table->schema()->metadata();
+  TEST_NOT_EQUAL(metadata, nullptr)
+  int idx = metadata->FindKey("file_type");
+  TEST_EQUAL(idx >= 0, true)
+  TEST_EQUAL(metadata->value(idx), "proteins")
+}
+END_SECTION
+
+START_SECTION(exportProteinGroupsToParquet())
+{
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_parquet_groups_1");
+
+  ProteinIdentification::ProteinGroup pg;
+  pg.probability = 0.95;
+  pg.accessions = {"sp|P12345|PROT1_HUMAN", "sp|P12346|PROT2_HUMAN"};
+  prot_id.insertProteinGroup(pg);
+
+  ProteinIdentification::ProteinGroup ig;
+  ig.probability = 0.0;
+  ig.accessions = {"sp|Q11111|PROTA_HUMAN"};
+  prot_id.insertIndistinguishableProteins(ig);
+
+  std::vector<ProteinIdentification> prot_ids = {prot_id};
+
+  String tmp_file;
+  NEW_TMP_FILE(tmp_file)
+  tmp_file += ".parquet";
+
+  TEST_EQUAL(ProteinIdentificationArrowExport::exportProteinGroupsToParquet(prot_ids, tmp_file), true)
+
+  // Read back and verify
+  auto infile_result = arrow::io::ReadableFile::Open(std::string(tmp_file));
+  TEST_EQUAL(infile_result.ok(), true)
+  std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+
+  auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
+  TEST_EQUAL(reader_result.ok(), true)
+  std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
+
+  std::shared_ptr<arrow::Table> table;
+  auto read_status = reader->ReadTable(&table);
+  TEST_EQUAL(read_status.ok(), true)
+  TEST_EQUAL(table->num_rows(), 2)
+  TEST_EQUAL(table->num_columns(), 8)
+
+  // Check file metadata
+  auto metadata = table->schema()->metadata();
+  TEST_NOT_EQUAL(metadata, nullptr)
+  int idx = metadata->FindKey("file_type");
+  TEST_EQUAL(idx >= 0, true)
+  TEST_EQUAL(metadata->value(idx), "protein_groups")
+}
+END_SECTION
+
+START_SECTION(exportSearchParamsToParquet())
+{
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_parquet_search_1");
+  prot_id.setSearchEngine("Comet");
+  prot_id.setScoreType("expect");
+  prot_id.setHigherScoreBetter(false);
+
+  ProteinIdentification::SearchParameters sp;
+  sp.db = "uniprot_human";
+  sp.precursor_mass_tolerance = 10.0;
+  sp.precursor_mass_tolerance_ppm = true;
+  sp.fragment_mass_tolerance = 0.02;
+  sp.fragment_mass_tolerance_ppm = false;
+  sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme("Trypsin");
+  sp.missed_cleavages = 2;
+  sp.fixed_modifications = {"Carbamidomethyl (C)"};
+  sp.variable_modifications = {"Oxidation (M)"};
+  prot_id.setSearchParameters(sp);
+
+  std::vector<ProteinIdentification> prot_ids = {prot_id};
+
+  String tmp_file;
+  NEW_TMP_FILE(tmp_file)
+  tmp_file += ".parquet";
+
+  TEST_EQUAL(ProteinIdentificationArrowExport::exportSearchParamsToParquet(prot_ids, tmp_file), true)
+
+  // Read back and verify
+  auto infile_result = arrow::io::ReadableFile::Open(std::string(tmp_file));
+  TEST_EQUAL(infile_result.ok(), true)
+  std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+
+  auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
+  TEST_EQUAL(reader_result.ok(), true)
+  std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
+
+  std::shared_ptr<arrow::Table> table;
+  auto read_status = reader->ReadTable(&table);
+  TEST_EQUAL(read_status.ok(), true)
+  TEST_EQUAL(table->num_rows(), 1)
+  TEST_EQUAL(table->num_columns(), 25)
+
+  // Check file metadata
+  auto metadata = table->schema()->metadata();
+  TEST_NOT_EQUAL(metadata, nullptr)
+  int idx = metadata->FindKey("file_type");
+  TEST_EQUAL(idx >= 0, true)
+  TEST_EQUAL(metadata->value(idx), "search_params")
 }
 END_SECTION
 
