@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
+#include <OpenMS/FORMAT/QPXFile.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -593,9 +594,95 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
 }
 
 std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
-  const FeatureMap& /*feature_map*/)
+  const FeatureMap& feature_map)
 {
-  return nullptr;
+  // 1. Collect all PeptideIdentifications with their associated feature_ids.
+  //    For each PeptideIdentification we store (feature_unique_id, is_null).
+  PeptideIdentificationList all_pep_ids;
+  std::vector<std::pair<int64_t, bool>> feature_ids_per_pep_id; // (feature_id, is_null)
+
+  // Helper: recursively collect PeptideIdentifications from a Feature and its subordinates.
+  std::function<void(const Feature&)> collectFromFeature = [&](const Feature& f)
+  {
+    for (const auto& pep_id : f.getPeptideIdentifications())
+    {
+      all_pep_ids.push_back(pep_id);
+      feature_ids_per_pep_id.push_back({static_cast<int64_t>(f.getUniqueId()), false});
+    }
+    for (const auto& sub : f.getSubordinates())
+    {
+      collectFromFeature(sub);
+    }
+  };
+
+  for (const auto& feature : feature_map)
+  {
+    collectFromFeature(feature);
+  }
+
+  // Unassigned peptide identifications get feature_id = null
+  for (const auto& pep_id : feature_map.getUnassignedPeptideIdentifications())
+  {
+    all_pep_ids.push_back(pep_id);
+    feature_ids_per_pep_id.push_back({0, true}); // null
+  }
+
+  // 2. Call QPXFile::exportToArrow to produce the base PSM table.
+  //    We use export_all_psms=false so only the best (first) hit per PeptideIdentification is exported.
+  auto base_table = QPXFile::exportToArrow(
+    feature_map.getProteinIdentifications(), all_pep_ids, false);
+  if (!base_table) { return nullptr; }
+
+  // 3. Build the feature_id column.
+  //    QPXFile::exportToArrow (with export_all_psms=false) produces one row per
+  //    PeptideIdentification that has at least one hit. PeptideIdentifications
+  //    with empty hits are skipped (but p_id_index still increments).
+  //    The order of rows matches the order of our all_pep_ids list.
+  arrow::Int64Builder feature_id_builder;
+
+  for (size_t i = 0; i < feature_ids_per_pep_id.size(); ++i)
+  {
+    // Skip PeptideIdentifications with no hits (QPXFile skips them too)
+    if (i < all_pep_ids.size() && all_pep_ids[i].getHits().empty())
+    {
+      continue;
+    }
+
+    if (feature_ids_per_pep_id[i].second) // is_null
+    {
+      (void)feature_id_builder.AppendNull();
+    }
+    else
+    {
+      (void)feature_id_builder.Append(feature_ids_per_pep_id[i].first);
+    }
+  }
+
+  std::shared_ptr<arrow::Array> feature_id_array;
+  auto status = feature_id_builder.Finish(&feature_id_array);
+  if (!status.ok())
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: feature_id_builder Finish failed: " << status.ToString() << std::endl;
+    return nullptr;
+  }
+
+  // Verify row count matches
+  if (feature_id_array->length() != base_table->num_rows())
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: feature_id column length (" << feature_id_array->length()
+                     << ") does not match table row count (" << base_table->num_rows() << ")" << std::endl;
+    return nullptr;
+  }
+
+  // 4. Add feature_id as the first column in the table.
+  auto chunked_feature_id = std::make_shared<arrow::ChunkedArray>(feature_id_array);
+  auto result = base_table->AddColumn(0, arrow::field("feature_id", arrow::int64()), chunked_feature_id);
+  if (!result.ok())
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: AddColumn failed: " << result.status().ToString() << std::endl;
+    return nullptr;
+  }
+  return *result;
 }
 
 bool FeatureMapArrowIO::exportToParquet(
