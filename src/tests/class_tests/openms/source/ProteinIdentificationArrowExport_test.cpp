@@ -250,6 +250,115 @@ START_SECTION(Test is_decoy null when target_decoy not set)
 }
 END_SECTION
 
+START_SECTION(exportProteinGroupsToArrow())
+{
+  // Create test data: one ProteinIdentification with one protein_group and one indistinguishable group
+  vector<ProteinIdentification> protein_ids;
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_groups_1");
+
+  // Protein group: 2 accessions, probability 0.95
+  ProteinIdentification::ProteinGroup pg;
+  pg.probability = 0.95;
+  pg.accessions = {"sp|P12345|PROT1_HUMAN", "sp|P12346|PROT2_HUMAN"};
+  prot_id.insertProteinGroup(pg);
+
+  // Indistinguishable group: 2 accessions, probability 0.0
+  ProteinIdentification::ProteinGroup ig;
+  ig.probability = 0.0;
+  ig.accessions = {"sp|Q11111|PROTA_HUMAN", "sp|Q22222|PROTB_HUMAN"};
+  prot_id.insertIndistinguishableProteins(ig);
+
+  protein_ids.push_back(prot_id);
+
+  // Export to Arrow table
+  auto table = ProteinIdentificationArrowExport::exportProteinGroupsToArrow(protein_ids);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  // Verify number of rows (1 protein_group + 1 indistinguishable = 2)
+  TEST_EQUAL(table->num_rows(), 2)
+
+  // Verify 8 columns
+  TEST_EQUAL(table->num_columns(), 8)
+
+  // Verify column names
+  auto schema = table->schema();
+  TEST_EQUAL(schema->field(0)->name(), "group_type")
+  TEST_EQUAL(schema->field(1)->name(), "probability")
+  TEST_EQUAL(schema->field(2)->name(), "accessions")
+  TEST_EQUAL(schema->field(3)->name(), "run_identifier")
+  TEST_EQUAL(schema->field(4)->name(), "group_index")
+  TEST_EQUAL(schema->field(5)->name(), "float_data")
+  TEST_EQUAL(schema->field(6)->name(), "string_data")
+  TEST_EQUAL(schema->field(7)->name(), "integer_data")
+
+  // Verify group_type values
+  auto gt_col = table->GetColumnByName("group_type");
+  auto gt_arr = std::static_pointer_cast<arrow::StringArray>(gt_col->chunk(0));
+  TEST_EQUAL(gt_arr->GetString(0), "protein_group")
+  TEST_EQUAL(gt_arr->GetString(1), "indistinguishable")
+
+  // Verify probability values
+  auto prob_col = table->GetColumnByName("probability");
+  auto prob_arr = std::static_pointer_cast<arrow::DoubleArray>(prob_col->chunk(0));
+  TEST_REAL_SIMILAR(prob_arr->Value(0), 0.95)
+  TEST_REAL_SIMILAR(prob_arr->Value(1), 0.0)
+
+  // Verify run_identifier
+  auto rid_col = table->GetColumnByName("run_identifier");
+  auto rid_arr = std::static_pointer_cast<arrow::StringArray>(rid_col->chunk(0));
+  TEST_EQUAL(rid_arr->GetString(0), "run_groups_1")
+  TEST_EQUAL(rid_arr->GetString(1), "run_groups_1")
+
+  // Verify group_index (0 for both since they are independent counters)
+  auto gi_col = table->GetColumnByName("group_index");
+  auto gi_arr = std::static_pointer_cast<arrow::Int32Array>(gi_col->chunk(0));
+  TEST_EQUAL(gi_arr->Value(0), 0)
+  TEST_EQUAL(gi_arr->Value(1), 0)
+
+  // Verify accessions list has correct values
+  auto acc_col = table->GetColumnByName("accessions");
+  auto acc_arr = std::static_pointer_cast<arrow::ListArray>(acc_col->chunk(0));
+  // First group: 2 accessions
+  TEST_EQUAL(acc_arr->value_length(0), 2)
+  auto acc_values_0 = std::static_pointer_cast<arrow::StringArray>(acc_arr->value_slice(0));
+  TEST_EQUAL(acc_values_0->GetString(0), "sp|P12345|PROT1_HUMAN")
+  TEST_EQUAL(acc_values_0->GetString(1), "sp|P12346|PROT2_HUMAN")
+  // Second group: 2 accessions
+  TEST_EQUAL(acc_arr->value_length(1), 2)
+  auto acc_values_1 = std::static_pointer_cast<arrow::StringArray>(acc_arr->value_slice(1));
+  TEST_EQUAL(acc_values_1->GetString(0), "sp|Q11111|PROTA_HUMAN")
+  TEST_EQUAL(acc_values_1->GetString(1), "sp|Q22222|PROTB_HUMAN")
+
+  // Verify data array columns are null (no data arrays set)
+  auto fd_col = table->GetColumnByName("float_data");
+  auto fd_arr = std::static_pointer_cast<arrow::ListArray>(fd_col->chunk(0));
+  TEST_EQUAL(fd_arr->IsNull(0), true)
+  TEST_EQUAL(fd_arr->IsNull(1), true)
+
+  auto sd_col = table->GetColumnByName("string_data");
+  auto sd_arr = std::static_pointer_cast<arrow::ListArray>(sd_col->chunk(0));
+  TEST_EQUAL(sd_arr->IsNull(0), true)
+  TEST_EQUAL(sd_arr->IsNull(1), true)
+
+  auto id_col = table->GetColumnByName("integer_data");
+  auto id_arr = std::static_pointer_cast<arrow::ListArray>(id_col->chunk(0));
+  TEST_EQUAL(id_arr->IsNull(0), true)
+  TEST_EQUAL(id_arr->IsNull(1), true)
+
+  // Verify data types
+  TEST_EQUAL(schema->field(0)->type()->id(), arrow::Type::STRING)   // group_type
+  TEST_EQUAL(schema->field(1)->type()->id(), arrow::Type::DOUBLE)   // probability
+  TEST_EQUAL(schema->field(2)->type()->id(), arrow::Type::LIST)     // accessions
+  TEST_EQUAL(schema->field(3)->type()->id(), arrow::Type::STRING)   // run_identifier
+  TEST_EQUAL(schema->field(4)->type()->id(), arrow::Type::INT32)    // group_index
+  TEST_EQUAL(schema->field(5)->type()->id(), arrow::Type::LIST)     // float_data
+  TEST_EQUAL(schema->field(6)->type()->id(), arrow::Type::LIST)     // string_data
+  TEST_EQUAL(schema->field(7)->type()->id(), arrow::Type::LIST)     // integer_data
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

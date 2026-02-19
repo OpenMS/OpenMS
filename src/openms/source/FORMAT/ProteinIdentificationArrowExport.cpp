@@ -540,22 +540,224 @@ bool ProteinIdentificationArrowExport::exportProteinsToParquet(
 
 
 std::shared_ptr<arrow::Table> ProteinIdentificationArrowExport::exportProteinGroupsToArrow(
-  const std::vector<ProteinIdentification>& /*protein_identifications*/)
+  const std::vector<ProteinIdentification>& protein_identifications)
 {
-  // TODO: implement in a future task
-  OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport::exportProteinGroupsToArrow not yet implemented" << std::endl;
-  return nullptr;
+  // -- Simple column builders --
+  arrow::StringBuilder group_type_builder, run_identifier_builder;
+  arrow::DoubleBuilder probability_builder;
+  arrow::Int32Builder group_index_builder;
+
+  // -- accessions: list<utf8> --
+  auto acc_value_b = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder accessions_builder(arrow::default_memory_pool(), acc_value_b);
+
+  // -- float_data: list<struct{name: utf8, values: list<float64>}> --
+  auto fd_inner_value_b = std::make_shared<arrow::DoubleBuilder>();
+  auto fd_inner_list_b = std::make_shared<arrow::ListBuilder>(arrow::default_memory_pool(), fd_inner_value_b);
+  auto fd_name_b = std::make_shared<arrow::StringBuilder>();
+  auto fd_struct_type = arrow::struct_({
+    arrow::field("name", arrow::utf8()),
+    arrow::field("values", arrow::list(arrow::float64()))
+  });
+  auto fd_struct_b = std::make_shared<arrow::StructBuilder>(
+    fd_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{fd_name_b, fd_inner_list_b});
+  arrow::ListBuilder float_data_builder(arrow::default_memory_pool(), fd_struct_b);
+
+  // -- string_data: list<struct{name: utf8, values: list<utf8>}> --
+  auto sd_inner_value_b = std::make_shared<arrow::StringBuilder>();
+  auto sd_inner_list_b = std::make_shared<arrow::ListBuilder>(arrow::default_memory_pool(), sd_inner_value_b);
+  auto sd_name_b = std::make_shared<arrow::StringBuilder>();
+  auto sd_struct_type = arrow::struct_({
+    arrow::field("name", arrow::utf8()),
+    arrow::field("values", arrow::list(arrow::utf8()))
+  });
+  auto sd_struct_b = std::make_shared<arrow::StructBuilder>(
+    sd_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{sd_name_b, sd_inner_list_b});
+  arrow::ListBuilder string_data_builder(arrow::default_memory_pool(), sd_struct_b);
+
+  // -- integer_data: list<struct{name: utf8, values: list<int64>}> --
+  auto id_inner_value_b = std::make_shared<arrow::Int64Builder>();
+  auto id_inner_list_b = std::make_shared<arrow::ListBuilder>(arrow::default_memory_pool(), id_inner_value_b);
+  auto id_name_b = std::make_shared<arrow::StringBuilder>();
+  auto id_struct_type = arrow::struct_({
+    arrow::field("name", arrow::utf8()),
+    arrow::field("values", arrow::list(arrow::int64()))
+  });
+  auto id_struct_b = std::make_shared<arrow::StructBuilder>(
+    id_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{id_name_b, id_inner_list_b});
+  arrow::ListBuilder integer_data_builder(arrow::default_memory_pool(), id_struct_b);
+
+  // Lambda to append a single ProteinGroup row
+  auto append_group = [&](const ProteinIdentification::ProteinGroup& group,
+                          const std::string& type_str,
+                          const String& run_id,
+                          int32_t index) -> bool
+  {
+    // group_type
+    (void)group_type_builder.Append(type_str);
+
+    // probability
+    (void)probability_builder.Append(group.probability);
+
+    // accessions (list<utf8>)
+    (void)accessions_builder.Append();
+    for (const auto& acc : group.accessions)
+    {
+      (void)acc_value_b->Append(acc);
+    }
+
+    // run_identifier
+    (void)run_identifier_builder.Append(run_id);
+
+    // group_index
+    (void)group_index_builder.Append(index);
+
+    // float_data
+    const auto& fda = group.getFloatDataArrays();
+    if (fda.empty())
+    {
+      (void)float_data_builder.AppendNull();
+    }
+    else
+    {
+      (void)float_data_builder.Append();
+      for (const auto& arr : fda)
+      {
+        (void)fd_struct_b->Append();
+        (void)fd_name_b->Append(arr.getName());
+        (void)fd_inner_list_b->Append();
+        for (float val : arr)
+        {
+          (void)fd_inner_value_b->Append(static_cast<double>(val));
+        }
+      }
+    }
+
+    // string_data
+    const auto& sda = group.getStringDataArrays();
+    if (sda.empty())
+    {
+      (void)string_data_builder.AppendNull();
+    }
+    else
+    {
+      (void)string_data_builder.Append();
+      for (const auto& arr : sda)
+      {
+        (void)sd_struct_b->Append();
+        (void)sd_name_b->Append(arr.getName());
+        (void)sd_inner_list_b->Append();
+        for (const auto& val : arr)
+        {
+          (void)sd_inner_value_b->Append(val);
+        }
+      }
+    }
+
+    // integer_data
+    const auto& ida = group.getIntegerDataArrays();
+    if (ida.empty())
+    {
+      (void)integer_data_builder.AppendNull();
+    }
+    else
+    {
+      (void)integer_data_builder.Append();
+      for (const auto& arr : ida)
+      {
+        (void)id_struct_b->Append();
+        (void)id_name_b->Append(arr.getName());
+        (void)id_inner_list_b->Append();
+        for (Int val : arr)
+        {
+          (void)id_inner_value_b->Append(static_cast<int64_t>(val));
+        }
+      }
+    }
+
+    return true;
+  };
+
+  // Iterate over all ProteinIdentifications
+  for (const auto& prot_id : protein_identifications)
+  {
+    const String& run_id = prot_id.getIdentifier();
+
+    // Protein groups with separate 0-based index
+    int32_t pg_index = 0;
+    for (const auto& group : prot_id.getProteinGroups())
+    {
+      append_group(group, "protein_group", run_id, pg_index++);
+    }
+
+    // Indistinguishable proteins with separate 0-based index
+    int32_t ind_index = 0;
+    for (const auto& group : prot_id.getIndistinguishableProteins())
+    {
+      append_group(group, "indistinguishable", run_id, ind_index++);
+    }
+  }
+
+  // Finalize all arrays
+  std::shared_ptr<arrow::Array> arr_group_type, arr_probability, arr_accessions;
+  std::shared_ptr<arrow::Array> arr_run_id, arr_group_index;
+  std::shared_ptr<arrow::Array> arr_float_data, arr_string_data, arr_integer_data;
+
+  arrow::Status status;
+  status = group_type_builder.Finish(&arr_group_type);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: group_type_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = probability_builder.Finish(&arr_probability);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: probability_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = accessions_builder.Finish(&arr_accessions);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: accessions_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = run_identifier_builder.Finish(&arr_run_id);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: run_identifier_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = group_index_builder.Finish(&arr_group_index);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: group_index_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = float_data_builder.Finish(&arr_float_data);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: float_data_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = string_data_builder.Finish(&arr_string_data);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: string_data_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = integer_data_builder.Finish(&arr_integer_data);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: integer_data_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+
+  // Build schema (8 columns)
+  auto schema = arrow::schema({
+    arrow::field("group_type", arrow::utf8(), /*nullable=*/false),
+    arrow::field("probability", arrow::float64(), /*nullable=*/false),
+    arrow::field("accessions", arrow::list(arrow::utf8()), /*nullable=*/false),
+    arrow::field("run_identifier", arrow::utf8(), /*nullable=*/false),
+    arrow::field("group_index", arrow::int32(), /*nullable=*/false),
+    arrow::field("float_data", arrow::list(fd_struct_type), /*nullable=*/true),
+    arrow::field("string_data", arrow::list(sd_struct_type), /*nullable=*/true),
+    arrow::field("integer_data", arrow::list(id_struct_type), /*nullable=*/true),
+  });
+
+  auto table = arrow::Table::Make(schema, {
+    arr_group_type, arr_probability, arr_accessions,
+    arr_run_id, arr_group_index,
+    arr_float_data, arr_string_data, arr_integer_data
+  });
+
+  return table;
 }
 
 
 bool ProteinIdentificationArrowExport::exportProteinGroupsToParquet(
-  const std::vector<ProteinIdentification>& /*protein_identifications*/,
-  const String& /*filename*/,
-  const ParquetWriteConfig& /*config*/)
+  const std::vector<ProteinIdentification>& protein_identifications,
+  const String& filename,
+  const ParquetWriteConfig& config)
 {
-  // TODO: implement in a future task
-  OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport::exportProteinGroupsToParquet not yet implemented" << std::endl;
-  return false;
+  auto table = exportProteinGroupsToArrow(protein_identifications);
+  if (!table)
+  {
+    OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: Failed to create Arrow table for protein groups" << std::endl;
+    return false;
+  }
+  return writeArrowTableToParquet_(table, filename, "protein_groups", config);
 }
 
 
