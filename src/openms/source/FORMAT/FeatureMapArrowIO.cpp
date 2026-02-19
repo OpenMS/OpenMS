@@ -14,6 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -853,10 +854,185 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
 }
 
 bool FeatureMapArrowIO::importPSMsFromArrow(
-  const std::shared_ptr<arrow::Table>& /*table*/,
-  FeatureMap& /*feature_map*/)
+  const std::shared_ptr<arrow::Table>& table,
+  FeatureMap& feature_map)
 {
-  return false;
+  if (!table || table->num_rows() == 0) { return true; }
+
+  // Combine chunks for reliable single-chunk access
+  auto combined_result = table->CombineChunks(arrow::default_memory_pool());
+  if (!combined_result.ok())
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to combine chunks in importPSMsFromArrow" << std::endl;
+    return false;
+  }
+  auto tbl = *combined_result;
+  int64_t num_rows = tbl->num_rows();
+
+  // Build feature lookup: unique_id -> Feature* (recursively includes subordinates)
+  std::unordered_map<int64_t, Feature*> feature_lookup;
+  std::function<void(Feature&)> buildLookup = [&](Feature& f)
+  {
+    feature_lookup[static_cast<int64_t>(f.getUniqueId())] = &f;
+    for (auto& sub : f.getSubordinates())
+    {
+      buildLookup(sub);
+    }
+  };
+  for (auto& f : feature_map)
+  {
+    buildLookup(f);
+  }
+
+  // Read columns
+  auto col_feature_id = getColumn_(tbl, "feature_id");
+  auto col_p_id = getColumn_(tbl, "P_ID");
+  auto col_peptidoform = getColumn_(tbl, "peptidoform", /*required=*/false);
+  auto col_sequence = getColumn_(tbl, "sequence", /*required=*/false);
+  auto col_charge = getColumn_(tbl, "precursor_charge");
+  auto col_score = getColumn_(tbl, "score");
+  auto col_score_type = getColumn_(tbl, "score_type");
+  auto col_rank = getColumn_(tbl, "rank", /*required=*/false);
+  auto col_rt = getColumn_(tbl, "rt", /*required=*/false);
+  auto col_mz = getColumn_(tbl, "observed_mz", /*required=*/false);
+  auto col_spec_ref = getColumn_(tbl, "spectrum_reference", /*required=*/false);
+  auto col_run_id = getColumn_(tbl, "run_identifier", /*required=*/false);
+  auto col_higher_better = getColumn_(tbl, "higher_score_better", /*required=*/false);
+
+  if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Missing required columns for PSM import" << std::endl;
+    return false;
+  }
+
+  // Group rows by P_ID to reconstruct PeptideIdentifications.
+  // Each unique P_ID value corresponds to one PeptideIdentification.
+  // Rows with the same P_ID share the same PeptideIdentification-level data
+  // (rt, mz, score_type, spectrum_reference, run_identifier).
+  //
+  // We also track the feature_id for each group so we know where to attach it.
+  // All rows in the same P_ID group should have the same feature_id.
+
+  // Process rows in order, grouping consecutive rows with the same P_ID.
+  struct PepIdGroup
+  {
+    int64_t feature_id;
+    bool feature_id_is_null;
+    PeptideIdentification pep_id;
+  };
+
+  std::vector<PepIdGroup> groups;
+  int32_t current_p_id = -1;
+
+  for (int64_t row = 0; row < num_rows; ++row)
+  {
+    int32_t p_id = getInt32Value_(col_p_id, row, -1);
+
+    // Start a new group if P_ID changes
+    if (groups.empty() || p_id != current_p_id)
+    {
+      PepIdGroup group;
+      group.feature_id_is_null = isNull_(col_feature_id, row);
+      group.feature_id = group.feature_id_is_null ? 0 : getInt64Value_(col_feature_id, row, 0);
+
+      // Set PeptideIdentification-level fields
+      PeptideIdentification& pid = group.pep_id;
+      pid.setScoreType(getStringValue_(col_score_type, row));
+      pid.setHigherScoreBetter(true); // default; QPXFile does not store this explicitly
+
+      // RT
+      if (col_rt && !isNull_(col_rt, row))
+      {
+        pid.setRT(getDoubleValue_(col_rt, row));
+      }
+
+      // MZ
+      if (col_mz && !isNull_(col_mz, row))
+      {
+        pid.setMZ(getDoubleValue_(col_mz, row));
+      }
+
+      // Spectrum reference
+      if (col_spec_ref && !isNull_(col_spec_ref, row))
+      {
+        pid.setSpectrumReference(getStringValue_(col_spec_ref, row));
+      }
+
+      // Run identifier (links to ProteinIdentification)
+      if (col_run_id && !isNull_(col_run_id, row))
+      {
+        pid.setIdentifier(getStringValue_(col_run_id, row));
+      }
+
+      groups.push_back(std::move(group));
+      current_p_id = p_id;
+    }
+
+    // Add a PeptideHit to the current group
+    PeptideHit hit;
+
+    // Reconstruct sequence from peptidoform (ProForma) if available, else from sequence column
+    if (col_peptidoform && !isNull_(col_peptidoform, row))
+    {
+      String peptidoform_str = getStringValue_(col_peptidoform, row);
+      if (!peptidoform_str.empty())
+      {
+        try
+        {
+          auto pf = ProForma::parse(peptidoform_str);
+          hit.setSequence(ProForma::toAASequence(pf, ProForma::ConversionPolicy::BEST_EFFORT));
+        }
+        catch (...)
+        {
+          // Fallback: try unmodified sequence
+          if (col_sequence && !isNull_(col_sequence, row))
+          {
+            hit.setSequence(AASequence::fromString(getStringValue_(col_sequence, row)));
+          }
+        }
+      }
+    }
+    else if (col_sequence && !isNull_(col_sequence, row))
+    {
+      hit.setSequence(AASequence::fromString(getStringValue_(col_sequence, row)));
+    }
+
+    hit.setCharge(static_cast<Int>(getInt32Value_(col_charge, row, 0)));
+    hit.setScore(getDoubleValue_(col_score, row, 0.0));
+
+    if (col_rank && !isNull_(col_rank, row))
+    {
+      hit.setRank(static_cast<UInt>(getInt32Value_(col_rank, row, 0)));
+    }
+
+    groups.back().pep_id.getHits().push_back(std::move(hit));
+  }
+
+  // Assign PeptideIdentifications to features or as unassigned
+  for (auto& group : groups)
+  {
+    if (group.feature_id_is_null)
+    {
+      // Unassigned
+      feature_map.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+    }
+    else
+    {
+      auto it = feature_lookup.find(group.feature_id);
+      if (it != feature_lookup.end())
+      {
+        it->second->getPeptideIdentifications().push_back(std::move(group.pep_id));
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "FeatureMapArrowIO: Could not find feature with id "
+                        << group.feature_id << " for PSM. Adding as unassigned." << std::endl;
+        feature_map.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+      }
+    }
+  }
+
+  return true;
 }
 
 bool FeatureMapArrowIO::importFromParquet(
