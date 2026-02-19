@@ -184,6 +184,43 @@ namespace // anonymous
 
   // ==================== Import helpers ====================
 
+  /// Read a single Parquet file into an Arrow table.
+  std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+  {
+    auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
+    if (!infile_result.ok())
+    {
+      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to open file: " << filename << std::endl;
+      return nullptr;
+    }
+    auto infile = *infile_result;
+
+    auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
+    if (!reader_result.ok())
+    {
+      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create Parquet reader for: " << filename << std::endl;
+      return nullptr;
+    }
+    auto reader = std::move(reader_result.ValueOrDie());
+
+    std::shared_ptr<arrow::Table> table;
+    auto read_status = reader->ReadTable(&table);
+    if (!read_status.ok())
+    {
+      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to read table: " << read_status.ToString() << std::endl;
+      return nullptr;
+    }
+
+    auto combined = table->CombineChunks(arrow::default_memory_pool());
+    if (!combined.ok())
+    {
+      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to combine chunks" << std::endl;
+      return nullptr;
+    }
+
+    return *combined;
+  }
+
   /// Fetch a named column from a table, combining chunks if needed.
   /// Returns nullptr if column not found (logs error if required).
   std::shared_ptr<arrow::Array> getColumn_(
@@ -687,11 +724,56 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
 }
 
 bool FeatureMapArrowIO::exportToParquet(
-  const FeatureMap& /*feature_map*/,
-  const String& /*directory*/,
-  const ParquetWriteConfig& /*config*/)
+  const FeatureMap& feature_map,
+  const String& directory,
+  const ParquetWriteConfig& config)
 {
-  return false;
+  // 1. Create output directory
+  std::filesystem::create_directories(std::string(directory));
+
+  // 2. Export features table
+  auto features_table = exportFeaturesToArrow(feature_map);
+  if (!features_table)
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create features Arrow table" << std::endl;
+    return false;
+  }
+  if (!writeArrowTableToParquet_(features_table, directory + "/features.parquet", "features", config))
+  {
+    return false;
+  }
+
+  // 3. Export PSMs table
+  auto psms_table = exportPSMsToArrow(feature_map);
+  if (!psms_table)
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create PSMs Arrow table" << std::endl;
+    return false;
+  }
+  if (!writeArrowTableToParquet_(psms_table, directory + "/psms.parquet", "psms", config))
+  {
+    return false;
+  }
+
+  // 4. Delegate protein data to ProteinIdentificationArrowIO
+  const auto& prot_ids = feature_map.getProteinIdentifications();
+  if (!ProteinIdentificationArrowIO::exportProteinsToParquet(
+          prot_ids, directory + "/proteins.parquet", config))
+  {
+    return false;
+  }
+  if (!ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
+          prot_ids, directory + "/protein_groups.parquet", config))
+  {
+    return false;
+  }
+  if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
+          prot_ids, directory + "/search_params.parquet", config))
+  {
+    return false;
+  }
+
+  return true;
 }
 
 bool FeatureMapArrowIO::importFeaturesFromArrow(
@@ -1036,10 +1118,38 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
 }
 
 bool FeatureMapArrowIO::importFromParquet(
-  const String& /*directory*/,
-  FeatureMap& /*feature_map*/)
+  const String& directory,
+  FeatureMap& feature_map)
 {
-  return false;
+  // 1. Import protein identification data
+  std::vector<ProteinIdentification> prot_ids;
+  if (!ProteinIdentificationArrowIO::importFromParquet(
+          directory + "/proteins.parquet",
+          directory + "/protein_groups.parquet",
+          directory + "/search_params.parquet",
+          prot_ids))
+  {
+    return false;
+  }
+  feature_map.setProteinIdentifications(prot_ids);
+
+  // 2. Import features
+  auto features_table = readParquetTable_(directory + "/features.parquet");
+  if (!features_table) { return false; }
+  if (!importFeaturesFromArrow(features_table, feature_map))
+  {
+    return false;
+  }
+
+  // 3. Import PSMs (links to features already in the map)
+  auto psms_table = readParquetTable_(directory + "/psms.parquet");
+  if (!psms_table) { return false; }
+  if (!importPSMsFromArrow(psms_table, feature_map))
+  {
+    return false;
+  }
+
+  return true;
 }
 
 } // namespace OpenMS
