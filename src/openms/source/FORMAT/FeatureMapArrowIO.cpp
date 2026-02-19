@@ -990,6 +990,13 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   auto col_mz = getColumn_(tbl, "observed_mz", /*required=*/false);
   auto col_spec_ref = getColumn_(tbl, "spectrum_reference", /*required=*/false);
   auto col_run_id = getColumn_(tbl, "run_identifier", /*required=*/false);
+  auto col_is_decoy = getColumn_(tbl, "is_decoy", /*required=*/false);
+  auto col_protein_accs = getColumn_(tbl, "protein_accessions", /*required=*/false);
+  auto col_additional_scores = getColumn_(tbl, "additional_scores", /*required=*/false);
+  auto col_psm_metavalues = getColumn_(tbl, "psm_metavalues", /*required=*/false);
+  auto col_spectrum_metavalues = getColumn_(tbl, "spectrum_metavalues", /*required=*/false);
+  auto col_predicted_rt = getColumn_(tbl, "predicted_rt", /*required=*/false);
+  auto col_ion_mobility = getColumn_(tbl, "ion_mobility", /*required=*/false);
 
   if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
   {
@@ -1004,6 +1011,13 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   //
   // We also track the feature_id for each group so we know where to attach it.
   // All rows in the same P_ID group should have the same feature_id.
+
+  // Build a lookup for higher_score_better from ProteinIdentifications
+  std::unordered_map<std::string, bool> higher_score_better_lookup;
+  for (const auto& prot_id : feature_map.getProteinIdentifications())
+  {
+    higher_score_better_lookup[prot_id.getIdentifier()] = prot_id.isHigherScoreBetter();
+  }
 
   // Process rows in order, grouping consecutive rows with the same P_ID.
   struct PepIdGroup
@@ -1030,7 +1044,19 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       // Set PeptideIdentification-level fields
       PeptideIdentification& pid = group.pep_id;
       pid.setScoreType(getStringValue_(col_score_type, row));
-      pid.setHigherScoreBetter(true); // default; QPXFile does not store this explicitly
+      pid.setHigherScoreBetter(true); // default
+
+      // Run identifier (links to ProteinIdentification) + higher_score_better lookup
+      if (col_run_id && !isNull_(col_run_id, row))
+      {
+        String run_id = getStringValue_(col_run_id, row);
+        pid.setIdentifier(run_id);
+        auto hsb_it = higher_score_better_lookup.find(run_id);
+        if (hsb_it != higher_score_better_lookup.end())
+        {
+          pid.setHigherScoreBetter(hsb_it->second);
+        }
+      }
 
       // RT
       if (col_rt && !isNull_(col_rt, row))
@@ -1050,10 +1076,10 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
         pid.setSpectrumReference(getStringValue_(col_spec_ref, row));
       }
 
-      // Run identifier (links to ProteinIdentification)
-      if (col_run_id && !isNull_(col_run_id, row))
+      // spectrum_metavalues -> PeptideIdentification metavalues
+      if (col_spectrum_metavalues)
       {
-        pid.setIdentifier(getStringValue_(col_run_id, row));
+        readMetaValues_(col_spectrum_metavalues, row, pid);
       }
 
       groups.push_back(std::move(group));
@@ -1095,6 +1121,64 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     if (col_rank && !isNull_(col_rank, row))
     {
       hit.setRank(static_cast<UInt>(getInt32Value_(col_rank, row, 0)));
+    }
+
+    // is_decoy -> target_decoy metavalue
+    if (col_is_decoy && !isNull_(col_is_decoy, row))
+    {
+      int32_t is_decoy = getInt32Value_(col_is_decoy, row, 0);
+      hit.setMetaValue("target_decoy", is_decoy == 1 ? "decoy" : "target");
+    }
+
+    // protein_accessions -> PeptideEvidence
+    if (col_protein_accs && !isNull_(col_protein_accs, row))
+    {
+      auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_protein_accs);
+      auto values = std::static_pointer_cast<arrow::StringArray>(list_arr->values());
+      int64_t start = list_arr->value_offset(row);
+      int64_t end = start + list_arr->value_length(row);
+      for (int64_t k = start; k < end; ++k)
+      {
+        PeptideEvidence ev;
+        ev.setProteinAccession(values->GetString(k));
+        hit.addPeptideEvidence(ev);
+      }
+    }
+
+    // additional_scores -> metavalues on PeptideHit
+    if (col_additional_scores && !isNull_(col_additional_scores, row))
+    {
+      auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_additional_scores);
+      auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->values());
+      auto names_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->GetFieldByName("score_name"));
+      auto values_arr = std::static_pointer_cast<arrow::DoubleArray>(struct_arr->GetFieldByName("score_value"));
+
+      int64_t start = list_arr->value_offset(row);
+      int64_t end = start + list_arr->value_length(row);
+      for (int64_t k = start; k < end; ++k)
+      {
+        String name = names_arr->GetString(k);
+        double value = values_arr->Value(k);
+        hit.setMetaValue(name, value);
+      }
+    }
+
+    // predicted_rt -> PeptideHit metavalue
+    if (col_predicted_rt && !isNull_(col_predicted_rt, row))
+    {
+      hit.setMetaValue("predicted_RT", getDoubleValue_(col_predicted_rt, row));
+    }
+
+    // ion_mobility -> PeptideHit metavalue
+    if (col_ion_mobility && !isNull_(col_ion_mobility, row))
+    {
+      hit.setMetaValue("ion_mobility", getDoubleValue_(col_ion_mobility, row));
+    }
+
+    // psm_metavalues -> PeptideHit metavalues
+    if (col_psm_metavalues)
+    {
+      readMetaValues_(col_psm_metavalues, row, hit);
     }
 
     groups.back().pep_id.getHits().push_back(std::move(hit));
