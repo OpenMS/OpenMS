@@ -69,10 +69,14 @@ public:
     const FeatureMap& feature_map);
 
   /**
-    @brief Export features and PSMs to Parquet files in a directory
+    @brief Export FeatureMap to a directory of Parquet files
 
-    Writes two Parquet files: features.parquet and psms.parquet
-    into the specified directory.
+    Writes five Parquet files: features.parquet, psms.parquet,
+    proteins.parquet, protein_groups.parquet, and search_params.parquet
+    into the specified directory. Protein-level data is delegated to
+    ProteinIdentificationArrowIO. FeatureMap-level metadata
+    (DocumentIdentifier, DataProcessing) is stored as file-level
+    key-value metadata in features.parquet.
 
     @param[in] feature_map The FeatureMap to export
     @param[in] directory Output directory path
@@ -115,10 +119,13 @@ public:
     FeatureMap& feature_map);
 
   /**
-    @brief Import features and PSMs from Parquet files in a directory
+    @brief Import FeatureMap from a directory of Parquet files
 
-    Reads features.parquet and psms.parquet from the specified directory
-    and reconstructs a FeatureMap.
+    Reads five Parquet files (features.parquet, psms.parquet,
+    proteins.parquet, protein_groups.parquet, search_params.parquet)
+    from the specified directory and reconstructs a complete FeatureMap
+    including feature hierarchy, PSM linkage, protein identifications,
+    and FeatureMap-level metadata.
 
     @param[in] directory Input directory path containing Parquet files
     @param[out] feature_map FeatureMap to populate

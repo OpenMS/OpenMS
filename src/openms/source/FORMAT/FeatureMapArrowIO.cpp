@@ -349,11 +349,13 @@ namespace // anonymous
               {
                 if (mv_type == "int")
                 {
-                  dp.setMetaValue(mv_name, DataValue(std::stoi(mv_value)));
+                  try { dp.setMetaValue(mv_name, DataValue(std::stoi(mv_value))); }
+                  catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
                 }
                 else if (mv_type == "float")
                 {
-                  dp.setMetaValue(mv_name, DataValue(std::stod(mv_value)));
+                  try { dp.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+                  catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
                 }
                 else
                 {
@@ -1383,7 +1385,11 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   {
     int32_t p_id = getInt32Value_(col_p_id, row, -1);
 
-    // Start a new group if P_ID changes
+    // Start a new group if P_ID changes.
+    // Note: This assumes rows with the same P_ID are contiguous in the table,
+    // which is guaranteed by QPXFile::exportToArrow. If the Parquet file has been
+    // externally sorted/filtered, non-contiguous rows with the same P_ID will be
+    // split into separate PeptideIdentification objects.
     if (groups.empty() || p_id != current_p_id)
     {
       PepIdGroup group;
@@ -1524,10 +1530,12 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       hit.setMetaValue("ion_mobility", getDoubleValue_(col_ion_mobility, row));
     }
 
-    // psm_metavalues -> PeptideHit metavalues
+    // psm_metavalues -> PeptideHit metavalues (exclude keys that have dedicated columns)
     if (col_psm_metavalues)
     {
-      readMetaValues_(col_psm_metavalues, row, hit);
+      static const std::unordered_set<std::string> psm_excluded_mvs =
+        {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM"};
+      readMetaValues_(col_psm_metavalues, row, hit, psm_excluded_mvs);
     }
 
     groups.back().pep_id.getHits().push_back(std::move(hit));
