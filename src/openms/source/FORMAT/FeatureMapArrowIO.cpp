@@ -709,50 +709,57 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
     entries.push_back(std::move(entry));
   }
 
-  // Sort by depth ascending so parents are processed before children
+  // Sort by depth descending so children are processed before parents.
+  // This allows us to build the tree bottom-up: attach children to parents
+  // in the entries vector first, then add fully assembled top-level features
+  // to the FeatureMap.
   std::stable_sort(entries.begin(), entries.end(),
-    [](const FeatureEntry& a, const FeatureEntry& b) { return a.depth < b.depth; });
+    [](const FeatureEntry& a, const FeatureEntry& b) { return a.depth > b.depth; });
 
   // Build unique_id -> index-in-entries lookup map
-  // We need to track where each feature ends up (either in feature_map or as a subordinate)
-  // Strategy: We store pointers to the features after placing them.
-  // First pass: add top-level features to the feature_map.
-  // Second pass: for each non-top-level feature, find its parent and add as subordinate.
+  std::unordered_map<int64_t, size_t> id_to_index;
+  for (size_t i = 0; i < entries.size(); ++i)
+  {
+    id_to_index[entries[i].unique_id] = i;
+  }
 
-  // Since subordinates are added by copy, we need a way to find the *actual* Feature
-  // in the hierarchy. We'll use a map from unique_id to Feature*.
-
-  std::unordered_map<int64_t, Feature*> id_to_feature;
-
+  // Bottom-up assembly: for each entry (deepest first), attach it to its parent
   for (auto& entry : entries)
   {
-    if (entry.parent_id == -1)
+    if (entry.parent_id != -1)
     {
-      // Top-level feature
-      feature_map.push_back(entry.feature);
-      Feature& added = feature_map.back();
-      id_to_feature[entry.unique_id] = &added;
-    }
-    else
-    {
-      // Subordinate feature - find parent
-      auto it = id_to_feature.find(entry.parent_id);
-      if (it == id_to_feature.end())
+      auto it = id_to_index.find(entry.parent_id);
+      if (it != id_to_index.end())
       {
-        OPENMS_LOG_WARN << "FeatureMapArrowIO: Could not find parent feature with id "
-                        << entry.parent_id << " for feature " << entry.unique_id
-                        << ". Adding as top-level." << std::endl;
-        feature_map.push_back(entry.feature);
-        Feature& added = feature_map.back();
-        id_to_feature[entry.unique_id] = &added;
+        entries[it->second].feature.getSubordinates().push_back(std::move(entry.feature));
       }
       else
       {
-        it->second->getSubordinates().push_back(entry.feature);
-        Feature& added = it->second->getSubordinates().back();
-        id_to_feature[entry.unique_id] = &added;
+        OPENMS_LOG_WARN << "FeatureMapArrowIO: Could not find parent feature with id "
+                        << entry.parent_id << " for feature " << entry.unique_id
+                        << ". Will be added as top-level." << std::endl;
+        // Mark as top-level by clearing parent_id
+        entry.parent_id = -1;
       }
     }
+  }
+
+  // Add top-level features to the FeatureMap (preserving original order by row_index)
+  // First, collect top-level entries sorted by row_index
+  std::vector<size_t> top_level_indices;
+  for (size_t i = 0; i < entries.size(); ++i)
+  {
+    if (entries[i].parent_id == -1)
+    {
+      top_level_indices.push_back(i);
+    }
+  }
+  std::sort(top_level_indices.begin(), top_level_indices.end(),
+    [&](size_t a, size_t b) { return entries[a].row_index < entries[b].row_index; });
+
+  for (size_t idx : top_level_indices)
+  {
+    feature_map.push_back(std::move(entries[idx].feature));
   }
 
   return true;
