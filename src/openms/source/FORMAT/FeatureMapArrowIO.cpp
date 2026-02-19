@@ -180,6 +180,161 @@ namespace // anonymous
     return count;
   }
 
+  // ==================== Import helpers ====================
+
+  /// Fetch a named column from a table, combining chunks if needed.
+  /// Returns nullptr if column not found (logs error if required).
+  std::shared_ptr<arrow::Array> getColumn_(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& name,
+    bool required = true)
+  {
+    auto column = table->GetColumnByName(name);
+    if (!column)
+    {
+      if (required)
+      {
+        OPENMS_LOG_ERROR << "FeatureMapArrowIO: Missing required column '" << name << "'" << std::endl;
+      }
+      return nullptr;
+    }
+    if (column->num_chunks() == 0)
+    {
+      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Column '" << name << "' has no chunks" << std::endl;
+      return nullptr;
+    }
+    if (column->num_chunks() == 1)
+    {
+      return column->chunk(0);
+    }
+    auto combined = arrow::Concatenate(column->chunks(), arrow::default_memory_pool());
+    if (!combined.ok())
+    {
+      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to combine chunks for column '" << name << "'" << std::endl;
+      return nullptr;
+    }
+    return *combined;
+  }
+
+  /// Get string value at a row, returning empty string if null.
+  String getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+  {
+    if (!array || array->IsNull(row)) return "";
+    return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
+  }
+
+  /// Get double value at a row, returning default_val if null.
+  double getDoubleValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, double default_val = 0.0)
+  {
+    if (!array || array->IsNull(row)) return default_val;
+    return std::static_pointer_cast<arrow::DoubleArray>(array)->Value(row);
+  }
+
+  /// Get float value at a row, returning default_val if null.
+  float getFloatValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, float default_val = 0.0f)
+  {
+    if (!array || array->IsNull(row)) return default_val;
+    return std::static_pointer_cast<arrow::FloatArray>(array)->Value(row);
+  }
+
+  /// Get int64 value at a row, returning default_val if null.
+  int64_t getInt64Value_(const std::shared_ptr<arrow::Array>& array, int64_t row, int64_t default_val = 0)
+  {
+    if (!array || array->IsNull(row)) return default_val;
+    return std::static_pointer_cast<arrow::Int64Array>(array)->Value(row);
+  }
+
+  /// Get int32 value at a row, returning default_val if null.
+  int32_t getInt32Value_(const std::shared_ptr<arrow::Array>& array, int64_t row, int32_t default_val = 0)
+  {
+    if (!array || array->IsNull(row)) return default_val;
+    return std::static_pointer_cast<arrow::Int32Array>(array)->Value(row);
+  }
+
+  /// Check if value at row is null.
+  bool isNull_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+  {
+    return !array || array->IsNull(row);
+  }
+
+  /// Read metavalues from a list<struct{name,value,value_type}> column at a given row.
+  /// Sets them on the target MetaInfoInterface, excluding specified keys.
+  void readMetaValues_(
+    const std::shared_ptr<arrow::Array>& array,
+    int64_t row,
+    MetaInfoInterface& target,
+    const std::unordered_set<std::string>& excluded_keys = {})
+  {
+    if (!array || array->IsNull(row)) return;
+    auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
+    auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
+    if (!struct_arr || struct_arr->length() == 0) return;
+
+    auto name_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(0));
+    auto value_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(1));
+    auto type_arr = std::static_pointer_cast<arrow::StringArray>(struct_arr->field(2));
+
+    for (int64_t i = 0; i < struct_arr->length(); ++i)
+    {
+      std::string name = name_arr->GetString(i);
+      if (excluded_keys.count(name)) continue;
+
+      std::string value_str = value_arr->GetString(i);
+      std::string type_str = type_arr->GetString(i);
+
+      if (type_str == "int")
+      {
+        try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
+        catch (...) { target.setMetaValue(name, value_str); }
+      }
+      else if (type_str == "float")
+      {
+        try { target.setMetaValue(name, std::stod(value_str)); }
+        catch (...) { target.setMetaValue(name, value_str); }
+      }
+      else
+      {
+        target.setMetaValue(name, value_str);
+      }
+    }
+  }
+
+  /// Read convex hulls from a list<struct{hull_index, points: list<struct{x, y}>}> column at a given row.
+  void readConvexHulls_(
+    const std::shared_ptr<arrow::Array>& array,
+    int64_t row,
+    Feature& feature)
+  {
+    if (!array || array->IsNull(row)) return;
+    auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
+    auto hull_struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
+    if (!hull_struct_arr || hull_struct_arr->length() == 0) return;
+
+    auto points_list_arr = std::static_pointer_cast<arrow::ListArray>(hull_struct_arr->field(1));
+
+    for (int64_t h = 0; h < hull_struct_arr->length(); ++h)
+    {
+      ConvexHull2D hull;
+      ConvexHull2D::PointArrayType hull_points;
+
+      auto point_struct_arr = std::static_pointer_cast<arrow::StructArray>(points_list_arr->value_slice(h));
+      if (point_struct_arr && point_struct_arr->length() > 0)
+      {
+        auto x_arr = std::static_pointer_cast<arrow::DoubleArray>(point_struct_arr->field(0));
+        auto y_arr = std::static_pointer_cast<arrow::DoubleArray>(point_struct_arr->field(1));
+
+        hull_points.reserve(point_struct_arr->length());
+        for (int64_t p = 0; p < point_struct_arr->length(); ++p)
+        {
+          hull_points.emplace_back(x_arr->Value(p), y_arr->Value(p));
+        }
+      }
+
+      hull.setHullPoints(hull_points);
+      feature.getConvexHulls().push_back(hull);
+    }
+  }
+
 } // anonymous namespace
 
 
@@ -452,10 +607,155 @@ bool FeatureMapArrowIO::exportToParquet(
 }
 
 bool FeatureMapArrowIO::importFeaturesFromArrow(
-  const std::shared_ptr<arrow::Table>& /*table*/,
-  FeatureMap& /*feature_map*/)
+  const std::shared_ptr<arrow::Table>& table,
+  FeatureMap& feature_map)
 {
-  return false;
+  if (!table)
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: null table passed to importFeaturesFromArrow" << std::endl;
+    return false;
+  }
+
+  // Combine chunks for reliable single-chunk access
+  auto combined_result = table->CombineChunks(arrow::default_memory_pool());
+  if (!combined_result.ok())
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to combine chunks" << std::endl;
+    return false;
+  }
+  auto tbl = *combined_result;
+
+  int64_t num_rows = tbl->num_rows();
+  if (num_rows == 0)
+  {
+    return true;
+  }
+
+  // Get all columns
+  auto col_unique_id = getColumn_(tbl, "unique_id");
+  auto col_parent_id = getColumn_(tbl, "parent_feature_id");
+  auto col_depth = getColumn_(tbl, "depth");
+  auto col_rt = getColumn_(tbl, "rt");
+  auto col_mz = getColumn_(tbl, "mz");
+  auto col_intensity = getColumn_(tbl, "intensity");
+  auto col_charge = getColumn_(tbl, "charge");
+  auto col_overall_quality = getColumn_(tbl, "overall_quality");
+  auto col_quality_rt = getColumn_(tbl, "quality_rt");
+  auto col_quality_mz = getColumn_(tbl, "quality_mz");
+  auto col_width = getColumn_(tbl, "width");
+  auto col_convex_hulls = getColumn_(tbl, "convex_hulls", /*required=*/false);
+  auto col_metavalues = getColumn_(tbl, "metavalues", /*required=*/false);
+
+  if (!col_unique_id || !col_parent_id || !col_depth || !col_rt || !col_mz ||
+      !col_intensity || !col_charge || !col_overall_quality ||
+      !col_quality_rt || !col_quality_mz)
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Missing one or more required columns" << std::endl;
+    return false;
+  }
+
+  // Build a vector of {depth, row_index, unique_id, parent_id, Feature} entries
+  struct FeatureEntry
+  {
+    int32_t depth;
+    int64_t row_index;
+    int64_t unique_id;
+    int64_t parent_id;  // -1 if top-level
+    Feature feature;
+  };
+
+  std::vector<FeatureEntry> entries;
+  entries.reserve(num_rows);
+
+  // No metavalue keys to exclude for features
+  static const std::unordered_set<std::string> excluded_mvs = {};
+
+  for (int64_t i = 0; i < num_rows; ++i)
+  {
+    FeatureEntry entry;
+    entry.row_index = i;
+    entry.depth = getInt32Value_(col_depth, i, 0);
+    entry.unique_id = getInt64Value_(col_unique_id, i, 0);
+    entry.parent_id = isNull_(col_parent_id, i) ? -1 : getInt64Value_(col_parent_id, i, 0);
+
+    Feature& f = entry.feature;
+    f.setUniqueId(static_cast<UInt64>(entry.unique_id));
+    f.setRT(getDoubleValue_(col_rt, i));
+    f.setMZ(getDoubleValue_(col_mz, i));
+    f.setIntensity(getFloatValue_(col_intensity, i));
+    f.setCharge(static_cast<int>(getInt32Value_(col_charge, i)));
+    f.setOverallQuality(getFloatValue_(col_overall_quality, i));
+    f.setQuality(0, getFloatValue_(col_quality_rt, i));
+    f.setQuality(1, getFloatValue_(col_quality_mz, i));
+
+    float w = getFloatValue_(col_width, i, 0.0f);
+    if (w != 0.0f)
+    {
+      f.setWidth(w);
+    }
+
+    // Read convex hulls
+    if (col_convex_hulls)
+    {
+      readConvexHulls_(col_convex_hulls, i, f);
+    }
+
+    // Read metavalues
+    if (col_metavalues)
+    {
+      readMetaValues_(col_metavalues, i, f, excluded_mvs);
+    }
+
+    entries.push_back(std::move(entry));
+  }
+
+  // Sort by depth ascending so parents are processed before children
+  std::stable_sort(entries.begin(), entries.end(),
+    [](const FeatureEntry& a, const FeatureEntry& b) { return a.depth < b.depth; });
+
+  // Build unique_id -> index-in-entries lookup map
+  // We need to track where each feature ends up (either in feature_map or as a subordinate)
+  // Strategy: We store pointers to the features after placing them.
+  // First pass: add top-level features to the feature_map.
+  // Second pass: for each non-top-level feature, find its parent and add as subordinate.
+
+  // Since subordinates are added by copy, we need a way to find the *actual* Feature
+  // in the hierarchy. We'll use a map from unique_id to Feature*.
+
+  std::unordered_map<int64_t, Feature*> id_to_feature;
+
+  for (auto& entry : entries)
+  {
+    if (entry.parent_id == -1)
+    {
+      // Top-level feature
+      feature_map.push_back(entry.feature);
+      Feature& added = feature_map.back();
+      id_to_feature[entry.unique_id] = &added;
+    }
+    else
+    {
+      // Subordinate feature - find parent
+      auto it = id_to_feature.find(entry.parent_id);
+      if (it == id_to_feature.end())
+      {
+        OPENMS_LOG_WARN << "FeatureMapArrowIO: Could not find parent feature with id "
+                        << entry.parent_id << " for feature " << entry.unique_id
+                        << ". Adding as top-level." << std::endl;
+        feature_map.push_back(entry.feature);
+        Feature& added = feature_map.back();
+        id_to_feature[entry.unique_id] = &added;
+      }
+      else
+      {
+        it->second->getSubordinates().push_back(entry.feature);
+        Feature& added = it->second->getSubordinates().back();
+        id_to_feature[entry.unique_id] = &added;
+      }
+    }
+  }
+
+  return true;
 }
 
 bool FeatureMapArrowIO::importPSMsFromArrow(
