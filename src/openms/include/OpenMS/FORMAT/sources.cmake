@@ -126,8 +126,7 @@ if (WITH_PARQUET)
   list(APPEND sources_list_h ParquetFilter.h)
   list(APPEND sources_list_h XICParquetFile.h)
   list(APPEND sources_list_h QPXFile.h)
-  list(APPEND sources_list_h ProteinIdentificationArrowExport.h)
-  list(APPEND sources_list_h ProteinIdentificationArrowImport.h)
+  list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
 endif()
 
 ### add path to the filenames
