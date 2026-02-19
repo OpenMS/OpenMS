@@ -12,8 +12,10 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
 
 #include <arrow/api.h>
@@ -64,12 +66,342 @@ namespace // anonymous
     }
   }
 
+  // ==================== JSON helpers for DataProcessing metadata ====================
+
+  /// Escape a string for JSON (handles quotes, backslashes, and control characters).
+  std::string escapeJsonString_(const std::string& s)
+  {
+    std::string result;
+    result.reserve(s.size() + 8);
+    for (char c : s)
+    {
+      switch (c)
+      {
+        case '"':  result += "\\\""; break;
+        case '\\': result += "\\\\"; break;
+        case '\n': result += "\\n"; break;
+        case '\r': result += "\\r"; break;
+        case '\t': result += "\\t"; break;
+        default:
+          if (static_cast<unsigned char>(c) < 0x20)
+          {
+            char buf[8];
+            std::snprintf(buf, sizeof(buf), "\\u%04x", static_cast<unsigned char>(c));
+            result += buf;
+          }
+          else
+          {
+            result += c;
+          }
+      }
+    }
+    return result;
+  }
+
+  /// Unescape a JSON string (reverse of escapeJsonString_).
+  std::string unescapeJsonString_(const std::string& s)
+  {
+    std::string result;
+    result.reserve(s.size());
+    for (size_t i = 0; i < s.size(); ++i)
+    {
+      if (s[i] == '\\' && i + 1 < s.size())
+      {
+        ++i;
+        switch (s[i])
+        {
+          case '"':  result += '"'; break;
+          case '\\': result += '\\'; break;
+          case 'n':  result += '\n'; break;
+          case 'r':  result += '\r'; break;
+          case 't':  result += '\t'; break;
+          case 'u':
+            if (i + 4 < s.size())
+            {
+              unsigned int cp = 0;
+              for (int j = 0; j < 4; ++j) // parse 4 hex digits
+              {
+                char ch = s[i + 1 + j];
+                cp <<= 4;
+                if (ch >= '0' && ch <= '9') cp |= (ch - '0');
+                else if (ch >= 'a' && ch <= 'f') cp |= (ch - 'a' + 10);
+                else if (ch >= 'A' && ch <= 'F') cp |= (ch - 'A' + 10);
+              }
+              result += static_cast<char>(cp);
+              i += 4;
+            }
+            break;
+          default: result += s[i]; break;
+        }
+      }
+      else
+      {
+        result += s[i];
+      }
+    }
+    return result;
+  }
+
+  /// Serialize a vector of DataProcessing to a JSON string.
+  std::string serializeDataProcessing_(const std::vector<DataProcessing>& dps)
+  {
+    std::string json = "[";
+    for (size_t i = 0; i < dps.size(); ++i)
+    {
+      const auto& dp = dps[i];
+      if (i > 0) json += ",";
+      json += "{";
+
+      // software_name
+      json += "\"software_name\":\"" + escapeJsonString_(dp.getSoftware().getName()) + "\"";
+
+      // software_version
+      json += ",\"software_version\":\"" + escapeJsonString_(dp.getSoftware().getVersion()) + "\"";
+
+      // completion_time
+      std::string time_str;
+      if (dp.getCompletionTime().isValid())
+      {
+        time_str = dp.getCompletionTime().toString("yyyy-MM-ddThh:mm:ss");
+      }
+      json += ",\"completion_time\":\"" + escapeJsonString_(time_str) + "\"";
+
+      // actions
+      json += ",\"actions\":[";
+      const auto& actions = dp.getProcessingActions();
+      bool first_action = true;
+      for (const auto& action : actions)
+      {
+        if (!first_action) json += ",";
+        json += "\"" + escapeJsonString_(DataProcessing::processingActionToString(action)) + "\"";
+        first_action = false;
+      }
+      json += "]";
+
+      // metavalues
+      json += ",\"metavalues\":[";
+      std::vector<String> keys;
+      dp.getKeys(keys);
+      bool first_mv = true;
+      for (const auto& key : keys)
+      {
+        if (!first_mv) json += ",";
+        const DataValue& val = dp.getMetaValue(key);
+        std::string type_str;
+        switch (val.valueType())
+        {
+          case DataValue::INT_VALUE: type_str = "int"; break;
+          case DataValue::DOUBLE_VALUE: type_str = "float"; break;
+          case DataValue::STRING_VALUE: type_str = "str"; break;
+          default: type_str = "str"; break;
+        }
+        json += "{\"name\":\"" + escapeJsonString_(std::string(key))
+              + "\",\"value\":\"" + escapeJsonString_(val.toString())
+              + "\",\"type\":\"" + type_str + "\"}";
+        first_mv = false;
+      }
+      json += "]";
+
+      json += "}";
+    }
+    json += "]";
+    return json;
+  }
+
+  /// Skip whitespace in a JSON string starting at position pos.
+  void skipWhitespace_(const std::string& s, size_t& pos)
+  {
+    while (pos < s.size() && (s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\n' || s[pos] == '\r'))
+    {
+      ++pos;
+    }
+  }
+
+  /// Parse a JSON string value starting at position pos (must point to opening quote).
+  /// Returns the unescaped string value and advances pos past the closing quote.
+  std::string parseJsonString_(const std::string& s, size_t& pos)
+  {
+    if (pos >= s.size() || s[pos] != '"') return "";
+    ++pos; // skip opening quote
+    std::string raw;
+    while (pos < s.size() && s[pos] != '"')
+    {
+      if (s[pos] == '\\' && pos + 1 < s.size())
+      {
+        raw += s[pos];
+        raw += s[pos + 1];
+        if (s[pos + 1] == 'u' && pos + 5 < s.size())
+        {
+          raw += s.substr(pos + 2, 4);
+          pos += 6;
+        }
+        else
+        {
+          pos += 2;
+        }
+      }
+      else
+      {
+        raw += s[pos];
+        ++pos;
+      }
+    }
+    if (pos < s.size()) ++pos; // skip closing quote
+    return unescapeJsonString_(raw);
+  }
+
+  /// Deserialize a JSON string into a vector of DataProcessing.
+  std::vector<DataProcessing> deserializeDataProcessing_(const std::string& json)
+  {
+    std::vector<DataProcessing> result;
+    if (json.empty()) return result;
+
+    size_t pos = 0;
+    skipWhitespace_(json, pos);
+    if (pos >= json.size() || json[pos] != '[') return result;
+    ++pos; // skip '['
+
+    while (pos < json.size())
+    {
+      skipWhitespace_(json, pos);
+      if (pos >= json.size() || json[pos] == ']') break;
+      if (json[pos] == ',') { ++pos; continue; }
+      if (json[pos] != '{') break;
+      ++pos; // skip '{'
+
+      DataProcessing dp;
+      std::string software_name, software_version, completion_time;
+      std::vector<std::string> action_names;
+
+      // Parse key-value pairs in the object
+      while (pos < json.size())
+      {
+        skipWhitespace_(json, pos);
+        if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
+        if (json[pos] == ',') { ++pos; continue; }
+
+        // Parse key
+        std::string key = parseJsonString_(json, pos);
+        skipWhitespace_(json, pos);
+        if (pos < json.size() && json[pos] == ':') ++pos; // skip ':'
+        skipWhitespace_(json, pos);
+
+        if (key == "software_name")
+        {
+          software_name = parseJsonString_(json, pos);
+        }
+        else if (key == "software_version")
+        {
+          software_version = parseJsonString_(json, pos);
+        }
+        else if (key == "completion_time")
+        {
+          completion_time = parseJsonString_(json, pos);
+        }
+        else if (key == "actions")
+        {
+          // Parse array of strings
+          if (pos < json.size() && json[pos] == '[')
+          {
+            ++pos; // skip '['
+            while (pos < json.size())
+            {
+              skipWhitespace_(json, pos);
+              if (pos >= json.size() || json[pos] == ']') { ++pos; break; }
+              if (json[pos] == ',') { ++pos; continue; }
+              action_names.push_back(parseJsonString_(json, pos));
+            }
+          }
+        }
+        else if (key == "metavalues")
+        {
+          // Parse array of {name, value, type} objects
+          if (pos < json.size() && json[pos] == '[')
+          {
+            ++pos; // skip '['
+            while (pos < json.size())
+            {
+              skipWhitespace_(json, pos);
+              if (pos >= json.size() || json[pos] == ']') { ++pos; break; }
+              if (json[pos] == ',') { ++pos; continue; }
+              if (json[pos] != '{') break;
+              ++pos; // skip '{'
+
+              std::string mv_name, mv_value, mv_type;
+              while (pos < json.size())
+              {
+                skipWhitespace_(json, pos);
+                if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
+                if (json[pos] == ',') { ++pos; continue; }
+
+                std::string mk = parseJsonString_(json, pos);
+                skipWhitespace_(json, pos);
+                if (pos < json.size() && json[pos] == ':') ++pos;
+                skipWhitespace_(json, pos);
+
+                if (mk == "name") mv_name = parseJsonString_(json, pos);
+                else if (mk == "value") mv_value = parseJsonString_(json, pos);
+                else if (mk == "type") mv_type = parseJsonString_(json, pos);
+                else parseJsonString_(json, pos); // skip unknown value
+              }
+
+              if (!mv_name.empty())
+              {
+                if (mv_type == "int")
+                {
+                  dp.setMetaValue(mv_name, DataValue(std::stoi(mv_value)));
+                }
+                else if (mv_type == "float")
+                {
+                  dp.setMetaValue(mv_name, DataValue(std::stod(mv_value)));
+                }
+                else
+                {
+                  dp.setMetaValue(mv_name, DataValue(mv_value));
+                }
+              }
+            }
+          }
+        }
+        else
+        {
+          // Skip unknown value (string)
+          parseJsonString_(json, pos);
+        }
+      }
+
+      // Apply parsed fields to DataProcessing
+      dp.getSoftware().setName(software_name);
+      dp.getSoftware().setVersion(software_version);
+      if (!completion_time.empty())
+      {
+        dp.setCompletionTime(DateTime::fromString(completion_time, "yyyy-MM-ddThh:mm:ss"));
+      }
+      for (const auto& action_name : action_names)
+      {
+        try
+        {
+          dp.getProcessingActions().insert(DataProcessing::toProcessingAction(action_name));
+        }
+        catch (...)
+        {
+          OPENMS_LOG_WARN << "FeatureMapArrowIO: Unknown processing action: " << action_name << std::endl;
+        }
+      }
+
+      result.push_back(std::move(dp));
+    }
+
+    return result;
+  }
+
   /// Write an Arrow table to a Parquet file with QPX-style metadata.
   bool writeArrowTableToParquet_(
     std::shared_ptr<arrow::Table> table,
     const String& filename,
     const std::string& file_type,
-    const ParquetWriteConfig& config)
+    const ParquetWriteConfig& config,
+    const std::unordered_map<std::string, std::string>& extra_metadata = {})
   {
     if (!table)
     {
@@ -98,14 +430,23 @@ namespace // anonymous
       bytes[12], bytes[13], bytes[14], bytes[15]);
     std::string uuid_str(buf);
 
-    auto metadata = arrow::key_value_metadata({
+    std::vector<std::pair<std::string, std::string>> md_pairs = {
       {"qpx_version", "1.0"},
       {"creator", "OpenMS"},
       {"file_type", file_type},
       {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
       {"uuid", uuid_str},
       {"software_provider", "OpenMS"}
-    });
+    };
+    for (const auto& kv : extra_metadata)
+    {
+      md_pairs.emplace_back(kv.first, kv.second);
+    }
+    auto metadata = std::make_shared<arrow::KeyValueMetadata>();
+    for (const auto& p : md_pairs)
+    {
+      (void)metadata->Append(p.first, p.second);
+    }
     table = table->ReplaceSchemaMetadata(metadata);
 
     // Open output file
@@ -742,14 +1083,22 @@ bool FeatureMapArrowIO::exportToParquet(
     return false;
   }
 
-  // 2. Export features table
+  // 2. Export features table (with FeatureMap-level metadata)
   auto features_table = exportFeaturesToArrow(feature_map);
   if (!features_table)
   {
     OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create features Arrow table" << std::endl;
     return false;
   }
-  if (!writeArrowTableToParquet_(features_table, directory + "/features.parquet", "features", config))
+
+  // Collect FeatureMap-level metadata (DocumentIdentifier + DataProcessing)
+  std::unordered_map<std::string, std::string> feature_map_metadata;
+  feature_map_metadata["document_id"] = feature_map.getIdentifier();
+  feature_map_metadata["loaded_file_path"] = feature_map.getLoadedFilePath();
+  feature_map_metadata["loaded_file_type"] = FileTypes::typeToName(feature_map.getLoadedFileType());
+  feature_map_metadata["data_processing"] = serializeDataProcessing_(feature_map.getDataProcessing());
+
+  if (!writeArrowTableToParquet_(features_table, directory + "/features.parquet", "features", config, feature_map_metadata))
   {
     return false;
   }
@@ -1227,9 +1576,34 @@ bool FeatureMapArrowIO::importFromParquet(
   }
   feature_map.setProteinIdentifications(prot_ids);
 
-  // 2. Import features
+  // 2. Import features and FeatureMap-level metadata
   auto features_table = readParquetTable_(directory + "/features.parquet");
   if (!features_table) { return false; }
+
+  // Extract FeatureMap-level metadata from file-level key-value metadata
+  auto schema_md = features_table->schema()->metadata();
+  if (schema_md)
+  {
+    // DocumentIdentifier fields
+    int idx = schema_md->FindKey("document_id");
+    if (idx >= 0) feature_map.setIdentifier(schema_md->value(idx));
+
+    idx = schema_md->FindKey("loaded_file_path");
+    if (idx >= 0) feature_map.setLoadedFilePath(schema_md->value(idx));
+
+    // loaded_file_type: stored as type name string (e.g. "featureXML").
+    // Note: DocumentIdentifier::setLoadedFileType(String) expects a file path and
+    // determines type by content/extension, so we cannot directly restore the type
+    // from a type name. The type can be re-derived from loaded_file_path if needed.
+
+    // DataProcessing
+    idx = schema_md->FindKey("data_processing");
+    if (idx >= 0)
+    {
+      feature_map.setDataProcessing(deserializeDataProcessing_(schema_md->value(idx)));
+    }
+  }
+
   if (!importFeaturesFromArrow(features_table, feature_map))
   {
     return false;

@@ -20,6 +20,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -721,6 +724,100 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits().size(), 1)
   TEST_EQUAL(imported.getProteinIdentifications()[0].getHits()[0].getAccession(), "P12345")
   TEST_EQUAL(imported.getProteinIdentifications()[0].getProteinGroups().size(), 1)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// FeatureMap-level metadata round-trip tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round-trip (DocumentIdentifier + DataProcessing))
+{
+  FeatureMap fm;
+
+  // --- Set DocumentIdentifier fields ---
+  fm.setIdentifier("test_document_lsid_123");
+  fm.setLoadedFilePath("/data/experiments/test_run.featureXML");
+  // Note: setLoadedFileType requires an actual file path and reads file content,
+  // so we don't set it here. The loaded_file_type is stored informatively but
+  // cannot be restored without the original file.
+
+  // --- Set DataProcessing ---
+  DataProcessing dp1;
+  dp1.getSoftware().setName("FeatureFinderCentroided");
+  dp1.getSoftware().setVersion("3.2.0");
+  dp1.setCompletionTime(DateTime::fromString("2025-06-15T14:30:00", "yyyy-MM-ddThh:mm:ss"));
+  dp1.getProcessingActions().insert(DataProcessing::PEAK_PICKING);
+  dp1.getProcessingActions().insert(DataProcessing::FILTERING);
+  dp1.setMetaValue("parameter_file", String("params.ini"));
+  dp1.setMetaValue("num_threads", 8);
+
+  DataProcessing dp2;
+  dp2.getSoftware().setName("MapAlignerPoseClustering");
+  dp2.getSoftware().setVersion("3.2.0");
+  dp2.setCompletionTime(DateTime::fromString("2025-06-15T15:00:00", "yyyy-MM-ddThh:mm:ss"));
+  dp2.getProcessingActions().insert(DataProcessing::ALIGNMENT);
+  dp2.setMetaValue("max_rt_shift", 300.5);
+
+  fm.setDataProcessing({dp1, dp2});
+
+  // --- Add a simple feature so the FeatureMap is non-empty ---
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0f);
+  f.setCharge(2);
+  f.setUniqueId(42);
+  fm.push_back(f);
+
+  // --- Set up minimal ProteinIdentification (required for parquet export) ---
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_1");
+  fm.setProteinIdentifications({prot_id});
+
+  // --- Export to temp directory ---
+  String tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
+
+  // --- Import back ---
+  FeatureMap imported;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+
+  // --- Verify DocumentIdentifier ---
+  TEST_EQUAL(imported.getIdentifier(), "test_document_lsid_123")
+  TEST_EQUAL(imported.getLoadedFilePath(), "/data/experiments/test_run.featureXML")
+
+  // --- Verify DataProcessing ---
+  TEST_EQUAL(imported.getDataProcessing().size(), 2)
+
+  const DataProcessing& out_dp1 = imported.getDataProcessing()[0];
+  TEST_EQUAL(out_dp1.getSoftware().getName(), "FeatureFinderCentroided")
+  TEST_EQUAL(out_dp1.getSoftware().getVersion(), "3.2.0")
+  TEST_EQUAL(out_dp1.getCompletionTime().isValid(), true)
+  TEST_EQUAL(out_dp1.getCompletionTime().toString("yyyy-MM-ddThh:mm:ss"), "2025-06-15T14:30:00")
+  TEST_EQUAL(out_dp1.getProcessingActions().count(DataProcessing::PEAK_PICKING), 1)
+  TEST_EQUAL(out_dp1.getProcessingActions().count(DataProcessing::FILTERING), 1)
+  TEST_EQUAL(out_dp1.getProcessingActions().size(), 2)
+  TEST_EQUAL(out_dp1.metaValueExists("parameter_file"), true)
+  TEST_EQUAL(out_dp1.getMetaValue("parameter_file").toString(), "params.ini")
+  TEST_EQUAL(static_cast<int>(out_dp1.getMetaValue("num_threads")), 8)
+
+  const DataProcessing& out_dp2 = imported.getDataProcessing()[1];
+  TEST_EQUAL(out_dp2.getSoftware().getName(), "MapAlignerPoseClustering")
+  TEST_EQUAL(out_dp2.getSoftware().getVersion(), "3.2.0")
+  TEST_EQUAL(out_dp2.getCompletionTime().isValid(), true)
+  TEST_EQUAL(out_dp2.getCompletionTime().toString("yyyy-MM-ddThh:mm:ss"), "2025-06-15T15:00:00")
+  TEST_EQUAL(out_dp2.getProcessingActions().count(DataProcessing::ALIGNMENT), 1)
+  TEST_EQUAL(out_dp2.getProcessingActions().size(), 1)
+  TEST_REAL_SIMILAR(static_cast<double>(out_dp2.getMetaValue("max_rt_shift")), 300.5)
+
+  // --- Verify feature data is still correct ---
+  TEST_EQUAL(imported.size(), 1)
+  TEST_REAL_SIMILAR(imported[0].getRT(), 100.0)
+  TEST_EQUAL(imported[0].getUniqueId(), 42)
 }
 END_SECTION
 
