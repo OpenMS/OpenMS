@@ -20,6 +20,10 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <arrow/api.h>
 
@@ -368,6 +372,201 @@ START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls a
   TEST_EQUAL(out_f2.getUniqueId(), 200)
   TEST_EQUAL(out_f2.getSubordinates().size(), 0)
   TEST_EQUAL(out_f2.getConvexHulls().size(), 0)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// PSM export and round-trip tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportPSMsToArrow - empty FeatureMap)
+{
+  FeatureMap fm;
+  auto table = FeatureMapArrowIO::exportPSMsToArrow(fm);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 0)
+  // Should have feature_id column + all QPX PSM columns
+  auto feature_id_col = table->GetColumnByName("feature_id");
+  TEST_NOT_EQUAL(feature_id_col, nullptr)
+}
+END_SECTION
+
+START_SECTION(exportPSMsToArrow - feature and unassigned PSMs)
+{
+  FeatureMap fm;
+
+  // Set up ProteinIdentification
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_1");
+  prot_id.setSearchEngine("TestEngine");
+  prot_id.setScoreType("TestScore");
+  fm.getProteinIdentifications().push_back(prot_id);
+
+  // Feature (uid=1000) with 1 PeptideIdentification containing 1 PeptideHit
+  Feature f1;
+  f1.setRT(100.0);
+  f1.setMZ(500.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(2);
+  f1.setUniqueId(1000);
+
+  PeptideIdentification pep_id1;
+  pep_id1.setIdentifier("run_1");
+  pep_id1.setScoreType("TestScore");
+  pep_id1.setHigherScoreBetter(true);
+  pep_id1.setRT(100.0);
+  pep_id1.setMZ(500.0);
+  PeptideHit hit1;
+  hit1.setSequence(AASequence::fromString("PEPTIDER"));
+  hit1.setScore(0.95);
+  hit1.setCharge(2);
+  pep_id1.getHits().push_back(hit1);
+  f1.getPeptideIdentifications().push_back(pep_id1);
+
+  fm.push_back(f1);
+
+  // 1 unassigned PeptideIdentification with 1 PeptideHit
+  PeptideIdentification pep_id2;
+  pep_id2.setIdentifier("run_1");
+  pep_id2.setScoreType("TestScore");
+  pep_id2.setHigherScoreBetter(true);
+  pep_id2.setRT(200.0);
+  pep_id2.setMZ(600.0);
+  PeptideHit hit2;
+  hit2.setSequence(AASequence::fromString("ACDEFGHIK"));
+  hit2.setScore(0.80);
+  hit2.setCharge(3);
+  pep_id2.getHits().push_back(hit2);
+  fm.getUnassignedPeptideIdentifications().push_back(pep_id2);
+
+  // Export PSMs to Arrow
+  auto table = FeatureMapArrowIO::exportPSMsToArrow(fm);
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 2)
+
+  // Verify feature_id column
+  auto feature_id_chunked = table->GetColumnByName("feature_id");
+  TEST_NOT_EQUAL(feature_id_chunked, nullptr)
+  auto feature_id_arr = std::static_pointer_cast<arrow::Int64Array>(feature_id_chunked->chunk(0));
+
+  // Row 0: feature PSM -> feature_id = 1000
+  TEST_EQUAL(feature_id_arr->IsNull(0), false)
+  TEST_EQUAL(feature_id_arr->Value(0), 1000)
+
+  // Row 1: unassigned PSM -> feature_id = null
+  TEST_EQUAL(feature_id_arr->IsNull(1), true)
+
+  // Verify sequence column
+  auto seq_col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("sequence")->chunk(0));
+  TEST_EQUAL(seq_col->GetString(0), "PEPTIDER")
+  TEST_EQUAL(seq_col->GetString(1), "ACDEFGHIK")
+
+  // Verify score column
+  auto score_col = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("score")->chunk(0));
+  TEST_REAL_SIMILAR(score_col->Value(0), 0.95)
+  TEST_REAL_SIMILAR(score_col->Value(1), 0.80)
+
+  // Verify charge column
+  auto charge_col = std::static_pointer_cast<arrow::Int32Array>(table->GetColumnByName("precursor_charge")->chunk(0));
+  TEST_EQUAL(charge_col->Value(0), 2)
+  TEST_EQUAL(charge_col->Value(1), 3)
+}
+END_SECTION
+
+START_SECTION(importPSMsFromArrow - PSM round-trip)
+{
+  // === Build source FeatureMap ===
+  FeatureMap fm_in;
+
+  // Set up ProteinIdentification
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_1");
+  prot_id.setSearchEngine("TestEngine");
+  prot_id.setScoreType("TestScore");
+  fm_in.getProteinIdentifications().push_back(prot_id);
+
+  // Feature (uid=1000) with 1 PeptideIdentification
+  Feature f1;
+  f1.setRT(100.0);
+  f1.setMZ(500.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(2);
+  f1.setUniqueId(1000);
+
+  PeptideIdentification pep_id1;
+  pep_id1.setIdentifier("run_1");
+  pep_id1.setScoreType("TestScore");
+  pep_id1.setHigherScoreBetter(true);
+  pep_id1.setRT(100.0);
+  pep_id1.setMZ(500.0);
+  PeptideHit hit1;
+  hit1.setSequence(AASequence::fromString("PEPTIDER"));
+  hit1.setScore(0.95);
+  hit1.setCharge(2);
+  pep_id1.getHits().push_back(hit1);
+  f1.getPeptideIdentifications().push_back(pep_id1);
+
+  fm_in.push_back(f1);
+
+  // Unassigned PeptideIdentification
+  PeptideIdentification pep_id2;
+  pep_id2.setIdentifier("run_1");
+  pep_id2.setScoreType("TestScore");
+  pep_id2.setHigherScoreBetter(true);
+  pep_id2.setRT(200.0);
+  pep_id2.setMZ(600.0);
+  PeptideHit hit2;
+  hit2.setSequence(AASequence::fromString("ACDEFGHIK"));
+  hit2.setScore(0.80);
+  hit2.setCharge(3);
+  pep_id2.getHits().push_back(hit2);
+  fm_in.getUnassignedPeptideIdentifications().push_back(pep_id2);
+
+  // === Export features and PSMs ===
+  auto features_table = FeatureMapArrowIO::exportFeaturesToArrow(fm_in);
+  TEST_NOT_EQUAL(features_table, nullptr)
+
+  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(fm_in);
+  TEST_NOT_EQUAL(psm_table, nullptr)
+  TEST_EQUAL(psm_table->num_rows(), 2)
+
+  // === Import: first features, then PSMs ===
+  FeatureMap fm_out;
+  fm_out.setProteinIdentifications(fm_in.getProteinIdentifications());
+
+  bool ok = FeatureMapArrowIO::importFeaturesFromArrow(features_table, fm_out);
+  TEST_EQUAL(ok, true)
+  TEST_EQUAL(fm_out.size(), 1)
+
+  ok = FeatureMapArrowIO::importPSMsFromArrow(psm_table, fm_out);
+  TEST_EQUAL(ok, true)
+
+  // === Verify feature PSMs ===
+  const Feature& out_f1 = fm_out[0];
+  TEST_EQUAL(out_f1.getUniqueId(), 1000)
+  TEST_EQUAL(out_f1.getPeptideIdentifications().size(), 1)
+
+  const PeptideIdentification& out_pid1 = out_f1.getPeptideIdentifications()[0];
+  TEST_EQUAL(out_pid1.getHits().size(), 1)
+  TEST_EQUAL(out_pid1.getScoreType(), "TestScore")
+  TEST_REAL_SIMILAR(out_pid1.getRT(), 100.0)
+
+  const PeptideHit& out_hit1 = out_pid1.getHits()[0];
+  TEST_EQUAL(out_hit1.getSequence().toString(), "PEPTIDER")
+  TEST_REAL_SIMILAR(out_hit1.getScore(), 0.95)
+  TEST_EQUAL(out_hit1.getCharge(), 2)
+
+  // === Verify unassigned PSMs ===
+  TEST_EQUAL(fm_out.getUnassignedPeptideIdentifications().size(), 1)
+
+  const PeptideIdentification& out_pid2 = fm_out.getUnassignedPeptideIdentifications()[0];
+  TEST_EQUAL(out_pid2.getHits().size(), 1)
+  TEST_EQUAL(out_pid2.getScoreType(), "TestScore")
+
+  const PeptideHit& out_hit2 = out_pid2.getHits()[0];
+  TEST_EQUAL(out_hit2.getSequence().toString(), "ACDEFGHIK")
+  TEST_REAL_SIMILAR(out_hit2.getScore(), 0.80)
+  TEST_EQUAL(out_hit2.getCharge(), 3)
 }
 END_SECTION
 
