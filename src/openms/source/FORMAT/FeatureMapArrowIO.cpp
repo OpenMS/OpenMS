@@ -455,8 +455,8 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
 
   #undef RESERVE_OR_RETURN
 
-  // No metavalue keys to exclude for features
-  static const std::unordered_set<std::string> excluded_mvs = {};
+  // Exclude FWHM from metavalues (it is already stored as a dedicated column or derived from convex hulls)
+  static const std::unordered_set<std::string> excluded_mvs = {"FWHM"};
 
   // Recursive lambda to flatten features depth-first
   std::function<void(const Feature&, int64_t, int32_t)> appendFeature =
@@ -666,33 +666,36 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
   }
 
   // 2. Call QPXFile::exportToArrow to produce the base PSM table.
-  //    We use export_all_psms=false so only the best (first) hit per PeptideIdentification is exported.
+  //    We use export_all_psms=true so all hits per PeptideIdentification are exported.
   auto base_table = QPXFile::exportToArrow(
-    feature_map.getProteinIdentifications(), all_pep_ids, false);
+    feature_map.getProteinIdentifications(), all_pep_ids, true);
   if (!base_table) { return nullptr; }
 
   // 3. Build the feature_id column.
-  //    QPXFile::exportToArrow (with export_all_psms=false) produces one row per
-  //    PeptideIdentification that has at least one hit. PeptideIdentifications
-  //    with empty hits are skipped (but p_id_index still increments).
-  //    The order of rows matches the order of our all_pep_ids list.
+  //    QPXFile::exportToArrow (with export_all_psms=true) produces one row per
+  //    PeptideHit across all PeptideIdentifications. PeptideIdentifications
+  //    with empty hits are skipped. We emit one feature_id per PeptideHit.
   arrow::Int64Builder feature_id_builder;
 
-  for (size_t i = 0; i < feature_ids_per_pep_id.size(); ++i)
+  for (size_t i = 0; i < all_pep_ids.size(); ++i)
   {
     // Skip PeptideIdentifications with no hits (QPXFile skips them too)
-    if (i < all_pep_ids.size() && all_pep_ids[i].getHits().empty())
+    if (all_pep_ids[i].getHits().empty())
     {
       continue;
     }
 
-    if (feature_ids_per_pep_id[i].second) // is_null
+    // Emit one feature_id per PeptideHit in this PeptideIdentification
+    for (size_t j = 0; j < all_pep_ids[i].getHits().size(); ++j)
     {
-      (void)feature_id_builder.AppendNull();
-    }
-    else
-    {
-      (void)feature_id_builder.Append(feature_ids_per_pep_id[i].first);
+      if (feature_ids_per_pep_id[i].second) // is_null
+      {
+        (void)feature_id_builder.AppendNull();
+      }
+      else
+      {
+        (void)feature_id_builder.Append(feature_ids_per_pep_id[i].first);
+      }
     }
   }
 
@@ -729,7 +732,15 @@ bool FeatureMapArrowIO::exportToParquet(
   const ParquetWriteConfig& config)
 {
   // 1. Create output directory
-  std::filesystem::create_directories(std::string(directory));
+  try
+  {
+    std::filesystem::create_directories(std::string(directory));
+  }
+  catch (const std::filesystem::filesystem_error& e)
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create directory: " << e.what() << std::endl;
+    return false;
+  }
 
   // 2. Export features table
   auto features_table = exportFeaturesToArrow(feature_map);
@@ -979,7 +990,6 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   auto col_mz = getColumn_(tbl, "observed_mz", /*required=*/false);
   auto col_spec_ref = getColumn_(tbl, "spectrum_reference", /*required=*/false);
   auto col_run_id = getColumn_(tbl, "run_identifier", /*required=*/false);
-  auto col_higher_better = getColumn_(tbl, "higher_score_better", /*required=*/false);
 
   if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
   {

@@ -139,7 +139,7 @@ START_SECTION(exportFeaturesToArrow - single feature with convex hulls and metav
 
   // Verify metavalues (list<struct{name, value, value_type}>)
   auto col_mv = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("metavalues")->chunk(0));
-  TEST_EQUAL(col_mv->value_length(0), 4)  // 4 metavalues (my_int, my_float, my_string, + FWHM from setWidth)
+  TEST_EQUAL(col_mv->value_length(0), 3)  // 3 metavalues (my_int, my_float, my_string; FWHM is excluded)
 }
 END_SECTION
 
