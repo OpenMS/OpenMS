@@ -21,9 +21,11 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <arrow/api.h>
 
@@ -567,6 +569,158 @@ START_SECTION(importPSMsFromArrow - PSM round-trip)
   TEST_EQUAL(out_hit2.getSequence().toString(), "ACDEFGHIK")
   TEST_REAL_SIMILAR(out_hit2.getScore(), 0.80)
   TEST_EQUAL(out_hit2.getCharge(), 3)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Full Parquet directory round-trip test
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet / importFromParquet - full round-trip)
+{
+  FeatureMap fm;
+
+  // --- ProteinIdentification ---
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_full_1");
+  prot_id.setSearchEngine("Comet");
+  prot_id.setSearchEngineVersion("2023.01");
+  prot_id.setScoreType("expect");
+  prot_id.setHigherScoreBetter(false);
+
+  ProteinIdentification::SearchParameters sp;
+  sp.db = "uniprot_human";
+  sp.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
+  sp.precursor_mass_tolerance = 10.0;
+  sp.precursor_mass_tolerance_ppm = true;
+  sp.fragment_mass_tolerance = 0.02;
+  sp.fragment_mass_tolerance_ppm = false;
+  sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme("Trypsin");
+  sp.missed_cleavages = 2;
+  prot_id.setSearchParameters(sp);
+
+  ProteinHit ph;
+  ph.setAccession("P12345");
+  ph.setScore(0.001);
+  prot_id.insertHit(ph);
+
+  ProteinIdentification::ProteinGroup pg;
+  pg.probability = 0.99;
+  pg.accessions = {"P12345"};
+  prot_id.insertProteinGroup(pg);
+
+  fm.setProteinIdentifications({prot_id});
+
+  // --- Feature 1: with subordinate and PSM ---
+  Feature f1;
+  f1.setRT(100.0);
+  f1.setMZ(500.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(2);
+  f1.setOverallQuality(0.9f);
+  f1.setUniqueId(1001);
+  f1.setMetaValue("custom_val", 42);
+
+  // Convex hull
+  ConvexHull2D hull;
+  std::vector<DPosition<2>> pts = {{99.0, 499.0}, {99.0, 501.0}, {101.0, 501.0}, {101.0, 499.0}};
+  hull.setHullPoints(pts);
+  f1.getConvexHulls().push_back(hull);
+
+  // Subordinate
+  Feature sub;
+  sub.setRT(100.5);
+  sub.setMZ(500.1);
+  sub.setIntensity(500.0f);
+  sub.setCharge(2);
+  sub.setUniqueId(1002);
+  f1.getSubordinates().push_back(sub);
+
+  // PeptideIdentification on feature 1
+  PeptideIdentification pep_id1;
+  pep_id1.setScoreType("expect");
+  pep_id1.setHigherScoreBetter(false);
+  pep_id1.setIdentifier("run_full_1");
+  PeptideHit pep_hit1;
+  pep_hit1.setSequence(AASequence::fromString("PEPTIDER"));
+  pep_hit1.setScore(0.001);
+  pep_hit1.setCharge(2);
+  pep_id1.insertHit(pep_hit1);
+  f1.setPeptideIdentifications({pep_id1});
+
+  fm.push_back(f1);
+
+  // --- Feature 2: simple, no PSMs ---
+  Feature f2;
+  f2.setRT(200.0);
+  f2.setMZ(600.0);
+  f2.setIntensity(2000.0f);
+  f2.setCharge(3);
+  f2.setUniqueId(2001);
+  fm.push_back(f2);
+
+  // --- Unassigned PeptideIdentification ---
+  PeptideIdentification unassigned;
+  unassigned.setScoreType("expect");
+  unassigned.setHigherScoreBetter(false);
+  unassigned.setIdentifier("run_full_1");
+  PeptideHit unassigned_hit;
+  unassigned_hit.setSequence(AASequence::fromString("ACDEFGHIK"));
+  unassigned_hit.setScore(0.5);
+  unassigned_hit.setCharge(3);
+  unassigned.insertHit(unassigned_hit);
+  fm.setUnassignedPeptideIdentifications({unassigned});
+
+  // --- Export to temp directory ---
+  String tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
+
+  // --- Import back ---
+  FeatureMap imported;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+
+  // --- Verify features ---
+  TEST_EQUAL(imported.size(), 2)
+
+  // Feature 1
+  TEST_REAL_SIMILAR(imported[0].getRT(), 100.0)
+  TEST_REAL_SIMILAR(imported[0].getMZ(), 500.0)
+  TEST_REAL_SIMILAR(imported[0].getIntensity(), 1000.0)
+  TEST_EQUAL(imported[0].getCharge(), 2)
+  TEST_EQUAL(imported[0].getUniqueId(), 1001)
+  TEST_EQUAL(imported[0].getSubordinates().size(), 1)
+  TEST_EQUAL(imported[0].getConvexHulls().size(), 1)
+  TEST_EQUAL(imported[0].getConvexHulls()[0].getHullPoints().size(), 4)
+  TEST_EQUAL(int(imported[0].getMetaValue("custom_val")), 42)
+
+  // Feature 1 subordinate
+  TEST_REAL_SIMILAR(imported[0].getSubordinates()[0].getRT(), 100.5)
+  TEST_EQUAL(imported[0].getSubordinates()[0].getUniqueId(), 1002)
+
+  // Feature 2
+  TEST_REAL_SIMILAR(imported[1].getRT(), 200.0)
+  TEST_EQUAL(imported[1].getCharge(), 3)
+  TEST_EQUAL(imported[1].getUniqueId(), 2001)
+  TEST_EQUAL(imported[1].getSubordinates().size(), 0)
+
+  // --- Verify PSMs ---
+  TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(imported[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDER")
+  TEST_REAL_SIMILAR(imported[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.001)
+
+  TEST_EQUAL(imported.getUnassignedPeptideIdentifications().size(), 1)
+  TEST_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACDEFGHIK")
+
+  // --- Verify protein identifications ---
+  TEST_EQUAL(imported.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(imported.getProteinIdentifications()[0].getIdentifier(), "run_full_1")
+  TEST_EQUAL(imported.getProteinIdentifications()[0].getSearchEngine(), "Comet")
+  TEST_EQUAL(imported.getProteinIdentifications()[0].getHits().size(), 1)
+  TEST_EQUAL(imported.getProteinIdentifications()[0].getHits()[0].getAccession(), "P12345")
+  TEST_EQUAL(imported.getProteinIdentifications()[0].getProteinGroups().size(), 1)
 }
 END_SECTION
 
