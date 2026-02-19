@@ -407,8 +407,8 @@ START_SECTION(exportSearchParamsToArrow())
   // Verify 1 row (one ProteinIdentification)
   TEST_EQUAL(table->num_rows(), 1)
 
-  // Verify 25 columns
-  TEST_EQUAL(table->num_columns(), 25)
+  // Verify 26 columns
+  TEST_EQUAL(table->num_columns(), 26)
 
   // Verify column names
   auto schema = table->schema();
@@ -437,6 +437,7 @@ START_SECTION(exportSearchParamsToArrow())
   TEST_EQUAL(schema->field(22)->name(), "variable_modifications")
   TEST_EQUAL(schema->field(23)->name(), "primary_ms_run_paths")
   TEST_EQUAL(schema->field(24)->name(), "metavalues")
+  TEST_EQUAL(schema->field(25)->name(), "sp_metavalues")
 
   // Verify run_identifier
   auto rid_col = table->GetColumnByName("run_identifier");
@@ -556,6 +557,7 @@ START_SECTION(exportSearchParamsToArrow())
   TEST_EQUAL(schema->field(22)->type()->id(), arrow::Type::LIST)     // variable_modifications
   TEST_EQUAL(schema->field(23)->type()->id(), arrow::Type::LIST)     // primary_ms_run_paths
   TEST_EQUAL(schema->field(24)->type()->id(), arrow::Type::LIST)     // metavalues
+  TEST_EQUAL(schema->field(25)->type()->id(), arrow::Type::LIST)     // sp_metavalues
 }
 END_SECTION
 
@@ -692,7 +694,7 @@ START_SECTION(exportSearchParamsToParquet())
   auto read_status = reader->ReadTable(&table);
   TEST_EQUAL(read_status.ok(), true)
   TEST_EQUAL(table->num_rows(), 1)
-  TEST_EQUAL(table->num_columns(), 25)
+  TEST_EQUAL(table->num_columns(), 26)
 
   // Check file metadata
   auto metadata = table->schema()->metadata();

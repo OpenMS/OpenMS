@@ -791,7 +791,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowExport::exportSearchPara
   auto ms_run_value_b = std::make_shared<arrow::StringBuilder>();
   arrow::ListBuilder primary_ms_run_paths_builder(arrow::default_memory_pool(), ms_run_value_b);
 
-  // -- metavalues list<struct{name: utf8, value: utf8, value_type: utf8}> --
+  // -- metavalues list<struct{name: utf8, value: utf8, value_type: utf8}> (from ProteinIdentification) --
   auto mv_name_b = std::make_shared<arrow::StringBuilder>();
   auto mv_value_b = std::make_shared<arrow::StringBuilder>();
   auto mv_type_b = std::make_shared<arrow::StringBuilder>();
@@ -804,6 +804,15 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowExport::exportSearchPara
     mv_struct_type, arrow::default_memory_pool(),
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{mv_name_b, mv_value_b, mv_type_b});
   arrow::ListBuilder metavalues_builder(arrow::default_memory_pool(), mv_struct_b);
+
+  // -- sp_metavalues list<struct{name: utf8, value: utf8, value_type: utf8}> (from SearchParameters) --
+  auto sp_mv_name_b = std::make_shared<arrow::StringBuilder>();
+  auto sp_mv_value_b = std::make_shared<arrow::StringBuilder>();
+  auto sp_mv_type_b = std::make_shared<arrow::StringBuilder>();
+  auto sp_mv_struct_b = std::make_shared<arrow::StructBuilder>(
+    mv_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{sp_mv_name_b, sp_mv_value_b, sp_mv_type_b});
+  arrow::ListBuilder sp_metavalues_builder(arrow::default_memory_pool(), sp_mv_struct_b);
 
   Size num_rows = protein_identifications.size();
 
@@ -1034,10 +1043,13 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowExport::exportSearchPara
       (void)ms_run_value_b->Append(run);
     }
 
-    // === metavalues (not nullable) - combine from ProteinIdentification + SearchParameters ===
+    // === metavalues (not nullable) - from ProteinIdentification ===
     (void)metavalues_builder.Append();
     appendMetaValues_(prot_id, mv_name_b, mv_value_b, mv_type_b, mv_struct_b, no_exclusions);
-    appendMetaValues_(sp, mv_name_b, mv_value_b, mv_type_b, mv_struct_b, no_exclusions);
+
+    // === sp_metavalues (not nullable) - from SearchParameters ===
+    (void)sp_metavalues_builder.Append();
+    appendMetaValues_(sp, sp_mv_name_b, sp_mv_value_b, sp_mv_type_b, sp_mv_struct_b, no_exclusions);
 
   } // end prot_id loop
 
@@ -1055,6 +1067,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowExport::exportSearchPara
   std::shared_ptr<arrow::Array> arr_fixed_mods, arr_var_mods;
   std::shared_ptr<arrow::Array> arr_ms_run_paths;
   std::shared_ptr<arrow::Array> arr_metavalues;
+  std::shared_ptr<arrow::Array> arr_sp_metavalues;
 
   status = run_identifier_builder.Finish(&arr_run_id);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: run_identifier_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
@@ -1106,8 +1119,10 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowExport::exportSearchPara
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: primary_ms_run_paths_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = metavalues_builder.Finish(&arr_metavalues);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = sp_metavalues_builder.Finish(&arr_sp_metavalues);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: sp_metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema (25 columns)
+  // Build schema (26 columns)
   auto schema = arrow::schema({
     arrow::field("run_identifier", arrow::utf8(), /*nullable=*/false),
     arrow::field("search_engine", arrow::utf8(), /*nullable=*/false),
@@ -1134,6 +1149,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowExport::exportSearchPara
     arrow::field("variable_modifications", arrow::list(arrow::utf8()), /*nullable=*/false),
     arrow::field("primary_ms_run_paths", arrow::list(arrow::utf8()), /*nullable=*/false),
     arrow::field("metavalues", metavalues_builder.type(), /*nullable=*/false),
+    arrow::field("sp_metavalues", sp_metavalues_builder.type(), /*nullable=*/false),
   });
 
   auto table = arrow::Table::Make(schema, {
@@ -1148,7 +1164,8 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowExport::exportSearchPara
     arr_enzyme, arr_enzyme_spec,
     arr_missed_cleavages,
     arr_fixed_mods, arr_var_mods,
-    arr_ms_run_paths, arr_metavalues
+    arr_ms_run_paths, arr_metavalues,
+    arr_sp_metavalues
   });
 
   return table;

@@ -113,6 +113,7 @@ if (WITH_PARQUET)
   list(APPEND sources_list QPXFile.cpp)
   list(APPEND sources_list XICParquetFile.cpp)
   list(APPEND sources_list ProteinIdentificationArrowExport.cpp)
+  list(APPEND sources_list ProteinIdentificationArrowImport.cpp)
 endif()
 
 ### add path to the filenames
