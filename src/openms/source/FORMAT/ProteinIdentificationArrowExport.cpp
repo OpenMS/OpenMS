@@ -12,6 +12,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -762,22 +763,410 @@ bool ProteinIdentificationArrowExport::exportProteinGroupsToParquet(
 
 
 std::shared_ptr<arrow::Table> ProteinIdentificationArrowExport::exportSearchParamsToArrow(
-  const std::vector<ProteinIdentification>& /*protein_identifications*/)
+  const std::vector<ProteinIdentification>& protein_identifications)
 {
-  // TODO: implement in a future task
-  OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport::exportSearchParamsToArrow not yet implemented" << std::endl;
-  return nullptr;
+  // -- Simple column builders --
+  arrow::StringBuilder run_identifier_builder, search_engine_builder;
+  arrow::StringBuilder search_engine_version_builder;
+  arrow::StringBuilder inference_engine_builder, inference_engine_version_builder;
+  arrow::StringBuilder date_builder, score_type_builder;
+  arrow::BooleanBuilder higher_score_better_builder;
+  arrow::DoubleBuilder significance_threshold_builder;
+  arrow::StringBuilder db_builder, db_version_builder, taxonomy_builder, charges_builder;
+  arrow::StringBuilder mass_type_builder;
+  arrow::DoubleBuilder precursor_mass_tolerance_builder, fragment_mass_tolerance_builder;
+  arrow::BooleanBuilder precursor_mass_tolerance_ppm_builder, fragment_mass_tolerance_ppm_builder;
+  arrow::StringBuilder digestion_enzyme_builder, enzyme_term_specificity_builder;
+  arrow::Int32Builder missed_cleavages_builder;
+
+  // -- fixed_modifications: list<utf8> --
+  auto fixed_mod_value_b = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder fixed_modifications_builder(arrow::default_memory_pool(), fixed_mod_value_b);
+
+  // -- variable_modifications: list<utf8> --
+  auto var_mod_value_b = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder variable_modifications_builder(arrow::default_memory_pool(), var_mod_value_b);
+
+  // -- primary_ms_run_paths: list<utf8> --
+  auto ms_run_value_b = std::make_shared<arrow::StringBuilder>();
+  arrow::ListBuilder primary_ms_run_paths_builder(arrow::default_memory_pool(), ms_run_value_b);
+
+  // -- metavalues list<struct{name: utf8, value: utf8, value_type: utf8}> --
+  auto mv_name_b = std::make_shared<arrow::StringBuilder>();
+  auto mv_value_b = std::make_shared<arrow::StringBuilder>();
+  auto mv_type_b = std::make_shared<arrow::StringBuilder>();
+  auto mv_struct_type = arrow::struct_({
+    arrow::field("name", arrow::utf8()),
+    arrow::field("value", arrow::utf8()),
+    arrow::field("value_type", arrow::utf8())
+  });
+  auto mv_struct_b = std::make_shared<arrow::StructBuilder>(
+    mv_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{mv_name_b, mv_value_b, mv_type_b});
+  arrow::ListBuilder metavalues_builder(arrow::default_memory_pool(), mv_struct_b);
+
+  Size num_rows = protein_identifications.size();
+
+  // Reserve capacity for simple builders
+  arrow::Status status;
+  status = run_identifier_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: run_identifier_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = search_engine_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: search_engine_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = search_engine_version_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: search_engine_version_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = inference_engine_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: inference_engine_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = inference_engine_version_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: inference_engine_version_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = date_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: date_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = score_type_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: score_type_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = higher_score_better_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: higher_score_better_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = significance_threshold_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: significance_threshold_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = db_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: db_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = db_version_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: db_version_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = taxonomy_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: taxonomy_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = charges_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: charges_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = mass_type_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: mass_type_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = precursor_mass_tolerance_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: precursor_mass_tolerance_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = precursor_mass_tolerance_ppm_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: precursor_mass_tolerance_ppm_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = fragment_mass_tolerance_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: fragment_mass_tolerance_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = fragment_mass_tolerance_ppm_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: fragment_mass_tolerance_ppm_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = digestion_enzyme_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: digestion_enzyme_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = enzyme_term_specificity_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: enzyme_term_specificity_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = missed_cleavages_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: missed_cleavages_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+
+  // No metavalue keys to exclude
+  static const std::unordered_set<std::string> no_exclusions;
+
+  for (const auto& prot_id : protein_identifications)
+  {
+    const auto& sp = prot_id.getSearchParameters();
+
+    // === run_identifier (not nullable) ===
+    (void)run_identifier_builder.Append(prot_id.getIdentifier());
+
+    // === search_engine (not nullable) ===
+    (void)search_engine_builder.Append(prot_id.getSearchEngine());
+
+    // === search_engine_version (nullable, null if empty) ===
+    const String& se_version = prot_id.getSearchEngineVersion();
+    if (se_version.empty())
+    {
+      (void)search_engine_version_builder.AppendNull();
+    }
+    else
+    {
+      (void)search_engine_version_builder.Append(se_version);
+    }
+
+    // === inference_engine (nullable, null if empty) ===
+    const String inference_engine = prot_id.getInferenceEngine();
+    if (inference_engine.empty())
+    {
+      (void)inference_engine_builder.AppendNull();
+    }
+    else
+    {
+      (void)inference_engine_builder.Append(inference_engine);
+    }
+
+    // === inference_engine_version (nullable, null if empty) ===
+    const String inference_engine_version = prot_id.getInferenceEngineVersion();
+    if (inference_engine_version.empty())
+    {
+      (void)inference_engine_version_builder.AppendNull();
+    }
+    else
+    {
+      (void)inference_engine_version_builder.Append(inference_engine_version);
+    }
+
+    // === date (nullable, null if empty) ===
+    String date_str = prot_id.getDateTime().toString("yyyy-MM-ddThh:mm:ss");
+    if (date_str.empty())
+    {
+      (void)date_builder.AppendNull();
+    }
+    else
+    {
+      (void)date_builder.Append(date_str);
+    }
+
+    // === score_type (not nullable) ===
+    (void)score_type_builder.Append(prot_id.getScoreType());
+
+    // === higher_score_better (not nullable) ===
+    (void)higher_score_better_builder.Append(prot_id.isHigherScoreBetter());
+
+    // === significance_threshold (nullable) ===
+    (void)significance_threshold_builder.Append(prot_id.getSignificanceThreshold());
+
+    // === db (nullable, null if empty) ===
+    if (sp.db.empty())
+    {
+      (void)db_builder.AppendNull();
+    }
+    else
+    {
+      (void)db_builder.Append(sp.db);
+    }
+
+    // === db_version (nullable, null if empty) ===
+    if (sp.db_version.empty())
+    {
+      (void)db_version_builder.AppendNull();
+    }
+    else
+    {
+      (void)db_version_builder.Append(sp.db_version);
+    }
+
+    // === taxonomy (nullable, null if empty) ===
+    if (sp.taxonomy.empty())
+    {
+      (void)taxonomy_builder.AppendNull();
+    }
+    else
+    {
+      (void)taxonomy_builder.Append(sp.taxonomy);
+    }
+
+    // === charges (nullable, null if empty) ===
+    if (sp.charges.empty())
+    {
+      (void)charges_builder.AppendNull();
+    }
+    else
+    {
+      (void)charges_builder.Append(sp.charges);
+    }
+
+    // === mass_type (not nullable) ===
+    if (sp.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
+    {
+      (void)mass_type_builder.Append("MONOISOTOPIC");
+    }
+    else
+    {
+      (void)mass_type_builder.Append("AVERAGE");
+    }
+
+    // === precursor_mass_tolerance (not nullable) ===
+    (void)precursor_mass_tolerance_builder.Append(sp.precursor_mass_tolerance);
+
+    // === precursor_mass_tolerance_ppm (not nullable) ===
+    (void)precursor_mass_tolerance_ppm_builder.Append(sp.precursor_mass_tolerance_ppm);
+
+    // === fragment_mass_tolerance (not nullable) ===
+    (void)fragment_mass_tolerance_builder.Append(sp.fragment_mass_tolerance);
+
+    // === fragment_mass_tolerance_ppm (not nullable) ===
+    (void)fragment_mass_tolerance_ppm_builder.Append(sp.fragment_mass_tolerance_ppm);
+
+    // === digestion_enzyme (nullable, null if empty or "unknown_enzyme") ===
+    const String& enzyme_name = sp.digestion_enzyme.getName();
+    if (enzyme_name.empty() || enzyme_name == "unknown_enzyme")
+    {
+      (void)digestion_enzyme_builder.AppendNull();
+    }
+    else
+    {
+      (void)digestion_enzyme_builder.Append(enzyme_name);
+    }
+
+    // === enzyme_term_specificity (nullable) ===
+    switch (sp.enzyme_term_specificity)
+    {
+      case EnzymaticDigestion::SPEC_FULL:
+        (void)enzyme_term_specificity_builder.Append("FULL");
+        break;
+      case EnzymaticDigestion::SPEC_SEMI:
+        (void)enzyme_term_specificity_builder.Append("SEMI");
+        break;
+      case EnzymaticDigestion::SPEC_NONE:
+        (void)enzyme_term_specificity_builder.Append("NONE");
+        break;
+      default:
+        (void)enzyme_term_specificity_builder.AppendNull();
+        break;
+    }
+
+    // === missed_cleavages (not nullable) ===
+    (void)missed_cleavages_builder.Append(static_cast<int32_t>(sp.missed_cleavages));
+
+    // === fixed_modifications (not nullable, list<utf8>) ===
+    (void)fixed_modifications_builder.Append();
+    for (const auto& mod : sp.fixed_modifications)
+    {
+      (void)fixed_mod_value_b->Append(mod);
+    }
+
+    // === variable_modifications (not nullable, list<utf8>) ===
+    (void)variable_modifications_builder.Append();
+    for (const auto& mod : sp.variable_modifications)
+    {
+      (void)var_mod_value_b->Append(mod);
+    }
+
+    // === primary_ms_run_paths (not nullable, list<utf8>) ===
+    StringList ms_runs;
+    prot_id.getPrimaryMSRunPath(ms_runs);
+    (void)primary_ms_run_paths_builder.Append();
+    for (const auto& run : ms_runs)
+    {
+      (void)ms_run_value_b->Append(run);
+    }
+
+    // === metavalues (not nullable) - combine from ProteinIdentification + SearchParameters ===
+    (void)metavalues_builder.Append();
+    appendMetaValues_(prot_id, mv_name_b, mv_value_b, mv_type_b, mv_struct_b, no_exclusions);
+    appendMetaValues_(sp, mv_name_b, mv_value_b, mv_type_b, mv_struct_b, no_exclusions);
+
+  } // end prot_id loop
+
+  // Finalize all arrays
+  std::shared_ptr<arrow::Array> arr_run_id, arr_search_engine, arr_se_version;
+  std::shared_ptr<arrow::Array> arr_inf_engine, arr_inf_version;
+  std::shared_ptr<arrow::Array> arr_date, arr_score_type, arr_higher_better;
+  std::shared_ptr<arrow::Array> arr_sig_threshold;
+  std::shared_ptr<arrow::Array> arr_db, arr_db_version, arr_taxonomy, arr_charges;
+  std::shared_ptr<arrow::Array> arr_mass_type;
+  std::shared_ptr<arrow::Array> arr_precursor_tol, arr_precursor_ppm;
+  std::shared_ptr<arrow::Array> arr_fragment_tol, arr_fragment_ppm;
+  std::shared_ptr<arrow::Array> arr_enzyme, arr_enzyme_spec;
+  std::shared_ptr<arrow::Array> arr_missed_cleavages;
+  std::shared_ptr<arrow::Array> arr_fixed_mods, arr_var_mods;
+  std::shared_ptr<arrow::Array> arr_ms_run_paths;
+  std::shared_ptr<arrow::Array> arr_metavalues;
+
+  status = run_identifier_builder.Finish(&arr_run_id);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: run_identifier_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = search_engine_builder.Finish(&arr_search_engine);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: search_engine_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = search_engine_version_builder.Finish(&arr_se_version);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: search_engine_version_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = inference_engine_builder.Finish(&arr_inf_engine);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: inference_engine_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = inference_engine_version_builder.Finish(&arr_inf_version);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: inference_engine_version_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = date_builder.Finish(&arr_date);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: date_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = score_type_builder.Finish(&arr_score_type);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: score_type_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = higher_score_better_builder.Finish(&arr_higher_better);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: higher_score_better_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = significance_threshold_builder.Finish(&arr_sig_threshold);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: significance_threshold_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = db_builder.Finish(&arr_db);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: db_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = db_version_builder.Finish(&arr_db_version);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: db_version_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = taxonomy_builder.Finish(&arr_taxonomy);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: taxonomy_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = charges_builder.Finish(&arr_charges);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: charges_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = mass_type_builder.Finish(&arr_mass_type);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: mass_type_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = precursor_mass_tolerance_builder.Finish(&arr_precursor_tol);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: precursor_mass_tolerance_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = precursor_mass_tolerance_ppm_builder.Finish(&arr_precursor_ppm);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: precursor_mass_tolerance_ppm_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = fragment_mass_tolerance_builder.Finish(&arr_fragment_tol);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: fragment_mass_tolerance_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = fragment_mass_tolerance_ppm_builder.Finish(&arr_fragment_ppm);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: fragment_mass_tolerance_ppm_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = digestion_enzyme_builder.Finish(&arr_enzyme);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: digestion_enzyme_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = enzyme_term_specificity_builder.Finish(&arr_enzyme_spec);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: enzyme_term_specificity_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = missed_cleavages_builder.Finish(&arr_missed_cleavages);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: missed_cleavages_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = fixed_modifications_builder.Finish(&arr_fixed_mods);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: fixed_modifications_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = variable_modifications_builder.Finish(&arr_var_mods);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: variable_modifications_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = primary_ms_run_paths_builder.Finish(&arr_ms_run_paths);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: primary_ms_run_paths_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = metavalues_builder.Finish(&arr_metavalues);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+
+  // Build schema (25 columns)
+  auto schema = arrow::schema({
+    arrow::field("run_identifier", arrow::utf8(), /*nullable=*/false),
+    arrow::field("search_engine", arrow::utf8(), /*nullable=*/false),
+    arrow::field("search_engine_version", arrow::utf8(), /*nullable=*/true),
+    arrow::field("inference_engine", arrow::utf8(), /*nullable=*/true),
+    arrow::field("inference_engine_version", arrow::utf8(), /*nullable=*/true),
+    arrow::field("date", arrow::utf8(), /*nullable=*/true),
+    arrow::field("score_type", arrow::utf8(), /*nullable=*/false),
+    arrow::field("higher_score_better", arrow::boolean(), /*nullable=*/false),
+    arrow::field("significance_threshold", arrow::float64(), /*nullable=*/true),
+    arrow::field("db", arrow::utf8(), /*nullable=*/true),
+    arrow::field("db_version", arrow::utf8(), /*nullable=*/true),
+    arrow::field("taxonomy", arrow::utf8(), /*nullable=*/true),
+    arrow::field("charges", arrow::utf8(), /*nullable=*/true),
+    arrow::field("mass_type", arrow::utf8(), /*nullable=*/false),
+    arrow::field("precursor_mass_tolerance", arrow::float64(), /*nullable=*/false),
+    arrow::field("precursor_mass_tolerance_ppm", arrow::boolean(), /*nullable=*/false),
+    arrow::field("fragment_mass_tolerance", arrow::float64(), /*nullable=*/false),
+    arrow::field("fragment_mass_tolerance_ppm", arrow::boolean(), /*nullable=*/false),
+    arrow::field("digestion_enzyme", arrow::utf8(), /*nullable=*/true),
+    arrow::field("enzyme_term_specificity", arrow::utf8(), /*nullable=*/true),
+    arrow::field("missed_cleavages", arrow::int32(), /*nullable=*/false),
+    arrow::field("fixed_modifications", arrow::list(arrow::utf8()), /*nullable=*/false),
+    arrow::field("variable_modifications", arrow::list(arrow::utf8()), /*nullable=*/false),
+    arrow::field("primary_ms_run_paths", arrow::list(arrow::utf8()), /*nullable=*/false),
+    arrow::field("metavalues", metavalues_builder.type(), /*nullable=*/false),
+  });
+
+  auto table = arrow::Table::Make(schema, {
+    arr_run_id, arr_search_engine, arr_se_version,
+    arr_inf_engine, arr_inf_version,
+    arr_date, arr_score_type, arr_higher_better,
+    arr_sig_threshold,
+    arr_db, arr_db_version, arr_taxonomy, arr_charges,
+    arr_mass_type,
+    arr_precursor_tol, arr_precursor_ppm,
+    arr_fragment_tol, arr_fragment_ppm,
+    arr_enzyme, arr_enzyme_spec,
+    arr_missed_cleavages,
+    arr_fixed_mods, arr_var_mods,
+    arr_ms_run_paths, arr_metavalues
+  });
+
+  return table;
 }
 
 
 bool ProteinIdentificationArrowExport::exportSearchParamsToParquet(
-  const std::vector<ProteinIdentification>& /*protein_identifications*/,
-  const String& /*filename*/,
-  const ParquetWriteConfig& /*config*/)
+  const std::vector<ProteinIdentification>& protein_identifications,
+  const String& filename,
+  const ParquetWriteConfig& config)
 {
-  // TODO: implement in a future task
-  OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport::exportSearchParamsToParquet not yet implemented" << std::endl;
-  return false;
+  auto table = exportSearchParamsToArrow(protein_identifications);
+  if (!table)
+  {
+    OPENMS_LOG_ERROR << "ProteinIdentificationArrowExport: Failed to create Arrow table for search params" << std::endl;
+    return false;
+  }
+  return writeArrowTableToParquet_(table, filename, "search_params", config);
 }
 
 

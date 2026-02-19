@@ -19,6 +19,7 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <arrow/api.h>
 
@@ -356,6 +357,203 @@ START_SECTION(exportProteinGroupsToArrow())
   TEST_EQUAL(schema->field(5)->type()->id(), arrow::Type::LIST)     // float_data
   TEST_EQUAL(schema->field(6)->type()->id(), arrow::Type::LIST)     // string_data
   TEST_EQUAL(schema->field(7)->type()->id(), arrow::Type::LIST)     // integer_data
+}
+END_SECTION
+
+START_SECTION(exportSearchParamsToArrow())
+{
+  // Create test data: one ProteinIdentification with SearchParameters populated
+  vector<ProteinIdentification> protein_ids;
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_search_1");
+  prot_id.setSearchEngine("Comet");
+  prot_id.setSearchEngineVersion("2023.01");
+  prot_id.setScoreType("expect");
+  prot_id.setHigherScoreBetter(false);
+  prot_id.setSignificanceThreshold(0.01);
+  prot_id.setPrimaryMSRunPath(StringList{"sample_1.mzML", "sample_2.mzML"});
+
+  DateTime dt;
+  dt.set("2024-06-15 14:30:00");
+  prot_id.setDateTime(dt);
+
+  // Configure SearchParameters
+  ProteinIdentification::SearchParameters sp;
+  sp.db = "uniprot_human";
+  sp.db_version = "2024_01";
+  sp.taxonomy = "Homo sapiens";
+  sp.charges = "2:4";
+  sp.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
+  sp.precursor_mass_tolerance = 10.0;
+  sp.precursor_mass_tolerance_ppm = true;
+  sp.fragment_mass_tolerance = 0.02;
+  sp.fragment_mass_tolerance_ppm = false;
+  sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme("Trypsin");
+  sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
+  sp.missed_cleavages = 2;
+  sp.fixed_modifications = {"Carbamidomethyl (C)"};
+  sp.variable_modifications = {"Oxidation (M)", "Acetyl (Protein N-term)"};
+
+  prot_id.setSearchParameters(sp);
+  protein_ids.push_back(prot_id);
+
+  // Export to Arrow table
+  auto table = ProteinIdentificationArrowExport::exportSearchParamsToArrow(protein_ids);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  // Verify 1 row (one ProteinIdentification)
+  TEST_EQUAL(table->num_rows(), 1)
+
+  // Verify 25 columns
+  TEST_EQUAL(table->num_columns(), 25)
+
+  // Verify column names
+  auto schema = table->schema();
+  TEST_EQUAL(schema->field(0)->name(), "run_identifier")
+  TEST_EQUAL(schema->field(1)->name(), "search_engine")
+  TEST_EQUAL(schema->field(2)->name(), "search_engine_version")
+  TEST_EQUAL(schema->field(3)->name(), "inference_engine")
+  TEST_EQUAL(schema->field(4)->name(), "inference_engine_version")
+  TEST_EQUAL(schema->field(5)->name(), "date")
+  TEST_EQUAL(schema->field(6)->name(), "score_type")
+  TEST_EQUAL(schema->field(7)->name(), "higher_score_better")
+  TEST_EQUAL(schema->field(8)->name(), "significance_threshold")
+  TEST_EQUAL(schema->field(9)->name(), "db")
+  TEST_EQUAL(schema->field(10)->name(), "db_version")
+  TEST_EQUAL(schema->field(11)->name(), "taxonomy")
+  TEST_EQUAL(schema->field(12)->name(), "charges")
+  TEST_EQUAL(schema->field(13)->name(), "mass_type")
+  TEST_EQUAL(schema->field(14)->name(), "precursor_mass_tolerance")
+  TEST_EQUAL(schema->field(15)->name(), "precursor_mass_tolerance_ppm")
+  TEST_EQUAL(schema->field(16)->name(), "fragment_mass_tolerance")
+  TEST_EQUAL(schema->field(17)->name(), "fragment_mass_tolerance_ppm")
+  TEST_EQUAL(schema->field(18)->name(), "digestion_enzyme")
+  TEST_EQUAL(schema->field(19)->name(), "enzyme_term_specificity")
+  TEST_EQUAL(schema->field(20)->name(), "missed_cleavages")
+  TEST_EQUAL(schema->field(21)->name(), "fixed_modifications")
+  TEST_EQUAL(schema->field(22)->name(), "variable_modifications")
+  TEST_EQUAL(schema->field(23)->name(), "primary_ms_run_paths")
+  TEST_EQUAL(schema->field(24)->name(), "metavalues")
+
+  // Verify run_identifier
+  auto rid_col = table->GetColumnByName("run_identifier");
+  auto rid_arr = std::static_pointer_cast<arrow::StringArray>(rid_col->chunk(0));
+  TEST_EQUAL(rid_arr->GetString(0), "run_search_1")
+
+  // Verify search_engine
+  auto se_col = table->GetColumnByName("search_engine");
+  auto se_arr = std::static_pointer_cast<arrow::StringArray>(se_col->chunk(0));
+  TEST_EQUAL(se_arr->GetString(0), "Comet")
+
+  // Verify search_engine_version
+  auto sev_col = table->GetColumnByName("search_engine_version");
+  auto sev_arr = std::static_pointer_cast<arrow::StringArray>(sev_col->chunk(0));
+  TEST_EQUAL(sev_arr->GetString(0), "2023.01")
+
+  // Verify inference_engine is null (not set)
+  auto ie_col = table->GetColumnByName("inference_engine");
+  auto ie_arr = std::static_pointer_cast<arrow::StringArray>(ie_col->chunk(0));
+  TEST_EQUAL(ie_arr->IsNull(0), true)
+
+  // Verify db
+  auto db_col = table->GetColumnByName("db");
+  auto db_arr = std::static_pointer_cast<arrow::StringArray>(db_col->chunk(0));
+  TEST_EQUAL(db_arr->GetString(0), "uniprot_human")
+
+  // Verify db_version
+  auto dbv_col = table->GetColumnByName("db_version");
+  auto dbv_arr = std::static_pointer_cast<arrow::StringArray>(dbv_col->chunk(0));
+  TEST_EQUAL(dbv_arr->GetString(0), "2024_01")
+
+  // Verify mass_type
+  auto mt_col = table->GetColumnByName("mass_type");
+  auto mt_arr = std::static_pointer_cast<arrow::StringArray>(mt_col->chunk(0));
+  TEST_EQUAL(mt_arr->GetString(0), "MONOISOTOPIC")
+
+  // Verify precursor_mass_tolerance
+  auto pmt_col = table->GetColumnByName("precursor_mass_tolerance");
+  auto pmt_arr = std::static_pointer_cast<arrow::DoubleArray>(pmt_col->chunk(0));
+  TEST_REAL_SIMILAR(pmt_arr->Value(0), 10.0)
+
+  // Verify precursor_mass_tolerance_ppm
+  auto ppm_col = table->GetColumnByName("precursor_mass_tolerance_ppm");
+  auto ppm_arr = std::static_pointer_cast<arrow::BooleanArray>(ppm_col->chunk(0));
+  TEST_EQUAL(ppm_arr->Value(0), true)
+
+  // Verify fragment_mass_tolerance
+  auto fmt_col = table->GetColumnByName("fragment_mass_tolerance");
+  auto fmt_arr = std::static_pointer_cast<arrow::DoubleArray>(fmt_col->chunk(0));
+  TEST_REAL_SIMILAR(fmt_arr->Value(0), 0.02)
+
+  // Verify fragment_mass_tolerance_ppm
+  auto fppm_col = table->GetColumnByName("fragment_mass_tolerance_ppm");
+  auto fppm_arr = std::static_pointer_cast<arrow::BooleanArray>(fppm_col->chunk(0));
+  TEST_EQUAL(fppm_arr->Value(0), false)
+
+  // Verify digestion_enzyme
+  auto enz_col = table->GetColumnByName("digestion_enzyme");
+  auto enz_arr = std::static_pointer_cast<arrow::StringArray>(enz_col->chunk(0));
+  TEST_EQUAL(enz_arr->GetString(0), "Trypsin")
+
+  // Verify enzyme_term_specificity
+  auto spec_col = table->GetColumnByName("enzyme_term_specificity");
+  auto spec_arr = std::static_pointer_cast<arrow::StringArray>(spec_col->chunk(0));
+  TEST_EQUAL(spec_arr->GetString(0), "FULL")
+
+  // Verify missed_cleavages
+  auto mc_col = table->GetColumnByName("missed_cleavages");
+  auto mc_arr = std::static_pointer_cast<arrow::Int32Array>(mc_col->chunk(0));
+  TEST_EQUAL(mc_arr->Value(0), 2)
+
+  // Verify higher_score_better
+  auto hsb_col = table->GetColumnByName("higher_score_better");
+  auto hsb_arr = std::static_pointer_cast<arrow::BooleanArray>(hsb_col->chunk(0));
+  TEST_EQUAL(hsb_arr->Value(0), false)
+
+  // Verify score_type
+  auto st_col = table->GetColumnByName("score_type");
+  auto st_arr = std::static_pointer_cast<arrow::StringArray>(st_col->chunk(0));
+  TEST_EQUAL(st_arr->GetString(0), "expect")
+
+  // Verify fixed_modifications list
+  auto fm_col = table->GetColumnByName("fixed_modifications");
+  auto fm_arr = std::static_pointer_cast<arrow::ListArray>(fm_col->chunk(0));
+  TEST_EQUAL(fm_arr->value_length(0), 1)
+  auto fm_values = std::static_pointer_cast<arrow::StringArray>(fm_arr->value_slice(0));
+  TEST_EQUAL(fm_values->GetString(0), "Carbamidomethyl (C)")
+
+  // Verify variable_modifications list
+  auto vm_col = table->GetColumnByName("variable_modifications");
+  auto vm_arr = std::static_pointer_cast<arrow::ListArray>(vm_col->chunk(0));
+  TEST_EQUAL(vm_arr->value_length(0), 2)
+  auto vm_values = std::static_pointer_cast<arrow::StringArray>(vm_arr->value_slice(0));
+  TEST_EQUAL(vm_values->GetString(0), "Oxidation (M)")
+  TEST_EQUAL(vm_values->GetString(1), "Acetyl (Protein N-term)")
+
+  // Verify primary_ms_run_paths list
+  auto msrp_col = table->GetColumnByName("primary_ms_run_paths");
+  auto msrp_arr = std::static_pointer_cast<arrow::ListArray>(msrp_col->chunk(0));
+  TEST_EQUAL(msrp_arr->value_length(0), 2)
+  auto msrp_values = std::static_pointer_cast<arrow::StringArray>(msrp_arr->value_slice(0));
+  TEST_EQUAL(msrp_values->GetString(0), "sample_1.mzML")
+  TEST_EQUAL(msrp_values->GetString(1), "sample_2.mzML")
+
+  // Verify data types
+  TEST_EQUAL(schema->field(0)->type()->id(), arrow::Type::STRING)    // run_identifier
+  TEST_EQUAL(schema->field(1)->type()->id(), arrow::Type::STRING)    // search_engine
+  TEST_EQUAL(schema->field(7)->type()->id(), arrow::Type::BOOL)      // higher_score_better
+  TEST_EQUAL(schema->field(8)->type()->id(), arrow::Type::DOUBLE)    // significance_threshold
+  TEST_EQUAL(schema->field(13)->type()->id(), arrow::Type::STRING)   // mass_type
+  TEST_EQUAL(schema->field(14)->type()->id(), arrow::Type::DOUBLE)   // precursor_mass_tolerance
+  TEST_EQUAL(schema->field(15)->type()->id(), arrow::Type::BOOL)     // precursor_mass_tolerance_ppm
+  TEST_EQUAL(schema->field(16)->type()->id(), arrow::Type::DOUBLE)   // fragment_mass_tolerance
+  TEST_EQUAL(schema->field(17)->type()->id(), arrow::Type::BOOL)     // fragment_mass_tolerance_ppm
+  TEST_EQUAL(schema->field(20)->type()->id(), arrow::Type::INT32)    // missed_cleavages
+  TEST_EQUAL(schema->field(21)->type()->id(), arrow::Type::LIST)     // fixed_modifications
+  TEST_EQUAL(schema->field(22)->type()->id(), arrow::Type::LIST)     // variable_modifications
+  TEST_EQUAL(schema->field(23)->type()->id(), arrow::Type::LIST)     // primary_ms_run_paths
+  TEST_EQUAL(schema->field(24)->type()->id(), arrow::Type::LIST)     // metavalues
 }
 END_SECTION
 
