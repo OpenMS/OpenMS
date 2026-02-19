@@ -207,6 +207,171 @@ START_SECTION(exportFeaturesToArrow - subordinate features)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
+// Round-trip tests (export -> import)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls and metavalues)
+{
+  // === Build source FeatureMap ===
+  FeatureMap fm_in;
+
+  // Feature 1 (uid=100): with subordinates, hull, and metavalues
+  Feature f1;
+  f1.setRT(50.0);
+  f1.setMZ(400.0);
+  f1.setIntensity(500.0f);
+  f1.setCharge(3);
+  f1.setOverallQuality(0.8f);
+  f1.setQuality(0, 0.7f);
+  f1.setQuality(1, 0.6f);
+  f1.setWidth(2.0f);
+  f1.setUniqueId(100);
+
+  // Convex hull with 4 points
+  ConvexHull2D hull1;
+  ConvexHull2D::PointArrayType pts1;
+  pts1.push_back(DPosition<2>(49.0, 399.0));
+  pts1.push_back(DPosition<2>(49.0, 401.0));
+  pts1.push_back(DPosition<2>(51.0, 401.0));
+  pts1.push_back(DPosition<2>(51.0, 399.0));
+  hull1.setHullPoints(pts1);
+  f1.getConvexHulls().push_back(hull1);
+
+  // Metavalues (note: setWidth also adds FWHM metavalue)
+  f1.setMetaValue("my_int", 42);
+  f1.setMetaValue("my_float", 3.14);
+  f1.setMetaValue("my_string", String("hello"));
+
+  // Subordinate A (uid=101)
+  Feature subA;
+  subA.setRT(50.5);
+  subA.setMZ(400.1);
+  subA.setIntensity(200.0f);
+  subA.setCharge(3);
+  subA.setUniqueId(101);
+
+  // Subordinate B (uid=102) with its own sub-subordinate
+  Feature subB;
+  subB.setRT(49.5);
+  subB.setMZ(399.9);
+  subB.setIntensity(300.0f);
+  subB.setCharge(3);
+  subB.setUniqueId(102);
+
+  // Sub-subordinate C (uid=103) under B
+  Feature subC;
+  subC.setRT(49.0);
+  subC.setMZ(399.8);
+  subC.setIntensity(100.0f);
+  subC.setCharge(3);
+  subC.setUniqueId(103);
+
+  subB.getSubordinates().push_back(subC);
+  f1.getSubordinates().push_back(subA);
+  f1.getSubordinates().push_back(subB);
+
+  // Feature 2 (uid=200): no subordinates, no hulls
+  Feature f2;
+  f2.setRT(150.0);
+  f2.setMZ(600.0);
+  f2.setIntensity(2000.0f);
+  f2.setCharge(2);
+  f2.setUniqueId(200);
+
+  fm_in.push_back(f1);
+  fm_in.push_back(f2);
+
+  // === Export to Arrow ===
+  auto table = FeatureMapArrowIO::exportFeaturesToArrow(fm_in);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  // Total rows: f1 + subA + subB + subC + f2 = 5
+  TEST_EQUAL(table->num_rows(), 5)
+
+  // === Import back ===
+  FeatureMap fm_out;
+  bool ok = FeatureMapArrowIO::importFeaturesFromArrow(table, fm_out);
+  TEST_EQUAL(ok, true)
+
+  // === Verify structure ===
+  TEST_EQUAL(fm_out.size(), 2)  // 2 top-level features
+
+  // Feature 1 checks
+  const Feature& out_f1 = fm_out[0];
+  TEST_REAL_SIMILAR(out_f1.getRT(), 50.0)
+  TEST_REAL_SIMILAR(out_f1.getMZ(), 400.0)
+  TEST_REAL_SIMILAR(out_f1.getIntensity(), 500.0f)
+  TEST_EQUAL(out_f1.getCharge(), 3)
+  TEST_REAL_SIMILAR(out_f1.getOverallQuality(), 0.8f)
+  TEST_REAL_SIMILAR(out_f1.getQuality(0), 0.7f)
+  TEST_REAL_SIMILAR(out_f1.getQuality(1), 0.6f)
+  TEST_REAL_SIMILAR(out_f1.getWidth(), 2.0f)
+  TEST_EQUAL(out_f1.getUniqueId(), 100)
+
+  // Check convex hull
+  TEST_EQUAL(out_f1.getConvexHulls().size(), 1)
+  const auto& out_hull = out_f1.getConvexHulls()[0];
+  const auto& out_pts = out_hull.getHullPoints();
+  TEST_EQUAL(out_pts.size(), 4)
+  TEST_REAL_SIMILAR(out_pts[0][0], 49.0)
+  TEST_REAL_SIMILAR(out_pts[0][1], 399.0)
+  TEST_REAL_SIMILAR(out_pts[2][0], 51.0)
+  TEST_REAL_SIMILAR(out_pts[2][1], 401.0)
+
+  // Check metavalues - int stays int, float stays float, string stays string
+  TEST_EQUAL(out_f1.metaValueExists("my_int"), true)
+  TEST_EQUAL(out_f1.metaValueExists("my_float"), true)
+  TEST_EQUAL(out_f1.metaValueExists("my_string"), true)
+  TEST_EQUAL(static_cast<int>(out_f1.getMetaValue("my_int")), 42)
+  TEST_REAL_SIMILAR(static_cast<double>(out_f1.getMetaValue("my_float")), 3.14)
+  TEST_EQUAL(out_f1.getMetaValue("my_string").toString(), "hello")
+
+  // Check metavalue types are preserved
+  TEST_EQUAL(out_f1.getMetaValue("my_int").valueType(), DataValue::INT_VALUE)
+  TEST_EQUAL(out_f1.getMetaValue("my_float").valueType(), DataValue::DOUBLE_VALUE)
+  TEST_EQUAL(out_f1.getMetaValue("my_string").valueType(), DataValue::STRING_VALUE)
+
+  // Check subordinates of feature 1
+  TEST_EQUAL(out_f1.getSubordinates().size(), 2)
+
+  const Feature& out_subA = out_f1.getSubordinates()[0];
+  TEST_REAL_SIMILAR(out_subA.getRT(), 50.5)
+  TEST_REAL_SIMILAR(out_subA.getMZ(), 400.1)
+  TEST_REAL_SIMILAR(out_subA.getIntensity(), 200.0f)
+  TEST_EQUAL(out_subA.getCharge(), 3)
+  TEST_EQUAL(out_subA.getUniqueId(), 101)
+  TEST_EQUAL(out_subA.getSubordinates().size(), 0)
+
+  const Feature& out_subB = out_f1.getSubordinates()[1];
+  TEST_REAL_SIMILAR(out_subB.getRT(), 49.5)
+  TEST_REAL_SIMILAR(out_subB.getMZ(), 399.9)
+  TEST_REAL_SIMILAR(out_subB.getIntensity(), 300.0f)
+  TEST_EQUAL(out_subB.getCharge(), 3)
+  TEST_EQUAL(out_subB.getUniqueId(), 102)
+  TEST_EQUAL(out_subB.getSubordinates().size(), 1)
+
+  // Sub-subordinate C under B
+  const Feature& out_subC = out_subB.getSubordinates()[0];
+  TEST_REAL_SIMILAR(out_subC.getRT(), 49.0)
+  TEST_REAL_SIMILAR(out_subC.getMZ(), 399.8)
+  TEST_REAL_SIMILAR(out_subC.getIntensity(), 100.0f)
+  TEST_EQUAL(out_subC.getCharge(), 3)
+  TEST_EQUAL(out_subC.getUniqueId(), 103)
+  TEST_EQUAL(out_subC.getSubordinates().size(), 0)
+
+  // Feature 2 checks
+  const Feature& out_f2 = fm_out[1];
+  TEST_REAL_SIMILAR(out_f2.getRT(), 150.0)
+  TEST_REAL_SIMILAR(out_f2.getMZ(), 600.0)
+  TEST_REAL_SIMILAR(out_f2.getIntensity(), 2000.0f)
+  TEST_EQUAL(out_f2.getCharge(), 2)
+  TEST_EQUAL(out_f2.getUniqueId(), 200)
+  TEST_EQUAL(out_f2.getSubordinates().size(), 0)
+  TEST_EQUAL(out_f2.getConvexHulls().size(), 0)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 END_TEST
