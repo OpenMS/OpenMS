@@ -17,6 +17,7 @@ list(REMOVE_DUPLICATES OpenMS_IO_sources)
 # OpenMS_Core is PUBLIC so its include dirs and transitive deps propagate
 set(IO_DEP_LIBRARIES
   OpenMS_Core
+  XercesC::XercesC
 )
 
 if(NOT DISABLE_OPENSWATH)
@@ -33,7 +34,6 @@ set(IO_DEP_PRIVATE_LIBRARIES
   Eigen3::Eigen
   SIMDe
   SQLiteCpp
-  XercesC::XercesC
   nlohmann_json::nlohmann_json
   ZLIB::ZLIB
 )

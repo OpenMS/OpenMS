@@ -59,6 +59,7 @@ list(APPEND OpenMS_sources
   source/DATASTRUCTURES/LPWrapper.cpp         # only called by ANALYSIS code (ILPDCWrapper, MRMFeatureSelector)
   source/FORMAT/FLASHDeconvFeatureFile.cpp    # uses PeakGroup, DeconvolvedSpectrum, FLASHHelperClasses
   source/FORMAT/FLASHDeconvSpectrumFile.cpp   # uses PeakGroup, DeconvolvedSpectrum, FLASHHelperClasses
+  source/IONMOBILITY/IMDataConverterAlgo.cpp  # splitExperimentByIonMobility uses SpectraMerger
 )
 
 set(OpenMS_Algo_sources ${OpenMS_sources} CACHE INTERNAL "OpenMS Algo source files")
