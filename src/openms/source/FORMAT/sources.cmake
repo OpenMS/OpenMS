@@ -21,8 +21,6 @@ ExperimentalDesignFile.cpp
 FASTAContainer.cpp
 FASTAFile.cpp
 FeatureXMLFile.cpp
-FLASHDeconvFeatureFile.cpp
-FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
 GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp

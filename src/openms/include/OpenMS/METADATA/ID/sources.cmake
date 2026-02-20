@@ -9,7 +9,6 @@ ProcessingSoftware.h
 ProcessingStep.h
 Observation.h
 IdentificationData.h
-IdentificationDataConverter.h
 IdentifiedCompound.h
 IdentifiedMolecule.h
 IdentifiedSequence.h

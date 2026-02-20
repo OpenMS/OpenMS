@@ -4,7 +4,6 @@ set(directory source/METADATA/ID)
 ### list all filenames of the directory here
 set(sources_list
 IdentificationData.cpp
-IdentificationDataConverter.cpp
 IdentifiedMolecule.cpp
 )
 

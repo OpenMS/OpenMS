@@ -15,7 +15,6 @@ ContactPerson.h
 DataArrays.h
 DataProcessing.h
 DocumentIdentifier.h
-ExperimentalDesign.h
 ExperimentalSettings.h
 Gradient.h
 HPLC.h
@@ -45,7 +44,6 @@ ScanWindow.h
 Software.h
 SourceFile.h
 SpectrumLookup.h
-SpectrumMetaDataLookup.h
 SpectrumSettings.h
 USI.h
 )

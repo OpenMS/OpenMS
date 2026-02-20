@@ -17,19 +17,18 @@ include(${CMAKE_CURRENT_LIST_DIR}/source/FORMAT/VALIDATORS/sources.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/source/FORMAT/OPTIONS/sources.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/source/FORMAT/sources.cmake)
 
-# Add Core source files that were moved here due to IO back-dependencies
-list(APPEND OpenMS_sources ${OpenMS_Core_moved_to_io})
-
-# Remove source files that have Algo back-dependencies and belong in the Algo layer.
-# These FORMAT files depend on ANALYSIS/TOPDOWN types (PeakGroup, DeconvolvedSpectrum, etc.)
-set(_io_to_algo_sources
-  source/FORMAT/FLASHDeconvFeatureFile.cpp   # uses PeakGroup, DeconvolvedSpectrum, FLASHHelperClasses
-  source/FORMAT/FLASHDeconvSpectrumFile.cpp  # uses PeakGroup, DeconvolvedSpectrum, FLASHHelperClasses
+# Core source files compiled here because they depend on IO (FORMAT) types.
+# The files remain in their original Core directories but are not listed in
+# Core's sources.cmake — they appear only here.
+list(APPEND OpenMS_sources
+  source/CONCEPT/ClassTest.cpp                         # uses FORMAT file classes
+  source/CONCEPT/FuzzyStringComparator.cpp             # uses TextFile
+  source/METADATA/ID/IdentificationDataConverter.cpp   # uses MzTab types
+  source/METADATA/ExperimentalDesign.cpp               # uses FileHandler, TextFile
+  source/METADATA/SpectrumMetaDataLookup.cpp           # uses FileHandler
 )
-list(REMOVE_ITEM OpenMS_sources ${_io_to_algo_sources})
 
 set(OpenMS_IO_sources ${OpenMS_sources} CACHE INTERNAL "OpenMS IO source files")
-set(OpenMS_IO_moved_to_algo ${_io_to_algo_sources} CACHE INTERNAL "IO sources moved to Algo")
 set(OpenMS_sources CACHE INTERNAL "")
 
 ## Header files
@@ -42,16 +41,14 @@ include(${CMAKE_CURRENT_LIST_DIR}/include/OpenMS/FORMAT/MSNUMPRESS/sources.cmake
 include(${CMAKE_CURRENT_LIST_DIR}/include/OpenMS/FORMAT/VALIDATORS/sources.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/include/OpenMS/FORMAT/OPTIONS/sources.cmake)
 
-# Add Core headers that were moved here (parallel to source moves)
-list(APPEND OpenMS_sources_h ${OpenMS_Core_moved_to_io_h})
-
-# Remove headers for files compiled in Algo (parallel to source file moves above)
-set(_io_to_algo_headers
-  include/OpenMS/FORMAT/FLASHDeconvFeatureFile.h
-  include/OpenMS/FORMAT/FLASHDeconvSpectrumFile.h
+# Core headers for the source files above (parallel to source moves)
+list(APPEND OpenMS_sources_h
+  include/OpenMS/CONCEPT/ClassTest.h
+  include/OpenMS/CONCEPT/FuzzyStringComparator.h
+  include/OpenMS/METADATA/ID/IdentificationDataConverter.h
+  include/OpenMS/METADATA/ExperimentalDesign.h
+  include/OpenMS/METADATA/SpectrumMetaDataLookup.h
 )
-list(REMOVE_ITEM OpenMS_sources_h ${_io_to_algo_headers})
 
 set(OpenMS_IO_sources_h ${OpenMS_sources_h} CACHE INTERNAL "OpenMS IO header files")
-set(OpenMS_IO_moved_to_algo_h ${_io_to_algo_headers} CACHE INTERNAL "IO headers moved to Algo")
 set(OpenMS_sources_h CACHE INTERNAL "")

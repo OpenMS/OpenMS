@@ -15,7 +15,6 @@ ContactPerson.cpp
 DataArrays.cpp
 DataProcessing.cpp
 DocumentIdentifier.cpp
-ExperimentalDesign.cpp
 ExperimentalSettings.cpp
 Gradient.cpp
 HPLC.cpp
@@ -44,7 +43,6 @@ ScanWindow.cpp
 Software.cpp
 SourceFile.cpp
 SpectrumLookup.cpp
-SpectrumMetaDataLookup.cpp
 SpectrumSettings.cpp
 USI.cpp
 )

@@ -52,8 +52,13 @@ if(NOT DISABLE_OPENSWATH)
 endif()
 include(${CMAKE_CURRENT_LIST_DIR}/source/APPLICATIONS/sources.cmake)
 
-# Add IO source files that were moved here due to Algo back-dependencies
-list(APPEND OpenMS_sources ${OpenMS_IO_moved_to_algo})
+# IO (FORMAT) source files compiled here because they depend on Algo types.
+# The files remain in their original FORMAT directories but are not listed in
+# IO's sources.cmake — they appear only here.
+list(APPEND OpenMS_sources
+  source/FORMAT/FLASHDeconvFeatureFile.cpp    # uses PeakGroup, DeconvolvedSpectrum, FLASHHelperClasses
+  source/FORMAT/FLASHDeconvSpectrumFile.cpp   # uses PeakGroup, DeconvolvedSpectrum, FLASHHelperClasses
+)
 
 set(OpenMS_Algo_sources ${OpenMS_sources} CACHE INTERNAL "OpenMS Algo source files")
 set(OpenMS_sources CACHE INTERNAL "")
@@ -102,8 +107,11 @@ if(NOT DISABLE_OPENSWATH)
 endif()
 include(${CMAKE_CURRENT_LIST_DIR}/include/OpenMS/APPLICATIONS/sources.cmake)
 
-# Add IO headers that were moved here (parallel to source file moves above)
-list(APPEND OpenMS_sources_h ${OpenMS_IO_moved_to_algo_h})
+# IO (FORMAT) headers for the source files above (parallel to source moves)
+list(APPEND OpenMS_sources_h
+  include/OpenMS/FORMAT/FLASHDeconvFeatureFile.h
+  include/OpenMS/FORMAT/FLASHDeconvSpectrumFile.h
+)
 
 set(OpenMS_Algo_sources_h ${OpenMS_sources_h} CACHE INTERNAL "OpenMS Algo header files")
 set(OpenMS_sources_h CACHE INTERNAL "")
