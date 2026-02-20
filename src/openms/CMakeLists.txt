@@ -69,18 +69,27 @@ if (NOT MSVC)
 
   # Backward-compatible umbrella INTERFACE target.
   # Consumers can simply link against "OpenMS" and get all three sub-libraries.
+  #
+  # --no-as-needed ensures all three sub-libraries appear in DT_NEEDED even
+  # when a consumer doesn't directly reference symbols from every library.
+  # This is required for two reasons:
+  #   1. IO→Algo back-dependencies: FORMAT files reference Algo types
+  #      (TargetedExperiment, OPXLHelper, etc.).
+  #   2. Static initializer loading: IO registers populators for Core
+  #      singletons (ModificationsDB, ProteaseDB, RNaseDB) via file-scope
+  #      static initializers that only run when the .so is loaded.
+  # TODO Phase 4: Break IO→Algo back-dependencies and move populators to
+  # explicit initialization so --no-as-needed can be removed.
   add_library(OpenMS INTERFACE)
   if (APPLE)
-    # macOS: -undefined dynamic_lookup on each sub-library handles deferred
-    # symbol resolution.  LINK_GROUP:RESCAN is not supported by Apple ld.
+    # macOS: no --as-needed behavior; -undefined dynamic_lookup on each
+    # sub-library handles deferred symbol resolution.
     target_link_libraries(OpenMS INTERFACE OpenMS_Algo OpenMS_IO OpenMS_Core)
   else()
-    # Linux: LINK_GROUP:RESCAN wraps libraries in --start-group/--end-group
-    # (GNU ld) so the linker rescans to resolve IO→Algo back-dependencies
-    # (FORMAT files reference Algo types like TargetedExperiment, OPXLHelper).
-    # TODO Phase 4: Break all IO→Algo back-dependencies to remove RESCAN.
+    # Linux: NO_AS_NEEDED link group (defined in src/CMakeLists.txt) forces
+    # all sub-libraries into DT_NEEDED.  See src/CMakeLists.txt for rationale.
     target_link_libraries(OpenMS INTERFACE
-      "$<LINK_GROUP:RESCAN,OpenMS_Algo,OpenMS_IO,OpenMS_Core>")
+      "$<LINK_GROUP:NO_AS_NEEDED,OpenMS_Algo,OpenMS_IO,OpenMS_Core>")
   endif()
   target_include_directories(OpenMS INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

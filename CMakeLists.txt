@@ -451,6 +451,21 @@ find_package(Doxygen) ## defines 'DOXYGEN_HAVE_DOT', 'DOXYGEN_VERSION' etc
 
 
 #------------------------------------------------------------------------------
+# Custom link group: NO_AS_NEEDED
+# Used by the split-library build (Unix) to force all sub-libraries into
+# DT_NEEDED.  Required because (a) IO→Algo back-dependencies exist and
+# (b) IO registers static initializers (populators) for Core singletons.
+# Without --no-as-needed, the linker drops un-referenced libraries.
+# Must be at top level so all consuming directories inherit the definition.
+#------------------------------------------------------------------------------
+if (NOT MSVC AND NOT APPLE)
+  set(CMAKE_C_LINK_GROUP_USING_NO_AS_NEEDED_SUPPORTED TRUE)
+  set(CMAKE_CXX_LINK_GROUP_USING_NO_AS_NEEDED_SUPPORTED TRUE)
+  set(CMAKE_C_LINK_GROUP_USING_NO_AS_NEEDED "LINKER:--no-as-needed" "LINKER:--as-needed")
+  set(CMAKE_CXX_LINK_GROUP_USING_NO_AS_NEEDED "LINKER:--no-as-needed" "LINKER:--as-needed")
+endif()
+
+#------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
 #------------------------------------------------------------------------------
 add_subdirectory(src)
