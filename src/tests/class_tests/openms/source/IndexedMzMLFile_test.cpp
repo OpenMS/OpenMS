@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 ///////////////////////////
 
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 
 // for comparison
 #include <OpenMS/KERNEL/MSExperiment.h>

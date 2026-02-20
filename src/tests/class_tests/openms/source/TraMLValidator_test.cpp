@@ -12,7 +12,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/VALIDATORS/TraMLValidator.h>
 ///////////////////////////
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;

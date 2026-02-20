@@ -12,7 +12,6 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 

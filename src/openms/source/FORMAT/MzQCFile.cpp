@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzQCFile.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>

@@ -7,7 +7,7 @@ from StringList cimport *
 from CVMappings cimport *
 from DataValue cimport *
 
-cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/DATASTRUCTURES/ControlledVocabulary.h>" namespace "OpenMS":
 
     cdef cppclass ControlledVocabulary:
 
@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS":
 
         bool isChildOf(String child, String parent) except + nogil  # wrap-doc:Returns True if `child` is a child of `parent`
 
-cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::ControlledVocabulary":
+cdef extern from "<OpenMS/DATASTRUCTURES/ControlledVocabulary.h>" namespace "OpenMS::ControlledVocabulary":
 
     cdef cppclass CVTerm_ControlledVocabulary "OpenMS::ControlledVocabulary::CVTerm":
 
@@ -62,7 +62,7 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::Con
       String getXRefTypeName(XRefType type) except + nogil 
       bool isHigherBetterScore(CVTerm_ControlledVocabulary term) except + nogil 
 
-cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::ControlledVocabulary::CVTerm":
+cdef extern from "<OpenMS/DATASTRUCTURES/ControlledVocabulary.h>" namespace "OpenMS::ControlledVocabulary::CVTerm":
 
     # define xsd types allowed in cv term to specify their value-type
     cdef enum class XRefType "OpenMS::ControlledVocabulary::CVTerm::XRefType":

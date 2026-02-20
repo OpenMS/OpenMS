@@ -8,7 +8,7 @@
 
 #include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
 
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 
 using namespace xercesc;
 using namespace std;

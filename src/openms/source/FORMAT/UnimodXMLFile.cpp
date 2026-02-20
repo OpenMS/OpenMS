@@ -9,12 +9,22 @@
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace xercesc;
 using namespace std;
 
 namespace OpenMS
 {
+
+  // Register UnimodXMLFile::load() as the Unimod loader callback so that
+  // ModificationsDB (in Core) can load Unimod XML without depending on IO.
+  static const bool unimod_loader_registered_ = []() {
+    ModificationsDB::registerUnimodLoader([](const String& filename, std::vector<ResidueModification*>& mods) {
+      UnimodXMLFile().load(filename, mods);
+    });
+    return true;
+  }();
 
   UnimodXMLFile::UnimodXMLFile() :
     Internal::XMLFile()

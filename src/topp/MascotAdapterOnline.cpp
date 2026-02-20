@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>

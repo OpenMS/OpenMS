@@ -8,7 +8,7 @@
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 #include <map>

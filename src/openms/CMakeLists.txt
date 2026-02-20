@@ -64,14 +64,9 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/build_algo.cmake)
 # Consumers can simply link against "OpenMS" and get all three sub-libraries.
 #------------------------------------------------------------------------------
 add_library(OpenMS INTERFACE)
-# LINK_GROUP:RESCAN wraps libraries in --start-group/--end-group (GNU ld) so the
-# linker rescans to resolve circular symbol references.  This is needed because a
-# few Core source files (File.cpp, ModificationsDB.cpp, DocumentIdentifier.cpp,
-# ProteinIdentification.cpp) reference IO symbols (FileHandler, ParamXMLFile,
-# UnimodXMLFile, FileTypes).  Phase 2 will break these back-dependencies; until
-# then the rescan group ensures correct linking.
-target_link_libraries(OpenMS INTERFACE
-  "$<LINK_GROUP:RESCAN,OpenMS_Algo,OpenMS_IO,OpenMS_Core>")
+# All Core→IO back-dependencies have been broken: Core no longer references any
+# IO symbols directly.  The linker can process libraries in a single pass.
+target_link_libraries(OpenMS INTERFACE OpenMS_Algo OpenMS_IO OpenMS_Core)
 target_include_directories(OpenMS INTERFACE
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"

@@ -10,7 +10,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>

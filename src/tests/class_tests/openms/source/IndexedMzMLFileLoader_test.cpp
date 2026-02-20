@@ -14,7 +14,7 @@
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;

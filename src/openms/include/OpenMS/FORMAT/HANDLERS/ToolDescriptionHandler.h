@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
 

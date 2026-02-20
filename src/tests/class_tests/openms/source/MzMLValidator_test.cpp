@@ -11,7 +11,7 @@
 
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 
 ///////////////////////////
 

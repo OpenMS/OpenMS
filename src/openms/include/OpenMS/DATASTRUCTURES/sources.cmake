@@ -9,6 +9,7 @@ CalibrationData.h
 ChargePair.h
 Compomer.h
 ConstRefVector.h
+ControlledVocabulary.h
 ConvexHull2D.h
 CVMappingTerm.h
 CVMappingRule.h

@@ -8,11 +8,11 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 

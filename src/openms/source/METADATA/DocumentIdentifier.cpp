@@ -9,7 +9,7 @@
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 
 #include <QtCore/QDir>
 
@@ -56,7 +56,12 @@ namespace OpenMS
 
   void DocumentIdentifier::setLoadedFileType(const String & file_name)
   {
-    file_type_ = FileHandler::getTypeByContent(file_name);
+    file_type_ = FileTypes::getTypeByFileName(file_name);
+  }
+
+  void DocumentIdentifier::setLoadedFileType(FileTypes::Type type)
+  {
+    file_type_ = type;
   }
 
   const FileTypes::Type & DocumentIdentifier::getLoadedFileType() const

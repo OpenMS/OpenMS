@@ -13,7 +13,7 @@
 // TODO add handler support for other accss
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 // TODO add handler support for other access
 #include <OpenMS/FORMAT/MascotGenericFile.h>

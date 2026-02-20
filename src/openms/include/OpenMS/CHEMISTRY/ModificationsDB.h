@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationDataProvider.h>
 
+#include <functional>
 #include <set>
 #include <memory>  // unique_ptr
 #include <unordered_map>
@@ -50,6 +51,14 @@ namespace OpenMS
   class OPENMS_DLLAPI ModificationsDB
   {
 public:
+
+    /// Callback type for loading Unimod XML modifications.
+    /// Signature: void(const String& filename, std::vector<ResidueModification*>& mods)
+    using UnimodLoaderFunc = std::function<void(const String&, std::vector<ResidueModification*>&)>;
+
+    /// Register the callback used by readFromUnimodXMLFile() to load Unimod XML.
+    /// The IO layer registers UnimodXMLFile::load() via a static initializer.
+    static void registerUnimodLoader(UnimodLoaderFunc loader);
 
     /// Returns a pointer to the modifications DB (singleton)
     static ModificationsDB* getInstance();

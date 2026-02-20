@@ -125,6 +125,29 @@ namespace OpenMS
 
     /// Returns the mzML name (TODO: switch to accession since they are more stable!)
     static String typeToMZML(Type type);
+
+    /**
+      @brief Determine file type from the file name.
+
+      Recognizes standard extensions (mzML, featureXML, etc.) and composite
+      extensions like .mzML.gz, .pep.xml, .prot.xml, .xquest.xml, .spec.xml.
+
+      @param[in] filename The name of the file (may include path)
+      @return The detected file type, or FileTypes::UNKNOWN
+    */
+    static Type getTypeByFileName(const String& filename);
+
+    /**
+      @brief Remove a recognized file extension from @p filename.
+
+      If the extension is known to OpenMS (e.g. ".mzML.gz"), it is stripped
+      including the preceding dot.  If the extension is unknown, everything
+      after the last dot in the basename is removed.
+
+      @param[in] filename The filename to strip
+      @return The filename without extension
+    */
+    static String stripExtension(const String& filename);
   };
 
  enum class FilterLayout

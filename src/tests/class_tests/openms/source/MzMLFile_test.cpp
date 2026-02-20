@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 

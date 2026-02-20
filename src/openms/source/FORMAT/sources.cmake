@@ -13,7 +13,6 @@ ChromeleonFile.cpp
 CompressedInputSource.cpp
 CVMappingFile.cpp
 ConsensusXMLFile.cpp
-ControlledVocabulary.cpp
 CsvFile.cpp
 DTA2DFile.cpp
 DTAFile.cpp
@@ -25,7 +24,6 @@ FeatureXMLFile.cpp
 FLASHDeconvFeatureFile.cpp
 FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
-FileTypes.cpp
 GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp

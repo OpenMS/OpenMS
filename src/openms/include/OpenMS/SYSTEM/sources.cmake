@@ -21,6 +21,7 @@ set(sources_list_h
 BuildInfo.h
 ExternalProcess.h
 File.h
+FileTypes.h
 JavaInfo.h
 NetworkGetRequest.h
 PythonInfo.h

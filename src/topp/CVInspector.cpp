@@ -12,7 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 #include <map>

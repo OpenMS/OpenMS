@@ -6,10 +6,9 @@
 // $Authors: Marc Sturm, Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
@@ -17,6 +16,22 @@
 #include <map>
 
 using namespace std;
+
+namespace
+{
+  /// Escape XML special characters. Duplicated from XMLHandler::writeXMLEscape() (FORMAT/HANDLERS/XMLHandler.h)
+  /// to avoid a Core→IO dependency. Keep both copies in sync.
+  OpenMS::String writeXMLEscape_(const OpenMS::String& to_escape)
+  {
+    OpenMS::String copy = to_escape;
+    if (copy.has('&')) copy.substitute("&","&amp;");
+    if (copy.has('>')) copy.substitute(">","&gt;");
+    if (copy.has('"')) copy.substitute("\"","&quot;");
+    if (copy.has('<')) copy.substitute("<","&lt;");
+    if (copy.has('\'')) copy.substitute("'","&apos;");
+    return copy;
+  }
+}
 
 namespace OpenMS
 {
@@ -107,10 +122,10 @@ namespace OpenMS
 
   String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const String& value) const
   {
-    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + Internal::XMLHandler::writeXMLEscape(name);
+    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + writeXMLEscape_(name);
     if (!value.empty())
     {
-      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(value);
+      s += "\" value=\"" + writeXMLEscape_(value);
     }
     s +=  "\"/>";
     return s;
@@ -119,10 +134,10 @@ namespace OpenMS
 
   String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const OpenMS::DataValue& value) const
   {
-    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + Internal::XMLHandler::writeXMLEscape(name);
+    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + writeXMLEscape_(name);
     if (!value.isEmpty())
     {
-      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(value);
+      s += "\" value=\"" + writeXMLEscape_(value);
     }
     if (value.hasUnit())
     {

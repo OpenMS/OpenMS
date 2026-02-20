@@ -10,7 +10,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzDataValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 
 namespace OpenMS
 {

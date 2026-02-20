@@ -36,6 +36,7 @@ set(_core_to_io_sources
   source/CONCEPT/FuzzyStringComparator.cpp  # uses TextFile
   source/METADATA/ID/IdentificationDataConverter.cpp  # uses MzTab types
   source/METADATA/ExperimentalDesign.cpp    # uses FileHandler, TextFile
+  source/METADATA/SpectrumMetaDataLookup.cpp  # uses FileHandler for loading experiments
 )
 list(REMOVE_ITEM OpenMS_sources ${_core_to_io_sources})
 
@@ -70,6 +71,7 @@ set(_core_to_io_headers
   include/OpenMS/CONCEPT/FuzzyStringComparator.h
   include/OpenMS/METADATA/ID/IdentificationDataConverter.h
   include/OpenMS/METADATA/ExperimentalDesign.h
+  include/OpenMS/METADATA/SpectrumMetaDataLookup.h
 )
 list(REMOVE_ITEM OpenMS_sources_h ${_core_to_io_headers})
 

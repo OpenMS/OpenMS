@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
 #include <fstream>
@@ -16,6 +17,15 @@
 
 namespace OpenMS
 {
+
+  // Register ParamXMLFile::load() as the param loader callback so that
+  // File::getSystemParameters() (in Core) can load XML without depending on IO.
+  static const bool param_loader_registered_ = []() {
+    File::registerParamLoader([](const String& filename, Param& param) {
+      ParamXMLFile().load(filename, param);
+    });
+    return true;
+  }();
 
   String writeXMLEscape(const String& to_escape)
   {

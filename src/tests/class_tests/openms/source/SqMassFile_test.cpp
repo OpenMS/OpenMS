@@ -13,7 +13,7 @@
 
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <QFile>

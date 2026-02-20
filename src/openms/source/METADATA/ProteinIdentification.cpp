@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -413,7 +413,7 @@ namespace OpenMS
     e.getPrimaryMSRunPath(ms_path);
     if (ms_path.size() == 1)
     {
-      FileTypes::Type filetype = FileHandler::getTypeByFileName(ms_path[0]);
+      FileTypes::Type filetype = FileTypes::getTypeByFileName(ms_path[0]);
       if ((filetype == FileTypes::MZML) && File::exists(ms_path[0]))
       {
         setMetaValue("spectra_data", DataValue(StringList({ms_path[0]})));
@@ -444,7 +444,7 @@ namespace OpenMS
     {
       for (const String &filename : s)
       {
-        FileTypes::Type filetype = FileHandler::getTypeByFileName(filename);
+        FileTypes::Type filetype = FileTypes::getTypeByFileName(filename);
         if (filetype != FileTypes::MZML)
         {
           OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS runs.\n"

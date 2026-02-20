@@ -15,8 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -57,6 +56,29 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  /// Static callback for loading Param from XML, registered by IO layer
+  static File::ParamLoaderFunc& getParamLoaderCallback_()
+  {
+    static File::ParamLoaderFunc callback;
+    return callback;
+  }
+
+  void File::registerParamLoader(ParamLoaderFunc loader)
+  {
+    getParamLoaderCallback_() = std::move(loader);
+  }
+
+  void File::loadParamXML(const String& filename, Param& param)
+  {
+    auto& loader = getParamLoaderCallback_();
+    if (!loader)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "No ParamXML loader registered. The IO library must be linked.");
+    }
+    loader(filename, param);
+  }
 
   File::TempDir::TempDir(bool keep_dir)
     : keep_dir_(keep_dir)
@@ -682,8 +704,13 @@ namespace OpenMS
     }
     else
     {
-      ParamXMLFile paramFile;
-      paramFile.load(filename, p);
+      auto& loader = getParamLoaderCallback_();
+      if (!loader)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "No ParamXML loader registered. The IO library must be linked.");
+      }
+      loader(filename, p);
 
       // check version
       if (!p.exists("version") || (p.getValue("version") != VersionInfo::getVersion()))
@@ -879,8 +906,8 @@ namespace OpenMS
 
           if (ignore_extension)
           {
-              sl1_name = FileHandler::stripExtension(sl1_name);
-              sl2_name = FileHandler::stripExtension(sl2_name);
+              sl1_name = FileTypes::stripExtension(sl1_name);
+              sl2_name = FileTypes::stripExtension(sl2_name);
           }
 
           sl1_set.insert(sl1_name);

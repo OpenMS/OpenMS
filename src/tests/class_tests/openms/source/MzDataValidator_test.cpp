@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/MzDataValidator.h>
 ///////////////////////////
 
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;

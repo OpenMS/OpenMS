@@ -23,7 +23,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParamCWLFile.h>

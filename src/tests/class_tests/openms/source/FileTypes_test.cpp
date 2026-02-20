@@ -12,7 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 
 
 ///////////////////////////

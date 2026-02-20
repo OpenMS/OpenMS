@@ -27,7 +27,6 @@ ChromeleonFile.h
 CompressedInputSource.h
 CVMappingFile.h
 ConsensusXMLFile.h
-ControlledVocabulary.h
 CsvFile.h
 DTA2DFile.h
 DTAFile.h
@@ -107,7 +106,6 @@ UnimodXMLFile.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
-FileTypes.h
 MzIdentMLFile.h
 TraMLFile.h
 XMassFile.h

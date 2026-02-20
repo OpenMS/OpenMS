@@ -6,7 +6,7 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <regex>

@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/config.h>
 #include <cstdlib>
+#include <functional>
 #include <mutex>
 
 
@@ -217,6 +218,18 @@ public:
     ///   2. "home_dir" entry in OpenMS.ini
     ///   3. user home directory
     static String getUserDirectory();
+
+    /// Callback type for loading a Param from an XML file.
+    /// Signature: void(const String& filename, Param& param)
+    using ParamLoaderFunc = std::function<void(const String&, Param&)>;
+
+    /// Register the callback used by getSystemParameters() to load Param from XML.
+    /// The IO layer registers ParamXMLFile::load() via a static initializer.
+    static void registerParamLoader(ParamLoaderFunc loader);
+
+    /// Load a ParamXML file using the registered param loader callback.
+    /// @throws Exception::MissingInformation if no loader has been registered
+    static void loadParamXML(const String& filename, Param& param);
 
     /// get the system's default OpenMS.ini file in the users home directory (&lt;home&gt;/OpenMS/OpenMS.ini)
     /// or create/repair it if required

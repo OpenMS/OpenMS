@@ -12,7 +12,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
 
 ///////////////////////////

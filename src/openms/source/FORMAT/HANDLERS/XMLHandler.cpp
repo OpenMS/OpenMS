@@ -8,7 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>

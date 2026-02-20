@@ -20,7 +20,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 
 #include <map>

@@ -10,7 +10,7 @@
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 
 namespace OpenMS
 {
@@ -76,8 +76,11 @@ public:
     /// get the file_name_ which is the absolute path to the file loaded from
     const String & getLoadedFilePath() const;
 
-    /// set the file_type according to the type of the file loaded from (see FileHandler::Type) preferably done whilst loading
+    /// set the file_type by detecting the type from the file name (extension-based)
     void setLoadedFileType(const String & file_name);
+
+    /// set the file_type directly when the type is already known
+    void setLoadedFileType(FileTypes::Type type);
 
     /// get the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded from
     const FileTypes::Type & getLoadedFileType() const;

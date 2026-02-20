@@ -26,6 +26,18 @@ using namespace std;
 namespace OpenMS
 {
 
+  /// Static callback for loading Unimod XML, registered by IO layer
+  static ModificationsDB::UnimodLoaderFunc& getUnimodLoaderCallback_()
+  {
+    static ModificationsDB::UnimodLoaderFunc callback;
+    return callback;
+  }
+
+  void ModificationsDB::registerUnimodLoader(UnimodLoaderFunc loader)
+  {
+    getUnimodLoaderCallback_() = std::move(loader);
+  }
+
   bool ModificationsDB::residuesMatch_(const char residue, const ResidueModification* curr_mod) const
   {
     const char origin = curr_mod->getOrigin();

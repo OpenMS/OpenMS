@@ -11,7 +11,7 @@
 #include <OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
 
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
