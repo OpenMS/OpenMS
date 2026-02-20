@@ -82,6 +82,11 @@ endif()
 set_target_properties(OpenMS_IO PROPERTIES CXX_VISIBILITY_PRESET default)
 set_target_properties(OpenMS_IO PROPERTIES VISIBILITY_INLINES_HIDDEN 0)
 
+# Phase 1: Allow deferred symbol resolution on macOS (see build_core.cmake)
+if (APPLE)
+  target_link_options(OpenMS_IO PRIVATE "LINKER:-undefined,dynamic_lookup")
+endif()
+
 if (MSVC)
   target_compile_options(OpenMS_IO PRIVATE "/we4100" "/we4189")
 endif()

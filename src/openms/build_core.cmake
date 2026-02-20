@@ -60,6 +60,15 @@ openms_add_library(TARGET_NAME  OpenMS_Core
 set_target_properties(OpenMS_Core PROPERTIES CXX_VISIBILITY_PRESET default)
 set_target_properties(OpenMS_Core PROPERTIES VISIBILITY_INLINES_HIDDEN 0)
 
+# Phase 1: Allow deferred symbol resolution on macOS.
+# Some cross-library references (e.g. IO→Algo template instantiations) are
+# resolved at load time when all sub-libraries are loaded.  Linux allows this
+# by default; macOS requires an explicit flag.
+# TODO Phase 4: Break all cross-library back-dependencies to remove this.
+if (APPLE)
+  target_link_options(OpenMS_Core PRIVATE "LINKER:-undefined,dynamic_lookup")
+endif()
+
 if (MSVC)
   target_compile_options(OpenMS_Core PRIVATE "/we4100" "/we4189")
 endif()
