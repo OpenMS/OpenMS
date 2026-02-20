@@ -646,17 +646,25 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
   # Platform-specific dependency copying and fixing
   #------------------------------------------------------------------------------
   if(NOT NO_DEPENDENCIES)
-    # Define common dependencies to copy (OpenMS is INTERFACE, use sub-libraries)
-    set(PYOPENMS_DEPENDENCIES OpenMS_Core OpenMS_IO OpenMS_Algo OpenSwathAlgo)
-
-    # Step 1: Copy main OpenMS libraries (all platforms)
-    add_custom_target(pyopenms_copy_deps ALL
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenMS_Core> "${PYOPENMS_BUILD_DIR}/pyopenms/"
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenMS_IO> "${PYOPENMS_BUILD_DIR}/pyopenms/"
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenMS_Algo> "${PYOPENMS_BUILD_DIR}/pyopenms/"
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenSwathAlgo> "${PYOPENMS_BUILD_DIR}/pyopenms/"
-      COMMENT "Copying OpenMS dependencies to build dir"
-    )
+    # On MSVC, OpenMS is a single monolithic DLL; on Unix it is split into
+    # three sub-libraries (Core, IO, Algo).  OpenSwathAlgo is always separate.
+    if(MSVC)
+      set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
+      add_custom_target(pyopenms_copy_deps ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenMS> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenSwathAlgo> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+        COMMENT "Copying OpenMS dependencies to build dir"
+      )
+    else()
+      set(PYOPENMS_DEPENDENCIES OpenMS_Core OpenMS_IO OpenMS_Algo OpenSwathAlgo)
+      add_custom_target(pyopenms_copy_deps ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenMS_Core> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenMS_IO> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenMS_Algo> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenSwathAlgo> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+        COMMENT "Copying OpenMS dependencies to build dir"
+      )
+    endif()
     add_dependencies(pyopenms_copy_deps pyopenms_compile)
     
     # Step 2: Platform-specific transitive dependency handling

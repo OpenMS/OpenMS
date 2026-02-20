@@ -5,8 +5,8 @@
 # OpenMS_IO — file format readers/writers (FORMAT module)
 # --------------------------------------------------------------------------
 
-# Aggregate IO source files using the reset-and-capture pattern
-include(${CMAKE_CURRENT_LIST_DIR}/io_includes.cmake)
+# Source files are aggregated by io_includes.cmake, which is included
+# from the parent CMakeLists.txt (before this file).
 
 # Merge header list (no configured headers for IO — they belong to Core)
 source_group("Header Files\\OpenMS\\FORMAT" FILES ${OpenMS_IO_sources_h})

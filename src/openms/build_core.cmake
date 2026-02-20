@@ -5,8 +5,8 @@
 # OpenMS_Core — fundamental data structures, kernel, chemistry, metadata
 # --------------------------------------------------------------------------
 
-# Aggregate Core source files using the reset-and-capture pattern
-include(${CMAKE_CURRENT_LIST_DIR}/core_includes.cmake)
+# Source files are aggregated by core_includes.cmake, which is included
+# from the parent CMakeLists.txt (before this file).
 
 # Add configured headers and merge header list
 source_group("Header Files\\OpenMS" FILES ${OpenMS_configured_headers})

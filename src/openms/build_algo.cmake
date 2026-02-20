@@ -5,8 +5,8 @@
 # OpenMS_Algo — algorithms, analysis, processing, ML, feature finding
 # --------------------------------------------------------------------------
 
-# Aggregate Algo source files using the reset-and-capture pattern
-include(${CMAKE_CURRENT_LIST_DIR}/algo_includes.cmake)
+# Source files are aggregated by algo_includes.cmake, which is included
+# from the parent CMakeLists.txt (before this file).
 
 # Merge header list
 source_group("Header Files\\OpenMS" FILES ${OpenMS_Algo_sources_h})

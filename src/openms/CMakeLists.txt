@@ -50,32 +50,52 @@ add_subdirectory(extern)
 include(${PROJECT_SOURCE_DIR}/configh.cmake)
 
 #------------------------------------------------------------------------------
-# Build sub-libraries (order matters: Core first, then IO, then Algo)
+# Source file aggregation (always needed — produces three variable sets)
 # Using include() rather than add_subdirectory() so that CMAKE_CURRENT_SOURCE_DIR
 # stays as src/openms/, which the existing sources.cmake files depend on for
 # their relative paths (e.g. "source/CONCEPT/Constants.cpp").
 #------------------------------------------------------------------------------
-include(${CMAKE_CURRENT_SOURCE_DIR}/build_core.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/build_io.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/build_algo.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/core_includes.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/io_includes.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/algo_includes.cmake)
 
-#------------------------------------------------------------------------------
-# Backward-compatible umbrella INTERFACE target
-# Consumers can simply link against "OpenMS" and get all three sub-libraries.
-#------------------------------------------------------------------------------
-add_library(OpenMS INTERFACE)
-# All Core→IO back-dependencies have been broken: Core no longer references any
-# IO symbols directly.  The linker can process libraries in a single pass.
-target_link_libraries(OpenMS INTERFACE OpenMS_Algo OpenMS_IO OpenMS_Core)
-target_include_directories(OpenMS INTERFACE
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
-  "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"
-)
+if (NOT MSVC)
+  #----------------------------------------------------------------------------
+  # Unix: Build three separate shared libraries (Core → IO → Algo)
+  #----------------------------------------------------------------------------
+  include(${CMAKE_CURRENT_SOURCE_DIR}/build_core.cmake)
+  include(${CMAKE_CURRENT_SOURCE_DIR}/build_io.cmake)
+  include(${CMAKE_CURRENT_SOURCE_DIR}/build_algo.cmake)
 
-# Export the umbrella target for find_package(OpenMS) consumers
-openms_register_export_target(OpenMS)
-install(TARGETS OpenMS EXPORT OpenMSTargets)
+  # Backward-compatible umbrella INTERFACE target.
+  # Consumers can simply link against "OpenMS" and get all three sub-libraries.
+  # LINK_GROUP:RESCAN wraps libraries in --start-group/--end-group (GNU ld) so
+  # the linker rescans to resolve cross-library symbol references.  This is
+  # needed because IO FORMAT files reference Algo types (TargetedExperiment,
+  # OPXLHelper, etc.) — a back-dependency from IO→Algo.
+  # TODO Phase 4: Break all IO→Algo back-dependencies to remove RESCAN.
+  add_library(OpenMS INTERFACE)
+  target_link_libraries(OpenMS INTERFACE
+    "$<LINK_GROUP:RESCAN,OpenMS_Algo,OpenMS_IO,OpenMS_Core>")
+  target_include_directories(OpenMS INTERFACE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
+    "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"
+  )
+  openms_register_export_target(OpenMS)
+  install(TARGETS OpenMS EXPORT OpenMSTargets)
+
+else()
+  #----------------------------------------------------------------------------
+  # Windows (MSVC): Build a single monolithic OpenMS DLL.
+  # Windows DLLs require all symbols resolved at link time and proper
+  # __declspec(dllexport/dllimport) annotations.  Phase 4 will add per-library
+  # export macros; until then, we keep the monolithic DLL on Windows.
+  #----------------------------------------------------------------------------
+  include(${CMAKE_CURRENT_SOURCE_DIR}/build_monolithic.cmake)
+
+endif()
+
 
 # Provide backward-compatible variables for legacy CMake consumers
 set(OpenMS_LIBRARIES OpenMS CACHE INTERNAL "OpenMS libraries" FORCE)
