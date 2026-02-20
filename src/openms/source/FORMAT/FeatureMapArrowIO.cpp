@@ -127,7 +127,22 @@ namespace // anonymous
                 else if (ch >= 'a' && ch <= 'f') cp |= (ch - 'a' + 10);
                 else if (ch >= 'A' && ch <= 'F') cp |= (ch - 'A' + 10);
               }
-              result += static_cast<char>(cp);
+              // Encode as UTF-8
+              if (cp < 0x80)
+              {
+                result += static_cast<char>(cp);
+              }
+              else if (cp < 0x800)
+              {
+                result += static_cast<char>(0xC0 | (cp >> 6));
+                result += static_cast<char>(0x80 | (cp & 0x3F));
+              }
+              else
+              {
+                result += static_cast<char>(0xE0 | (cp >> 12));
+                result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+                result += static_cast<char>(0x80 | (cp & 0x3F));
+              }
               i += 4;
             }
             break;

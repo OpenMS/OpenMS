@@ -1467,7 +1467,14 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     String enzyme_name = getStringValue_(col_enzyme, row);
     if (!enzyme_name.empty())
     {
-      sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme_name);
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_name))
+      {
+        sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme_name);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "ProteinIdentificationArrowIO: Unknown enzyme '" << enzyme_name << "'" << std::endl;
+      }
     }
 
     // Enzyme term specificity
