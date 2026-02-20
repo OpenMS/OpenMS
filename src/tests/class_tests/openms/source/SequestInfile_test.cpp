@@ -14,11 +14,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/SequestInfile.h>
 
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <string>
-#include <sstream>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

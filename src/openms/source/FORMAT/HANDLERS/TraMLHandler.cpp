@@ -13,8 +13,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
-#include <ostream>
-#include <map>
+import std;
+
 
 namespace OpenMS::Internal
 {

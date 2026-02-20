@@ -16,8 +16,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include <cmath>       // round
-#include <iomanip>     // setw
+import std;
+
 
 namespace OpenSwath
 {

@@ -17,7 +17,10 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
-#include <fstream>
+#include <cmath>
+#include <regex>
+import std;
+
 
 using namespace std;
 

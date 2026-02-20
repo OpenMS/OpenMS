@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/Colorizer.h>
-#include <iostream>
 
 #ifdef OPENMS_WINDOWSPLATFORM
   #include <OpenMS/APPLICATIONS/ConsoleUtils.h>
@@ -18,6 +17,7 @@
   #include <unistd.h>  // for isatty(), STDOUT_FILENO, STDERR_FILENO
 #endif
 
+import std;
 
 namespace OpenMS
 {

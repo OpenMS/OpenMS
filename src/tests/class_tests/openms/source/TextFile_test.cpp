@@ -12,8 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/TextFile.h>
-#include <iostream>
-#include <vector>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

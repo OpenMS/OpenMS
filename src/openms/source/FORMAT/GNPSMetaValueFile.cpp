@@ -10,9 +10,8 @@
 #include <OpenMS/FORMAT/GNPSMetaValueFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
-#include <fstream>
-#include <iostream>
-#include <unordered_map>
+import std;
+
 
 namespace OpenMS
 {

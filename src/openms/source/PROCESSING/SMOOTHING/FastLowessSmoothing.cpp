@@ -22,10 +22,8 @@
 #include <OpenMS/PROCESSING/SMOOTHING/FastLowessSmoothing.h>
 
 #include <cmath>
-#include <algorithm>    // std::min, std::max
-#include <cstdlib>
-#include <vector>
-#include <functional>
+import std;
+
 
 namespace c_lowess
 {

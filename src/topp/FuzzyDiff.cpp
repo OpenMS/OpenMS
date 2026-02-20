@@ -12,8 +12,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <algorithm>
-#include <fstream>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

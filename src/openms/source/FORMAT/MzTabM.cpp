@@ -11,6 +11,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <regex>
 
+import std;
+
 namespace OpenMS
 {
 

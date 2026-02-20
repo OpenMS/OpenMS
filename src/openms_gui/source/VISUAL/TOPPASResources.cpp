@@ -10,8 +10,8 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
-#include <iostream>
-#include <map>
+import std;
+
 
 namespace OpenMS
 {

@@ -18,7 +18,8 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 
-#include <limits>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;
@@ -408,6 +409,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

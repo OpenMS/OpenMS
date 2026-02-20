@@ -16,9 +16,8 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <fstream>
-#include <limits>
-#include <vector>
+import std;
+
 
 ///////////////////////////
 

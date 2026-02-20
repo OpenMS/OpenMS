@@ -19,7 +19,8 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/unordered_map.hpp>
-#include <unordered_set>
+
+import std;
 
 namespace OpenMS
 {

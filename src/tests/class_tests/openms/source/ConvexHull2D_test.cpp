@@ -14,8 +14,8 @@
 
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 
-#include <unordered_set>
-#include <unordered_map>
+import std;
+
 
 ///////////////////////////
 
@@ -107,7 +107,6 @@ START_SECTION((void addPoints(const PointArrayType &points)))
 	tmp.addPoints(vec);
 	TEST_EQUAL(!tmp.getHullPoints().empty(),true)
 END_SECTION
-
 
 
 START_SECTION((void clear()))

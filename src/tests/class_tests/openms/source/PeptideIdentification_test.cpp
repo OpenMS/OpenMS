@@ -10,9 +10,6 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <string>
-#include <unordered_set>
-#include <unordered_map>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -26,6 +23,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+import std;
 
 ///////////////////////////
 

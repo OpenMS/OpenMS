@@ -14,7 +14,9 @@
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <vector>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -112,6 +114,5 @@ delete ptr;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

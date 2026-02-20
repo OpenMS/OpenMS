@@ -14,8 +14,9 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <vector>
-#include <iostream>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -322,11 +323,8 @@ NOT_TESTABLE
 END_SECTION
 
 
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

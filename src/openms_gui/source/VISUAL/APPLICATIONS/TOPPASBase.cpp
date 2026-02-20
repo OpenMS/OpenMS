@@ -31,7 +31,6 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
 
-#include <map>
 
 //Qt
 #include <QApplication>
@@ -71,8 +70,9 @@
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWhatsThis>
-#include <utility>
 #include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
+
+import std;
 
 
 using namespace std;

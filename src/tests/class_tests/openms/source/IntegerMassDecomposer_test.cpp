@@ -18,7 +18,8 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 
-#include <map>
+import std;
+
 
 using namespace OpenMS;
 using namespace ims;
@@ -100,6 +101,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

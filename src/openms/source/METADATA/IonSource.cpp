@@ -9,7 +9,8 @@
 #include <OpenMS/METADATA/IonSource.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <algorithm>
+import std;
+
 
 using namespace std;
 

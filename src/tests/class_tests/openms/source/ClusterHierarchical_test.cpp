@@ -17,8 +17,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
-#include <vector>
-#include <algorithm>
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -263,6 +263,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

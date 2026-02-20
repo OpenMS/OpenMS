@@ -8,7 +8,8 @@
 
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <numeric>
+
+import std;
 
 using namespace std;
 

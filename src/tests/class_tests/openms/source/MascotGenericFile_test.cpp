@@ -11,12 +11,13 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <sstream>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

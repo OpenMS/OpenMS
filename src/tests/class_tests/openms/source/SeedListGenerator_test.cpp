@@ -8,13 +8,14 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <map>
 
 ///////////////////////////
 
 #include <OpenMS/FEATUREFINDER/SeedListGenerator.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+
+import std;
 
 
 using namespace OpenMS;

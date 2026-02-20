@@ -18,6 +18,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <regex>
+import std;
 
 
 using namespace OpenMS;

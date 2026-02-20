@@ -9,11 +9,8 @@
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>
 
-#include <functional>
-#include <numeric>
-#include <algorithm>
-#include <iostream>
-#include <cmath>
+import std;
+
 
 namespace OpenMS::ims
 {

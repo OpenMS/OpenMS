@@ -20,7 +20,8 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/connected_components.hpp>
 
-#include <ostream>
+import std;
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif

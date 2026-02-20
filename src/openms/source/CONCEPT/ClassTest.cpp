@@ -26,10 +26,10 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <iomanip>
-#include <fstream>
 
 #include <QtCore/QFileInfo>
+
+import std;
 
 namespace OpenMS::Internal::ClassTest
 {

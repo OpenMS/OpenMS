@@ -34,8 +34,6 @@
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 // STL
-#include <iostream>
-#include <map>
 
 #ifdef OPENMS_WINDOWSPLATFORM
   #ifndef _WIN32_WINNT
@@ -43,6 +41,8 @@
   #endif
   #include <Windows.h>
 #endif
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

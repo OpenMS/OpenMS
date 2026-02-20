@@ -20,8 +20,9 @@
 #include <QtCore/QString>
 #include <QtCore/QFileInfo>
 
-#include <algorithm>
-#include <iostream>
+#include <assert.h>
+import std;
+
 
 using namespace std;
 

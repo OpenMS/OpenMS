@@ -8,7 +8,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 
-#include <algorithm>    // std::lower_bound, std::upper_bound, std::sort
+import std;
+
 
 namespace OpenMS
 {

@@ -8,7 +8,8 @@
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
-#include <map>
+
+import std;
 
 namespace OpenMS
 {

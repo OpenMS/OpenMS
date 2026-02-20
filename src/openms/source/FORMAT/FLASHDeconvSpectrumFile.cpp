@@ -8,7 +8,9 @@
 
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <random>
+
+#include <stdlib.h>
+import std;
 
 namespace OpenMS
 {

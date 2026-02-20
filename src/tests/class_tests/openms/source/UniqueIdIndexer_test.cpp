@@ -14,7 +14,8 @@
 #include <OpenMS/DATASTRUCTURES/ExposedVector.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
-#include <vector>
+import std;
+
 
 ///////////////////////////
 
@@ -194,7 +195,6 @@ START_SECTION((void swap(UniqueIdIndexer &rhs)))
 
 }
 END_SECTION
-
 
 
 /////////////////////////////////////////////////////////////

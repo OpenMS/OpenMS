@@ -21,15 +21,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 
-#include <algorithm>
-#include <cmath>
-#include <cstdlib>
-#include <iomanip>
-#include <optional>
-#include <set>
-#include <sstream>
-#include <string_view>
-#include <type_traits>
+#include <stdint.h>
+import std;
+
 
 namespace OpenMS
 {

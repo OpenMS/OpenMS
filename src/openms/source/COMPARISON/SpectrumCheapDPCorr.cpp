@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/SpectrumCheapDPCorr.h>
-#include <map>
 
 // #define SPECTRUMCHEAPDPCORR_DEBUG
 // #undef  SPECTRUMCHEAPDPCORR_DEBUG
@@ -17,6 +16,9 @@
 #endif
 
 #include <boost/math/distributions.hpp>
+
+#include <cmath>
+import std;
 
 using namespace std;
 

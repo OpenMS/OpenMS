@@ -15,7 +15,8 @@
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
-#include <vector>
+import std;
+
 
 ///////////////////////////
 

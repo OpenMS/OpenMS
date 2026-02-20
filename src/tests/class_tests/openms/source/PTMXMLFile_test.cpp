@@ -15,7 +15,8 @@
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/PTMXMLHandler.h>
 
-#include <vector>
+import std;
+
 
 ///////////////////////////
 

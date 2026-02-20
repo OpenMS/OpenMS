@@ -11,11 +11,11 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <array>
-#include <list>
-#include <utility>
 
-#include <cassert>
+#include <assert.h>
+
+import std;
+
 namespace OpenMS
 {
 

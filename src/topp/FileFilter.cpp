@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/CONCEPT/EnumHelpers.h>
@@ -26,8 +25,10 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
-#include <algorithm>
-#include <memory>
+#include <cmath>
+#include <assert.h>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;
@@ -1084,7 +1085,6 @@ protected:
           return (ExitCodes)ret;
         }
       }
-
 
 
       //-------------------------------------------------------------

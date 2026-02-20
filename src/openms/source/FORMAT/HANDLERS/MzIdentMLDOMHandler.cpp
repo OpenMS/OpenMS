@@ -19,7 +19,9 @@
 #include <boost/lexical_cast.hpp>
 
 #include <sys/stat.h>
-#include <cerrno>
+#include <errno.h>
+
+import std;
 
 using namespace std;
 using namespace xercesc;

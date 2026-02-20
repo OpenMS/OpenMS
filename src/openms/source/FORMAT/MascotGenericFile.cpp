@@ -20,7 +20,8 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QRegularExpression>
 
-#include <iomanip>     // setw
+import std;
+
 
 #define HIGH_PRECISION 5
 #define LOW_PRECISION 3

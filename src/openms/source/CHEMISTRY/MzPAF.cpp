@@ -12,11 +12,8 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 
-#include <algorithm>
-#include <cctype>
-#include <cmath>
-#include <ostream>
-#include <sstream>
+import std;
+
 
 namespace OpenMS
 {

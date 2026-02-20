@@ -18,7 +18,8 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QWidget>
-#include <utility>
+
+import std;
 
 namespace OpenMS
 {

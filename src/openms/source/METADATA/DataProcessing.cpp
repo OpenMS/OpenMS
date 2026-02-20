@@ -9,7 +9,8 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <algorithm>
+import std;
+
 
 using namespace std;
 

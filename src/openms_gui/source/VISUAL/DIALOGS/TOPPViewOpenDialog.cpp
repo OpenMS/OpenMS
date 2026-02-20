@@ -18,8 +18,9 @@
 // QT includes
 #include <QtWidgets/QButtonGroup>
 
+import std;
+
 // STL includes
-#include <iostream>
 
 using namespace std;
 

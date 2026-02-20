@@ -18,9 +18,8 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
-#include <cmath>
-#include <algorithm>
-#include <map>
+import std;
+
 
 using namespace std;
 
@@ -595,8 +594,6 @@ namespace OpenMS
       return 0.0;
     }
 }
-
-
 
 
 /*void AASequence::getNeutralLosses(Map<const EmpiricalFormula, UInt) const

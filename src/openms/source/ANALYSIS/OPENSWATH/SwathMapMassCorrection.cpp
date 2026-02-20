@@ -17,8 +17,9 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
-#include <fstream>
-#include <algorithm>
+#include <cmath>
+import std;
+
 
 #define SWATHMAPMASSCORRECTION_DEBUG
 

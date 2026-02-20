@@ -15,12 +15,8 @@
 #include <include/OpenMS/CONCEPT/Constants.h>
 
 #include <cmath>
-#include <iostream>
-#include <cstdlib>
-#include <algorithm>
-#include <limits>
-#include <functional>
-#include <numeric>
+import std;
+
 
 using namespace std;
 
@@ -97,7 +93,6 @@ namespace OpenMS
     // Element counts are from Senko's Averagine model
     return estimateFromMonoWeightAndComp(mono_weight, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
-
 
 
   IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromPeptideWeightAndS(double average_weight, UInt S)

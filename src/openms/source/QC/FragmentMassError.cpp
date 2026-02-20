@@ -19,8 +19,10 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/QC/FragmentMassError.h>
-#include <cassert>
-#include <string>
+#include <assert.h>
+
+#include <cmath>
+import std;
 
 namespace OpenMS
 {

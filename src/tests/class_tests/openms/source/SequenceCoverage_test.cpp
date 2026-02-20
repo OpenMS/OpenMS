@@ -11,7 +11,8 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <vector>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

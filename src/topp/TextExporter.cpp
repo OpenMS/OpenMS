@@ -22,8 +22,8 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <vector>
-#include <algorithm>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

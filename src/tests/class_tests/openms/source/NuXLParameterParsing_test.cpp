@@ -17,7 +17,6 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <unordered_set>
 
 using namespace std;
 
@@ -25,6 +24,8 @@ using namespace std;
 
 #include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

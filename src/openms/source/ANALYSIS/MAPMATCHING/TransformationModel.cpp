@@ -10,9 +10,8 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <iostream>     // std::cout
-#include <algorithm>    // std::find
-#include <cmath>    // std::log
+
+import std;
 
 namespace OpenMS
 {

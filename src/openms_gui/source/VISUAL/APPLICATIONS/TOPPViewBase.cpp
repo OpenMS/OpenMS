@@ -62,9 +62,11 @@
 #include <QtWidgets/QSplashScreen>
 #include <QtWidgets/QToolButton>
 
-#include <cmath>
-#include <utility>
 #include <boost/make_shared.hpp>
+
+#include <cmath>
+#include <assert.h>
+import std;
 
 using namespace std;
 
@@ -357,7 +359,6 @@ namespace OpenMS
     views_dockwidget_->setWidget(selection_view_);
 
     
-
     // add hide/show option to dock widget
     menu_.addWindowToggle(views_dockwidget_->toggleViewAction());
 

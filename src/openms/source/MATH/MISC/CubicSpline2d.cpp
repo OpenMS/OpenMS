@@ -10,8 +10,8 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <algorithm>
-#include <functional>
+import std;
+
 
 using namespace std;
 

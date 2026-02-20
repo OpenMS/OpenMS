@@ -8,7 +8,8 @@
 //
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h>
-#include <ostream>
+
+import std;
 
 namespace OpenMS::ims
 {

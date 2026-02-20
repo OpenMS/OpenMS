@@ -8,7 +8,8 @@
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
 
-#include <numeric> // for "accumulate"
+import std;
+
 
 using namespace std;
 

@@ -13,7 +13,8 @@
 #include <QRegularExpressionValidator>
 #include <QRegularExpression>
 
-#include <iostream>
+import std;
+
 
 namespace OpenMS
 {

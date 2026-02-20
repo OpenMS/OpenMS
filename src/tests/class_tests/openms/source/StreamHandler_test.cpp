@@ -11,9 +11,11 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/StreamHandler.h>
+
+import std;
+
 ///////////////////////////
 
-#include <sstream>
 
 using namespace OpenMS;
 using namespace std;

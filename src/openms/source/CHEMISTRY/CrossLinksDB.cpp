@@ -10,7 +10,8 @@
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <fstream>
+import std;
+
 
 using namespace std;
 

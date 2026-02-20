@@ -11,7 +11,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Helpers.h>
 
-#include <algorithm>
+import std;
+
 
 using namespace std;
 

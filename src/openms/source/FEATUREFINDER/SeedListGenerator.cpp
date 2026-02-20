@@ -7,7 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FEATUREFINDER/SeedListGenerator.h>
-#include <map>
+
+import std;
 
 using namespace std;
 

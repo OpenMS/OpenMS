@@ -17,10 +17,9 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QButtonGroup>
 
+import std;
+
 //STL
-#include <iostream>
-#include <vector>
-#include <utility>
 
 using namespace std;
 

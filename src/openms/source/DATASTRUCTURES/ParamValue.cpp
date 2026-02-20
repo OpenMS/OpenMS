@@ -10,8 +10,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <sstream>
-#include <cmath>
+
+import std;
 
 namespace OpenMS
 {

@@ -20,8 +20,8 @@
 
 #include <boost/math/special_functions/binomial.hpp>
 
-#include <iostream>
-#include <algorithm>
+import std;
+
 
 using namespace std;
 

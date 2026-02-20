@@ -6,7 +6,6 @@
 // $Authors: Andreas Bertsch, Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#include <algorithm>
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
@@ -16,6 +15,8 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+
+import std;
 
 
 using namespace OpenMS;

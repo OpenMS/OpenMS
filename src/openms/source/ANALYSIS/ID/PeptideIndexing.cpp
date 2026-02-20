@@ -15,9 +15,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
-#include <atomic>
-#include <unordered_map>
-#include <array>
+import std;
 
 
 #ifdef _OPENMP 

@@ -13,7 +13,8 @@
 
 #include <OpenMS/FEATUREFINDER/ExtendedIsotopeModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <sstream>
+
+import std;
 
 
 ///////////////////////////

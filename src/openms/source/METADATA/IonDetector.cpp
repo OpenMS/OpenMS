@@ -8,7 +8,8 @@
 
 #include <OpenMS/METADATA/IonDetector.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <algorithm>
+
+import std;
 
 using namespace std;
 

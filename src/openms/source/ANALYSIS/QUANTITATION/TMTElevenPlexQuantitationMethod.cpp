@@ -11,7 +11,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
-#include <algorithm>
+import std;
+
 
 namespace OpenMS
 {

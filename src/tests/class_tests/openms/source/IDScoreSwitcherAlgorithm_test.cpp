@@ -15,7 +15,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
-#include <vector>
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -173,7 +174,6 @@ START_SECTION(findScoreType)
   TEST_EQUAL(result8.score_name, "FDR");
 }
 END_SECTION
-
 
 
 /////////////////////////////////////////////////////////////

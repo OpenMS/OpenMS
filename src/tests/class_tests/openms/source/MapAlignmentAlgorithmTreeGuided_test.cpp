@@ -12,7 +12,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 
-#include <iostream>
+import std;
+
 
 using namespace std;
 using namespace OpenMS;

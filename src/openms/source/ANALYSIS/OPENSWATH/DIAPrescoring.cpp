@@ -16,9 +16,9 @@
 
 #include <boost/lexical_cast.hpp>
 
-#include <iostream>
-#include <algorithm>
-#include <utility>
+#include <cmath>
+import std;
+
 
 namespace OpenMS
 {

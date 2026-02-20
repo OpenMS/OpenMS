@@ -19,7 +19,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
-#include <iostream>
+
+import std;
 
 
 START_TEST(TheoreticalSpectrumGeneratorXLMS, "$Id$")

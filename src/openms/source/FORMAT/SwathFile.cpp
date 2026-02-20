@@ -22,7 +22,9 @@
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <memory> // for make_shared
+#include <cmath>
+import std;
+
 
 namespace OpenMS
 {

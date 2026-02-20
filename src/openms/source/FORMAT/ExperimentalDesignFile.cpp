@@ -16,7 +16,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QFileInfo>
 #include <QtCore/QString>
-#include <iostream>
+
+import std;
 
 using namespace std;
 

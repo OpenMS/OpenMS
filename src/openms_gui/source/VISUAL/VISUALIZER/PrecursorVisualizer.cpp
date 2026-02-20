@@ -13,8 +13,9 @@
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QListWidget>
 
+import std;
+
 //STL
-#include <iostream>
 
 using namespace std;
 

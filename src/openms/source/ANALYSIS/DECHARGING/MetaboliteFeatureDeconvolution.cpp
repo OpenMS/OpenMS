@@ -17,9 +17,10 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <cmath>
+import std;
+
 //DEBUG:
-#include <fstream>
-#include <map>
 
 #undef DC_DEVEL
 //#define DC_DEVEL 1

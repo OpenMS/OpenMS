@@ -16,7 +16,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/DBSuitability.h>
 
-#include <vector>
 
 ///////////////////////////
 
@@ -31,6 +30,9 @@ using namespace std;
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <boost/regex.hpp>
+
+#include <float.h>
+import std;
 
 int countAS(const vector<FASTAFile::FASTAEntry>& fasta)
 {

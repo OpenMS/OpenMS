@@ -15,10 +15,11 @@
 // Spline2dInterpolator
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
-#include <numeric>
 
 // AkimaInterpolator
 #include <Mathematics/IntpAkimaNonuniform1.h>
+
+import std;
 
 namespace OpenMS
 {

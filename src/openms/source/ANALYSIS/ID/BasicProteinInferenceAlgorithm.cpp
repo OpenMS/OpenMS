@@ -13,10 +13,8 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
-#include <algorithm>
-#include <iostream>
-#include <map>
-#include <unordered_map>
+import std;
+
 
 namespace OpenMS
 {

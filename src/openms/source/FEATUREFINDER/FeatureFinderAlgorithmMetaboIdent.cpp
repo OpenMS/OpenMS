@@ -31,11 +31,9 @@
 
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
-#include <vector>
-#include <numeric>
-#include <fstream>
-#include <algorithm>
-#include <random>
+#include <cmath>
+import std;
+
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -387,7 +385,6 @@ namespace OpenMS
       sort(features.begin(), features.end(), feature_compare_);
       FileHandler().storeFeatures(candidates_out_, features);
     }
-
 
 
     selectFeaturesFromCandidates_(features);

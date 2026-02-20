@@ -8,7 +8,8 @@
 //
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
-#include <iostream>
+
+import std;
 
 using namespace std;
 

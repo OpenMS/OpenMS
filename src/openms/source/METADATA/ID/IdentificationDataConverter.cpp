@@ -13,7 +13,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
-#include <vector>
+
+import std;
 
 using namespace std;
 

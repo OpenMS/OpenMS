@@ -14,9 +14,8 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
-#include <algorithm>
-#include <iostream>
-#include <map>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

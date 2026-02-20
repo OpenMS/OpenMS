@@ -102,10 +102,9 @@
 #include <OpenMS/VISUAL/APPLICATIONS/SwathWizardBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
+import std;
+
 //STL
-#include <iostream>
-#include <map>
-#include <vector>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #   ifndef _WIN32_WINNT

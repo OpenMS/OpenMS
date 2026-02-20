@@ -11,9 +11,8 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <map>
-#include <set>
-#include <list>
+import std;
+
 
 //using namespace std;
 

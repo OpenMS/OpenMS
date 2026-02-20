@@ -8,7 +8,6 @@
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <map>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -22,10 +21,10 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <iostream>
-#include <unordered_set>
-#include <functional>
 #include <OpenMS/SYSTEM/StopWatch.h>
+
+#include <cmath>
+import std;
 
 using namespace OpenMS;
 using namespace std;
@@ -699,7 +698,6 @@ START_SECTION(const String& getNTerminalModificationName() const)
   AASequence seq2 = AASequence::fromString("DFPIANGER");
   TEST_EQUAL(seq2.getNTerminalModificationName(), "");
 END_SECTION
-
 
 
 START_SECTION(const ResidueModification* getNTerminalModification() const)

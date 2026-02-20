@@ -12,9 +12,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <map>
-#include <string>
-#include <utility>
+
+import std;
 
 using namespace std;
 

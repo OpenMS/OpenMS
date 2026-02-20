@@ -14,9 +14,10 @@
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 
+import std;
+
 ///////////////////////////
 
-#include <sstream>
 
 using namespace OpenMS;
 using namespace std;

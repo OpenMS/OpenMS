@@ -17,11 +17,11 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+
+import std;
+
 ///////////////////////////
 
-#include <fstream>
-#include <sstream>
-#include <algorithm>
 
 using namespace OpenMS;
 using namespace std;

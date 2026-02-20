@@ -15,7 +15,8 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
-#include <map>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

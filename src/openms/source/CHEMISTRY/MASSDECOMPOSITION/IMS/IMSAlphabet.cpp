@@ -7,13 +7,13 @@
 // --------------------------------------------------------------------------
 //
 
-#include <functional>
-#include <algorithm>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h>
+
+import std;
 
 namespace OpenMS::ims
 {

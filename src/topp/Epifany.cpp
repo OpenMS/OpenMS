@@ -20,7 +20,8 @@
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
-#include <vector>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;
@@ -460,7 +461,6 @@ protected:
     return std::optional<const ExperimentalDesign>(ExperimentalDesignFile::load(filename, false));
   }
 };
-
 
 
 int main(int argc, const char** argv)

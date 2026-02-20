@@ -10,7 +10,8 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <tuple>
+
+import std;
 
 using namespace std;
 using namespace OpenMS;

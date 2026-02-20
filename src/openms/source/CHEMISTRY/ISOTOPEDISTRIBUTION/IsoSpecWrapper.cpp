@@ -12,11 +12,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CHEMISTRY/Element.h>
-#include <iterator>
-#include <memory>
-#include <string>
-#include <utility>
-
 // Override IsoSpec's use of mmap whenever it is available
 #define ISOSPEC_GOT_SYSTEM_MMAN false
 #define ISOSPEC_GOT_MMAN false
@@ -32,6 +27,8 @@
 #include "IsoSpec/element_tables.h"
 #include "IsoSpec/misc.h"
 #include "IsoSpec/fasta.h"
+
+import std;
 
 using namespace std;
 using namespace IsoSpec;

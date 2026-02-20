@@ -15,9 +15,10 @@
 #include <OpenMS/SYSTEM/PythonInfo.h>
 #include <OpenMS/SYSTEM/File.h>
             
-#include <fstream>
 
 #include <QDir>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

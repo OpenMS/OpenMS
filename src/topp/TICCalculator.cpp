@@ -22,7 +22,8 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
-#include <numeric>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

@@ -12,9 +12,11 @@
 #include <OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
+
+import std;
+
 ///////////////////////////
 
-#include <string>
 
 using namespace OpenMS;
 using namespace std;
@@ -95,6 +97,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

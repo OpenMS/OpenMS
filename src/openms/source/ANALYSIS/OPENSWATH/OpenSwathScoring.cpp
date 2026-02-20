@@ -24,7 +24,8 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
-#include <utility>
+import std;
+
 namespace OpenMS
 {
 

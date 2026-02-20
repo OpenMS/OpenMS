@@ -18,8 +18,8 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <atomic>
-#include <map>
+import std;
+
 
 namespace OpenMS::Internal
 {

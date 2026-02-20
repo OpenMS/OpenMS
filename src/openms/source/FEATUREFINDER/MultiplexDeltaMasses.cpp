@@ -8,8 +8,8 @@
 
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
-#include <sstream>
-#include <utility>
+import std;
+
 
 using namespace std;
 

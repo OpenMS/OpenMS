@@ -34,7 +34,8 @@
 #include <OpenMS/QC/MQMsmsExporter.h>
 #include <OpenMS/QC/MQExporterHelper.h>
 
-#include <map>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

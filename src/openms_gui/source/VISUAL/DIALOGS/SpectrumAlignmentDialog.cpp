@@ -16,7 +16,8 @@
 // QT includes
 #include <QtWidgets/QButtonGroup>
 
-#include <vector>
+import std;
+
 
 namespace OpenMS
 {

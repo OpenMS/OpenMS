@@ -14,16 +14,11 @@
 // This one is going to be tested.
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
+import std;
+
 ///////////////////////////
 
 // More headers
-
-#include <algorithm>
-#include <functional>
-#include <iostream>
-#include <iterator>
-#include <vector>
-#include <string>
 
 
 ///////////////////////////

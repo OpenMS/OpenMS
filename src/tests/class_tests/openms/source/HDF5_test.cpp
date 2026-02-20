@@ -14,7 +14,6 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Types.h>
-
 using namespace std;
 
 
@@ -33,8 +32,9 @@ using namespace std;
  * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <string>
 #include "H5Cpp.h"
+
+import std;
 
 using namespace H5;
 const H5std_string  FILE_NAME( "SDS.h5" );

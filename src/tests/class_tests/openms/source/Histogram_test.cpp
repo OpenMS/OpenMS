@@ -12,8 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
-#include <iostream>
-#include <vector>
+
+import std;
 
 using namespace OpenMS;
 using namespace OpenMS::Math;

@@ -9,7 +9,8 @@
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 
 #include <OpenMS/FORMAT/Base64.h>
-#include <map>
+
+import std;
 
 namespace OpenMS::Internal
 {

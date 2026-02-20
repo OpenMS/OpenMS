@@ -28,7 +28,6 @@
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
 //STL
-#include <algorithm>
 
 //QT
 #include <QMouseEvent>
@@ -38,6 +37,8 @@
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
+
+import std;
 
 #define PEN_SIZE_MAX_LIMIT 100    // maximum size of a rectangle representing a point for raw peak data
 #define PEN_SIZE_MIN_LIMIT 1      // minimum. This should not be changed without adapting the way dots are plotted

@@ -8,8 +8,6 @@
 
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
 
-#include <algorithm>
-#include <numeric>
 
 // array_wrapper needs to be included before it is used
 // only in boost1.64+. See issue #2790
@@ -19,6 +17,9 @@
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
+
+#include <assert.h>
+import std;
 
 namespace OpenMS
 {

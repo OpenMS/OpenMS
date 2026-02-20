@@ -21,9 +21,9 @@
 
 #include <QtWidgets/QMessageBox>
 
-#include <iostream>
-#include <sstream>
 #include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
+
+import std;
 
 namespace OpenMS
 {

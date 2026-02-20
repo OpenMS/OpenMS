@@ -6,10 +6,10 @@
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
-#include <iostream>
-#include <algorithm>
 
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
+
+import std;
 
 using std::cout;
 using std::cerr;

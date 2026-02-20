@@ -15,17 +15,12 @@
   Originally implemented by OK who refused to take any responsibility
   for the code ;)
 */
-#include <limits>
-#include <string>
-#include <cstring>
-#include <cstdio>
-#include <algorithm>    // std::min
 #include <OpenMS/CONCEPT/Colorizer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
-#include <sstream>
-#include <iostream>
+import std;
+
 
 #define BUFFER_LENGTH 32768
 

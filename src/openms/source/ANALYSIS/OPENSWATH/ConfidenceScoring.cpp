@@ -15,10 +15,9 @@
 
 #include <boost/bimap.hpp>
 #include <boost/bimap/multiset_of.hpp>
-#include <numeric> // for "accumulate"
-#include <ctime> // for "time" (random number seed)
-#include <random>
-#include <map>
+
+#include <cmath>
+import std;
 
 using namespace std;
 

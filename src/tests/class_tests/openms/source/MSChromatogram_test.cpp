@@ -17,9 +17,12 @@
 
 ///////////////////////////
 #include <OpenMS/KERNEL/MSChromatogram.h>
+
+#include <cmath>
+import std;
+
 ///////////////////////////
 
-#include <sstream>
 
 using namespace OpenMS;
 using namespace std;

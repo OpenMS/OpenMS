@@ -14,7 +14,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMChromHandler.h>
-#include <cstdio>
+
+import std;
 
 namespace OpenMS
 {

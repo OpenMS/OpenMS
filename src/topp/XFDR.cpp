@@ -13,7 +13,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>
 
-#include <cassert>
+#include <assert.h>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

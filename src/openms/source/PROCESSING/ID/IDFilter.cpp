@@ -8,7 +8,10 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+
+#include <cmath>
 #include <regex>
+import std;
 
 using namespace std;
 

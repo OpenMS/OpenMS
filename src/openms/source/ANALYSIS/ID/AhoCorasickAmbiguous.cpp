@@ -10,10 +10,9 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <algorithm>
-#include <cassert>
-#include <queue>
-#include <tuple>
+#include <assert.h>
+
+import std;
 
 namespace OpenMS
 {
@@ -275,7 +274,6 @@ namespace OpenMS
         return true;
       };
     }
-
 
 
     return false;

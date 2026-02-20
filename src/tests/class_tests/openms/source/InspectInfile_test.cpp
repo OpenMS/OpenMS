@@ -13,8 +13,8 @@
 
 #include <OpenMS/FORMAT/InspectInfile.h>
 
-#include <iostream>
-#include <vector>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

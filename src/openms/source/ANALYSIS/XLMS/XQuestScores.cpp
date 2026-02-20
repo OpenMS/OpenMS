@@ -10,7 +10,9 @@
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <boost/math/distributions/binomial.hpp>
-#include <numeric>
+
+#include <cmath>
+import std;
 
 using namespace std;
 

@@ -24,7 +24,10 @@
 
 #include <QCoreApplication>
 
+#include <chrono>
 #include <future>
+#include <iostream>
+#include <memory>
 
 namespace OpenMS
 {

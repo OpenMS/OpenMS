@@ -21,7 +21,8 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
-#include <set>
+import std;
+
 
 using namespace std;
 using namespace OpenMS::Internal;

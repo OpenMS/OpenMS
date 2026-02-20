@@ -13,12 +13,13 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FEATUREFINDER/SeedListGenerator.h>
 
-#include <map>
 
 // TODO REMOVE
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <OpenMS/SYSTEM/File.h>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

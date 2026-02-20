@@ -10,9 +10,9 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
-#include <ostream>
-#include <algorithm>
-#include <cassert>
+#include <assert.h>
+
+import std;
 
 using namespace std;
 

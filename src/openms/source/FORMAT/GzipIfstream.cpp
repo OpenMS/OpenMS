@@ -6,11 +6,12 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#include <iostream>
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <cstdlib>
+
+#include <stdio.h>
+import std;
 
 using namespace std;
 

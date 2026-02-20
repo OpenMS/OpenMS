@@ -17,7 +17,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
-#include <cstdio>
+import std;
 
 
 namespace OpenMS

@@ -7,7 +7,6 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <map>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
@@ -15,6 +14,9 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+
+#include <cmath>
+import std;
 
 ///////////////////////////
 

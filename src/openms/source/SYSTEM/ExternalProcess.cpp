@@ -14,7 +14,8 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QProcess>
 #include <QtCore/QStringList>
-#include <utility>
+
+import std;
 
 
 namespace OpenMS

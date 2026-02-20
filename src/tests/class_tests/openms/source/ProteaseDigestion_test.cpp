@@ -12,8 +12,9 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <vector>
-#include <algorithm>
+
+import std;
+
 using namespace OpenMS;
 using namespace std;
 

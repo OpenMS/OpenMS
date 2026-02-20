@@ -42,7 +42,9 @@
 
 #include <QtCore/QDir>
 
-#include <iostream>
+#include <assert.h>
+import std;
+
 
 // OpenMP support
 #ifdef _OPENMP
@@ -54,7 +56,6 @@
 #undef max
 #endif
 
-#include <cmath>
 
 using namespace std;
 

@@ -8,7 +8,8 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 
-#include <utility>
+import std;
+
 
 namespace OpenMS
 {

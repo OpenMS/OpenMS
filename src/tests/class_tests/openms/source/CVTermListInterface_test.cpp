@@ -9,10 +9,12 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <map>
 
 ///////////////////////////
 #include <OpenMS/METADATA/CVTermListInterface.h>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;

@@ -8,7 +8,8 @@
 
 #include <OpenMS/METADATA/Gradient.h>
 
-#include <algorithm>
+import std;
+
 
 using namespace std;
 

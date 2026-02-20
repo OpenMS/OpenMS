@@ -26,12 +26,7 @@
 #include <arrow/filesystem/api.h>
 #endif
 
-#include <cstring>
-#include <cctype>
-#include <exception>
-#include <sstream>
-#include <unordered_map>
-#include <unordered_set>
+import std;
 
 namespace OpenMS
 {

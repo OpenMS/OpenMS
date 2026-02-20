@@ -17,11 +17,6 @@
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <algorithm>
-#include <iomanip>
 
 using namespace OpenMS;
 using namespace std;
@@ -66,6 +61,8 @@ See the corresponding parameter subsection for details.
 /// @cond TOPPCLASSES
 
 #include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
+
+import std;
 
 class TOPPHiResPrecursorMassCorrector :
     public TOPPBase

@@ -10,8 +10,8 @@
 #include <OpenMS/PROCESSING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
 
-#include <algorithm>
-#include <cmath>
+import std;
+
 
 namespace OpenMS
 {

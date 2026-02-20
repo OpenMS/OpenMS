@@ -9,7 +9,9 @@
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 
 #include <boost/math/special_functions/gamma.hpp>
-#include <fstream>
+
+#include <cmath>
+import std;
 
 // #define IDDECOYPROBABILITY_DEBUG
 // #undef  IDDECOYPROBABILITY_DEBUG
@@ -161,7 +163,6 @@ namespace OpenMS
     Size number_of_bins(param_.getValue("number_of_bins"));
 
 
-
     // normalize distribution to [0, 1]
     vector<double> fwd_scores_normalized(number_of_bins, 0.0), rev_scores_normalized(number_of_bins, 0.0), diff_scores(number_of_bins, 0.0), all_scores_normalized(number_of_bins, 0.0);
     Transformation_ rev_trafo, fwd_trafo, all_trafo;
@@ -280,7 +281,6 @@ namespace OpenMS
     }
 
     gauss_sigma /= (double)diff_data.size();
-
 
 
 #ifdef IDDECOYPROBABILITY_DEBUG

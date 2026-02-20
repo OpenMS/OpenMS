@@ -11,8 +11,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QFile>
-#include <iomanip>
-#include <sstream>
+
+#include <cmath>
+import std;
 
 using namespace OpenMS;
 using namespace std;

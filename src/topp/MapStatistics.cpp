@@ -17,9 +17,9 @@
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 
-#include <iomanip>     // setw
+#include <cmath>
+import std;
 
-#include <map>
 
 using namespace OpenMS;
 using namespace std;

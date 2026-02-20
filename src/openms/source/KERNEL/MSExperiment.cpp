@@ -17,9 +17,8 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <algorithm>
-#include <limits>
-#include <unordered_set>
+import std;
+
 
 #ifdef _OPENMP
 #include <omp.h>

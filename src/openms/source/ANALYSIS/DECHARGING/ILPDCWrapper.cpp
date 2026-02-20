@@ -14,9 +14,9 @@
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <unordered_map>
-#include <fstream>
-#include <map>
+
+#include <cmath>
+import std;
 
 namespace OpenMS
 {

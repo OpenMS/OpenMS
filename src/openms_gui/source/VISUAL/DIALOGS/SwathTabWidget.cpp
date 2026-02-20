@@ -23,7 +23,8 @@
 #include <QProgressDialog>
 #include <QSignalBlocker>
 
-#include <algorithm>
+import std;
+
 
 using namespace std;
 
@@ -371,7 +372,6 @@ namespace OpenMS
     }
     
 
-
     void SwathTabWidget::on_btn_runPyProphet_clicked()
     {
       if (!ui->py_pyprophet->isReady())
@@ -549,7 +549,5 @@ namespace OpenMS
 
   }   //namespace Internal
 } //namspace OpenMS
-
-
 
 

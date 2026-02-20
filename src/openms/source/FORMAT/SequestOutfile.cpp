@@ -11,8 +11,8 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
-#include <fstream>
-#include <sstream>
+import std;
+
 
 using namespace std;
 

@@ -12,13 +12,15 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 
-#include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
 
 #include <boost/dynamic_bitset.hpp>
 
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
+
+#include <cmath>
+import std;
 
 using namespace std;
 

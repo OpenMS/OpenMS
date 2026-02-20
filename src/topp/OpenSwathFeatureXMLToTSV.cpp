@@ -13,8 +13,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 
-#include <fstream>
-#include <clocale>
+#include <locale.h>
+import std;
+
 
 using namespace OpenMS;
 

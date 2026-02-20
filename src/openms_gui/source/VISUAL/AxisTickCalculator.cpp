@@ -8,13 +8,13 @@
 
 
 // STL
-#include <iostream>
-#include <cmath>
-#include <numeric>
 
 // OpenMS
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 #include <OpenMS/MATH/MathFunctions.h>
+
+#include <cmath>
+import std;
 
 using namespace std;
 

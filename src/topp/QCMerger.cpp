@@ -19,11 +19,9 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
+import std;
+
 //~ #include <QIODevice>
-#include <algorithm>
-#include <fstream>
-#include <vector>
-#include <map>
 
 using namespace OpenMS;
 using namespace std;

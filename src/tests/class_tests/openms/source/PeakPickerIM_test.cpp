@@ -10,10 +10,12 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <cmath>
 
 ///////////////////////////
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;

@@ -16,7 +16,8 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
-#include <vector>
+
+import std;
 
 //////////////////////////
 

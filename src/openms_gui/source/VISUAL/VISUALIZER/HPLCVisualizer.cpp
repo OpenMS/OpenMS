@@ -13,7 +13,8 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QTextEdit>
 #include <QValidator>
-#include <iostream>
+
+import std;
 
 using namespace std;
 

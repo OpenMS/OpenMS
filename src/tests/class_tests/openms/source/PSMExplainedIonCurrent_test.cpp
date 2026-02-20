@@ -14,8 +14,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/QC/PSMExplainedIonCurrent.h>
-#include <cmath>
-#include <random>
+
+import std;
+
 //////////////////////////
 
 using namespace OpenMS;

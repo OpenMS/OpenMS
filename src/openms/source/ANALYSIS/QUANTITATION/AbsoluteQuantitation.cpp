@@ -34,12 +34,10 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 
 //Standard library
-#include <cstddef> // for size_t & ptrdiff_t
-#include <vector>
-#include <cmath>
-#include <numeric>
 #include <boost/math/special_functions/erf.hpp>
-#include <algorithm>
+
+#include <cmath>
+import std;
 
 namespace OpenMS
 {

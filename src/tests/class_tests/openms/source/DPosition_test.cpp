@@ -13,9 +13,9 @@
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
-#include <iterator>
-#include <unordered_set>
-#include <unordered_map>
+#include <cmath>
+import std;
+
 
 /////////////////////////////////////////////////////////////
 #ifdef __clang__

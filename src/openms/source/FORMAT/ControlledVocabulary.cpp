@@ -12,9 +12,8 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <iostream>
-#include <fstream>
-#include <map>
+import std;
+
 
 using namespace std;
 

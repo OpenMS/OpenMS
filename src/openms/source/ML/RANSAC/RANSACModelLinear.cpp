@@ -9,7 +9,9 @@
 #include <OpenMS/ML/RANSAC/RANSACModelLinear.h>
 
 #include <OpenMS/ML/REGRESSION/LinearRegression.h>
-#include <numeric>
+
+#include <cmath>
+import std;
 
 
 namespace OpenMS::Math

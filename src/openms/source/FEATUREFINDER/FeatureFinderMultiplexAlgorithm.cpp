@@ -29,16 +29,12 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <vector>
-#include <numeric>
-#include <fstream>
-#include <iostream>
-#include <ostream>
-#include <algorithm>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
+
+import std;
 
 //#define DEBUG
 

@@ -32,8 +32,10 @@
 #include <QtCore/QTextStream>
 #include <QtWidgets/QMessageBox>
 
-#include <map>
 #include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
+
+#include <cmath>
+import std;
 
 namespace OpenMS
 {

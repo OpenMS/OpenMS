@@ -16,11 +16,12 @@
 #include <OpenMS/config.h>
 #include <OpenMS/openms_data_path.h>
 
+import std;
+
 #ifdef _OPENMP
   #include "omp.h"
 #endif
 
-#include <iostream>
 
 using namespace OpenMS;
 using namespace std;

@@ -9,7 +9,8 @@
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
-#include <ostream>
+import std;
+
 
 namespace OpenMS
 {

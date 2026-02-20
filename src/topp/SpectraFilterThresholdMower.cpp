@@ -13,7 +13,8 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 
-#include <typeinfo>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

@@ -10,7 +10,8 @@
 
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/Helpers.h>
-#include <map>
+
+import std;
 
 namespace OpenMS
 {

@@ -6,13 +6,14 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <iostream>
 
 //OpenMS
 #include <OpenMS/VISUAL/Plot3DWidget.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
+
+import std;
 
 
 using namespace std;

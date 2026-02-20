@@ -12,14 +12,10 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <algorithm>
-#include <cmath>
-#include <fstream>
-#include <numeric>
-#include <unordered_map>
-#include <unordered_set>
 
 #include <boost/math/distributions/normal.hpp>
+
+import std;
 
 namespace OpenMS
 {

@@ -16,11 +16,12 @@
 
 // More headers
 
-#include <cstdlib>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/MATH/MathFunctions.h>
+
+#include <cstdlib>
 
 ///////////////////////////
 
@@ -296,7 +297,6 @@ START_SECTION(KeyType supportMin_0() const)
 END_SECTION
 
 
-
 // here is the same stuff with _1 and _0 exchanged
 
 
@@ -440,10 +440,6 @@ START_SECTION(bool empty() const)
 END_SECTION
 
 
-
-
-
-
 START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value )))
 {
 
@@ -499,7 +495,6 @@ START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType ar
 
 }
 END_SECTION
-
 
 
 START_SECTION((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))

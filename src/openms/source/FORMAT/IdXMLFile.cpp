@@ -17,8 +17,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <fstream>
-#include <unordered_map>
+import std;
+
 
 using namespace std;
 

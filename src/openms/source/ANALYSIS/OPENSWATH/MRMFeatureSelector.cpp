@@ -11,8 +11,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <algorithm>
-#include <set>
+
+import std;
 
 namespace OpenMS
 {

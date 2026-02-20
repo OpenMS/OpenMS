@@ -14,7 +14,8 @@
 #include <QtCore/QProcess>
 #include <QtCore/QDir>
 
-#include <sstream>
+import std;
+
 
 using namespace std;
 

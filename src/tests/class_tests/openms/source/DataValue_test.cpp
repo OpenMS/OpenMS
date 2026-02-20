@@ -19,8 +19,8 @@
 
 #include <QString>
 
-#include <sstream>
-#include <iostream>
+import std;
+
 
 // we ignore the -Wunused-value warning here, since we do not want the compiler
 // to report problems like

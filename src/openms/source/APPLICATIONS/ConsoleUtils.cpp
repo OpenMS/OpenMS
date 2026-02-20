@@ -11,14 +11,15 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
+#include <stdio.h>
+
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <windows.h> // for GetConsoleScreenBufferInfo()
 #undef min
 #undef max
 #endif
 
-#include <cstdlib>
-#include <cstdio>
+import std;
 
 namespace OpenMS
 {

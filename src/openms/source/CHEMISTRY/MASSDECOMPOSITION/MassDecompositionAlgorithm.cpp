@@ -12,8 +12,8 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
-#include <iostream>
-#include <map>
+import std;
+
 using namespace std;
 
 namespace OpenMS

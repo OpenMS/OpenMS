@@ -12,10 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/MATH/STATISTICS/RankData.h>
-#include <vector>
-#include <cmath>
-#include <limits>
-#include <iostream>
+
+import std;
 
 using namespace OpenMS;
 using namespace OpenMS::Math;

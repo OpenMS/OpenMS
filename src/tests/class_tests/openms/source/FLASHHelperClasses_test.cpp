@@ -14,8 +14,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <cmath>
-#include <unordered_set>
+
+import std;
 
 ///////////////////////////
 

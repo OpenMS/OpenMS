@@ -8,7 +8,9 @@
 //
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <fstream>
+
+import std;
+
 using namespace std;
 
 namespace OpenMS

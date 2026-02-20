@@ -20,8 +20,8 @@
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QFileDialog>
 
-#include <utility>
-#include <vector>
+import std;
+
 
 using namespace std;
 

@@ -90,10 +90,10 @@
 
 #include <QtCore/QStringList>
 
-#include <map>
-#include <algorithm>
-#include <iterator>
 #include <cmath>
+#include <assert.h>
+import std;
+
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -672,7 +672,6 @@ struct NuXLRTPrediction
   }
 
 };
-
 
 
 // stores which residues (known to give rise to immonium ions) are in the sequence
@@ -1821,7 +1820,6 @@ protected:
     }
     
 
- 
     // match y-ions
     for (const auto& t : matches_z_fa) // for best 3 adducts
 //    for (Size z = 1; z <= max_z; ++z)

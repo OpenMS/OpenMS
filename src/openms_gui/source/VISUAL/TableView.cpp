@@ -18,7 +18,8 @@
 #include <QMenu>
 #include <QTextStream>
 
-#include <iostream>
+import std;
+
 
 using namespace std;
 

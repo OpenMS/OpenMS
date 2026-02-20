@@ -13,7 +13,9 @@
 #include <OpenMS/ML/CLUSTERING/AverageLinkage.h>
 #include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
-#include <vector>
+
+import std;
+
 //#include <iostream>
 ///////////////////////////
 
@@ -121,6 +123,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

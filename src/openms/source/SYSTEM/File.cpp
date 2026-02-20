@@ -22,7 +22,6 @@
 #include <QtCore/QDir>
 #include <QtNetwork/QHostInfo>
 
-#include <atomic>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
@@ -51,6 +50,9 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
+
+#include <stddef.h>
+import std;
 
 
 using namespace std;

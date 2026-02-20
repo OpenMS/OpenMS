@@ -14,11 +14,12 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <algorithm>
 #include <QtCore/QString>
 
 #include <boost/regex.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
+
+import std;
 
 using namespace std;
 

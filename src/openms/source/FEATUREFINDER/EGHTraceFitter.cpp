@@ -15,6 +15,7 @@
 
 #include <numeric> // for "accumulate"
 
+
 namespace OpenMS
 {
   // from table 1 in the Lan & Jorgenson paper:

@@ -7,9 +7,10 @@
 // --------------------------------------------------------------------------
 
 
-#include <cmath>
-#include <algorithm>
 #include <OpenMS/ML/NNLS/NNLS.h>
+
+#include <cmath>
+import std;
 
 /*
 

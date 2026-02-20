@@ -18,11 +18,12 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
-#include <sstream>
 
 #include <QtCore/QFile>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

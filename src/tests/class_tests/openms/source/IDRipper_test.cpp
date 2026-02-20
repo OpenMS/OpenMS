@@ -15,7 +15,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
-#include <vector>
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;

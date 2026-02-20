@@ -8,10 +8,9 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/MultiGradient.h>
-#include <cstdlib>
-#include <limits>
-#include <sstream>
-#include <utility>
+
+#include <cmath>
+import std;
 
 using namespace std;
 

@@ -6,13 +6,12 @@
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
 
 #include <OpenMS/CONCEPT/StreamHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+import std;
 
 using std::ostream;
 using std::map;

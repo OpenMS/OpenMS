@@ -12,8 +12,9 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QListWidget>
 
+import std;
+
 //STL
-#include <iostream>
 
 using namespace std;
 

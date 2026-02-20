@@ -28,11 +28,11 @@
 
 #include <OpenMS/ANALYSIS/ID/CometModification.h>
 
-#include <fstream>
-#include <iomanip>
 
 #include <QStringList>
 #include <QRegularExpression>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

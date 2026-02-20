@@ -13,8 +13,9 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <boost/regex.hpp>
-#include <fstream>
-#include <array>
+
+#include <regex>
+import std;
 
 namespace OpenMS
 {

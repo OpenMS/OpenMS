@@ -8,9 +8,8 @@
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
-#include <queue>
-#include <unordered_set>
-#include <algorithm>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

@@ -12,7 +12,8 @@
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <algorithm>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

@@ -12,8 +12,9 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
-#include <unordered_set>
-#include <unordered_map>
+
+import std;
+
 //#include <OpenMS/KERNEL/MSSpectrum.h>
 //#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 

@@ -15,9 +15,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/SIMDe.h>
 
-#include <algorithm>
-#include <bit>
-#include <set>
+import std;
+
 
 using namespace std;
 using namespace xercesc;

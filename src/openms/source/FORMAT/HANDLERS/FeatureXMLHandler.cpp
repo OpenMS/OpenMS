@@ -15,8 +15,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 
-#include <fstream>
-#include <map>
+import std;
+
 
 using namespace std;
 

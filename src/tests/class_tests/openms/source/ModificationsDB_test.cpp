@@ -11,8 +11,9 @@
 
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <limits>
-#include <algorithm>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;

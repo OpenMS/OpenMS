@@ -16,7 +16,9 @@
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 
 
-#include <cassert>
+#include <assert.h>
+
+import std;
 
 using namespace std;
 using namespace xercesc;

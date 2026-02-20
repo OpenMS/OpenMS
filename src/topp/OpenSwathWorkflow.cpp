@@ -46,8 +46,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
-#include <cassert>
-#include <limits>
+#include <assert.h>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
 
@@ -60,7 +59,8 @@ using namespace OpenMS;
 
 
 #include <QDir>
-#include <unordered_map>
+
+import std;
 
 //-------------------------------------------------------------
 //Doxygen docu

@@ -11,9 +11,8 @@
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
-#include <vector>
-#include <map>
-#include <algorithm>
+import std;
+
 
 using std::vector;
 using std::set;

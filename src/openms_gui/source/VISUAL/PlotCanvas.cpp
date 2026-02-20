@@ -29,8 +29,8 @@
 #include <QPaintEvent>
 #include <QPainter>
 #include <QtWidgets/QMessageBox>
-#include <iostream>
-#include <utility>
+
+import std;
 
 using namespace std;
 

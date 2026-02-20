@@ -16,7 +16,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <fstream>
+import std;
+
 
 using namespace OpenMS;
 

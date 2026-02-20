@@ -10,9 +10,8 @@
 
 #include <OpenMS/MATH/MISC/BSplineSmoothingSpline.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <cmath>
-#include <limits>
-#include <algorithm>
+
+import std;
 
 namespace OpenMS
 {

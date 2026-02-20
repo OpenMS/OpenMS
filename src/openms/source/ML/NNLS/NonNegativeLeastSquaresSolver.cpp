@@ -8,7 +8,8 @@
 
 #include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/ML/NNLS/NNLS.h>
-#include <vector>
+
+import std;
 
 namespace OpenMS
 {

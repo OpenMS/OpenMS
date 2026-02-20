@@ -9,8 +9,8 @@
 
 #include <OpenMS/ML/CLUSTERING/ClusteringGrid.h>
 
-#include <functional>
-#include <sstream>
+import std;
+
 
 namespace OpenMS
 {

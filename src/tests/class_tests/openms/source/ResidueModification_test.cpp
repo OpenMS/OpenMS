@@ -17,8 +17,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <unordered_set>
-#include <unordered_map>
+import std;
 
 
 using namespace OpenMS;

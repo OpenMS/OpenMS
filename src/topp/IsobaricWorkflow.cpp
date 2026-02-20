@@ -34,14 +34,13 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
-#include <string>
-#include <vector>
+
+import std;
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-#include <memory> // for std::unique_ptr
 
 #ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>

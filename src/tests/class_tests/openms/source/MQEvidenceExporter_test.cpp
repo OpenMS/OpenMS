@@ -13,9 +13,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <map>
 
 #include <OpenMS/test_config.h>
+
+import std;
 
 ///////////////////////////
 ///////////////////////////

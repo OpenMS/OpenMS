@@ -12,7 +12,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <fstream>
+import std;
+
 
 using namespace std;
 

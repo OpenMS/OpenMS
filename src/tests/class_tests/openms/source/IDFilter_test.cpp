@@ -11,7 +11,6 @@
 
 ///////////////////////////
 
-#include <string>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
@@ -21,6 +20,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+
+import std;
 
 
 ///////////////////////////

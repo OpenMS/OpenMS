@@ -9,7 +9,8 @@
 #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <numeric>
+import std;
+
 
 namespace OpenMS
 {

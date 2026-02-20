@@ -5,7 +5,6 @@
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
-#include <memory>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -23,6 +22,8 @@ ThisShouldFailAtCompileTime = 0
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;
@@ -46,7 +47,6 @@ MSSpectrum generateImSpec(int k_min, int k_max, double rt)
 
   return imSpec;
 }
-
 
 
 START_TEST(OpenSwathScoring, "$Id$")

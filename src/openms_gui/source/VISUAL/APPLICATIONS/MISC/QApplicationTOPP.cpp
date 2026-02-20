@@ -6,8 +6,6 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <cstdio>
-#include <cstdlib>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -29,6 +27,8 @@
 #include <QFile>
 #include <QFileOpenEvent>
 #include <QLibraryInfo>
+
+import std;
 
 
 namespace OpenMS

@@ -13,13 +13,9 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 
-#include <algorithm>
-#include <cctype>
-#include <limits>
-#include <map>
 #include <regex>
-#include <set>
-#include <sstream>
+import std;
+
 
 namespace OpenMS
 {

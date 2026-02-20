@@ -16,7 +16,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
-#include <iostream>
+
+import std;
 
 
 START_TEST(SimpleTSGXLMS, "$Id$")

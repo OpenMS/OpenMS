@@ -10,8 +10,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <algorithm>
-#include <vector>
+import std;
+
 
 using namespace std;
 

@@ -21,8 +21,8 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 
-#include <map>
-#include <vector>
+import std;
+
 
 using namespace std;
 namespace OpenMS

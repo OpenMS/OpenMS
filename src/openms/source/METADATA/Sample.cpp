@@ -8,7 +8,8 @@
 
 #include <OpenMS/METADATA/Sample.h>
 
-#include <algorithm>
+import std;
+
 
 using namespace std;
 

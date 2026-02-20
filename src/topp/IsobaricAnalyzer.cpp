@@ -23,7 +23,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <memory> // for std::unique_ptr
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

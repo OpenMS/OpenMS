@@ -8,7 +8,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <queue>
+
+import std;
 
 using namespace std;
 

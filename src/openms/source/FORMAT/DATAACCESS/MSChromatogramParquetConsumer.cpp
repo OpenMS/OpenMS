@@ -14,17 +14,13 @@
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
-#include <exception>
-#include <memory>
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
 #endif
 
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+import std;
 
 namespace OpenMS
 {

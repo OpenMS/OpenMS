@@ -14,7 +14,8 @@
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
-#include <map>
+#include <cmath>
+import std;
 
 
 #undef DC_DEVEL
@@ -329,8 +330,6 @@ namespace OpenMS
     {
       default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0),0);
     }
-
-
 
 
     // create mass difference list

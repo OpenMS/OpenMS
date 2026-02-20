@@ -20,7 +20,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <unordered_set>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

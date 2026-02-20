@@ -27,18 +27,13 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <fstream>
-#include <regex>
 
 #include <QStringList>
-#include <chrono>
-#include <map>
-#include <vector>
-#include <algorithm>
-#include <cmath>
-#include <numeric>
 
 #include <boost/math/distributions/normal.hpp>
+
+#include <regex>
+import std;
 
 using namespace OpenMS;
 using namespace std;
@@ -84,7 +79,6 @@ because of limitations in OpenMS' data structures and file formats.
 
 
 #define CHRONOSET
-
 
 
 class TOPPSageAdapter :

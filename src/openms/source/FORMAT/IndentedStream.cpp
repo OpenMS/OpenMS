@@ -10,8 +10,8 @@
 
 #include <OpenMS/CONCEPT/Colorizer.h>
 
-#include <algorithm>
-#include <sstream>
+import std;
+
 
 using namespace std;
 

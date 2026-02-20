@@ -11,10 +11,12 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/Types.h>
+
+#include <locale.h>
+import std;
+
 ///////////////////////////
 
-#include <clocale>
-#include <string>
 
 START_TEST(Types, "$Id$")
 

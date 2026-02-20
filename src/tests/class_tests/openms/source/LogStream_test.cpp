@@ -20,8 +20,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <fstream>
 #include <boost/regex.hpp>
+
+#include <regex>
+import std;
 
 // OpenMP support
 #ifdef _OPENMP
@@ -583,6 +585,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

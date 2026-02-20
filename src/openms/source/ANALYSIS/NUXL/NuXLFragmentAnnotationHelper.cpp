@@ -11,10 +11,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <set>
-#include <map>
-#include <vector>
-#include <algorithm>
+import std;
+
 
 using namespace OpenMS;
 

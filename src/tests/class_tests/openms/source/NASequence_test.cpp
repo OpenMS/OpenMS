@@ -11,13 +11,11 @@
 
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/NASequence.h>
-#include <iostream>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
-#include <unordered_set>
-#include <unordered_map>
-#include <functional>
+
+import std;
 
 ///////////////////////////
 

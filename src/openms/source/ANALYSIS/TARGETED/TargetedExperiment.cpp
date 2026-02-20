@@ -10,8 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <ostream> // for ostream& operator<<(ostream& os, const TargetedExperiment::SummaryStatistics& s);
-#include <map>
+import std;
 
 
 // from https://stackoverflow.com/questions/17010005/how-to-use-c11-move-semantics-to-append-vector-contents-to-another-vector
@@ -730,7 +729,6 @@ namespace OpenMS
        << "All internal references valid: " << (!s.contains_invalid_references ? "yes" : "no") << '\n';
     return os;
   }
-
 
 
 } // namespace OpenMS

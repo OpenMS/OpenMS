@@ -12,9 +12,8 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <numeric>
-#include <unordered_map>
-#include <unordered_set>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

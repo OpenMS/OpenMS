@@ -17,9 +17,9 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QGridLayout>
 
+import std;
+
 //STL
-#include <iostream>
-#include <vector>
 
 using namespace std;
 

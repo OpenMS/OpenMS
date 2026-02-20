@@ -18,8 +18,8 @@
 #include <OpenMS/QC/FeatureSummary.h>
 #include <OpenMS/QC/IdentificationSummary.h>
 #include <nlohmann/json.hpp>
-#include <map>
-#include <fstream>
+
+import std;
 
 using namespace std;
 

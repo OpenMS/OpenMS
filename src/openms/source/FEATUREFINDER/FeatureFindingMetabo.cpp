@@ -15,12 +15,13 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <algorithm>
-#include <fstream>
 
 #include <boost/dynamic_bitset.hpp>
 
+#include <cmath>
 #include "svm.h"
+
+import std;
 
 // #define FFM_DEBUG
 

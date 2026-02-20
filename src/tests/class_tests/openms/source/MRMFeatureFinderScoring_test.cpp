@@ -5,7 +5,6 @@
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
-#include <memory>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
@@ -16,6 +15,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+
+#include <cmath>
+import std;
 
 ///////////////////////////
 

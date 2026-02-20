@@ -7,9 +7,10 @@
 // --------------------------------------------------------------------------
 //
 
-#include <sstream>
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h>
+
+import std;
 
 /**
   Parses the data from the stream @c is .

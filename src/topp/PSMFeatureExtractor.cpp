@@ -17,9 +17,8 @@
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
 
-#include <iostream>
-#include <cmath>
-#include <string>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

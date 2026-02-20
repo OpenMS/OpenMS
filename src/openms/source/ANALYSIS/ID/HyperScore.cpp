@@ -12,12 +12,14 @@
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <cmath>
+import std;
+
 
 using std::vector;
 
 namespace OpenMS
 {
-#include <cmath>   // for std::lgamma
 
   inline double HyperScore::logfactorial_(int x, int base)
   {

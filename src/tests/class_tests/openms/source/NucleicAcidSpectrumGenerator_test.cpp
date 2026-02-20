@@ -11,10 +11,12 @@
 
 ///////////////////////////
 
-#include <iostream>
 
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
+
+#include <cmath>
+import std;
 
 ///////////////////////////
 

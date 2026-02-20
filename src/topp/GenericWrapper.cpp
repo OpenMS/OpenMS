@@ -22,7 +22,8 @@
 #include <QDir>
 #include <QRegularExpression>
 
-#include <typeinfo>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

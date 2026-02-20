@@ -12,7 +12,8 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 
-#include <algorithm>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

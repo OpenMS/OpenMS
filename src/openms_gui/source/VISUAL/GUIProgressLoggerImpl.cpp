@@ -12,7 +12,8 @@
 
 #include <QApplication>
 #include <QProgressDialog>
-#include <iostream>
+
+import std;
 
 namespace OpenMS
 {

@@ -12,7 +12,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <unordered_map>
+import std;
+
 
 #define IMPLIES(a, b) !(a) || (b)
 

@@ -14,13 +14,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <iostream>
-#include <iterator>
-#include <limits>     
-#include <sstream>    
+import std;
+
 
 using namespace std;
 

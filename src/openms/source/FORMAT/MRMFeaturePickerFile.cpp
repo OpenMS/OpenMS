@@ -8,7 +8,9 @@
 
 #include <OpenMS/FORMAT/MRMFeaturePickerFile.h>
 #include <boost/regex.hpp>
-#include <iostream>
+
+#include <regex>
+import std;
 
 namespace OpenMS
 {

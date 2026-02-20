@@ -14,16 +14,9 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <algorithm>
 #include <cmath>
-#include <cstdlib>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <limits>
-#include <numeric>
-#include <tuple>
-#include <utility>
+import std;
+
 
 using namespace std;
 

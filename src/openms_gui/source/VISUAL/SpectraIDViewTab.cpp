@@ -30,8 +30,10 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QVBoxLayout>
 
-#include <vector>
-#include <string>
+#include <cmath>
+#include <assert.h>
+import std;
+
 
 //#define DEBUG_SPECTRA_ID_VIEW 1
 

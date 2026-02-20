@@ -12,8 +12,9 @@
 ///////////////////////////
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <unordered_set>
-#include <unordered_map>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -556,6 +557,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

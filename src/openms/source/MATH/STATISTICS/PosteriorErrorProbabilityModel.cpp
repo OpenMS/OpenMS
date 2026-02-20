@@ -22,8 +22,8 @@
 
 #include <QtCore/QDir>
 
-#include <algorithm>
-
+#include <cmath>
+import std;
 
 
 using namespace std;
@@ -547,7 +547,6 @@ namespace OpenMS::Math
       }
       return {pos_x0,neg_x0};
     }
-
 
 
     std::pair<double,double> PosteriorErrorProbabilityModel::pos_neg_sigma_weighted_posteriors(

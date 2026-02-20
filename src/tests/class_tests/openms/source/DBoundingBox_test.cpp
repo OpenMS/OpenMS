@@ -13,11 +13,10 @@
 
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
+import std;
+
 /////////////////////////////////////////////////////////////
 
-#include <unordered_set>
-#include <unordered_map>
-#include <sstream>
 
 using namespace OpenMS;
 using namespace std;

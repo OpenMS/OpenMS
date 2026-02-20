@@ -15,14 +15,13 @@
 
 // More headers
 
-#include <iostream>
-#include <iterator>
-#include <vector>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/MATH/MathFunctions.h>
+
+import std;
 
 ///////////////////////////
 
@@ -397,7 +396,6 @@ START_SECTION(ValueType value( KeyType arg_pos ) const )
 		}
 
 	}
-
 
 
 }

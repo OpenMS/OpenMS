@@ -14,7 +14,9 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <vector>
+
+import std;
+
 using namespace OpenMS;
 using namespace std;
 

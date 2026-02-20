@@ -15,8 +15,8 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <map>
-#include <fstream>
+import std;
+
 
 using namespace std;
 

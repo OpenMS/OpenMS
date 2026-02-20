@@ -9,7 +9,6 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/test_config.h>
-#include <functional>
 
 ///////////////////////////
 
@@ -19,6 +18,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+
+import std;
 
 ///////////////////////////
 

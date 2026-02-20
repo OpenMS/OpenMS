@@ -20,8 +20,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/QC/MissedCleavages.h>
 #include <OpenMS/QC/QCBase.h>
-#include <string>
-#include <vector>
+
+import std;
 
 //////////////////////////
 

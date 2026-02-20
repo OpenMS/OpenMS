@@ -25,10 +25,8 @@
 #include <QProcessEnvironment>
 #include <QLockFile>
 
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <cstddef>
+import std;
+
 
 //-------------------------------------------------------------
 // Doxygen docu

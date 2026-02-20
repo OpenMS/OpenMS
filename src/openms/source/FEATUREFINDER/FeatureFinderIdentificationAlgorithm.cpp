@@ -30,13 +30,9 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
+#include <cmath>
+import std;
 
-#include <vector>
-#include <numeric>
-#include <fstream>
-#include <algorithm>
-#include <random>
-#include <optional>
 
 #ifdef _OPENMP
 #include <omp.h>

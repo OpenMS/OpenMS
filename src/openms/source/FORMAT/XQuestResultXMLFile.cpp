@@ -11,8 +11,9 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <fstream>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
+
+import std;
 
 namespace OpenMS
 {

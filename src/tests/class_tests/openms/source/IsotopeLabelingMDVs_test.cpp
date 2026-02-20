@@ -11,7 +11,9 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <cassert>
+#include <assert.h>
+
+import std;
 
 using namespace OpenMS;
 

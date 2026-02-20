@@ -16,7 +16,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <string>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;
@@ -76,7 +77,6 @@ std::vector<const char*> toArgV(const StringList& args)
 START_TEST(SearchEngineBase, "$Id$");
 
 /////////////////////////////////////////////////////////////
-
 
 
 SearchEngineBaseTest* ptr = nullptr;
@@ -143,10 +143,8 @@ START_SECTION(String getDBFilename(String db = "") const)
 END_SECTION
 
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

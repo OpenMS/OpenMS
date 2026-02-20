@@ -13,7 +13,9 @@
 #include <OpenMS/ML/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
-#include <vector>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -118,6 +120,5 @@ delete ptr;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

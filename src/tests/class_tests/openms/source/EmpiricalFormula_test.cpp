@@ -19,10 +19,8 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <sstream>
-#include <map>
-#include <unordered_set>
-#include <functional>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

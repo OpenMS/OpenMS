@@ -16,6 +16,8 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 
 #include <cmath>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;
@@ -409,6 +411,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

@@ -17,10 +17,9 @@
 #include <QString>
 #include <QFileInfo>
 
+import std;
+
 //~ #include <QIODevice>
-#include <fstream>
-#include <vector>
-#include <map>
 
 using namespace OpenMS;
 using namespace std;

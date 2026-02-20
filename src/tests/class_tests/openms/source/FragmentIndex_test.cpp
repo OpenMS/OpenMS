@@ -19,7 +19,8 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <limits>
+
+import std;
 
 /*
   FragmentIndex tests

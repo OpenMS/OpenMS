@@ -10,7 +10,8 @@
 #include <OpenMS/FORMAT/OMSFileLoad.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
 
-#include <fstream>
+import std;
+
 
 using namespace std;
 

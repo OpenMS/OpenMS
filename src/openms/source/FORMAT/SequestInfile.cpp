@@ -11,8 +11,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 
-#include <fstream>
-#include <sstream>
+import std;
+
 
 using namespace std;
 

@@ -17,15 +17,11 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <iostream>
-#include <cmath>
-#include <string>
-#include <set>
-#include <map>
 
 #include <QtCore/QProcess>
 #include <boost/algorithm/clamp.hpp>
-#include <typeinfo>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

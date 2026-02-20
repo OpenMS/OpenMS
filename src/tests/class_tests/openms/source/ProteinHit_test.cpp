@@ -11,12 +11,11 @@
 
 ///////////////////////////
 
-#include <string>
-#include <unordered_set>
-#include <unordered_map>
 
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+import std;
 
 ///////////////////////////
 

@@ -12,9 +12,8 @@
 
 #include <sqlite3.h>
 
-#include <cstring> // for strcmp
-#include <sstream>
-#include <utility> // for std::move
+import std;
+
 
 namespace OpenMS
 {

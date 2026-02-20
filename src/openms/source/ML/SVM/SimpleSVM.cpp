@@ -15,11 +15,13 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/GRIDSEARCH/GridSearch.h>
 
+#include <cmath>
 // Include libSVM in implementation file only
 // svm.h is copied into the contrib binary include directory during build
 #include "svm.h"
 
-#include <cstdlib>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

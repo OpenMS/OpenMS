@@ -15,7 +15,8 @@
 #include <OpenMS/FEATUREFINDER/EmgModel.h>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
-#include <algorithm>
+
+import std;
 
 ///////////////////////////
 
@@ -141,6 +142,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

@@ -12,8 +12,9 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/FORMAT/Base64.h>
 
-#include <atomic>
-#include <stack>
+#include <assert.h>
+import std;
+
 
 namespace OpenMS::Internal
 {

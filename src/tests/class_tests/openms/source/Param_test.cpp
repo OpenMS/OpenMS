@@ -16,8 +16,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h> // for "ParameterInformation"
 
-#include <type_traits>
-#include <iterator>
+import std;
+
 
 ///////////////////////////
 
@@ -657,7 +657,6 @@ END_SECTION
 ///////////////////////////////////////////////////////////////
 
 
-
 Param* d10_ptr = nullptr;
 Param* d10_nullPointer = nullptr;
 START_SECTION((Param()))
@@ -1194,7 +1193,6 @@ START_SECTION((void setDefaults(const Param& defaults, const std::string& prefix
 	TEST_EQUAL(p2.getValue("stringlist2") == ListUtils::create<std::string>("d,e,f"), true)
 	TEST_EQUAL(p2.getValue("intlist2") == ListUtils::create<Int>("11,22,33"), true)
 	TEST_EQUAL(p2.getValue("doublelist2") == ListUtils::create<double>("11.22,22.33"), true)
-
 
 
 	p2.setDefaults(defaults,"PATH");

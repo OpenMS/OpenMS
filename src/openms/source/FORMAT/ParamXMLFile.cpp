@@ -10,9 +10,8 @@
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
 
-#include <iostream>
-#include <fstream>
-#include <algorithm>
+import std;
+
 
 namespace OpenMS
 {

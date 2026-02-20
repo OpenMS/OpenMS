@@ -11,15 +11,14 @@
 
 ///////////////////////////
 
-#include <string>
-#include <fstream>  // Required for temporary file creation
 
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
-#include <vector>
+import std;
+
 
 ///////////////////////////
 

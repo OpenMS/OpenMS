@@ -15,9 +15,9 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <assert.h>
+import std;
+
 
 namespace OpenMS
 {

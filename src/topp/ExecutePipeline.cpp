@@ -16,7 +16,8 @@
 #include <QApplication>
 #include <QtCore/QDir>
 
-#include <iostream>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

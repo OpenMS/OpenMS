@@ -11,16 +11,16 @@
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
-#include <cstdlib>  // for getenv in terminate()
 //#include <sys/types.h>
-#include <csignal> // for SIGSEGV and kill
-#include <iostream>
+#include <signal.h>
 
 #ifndef OPENMS_WINDOWSPLATFORM
   #ifdef OPENMS_HAS_UNISTD_H
   #include <unistd.h> // for getpid
   #endif
 #endif
+
+import std;
 
 #define OPENMS_CORE_DUMP_ENVNAME "OPENMS_DUMP_CORE"
 

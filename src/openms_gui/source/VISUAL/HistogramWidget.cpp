@@ -15,11 +15,12 @@
 #include <QtWidgets/QMenu>
 
 // STL
-#include <iostream>
 
 // OpenMS
 #include <OpenMS/VISUAL/HistogramWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+
+import std;
 
 using namespace std;
 

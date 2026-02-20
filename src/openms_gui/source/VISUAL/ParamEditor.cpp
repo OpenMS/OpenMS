@@ -26,9 +26,8 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QFileDialog>
 
-#include <stack>
-#include <limits>
-#include <sstream>
+import std;
+
 
 using namespace std;
 

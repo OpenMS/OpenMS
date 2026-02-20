@@ -12,7 +12,8 @@
 #include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <cmath>
+import std;
+
 
 namespace OpenMS
 {

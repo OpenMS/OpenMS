@@ -13,7 +13,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <algorithm>
+import std;
+
 
 using namespace std;
 
@@ -242,8 +243,6 @@ NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_a
 
   return nucleotide_to_fragment_adducts;
 }
-
-
 
 
 MS2AdductsOfSinglePrecursorAdduct

@@ -16,13 +16,13 @@
 
 // More headers
 
-#include <iostream>
-#include <iterator>
-#include <utility>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+
+#include <cmath>
+import std;
 
 /////////////////////////////////////////////////////////////
 

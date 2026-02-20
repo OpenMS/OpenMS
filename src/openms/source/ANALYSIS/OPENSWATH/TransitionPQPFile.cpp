@@ -15,9 +15,8 @@
 #include <boost/range/algorithm.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 
-#include <sstream>
-#include <unordered_map>
-#include <iostream>
+import std;
+
 
 namespace OpenMS
 {

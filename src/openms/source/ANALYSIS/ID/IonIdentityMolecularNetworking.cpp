@@ -10,14 +10,11 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
-#include <fstream>
-#include <iostream>
-#include <set>
-#include <unordered_map>
-#include <map>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
+
+import std;
 
 // VertexLabel is used for IINM to build a bipartite graph using UndirectedOSMIdGraph
 struct VertexLabel

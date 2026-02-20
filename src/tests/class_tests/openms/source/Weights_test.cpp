@@ -13,9 +13,11 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 
-#include <set>
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -299,6 +301,5 @@ delete ptr;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

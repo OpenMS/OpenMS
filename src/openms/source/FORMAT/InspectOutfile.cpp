@@ -17,7 +17,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QRegularExpression>
 
-#include <fstream>
+import std;
+
 
 #ifdef __clang__
   #pragma clang diagnostic push

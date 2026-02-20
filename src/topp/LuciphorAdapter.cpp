@@ -22,9 +22,8 @@
 
 #include <QProcessEnvironment>
 
-#include <cstddef>
-#include <fstream>
-#include <map>
+import std;
+
 
 //-------------------------------------------------------------
 // Doxygen docu

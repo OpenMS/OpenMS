@@ -11,10 +11,10 @@
 
 ///////////////////////////
 #include <OpenMS/ML/SVM/SimpleSVM.h>
-///////////////////////////
 
-#include <fstream>
-#include <sstream>
+import std;
+
+///////////////////////////
 
 
 using namespace OpenMS;

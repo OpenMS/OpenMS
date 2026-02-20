@@ -12,8 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <unordered_set>
-#include <unordered_map>
+
+import std;
 
 /////////////////////////////////////////////////////////////
 

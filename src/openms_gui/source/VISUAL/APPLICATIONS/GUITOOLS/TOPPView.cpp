@@ -34,10 +34,9 @@
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
+import std;
+
 //STL
-#include <iostream>
-#include <map>
-#include <vector>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #   ifndef _WIN32_WINNT

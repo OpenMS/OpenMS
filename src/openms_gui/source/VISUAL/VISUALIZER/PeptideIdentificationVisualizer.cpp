@@ -16,7 +16,8 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QComboBox>
 
-#include <iostream>
+import std;
+
 
 using namespace std;
 

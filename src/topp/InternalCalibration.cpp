@@ -17,7 +17,8 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <vector>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;
@@ -123,7 +124,6 @@ Lock masses ('cal:lock_in') can be specified freely for MS1 and/or MS2.
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-
 
 
 class TOPPInternalCalibration :

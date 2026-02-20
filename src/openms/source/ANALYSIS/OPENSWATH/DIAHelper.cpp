@@ -15,9 +15,10 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
-#include <utility>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+
+import std;
 
 namespace OpenMS::DIAHelpers
   {

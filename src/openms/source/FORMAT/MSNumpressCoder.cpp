@@ -11,9 +11,12 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h>
 #include <boost/math/special_functions/fpclassify.hpp> // std::isfinite
+
+#include <cmath>
+import std;
+
 // #define NUMPRESS_DEBUG
 
-#include <iostream>
 
 namespace OpenMS
 {

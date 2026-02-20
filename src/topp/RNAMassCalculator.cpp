@@ -13,8 +13,9 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <iomanip> // for "setprecision"
-#include <ostream>
+#include <cmath>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

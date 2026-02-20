@@ -18,7 +18,9 @@
 
 #include <QtCore/QStringList>
 
-#include <cstdio>
+#include <cmath>
+import std;
+
 
 namespace OpenMS
 {

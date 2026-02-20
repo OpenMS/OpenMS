@@ -16,7 +16,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <sstream>
+
+import std;
 
 ///////////////////////////
 

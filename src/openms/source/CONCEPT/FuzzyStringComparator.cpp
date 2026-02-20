@@ -12,10 +12,8 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QDir>
-#include <fstream>
-#include <istream>
-#include <iomanip>
-#include <iostream>
+
+import std;
 
 // #define DEBUG_FUZZY
 

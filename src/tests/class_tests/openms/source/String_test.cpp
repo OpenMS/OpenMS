@@ -14,16 +14,12 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
-#include <algorithm>
-#include <cmath>
-
-#include <limits>
-#include <iostream>
-#include <iomanip>
-#include <random>
-#include <vector>
 
 #include <QtCore/QString>
+
+#include <assert.h>
+#include <math.h>
+import std;
 
 using namespace OpenMS;
 using namespace std;

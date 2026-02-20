@@ -11,7 +11,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 
-#include <tuple>
+import std;
+
 
 using namespace std;
 using namespace OpenMS;

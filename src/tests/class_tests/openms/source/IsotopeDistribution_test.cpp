@@ -13,13 +13,12 @@
 
 // More headers
 
-#include <iostream>
-#include <iterator>
-#include <utility>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+
+import std;
 
 /////////////////////////////////////////////////////////////
 
@@ -208,7 +207,6 @@ START_SECTION(void renormalize())
 
   TEST_REAL_SIMILAR(sum, 1.0)
 END_SECTION
-
 
 
 START_SECTION(bool operator!=(const IsotopeDistribution &isotope_distribution) const)

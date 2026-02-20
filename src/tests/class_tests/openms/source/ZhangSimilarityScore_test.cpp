@@ -11,11 +11,12 @@
 
 ///////////////////////////
 
-#include <iostream>
 
 #include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
+
+import std;
 
 ///////////////////////////
 

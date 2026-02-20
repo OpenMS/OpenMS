@@ -14,7 +14,8 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/QC/RTAlignment.h>
-#include <algorithm>
+
+import std;
 
 using namespace std;
 

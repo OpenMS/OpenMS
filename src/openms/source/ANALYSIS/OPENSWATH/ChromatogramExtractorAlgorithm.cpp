@@ -11,8 +11,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <algorithm>
-#include <iostream>
+
+import std;
 
 namespace OpenMS
 {

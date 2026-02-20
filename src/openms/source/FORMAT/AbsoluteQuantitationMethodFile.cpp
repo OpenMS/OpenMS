@@ -10,8 +10,10 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <fstream>
 #include <boost/regex.hpp>
+
+#include <regex>
+import std;
 
 namespace OpenMS
 {

@@ -10,9 +10,10 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <sstream> 
 
 #include <QDir>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

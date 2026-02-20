@@ -22,13 +22,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
-#include <iostream>
-#include <deque>
-#include <algorithm>
-#include <limits>
-#include <numeric>
-#include <unordered_map>
-#include <utility>
+
+import std;
 
 
 using namespace std;

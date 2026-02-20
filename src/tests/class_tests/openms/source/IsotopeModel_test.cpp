@@ -15,7 +15,8 @@
 
 #include <OpenMS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <sstream>
+
+import std;
 
 
 ///////////////////////////

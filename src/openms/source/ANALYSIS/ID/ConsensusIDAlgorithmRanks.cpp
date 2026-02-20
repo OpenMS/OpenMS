@@ -9,7 +9,8 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <numeric> // for "accumulate"
+import std;
+
 
 using namespace std;
 

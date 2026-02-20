@@ -16,8 +16,9 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
-#include <algorithm>
-#include <random>
+#include <stdlib.h>
+import std;
+
 
 namespace OpenMS
 {

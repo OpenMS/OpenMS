@@ -20,8 +20,8 @@
 #include <QtWidgets/QMessageBox>
 #include <qflags.h>
 
-#include <array>
-#include <utility>
+import std;
+
 
 namespace OpenMS
 {

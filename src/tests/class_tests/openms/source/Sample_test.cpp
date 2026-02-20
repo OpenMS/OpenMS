@@ -12,7 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/Sample.h>
-#include <sstream>
+
+import std;
 
 ///////////////////////////
 

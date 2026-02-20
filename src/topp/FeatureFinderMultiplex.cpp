@@ -47,15 +47,9 @@
 
 #include <QDir>
 
+import std;
+
 //std includes
-#include <cmath>
-#include <vector>
-#include <algorithm>
-#include <fstream>
-#include <limits>
-#include <locale>
-#include <iomanip>
-#include <set>
 
 using namespace std;
 using namespace OpenMS;

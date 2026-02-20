@@ -10,8 +10,8 @@
 #include "OpenMS/METADATA/ProteinIdentification.h"
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <algorithm>
-#include <array>
+
+import std;
 
 using namespace std;
 namespace OpenMS

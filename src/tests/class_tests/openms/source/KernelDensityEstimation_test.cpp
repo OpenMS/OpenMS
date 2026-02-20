@@ -12,11 +12,8 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>
-#include <cmath>
-#include <algorithm>
-#include <fstream>
-#include <sstream>
-#include <map>
+
+import std;
 
 using namespace OpenMS;
 using namespace OpenMS::Math;

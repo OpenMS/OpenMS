@@ -7,14 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMobilogram.h>
-#include <iostream>
-#include <iomanip>    // For std::setw
-#include <vector>
-#include <algorithm>  // For std::min_element and std::max_element
-#include <fstream>
-#include <iostream>
-#include <random>
-#include <sstream>
+
+import std;
 
 namespace OpenMS
 {

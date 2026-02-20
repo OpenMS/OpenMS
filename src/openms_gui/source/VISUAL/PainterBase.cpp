@@ -11,11 +11,13 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <cassert>
+#include <assert.h>
 
 #include <QPainter>
 #include <QPen>
 #include <QTransform>
+
+import std;
 
 using namespace std;
 

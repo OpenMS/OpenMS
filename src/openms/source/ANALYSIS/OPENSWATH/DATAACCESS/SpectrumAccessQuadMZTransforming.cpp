@@ -8,7 +8,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 
-#include <utility>
+import std;
+
 
 namespace OpenMS
 {

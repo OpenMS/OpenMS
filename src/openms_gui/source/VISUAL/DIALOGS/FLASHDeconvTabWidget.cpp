@@ -20,7 +20,8 @@
 #include <QSignalBlocker>
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
-#include <algorithm>
+
+import std;
 
 using namespace std;
 

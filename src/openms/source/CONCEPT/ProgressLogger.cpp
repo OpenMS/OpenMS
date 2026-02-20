@@ -15,7 +15,8 @@
 
 #include <QtCore/QString>
 
-#include <iostream>
+import std;
+
 
 using namespace std;
 

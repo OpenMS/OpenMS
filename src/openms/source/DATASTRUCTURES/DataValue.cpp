@@ -13,7 +13,9 @@
 
 #include <QtCore/QString>
 
-#include <sstream>
+#include <cmath>
+import std;
+
 
 using namespace std;
 

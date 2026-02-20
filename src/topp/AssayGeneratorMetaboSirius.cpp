@@ -25,8 +25,8 @@
 #include <QtCore/QDir>
 #include <QtCore/QDirIterator>
 #include <QtCore/QString>
-#include <algorithm>
-#include <map>
+
+import std;
 
 using namespace OpenMS;
 

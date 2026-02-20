@@ -11,7 +11,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 
-#include <fstream>
+import std;
+
 
 using namespace OpenMS;
 

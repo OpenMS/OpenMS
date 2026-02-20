@@ -38,10 +38,9 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
-#include <algorithm>
-#include <iomanip>
-#include <map>
-#include <sstream>
+#include <cmath>
+import std;
+
 
 #ifdef _OPENMP
   #include <omp.h>

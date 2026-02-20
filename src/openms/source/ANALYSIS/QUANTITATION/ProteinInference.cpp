@@ -13,7 +13,8 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
-#include <map>
+import std;
+
 
 namespace OpenMS
 {
@@ -166,7 +167,6 @@ namespace OpenMS
       protein_ident.getHits()[i].setMetaValue("hits", coverage_count);
 
     } // ! Protein loop
-
 
 
     // protein_to_peptides now contains the Protein -> Peptides mapping

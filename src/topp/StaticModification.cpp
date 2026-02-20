@@ -13,8 +13,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
+import std;
 
-#include <vector>
 
 using namespace OpenMS;
 using namespace std;
@@ -196,13 +196,11 @@ protected:
     }
 
 
-
     FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }
 };
-
 
 
 int main(int argc, const char** argv)

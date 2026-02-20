@@ -22,10 +22,8 @@
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
-#include <fstream>
-#include <iomanip> // setprecision etc.
+import std;
 
-#include <memory>
 
 using namespace std;
 

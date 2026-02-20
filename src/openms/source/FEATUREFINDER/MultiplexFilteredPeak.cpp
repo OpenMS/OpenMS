@@ -12,9 +12,8 @@
 #include <OpenMS/FEATUREFINDER/MultiplexSatelliteProfile.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
 
-#include <vector>
-#include <algorithm>
-#include <iostream>
+import std;
+
 
 using namespace std;
 

@@ -10,8 +10,8 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <iostream>
-#include <utility>
+import std;
+
 
 using namespace std;
 

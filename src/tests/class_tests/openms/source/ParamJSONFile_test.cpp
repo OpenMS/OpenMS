@@ -8,13 +8,14 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <fstream>
 
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamJSONFile.h>
+
+import std;
 
 ///////////////////////////
 #ifdef __clang__

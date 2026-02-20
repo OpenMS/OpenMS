@@ -20,13 +20,9 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
-#include <algorithm>
 #include <cmath>
-#include <fstream>
-#include <map>
-#include <numeric>
-#include <set>
-#include <limits>
+import std;
+
 
 using namespace std;
 

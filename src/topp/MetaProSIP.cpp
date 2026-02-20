@@ -40,13 +40,9 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QProcess>
 
-#include <algorithm>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <map>
-
 #include <cmath>
+import std;
+
 
 //#define DEBUG_METAPROSIP
 

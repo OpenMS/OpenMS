@@ -9,7 +9,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <QMessageBox>
-#include <utility>
+
+import std;
 
 namespace OpenMS
 {

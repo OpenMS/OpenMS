@@ -11,7 +11,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
-#include <fstream>
+import std;
+
 
 using namespace OpenMS;
 

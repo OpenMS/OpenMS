@@ -19,8 +19,8 @@
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
-#include <functional>
-#include <numeric>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

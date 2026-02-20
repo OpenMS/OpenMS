@@ -13,7 +13,8 @@
 
 #include <OpenMS/SYSTEM/StopWatch.h>
 
-#include <chrono>
+import std;
+
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;

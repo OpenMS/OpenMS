@@ -13,7 +13,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <map>
+import std;
+
 
 using namespace std;
 

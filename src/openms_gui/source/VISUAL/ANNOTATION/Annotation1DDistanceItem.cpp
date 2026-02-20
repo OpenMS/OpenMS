@@ -10,7 +10,8 @@
 
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
-#include <cmath>
+import std;
+
 
 using namespace std;
 

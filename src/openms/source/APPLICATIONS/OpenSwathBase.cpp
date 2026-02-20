@@ -21,9 +21,8 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
-#include <algorithm>
-#include <iostream>
-#include <utility>
+import std;
+
 
 using namespace std;
 

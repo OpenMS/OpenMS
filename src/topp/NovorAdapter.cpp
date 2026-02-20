@@ -28,7 +28,8 @@
 
 #include <QFileInfo>
 
-#include <fstream>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

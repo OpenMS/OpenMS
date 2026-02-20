@@ -12,7 +12,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <boost/regex.hpp>
-#include <sstream>
+
+import std;
 
 namespace OpenMS
 {

@@ -11,7 +11,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
 #include <cmath>
-#include <numeric>
+import std;
+
 
 namespace OpenMS::Math
 {

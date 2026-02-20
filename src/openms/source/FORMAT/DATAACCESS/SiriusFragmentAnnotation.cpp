@@ -9,9 +9,10 @@
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <fstream>
 #include <QtCore/QDir>
 #include <QtCore/QString>
+
+import std;
 
 using namespace std;
 

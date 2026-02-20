@@ -13,9 +13,9 @@
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QComboBox>
 
+import std;
+
 //STL
-#include <iostream>
-#include <string>
 
 using namespace std;
 

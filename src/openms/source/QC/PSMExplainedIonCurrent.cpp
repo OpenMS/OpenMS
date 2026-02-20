@@ -14,8 +14,10 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/QC/PSMExplainedIonCurrent.h>
-#include <cfloat>
-#include <numeric>
+
+#include <cmath>
+#include <float.h>
+import std;
 
 namespace OpenMS
 {

@@ -18,7 +18,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <map>
+import std;
+
 
 namespace OpenMS
 {

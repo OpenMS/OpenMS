@@ -28,11 +28,12 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/QC/QCBase.h>
-#include <functional>
+
+#include <cmath>
+import std;
 
 
 using namespace std;
-
 
 
 namespace OpenMS
@@ -497,7 +498,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       // loop over all PRECURSOR-charges
 
 
-
       for (uint16_t charge : charges)
       {
         SpectrumMatchesTopN candidates_charge;
@@ -509,8 +509,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       }
       trimHits(sms);
   }
-
-
 
 
   FragmentIndex::FragmentIndex() : DefaultParamHandler("FragmentIndex")

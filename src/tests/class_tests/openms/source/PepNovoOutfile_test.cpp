@@ -14,8 +14,8 @@
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
-#include <iostream>
-#include <vector>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;
@@ -128,8 +128,6 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
     TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), AASequence::fromString("SDYGVTR"))
     TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 2)
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getMetaValue("PnvScr"), 18.239)
-
-
 
 
     file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, -4.000f, rt_and_index2, key_to_mod);

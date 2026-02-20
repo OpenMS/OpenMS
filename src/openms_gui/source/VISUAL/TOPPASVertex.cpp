@@ -20,8 +20,8 @@
 #include <QSvgRenderer>
 #include <QtCore/QFileInfo>
 
-#include <iostream>
-#include <map>
+import std;
+
 
 namespace OpenMS
 {

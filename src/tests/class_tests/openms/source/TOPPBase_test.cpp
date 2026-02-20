@@ -19,9 +19,11 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
-#include <cstdlib>
 
 #include <QStringList>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -895,6 +897,5 @@ delete [] a8;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

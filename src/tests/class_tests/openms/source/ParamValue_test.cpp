@@ -14,10 +14,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
-#include <sstream>
-#include <iostream>
-#include <unordered_set>
-#include <unordered_map>
+import std;
+
 
 // we ignore the -Wunused-value warning here, since we do not want the compiler
 // to report problems like

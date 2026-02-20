@@ -10,10 +10,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <algorithm>
-#include <ostream>
-#include <tuple>
-#include <utility>
+
+import std;
 
 using namespace std;
 

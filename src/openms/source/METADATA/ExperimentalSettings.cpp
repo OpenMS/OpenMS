@@ -8,7 +8,8 @@
 
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 
-#include <ostream>
+import std;
+
 
 using namespace std;
 

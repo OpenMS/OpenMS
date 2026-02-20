@@ -23,7 +23,8 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <algorithm>
+
+import std;
 
 using namespace std;
 

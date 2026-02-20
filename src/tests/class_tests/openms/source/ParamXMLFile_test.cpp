@@ -17,9 +17,10 @@
 
 #include <OpenMS/FORMAT/TextFile.h>
 
+import std;
+
 ///////////////////////////
 
-#include <fstream>
 #ifdef __clang__
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wshadow"

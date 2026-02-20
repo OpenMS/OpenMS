@@ -15,7 +15,8 @@
 #include <QIntValidator>
 #include <QtWidgets/QMessageBox>
 
-#include <iostream>
+import std;
+
 
 using namespace std;
 

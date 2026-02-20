@@ -12,7 +12,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
-#include <iostream>
+import std;
+
 
 using namespace std;
 using namespace OpenMS;

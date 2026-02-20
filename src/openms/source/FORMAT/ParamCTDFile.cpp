@@ -10,10 +10,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <cstdint>
-#include <fstream>
-#include <iostream>
-#include <limits>
+import std;
 
 
 namespace OpenMS

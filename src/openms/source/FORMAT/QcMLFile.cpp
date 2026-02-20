@@ -19,8 +19,9 @@
 
 #include <QtCore/QFileInfo>
 
-#include <fstream>
-#include <set>
+#include <cmath>
+import std;
+
 
 using namespace std;
 
@@ -1959,8 +1960,6 @@ namespace OpenMS
         addRunAttachment(base_name, at);
       }
   }
-
-
 
 
   void QcMLFile::store(const String& filename) const 

@@ -56,11 +56,10 @@
 
 #include <QtCore/QProcess>
 
-#include <algorithm>
-#include <iostream>
-#include <vector>
-#include <map>
+#include <cmath>
 #include <regex>
+import std;
+
 
 // multithreading
 #ifdef _OPENMP

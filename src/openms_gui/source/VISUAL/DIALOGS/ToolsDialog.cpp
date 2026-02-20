@@ -29,7 +29,8 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
-#include <utility>
+
+import std;
 
 
 using namespace std;

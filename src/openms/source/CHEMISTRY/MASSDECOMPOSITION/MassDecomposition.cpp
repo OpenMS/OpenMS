@@ -10,7 +10,8 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <iostream>
+import std;
+
 
 using namespace std;
 

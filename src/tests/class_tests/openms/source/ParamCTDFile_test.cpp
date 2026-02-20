@@ -6,7 +6,6 @@
 // $Authors: Ruben Grünberg $
 // --------------------------------------------------------------------------
 
-#include <fstream>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
@@ -18,6 +17,8 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+import std;
 
 ///////////////////////////
 
@@ -185,7 +186,6 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(p6.getEntry("string_2").valid_strings.size(),2)
 	TEST_EQUAL(p6.getEntry("string_2").valid_strings[0],"bla")
 	TEST_EQUAL(p6.getEntry("string_2").valid_strings[1],"bluff")
-
 
 
 	TEST_EQUAL(p6.getEntry("stringlist").valid_strings.size(),0)

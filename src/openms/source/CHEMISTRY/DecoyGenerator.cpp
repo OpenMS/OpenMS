@@ -11,8 +11,8 @@
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <chrono>
-#include <algorithm>
+import std;
+
 
 using namespace OpenMS;
 

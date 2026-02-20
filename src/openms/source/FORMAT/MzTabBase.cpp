@@ -9,7 +9,9 @@
 #include <OpenMS/FORMAT/MzTabBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <cassert>
+#include <assert.h>
+
+import std;
 
 namespace OpenMS
 {

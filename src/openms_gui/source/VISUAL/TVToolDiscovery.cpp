@@ -21,7 +21,16 @@
 #include <QCoreApplication>
 #include <QDir>
 
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <future>
+#include <iostream>
+#include <mutex>
+#include <string>
 #include <thread>
+#include <vector>
 
 namespace OpenMS
 {

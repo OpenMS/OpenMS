@@ -13,8 +13,9 @@
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <unordered_set>
-#include <unordered_map>
+
+#include <cmath>
+import std;
 
 using namespace OpenMS;
 using namespace std;
@@ -464,6 +465,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

@@ -11,8 +11,6 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <ctime>
-#include <algorithm> // for std::sort and std::adjacent_find
 // array_wrapper needs to be included before it is used
 // only in boost1.64+. See issue #2790
 #if OPENMS_BOOST_VERSION_MINOR >= 64
@@ -20,6 +18,9 @@
 #endif
 #include <boost/accumulators/statistics/covariance.hpp>
 #include <boost/typeof/incr_registration_group.hpp>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;

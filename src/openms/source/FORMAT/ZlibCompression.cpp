@@ -10,8 +10,9 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <array>
 #include <zlib.h>
+
+import std;
 
 using namespace std;
 

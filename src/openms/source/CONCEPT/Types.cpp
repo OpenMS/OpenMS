@@ -7,8 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <clocale>
-#include <string>
+#include <locale.h>
+
+import std;
 
 namespace OpenMS::Internal
 {

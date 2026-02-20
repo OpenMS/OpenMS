@@ -8,7 +8,8 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 
-#include <tuple>
+import std;
+
 
 namespace OpenMS
 {

@@ -24,7 +24,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/OMSFileLoad.h>
 
-#include <cmath>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

@@ -15,7 +15,8 @@
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 
-#include <memory>
+import std;
+
 
 namespace OpenMS
 {

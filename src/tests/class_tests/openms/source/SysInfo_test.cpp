@@ -13,12 +13,13 @@
 
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <iostream>
 
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+
+import std;
 
 
 using namespace OpenMS;

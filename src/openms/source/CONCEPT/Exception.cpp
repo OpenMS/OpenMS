@@ -11,10 +11,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 
-#include <cstdio>
-#include <iostream>
-#include <sstream>
-#include <typeinfo>
+import std;
+
 
 #define DEF_EXCEPTION(a, b) \
   a::a(const char* file, int line, const char* function) noexcept :                                                           \

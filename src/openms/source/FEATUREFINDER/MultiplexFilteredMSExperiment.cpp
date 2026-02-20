@@ -16,9 +16,8 @@
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 
-#include <vector>
-#include <algorithm>
-#include <iostream>
+import std;
+
 
 using namespace std;
 

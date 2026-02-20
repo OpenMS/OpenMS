@@ -17,7 +17,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
-#include <sstream>
+#include <cmath>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;
@@ -726,7 +728,6 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
     }
 }
 END_SECTION
-
 
 
 START_SECTION((void sortByPosition()))

@@ -11,7 +11,8 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
-#include <map>
+
+import std;
 
 using namespace xercesc;
 using namespace std;

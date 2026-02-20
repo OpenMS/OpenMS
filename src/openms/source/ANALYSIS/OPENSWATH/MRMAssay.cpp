@@ -11,11 +11,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/lexical_cast.hpp>
-#include <map>
-#include <regex>
-#include <set>
-#include <unordered_map>
-#include <unordered_set>
+
+import std;
 
 using namespace std;
 

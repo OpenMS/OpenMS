@@ -13,8 +13,9 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QTextEdit>
 
+import std;
+
 // STL
-#include <iostream>
 
 using namespace std;
 

@@ -8,7 +8,8 @@
 
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <unordered_map>
+
+import std;
 
 using namespace std;
 namespace OpenMS

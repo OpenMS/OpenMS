@@ -13,8 +13,8 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
-#include <unordered_set>
-#include <unordered_map>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

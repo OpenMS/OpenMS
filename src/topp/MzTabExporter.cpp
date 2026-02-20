@@ -22,8 +22,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/FORMAT/MzTab.h>
 
-#include <vector>
-#include <algorithm>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

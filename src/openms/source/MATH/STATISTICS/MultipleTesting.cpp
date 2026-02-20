@@ -6,17 +6,6 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <algorithm>
-#include <cctype>
-#include <cmath>
-#include <complex>
-#include <cstdlib> // for getenv
-#include <iterator>
-#include <limits>
-#include <map>
-#include <numeric>
-#include <stdexcept>
-#include <utility>
 
 // Use the evergreen umbrella header so the vendor headers are included
 // consistently inside the `evergreen` namespace and their helper
@@ -37,6 +26,8 @@ namespace evergreen {
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>
 #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
+
+import std;
 
 namespace OpenMS
 {

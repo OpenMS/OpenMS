@@ -15,7 +15,8 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
-#include <type_traits> // to check if movable
+import std;
+
 
 ///////////////////////////
 

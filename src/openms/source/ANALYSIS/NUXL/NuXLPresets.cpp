@@ -9,7 +9,8 @@
 #include <OpenMS/ANALYSIS/NUXL/NuXLPresets.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <nlohmann/json.hpp>
-#include <fstream>
+
+import std;
 
 using json = nlohmann::json;
 

@@ -16,8 +16,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <QtCore/QDir>
-#include <cmath> // isnan
-#include <fstream>
+
+import std;
+
 //#include <vector>
 
 using namespace OpenMS;
@@ -273,6 +274,5 @@ void MQMsms::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap&
   }
   file_.flush();
 }
-
 
 

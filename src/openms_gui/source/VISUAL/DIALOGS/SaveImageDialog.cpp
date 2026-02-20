@@ -7,8 +7,6 @@
 // --------------------------------------------------------------------------
 //
 
-#include <iostream>
-#include <cmath>
 
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
 
@@ -24,6 +22,8 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QImageWriter>
 #include <QtWidgets/QApplication>
+
+import std;
 
 namespace OpenMS
 {

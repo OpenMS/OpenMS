@@ -19,8 +19,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <numeric>
-#include <set>
+
+import std;
 
 namespace OpenMS
 {

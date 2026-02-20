@@ -22,6 +22,7 @@
 
 /// typedef for the index into the sparse vector
 #include <Eigen/Sparse>
+
 using SparseVectorIteratorType = Eigen::SparseVector<float>::InnerIterator;
 
 ///////////////////////////

@@ -11,12 +11,11 @@
 
 ///////////////////////////
 
-#include <string>
-#include <unordered_set>
-#include <functional>
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+import std;
 
 ///////////////////////////
 

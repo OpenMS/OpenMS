@@ -11,9 +11,10 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/IonDetector.h>
+
+import std;
+
 ///////////////////////////
-#include <unordered_set>
-#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -193,8 +194,6 @@ START_SECTION((bool operator!= (const IonDetector& rhs) const))
 END_SECTION
 
 
-
-
 START_SECTION((static StringList getAllNamesOfType()))
   StringList names = IonDetector::getAllNamesOfType();
   TEST_EQUAL(names.size(), static_cast<size_t>(IonDetector::Type::SIZE_OF_TYPE));
@@ -287,6 +286,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

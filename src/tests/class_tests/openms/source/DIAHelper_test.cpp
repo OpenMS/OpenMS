@@ -10,10 +10,10 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <iterator>
-#include <iomanip>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+
+import std;
 
 using namespace std;
 using namespace OpenMS;
@@ -134,7 +134,6 @@ START_SECTION(bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, doubl
     TEST_REAL_SIMILAR (intens, 2);
     TEST_REAL_SIMILAR (im, -1); // since no IM, this value should be -1
   }
-
 
 
   {

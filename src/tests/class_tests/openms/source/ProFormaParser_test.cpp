@@ -16,9 +16,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <fstream>
-#include <string>
-#include <vector>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

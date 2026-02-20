@@ -16,9 +16,8 @@
 #include <OpenMS/QC/DBSuitability.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/PSMExplainedIonCurrent.h>
-#include <algorithm>
-#include <cmath>
-#include <cstdio>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

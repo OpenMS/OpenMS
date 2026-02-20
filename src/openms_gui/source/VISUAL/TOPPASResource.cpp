@@ -6,8 +6,9 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#include <iostream>
 #include <OpenMS/VISUAL/TOPPASResource.h>
+
+import std;
 
 namespace OpenMS
 {

@@ -22,13 +22,11 @@
 
 #include <QtCore/qfile.h>
 
-#include <iostream>
-#include <cmath>
-#include <string>
-#include <set>
 //#include <typeinfo>
 
 #include <boost/algorithm/clamp.hpp>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;
@@ -285,7 +283,6 @@ protected:
   }
   
 
-  
   // Function adapted from Enzyme.h in Percolator converter
   // TODO: adapt to OpenMS enzymes. Use existing functionality in EnzymaticDigestion.
   bool isEnz_(const char& n, const char& c, string& enz)

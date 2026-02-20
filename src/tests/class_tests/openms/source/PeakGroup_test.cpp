@@ -11,7 +11,9 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <unordered_set>
+
+import std;
+
 ///////////////////////////
 
 using namespace OpenMS;

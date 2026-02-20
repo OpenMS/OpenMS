@@ -17,9 +17,11 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 
-#include <cstddef>
-#include <map>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
+
+#include <limits.h>
+#include <assert.h>
+import std;
 
 namespace OpenMS
 {
@@ -270,7 +272,6 @@ namespace OpenMS
 
     stack.clear();
   }
-
 
 
   MSExperiment IMDataConverter::reshapeIMFrameToSingle(const MSExperiment& exp)

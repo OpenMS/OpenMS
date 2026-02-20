@@ -15,8 +15,8 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <iostream>
-#include <vector>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

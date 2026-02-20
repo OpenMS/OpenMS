@@ -30,11 +30,12 @@
         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <algorithm>  // for min() and max() in VS2013
-#include <climits>
-#include <cmath>
-#include <iostream>
 #include <OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h>
+
+#include <cmath>
+#include <limits.h>
+
+import std;
 
 
 namespace ms::numpress::MSNumpress {
@@ -54,7 +55,6 @@ static bool is_little_endian() {
 bool IS_LITTLE_ENDIAN = is_little_endian();
 
 
-
 /////////////////////////////////////////////////////////////
 
 static void encodeFixedPoint(
@@ -67,7 +67,6 @@ static void encodeFixedPoint(
 		result[i] = fp[IS_LITTLE_ENDIAN ? (7-i) : i];
 	}
 }
-
 
 
 static double decodeFixedPoint(
@@ -159,7 +158,6 @@ static void encodeInt(
 }
 
 
-
 /**
  * Decodes an int from the half bytes in bp. Lossless reverse of encodeInt 
  */
@@ -230,8 +228,6 @@ static void decodeInt(
 }
 
 
-
-
 /////////////////////////////////////////////////////////////
 
 double optimalLinearFixedPointMass(
@@ -298,7 +294,6 @@ double optimalLinearFixedPoint(
 
 	return floor(0x7FFFFFFFl / maxDouble);
 }
-
 
 
 size_t encodeLinear(
@@ -400,7 +395,6 @@ size_t encodeLinear(
 }
 
 
-
 size_t decodeLinear(
 		const unsigned char *data,
 		const size_t dataSize,
@@ -490,7 +484,6 @@ size_t decodeLinear(
 }
 
 
-
 void encodeLinear(
 		const std::vector<double> &data, 
 		std::vector<unsigned char> &result,
@@ -501,7 +494,6 @@ void encodeLinear(
 	size_t encodedLength = encodeLinear(&data[0], dataSize, &result[0], fixedPoint);
 	result.resize(encodedLength);
 }
-
 
 
 void decodeLinear(
@@ -567,7 +559,6 @@ size_t encodeSafe(
 	
 	return ri;
 }
-
 
 
 size_t decodeSafe(
@@ -683,7 +674,6 @@ size_t encodePic(
 }
 
 
-
 size_t decodePic(
 		const unsigned char *data,
 		const size_t dataSize,
@@ -722,7 +712,6 @@ size_t decodePic(
 }
 
 
-
 void encodePic(
 		const std::vector<double> &data,  
 		std::vector<unsigned char> &result
@@ -732,7 +721,6 @@ void encodePic(
 	size_t encodedLength = encodePic(&data[0], dataSize, &result[0]);
 	result.resize(encodedLength);
 }
-
 
 
 void decodePic(
@@ -777,7 +765,6 @@ double optimalSlofFixedPoint(
 }
 
 
-
 size_t encodeSlof(
 		const double *data, 
 		size_t dataSize, 
@@ -807,7 +794,6 @@ size_t encodeSlof(
 }
 
 
-
 size_t decodeSlof(
 		const unsigned char *data, 
 		const size_t dataSize, 
@@ -832,7 +818,6 @@ size_t decodeSlof(
 }
 
 
-
 void encodeSlof(
 		const std::vector<double> &data,  
 		std::vector<unsigned char> &result,
@@ -843,7 +828,6 @@ void encodeSlof(
 	size_t encodedLength = encodeSlof(&data[0], dataSize, &result[0], fixedPoint);
 	result.resize(encodedLength);
 }
-
 
 
 void decodeSlof(

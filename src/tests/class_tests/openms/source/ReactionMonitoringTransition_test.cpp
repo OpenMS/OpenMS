@@ -11,10 +11,11 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+
+import std;
+
 ///////////////////////////
 
-#include <unordered_set>
-#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -459,6 +460,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

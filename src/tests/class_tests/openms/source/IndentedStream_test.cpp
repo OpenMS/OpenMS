@@ -15,7 +15,8 @@
 
 #include <OpenMS/CONCEPT/Colorizer.h>
 
-#include <sstream>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

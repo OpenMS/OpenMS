@@ -13,8 +13,9 @@
 ///////////////////////////
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <vector>
-#include <ostream>
+#include <cmath>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

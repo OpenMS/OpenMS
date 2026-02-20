@@ -8,7 +8,8 @@
 
 #include <OpenMS/CHEMISTRY/SequenceCoverage.h>
 
-#include <vector>
+import std;
+
 
 namespace OpenMS
 {

@@ -16,9 +16,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <QtCore/QDir>
-#include <cmath> // isnan
-#include <fstream>
-#include <vector>
+
+import std;
 
 
 using namespace OpenMS;

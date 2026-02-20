@@ -15,7 +15,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <sstream>
+
+import std;
 
 ///////////////////////////
 

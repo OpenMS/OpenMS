@@ -8,7 +8,6 @@
 //
 
 
-
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
@@ -16,11 +15,11 @@
 
 #include <OpenMS/ML/ROCCURVE/ROCCurve.h>
 
+#include <stdlib.h>
+import std;
+
 ///////////////////////////
 
-#include <cmath>
-#include <ctime>
-#include <vector>
 
 ///////////////////////////
 START_TEST(ROCCurve, "$Id$")

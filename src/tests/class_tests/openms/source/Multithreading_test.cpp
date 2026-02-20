@@ -16,11 +16,13 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <limits.h>
+import std;
+
 // OpenMP support
 #ifdef _OPENMP
     #include <omp.h>
 #endif
-#include <climits>
 
 ///////////////////////////
 

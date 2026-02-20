@@ -8,7 +8,8 @@
 
 #include <OpenMS/KERNEL/RangeManager.h>
 
-#include <ostream>
+import std;
+
 
 namespace OpenMS
 {

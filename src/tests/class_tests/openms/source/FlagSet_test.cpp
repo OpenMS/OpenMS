@@ -13,7 +13,8 @@
 
 #include <OpenMS/DATASTRUCTURES/FlagSet.h>
 
-#include <iostream>
+import std;
+
 //////////////////////////
 
 using namespace OpenMS;
@@ -49,7 +50,6 @@ START_TEST(FlagSet, "$Id$")
 //////////////////////////////////////////////////////////////////
 //start Section
 /////////////////////////////////////////////////////////////////
-
 
 
 FlagSet<Enum_test>* ptr = nullptr;

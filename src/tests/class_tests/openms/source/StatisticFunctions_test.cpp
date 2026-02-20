@@ -17,7 +17,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <list>
+import std;
+
 
 using namespace OpenMS;
 using namespace OpenMS::Math;

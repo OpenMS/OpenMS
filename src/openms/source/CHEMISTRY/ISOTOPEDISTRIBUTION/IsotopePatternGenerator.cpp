@@ -11,8 +11,8 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <cmath>
-#include <fstream>
+import std;
+
 
 using namespace std;
 

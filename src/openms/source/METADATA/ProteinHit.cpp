@@ -7,7 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinHit.h>
-#include <ostream>
+
+import std;
 
 
 using namespace std;

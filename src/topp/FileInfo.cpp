@@ -37,11 +37,8 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
+import std;
 
-
-#include <unordered_map>
-#include <iomanip>
-#include <map>
 
 using namespace OpenMS;
 using namespace std;

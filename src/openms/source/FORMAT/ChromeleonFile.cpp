@@ -10,7 +10,9 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <boost/regex.hpp>
-#include <fstream>
+
+#include <regex>
+import std;
 
 namespace OpenMS
 {

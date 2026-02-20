@@ -8,11 +8,6 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <algorithm>
-#include <bit>
-#include <cmath>
-#include <limits>
-#include <stdexcept>
 
 // Use the evergreen umbrella header so the vendor headers are included
 // consistently inside the `evergreen` namespace and their helper
@@ -28,6 +23,8 @@ namespace evergreen {
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
+
+import std;
 
 namespace OpenMS
 {

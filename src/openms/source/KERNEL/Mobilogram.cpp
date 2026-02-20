@@ -14,7 +14,8 @@
 #include <OpenMS/KERNEL/Mobilogram.h>
 
 #include <OpenMS/IONMOBILITY/IMTypes.h>
-#include <numeric>
+
+import std;
 
 namespace OpenMS
 {

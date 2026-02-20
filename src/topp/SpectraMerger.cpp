@@ -11,7 +11,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <algorithm>
+import std;
+
 
 using namespace OpenMS;
 using namespace std;

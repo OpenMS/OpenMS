@@ -52,7 +52,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <vector>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;

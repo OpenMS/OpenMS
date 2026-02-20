@@ -15,8 +15,8 @@
 
 #include <QtWidgets/QPushButton>
 
-#include <array>
-#include <variant>
+import std;
+
 
 using namespace std;
 

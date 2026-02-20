@@ -22,7 +22,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <iostream>
+import std;
 
 
 /**

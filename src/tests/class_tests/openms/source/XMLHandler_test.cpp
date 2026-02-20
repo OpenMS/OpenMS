@@ -1,10 +1,11 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <string>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+
+import std;
 
 class StringManager_test : public OpenMS::Internal::StringManager
 {
@@ -19,9 +20,6 @@ public:
 };
 
 using namespace OpenMS::Internal;
-
-
-
 
 
 START_TEST(StringManager, "$Id$")
@@ -154,6 +152,4 @@ END_SECTION
 
 END_TEST
 
-
-    
 

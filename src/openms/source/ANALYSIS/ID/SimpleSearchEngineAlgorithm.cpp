@@ -36,8 +36,10 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
-#include <algorithm>
-#include <map>
+#include <cmath>
+#include <regex>
+import std;
+
 #ifdef _OPENMP
   #include <omp.h>
 #endif

@@ -19,7 +19,8 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <numeric>
+import std;
+
 
 namespace OpenMS
 {

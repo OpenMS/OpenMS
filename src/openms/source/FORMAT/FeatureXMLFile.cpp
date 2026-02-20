@@ -16,7 +16,8 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
-#include <fstream>
+import std;
+
 
 using namespace std;
 

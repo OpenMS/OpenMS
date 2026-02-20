@@ -13,7 +13,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
-#include <algorithm>
+
+import std;
 
 
 namespace OpenMS

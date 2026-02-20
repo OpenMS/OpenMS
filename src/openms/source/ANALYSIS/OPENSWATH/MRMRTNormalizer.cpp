@@ -11,8 +11,10 @@
 #include <OpenMS/CONCEPT/LogStream.h> // OPENMS_LOG_DEBUG
 #include <OpenMS/ML/RANSAC/RANSAC.h> // RANSAC algorithm
 
-#include <numeric>
 #include <boost/math/special_functions/erf.hpp>
+
+#include <cmath>
+import std;
 
 namespace OpenMS
 {

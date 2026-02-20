@@ -13,6 +13,7 @@
 
 #include <numeric> // for "accumulate"
 
+
 namespace OpenMS
 {
   const Size GaussTraceFitter::NUM_PARAMS_ = 3;

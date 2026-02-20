@@ -10,8 +10,8 @@
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <unordered_set>
-#include <unordered_map>
+
+import std;
 
 START_TEST(AnnotatedMSRun, "$Id$")
 

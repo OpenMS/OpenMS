@@ -28,7 +28,10 @@
 #include <QtCore/QRegularExpression>
 
 #include <QSvgRenderer>
-#include <map>
+
+#include <cmath>
+#include <assert.h>
+import std;
 
 namespace OpenMS
 {
@@ -734,7 +737,6 @@ namespace OpenMS
     }
 
    
-
     __DEBUG_END_METHOD__
   }
 

@@ -35,9 +35,10 @@
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
-#include <utility>
 
 #include <boost/make_shared.hpp>
+
+import std;
 
 using namespace std;
 

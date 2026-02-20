@@ -12,8 +12,6 @@
 #include <QBrush>
 
 // STL
-#include <iostream>
-#include <algorithm>
 
 // OpenMS
 #include <OpenMS/VISUAL/AxisWidget.h>
@@ -21,6 +19,8 @@
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 #include <OpenMS/VISUAL/AxisPainter.h>
 #include <OpenMS/MATH/MathFunctions.h>
+
+import std;
 
 using namespace std;
 

@@ -15,9 +15,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <array>
-#include <cassert>
-#include <string_view>
+#include <assert.h>
+
+import std;
 
 using namespace OpenMS;
 using namespace std;
@@ -431,7 +431,6 @@ START_SECTION(constexpr AA())
   static_assert(!AA('#').isValidForPeptide());
 }
 END_SECTION
-
 
 
 /////////////////////////////////////////////////////////////

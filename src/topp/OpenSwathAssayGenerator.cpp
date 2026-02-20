@@ -21,7 +21,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <iostream>
+import std;
+
 
 using namespace OpenMS;
 

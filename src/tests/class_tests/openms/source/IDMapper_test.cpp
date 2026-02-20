@@ -11,13 +11,14 @@
 
 ///////////////////////////
 
-#include <iostream>
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
+
+import std;
 
 ///////////////////////////
 

@@ -22,11 +22,13 @@
 
 #include <sqlite3.h>
 
+#include <cmath>
+import std;
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-#include <cmath>
 
 namespace OpenMS::Internal
 {

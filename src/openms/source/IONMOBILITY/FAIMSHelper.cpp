@@ -12,8 +12,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <algorithm>
-#include <cmath>
+
+import std;
 
 namespace OpenMS
 {

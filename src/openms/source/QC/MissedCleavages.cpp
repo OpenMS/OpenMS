@@ -10,7 +10,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/QC/MissedCleavages.h>
-#include <iostream>
+
+import std;
 
 namespace OpenMS
 {

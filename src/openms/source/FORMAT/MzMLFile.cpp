@@ -19,7 +19,8 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <sstream>
+import std;
+
 
 namespace OpenMS
 {

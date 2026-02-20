@@ -12,11 +12,10 @@
 #include <parquet/arrow/reader.h>
 
 #include <parquet/arrow/writer.h>
-#include <iostream>
-#include <vector>
-#include <memory>
 #include <arrow/status.h>
 #include <arrow/csv/reader.h>
+
+import std;
 
 using namespace OpenMS;
 

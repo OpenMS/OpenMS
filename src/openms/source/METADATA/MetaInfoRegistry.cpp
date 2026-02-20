@@ -6,9 +6,10 @@
 // $Authors: Marc Sturm, Hendrik Weisser $
 // -------------------------------------------------------------------------
 
-#include <sstream>
 
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
+
+import std;
 
 using namespace std;
 

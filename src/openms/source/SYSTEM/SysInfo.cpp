@@ -8,12 +8,6 @@
 
 #include <OpenMS/SYSTEM/SysInfo.h>
 
-#include <array>
-#include <cstdlib>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-
 #ifdef OPENMS_WINDOWSPLATFORM
   #include "windows.h"
   #include "psapi.h"
@@ -30,6 +24,8 @@
     #include <sys/resource.h> // for rusage
   #endif
 #endif
+
+import std;
 
 namespace OpenMS
 {
