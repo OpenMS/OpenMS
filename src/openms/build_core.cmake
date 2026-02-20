@@ -38,6 +38,7 @@ set(CORE_DEP_PRIVATE_LIBRARIES
   eol-bspline
   Evergreen
   IsoSpec
+  nlohmann_json::nlohmann_json
   SIMDe
 )
 
