@@ -58,6 +58,7 @@ brew install \
   automake \
   libtool \
   ninja \
+  llvm \
   libomp \
   libsvm \
   xerces-c \

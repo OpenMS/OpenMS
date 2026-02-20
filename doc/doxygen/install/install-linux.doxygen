@@ -5,6 +5,10 @@
   This document describes how to build %OpenMS on a GNU/Linux system
   from source.
 
+  @note %OpenMS requires **CMake >= 4.1**, the **Ninja** build
+  system, and a compiler with C++23 `import std;` support
+  (**GCC >= 15** or **Clang >= 19** with libc++).
+
   If you encounter errors while configuring or compiling %OpenMS,
   search in the [issue tracker][issues] for a possible solution.  If
   an existing issue can't be found please report the error using the
@@ -90,12 +94,13 @@
     \code
     mkdir -p "$OPENMS_DIR/openms_build"
     cd "$OPENMS_DIR/openms_build"
-    cmake -DBOOST_USE_STATIC=OFF "$OPENMS_DIR/OpenMS"
-    make -j"$(nproc || sysctl -n hw.logicalcpu || echo 2)"
+    cmake -G Ninja -DBOOST_USE_STATIC=OFF "$OPENMS_DIR/OpenMS"
+    ninja
     \endcode
 
-    @note After executing CMake you can list all of the make targets
-    by running `make targets`.
+    @note The Ninja generator is required for C++23 module dependency
+    scanning.  After executing CMake you can list all of the build
+    targets by running `ninja -t targets`.
 
   3. The TOPP tools should now be ready to use.
 

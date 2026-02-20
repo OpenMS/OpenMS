@@ -18,6 +18,11 @@
   an existing issue can't be found please report the error using the
   same issue tracker.
 
+  @note %OpenMS requires **CMake >= 4.1**, the **Ninja** build
+  system, and a compiler with C++23 `import std;` support.
+  Apple Clang does **not** support C++ modules; you must use
+  **Homebrew LLVM/Clang >= 19** with libc++.
+
   @subsection required_apps Required Applications and Dependencies
 
   In order to compile %OpenMS, several applications need to be
@@ -25,19 +30,13 @@
 
   1. A compiler and its toolchain.
 
-    Apple Clang is the officially supported compiler on macOS for
-    building %OpenMS (GCC can be used at your own risk).  %OpenMS is
-    tested with the Apple Clang toolchain that ships with the last
-    three Xcode releases.  Older Xcode versions may fail due to
-    missing C++20 features.
+    %OpenMS requires C++23 `import std;` support which is not
+    available in Apple Clang.  You must install **LLVM/Clang >= 19**
+    from Homebrew (`brew install llvm`).  The Homebrew dependency
+    script below handles this automatically.
 
-    A minimal installation of Apple Clang is achieved by downloading
-    Apple's "Command Line Tools".  However we suggest using a full
-    Xcode installation from the Mac App Store.  More details can be
-    found on the [Apple Developer Site][xcode].
-
-    @note Since macOS El Capitan 10.11, the command line tools can
-    easily be installed via:
+    You will still need the Xcode Command Line Tools installed for
+    system headers and linker tools:
     \code
     xcode-select --install
     \endcode
@@ -75,15 +74,20 @@
     \code
     mkdir -p "$OPENMS_DIR/openms_build"
     cd "$OPENMS_DIR/openms_build"
-    cmake \
+    cmake -G Ninja \
+      -DCMAKE_C_COMPILER="$(brew --prefix llvm)/bin/clang" \
+      -DCMAKE_CXX_COMPILER="$(brew --prefix llvm)/bin/clang++" \
       -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix qt)" \
       -DBOOST_USE_STATIC=OFF \
       "$OPENMS_DIR/OpenMS"
-    make -j"$(nproc || sysctl -n hw.logicalcpu || echo 2)"
+    ninja
     \endcode
 
-    @note After executing CMake you can list all of the make targets
-    by running `make targets`.
+    @note The Ninja generator is required for C++23 module dependency
+    scanning.  The Homebrew LLVM compilers must be specified
+    explicitly because CMake will otherwise pick Apple Clang, which
+    does not support C++ modules.  After executing CMake you can list
+    all of the build targets by running `ninja -t targets`.
 
   3. The TOPP tools should now be ready to use.
 

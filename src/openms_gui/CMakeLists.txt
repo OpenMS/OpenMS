@@ -33,6 +33,20 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")
 
 # --------------------------------------------------------------------------
+# Workaround for GCC 15 ICE (tree-ssa-dce.cc:1148) with import std;
+# and std::future/promise. These files must not use import std; until
+# the GCC bug is fixed. Disable module scanning so they fall back to
+# traditional #include.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "15")
+  set_source_files_properties(
+    source/VISUAL/TVToolDiscovery.cpp
+    source/VISUAL/TOPPASOutputFolderVertex.cpp
+    source/VISUAL/TOPPASOutputFileListVertex.cpp
+    PROPERTIES CXX_SCAN_FOR_MODULES OFF
+  )
+endif()
+
+# --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
 if (MSVC)
   ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC

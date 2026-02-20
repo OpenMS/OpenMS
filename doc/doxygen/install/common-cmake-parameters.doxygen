@@ -61,7 +61,7 @@ The most important CMake variables are:
   </tr>
   <tr>
     <th valign="top">CMAKE_BUILD_TYPE</td>
-    <td>[makefiles only; does not apply for XCode or VS] Should be either 'Release' (optimization enabled)
+    <td>[single-config generators only, e.g. Ninja or Makefiles; does not apply for Xcode or VS] Should be either 'Release' (optimization enabled)
         or 'Debug' (debug info and precondition/postcondition checks enabled).
         @n The default is <code>Release</code>.</td>
   </tr>
@@ -113,7 +113,7 @@ The most important CMake variables are:
   <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>
     <td>the path where the bin/ and lib/ directories should be installed to
-        (when <pre>sudo make install</pre> is wished for a system-wide
+        (when <pre>sudo cmake --build . --target install</pre> is wished for a system-wide
         install: e.g. <code>-DCMAKE_INSTALL_PREFIX=/usr/local/</code>)
         <BR>
         <b>Note:</b> Moving these directories after installing is not supported.

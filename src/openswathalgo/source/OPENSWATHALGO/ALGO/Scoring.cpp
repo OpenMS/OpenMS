@@ -8,9 +8,9 @@
 
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/OPENSWATHALGO/Macros.h>
+
 #include <cmath>
-#include <algorithm>
-#include <unordered_map>
+import std;
 
 namespace OpenSwath::Scoring
 {

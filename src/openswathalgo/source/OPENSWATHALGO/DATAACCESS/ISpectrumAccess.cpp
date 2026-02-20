@@ -9,9 +9,8 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <boost/numeric/conversion/cast.hpp>
-#include <cmath>
-#include <string>
-#include <vector>
+
+import std;
 
 namespace OpenSwath
 {

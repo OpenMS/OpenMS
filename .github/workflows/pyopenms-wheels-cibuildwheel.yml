@@ -120,11 +120,16 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-amd64 \
             bash -c '
-              yum install -y cmake ninja-build
+              # Install GCC 15 for C++23 import std support
+              dnf install -y gcc-toolset-15-gcc-c++
+              # Ninja 1.11+ required for C++ module dependency scanning (dnf has 1.10)
+              python3 -c "import urllib.request,zipfile,io,os;data=urllib.request.urlopen(\"https://github.com/ninja-build/ninja/releases/latest/download/ninja-linux.zip\").read();zipfile.ZipFile(io.BytesIO(data)).extractall(\"/usr/local/bin\");os.chmod(\"/usr/local/bin/ninja\",0o755)"
+              source /opt/rh/gcc-toolset-15/enable
               mkdir build && cd build
               cmake .. \
                 -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DCMAKE_INSTALL_PREFIX=/project/install \
                 -DCMAKE_PREFIX_PATH=/contrib-build \
                 -DOPENMS_CONTRIB_LIBS=/contrib-build \
@@ -199,11 +204,16 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-arm64 \
             bash -c '
-              yum install -y cmake ninja-build
+              # Install GCC 15 for C++23 import std support
+              dnf install -y gcc-toolset-15-gcc-c++
+              # Ninja 1.11+ required for C++ module dependency scanning (dnf has 1.10)
+              python3 -c "import urllib.request,zipfile,io,os;data=urllib.request.urlopen(\"https://github.com/ninja-build/ninja/releases/latest/download/ninja-linux-aarch64.zip\").read();zipfile.ZipFile(io.BytesIO(data)).extractall(\"/usr/local/bin\");os.chmod(\"/usr/local/bin/ninja\",0o755)"
+              source /opt/rh/gcc-toolset-15/enable
               mkdir build && cd build
               cmake .. \
                 -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DCMAKE_INSTALL_PREFIX=/project/install \
                 -DCMAKE_PREFIX_PATH=/contrib-build \
                 -DOPENMS_CONTRIB_LIBS=/contrib-build \
@@ -257,7 +267,43 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps && brew install ccache
+        run: |
+          bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps && brew install ccache
+          # Set SDKROOT so Homebrew LLVM finds system headers for module compilation
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
+
+          # Homebrew LLVM 21 was built without
+          # -DLIBCXX_ENABLE_VENDOR_AVAILABILITY_ANNOTATIONS=ON, so its headers
+          # declare __hash_memory as extern but libc++.dylib doesn't export it.
+          # Patch the header to force the inline fallback.
+          # We also link explicitly against Homebrew's libc++ via -nostdlib++
+          # to avoid picking up the macOS SDK's older libc++.
+          # See: https://github.com/llvm/llvm-project/issues/155531
+          LLVM_PREFIX="$(brew --prefix llvm)"
+          HASH_H="$LLVM_PREFIX/include/c++/v1/__functional/hash.h"
+          if grep -q '_LIBCPP_AVAILABILITY_HAS_HASH_MEMORY' "$HASH_H" 2>/dev/null; then
+            sed -i '' 's/^#if _LIBCPP_AVAILABILITY_HAS_HASH_MEMORY$/#if 0 \/\/ PATCHED: Homebrew libc++ missing __hash_memory/' "$HASH_H"
+            echo "Patched $HASH_H to force inline __hash_memory fallback"
+          fi
+          LLVM_LIB="$LLVM_PREFIX/lib"
+          echo "CMAKE_SHARED_LINKER_FLAGS=-nostdlib++ -Wl,-rpath,${LLVM_LIB}" >> "$GITHUB_ENV"
+          echo "CMAKE_EXE_LINKER_FLAGS=-nostdlib++ -Wl,-rpath,${LLVM_LIB}" >> "$GITHUB_ENV"
+          echo "CMAKE_CXX_STANDARD_LIBRARIES=-L${LLVM_LIB} -lc++ -lc++abi" >> "$GITHUB_ENV"
+
+          # Workaround: Homebrew LLVM places libc++.modules.json in lib/c++/
+          # but clang -print-file-name searches <prefix>/lib/libc++.modules.json.
+          # The original file has relative paths from lib/c++/ which break when
+          # placed at lib/. Create a fresh manifest with correct paths.
+          # See: https://github.com/llvm/llvm-project/issues/120215
+          LLVM_PREFIX=$(brew --prefix llvm)
+          TARGET="$LLVM_PREFIX/lib/libc++.modules.json"
+          if [ -f "$LLVM_PREFIX/share/libc++/v1/std.cppm" ]; then
+            printf '{"version":1,"revision":1,"modules":[{"logical-name":"std","source-path":"../share/libc++/v1/std.cppm","is-std-library":true,"local-arguments":{"system-include-directories":["../share/libc++/v1"]}},{"logical-name":"std.compat","source-path":"../share/libc++/v1/std.compat.cppm","is-std-library":true,"local-arguments":{"system-include-directories":["../share/libc++/v1"]}}]}\n' > "$TARGET"
+            echo "Created $TARGET (std.cppm at $LLVM_PREFIX/share/libc++/v1/)"
+          else
+            echo "WARNING: Cannot set up libc++.modules.json — no std.cppm found"
+            find "$LLVM_PREFIX" -name "*.cppm" -o -name "*modules*" 2>/dev/null || true
+          fi
 
       - name: Build and install OpenMS
         run: |
@@ -266,12 +312,18 @@ jobs:
           # BOOST_USE_STATIC=OFF works around Boost's incomplete find_dependency calls
           # ARROW_USE_STATIC=OFF since static Arrow still links to shared abseil libs anyway
           # Install OpenMS so libraries are stripped and use proper install names
+          LLVM_PREFIX=$(brew --prefix llvm)
           cmake .. \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=${LLVM_PREFIX}/bin/clang++ \
+            -DCMAKE_C_COMPILER=${LLVM_PREFIX}/bin/clang \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install \
             -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp)" \
             -DCMAKE_INSTALL_NAME_DIR=${{ github.workspace }}/install/lib \
+            -DCMAKE_SHARED_LINKER_FLAGS="-nostdlib++ -Wl,-rpath,${LLVM_PREFIX}/lib" \
+            -DCMAKE_EXE_LINKER_FLAGS="-nostdlib++ -Wl,-rpath,${LLVM_PREFIX}/lib" \
+            -DCMAKE_CXX_STANDARD_LIBRARIES="-L${LLVM_PREFIX}/lib -lc++ -lc++abi" \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DBOOST_USE_STATIC=OFF \
             -DARROW_USE_STATIC=OFF \

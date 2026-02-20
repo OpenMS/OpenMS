@@ -38,12 +38,14 @@
       <li><b>Microsoft Visual C++ Compiler</b>: Comes with <a href="https://visualstudio.microsoft.com/de/downloads/?q=build+tools">
           Microsoft Visual Studio Build Tools</a>. Scroll to the bottom of the page to get the build tools only.
           If you want, you can also download the full Visual Studio (Community/Pro/Enterprise) IDE.<br>
-        <b>%OpenMS requires at least Visual Studio 2019 (version 16.8.4 from January 2021) or later.
-        Earlier versions have compiler bugs and may not compile without modifications to the %OpenMS codebase.</b>
+        <b>%OpenMS requires Visual Studio 2022 (MSVC toolset 14.44 or later) for C++23 `import std;` support.</b>
         <br><b>Not supported (or at least not tested) is MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with or load vcvarsall.sh (see below).</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li><b>CMake</b>: Have CMake (>= 3.24) installed (see http://www.cmake.org). <br>
-	      If you are using Visual Studio 2019+ as IDE, make sure CMake's Generator (-G flag) supports your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
+      <li><b>CMake</b>: Have CMake (>= 3.30) installed (see http://www.cmake.org). CMake 3.30+ is required for C++23 module support.<br>
+      <li><b>Ninja</b>: The Ninja build system is required for C++23 module dependency scanning.
+          Install via <tt>pip install ninja</tt>, <tt>winget install Ninja-build.Ninja</tt>,
+          or download from <a href="https://ninja-build.org/">https://ninja-build.org/</a>.
+          Make sure <tt>ninja.exe</tt> is in your PATH.<br>
       <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in `C:\Program Files\7-Zip\` and `C:\Programme\7-Zip\`. Make sure it is in either of these locations or add
         the installation directory to your PATH.
@@ -200,33 +202,28 @@
       <li>Call CMake to create the build system
         \code
         cd <path_to_OpenMS_build>
-        cmake -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -D CMAKE_PREFIX_PATH=<path_to_QT6_prefix> -G "<generator>" -A x64 -T host=x64 "<path_to_OpenMS>"
+        cmake -G Ninja -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -D CMAKE_PREFIX_PATH=<path_to_QT6_prefix> "<path_to_OpenMS>"
         \endcode
 
-        The CMAKE_PREFIX_PATH should hold the path to your Qt6 build/binary directory where `Qt6Config.cmake` resides (see example below). Note that it is NOT the main Qt6 directory, 
+        The CMAKE_PREFIX_PATH should hold the path to your Qt6 build/binary directory where `Qt6Config.cmake` resides (see example below). Note that it is NOT the main Qt6 directory,
         but the subfolder which is named after the toolchain it was build with (e.g. `CMAKE_PREFIX_PATH=C:\dev\qt6_2\6.7.3\msvc2019_64\lib\cmake\Qt6`).
-        
-        The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake --help</tt> to see a list of available generators.
-        
-        @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not supported! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
-        Use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
-        The <tt>-T host=x64</tt> flag instructs Visual Studio to use a 64bit compiler and linker toolchain to avoid linker errors (<tt>LNK1210: exceeded internal ILK size limit; link with /INCREMNTAL:NO</tt>) during development (if the flag is omitted the 32bit toolchain is used to generate 64bit binaries).
-        
+
+        @note The Ninja generator is **required** for C++23 module dependency scanning.
+        Make sure you run CMake from a Visual Studio Developer Command Prompt (x64) so that Ninja can find the MSVC compiler.
+
         Example:
 
         \code
         cd c:\dev\OpenMS_build
-        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_build" -D CMAKE_PREFIX_PATH=C:\dev\qt6_2\6.7.3\msvc2019_64\lib\cmake\Qt6 -G "Visual Studio 16 2019" -A x64 -T host=x64 ../OpenMS
+        cmake -G Ninja -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_build" -D CMAKE_PREFIX_PATH=C:\dev\qt6_2\6.7.3\msvc2019_64\lib\cmake\Qt6 ../OpenMS
         \endcode
 
     </ol>
     
     \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
 
-    Now there should be a <tt>OpenMS_host.sln</tt> file in your build directory, which you can open using Visual Studio.
-    If you want to work on only a subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the `src/` folder of your
-    build folder and below (e.g. `src/openms_gui/OpenMS_GUI.sln`).
-
+    With the Ninja generator, you can now build from the command line using <tt>ninja</tt>.
+    To build a specific target, use <tt>ninja &lt;target&gt;</tt> (e.g. <tt>ninja OpenMS</tt>).
 
     Try to build the %OpenMS library - the target is called '%OpenMS'. This will create the %OpenMS Dll library. If you used the debug configuration it will be called
     `OpenMSd.dll`, in release mode its called `OpenMS.dll`.<br>
@@ -248,38 +245,30 @@
 
   @section install_win_testing_openms Testing your OpenMS/TOPP installation
 
-    Each class in %OpenMS and each TOPP tool has a unit test. The tests will be build with the complete solution. To specifically build and execute the tests,
-    go to your %OpenMS build_tree and further into ./src/tests/class_tests. There you'll find an OpenMS_class_tests.sln file, which you can open.
-    For other generators an equivalent file with another suffix will be present. Now, build the 'ALL_BUILD' target and the 'RUN_TESTS' target.
+    Each class in %OpenMS and each TOPP tool has a unit test. To build and execute all tests, run
+    <tt>ninja</tt> followed by <tt>ctest</tt> in your build directory.
     You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using <tt>ctest</tt>.
     Single tests can be run with <tt>ctest -R &lt;testnameregex&gt;</tt>, e.g. <tt>ctest -R Base64_test</tt>.
     For more syntax on CTest look at the online documentation at http://cmake.org/.
 
   @section install_win_cmdline_openms Building OpenMS on the commandline
 
-    The Visual Studio solution files can contain many targets, which makes the IDE a bit sluggish especially when starting up the first time.
-    The %OpenMS class tests are by far the largest.
+    With the Ninja build system, building from the command line is straightforward:
 
-    If you just want to compile the library or executables, it's usually faster to use the commandline. Visual Studio solution files can be used here as well,
-    as arguments to <tt>MSBuild.exe</tt>, e.g.
     \code
-    MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
+    cd <path_to_OpenMS_build>
+    ninja
     \endcode
-  
-  Example:
-  \code
-  MSBuild.exe OpenMS_host.sln
-  \endcode
 
-    @note Since the call can be a bit lengthy, there is a batch file in
-    <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied
-    there by cmake for convenience), which allows to build the most important
-    targets (TOPP, Gui, Tests, Doc) in Release or Debug using very short
-    notation. Call it without arguments to see its usage help text. For example
-    to build only the %OpenMS library in release mode, call
-
+    To build a specific target:
     \code
-    build OpenMS r
+    ninja OpenMS
+    ninja TOPP
+    \endcode
+
+    To list all available targets:
+    \code
+    ninja -t targets
     \endcode
 
   @section install_win_nonvs Advanced: Building OpenMS in any IDE (Example: Visual Studio Code)

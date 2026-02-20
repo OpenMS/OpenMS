@@ -53,29 +53,22 @@ jobs:
             compiler_ver: 14.44   # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
 
           - os: macos-14
-            # Since the appleclang version is dependent on the XCode versions that are installed
-            #  on the GH runners, use this as the choice for a specific version
-            # TODO currently unused but XCode/appleclang is the default
-            compiler: xcode
-            # TODO implement support for other versions
-            compiler_ver: "15.4"  # macos-14 runners ship with Xcode 15.4
+            # Use Homebrew LLVM (need libc++.modules.json for import std)
+            compiler: clang++
+            compiler_ver: ""
+            llvm_formula: llvm
 
-          # Make sure the compilers are available in that version on the GH runners
-          # We are not installing anything.
           - os: ubuntu-24.04
             compiler: g++
+            compiler_ver: 15
 
-            compiler_ver: 13
-          # Make sure the compilers are available in that version on the GH runners
-          # We are not installing anything.
-          
           - os: ubuntu-24.04-arm
             compiler: g++
-            compiler_ver: 13
+            compiler_ver: 15
 
-          - os: ubuntu-24.04
-            compiler: clang++
-            compiler_ver: 17
+          # Note: Clang on Ubuntu is disabled because CMake's import std requires
+          # libc++ (not libstdc++), which is ABI-incompatible with system packages.
+          # Clang coverage is provided by the macOS job instead.
     outputs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
 
@@ -147,12 +140,8 @@ jobs:
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
-          if [[ "${{ matrix.compiler }}" == "xcode" ]]; then
-            ls -la /Applications/Xcode*
-            sudo xcode-select -s '/Applications/Xcode_${{ matrix.compiler_ver }}.app/Contents/Developer'
-            echo "cxx_compiler=clang++" >> $GITHUB_OUTPUT
-          elif [[ "${{ matrix.compiler }}" == "clang++" ]]; then
-            echo "cxx_compiler=$(brew --prefix llvm@${{ matrix.compiler_ver }})/bin/clang++" >> $GITHUB_OUTPUT
+          if [[ "${{ matrix.compiler }}" == "clang++" ]]; then
+            echo "cxx_compiler=$(brew --prefix ${{ matrix.llvm_formula }})/bin/clang++" >> $GITHUB_OUTPUT
           else
             echo "Unsupported compiler"
             exit 1
@@ -323,6 +312,48 @@ jobs:
           brew install ccache
           echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"
           echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"
+
+          # Homebrew LLVM needs SDKROOT so module compilation finds system
+          # headers (time.h, sched.h, inttypes.h etc.) in the macOS SDK.
+          # See: https://github.com/actions/runner-images/issues/13036
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
+
+          # Homebrew LLVM 21 was built without
+          # -DLIBCXX_ENABLE_VENDOR_AVAILABILITY_ANNOTATIONS=ON, so its headers
+          # declare __hash_memory as extern but libc++.dylib doesn't export it.
+          # Patch the header to force the inline fallback.
+          # We also link explicitly against Homebrew's libc++ via -nostdlib++
+          # to avoid picking up the macOS SDK's older libc++.
+          # See: https://github.com/llvm/llvm-project/issues/155531
+          LLVM_PREFIX="$(brew --prefix ${{ matrix.llvm_formula }})"
+          HASH_H="$LLVM_PREFIX/include/c++/v1/__functional/hash.h"
+          if grep -q '_LIBCPP_AVAILABILITY_HAS_HASH_MEMORY' "$HASH_H" 2>/dev/null; then
+            sed -i '' 's/^#if _LIBCPP_AVAILABILITY_HAS_HASH_MEMORY$/#if 0 \/\/ PATCHED: Homebrew libc++ missing __hash_memory/' "$HASH_H"
+            echo "Patched $HASH_H to force inline __hash_memory fallback"
+          fi
+          LLVM_LIB="$LLVM_PREFIX/lib"
+          echo "CMAKE_SHARED_LINKER_FLAGS=-nostdlib++ -Wl,-rpath,${LLVM_LIB}" >> "$GITHUB_ENV"
+          echo "CMAKE_EXE_LINKER_FLAGS=-nostdlib++ -Wl,-rpath,${LLVM_LIB}" >> "$GITHUB_ENV"
+          echo "CMAKE_CXX_STANDARD_LIBRARIES=-L${LLVM_LIB} -lc++ -lc++abi" >> "$GITHUB_ENV"
+          # Suppress "libomp already initialized" abort when both Homebrew
+          # LLVM and Homebrew libomp are loaded at runtime (doc generation).
+          echo "KMP_DUPLICATE_LIB_OK=TRUE" >> "$GITHUB_ENV"
+
+          # Workaround: Homebrew LLVM places libc++.modules.json in lib/c++/
+          # but clang -print-file-name searches <prefix>/lib/libc++.modules.json.
+          # The original file has relative paths from lib/c++/ which break when
+          # symlinked to lib/. Create a fresh manifest with correct paths.
+          # See: https://github.com/llvm/llvm-project/issues/120215
+          LLVM_PREFIX=$(brew --prefix llvm)
+          TARGET="$LLVM_PREFIX/lib/libc++.modules.json"
+          if [ -f "$LLVM_PREFIX/share/libc++/v1/std.cppm" ]; then
+            # Create manifest with paths relative to lib/ (one level up to prefix)
+            printf '{"version":1,"revision":1,"modules":[{"logical-name":"std","source-path":"../share/libc++/v1/std.cppm","is-std-library":true,"local-arguments":{"system-include-directories":["../share/libc++/v1"]}},{"logical-name":"std.compat","source-path":"../share/libc++/v1/std.compat.cppm","is-std-library":true,"local-arguments":{"system-include-directories":["../share/libc++/v1"]}}]}\n' > "$TARGET"
+            echo "Created $TARGET (std.cppm at $LLVM_PREFIX/share/libc++/v1/)"
+          else
+            echo "WARNING: Cannot set up libc++.modules.json — no std.cppm found"
+            find "$LLVM_PREFIX" -name "*.cppm" -o -name "*modules*" 2>/dev/null || true
+          fi
         fi
 
     - name: Cache contrib (Windows)
@@ -453,8 +484,10 @@ jobs:
           MT_ENABLE_OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA).
-          CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
-          CMAKE_C_COMPILER_LAUNCHER: "ccache"
+          # ccache doesn't support C++ module .ifc files — on MSVC cache hits
+          # silently omit the std module interface, causing C2230 errors.
+          CMAKE_CXX_COMPILER_LAUNCHER: "${{ !startsWith(matrix.os, 'windows') && 'ccache' || '' }}"
+          CMAKE_C_COMPILER_LAUNCHER: "${{ !startsWith(matrix.os, 'windows') && 'ccache' || '' }}"
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true

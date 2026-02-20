@@ -2,12 +2,6 @@ After building %OpenMS and TOPP, you should test your installation by
 executing the following command:
 
 \code
-make test
-\endcode
-
-or
-
-\code
 ctest
 \endcode
 

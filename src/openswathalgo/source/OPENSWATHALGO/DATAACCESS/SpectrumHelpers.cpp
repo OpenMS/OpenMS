@@ -9,9 +9,8 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
 #include <OpenMS/OPENSWATHALGO/Macros.h>
 
-#include <algorithm>
-#include <numeric>
-#include <stdexcept>
+import std;
+
 
 namespace OpenSwath
 {
