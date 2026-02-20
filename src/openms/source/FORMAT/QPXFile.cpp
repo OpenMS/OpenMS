@@ -60,6 +60,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   arrow::StringBuilder sequence_builder, peptidoform_builder;
   arrow::StringBuilder reference_file_builder, scan_builder, score_type_builder;
   arrow::StringBuilder spectrum_reference_builder, cv_params_builder;
+  arrow::StringBuilder run_identifier_builder;
   arrow::Int32Builder precursor_charge_builder, is_decoy_builder, rank_builder, p_id_builder;
   arrow::DoubleBuilder pep_builder, calculated_mz_builder, observed_mz_builder;
   arrow::DoubleBuilder rt_builder, ion_mobility_builder, predicted_rt_builder, score_builder;
@@ -181,6 +182,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: rank_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = p_id_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: p_id_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = run_identifier_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: run_identifier_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build file name lookup from ProteinIdentification primary MS run paths
   std::map<String, String> id_to_filename;
@@ -501,6 +504,9 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       // === P_ID (parent spectrum index) ===
       (void)p_id_builder.Append(p_id_index);
 
+      // === run_identifier ===
+      (void)run_identifier_builder.Append(pep_id.getIdentifier());
+
       // === psm_metavalues ===
       (void)psm_metavalues_builder.Append();
       {
@@ -615,6 +621,10 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   status = spectrum_metavalues_builder.Finish(&arr_spectrum_mvs);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: spectrum_metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
+  std::shared_ptr<arrow::Array> arr_run_identifier;
+  status = run_identifier_builder.Finish(&arr_run_identifier);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: run_identifier_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+
   // Build schema matching the Python to_psm_arrow() column order
   auto schema = arrow::schema({
     arrow::field("sequence", arrow::utf8()),
@@ -641,6 +651,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
     arrow::field("P_ID", arrow::int32()),
     arrow::field("psm_metavalues", psm_metavalues_builder.type()),
     arrow::field("spectrum_metavalues", spectrum_metavalues_builder.type()),
+    arrow::field("run_identifier", arrow::utf8()),
   });
 
   auto table = arrow::Table::Make(schema, {
@@ -650,7 +661,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
     arr_protein_acc, arr_predicted_rt, arr_ref_file,
     arr_cv_params, arr_scan, arr_rt, arr_ion_mobility,
     arr_spectrum_ref, arr_score, arr_score_type,
-    arr_rank, arr_p_id, arr_psm_mvs, arr_spectrum_mvs
+    arr_rank, arr_p_id, arr_psm_mvs, arr_spectrum_mvs,
+    arr_run_identifier
   });
 
   return table;

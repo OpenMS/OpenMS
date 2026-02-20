@@ -94,9 +94,9 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...))
   // Verify number of rows (should equal number of peptide identifications, not hits)
   TEST_EQUAL(table->num_rows(), 3)
 
-  // Verify schema column names and count (23 columns in new QPX schema)
+  // Verify schema column names and count (24 columns in new QPX schema)
   auto schema = table->schema();
-  TEST_EQUAL(table->num_columns(), 23)
+  TEST_EQUAL(table->num_columns(), 24)
 
   TEST_EQUAL(schema->field(0)->name(), "sequence")
   TEST_EQUAL(schema->field(1)->name(), "peptidoform")
@@ -121,6 +121,7 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportToArrow(...))
   TEST_EQUAL(schema->field(20)->name(), "P_ID")
   TEST_EQUAL(schema->field(21)->name(), "psm_metavalues")
   TEST_EQUAL(schema->field(22)->name(), "spectrum_metavalues")
+  TEST_EQUAL(schema->field(23)->name(), "run_identifier")
 
   // Verify data types for key columns
   TEST_EQUAL(schema->field(4)->type()->id(), arrow::Type::DOUBLE) // PEP is float64
@@ -299,7 +300,7 @@ START_SECTION(static bool exportToParquet(...))
   TEST_EQUAL(read_status.ok(), true)
 
   TEST_EQUAL(table->num_rows(), 1)
-  TEST_EQUAL(table->num_columns(), 23)
+  TEST_EQUAL(table->num_columns(), 24)
 
   // Verify modifications column has structured data for modified peptide
   auto mod_col = table->GetColumnByName("modifications");

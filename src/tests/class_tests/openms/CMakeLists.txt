@@ -92,6 +92,14 @@ if (WITH_PARQUET)
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
   )
+  target_link_libraries(ProteinIdentificationArrowIO_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_link_libraries(FeatureMapArrowIO_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
 endif()
 
 #------------------------------------------------------------------------------
