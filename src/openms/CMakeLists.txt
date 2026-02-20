@@ -50,112 +50,44 @@ add_subdirectory(extern)
 include(${PROJECT_SOURCE_DIR}/configh.cmake)
 
 #------------------------------------------------------------------------------
-# big include file for headers and cpp files, that fills the OpenMS_sources variable
-include (${PROJECT_SOURCE_DIR}/includes.cmake)
+# Build sub-libraries (order matters: Core first, then IO, then Algo)
+# Using include() rather than add_subdirectory() so that CMAKE_CURRENT_SOURCE_DIR
+# stays as src/openms/, which the existing sources.cmake files depend on for
+# their relative paths (e.g. "source/CONCEPT/Constants.cpp").
+#------------------------------------------------------------------------------
+include(${CMAKE_CURRENT_SOURCE_DIR}/build_core.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/build_io.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/build_algo.cmake)
 
 #------------------------------------------------------------------------------
-# all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES
-  LibSVM::LibSVM
-  XercesC::XercesC
-  Qt6::Core
-  Qt6::Network
+# Backward-compatible umbrella INTERFACE target
+# Consumers can simply link against "OpenMS" and get all three sub-libraries.
+#------------------------------------------------------------------------------
+add_library(OpenMS INTERFACE)
+# LINK_GROUP:RESCAN wraps libraries in --start-group/--end-group (GNU ld) so the
+# linker rescans to resolve circular symbol references.  This is needed because a
+# few Core source files (File.cpp, ModificationsDB.cpp, DocumentIdentifier.cpp,
+# ProteinIdentification.cpp) reference IO symbols (FileHandler, ParamXMLFile,
+# UnimodXMLFile, FileTypes).  Phase 2 will break these back-dependencies; until
+# then the rescan group ensures correct linking.
+target_link_libraries(OpenMS INTERFACE
+  "$<LINK_GROUP:RESCAN,OpenMS_Algo,OpenMS_IO,OpenMS_Core>")
+target_include_directories(OpenMS INTERFACE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
+  "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"
 )
 
-## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
-## Note: Eigen3::Eigen is PRIVATE because Eigen types are not exposed in the public API
-## Note: Evergreen is PRIVATE because it's only used internally by BayesianProteinInferenceAlgorithm
-set(OPENMS_DEP_PRIVATE_LIBRARIES
-  $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
-  ${LPTARGET}
-  BZip2::BZip2
-  Boost::boost
-  Boost::date_time
-  Boost::iostreams
-  Boost::regex
-  Eigen3::Eigen
-  Evergreen
-  GTE
-  Quadtree
-  SIMDe
-  SQLiteCpp
-  ZLIB::ZLIB
-  nlohmann_json::nlohmann_json
-  IsoSpec
-  eol-bspline
-  )
+# Export the umbrella target for find_package(OpenMS) consumers
+openms_register_export_target(OpenMS)
+install(TARGETS OpenMS EXPORT OpenMSTargets)
 
-if (WITH_PARQUET)
-  # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
-       ${OPENMS_ARROW_TARGET}
-       ${OPENMS_ARROW_COMPUTE_TARGET}
-       ${OPENMS_PARQUET_TARGET})
-  if (OPENMS_ARROW_DATASET_TARGET)
-    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
-    # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.
-    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES LibXml2::LibXml2)
-  endif()
-endif()
-
-if (ENABLE_TDL)
-set(OPENMS_DEP_PRIVATE_LIBRARIES
-    ${OPENMS_DEP_PRIVATE_LIBRARIES}
-    tdl::tdl
-    )
-endif()
-
-# Xerces requires linking against CoreFoundation&CoreServices on macOS
-# TODO check if this is still the case
-if(APPLE)
-  find_library(CoreFoundation_LIBRARY CoreFoundation )
-  find_library(CoreServices_LIBRARY CoreServices )
-  set(OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES}
-                           ${CoreFoundation_LIBRARY}
-                           ${CoreServices_LIBRARY})
-endif()
-
-if (OPENMP_FOUND)
-  list(APPEND OPENMS_DEP_LIBRARIES OpenMP::OpenMP_CXX)
-endif()
-
-if (WITH_CRAWDAD) ## TODO check if still necessary
-  list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
-endif()
-
-openms_add_library(TARGET_NAME  OpenMS
-                   SOURCE_FILES  ${OpenMS_sources}
-                   HEADER_FILES  ${OpenMS_sources_h}
-                                 ${OpenMS_configured_headers}
-                   INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                     ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES
-                   EXTERNAL_INCLUDES
-                   LINK_LIBRARIES OpenSwathAlgo
-                                  ${OPENMS_DEP_LIBRARIES}
-                   PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
-                   DLL_EXPORT_PATH "OpenMS/")
-
-if (OPENMS_ARROW_DATASET_TARGET)
-  target_compile_definitions(OpenMS PRIVATE WITH_ARROW_DATASET)
-endif()
-
-if (MSVC)
-  ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
-  target_compile_options(OpenMS PRIVATE "/we4100")
-  ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
-  target_compile_options(OpenMS PRIVATE "/we4189")
-endif()
-
-if (ENABLE_TDL)
-    target_compile_definitions(OpenMS PUBLIC ENABLE_TDL)
-endif()
-
-# propagate Parquet support to the code (used to gate tools in ToolHandler, etc.)
-if (WITH_PARQUET)
-    target_compile_definitions(OpenMS PUBLIC WITH_PARQUET=1)
-endif()
-
+# Provide backward-compatible variables for legacy CMake consumers
+set(OpenMS_LIBRARIES OpenMS CACHE INTERNAL "OpenMS libraries" FORCE)
+set(OpenMS_INCLUDE_DIRECTORIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_BINARY_DIR}/include
+  CACHE INTERNAL "OpenMS include directories" FORCE)
 
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation

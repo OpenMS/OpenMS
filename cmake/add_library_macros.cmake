@@ -209,7 +209,11 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # we also want to install the library
   install_library(${openms_add_library_TARGET_NAME})
-  install_headers("${openms_add_library_HEADER_FILES};${PROJECT_BINARY_DIR}/${_CONFIG_H}" ${openms_add_library_TARGET_NAME})
+  if(_CONFIG_H)
+    install_headers("${openms_add_library_HEADER_FILES};${PROJECT_BINARY_DIR}/${_CONFIG_H}" ${openms_add_library_TARGET_NAME})
+  else()
+    install_headers("${openms_add_library_HEADER_FILES}" ${openms_add_library_TARGET_NAME})
+  endif()
 
   #------------------------------------------------------------------------------
   # register for export
