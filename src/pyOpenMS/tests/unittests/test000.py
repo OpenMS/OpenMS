@@ -3539,6 +3539,48 @@ def testMSExperiment():
     str_str = str(exp_repr)
     assert str_str == repr_str
 
+    # Test SpectrumRangeManager.byMSLevel (issue #8751)
+    exp_levels = pyopenms.MSExperiment()
+    s1 = pyopenms.MSSpectrum()
+    s1.setRT(100.0)
+    s1.setMSLevel(1)
+    s1.set_peaks(([100.0, 500.0], [1000.0, 2000.0]))
+    s2 = pyopenms.MSSpectrum()
+    s2.setRT(200.0)
+    s2.setMSLevel(2)
+    s2.set_peaks(([50.0, 800.0], [500.0, 1500.0]))
+    exp_levels.addSpectrum(s1)
+    exp_levels.addSpectrum(s2)
+    exp_levels.updateRanges()
+
+    sr = exp_levels.spectrumRanges()
+
+    assert sr.getMinMZ() == 50.0
+    assert sr.getMaxMZ() == 800.0
+
+    ms1 = sr.byMSLevel(1)
+    assert ms1.getMinRT() == 100.0
+    assert ms1.getMaxRT() == 100.0
+    assert ms1.getMinMZ() == 100.0
+    assert ms1.getMaxMZ() == 500.0
+
+    ms2 = sr.byMSLevel(2)
+    assert ms2.getMinRT() == 200.0
+    assert ms2.getMaxRT() == 200.0
+    assert ms2.getMinMZ() == 50.0
+    assert ms2.getMaxMZ() == 800.0
+
+    levels = sr.getMSLevels()
+    assert 1 in levels
+    assert 2 in levels
+
+    threw = False
+    try:
+        sr.byMSLevel(99)
+    except Exception:
+        threw = True
+    assert threw
+
 
 @report
 def testMSSpectrum():

@@ -31,6 +31,7 @@ cdef extern from "<OpenMS/KERNEL/SpectrumRangeManager.h>" namespace "OpenMS":
         void extendRT(double rt, UInt ms_level) except + nogil
         void extendMZ(double mz, UInt ms_level) except + nogil
         void extendUnsafe(const MSSpectrum& spectrum, UInt ms_level) except + nogil
+        RangeManagerMzIntMobRt byMSLevel(UInt ms_level) except + nogil  # wrap-doc:Returns the ranges for a specific MS level. Throws if no ranges exist for the given level.
         
         # Range accessors
         double getMinRT() except + nogil
