@@ -131,9 +131,8 @@ namespace OpenMS
     std::vector<OpenSwath::SpectrumPtr> spectra = fetchSpectrumSwath(swath_maps, imrmfeature->getRT(), n_merge_spectra, im_range);
 
     // set the DIA parameters
-    // TODO Cache these parameters
-    double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
-    bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
+    const double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
+    const bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
 
     // score drift time dimension
     if ( su_.use_im_scores)
@@ -197,8 +196,6 @@ namespace OpenMS
 
     if ( (ms1_map && ms1_map->getNrSpectra() > 0) && ( su_.use_im_scores) )  // IM MS1 scores
     {
-        double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
-        bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
         double rt = imrmfeature->getRT();
 
         std::vector<OpenSwath::SpectrumPtr> ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, n_merge_spectra, im_range_ms1);
@@ -343,8 +340,8 @@ namespace OpenMS
       // Add the existing transition to the vector
       transitionVector.push_back(transition);
 
-      double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
-      bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
+      const double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
+      const bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
 
       IonMobilityScoring::driftIdScoring(spectrum, transitionVector, trgr_detect, scores,
                                        drift_target, im_range,
