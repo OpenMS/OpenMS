@@ -69,14 +69,19 @@ if (NOT MSVC)
 
   # Backward-compatible umbrella INTERFACE target.
   # Consumers can simply link against "OpenMS" and get all three sub-libraries.
-  # LINK_GROUP:RESCAN wraps libraries in --start-group/--end-group (GNU ld) so
-  # the linker rescans to resolve cross-library symbol references.  This is
-  # needed because IO FORMAT files reference Algo types (TargetedExperiment,
-  # OPXLHelper, etc.) — a back-dependency from IO→Algo.
-  # TODO Phase 4: Break all IO→Algo back-dependencies to remove RESCAN.
   add_library(OpenMS INTERFACE)
-  target_link_libraries(OpenMS INTERFACE
-    "$<LINK_GROUP:RESCAN,OpenMS_Algo,OpenMS_IO,OpenMS_Core>")
+  if (APPLE)
+    # macOS: -undefined dynamic_lookup on each sub-library handles deferred
+    # symbol resolution.  LINK_GROUP:RESCAN is not supported by Apple ld.
+    target_link_libraries(OpenMS INTERFACE OpenMS_Algo OpenMS_IO OpenMS_Core)
+  else()
+    # Linux: LINK_GROUP:RESCAN wraps libraries in --start-group/--end-group
+    # (GNU ld) so the linker rescans to resolve IO→Algo back-dependencies
+    # (FORMAT files reference Algo types like TargetedExperiment, OPXLHelper).
+    # TODO Phase 4: Break all IO→Algo back-dependencies to remove RESCAN.
+    target_link_libraries(OpenMS INTERFACE
+      "$<LINK_GROUP:RESCAN,OpenMS_Algo,OpenMS_IO,OpenMS_Core>")
+  endif()
   target_include_directories(OpenMS INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
