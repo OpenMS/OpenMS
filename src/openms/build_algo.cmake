@@ -32,6 +32,7 @@ set(ALGO_DEP_PRIVATE_LIBRARIES
   Eigen3::Eigen
   Evergreen
   GTE
+  nlohmann_json::nlohmann_json
   Quadtree
   SQLiteCpp
 )
