@@ -26,6 +26,7 @@ MapAlignmentEvaluationAlgorithmRecall.cpp
 MapAlignmentTransformer.cpp
 PoseClusteringAffineSuperimposer.cpp
 PoseClusteringShiftSuperimposer.cpp
+QTCluster.cpp
 QTClusterFinder.cpp
 StablePairFinder.cpp
 TransformationDescription.cpp

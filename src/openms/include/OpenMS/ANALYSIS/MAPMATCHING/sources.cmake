@@ -26,6 +26,7 @@ MapAlignmentEvaluationAlgorithmRecall.h
 MapAlignmentTransformer.h
 PoseClusteringAffineSuperimposer.h
 PoseClusteringShiftSuperimposer.h
+QTCluster.h
 QTClusterFinder.h
 StablePairFinder.h
 TransformationDescription.h

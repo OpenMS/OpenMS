@@ -19,6 +19,7 @@ DTA2DFile.cpp
 DTAFile.cpp
 EDTAFile.cpp
 ExperimentalDesignFile.cpp
+FASTAContainer.cpp
 FASTAFile.cpp
 FeatureXMLFile.cpp
 FLASHDeconvFeatureFile.cpp
@@ -99,6 +100,7 @@ XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
 MRMFile.cpp
+OnDiscMSExperiment.cpp
 TargetedDataFileLoader.cpp
 )
 

@@ -39,6 +39,7 @@ MorpheusScore.h
 NeighborSeq.h
 OpenSearchModificationAnalysis.h
 PeptideIndexing.h
+PosteriorErrorProbabilityModel.h
 PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h
 PrecursorPurity.h

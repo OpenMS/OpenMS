@@ -33,6 +33,7 @@ DTA2DFile.h
 DTAFile.h
 EDTAFile.h
 ExperimentalDesignFile.h
+FASTAContainer.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
@@ -112,6 +113,7 @@ TraMLFile.h
 XMassFile.h
 XQuestResultXMLFile.h
 MRMFile.h
+OnDiscMSExperiment.h
 TargetedDataFileLoader.h
 ZlibCompression.h
 )

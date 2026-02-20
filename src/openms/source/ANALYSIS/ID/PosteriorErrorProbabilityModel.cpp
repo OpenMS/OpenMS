@@ -6,7 +6,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
+#include <OpenMS/ANALYSIS/ID/PosteriorErrorProbabilityModel.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>

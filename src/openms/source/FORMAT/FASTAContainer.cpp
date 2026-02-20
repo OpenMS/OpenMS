@@ -6,7 +6,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/FORMAT/FASTAContainer.h>
 
 namespace OpenMS
 {

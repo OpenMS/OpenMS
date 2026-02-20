@@ -11,7 +11,6 @@ GumbelMaxLikelihoodFitter.cpp
 Histogram.cpp
 KernelDensityEstimation.cpp
 MultipleTesting.cpp
-PosteriorErrorProbabilityModel.cpp
 )
 
 ### add path to the filenames

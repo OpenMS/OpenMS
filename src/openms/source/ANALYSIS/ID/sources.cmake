@@ -41,6 +41,7 @@ OpenSearchModificationAnalysis.cpp
 PeptideProteinResolution.cpp
 PeptideSearchEngineFIAlgorithm.cpp
 PeptideIndexing.cpp
+PosteriorErrorProbabilityModel.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
 PScore.cpp

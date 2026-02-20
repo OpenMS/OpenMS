@@ -25,7 +25,6 @@ MRMTransitionGroup.cpp
 MSChromatogram.cpp
 MSExperiment.cpp
 MSSpectrum.cpp
-OnDiscMSExperiment.cpp
 Peak1D.cpp
 Peak2D.cpp
 PeakIndex.cpp

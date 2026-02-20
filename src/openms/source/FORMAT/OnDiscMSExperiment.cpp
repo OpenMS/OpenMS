@@ -6,7 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/FORMAT/OnDiscMSExperiment.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 

@@ -24,7 +24,6 @@ DateTime.h
 DefaultParamHandler.h
 DistanceMatrix.h
 ExposedVector.h
-FASTAContainer.h
 FlagSet.h
 GridFeature.h
 IsotopeCluster.h
@@ -39,7 +38,6 @@ MatrixEigen.h
 OSWData.h
 Param.h
 ParamValue.h
-QTCluster.h
 String.h
 StringConversions.h
 StringUtils.h

@@ -24,7 +24,6 @@ DateTime.cpp
 DefaultParamHandler.cpp
 DistanceMatrix.cpp
 ExposedVector.cpp
-FASTAContainer.cpp
 FlagSet.cpp
 GridFeature.cpp
 ListUtils.cpp
@@ -36,7 +35,6 @@ Matrix.cpp
 OSWData.cpp
 Param.cpp
 ParamValue.cpp
-QTCluster.cpp
 String.cpp
 StringView.cpp
 StringListUtils.cpp
