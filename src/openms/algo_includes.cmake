@@ -52,6 +52,9 @@ if(NOT DISABLE_OPENSWATH)
 endif()
 include(${CMAKE_CURRENT_LIST_DIR}/source/APPLICATIONS/sources.cmake)
 
+# Add IO source files that were moved here due to Algo back-dependencies
+list(APPEND OpenMS_sources ${OpenMS_IO_moved_to_algo})
+
 set(OpenMS_Algo_sources ${OpenMS_sources} CACHE INTERNAL "OpenMS Algo source files")
 set(OpenMS_sources CACHE INTERNAL "")
 
@@ -98,6 +101,9 @@ if(NOT DISABLE_OPENSWATH)
   include(${CMAKE_CURRENT_LIST_DIR}/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/sources.cmake)
 endif()
 include(${CMAKE_CURRENT_LIST_DIR}/include/OpenMS/APPLICATIONS/sources.cmake)
+
+# Add IO headers that were moved here (parallel to source file moves above)
+list(APPEND OpenMS_sources_h ${OpenMS_IO_moved_to_algo_h})
 
 set(OpenMS_Algo_sources_h ${OpenMS_sources_h} CACHE INTERNAL "OpenMS Algo header files")
 set(OpenMS_sources_h CACHE INTERNAL "")
