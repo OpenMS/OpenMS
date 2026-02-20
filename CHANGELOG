@@ -13,9 +13,231 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.5.0     (under development)              ----
+----                                OpenMS 3.6.0     (under development)              ----
 ------------------------------------------------------------------------------------------
-NOTICE: 3.5.0 is going to be the last official release for MacOS on Intel processors.
+
+General:
+  - macOS Intel builds discontinued; macOS deployment target raised to macOS 14
+  - Ubuntu CI runners updated to 24.04
+  - macOS code signing and notarization integrated directly into CI (#8486, #8494, #8527)
+  - Parquet support enabled across all platforms (#8370, #8422)
+
+Dependencies:
+  - PyOpenMS now depends on Autowrap >= 0.26.0 (#8580, #8616)
+  - Eigen minimum version updated from 3.3.4 to 3.4.0 (#8366)
+
+TOPP tools:
+  Changes:
+    all:
+      - BREAKING: Command-line duplicate parameter behavior changed (#8670, fixes #5345)
+        When a parameter is specified multiple times on the command line, the LAST occurrence now wins
+        (previously, the FIRST occurrence was used). This enables the nextflow pattern of using ${ext.args}
+        at the end of commands to override hardcoded defaults. A warning is issued when duplicates are detected.
+        Example: tool -param default -param override  # Now uses 'override' (previously used 'default')
+      - Improved error messages for command-line parameter errors (#8670)
+    CometAdapter:
+      - Merges compatible variable modifications for improved search performance (3x+ speedup) (#8407)
+    PeptideDataBaseSearchFI:
+      - Expanded fragment index open search with modification discovery and FDR filtering (#8414)
+    ProteomicsLFQ:
+      - Removed unnecessary group reindexing, added stricter validation (#8752)
+      - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
+    MetaProSIP:
+      - Added detailed documentation of CSV output column formats (#4400)
+        Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
+
+PyOpenMS:
+  - Pythonic convenience methods added:
+    - __len__() for ConsensusMap, FeatureMap (#8510)
+    - __str__() and __repr__() for NASequence, FeatureMap, ConsensusMap, ConvexHull2D, DPosition, DRange, FloatDataArray, IntegerDataArray, StringDataArray, Residue (#8503, #8501)
+    - __hash__() for 40+ classes enabling use as dictionary keys (AASequence, EmpiricalFormula, Peak1D, PeptideHit, Precursor, etc.) (#8576)
+    - append() and extend() for ConsensusMap, FeatureMap, PeptideIdentificationList (#8510)
+  - DataFrame support:
+    - get_df() methods implemented directly in Cython for MSSpectrum, MSChromatogram, Mobilogram, MSExperiment, ConsensusMap, FeatureMap (#8520)
+    - get_df_columns() method for column discovery (#8436)
+    - MRMTransitionGroupCP: get_chromatogram_df(), get_feature_df() (#8520)
+    - Arrow/Parquet export with to_df(), to_chromatogram_df(), to_feature_df() methods (#8655)
+    - Zero-copy Python interop via pyarrow for MSExperiment (#8655)
+    - PSM DataFrame export from PeptideIdentificationList (#8632)
+    - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
+  - New wrappers:
+    - Math.getPPM(), Math.getPPMAbs() (#8525)
+    - MSSpectrum.getType(bool) (#8589)
+    - DRange1 with conversion provider (#8504)
+    - Drift time accessors: get_drift_time_array(), get_drift_time_unit() (#8423)
+    - SpectrumNativeIDParser with static methods for native ID parsing (#8637)
+    - MSExperiment.rasterize2D() for rasterizing 2D ion mobility data (#8739)
+  - String handling: Functions now accept both str and bytes via libcpp_utf8_string (#8602, #8604)
+  - Backward compatibility restored for file I/O methods in IdXMLFile, PepXMLFile, MzIdentMLFile (#8553)
+  - Static methods modernized using @staticmethod decorator (#8562)
+  - Type hints added to docstrings for 133 functions (#8483)
+  - ArrayWrapper now uses autowrap's implementation with additional integer array types (#8579)
+  - Build system modernized with py-build-cmake and cibuildwheel for PEP 517/518/621 compliance (#8530)
+  - Biosaur2Algorithm.pxd: Added wrap-inherits: DefaultParamHandler (#8664)
+  - Comprehensive wrap-doc documentation added to pxd files (#8668)
+  - Updated build dependency installation instructions (#8661)
+  - BREAKING: Metadata enums converted to strongly typed enum classes (#8604)
+  - BREAKING: Activation methods enum handling changed (#8405)
+  - BREAKING: DataFrame methods renamed to Pythonic conventions: get_df() → to_df(), get_df_columns() → df_columns(), etc. Deprecated aliases provided for backward compatibility (#8655)
+  - Fix: getAAFrequencies() loop bug in AASequence addon (#8502)
+  - Fix: Duplicate functions removed from IdXMLFile.pxd (#8551)
+  - Test: Docstring format validation tests added (#8674)
+  - ProForma v2 support: Full Python bindings for ProFormaParser (#8648)
+    - Parse ProForma strings: Peptidoform.fromString(), PeptidoformIon.fromString()
+    - Serialize back: toString() with LOSSLESS/CANONICAL modes
+    - Convert to/from AASequence with configurable policies (FAIL_ON_LOSS, DROP_UNLOCALISED, BEST_EFFORT)
+    - Mass calculation: getMonoWeight(), getMZ(), canCalculateMass()
+    - JSON serialization: toJSON()/fromJSON() for AST persistence
+    - Pythonic API: __str__, __repr__, __len__ on Peptidoform and PeptidoformIon
+  - USI support: Python bindings for Universal Spectrum Identifier (#8684)
+    - USI class with constructor from string, tryParse(), isValidUSI()
+    - PeptideIdentification.buildUSI() for generating USIs
+  - PEFF support: Full Python bindings for PSI Extended FASTA Format (#8690)
+    - PEFFFile class for reading/writing PEFF files with batch and streaming APIs
+    - PEFFEntry with rich annotations: modifications, variants, processed regions
+    - PEFFDatabaseMetadata for header information
+    - Conversion methods: toFASTAEntry(), fromFASTAEntry(), toProForma()
+    - Sequence accessors: getSequence(), getModifiedSequence(), getVariantSequences(), getProcessedSequence()
+  - Param to_dict quality-of-life improvements: dict-like API for parameter access (#8631)
+  - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720)
+  - XICParquetFile: Python bindings with multi-file support and filtering for reading XIC data from Parquet files (#8737, #8738)
+
+TOPP tools:
+  Changes:
+    MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerTreeGuided:
+      - Added optional spectra file transformation (-in_spectra_files, -out_spectra_files) to transform mzML files along with alignment (#8536)
+    FileInfo:
+      - Now prints both assigned and unassigned peptide identification counts for FeatureXML and ConsensusXML files (#8395)
+      - Added sequence length stats and nucleic acid support for FASTA files (#8643)
+    FileConverter:
+      - Added MSP file format support (#8650)
+    IsobaricWorkflow:
+      - Fixed mzTab export when processing multiple mzML/idXML pairs (#8519)
+      - Handles MS2 spectra without corresponding MS3 in SPS-MS3 workflow (#8592)
+      - Arrow/Parquet export for ConsensusMap (#8729)
+    SageAdapter:
+      - Fixed thread handling - removed duplicate parameter registration (#8441)
+    OpenSwathWorkflow:
+      - Priority peptide sampling for iRT calibration (#8373)
+      - Decoy generation speed optimizations (#8569)
+      - Added SRM support (#8700)
+      - Added Parquet chromatogram output support (#8737)
+    PeakPickerHiRes:
+      - New parameter to allow peak cores with no leading flank peaks (#8649)
+    FileMerger:
+      - Documented input/output file type combinations (#8615)
+    TextExporter:
+      - Added support for XIC Parquet files (#8737, #8738)
+
+OpenMS Library:
+  Added:
+    - Statistical functions ported from PyProphet (#8524)
+      - KernelDensityEstimation: FFT-based kernel density estimation using Silverman's algorithm
+      - RankData: Rank computation with multiple tie-handling methods (average, min, max, dense, ordinal)
+      - MultipleTesting: FDR control and multiple testing corrections (computeModelFDR, pEmp, qValue, pi0est, lfdr, pNorm)
+    - PeakFileOptions: setPrecursorMZRange()/getPrecursorMZRange() for precursor m/z range filtering (#8526)
+    - OnDiscMSExperiment: Full PeakFileOptions support with filtering (#8512)
+    - ParamIterator: STL-compatible iterator type aliases (iterator_category, value_type, etc.) (#8362)
+    - PeptideIndexer settings stored as metavalues in SearchParameters (#8489)
+    - LightTransition methods for MRMAssay, MRMDecoy, TransitionTSVFile, TransitionPQPFile (#8544)
+    - SpectrumAnnotator: addPeakAnnotationsToPeptideHit() method (#8421)
+    - iRT/CiRT transition files in share/OpenMS/CHEMISTRY/ (#8372)
+    - CalibrationWorkflow: refactored OpenSwathWorkflowCalibration workflow logic into a separate reusable CalibrationWorkflow class. (#8743)
+    - Fragment index open search expanded with modification discovery and FDR filtering (#8414)
+    - CCS (collisional cross section) support for ion mobility data (#8735)
+    - Rasterize2D function for MSExperiment to rasterize 2D ion mobility data (#8739)
+    - SequenceCoverage: Reusable API extracted for computing protein sequence coverage (#8728)
+    - Arrow/DataFrame/Parquet export for ConsensusMap with batch and streaming APIs (#8729)
+    - PSM DataFrame export from PeptideIdentificationList (#8632)
+    - SpectrumNativeIDParser class for parsing spectrum native IDs (extractScanNumber, getRegExFromNativeID, isNativeID) (#8637)
+    - ArrowExport helper for exporting MSExperiment to Apache Arrow/Parquet formats with configurable layouts and compression (#8655)
+    - ProFormaParser: Full ProForma v2 notation parser with AST representation (#8648)
+      - Recursive descent parser for peptidoforms with modifications, cross-links, and chimeric spectra
+      - Supports all ProForma v2 features: CV accessions (UNIMOD, MOD, RESID, XLMOD, GNO), mass deltas, formulas, glycans, info tags
+      - Bidirectional conversion: parse() and toString() with LOSSLESS/CANONICAL write modes
+      - AASequence integration: toAASequence()/fromAASequence() with configurable conversion policies
+      - Mass calculation: getMonoWeight(), getMZ() for peptidoforms and ions
+      - JSON serialization for AST persistence and interoperability
+      - Theoretical spectrum generation via tryGenerateSpectrum() for single-chain and cross-linked peptides
+        Uses TheoreticalSpectrumGenerator for linear peptides, TheoreticalSpectrumGeneratorXLMS for cross-links
+    - MzPAF: HUPO-PSI mzPAF (Peak Annotation Format) parser and serializer (#8686). Parse fragment ion annotations: MzPAF::parse("y4-H2O^2/3.2ppm*0.75"). pyOpenMS bindings included
+    - USI: Universal Spectrum Identifier support per HUPO-PSI standard (#8684)
+      - USI class for parsing and building USI strings (mzspec:collection:msrun:index_type:index[:interpretation])
+      - Static methods: tryParse() (non-throwing), isValidUSI(), createFromScanNumber(), createFromNativeID()
+      - Uses SpectrumNativeIDParser for robust scan number extraction from vendor formats
+      - PeptideIdentification.buildUSI() for generating USIs from identification results
+      - TextExporter USI output with optional dataset_id/ms_run parameters
+      - pyOpenMS bindings included
+  Changes:
+    - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
+    - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
+    - BREAKING: IDFilter::updateProteinReferences() renamed to removeDanglingProteinReferences() (#8500)
+    - BREAKING: Exception::InvalidSize constructor requires mandatory context message parameter (#8437)
+    - BREAKING: FileWatcher moved from OpenMS/SYSTEM/ to OpenMS/VISUAL/ (GUI library) (#8591)
+    - BREAKING: PeptideAndProteinQuant channel identifiers changed from Int to UInt (#8516)
+    - BREAKING: Plain enums migrated to enum class (Sample::SampleState, OpenMS_OS, etc.) (#8622)
+    - ILPDCWrapper: Performance improvement using std::unordered_map (~3.5x speedup) (#8618)
+    - OpenSwath: Use unordered_map for O(1) lookups, improving performance (#8651)
+    - DataValue: Enhanced conversion error messages with type and value context (#8572)
+    - BayesianProteinInferenceAlgorithm: Now requires single merged ProteinIdentification run (#8480)
+    - EMGScoring: Default init_mom changed from false to true for consistency (#8593)
+    - ElementDB: Standardize map lookup pattern (#8660)
+    - IDFilter: Eliminate code duplication (#8662)
+    - Iterator patterns, container checks, and memory allocation optimized in hot paths (#8656)
+    - Simplified redundant boolean return statements (#8659)
+    - OPENMS_LOG_WARN now writes to std::cerr instead of std::cout (#8754)
+    - External Enzymes.xml is now optional — enzyme definitions are built-in by default (#8409)
+    - Date class refactored from QDate inheritance to composition (#8710)
+    - Thread-safe logging with OPENMS_LOG_* macro optimizations (#8620)
+    - MetaInfo: Iterator support and merge optimizations (#8621)
+
+Fixes:
+  - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
+  - Fix LogConfigHandler: flush buffers on stream removal and restore streams when lowering log level (#8440)
+  - Fix Heavy path decoy duplicate detection to use modified sequences (#8575)
+  - Fix decoy generation with improved duplicate detection and speed optimizations (#8569)
+  - Fix MetaboliteSpectralMatching GNPS library compatibility and COMPOUND_NAME support (#8163)
+  - Fix uninitialized variable warning for best_rate in MetaProSIP.cpp (#8396)
+  - Fix spectrum/chromatogram filters to properly handle DataArrays (#8645)
+  - Fix UniqueIdGenerator seed collision in parallel pipelines by mixing process ID into seed (#8678)
+  - Correct defaultArrayLength in MzMLFile_negative_offsets.mzML test file (#8672)
+  - Remove unused variable block_start in FileFilter (#8399)
+  - Fix SIMD type mismatch and unaligned memory access in Base64 decoding (ARM64 crash) (#8689)
+  - Fix empty GENE table causing PQP file reading to return zero transitions (#8688)
+  - Fix PeptideIndexer AhoCorasick segfault for short peptides (#8685)
+
+Documentation:
+  - Comprehensive documentation for Targeted Quantitation algorithms (#8588)
+  - Retention time units [s] added to TOPP tool parameter descriptions (#8597)
+  - FileMerger input/output file type combinations documented (#8615)
+  - ProteomicsLFQ automatic median normalization behavior documented (#8438)
+  - ProteomicsLFQ FAIMS support documented (#8478)
+  - pyOpenMS wrapping guide for classes with deleted/private constructors (#8561)
+  - Parameter direction annotations (@param[in], @param[out], @param[in,out]) across 95+ header files (#8507)
+  - AGENTS.md AI coding guidance added and improved (#8537, #8560, #8563)
+  - Test creation documentation updated with modern test file template (#8548)
+
+Build System:
+  - macOS notarization with timestamping integrated into CI (#8486, #8494, #8527)
+  - CMAKE_PREFIX_PATH handling fixed for Parquet support (#8370)
+  - Qt subpackages used instead of full Qt metapackage on macOS (#8368)
+  - OpenMP validation: CMake fails if OpenMP requested but not found (#8368)
+  - External libraries from Debian repos to prevent deb package conflicts (#8496)
+  - pytest fixtures replace fragile import env hacks in pyOpenMS tests (#8594)
+  - Security patterns added to .gitignore (#8545)
+  - setuptools deprecation warnings fixed for pyOpenMS data directories (#8484)
+  - Configure return value checking in CI packaging (#8515)
+  - pyOpenMS build system modernized with py-build-cmake and cibuildwheel (#8530)
+  - Claude GitHub Actions workflows added for CI automation (#8675, #8676)
+  - IsoSpec and eol-bspline converted to proper CMake library targets (#8331)
+  - Arrow 23+ compatibility: removed version pin, CURL workaround (#8679)
+  - uv made optional for isolated build environments (#8706)
+
+
+------------------------------------------------------------------------------------------
+----                                OpenMS 3.5.0     (Released December 2025)         ----
+------------------------------------------------------------------------------------------
+NOTICE: 3.5.0 was the last official release for MacOS on Intel processors.
 If you need support for OpenMS on that platform moving forward, please contact us.
 
 General:
@@ -25,21 +247,53 @@ General:
     - loading of mzML files is 7-25% faster in general (SIMD ASCII conversion) (#8105)
  - linux arm64 support:
 	- OpenMS releases now include a .deb for arm64 machines
-	- PyOpenMS now has wheels for arm64 linux machines
     
 Dependencies:
-    - PyOpenMS now depends on Autowrap 0.23.0
+    - PyOpenMS now depends on Autowrap 0.24.0
     - PyOpenMS now supports Cython 3.1
+    - CMake now accepts Eigen 5 in addition to Eigen 3.4+ (#8366)
+    - Apache Arrow/Parquet integration for high-performance columnar data export (#8091, #8145)
 
 PyOpenMS:
+    - PyOpenMS now has wheels for arm64 linux machines
 	- PyOpenMS wheels are now available for Python 3.14 on all supported operating systems
+	- Parquet support enabled in pyopenms wheels (#8422)
+	- BREAKING: DataFrame column names standardized to lowercase snake_case for PEP 8 compliance.
+	  Affected methods: MSSpectrum.get_df(), MSChromatogram.get_df(), ConsensusMap.get_metadata_df(),
+	  FeatureMap.get_df(). Example changes: 'RT' -> 'rt', 'MZ' -> 'mz', 'nativeID' -> 'native_id',
+	  'precursorMZ' -> 'precursor_mz'. Update code that references old column names.
+    - Pythonic convenience methods added:
+      - __len__() for MSSpectrum, MSChromatogram, MSExperiment, AASequence (#8151, #8415, #8417)
+      - __str__() and __repr__() for core classes (#8429)
+      - Python accessors for drift time on MSSpectrum and OpenSwathSpectrum (#8423)
+    - New Python bindings for Mobilogram and MobilityPeak1D classes (#8377)
+    - DataFrame wrapper for MSSpectrum with get_df() method (#8435)
+    - Enum class support in Python bindings with IntEnum (#8405)
+    - Static methods to query enum names for METADATA classes (#8353)
+    - Fix: PyOpenMS import no longer affects Python locale settings (#8322)
+    - Improved pyOpenMS documentation for Feature, MRMFeature, FeatureMap classes (#8247)
 
 TOPP tools:
   Changes:
     FileFilter:
       - Filter RT by blocks of MS levels (#8239)
+    SageAdapter:
+      - Improved parameter documentation and tolerance validation (#8259)
+      - Now correctly passes threads parameter via RAYON_NUM_THREADS (#8260)
+    CometAdapter:
+      - All enzymes now available by adding CometIDs to database (#8280)
+    DecoyDatabase:
+      - Added repeated shuffle option for improved decoy generation (#8339)
     MassTraceExtractor:
       - support for Bruker Ion Mobility (experimental). Note: requires IM peak picked data.
+    FeatureFinderCentroided, FeatureFinderMetabo, FeatureFinderMultiplex:
+      - FAIMS support (experimental): Automatic detection and separate processing of FAIMS compensation voltage (CV) groups.
+        Features from different CVs representing the same analyte are merged by default.
+    FeatureFinderMetaboIdent, FeatureFinderIdentification:
+      - FAIMS support (experimental): Automatic detection and separate processing of FAIMS compensation voltage (CV) groups.
+        Features from different CVs representing the same analyte are merged by default.
+      - Bruker TimsTOF ion mobility support (experimental): Requires concatenated IM spectra in mzML format
+        (use msconvert with --combineIonMobilitySpectra option). IM values can be specified in the input TSV/idXML.
     NucleicAcidSearchEngine:
       - add support for global fixed modifications as a search parameter
     Digestor:
@@ -48,11 +302,24 @@ TOPP tools:
       - show load/store progress for files in all TOPP tools (#8041)
     IonMobilityBinning:
       - Detect FAIMS data automatically and split output per FAIMS compensation voltage (CV)
+    FLASHDeconv:
+      - Major update with improved scoring, FDR estimation, and isobaric quantification support (#8257)
+      - Automatic mass tolerance estimation from data
+      - Per-MS-level deconvolved spectrum outputs
+      - TopFD version 1.7 compatible feature and TSV export formats
+      - Improved precursor mass assignment for MSn spectra
   Added Tools:
     - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
     - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
+    - FeatureFinderLFQ (experimental) - Feature detection for label-free proteomics DDA-LFQ based on the Biosaur2 algorithm with support for FAIMS and TimsTOF ion mobility
+    - PeakPickerIM - Ion mobility peak picker for TimsTOF and other IM data. Supports three methods: mobilogram-based,
+      clustering, and elution profile-based picking. Supports both in-memory and low-memory streaming modes. (#8177)
+    - IsobaricWorkflow (experimental) - Simple, targeted, fast workflow for isobaric quantification (#7298)
   Removed Tools:
     - OpenPepXLLF - Experimental search for cross-linked peptide pairs in tandem MS spectra (showed inferior performance in benchmarks)
+    - IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs
+    - SpecLibCreator - Creates an MSP formatted spectral library
+    - SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library
 
 GUI tools:
  - fix TOPPAS crash when using TOPP tools with multiple output formats (#8120)
@@ -60,6 +327,10 @@ GUI tools:
 
 OpenMS Library:
   Added:
+    - PeakPickerIM (experimental): New algorithm for ion mobility peak picking with three methods (mobilogram, cluster, elution profiles). (#8177)
+    - IMFormat: Added CENTROIDED and UNKNOWN format types for ion mobility data. (#8177)
+    - MSSpectrum/SpectrumSettings: Added setIMFormat()/getIMFormat() API for per-spectrum ion mobility format tracking. (#8177)
+    - FeatureFinderAlgorithmBiosaur2 (experimental): Feature detection algorithm for label-free proteomics DDA-LFQ based on the Biosaur2 algorithm with support for FAIMS and TimsTOF ion mobility.
     - PeptideHit: Added TargetDecoyType (TARGET, DECOY, TARGET_DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType(); supports target+decoy peptide hits.
     - IDScoreSwitcherAlgorithm: Added findScoreType() method for generic score type detection. Checks if main score matches requested ScoreType (PEP, QVAL, FDR, etc.) or finds it in meta values..
     - ProteinHit: Added TargetDecoyType (TARGET, DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType().
@@ -67,11 +338,17 @@ OpenMS Library:
     - unify isotopic distributions (coarse vs. fine) for EmpiricalFormulas with charge (#8099)
     - FragmentIndex (experimental): New fragment index for fast peptide fragment lookup supporting FI-based peptide database search.
     - PeptideSearchEngineFIAlgorithm (experimental): Library algorithm leveraging FragmentIndex for peptide database search; used by the PeptideDataBaseSearchFI TOPP tool.
+    - AhoCorasick: Improved high-performance string matching algorithm with path compression (#8269, #8304)
+    - HashGrid: Exposed cellIndexAtClusterCenter method (#8318)
   Changes:
     - removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
     - remove rank member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
     - std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList.
     - Zlibcompression using zlib (not Qt) and Base64 decoding for zlib-compressed data using SIMD (not Qt) (#8161)
+    - Exception::InvalidSize now includes mandatory context message (#8437)
+    - Matrix::operator== no longer throws assert when comparing different-sized matrices (#8305)
+    - Removed boost::smart_ptr dependency, using std::shared_ptr instead (#8405)
+    - C++20 modernization: std::erase_if, range-based for loops, default constructors (#8229, #8230, #8233)
   New Features:
     - FAIMSHelper: dataset-wide FAIMS detection; ignore DRIFTTIME_NOT_SET sentinel; improved warning
     - IMDataConverter::splitByFAIMSCV: retain MS2 without explicit FAIMS CV by assigning to prior FAIMS CV
@@ -82,7 +359,22 @@ OpenMS Library:
       - Added automated iRT calibration using input transition list (#8146)
       - Added automated RT, m/z, and IM extraction window estimation based on iRT calibration (#8188)
       - Added lowess span grid search params and updated documentation for OpenSwathWorkflow TOPP tool (#8297)
+      - Added priority inclusion list for iRT sampling from PQP when using automated iRT calibration (#8373)
 
+Fixes:
+  - Fix overlap test in crowded FAIMS data (#8418)
+  - Fix window estimation when no MS1 maps available in OpenSwath (#8308)
+  - Fix column header filenames for all maps in Decharger/MetaboliteAdductDecharger (#8265)
+  - Fix ternary operator misuse in FileMerger append_method logic (#8263)
+  - Fix Qt6 deprecation warnings (#8248)
+  - Fix FileNotFound exception misuse for file access errors (#8274)
+  - Fix peaks being skipped in OpenSwath wide boundary selection method (#8316)
+  - Fix mzTab-M validation errors for missing identification and database metadata (#8363)
+  - Fix negative offset handling in mzML readers (#8336)
+
+Documentation:
+  - Build instructions rewritten for macOS and Linux (#8042)
+  - Comprehensive documentation added to DeMeanderize tool (#8264)
 
 
 ------------------------------------------------------------------------------------------

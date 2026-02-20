@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         # wrap-inherits:
         #  ChromatogramSettings
         #  RangeManagerRtInt
-        #
+        #  
         # wrap-doc:
         #  The representation of a chromatogram.
         #  Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         #  See help(ChromatogramSettings) for information about meta-information
         #  
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
         #  
         #    precursor = chromatogram.getPrecursor()
@@ -31,22 +31,22 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         #    rt, intensities = chromatogram.get_peaks()
         #  
 
-        MSChromatogram() except + nogil 
-        MSChromatogram(MSChromatogram &) except + nogil 
+        MSChromatogram() except + nogil  # wrap-doc:Constructor
+        MSChromatogram(MSChromatogram &) except + nogil  # wrap-doc:Copy constructor
         double getMZ() except + nogil  # wrap-doc:Returns the mz of the product entry, makes sense especially for MRM scans
-        # void   setMZ(double) except + nogil 
+        # void   setMZ(double) except + nogil
 
         String getName() except + nogil  # wrap-doc:Returns the name
         void setName(String) except + nogil  # wrap-doc:Sets the name
 
-        Size size() except + nogil 
-        void reserve(size_t n) except + nogil  
-        void resize(size_t n) except + nogil  # wrap-doc:Resize the peak array 
+        Size size() except + nogil  # wrap-doc:Returns the number of peaks in the chromatogram
+        void reserve(size_t n) except + nogil  # wrap-doc:Reserves space for n peaks in the underlying container
+        void resize(size_t n) except + nogil  # wrap-doc:Resize the peak array
 
-        ChromatogramPeak & operator[](size_t) except + nogil 
+        ChromatogramPeak & operator[](size_t) except + nogil  # wrap-upper-limit:size()
 
-        void updateRanges() except + nogil 
-        void clear(int) except + nogil 
+        void updateRanges() except + nogil  # wrap-doc:Recalculates the RT and intensity ranges of the chromatogram
+        void clear(int) except + nogil
             # wrap-doc:
                 #  Clears all data and meta data
                 #  
@@ -57,21 +57,21 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
         bool isSorted() except + nogil  # wrap-doc:Checks if all peaks are sorted with respect to ascending RT
 
-        void sortByIntensity(bool reverse) except + nogil 
+        void sortByIntensity(bool reverse) except + nogil
             # wrap-doc:
                 #  Lexicographically sorts the peaks by their intensity
                 #  
                 #  
                 #  Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
 
-        void sortByPosition() except + nogil 
+        void sortByPosition() except + nogil
             # wrap-doc:
                 #  Lexicographically sorts the peaks by their position
                 #  
                 #  
                 #  The chromatogram is sorted with respect to position. Meta data arrays will be sorted accordingly
 
-        int findNearest(double) except + nogil 
+        int findNearest(double) except + nogil
             # wrap-doc:
                 #  Binary search for the peak nearest to a specific RT
                 #  :note: Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined

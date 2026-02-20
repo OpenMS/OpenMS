@@ -155,8 +155,8 @@ namespace OpenMS
    * Then we check the first mass shift (for example 6 Da before 12 Da i.e. misscleavage).
    * Finally we check for charges (2+ before 1+, most likely first).
    *
-   * @param pattern1    first peak pattern
-   * @param pattern2    second peak pattern
+   * @param[in] pattern1    first peak pattern
+   * @param[in] pattern2    second peak pattern
    *
    * @return true if pattern1 should be searched before pattern2
    */
@@ -932,7 +932,7 @@ namespace OpenMS
     {
       spectrum_type = exp[0].getType(true);
       // The following means that UNKNOWN will be handled as profile.
-      centroided_ = (spectrum_type == SpectrumSettings::CENTROID);
+      centroided_ = (spectrum_type == SpectrumSettings::SpectrumType::CENTROID);
     }
     else if (param_.getValue("algorithm:spectrum_type") == "centroid")
     {

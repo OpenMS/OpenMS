@@ -62,16 +62,16 @@ public:
     /**
      * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
      *
-     * @param input The input spectra from which to extract chromatograms
-     * @param output The output vector in which to store the chromatograms
+     * @param[in] input The input spectra from which to extract chromatograms
+     * @param[out] output The output vector in which to store the chromatograms
      * (needs to be of the same length as the extraction coordinates, use
      * prepare_coordinates)
-     * @param extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
-     * @param mz_extraction_window Extracts a window of this size in m/z
+     * @param[in] extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
+     * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
-     * @param ppm Whether mz windows in in ppm
-     * @param filter Which filter to use (bartlett or tophat)
+     * @param[in] ppm Whether mz windows in in ppm
+     * @param[in] filter Which filter to use (bartlett or tophat)
      *
      *
     */
@@ -89,17 +89,17 @@ public:
     /**
      * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
      *
-     * @param input The input spectra from which to extract chromatograms
-     * @param output The output vector in which to store the chromatograms
+     * @param[in] input The input spectra from which to extract chromatograms
+     * @param[out] output The output vector in which to store the chromatograms
      * (needs to be of the same length as the extraction coordinates, use
      * prepare_coordinates)
-     * @param extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
-     * @param mz_extraction_window Extracts a window of this size in m/z
+     * @param[in] extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
+     * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
-     * @param ppm Whether mz windows in in ppm
-     * @param im_extraction_window Extracts a window of this size in ion mobility
-     * @param filter Which filter to use (bartlett or tophat)
+     * @param[in] ppm Whether mz windows in in ppm
+     * @param[in] im_extraction_window Extracts a window of this size in ion mobility
+     * @param[in] filter Which filter to use (bartlett or tophat)
      *
      * @note: whenever possible, please use this ChromatogramExtractorAlgorithm implementation
      *
@@ -123,18 +123,18 @@ public:
      * coordinates (transitions for MS2 extraction, peptide m/z for MS1
      * extraction). The output will be sorted by m/z.
      *
-     * @param output_chromatograms An empty vector which will be initialized correctly
-     * @param coordinates An empty vector which will be filled with the
+     * @param[in] output_chromatograms An empty vector which will be initialized correctly
+     * @param[out] coordinates An empty vector which will be filled with the
      *   appropriate extraction coordinates in m/z and rt and sorted by m/z (to
      *   be used as input to extractChromatograms)
-     * @param transition_exp The transition experiment used as input (is constant)
-     * @param rt_extraction_window If non-negative, full RT extraction window,
+     * @param[in] transition_exp The transition experiment used as input (is constant)
+     * @param[in] rt_extraction_window If non-negative, full RT extraction window,
      *   centered on the first RT value (@p rt_end - @p rt_start will equal this
      *   window size). If negative, @p rt_end will be set to -1 and @p rt_start
      *   to 0 (i.e. full RT range). If NaN, exactly two RT entries are expected
      *   - the first is used as @p rt_start and the second as @p rt_end.
-     * @param ms1 Whether to extract for MS1 (peptide level) or MS2 (transition level)
-     * @param ms1_isotopes Number of isotopes to include in @p coordinates when in MS1 mode
+     * @param[in] ms1 Whether to extract for MS1 (peptide level) or MS2 (transition level)
+     * @param[in] ms1_isotopes Number of isotopes to include in @p coordinates when in MS1 mode
      *
      * @throw Exception::IllegalArgument if RT values are expected (depending on @p rt_extraction_window) but not provided
     */
@@ -200,7 +200,7 @@ public:
         if (ms1) 
         {
           prec.setMZ(coord.mz);
-          chrom.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+          chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::BASEPEAK_CHROMATOGRAM);
 
           // extract compound / peptide id from transition and store in
           // more-or-less default field
@@ -228,7 +228,7 @@ public:
           Product prod;
           prod.setMZ(transition.getProductMZ());
           chrom.setProduct(prod);
-          chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+          chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
 
           // extract compound / peptide id from transition and store in
           // more-or-less default field
@@ -275,9 +275,9 @@ private:
     /**
      * @brief Extracts id (peptide sequence or compound name) for a compound
      *
-     * @param transition_exp_used The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
-     * @param id The identifier of the compound or peptide
-     * @param prec_charge The charge state of the precursor
+     * @param[out] transition_exp_used The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
+     * @param[in] id The identifier of the compound or peptide
+     * @param[in] prec_charge The charge state of the precursor
      *
      */
     template <typename TransitionExpT>
@@ -360,7 +360,7 @@ private:
 
         // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
         chrom.setNativeID(transition->getNativeID());
-        chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+        chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
         chromatograms.push_back(chrom);
       }
 
@@ -401,6 +401,18 @@ private:
     }
   }
 
+  // Const-qualified template specialization for extract_id_.
+  // This specialization handles const LightTargetedExperiment parameters by forwarding
+  // to the non-const implementation (via const_cast) to avoid linker errors from
+  // duplicate template instantiations when both const and non-const versions are used.
+  template<>
+  inline String ChromatogramExtractor::extract_id_<const OpenSwath::LightTargetedExperiment>(const OpenSwath::LightTargetedExperiment& transition_exp_used,
+                                                                                               const String& id,
+                                                                                               int & prec_charge)
+  {
+    // forward to non-const implementation
+    return extract_id_<OpenSwath::LightTargetedExperiment>(const_cast<OpenSwath::LightTargetedExperiment&>(transition_exp_used), id, prec_charge);
+  }
 
   // Specialization for template (TargetedExperiment)
   template<>

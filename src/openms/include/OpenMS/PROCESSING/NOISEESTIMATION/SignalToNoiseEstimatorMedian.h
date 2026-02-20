@@ -155,8 +155,8 @@ protected:
 
 
     /** Calculate signal-to-noise values for all data points given, by using a sliding window approach
-     
-        @param c Raw data, usually an MSSpectrum
+
+        @param[in] c Raw data, usually an MSSpectrum
         @exception Throws Exception::InvalidValue
     */
     void computeSTN_(const Container& c) override
@@ -240,7 +240,7 @@ protected:
 
       if (max_intensity_ < 0)
       {
-        std::cerr << "TODO SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
+        OPENMS_LOG_WARN << "SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
         return;
       }
 

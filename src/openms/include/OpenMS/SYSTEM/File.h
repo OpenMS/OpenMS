@@ -82,10 +82,10 @@ public:
        If the target already exists (and is not identical to the source),
        this function will fail unless @p overwrite_existing is true.
        
-       @param from Source filename
-       @param to Target filename
-       @param overwrite_existing Delete already existing target, before renaming
-       @param verbose Print message to OPENMS_LOG_ERROR if something goes wrong.
+       @param[in] from Source filename
+       @param[in] to Target filename
+       @param[in] overwrite_existing Delete already existing target, before renaming
+       @param[in] verbose Print message to OPENMS_LOG_ERROR if something goes wrong.
        @return True on success
     */
     static bool rename(const String& from, const String& to, bool overwrite_existing = true, bool verbose = true);
@@ -101,9 +101,9 @@ public:
        SKIP: Skip the file in the target directory if it already exists.
        CANCEL: Cancel the copy process if file already exists in target directory - return false.
 
-       @param from_dir Source directory
-       @param to_dir Target directory
-       @param option Specify the copy option (OVERWRITE, SKIP, CANCEL)
+       @param[in] from_dir Source directory
+       @param[in] to_dir Target directory
+       @param[in] option Specify the copy option (OVERWRITE, SKIP, CANCEL)
        @return True on success
     */
     enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
@@ -183,7 +183,7 @@ public:
       this call fails, try the web documentation
       (http://www.openms.de/current_doxygen/) instead.
      
-      @param filename The doc file name to find.
+      @param[in] filename The doc file name to find.
       @return The full path to the requested file.
 
       @exception FileNotFound is thrown, if the file is not found
@@ -193,7 +193,7 @@ public:
     /**
       @brief Returns a string, consisting of date, time, hostname, process id, and a incrementing number. This can be used for temporary files.
 
-      @param include_hostname add hostname into result - potentially a long string
+      @param[in] include_hostname add hostname into result - potentially a long string
       @return a unique name
     */
     static String getUniqueName(bool include_hostname = true);
@@ -260,7 +260,7 @@ public:
     /**
       @brief Searches for an executable with the given name.
 
-      @param toolName The executable to search for.
+      @param[in] toolName The executable to search for.
       @exception FileNotFound is thrown, if the tool executable was not found.
     */
     static String findSiblingTOPPExecutable(const String& toolName);
@@ -278,7 +278,7 @@ public:
       Thus you can just call this function to get a file which can be used and gets automatically
       destroyed if needed.
 
-      @param alternative_file If this string is not empty, no action is taken and it is used as return value
+      @param[in] alternative_file If this string is not empty, no action is taken and it is used as return value
       @return Full path to a temporary file
     */
     static String getTemporaryFile(const String& alternative_file = "");
@@ -300,10 +300,10 @@ public:
       - ORDER_MISMATCH (1): Same set of files but in different order
       - SET_MISMATCH (2): Different sets of files (including different counts)
 
-      @param sl1 First StringList with filenames
-      @param sl2 Second StringList with filenames
-      @param basename If set to true, only basenames are compared
-      @param ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
+      @param[in] sl1 First StringList with filenames
+      @param[in] sl2 Second StringList with filenames
+      @param[in] basename If set to true, only basenames are compared
+      @param[in] ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
       @return MatchingFileListsStatus indicating the validation result
     */
     static MatchingFileListsStatus validateMatchingFileNames(const StringList& sl1, 

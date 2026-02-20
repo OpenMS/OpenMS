@@ -50,7 +50,7 @@ namespace OpenMS
         @brief Extracts all values from all elements in the param object and tries to interpret them as filenames
         If they exist, they will be used in the list of recent files. The name of the param items is ignored.
 
-        @param filenames A Param object of which all values will be tested for being a filename
+        @param[in] filenames A Param object of which all values will be tested for being a filename
         @return The number of items which were successfully interpreted as filenames
 
     */

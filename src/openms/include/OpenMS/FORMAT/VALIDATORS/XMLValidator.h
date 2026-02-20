@@ -35,9 +35,9 @@ public:
 
       Error messages are printed to the error stream, unless redirected with the attribute @p os .
 
-      @param filename The file to validated.
-      @param schema The filename of the schema that should be used for validation.
-      @param os The stream where error messages should be send to.
+      @param[in] filename The file to validated.
+      @param[in] schema The filename of the schema that should be used for validation.
+      @param[in] os The stream where error messages should be send to.
 
       @exception Exception::FileNotFound is thrown if the file cannot be found
       @exception Exception::ParseError is thrown if the parser could not be initialized

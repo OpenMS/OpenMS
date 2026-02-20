@@ -70,14 +70,14 @@ public:
     If adduct information for a spectrum is missing, no adduct information is added. 
     In this case, SIRIUS assumes default adducts for the respective spectrum.
 
-    @param spectra: Peakmap from input mzML.
-    @param os: Write output for .ms file to ofstream.
-    @param feature_mapping: Adducts and features (index).
-    @param feature_only: Only use features.
-    @param isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).
-    @param no_masstrace_info_isotope_pattern: bool if isotope pattern should be extracted (if not in feature)
-    @param v_cmpinfo: Vector of CompoundInfo.
-    @param file_index: file index (to differentiate entries derived from different mzML files and resolve ambiguities)
+    @param[in] spectra: Peakmap from input mzML.
+    @param[in] os: Write output for .ms file to ofstream.
+    @param[in] feature_mapping: Adducts and features (index).
+    @param[in] feature_only: Only use features.
+    @param[in] isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).
+    @param[in] no_masstrace_info_isotope_pattern: bool if isotope pattern should be extracted (if not in feature)
+    @param[in] v_cmpinfo: Vector of CompoundInfo.
+    @param[in] file_index: file index (to differentiate entries derived from different mzML files and resolve ambiguities)
     */
 
     static void store(const MSExperiment& spectra,
@@ -91,8 +91,8 @@ public:
     /**
     @brief Store CompoundInfo objects in tsv file format
 
-    @param v_cmpinfo: Vector with CompoundInfo objects
-    @param filename: Filename for tsv file
+    @param[in] v_cmpinfo: Vector with CompoundInfo objects
+    @param[in] filename: Filename for tsv file
     */
     static void saveFeatureCompoundInfoAsTSV(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                                       const std::string& filename);
@@ -101,26 +101,26 @@ public:
     /**
     @brief Internal structure to write the .ms file (called in store function)
 
-    @param os: stream
-    @param spectra: spectra
-    @param ms2_spectra_index: vector of index ms2 spectra (in feature)
-    @param ainfo: accession information
-    @param adducts: vector of adducts
-    @param v_description: vector of descriptions
-    @param v_sumformula: vector of sumformulas
-    @param f_isotopes: isotope pattern of the feature
-    @param feature_charge: feature charge
-    @param feature_id: feature id
-    @param feature_rt: features retention time
-    @param feature_mz: feature mass to charge
-    @param writecompound: bool if new compound should be written in .ms file
-    @param no_masstrace_info_isotope_pattern: bool if isotope pattern should be extracted (if not in feature)
-    @param isotope_pattern_iterations: number of iterations (trying to find a C13 pattern)
-    @param count_skipped_spectra: count number of skipped spectra
-    @param count_assume_mono: count number of features where mono charge was assumed
-    @param count_no_ms1: count number of compounds without a valid ms1 spectrum
-    @param v_cmpinfo: vector of CompoundInfo
-    @param file_index: file index (to differentiate entries derived from different mzML files and resolve ambiguities)
+    @param[out] os: stream
+    @param[in] spectra: spectra
+    @param[in] ms2_spectra_index: vector of index ms2 spectra (in feature)
+    @param[in] ainfo: accession information
+    @param[in] adducts: vector of adducts
+    @param[in] v_description: vector of descriptions
+    @param[in] v_sumformula: vector of sumformulas
+    @param[in] f_isotopes: isotope pattern of the feature
+    @param[in] feature_charge: feature charge
+    @param[in] feature_id: feature id
+    @param[in] feature_rt: features retention time
+    @param[in] feature_mz: feature mass to charge
+    @param[out] writecompound: bool if new compound should be written in .ms file
+    @param[in] no_masstrace_info_isotope_pattern: bool if isotope pattern should be extracted (if not in feature)
+    @param[in] isotope_pattern_iterations: number of iterations (trying to find a C13 pattern)
+    @param[in] count_skipped_spectra: count number of skipped spectra
+    @param[in] count_assume_mono: count number of features where mono charge was assumed
+    @param[in] count_no_ms1: count number of compounds without a valid ms1 spectrum
+    @param[in] v_cmpinfo: vector of CompoundInfo
+    @param[in] file_index: file index (to differentiate entries derived from different mzML files and resolve ambiguities)
     */
 
     static void writeMsFile_(std::ofstream& os,
@@ -146,10 +146,10 @@ public:
     /**
     @brief Find highest intensity peak near target mz to test if within a margin of error
 
-    @param test_mz: Mass-to-charge to test
-    @param spectrum: Spectrum to test
-    @param tolerance: Tolerance window (e.g. 10)
-    @param ppm: Unit of tolerance window either ppm or Da
+    @param[in] test_mz: Mass-to-charge to test
+    @param[in] spectrum: Spectrum to test
+    @param[in] tolerance: Tolerance window (e.g. 10)
+    @param[in] ppm: Unit of tolerance window either ppm or Da
     */
     static Int getHighestIntensityPeakInMZRange_(double test_mz,
                                                  const MSSpectrum& spectrum,
@@ -160,10 +160,10 @@ public:
     @brief Extract precursor isotope pattern if no feature information is available
     based on C12C13 distance.
 
-    @param precursor_mz: Precursor mass-to-charge
-    @param precursor_spectrum: Precursor spectrum
-    @param iterations: Number of isotopes, which are tried to be extracted
-    @param charge: Charge of the precursor
+    @param[in] precursor_mz: Precursor mass-to-charge
+    @param[in] precursor_spectrum: Precursor spectrum
+    @param[in] iterations: Number of isotopes, which are tried to be extracted
+    @param[in] charge: Charge of the precursor
     */
     static std::vector<Peak1D> extractPrecursorIsotopePattern_(const double& precursor_mz,
                                                                const MSSpectrum& precursor_spectrum,

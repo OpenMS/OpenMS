@@ -99,7 +99,7 @@ START_SECTION([EXTRA](void updateMembers_()))
   TEST_EQUAL(adducts[2].getRTShift(), -2);
   TEST_EQUAL(adducts[2].getCharge(), 0);
   TEST_REAL_SIMILAR(adducts[2].getLogProb(), log(0.2));
-  TEST_EQUAL(cm, MetaboliteFeatureDeconvolution::QFROMFEATURE)
+  TEST_EQUAL(cm, MetaboliteFeatureDeconvolution::CHARGEMODE::QFROMFEATURE)
   TEST_EQUAL(map.size(), 2)
   TEST_EQUAL(map_i.size(), 2)
   TEST_EQUAL(map[0], "decharged features");
@@ -142,7 +142,7 @@ START_SECTION([EXTRA](void updateMembers_()))
   TEST_EQUAL(adducts[1].getCharge(), 2);
   TEST_REAL_SIMILAR(adducts[1].getLogProb(), log(0.1));
 
-  TEST_EQUAL(cm, MetaboliteFeatureDeconvolution::QHEURISTIC)
+  TEST_EQUAL(cm, MetaboliteFeatureDeconvolution::CHARGEMODE::QHEURISTIC)
   TEST_EQUAL(map.size(), 1)
   TEST_EQUAL(map_i.size(), 1)
   TEST_EQUAL(map[0], "mylabel");

@@ -13,6 +13,9 @@
 
 #include <OpenMS/KERNEL/MobilityPeak2D.h>
 
+#include <unordered_set>
+#include <unordered_map>
+
 ///////////////////////////
 
 START_TEST(MobilityPeak2D<D>, "$Id$")
@@ -562,6 +565,51 @@ START_SECTION(([MobilityPeak2D::MZLess] bool operator()(CoordinateType left, Coo
   TEST_EQUAL(MobilityPeak2D::MZLess()(p2.getMZ(), p1.getMZ()), false)
   TEST_EQUAL(MobilityPeak2D::MZLess()(p2.getMZ(), p2.getMZ()), false)
 
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<MobilityPeak2D>))
+{
+  // Test that equal peaks have equal hashes
+  MobilityPeak2D mp1, mp2;
+  mp1.setMobility(1.5);
+  mp1.setMZ(500.5);
+  mp1.setIntensity(1000.0f);
+  mp2.setMobility(1.5);
+  mp2.setMZ(500.5);
+  mp2.setIntensity(1000.0f);
+
+  std::hash<MobilityPeak2D> hasher;
+  TEST_EQUAL(hasher(mp1), hasher(mp2))
+
+  // Test that hash changes when values change
+  MobilityPeak2D mp3;
+  mp3.setMobility(2.5);
+  mp3.setMZ(500.5);
+  mp3.setIntensity(1000.0f);
+  TEST_NOT_EQUAL(hasher(mp1), hasher(mp3))
+
+  // Test use in unordered_set
+  std::unordered_set<MobilityPeak2D> peak_set;
+  peak_set.insert(mp1);
+  TEST_EQUAL(peak_set.size(), 1)
+  peak_set.insert(mp2); // same as mp1
+  TEST_EQUAL(peak_set.size(), 1) // should not increase
+  peak_set.insert(mp3);
+  TEST_EQUAL(peak_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<MobilityPeak2D, int> peak_map;
+  peak_map[mp1] = 42;
+  TEST_EQUAL(peak_map[mp1], 42)
+  TEST_EQUAL(peak_map[mp2], 42) // mp2 == mp1, should get same value
+  peak_map[mp3] = 99;
+  TEST_EQUAL(peak_map[mp3], 99)
+  TEST_EQUAL(peak_map.size(), 2)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

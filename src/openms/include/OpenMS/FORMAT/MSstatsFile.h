@@ -261,7 +261,7 @@ namespace OpenMS
 
       /*
         *  @brief Constructs the lines and adds them to the TextFile
-        *  @param peptideseq_quantifyable Has to be a set (only) for deterministic  ordered output
+        *  @param[out] peptideseq_quantifyable Has to be a set (only) for deterministic  ordered output
         */
       template <class LineType>
       void constructFile_(const String& retention_time_summarization_method,

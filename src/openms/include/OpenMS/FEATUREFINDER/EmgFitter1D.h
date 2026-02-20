@@ -59,9 +59,9 @@ public:
         m_data(data)
       {}
 
-      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const override;
+      int operator()(const double* x, double* fvec) const override;
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const override;
+      int df(const double* x, double* J) const override;
 
 protected:
       const EmgFitter1D::Data* m_data;

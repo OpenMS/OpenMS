@@ -13,7 +13,7 @@ on:
 
 jobs:
   updating_package_version_number:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       # Getting files (OpenMS)
       - uses: actions/checkout@v4

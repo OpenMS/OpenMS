@@ -27,7 +27,7 @@ set(CPACK_STRIP_FILES TRUE) # to save some space in the installers
 set(OPENMS_LOGO_NAME openms_logo_large_transparent.png) ## The filename of the logo to be used for the OpenMS folder e.g. on the DMG
 set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGO_NAME}) ## The logo to be used for the OpenMS folder e.g. on the DMG
 
-set(OPENMS_LOGOSMALL_NAME openms_logo_corner_transparent.png) ## The filename of the logo to be used for the OpenMS folder e.g. on the PKG
+set(OPENMS_LOGOSMALL_NAME openms_logo_corner_small.png) ## The filename of the logo to be used for the OpenMS folder e.g. on the PKG
 set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}) ## The logo to be used for the OpenMS folder e.g. on the PKG
 
 ########################################################### Fixing dynamic dependencies
@@ -52,6 +52,27 @@ list(APPEND DEP_BIN_DIRS $<TARGET_FILE_DIR:OpenMS>)
 
 # Combine all search directories for comprehensive dependency resolution
 set(RUNTIME_DEP_SEARCH_DIRS ${DEP_BIN_DIRS} ${DEP_LIB_DIRS})
+
+if(WITH_PARQUET)
+  # Ensure Arrow/Parquet shared libs are discoverable during install() dependency collection.
+  # This feeds RUNTIME_DEP_SEARCH_DIRS so install(RUNTIME_DEPENDENCY_SET ...) can locate Arrow libs
+  # that are not always in the main build tree. It is required for packaging (CPack installers and
+  # pyOpenMS wheels) to bundle Arrow runtime deps like libarrow_compute/libarrow_dataset, which are
+  # loaded by OpenMS/pyOpenMS at runtime. Without these search paths, the install step can miss those
+  # shared libs and the resulting binaries/wheels fail to link or import on user machines.
+  foreach(_arrow_dep IN ITEMS OPENMS_ARROW_TARGET OPENMS_ARROW_COMPUTE_TARGET OPENMS_PARQUET_TARGET OPENMS_ARROW_DATASET_TARGET)
+    if(DEFINED ${_arrow_dep} AND NOT "${${_arrow_dep}}" STREQUAL "")
+      if(TARGET ${${_arrow_dep}})
+        list(APPEND RUNTIME_DEP_SEARCH_DIRS $<TARGET_FILE_DIR:${${_arrow_dep}}>)
+      else()
+        get_filename_component(_arrow_dep_dir "${${_arrow_dep}}" DIRECTORY)
+        if(_arrow_dep_dir)
+          list(APPEND RUNTIME_DEP_SEARCH_DIRS "${_arrow_dep_dir}")
+        endif()
+      endif()
+    endif()
+  endforeach()
+endif()
 
 
 ## Info on excluding dependencies:

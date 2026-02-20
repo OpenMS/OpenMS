@@ -186,9 +186,9 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   ABORT_IF(m.rows() != 16)
   ABORT_IF(m.cols() != 16)
 
-  for (size_t i = 0; i < m.rows(); ++i)
+  for (Size i = 0; i < m.rows(); ++i)
   {
-    for (size_t j = 0; j < m.cols(); ++j)
+    for (Size j = 0; j < m.cols(); ++j)
     {
       TEST_REAL_SIMILAR(m(i,j), test_Matrix(i,j))
     }

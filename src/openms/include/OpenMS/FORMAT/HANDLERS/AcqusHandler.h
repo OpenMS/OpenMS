@@ -31,7 +31,7 @@ public:
 
         Open acqus File as stream and import params.
 
-        @param filename to acqus File.
+        @param[in] filename to acqus File.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened.
         @exception Exception::ConversionError is thrown if error conversion from String to calibration param.

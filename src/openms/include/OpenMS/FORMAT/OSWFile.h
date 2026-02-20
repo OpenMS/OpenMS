@@ -66,8 +66,8 @@ namespace OpenMS
 
       Internally uses the proteins ID to search for cross referencing peptides and transitions in the OSW file.
 
-      @param swath_result OSWData obtained from the readMinimal() method
-      @param index Index into swath_result.getProteins()[index]. Make sure the index is within the vector's size.
+      @param[in] swath_result OSWData obtained from the readMinimal() method
+      @param[out] index Index into swath_result.getProteins()[index]. Make sure the index is within the vector's size.
       @throws Exception::InvalidValue if the protein at @p index does not have any peptides present in the OSW file
     */
     void readProtein(OSWData& swath_result, const Size index);
@@ -121,7 +121,7 @@ namespace OpenMS
       @brief fill one (@p prot_id) or all proteins into @p swath_result
 
       @param[out] swath_result Output data. Proteins are cleared before if ALL_PROTEINS is used.
-      @param prot_index Using ALL_PROTEINS queries all proteins (could take some time)
+      @param[in] prot_index Using ALL_PROTEINS queries all proteins (could take some time)
 
     */
     void getFullProteins_(OSWData& swath_result, Size prot_index = ALL_PROTEINS);

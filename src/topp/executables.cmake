@@ -7,6 +7,7 @@ AccurateMassSearch
 AssayGeneratorMetabo
 AssayGeneratorMetaboSirius
 BaselineFilter
+FeatureFinderLFQ
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CometAdapter
@@ -71,9 +72,9 @@ MaRaClusterAdapter
 MascotAdapterOnline
 MassCalculator
 MassTraceExtractor
-MetaProSIP
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
+MetaProSIP
 MRMMapper
 MRMPairFinder
 MSGFPlusAdapter
@@ -82,10 +83,10 @@ MSstatsConverter
 MultiplexResolver
 MzMLSplitter
 MzTabExporter
-NucleicAcidSearchEngine
 NoiseFilterGaussian
 NoiseFilterSGolay
 NovorAdapter
+NucleicAcidSearchEngine
 OpenMSDatabasesInfo
 OpenMSInfo
 OpenNuXL
@@ -99,6 +100,7 @@ OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative
+PeakPickerIM
 PeptideIndexer
 PeptideDataBaseSearchFI
 PercolatorAdapter
@@ -128,11 +130,11 @@ SpectraFilterNLargest
 SpectraFilterNormalizer
 SpectraFilterThresholdMower
 SpectraFilterWindowMower
-SpectraSTSearchAdapter
 SpectraMerger
+SpectraSTSearchAdapter
 StaticModification
-TextExporter
 TICCalculator
+TextExporter
 TriqlerConverter
 XFDR
 XMLValidator
@@ -154,7 +156,7 @@ endif(NOT DISABLE_OPENSWATH)
 if(WITH_PARQUET)
   set(TOPP_executables
     ${TOPP_executables}
-    QuantmsIOConverter
+    QPXConverter
   )
 endif(WITH_PARQUET)
 

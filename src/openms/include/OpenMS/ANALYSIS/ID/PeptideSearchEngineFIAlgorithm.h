@@ -12,29 +12,17 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 
 #include <vector>
 
 namespace OpenMS
 {
 
-/**
-  @brief Fragment-index-based peptide database search algorithm (experimental).
-
-  Provides a self-contained search engine that matches MS/MS spectra against a protein
-  database using an FI (Fragment Index). Typical usage:
-  - Configure parameters via DefaultParamHandler (mass tolerances, enzyme, charges, etc.)
-  - Call search() with an input mzML file and a FASTA database to populate identification
-    outputs (ProteinIdentification and PeptideIdentificationList)
-  - Intended for educational/prototyping use and to demonstrate FI-backed searching
-
-  Notes:
-  - Used by the PeptideDataBaseSearchFI TOPP tool
-  - Experimental; interfaces and behavior may change
-*/
 /**
   @brief Fragment-index-based peptide database search algorithm (experimental).
 
@@ -67,15 +55,32 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     };
 
     /**
+     * @brief Comprehensive search result including modification analysis
+     *
+     * This structure contains all outputs from an open search including:
+     * - Standard protein and peptide identifications
+     * - Delta mass statistics table (histogram of mass shifts)
+     * - PTM statistics table (mapped modifications with residue analysis)
+     */
+    struct SearchResult
+    {
+      ExitCodes exit_code = ExitCodes::EXECUTION_OK;
+      std::vector<ProteinIdentification> protein_ids;
+      PeptideIdentificationList peptide_ids;
+      OpenSearchModificationAnalysis::OpenSearchAnalysisResult modification_analysis;
+      bool is_open_search = false;
+    };
+
+    /**
      * @brief Search spectra in an mzML file against a protein database using an FI-backed workflow.
      *
      * Populates protein and peptide identifications, including search meta data, PSM hits,
      * and search engine annotations. Parameters are taken from this instance (DefaultParamHandler).
      *
-     * @param in_mzML Input path to the mzML file containing MS/MS spectra to search.
-     * @param in_db   Input path to the protein sequence database in FASTA format.
-     * @param prot_ids Output container receiving search meta data and protein-level information.
-     * @param pep_ids  Output container receiving spectrum-level peptide identifications (PSMs).
+     * @param[in] in_mzML Input path to the mzML file containing MS/MS spectra to search.
+     * @param[in] in_db   Input path to the protein sequence database in FASTA format.
+     * @param[out] prot_ids Output container receiving search meta data and protein-level information.
+     * @param[out] pep_ids  Output container receiving spectrum-level peptide identifications (PSMs).
      *
      * @return ExitCodes indicating success (EXECUTION_OK) or the encountered error condition.
      *
@@ -91,6 +96,86 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
       const String& in_db,
       std::vector<ProteinIdentification>& prot_ids,
       PeptideIdentificationList& pep_ids) const;
+
+    /**
+     * @brief Search with comprehensive results including modification analysis tables
+     *
+     * This method performs a peptide database search and additionally returns
+     * structured modification analysis results for open search mode. This is the
+     * recommended method for modification discovery workflows.
+     *
+     * The method automatically:
+     * - Detects open search mode based on precursor tolerance
+     * - Computes delta mass statistics
+     * - Maps delta masses to known modifications
+     * - Generates PTM statistics with residue localization
+     * - Writes TSV output files if output_base_name is provided
+     *
+     * @param in_mzML Input path to the mzML file containing MS/MS spectra
+     * @param in_db Input path to the protein sequence database in FASTA format
+     * @param output_base_name Optional base name for output files (TSV tables)
+     * @return SearchResult containing identifications and modification analysis
+     *
+     * Example usage:
+     * @code
+     * PeptideSearchEngineFIAlgorithm algo;
+     * Param p = algo.getParameters();
+     * p.setValue("precursor:mass_tolerance", 500.0);  // Open search
+     * p.setValue("precursor:mass_tolerance_unit", "Da");
+     * algo.setParameters(p);
+     *
+     * auto result = algo.searchWithModificationAnalysis("spectra.mzML", "database.fasta", "output");
+     * if (result.exit_code == ExitCodes::EXECUTION_OK && result.is_open_search)
+     * {
+     *   // Access PTM statistics
+     *   for (const auto& ptm : result.modification_analysis.ptm_stats.entries)
+     *   {
+     *     std::cout << ptm.name << ": " << ptm.count << " PSMs" << std::endl;
+     *   }
+     *
+     *   // Access delta mass statistics
+     *   for (const auto& dm : result.modification_analysis.delta_mass_stats.entries)
+     *   {
+     *     std::cout << dm.delta_mass << " Da: " << dm.count << " PSMs" << std::endl;
+     *   }
+     * }
+     * @endcode
+     */
+    SearchResult searchWithModificationAnalysis(const String& in_mzML,
+                                                const String& in_db,
+                                                const String& output_base_name = "") const;
+
+    /**
+     * @brief In-memory search: search spectra against a protein database without file I/O.
+     *
+     * Same as the file-based search() but takes pre-loaded spectra and FASTA entries directly.
+     * Spectra are preprocessed in-place (filtered, deisotoped, normalized).
+     *
+     * @param[in,out] spectra  MS/MS spectra to search (preprocessed in-place).
+     * @param[in] fasta_db  Protein sequence database as FASTA entries.
+     * @param[out] prot_ids  Output protein-level identifications.
+     * @param[out] pep_ids   Output spectrum-level peptide identifications (PSMs).
+     * @return ExitCodes indicating success or error.
+     */
+    ExitCodes search(PeakMap& spectra,
+                     const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+                     std::vector<ProteinIdentification>& prot_ids,
+                     PeptideIdentificationList& pep_ids) const;
+
+    /**
+     * @brief In-memory search with modification analysis: no file I/O required.
+     *
+     * Same as the file-based searchWithModificationAnalysis() but takes pre-loaded data.
+     *
+     * @param[in,out] spectra  MS/MS spectra (preprocessed in-place).
+     * @param[in] fasta_db  Protein sequence database as FASTA entries.
+     * @param[in] output_base_name  Optional base name for TSV output files.
+     * @return SearchResult containing identifications and modification analysis.
+     */
+    SearchResult searchWithModificationAnalysis(PeakMap& spectra,
+                                                const std::vector<FASTAFile::FASTAEntry>& fasta_db,
+                                                const String& output_base_name = "") const;
+
   protected:
     void updateMembers_() override;
 
@@ -128,22 +213,22 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * PeptideIdentification objects, adding requested PSM annotations and
      * populating protein-level search metadata.
      *
-     * @param exp Input MS experiment providing spectra/metadata for annotation.
-     * @param annotated_hits Per-spectrum candidate hits (trimmed to @p top_hits in-place).
-     * @param protein_ids Output container for protein-level identification and search metadata.
-     * @param peptide_ids Output container for spectrum-level peptide identifications (PSMs).
-     * @param top_hits Number of top-scoring hits to retain per spectrum (report_top_hits_).
-     * @param modifications_fixed Fixed modifications (by name) used during the search.
-     * @param modifications_variable Variable modifications (by name) used during the search.
-     * @param peptide_missed_cleavages Allowed missed cleavages in digestion.
-     * @param precursor_mass_tolerance Precursor mass tolerance value.
-     * @param fragment_mass_tolerance Fragment mass tolerance value.
-     * @param precursor_mass_tolerance_unit_ppm Precursor tolerance unit ("true"->ppm, "false"->Da).
-     * @param fragment_mass_tolerance_unit_ppm Fragment tolerance unit ("true"->ppm, "false"->Da).
-     * @param precursor_min_charge Minimum precursor charge considered.
-     * @param precursor_max_charge Maximum precursor charge considered.
-     * @param enzyme Digestion enzyme name.
-     * @param database_name Database file name used for the search (stored in protein_ids).
+     * @param[in] exp Input MS experiment providing spectra/metadata for annotation.
+     * @param[in,out] annotated_hits Per-spectrum candidate hits (trimmed to @p top_hits in-place).
+     * @param[out] protein_ids Output container for protein-level identification and search metadata.
+     * @param[out] peptide_ids Output container for spectrum-level peptide identifications (PSMs).
+     * @param[in] top_hits Number of top-scoring hits to retain per spectrum (report_top_hits_).
+     * @param[in] modifications_fixed Fixed modifications (by name) used during the search.
+     * @param[in] modifications_variable Variable modifications (by name) used during the search.
+     * @param[in] peptide_missed_cleavages Allowed missed cleavages in digestion.
+     * @param[in] precursor_mass_tolerance Precursor mass tolerance value.
+     * @param[in] fragment_mass_tolerance Fragment mass tolerance value.
+     * @param[in] precursor_mass_tolerance_unit_ppm Precursor tolerance unit ("true"->ppm, "false"->Da).
+     * @param[in] fragment_mass_tolerance_unit_ppm Fragment tolerance unit ("true"->ppm, "false"->Da).
+     * @param[in] precursor_min_charge Minimum precursor charge considered.
+     * @param[in] precursor_max_charge Maximum precursor charge considered.
+     * @param[in] enzyme Digestion enzyme name.
+     * @param[out] database_name Database file name used for the search (stored in protein_ids).
      */
     void postProcessHits_(const PeakMap& exp,
       std::vector<std::vector<PeptideSearchEngineFIAlgorithm::AnnotatedHit_> >& annotated_hits,
@@ -193,6 +278,10 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     String peptide_motif_;
 
     Size report_top_hits_;
+
+    /// Helper: log the modification analysis summary (shared by in-memory and file-based paths)
+    void logModificationAnalysisSummary_(const SearchResult& result,
+                                         const String& output_base_name) const;
 
     /// Helper function to determine if open search should be used based on tolerance
     bool isOpenSearchMode_() const

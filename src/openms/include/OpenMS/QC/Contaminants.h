@@ -58,8 +58,8 @@ namespace OpenMS
      * The enzyme and number of missed cleavages used to digest the given protein DB is taken
      * from the ProteinIdentification[0].getSearchParameters() within the given FeatureMap.
      *
-     * @param features Input FeatureMap with peptideidentifications of features
-     * @param contaminants Vector of FASTAEntries that need to be digested to check whether a peptide is a contaminant or not
+     * @param[in,out] features Input FeatureMap with peptideidentifications of features
+     * @param[in] contaminants Vector of FASTAEntries that need to be digested to check whether a peptide is a contaminant or not
      * @exception Exception::MissingInformation if the contaminants database is empty
      * @exception Exception::MissingInformation if no enzyme is given
      * @exception Exception::MissingInformation if proteinidentification of FeatureMap is empty
@@ -92,13 +92,13 @@ namespace OpenMS
     /**
      * @brief
      * checks if the peptide is in the contaminant database
-     * @param key String that will be the key for searching in the unordered set
-     * @param pep_hit PeptideHit to store the result "is_contaminant = 0/1"
-     * @param total counter of all checked peptides
-     * @param cont counter of all checked peptides that are contaminants
-     * @param sum_total intensity of all checked peptides
-     * @param sum_cont intensity of all checked peptides that are contaminants
-     * @param intensity intensity of current peptide
+     * @param[in] key String that will be the key for searching in the unordered set
+     * @param[in,out] pep_hit PeptideHit to store the result "is_contaminant = 0/1"
+     * @param[in,out] total counter of all checked peptides
+     * @param[in,out] cont counter of all checked peptides that are contaminants
+     * @param[in,out] sum_total intensity of all checked peptides
+     * @param[in,out] sum_cont intensity of all checked peptides that are contaminants
+     * @param[in] intensity intensity of current peptide
      */
     void compare_(const String& key, PeptideHit& pep_hit, Int64& total, Int64& cont, double& sum_total, double& sum_cont, double intensity);
   };

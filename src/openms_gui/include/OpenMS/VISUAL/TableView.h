@@ -72,8 +72,8 @@ namespace OpenMS
        Headers can be obtained as shown (@p use_export_name = false) or for exporting to CSV
        where the alternative export name is preferred (if exists). See setHeaderExportName().
 
-       @param which With or without invisible columns?
-       @param use_export_name If column has a hidden export name, use that instead of the displayed name 
+       @param[in] which With or without invisible columns?
+       @param[in] use_export_name If column has a hidden export name, use that instead of the displayed name 
        @return List of header names 
     */
     QStringList getHeaderNames(const WidgetHeader which, bool use_export_name = false);
@@ -85,8 +85,8 @@ namespace OpenMS
 
       Internally, this uses the Qt::UserRole's data to store the value.
 
-      @param header_column Index of column
-      @param export_name New export name to set
+      @param[in] header_column Index of column
+      @param[in] export_name New export name to set
 
       @throws Exception::ElementNotFound if header at index @p header_column is not valid
     */
@@ -100,7 +100,7 @@ namespace OpenMS
      Internally, this queries the Qt::UserRole's data to get the value.
      If the export name was not set (using @p setHeaderExportName()), it returns the display name.
 
-     @param header_column Index of column
+     @param[in] header_column Index of column
 
      @throws Exception::ElementNotFound if header at index @p header_column is not valid
     */

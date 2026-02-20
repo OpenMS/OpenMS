@@ -55,25 +55,49 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Eigen3::Eigen Qt6::Core Qt6::Network)
+set(OPENMS_DEP_LIBRARIES
+  LibSVM::LibSVM
+  XercesC::XercesC
+  Qt6::Core
+  Qt6::Network
+)
 
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
+## Note: Eigen3::Eigen is PRIVATE because Eigen types are not exposed in the public API
+## Note: Evergreen is PRIVATE because it's only used internally by BayesianProteinInferenceAlgorithm
 set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
-  $<$<BOOL:${WITH_PARQUET}>:Arrow::arrow_shared Parquet::parquet_shared>
   ${LPTARGET}
   BZip2::BZip2
   Boost::boost
   Boost::date_time
   Boost::iostreams
   Boost::regex
+  Eigen3::Eigen
+  Evergreen
   GTE
   Quadtree
   SIMDe
   SQLiteCpp
   ZLIB::ZLIB
   nlohmann_json::nlohmann_json
+  IsoSpec
+  eol-bspline
   )
+
+if (WITH_PARQUET)
+  # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
+       ${OPENMS_ARROW_TARGET}
+       ${OPENMS_ARROW_COMPUTE_TARGET}
+       ${OPENMS_PARQUET_TARGET})
+  if (OPENMS_ARROW_DATASET_TARGET)
+    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
+    # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.
+    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES LibXml2::LibXml2)
+  endif()
+endif()
+
 if (ENABLE_TDL)
 set(OPENMS_DEP_PRIVATE_LIBRARIES
     ${OPENMS_DEP_PRIVATE_LIBRARIES}
@@ -105,13 +129,16 @@ openms_add_library(TARGET_NAME  OpenMS
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
-                                    ${ISOSPEC_INCLUDE_DIRECTORY}
+                   PRIVATE_INCLUDES
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+if (OPENMS_ARROW_DATASET_TARGET)
+  target_compile_definitions(OpenMS PRIVATE WITH_ARROW_DATASET)
+endif()
 
 if (MSVC)
   ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
@@ -152,7 +179,7 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
 install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
 
 # Devs also need our custom find modules
-install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)
+install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
 file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
 #------------------------------------------------------------------------------

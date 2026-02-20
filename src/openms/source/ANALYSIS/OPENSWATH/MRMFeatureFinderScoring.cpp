@@ -22,9 +22,9 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <boost/range/adaptor/map.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <memory>
 #include <boost/foreach.hpp>
+#include <unordered_map>
 
 #define run_identifier "unique_run_identifier"
 
@@ -142,6 +142,17 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_ms2_isotope_scores", {"true","false"});
     defaults_.insert("Scores:", scores_to_use);
 
+    // Parameters for m/z extraction windows (allow these to be passed in from OpenSwathWorkflow)
+    defaults_.setValue("mz_extraction_window", -1.0, "m/z extraction window (full width) to be used for matching/extraction. If -1, defaults in workflow will be used.", {"advanced"});
+    defaults_.setValue("mz_extraction_window_unit", "Th", "Unit for mz_extraction_window: 'Th' or 'ppm'", {"advanced"});
+    defaults_.setValidStrings("mz_extraction_window_unit", {"Th","ppm"});
+    defaults_.setValue("mz_extraction_window_ms1", -1.0, "m/z extraction window for MS1 (full width). If -1, defaults in workflow will be used.", {"advanced"});
+    defaults_.setValue("mz_extraction_window_ms1_unit", "Th", "Unit for mz_extraction_window_ms1: 'Th' or 'ppm'", {"advanced"});
+    defaults_.setValidStrings("mz_extraction_window_ms1_unit", {"Th","ppm"});
+    defaults_.setValue("irt_mz_extraction_window", -1.0, "m/z extraction window (full width) to be used specifically for iRT matching/extraction. If -1, defaults in workflow will be used.", {"advanced"});
+    defaults_.setValue("irt_mz_extraction_window_unit", "Th", "Unit for irt_mz_extraction_window: 'Th' or 'ppm'", {"advanced"});
+    defaults_.setValidStrings("irt_mz_extraction_window_unit", {"Th","ppm"});
+
     // write defaults into Param object param_
     defaultsToParam_();
   }
@@ -158,8 +169,8 @@ namespace OpenMS
     OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
     TransitionGroupMapType transition_group_map;
 
-    boost::shared_ptr<PeakMap > sh_chromatograms = boost::make_shared<PeakMap >(chromatograms);
-    boost::shared_ptr<PeakMap > sh_swath_map = boost::make_shared<PeakMap >(swath_map);
+    std::shared_ptr<PeakMap > sh_chromatograms = std::make_shared<PeakMap >(chromatograms);
+    std::shared_ptr<PeakMap > sh_swath_map = std::make_shared<PeakMap >(swath_map);
 
     OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_chromatograms);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_swath_map);
@@ -248,6 +259,7 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
   {
+    PeptideRefMap_.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
     {
       PeptideRefMap_[transition_exp.getCompounds()[i].id] = &transition_exp.getCompounds()[i];
@@ -287,7 +299,7 @@ namespace OpenMS
     {
       if (tr_it->isIdentifyingTransition())
       {
-        if (tr_it->decoy)
+        if (tr_it->getDecoy())
         {
           identifying_transitions_decoy.push_back(tr_it->getNativeID());
         }
@@ -1096,9 +1108,10 @@ namespace OpenMS
     double rt_min, rt_max, expected_rt;
     trafo.invert();
 
-    std::map<String, int> chromatogram_map;
+    std::unordered_map<String, int> chromatogram_map;
     Size nr_chromatograms = input->getNrChromatograms();
-    for (Size i = 0; i < input->getNrChromatograms(); i++)
+    chromatogram_map.reserve(nr_chromatograms);
+    for (Size i = 0; i < nr_chromatograms; i++)
     {
       chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
     }
@@ -1111,7 +1124,8 @@ namespace OpenMS
     {
       // get the current transition and try to find the corresponding chromatogram
       const TransitionType* transition = &transition_exp.getTransitions()[i];
-      if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
+      auto chrom_it = chromatogram_map.find(transition->getNativeID());
+      if (chrom_it == chromatogram_map.end())
       {
         OPENMS_LOG_DEBUG << "Error: Transition " + transition->getNativeID() + " from group " +
           transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
@@ -1127,7 +1141,7 @@ namespace OpenMS
       //-----------------------------------
       // Retrieve chromatogram and filter it by the desired RT
       //-----------------------------------
-      OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
+      OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chrom_it->second);
       MSChromatogram chromatogram;
 
       // Get the expected retention time, apply the RT-transformation

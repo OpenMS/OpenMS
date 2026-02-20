@@ -249,16 +249,25 @@ namespace OpenMS
       */
       inline const std::string IM = "IM";
 
-      /** MetaValue key for raw TimsTOF ion mobility array (from MSConvert)
-       * PeakPickerIM expects to find 'Ion Mobility' array and will treat it as raw timsTOF data
-       * TODO --- PeakPickerIM should output a different name than simply writing back centroided im data as 'Ion Mobility'
+      /** User parameter name for FAIMS compensation voltage values
+              Double (in volts)
+      */
+      inline const std::string FAIMS_CV = "FAIMS_CV";
+
+      /** MetaValue key for raw TimsTOF ion mobility array (from MSConvert).
+       * Note: TODO check. I saw files with other names as well (e.g. mean inverse ion mobility).
+       * PeakPickerIM expects to find 'Ion Mobility' array and will treat it as raw timsTOF data.
        */
       inline const std::string ION_MOBILITY = "Ion Mobility";
 
-      /** MetaValue key for storing ion mobility average from MassTraceDetection
-       * MassTraceDetection will compute intensity weighted ion mobility average
-       * of connected centroided peaks.
-       * TODO --- Ion Mobility Centroid may be a confusing name. Maybe indicate this is im average of a single mass trace.
+      /** MetaValue key for inverse reduced ion mobility array (alternative name for 1/K0 from MSConvert).
+       * Uses the same CV term MS:1002815 as ION_MOBILITY.
+       */
+      inline const std::string INVERSE_REDUCED_ION_MOBILITY = "inverse reduced ion mobility";
+
+      /** MetaValue key for centroided ion mobility data output by PeakPickerIM and MassTraceDetection.
+       * PeakPickerIM outputs centroided peaks with this array name.
+       * MassTraceDetection computes intensity-weighted ion mobility average of connected centroided peaks.
        */
       inline const std::string ION_MOBILITY_CENTROID = "Ion Mobility Centroid";
 

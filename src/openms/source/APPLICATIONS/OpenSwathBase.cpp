@@ -11,10 +11,13 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/SwathFile.h>
+#include <OpenMS/FORMAT/TargetedDataFileLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
@@ -26,6 +29,37 @@ using namespace std;
 
 namespace OpenMS
 {
+  // Helper function to check if ion mobility data is in CCS format
+  // CCS data is not directly compatible with OpenSwath which expects 1/K0 (inverse reduced ion mobility)
+  static void warnIfCCSData(const std::vector<OpenSwath::SwathMap>& swath_maps)
+  {
+    for (const auto& swath_map : swath_maps)
+    {
+      if (swath_map.sptr && swath_map.sptr->getNrSpectra() > 0)
+      {
+        // Get the first spectrum and check its data arrays for CCS indicators
+        auto spectrum = swath_map.sptr->getSpectrumById(0);
+        if (spectrum)
+        {
+          for (const auto& arr : spectrum->getDataArrays())
+          {
+            // Check for CCS CV term (MS:1002954) or square angstrom unit (UO:0000324)
+            if (arr->description.find("MS:1002954") != std::string::npos ||
+                arr->description.find("UO:0000324") != std::string::npos ||
+                arr->description.find("collision cross section") != std::string::npos)
+            {
+              OPENMS_LOG_WARN << "Warning: Ion mobility data appears to be in CCS (Collisional Cross Section) format. "
+                              << "OpenSwath expects ion mobility in 1/K0 (inverse reduced ion mobility) units. "
+                              << "Results may be incorrect if the spectral library also uses 1/K0 units. "
+                              << "Consider converting the data or using a CCS-based spectral library." << std::endl;
+              return; // Only warn once
+            }
+          }
+        }
+        return; // Only check first map with spectra
+      }
+    }
+  }
 
   TOPPOpenSwathBase::TOPPOpenSwathBase(String name, String description, bool official, const std::vector<Citation>& citations) :
     TOPPBase(name, description, official, citations)
@@ -40,32 +74,88 @@ namespace OpenMS
                        const bool split_file,
                        const String& tmp,
                        const String& readoptions,
-                       boost::shared_ptr<ExperimentalSettings > & exp_meta,
+                       std::shared_ptr<ExperimentalSettings > & exp_meta,
                        std::vector< OpenSwath::SwathMap > & swath_maps,
+                       std::vector<String> & swath_map_sources,
                        Interfaces::IMSDataConsumer* plugin_consumer)
   {
     SwathFile swath_file;
     swath_file.setLogType(log_type_);
 
-    if (split_file || file_list.size() > 1)
+    if (split_file)
     {
-      // TODO cannot use data reduction here any more ...
+      // Treat the list as parts of a single split mzML
+      // (one file per SWATH window). Keep for backward compatibility.
       swath_maps = swath_file.loadSplit(file_list, tmp, exp_meta, readoptions);
+      // assign the same source filename (first entry) for these maps
+      swath_map_sources.clear();
+      for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
+    }
+    else if (file_list.size() > 1)
+    {
+      // Treat the list as multiple independent experiment files
+      // (e.g. multiple SRM/MRM / experiment mzMLs). Load each file individually
+      // and append their swath maps so they can be processed in a single run.
+      for (const auto & f : file_list)
+      {
+        FileTypes::Type in_file_type = FileHandler::getTypeByFileName(f);
+        if (in_file_type == FileTypes::MZML)
+        {
+          // Dispatch to targeted loader which will choose SRM/MRM or SWATH path
+          auto maps = TargetedDataFileLoader::loadFile(f, tmp, exp_meta, readoptions, plugin_consumer);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+        else if (in_file_type == FileTypes::MZXML)
+        {
+          auto maps = swath_file.loadMzXML(f, tmp, exp_meta, readoptions);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+        else if (in_file_type == FileTypes::SQMASS)
+        {
+          auto maps = swath_file.loadSqMass(f, exp_meta);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "Input file needs to have ending mzML or mzXML");
+        }
+      }
     }
     else
     {
       FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_list[0]);
       if (in_file_type == FileTypes::MZML)
       {
-        swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
+        // Dispatch to targeted loader which will choose SRM/MRM or SWATH path
+        swath_maps = TargetedDataFileLoader::loadFile(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
+        // single-file: all maps originate from file_list[0]
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
       else if (in_file_type == FileTypes::MZXML)
       {
         swath_maps = swath_file.loadMzXML(file_list[0], tmp, exp_meta, readoptions);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
       else if (in_file_type == FileTypes::SQMASS)
       {
         swath_maps = swath_file.loadSqMass(file_list[0], exp_meta);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
       else
       {
@@ -78,8 +168,9 @@ namespace OpenMS
   // Protected
 
   bool TOPPOpenSwathBase::loadSwathFiles(const StringList& file_list,
-                      boost::shared_ptr<ExperimentalSettings >& exp_meta,
+                      std::shared_ptr<ExperimentalSettings >& exp_meta,
                       std::vector< OpenSwath::SwathMap >& swath_maps,
+                      std::vector<String> & swath_map_sources,
                       const bool split_file,
                       const String& tmp,
                       const String& readoptions,
@@ -92,9 +183,29 @@ namespace OpenMS
                       Interfaces::IMSDataConsumer* plugin_consumer)
   {
     // (i) Load files
-    loadSwathFiles_(file_list, split_file, tmp, readoptions, exp_meta, swath_maps, plugin_consumer);
+    loadSwathFiles_(file_list, split_file, tmp, readoptions, exp_meta, swath_maps, swath_map_sources, plugin_consumer);
 
-    // (ii) Allow the user to specify the SWATH windows
+    // (ii) Check consistency: all input files must be of the same type (SRM/MRM or DIA/PRM)
+    if (!swath_maps.empty())
+    {
+      bool first_has_spectra = (swath_maps[0].sptr->getNrSpectra() > 0);
+      String first_file_type = first_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
+      for (Size i = 1; i < swath_maps.size(); ++i)
+      {
+        bool current_has_spectra = (swath_maps[i].sptr->getNrSpectra() > 0);
+        String current_file_type = current_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
+        if (current_has_spectra != first_has_spectra)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "Mixed input file types detected. All input files must be of the same type. "
+                                           "First file '" + swath_map_sources[0] + "' is " + first_file_type + ", "
+                                           "but file '" + swath_map_sources[i] + "' is " + current_file_type + ". "
+                                           "Please ensure all input files are either chromatogram-only (SRM/MRM) or spectra-based (DIA/PRM).");
+        }
+      }
+    }
+
+    // (iii) Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())
     {
       SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps, force);
@@ -157,23 +268,40 @@ namespace OpenMS
         }
       }
     }
+
+    // Check if ion mobility data is in CCS format and warn user
+    warnIfCCSData(swath_maps);
+
     return true;
   }
 
   void TOPPOpenSwathBase::prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
-                          const boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                          const std::shared_ptr<ExperimentalSettings>& exp_meta,
                           const OpenSwath::LightTargetedExperiment& transition_exp,
                           const String& out_chrom,
-                          const UInt64 run_id)
+                          const UInt64 run_id,
+                          const String& source_file)
   {
     if (!out_chrom.empty())
     {
-      String tmp = out_chrom;
-      if (tmp.toLower().hasSuffix(".sqmass"))
+      const FileTypes::Type out_chrom_type = FileHandler::getType(out_chrom);
+      if (out_chrom_type == FileTypes::SQMASS)
       {
         bool full_meta = false; // can lead to very large files in memory
         bool lossy_compression = true;
         *chromatogramConsumer = new MSDataSqlConsumer(out_chrom, run_id, 500, full_meta, lossy_compression);
+      }
+      else if (out_chrom_type == FileTypes::CHROMPARQUET)
+      {
+#ifndef WITH_PARQUET
+        (void*)&source_file; // to suppress unused variable warning
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#else
+        auto * chromConsumer = new MSChromatogramParquetConsumer(out_chrom, run_id, source_file, transition_exp);
+        Size expected_chromatograms = transition_exp.transitions.size();
+        chromConsumer->setExpectedSize(0, expected_chromatograms);
+        *chromatogramConsumer = chromConsumer;
+#endif
       }
       else
       {
@@ -243,94 +371,5 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Need to provide valid input file.");
     }
     return transition_exp;
-  }
-
-  TOPPOpenSwathBase::CalibrationResult TOPPOpenSwathBase::performCalibration(String trafo_in,
-                                                                             const OpenSwath::LightTargetedExperiment& irt_transitions,
-                                                                             std::vector<OpenSwath::SwathMap>& swath_maps,
-                                                                             double min_rsq,
-                                                                             double min_coverage,
-                                                                             const Param& feature_finder_param,
-                                                                             const ChromExtractParams& cp_irt,
-                                                                             const Param& irt_detection_param,
-                                                                             const Param& calibration_param,
-                                                                             Size debug_level,
-                                                                             bool pasef,
-                                                                             bool load_into_memory,
-                                                                             const String& irt_trafo_out,
-                                                                             const String& irt_mzml_out)
-  {
-    TransformationDescription trafo_rtnorm;
-    double auto_mz_w = 0;
-    double auto_im_w = -1;
-    double auto_ms1_mz_w = 0;
-    double auto_ms1_im_w = -1;
-
-    if (! trafo_in.empty())
-    {
-      // get read RT normalization file
-      FileHandler().loadTransformations(trafo_in, trafo_rtnorm, false, {FileTypes::TRANSFORMATIONXML});
-      Param model_params = getParam_().copy("model:", true);
-      model_params.setValue("symmetric_regression", "false");
-      model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
-      model_params.setValue("auto_span", irt_detection_param.getValue("lowess:auto_span"));
-      model_params.setValue("auto_span_min", irt_detection_param.getValue("lowess:auto_span_min"));
-      model_params.setValue("auto_span_max", irt_detection_param.getValue("lowess:auto_span_max"));
-      model_params.setValue("auto_span_grid", irt_detection_param.getValue("lowess:auto_span_grid"));
-      model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
-      String model_type = irt_detection_param.getValue("alignmentMethod").toString();
-      trafo_rtnorm.fitModel(model_type, model_params);
-      // We don't calibrate for mz and IM if a user supplies a transformation function
-      // TODO: Should we deprecate and remove the option of providing a transformation function?
-      //  Not sure how often this is used in practice. @singjc, 2025-08-01
-      auto_mz_w = -1.0;
-      auto_im_w = -1.0;
-      auto_ms1_mz_w = -1.0;
-      auto_ms1_im_w = -1.0;
-    }
-    else if (! irt_transitions.getTransitions().empty())
-    {
-      // Loading iRT file
-      std::cout << "Will load iRT transitions and try to find iRT peptides" << std::endl;
-
-      // If pasef flag is set, validate that IM is present
-      if (pasef)
-      {
-        const auto& transitions = irt_transitions.getTransitions();
-
-        for (Size k = 0; k < (Size)transitions.size(); k++)
-        {
-          if (transitions[k].precursor_im == -1)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                             "Error: iRT Transition " + transitions[k].getNativeID()
-                                               + " does not have a valid IM value, this must be set to use the -pasef flag");
-          }
-        }
-      }
-
-      // perform extraction
-      OpenSwathCalibrationWorkflow wf;
-      wf.setLogType(log_type_);
-      TransformationDescription im_trafo;
-      trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, im_trafo, min_rsq, min_coverage, feature_finder_param, cp_irt,
-                                               irt_detection_param, calibration_param, irt_mzml_out, debug_level, pasef, load_into_memory);
-      // Retrieve estimated mz and IM extraction windows
-      auto_mz_w = wf.getEstimatedMzWindow();
-      auto_im_w = wf.getEstimatedImWindow();
-      // Retrieve estimate MS1 mz and IM extraction windows
-      auto_ms1_mz_w = wf.getEstimatedMs1MzWindow();
-      auto_ms1_im_w = wf.getEstimatedMs1ImWindow();
-
-      if (! irt_trafo_out.empty()) { FileHandler().storeTransformations(irt_trafo_out, trafo_rtnorm, {FileTypes::TRANSFORMATIONXML}); }
-    }
-
-    CalibrationResult out;
-    out.rt_trafo = std::move(trafo_rtnorm);
-    out.ms2_mz_window_ppm = auto_mz_w;
-    out.ms2_im_window = auto_im_w;
-    out.ms1_mz_window_ppm = auto_ms1_mz_w;
-    out.ms1_im_window = auto_ms1_im_w;
-    return out;
   }
 } //  end NS OpenMS

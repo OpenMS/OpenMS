@@ -120,48 +120,94 @@ protected:
 
     bool legacy_traml_id = getFlag_("legacy_traml_id");
 
-    //--------------------------------------------------------------------------- 
+    //---------------------------------------------------------------------------
     // Start Conversion
-    //--------------------------------------------------------------------------- 
-    TargetedExperiment targeted_exp;
-    if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
-    {
-      Param reader_parameters = getParam_().copy("algorithm:", true);
-      TransitionTSVFile tsv_reader;
-      tsv_reader.setLogType(log_type_);
-      tsv_reader.setParameters(reader_parameters);
-      tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, targeted_exp);
-      tsv_reader.validateTargetedExperiment(targeted_exp);
-    }
-    else if (in_type == FileTypes::PQP)
-    {
-      TransitionPQPFile pqp_reader;
-      Param reader_parameters = getParam_().copy("algorithm:", true);
-      pqp_reader.setLogType(log_type_);
-      pqp_reader.setParameters(reader_parameters);
-      pqp_reader.convertPQPToTargetedExperiment(in.c_str(), targeted_exp, legacy_traml_id);
-      pqp_reader.validateTargetedExperiment(targeted_exp);
-    }
-    else if (in_type == FileTypes::TRAML)
-    {
-      FileHandler().loadTransitions(in, targeted_exp, {FileTypes::TRAML});
-    }
+    //---------------------------------------------------------------------------
 
-    if (out_type == FileTypes::TSV)
+    // Use memory-efficient Light path for TSV/PQP → TSV/PQP conversions
+    bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP)
+                       && (out_type == FileTypes::TSV || out_type == FileTypes::PQP);
+
+    if (use_light_path)
     {
-      TransitionTSVFile tsv_reader;
-      tsv_reader.setLogType(log_type_);
-      tsv_reader.convertTargetedExperimentToTSV(out.c_str(), targeted_exp);
+      // Memory-efficient Light path for TSV/PQP workflows
+      OpenSwath::LightTargetedExperiment light_exp;
+
+      if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
+      {
+        Param reader_parameters = getParam_().copy("algorithm:", true);
+        TransitionTSVFile tsv_reader;
+        tsv_reader.setLogType(log_type_);
+        tsv_reader.setParameters(reader_parameters);
+        tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, light_exp);
+      }
+      else if (in_type == FileTypes::PQP)
+      {
+        TransitionPQPFile pqp_reader;
+        Param reader_parameters = getParam_().copy("algorithm:", true);
+        pqp_reader.setLogType(log_type_);
+        pqp_reader.setParameters(reader_parameters);
+        // Light path uses TRAML_ID (legacy_traml_id=true) to preserve original string identifiers
+        pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp, true);
+      }
+
+      if (out_type == FileTypes::TSV)
+      {
+        TransitionTSVFile tsv_writer;
+        tsv_writer.setLogType(log_type_);
+        tsv_writer.convertLightTargetedExperimentToTSV(out.c_str(), light_exp);
+      }
+      else if (out_type == FileTypes::PQP)
+      {
+        TransitionPQPFile pqp_writer;
+        pqp_writer.setLogType(log_type_);
+        pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_exp);
+      }
     }
-    if (out_type == FileTypes::PQP)
+    else
     {
-      TransitionPQPFile pqp_reader;
-      pqp_reader.setLogType(log_type_);
-      pqp_reader.convertTargetedExperimentToPQP(out.c_str(), targeted_exp);
-    }
-    else if (out_type == FileTypes::TRAML)
-    {
-      FileHandler().storeTransitions(out, targeted_exp, {FileTypes::TRAML});
+      // Heavy path for TraML conversions (maintains full metadata)
+      TargetedExperiment targeted_exp;
+
+      if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
+      {
+        Param reader_parameters = getParam_().copy("algorithm:", true);
+        TransitionTSVFile tsv_reader;
+        tsv_reader.setLogType(log_type_);
+        tsv_reader.setParameters(reader_parameters);
+        tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, targeted_exp);
+        tsv_reader.validateTargetedExperiment(targeted_exp);
+      }
+      else if (in_type == FileTypes::PQP)
+      {
+        TransitionPQPFile pqp_reader;
+        Param reader_parameters = getParam_().copy("algorithm:", true);
+        pqp_reader.setLogType(log_type_);
+        pqp_reader.setParameters(reader_parameters);
+        pqp_reader.convertPQPToTargetedExperiment(in.c_str(), targeted_exp, legacy_traml_id);
+        pqp_reader.validateTargetedExperiment(targeted_exp);
+      }
+      else if (in_type == FileTypes::TRAML)
+      {
+        FileHandler().loadTransitions(in, targeted_exp, {FileTypes::TRAML});
+      }
+
+      if (out_type == FileTypes::TSV)
+      {
+        TransitionTSVFile tsv_writer;
+        tsv_writer.setLogType(log_type_);
+        tsv_writer.convertTargetedExperimentToTSV(out.c_str(), targeted_exp);
+      }
+      else if (out_type == FileTypes::PQP)
+      {
+        TransitionPQPFile pqp_writer;
+        pqp_writer.setLogType(log_type_);
+        pqp_writer.convertTargetedExperimentToPQP(out.c_str(), targeted_exp);
+      }
+      else if (out_type == FileTypes::TRAML)
+      {
+        FileHandler().storeTransitions(out, targeted_exp, {FileTypes::TRAML});
+      }
     }
 
     return EXECUTION_OK;

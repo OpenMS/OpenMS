@@ -77,7 +77,10 @@ OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
 ParamCTDFile.h
+ParamCWLFile.h
+ParamJSONFile.h
 ParamXMLFile.h
+PEFFFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
 PepNovoInfile.h
@@ -108,11 +111,21 @@ MzIdentMLFile.h
 TraMLFile.h
 XMassFile.h
 XQuestResultXMLFile.h
+MRMFile.h
+TargetedDataFileLoader.h
 ZlibCompression.h
 )
 
 if (WITH_HDF5)
-  list(APPEND sources_list_h HDF5Connector.h)  
+  list(APPEND sources_list_h HDF5Connector.h)
+endif()
+
+if (WITH_PARQUET)
+  list(APPEND sources_list_h MSExperimentArrowExport.h)
+  list(APPEND sources_list_h ConsensusMapArrowExport.h)
+  list(APPEND sources_list_h ParquetFilter.h)
+  list(APPEND sources_list_h XICParquetFile.h)
+  list(APPEND sources_list_h QPXFile.h)
 endif()
 
 ### add path to the filenames

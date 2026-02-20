@@ -155,6 +155,12 @@ public:
       return centroid_mz_;
     }
 
+    /// Returns true if this mass trace contains ion mobility data.
+    bool containsIMData() const
+    {
+      return has_centroid_im_;
+    }
+
     /// Returns the centroid ion mobility.
     double getCentroidIM() const
     {
@@ -180,6 +186,7 @@ public:
     void setCentroidIM(const double & im)
     {
       centroid_im_ = im;
+      has_centroid_im_ = true;
     }
 
     double getFWHM() const
@@ -328,8 +335,10 @@ private:
     double centroid_mz_ = 0.0;
 
     /// centroid ion mobility peak
-    /// 0.0 denotes no im data in the data
     double centroid_im_ = 0.0;
+
+    /// whether this mass trace has ion mobility data (set via setCentroidIM)
+    bool has_centroid_im_ = false;
 
     /// intensity-weighted STD
     double centroid_sd_ = 0.0;

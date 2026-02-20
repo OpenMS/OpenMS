@@ -111,13 +111,13 @@ protected:
     XFDRAlgorithm fdr_algorithm;
     Param this_param = getParam_().copy("", true);
     Param algo_param = fdr_algorithm.getParameters();
-    algo_param.update(this_param, false, OpenMS_Log_debug); // suppress param. update message
+    algo_param.update(this_param, false, getGlobalLogDebug()); // suppress param. update message
     fdr_algorithm.setParameters(algo_param);
     fdr_algorithm.setLogType(this->log_type_);
 
     // TODO use this code? or just run the function?
     XFDRAlgorithm::ExitCodes class_arg_validation_code = fdr_algorithm.validateClassArguments();
-    if (class_arg_validation_code == XFDRAlgorithm::ILLEGAL_PARAMETERS)
+    if (class_arg_validation_code == XFDRAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
     {
       logFatal("Invalid input parameters!");
       return ILLEGAL_PARAMETERS;

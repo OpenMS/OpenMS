@@ -101,7 +101,7 @@ protected:
     /**
         @brief update the pointer to the current feature
 
-        @param create If true, a new (empty) Feature is added at the appropriate subordinate_feature_level_
+        @param[in] create If true, a new (empty) Feature is added at the appropriate subordinate_feature_level_
     */
     void updateCurrentFeature_(bool create);
 

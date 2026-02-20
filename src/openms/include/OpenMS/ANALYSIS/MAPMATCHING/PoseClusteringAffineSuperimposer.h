@@ -63,9 +63,9 @@ public:
 
       has been done <i>before</i> calling this.  You have been warned!
 
-      @param map_model The model map (first input map)
-      @param map_scene The scene map (second input map)
-      @param transformation The output affine transformation (linear model transforming the scene map onto the model map)
+      @param[in] map_model The model map (first input map)
+      @param[in] map_scene The scene map (second input map)
+      @param[out] transformation The output affine transformation (linear model transforming the scene map onto the model map)
 
       @exception IllegalArgument is thrown if the input maps are invalid.
     */

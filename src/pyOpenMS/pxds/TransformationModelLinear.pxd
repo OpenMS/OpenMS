@@ -18,13 +18,11 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" nam
         TransformationModelLinear(TransformationModelLinear &) except + nogil  # wrap-ignore
         TransformationModelLinear(libcpp_vector[TM_DataPoint]& data, Param& params) except + nogil 
 
-        double evaluate(double value) except + nogil 
-        # void getParameters(double & slope, double & intercept, String& x_weight, String& y_weight, double & x_datum_min, double & x_datum_max, double & y_datum_min, double & y_datum_max) except + nogil 
-        void invert() except + nogil 
+        double evaluate(double value) except + nogil
+        # void getParameters(double & slope, double & intercept, String& x_weight, String& y_weight, double & x_datum_min, double & x_datum_max, double & y_datum_min, double & y_datum_max) except + nogil
+        void invert() except + nogil
 
-# COMMENT: wrap static methods
-cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" namespace "OpenMS::TransformationModelLinear":
-        
         # static members
-        void getDefaultParameters(Param &) except + nogil  # wrap-attach:TransformationModelLinear
+        @staticmethod
+        void getDefaultParameters(Param &) except + nogil
 

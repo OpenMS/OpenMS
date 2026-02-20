@@ -127,9 +127,9 @@ public:
     /**
        @brief Get the deviations between the data pairs
 
-       @param diffs Output
-       @param do_apply Get deviations after applying the model?
-       @param do_sort Sort @p diffs before returning?
+       @param[out] diffs Output
+       @param[in] do_apply Get deviations after applying the model?
+       @param[in] do_sort Sort @p diffs before returning?
     */
     void getDeviations(std::vector<double>& diffs, bool do_apply = false,
                        bool do_sort = true) const;
@@ -171,11 +171,11 @@ public:
       - RT: set invert = true to obtain residuals in seconds (original x units). \n
       - IM: same pattern; units are the instrument’s native mobility units (e.g., 1/k0). \n
 
-      @param quantile     Quantile of |residual| to use (0 < quantile ≤ 1), e.g. 0.99.
-      @param invert       If true, compute residuals in original x-units via T^{-1};
+      @param[in] quantile     Quantile of |residual| to use (0 < quantile ≤ 1), e.g. 0.99.
+      @param[in] invert       If true, compute residuals in original x-units via T^{-1};
                           otherwise compute in transformed y-units via T.
-      @param full_window  If true, return full width (2·half-width); else return half-width.
-      @param padding_factor A padding factor to add to the estimated window.
+      @param[in] full_window  If true, return full width (2·half-width); else return half-width.
+      @param[in] padding_factor A padding factor to add to the estimated window.
       @return             Estimated window (in the units implied by @p invert).
                           If no data points are available, returns 0.0.
     */

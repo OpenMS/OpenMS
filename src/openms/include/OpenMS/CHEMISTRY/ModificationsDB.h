@@ -139,7 +139,7 @@ public:
        If the modification already exists (based on its fullID) it is not added.
        @return a pointer to the modification in the ModificationDB (which can differ from input if mod was already present).
 
-       @param new_mod Owning pointer, which transfers ownership to ModificationsDB (mod might get deleted if already present!)
+       @param[in] new_mod Owning pointer, which transfers ownership to ModificationsDB (mod might get deleted if already present!)
     */
     const ResidueModification* addModification(std::unique_ptr<ResidueModification> new_mod);
 
@@ -148,7 +148,7 @@ public:
        If the modification already exists (based on its fullID) it is not added. A copy will be made on the heap and added to the ModificationsDB otherwise.
        @return a pointer to the modification in the ModificationDB (which can differ from input if mod was already present).
 
-       @param new_mod The new modification object. A copy will be made on the heap and added to the ModificationsDB if not already present.
+       @param[in] new_mod The new modification object. A copy will be made on the heap and added to the ModificationsDB if not already present.
     */
     const ResidueModification* addModification(const ResidueModification& new_mod);
 
@@ -195,10 +195,10 @@ public:
         will choose the _first_ match which defaults to the first matching
         UniMod entry.
 
-        @param mass The monoisotopic mass of the residue including the mass of the modification
-        @param max_error The maximal mass error in the modification search
-        @param residue The residue at which the modifications occurs
-        @param term_spec Only modifications with matching term specificity are considered.
+        @param[in] mass The monoisotopic mass of the residue including the mass of the modification
+        @param[in] max_error The maximal mass error in the modification search
+        @param[in] residue The residue at which the modifications occurs
+        @param[in] term_spec Only modifications with matching term specificity are considered.
 
         @return A pointer to the best matching modification (or NULL if none was found)
 
@@ -242,9 +242,9 @@ private:
 
     /** @name Constructors and Destructors
 
-        @param unimod_file Path to the Unimod XML file
-        @param psimod_file Path to the PSI-MOD OBO file
-        @param xlmod_file Path to the XLMOD OBO file
+        @param[in] unimod_file Path to the Unimod XML file
+        @param[in] psimod_file Path to the PSI-MOD OBO file
+        @param[in] xlmod_file Path to the XLMOD OBO file
 
      */
     //@{
@@ -267,7 +267,7 @@ private:
     /**
        @brief Add a new modification to ModificationsDB without checking if it was inside already.
 
-       @param new_mod A copy will be made on the heap and added to the modification if not already present.
+       @param[in] new_mod A copy will be made on the heap and added to the modification if not already present.
     */
     const ResidueModification* addNewModification_(const ResidueModification& new_mod);
 

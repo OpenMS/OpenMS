@@ -263,7 +263,7 @@ using namespace OpenMS;
         }
       }
     }
-    return EXECUTION_OK;
+    return ExitCodes::EXECUTION_OK;
   }
 
   void XFDRAlgorithm::initDataStructures_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
@@ -538,9 +538,9 @@ using namespace OpenMS;
     if (arg_minborder_ >= arg_maxborder_)
     {
       std::cout << "Minborder cannot be larger or equal than Maxboder!" << std::endl;
-      return ILLEGAL_PARAMETERS;
+      return ExitCodes::ILLEGAL_PARAMETERS;
     }
-    return EXECUTION_OK;
+    return ExitCodes::EXECUTION_OK;
   }
 
   String XFDRAlgorithm::getId_(const PeptideHit& ph) const

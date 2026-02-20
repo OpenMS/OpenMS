@@ -57,7 +57,7 @@ namespace Interfaces
 
         @note The implementation might not allow to consume spectra and chromatograms in any order
 
-        @param s The spectrum to be consumed
+        @param[in,out] s The spectrum to be consumed
       */
       virtual void consumeSpectrum(SpectrumType& s) = 0;
 
@@ -68,7 +68,7 @@ namespace Interfaces
 
         @note The implementation might not allow to consume spectra and chromatograms in any order
 
-        @param c The chromatogram to be consumed
+        @param[in,out] c The chromatogram to be consumed
       */
       virtual void consumeChromatogram(ChromatogramType& c) = 0;
 
@@ -81,8 +81,8 @@ namespace Interfaces
 
         @note Calling this method is optional but good practice.
 
-        @param expectedSpectra Number of spectra expected
-        @param expectedChromatograms Number of chromatograms expected
+        @param[in] expectedSpectra Number of spectra expected
+        @param[in] expectedChromatograms Number of chromatograms expected
       */
       virtual void setExpectedSize(size_t expectedSpectra, size_t expectedChromatograms) = 0;
 
@@ -95,7 +95,7 @@ namespace Interfaces
 
         @note Calling this method is optional but good practice.
 
-        @param exp Experimental settings meta data for the data to be consumed
+        @param[in] exp Experimental settings meta data for the data to be consumed
       */
       virtual void setExperimentalSettings(const ExperimentalSettings& exp) = 0;
     };

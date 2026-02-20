@@ -5,6 +5,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def enclosesXY(self, float x, float y):
         """
+        enclosesXY(self: ConvexHull2D, x: float, y: float) -> int
+        
+        Check if a point (x, y) is enclosed by the convex hull.
+        
         Parameters:
         x (float)
         y (float)
@@ -20,6 +24,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def getHullPointsNPY(self):
         """
+        getHullPointsNPY(self: ConvexHull2D) -> np.ndarray
+        
+        Get the hull points as a numpy array.
+        
         Returns:
         result (np.ndarray[np.float32_t, ndim=2])
         """
@@ -38,6 +46,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def setHullPointsNPY(self, np.ndarray[np.float32_t, ndim=2] points):
         """
+        setHullPointsNPY(self: ConvexHull2D, points: np.ndarray) -> None
+        
+        Set the hull points from a numpy array.
+        
         Parameters:
         points (np.ndarray[np.float32_t, ndim=2])
         """
@@ -54,6 +66,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def getBoundingBox2D(self):
         """
+        getBoundingBox2D(self: ConvexHull2D) -> Tuple[Tuple[float, float], Tuple[float, float]]
+        
+        Get the bounding box of the convex hull.
+        
         Returns:
         ((double,double),(double,double))
         """
@@ -64,6 +80,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def addPointXY(self, x, y):
         """
+        addPointXY(self: ConvexHull2D, x: float, y: float) -> None
+        
+        Add a point to the convex hull.
+        
         Parameters:
         x (double)
         y (double)
@@ -75,6 +95,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def addPointsNPY(self, np.ndarray[np.float32_t, ndim=2] points):
         """
+        addPointsNPY(self: ConvexHull2D, points: np.ndarray) -> None
+        
+        Add multiple points to the convex hull.
+        
         Parameters:
         points (np.ndarray[np.float32_t, ndim=2])
         """
@@ -89,3 +113,27 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
             vec.push_back(p)
         self.inst.get().addPoints(vec)
 
+    def __repr__(self):
+        """
+        __repr__(self: ConvexHull2D) -> str
+        
+        Return a string representation of the ConvexHull2D object.
+
+        Returns key properties in a readable format:
+        ConvexHull2D(num_points=10, bbox=((100.0, 400.0), (110.0, 410.0)))
+        """
+        cdef libcpp_vector[_DPosition2] points = self.inst.get().getHullPoints()
+        cdef int num_points = points.size()
+        
+        parts = []
+        parts.append(f"num_points={num_points}")
+        
+        # Get bounding box if we have points (wrap in try/except for safety)
+        if num_points > 0:
+            try:
+                bbox = self.getBoundingBox2D()
+                parts.append(f"bbox={bbox}")
+            except:
+                pass  # Skip bounding box if it can't be computed
+        
+        return f"ConvexHull2D({', '.join(parts)})"

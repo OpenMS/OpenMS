@@ -3,20 +3,22 @@ set(directory source/ANALYSIS/TOPDOWN)
 
 ### list all filenames of the directory here
 set(sources_list
-DeconvolvedSpectrum.cpp
-FLASHDeconvAlgorithm.cpp
-FLASHDeconvHelperStructs.cpp
-MassFeatureTrace.cpp
-PeakGroup.cpp
-Qscore.cpp
-Qvalue.cpp
+        DeconvolvedSpectrum.cpp
+        SpectralDeconvolution.cpp
+        FLASHDeconvAlgorithm.cpp
+        FLASHHelperClasses.cpp
+        MassFeatureTrace.cpp
+        PeakGroup.cpp
+        PeakGroupScoring.cpp
+        Qvalue.cpp
+        TopDownIsobaricQuantification.cpp
 )
 
 ### add path to the filenames
 set(sources)
-foreach(i ${sources_list})
-	list(APPEND sources ${directory}/${i})
-endforeach(i)
+foreach (i ${sources_list})
+    list(APPEND sources ${directory}/${i})
+endforeach (i)
 
 ### pass source file list to the upper instance
 set(OpenMS_sources ${OpenMS_sources} ${sources})

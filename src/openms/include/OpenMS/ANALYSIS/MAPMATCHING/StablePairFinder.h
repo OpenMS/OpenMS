@@ -139,7 +139,7 @@ protected:
     /**
       @brief Returns the highest scoring peptide hit in the the given peptide identification.
 
-      @param peptideIdentification The peptideIdentification to scan.
+      @param[in] peptideIdentification The peptideIdentification to scan.
     */
     const AASequence& getBestHitSequence_(const PeptideIdentification& peptideIdentification) const;
   };

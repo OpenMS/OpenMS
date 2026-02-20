@@ -51,9 +51,9 @@ public:
     /**
         @brief Loads a map from a MSPFile file.
 
-        @param exp PeakMap which contains the spectra after reading
-        @param filename the filename of the experiment
-        @param ids output parameter which contains the peptide identifications from the spectra annotations
+        @param[in] exp PeakMap which contains the spectra after reading
+        @param[in] filename the filename of the experiment
+        @param[out] ids output parameter which contains the peptide identifications from the spectra annotations
 
         @throw FileNotFound is thrown if the file could not be found
         @throw ParseError is thrown if the given file could not be parsed
@@ -64,8 +64,8 @@ public:
     /**
         @brief Loads a map from a MSPFile file.
 
-        @param filename the filename of the experiment
-        @param annot_exp annotated experiment with spectra and ids
+        @param[in] filename the filename of the experiment
+        @param[in] annot_exp annotated experiment with spectra and ids
 
         @throw FileNotFound is thrown if the file could not be found
         @throw ParseError is thrown if the given file could not be parsed

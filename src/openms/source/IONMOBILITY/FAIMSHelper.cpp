@@ -8,10 +8,12 @@
 
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <algorithm>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -51,6 +53,34 @@ namespace OpenMS
     }
 
     return CVs;
+  }
+
+  PeptideIdentificationList FAIMSHelper::filterPeptidesByFAIMSCV(
+    const PeptideIdentificationList& peptides,
+    double target_cv,
+    double cv_tolerance)
+  {
+    PeptideIdentificationList filtered;
+    filtered.reserve(peptides.size()); // Optimistic reservation
+
+    for (const auto& pep : peptides)
+    {
+      if (pep.metaValueExists(Constants::UserParam::FAIMS_CV))
+      {
+        double pep_cv = pep.getMetaValue(Constants::UserParam::FAIMS_CV);
+        if (std::abs(pep_cv - target_cv) < cv_tolerance)
+        {
+          filtered.push_back(pep);
+        }
+      }
+      else
+      {
+        // IDs without FAIMS_CV annotation - include in all groups (backward compatibility)
+        filtered.push_back(pep);
+      }
+    }
+
+    return filtered;
   }
 
 }  //end namespace OpenMS

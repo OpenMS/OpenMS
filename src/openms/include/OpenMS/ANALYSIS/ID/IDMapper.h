@@ -59,11 +59,11 @@ public:
       corresponding spectrum.
       Note that a PeptideIdentication is added to ALL spectra which are within the allowed RT and MZ boundaries.
 
-      @param map MSExperiment to receive the identifications
-      @param peptide_ids PeptideIdentification for the MSExperiment
-      @param protein_ids ProteinIdentification for the MSExperiment
-      @param clear_ids Reset peptide and protein identifications of each scan before annotating
-      @param map_ms1 Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
+      @param[in,out] map MSExperiment to receive the identifications
+      @param[in] peptide_ids PeptideIdentification for the MSExperiment
+      @param[in] protein_ids ProteinIdentification for the MSExperiment
+      @param[in] clear_ids Reset peptide and protein identifications of each scan before annotating
+      @param[in] map_ms1 Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
       @exception Exception::MissingInformation is thrown if entries of @p peptide_ids do not contain 'MZ' and 'RT' information.
     */
@@ -79,10 +79,10 @@ public:
       and calls the respective annotate() function.
       RT and m/z are taken from the peptides, or (if missing) from the feature itself.
 
-      @param map MSExperiment to receive the identifications
-      @param fmap FeatureMap with PeptideIdentifications for the MSExperiment
-      @param clear_ids Reset peptide and protein identifications of each scan before annotating
-      @param map_ms1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
+      @param[in,out] map MSExperiment to receive the identifications
+      @param[in] fmap FeatureMap with PeptideIdentifications for the MSExperiment
+      @param[in] clear_ids Reset peptide and protein identifications of each scan before annotating
+      @param[in] map_ms1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
     */
     void annotate(AnnotatedMSRun& map, const FeatureMap& fmap, const bool clear_ids = false, const bool map_ms1 = false);
 
@@ -95,12 +95,12 @@ public:
 
       If several features (incl. tolerance) overlap the position of a peptide identification, the identification is annotated to all of them.
 
-      @param map FeatureMap to receive the identifications
-      @param ids PeptideIdentification for the ConsensusFeatures
-      @param protein_ids ProteinIdentification for the ConsensusMap
-      @param use_centroid_rt Whether to use the RT value of feature centroids even if convex hulls are present
-      @param use_centroid_mz Whether to use the m/z value of feature centroids even if convex hulls are present
-      @param spectra [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index
+      @param[in,out] map FeatureMap to receive the identifications
+      @param[in] ids PeptideIdentification for the ConsensusFeatures
+      @param[in] protein_ids ProteinIdentification for the ConsensusMap
+      @param[in] use_centroid_rt Whether to use the RT value of feature centroids even if convex hulls are present
+      @param[in] use_centroid_mz Whether to use the m/z value of feature centroids even if convex hulls are present
+      @param[in] spectra [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index
                      to each Feature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
       @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
@@ -113,12 +113,12 @@ public:
       If several consensus features lie inside the allowed deviation, the peptide identifications
       are mapped to all the consensus features.
 
-      @param map ConsensusMap to receive the identifications
-      @param ids PeptideIdentification for the ConsensusFeatures
-      @param protein_ids ProteinIdentification for the ConsensusMap
-      @param measure_from_subelements Do distance estimate from FeatureHandles instead of Centroid
-      @param annotate_ids_with_subelements Store map index of FeatureHandle in peptide identification?
-      @param spectra [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index
+      @param[in,out] map ConsensusMap to receive the identifications
+      @param[in] ids PeptideIdentification for the ConsensusFeatures
+      @param[in] protein_ids ProteinIdentification for the ConsensusMap
+      @param[in] measure_from_subelements Do distance estimate from FeatureHandles instead of Centroid
+      @param[in] annotate_ids_with_subelements Store map index of FeatureHandle in peptide identification?
+      @param[in] spectra [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index
                      to each ConsensusFeature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
@@ -142,16 +142,16 @@ public:
 
     /**
       @brief Mapping of peptide identifications to spectra
-             This helper function partitions all spectra into those that had: 
+             This helper function partitions all spectra into those that had:
               - no precursor (e.g. MS1 spectra),
-              - at least one identified precursor, 
+              - at least one identified precursor,
               - or only unidentified precursor.
-      @param spectra The mass spectra
-      @param ids The peptide identifications
-      @param mz_tol Tolerance used to map to precursor m/z
-      @param rt_tol Tolerance used to map to spectrum retention time
+      @param[in] spectra The mass spectra
+      @param[in] ids The peptide identifications
+      @param[in] mz_tol Tolerance used to map to precursor m/z
+      @param[in] rt_tol Tolerance used to map to spectrum retention time
 
-      Note: mz/tol and rt_tol should, in principle, be zero (or close to zero under numeric inaccuracies). 
+      Note: mz/tol and rt_tol should, in principle, be zero (or close to zero under numeric inaccuracies).
 
       @return A struct of vectors holding spectra indices of the partitioning.
     */

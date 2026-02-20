@@ -9,9 +9,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
 
     cdef cppclass ResidueModification "OpenMS::ResidueModification":
         # wrap-hash:
-        #  getFullId().c_str()
+        #  std
 
-        ResidueModification() except + nogil 
+        ResidueModification() except + nogil
         ResidueModification(ResidueModification &) except + nogil 
 
         bool operator==(ResidueModification & modification) except + nogil 

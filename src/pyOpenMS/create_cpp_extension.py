@@ -30,7 +30,7 @@ def doCythonCodeGeneration(modname, allDecl_mapping, instance_map, converters):
     autowrap_include_dirs = autowrap.generate_code(allDecl_mapping[modname]["decls"], instance_map,
                                                         target=m_filename, debug=False, manual_code=manual_code,
                                                         extra_cimports=cimports,
-                                                        include_boost=False, include_numpy=True, all_decl=allDecl_mapping, add_relative=True)
+                                                        include_numpy=True, all_decl=allDecl_mapping, add_relative=True)
     allDecl_mapping[modname]["inc_dirs"] = autowrap_include_dirs
     return autowrap_include_dirs
 
@@ -47,10 +47,9 @@ def doCythonCompile(arg):
 if __name__ == '__main__':
 
   # import config
-  from env import (QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, PYOPENMS_SRC_DIR,
-                   OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB,
-                   OPEN_MS_BUILD_DIR, MSVS_RTLIBS, OPEN_MS_VERSION,
-                   Boost_MAJOR_VERSION, Boost_MINOR_VERSION, PY_NUM_THREADS, PY_NUM_MODULES)
+  from env import (QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE,
+    PYOPENMS_SRC_DIR, OPEN_MS_VERSION,
+    PY_NUM_THREADS, PY_NUM_MODULES, WITH_PARQUET)
 
   IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -81,7 +80,22 @@ if __name__ == '__main__':
   j = os.path.join
 
   pxd_files = glob.glob(PYOPENMS_SRC_DIR + "/pxds/*.pxd")
+
+  # Filter out Arrow/Parquet-dependent pxd files when WITH_PARQUET is disabled
+  if not WITH_PARQUET:
+    def _is_parquet_related(name):
+      return name.startswith('Arrow') or ('Parquet' in name) or name == 'QPXFile.pxd'
+
+    pxd_files = [f for f in pxd_files if not _is_parquet_related(os.path.basename(f))]
+    print("WITH_PARQUET is disabled, excluding Arrow*/Parquet* pxds from wrapping")
+
   addons = glob.glob(PYOPENMS_SRC_DIR + "/addons/*.pyx")
+  if not WITH_PARQUET:
+    def _is_parquet_addon(name):
+      return 'Parquet' in name
+
+    addons = [a for a in addons if not _is_parquet_addon(os.path.basename(a))]
+    print("WITH_PARQUET is disabled, excluding Parquet* addons from wrapping")
   converters = [j(PYOPENMS_SRC_DIR, "converters")]
 
   persisted_data_path = "include_dir.bin"
@@ -221,9 +235,7 @@ if __name__ == '__main__':
       for modname in mnames:
           fp.write("from .%s import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)\n" % modname)
 
-
-  # create version information
-  version = OPEN_MS_VERSION
-
-  print("version=%r\n" % version, file=open("pyopenms/_version.py", "w"))
-  print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/_qt_version_info.py", "w"))
+  # create version and dependency information in a single file
+  with open("pyopenms/_dependency_version_info.py", "w") as f:
+    f.write(f"openms_version = {OPEN_MS_VERSION!r}\n")
+    f.write(f"qt_version = {QT_QMAKE_VERSION_INFO!r}\n")

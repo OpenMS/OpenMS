@@ -77,7 +77,7 @@ public:
     };
 
     /// Description of the columns in a consensus map
-    struct  ColumnHeader :
+    struct OPENMS_DLLAPI ColumnHeader :
       public MetaInfoInterface
     {
       /// Default constructor
@@ -144,7 +144,7 @@ public:
 
       The number of columns (maximum map index) stays the same.
 
-      @param rhs The consensus map to be merged.
+      @param[in] rhs The consensus map to be merged.
     */
     ConsensusMap& appendRows(const ConsensusMap& rhs);
 
@@ -153,7 +153,7 @@ public:
 
       The number of columns (maximum map index) is the sum of both maps.
 
-      @param rhs The consensus map to be merged.
+      @param[in] rhs The consensus map to be merged.
     */
     ConsensusMap& appendColumns(const ConsensusMap& rhs);
 
@@ -161,7 +161,7 @@ public:
     /**
       @brief Clears all data and meta data
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data = true);
 
@@ -230,6 +230,12 @@ public:
     /// sets the protein identifications by moving
     void setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications);
 
+    /// finds a protein identification by its identifier (returns nullptr if not found)
+    const ProteinIdentification* findProteinIdentification(const String& identifier) const;
+
+    /// finds a protein identification by its identifier (returns nullptr if not found)
+    ProteinIdentification* findProteinIdentification(const String& identifier);
+
     /// non-mutable access to the unassigned peptide identifications
     const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;
 
@@ -253,8 +259,8 @@ public:
 
     /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @p e.
     /// If it doesn't exist, fallback to @p s.
-    /// @param s Fallback if @p e does not have a primary MS runpath
-    /// @param e Use primary MS runpath from this mzML file
+    /// @param[in] s Fallback if @p e does not have a primary MS runpath
+    /// @param[in,out] e Use primary MS runpath from this mzML file
     void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
 
     /// returns the MS run path (stored in ColumnHeaders)
@@ -328,7 +334,7 @@ public:
 
      MetaValues of ConsensusFeatures can be copied to all FeatureMaps, just to the first or they can be ignored.
 
-     @param mode Decide what to do with the MetaValues annotated at the ConsensusFeatures.
+     @param[in] mode Decide what to do with the MetaValues annotated at the ConsensusFeatures.
      @return FeatureMaps
     */
     std::vector<FeatureMap> split(SplitMeta mode = SplitMeta::DISCARD) const;

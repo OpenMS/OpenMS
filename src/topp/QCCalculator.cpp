@@ -71,9 +71,10 @@ The output file specified by the user determines which output file format will b
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 class TOPPQCCalculator :
   public TOPPBase
@@ -170,8 +171,9 @@ protected:
   }
 
 };
-
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 
 int main(int argc, const char** argv)
 {

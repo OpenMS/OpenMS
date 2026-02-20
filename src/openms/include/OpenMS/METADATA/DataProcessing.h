@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <set>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace OpenMS
 {
@@ -61,6 +61,14 @@ public:
 
     /// returns all processing action names known to OpenMS
     static StringList getAllNamesOfProcessingAction();
+
+    /// Convert a ProcessingAction enum to String
+    /// @throws Exception::InvalidValue if @p action is SIZE_OF_PROCESSINGACTION
+    static const std::string& processingActionToString(ProcessingAction action);
+
+    /// Convert a string to ProcessingAction enum
+    /// @throws Exception::InvalidValue if @p name is not contained in NamesOfProcessingAction[]
+    static ProcessingAction toProcessingAction(const std::string& name);
 
     /// Constructor
     DataProcessing() = default;
@@ -112,7 +120,7 @@ protected:
     DateTime completion_time_;
   };
 
-  typedef boost::shared_ptr<DataProcessing> DataProcessingPtr;
-  typedef boost::shared_ptr<const DataProcessing> ConstDataProcessingPtr;
+  typedef std::shared_ptr<DataProcessing> DataProcessingPtr;
+  typedef std::shared_ptr<const DataProcessing> ConstDataProcessingPtr;
 
 } // namespace OpenMS
