@@ -29,7 +29,6 @@ FlagSet.cpp
 GridFeature.cpp
 ListUtils.cpp
 ListUtilsIO.cpp
-LPWrapper.cpp
 MassExplainer.cpp
 MatchedIterator.cpp
 Matrix.cpp

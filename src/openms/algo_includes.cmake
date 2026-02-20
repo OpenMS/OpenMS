@@ -52,10 +52,11 @@ if(NOT DISABLE_OPENSWATH)
 endif()
 include(${CMAKE_CURRENT_LIST_DIR}/source/APPLICATIONS/sources.cmake)
 
-# IO (FORMAT) source files compiled here because they depend on Algo types.
-# The files remain in their original FORMAT directories but are not listed in
-# IO's sources.cmake — they appear only here.
+# Source files from other tiers compiled here because they depend on Algo types.
+# The files remain in their original directories but are not listed in their
+# tier's sources.cmake — they appear only here.
 list(APPEND OpenMS_sources
+  source/DATASTRUCTURES/LPWrapper.cpp         # only called by ANALYSIS code (ILPDCWrapper, MRMFeatureSelector)
   source/FORMAT/FLASHDeconvFeatureFile.cpp    # uses PeakGroup, DeconvolvedSpectrum, FLASHHelperClasses
   source/FORMAT/FLASHDeconvSpectrumFile.cpp   # uses PeakGroup, DeconvolvedSpectrum, FLASHHelperClasses
 )
@@ -107,8 +108,9 @@ if(NOT DISABLE_OPENSWATH)
 endif()
 include(${CMAKE_CURRENT_LIST_DIR}/include/OpenMS/APPLICATIONS/sources.cmake)
 
-# IO (FORMAT) headers for the source files above (parallel to source moves)
+# Headers for source files moved here from other tiers (parallel to source moves)
 list(APPEND OpenMS_sources_h
+  include/OpenMS/DATASTRUCTURES/LPWrapper.h
   include/OpenMS/FORMAT/FLASHDeconvFeatureFile.h
   include/OpenMS/FORMAT/FLASHDeconvSpectrumFile.h
 )

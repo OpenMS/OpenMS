@@ -33,9 +33,11 @@ set(IO_DEP_PRIVATE_LIBRARIES
   Eigen3::Eigen
   SIMDe
   SQLiteCpp
+  XercesC::XercesC
   nlohmann_json::nlohmann_json
   ZLIB::ZLIB
 )
+# Note: BZip2 and ZLIB are here (not Core) because only FORMAT files use them.
 
 if (WITH_HDF5)
   list(APPEND IO_DEP_PRIVATE_LIBRARIES HDF5::HDF5)

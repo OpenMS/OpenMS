@@ -15,7 +15,6 @@ list(REMOVE_DUPLICATES OpenMS_Core_sources)
 
 # --- Public dependencies (propagated to consumers of OpenMS_Core) ---
 set(CORE_DEP_LIBRARIES
-  XercesC::XercesC
   Qt6::Core
   Qt6::Network
 )
@@ -32,19 +31,14 @@ endif()
 
 # --- Private dependencies (only needed to compile Core itself) ---
 set(CORE_DEP_PRIVATE_LIBRARIES
-  ${LPTARGET}
-  BZip2::BZip2
   Boost::boost
   Boost::date_time
   Boost::regex
   Eigen3::Eigen
   eol-bspline
   Evergreen
-  GTE
   IsoSpec
-  Quadtree
   SIMDe
-  ZLIB::ZLIB
 )
 
 openms_add_library(TARGET_NAME  OpenMS_Core

@@ -11,7 +11,6 @@ Exception.h
 GlobalExceptionHandler.h
 HashUtils.h
 Helpers.h
-Init.h
 LogConfigHandler.h
 LogStream.h
 Macros.h

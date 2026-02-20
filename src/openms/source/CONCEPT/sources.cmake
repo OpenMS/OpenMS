@@ -8,7 +8,6 @@ CommonEnums.cpp
 Constants.cpp
 Exception.cpp
 GlobalExceptionHandler.cpp
-Init.cpp
 LogConfigHandler.cpp
 LogStream.cpp
 PrecisionWrapper.cpp

@@ -17,12 +17,13 @@ include(${CMAKE_CURRENT_LIST_DIR}/source/FORMAT/VALIDATORS/sources.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/source/FORMAT/OPTIONS/sources.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/source/FORMAT/sources.cmake)
 
-# Core source files compiled here because they depend on IO (FORMAT) types.
-# The files remain in their original Core directories but are not listed in
-# Core's sources.cmake — they appear only here.
+# Core source files compiled here because they depend on IO (FORMAT) types
+# or IO-tier libraries. The files remain in their original directories but are
+# not listed in Core's sources.cmake — they appear only here.
 list(APPEND OpenMS_sources
   source/CONCEPT/ClassTest.cpp                         # uses FORMAT file classes
   source/CONCEPT/FuzzyStringComparator.cpp             # uses TextFile
+  source/CONCEPT/Init.cpp                              # Xerces-C init (only IO uses Xerces)
   source/METADATA/ID/IdentificationDataConverter.cpp   # uses MzTab types
   source/METADATA/ExperimentalDesign.cpp               # uses FileHandler, TextFile
   source/METADATA/SpectrumMetaDataLookup.cpp           # uses FileHandler
@@ -45,6 +46,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/include/OpenMS/FORMAT/OPTIONS/sources.cmake)
 list(APPEND OpenMS_sources_h
   include/OpenMS/CONCEPT/ClassTest.h
   include/OpenMS/CONCEPT/FuzzyStringComparator.h
+  include/OpenMS/CONCEPT/Init.h
   include/OpenMS/METADATA/ID/IdentificationDataConverter.h
   include/OpenMS/METADATA/ExperimentalDesign.h
   include/OpenMS/METADATA/SpectrumMetaDataLookup.h

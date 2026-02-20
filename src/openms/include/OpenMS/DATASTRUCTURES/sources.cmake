@@ -31,7 +31,6 @@ IsotopeCluster.h
 KDTree.h
 ListUtils.h
 ListUtilsIO.h
-LPWrapper.h
 MassExplainer.h
 MatchedIterator.h
 Matrix.h

@@ -25,6 +25,7 @@ endif()
 
 # --- Private dependencies ---
 set(ALGO_DEP_PRIVATE_LIBRARIES
+  ${LPTARGET}
   LibSVM::LibSVM
   Boost::boost
   Boost::regex
