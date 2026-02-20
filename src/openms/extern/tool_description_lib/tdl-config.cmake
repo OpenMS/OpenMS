@@ -32,8 +32,8 @@ if (NOT yaml-cpp_FOUND)
     FetchContent_Declare (
         yaml-cpp_fetch_content
         GIT_REPOSITORY "https://github.com/jbeder/yaml-cpp.git"
-        # !WORKAROUND Points to first commit after 0.8.0: Fixes CMake deprecation warnings (cmake_minimum_required)
-        GIT_TAG "c2680200486572baf8221ba052ef50b58ecd816e")
+        # 0.9.0: Fixes GCC 15 build (missing <cstdint> include) and CMake deprecation warnings
+        GIT_TAG "yaml-cpp-0.9.0")
     option (YAML_CPP_BUILD_CONTRIB "" OFF)
     option (YAML_CPP_BUILD_TOOLS "" OFF)
     option (YAML_BUILD_SHARED_LIBS "" OFF)

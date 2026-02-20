@@ -7,7 +7,17 @@
 # --------------------------------------------------------------------------
 
 
-cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
+cmake_minimum_required(VERSION 3.30 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
+
+# C++23 import std support (must be before project())
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/import_std_setup.cmake)
+
+# Ninja generator required for C++ module dependency scanning
+if(NOT CMAKE_GENERATOR MATCHES "Ninja")
+  message(FATAL_ERROR
+    "Ninja generator required for C++ module support. "
+    "Configure with: cmake -G Ninja ...")
+endif()
 
 # Handle default build type
 get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)

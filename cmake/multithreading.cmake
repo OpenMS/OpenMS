@@ -33,4 +33,15 @@ if (OPENMP_FOUND)
       set_property(TARGET OpenMP::OpenMP_CXX PROPERTY INTERFACE_COMPILE_OPTIONS "/openmp:experimental")
     endif()
   endif()
+
+  # When C++23 import std is enabled, CMake creates an internal __cmake_cxx23
+  # target to compile std.cppm into std.pcm. This target only inherits global
+  # CMAKE_CXX_FLAGS, not per-target link libraries like OpenMP::OpenMP_CXX.
+  # Clang requires the std module to be compiled with the same OpenMP flags as
+  # consuming translation units, otherwise it refuses to load std.pcm.
+  # GCC does NOT need this and in fact ICEs if the std module is compiled with
+  # -fopenmp (GCC bug with omp declare reduction in module loading).
+  if (CMAKE_CXX_MODULE_STD AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    string(APPEND CMAKE_CXX_FLAGS " ${OpenMP_CXX_FLAGS}")
+  endif()
 endif()

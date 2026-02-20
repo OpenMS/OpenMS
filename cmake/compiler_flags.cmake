@@ -69,7 +69,7 @@ function(openms_add_compiler_flags target_name)
   #------------------------------------------------------------------------------
   
   # Language standard
-  target_compile_features(${target_name} PUBLIC cxx_std_20)
+  target_compile_features(${target_name} PUBLIC cxx_std_23)
   
   # Position-independent code
   if(NOT WIN32 AND WITH_FPIC)
