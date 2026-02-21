@@ -188,6 +188,19 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build,
 # see OpenMS/cmake/OpenMSConfig.cmake.in to see how its configured and used (i.e. as OPENMS_ADDCXX_FLAGS)
 include(cmake/compiler_flags.cmake)
 
+# macOS builds with Homebrew LLVM need the toolchain's bundled libc++ (under
+# lib/c++); the system libc++ can lack newer symbols. Add that directory to the
+# link search path so we consistently link against the intended runtime.
+if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  get_filename_component(_clang_bin_dir "${CMAKE_CXX_COMPILER}" DIRECTORY)
+  get_filename_component(_toolchain_root "${_clang_bin_dir}/.." ABSOLUTE)
+  set(_llvm_libcxx_dir "${_toolchain_root}/lib/c++")
+  if(EXISTS "${_llvm_libcxx_dir}/libc++.dylib")
+    message(STATUS "Adding ${_llvm_libcxx_dir} to the libc++ link search path")
+    add_link_options("-L${_llvm_libcxx_dir}")
+  endif()
+endif()
+
 # Visibility settings
 if (NOT CMAKE_CXX_VISIBILITY_PRESET)
   set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
