@@ -191,13 +191,23 @@ include(cmake/compiler_flags.cmake)
 # macOS builds with Homebrew LLVM need the toolchain's bundled libc++ (under
 # lib/c++); the system libc++ can lack newer symbols. Add that directory to the
 # link search path so we consistently link against the intended runtime.
-if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  get_filename_component(_clang_bin_dir "${CMAKE_CXX_COMPILER}" DIRECTORY)
-  get_filename_component(_toolchain_root "${_clang_bin_dir}/.." ABSOLUTE)
+# Note: STREQUAL "Clang" is intentional — "AppleClang" (Xcode) is a distinct
+# compiler ID and must NOT enter this block.
+if(APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  # Resolve symlinks before deriving the toolchain root.
+  # get_filename_component(ABSOLUTE) does NOT follow symlinks; Homebrew often
+  # installs clang as a symlink (e.g. via brew link --force), so without
+  # REAL_PATH the derived _toolchain_root points to the wrong prefix and the
+  # EXISTS check below silently fails — reproducing the original link error.
+  file(REAL_PATH "${CMAKE_CXX_COMPILER}" _clang_real)
+  cmake_path(GET _clang_real PARENT_PATH _clang_bin_dir)
+  cmake_path(GET _clang_bin_dir PARENT_PATH _toolchain_root)
   set(_llvm_libcxx_dir "${_toolchain_root}/lib/c++")
   if(EXISTS "${_llvm_libcxx_dir}/libc++.dylib")
-    message(STATUS "Adding ${_llvm_libcxx_dir} to the libc++ link search path")
+    message(STATUS "Homebrew LLVM libc++ found at ${_llvm_libcxx_dir} — injecting -L")
     add_link_options("-L${_llvm_libcxx_dir}")
+  else()
+    message(STATUS "Homebrew LLVM libc++ not found at ${_llvm_libcxx_dir}; skipping -L injection")
   endif()
 endif()
 
