@@ -48,8 +48,6 @@ cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
                                                               const String residue, TermSpecificity term_spec) except + nogil  # wrap-doc:Returns the best matching modification for the given delta mass and residue
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) except + nogil  # wrap-doc:Collects all modifications that can be used for identification searches
 
-        void readFromOBOFile(const String & filename) except + nogil  # wrap-doc:Adds modifications from a given file in OBO format
-
         bool isInstantiated() except + nogil  # wrap-doc:Returns True if the database has been instantiated
 
 ## wrap static methods

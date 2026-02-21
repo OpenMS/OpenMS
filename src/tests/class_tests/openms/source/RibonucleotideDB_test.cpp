@@ -36,18 +36,6 @@ START_SECTION(virtual ~RibonucleotideDB())
   NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void readFromJSON_(void const std::string& path))
-  // Reading from the JSON gets tested as part of the constructor above.
-  // We check the contents below in begin() and getRibonucleotide
-  NOT_TESTABLE
-END_SECTION
-
-START_SECTION(void readFromFile_(void const std::string& path))
-  // Reading from the TSV gets tested as part of the constructor above.
-  // We check the contents below in getRibonucleotide and getRibonucleotideAlternatives
-  NOT_TESTABLE
-END_SECTION
-
 START_SECTION(ConstIterator begin())
 {
   //Loading of the JSON and TSV files gets tested during the 

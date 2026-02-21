@@ -24,9 +24,11 @@ ModificationsDB.cpp
 ModifiedNASequenceGenerator.cpp
 MonosaccharideDB.cpp
 ModifiedPeptideGenerator.cpp
+ModomicsJSONDataProvider.cpp
 MzPAF.cpp
 NASequence.cpp
 NucleicAcidSpectrumGenerator.cpp
+OBODataProvider.cpp
 ProForma.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
@@ -37,12 +39,14 @@ RNaseDB.cpp
 RNaseDigestion.cpp
 Ribonucleotide.cpp
 RibonucleotideDB.cpp
+RibonucleotideTSVDataProvider.cpp
 SequenceCoverage.cpp
 SpectrumAnnotator.cpp
 SimpleTSGXLMS.cpp
 Tagger.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
+UnimodXMLDataProvider.cpp
 )
 
 ### add path to the filenames
