@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMChromHandler.h>
 #include <cstdio>
@@ -23,6 +24,11 @@ std::vector<::OpenSwath::SwathMap> MRMFile::loadMzML(const String& file,
                                                    const String& /*tmp*/, 
                                                    std::shared_ptr<ExperimentalSettings>& exp_meta)
 {
+  if (!File::exists(file))
+  {
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file);
+  }
+
   OPENMS_LOG_INFO << "Loading SRM/MRM mzML " << file << std::endl;
   std::shared_ptr<PeakMap> full_exp(new PeakMap);
   FileHandler fh;

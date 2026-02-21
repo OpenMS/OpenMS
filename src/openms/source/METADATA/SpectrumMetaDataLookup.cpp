@@ -10,6 +10,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 
@@ -307,6 +308,11 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
     bool override_spectra_references,
     vector<ProteinIdentification> proteins)
   {
+    if (!File::exists(filename))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
+
     bool success = true;
     PeakMap exp;
     SpectrumMetaDataLookup lookup;

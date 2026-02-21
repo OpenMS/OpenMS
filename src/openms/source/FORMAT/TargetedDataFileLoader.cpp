@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 
@@ -26,6 +27,11 @@ std::vector<::OpenSwath::SwathMap> TargetedDataFileLoader::loadFile(const String
                                                                   const String& readoptions,
                                                                   Interfaces::IMSDataConsumer* plugin_consumer)
 {
+  if (!File::exists(file))
+  {
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file);
+  }
+
   // Quick probe: load metadata only (no data) to check for presence of spectra
   PeakMap probe;
   try
