@@ -3126,3 +3126,21 @@ Detailed list of changes to specific OpenMS classes:
   - Added InternalCalibration - Calibration of peak m/z using reference masses
   - Added ExternalCalibration - Conversion of flight times into m/z using external
                                 calibrant spectra
+
+
+#Added Python bindings for QC classes (issue #6102)
+- Contaminants.pxd
+- FWHM.pxd
+- DBSuitability.pxd
+- FeatureSummary.pxd
+- FragmentMassError.pxd
+- IdentificationSummary.pxd
+- MissedCleavages.pxd
+- Ms2IdentificationRate.pxd
+- Ms2SpectrumStats.pxd
+- MzCalibration.pxd
+- PSMExplainedIonCurrent.pxd
+- PeptideMass.pxd
+- RTAlignment.pxd
+- SpectrumCount.pxd
+- TIC.pxd
