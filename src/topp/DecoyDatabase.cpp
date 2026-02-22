@@ -10,6 +10,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
