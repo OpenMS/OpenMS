@@ -537,7 +537,6 @@ namespace OpenMS
         // Map PSI-MOD accession to existing UniMod entries
         if (m->getUniModRecordId() > 0 && !m->getPSIMODAccession().empty())
         {
-          bool alias_resolved = false;
           #pragma omp critical(OpenMS_ModificationsDB)
           {
             auto existing = modification_names_.find(m->getUniModAccession());
@@ -547,7 +546,6 @@ namespace OpenMS
               {
                 modification_names_[m->getPSIMODAccession()].insert(existing_mod);
               }
-              alias_resolved = true;
             }
           }
           // Whether alias resolved or not, don't add as a new modification.

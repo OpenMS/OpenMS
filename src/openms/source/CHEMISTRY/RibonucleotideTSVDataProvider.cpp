@@ -95,7 +95,7 @@ namespace OpenMS
         {
           ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
         }
-        else if (parts[1].substr(parts[1].size() - 2) == "m*") // check if we have both a sulfer and a 2'-O methyl
+        else if (parts[1].size() >= 2 && parts[1].substr(parts[1].size() - 2) == "m*") // check if we have both a sulfer and a 2'-O methyl
         {
           ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
         }
@@ -143,7 +143,7 @@ namespace OpenMS
     source.setAutoDetectUnicode(true);
     Size line_count = 1;
     String line = source.readLine();
-    while (line[0] == '#') // skip leading comments
+    while (!line.empty() && line[0] == '#') // skip leading comments
     {
       line = source.readLine();
       ++line_count;
