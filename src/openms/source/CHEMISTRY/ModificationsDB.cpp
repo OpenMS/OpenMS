@@ -14,7 +14,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CHEMISTRY/ModificationDataProvider.h>
-#include <OpenMS/CHEMISTRY/UnimodXMLDataProvider.h>
 #include <OpenMS/CHEMISTRY/OBODataProvider.h>
 
 #include <fstream>
@@ -26,16 +25,16 @@ using namespace std;
 namespace OpenMS
 {
 
-  /// Static callback for loading Unimod XML, registered by IO layer
-  static ModificationsDB::UnimodLoaderFunc& getUnimodLoaderCallback_()
+  /// Static factory for creating XML-based modification providers, registered by IO layer
+  static ModificationsDB::XmlProviderFactory& getXmlProviderFactory_()
   {
-    static ModificationsDB::UnimodLoaderFunc callback;
-    return callback;
+    static ModificationsDB::XmlProviderFactory factory;
+    return factory;
   }
 
-  void ModificationsDB::registerUnimodLoader(UnimodLoaderFunc loader)
+  void ModificationsDB::registerXmlProviderFactory(XmlProviderFactory factory)
   {
-    getUnimodLoaderCallback_() = std::move(loader);
+    getXmlProviderFactory_() = std::move(factory);
   }
 
   bool ModificationsDB::residuesMatch_(const char residue, const ResidueModification* curr_mod) const
@@ -74,14 +73,20 @@ namespace OpenMS
 
   ModificationsDB* ModificationsDB::initializeModificationsDB(OpenMS::String unimod_file, OpenMS::String custommod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
   {
+    auto& factory = getXmlProviderFactory_();
+
     std::vector<std::unique_ptr<ModificationDataProvider>> providers;
     if (!unimod_file.empty())
     {
-      providers.push_back(std::make_unique<UnimodXMLDataProvider>(std::move(unimod_file)));
+      if (!factory) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "No XML provider factory registered for ModificationsDB. Ensure the IO library is linked.");
+      providers.push_back(factory(std::move(unimod_file)));
     }
     if (!custommod_file.empty())
     {
-      providers.push_back(std::make_unique<UnimodXMLDataProvider>(std::move(custommod_file)));
+      if (!factory) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "No XML provider factory registered for ModificationsDB. Ensure the IO library is linked.");
+      providers.push_back(factory(std::move(custommod_file)));
     }
     if (!psimod_file.empty())
     {

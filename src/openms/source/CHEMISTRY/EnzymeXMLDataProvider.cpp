@@ -105,3 +105,22 @@ namespace OpenMS
   template class EnzymeXMLDataProvider<DigestionEnzymeRNA>;
 
 } // namespace OpenMS
+
+// Register EnzymeXMLDataProvider factories so that ProteaseDB and RNaseDB
+// (in Core) can load enzyme XML without depending on IO types at link time.
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/RNaseDB.h>
+
+static const bool protease_xml_registered_ = []() {
+  OpenMS::ProteaseDB::registerXmlProviderFactory([](const OpenMS::String& f, bool opt) {
+    return std::make_unique<OpenMS::EnzymeXMLDataProvider<OpenMS::DigestionEnzymeProtein>>(f, opt);
+  });
+  return true;
+}();
+
+static const bool rnase_xml_registered_ = []() {
+  OpenMS::RNaseDB::registerXmlProviderFactory([](const OpenMS::String& f, bool opt) {
+    return std::make_unique<OpenMS::EnzymeXMLDataProvider<OpenMS::DigestionEnzymeRNA>>(f, opt);
+  });
+  return true;
+}();

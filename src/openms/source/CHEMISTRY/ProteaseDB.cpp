@@ -9,7 +9,6 @@
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/BuiltInProteaseDataProvider.h>
-#include <OpenMS/CHEMISTRY/EnzymeXMLDataProvider.h>
 #include <fstream>
 using namespace std;
 
@@ -21,7 +20,8 @@ namespace OpenMS
     // Create default providers: built-in enzymes + optional XML file for user overrides
     vector<unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeProtein>>> providers;
     providers.push_back(make_unique<BuiltInProteaseDataProvider>());
-    providers.push_back(make_unique<EnzymeXMLDataProvider<DigestionEnzymeProtein>>("CHEMISTRY/Enzymes.xml", /*optional=*/true));
+    auto xml = createXmlProvider_("CHEMISTRY/Enzymes.xml", /*optional=*/true);
+    if (xml) providers.push_back(std::move(xml));
     loadFromProviders_(providers);
   }
 

@@ -17,7 +17,6 @@ Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
 EnzymaticDigestion.cpp
-EnzymeXMLDataProvider.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
@@ -46,7 +45,6 @@ SimpleTSGXLMS.cpp
 Tagger.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
-UnimodXMLDataProvider.cpp
 )
 
 ### add path to the filenames

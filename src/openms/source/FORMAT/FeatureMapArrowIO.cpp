@@ -12,7 +12,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>

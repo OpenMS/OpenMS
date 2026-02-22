@@ -27,6 +27,8 @@ list(APPEND OpenMS_sources
   source/METADATA/ID/IdentificationDataConverter.cpp   # uses MzTab types
   source/METADATA/ExperimentalDesign.cpp               # uses FileHandler, TextFile
   source/METADATA/SpectrumMetaDataLookup.cpp           # uses FileHandler
+  source/CHEMISTRY/EnzymeXMLDataProvider.cpp           # uses FORMAT/ParamXMLFile
+  source/CHEMISTRY/UnimodXMLDataProvider.cpp           # uses FORMAT/UnimodXMLFile
 )
 
 set(OpenMS_IO_sources ${OpenMS_sources} CACHE INTERNAL "OpenMS IO source files")
@@ -50,6 +52,8 @@ list(APPEND OpenMS_sources_h
   include/OpenMS/METADATA/ID/IdentificationDataConverter.h
   include/OpenMS/METADATA/ExperimentalDesign.h
   include/OpenMS/METADATA/SpectrumMetaDataLookup.h
+  include/OpenMS/CHEMISTRY/EnzymeXMLDataProvider.h
+  include/OpenMS/CHEMISTRY/UnimodXMLDataProvider.h
 )
 
 set(OpenMS_IO_sources_h ${OpenMS_sources_h} CACHE INTERNAL "OpenMS IO header files")

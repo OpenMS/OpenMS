@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <functional>
 #include <set>
 #include <map>
 #include <memory>
@@ -37,6 +38,14 @@ namespace OpenMS
     //@{
     typedef typename std::set<const DigestionEnzymeType*>::const_iterator ConstEnzymeIterator;
     typedef typename std::set<const DigestionEnzymeType*>::iterator EnzymeIterator;
+
+    /// Factory type for creating XML-based enzyme data providers.
+    /// The IO layer registers a factory via a static initializer so that
+    /// Core can load enzyme XML without depending on IO types.
+    using XmlProviderFactory = std::function<std::unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeType>>(const String&, bool)>;
+
+    /// Register the factory used to create XML enzyme providers.
+    static void registerXmlProviderFactory(XmlProviderFactory fn) { getXmlProviderFactory_() = std::move(fn); }
     //@}
 
     /// this member function serves as a replacement of the constructor
@@ -206,12 +215,29 @@ namespace OpenMS
       }
     }
 
+    /// Create an XML provider via the registered factory (or throw/return nullptr).
+    static std::unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeType>> createXmlProvider_(const String& filename, bool optional = false)
+    {
+      auto& factory = getXmlProviderFactory_();
+      if (factory) return factory(filename, optional);
+      if (!optional) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "No XML provider factory registered. Ensure the IO library is linked.");
+      return nullptr;
+    }
+
     std::map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names
 
     std::map<String, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
 
     std::set<const DigestionEnzymeType*> const_enzymes_; ///< set of enzymes
 
+  private:
+    /// Static storage for the XML provider factory
+    static XmlProviderFactory& getXmlProviderFactory_()
+    {
+      static XmlProviderFactory factory;
+      return factory;
+    }
   };
 }
 

@@ -52,13 +52,13 @@ namespace OpenMS
   {
 public:
 
-    /// Callback type for loading Unimod XML modifications.
-    /// Signature: void(const String& filename, std::vector<ResidueModification*>& mods)
-    using UnimodLoaderFunc = std::function<void(const String&, std::vector<ResidueModification*>&)>;
+    /// Factory type for creating XML-based modification data providers.
+    /// The IO layer registers a factory via a static initializer so that
+    /// Core can load Unimod/custom XML without depending on IO types.
+    using XmlProviderFactory = std::function<std::unique_ptr<ModificationDataProvider>(const String&)>;
 
-    /// Register the callback used by readFromUnimodXMLFile() to load Unimod XML.
-    /// The IO layer registers UnimodXMLFile::load() via a static initializer.
-    static void registerUnimodLoader(UnimodLoaderFunc loader);
+    /// Register the factory used to create XML modification providers.
+    static void registerXmlProviderFactory(XmlProviderFactory factory);
 
     /// Returns a pointer to the modifications DB (singleton)
     static ModificationsDB* getInstance();

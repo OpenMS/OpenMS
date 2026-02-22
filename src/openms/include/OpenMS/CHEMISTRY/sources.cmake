@@ -18,7 +18,6 @@ Element.h
 ElementDB.h
 EmpiricalFormula.h
 EnzymaticDigestion.h
-EnzymeXMLDataProvider.h
 ModificationDataProvider.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
@@ -50,7 +49,6 @@ SpectrumAnnotator.h
 Tagger.h
 TheoreticalSpectrumGenerator.h
 TheoreticalSpectrumGeneratorXLMS.h
-UnimodXMLDataProvider.h
 )
 
 ### add path to the filenames
