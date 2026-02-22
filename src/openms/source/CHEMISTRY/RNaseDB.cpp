@@ -8,14 +8,24 @@
 //
 
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/CHEMISTRY/EnzymeXMLDataProvider.h>
 
 using namespace std;
 
 namespace OpenMS
 {
   RNaseDB::RNaseDB():
-    DigestionEnzymeDB<DigestionEnzymeRNA, RNaseDB>("CHEMISTRY/Enzymes_RNA.xml")
+    DigestionEnzymeDB<DigestionEnzymeRNA, RNaseDB>()
   {
+    vector<unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeRNA>>> providers;
+    providers.push_back(make_unique<EnzymeXMLDataProvider<DigestionEnzymeRNA>>("CHEMISTRY/Enzymes_RNA.xml"));
+    loadFromProviders_(providers);
+  }
+
+  RNaseDB::RNaseDB(vector<unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeRNA>>> providers):
+    DigestionEnzymeDB<DigestionEnzymeRNA, RNaseDB>()
+  {
+    loadFromProviders_(providers);
   }
 
 } // namespace OpenMS

@@ -424,6 +424,7 @@ set(chemistry_executables_list
   MzPAF_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
+  DigestionEnzymeDataProvider_test
   ProFormaParser_test
   ProteaseDB_test
   ProteaseDigestion_test
