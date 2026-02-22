@@ -129,6 +129,12 @@ namespace OpenMS
       ribo->setNewCode(code);
 
       // Handle moiety
+      if (!entry["reference_moiety"].is_array())
+      {
+        String msg = "\"reference_moiety\" must be a JSON array";
+        throw Exception::InvalidValue(__FILE__, __LINE__,
+                                                OPENMS_PRETTY_FUNCTION, msg, entry["reference_moiety"].dump());
+      }
       if (entry["reference_moiety"].size() == 1 && string(entry.at("reference_moiety").at(0)).length() == 1)
       {
         ribo->setOrigin(string(entry.at("reference_moiety").at(0))[0]);
@@ -197,7 +203,14 @@ namespace OpenMS
           String msg = "Ambiguous mod without alternative found in " + code;
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
         }
-        parsed.alternative_1 = string(entry.at("alternatives").at(0)), parsed.alternative_2 = string(entry.at("alternatives").at(1)); // we always have exactly two ambiguities
+        const auto& alts = entry.at("alternatives");
+        if (!alts.is_array() || alts.size() < 2)
+        {
+          String msg = "\"alternatives\" must be an array with at least 2 entries for " + code;
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
+        }
+        parsed.alternative_1 = alts.at(0).get<std::string>();
+        parsed.alternative_2 = alts.at(1).get<std::string>();
       }
 
       parsed.ribo = std::move(ribo);
@@ -266,7 +279,11 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        OPENMS_LOG_ERROR << "Error: Failed to parse input element " << line_count << ". Reason:\n" << e.getName() << " - " << e.what() << "\nSkipping this line." << endl;
+        OPENMS_LOG_ERROR << "Error: Failed to parse input element " << line_count << ". Reason:\n" << e.getName() << " - " << e.what() << "\nSkipping this element." << endl;
+      }
+      catch (std::exception& e)
+      {
+        OPENMS_LOG_ERROR << "Error: Failed to parse input element " << line_count << ". Reason:\n" << e.what() << "\nSkipping this element." << endl;
       }
     }
 
