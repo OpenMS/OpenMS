@@ -1,6 +1,3 @@
-
-# distutils: language = c++
-
 from libcpp.vector cimport vector
 from OpenMS cimport *
 from QCBase cimport *

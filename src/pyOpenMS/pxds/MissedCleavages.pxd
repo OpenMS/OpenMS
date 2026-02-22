@@ -1,6 +1,3 @@
-cat > /workspaces/OpenMS/pyOpenMS/pxds/MissedCleavages.pxd << 'EOF'
-# distutils: language = c++
-
 from libcpp.vector cimport vector
 from libcpp.map cimport map as cppmap
 from libc.stdint cimport uint32_t

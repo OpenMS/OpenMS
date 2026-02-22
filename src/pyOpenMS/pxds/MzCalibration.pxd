@@ -1,6 +1,3 @@
-cat > /workspaces/OpenMS/pyOpenMS/pxds/MzCalibration.pxd << 'EOF'
-# distutils: language = c++
-
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libc.stdint cimport uint32_t, uint64_t, int64_t

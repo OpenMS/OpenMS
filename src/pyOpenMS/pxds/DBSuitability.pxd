@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/QC/DBSuitability.h>" namespace "OpenMS":
 
     cdef cppclass DBSuitability(DefaultParamHandler):
 
-        cdef cppclass SuitabilityData:
+        cppclass SuitabilityData:
             Size num_top_novo
             Size num_top_db
             Size num_interest

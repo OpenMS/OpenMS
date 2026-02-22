@@ -13,16 +13,16 @@ cdef extern from "<OpenMS/QC/FragmentMassError.h>" namespace "OpenMS":
 
     cdef cppclass FragmentMassError(QCBase):
 
-        # -------------------------
+        
         # Nested struct Statistics
-        # -------------------------
-        cdef cppclass Statistics:
+        
+        cppclass Statistics:
             double average_ppm
             double variance_ppm
 
-        # -------------------------
+        
         # Enum ToleranceUnit
-        # -------------------------
+        
         cdef enum ToleranceUnit:
             AUTO
             PPM
@@ -30,18 +30,18 @@ cdef extern from "<OpenMS/QC/FragmentMassError.h>" namespace "OpenMS":
 
         FragmentMassError() except +
 
-        # -------------------------
+        
         # compute overload 1
-        # -------------------------
+        
         void compute(FeatureMap& fmap,
                      const MSExperiment& exp,
                      const QCBase.SpectraMap& map_to_spectrum,
                      ToleranceUnit tolerance_unit = AUTO,
                      double tolerance = 20) except +
 
-        # -------------------------
+       
         # compute overload 2
-        # -------------------------
+        
         void compute(PeptideIdentificationList& pep_ids,
                      const ProteinIdentification.SearchParameters& search_params,
                      const MSExperiment& exp,

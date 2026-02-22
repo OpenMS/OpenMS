@@ -1,6 +1,3 @@
-cat > /workspaces/OpenMS/pyOpenMS/pxds/PeptideMass.pxd << 'EOF'
-# distutils: language = c++
-
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from OpenMS cimport *
