@@ -595,6 +595,23 @@ namespace OpenMS
 
     auto& mrmfeatures = transition_group_detection.getFeaturesMuteable();
 
+    // Pre-compute group-invariant values (constant across all features)
+    const bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
+
+    std::vector<double> normalized_library_intensity;
+    transition_group_detection.getLibraryIntensity(normalized_library_intensity);
+    OpenSwath::Scoring::normalize_sum(normalized_library_intensity.data(), static_cast<unsigned int>(normalized_library_intensity.size()));
+
+    const auto& transitions = transition_group_detection.getTransitions();
+    std::vector<std::string> native_ids_detection(transitions.size());
+    std::transform(transitions.begin(), transitions.end(), native_ids_detection.begin(),
+                   [](const auto& tr) { return tr.getNativeID(); });
+
+    const auto& precursor_chroms = transition_group_detection.getPrecursorChromatograms();
+    std::vector<std::string> precursor_ids(precursor_chroms.size());
+    std::transform(precursor_chroms.begin(), precursor_chroms.end(), precursor_ids.begin(),
+                   [](const auto& ch) { return ch.getNativeID(); });
+
     // Go through all peak groups (found MRM features) and score them
     #ifdef _OPENMP
     int in_parallel = omp_in_parallel();
@@ -619,7 +636,6 @@ namespace OpenMS
                                          "Error: Transition group " + transition_group_detection.getTransitionGroupID() +
                                          " has no chromatograms.");
       }
-      bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
       double xx_lda_prescore;
       double precursor_mz(-1);
 
@@ -703,24 +719,6 @@ namespace OpenMS
         ///////////////////////////////////
         // Call the scoring for fragment ions
         ///////////////////////////////////
-
-        std::vector<double> normalized_library_intensity;
-        transition_group_detection.getLibraryIntensity(normalized_library_intensity);
-        OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
-
-        std::vector<std::string> native_ids_detection;
-        for (Size i = 0; i < transition_group_detection.size(); i++)
-        {
-          std::string native_id = transition_group_detection.getTransitions()[i].getNativeID();
-          native_ids_detection.push_back(native_id);
-        }
-
-        std::vector<std::string> precursor_ids;
-        for (Size i = 0; i < transition_group_detection.getPrecursorChromatograms().size(); i++)
-        {
-          std::string precursor_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
-          precursor_ids.push_back(precursor_id);
-        }
 
         ///////////////////////////////////
         // Library and chromatographic scores
