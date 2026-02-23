@@ -70,6 +70,44 @@ namespace OpenSwath
     return score2;
   }
 
+  // Template implementation for norm (only compiled in this .cpp file)
+  template <typename T>
+  double norm(T beg, T end)
+  {
+    if (beg == end) return 0.0;
+    size_t size = std::distance(beg, end);
+    using ValueType = typename std::iterator_traits<T>::value_type;
+    Eigen::Map<const Eigen::Matrix<ValueType, Eigen::Dynamic, 1>> v(&(*beg), size);
+    return static_cast<double>(v.norm());
+  }
+
+  // Explicit template instantiation definitions for norm
+  template OPENSWATHALGO_DLLAPI double norm<std::vector<double>::const_iterator>(
+    std::vector<double>::const_iterator, std::vector<double>::const_iterator);
+
+  template OPENSWATHALGO_DLLAPI double norm<std::vector<double>::iterator>(
+    std::vector<double>::iterator, std::vector<double>::iterator);
+
+  // Template implementation for manhattanDist (only compiled in this .cpp file)
+  template <typename Texp, typename Ttheo>
+  double manhattanDist(Texp itExpBeg, Texp itExpEnd, Ttheo itTheo)
+  {
+    if (itExpBeg == itExpEnd) return 0.0;
+    size_t size = std::distance(itExpBeg, itExpEnd);
+    using ExpType = typename std::iterator_traits<Texp>::value_type;
+    using TheoType = typename std::iterator_traits<Ttheo>::value_type;
+    Eigen::Map<const Eigen::Matrix<ExpType, Eigen::Dynamic, 1>> v1(&(*itExpBeg), size);
+    Eigen::Map<const Eigen::Matrix<TheoType, Eigen::Dynamic, 1>> v2(&(*itTheo), size);
+    return static_cast<double>((v1.template cast<double>() - v2.template cast<double>()).cwiseAbs().sum());
+  }
+
+  // Explicit template instantiation definitions for manhattanDist
+  template OPENSWATHALGO_DLLAPI double manhattanDist<std::vector<double>::iterator, std::vector<double>::iterator>(
+    std::vector<double>::iterator, std::vector<double>::iterator, std::vector<double>::iterator);
+
+  template OPENSWATHALGO_DLLAPI double manhattanDist<std::vector<double>::const_iterator, std::vector<double>::const_iterator>(
+    std::vector<double>::const_iterator, std::vector<double>::const_iterator, std::vector<double>::const_iterator);
+
   // Template implementation (only compiled in this .cpp file)
   template <typename Texp, typename Ttheo>
   double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
