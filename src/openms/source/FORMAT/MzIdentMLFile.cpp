@@ -15,9 +15,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+
 
 namespace OpenMS
 {
