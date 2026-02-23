@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/QC/RTAlignment.h>" namespace "OpenMS":
         RTAlignment() except +
 
         void compute(FeatureMap& fm,
-                     const TransformationDescription& trafo) const except +
+                     const TransformationDescription& trafo) except + const 
 
         void compute(PeptideIdentificationList& ids,
-                     const TransformationDescription& trafo) const except +
+                     const TransformationDescription& trafo)  except + const
 
-        const String& getName() const except +
+        const String& getName() except + const
 
-        QCBase.Status requirements() const except +
+        QCBase.Status requirements() except + const
