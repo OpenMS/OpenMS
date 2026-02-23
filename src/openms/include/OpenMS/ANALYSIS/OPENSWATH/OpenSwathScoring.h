@@ -278,7 +278,7 @@ namespace OpenMS
      * @return Vector of spectra to be used
      *
     */
-    SpectrumSequence fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
+    SpectrumSequence fetchSpectrumSwath(const std::vector<OpenSwath::SwathMap>& swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
 
 
    /** @brief Prepares a spectrum for DIA analysis (multiple map)

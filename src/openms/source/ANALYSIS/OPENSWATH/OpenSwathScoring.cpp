@@ -490,15 +490,6 @@ namespace OpenMS
         OpenSwath_Scores & scores)
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
-    std::vector<double> normalized_library_intensity;
-    getNormalized_library_intensities_(transitions, normalized_library_intensity);
-
-    std::vector<std::string> native_ids;
-    native_ids.reserve(transitions.size());
-    for (const auto& trans : transitions)
-    {
-      native_ids.push_back(trans.getNativeID());
-    }
 
     if (su_.use_library_score_)
     {
@@ -553,7 +544,7 @@ namespace OpenMS
     }
   }
 
-  SpectrumSequence OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range)
+  SpectrumSequence OpenSwathScoring::fetchSpectrumSwath(const std::vector<OpenSwath::SwathMap>& swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range)
   {
     OPENMS_PRECONDITION(nr_spectra_to_add >= 1, "nr_spectra_to_add must be at least 1.")
     OPENMS_PRECONDITION(!swath_maps.empty(), "swath_maps vector cannot be empty")
