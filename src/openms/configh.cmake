@@ -113,5 +113,5 @@ add_custom_command (
 
 #------------------------------------------------------------------------------
 # export a list of all configured headers
-set(OpenMS_configured_headers "${CONFIGURED_BUILD_CONFIG_CURRENT_H};${CONFIGURED_CONFIG_H};${CONFIGURED_OPENMS_PACKAGE_VERSION_H};${CONFIGURED_OPENMS_DATA_PATH_H}")
+set(OpenMS_configured_headers "${CONFIGURED_BUILD_CONFIG_CURRENT_H};${CONFIGURED_CONFIG_H};${CONFIGURED_OPENMS_PACKAGE_VERSION_H};${CONFIGURED_OPENMS_DATA_PATH_H};include/OpenMS/OpenMSConfig.h")
 set_property(SOURCE ${CONFIGURED_BUILD_CONFIG_CURRENT_H} PROPERTY SKIP_AUTOMOC ON)

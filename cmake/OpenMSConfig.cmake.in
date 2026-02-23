@@ -70,5 +70,17 @@ set(WITH_GUI @WITH_GUI@)
 set(WITH_HDF5 @WITH_HDF5@)
 set(WITH_PARQUET @WITH_PARQUET@)
 
+# Define the custom NO_AS_NEEDED link group for downstream consumers.
+# The OpenMS umbrella INTERFACE target uses $<LINK_GROUP:NO_AS_NEEDED,...> on Linux
+# to force all sub-libraries into DT_NEEDED (required for cross-library back-deps
+# and static initializer loading).  Consumers need this definition to evaluate
+# the generator expression from the exported target.
+if (NOT MSVC AND NOT APPLE)
+  set(CMAKE_C_LINK_GROUP_USING_NO_AS_NEEDED_SUPPORTED TRUE)
+  set(CMAKE_CXX_LINK_GROUP_USING_NO_AS_NEEDED_SUPPORTED TRUE)
+  set(CMAKE_C_LINK_GROUP_USING_NO_AS_NEEDED "LINKER:--no-as-needed" "LINKER:--as-needed")
+  set(CMAKE_CXX_LINK_GROUP_USING_NO_AS_NEEDED "LINKER:--no-as-needed" "LINKER:--as-needed")
+endif()
+
 ## The targets file
 include("${OPENMS_CMAKE_DIR}/@_OPENMS_EXPORT_FILE@")
