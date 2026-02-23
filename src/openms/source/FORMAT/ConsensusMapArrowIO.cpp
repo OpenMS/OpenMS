@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
 
 #ifdef WITH_PARQUET
 
@@ -25,6 +25,7 @@
 #include <parquet/arrow/reader.h>
 #include <parquet/properties.h>
 
+#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
@@ -122,7 +123,7 @@ namespace // anonymous
             if (i + 4 < s.size())
             {
               unsigned int cp = 0;
-              for (int j = 0; j < 4; ++j) // parse 4 hex digits
+              for (int j = 0; j < 4; ++j)
               {
                 char ch = s[i + 1 + j];
                 cp <<= 4;
@@ -130,7 +131,6 @@ namespace // anonymous
                 else if (ch >= 'a' && ch <= 'f') cp |= (ch - 'a' + 10);
                 else if (ch >= 'A' && ch <= 'F') cp |= (ch - 'A' + 10);
               }
-              // Encode as UTF-8
               if (cp < 0x80)
               {
                 result += static_cast<char>(cp);
@@ -170,13 +170,9 @@ namespace // anonymous
       if (i > 0) json += ",";
       json += "{";
 
-      // software_name
       json += "\"software_name\":\"" + escapeJsonString_(dp.getSoftware().getName()) + "\"";
-
-      // software_version
       json += ",\"software_version\":\"" + escapeJsonString_(dp.getSoftware().getVersion()) + "\"";
 
-      // completion_time
       std::string time_str;
       if (dp.getCompletionTime().isValid())
       {
@@ -184,7 +180,6 @@ namespace // anonymous
       }
       json += ",\"completion_time\":\"" + escapeJsonString_(time_str) + "\"";
 
-      // actions
       json += ",\"actions\":[";
       const auto& actions = dp.getProcessingActions();
       bool first_action = true;
@@ -196,7 +191,6 @@ namespace // anonymous
       }
       json += "]";
 
-      // metavalues
       json += ",\"metavalues\":[";
       std::vector<String> keys;
       dp.getKeys(keys);
@@ -239,11 +233,10 @@ namespace // anonymous
   }
 
   /// Parse a JSON string value starting at position pos (must point to opening quote).
-  /// Returns the unescaped string value and advances pos past the closing quote.
   std::string parseJsonString_(const std::string& s, size_t& pos)
   {
     if (pos >= s.size() || s[pos] != '"') return "";
-    ++pos; // skip opening quote
+    ++pos;
     std::string raw;
     while (pos < s.size() && s[pos] != '"')
     {
@@ -267,7 +260,7 @@ namespace // anonymous
         ++pos;
       }
     }
-    if (pos < s.size()) ++pos; // skip closing quote
+    if (pos < s.size()) ++pos;
     return unescapeJsonString_(raw);
   }
 
@@ -280,7 +273,7 @@ namespace // anonymous
     size_t pos = 0;
     skipWhitespace_(json, pos);
     if (pos >= json.size() || json[pos] != '[') return result;
-    ++pos; // skip '['
+    ++pos;
 
     while (pos < json.size())
     {
@@ -288,23 +281,21 @@ namespace // anonymous
       if (pos >= json.size() || json[pos] == ']') break;
       if (json[pos] == ',') { ++pos; continue; }
       if (json[pos] != '{') break;
-      ++pos; // skip '{'
+      ++pos;
 
       DataProcessing dp;
       std::string software_name, software_version, completion_time;
       std::vector<std::string> action_names;
 
-      // Parse key-value pairs in the object
       while (pos < json.size())
       {
         skipWhitespace_(json, pos);
         if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
         if (json[pos] == ',') { ++pos; continue; }
 
-        // Parse key
         std::string key = parseJsonString_(json, pos);
         skipWhitespace_(json, pos);
-        if (pos < json.size() && json[pos] == ':') ++pos; // skip ':'
+        if (pos < json.size() && json[pos] == ':') ++pos;
         skipWhitespace_(json, pos);
 
         if (key == "software_name")
@@ -321,10 +312,9 @@ namespace // anonymous
         }
         else if (key == "actions")
         {
-          // Parse array of strings
           if (pos < json.size() && json[pos] == '[')
           {
-            ++pos; // skip '['
+            ++pos;
             while (pos < json.size())
             {
               skipWhitespace_(json, pos);
@@ -336,17 +326,16 @@ namespace // anonymous
         }
         else if (key == "metavalues")
         {
-          // Parse array of {name, value, type} objects
           if (pos < json.size() && json[pos] == '[')
           {
-            ++pos; // skip '['
+            ++pos;
             while (pos < json.size())
             {
               skipWhitespace_(json, pos);
               if (pos >= json.size() || json[pos] == ']') { ++pos; break; }
               if (json[pos] == ',') { ++pos; continue; }
               if (json[pos] != '{') break;
-              ++pos; // skip '{'
+              ++pos;
 
               std::string mv_name, mv_value, mv_type;
               while (pos < json.size())
@@ -363,7 +352,7 @@ namespace // anonymous
                 if (mk == "name") mv_name = parseJsonString_(json, pos);
                 else if (mk == "value") mv_value = parseJsonString_(json, pos);
                 else if (mk == "type") mv_type = parseJsonString_(json, pos);
-                else parseJsonString_(json, pos); // skip unknown value
+                else parseJsonString_(json, pos);
               }
 
               if (!mv_name.empty())
@@ -420,12 +409,10 @@ namespace // anonymous
         }
         else
         {
-          // Skip unknown value (string)
           parseJsonString_(json, pos);
         }
       }
 
-      // Apply parsed fields to DataProcessing
       dp.getSoftware().setName(software_name);
       dp.getSoftware().setVersion(software_version);
       if (!completion_time.empty())
@@ -440,7 +427,7 @@ namespace // anonymous
         }
         catch (...)
         {
-          OPENMS_LOG_WARN << "FeatureMapArrowIO: Unknown processing action: " << action_name << std::endl;
+          OPENMS_LOG_WARN << "ConsensusMapArrowIO: Unknown processing action: " << action_name << std::endl;
         }
       }
 
@@ -449,6 +436,226 @@ namespace // anonymous
 
     return result;
   }
+
+  // ==================== MetaInfoInterface JSON helpers ====================
+
+  /// Serialize MetaInfoInterface metavalues to a JSON array string.
+  std::string serializeMetaValues_(const MetaInfoInterface& mii)
+  {
+    std::string json = "[";
+    std::vector<String> keys;
+    mii.getKeys(keys);
+    bool first = true;
+    for (const auto& key : keys)
+    {
+      if (!first) json += ",";
+      const DataValue& val = mii.getMetaValue(key);
+      std::string type_str;
+      switch (val.valueType())
+      {
+        case DataValue::INT_VALUE: type_str = "int"; break;
+        case DataValue::DOUBLE_VALUE: type_str = "double"; break;
+        case DataValue::STRING_VALUE: type_str = "string"; break;
+        case DataValue::INT_LIST: type_str = "int_list"; break;
+        case DataValue::DOUBLE_LIST: type_str = "double_list"; break;
+        case DataValue::STRING_LIST: type_str = "string_list"; break;
+        default: type_str = "string"; break;
+      }
+      json += "{\"name\":\"" + escapeJsonString_(std::string(key))
+            + "\",\"value\":\"" + escapeJsonString_(val.toString())
+            + "\",\"type\":\"" + type_str + "\"}";
+      first = false;
+    }
+    json += "]";
+    return json;
+  }
+
+  /// Deserialize a JSON array of {name, value, type} objects into a MetaInfoInterface.
+  void deserializeMetaValues_(const std::string& json, MetaInfoInterface& target)
+  {
+    if (json.empty()) return;
+
+    size_t pos = 0;
+    skipWhitespace_(json, pos);
+    if (pos >= json.size() || json[pos] != '[') return;
+    ++pos;
+
+    while (pos < json.size())
+    {
+      skipWhitespace_(json, pos);
+      if (pos >= json.size() || json[pos] == ']') break;
+      if (json[pos] == ',') { ++pos; continue; }
+      if (json[pos] != '{') break;
+      ++pos;
+
+      std::string mv_name, mv_value, mv_type;
+      while (pos < json.size())
+      {
+        skipWhitespace_(json, pos);
+        if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
+        if (json[pos] == ',') { ++pos; continue; }
+
+        std::string mk = parseJsonString_(json, pos);
+        skipWhitespace_(json, pos);
+        if (pos < json.size() && json[pos] == ':') ++pos;
+        skipWhitespace_(json, pos);
+
+        if (mk == "name") mv_name = parseJsonString_(json, pos);
+        else if (mk == "value") mv_value = parseJsonString_(json, pos);
+        else if (mk == "type") mv_type = parseJsonString_(json, pos);
+        else parseJsonString_(json, pos);
+      }
+
+      if (!mv_name.empty())
+      {
+        if (mv_type == "int")
+        {
+          try { target.setMetaValue(mv_name, DataValue(std::stoi(mv_value))); }
+          catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        }
+        else if (mv_type == "double" || mv_type == "float")
+        {
+          try { target.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+          catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        }
+        else if (mv_type == "int_list")
+        {
+          try
+          {
+            String s(mv_value);
+            if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+            target.setMetaValue(mv_name, DataValue(ListUtils::create<Int>(s)));
+          }
+          catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        }
+        else if (mv_type == "double_list")
+        {
+          try
+          {
+            String s(mv_value);
+            if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+            target.setMetaValue(mv_name, DataValue(ListUtils::create<double>(s)));
+          }
+          catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        }
+        else if (mv_type == "string_list")
+        {
+          try
+          {
+            String s(mv_value);
+            if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+            auto sl = ListUtils::create<String>(s);
+            for (auto& e : sl) { e = e.trim(); }
+            target.setMetaValue(mv_name, DataValue(sl));
+          }
+          catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        }
+        else
+        {
+          target.setMetaValue(mv_name, DataValue(mv_value));
+        }
+      }
+    }
+  }
+
+  // ==================== Column header JSON helpers ====================
+
+  /// Serialize ConsensusMap column headers to a JSON string (including metavalues).
+  std::string serializeColumnHeaders_(const ConsensusMap::ColumnHeaders& headers)
+  {
+    std::string json = "[";
+    bool first = true;
+    for (const auto& [map_index, header] : headers)
+    {
+      if (!first) json += ",";
+      json += "{\"map_index\":" + std::to_string(map_index)
+            + ",\"filename\":\"" + escapeJsonString_(header.filename) + "\""
+            + ",\"label\":\"" + escapeJsonString_(header.label) + "\""
+            + ",\"size\":" + std::to_string(header.size)
+            + ",\"unique_id\":" + std::to_string(header.unique_id)
+            + ",\"metavalues\":" + serializeMetaValues_(header)
+            + "}";
+      first = false;
+    }
+    json += "]";
+    return json;
+  }
+
+  /// Deserialize a JSON string into ConsensusMap column headers.
+  ConsensusMap::ColumnHeaders deserializeColumnHeaders_(const std::string& json)
+  {
+    ConsensusMap::ColumnHeaders result;
+    if (json.empty()) return result;
+
+    size_t pos = 0;
+    skipWhitespace_(json, pos);
+    if (pos >= json.size() || json[pos] != '[') return result;
+    ++pos;
+
+    while (pos < json.size())
+    {
+      skipWhitespace_(json, pos);
+      if (pos >= json.size() || json[pos] == ']') break;
+      if (json[pos] == ',') { ++pos; continue; }
+      if (json[pos] != '{') break;
+      ++pos;
+
+      ConsensusMap::ColumnHeader header;
+      UInt64 map_index = 0;
+
+      while (pos < json.size())
+      {
+        skipWhitespace_(json, pos);
+        if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
+        if (json[pos] == ',') { ++pos; continue; }
+
+        std::string key = parseJsonString_(json, pos);
+        skipWhitespace_(json, pos);
+        if (pos < json.size() && json[pos] == ':') ++pos;
+        skipWhitespace_(json, pos);
+
+        if (key == "map_index" || key == "size" || key == "unique_id")
+        {
+          std::string num_str;
+          while (pos < json.size() && (std::isdigit(json[pos]) || json[pos] == '-'))
+          {
+            num_str += json[pos++];
+          }
+          if (key == "map_index") map_index = std::stoull(num_str);
+          else if (key == "size") header.size = std::stoull(num_str);
+          else if (key == "unique_id") header.unique_id = std::stoull(num_str);
+        }
+        else if (key == "metavalues")
+        {
+          // Parse the nested metavalues array inline
+          // Find the matching ']' to extract the substring for deserializeMetaValues_
+          if (pos < json.size() && json[pos] == '[')
+          {
+            size_t start = pos;
+            int depth = 0;
+            while (pos < json.size())
+            {
+              if (json[pos] == '[') ++depth;
+              else if (json[pos] == ']') { --depth; if (depth == 0) { ++pos; break; } }
+              else if (json[pos] == '"') { ++pos; while (pos < json.size() && json[pos] != '"') { if (json[pos] == '\\') ++pos; ++pos; } }
+              ++pos;
+            }
+            deserializeMetaValues_(json.substr(start, pos - start), header);
+          }
+        }
+        else
+        {
+          std::string val = parseJsonString_(json, pos);
+          if (key == "filename") header.filename = val;
+          else if (key == "label") header.label = val;
+        }
+      }
+      result[map_index] = header;
+    }
+    return result;
+  }
+
+  // ==================== Parquet I/O helpers ====================
 
   /// Write an Arrow table to a Parquet file with QPX-style metadata.
   bool writeArrowTableToParquet_(
@@ -460,7 +667,7 @@ namespace // anonymous
   {
     if (!table)
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: null table passed to writeArrowTableToParquet_" << std::endl;
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: null table passed to writeArrowTableToParquet_" << std::endl;
       return false;
     }
 
@@ -474,8 +681,8 @@ namespace // anonymous
       uint32_t r = dist(gen);
       std::memcpy(bytes + i * 4, &r, 4);
     }
-    bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
-    bytes[8] = (bytes[8] & 0x3F) | 0x80; // variant 1
+    bytes[6] = (bytes[6] & 0x0F) | 0x40;
+    bytes[8] = (bytes[8] & 0x3F) | 0x80;
     char buf[37];
     std::snprintf(buf, sizeof(buf),
       "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
@@ -504,16 +711,14 @@ namespace // anonymous
     }
     table = table->ReplaceSchemaMetadata(metadata);
 
-    // Open output file
     auto result = arrow::io::FileOutputStream::Open(filename);
     if (!result.ok())
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to open file: " << filename << std::endl;
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to open file: " << filename << std::endl;
       return false;
     }
     auto outfile = *result;
 
-    // Configure Parquet writer
     auto builder = parquet::WriterProperties::Builder();
 
     switch (config.compression)
@@ -551,31 +756,18 @@ namespace // anonymous
     auto writer_props = builder.build();
     auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
 
-    // Write
     auto write_status = parquet::arrow::WriteTable(
       *table, arrow::default_memory_pool(), outfile,
       config.row_group_size, writer_props, arrow_props);
 
     if (!write_status.ok())
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to write Parquet: "
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to write Parquet: "
                        << write_status.ToString() << std::endl;
       return false;
     }
 
     return true;
-  }
-
-  /// Count total features recursively (top-level + all subordinates).
-  Size countFeaturesRecursive_(const std::vector<Feature>& features)
-  {
-    Size count = 0;
-    for (const auto& f : features)
-    {
-      ++count;
-      count += countFeaturesRecursive_(f.getSubordinates());
-    }
-    return count;
   }
 
   // ==================== Import helpers ====================
@@ -586,7 +778,7 @@ namespace // anonymous
     auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     if (!infile_result.ok())
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to open file: " << filename << std::endl;
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to open file: " << filename << std::endl;
       return nullptr;
     }
     auto infile = *infile_result;
@@ -594,7 +786,7 @@ namespace // anonymous
     auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
     if (!reader_result.ok())
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create Parquet reader for: " << filename << std::endl;
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to create Parquet reader for: " << filename << std::endl;
       return nullptr;
     }
     auto reader = std::move(reader_result.ValueOrDie());
@@ -603,14 +795,14 @@ namespace // anonymous
     auto read_status = reader->ReadTable(&table);
     if (!read_status.ok())
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to read table: " << read_status.ToString() << std::endl;
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to read table: " << read_status.ToString() << std::endl;
       return nullptr;
     }
 
     auto combined = table->CombineChunks(arrow::default_memory_pool());
     if (!combined.ok())
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to combine chunks" << std::endl;
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to combine chunks" << std::endl;
       return nullptr;
     }
 
@@ -618,7 +810,6 @@ namespace // anonymous
   }
 
   /// Fetch a named column from a table, combining chunks if needed.
-  /// Returns nullptr if column not found (logs error if required).
   std::shared_ptr<arrow::Array> getColumn_(
     const std::shared_ptr<arrow::Table>& table,
     const std::string& name,
@@ -629,13 +820,13 @@ namespace // anonymous
     {
       if (required)
       {
-        OPENMS_LOG_ERROR << "FeatureMapArrowIO: Missing required column '" << name << "'" << std::endl;
+        OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required column '" << name << "'" << std::endl;
       }
       return nullptr;
     }
     if (column->num_chunks() == 0)
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Column '" << name << "' has no chunks" << std::endl;
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Column '" << name << "' has no chunks" << std::endl;
       return nullptr;
     }
     if (column->num_chunks() == 1)
@@ -645,62 +836,54 @@ namespace // anonymous
     auto combined = arrow::Concatenate(column->chunks(), arrow::default_memory_pool());
     if (!combined.ok())
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to combine chunks for column '" << name << "'" << std::endl;
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to combine chunks for column '" << name << "'" << std::endl;
       return nullptr;
     }
     return *combined;
   }
 
-  /// Get string value at a row, returning empty string if null.
   String getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
   {
     if (!array || array->IsNull(row)) return "";
     return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
   }
 
-  /// Get double value at a row, returning default_val if null.
   double getDoubleValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, double default_val = 0.0)
   {
     if (!array || array->IsNull(row)) return default_val;
     return std::static_pointer_cast<arrow::DoubleArray>(array)->Value(row);
   }
 
-  /// Get float value at a row, returning default_val if null.
   float getFloatValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, float default_val = 0.0f)
   {
     if (!array || array->IsNull(row)) return default_val;
     return std::static_pointer_cast<arrow::FloatArray>(array)->Value(row);
   }
 
-  /// Get int64 value at a row, returning default_val if null.
   int64_t getInt64Value_(const std::shared_ptr<arrow::Array>& array, int64_t row, int64_t default_val = 0)
   {
     if (!array || array->IsNull(row)) return default_val;
     return std::static_pointer_cast<arrow::Int64Array>(array)->Value(row);
   }
 
-  /// Get int32 value at a row, returning default_val if null.
   int32_t getInt32Value_(const std::shared_ptr<arrow::Array>& array, int64_t row, int32_t default_val = 0)
   {
     if (!array || array->IsNull(row)) return default_val;
     return std::static_pointer_cast<arrow::Int32Array>(array)->Value(row);
   }
 
-  /// Get boolean value at a row, returning default_val if null.
   bool getBoolValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, bool default_val = false)
   {
     if (!array || array->IsNull(row)) return default_val;
     return std::static_pointer_cast<arrow::BooleanArray>(array)->Value(row);
   }
 
-  /// Check if value at row is null.
   bool isNull_(const std::shared_ptr<arrow::Array>& array, int64_t row)
   {
     return !array || array->IsNull(row);
   }
 
   /// Read metavalues from a list<struct{name,value,value_type}> column at a given row.
-  /// Sets them on the target MetaInfoInterface, excluding specified keys.
   void readMetaValues_(
     const std::shared_ptr<arrow::Array>& array,
     int64_t row,
@@ -773,82 +956,82 @@ namespace // anonymous
     }
   }
 
-  /// Read convex hulls from a list<struct{hull_index, points: list<struct{x, y}>}> column at a given row.
-  void readConvexHulls_(
+  /// Read FeatureHandles from a list<struct{...}> column at a given row into a ConsensusFeature.
+  void readHandles_(
     const std::shared_ptr<arrow::Array>& array,
     int64_t row,
-    Feature& feature)
+    ConsensusFeature& cf)
   {
     if (!array || array->IsNull(row)) return;
     auto list_arr = std::static_pointer_cast<arrow::ListArray>(array);
-    auto hull_struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
-    if (!hull_struct_arr || hull_struct_arr->length() == 0) return;
+    auto struct_arr = std::static_pointer_cast<arrow::StructArray>(list_arr->value_slice(row));
+    if (!struct_arr || struct_arr->length() == 0) return;
 
-    auto points_list_arr = std::static_pointer_cast<arrow::ListArray>(hull_struct_arr->field(1));
+    auto map_index_arr = std::static_pointer_cast<arrow::Int64Array>(struct_arr->field(0));
+    auto unique_id_arr = std::static_pointer_cast<arrow::Int64Array>(struct_arr->field(1));
+    auto rt_arr = std::static_pointer_cast<arrow::DoubleArray>(struct_arr->field(2));
+    auto mz_arr = std::static_pointer_cast<arrow::DoubleArray>(struct_arr->field(3));
+    auto intensity_arr = std::static_pointer_cast<arrow::FloatArray>(struct_arr->field(4));
+    auto charge_arr = std::static_pointer_cast<arrow::Int32Array>(struct_arr->field(5));
+    auto width_arr = std::static_pointer_cast<arrow::FloatArray>(struct_arr->field(6));
 
-    for (int64_t h = 0; h < hull_struct_arr->length(); ++h)
+    for (int64_t i = 0; i < struct_arr->length(); ++i)
     {
-      ConvexHull2D hull;
-      ConvexHull2D::PointArrayType hull_points;
-
-      auto point_struct_arr = std::static_pointer_cast<arrow::StructArray>(points_list_arr->value_slice(h));
-      if (point_struct_arr && point_struct_arr->length() > 0)
-      {
-        auto x_arr = std::static_pointer_cast<arrow::DoubleArray>(point_struct_arr->field(0));
-        auto y_arr = std::static_pointer_cast<arrow::DoubleArray>(point_struct_arr->field(1));
-
-        hull_points.reserve(point_struct_arr->length());
-        for (int64_t p = 0; p < point_struct_arr->length(); ++p)
-        {
-          hull_points.emplace_back(x_arr->Value(p), y_arr->Value(p));
-        }
-      }
-
-      hull.setHullPoints(hull_points);
-      feature.getConvexHulls().push_back(hull);
+      FeatureHandle handle;
+      handle.setMapIndex(static_cast<UInt64>(map_index_arr->Value(i)));
+      handle.setUniqueId(static_cast<UInt64>(unique_id_arr->Value(i)));
+      handle.setRT(rt_arr->Value(i));
+      handle.setMZ(mz_arr->Value(i));
+      handle.setIntensity(intensity_arr->Value(i));
+      handle.setCharge(static_cast<Int>(charge_arr->Value(i)));
+      handle.setWidth(width_arr->Value(i));
+      cf.insert(handle);
     }
   }
 
 } // anonymous namespace
 
 
-std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
-  const FeatureMap& feature_map)
+// ==================== Export methods ====================
+
+std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportFeaturesToArrow(
+  const ConsensusMap& cmap)
 {
   // -- Scalar column builders --
   arrow::Int64Builder unique_id_builder;
-  arrow::Int64Builder parent_feature_id_builder;
-  arrow::Int32Builder depth_builder;
   arrow::DoubleBuilder rt_builder, mz_builder;
   arrow::FloatBuilder intensity_builder;
   arrow::Int32Builder charge_builder;
-  arrow::FloatBuilder overall_quality_builder, quality_rt_builder, quality_mz_builder;
+  arrow::FloatBuilder quality_builder;
   arrow::FloatBuilder width_builder;
-  arrow::DoubleBuilder rt_bb_min_builder, rt_bb_max_builder, mz_bb_min_builder, mz_bb_max_builder;
 
-  // -- convex_hulls: list<struct{hull_index: int32, points: list<struct{x: float64, y: float64}>}> --
-  auto point_x_b = std::make_shared<arrow::DoubleBuilder>();
-  auto point_y_b = std::make_shared<arrow::DoubleBuilder>();
-  auto point_struct_type = arrow::struct_({
-    arrow::field("x", arrow::float64()),
-    arrow::field("y", arrow::float64())
+  // -- handles: list<struct{map_index, unique_id, rt, mz, intensity, charge, width}> --
+  auto handle_map_index_b = std::make_shared<arrow::Int64Builder>();
+  auto handle_unique_id_b = std::make_shared<arrow::Int64Builder>();
+  auto handle_rt_b = std::make_shared<arrow::DoubleBuilder>();
+  auto handle_mz_b = std::make_shared<arrow::DoubleBuilder>();
+  auto handle_intensity_b = std::make_shared<arrow::FloatBuilder>();
+  auto handle_charge_b = std::make_shared<arrow::Int32Builder>();
+  auto handle_width_b = std::make_shared<arrow::FloatBuilder>();
+
+  auto handle_struct_type = arrow::struct_({
+    arrow::field("map_index", arrow::int64()),
+    arrow::field("unique_id", arrow::int64()),
+    arrow::field("rt", arrow::float64()),
+    arrow::field("mz", arrow::float64()),
+    arrow::field("intensity", arrow::float32()),
+    arrow::field("charge", arrow::int32()),
+    arrow::field("width", arrow::float32())
   });
-  auto point_struct_b = std::make_shared<arrow::StructBuilder>(
-    point_struct_type, arrow::default_memory_pool(),
-    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{point_x_b, point_y_b});
-  auto points_list_b = std::make_shared<arrow::ListBuilder>(arrow::default_memory_pool(), point_struct_b);
 
-  auto hull_index_b = std::make_shared<arrow::Int32Builder>();
-  auto hull_struct_type = arrow::struct_({
-    arrow::field("hull_index", arrow::int32()),
-    arrow::field("points", arrow::list(point_struct_type))
-  });
-  auto hull_struct_b = std::make_shared<arrow::StructBuilder>(
-    hull_struct_type, arrow::default_memory_pool(),
-    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{hull_index_b, points_list_b});
-  arrow::ListBuilder convex_hulls_builder(arrow::default_memory_pool(), hull_struct_b);
+  auto handle_struct_b = std::make_shared<arrow::StructBuilder>(
+    handle_struct_type, arrow::default_memory_pool(),
+    std::vector<std::shared_ptr<arrow::ArrayBuilder>>{
+      handle_map_index_b, handle_unique_id_b, handle_rt_b, handle_mz_b,
+      handle_intensity_b, handle_charge_b, handle_width_b});
+  arrow::ListBuilder handles_builder(arrow::default_memory_pool(), handle_struct_b);
 
-  // -- metavalues: list<struct{name: utf8, value: utf8, value_type: utf8}> --
+  // -- metavalues: list<struct{name, value, value_type}> --
   auto mv_name_b = std::make_shared<arrow::StringBuilder>();
   auto mv_value_b = std::make_shared<arrow::StringBuilder>();
   auto mv_type_b = std::make_shared<arrow::StringBuilder>();
@@ -862,80 +1045,39 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
     std::vector<std::shared_ptr<arrow::ArrayBuilder>>{mv_name_b, mv_value_b, mv_type_b});
   arrow::ListBuilder metavalues_builder(arrow::default_memory_pool(), mv_struct_b);
 
-  // Count total features (top-level + subordinates) for capacity reservation
-  Size num_rows = countFeaturesRecursive_(feature_map.getData());
+  Size num_rows = cmap.size();
 
-  // Reserve capacity for scalar builders
   arrow::Status status;
 
   #define RESERVE_OR_RETURN(builder_name) \
     status = builder_name.Reserve(num_rows); \
-    if (!status.ok()) { OPENMS_LOG_ERROR << "FeatureMapArrowIO: " #builder_name " Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+    if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowIO: " #builder_name " Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   RESERVE_OR_RETURN(unique_id_builder)
-  RESERVE_OR_RETURN(parent_feature_id_builder)
-  RESERVE_OR_RETURN(depth_builder)
   RESERVE_OR_RETURN(rt_builder)
   RESERVE_OR_RETURN(mz_builder)
   RESERVE_OR_RETURN(intensity_builder)
   RESERVE_OR_RETURN(charge_builder)
-  RESERVE_OR_RETURN(overall_quality_builder)
-  RESERVE_OR_RETURN(quality_rt_builder)
-  RESERVE_OR_RETURN(quality_mz_builder)
+  RESERVE_OR_RETURN(quality_builder)
   RESERVE_OR_RETURN(width_builder)
-  RESERVE_OR_RETURN(rt_bb_min_builder)
-  RESERVE_OR_RETURN(rt_bb_max_builder)
-  RESERVE_OR_RETURN(mz_bb_min_builder)
-  RESERVE_OR_RETURN(mz_bb_max_builder)
 
   #undef RESERVE_OR_RETURN
 
-  // Exclude FWHM from metavalues (it is already stored as a dedicated column or derived from convex hulls)
+  // Exclude FWHM from metavalues (it is already stored as the dedicated 'width' column)
   static const std::unordered_set<std::string> excluded_mvs = {"FWHM"};
 
-  // Recursive lambda to flatten features depth-first
-  std::function<void(const Feature&, int64_t, int32_t)> appendFeature =
-    [&](const Feature& feature, int64_t parent_id, int32_t depth)
+  for (const auto& cf : cmap)
   {
-    // === unique_id (not nullable) ===
-    (void)unique_id_builder.Append(static_cast<int64_t>(feature.getUniqueId()));
+    (void)unique_id_builder.Append(static_cast<int64_t>(cf.getUniqueId()));
+    (void)rt_builder.Append(cf.getRT());
+    (void)mz_builder.Append(cf.getMZ());
+    (void)intensity_builder.Append(cf.getIntensity());
+    (void)charge_builder.Append(static_cast<int32_t>(cf.getCharge()));
+    (void)quality_builder.Append(cf.getQuality());
 
-    // === parent_feature_id (nullable: null for top-level) ===
-    if (depth == 0)
-    {
-      (void)parent_feature_id_builder.AppendNull();
-    }
-    else
-    {
-      (void)parent_feature_id_builder.Append(parent_id);
-    }
-
-    // === depth (not nullable) ===
-    (void)depth_builder.Append(depth);
-
-    // === rt (not nullable) ===
-    (void)rt_builder.Append(feature.getRT());
-
-    // === mz (not nullable) ===
-    (void)mz_builder.Append(feature.getMZ());
-
-    // === intensity (not nullable) ===
-    (void)intensity_builder.Append(feature.getIntensity());
-
-    // === charge (not nullable) ===
-    (void)charge_builder.Append(static_cast<int32_t>(feature.getCharge()));
-
-    // === overall_quality (not nullable) ===
-    (void)overall_quality_builder.Append(feature.getOverallQuality());
-
-    // === quality_rt (not nullable) ===
-    (void)quality_rt_builder.Append(feature.getQuality(0));
-
-    // === quality_mz (not nullable) ===
-    (void)quality_mz_builder.Append(feature.getQuality(1));
-
-    // === width (nullable: null if 0.0, since 0.0 is the unset default; round-trip correct) ===
-    float w = feature.getWidth();
+    // Width: 0.0 is the unset default, stored as null to distinguish from explicitly set values.
+    // On import, null is left as default (0.0), so round-trip is numerically correct.
+    float w = cf.getWidth();
     if (w == 0.0f)
     {
       (void)width_builder.AppendNull();
@@ -945,182 +1087,104 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
       (void)width_builder.Append(w);
     }
 
-    // === bounding box (nullable: null if no convex hulls) ===
-    const auto& hulls = feature.getConvexHulls();
-    if (hulls.empty())
+    // handles
+    (void)handles_builder.Append();
+    for (const auto& handle : cf.getFeatures())
     {
-      (void)rt_bb_min_builder.AppendNull();
-      (void)rt_bb_max_builder.AppendNull();
-      (void)mz_bb_min_builder.AppendNull();
-      (void)mz_bb_max_builder.AppendNull();
-    }
-    else
-    {
-      auto bb = feature.getConvexHull().getBoundingBox();
-      (void)rt_bb_min_builder.Append(bb.minPosition()[0]);
-      (void)rt_bb_max_builder.Append(bb.maxPosition()[0]);
-      (void)mz_bb_min_builder.Append(bb.minPosition()[1]);
-      (void)mz_bb_max_builder.Append(bb.maxPosition()[1]);
+      (void)handle_struct_b->Append();
+      (void)handle_map_index_b->Append(static_cast<int64_t>(handle.getMapIndex()));
+      (void)handle_unique_id_b->Append(static_cast<int64_t>(handle.getUniqueId()));
+      (void)handle_rt_b->Append(handle.getRT());
+      (void)handle_mz_b->Append(handle.getMZ());
+      (void)handle_intensity_b->Append(handle.getIntensity());
+      (void)handle_charge_b->Append(static_cast<int32_t>(handle.getCharge()));
+      (void)handle_width_b->Append(handle.getWidth());
     }
 
-    // === convex_hulls (not nullable) ===
-    (void)convex_hulls_builder.Append(); // begin list for this feature
-    for (int32_t hull_idx = 0; hull_idx < static_cast<int32_t>(hulls.size()); ++hull_idx)
-    {
-      const auto& hull = hulls[hull_idx];
-      const auto& points = hull.getHullPoints();
-
-      (void)hull_struct_b->Append(); // begin struct for this hull
-      (void)hull_index_b->Append(hull_idx);
-      (void)points_list_b->Append(); // begin list of points
-      for (const auto& pt : points)
-      {
-        (void)point_struct_b->Append();
-        (void)point_x_b->Append(pt[0]); // RT
-        (void)point_y_b->Append(pt[1]); // MZ
-      }
-    }
-
-    // === metavalues (not nullable) ===
+    // metavalues
     (void)metavalues_builder.Append();
-    appendMetaValues_(feature, mv_name_b, mv_value_b, mv_type_b, mv_struct_b, excluded_mvs);
-
-    // Recurse into subordinates
-    int64_t this_id = static_cast<int64_t>(feature.getUniqueId());
-    for (const auto& sub : feature.getSubordinates())
-    {
-      appendFeature(sub, this_id, depth + 1);
-    }
-  };
-
-  // Walk all top-level features
-  for (const auto& feature : feature_map)
-  {
-    appendFeature(feature, 0, 0);
+    appendMetaValues_(cf, mv_name_b, mv_value_b, mv_type_b, mv_struct_b, excluded_mvs);
   }
 
-  // Finalize all arrays
-  std::shared_ptr<arrow::Array> arr_unique_id, arr_parent_id, arr_depth;
-  std::shared_ptr<arrow::Array> arr_rt, arr_mz, arr_intensity;
-  std::shared_ptr<arrow::Array> arr_charge, arr_overall_quality;
-  std::shared_ptr<arrow::Array> arr_quality_rt, arr_quality_mz;
-  std::shared_ptr<arrow::Array> arr_width;
-  std::shared_ptr<arrow::Array> arr_rt_bb_min, arr_rt_bb_max, arr_mz_bb_min, arr_mz_bb_max;
-  std::shared_ptr<arrow::Array> arr_convex_hulls, arr_metavalues;
+  // Finalize arrays
+  std::shared_ptr<arrow::Array> arr_unique_id, arr_rt, arr_mz, arr_intensity;
+  std::shared_ptr<arrow::Array> arr_charge, arr_quality, arr_width;
+  std::shared_ptr<arrow::Array> arr_handles, arr_metavalues;
 
   #define FINISH_OR_RETURN(builder_name, arr_name) \
     status = builder_name.Finish(&arr_name); \
-    if (!status.ok()) { OPENMS_LOG_ERROR << "FeatureMapArrowIO: " #builder_name " Finish failed: " << status.ToString() << std::endl; return nullptr; }
+    if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowIO: " #builder_name " Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
   FINISH_OR_RETURN(unique_id_builder, arr_unique_id)
-  FINISH_OR_RETURN(parent_feature_id_builder, arr_parent_id)
-  FINISH_OR_RETURN(depth_builder, arr_depth)
   FINISH_OR_RETURN(rt_builder, arr_rt)
   FINISH_OR_RETURN(mz_builder, arr_mz)
   FINISH_OR_RETURN(intensity_builder, arr_intensity)
   FINISH_OR_RETURN(charge_builder, arr_charge)
-  FINISH_OR_RETURN(overall_quality_builder, arr_overall_quality)
-  FINISH_OR_RETURN(quality_rt_builder, arr_quality_rt)
-  FINISH_OR_RETURN(quality_mz_builder, arr_quality_mz)
+  FINISH_OR_RETURN(quality_builder, arr_quality)
   FINISH_OR_RETURN(width_builder, arr_width)
-  FINISH_OR_RETURN(rt_bb_min_builder, arr_rt_bb_min)
-  FINISH_OR_RETURN(rt_bb_max_builder, arr_rt_bb_max)
-  FINISH_OR_RETURN(mz_bb_min_builder, arr_mz_bb_min)
-  FINISH_OR_RETURN(mz_bb_max_builder, arr_mz_bb_max)
-  FINISH_OR_RETURN(convex_hulls_builder, arr_convex_hulls)
+  FINISH_OR_RETURN(handles_builder, arr_handles)
   FINISH_OR_RETURN(metavalues_builder, arr_metavalues)
 
   #undef FINISH_OR_RETURN
 
-  // Build schema (17 columns)
   auto schema = arrow::schema({
-    arrow::field("unique_id", arrow::int64(), /*nullable=*/false),
-    arrow::field("parent_feature_id", arrow::int64(), /*nullable=*/true),
-    arrow::field("depth", arrow::int32(), /*nullable=*/false),
-    arrow::field("rt", arrow::float64(), /*nullable=*/false),
-    arrow::field("mz", arrow::float64(), /*nullable=*/false),
-    arrow::field("intensity", arrow::float32(), /*nullable=*/false),
-    arrow::field("charge", arrow::int32(), /*nullable=*/false),
-    arrow::field("quality", arrow::float32(), /*nullable=*/false),
-    arrow::field("quality_rt", arrow::float32(), /*nullable=*/false),
-    arrow::field("quality_mz", arrow::float32(), /*nullable=*/false),
-    arrow::field("width", arrow::float32(), /*nullable=*/true),
-    arrow::field("rt_bb_min", arrow::float64(), /*nullable=*/true),
-    arrow::field("rt_bb_max", arrow::float64(), /*nullable=*/true),
-    arrow::field("mz_bb_min", arrow::float64(), /*nullable=*/true),
-    arrow::field("mz_bb_max", arrow::float64(), /*nullable=*/true),
-    arrow::field("convex_hulls", convex_hulls_builder.type(), /*nullable=*/false),
-    arrow::field("metavalues", metavalues_builder.type(), /*nullable=*/false),
+    arrow::field("unique_id", arrow::int64()),
+    arrow::field("rt", arrow::float64()),
+    arrow::field("mz", arrow::float64()),
+    arrow::field("intensity", arrow::float32()),
+    arrow::field("charge", arrow::int32()),
+    arrow::field("quality", arrow::float32()),
+    arrow::field("width", arrow::float32()),
+    arrow::field("handles", arrow::list(handle_struct_type)),
+    arrow::field("metavalues", arrow::list(mv_struct_type))
   });
 
-  auto table = arrow::Table::Make(schema, {
-    arr_unique_id, arr_parent_id, arr_depth,
-    arr_rt, arr_mz, arr_intensity,
-    arr_charge, arr_overall_quality,
-    arr_quality_rt, arr_quality_mz,
-    arr_width,
-    arr_rt_bb_min, arr_rt_bb_max, arr_mz_bb_min, arr_mz_bb_max,
-    arr_convex_hulls, arr_metavalues
+  return arrow::Table::Make(schema, {
+    arr_unique_id, arr_rt, arr_mz, arr_intensity,
+    arr_charge, arr_quality, arr_width,
+    arr_handles, arr_metavalues
   });
-
-  return table;
 }
 
-std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
-  const FeatureMap& feature_map)
+std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportPSMsToArrow(
+  const ConsensusMap& cmap)
 {
-  // 1. Collect all PeptideIdentifications with their associated feature_ids.
-  //    For each PeptideIdentification we store (feature_unique_id, is_null).
+  // Collect all PeptideIdentifications with their associated consensus_feature_unique_ids.
   PeptideIdentificationList all_pep_ids;
-  std::vector<std::pair<int64_t, bool>> feature_ids_per_pep_id; // (feature_id, is_null)
+  std::vector<std::pair<int64_t, bool>> feature_ids_per_pep_id; // (id, is_null)
 
-  // Helper: recursively collect PeptideIdentifications from a Feature and its subordinates.
-  std::function<void(const Feature&)> collectFromFeature = [&](const Feature& f)
+  // Collect from consensus features (flat - no subordinates)
+  for (const auto& cf : cmap)
   {
-    for (const auto& pep_id : f.getPeptideIdentifications())
+    for (const auto& pep_id : cf.getPeptideIdentifications())
     {
       all_pep_ids.push_back(pep_id);
-      feature_ids_per_pep_id.push_back({static_cast<int64_t>(f.getUniqueId()), false});
+      feature_ids_per_pep_id.push_back({static_cast<int64_t>(cf.getUniqueId()), false});
     }
-    for (const auto& sub : f.getSubordinates())
-    {
-      collectFromFeature(sub);
-    }
-  };
-
-  for (const auto& feature : feature_map)
-  {
-    collectFromFeature(feature);
   }
 
-  // Unassigned peptide identifications get feature_id = null
-  for (const auto& pep_id : feature_map.getUnassignedPeptideIdentifications())
+  // Unassigned peptide identifications get consensus_feature_unique_id = null
+  for (const auto& pep_id : cmap.getUnassignedPeptideIdentifications())
   {
     all_pep_ids.push_back(pep_id);
-    feature_ids_per_pep_id.push_back({0, true}); // null
+    feature_ids_per_pep_id.push_back({0, true});
   }
 
-  // 2. Call QPXFile::exportToArrow to produce the base PSM table.
-  //    We use export_all_psms=true so all hits per PeptideIdentification are exported.
+  // Delegate to QPXFile to produce the base PSM table
   auto base_table = QPXFile::exportToArrow(
-    feature_map.getProteinIdentifications(), all_pep_ids, true);
+    cmap.getProteinIdentifications(), all_pep_ids, true);
   if (!base_table) { return nullptr; }
 
-  // 3. Build the feature_id column.
-  //    QPXFile::exportToArrow (with export_all_psms=true) produces one row per
-  //    PeptideHit across all PeptideIdentifications. PeptideIdentifications
-  //    with empty hits are skipped. We emit one feature_id per PeptideHit.
+  // Build the consensus_feature_unique_id column (one value per PeptideHit)
   arrow::Int64Builder feature_id_builder;
 
   for (size_t i = 0; i < all_pep_ids.size(); ++i)
   {
-    // Skip PeptideIdentifications with no hits (QPXFile skips them too)
     if (all_pep_ids[i].getHits().empty())
     {
       continue;
     }
 
-    // Emit one feature_id per PeptideHit in this PeptideIdentification
     for (size_t j = 0; j < all_pep_ids[i].getHits().size(); ++j)
     {
       if (feature_ids_per_pep_id[i].second) // is_null
@@ -1138,31 +1202,29 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
   auto status = feature_id_builder.Finish(&feature_id_array);
   if (!status.ok())
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: feature_id_builder Finish failed: " << status.ToString() << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: feature_id_builder Finish failed: " << status.ToString() << std::endl;
     return nullptr;
   }
 
-  // Verify row count matches
   if (feature_id_array->length() != base_table->num_rows())
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: feature_id column length (" << feature_id_array->length()
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: consensus_feature_unique_id column length (" << feature_id_array->length()
                      << ") does not match table row count (" << base_table->num_rows() << ")" << std::endl;
     return nullptr;
   }
 
-  // 4. Add feature_id as the first column in the table.
   auto chunked_feature_id = std::make_shared<arrow::ChunkedArray>(feature_id_array);
-  auto result = base_table->AddColumn(0, arrow::field("feature_unique_id", arrow::int64()), chunked_feature_id);
+  auto result = base_table->AddColumn(0, arrow::field("consensus_feature_unique_id", arrow::int64()), chunked_feature_id);
   if (!result.ok())
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: AddColumn failed: " << result.status().ToString() << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: AddColumn failed: " << result.status().ToString() << std::endl;
     return nullptr;
   }
   return *result;
 }
 
-bool FeatureMapArrowIO::exportToParquet(
-  const FeatureMap& feature_map,
+bool ConsensusMapArrowIO::exportToParquet(
+  const ConsensusMap& cmap,
   const String& directory,
   const ParquetWriteConfig& config)
 {
@@ -1173,35 +1235,39 @@ bool FeatureMapArrowIO::exportToParquet(
   }
   catch (const std::filesystem::filesystem_error& e)
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create directory: " << e.what() << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to create directory: " << e.what() << std::endl;
     return false;
   }
 
-  // 2. Export features table (with FeatureMap-level metadata)
-  auto features_table = exportFeaturesToArrow(feature_map);
+  // 2. Export consensus features table (with ConsensusMap-level metadata)
+  auto features_table = exportFeaturesToArrow(cmap);
   if (!features_table)
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create features Arrow table" << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to create consensus features Arrow table" << std::endl;
     return false;
   }
 
-  // Collect FeatureMap-level metadata (DocumentIdentifier + DataProcessing)
-  std::unordered_map<std::string, std::string> feature_map_metadata;
-  feature_map_metadata["document_id"] = feature_map.getIdentifier();
-  feature_map_metadata["loaded_file_path"] = feature_map.getLoadedFilePath();
-  feature_map_metadata["loaded_file_type"] = FileTypes::typeToName(feature_map.getLoadedFileType());
-  feature_map_metadata["data_processing"] = serializeDataProcessing_(feature_map.getDataProcessing());
+  std::unordered_map<std::string, std::string> cmap_metadata;
+  cmap_metadata["column_headers"] = serializeColumnHeaders_(cmap.getColumnHeaders());
+  cmap_metadata["experiment_type"] = cmap.getExperimentType();
+  cmap_metadata["document_id"] = cmap.getIdentifier();
+  cmap_metadata["loaded_file_path"] = cmap.getLoadedFilePath();
+  cmap_metadata["loaded_file_type"] = FileTypes::typeToName(cmap.getLoadedFileType());
+  cmap_metadata["data_processing"] = serializeDataProcessing_(cmap.getDataProcessing());
+  cmap_metadata["unique_id"] = std::to_string(cmap.getUniqueId());
+  cmap_metadata["cmap_metavalues"] = serializeMetaValues_(cmap);
 
-  if (!writeArrowTableToParquet_(features_table, directory + "/features.parquet", "features", config, feature_map_metadata))
+  if (!writeArrowTableToParquet_(features_table, directory + "/consensus_features.parquet",
+                                  "consensus_features", config, cmap_metadata))
   {
     return false;
   }
 
   // 3. Export PSMs table
-  auto psms_table = exportPSMsToArrow(feature_map);
+  auto psms_table = exportPSMsToArrow(cmap);
   if (!psms_table)
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create PSMs Arrow table" << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to create PSMs Arrow table" << std::endl;
     return false;
   }
   if (!writeArrowTableToParquet_(psms_table, directory + "/psms.parquet", "psms", config))
@@ -1210,7 +1276,7 @@ bool FeatureMapArrowIO::exportToParquet(
   }
 
   // 4. Delegate protein data to ProteinIdentificationArrowIO
-  const auto& prot_ids = feature_map.getProteinIdentifications();
+  const auto& prot_ids = cmap.getProteinIdentifications();
   if (!ProteinIdentificationArrowIO::exportProteinsToParquet(
           prot_ids, directory + "/proteins.parquet", config))
   {
@@ -1230,21 +1296,22 @@ bool FeatureMapArrowIO::exportToParquet(
   return true;
 }
 
-bool FeatureMapArrowIO::importFeaturesFromArrow(
+// ==================== Import methods ====================
+
+bool ConsensusMapArrowIO::importFeaturesFromArrow(
   const std::shared_ptr<arrow::Table>& table,
-  FeatureMap& feature_map)
+  ConsensusMap& cmap)
 {
   if (!table)
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: null table passed to importFeaturesFromArrow" << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: null table passed to importFeaturesFromArrow" << std::endl;
     return false;
   }
 
-  // Combine chunks for reliable single-chunk access
   auto combined_result = table->CombineChunks(arrow::default_memory_pool());
   if (!combined_result.ok())
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to combine chunks" << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to combine chunks" << std::endl;
     return false;
   }
   auto tbl = *combined_result;
@@ -1255,174 +1322,78 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
     return true;
   }
 
-  // Get all columns
   auto col_unique_id = getColumn_(tbl, "unique_id");
-  auto col_parent_id = getColumn_(tbl, "parent_feature_id");
-  auto col_depth = getColumn_(tbl, "depth");
   auto col_rt = getColumn_(tbl, "rt");
   auto col_mz = getColumn_(tbl, "mz");
   auto col_intensity = getColumn_(tbl, "intensity");
   auto col_charge = getColumn_(tbl, "charge");
-  auto col_overall_quality = getColumn_(tbl, "quality");
-  auto col_quality_rt = getColumn_(tbl, "quality_rt");
-  auto col_quality_mz = getColumn_(tbl, "quality_mz");
-  auto col_width = getColumn_(tbl, "width");
-  auto col_convex_hulls = getColumn_(tbl, "convex_hulls", /*required=*/false);
+  auto col_quality = getColumn_(tbl, "quality");
+  auto col_width = getColumn_(tbl, "width", /*required=*/false);
+  auto col_handles = getColumn_(tbl, "handles", /*required=*/false);
   auto col_metavalues = getColumn_(tbl, "metavalues", /*required=*/false);
 
-  if (!col_unique_id || !col_parent_id || !col_depth || !col_rt || !col_mz ||
-      !col_intensity || !col_charge || !col_overall_quality ||
-      !col_quality_rt || !col_quality_mz)
+  if (!col_unique_id || !col_rt || !col_mz || !col_intensity || !col_charge || !col_quality)
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Missing one or more required columns" << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing one or more required columns" << std::endl;
     return false;
   }
 
-  // Build a vector of {depth, row_index, unique_id, parent_id, Feature} entries
-  struct FeatureEntry
-  {
-    int32_t depth;
-    int64_t row_index;
-    int64_t unique_id;
-    int64_t parent_id;  // -1 if top-level
-    Feature feature;
-  };
-
-  std::vector<FeatureEntry> entries;
-  entries.reserve(num_rows);
-
-  // No metavalue keys to exclude for features
-  static const std::unordered_set<std::string> excluded_mvs = {};
-
   for (int64_t i = 0; i < num_rows; ++i)
   {
-    FeatureEntry entry;
-    entry.row_index = i;
-    entry.depth = getInt32Value_(col_depth, i, 0);
-    entry.unique_id = getInt64Value_(col_unique_id, i, 0);
-    entry.parent_id = isNull_(col_parent_id, i) ? -1 : getInt64Value_(col_parent_id, i, 0);
+    ConsensusFeature cf;
+    cf.setUniqueId(static_cast<UInt64>(getInt64Value_(col_unique_id, i, 0)));
+    cf.setRT(getDoubleValue_(col_rt, i));
+    cf.setMZ(getDoubleValue_(col_mz, i));
+    cf.setIntensity(getFloatValue_(col_intensity, i));
+    cf.setCharge(static_cast<Int>(getInt32Value_(col_charge, i)));
+    cf.setQuality(getFloatValue_(col_quality, i));
 
-    Feature& f = entry.feature;
-    f.setUniqueId(static_cast<UInt64>(entry.unique_id));
-    f.setRT(getDoubleValue_(col_rt, i));
-    f.setMZ(getDoubleValue_(col_mz, i));
-    f.setIntensity(getFloatValue_(col_intensity, i));
-    f.setCharge(static_cast<int>(getInt32Value_(col_charge, i)));
-    f.setOverallQuality(getFloatValue_(col_overall_quality, i));
-    f.setQuality(0, getFloatValue_(col_quality_rt, i));
-    f.setQuality(1, getFloatValue_(col_quality_mz, i));
-
-    // width: null means unset (default 0.0); only set if non-null and non-zero
-    float w = getFloatValue_(col_width, i, 0.0f);
-    if (w != 0.0f)
+    // Width: null means unset (default 0.0), so we only call setWidth for non-null values.
+    if (col_width && !isNull_(col_width, i))
     {
-      f.setWidth(w);
+      cf.setWidth(getFloatValue_(col_width, i));
     }
 
-    // Read convex hulls
-    if (col_convex_hulls)
+    if (col_handles)
     {
-      readConvexHulls_(col_convex_hulls, i, f);
+      readHandles_(col_handles, i, cf);
     }
 
-    // Read metavalues
     if (col_metavalues)
     {
-      readMetaValues_(col_metavalues, i, f, excluded_mvs);
+      readMetaValues_(col_metavalues, i, cf);
     }
 
-    entries.push_back(std::move(entry));
-  }
-
-  // Sort by depth descending so children are processed before parents.
-  // This allows us to build the tree bottom-up: attach children to parents
-  // in the entries vector first, then add fully assembled top-level features
-  // to the FeatureMap.
-  std::stable_sort(entries.begin(), entries.end(),
-    [](const FeatureEntry& a, const FeatureEntry& b) { return a.depth > b.depth; });
-
-  // Build unique_id -> index-in-entries lookup map
-  std::unordered_map<int64_t, size_t> id_to_index;
-  for (size_t i = 0; i < entries.size(); ++i)
-  {
-    id_to_index[entries[i].unique_id] = i;
-  }
-
-  // Bottom-up assembly: for each entry (deepest first), attach it to its parent
-  for (auto& entry : entries)
-  {
-    if (entry.parent_id != -1)
-    {
-      auto it = id_to_index.find(entry.parent_id);
-      if (it != id_to_index.end())
-      {
-        entries[it->second].feature.getSubordinates().push_back(std::move(entry.feature));
-      }
-      else
-      {
-        OPENMS_LOG_WARN << "FeatureMapArrowIO: Could not find parent feature with id "
-                        << entry.parent_id << " for feature " << entry.unique_id
-                        << ". Will be added as top-level." << std::endl;
-        // Mark as top-level by clearing parent_id
-        entry.parent_id = -1;
-      }
-    }
-  }
-
-  // Add top-level features to the FeatureMap (preserving original order by row_index)
-  // First, collect top-level entries sorted by row_index
-  std::vector<size_t> top_level_indices;
-  for (size_t i = 0; i < entries.size(); ++i)
-  {
-    if (entries[i].parent_id == -1)
-    {
-      top_level_indices.push_back(i);
-    }
-  }
-  std::sort(top_level_indices.begin(), top_level_indices.end(),
-    [&](size_t a, size_t b) { return entries[a].row_index < entries[b].row_index; });
-
-  for (size_t idx : top_level_indices)
-  {
-    feature_map.push_back(std::move(entries[idx].feature));
+    cmap.push_back(std::move(cf));
   }
 
   return true;
 }
 
-bool FeatureMapArrowIO::importPSMsFromArrow(
+bool ConsensusMapArrowIO::importPSMsFromArrow(
   const std::shared_ptr<arrow::Table>& table,
-  FeatureMap& feature_map)
+  ConsensusMap& cmap)
 {
   if (!table || table->num_rows() == 0) { return true; }
 
-  // Combine chunks for reliable single-chunk access
   auto combined_result = table->CombineChunks(arrow::default_memory_pool());
   if (!combined_result.ok())
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to combine chunks in importPSMsFromArrow" << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to combine chunks in importPSMsFromArrow" << std::endl;
     return false;
   }
   auto tbl = *combined_result;
   int64_t num_rows = tbl->num_rows();
 
-  // Build feature lookup: unique_id -> Feature* (recursively includes subordinates)
-  std::unordered_map<int64_t, Feature*> feature_lookup;
-  std::function<void(Feature&)> buildLookup = [&](Feature& f)
+  // Build consensus feature lookup: unique_id -> ConsensusFeature*
+  std::unordered_map<int64_t, ConsensusFeature*> feature_lookup;
+  for (auto& cf : cmap)
   {
-    feature_lookup[static_cast<int64_t>(f.getUniqueId())] = &f;
-    for (auto& sub : f.getSubordinates())
-    {
-      buildLookup(sub);
-    }
-  };
-  for (auto& f : feature_map)
-  {
-    buildLookup(f);
+    feature_lookup[static_cast<int64_t>(cf.getUniqueId())] = &cf;
   }
 
   // Read columns
-  auto col_feature_id = getColumn_(tbl, "feature_unique_id");
+  auto col_feature_id = getColumn_(tbl, "consensus_feature_unique_id");
   auto col_p_id = getColumn_(tbl, "peptide_identification_index");
   auto col_peptidoform = getColumn_(tbl, "peptidoform", /*required=*/false);
   auto col_sequence = getColumn_(tbl, "sequence", /*required=*/false);
@@ -1447,26 +1418,17 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
 
   if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Missing required columns for PSM import" << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required columns for PSM import" << std::endl;
     return false;
   }
 
-  // Group rows by P_ID to reconstruct PeptideIdentifications.
-  // Each unique P_ID value corresponds to one PeptideIdentification.
-  // Rows with the same P_ID share the same PeptideIdentification-level data
-  // (rt, mz, score_type, spectrum_reference, run_identifier).
-  //
-  // We also track the feature_id for each group so we know where to attach it.
-  // All rows in the same P_ID group should have the same feature_id.
-
   // Build a lookup for higher_score_better from ProteinIdentifications
   std::unordered_map<std::string, bool> higher_score_better_lookup;
-  for (const auto& prot_id : feature_map.getProteinIdentifications())
+  for (const auto& prot_id : cmap.getProteinIdentifications())
   {
     higher_score_better_lookup[prot_id.getIdentifier()] = prot_id.isHigherScoreBetter();
   }
 
-  // Process rows in order, grouping consecutive rows with the same P_ID.
   struct PepIdGroup
   {
     int64_t feature_id;
@@ -1481,18 +1443,12 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   {
     int32_t p_id = getInt32Value_(col_p_id, row, -1);
 
-    // Start a new group if P_ID changes.
-    // Note: This assumes rows with the same P_ID are contiguous in the table,
-    // which is guaranteed by QPXFile::exportToArrow. If the Parquet file has been
-    // externally sorted/filtered, non-contiguous rows with the same P_ID will be
-    // split into separate PeptideIdentification objects.
     if (groups.empty() || p_id != current_p_id)
     {
       PepIdGroup group;
       group.feature_id_is_null = isNull_(col_feature_id, row);
       group.feature_id = group.feature_id_is_null ? 0 : getInt64Value_(col_feature_id, row, 0);
 
-      // Set PeptideIdentification-level fields
       PeptideIdentification& pid = group.pep_id;
       pid.setScoreType(getStringValue_(col_score_type, row));
       // Run identifier (links to ProteinIdentification)
@@ -1523,25 +1479,21 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
         pid.setHigherScoreBetter(true);
       }
 
-      // RT
       if (col_rt && !isNull_(col_rt, row))
       {
         pid.setRT(getDoubleValue_(col_rt, row));
       }
 
-      // MZ
       if (col_mz && !isNull_(col_mz, row))
       {
         pid.setMZ(getDoubleValue_(col_mz, row));
       }
 
-      // Spectrum reference
       if (col_spec_ref && !isNull_(col_spec_ref, row))
       {
         pid.setSpectrumReference(getStringValue_(col_spec_ref, row));
       }
 
-      // spectrum_metavalues -> PeptideIdentification metavalues
       if (col_spectrum_metavalues)
       {
         readMetaValues_(col_spectrum_metavalues, row, pid);
@@ -1554,7 +1506,6 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     // Add a PeptideHit to the current group
     PeptideHit hit;
 
-    // Reconstruct sequence from peptidoform (ProForma) if available, else from sequence column
     if (col_peptidoform && !isNull_(col_peptidoform, row))
     {
       String peptidoform_str = getStringValue_(col_peptidoform, row);
@@ -1567,7 +1518,6 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
         }
         catch (...)
         {
-          // Fallback: try unmodified sequence
           if (col_sequence && !isNull_(col_sequence, row))
           {
             hit.setSequence(AASequence::fromString(getStringValue_(col_sequence, row)));
@@ -1588,14 +1538,12 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       hit.setRank(static_cast<UInt>(getInt32Value_(col_rank, row, 0)));
     }
 
-    // is_decoy -> target_decoy metavalue
     if (col_is_decoy && !isNull_(col_is_decoy, row))
     {
       bool is_decoy = getBoolValue_(col_is_decoy, row, false);
       hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
     }
 
-    // protein_accessions -> PeptideEvidence
     if (col_protein_accs && !isNull_(col_protein_accs, row))
     {
       auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_protein_accs);
@@ -1610,7 +1558,6 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       }
     }
 
-    // additional_scores -> metavalues on PeptideHit
     if (col_additional_scores && !isNull_(col_additional_scores, row))
     {
       auto list_arr = std::static_pointer_cast<arrow::ListArray>(col_additional_scores);
@@ -1628,13 +1575,11 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       }
     }
 
-    // predicted_rt -> PeptideHit metavalue
     if (col_predicted_rt && !isNull_(col_predicted_rt, row))
     {
       hit.setMetaValue("predicted_RT", getDoubleValue_(col_predicted_rt, row));
     }
 
-    // ion_mobility -> PeptideHit metavalue
     if (col_ion_mobility && !isNull_(col_ion_mobility, row))
     {
       hit.setMetaValue("ion_mobility", getDoubleValue_(col_ion_mobility, row));
@@ -1652,7 +1597,6 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       hit.setMetaValue("reference_file_name", getStringValue_(col_ref_file, row));
     }
 
-    // psm_metavalues -> PeptideHit metavalues (exclude keys that have dedicated columns)
     if (col_psm_metavalues)
     {
       static const std::unordered_set<std::string> psm_excluded_mvs =
@@ -1664,13 +1608,12 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     groups.back().pep_id.getHits().push_back(std::move(hit));
   }
 
-  // Assign PeptideIdentifications to features or as unassigned
+  // Assign PeptideIdentifications to consensus features or as unassigned
   for (auto& group : groups)
   {
     if (group.feature_id_is_null)
     {
-      // Unassigned
-      feature_map.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+      cmap.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
     }
     else
     {
@@ -1681,9 +1624,9 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       }
       else
       {
-        OPENMS_LOG_WARN << "FeatureMapArrowIO: Could not find feature with id "
+        OPENMS_LOG_WARN << "ConsensusMapArrowIO: Could not find consensus feature with id "
                         << group.feature_id << " for PSM. Adding as unassigned." << std::endl;
-        feature_map.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+        cmap.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
       }
     }
   }
@@ -1691,11 +1634,11 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   return true;
 }
 
-bool FeatureMapArrowIO::importFromParquet(
+bool ConsensusMapArrowIO::importFromParquet(
   const String& directory,
-  FeatureMap& feature_map)
+  ConsensusMap& cmap)
 {
-  feature_map = FeatureMap{};
+  cmap = ConsensusMap{};
 
   // 1. Import protein identification data
   std::vector<ProteinIdentification> prot_ids;
@@ -1707,45 +1650,57 @@ bool FeatureMapArrowIO::importFromParquet(
   {
     return false;
   }
-  feature_map.setProteinIdentifications(prot_ids);
+  cmap.setProteinIdentifications(prot_ids);
 
-  // 2. Import features and FeatureMap-level metadata
-  auto features_table = readParquetTable_(directory + "/features.parquet");
+  // 2. Import consensus features and ConsensusMap-level metadata
+  auto features_table = readParquetTable_(directory + "/consensus_features.parquet");
   if (!features_table) { return false; }
 
-  // Extract FeatureMap-level metadata from file-level key-value metadata
+  // Extract ConsensusMap-level metadata from file-level key-value metadata
   auto schema_md = features_table->schema()->metadata();
   if (schema_md)
   {
-    // DocumentIdentifier fields
-    int idx = schema_md->FindKey("document_id");
-    if (idx >= 0) feature_map.setIdentifier(schema_md->value(idx));
+    int idx = schema_md->FindKey("column_headers");
+    if (idx >= 0) cmap.setColumnHeaders(deserializeColumnHeaders_(schema_md->value(idx)));
+
+    idx = schema_md->FindKey("experiment_type");
+    if (idx >= 0) cmap.setExperimentType(schema_md->value(idx));
+
+    idx = schema_md->FindKey("document_id");
+    if (idx >= 0) cmap.setIdentifier(schema_md->value(idx));
 
     idx = schema_md->FindKey("loaded_file_path");
-    if (idx >= 0) feature_map.setLoadedFilePath(schema_md->value(idx));
+    if (idx >= 0) cmap.setLoadedFilePath(schema_md->value(idx));
 
-    // loaded_file_type: stored as type name string (e.g. "featureXML").
-    // Note: DocumentIdentifier::setLoadedFileType(String) expects a file path and
-    // determines type by content/extension, so we cannot directly restore the type
-    // from a type name. The type can be re-derived from loaded_file_path if needed.
-
-    // DataProcessing
     idx = schema_md->FindKey("data_processing");
     if (idx >= 0)
     {
-      feature_map.setDataProcessing(deserializeDataProcessing_(schema_md->value(idx)));
+      cmap.setDataProcessing(deserializeDataProcessing_(schema_md->value(idx)));
+    }
+
+    idx = schema_md->FindKey("unique_id");
+    if (idx >= 0)
+    {
+      try { cmap.setUniqueId(std::stoull(schema_md->value(idx))); }
+      catch (...) {}
+    }
+
+    idx = schema_md->FindKey("cmap_metavalues");
+    if (idx >= 0)
+    {
+      deserializeMetaValues_(schema_md->value(idx), cmap);
     }
   }
 
-  if (!importFeaturesFromArrow(features_table, feature_map))
+  if (!importFeaturesFromArrow(features_table, cmap))
   {
     return false;
   }
 
-  // 3. Import PSMs (links to features already in the map)
+  // 3. Import PSMs (links to consensus features already in the map)
   auto psms_table = readParquetTable_(directory + "/psms.parquet");
   if (!psms_table) { return false; }
-  if (!importPSMsFromArrow(psms_table, feature_map))
+  if (!importPSMsFromArrow(psms_table, cmap))
   {
     return false;
   }
