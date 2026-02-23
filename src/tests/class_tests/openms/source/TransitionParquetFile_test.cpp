@@ -302,4 +302,72 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& oswpq_dir, O
 }
 END_SECTION
 
+START_SECTION(void convertLightTargetedExperimentToParquet(const String& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const)
+{
+#ifdef WITH_PARQUET
+  // --- Build a reference LightTargetedExperiment from a TraML file ---
+  const String input_file = OPENMS_GET_TEST_DATA_PATH("MRMAssay_detectingTransistionCompound_input.TraML");
+  TraMLFile traml;
+  TargetedExperiment targeted_exp;
+  traml.load(input_file, targeted_exp);
+
+  OpenSwath::LightTargetedExperiment light_exp;
+  OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
+  TEST_EQUAL(light_exp.compounds.size() > 0, true)
+  TEST_EQUAL(light_exp.transitions.size() > 0, true)
+
+  // --- Write to a temporary .oswpq directory ---
+  File::TempDir tmp_dir;
+  const String out_dir = tmp_dir.getPath() + "/roundtrip.oswpq";
+  File::makeDir(out_dir);
+
+  TransitionParquetFile writer;
+  writer.convertLightTargetedExperimentToParquet(out_dir, light_exp);
+
+  // Verify library files exist
+  TEST_EQUAL(File::exists(out_dir + "/library/precursors.parquet"), true)
+  TEST_EQUAL(File::exists(out_dir + "/library/transitions.parquet"), true)
+  TEST_EQUAL(File::exists(out_dir + "/library/metadata.json"), true)
+
+  // --- Read back and compare ---
+  TransitionParquetFile reader;
+  OpenSwath::LightTargetedExperiment roundtrip_exp;
+  reader.convertParquetToTargetedExperiment(out_dir, roundtrip_exp);
+
+  TEST_EQUAL(roundtrip_exp.compounds.size(), light_exp.compounds.size())
+  TEST_EQUAL(roundtrip_exp.transitions.size(), light_exp.transitions.size())
+  TEST_EQUAL(roundtrip_exp.proteins.size(), light_exp.proteins.size())
+
+  // Verify each transition references a valid compound
+  std::set<String> roundtrip_compound_ids;
+  for (const auto& compound : roundtrip_exp.compounds)
+  {
+    roundtrip_compound_ids.insert(compound.id);
+  }
+  for (const auto& transition : roundtrip_exp.transitions)
+  {
+    TEST_EQUAL(roundtrip_compound_ids.count(transition.peptide_ref) > 0, true)
+  }
+
+  // Verify transition product_mz values are preserved
+  // Build a map from transition name -> product_mz for the original
+  std::map<String, double> orig_transition_mz;
+  for (const auto& tr : light_exp.transitions)
+  {
+    orig_transition_mz[tr.transition_name] = tr.product_mz;
+  }
+  for (const auto& tr : roundtrip_exp.transitions)
+  {
+    auto it = orig_transition_mz.find(tr.transition_name);
+    if (it != orig_transition_mz.end())
+    {
+      TEST_REAL_SIMILAR(tr.product_mz, it->second)
+    }
+  }
+#else
+  NOT_TESTABLE
+#endif
+}
+END_SECTION
+
 END_TEST

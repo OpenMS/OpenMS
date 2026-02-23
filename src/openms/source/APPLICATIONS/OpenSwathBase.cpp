@@ -367,13 +367,17 @@ namespace OpenMS
     }
     else if (tr_type == FileTypes::OSWPQ)
     {
-      progresslogger.startProgress(0, 1, "Load PQP Parquet file");
+#ifdef WITH_PARQUET
+      progresslogger.startProgress(0, 1, "Load Parquet library");
       TransitionParquetFile().convertParquetToTargetedExperiment(tr_file, transition_exp);
       progresslogger.endProgress();
+#else
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#endif
     }
     else
     {
-      OPENMS_LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
+      OPENMS_LOG_ERROR << "Provide valid TraML, TSV, PQP or OSWPQ transition file." << std::endl;
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Need to provide valid input file.");
     }
     return transition_exp;

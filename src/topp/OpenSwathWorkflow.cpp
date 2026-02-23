@@ -814,6 +814,10 @@ protected:
       }
       else if (tr_type == FileTypes::OSWPQ)
       {
+#ifndef WITH_PARQUET
+        writeLogError_("Error: OpenMS was built without Parquet support, cannot use oswpq input with OSW output.");
+        return PARSE_ERROR;
+#else
         // Convert parquet library to .PQP for OSW output
         TransitionPQPFile().convertLightTargetedExperimentToPQP(out_features.c_str(), transition_exp);
 
@@ -842,6 +846,7 @@ protected:
             tr.transition_name = id->second;
           }
         }
+#endif
       }
       else if (tr_type == FileTypes::TRAML)
       {

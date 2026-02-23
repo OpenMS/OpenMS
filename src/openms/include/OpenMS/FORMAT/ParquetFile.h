@@ -44,6 +44,13 @@ namespace OpenMS
       files are already internally compressed; re-compressing with deflate wastes
       CPU for negligible size reduction.
 
+      @note The zipDirectory() and unzipDirectory() methods require the external
+            @c zip and @c unzip command-line tools to be available in the system
+            PATH. These are typically pre-installed on Linux and macOS but are
+            @b not available by default on Windows. Methods that do not require
+            Parquet support will throw Exception::NotImplemented when OpenMS is
+            built without @c WITH_PARQUET.
+
       @ingroup FileIO
   */
   class OPENMS_DLLAPI ParquetFile

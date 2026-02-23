@@ -68,17 +68,34 @@ namespace
     std::map<int, Size> transition_charge_counts_decoy;
   };
 
-  std::string jsonEscape_(const OpenMS::String& value)
+  std::string jsonEscape_(const OpenMS::String& input)
   {
     std::string out;
-    out.reserve(value.size());
-    for (char c : std::string(value))
+    out.reserve(input.size());
+    for (OpenMS::Size i = 0; i < input.size(); ++i)
     {
-      if (c == '\\' || c == '"')
+      const char c = input[i];
+      switch (c)
       {
-        out.push_back('\\');
+        case '\\': out += "\\\\"; break;
+        case '"': out += "\\\""; break;
+        case '\n': out += "\\n"; break;
+        case '\r': out += "\\r"; break;
+        case '\t': out += "\\t"; break;
+        default:
+          if (static_cast<unsigned char>(c) < 0x20)
+          {
+            const char hex[] = "0123456789abcdef";
+            out += "\\u00";
+            out += hex[(c >> 4) & 0x0f];
+            out += hex[c & 0x0f];
+          }
+          else
+          {
+            out += c;
+          }
+          break;
       }
-      out.push_back(c);
     }
     return out;
   }
