@@ -18,6 +18,7 @@
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>

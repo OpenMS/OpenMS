@@ -58,9 +58,12 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
 {
   // -- Simple column builders --
   arrow::StringBuilder sequence_builder, peptidoform_builder;
-  arrow::StringBuilder reference_file_builder, scan_builder, score_type_builder;
+  arrow::StringBuilder reference_file_builder, score_type_builder;
   arrow::StringBuilder spectrum_reference_builder, cv_params_builder;
-  arrow::Int32Builder precursor_charge_builder, is_decoy_builder, rank_builder, p_id_builder;
+  arrow::StringBuilder run_identifier_builder;
+  arrow::Int32Builder precursor_charge_builder, rank_builder, p_id_builder;
+  arrow::BooleanBuilder is_decoy_builder, higher_score_better_builder;
+  arrow::Int32Builder scan_builder;
   arrow::DoubleBuilder pep_builder, calculated_mz_builder, observed_mz_builder;
   arrow::DoubleBuilder rt_builder, ion_mobility_builder, predicted_rt_builder, score_builder;
 
@@ -155,6 +158,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: pep_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = is_decoy_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: is_decoy_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = higher_score_better_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: higher_score_better_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = calculated_mz_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: calculated_mz_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = observed_mz_builder.Reserve(num_rows);
@@ -181,6 +186,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: rank_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = p_id_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: p_id_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
+  status = run_identifier_builder.Reserve(num_rows);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: run_identifier_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Build file name lookup from ProteinIdentification primary MS run paths
   std::map<String, String> id_to_filename;
@@ -196,7 +203,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
 
   // Metavalue keys excluded from psm_metavalues (they have dedicated columns)
   static const std::unordered_set<std::string> excluded_hit_mvs = {
-    "target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM"
+    "target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
+    "scan", "reference_file_name"
   };
 
   IDScoreSwitcherAlgorithm idsa;
@@ -346,7 +354,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       if (hit.metaValueExists("target_decoy"))
       {
         std::string td = hit.getMetaValue("target_decoy").toString();
-        (void)is_decoy_builder.Append(td.substr(0, 5) == "decoy" ? 1 : 0);
+        (void)is_decoy_builder.Append(td.substr(0, 5) == "decoy");
       }
       else
       {
@@ -450,7 +458,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
         Int scan_num = extractScan(spec_ref);
         if (scan_num >= 0)
         {
-          (void)scan_builder.Append(std::to_string(scan_num));
+          (void)scan_builder.Append(scan_num);
         }
         else
         {
@@ -491,15 +499,19 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
         (void)ion_mobility_builder.AppendNull();
       }
 
-      // === score / score_type ===
+      // === score / score_type / higher_score_better ===
       (void)score_builder.Append(hit.getScore());
       (void)score_type_builder.Append(pep_id.getScoreType());
+      (void)higher_score_better_builder.Append(pep_id.isHigherScoreBetter());
 
       // === rank (0-based) ===
       (void)rank_builder.Append(static_cast<int32_t>(hit_idx));
 
       // === P_ID (parent spectrum index) ===
       (void)p_id_builder.Append(p_id_index);
+
+      // === run_identifier ===
+      (void)run_identifier_builder.Append(pep_id.getIdentifier());
 
       // === psm_metavalues ===
       (void)psm_metavalues_builder.Append();
@@ -523,9 +535,12 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           switch (val.valueType())
           {
             case DataValue::INT_VALUE: (void)pmv_type_b->Append("int"); break;
-            case DataValue::DOUBLE_VALUE: (void)pmv_type_b->Append("float"); break;
-            case DataValue::STRING_VALUE: (void)pmv_type_b->Append("str"); break;
-            default: (void)pmv_type_b->Append("str"); break;
+            case DataValue::DOUBLE_VALUE: (void)pmv_type_b->Append("double"); break;
+            case DataValue::STRING_VALUE: (void)pmv_type_b->Append("string"); break;
+            case DataValue::INT_LIST: (void)pmv_type_b->Append("int_list"); break;
+            case DataValue::DOUBLE_LIST: (void)pmv_type_b->Append("double_list"); break;
+            case DataValue::STRING_LIST: (void)pmv_type_b->Append("string_list"); break;
+            default: (void)pmv_type_b->Append("string"); break;
           }
         }
       }
@@ -547,9 +562,12 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           switch (val.valueType())
           {
             case DataValue::INT_VALUE: (void)smv_type_b->Append("int"); break;
-            case DataValue::DOUBLE_VALUE: (void)smv_type_b->Append("float"); break;
-            case DataValue::STRING_VALUE: (void)smv_type_b->Append("str"); break;
-            default: (void)smv_type_b->Append("str"); break;
+            case DataValue::DOUBLE_VALUE: (void)smv_type_b->Append("double"); break;
+            case DataValue::STRING_VALUE: (void)smv_type_b->Append("string"); break;
+            case DataValue::INT_LIST: (void)smv_type_b->Append("int_list"); break;
+            case DataValue::DOUBLE_LIST: (void)smv_type_b->Append("double_list"); break;
+            case DataValue::STRING_LIST: (void)smv_type_b->Append("string_list"); break;
+            default: (void)smv_type_b->Append("string"); break;
           }
         }
       }
@@ -565,6 +583,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   std::shared_ptr<arrow::Array> arr_protein_acc, arr_predicted_rt, arr_ref_file;
   std::shared_ptr<arrow::Array> arr_cv_params, arr_scan, arr_rt, arr_ion_mobility;
   std::shared_ptr<arrow::Array> arr_spectrum_ref, arr_score, arr_score_type;
+  std::shared_ptr<arrow::Array> arr_higher_score_better;
   std::shared_ptr<arrow::Array> arr_rank, arr_p_id;
   std::shared_ptr<arrow::Array> arr_psm_mvs, arr_spectrum_mvs;
 
@@ -606,6 +625,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: score_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = score_type_builder.Finish(&arr_score_type);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: score_type_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+  status = higher_score_better_builder.Finish(&arr_higher_score_better);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: higher_score_better_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = rank_builder.Finish(&arr_rank);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: rank_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = p_id_builder.Finish(&arr_p_id);
@@ -615,6 +636,10 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   status = spectrum_metavalues_builder.Finish(&arr_spectrum_mvs);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: spectrum_metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
+  std::shared_ptr<arrow::Array> arr_run_identifier;
+  status = run_identifier_builder.Finish(&arr_run_identifier);
+  if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: run_identifier_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
+
   // Build schema matching the Python to_psm_arrow() column order
   auto schema = arrow::schema({
     arrow::field("sequence", arrow::utf8()),
@@ -622,7 +647,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
     arrow::field("modifications", modifications_builder.type()),
     arrow::field("precursor_charge", arrow::int32()),
     arrow::field("posterior_error_probability", arrow::float64()),
-    arrow::field("is_decoy", arrow::int32()),
+    arrow::field("is_decoy", arrow::boolean()),
     arrow::field("calculated_mz", arrow::float64()),
     arrow::field("observed_mz", arrow::float64()),
     arrow::field("additional_scores", additional_scores_builder.type()),
@@ -630,17 +655,19 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
     arrow::field("predicted_rt", arrow::float64()),
     arrow::field("reference_file_name", arrow::utf8()),
     arrow::field("cv_params", arrow::utf8()),
-    arrow::field("scan", arrow::utf8()),
+    arrow::field("scan", arrow::int32()),
     arrow::field("rt", arrow::float64()),
     arrow::field("ion_mobility", arrow::float64()),
     // OpenMS-specific columns
     arrow::field("spectrum_reference", arrow::utf8()),
     arrow::field("score", arrow::float64()),
     arrow::field("score_type", arrow::utf8()),
+    arrow::field("higher_score_better", arrow::boolean()),
     arrow::field("rank", arrow::int32()),
-    arrow::field("P_ID", arrow::int32()),
+    arrow::field("peptide_identification_index", arrow::int32()),
     arrow::field("psm_metavalues", psm_metavalues_builder.type()),
     arrow::field("spectrum_metavalues", spectrum_metavalues_builder.type()),
+    arrow::field("run_identifier", arrow::utf8()),
   });
 
   auto table = arrow::Table::Make(schema, {
@@ -649,8 +676,9 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
     arr_calc_mz, arr_obs_mz, arr_additional_scores,
     arr_protein_acc, arr_predicted_rt, arr_ref_file,
     arr_cv_params, arr_scan, arr_rt, arr_ion_mobility,
-    arr_spectrum_ref, arr_score, arr_score_type,
-    arr_rank, arr_p_id, arr_psm_mvs, arr_spectrum_mvs
+    arr_spectrum_ref, arr_score, arr_score_type, arr_higher_score_better,
+    arr_rank, arr_p_id, arr_psm_mvs, arr_spectrum_mvs,
+    arr_run_identifier
   });
 
   return table;
