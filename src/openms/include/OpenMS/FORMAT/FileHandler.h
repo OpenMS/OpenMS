@@ -26,7 +26,6 @@ namespace OpenMS
   class ConsensusMap;
   class TargetedExperiment;
   class ProteinIdentification;
-  class PeptideIdentification;
   class PeptideIdentificationList;
 
   /**
