@@ -24,6 +24,7 @@ cdef extern from "<OpenMS/QC/DBSuitability.h>" namespace "OpenMS":
             double suitability_corr_no_rerank
 
         DBSuitability() except +
+        DBSuitability(DBSuitability &) except +
 
         void compute(PeptideIdentificationList&& pep_ids,
                      const MSExperiment& exp,
