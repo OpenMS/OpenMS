@@ -134,9 +134,11 @@ jobs:
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF \
                 -DWITH_PARQUET=ON
-              ninja OpenMS OpenSwathAlgo
+              ninja OpenMS_Core OpenMS_IO OpenMS_Algo OpenSwathAlgo
               cmake --install . --component library --strip
-              cmake --install . --component OpenMS_headers
+              cmake --install . --component OpenMS_Core_headers
+              cmake --install . --component OpenMS_IO_headers
+              cmake --install . --component OpenMS_Algo_headers
               cmake --install . --component OpenSwathAlgo_headers
               cmake --install . --component thirdparty_headers
               cmake --install . --component share
@@ -213,9 +215,11 @@ jobs:
                 -DENABLE_TUTORIALS=OFF \
                 -DENABLE_DOCS=OFF \
                 -DWITH_PARQUET=ON
-              ninja OpenMS OpenSwathAlgo
+              ninja OpenMS_Core OpenMS_IO OpenMS_Algo OpenSwathAlgo
               cmake --install . --component library --strip
-              cmake --install . --component OpenMS_headers
+              cmake --install . --component OpenMS_Core_headers
+              cmake --install . --component OpenMS_IO_headers
+              cmake --install . --component OpenMS_Algo_headers
               cmake --install . --component OpenSwathAlgo_headers
               cmake --install . --component thirdparty_headers
               cmake --install . --component share
@@ -281,9 +285,11 @@ jobs:
             -DENABLE_DOCS=OFF \
             -DMT_ENABLE_OPENMP=ON \
             -DWITH_PARQUET=ON
-          ninja OpenMS OpenSwathAlgo
+          ninja OpenMS_Core OpenMS_IO OpenMS_Algo OpenSwathAlgo
           cmake --install . --component library --strip
-          cmake --install . --component OpenMS_headers
+          cmake --install . --component OpenMS_Core_headers
+          cmake --install . --component OpenMS_IO_headers
+          cmake --install . --component OpenMS_Algo_headers
           cmake --install . --component OpenSwathAlgo_headers
           cmake --install . --component thirdparty_headers
           cmake --install . --component share

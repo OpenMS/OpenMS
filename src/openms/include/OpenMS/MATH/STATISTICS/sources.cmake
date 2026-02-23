@@ -11,6 +11,7 @@ GumbelMaxLikelihoodFitter.h
 Histogram.h
 KernelDensityEstimation.h
 MultipleTesting.h
+PosteriorErrorProbabilityModel.h
 RankData.h
 )
 
