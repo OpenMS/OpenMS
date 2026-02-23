@@ -10,30 +10,30 @@ from Types cimport UInt
 
 cdef extern from "<OpenMS/QC/TIC.h>" namespace "OpenMS":
 
-    cdef cppclass TIC(QCBase):
-        TIC() except +
-        TIC_Result compute(MSExperiment& exp, float bin_size, unsigned int ms_level) except +
-        const String& getName() const
-
+    #  Nested struct first 
     cdef cppclass TIC_Result "OpenMS::TIC::Result":
-        vector[unsigned int] intensities
+        vector[UInt] intensities
         vector[float] relative_intensities
         vector[float] retention_times
-        unsigned int area
-        unsigned int fall
-        unsigned int jump
+        UInt area
+        UInt fall
+        UInt jump
+
+
+    
+    cdef cppclass TIC(QCBase):
 
         TIC() except +
 
-        Result compute(const MSExperiment& exp,
-                       float bin_size = 0,
-                       UInt ms_level = 1) except +
+        TIC_Result compute(const MSExperiment& exp,
+                           float bin_size = 0,
+                           UInt ms_level = 1) except +
 
-        const String& getName() const except +
+        const String& getName() const
 
-        const vector[MSChromatogram]& getResults() const except +
+        const vector[MSChromatogram]& getResults() except + const
 
-        QCBase.Status requirements() const except +
+        QCBase.Status requirements() except + const
 
         void addMetaDataMetricsToMzTab(MzTabMetaData& meta,
-                                       vector[Result]& tics) except +
+                                       vector[TIC_Result]& tics) except +
