@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 //TODO remove MzML after we get transform support for our handlers
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>

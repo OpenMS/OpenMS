@@ -15,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>

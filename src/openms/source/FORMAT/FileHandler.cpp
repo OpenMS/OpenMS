@@ -7,6 +7,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/DTA2DFile.h>
