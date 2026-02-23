@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/QC/PSMExplainedIonCurrent.h>" namespace "OpenMS":
         
          # Enum ToleranceUnit
         
-        cdef enum ToleranceUnit:
+        cdef enum class ToleranceUnit:
             AUTO
             PPM
             DA
