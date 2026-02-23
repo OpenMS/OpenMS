@@ -21,7 +21,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/FileTypes.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
