@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/QC/Contaminants.h>" namespace "OpenMS":
     cdef cppclass Contaminants(QCBase):
 
         # nested struct
-        cdef cppclass ContaminantsSummary:
+        cppclass ContaminantsSummary:
             double assigned_contaminants_ratio
             double unassigned_contaminants_ratio
             double all_contaminants_ratio
