@@ -31,4 +31,4 @@ cdef extern from "<OpenMS/QC/DBSuitability.h>" namespace "OpenMS":
                      const vector[FASTAFile.FASTAEntry]& novo_fasta,
                      const ProteinIdentification.SearchParameters& search_params) except +
 
-        const vector[SuitabilityData]& getResults() const except +
+        const vector[SuitabilityData]& getResults() except + const

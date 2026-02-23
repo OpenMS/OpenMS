@@ -31,4 +31,3 @@ cdef extern from "<OpenMS/QC/Ms2SpectrumStats.h>" namespace "OpenMS":
         String getName() const
 
         QCBase.Status requirements() const
-EOF

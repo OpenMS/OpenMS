@@ -39,4 +39,3 @@ cdef extern from "<OpenMS/QC/Ms2IdentificationRate.h>" namespace "OpenMS":
         QCBase.Status requirements() except + const
 
         void addMetaDataMetricsToMzTab(MzTabMetaData& meta) except + const
-EOF

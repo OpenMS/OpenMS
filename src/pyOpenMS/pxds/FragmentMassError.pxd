@@ -46,8 +46,8 @@ cdef extern from "<OpenMS/QC/FragmentMassError.h>" namespace "OpenMS":
                      ToleranceUnit tolerance_unit = AUTO,
                      double tolerance = 20) except +
 
-        const String& getName() const except +
+        const String& getName() except + const
 
-        const vector[Statistics]& getResults() const except +
+        const vector[Statistics]& getResults() except + const
 
-        QCBase.Status requirements() const except +
+        QCBase.Status requirements() except + const

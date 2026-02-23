@@ -26,4 +26,3 @@ cdef extern from "<OpenMS/QC/MissedCleavages.h>" namespace "OpenMS":
         String getName() const
 
         QCBase.Status requirements() const
-EOF

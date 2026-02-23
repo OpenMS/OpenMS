@@ -23,4 +23,3 @@ cdef extern from "<OpenMS/QC/MzCalibration.h>" namespace "OpenMS":
         String getName() except + const 
 
         QCBase.Status requirements() except + const
-EOF

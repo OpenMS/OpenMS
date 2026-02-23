@@ -25,8 +25,8 @@ cdef extern from "<OpenMS/QC/Contaminants.h>" namespace "OpenMS":
         void compute(FeatureMap& features,
                      const vector[FASTAFile.FASTAEntry]& contaminants) except +
 
-        const String& getName() const except +
+        const String& getName() except + const
 
         const vector[ContaminantsSummary]& getResults() except +
 
-        QCBase.Status requirements() const except +
+        QCBase.Status requirements() except + const

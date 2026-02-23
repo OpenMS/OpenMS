@@ -18,4 +18,3 @@ cdef extern from "<OpenMS/QC/PeptideMass.h>" namespace "OpenMS":
         String getName() except + const
 
         QCBase.Status requirements() except + const
-EOF

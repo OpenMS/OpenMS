@@ -20,4 +20,3 @@ cdef extern from "<OpenMS/QC/SpectrumCount.h>" namespace "OpenMS":
         String getName() const
 
         QCBase.Status requirements() const
-EOF

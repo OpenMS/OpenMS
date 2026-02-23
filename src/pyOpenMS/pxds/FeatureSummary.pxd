@@ -18,6 +18,6 @@ cdef extern from "<OpenMS/QC/FeatureSummary.h>" namespace "OpenMS":
 
         Result compute(const FeatureMap& feature_map) except +
 
-        const String& getName() const except +
+        const String& getName() except + const
 
-        QCBase.Status requirements() const except +
+        QCBase.Status requirements() except + const
