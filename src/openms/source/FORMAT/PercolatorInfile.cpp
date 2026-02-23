@@ -571,71 +571,69 @@ namespace OpenMS
 
   bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
   {
-    if (enz == "trypsin")
-    {
-      return ((n == 'K' || n == 'R') && c != 'P') || n == '-' || c == '-';
-    }
-    else if (enz == "trypsinp")
-    {
-      return (n == 'K' || n == 'R') || n == '-' || c == '-';
-    }
-    else if (enz == "chymotrypsin")
-    {
-      return ((n == 'F' || n == 'W' || n == 'Y' || n == 'L') && c != 'P') || n == '-' || c == '-';
-    }
-    else if (enz == "thermolysin")
-    {
-      return ((c == 'A' || c == 'F' || c == 'I' || c == 'L' || c == 'M'
-              || c == 'V' || (n == 'R' && c == 'G')) && n != 'D' && n != 'E') || n == '-' || c == '-';
-    }
-    else if (enz == "proteinasek")
-    {
-      return (n == 'A' || n == 'E' || n == 'F' || n == 'I' || n == 'L'
-             || n == 'T' || n == 'V' || n == 'W' || n == 'Y') || n == '-' || c == '-';
-    }
-    else if (enz == "pepsin")
-    {
-      return ((c == 'F' || c == 'L' || c == 'W' || c == 'Y' || n == 'F'
-              || n == 'L' || n == 'W' || n == 'Y') && n != 'R') || n == '-' || c == '-';
-    }
-    else if (enz == "elastase")
-    {
-      return ((n == 'L' || n == 'V' || n == 'A' || n == 'G') && c != 'P')
-             || n == '-' || c == '-';
-    }
-    else if (enz == "lys-n")
-    {
-      return (c == 'K')
-             || n == '-' || c == '-';
-    }
-    else if (enz == "lys-c")
-    {
-      return ((n == 'K') && c != 'P')
-             || n == '-' || c == '-';
-    }
-    else if (enz == "arg-c")
-    {
-      return ((n == 'R') && c != 'P')
-             || n == '-' || c == '-';
-    }
-    else if (enz == "asp-n")
-    {
-      return (c == 'D')
-             || n == '-' || c == '-';
-    }
-    else if (enz == "glu-c")
-    {
-      return ((n == 'E') && (c != 'P'))
-             || n == '-' || c == '-';
-    }
-    else
+    // Terminal positions (protein N/C-terminus) are always considered enzymatic
+    if (n == '-' || c == '-')
     {
       return true;
     }
+
+    if (enz == "trypsin")
+    {
+      return (n == 'K' || n == 'R') && c != 'P';
+    }
+    else if (enz == "trypsinp")
+    {
+      return n == 'K' || n == 'R';
+    }
+    else if (enz == "chymotrypsin")
+    {
+      return (n == 'F' || n == 'W' || n == 'Y' || n == 'L') && c != 'P';
+    }
+    else if (enz == "thermolysin")
+    {
+      // Note: thermolysin is not in OpenMS ProteaseDB; keeping Percolator-compatible logic
+      return (c == 'A' || c == 'F' || c == 'I' || c == 'L' || c == 'M'
+              || c == 'V' || (n == 'R' && c == 'G')) && n != 'D' && n != 'E';
+    }
+    else if (enz == "proteinasek")
+    {
+      // Note: proteinasek is not in OpenMS ProteaseDB; keeping Percolator-compatible logic
+      return n == 'A' || n == 'E' || n == 'F' || n == 'I' || n == 'L'
+             || n == 'T' || n == 'V' || n == 'W' || n == 'Y';
+    }
+    else if (enz == "pepsin")
+    {
+      return (c == 'F' || c == 'L' || c == 'W' || c == 'Y' || n == 'F'
+              || n == 'L' || n == 'W' || n == 'Y') && n != 'R';
+    }
+    else if (enz == "elastase")
+    {
+      return (n == 'L' || n == 'V' || n == 'A' || n == 'G') && c != 'P';
+    }
+    else if (enz == "lys-n")
+    {
+      return c == 'K';
+    }
+    else if (enz == "lys-c")
+    {
+      return n == 'K' && c != 'P';
+    }
+    else if (enz == "arg-c")
+    {
+      return n == 'R' && c != 'P';
+    }
+    else if (enz == "asp-n")
+    {
+      return c == 'D';
+    }
+    else if (enz == "glu-c")
+    {
+      return n == 'E' && c != 'P';
+    }
+    // Unknown enzyme: assume all cleavage sites are enzymatic
+    return true;
   }
 
-  // Function adapted from Enzyme.h in Percolator converter
-  // TODO: Use existing OpenMS functionality.
   Size PercolatorInfile::countEnzymatic_(const String& peptide, const string& enz)
   {
     Size count = 0;
