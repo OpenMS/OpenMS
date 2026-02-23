@@ -1,6 +1,3 @@
-cat > /workspaces/OpenMS/pyOpenMS/pxds/Ms2IdentificationRate.pxd << 'EOF'
-# distutils: language = c++
-
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libc.stdint cimport uint32_t, uint64_t, int64_t
@@ -10,6 +7,7 @@ from FeatureMap cimport *
 from MSExperiment cimport *
 from MzTabMetaData cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 
 cdef extern from "<OpenMS/QC/Ms2IdentificationRate.h>" namespace "OpenMS":
 
@@ -34,11 +32,11 @@ cdef extern from "<OpenMS/QC/Ms2IdentificationRate.h>" namespace "OpenMS":
                      const MSExperiment& exp, 
                      bool assume_all_target) except +
 
-        const vector[IdentificationRateData]& getResults() const
+        const vector[IdentificationRateData]& getResults() except + const
 
-        String getName() const
+        String getName() except + const
 
-        QCBase.Status requirements() const
+        QCBase.Status requirements() except + const
 
-        void addMetaDataMetricsToMzTab(MzTabMetaData& meta) const
+        void addMetaDataMetricsToMzTab(MzTabMetaData& meta) except + const
 EOF

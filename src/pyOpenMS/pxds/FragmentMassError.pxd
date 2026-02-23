@@ -12,10 +12,7 @@ from String cimport String
 cdef extern from "<OpenMS/QC/FragmentMassError.h>" namespace "OpenMS":
 
     cdef cppclass FragmentMassError(QCBase):
-
-        
         # Nested struct Statistics
-        
         cppclass Statistics:
             double average_ppm
             double variance_ppm

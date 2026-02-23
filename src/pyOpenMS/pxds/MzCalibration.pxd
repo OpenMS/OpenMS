@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/QC/MzCalibration.h>" namespace "OpenMS":
                      const MSExperiment& exp, 
                      const QCBase.SpectraMap& map_to_spectrum) except +
 
-        String getName() const
+        String getName() except + const 
 
-        QCBase.Status requirements() const
+        QCBase.Status requirements() except + const
 EOF

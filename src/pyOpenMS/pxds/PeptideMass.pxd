@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/QC/PeptideMass.h>" namespace "OpenMS":
 
         void compute(FeatureMap& features) except +
 
-        String getName() const
+        String getName() except + const
 
-        QCBase.Status requirements() const
+        QCBase.Status requirements() except + const
 EOF

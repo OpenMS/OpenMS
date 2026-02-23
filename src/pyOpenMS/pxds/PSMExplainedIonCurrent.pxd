@@ -19,6 +19,13 @@ cdef extern from "<OpenMS/QC/PSMExplainedIonCurrent.h>" namespace "OpenMS":
         cppclass Statistics:
             double average_correctness
             double variance_correctness
+        
+         # Enum ToleranceUnit
+        
+        cdef enum ToleranceUnit:
+            AUTO
+            PPM
+            DA
 
         PSMExplainedIonCurrent() except +
         PSMExplainedIonCurrent(PSMExplainedIonCurrent &) except +
@@ -38,7 +45,7 @@ cdef extern from "<OpenMS/QC/PSMExplainedIonCurrent.h>" namespace "OpenMS":
 
         const vector[Statistics]& getResults() const
 
-        String getName() const
+        String getName() except + const
 
-        QCBase.Status requirements() const
+        QCBase.Status requirements() except + const
 EOF

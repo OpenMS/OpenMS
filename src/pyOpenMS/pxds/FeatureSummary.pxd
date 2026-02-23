@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/QC/FeatureSummary.h>" namespace "OpenMS":
 
     cdef cppclass FeatureSummary(QCBase):
 
-        cdef cppclass Result:
+        cppclass Result:
             UInt feature_count
             float rt_shift_mean
 
