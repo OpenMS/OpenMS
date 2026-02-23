@@ -159,20 +159,18 @@ namespace OpenSwath::Scoring
 
       XCorrArrayType result;
       result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
-      int datasize = static_cast<int>(data1.size());
-      int i, j, delay;
+      const int datasize = static_cast<int>(data1.size());
+      const double* __restrict d1 = data1.data();
+      const double* __restrict d2 = data2.data();
 
-      for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag)
+      for (int delay = -maxdelay; delay <= maxdelay; delay += lag)
       {
         double sxy = 0;
-        for (i = 0; i < datasize; ++i)
+        const int start = std::max(0, -delay);
+        const int end = std::min(datasize, datasize - delay);
+        for (int i = start; i < end; ++i)
         {
-          j = i + delay;
-          if (j < 0 || j >= datasize)
-          {
-            continue;
-          }
-          sxy += (data1[i]) * (data2[j]);
+          sxy += d1[i] * d2[i + delay];
         }
         result.data.push_back(std::make_pair(delay, sxy));
       }

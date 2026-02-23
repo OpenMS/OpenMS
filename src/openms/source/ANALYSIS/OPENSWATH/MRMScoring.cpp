@@ -19,6 +19,10 @@
 
 namespace OpenSwath
 {
+    // Maximum lag (in data points) for cross-correlation computation.
+    // Lags beyond this range are physically meaningless for coelution scoring
+    // and computing them wastes O(N) work per lag per pair.
+    static constexpr int XCORR_MAX_DELAY = 10;
 
     const MRMScoring::XCorrMatrixType& MRMScoring::getXCorrMatrix() const
     {
@@ -42,7 +46,7 @@ namespace OpenSwath
         for (std::size_t j = i; j < data.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(tmp_data[i], tmp_data[j], static_cast<int>(data[i].size()), 1);
+          xcorr_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(tmp_data[i], tmp_data[j], std::min(XCORR_MAX_DELAY, static_cast<int>(data[i].size())), 1);
           auto x = Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_(i, j));
           xcorr_matrix_max_peak_(i, j) = std::abs(x->first);
           xcorr_matrix_max_peak_sec_(i, j) = x->second;
@@ -103,7 +107,7 @@ namespace OpenSwath
         for (std::size_t j = i; j < native_ids.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(intensity[i], intensity[j], static_cast<int>(intensity[i].size()), 1);
+          xcorr_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(intensity[i], intensity[j], std::min(XCORR_MAX_DELAY, static_cast<int>(intensity[i].size())), 1);
           auto x = Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_(i, j));
           xcorr_matrix_max_peak_(i, j) = std::abs(x->first);
           xcorr_matrix_max_peak_sec_(i, j) = x->second;
@@ -133,7 +137,7 @@ namespace OpenSwath
         for (std::size_t j = 0; j < native_ids_set2.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_contrast_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(intensityi[i], intensityj[j], static_cast<int>(intensityi[i].size()), 1);
+          xcorr_contrast_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(intensityi[i], intensityj[j], std::min(XCORR_MAX_DELAY, static_cast<int>(intensityi[i].size())), 1);
           auto x = Scoring::xcorrArrayGetMaxPeak(xcorr_contrast_matrix_(i, j));
           xcorr_contrast_matrix_max_peak_sec_(i, j) = x->second;
         }
@@ -155,7 +159,7 @@ namespace OpenSwath
         for (std::size_t j = i; j < precursor_ids.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_precursor_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(intensity[i], intensity[j], static_cast<int>(intensity[i].size()), 1);
+          xcorr_precursor_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(intensity[i], intensity[j], std::min(XCORR_MAX_DELAY, static_cast<int>(intensity[i].size())), 1);
         }
       }
     }
@@ -180,7 +184,7 @@ namespace OpenSwath
         for (std::size_t j = 0; j < native_ids.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_precursor_contrast_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(intensityi[i], intensityj[j], static_cast<int>(intensityi[i].size()), 1);
+          xcorr_precursor_contrast_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(intensityi[i], intensityj[j], std::min(XCORR_MAX_DELAY, static_cast<int>(intensityi[i].size())), 1);
         }
       }
     }
@@ -204,7 +208,7 @@ namespace OpenSwath
         for (std::size_t j = 0; j < data_fragments.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_precursor_contrast_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(tmp_data_precursor[i], tmp_data_fragments[j], static_cast<int>(tmp_data_precursor[i].size()), 1);
+          xcorr_precursor_contrast_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(tmp_data_precursor[i], tmp_data_fragments[j], std::min(XCORR_MAX_DELAY, static_cast<int>(tmp_data_precursor[i].size())), 1);
 #ifdef MRMSCORING_TESTING
           std::cout << " fill xcorr_precursor_contrast_matrix_ "<< tmp_data_precursor[i].size() << " / " << tmp_data_fragments[j].size() << " : " << xcorr_precursor_contrast_matrix_[i][j].data.size() << '\n';
 #endif
@@ -237,7 +241,7 @@ namespace OpenSwath
         for (std::size_t j = i; j < combined_intensity.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_precursor_combined_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(combined_intensity[i], combined_intensity[j], static_cast<int>(combined_intensity[i].size()), 1);
+          xcorr_precursor_combined_matrix_(i, j) = Scoring::normalizedCrossCorrelationPost(combined_intensity[i], combined_intensity[j], std::min(XCORR_MAX_DELAY, static_cast<int>(combined_intensity[i].size())), 1);
         }
       }
     }

@@ -2118,7 +2118,7 @@
 			<intensity>1.193716e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.35524</overallquality>
+			<overallquality>0.464587</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_17153647282322401195_10231321952512194787">
@@ -2191,10 +2191,10 @@
 			<UserParam type="float" name="leftWidth" value="24.666666030883789"/>
 			<UserParam type="float" name="rightWidth" value="216.666671752929688"/>
 			<UserParam type="float" name="peak_apices_sum" value="1059.400001525878906"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="8.613504806936128"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="5.280000000000001"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.893140825199254"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.829025320318806"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="7.83045891539648"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.800000000000001"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.893047370065291"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.828875792104466"/>
 			<UserParam type="float" name="var_library_corr" value="0.957429266704782"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.048985524129777"/>
 			<UserParam type="float" name="var_library_sangle" value="0.190790772523502"/>
@@ -2205,7 +2205,7 @@
 			<UserParam type="float" name="nr_peaks" value="4.0"/>
 			<UserParam type="float" name="sn_ratio" value="2.299706727934842"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.832781605211518"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="4.263907331587043"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="4.337334522386955"/>
 			<UserParam type="float" name="PrecursorMZ" value="451.0"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
@@ -2226,7 +2226,7 @@
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.945857909780289"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.903836133223524"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.355239572025774"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.46458731012072"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 		</feature>
 		<feature id="f_15568981923429820128">
@@ -5043,7 +5043,7 @@
 			<intensity>1.193716e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.35524</overallquality>
+			<overallquality>0.464587</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_17913703819525749873_7924899341108903907">
@@ -5116,10 +5116,10 @@
 			<UserParam type="float" name="leftWidth" value="24.666666030883789"/>
 			<UserParam type="float" name="rightWidth" value="216.666671752929688"/>
 			<UserParam type="float" name="peak_apices_sum" value="1059.400001525878906"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="8.613504806936128"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="5.280000000000001"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.893140825199254"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.829025320318806"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="7.83045891539648"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.800000000000001"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.893047370065291"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.828875792104466"/>
 			<UserParam type="float" name="var_library_corr" value="0.957429266704782"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.048985524129777"/>
 			<UserParam type="float" name="var_library_sangle" value="0.190790772523502"/>
@@ -5130,7 +5130,7 @@
 			<UserParam type="float" name="nr_peaks" value="4.0"/>
 			<UserParam type="float" name="sn_ratio" value="2.299706727934842"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.832781605211518"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="4.263907331587043"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="4.337334522386955"/>
 			<UserParam type="float" name="PrecursorMZ" value="451.0"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
@@ -5151,7 +5151,7 @@
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.945857909780289"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.903836133223524"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.355239572025774"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.46458731012072"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 		</feature>
 		<feature id="f_611493635450527389">
@@ -7968,7 +7968,7 @@
 			<intensity>1.193716e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.35524</overallquality>
+			<overallquality>0.464587</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_3523979636841659648_6653507376919826563">
@@ -8041,10 +8041,10 @@
 			<UserParam type="float" name="leftWidth" value="24.666666030883789"/>
 			<UserParam type="float" name="rightWidth" value="216.666671752929688"/>
 			<UserParam type="float" name="peak_apices_sum" value="1059.400001525878906"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="8.613504806936128"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="5.280000000000001"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.893140825199254"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.829025320318806"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="7.83045891539648"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.800000000000001"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.893047370065291"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.828875792104466"/>
 			<UserParam type="float" name="var_library_corr" value="0.957429266704782"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.048985524129777"/>
 			<UserParam type="float" name="var_library_sangle" value="0.190790772523502"/>
@@ -8055,7 +8055,7 @@
 			<UserParam type="float" name="nr_peaks" value="4.0"/>
 			<UserParam type="float" name="sn_ratio" value="2.299706727934842"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.832781605211518"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="4.263907331587043"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="4.337334522386955"/>
 			<UserParam type="float" name="PrecursorMZ" value="451.0"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
@@ -8076,7 +8076,7 @@
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.945857909780289"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.903836133223524"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.355239572025774"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.46458731012072"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 		</feature>
 		<feature id="f_3839306012642094212">
@@ -10893,7 +10893,7 @@
 			<intensity>1.193716e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.35524</overallquality>
+			<overallquality>0.464587</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_15757631658802822207_16224828980388660192">
@@ -10966,10 +10966,10 @@
 			<UserParam type="float" name="leftWidth" value="24.666666030883789"/>
 			<UserParam type="float" name="rightWidth" value="216.666671752929688"/>
 			<UserParam type="float" name="peak_apices_sum" value="1059.400001525878906"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="8.613504806936128"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="5.280000000000001"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.893140825199254"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.829025320318806"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="7.83045891539648"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.800000000000001"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.893047370065291"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.828875792104466"/>
 			<UserParam type="float" name="var_library_corr" value="0.957429266704782"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.048985524129777"/>
 			<UserParam type="float" name="var_library_sangle" value="0.190790772523502"/>
@@ -10980,7 +10980,7 @@
 			<UserParam type="float" name="nr_peaks" value="4.0"/>
 			<UserParam type="float" name="sn_ratio" value="2.299706727934842"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.832781605211518"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="4.263907331587043"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="4.337334522386955"/>
 			<UserParam type="float" name="PrecursorMZ" value="451.0"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
@@ -11001,7 +11001,7 @@
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.945857909780289"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.903836133223524"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.355239572025774"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.46458731012072"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 		</feature>
 		<feature id="f_4733692306052449524">
@@ -13818,7 +13818,7 @@
 			<intensity>1.193716e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.35524</overallquality>
+			<overallquality>0.464587</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_18361355266253057341_6141444627915003058">
@@ -13891,10 +13891,10 @@
 			<UserParam type="float" name="leftWidth" value="24.666666030883789"/>
 			<UserParam type="float" name="rightWidth" value="216.666671752929688"/>
 			<UserParam type="float" name="peak_apices_sum" value="1059.400001525878906"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="8.613504806936128"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="5.280000000000001"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.893140825199254"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.829025320318806"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="7.83045891539648"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.800000000000001"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.893047370065291"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.828875792104466"/>
 			<UserParam type="float" name="var_library_corr" value="0.957429266704782"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.048985524129777"/>
 			<UserParam type="float" name="var_library_sangle" value="0.190790772523502"/>
@@ -13905,7 +13905,7 @@
 			<UserParam type="float" name="nr_peaks" value="4.0"/>
 			<UserParam type="float" name="sn_ratio" value="2.299706727934842"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.832781605211518"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="4.263907331587043"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="4.337334522386955"/>
 			<UserParam type="float" name="PrecursorMZ" value="451.0"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
@@ -13926,7 +13926,7 @@
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.945857909780289"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.903836133223524"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.355239572025774"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.46458731012072"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 		</feature>
 		<feature id="f_11230800082724041475">
@@ -16743,7 +16743,7 @@
 			<intensity>1.193716e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.35524</overallquality>
+			<overallquality>0.464587</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_8222162186891171324_2228807822576415694">
@@ -16816,10 +16816,10 @@
 			<UserParam type="float" name="leftWidth" value="24.666666030883789"/>
 			<UserParam type="float" name="rightWidth" value="216.666671752929688"/>
 			<UserParam type="float" name="peak_apices_sum" value="1059.400001525878906"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="8.613504806936128"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="5.280000000000001"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.893140825199254"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.829025320318806"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="7.83045891539648"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.800000000000001"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.893047370065291"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.828875792104466"/>
 			<UserParam type="float" name="var_library_corr" value="0.957429266704782"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.048985524129777"/>
 			<UserParam type="float" name="var_library_sangle" value="0.190790772523502"/>
@@ -16830,7 +16830,7 @@
 			<UserParam type="float" name="nr_peaks" value="4.0"/>
 			<UserParam type="float" name="sn_ratio" value="2.299706727934842"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.832781605211518"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="4.263907331587043"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="4.337334522386955"/>
 			<UserParam type="float" name="PrecursorMZ" value="451.0"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
@@ -16851,7 +16851,7 @@
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.945857909780289"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.903836133223524"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.355239572025774"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.46458731012072"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 		</feature>
 		<feature id="f_9272525480064864437">
