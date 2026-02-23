@@ -1,6 +1,5 @@
 from libcpp.vector cimport vector
 from libcpp.utility cimport pair
-
 from QCBase cimport QCBase
 from FeatureMap cimport FeatureMap
 from FASTAFile cimport FASTAFile
