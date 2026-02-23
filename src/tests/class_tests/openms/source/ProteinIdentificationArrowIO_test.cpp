@@ -82,30 +82,21 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportProteinsToArrow(...))
   // Verify number of rows (2 hits)
   TEST_EQUAL(table->num_rows(), 2)
 
-  // Verify 19 columns
-  TEST_EQUAL(table->num_columns(), 19)
+  // Verify 10 columns
+  TEST_EQUAL(table->num_columns(), 10)
 
   // Verify column names
   auto schema = table->schema();
   TEST_EQUAL(schema->field(0)->name(), "accession")
   TEST_EQUAL(schema->field(1)->name(), "score")
-  TEST_EQUAL(schema->field(2)->name(), "score_type")
-  TEST_EQUAL(schema->field(3)->name(), "higher_score_better")
-  TEST_EQUAL(schema->field(4)->name(), "rank")
-  TEST_EQUAL(schema->field(5)->name(), "coverage")
-  TEST_EQUAL(schema->field(6)->name(), "sequence")
-  TEST_EQUAL(schema->field(7)->name(), "description")
-  TEST_EQUAL(schema->field(8)->name(), "is_decoy")
-  TEST_EQUAL(schema->field(9)->name(), "run_identifier")
-  TEST_EQUAL(schema->field(10)->name(), "reference_file_name")
-  TEST_EQUAL(schema->field(11)->name(), "search_engine")
-  TEST_EQUAL(schema->field(12)->name(), "search_engine_version")
-  TEST_EQUAL(schema->field(13)->name(), "inference_engine")
-  TEST_EQUAL(schema->field(14)->name(), "inference_engine_version")
-  TEST_EQUAL(schema->field(15)->name(), "significance_threshold")
-  TEST_EQUAL(schema->field(16)->name(), "date")
-  TEST_EQUAL(schema->field(17)->name(), "modifications")
-  TEST_EQUAL(schema->field(18)->name(), "metavalues")
+  TEST_EQUAL(schema->field(2)->name(), "rank")
+  TEST_EQUAL(schema->field(3)->name(), "coverage")
+  TEST_EQUAL(schema->field(4)->name(), "sequence")
+  TEST_EQUAL(schema->field(5)->name(), "description")
+  TEST_EQUAL(schema->field(6)->name(), "is_decoy")
+  TEST_EQUAL(schema->field(7)->name(), "run_identifier")
+  TEST_EQUAL(schema->field(8)->name(), "modifications")
+  TEST_EQUAL(schema->field(9)->name(), "metavalues")
 
   // Verify accession values
   auto acc_col = table->GetColumnByName("accession");
@@ -118,18 +109,6 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportProteinsToArrow(...))
   auto score_arr = std::static_pointer_cast<arrow::DoubleArray>(score_col->chunk(0));
   TEST_REAL_SIMILAR(score_arr->Value(0), 150.5)
   TEST_REAL_SIMILAR(score_arr->Value(1), 25.3)
-
-  // Verify score_type values
-  auto st_col = table->GetColumnByName("score_type");
-  auto st_arr = std::static_pointer_cast<arrow::StringArray>(st_col->chunk(0));
-  TEST_EQUAL(st_arr->GetString(0), "Mascot")
-  TEST_EQUAL(st_arr->GetString(1), "Mascot")
-
-  // Verify higher_score_better values
-  auto hsb_col = table->GetColumnByName("higher_score_better");
-  auto hsb_arr = std::static_pointer_cast<arrow::BooleanArray>(hsb_col->chunk(0));
-  TEST_EQUAL(hsb_arr->Value(0), true)
-  TEST_EQUAL(hsb_arr->Value(1), true)
 
   // Verify rank values
   auto rank_col = table->GetColumnByName("rank");
@@ -150,11 +129,11 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportProteinsToArrow(...))
   TEST_EQUAL(rid_arr->GetString(0), "run_1")
   TEST_EQUAL(rid_arr->GetString(1), "run_1")
 
-  // Verify is_decoy: first is target (0), second is decoy (1)
+  // Verify is_decoy: first is target (false), second is decoy (true)
   auto decoy_col = table->GetColumnByName("is_decoy");
-  auto decoy_arr = std::static_pointer_cast<arrow::Int32Array>(decoy_col->chunk(0));
-  TEST_EQUAL(decoy_arr->Value(0), 0)
-  TEST_EQUAL(decoy_arr->Value(1), 1)
+  auto decoy_arr = std::static_pointer_cast<arrow::BooleanArray>(decoy_col->chunk(0));
+  TEST_EQUAL(decoy_arr->Value(0), false)
+  TEST_EQUAL(decoy_arr->Value(1), true)
 
   // Verify description: first has value, second is null
   auto desc_col = table->GetColumnByName("description");
@@ -169,27 +148,6 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportProteinsToArrow(...))
   TEST_EQUAL(seq_arr->IsNull(0), false)
   TEST_EQUAL(seq_arr->GetString(0), "MKWVTFISLLLLFSSAYS")
   TEST_EQUAL(seq_arr->IsNull(1), true)
-
-  // Verify reference_file_name
-  auto ref_col = table->GetColumnByName("reference_file_name");
-  auto ref_arr = std::static_pointer_cast<arrow::StringArray>(ref_col->chunk(0));
-  TEST_EQUAL(ref_arr->GetString(0), "sample_1.mzML")
-  TEST_EQUAL(ref_arr->GetString(1), "sample_1.mzML")
-
-  // Verify search_engine
-  auto se_col = table->GetColumnByName("search_engine");
-  auto se_arr = std::static_pointer_cast<arrow::StringArray>(se_col->chunk(0));
-  TEST_EQUAL(se_arr->GetString(0), "Mascot")
-
-  // Verify search_engine_version
-  auto sev_col = table->GetColumnByName("search_engine_version");
-  auto sev_arr = std::static_pointer_cast<arrow::StringArray>(sev_col->chunk(0));
-  TEST_EQUAL(sev_arr->GetString(0), "2.7")
-
-  // Verify inference_engine is null (not set)
-  auto ie_col = table->GetColumnByName("inference_engine");
-  auto ie_arr = std::static_pointer_cast<arrow::StringArray>(ie_col->chunk(0));
-  TEST_EQUAL(ie_arr->IsNull(0), true)
 
   // Verify modifications: both should be null (no protein modifications set)
   auto mod_col = table->GetColumnByName("modifications");
@@ -208,12 +166,11 @@ START_SECTION(static std::shared_ptr<arrow::Table> exportProteinsToArrow(...))
   // Verify data types
   TEST_EQUAL(schema->field(0)->type()->id(), arrow::Type::STRING)    // accession
   TEST_EQUAL(schema->field(1)->type()->id(), arrow::Type::DOUBLE)    // score
-  TEST_EQUAL(schema->field(3)->type()->id(), arrow::Type::BOOL)      // higher_score_better
-  TEST_EQUAL(schema->field(4)->type()->id(), arrow::Type::INT32)     // rank
-  TEST_EQUAL(schema->field(5)->type()->id(), arrow::Type::DOUBLE)    // coverage
-  TEST_EQUAL(schema->field(8)->type()->id(), arrow::Type::INT32)     // is_decoy
-  TEST_EQUAL(schema->field(17)->type()->id(), arrow::Type::LIST)     // modifications
-  TEST_EQUAL(schema->field(18)->type()->id(), arrow::Type::LIST)     // metavalues
+  TEST_EQUAL(schema->field(2)->type()->id(), arrow::Type::INT32)     // rank
+  TEST_EQUAL(schema->field(3)->type()->id(), arrow::Type::DOUBLE)    // coverage
+  TEST_EQUAL(schema->field(6)->type()->id(), arrow::Type::BOOL)      // is_decoy
+  TEST_EQUAL(schema->field(8)->type()->id(), arrow::Type::LIST)      // modifications
+  TEST_EQUAL(schema->field(9)->type()->id(), arrow::Type::LIST)      // metavalues
 }
 END_SECTION
 
@@ -224,7 +181,7 @@ START_SECTION(Test empty protein identifications)
   auto table = ProteinIdentificationArrowIO::exportProteinsToArrow(empty_ids);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
-  TEST_EQUAL(table->num_columns(), 19)
+  TEST_EQUAL(table->num_columns(), 10)
 }
 END_SECTION
 
@@ -249,7 +206,7 @@ START_SECTION(Test is_decoy null when target_decoy not set)
   TEST_NOT_EQUAL(table, nullptr)
 
   auto decoy_col = table->GetColumnByName("is_decoy");
-  auto decoy_arr = std::static_pointer_cast<arrow::Int32Array>(decoy_col->chunk(0));
+  auto decoy_arr = std::static_pointer_cast<arrow::BooleanArray>(decoy_col->chunk(0));
   TEST_EQUAL(decoy_arr->IsNull(0), true)
 }
 END_SECTION
@@ -544,6 +501,7 @@ START_SECTION(exportSearchParamsToArrow())
   TEST_EQUAL(msrp_values->GetString(1), "sample_2.mzML")
 
   // Verify data types
+  TEST_EQUAL(schema->field(5)->type()->id(), arrow::Type::TIMESTAMP) // date
   TEST_EQUAL(schema->field(0)->type()->id(), arrow::Type::STRING)    // run_identifier
   TEST_EQUAL(schema->field(1)->type()->id(), arrow::Type::STRING)    // search_engine
   TEST_EQUAL(schema->field(7)->type()->id(), arrow::Type::BOOL)      // higher_score_better
@@ -596,7 +554,7 @@ START_SECTION(exportProteinsToParquet())
   auto read_status = reader->ReadTable(&table);
   TEST_EQUAL(read_status.ok(), true)
   TEST_EQUAL(table->num_rows(), 1)
-  TEST_EQUAL(table->num_columns(), 19)
+  TEST_EQUAL(table->num_columns(), 10)
 
   // Check file metadata
   auto metadata = table->schema()->metadata();
@@ -863,8 +821,13 @@ START_SECTION(importProteinsFromArrow - round trip)
   auto table = ProteinIdentificationArrowIO::exportProteinsToArrow(orig_ids);
   TEST_NOT_EQUAL(table, nullptr)
 
-  // Import back (starting from scratch - no pre-existing shells)
+  // Import back - first create shell via search params export/import (proper workflow)
+  auto sp_table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(orig_ids);
   vector<ProteinIdentification> imported_ids;
+  TEST_EQUAL(ProteinIdentificationArrowIO::importSearchParamsFromArrow(sp_table, imported_ids), true)
+  TEST_EQUAL(imported_ids.size(), 1)
+
+  // Then import proteins into the shells
   TEST_EQUAL(ProteinIdentificationArrowIO::importProteinsFromArrow(table, imported_ids), true)
   TEST_EQUAL(imported_ids.size(), 1)
 
@@ -1286,6 +1249,9 @@ START_SECTION(metavalue type preservation round trip)
   hit.setMetaValue("my_int", 42);
   hit.setMetaValue("my_float", 3.14);
   hit.setMetaValue("my_string", "hello_world");
+  hit.setMetaValue("test_int_list", DataValue(IntList{1, 2, 3}));
+  hit.setMetaValue("test_double_list", DataValue(DoubleList{1.5, 2.5}));
+  hit.setMetaValue("test_string_list", DataValue(StringList{"a", "b", "c"}));
   prot_id.insertHit(hit);
   orig_ids.push_back(prot_id);
 
@@ -1300,6 +1266,14 @@ START_SECTION(metavalue type preservation round trip)
   TEST_EQUAL(int(imp_hit.getMetaValue("my_int")), 42)
   TEST_REAL_SIMILAR(double(imp_hit.getMetaValue("my_float")), 3.14)
   TEST_EQUAL(String(imp_hit.getMetaValue("my_string")), "hello_world")
+
+  // Check list metavalue types are preserved
+  TEST_EQUAL(imp_hit.getMetaValue("test_int_list").valueType(), DataValue::INT_LIST)
+  TEST_EQUAL(imp_hit.getMetaValue("test_int_list") == DataValue(IntList{1, 2, 3}), true)
+  TEST_EQUAL(imp_hit.getMetaValue("test_double_list").valueType(), DataValue::DOUBLE_LIST)
+  TEST_EQUAL(imp_hit.getMetaValue("test_double_list") == DataValue(DoubleList{1.5, 2.5}), true)
+  TEST_EQUAL(imp_hit.getMetaValue("test_string_list").valueType(), DataValue::STRING_LIST)
+  TEST_EQUAL(imp_hit.getMetaValue("test_string_list") == DataValue(StringList{"a", "b", "c"}), true)
 }
 END_SECTION
 
