@@ -136,6 +136,16 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
 
+# Precompiled headers to speed up build (reduces redundant parsing of hot headers)
+target_precompile_headers(OpenMS PRIVATE
+  <string>
+  <vector>
+  <map>
+  <unordered_map>
+  <OpenMS/DATASTRUCTURES/String.h>
+  <OpenMS/CONCEPT/PrecisionWrapper.h>
+)
+
 if (OPENMS_ARROW_DATASET_TARGET)
   target_compile_definitions(OpenMS PRIVATE WITH_ARROW_DATASET)
 endif()

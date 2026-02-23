@@ -32,6 +32,9 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")
 
+# Precompiled headers to speed up GUI build
+target_precompile_headers(OpenMS_GUI REUSE_FROM OpenMS)
+
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
 if (MSVC)
