@@ -205,6 +205,7 @@ Fixes:
   - Fix SIMD type mismatch and unaligned memory access in Base64 decoding (ARM64 crash) (#8689)
   - Fix empty GENE table causing PQP file reading to return zero transitions (#8688)
   - Fix PeptideIndexer AhoCorasick segfault for short peptides (#8685)
+  - Fix redundant PRAGMA foreign_keys execution in OMSFileStore
 
 Documentation:
   - Comprehensive documentation for Targeted Quantitation algorithms (#8588)
