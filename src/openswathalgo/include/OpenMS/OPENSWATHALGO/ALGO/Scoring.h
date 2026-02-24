@@ -74,7 +74,11 @@ public:
     [[deprecated("Use the std::vector& overload instead")]]
     OPENSWATHALGO_DLLAPI double NormalizedManhattanDist(double x[], double y[], int n);
 
-    /// @brief Calculate the normalized Manhattan distance between two vectors (mutates inputs via normalize_sum)
+    /** @brief Calculate the normalized Manhattan distance between two vectors
+     *
+     * @param[in,out] x First intensity vector; normalized in-place via normalize_sum
+     * @param[in,out] y Second intensity vector; normalized in-place via normalize_sum
+     */
     OPENSWATHALGO_DLLAPI double NormalizedManhattanDist(std::vector<double>& x, std::vector<double>& y);
 
     /** @brief Calculate the RMSD (root means square deviation)
@@ -88,7 +92,11 @@ public:
     [[deprecated("Use the std::vector& overload instead")]]
     OPENSWATHALGO_DLLAPI double RootMeanSquareDeviation(double x[], double y[], int n);
 
-    /// @brief Calculate the RMSD between two vectors
+    /** @brief Calculate the RMSD between two vectors
+     *
+     * @param[in] x First data vector
+     * @param[in] y Second data vector (must have same size as x)
+     */
     OPENSWATHALGO_DLLAPI double RootMeanSquareDeviation(const std::vector<double>& x, const std::vector<double>& y);
 
     /** @brief Calculate the Spectral angle (acosine of the normalized dotproduct)
@@ -102,7 +110,11 @@ public:
     [[deprecated("Use the std::vector& overload instead")]]
     OPENSWATHALGO_DLLAPI double SpectralAngle(double x[], double y[], int n);
 
-    /// @brief Calculate the Spectral angle between two vectors
+    /** @brief Calculate the Spectral angle between two vectors
+     *
+     * @param[in] x First intensity vector
+     * @param[in] y Second intensity vector (must have same size as x)
+     */
     OPENSWATHALGO_DLLAPI double SpectralAngle(const std::vector<double>& x, const std::vector<double>& y);
 
     /// Calculate crosscorrelation on std::vector data - Deprecated!
@@ -134,7 +146,10 @@ public:
     [[deprecated("Use the std::vector& overload instead")]]
     OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
 
-    /// Divide each element of x by the sum of the vector
+    /** @brief Divide each element of x by the sum of the vector
+     *
+     * @param[in,out] x Vector to normalize in-place; unchanged if sum is zero
+     */
     OPENSWATHALGO_DLLAPI void normalize_sum(std::vector<double>& x);
 
     // Compute rank of vector elements, append it to @p ranks and return the highest rank
