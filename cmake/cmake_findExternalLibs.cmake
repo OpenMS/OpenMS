@@ -119,6 +119,23 @@ find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
+# minizip-ng
+# vcpkg/contrib install with -DMZ_LIB_SUFFIX=-ng → package "minizip-ng", target MINIZIP::minizip-ng
+# conda-forge installs without suffix             → package "minizip",    target MINIZIP::minizip
+find_package(minizip-ng CONFIG QUIET)
+if(NOT minizip-ng_FOUND)
+  find_package(minizip CONFIG REQUIRED)
+endif()
+if(TARGET MINIZIP::minizip-ng)
+  set(OPENMS_MINIZIP_TARGET MINIZIP::minizip-ng)
+elseif(TARGET MINIZIP::minizip)
+  set(OPENMS_MINIZIP_TARGET MINIZIP::minizip)
+else()
+  message(FATAL_ERROR "No suitable minizip-ng target found (tried MINIZIP::minizip-ng and MINIZIP::minizip)")
+endif()
+message(STATUS "Using minizip-ng target: ${OPENMS_MINIZIP_TARGET}")
+
+#------------------------------------------------------------------------------
 # Find Eigen
 # creates Eigen3::Eigen3 package
 # CMake is garbage https://gitlab.kitware.com/cmake/cmake/-/issues/24581

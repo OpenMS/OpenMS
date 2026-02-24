@@ -45,6 +45,18 @@ sudo apt-get -qq install -y \
   nlohmann-json3-dev \
   libsimde-dev
 
+# Build minizip-ng from source (no apt package available on Ubuntu 24.04)
+MINIZIP_NG_VERSION=4.0.7
+wget -q "https://github.com/zlib-ng/minizip-ng/archive/refs/tags/${MINIZIP_NG_VERSION}.tar.gz" -O /tmp/minizip-ng-${MINIZIP_NG_VERSION}.tar.gz
+tar xzf /tmp/minizip-ng-${MINIZIP_NG_VERSION}.tar.gz -C /tmp
+cmake -S /tmp/minizip-ng-${MINIZIP_NG_VERSION} -B /tmp/minizip-ng-build \
+  -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
+  -DMZ_FETCH_LIBS=OFF -DMZ_LIB_SUFFIX=-ng -DMZ_COMPAT=OFF \
+  -DMZ_ZLIB=ON -DMZ_BZIP2=ON -DMZ_LZMA=OFF -DMZ_ZSTD=OFF \
+  -DMZ_OPENSSL=OFF -DMZ_ICONV=OFF -DMZ_PKCRYPT=ON -DMZ_WZAES=OFF
+cmake --build /tmp/minizip-ng-build -j$(nproc)
+sudo cmake --install /tmp/minizip-ng-build
+
 # Install uv (Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
