@@ -294,9 +294,11 @@ namespace OpenMS
           }
 
           const Size n_compounds = transition_exp_used_all.getCompounds().size();
-          const SignedSize nr_batches = (n_compounds > 0)
-            ? static_cast<SignedSize>((n_compounds + batch_size - 1) / batch_size)
-            : 0;
+          SignedSize nr_batches = 0;
+          if (n_compounds > 0)
+          {
+            nr_batches = static_cast<SignedSize>((n_compounds + batch_size - 1) / batch_size);
+          }
 
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
@@ -853,4 +855,3 @@ namespace OpenMS
     }
   }
 }
-
