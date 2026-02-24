@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/MRMFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 

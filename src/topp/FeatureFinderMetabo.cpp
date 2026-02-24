@@ -6,6 +6,7 @@
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>

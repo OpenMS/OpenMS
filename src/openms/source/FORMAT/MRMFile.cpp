@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/MRMFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
