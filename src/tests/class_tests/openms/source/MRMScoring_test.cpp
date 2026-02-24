@@ -204,35 +204,35 @@ mean(xcorr_max) # shape score
 
           TEST_EQUAL(mrmscore.getXCorrMatrix().rows(), 2)
           TEST_EQUAL(mrmscore.getXCorrMatrix().cols(), 2)
-          TEST_EQUAL(mrmscore.getXCorrMatrix()(0, 0).data.size(), 23)
+          TEST_EQUAL(mrmscore.getXCorrMatrix()(0, 0).data.size(), 21)  // 2*min(10,11)+1 = 21
 
           // test auto-correlation = xcorrmatrix_0_0
           const OpenSwath::Scoring::XCorrArrayType auto_correlation =
                   mrmscore.getXCorrMatrix()(0, 0);
 
-          TEST_EQUAL(auto_correlation.data[11].first, 0)
-          TEST_EQUAL(auto_correlation.data[12].first, 1)
-          TEST_EQUAL(auto_correlation.data[10].first, -1)
-          TEST_EQUAL(auto_correlation.data[13].first, 2)
-          TEST_EQUAL(auto_correlation.data[ 9].first, -2)
+          TEST_EQUAL(auto_correlation.data[10].first, 0)
+          TEST_EQUAL(auto_correlation.data[11].first, 1)
+          TEST_EQUAL(auto_correlation.data[ 9].first, -1)
+          TEST_EQUAL(auto_correlation.data[12].first, 2)
+          TEST_EQUAL(auto_correlation.data[ 8].first, -2)
 
-          TEST_REAL_SIMILAR(auto_correlation.data[11].second , 1)                   // find(0)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[12].second , -0.227352707759245)  // find(1)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[10].second ,  -0.227352707759245) // find(-1)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[13].second , -0.07501116)         // find(2)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[ 9].second ,  -0.07501116)        // find(-2)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[10].second , 1)                   // find(0)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[11].second , -0.227352707759245)  // find(1)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[ 9].second ,  -0.227352707759245) // find(-1)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[12].second , -0.07501116)         // find(2)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[ 8].second ,  -0.07501116)        // find(-2)->second,
 
           // test cross-correlation = xcorrmatrix_0_1
           const OpenSwath::Scoring::XCorrArrayType cross_correlation =
                   mrmscore.getXCorrMatrix()(0, 1);
 
-          TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[11].second, 0.03129565)    // find(0)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[10].second,  0.30204049)   // find(-1)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 9].second,  0.13012441)   // find(-2)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 8].second,  0.39698322)   // find(-3)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 7].second,  0.16608774)   // find(-4)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.31165141)   // find(2)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[11].second, -0.35036919)   // find(1)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[10].second, 0.03129565)    // find(0)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 9].second,  0.30204049)   // find(-1)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 8].second,  0.13012441)   // find(-2)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 7].second,  0.39698322)   // find(-3)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 6].second,  0.16608774)   // find(-4)->second,
         }
     END_SECTION
 
@@ -363,27 +363,27 @@ END_SECTION*/
 
           TEST_EQUAL(mrmscore.getXCorrContrastMatrix().rows(), 2)
           TEST_EQUAL(mrmscore.getXCorrContrastMatrix().cols(), 2)
-          TEST_EQUAL(mrmscore.getXCorrContrastMatrix()(0, 0).data.size(), 23)
+          TEST_EQUAL(mrmscore.getXCorrContrastMatrix()(0, 0).data.size(), 21)  // 2*min(10,11)+1 = 21
 
           // test auto-correlation = xcorrmatrix_0_0
           const OpenSwath::Scoring::XCorrArrayType auto_correlation =
                   mrmscore.getXCorrContrastMatrix()(0, 0);
-          TEST_REAL_SIMILAR(auto_correlation.data[11].second, 1)                     // find(0)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[12].second, -0.227352707759245)    // find(1)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[10].second,  -0.227352707759245)   // find(-1)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[13].second, -0.07501116)           // find(2)->second,
-          TEST_REAL_SIMILAR(auto_correlation.data[ 9].second,  -0.07501116)          // find(-2)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[10].second, 1)                     // find(0)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[11].second, -0.227352707759245)    // find(1)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[ 9].second,  -0.227352707759245)   // find(-1)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[12].second, -0.07501116)           // find(2)->second,
+          TEST_REAL_SIMILAR(auto_correlation.data[ 8].second,  -0.07501116)          // find(-2)->second,
 
           // // test cross-correlation = xcorrmatrix_0_1
           const OpenSwath::Scoring::XCorrArrayType cross_correlation =
                   mrmscore.getXCorrContrastMatrix()(0, 1);
-          TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[11].second, 0.03129565)    // find(0)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[10].second,  0.30204049)   // find(-1)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 9].second,  0.13012441)   // find(-2)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 8].second,  0.39698322)   // find(-3)->second,
-          TEST_REAL_SIMILAR(cross_correlation.data[ 7].second,  0.16608774)   // find(-4)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.31165141)   // find(2)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[11].second, -0.35036919)   // find(1)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[10].second, 0.03129565)    // find(0)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 9].second,  0.30204049)   // find(-1)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 8].second,  0.13012441)   // find(-2)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 7].second,  0.39698322)   // find(-3)->second,
+          TEST_REAL_SIMILAR(cross_correlation.data[ 6].second,  0.16608774)   // find(-4)->second,
         }
     END_SECTION
 
@@ -485,7 +485,7 @@ END_SECTION*/
           mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
           delete imrmfeature;
 
-          TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastCoelutionScore(), 9.5741984 )
+          TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastCoelutionScore(), 8.7328638 )
         }
     END_SECTION
 
@@ -502,7 +502,7 @@ END_SECTION*/
           mrmscore.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
           delete imrmfeature;
 
-          TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorCombinedCoelutionScore(), 9.2444789 )
+          TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorCombinedCoelutionScore(), 8.4321855 )
         }
     END_SECTION
 
