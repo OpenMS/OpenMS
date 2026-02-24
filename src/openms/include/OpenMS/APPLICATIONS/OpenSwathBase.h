@@ -109,7 +109,6 @@ namespace OpenMS
      * @param[in] force Whether to override the sanity check
      * @param[in] sort_swath_maps Whether to sort the provided windows first before mapping
      * @param[in] prm Whether data is in prm format; allows for overlap
-     * @param[in] pasef Whether data is in PASEF format; allows for overlap
      * @param[in,out] plugin_consumer Intermediate consumer for mzML input. See SwathFile::loadMzML() for details.
      *
      * @return Returns whether loading and sanity check was successful
@@ -127,7 +126,6 @@ namespace OpenMS
                         const bool force,
                         const bool sort_swath_maps,
                         const bool prm,
-                        const bool pasef,
                         Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 
     /**

@@ -114,6 +114,7 @@ if (WITH_PARQUET)
   list(APPEND sources_list XICParquetFile.cpp)
   list(APPEND sources_list ProteinIdentificationArrowIO.cpp)
   list(APPEND sources_list FeatureMapArrowIO.cpp)
+  list(APPEND sources_list ConsensusMapArrowIO.cpp)
 endif()
 
 ### add path to the filenames

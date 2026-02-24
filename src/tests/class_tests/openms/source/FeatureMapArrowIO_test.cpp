@@ -109,7 +109,7 @@ START_SECTION(exportFeaturesToArrow - single feature with convex hulls and metav
   auto col_charge = std::static_pointer_cast<arrow::Int32Array>(table->GetColumnByName("charge")->chunk(0));
   TEST_EQUAL(col_charge->Value(0), 2)
 
-  auto col_oq = std::static_pointer_cast<arrow::FloatArray>(table->GetColumnByName("overall_quality")->chunk(0));
+  auto col_oq = std::static_pointer_cast<arrow::FloatArray>(table->GetColumnByName("quality")->chunk(0));
   TEST_REAL_SIMILAR(col_oq->Value(0), 0.95f)
 
   auto col_qrt = std::static_pointer_cast<arrow::FloatArray>(table->GetColumnByName("quality_rt")->chunk(0));
@@ -250,6 +250,9 @@ START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls a
   f1.setMetaValue("my_int", 42);
   f1.setMetaValue("my_float", 3.14);
   f1.setMetaValue("my_string", String("hello"));
+  f1.setMetaValue("test_int_list", DataValue(IntList{1, 2, 3}));
+  f1.setMetaValue("test_double_list", DataValue(DoubleList{1.5, 2.5}));
+  f1.setMetaValue("test_string_list", DataValue(StringList{"a", "b", "c"}));
 
   // Subordinate A (uid=101)
   Feature subA;
@@ -340,6 +343,14 @@ START_SECTION(importFeaturesFromArrow - round-trip with subordinates and hulls a
   TEST_EQUAL(out_f1.getMetaValue("my_float").valueType(), DataValue::DOUBLE_VALUE)
   TEST_EQUAL(out_f1.getMetaValue("my_string").valueType(), DataValue::STRING_VALUE)
 
+  // Check list metavalue types are preserved
+  TEST_EQUAL(out_f1.getMetaValue("test_int_list").valueType(), DataValue::INT_LIST)
+  TEST_EQUAL(out_f1.getMetaValue("test_int_list") == DataValue(IntList{1, 2, 3}), true)
+  TEST_EQUAL(out_f1.getMetaValue("test_double_list").valueType(), DataValue::DOUBLE_LIST)
+  TEST_EQUAL(out_f1.getMetaValue("test_double_list") == DataValue(DoubleList{1.5, 2.5}), true)
+  TEST_EQUAL(out_f1.getMetaValue("test_string_list").valueType(), DataValue::STRING_LIST)
+  TEST_EQUAL(out_f1.getMetaValue("test_string_list") == DataValue(StringList{"a", "b", "c"}), true)
+
   // Check subordinates of feature 1
   TEST_EQUAL(out_f1.getSubordinates().size(), 2)
 
@@ -390,8 +401,8 @@ START_SECTION(exportPSMsToArrow - empty FeatureMap)
   auto table = FeatureMapArrowIO::exportPSMsToArrow(fm);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
-  // Should have feature_id column + all QPX PSM columns
-  auto feature_id_col = table->GetColumnByName("feature_id");
+  // Should have feature_unique_id column + all QPX PSM columns
+  auto feature_id_col = table->GetColumnByName("feature_unique_id");
   TEST_NOT_EQUAL(feature_id_col, nullptr)
 }
 END_SECTION
@@ -449,16 +460,16 @@ START_SECTION(exportPSMsToArrow - feature and unassigned PSMs)
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 2)
 
-  // Verify feature_id column
-  auto feature_id_chunked = table->GetColumnByName("feature_id");
+  // Verify feature_unique_id column
+  auto feature_id_chunked = table->GetColumnByName("feature_unique_id");
   TEST_NOT_EQUAL(feature_id_chunked, nullptr)
   auto feature_id_arr = std::static_pointer_cast<arrow::Int64Array>(feature_id_chunked->chunk(0));
 
-  // Row 0: feature PSM -> feature_id = 1000
+  // Row 0: feature PSM -> feature_unique_id = 1000
   TEST_EQUAL(feature_id_arr->IsNull(0), false)
   TEST_EQUAL(feature_id_arr->Value(0), 1000)
 
-  // Row 1: unassigned PSM -> feature_id = null
+  // Row 1: unassigned PSM -> feature_unique_id = null
   TEST_EQUAL(feature_id_arr->IsNull(1), true)
 
   // Verify sequence column
@@ -988,6 +999,95 @@ START_SECTION(exportToParquet / importFromParquet - PSM completeness round-trip 
   TEST_EQUAL(out_pid2.getHits()[0].getSequence().toString(), "ACDEFGHIK")
   TEST_REAL_SIMILAR(out_pid2.getHits()[0].getScore(), 0.1)
   TEST_EQUAL(out_pid2.getHits()[0].getCharge(), 3)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// PSM per-PSM higher_score_better + scan/reference_file_name round-trip
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better independent from ProteinIdentification)
+{
+  FeatureMap fm;
+
+  // ProteinIdentification with higher_score_better=false (run-level)
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_hsb_test");
+  prot_id.setSearchEngine("Comet");
+  prot_id.setScoreType("expect");
+  prot_id.setHigherScoreBetter(false);
+  fm.setProteinIdentifications({prot_id});
+
+  // Feature with PeptideIdentification where higher_score_better=true (differs from run-level)
+  Feature f1;
+  f1.setRT(100.0);
+  f1.setMZ(500.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(2);
+  f1.setUniqueId(6001);
+
+  PeptideIdentification pep_id1;
+  pep_id1.setIdentifier("run_hsb_test");
+  pep_id1.setScoreType("xcorr");
+  pep_id1.setHigherScoreBetter(true); // different from run-level false
+  pep_id1.setRT(100.0);
+  pep_id1.setMZ(500.25);
+  pep_id1.setSpectrumReference("spectrum=99");
+
+  PeptideHit hit1;
+  hit1.setSequence(AASequence::fromString("PEPTIDER"));
+  hit1.setScore(2.5);
+  hit1.setCharge(2);
+  hit1.setRank(1);
+  hit1.setMetaValue("target_decoy", "target");
+  pep_id1.insertHit(hit1);
+  f1.setPeptideIdentifications({pep_id1});
+  fm.push_back(f1);
+
+  // Unassigned PeptideIdentification with higher_score_better=false (same as run-level)
+  PeptideIdentification pep_id2;
+  pep_id2.setIdentifier("run_hsb_test");
+  pep_id2.setScoreType("expect");
+  pep_id2.setHigherScoreBetter(false);
+  pep_id2.setRT(200.0);
+  pep_id2.setMZ(600.0);
+
+  PeptideHit hit2;
+  hit2.setSequence(AASequence::fromString("ACDEFGHIK"));
+  hit2.setScore(0.05);
+  hit2.setCharge(3);
+  hit2.setRank(1);
+  hit2.setMetaValue("target_decoy", "target");
+  pep_id2.insertHit(hit2);
+  fm.setUnassignedPeptideIdentifications({pep_id2});
+
+  // --- Export and import ---
+  String tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
+
+  FeatureMap imported;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+
+  // Verify per-PSM higher_score_better: pep_id1 should be true (not run-level false)
+  TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
+  const PeptideIdentification& out_pid1 = imported[0].getPeptideIdentifications()[0];
+  TEST_EQUAL(out_pid1.isHigherScoreBetter(), true)  // per-PSM value, NOT run-level false
+  TEST_EQUAL(out_pid1.getScoreType(), "xcorr")
+
+  // Verify unassigned PSM: higher_score_better should be false
+  TEST_EQUAL(imported.getUnassignedPeptideIdentifications().size(), 1)
+  const PeptideIdentification& out_pid2 = imported.getUnassignedPeptideIdentifications()[0];
+  TEST_EQUAL(out_pid2.isHigherScoreBetter(), false)
+  TEST_EQUAL(out_pid2.getScoreType(), "expect")
+
+  // Verify scan and reference_file_name survive round-trip via metavalue
+  // (scan is derived from spectrum_reference on export, reference_file_name from ProteinIdentification)
+  const PeptideHit& out_hit1 = out_pid1.getHits()[0];
+  TEST_EQUAL(out_hit1.metaValueExists("scan"), true)
+  TEST_EQUAL(static_cast<int>(out_hit1.getMetaValue("scan")), 99)
 }
 END_SECTION
 

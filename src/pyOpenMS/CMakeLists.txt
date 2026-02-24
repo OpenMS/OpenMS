@@ -444,7 +444,11 @@ WITH_PARQUET = ${_PY_WITH_PARQUET}
       ${PYOPENMS_BUILD_DIR}/pyopenms/_arrow_zerocopy.cpp
       WITH_SOABI
     )
-    target_link_libraries(arrow_zerocopy PRIVATE OpenMS ${OPENMS_ARROW_TARGET} Python::NumPy)
+    # Link only against OpenMS (not Arrow directly). The _arrow_zerocopy module
+    # uses only the Arrow C Data Interface (arrow/c/abi.h — header-only C structs)
+    # and OpenMS C++ functions. Linking Arrow here would re-export Arrow symbols,
+    # conflicting with pyarrow's own Arrow runtime at Python import time.
+    target_link_libraries(arrow_zerocopy PRIVATE OpenMS Python::NumPy)
     target_compile_definitions(arrow_zerocopy PRIVATE
       NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
       WITH_PARQUET=1

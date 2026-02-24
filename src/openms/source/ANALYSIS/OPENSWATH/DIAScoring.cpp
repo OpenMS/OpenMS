@@ -20,6 +20,7 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/MATH/MathFunctions.h> // getPPM
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <numeric>
 #include <algorithm>
@@ -427,7 +428,7 @@ namespace OpenMS
 
     // score the pattern against a theoretical one
     OPENMS_POSTCONDITION(isotopes_int.size() == isotopes.intensity.size(), "Vectors for pearson correlation do not have the same size.");
-    double int_score = OpenSwath::cor_pearson(isotopes_int.begin(), isotopes_int.end(), isotopes.intensity.begin());
+    double int_score = OpenMS::Math::pearsonCorrelationCoefficient(isotopes_int.begin(), isotopes_int.end(), isotopes.intensity.begin(), isotopes.intensity.end());
     if (std::isnan(int_score))
     {
       int_score = 0;

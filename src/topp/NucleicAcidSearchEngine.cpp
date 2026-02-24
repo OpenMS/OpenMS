@@ -34,6 +34,7 @@
 // digestion enzymes
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/SYSTEM/File.h>
 
 // ribonucleotides
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>

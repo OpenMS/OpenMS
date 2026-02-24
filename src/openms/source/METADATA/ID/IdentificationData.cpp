@@ -8,6 +8,7 @@
 
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <numeric>
 
 using namespace std;
