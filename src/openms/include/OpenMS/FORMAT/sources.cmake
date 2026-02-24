@@ -77,6 +77,8 @@ OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
 ParamCTDFile.h
+ParamCWLFile.h
+ParamJSONFile.h
 ParamXMLFile.h
 PEFFFile.h
 PTMXMLFile.h
@@ -124,6 +126,10 @@ if (WITH_PARQUET)
   list(APPEND sources_list_h ParquetFile.h)
   list(APPEND sources_list_h ParquetFilter.h)
   list(APPEND sources_list_h XICParquetFile.h)
+  list(APPEND sources_list_h QPXFile.h)
+  list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
+  list(APPEND sources_list_h FeatureMapArrowIO.h)
+  list(APPEND sources_list_h ConsensusMapArrowIO.h)
 endif()
 
 ### add path to the filenames

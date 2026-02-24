@@ -33,6 +33,10 @@
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MSstatsFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
@@ -860,11 +864,12 @@ protected:
     // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
     StringList id_MS_run_ref;
     StringList in_MS_run = ms_files.second;
+    const auto& path_label_to_fractiongroup = design_.getPathLabelToFractionGroupMapping(true);
 
     // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
-    Size fraction_group{1};
     for (String const & mz_file : ms_files.second)
     {
+      const Size fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
       writeDebug_("Processing file: " + mz_file,  1);
       // centroid spectra (if in profile mode) and correct precursor masses
       MSExperiment ms_centroided;    
@@ -1153,8 +1158,6 @@ protected:
       {
         FileHandler().storeExperiment("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + "_chroms.mzML", ffi.getChromatograms(), {FileTypes::MZML}, log_type_);
       }
-
-      ++fraction_group;
     }
 
     // validate file lists (use only basename and ignore extension)
@@ -1194,7 +1197,7 @@ protected:
     const auto& path_label_to_sampleidx = design_.getPathLabelToSampleMapping(true);
     for (String const & mz_file : ms_files.second) 
     {
-      const Size curr_fraction_group = j + 1;
+      const Size curr_fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
       consensus_fraction.getColumnHeaders()[j].label = "label-free";
       consensus_fraction.getColumnHeaders()[j].filename = mz_file;
       consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
@@ -1630,11 +1633,12 @@ protected:
         // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
         StringList id_MS_run_ref;
         StringList in_MS_run = ms_files.second;
+        const auto& path_label_to_fractiongroup = design_.getPathLabelToFractionGroupMapping(true);
 
         // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
-        Size fraction_group{1};
         for (String const & mz_file : ms_files.second)
         { 
+          const Size fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
           // load and clean identification data associated with MS run
           vector<ProteinIdentification> protein_ids;
           PeptideIdentificationList peptide_ids;
@@ -1660,19 +1664,17 @@ protected:
         ////////////////////////////////////////////////////////////
         // Annotate experimental design in consensus map
         ////////////////////////////////////////////////////////////
-        Size j(0);
         // for each MS file (as provided in the experimental design)
         const auto& path_label_to_sampleidx = design_.getPathLabelToSampleMapping(true);
         for (String const & mz_file : ms_files.second) 
         {
-          const Size curr_fraction_group = j + 1;
+          const Size curr_fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
           consensus.getColumnHeaders()[run_index].label = "label-free";
           consensus.getColumnHeaders()[run_index].filename = mz_file;
           consensus.getColumnHeaders()[run_index].unique_id = 1 + run_index;
           consensus.getColumnHeaders()[run_index].setMetaValue("fraction", fraction);
           consensus.getColumnHeaders()[run_index].setMetaValue("fraction_group", curr_fraction_group);
           consensus.getColumnHeaders()[run_index].setMetaValue("sample_name", design_.getSampleSection().getSampleName(path_label_to_sampleidx.at({File::basename(mz_file),1})));
-          ++j;
           ++run_index;
         }
       }

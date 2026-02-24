@@ -12,6 +12,7 @@
 
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
@@ -50,6 +51,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
+#include <algorithm>
 #include <cassert>
 #include <limits>
 #include <memory>
@@ -325,6 +327,15 @@ protected:
     setValidFormats_("Debugging:irt_mzml", ListUtils::create<String>("mzML"));
     registerOutputFile_("Debugging:irt_trafo", "<file>", "", "Transformation file for RT transform", false);
     setValidFormats_("Debugging:irt_trafo", ListUtils::create<String>("trafoXML"));
+    registerStringList_("Debugging:disable_features", "<list>", StringList(),
+      "Selectively disable features for debugging/benchmarking. "
+      "Valid values: "
+      "'no_IM_calibration' (skip ion mobility calibration by iRT peptides), "
+      "'no_IM_windowing' (extract chromatograms over the full IM range and disable PASEF window matching; "
+      "does not affect IM calibration -- use no_IM_calibration for that). "
+      "Note: IM scoring is controlled separately via -Scoring:Scores:use_ion_mobility_scores (auto/true/false).", false, true);
+    setValidStrings_("Debugging:disable_features",
+      ListUtils::create<String>("no_IM_calibration,no_IM_windowing"));
   }
 
   Param getSubsectionDefaults_(const String& name) const override
@@ -365,6 +376,14 @@ protected:
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerChromatogram:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerChromatogram:sn_bin_count");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerChromatogram:stop_after_feature");
+
+      // IM scoring: use "auto" so OpenSwathWorkflow can auto-enable for PASEF
+      // while still respecting explicit "true"/"false" from the user.
+      // Resolved to "true"/"false" before passing to MRMFeatureFinderScoring.
+      feature_finder_param.setValue("Scores:use_ion_mobility_scores", "auto",
+        "Use ion mobility scores. 'auto' enables for PASEF data and disables otherwise; "
+        "'true'/'false' override auto-detection.");
+      feature_finder_param.setValidStrings("Scores:use_ion_mobility_scores", {"true", "false", "auto"});
 
       // EMG Scoring - turn off by default since it is very CPU-intensive
       feature_finder_param.remove("Scores:use_elution_model_score");
@@ -599,6 +618,10 @@ protected:
 
     Param debug_params = getParam_().copy("Debugging:", true);
 
+    StringList disable_features = getStringList_("Debugging:disable_features");
+    bool disable_im_calibration = std::find(disable_features.begin(), disable_features.end(), "no_IM_calibration") != disable_features.end();
+    bool disable_im_windowing   = std::find(disable_features.begin(), disable_features.end(), "no_IM_windowing")   != disable_features.end();
+
     String readoptions = getStringOption_("readOptions");
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
@@ -701,7 +724,12 @@ protected:
     cp_irt.mz_extraction_window = getDoubleOption_("irt_mz_extraction_window");
     cp_irt.im_extraction_window = getDoubleOption_("irt_im_extraction_window");
 
-    if ( (cp_irt.im_extraction_window == -1) && (cp.im_extraction_window != -1) )
+    if (disable_im_calibration)
+    {
+      cp_irt.im_extraction_window = -1;
+      OPENMS_LOG_INFO << "Debugging: no_IM_calibration active -- forcing irt_im_extraction_window = -1 (skipping IM calibration)." << std::endl;
+    }
+    else if ( (cp_irt.im_extraction_window == -1) && (cp.im_extraction_window != -1) )
     {
       OPENMS_LOG_WARN << "Warning: -irt_im_extraction_window is not set, this will lead to no ion mobility calibration" << std::endl;
     }
@@ -712,6 +740,13 @@ protected:
     cp_ms1.mz_extraction_window  = getDoubleOption_("mz_extraction_window_ms1");
     cp_ms1.ppm                   = getStringOption_("mz_extraction_window_ms1_unit") == "ppm";
     cp_ms1.im_extraction_window  = (use_ms1_im) ? getDoubleOption_("im_extraction_window_ms1") : -1;
+
+    if (disable_im_windowing)
+    {
+      cp.im_extraction_window = -1;
+      cp_ms1.im_extraction_window = -1;
+      OPENMS_LOG_INFO << "Debugging: no_IM_windowing active -- forcing im_extraction_window = -1 for MS2 and MS1 (using full IM range)." << std::endl;
+    }
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
     feature_finder_param.setValue("use_ms1_ion_mobility", getStringOption_("use_ms1_ion_mobility"));
@@ -857,20 +892,6 @@ protected:
       }
     }
 
-    // If pasef flag is set, validate that IM is present
-    if (pasef)
-    {
-      auto transitions = transition_exp.getTransitions();
-
-      for ( Size k=0; k < (Size)transitions.size(); k++ )
-      {
-        if (transitions[k].precursor_im == -1)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Transition " + transitions[k].getNativeID() +  " does not have a valid IM value, this must be set to use the -pasef flag");
-        }
-      }
-    }
-
     // Load priority peptide sequences from irtkit and cirtkit if auto_irt is enabled
     std::unordered_set<std::string> priority_peptides;
     if (auto_irt)
@@ -966,15 +987,19 @@ protected:
       oswwriter.writeHeader();
     }
 
+    const bool user_pasef = pasef;
+
     Size run_index = 0;
     for (const StringList& current_run_files : run_groups)
     {
       OPENMS_LOG_INFO << "Processing Run " << (run_index + 1) << "/" << run_groups.size() << std::endl;
       
-      // Create fresh copies of extraction parameters for each run to avoid parameter carry-over
+      // Create fresh copies of parameters for each run to avoid carry-over
+      pasef = user_pasef;
       ChromExtractParams cp_current = cp;
       ChromExtractParams cp_ms1_current = cp_ms1;
       ChromExtractParams cp_irt_current = cp_irt;
+      Param feature_finder_param_run = feature_finder_param;
       ///////////////////////////////////
       // Load the SWATH files (if split data, otherwise load single experiment mzML)
       ///////////////////////////////////
@@ -993,7 +1018,7 @@ protected:
         qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
         if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
                             swath_windows_file, min_upper_edge_dist, force,
-                            sort_swath_maps, prm, pasef, &qc_consumer))
+                            sort_swath_maps, prm, &qc_consumer))
         {
           OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
                            << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
@@ -1008,7 +1033,7 @@ protected:
       {
         if (!loadSwathFiles(single_file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
                             swath_windows_file, min_upper_edge_dist, force,
-                            sort_swath_maps, prm, pasef))
+                            sort_swath_maps, prm))
         {
           OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
                            << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
@@ -1016,6 +1041,64 @@ protected:
                            << std::endl
                            << "  Please check that the input files exist, are valid mzML/sqMass files, and that read options are correct." << std::endl;
           return PARSE_ERROR;
+        }
+      }
+
+      // Auto-detect PASEF data from swath maps if user didn't explicitly set -pasef
+      if (!pasef)
+      {
+        bool has_im_windows = std::any_of(swath_maps.begin(), swath_maps.end(),
+          [](const OpenSwath::SwathMap& m) { return !m.ms1 && m.imLower >= 0 && m.imUpper >= 0; });
+        if (has_im_windows)
+        {
+          OPENMS_LOG_INFO << "Auto-detected ion mobility (PASEF) data from SWATH windows. "
+                          << "Enabling PASEF mode automatically." << std::endl;
+          pasef = true;
+        }
+      }
+
+      // Override: disable PASEF window matching if no_IM_windowing is active
+      if (disable_im_windowing && pasef)
+      {
+        OPENMS_LOG_INFO << "Debugging: no_IM_windowing active -- forcing pasef = false (disabling PASEF window matching)." << std::endl;
+        pasef = false;
+      }
+
+      // Resolve "auto" for ion mobility scoring: enable for PASEF data, disable otherwise.
+      // Explicit "true"/"false" from the user is always respected.
+      {
+        String im_score_setting = feature_finder_param_run.getValue("Scores:use_ion_mobility_scores").toString();
+        if (im_score_setting == "auto")
+        {
+          if (pasef)
+          {
+            OPENMS_LOG_INFO << "PASEF mode active: automatically enabling ion mobility scores "
+                            << "(Scoring:Scores:use_ion_mobility_scores = auto -> true)." << std::endl;
+            feature_finder_param_run.setValue("Scores:use_ion_mobility_scores", "true");
+          }
+          else
+          {
+            feature_finder_param_run.setValue("Scores:use_ion_mobility_scores", "false");
+            if (disable_im_windowing)
+            {
+              OPENMS_LOG_INFO << "IM scoring auto-disabled because no_IM_windowing forced pasef = false. "
+                              << "Pass -Scoring:Scores:use_ion_mobility_scores true to keep IM scoring." << std::endl;
+            }
+          }
+        }
+      }
+
+      // Validate that transitions have IM values when PASEF mode is active
+      if (pasef)
+      {
+        for (const auto& tr : transition_exp.getTransitions())
+        {
+          if (tr.precursor_im < 0)
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Error: Transition " + tr.getNativeID() +
+              " does not have a valid IM value, this must be set to use PASEF mode (auto-detected or via -pasef flag)");
+          }
         }
       }
 
@@ -1145,7 +1228,7 @@ protected:
           cp_current,         // Extraction parameters (may be updated with estimates)
           cp_ms1_current,     // MS1 extraction parameters (may be updated)
           irt_experiments,    // Pre-prepared iRT experiments
-          feature_finder_param,      // Feature finder parameters
+          feature_finder_param_run,  // Feature finder parameters (per-run copy)
           cp_irt_current,     // iRT extraction parameters
           irt_detection_param, // iRT detection parameters
           calibration_param,  // Calibration parameters (m/z, IM correction)
@@ -1208,7 +1291,7 @@ protected:
     wf.setLogType(log_type_);
 
     // perform extraction for this file's swath maps
-    wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param, transition_exp,
+    wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
                          active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param);
 
     //// Write out data

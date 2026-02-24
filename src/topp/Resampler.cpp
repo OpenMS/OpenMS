@@ -9,6 +9,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>

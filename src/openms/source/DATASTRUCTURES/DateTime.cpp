@@ -169,6 +169,13 @@ namespace OpenMS
     return d;
   }
 
+  DateTime DateTime::nowUTC()
+  {
+    DateTime d;
+    *d.dt_ = QDateTime::currentDateTimeUtc();
+    return d;
+  }
+
   String DateTime::get() const
   {
     if (dt_->isValid())

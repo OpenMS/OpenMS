@@ -609,7 +609,7 @@ namespace OpenMS
   {
     Logger::LogStream g_log_fatal(new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &cerr);
     Logger::LogStream g_log_error(new Logger::LogStreamBuf("ERROR", &red), true, &cerr);
-    Logger::LogStream g_log_warn(new Logger::LogStreamBuf("WARNING", &yellow), true, &cout);
+    Logger::LogStream g_log_warn(new Logger::LogStreamBuf("WARNING", &yellow), true, &cerr);
     Logger::LogStream g_log_info(new Logger::LogStreamBuf("INFO", nullptr), true, &cout);
     // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
     Logger::LogStream g_log_debug(new Logger::LogStreamBuf("DEBUG", &magenta), false); // last param should be 'true', but segfaults...

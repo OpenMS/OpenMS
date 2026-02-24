@@ -9,6 +9,7 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {

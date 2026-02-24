@@ -10,8 +10,6 @@ set(sources_list
   MSDataChainingConsumer.cpp
   MSDataStoringConsumer.cpp
   MSDataSqlConsumer.cpp
-  MSDataTransformingConsumer.cpp
-  MSDataWritingConsumer.cpp
   NoopMSDataConsumer.cpp
   SiriusFragmentAnnotation.cpp
   SwathFileConsumer.cpp
