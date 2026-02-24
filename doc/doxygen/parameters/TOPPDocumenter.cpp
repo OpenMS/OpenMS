@@ -24,9 +24,21 @@ using namespace Internal;
 
 void convertINI2HTML(const Param& p, ostream& os)
 {
-  // the .css file is included via the Header.html (see doc/doxygen/common/Header.html)
-  // TODO add some general description on how to handle subsections, what each column means, what the tags mean, etc.
   os << "<div class=\"ini_global\">\n";
+  os << "<div class=\"ini_explanation\">\n";
+  os << "<h3>Parameter Documentation</h3>\n";
+  os << "<p>This page lists all parameters grouped into subsections.</p>\n";
+  os << "<ul>\n";
+  os << "<li><b>Subsections</b> represent logical groupings of parameters.</li>\n";
+  os << "<li><b>Name</b> is the parameter identifier used in the INI file.</li>\n";
+  os << "<li><b>Value</b> shows the default value.</li>\n";
+  os << "<li><b>Description</b> explains the purpose of the parameter.</li>\n";
+  os << "<li><b>Restrictions</b> indicate valid ranges or allowed values.</li>\n";
+  os << "<li><b>Tags</b> provide additional information about the parameter.</li>\n";
+  os << "</ul>\n";
+  os << "<p>Parameters marked as <span class=\"item_required\">required</span> must be provided. ";
+  os << "Parameters marked as <span class=\"item_advanced\">advanced</span> are intended for experienced users.</p>\n";
+  os << "</div>\n";
   os << "<div class=\"legend\">\n";
   os << "<b>Legend:</b><br>\n";
   os << " <div class=\"item item_required\">required parameter</div>\n";
