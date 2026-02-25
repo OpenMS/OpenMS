@@ -924,8 +924,11 @@ protected:
 
         StringList in_list = getStringList_("in");
 
-        // Find the correct index for the current file
         auto it = std::find(in_list.begin(), in_list.end(), mz_file);
+        if (it == in_list.end())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Current mzML file not found in the -in list.");
+        }
         size_t file_idx = std::distance(in_list.begin(), it);
 
         FeatureXMLFile f_file;
@@ -937,6 +940,9 @@ protected:
         {
             fm.setPrimaryMSRunPath({mz_file});
         }
+
+        fm.setProteinIdentifications(protein_ids);
+        fm.setUnassignedPeptideIdentifications(peptide_ids);
       }
       else
       {
