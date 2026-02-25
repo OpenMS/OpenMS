@@ -135,7 +135,7 @@ protected:
   {
     registerInputFileList_("in", "<file list>", StringList(), "Input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFileList_("in_feat", "<files>",StringList(), "Optional input featureXML files containing pre-computed features. Bypasses internal feature finding. Must match the number of '-in' files.", false, false);
+    registerInputFileList_("in_feat", "<files>", StringList(), "Optional input featureXML files containing pre-computed features. Bypasses internal feature finding. Must match the number of '-in' files.", false, false);
     setValidFormats_("in_feat", ListUtils::create<String>("featureXML"));
     registerInputFileList_("ids", "<file list>", StringList(),
       "Identifications filtered at PSM level (e.g., q-value < 0.01)."
@@ -431,7 +431,7 @@ protected:
       vector<TransformationDescription::TransformationStatistics> alignment_stats;
       for (TransformationDescription & t : transformations)
       {
-        writeDebug_("Using " + String() + " points in fit.", 1);
+        writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1);
         if (t.getDataPoints().size() > 10)
         {
           t.fitModel(model_type, model_params);
@@ -844,7 +844,7 @@ protected:
   }
 
   ExitCodes quantifyFraction_(
-    const pair<unsigned int, std::vector<String> > & ms_files,
+    const pair<UInt, std::vector<String> > & ms_files,
     const map<String, String>& mzfile2idfile,
     const String& in_db,
     double median_fwhm,
@@ -855,6 +855,9 @@ protected:
     vector<TransformationDescription> transformations;
     vector<FeatureMap> feature_maps;
     const Size fraction = ms_files.first;
+
+    const StringList in_feat_list = getStringList_("in_feat");
+    const StringList in_list      = getStringList_("in");
 
     writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
     for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
@@ -904,7 +907,7 @@ protected:
 
       const bool targeted_only = getStringOption_("targeted_only") != "false";
 
-      if (!targeted_only)
+      if (!targeted_only && in_feat_list.empty())
       {
         DDAWorkflowCommons::calculateSeeds(ms_centroided, getDoubleOption_("Seeding:intThreshold"), seeds, median_fwhm, 2, 5);
         if (debug_level_ > 666)
@@ -916,32 +919,44 @@ protected:
       /////////////////////////////////////////////////
       // Feature detection or loading pre-computed features
       FeatureMap fm;
-      StringList in_feat_list = getStringList_("in_feat");
 
       if (!in_feat_list.empty())
       {
-        OPENMS_LOG_INFO << "Bypassing FeatureFinderIdentification. Loading pre-computed features..." << std::endl;
-
-        StringList in_list = getStringList_("in");
+        OPENMS_LOG_INFO << "Bypassing FeatureFinderIdentification. Loading pre-computed features...\n";
 
         auto it = std::find(in_list.begin(), in_list.end(), mz_file);
         if (it == in_list.end())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Current mzML file not found in the -in list.");
         }
-        size_t file_idx = std::distance(in_list.begin(), it);
+        Size file_idx = static_cast<Size>(std::distance(in_list.begin(), it));
 
-        FeatureXMLFile f_file;
-        f_file.load(in_feat_list[file_idx], fm);
+        FileHandler().loadFeatures(in_feat_list[file_idx], fm, {FileTypes::FEATUREXML}, log_type_);
 
         StringList run_paths;
         fm.getPrimaryMSRunPath(run_paths);
         if (run_paths.empty())
         {
-            fm.setPrimaryMSRunPath({mz_file});
+          fm.setPrimaryMSRunPath({mz_file});
+        }
+        else if (FileHandler::stripExtension(File::basename(run_paths[0])) !=
+                 FileHandler::stripExtension(File::basename(mz_file)))
+        {
+          OPENMS_LOG_WARN << "Primary MS run path in featureXML (" << run_paths[0]
+                          << ") does not match the mzML at the same position (" << mz_file
+                          << "). Keeping featureXML annotation.\n";
         }
 
+        if (!fm.getProteinIdentifications().empty())
+        {
+          OPENMS_LOG_WARN << "Warning: Loaded featureXML already contains protein identifications. They will be overwritten.\n";
+        }
         fm.setProteinIdentifications(protein_ids);
+
+        if (!fm.getUnassignedPeptideIdentifications().empty())
+        {
+          OPENMS_LOG_WARN << "Warning: Loaded featureXML already contains unassigned peptide identifications. They will be overwritten.\n";
+        }
         fm.setUnassignedPeptideIdentifications(peptide_ids);
       }
       else
@@ -961,7 +976,7 @@ protected:
 
         if (filter_by_quant_scores)
         {
-          OPENMS_LOG_INFO << "Adding offset peptides as quant. decoys." << std::endl;
+          OPENMS_LOG_INFO << "Adding offset peptides as quant. decoys.\n";
           ffi_param.setValue("add_mass_offset_peptides", 10.005);
         }
 
@@ -1333,15 +1348,15 @@ protected:
     // Validate parameters
     if (!in_feat.empty() && in_feat.size() != in.size())
     {
-      OPENMS_LOG_ERROR << "Error: The number of input featureXML files (-in_feat) must exactly match the number of input mzML files (-in)." << std::endl;
-      return ILLEGAL_PARAMETERS;
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Number of featureXML files (-in_feat, " + String(in_feat.size()) +
+        ") must match number of mzML files (-in, " + String(in.size()) + ").");
     }
     if (in.size() != in_ids.size())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__,
-        OPENMS_PRETTY_FUNCTION, "Number of spectra file (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Number of spectra files (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
     }
-
     if (getStringOption_("quantification_method") == "spectral_counting")
     {
       if (!out_msstats.empty())
