@@ -815,31 +815,32 @@ protected:
 
   void printMetaValues(const FeatureMap& tmp)
   {
+    if (tmp.empty())
+    {
+      OPENMS_LOG_WARN << "printMetaValues called with empty FeatureMap.\n";
+      return;
+    }
+
     // extract meta value keys from the first element (which might be a normal or OffsetPeptide -> extract only the common ones)
     std::vector<String> keys;
     tmp[0].getKeys(keys);
     if (auto it = std::find(keys.begin(), keys.end(), "OffsetPeptide"); it != keys.end())
     {
-      keys.erase(it); // remove the string
+      keys.erase(it);
     }
 
-    for (const auto& k : keys) std::cout << k << '\t';
-    std::cout << "OffsetPeptide" << std::endl;
-    for (auto & f : tmp)
+    OPENMS_LOG_INFO << "keys: ";
+    for (const auto& k : keys) { OPENMS_LOG_INFO << k << " "; }
+    OPENMS_LOG_INFO << "\n";
+
+    for (const auto& f : tmp)
     {
+      if (f.metaValueExists("OffsetPeptide")) continue;
       for (const auto& k : keys)
       {
-        std::cout << f.getMetaValue(k) << '\t';
+        OPENMS_LOG_INFO << f.getMetaValue(k) << " ";
       }
-      if (f.metaValueExists("OffsetPeptide"))
-      {
-        std::cout << "true";
-      }
-      else
-      {
-        std::cout << "false";
-      }
-      std::cout << endl;
+      OPENMS_LOG_INFO << "\n";
     }
   }
 
@@ -882,7 +883,15 @@ protected:
       }
 
       MSExperiment ms_centroided;
-      bool requires_ms_data = in_feat_list.empty() || (getStringOption_("mass_recalibration") == "true");
+      const bool mass_recalibration = (getStringOption_("mass_recalibration") == "true");
+
+      if (!in_feat_list.empty() && mass_recalibration)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Option '-mass_recalibration' is not supported together with '-in_feat' because pre-computed features bypass internal feature finding.");
+      }
+
+      const bool requires_ms_data = in_feat_list.empty();
 
       if (requires_ms_data)
       {
@@ -891,14 +900,14 @@ protected:
 
         SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
 
-        if (getStringOption_("mass_recalibration") == "true")
+        if (mass_recalibration)
         {
           String debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
           DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
         }
 
         median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
-        OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << std::endl;
+        OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
       }
 
       StringList id_msfile_ref;

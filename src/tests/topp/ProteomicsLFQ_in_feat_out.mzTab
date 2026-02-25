@@ -31,7 +31,7 @@ MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysi
 MTD	protein-quantification_unit	[, , Abundance, ]
 MTD	peptide-quantification_unit	[, , Abundance, ]
 MTD	ms_run[1]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[1]-location	file:///Users/satyamyadav/Documents/GitHub/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML
+MTD	ms_run[1]-location	file://BSA1_F1.mzML
 MTD	ms_run[1]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	assay[1]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
 MTD	assay[1]-ms_run_ref	ms_run[1]

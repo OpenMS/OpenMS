@@ -2952,6 +2952,10 @@ add_test("TOPP_ProteomicsLFQ_in_feat_out" ${DIFF} -whitelist "software" "locatio
 
 set_tests_properties("TOPP_ProteomicsLFQ_in_feat_out" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_in_feat")
 
+# Mismatch between number of mzML and featureXML inputs must fail
+add_test("TOPP_ProteomicsLFQ_in_feat_mismatch" ${TOPP_BIN_PATH}/ProteomicsLFQ -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML -in_feat ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML ${DATA_DIR_TOPP}/ProteomicsLFQ_in_feat_1.featureXML -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -out ${TESTS_TEMP_DIR}/BSA_in_feat_mismatch.tmp.mzTab -threads 1 -proteinFDR 0.3 -test)
+set_tests_properties("TOPP_ProteomicsLFQ_in_feat_mismatch" PROPERTIES WILL_FAIL 1)
+
 add_test("TOPP_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
