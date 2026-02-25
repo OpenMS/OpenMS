@@ -13,9 +13,11 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <regex>
 #include <functional>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace OpenMS
@@ -571,71 +573,59 @@ namespace OpenMS
 
   bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
   {
-    if (enz == "trypsin")
-    {
-      return ((n == 'K' || n == 'R') && c != 'P') || n == '-' || c == '-';
-    }
-    else if (enz == "trypsinp")
-    {
-      return (n == 'K' || n == 'R') || n == '-' || c == '-';
-    }
-    else if (enz == "chymotrypsin")
-    {
-      return ((n == 'F' || n == 'W' || n == 'Y' || n == 'L') && c != 'P') || n == '-' || c == '-';
-    }
-    else if (enz == "thermolysin")
-    {
-      return ((c == 'A' || c == 'F' || c == 'I' || c == 'L' || c == 'M'
-              || c == 'V' || (n == 'R' && c == 'G')) && n != 'D' && n != 'E') || n == '-' || c == '-';
-    }
-    else if (enz == "proteinasek")
-    {
-      return (n == 'A' || n == 'E' || n == 'F' || n == 'I' || n == 'L'
-             || n == 'T' || n == 'V' || n == 'W' || n == 'Y') || n == '-' || c == '-';
-    }
-    else if (enz == "pepsin")
-    {
-      return ((c == 'F' || c == 'L' || c == 'W' || c == 'Y' || n == 'F'
-              || n == 'L' || n == 'W' || n == 'Y') && n != 'R') || n == '-' || c == '-';
-    }
-    else if (enz == "elastase")
-    {
-      return ((n == 'L' || n == 'V' || n == 'A' || n == 'G') && c != 'P')
-             || n == '-' || c == '-';
-    }
-    else if (enz == "lys-n")
-    {
-      return (c == 'K')
-             || n == '-' || c == '-';
-    }
-    else if (enz == "lys-c")
-    {
-      return ((n == 'K') && c != 'P')
-             || n == '-' || c == '-';
-    }
-    else if (enz == "arg-c")
-    {
-      return ((n == 'R') && c != 'P')
-             || n == '-' || c == '-';
-    }
-    else if (enz == "asp-n")
-    {
-      return (c == 'D')
-             || n == '-' || c == '-';
-    }
-    else if (enz == "glu-c")
-    {
-      return ((n == 'E') && (c != 'P'))
-             || n == '-' || c == '-';
-    }
-    else
+    // Terminal positions are always considered enzymatic.
+    // PeptideEvidence uses '['/']' for protein termini; PIN format uses '-'.
+    if (n == '-' || c == '-' || n == '[' || c == ']')
     {
       return true;
     }
+
+    // Map Percolator enzyme names to OpenMS ProteaseDB enzyme names
+    static const std::unordered_map<std::string, std::string> name_map = {
+      {"trypsin", "Trypsin"},
+      {"trypsinp", "Trypsin/P"},
+      {"chymotrypsin", "Chymotrypsin"},
+      {"elastase", "leukocyte elastase"},
+      {"pepsin", "PepsinA"},
+      {"lys-n", "Lys-N"},
+      {"lys-c", "Lys-C"},
+      {"arg-c", "Arg-C"},
+      {"asp-n", "Asp-N"},
+      {"glu-c", "glutamyl endopeptidase"},
+      {"thermolysin", "Thermolysin"},
+      {"proteinasek", "Proteinase K"},
+      {"no_enzyme", "unspecific cleavage"}
+    };
+
+    auto it = name_map.find(enz);
+    if (it == name_map.end())
+    {
+      thread_local std::unordered_set<std::string> warned;
+      if (warned.insert(enz).second)
+      {
+        OPENMS_LOG_WARN << "Warning: unknown enzyme name '" << enz
+                        << "' in isEnz_. Assuming all sites are enzymatic." << '\n';
+      }
+      return true;
+    }
+
+    // Use OpenMS ProteaseDigestion to check enzymatic cleavage.
+    // Cache the digest object to avoid repeated enzyme setup.
+    thread_local ProteaseDigestion digest;
+    thread_local std::string cached_enz;
+    if (enz != cached_enz)
+    {
+      digest.setEnzyme(it->second);
+      cached_enz = enz;
+    }
+
+    // Construct a minimal 2-residue "protein" and check if the
+    // single-residue peptide at position 0 is a valid digestion product
+    // (i.e., there is a valid cleavage site between n and c)
+    const String mini_protein = String(1, n) + String(1, c);
+    return digest.isValidProduct(mini_protein, 0, 1, true);
   }
 
-  // Function adapted from Enzyme.h in Percolator converter
-  // TODO: Use existing OpenMS functionality.
   Size PercolatorInfile::countEnzymatic_(const String& peptide, const string& enz)
   {
     Size count = 0;

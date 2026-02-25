@@ -512,6 +512,37 @@ namespace OpenMS
       17   // OMSSAID
     ));
 
+
+    // Thermolysin
+    enzymes.push_back(make_unique<DigestionEnzymeProtein>(
+      "Thermolysin",
+      "(?<![DE])(?=[AFILMV])|(?<=R)(?=G)",
+      set<String>(),
+      "Thermolysin cleaves before A, F, I, L, M or V (not preceded by D or E), and also cleaves R-G bonds.",
+      EmpiricalFormula("H"),
+      EmpiricalFormula("OH"),
+      "",
+      "{DE}|[AFILMV]",
+      -1,  // CometID
+      -1,  // MSGFID
+      -1   // OMSSAID
+    ));
+
+    // Proteinase K
+    enzymes.push_back(make_unique<DigestionEnzymeProtein>(
+      "Proteinase K",
+      "(?<=[AEFILTVWY])",
+      set<String>{"proteinasek"},
+      "Proteinase K cleaves after A, E, F, I, L, T, V, W or Y.",
+      EmpiricalFormula("H"),
+      EmpiricalFormula("OH"),
+      "",
+      "[AEFILTVWY]|[X]",
+      -1,  // CometID
+      -1,  // MSGFID
+      -1   // OMSSAID
+    ));
+
     return enzymes;
   }
 
