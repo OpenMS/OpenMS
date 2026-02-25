@@ -136,6 +136,11 @@ namespace OpenMS
     scores_to_use.setValue("use_uis_scores", "false", "Use UIS scores for peptidoform identification", {"advanced"});
     scores_to_use.setValidStrings("use_uis_scores", {"true","false"});
     scores_to_use.setValue("use_peak_shape_metrics", "false", "Use peak shape metrics for scoring", {"advanced"});
+    scores_to_use.setValue("use_transition_confidence", "false",
+        "Compute per-transition confidence weights based on S/N and consensus chromatogram "
+        "correlation. Modulates library intensity weights for weighted scores "
+        "(confidence * library_intensity). Useful for library-free and timsTOF data.", {"advanced"});
+    scores_to_use.setValidStrings("use_transition_confidence", {"true","false"});
     scores_to_use.setValue("use_ionseries_scores", "true", "Use MS2-level b/y ion-series scores for peptidoform identification", {"advanced"});
     scores_to_use.setValidStrings("use_ionseries_scores", {"true","false"});
     scores_to_use.setValue("use_ms2_isotope_scores", "true", "Use MS2-level isotope scores (pearson & manhattan) across product transitions (based on ID if annotated or averagine)", {"advanced"});
@@ -721,9 +726,63 @@ namespace OpenMS
         ///////////////////////////////////
 
         ///////////////////////////////////
-        // Library and chromatographic scores
+        // Compute transition confidence weights if enabled
+        std::vector<double> scoring_weights;
         OpenSwath_Scores& scores = mrmfeature.getScores();
-        scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_ids, normalized_library_intensity,
+        if (su_.use_transition_confidence_score_)
+        {
+          std::vector<double> confidence_weights;
+          OpenSwath::MRMScoring::calcTransitionConfidences(imrmfeature, native_ids_detection,
+                                                           signal_noise_estimators, confidence_weights);
+
+          // Store aggregate confidence scores
+          double conf_sum = 0, conf_sq_sum = 0;
+          for (double c : confidence_weights) { conf_sum += c; conf_sq_sum += c * c; }
+          double n_t = static_cast<double>(confidence_weights.size());
+          scores.transition_confidence_sum = conf_sum;
+          scores.transition_confidence_mean = (n_t > 0) ? conf_sum / n_t : 0.0;
+          scores.transition_confidence_variance = (n_t > 1)
+              ? (conf_sq_sum - conf_sum * conf_sum / n_t) / (n_t - 1.0) : 0.0;
+
+          // Store per-transition confidence as sub-feature metadata
+          for (Size k = 0; k < native_ids_detection.size(); k++)
+          {
+            Feature& f = mrmfeature.getFeature(native_ids_detection[k]);
+            f.setMetaValue("transition_confidence", confidence_weights[k]);
+          }
+
+          // Modulate library intensity weights by confidence:
+          // confidence × library_intensity preserves library knowledge while
+          // down-weighting transitions with no real signal. In library-free mode
+          // the predicted library is still informative (theoretical fragmentation);
+          // confidence handles which predictions actually materialized.
+          Size n_det = confidence_weights.size();
+          scoring_weights.resize(n_det);
+          for (Size k = 0; k < n_det; ++k)
+          {
+            scoring_weights[k] = confidence_weights[k] * normalized_library_intensity[k];
+          }
+
+          // Normalize; fall back to library weights if all products are zero or non-finite
+          double total = 0;
+          for (double w : scoring_weights) total += w;
+          if (!(total > 1e-10)) // handles NaN via negated comparison
+          {
+            scoring_weights = normalized_library_intensity;
+          }
+          else
+          {
+            OpenSwath::Scoring::normalize_sum(&scoring_weights[0], boost::numeric_cast<int>(scoring_weights.size()));
+          }
+        }
+        else
+        {
+          scoring_weights = normalized_library_intensity;
+        }
+
+        ///////////////////////////////////
+        // Library and chromatographic scores
+        scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_ids, scoring_weights,
                                               signal_noise_estimators, scores);
 
         double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
@@ -856,6 +915,13 @@ namespace OpenMS
           // a nice profile
           scores.elution_model_fit_score = emgscoring_.calcElutionFitScore(mrmfeature, transition_group_detection);
           mrmfeature.addScore("var_elution_model_fit_score", scores.elution_model_fit_score);
+        }
+
+        if (su_.use_transition_confidence_score_)
+        {
+          mrmfeature.addScore("var_transition_confidence_sum", scores.transition_confidence_sum);
+          mrmfeature.addScore("var_transition_confidence_mean", scores.transition_confidence_mean);
+          mrmfeature.addScore("var_transition_confidence_variance", scores.transition_confidence_variance);
         }
 
         xx_lda_prescore = -scores.calculate_lda_prescore(scores);
@@ -1095,6 +1161,7 @@ namespace OpenMS
     su_.use_ionseries_scores     = param_.getValue("Scores:use_ionseries_scores").toBool();
     su_.use_ms2_isotope_scores   = param_.getValue("Scores:use_ms2_isotope_scores").toBool();
     su_.use_peak_shape_metrics   = param_.getValue("Scores:use_peak_shape_metrics").toBool();
+    su_.use_transition_confidence_score_ = param_.getValue("Scores:use_transition_confidence").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr& input,

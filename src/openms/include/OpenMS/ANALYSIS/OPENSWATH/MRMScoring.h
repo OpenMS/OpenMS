@@ -194,6 +194,34 @@ namespace OpenSwath
         /// calculate the retention time correlation score
         static double calcRTScore(const PeptideType& peptide, double normalized_experimental_rt);
 
+        /**
+           @brief Calculate per-transition confidence weights based on S/N and consensus chromatogram correlation
+
+           Computes a continuous 0-1 confidence for each detection transition:
+           1. S/N sigmoid: smooth ramp from 0 to 1 centered at sn_threshold
+           2. Build weighted consensus chromatogram (initial weights = S/N sigmoids)
+           3. Pearson correlation of each transition with consensus
+           4. Confidence = max(0, correlation) * sn_sigmoid
+           5. Optional refinement iterations: rebuild consensus with confidence weights
+
+           @param mrmfeature   The MRM feature containing transition chromatograms
+           @param native_ids   Native IDs of detection transitions
+           @param signal_noise_estimators  S/N estimators (one per transition, same order as native_ids)
+           @param confidences  Output vector of per-transition confidence values [0,1]
+           @param sn_threshold S/N value at which sigmoid reaches 0.5 (default 3.0)
+           @param sn_steepness Steepness of the S/N sigmoid (default 2.0)
+           @param n_iterations Number of consensus refinement iterations after the initial
+                             computation (default 1, so the algorithm runs 1 initial + 1 refinement = 2 rounds total)
+        */
+        static void calcTransitionConfidences(
+            OpenSwath::IMRMFeature* mrmfeature,
+            const std::vector<std::string>& native_ids,
+            std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+            std::vector<double>& confidences,
+            double sn_threshold = 3.0,
+            double sn_steepness = 2.0,
+            int n_iterations = 1);
+
         /// calculate the Signal to Noise ratio
         //  using a vector of SignalToNoiseEstimatorMedian that were calculated for
         //  each chromatogram of the transition_group.

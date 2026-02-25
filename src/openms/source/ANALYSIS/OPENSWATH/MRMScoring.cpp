@@ -605,6 +605,108 @@ namespace OpenSwath
       return rt_score;
     }
 
+    void MRMScoring::calcTransitionConfidences(
+        OpenSwath::IMRMFeature* mrmfeature,
+        const std::vector<std::string>& native_ids,
+        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+        std::vector<double>& confidences,
+        double sn_threshold,
+        double sn_steepness,
+        int n_iterations)
+    {
+      const size_t n_trans = native_ids.size();
+      confidences.clear();
+
+      // Edge case: no transitions
+      if (n_trans == 0) return;
+
+      OPENSWATH_PRECONDITION(signal_noise_estimators.size() >= n_trans,
+          "Need at least as many S/N estimators as transitions");
+
+      // Edge case: single transition — always confident
+      if (n_trans == 1)
+      {
+        confidences.push_back(1.0);
+        return;
+      }
+
+      // Extract intensity vectors
+      std::vector<std::vector<double>> intensity;
+      fillIntensityFromFeature(mrmfeature, native_ids, intensity);
+
+      // Edge case: fewer than 3 time points — insufficient data for correlation
+      if (intensity[0].size() < 3)
+      {
+        confidences.assign(n_trans, 1.0);
+        return;
+      }
+
+      const size_t n_points = intensity[0].size();
+
+      // Step 1: Compute S/N sigmoid for each transition
+      double feature_rt = mrmfeature->getRT();
+      double log_threshold = std::log(sn_threshold);
+      std::vector<double> sn_sigmoid(n_trans);
+      for (size_t k = 0; k < n_trans; ++k)
+      {
+        double sn_value = signal_noise_estimators[k]->getValueAtRT(feature_rt);
+        if (sn_value < 1.0) sn_value = 1.0; // floor at 1 (log(1) = 0)
+        double log_sn = std::log(sn_value);
+        sn_sigmoid[k] = 1.0 / (1.0 + std::exp(-sn_steepness * (log_sn - log_threshold)));
+      }
+
+      // Initialize weights for consensus building (use S/N sigmoid values)
+      std::vector<double> weights = sn_sigmoid;
+
+      // Iterate: build consensus, compute correlations, update weights
+      confidences.resize(n_trans, 0.0);
+      for (int iter = 0; iter <= n_iterations; ++iter)
+      {
+        // Normalize weights for consensus (or use uniform if all zero)
+        double total_weight = 0;
+        for (double w : weights) total_weight += w;
+
+        std::vector<double> norm_w(n_trans);
+        if (total_weight < 1e-10)
+        {
+          // All weights are zero — use uniform
+          double uniform = 1.0 / static_cast<double>(n_trans);
+          std::fill(norm_w.begin(), norm_w.end(), uniform);
+        }
+        else
+        {
+          for (size_t k = 0; k < n_trans; ++k)
+            norm_w[k] = weights[k] / total_weight;
+        }
+
+        // Build weighted consensus chromatogram
+        std::vector<double> consensus(n_points, 0.0);
+        for (size_t k = 0; k < n_trans; ++k)
+        {
+          for (size_t t = 0; t < n_points; ++t)
+          {
+            consensus[t] += norm_w[k] * intensity[k][t];
+          }
+        }
+
+        // Compute Pearson correlation of each transition with consensus
+        for (size_t k = 0; k < n_trans; ++k)
+        {
+          double corr = OpenMS::Math::pearsonCorrelationCoefficient(
+              intensity[k].begin(), intensity[k].end(),
+              consensus.begin(), consensus.end());
+
+          if (std::isnan(corr)) corr = 0.0;
+
+          // Confidence = max(0, correlation) * sn_sigmoid
+          confidences[k] = std::max(0.0, corr) * sn_sigmoid[k];
+        }
+
+        // Update weights for next iteration
+        weights = confidences;
+      }
+    }
+
     double MRMScoring::calcSNScore(OpenSwath::IMRMFeature* mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators)
     {
       OPENSWATH_PRECONDITION(signal_noise_estimators.size() > 0, "Input S/N estimators needs to be larger than 0");

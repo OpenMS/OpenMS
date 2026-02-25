@@ -865,6 +865,266 @@ mean(m4)
     END_SECTION
 
 
+    ///////////////////////////////////////////
+    // Tests for calcTransitionConfidences
+    ///////////////////////////////////////////
+
+    BOOST_AUTO_TEST_CASE(test_calcTransitionConfidences_two_correlated)
+        {
+          // Two well-correlated transitions with good S/N → both high confidence
+          MockMRMFeature * imrmfeature = new MockMRMFeature();
+          std::vector<std::string> native_ids;
+          native_ids.push_back("t1");
+          native_ids.push_back("t2");
+
+          // Two correlated bell-shaped signals
+          std::vector<double> int1 {0, 10, 50, 100, 80, 40, 10, 0, 0, 0, 0};
+          std::vector<double> int2 {0, 8,  45, 90,  70, 35, 8,  0, 0, 0, 0};
+
+          auto f1 = std::make_shared<MockFeature>();
+          auto f2 = std::make_shared<MockFeature>();
+          f1->m_intensity_vec = int1;
+          f2->m_intensity_vec = int2;
+          std::map<std::string, std::shared_ptr<MockFeature>> features;
+          features["t1"] = f1;
+          features["t2"] = f2;
+          imrmfeature->m_features = features;
+          imrmfeature->m_rt = 100.0; // arbitrary RT
+
+          // High S/N for both
+          auto sn1 = std::make_shared<MockSignalToNoise>();
+          sn1->m_sn_value = 100;
+          auto sn2 = std::make_shared<MockSignalToNoise>();
+          sn2->m_sn_value = 80;
+          std::vector<OpenSwath::ISignalToNoisePtr> sn_est;
+          sn_est.push_back(sn1);
+          sn_est.push_back(sn2);
+
+          std::vector<double> confidences;
+          MRMScoring::calcTransitionConfidences(imrmfeature, native_ids, sn_est, confidences);
+          delete imrmfeature;
+
+          TEST_EQUAL(confidences.size(), 2)
+          // Both should have high confidence (> 0.9)
+          TEST_EQUAL(confidences[0] > 0.9, true)
+          TEST_EQUAL(confidences[1] > 0.9, true)
+        }
+    END_SECTION
+
+    BOOST_AUTO_TEST_CASE(test_calcTransitionConfidences_one_clean_one_noise)
+        {
+          // One clean transition, one noise → clean gets high, noise gets low
+          MockMRMFeature * imrmfeature = new MockMRMFeature();
+          std::vector<std::string> native_ids;
+          native_ids.push_back("t1");
+          native_ids.push_back("t2");
+
+          // Clean bell-shaped signal
+          std::vector<double> int1 {0, 10, 50, 100, 80, 40, 10, 0, 0, 0, 0};
+          // Flat noise
+          std::vector<double> int2 {1, 1,  1,  1,   1,  1,  1,  1, 1, 1, 1};
+
+          auto f1 = std::make_shared<MockFeature>();
+          auto f2 = std::make_shared<MockFeature>();
+          f1->m_intensity_vec = int1;
+          f2->m_intensity_vec = int2;
+          std::map<std::string, std::shared_ptr<MockFeature>> features;
+          features["t1"] = f1;
+          features["t2"] = f2;
+          imrmfeature->m_features = features;
+          imrmfeature->m_rt = 100.0;
+
+          // High S/N for clean, low for noise
+          auto sn1 = std::make_shared<MockSignalToNoise>();
+          sn1->m_sn_value = 100;
+          auto sn2 = std::make_shared<MockSignalToNoise>();
+          sn2->m_sn_value = 1.0; // S/N of 1 → sigmoid near 0
+          std::vector<OpenSwath::ISignalToNoisePtr> sn_est;
+          sn_est.push_back(sn1);
+          sn_est.push_back(sn2);
+
+          std::vector<double> confidences;
+          MRMScoring::calcTransitionConfidences(imrmfeature, native_ids, sn_est, confidences);
+          delete imrmfeature;
+
+          TEST_EQUAL(confidences.size(), 2)
+          // Clean transition should have high confidence
+          TEST_EQUAL(confidences[0] > 0.8, true)
+          // Noise transition should have very low confidence
+          TEST_EQUAL(confidences[1] < 0.1, true)
+        }
+    END_SECTION
+
+    BOOST_AUTO_TEST_CASE(test_calcTransitionConfidences_single_transition)
+        {
+          // Single transition → always returns 1.0
+          MockMRMFeature * imrmfeature = new MockMRMFeature();
+          std::vector<std::string> native_ids;
+          native_ids.push_back("t1");
+
+          std::vector<double> int1 {0, 10, 50, 100, 80, 40, 10, 0, 0, 0, 0};
+          auto f1 = std::make_shared<MockFeature>();
+          f1->m_intensity_vec = int1;
+          std::map<std::string, std::shared_ptr<MockFeature>> features;
+          features["t1"] = f1;
+          imrmfeature->m_features = features;
+          imrmfeature->m_rt = 100.0;
+
+          auto sn1 = std::make_shared<MockSignalToNoise>();
+          sn1->m_sn_value = 50;
+          std::vector<OpenSwath::ISignalToNoisePtr> sn_est;
+          sn_est.push_back(sn1);
+
+          std::vector<double> confidences;
+          MRMScoring::calcTransitionConfidences(imrmfeature, native_ids, sn_est, confidences);
+          delete imrmfeature;
+
+          TEST_EQUAL(confidences.size(), 1)
+          TEST_REAL_SIMILAR(confidences[0], 1.0)
+        }
+    END_SECTION
+
+    BOOST_AUTO_TEST_CASE(test_calcTransitionConfidences_all_identical)
+        {
+          // All identical transitions with good S/N → all high confidence
+          MockMRMFeature * imrmfeature = new MockMRMFeature();
+          std::vector<std::string> native_ids;
+          native_ids.push_back("t1");
+          native_ids.push_back("t2");
+          native_ids.push_back("t3");
+
+          std::vector<double> int1 {0, 10, 50, 100, 80, 40, 10, 0, 0, 0, 0};
+          auto f1 = std::make_shared<MockFeature>();
+          auto f2 = std::make_shared<MockFeature>();
+          auto f3 = std::make_shared<MockFeature>();
+          f1->m_intensity_vec = int1;
+          f2->m_intensity_vec = int1; // identical
+          f3->m_intensity_vec = int1; // identical
+          std::map<std::string, std::shared_ptr<MockFeature>> features;
+          features["t1"] = f1;
+          features["t2"] = f2;
+          features["t3"] = f3;
+          imrmfeature->m_features = features;
+          imrmfeature->m_rt = 100.0;
+
+          auto sn1 = std::make_shared<MockSignalToNoise>();
+          sn1->m_sn_value = 50;
+          auto sn2 = std::make_shared<MockSignalToNoise>();
+          sn2->m_sn_value = 50;
+          auto sn3 = std::make_shared<MockSignalToNoise>();
+          sn3->m_sn_value = 50;
+          std::vector<OpenSwath::ISignalToNoisePtr> sn_est;
+          sn_est.push_back(sn1);
+          sn_est.push_back(sn2);
+          sn_est.push_back(sn3);
+
+          std::vector<double> confidences;
+          MRMScoring::calcTransitionConfidences(imrmfeature, native_ids, sn_est, confidences);
+          delete imrmfeature;
+
+          TEST_EQUAL(confidences.size(), 3)
+          // All should be high (perfect correlation with consensus = 1.0)
+          TEST_EQUAL(confidences[0] > 0.9, true)
+          TEST_EQUAL(confidences[1] > 0.9, true)
+          TEST_EQUAL(confidences[2] > 0.9, true)
+        }
+    END_SECTION
+
+    BOOST_AUTO_TEST_CASE(test_calcTransitionConfidences_anticorrelated)
+        {
+          // One transition anti-correlated with the others → confidence = 0.0
+          MockMRMFeature * imrmfeature = new MockMRMFeature();
+          std::vector<std::string> native_ids;
+          native_ids.push_back("t1");
+          native_ids.push_back("t2");
+          native_ids.push_back("t3");
+
+          std::vector<double> int1  {0, 10, 50, 100, 80, 40, 10, 0, 0, 0, 0};
+          std::vector<double> int2  {0, 8,  45, 90,  70, 35, 8,  0, 0, 0, 0};
+          // Anti-correlated: high when others are low
+          std::vector<double> int3  {100, 80, 40, 0, 10, 50, 80, 100, 100, 100, 100};
+
+          auto f1 = std::make_shared<MockFeature>();
+          auto f2 = std::make_shared<MockFeature>();
+          auto f3 = std::make_shared<MockFeature>();
+          f1->m_intensity_vec = int1;
+          f2->m_intensity_vec = int2;
+          f3->m_intensity_vec = int3;
+          std::map<std::string, std::shared_ptr<MockFeature>> features;
+          features["t1"] = f1;
+          features["t2"] = f2;
+          features["t3"] = f3;
+          imrmfeature->m_features = features;
+          imrmfeature->m_rt = 100.0;
+
+          auto sn1 = std::make_shared<MockSignalToNoise>();
+          sn1->m_sn_value = 100;
+          auto sn2 = std::make_shared<MockSignalToNoise>();
+          sn2->m_sn_value = 100;
+          auto sn3 = std::make_shared<MockSignalToNoise>();
+          sn3->m_sn_value = 100; // high S/N but anti-correlated
+          std::vector<OpenSwath::ISignalToNoisePtr> sn_est;
+          sn_est.push_back(sn1);
+          sn_est.push_back(sn2);
+          sn_est.push_back(sn3);
+
+          std::vector<double> confidences;
+          MRMScoring::calcTransitionConfidences(imrmfeature, native_ids, sn_est, confidences);
+          delete imrmfeature;
+
+          TEST_EQUAL(confidences.size(), 3)
+          // t1 and t2 should have high confidence (correlated with each other)
+          TEST_EQUAL(confidences[0] > 0.7, true)
+          TEST_EQUAL(confidences[1] > 0.7, true)
+          // t3 is anti-correlated → max(0, neg_corr) * sigmoid = 0
+          TEST_EQUAL(confidences[2] < 0.1, true)
+        }
+    END_SECTION
+
+    BOOST_AUTO_TEST_CASE(test_calcTransitionConfidences_low_sn_good_corr)
+        {
+          // Low S/N but good correlation → intermediate confidence (limited by sigmoid)
+          MockMRMFeature * imrmfeature = new MockMRMFeature();
+          std::vector<std::string> native_ids;
+          native_ids.push_back("t1");
+          native_ids.push_back("t2");
+
+          std::vector<double> int1 {0, 10, 50, 100, 80, 40, 10, 0, 0, 0, 0};
+          std::vector<double> int2 {0, 8,  45, 90,  70, 35, 8,  0, 0, 0, 0};
+
+          auto f1 = std::make_shared<MockFeature>();
+          auto f2 = std::make_shared<MockFeature>();
+          f1->m_intensity_vec = int1;
+          f2->m_intensity_vec = int2;
+          std::map<std::string, std::shared_ptr<MockFeature>> features;
+          features["t1"] = f1;
+          features["t2"] = f2;
+          imrmfeature->m_features = features;
+          imrmfeature->m_rt = 100.0;
+
+          // S/N exactly at threshold (3.0) → sigmoid ≈ 0.5
+          auto sn1 = std::make_shared<MockSignalToNoise>();
+          sn1->m_sn_value = 3.0;
+          auto sn2 = std::make_shared<MockSignalToNoise>();
+          sn2->m_sn_value = 3.0;
+          std::vector<OpenSwath::ISignalToNoisePtr> sn_est;
+          sn_est.push_back(sn1);
+          sn_est.push_back(sn2);
+
+          std::vector<double> confidences;
+          MRMScoring::calcTransitionConfidences(imrmfeature, native_ids, sn_est, confidences);
+          delete imrmfeature;
+
+          TEST_EQUAL(confidences.size(), 2)
+          // Good correlation but S/N at threshold → confidence around 0.5
+          TEST_EQUAL(confidences[0] > 0.3, true)
+          TEST_EQUAL(confidences[0] < 0.7, true)
+          TEST_EQUAL(confidences[1] > 0.3, true)
+          TEST_EQUAL(confidences[1] < 0.7, true)
+        }
+    END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

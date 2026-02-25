@@ -43,6 +43,7 @@ namespace OpenMS
     bool use_ionseries_scores = true;
     bool use_ms2_isotope_scores = true;
     bool use_peak_shape_metrics = false;
+    bool use_transition_confidence_score_ = false;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -119,6 +120,10 @@ namespace OpenMS
     double sn_ratio = 0;
     double mi_score = 0;
     double weighted_mi_score = 0;
+
+    double transition_confidence_sum = 0;      ///< sum of per-transition confidences (~continuous "fraction observed")
+    double transition_confidence_mean = 0;     ///< mean confidence across transitions
+    double transition_confidence_variance = 0; ///< heterogeneity of confidence (high variance = mix of real + noise)
 
     double rt_difference = 0;
     double normalized_experimental_rt = 0;

@@ -110,7 +110,10 @@ namespace OpenMS
       "VAR_IM_XCORR_SHAPE REAL NULL," \
       "VAR_IM_XCORR_COELUTION REAL NULL," \
       "VAR_IM_DELTA_SCORE REAL NULL," \
-      "VAR_IM_LOG_INTENSITY REAL NULL);" \
+      "VAR_IM_LOG_INTENSITY REAL NULL," \
+      "VAR_TRANSITION_CONFIDENCE_SUM REAL NULL," \
+      "VAR_TRANSITION_CONFIDENCE_MEAN REAL NULL," \
+      "VAR_TRANSITION_CONFIDENCE_VARIANCE REAL NULL);" \
 
       "CREATE TABLE FEATURE_PRECURSOR(" \
       "FEATURE_ID INT NOT NULL," \
@@ -337,7 +340,8 @@ namespace OpenMS
         "VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_MI_RATIO_SCORE, VAR_NORM_RT_SCORE, "\
         "VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, "\
         "VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, "\
-        "VAR_IM_XCORR_SHAPE, VAR_IM_XCORR_COELUTION, VAR_IM_DELTA_SCORE, VAR_IM_LOG_INTENSITY"
+        "VAR_IM_XCORR_SHAPE, VAR_IM_XCORR_COELUTION, VAR_IM_DELTA_SCORE, VAR_IM_LOG_INTENSITY, "
+        "VAR_TRANSITION_CONFIDENCE_SUM, VAR_TRANSITION_CONFIDENCE_MEAN, VAR_TRANSITION_CONFIDENCE_VARIANCE"
         << ") VALUES ("
                       << feature_id << ", "
                       << feature_it.getIntensity() << ", "
@@ -376,7 +380,10 @@ namespace OpenMS
                       << getScore(feature_it, "var_im_xcorr_shape") << ", "
                       << getScore(feature_it, "var_im_xcorr_coelution") << ", "
                       << getScore(feature_it, "var_im_delta_score") << ", "
-                      << getScore(feature_it, "im_log_intensity");
+                      << getScore(feature_it, "im_log_intensity") << ", "
+                      << getScore(feature_it, "var_transition_confidence_sum") << ", "
+                      << getScore(feature_it, "var_transition_confidence_mean") << ", "
+                      << getScore(feature_it, "var_transition_confidence_variance");
       sql_feature_ms2 << "); ";
 
       bool enable_ms1 = feature_it.metaValueExists("var_ms1_ppm_diff");
