@@ -15,6 +15,9 @@
 #include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 
 using namespace OpenMS;

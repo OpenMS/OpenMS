@@ -291,7 +291,8 @@ if(WITH_PARQUET)
     MSChromatogramParquetConsumer_test
     XICParquetFile_test
     ProteinIdentificationArrowIO_test
-    FeatureMapArrowIO_test)
+    FeatureMapArrowIO_test
+    ConsensusMapArrowIO_test)
 endif()
 
 set(math_executables_list

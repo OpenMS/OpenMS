@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_10627069796380146481" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_10052793688680741109" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="OpenSwathWorkflow" version="version_string" />
 		<processingAction name="Quantitation" />
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="6">
-		<feature id="f_15004869347769368353">
+		<feature id="f_7804704400743266335">
 			<position dim="0">497.306961375474884</position>
 			<position dim="1">374.880371089999983</position>
 			<intensity>9127.391602</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>-30.848314</overallquality>
+			<overallquality>-30.980438</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_15004869347769368353_17413765565443951891">
+				<feature id="f_7804704400743266335_12999979801269632061">
 					<position dim="0">497.306961375474884</position>
 					<position dim="1">580.354431152343977</position>
 					<intensity>2560.121338</intensity>
@@ -32,7 +32,7 @@
 					<UserParam type="float" name="logSN" value="0.0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_15004869347769368353_2927519776102075938">
+				<feature id="f_7804704400743266335_17413765565443951891">
 					<position dim="0">497.306961375474884</position>
 					<position dim="1">572.340209960937955</position>
 					<intensity>4100.0</intensity>
@@ -49,7 +49,7 @@
 					<UserParam type="float" name="logSN" value="1.288643143179915"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_15004869347769368353_16907355690727166316">
+				<feature id="f_7804704400743266335_2927519776102075938">
 					<position dim="0">497.306961375474884</position>
 					<position dim="1">681.402099609375</position>
 					<intensity>1196.774536</intensity>
@@ -66,7 +66,7 @@
 					<UserParam type="float" name="logSN" value="0.305848961697427"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_15004869347769368353_10306100746905639127">
+				<feature id="f_7804704400743266335_16907355690727166316">
 					<position dim="0">497.306961375474884</position>
 					<position dim="1">673.387939453125</position>
 					<intensity>1051.49585</intensity>
@@ -83,7 +83,7 @@
 					<UserParam type="float" name="logSN" value="0.0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_15004869347769368353_12524258085768770586">
+				<feature id="f_7804704400743266335_10306100746905639127">
 					<position dim="0">497.306961375474884</position>
 					<position dim="1">780.470520019531023</position>
 					<intensity>116.0</intensity>
@@ -100,7 +100,7 @@
 					<UserParam type="float" name="logSN" value="0.171891385073722"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_15004869347769368353_1755235105885170967">
+				<feature id="f_7804704400743266335_12524258085768770586">
 					<position dim="0">497.306961375474884</position>
 					<position dim="1">772.456359863281023</position>
 					<intensity>103.0</intensity>
@@ -125,10 +125,10 @@
 			<UserParam type="float" name="leftWidth" value="480.94500732421875"/>
 			<UserParam type="float" name="rightWidth" value="527.385986328125"/>
 			<UserParam type="float" name="peak_apices_sum" value="2171.438430077558223"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="7.936717407973299"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.719151471220324"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.711637225873942"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.673380312715402"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="6.814472761578489"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.213699248344791"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.669994332437356"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.619082778670647"/>
 			<UserParam type="float" name="var_library_corr" value="0.83299492228615"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.098485984902119"/>
 			<UserParam type="float" name="var_library_sangle" value="0.520657700045852"/>
@@ -144,15 +144,15 @@
 			<UserParam type="float" name="nr_peaks" value="6.0"/>
 			<UserParam type="float" name="sn_ratio" value="1.440682365313717"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.365116866150633"/>
-			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="-30.848315148841756"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="-30.848315148841756"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="-30.980438979959754"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="-30.980438979959754"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="377.551778000000013"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 		</feature>
-		<feature id="f_7804704400743266335">
+		<feature id="f_17749660155506638460">
 			<position dim="0">564.907207561969926</position>
 			<position dim="1">374.880371089999983</position>
 			<intensity>1.895417e05</intensity>
@@ -161,7 +161,7 @@
 			<overallquality>-31.673895</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_7804704400743266335_13440783915218733453">
+				<feature id="f_17749660155506638460_3332699010107892018">
 					<position dim="0">564.907207561969926</position>
 					<position dim="1">580.354431152343977</position>
 					<intensity>8.8584e04</intensity>
@@ -178,7 +178,7 @@
 					<UserParam type="float" name="logSN" value="4.643828528406382"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_7804704400743266335_15916652588957785155">
+				<feature id="f_17749660155506638460_13440783915218733453">
 					<position dim="0">564.907207561969926</position>
 					<position dim="1">572.340209960937955</position>
 					<intensity>1.544065e04</intensity>
@@ -195,7 +195,7 @@
 					<UserParam type="float" name="logSN" value="3.482659821404927"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_7804704400743266335_15157403601844400700">
+				<feature id="f_17749660155506638460_15916652588957785155">
 					<position dim="0">564.907207561969926</position>
 					<position dim="1">681.402099609375</position>
 					<intensity>6.8147e04</intensity>
@@ -212,7 +212,7 @@
 					<UserParam type="float" name="logSN" value="4.238036297322936"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_7804704400743266335_6408859317243173796">
+				<feature id="f_17749660155506638460_15157403601844400700">
 					<position dim="0">564.907207561969926</position>
 					<position dim="1">673.387939453125</position>
 					<intensity>1.478e04</intensity>
@@ -229,7 +229,7 @@
 					<UserParam type="float" name="logSN" value="3.05113946384398"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_7804704400743266335_474525871221756682">
+				<feature id="f_17749660155506638460_6408859317243173796">
 					<position dim="0">564.907207561969926</position>
 					<position dim="1">780.470520019531023</position>
 					<intensity>1933.0</intensity>
@@ -246,7 +246,7 @@
 					<UserParam type="float" name="logSN" value="2.124475641216729"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_7804704400743266335_12999979801269632061">
+				<feature id="f_17749660155506638460_474525871221756682">
 					<position dim="0">564.907207561969926</position>
 					<position dim="1">772.456359863281023</position>
 					<intensity>657.0</intensity>
@@ -298,7 +298,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 		</feature>
-		<feature id="f_3332699010107892018">
+		<feature id="f_15004869347769368353">
 			<position dim="0">538.97546105253673</position>
 			<position dim="1">374.880371089999983</position>
 			<intensity>6751.434082</intensity>
@@ -307,7 +307,7 @@
 			<overallquality>-34.283314</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_3332699010107892018_14811341817612382122">
+				<feature id="f_15004869347769368353_1755235105885170967">
 					<position dim="0">538.97546105253673</position>
 					<position dim="1">580.354431152343977</position>
 					<intensity>1141.599487</intensity>
@@ -324,7 +324,7 @@
 					<UserParam type="float" name="logSN" value="0.0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_3332699010107892018_2684106197423007927">
+				<feature id="f_15004869347769368353_14811341817612382122">
 					<position dim="0">538.97546105253673</position>
 					<position dim="1">572.340209960937955</position>
 					<intensity>463.0</intensity>
@@ -341,7 +341,7 @@
 					<UserParam type="float" name="logSN" value="0.867535258001297"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_3332699010107892018_8119044117483804262">
+				<feature id="f_15004869347769368353_2684106197423007927">
 					<position dim="0">538.97546105253673</position>
 					<position dim="1">681.402099609375</position>
 					<intensity>1978.299438</intensity>
@@ -358,7 +358,7 @@
 					<UserParam type="float" name="logSN" value="0.997149419664207"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_3332699010107892018_17314619952666245179">
+				<feature id="f_15004869347769368353_8119044117483804262">
 					<position dim="0">538.97546105253673</position>
 					<position dim="1">673.387939453125</position>
 					<intensity>2512.0</intensity>
@@ -375,7 +375,7 @@
 					<UserParam type="float" name="logSN" value="1.711519137488462"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_3332699010107892018_3023658190814908261">
+				<feature id="f_15004869347769368353_17314619952666245179">
 					<position dim="0">538.97546105253673</position>
 					<position dim="1">780.470520019531023</position>
 					<intensity>0.0</intensity>
@@ -392,7 +392,7 @@
 					<UserParam type="float" name="logSN" value="0.356813723567734"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_3332699010107892018_7898004582401008768">
+				<feature id="f_15004869347769368353_3023658190814908261">
 					<position dim="0">538.97546105253673</position>
 					<position dim="1">772.456359863281023</position>
 					<intensity>656.535095</intensity>
@@ -444,7 +444,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 		</feature>
-		<feature id="f_17716858074023296841">
+		<feature id="f_16250062551099875712">
 			<position dim="0">459.793321681141833</position>
 			<position dim="1">377.551788330000022</position>
 			<intensity>6895.0</intensity>
@@ -453,7 +453,7 @@
 			<overallquality>-27.060524</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_17716858074023296841_11115414975438642789">
+				<feature id="f_16250062551099875712_14509930621887606273">
 					<position dim="0">459.793321681141833</position>
 					<position dim="1">580.354431152343977</position>
 					<intensity>6122.0</intensity>
@@ -470,7 +470,7 @@
 					<UserParam type="float" name="logSN" value="2.120997894913872"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_17716858074023296841_14509930621887606273">
+				<feature id="f_16250062551099875712_13424404046998308790">
 					<position dim="0">459.793321681141833</position>
 					<position dim="1">681.402099609375</position>
 					<intensity>670.0</intensity>
@@ -487,7 +487,7 @@
 					<UserParam type="float" name="logSN" value="0.256689725739343"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_17716858074023296841_13424404046998308790">
+				<feature id="f_16250062551099875712_12665713047548007769">
 					<position dim="0">459.793321681141833</position>
 					<position dim="1">780.470520019531023</position>
 					<intensity>103.0</intensity>
@@ -539,7 +539,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 		</feature>
-		<feature id="f_15050004366391181853">
+		<feature id="f_17716858074023296841">
 			<position dim="0">564.907207561969926</position>
 			<position dim="1">377.551788330000022</position>
 			<intensity>1.58664e05</intensity>
@@ -548,7 +548,7 @@
 			<overallquality>-30.760119</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_15050004366391181853_16177748921272733768">
+				<feature id="f_17716858074023296841_7276556891837796968">
 					<position dim="0">564.907207561969926</position>
 					<position dim="1">580.354431152343977</position>
 					<intensity>8.8584e04</intensity>
@@ -565,7 +565,7 @@
 					<UserParam type="float" name="logSN" value="4.643828528406382"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_15050004366391181853_7276556891837796968">
+				<feature id="f_17716858074023296841_1147219038608936718">
 					<position dim="0">564.907207561969926</position>
 					<position dim="1">681.402099609375</position>
 					<intensity>6.8147e04</intensity>
@@ -582,7 +582,7 @@
 					<UserParam type="float" name="logSN" value="4.238036297322936"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_15050004366391181853_1147219038608936718">
+				<feature id="f_17716858074023296841_11115414975438642789">
 					<position dim="0">564.907207561969926</position>
 					<position dim="1">780.470520019531023</position>
 					<intensity>1933.0</intensity>
@@ -634,7 +634,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 		</feature>
-		<feature id="f_16250062551099875712">
+		<feature id="f_16177748921272733768">
 			<position dim="0">536.767762603998108</position>
 			<position dim="1">377.551788330000022</position>
 			<intensity>3264.741211</intensity>
@@ -643,7 +643,7 @@
 			<overallquality>-35.64172</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_16250062551099875712_12665713047548007769">
+				<feature id="f_16177748921272733768_17092894204355333314">
 					<position dim="0">536.767762603998108</position>
 					<position dim="1">580.354431152343977</position>
 					<intensity>1266.741333</intensity>
@@ -660,7 +660,7 @@
 					<UserParam type="float" name="logSN" value="0.0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_16250062551099875712_17092894204355333314">
+				<feature id="f_16177748921272733768_3491056946625602141">
 					<position dim="0">536.767762603998108</position>
 					<position dim="1">681.402099609375</position>
 					<intensity>1998.0</intensity>
@@ -677,7 +677,7 @@
 					<UserParam type="float" name="logSN" value="0.843614693043981"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_16250062551099875712_3491056946625602141">
+				<feature id="f_16177748921272733768_10627069796380146481">
 					<position dim="0">536.767762603998108</position>
 					<position dim="1">780.470520019531023</position>
 					<intensity>0.0</intensity>

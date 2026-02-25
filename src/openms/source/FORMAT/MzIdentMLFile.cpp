@@ -7,13 +7,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+
 
 namespace OpenMS
 {

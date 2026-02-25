@@ -64,9 +64,12 @@ namespace // anonymous
       switch (val.valueType())
       {
         case DataValue::INT_VALUE: (void)type_b->Append("int"); break;
-        case DataValue::DOUBLE_VALUE: (void)type_b->Append("float"); break;
-        case DataValue::STRING_VALUE: (void)type_b->Append("str"); break;
-        default: (void)type_b->Append("str"); break;
+        case DataValue::DOUBLE_VALUE: (void)type_b->Append("double"); break;
+        case DataValue::STRING_VALUE: (void)type_b->Append("string"); break;
+        case DataValue::INT_LIST: (void)type_b->Append("int_list"); break;
+        case DataValue::DOUBLE_LIST: (void)type_b->Append("double_list"); break;
+        case DataValue::STRING_LIST: (void)type_b->Append("string_list"); break;
+        default: (void)type_b->Append("string"); break;
       }
     }
   }
@@ -334,9 +337,41 @@ namespace // anonymous
         try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
         catch (...) { target.setMetaValue(name, value_str); }
       }
-      else if (type_str == "float")
+      else if (type_str == "double" || type_str == "float")
       {
         try { target.setMetaValue(name, std::stod(value_str)); }
+        catch (...) { target.setMetaValue(name, value_str); }
+      }
+      else if (type_str == "int_list")
+      {
+        try
+        {
+          String s(value_str);
+          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+          target.setMetaValue(name, DataValue(ListUtils::create<Int>(s)));
+        }
+        catch (...) { target.setMetaValue(name, value_str); }
+      }
+      else if (type_str == "double_list")
+      {
+        try
+        {
+          String s(value_str);
+          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+          target.setMetaValue(name, DataValue(ListUtils::create<double>(s)));
+        }
+        catch (...) { target.setMetaValue(name, value_str); }
+      }
+      else if (type_str == "string_list")
+      {
+        try
+        {
+          String s(value_str);
+          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+          auto sl = ListUtils::create<String>(s);
+          for (auto& e : sl) { e = e.trim(); }
+          target.setMetaValue(name, DataValue(sl));
+        }
         catch (...) { target.setMetaValue(name, value_str); }
       }
       else
@@ -367,15 +402,11 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
   const std::vector<ProteinIdentification>& protein_identifications)
 {
   // -- Simple column builders --
-  arrow::StringBuilder accession_builder, score_type_builder, sequence_builder;
+  arrow::StringBuilder accession_builder, sequence_builder;
   arrow::StringBuilder description_builder, run_identifier_builder;
-  arrow::StringBuilder reference_file_builder, search_engine_builder;
-  arrow::StringBuilder search_engine_version_builder;
-  arrow::StringBuilder inference_engine_builder, inference_engine_version_builder;
-  arrow::StringBuilder date_builder;
-  arrow::DoubleBuilder score_builder, coverage_builder, significance_threshold_builder;
-  arrow::BooleanBuilder higher_score_better_builder;
-  arrow::Int32Builder rank_builder, is_decoy_builder;
+  arrow::DoubleBuilder score_builder, coverage_builder;
+  arrow::Int32Builder rank_builder;
+  arrow::BooleanBuilder is_decoy_builder;
 
   // -- modifications list<struct{position: int32, modification: utf8}> --
   auto mod_position_b = std::make_shared<arrow::Int32Builder>();
@@ -417,10 +448,6 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: accession_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = score_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: score_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = score_type_builder.Reserve(num_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: score_type_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = higher_score_better_builder.Reserve(num_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: higher_score_better_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = rank_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: rank_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = coverage_builder.Reserve(num_rows);
@@ -433,20 +460,6 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: is_decoy_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
   status = run_identifier_builder.Reserve(num_rows);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: run_identifier_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = reference_file_builder.Reserve(num_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: reference_file_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = search_engine_builder.Reserve(num_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: search_engine_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = search_engine_version_builder.Reserve(num_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: search_engine_version_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = inference_engine_builder.Reserve(num_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: inference_engine_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = inference_engine_version_builder.Reserve(num_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: inference_engine_version_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = significance_threshold_builder.Reserve(num_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: significance_threshold_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
-  status = date_builder.Reserve(num_rows);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: date_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; }
 
   // Metavalue keys excluded from metavalues column (they have dedicated columns)
   static const std::unordered_set<std::string> excluded_hit_mvs = {
@@ -455,21 +468,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
 
   for (const auto& prot_id : protein_identifications)
   {
-    // Get shared per-run values
-    const String& score_type = prot_id.getScoreType();
-    bool higher_better = prot_id.isHigherScoreBetter();
     const String& run_id = prot_id.getIdentifier();
-    const String& search_engine = prot_id.getSearchEngine();
-    const String& search_engine_version = prot_id.getSearchEngineVersion();
-    const String inference_engine = prot_id.getInferenceEngine();
-    const String inference_engine_version = prot_id.getInferenceEngineVersion();
-    double sig_threshold = prot_id.getSignificanceThreshold();
-    String date_str = prot_id.getDateTime().toString("yyyy-MM-ddThh:mm:ss");
-
-    // Get primary MS run path
-    StringList ms_runs;
-    prot_id.getPrimaryMSRunPath(ms_runs);
-    String ref_file = ms_runs.empty() ? "" : ms_runs[0];
 
     for (const auto& hit : prot_id.getHits())
     {
@@ -478,12 +477,6 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
 
       // === score (not nullable) ===
       (void)score_builder.Append(hit.getScore());
-
-      // === score_type (not nullable) ===
-      (void)score_type_builder.Append(score_type);
-
-      // === higher_score_better (not nullable) ===
-      (void)higher_score_better_builder.Append(higher_better);
 
       // === rank (nullable) ===
       (void)rank_builder.Append(static_cast<int32_t>(hit.getRank()));
@@ -537,68 +530,12 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
         }
         else
         {
-          (void)is_decoy_builder.Append(td_type == ProteinHit::TargetDecoyType::DECOY ? 1 : 0);
+          (void)is_decoy_builder.Append(td_type == ProteinHit::TargetDecoyType::DECOY);
         }
       }
 
       // === run_identifier (not nullable) ===
       (void)run_identifier_builder.Append(run_id);
-
-      // === reference_file_name (nullable) ===
-      if (ref_file.empty())
-      {
-        (void)reference_file_builder.AppendNull();
-      }
-      else
-      {
-        (void)reference_file_builder.Append(ref_file);
-      }
-
-      // === search_engine (not nullable) ===
-      (void)search_engine_builder.Append(search_engine);
-
-      // === search_engine_version (nullable, null if empty) ===
-      if (search_engine_version.empty())
-      {
-        (void)search_engine_version_builder.AppendNull();
-      }
-      else
-      {
-        (void)search_engine_version_builder.Append(search_engine_version);
-      }
-
-      // === inference_engine (nullable, null if empty) ===
-      if (inference_engine.empty())
-      {
-        (void)inference_engine_builder.AppendNull();
-      }
-      else
-      {
-        (void)inference_engine_builder.Append(inference_engine);
-      }
-
-      // === inference_engine_version (nullable, null if empty) ===
-      if (inference_engine_version.empty())
-      {
-        (void)inference_engine_version_builder.AppendNull();
-      }
-      else
-      {
-        (void)inference_engine_version_builder.Append(inference_engine_version);
-      }
-
-      // === significance_threshold (nullable) ===
-      (void)significance_threshold_builder.Append(sig_threshold);
-
-      // === date (nullable, null if empty) ===
-      if (date_str.empty())
-      {
-        (void)date_builder.AppendNull();
-      }
-      else
-      {
-        (void)date_builder.Append(date_str);
-      }
 
       // === modifications (nullable) ===
       const auto& mods = hit.getModifications();
@@ -625,22 +562,16 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
   } // end protein identification loop
 
   // Finalize all arrays
-  std::shared_ptr<arrow::Array> arr_accession, arr_score, arr_score_type;
-  std::shared_ptr<arrow::Array> arr_higher_better, arr_rank, arr_coverage;
+  std::shared_ptr<arrow::Array> arr_accession, arr_score;
+  std::shared_ptr<arrow::Array> arr_rank, arr_coverage;
   std::shared_ptr<arrow::Array> arr_sequence, arr_description, arr_is_decoy;
-  std::shared_ptr<arrow::Array> arr_run_id, arr_ref_file, arr_search_engine;
-  std::shared_ptr<arrow::Array> arr_se_version, arr_inf_engine, arr_inf_version;
-  std::shared_ptr<arrow::Array> arr_sig_threshold, arr_date;
+  std::shared_ptr<arrow::Array> arr_run_id;
   std::shared_ptr<arrow::Array> arr_modifications, arr_metavalues;
 
   status = accession_builder.Finish(&arr_accession);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: accession_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = score_builder.Finish(&arr_score);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: score_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = score_type_builder.Finish(&arr_score_type);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: score_type_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = higher_score_better_builder.Finish(&arr_higher_better);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: higher_score_better_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = rank_builder.Finish(&arr_rank);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: rank_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = coverage_builder.Finish(&arr_coverage);
@@ -653,55 +584,30 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: is_decoy_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = run_identifier_builder.Finish(&arr_run_id);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: run_identifier_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = reference_file_builder.Finish(&arr_ref_file);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: reference_file_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = search_engine_builder.Finish(&arr_search_engine);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: search_engine_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = search_engine_version_builder.Finish(&arr_se_version);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: search_engine_version_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = inference_engine_builder.Finish(&arr_inf_engine);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: inference_engine_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = inference_engine_version_builder.Finish(&arr_inf_version);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: inference_engine_version_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = significance_threshold_builder.Finish(&arr_sig_threshold);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: significance_threshold_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-  status = date_builder.Finish(&arr_date);
-  if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: date_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = modifications_builder.Finish(&arr_modifications);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: modifications_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
   status = metavalues_builder.Finish(&arr_metavalues);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema (19 columns)
+  // Build schema (10 columns)
   auto schema = arrow::schema({
     arrow::field("accession", arrow::utf8(), /*nullable=*/false),
     arrow::field("score", arrow::float64(), /*nullable=*/false),
-    arrow::field("score_type", arrow::utf8(), /*nullable=*/false),
-    arrow::field("higher_score_better", arrow::boolean(), /*nullable=*/false),
     arrow::field("rank", arrow::int32(), /*nullable=*/true),
     arrow::field("coverage", arrow::float64(), /*nullable=*/true),
     arrow::field("sequence", arrow::utf8(), /*nullable=*/true),
     arrow::field("description", arrow::utf8(), /*nullable=*/true),
-    arrow::field("is_decoy", arrow::int32(), /*nullable=*/true),
+    arrow::field("is_decoy", arrow::boolean(), /*nullable=*/true),
     arrow::field("run_identifier", arrow::utf8(), /*nullable=*/false),
-    arrow::field("reference_file_name", arrow::utf8(), /*nullable=*/true),
-    arrow::field("search_engine", arrow::utf8(), /*nullable=*/false),
-    arrow::field("search_engine_version", arrow::utf8(), /*nullable=*/true),
-    arrow::field("inference_engine", arrow::utf8(), /*nullable=*/true),
-    arrow::field("inference_engine_version", arrow::utf8(), /*nullable=*/true),
-    arrow::field("significance_threshold", arrow::float64(), /*nullable=*/true),
-    arrow::field("date", arrow::utf8(), /*nullable=*/true),
     arrow::field("modifications", arrow::list(mod_struct_type), /*nullable=*/true),
     arrow::field("metavalues", metavalues_builder.type(), /*nullable=*/false),
   });
 
   auto table = arrow::Table::Make(schema, {
-    arr_accession, arr_score, arr_score_type,
-    arr_higher_better, arr_rank, arr_coverage,
+    arr_accession, arr_score,
+    arr_rank, arr_coverage,
     arr_sequence, arr_description, arr_is_decoy,
-    arr_run_id, arr_ref_file, arr_search_engine,
-    arr_se_version, arr_inf_engine, arr_inf_version,
-    arr_sig_threshold, arr_date,
+    arr_run_id,
     arr_modifications, arr_metavalues
   });
 
@@ -953,7 +859,8 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
   arrow::StringBuilder run_identifier_builder, search_engine_builder;
   arrow::StringBuilder search_engine_version_builder;
   arrow::StringBuilder inference_engine_builder, inference_engine_version_builder;
-  arrow::StringBuilder date_builder, score_type_builder;
+  arrow::StringBuilder score_type_builder;
+  arrow::TimestampBuilder date_builder(arrow::timestamp(arrow::TimeUnit::SECOND), arrow::default_memory_pool());
   arrow::BooleanBuilder higher_score_better_builder;
   arrow::DoubleBuilder significance_threshold_builder;
   arrow::StringBuilder db_builder, db_version_builder, taxonomy_builder, charges_builder;
@@ -1091,15 +998,39 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
       (void)inference_engine_version_builder.Append(inference_engine_version);
     }
 
-    // === date (nullable, null if empty) ===
-    String date_str = prot_id.getDateTime().toString("yyyy-MM-ddThh:mm:ss");
-    if (date_str.empty())
+    // === date (nullable, null if unset) ===
     {
-      (void)date_builder.AppendNull();
-    }
-    else
-    {
-      (void)date_builder.Append(date_str);
+      const DateTime& dt = prot_id.getDateTime();
+      String date_str = dt.toString("yyyy-MM-ddThh:mm:ss");
+      if (date_str.empty())
+      {
+        (void)date_builder.AppendNull();
+      }
+      else
+      {
+        UInt month, day, year, hour, minute, second;
+        dt.get(month, day, year, hour, minute, second);
+        std::tm tm{};
+        tm.tm_year = static_cast<int>(year) - 1900;
+        tm.tm_mon = static_cast<int>(month) - 1;
+        tm.tm_mday = static_cast<int>(day);
+        tm.tm_hour = static_cast<int>(hour);
+        tm.tm_min = static_cast<int>(minute);
+        tm.tm_sec = static_cast<int>(second);
+#ifdef _WIN32
+        int64_t epoch = static_cast<int64_t>(_mkgmtime(&tm));
+#else
+        int64_t epoch = static_cast<int64_t>(timegm(&tm));
+#endif
+        if (epoch < 0)
+        {
+          (void)date_builder.AppendNull(); // invalid date (e.g. default-constructed DateTime)
+        }
+        else
+        {
+          (void)date_builder.Append(epoch);
+        }
+      }
     }
 
     // === score_type (not nullable) ===
@@ -1313,7 +1244,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     arrow::field("search_engine_version", arrow::utf8(), /*nullable=*/true),
     arrow::field("inference_engine", arrow::utf8(), /*nullable=*/true),
     arrow::field("inference_engine_version", arrow::utf8(), /*nullable=*/true),
-    arrow::field("date", arrow::utf8(), /*nullable=*/true),
+    arrow::field("date", arrow::timestamp(arrow::TimeUnit::SECOND), /*nullable=*/true),
     arrow::field("score_type", arrow::utf8(), /*nullable=*/false),
     arrow::field("higher_score_better", arrow::boolean(), /*nullable=*/false),
     arrow::field("significance_threshold", arrow::float64(), /*nullable=*/true),
@@ -1427,14 +1358,32 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     prot_id.setHigherScoreBetter(getBoolValue_(col_higher_better, row));
     prot_id.setSignificanceThreshold(getDoubleValue_(col_sig_threshold, row));
 
-    // Date
-    String date_str = getStringValue_(col_date, row);
-    if (!date_str.empty())
+    // Date (timestamp seconds since epoch)
+    if (!isNull_(col_date, row))
     {
-      DateTime dt;
-      // Format: yyyy-MM-ddThh:mm:ss
-      dt.set(date_str.substitute('T', ' '));
-      prot_id.setDateTime(dt);
+      auto ts_arr = std::static_pointer_cast<arrow::TimestampArray>(col_date);
+      int64_t epoch_secs = ts_arr->Value(row);
+      if (epoch_secs >= 0) // negative epochs are invalid on Windows
+      {
+        time_t t = static_cast<time_t>(epoch_secs);
+        std::tm tm{};
+#ifdef _WIN32
+        errno_t err = gmtime_s(&tm, &t);
+        if (err == 0)
+#else
+        if (gmtime_r(&t, &tm) != nullptr)
+#endif
+        {
+          DateTime dt;
+          dt.set(static_cast<UInt>(tm.tm_mon + 1),
+                 static_cast<UInt>(tm.tm_mday),
+                 static_cast<UInt>(tm.tm_year + 1900),
+                 static_cast<UInt>(tm.tm_hour),
+                 static_cast<UInt>(tm.tm_min),
+                 static_cast<UInt>(tm.tm_sec));
+          prot_id.setDateTime(dt);
+        }
+      }
     }
 
     // Primary MS run paths
@@ -1534,26 +1483,16 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
   // Get all columns
   auto col_accession = getColumn_(table, "accession");
   auto col_score = getColumn_(table, "score");
-  auto col_score_type = getColumn_(table, "score_type");
-  auto col_higher_better = getColumn_(table, "higher_score_better");
   auto col_rank = getColumn_(table, "rank", false);
   auto col_coverage = getColumn_(table, "coverage", false);
   auto col_sequence = getColumn_(table, "sequence", false);
   auto col_description = getColumn_(table, "description", false);
   auto col_is_decoy = getColumn_(table, "is_decoy", false);
   auto col_run_id = getColumn_(table, "run_identifier");
-  auto col_ref_file = getColumn_(table, "reference_file_name", false);
-  auto col_search_engine = getColumn_(table, "search_engine");
-  auto col_se_version = getColumn_(table, "search_engine_version", false);
-  auto col_inf_engine = getColumn_(table, "inference_engine", false);
-  auto col_inf_version = getColumn_(table, "inference_engine_version", false);
-  auto col_sig_threshold = getColumn_(table, "significance_threshold", false);
-  auto col_date = getColumn_(table, "date", false);
   auto col_modifications = getColumn_(table, "modifications", false);
   auto col_metavalues = getColumn_(table, "metavalues", false);
 
-  if (!col_accession || !col_score || !col_score_type || !col_higher_better ||
-      !col_run_id || !col_search_engine)
+  if (!col_accession || !col_score || !col_run_id)
   {
     OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Missing required columns in proteins table" << std::endl;
     return false;
@@ -1580,39 +1519,11 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
     }
     else
     {
-      // Create new ProteinIdentification from run-level data in this row
+      // Create minimal ProteinIdentification with just run_identifier
+      OPENMS_LOG_WARN << "ProteinIdentificationArrowIO: run_identifier '" << run_id
+                      << "' not found in search_params; creating minimal ProteinIdentification" << std::endl;
       ProteinIdentification new_prot_id;
       new_prot_id.setIdentifier(run_id);
-      new_prot_id.setSearchEngine(getStringValue_(col_search_engine, row));
-      new_prot_id.setSearchEngineVersion(getStringValue_(col_se_version, row));
-      new_prot_id.setScoreType(getStringValue_(col_score_type, row));
-      new_prot_id.setHigherScoreBetter(getBoolValue_(col_higher_better, row));
-      new_prot_id.setSignificanceThreshold(getDoubleValue_(col_sig_threshold, row));
-
-      String date_str = getStringValue_(col_date, row);
-      if (!date_str.empty())
-      {
-        DateTime dt;
-        dt.set(date_str.substitute('T', ' '));
-        new_prot_id.setDateTime(dt);
-      }
-
-      String ref_file = getStringValue_(col_ref_file, row);
-      if (!ref_file.empty())
-      {
-        new_prot_id.setPrimaryMSRunPath(StringList{ref_file});
-      }
-
-      String inf_engine = getStringValue_(col_inf_engine, row);
-      if (!inf_engine.empty())
-      {
-        new_prot_id.setInferenceEngine(inf_engine);
-        String inf_version = getStringValue_(col_inf_version, row);
-        if (!inf_version.empty())
-        {
-          new_prot_id.setInferenceEngineVersion(inf_version);
-        }
-      }
 
       prot_id_idx = protein_identifications.size();
       protein_identifications.push_back(std::move(new_prot_id));
@@ -1647,8 +1558,8 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
     // is_decoy -> target_decoy metavalue
     if (!isNull_(col_is_decoy, row))
     {
-      int32_t is_decoy = getInt32Value_(col_is_decoy, row);
-      hit.setMetaValue("target_decoy", is_decoy == 1 ? "decoy" : "target");
+      bool is_decoy = getBoolValue_(col_is_decoy, row);
+      hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
     }
 
     // Modifications

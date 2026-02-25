@@ -12,6 +12,7 @@
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <typeinfo>
 

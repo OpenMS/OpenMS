@@ -128,6 +128,7 @@ if (WITH_PARQUET)
   list(APPEND sources_list_h QPXFile.h)
   list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
   list(APPEND sources_list_h FeatureMapArrowIO.h)
+  list(APPEND sources_list_h ConsensusMapArrowIO.h)
 endif()
 
 ### add path to the filenames
