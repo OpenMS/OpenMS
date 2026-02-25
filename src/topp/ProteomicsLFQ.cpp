@@ -871,12 +871,6 @@ protected:
       const Size fraction_group = path_label_to_fractiongroup.at({File::basename(mz_file), 1});
       writeDebug_("Processing file: " + mz_file,  1);
 
-      MSExperiment ms_centroided;
-      {
-        ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
-        if (e != EXECUTION_OK) { return e; }
-      }
-
       vector<ProteinIdentification> protein_ids;
       PeptideIdentificationList peptide_ids;
       const String& mz_file_abs_path = File::absolutePath(mz_file);
@@ -887,20 +881,29 @@ protected:
         if (e != EXECUTION_OK) return e;
       }
 
-      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
+      MSExperiment ms_centroided;
+      bool requires_ms_data = in_feat_list.empty() || (getStringOption_("mass_recalibration") == "true");
+
+      if (requires_ms_data)
+      {
+        ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
+        if (e != EXECUTION_OK) { return e; }
+
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
+
+        if (getStringOption_("mass_recalibration") == "true")
+        {
+          String debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
+          DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
+        }
+
+        median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
+        OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << std::endl;
+      }
 
       StringList id_msfile_ref;
       protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
       id_MS_run_ref.push_back(id_msfile_ref[0]);
-
-      if (getStringOption_("mass_recalibration") == "true")
-      {
-        String debug_output_basename = (debug_level_ > 666) ? id_file_abs_path : "";
-        DDAWorkflowCommons::recalibrateMS1(ms_centroided, peptide_ids, debug_output_basename);
-      }
-
-      median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
-      OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << std::endl;
 
       FeatureMap seeds;
       seeds.setPrimaryMSRunPath({mz_file});
@@ -958,6 +961,29 @@ protected:
           OPENMS_LOG_WARN << "Warning: Loaded featureXML already contains unassigned peptide identifications. They will be overwritten.\n";
         }
         fm.setUnassignedPeptideIdentifications(peptide_ids);
+
+        const String expected_identifier = protein_ids[0].getIdentifier();
+        Size updated_feature_pid_ids = 0;
+        for (Feature& feature : fm)
+        {
+          vector<PeptideIdentification> f_pids = feature.getPeptideIdentifications();
+          bool updated = false;
+          for (PeptideIdentification& pid : f_pids)
+          {
+            if (pid.getIdentifier() != expected_identifier)
+            {
+              pid.setIdentifier(expected_identifier);
+              ++updated_feature_pid_ids;
+              updated = true;
+            }
+          }
+          if (updated) feature.setPeptideIdentifications(f_pids);
+        }
+        if (updated_feature_pid_ids > 0)
+        {
+          OPENMS_LOG_WARN << "Updated " << updated_feature_pid_ids
+                          << " feature-level peptide identifiers to match injected run identifier.\n";
+        }
       }
       else
       {
@@ -1361,12 +1387,12 @@ protected:
     {
       if (!out_msstats.empty())
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__,
           OPENMS_PRETTY_FUNCTION, "MSstats export for spectral counting data not supported. Please remove output file.");
       }
       if (!out_triqler.empty())
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__,
           OPENMS_PRETTY_FUNCTION, "Triqler export for spectral counting data not supported. Please remove output file.");
       }
     }
