@@ -277,53 +277,26 @@ jobs:
         HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-          # WARNING: Don't add any dependency install commands here.
-          # Instead edit the following script:
-          bash OpenMS/tools/ci/deps-ubuntu.sh
-          # Install libomp for clang compiler (needed for OpenMP support)
-          # Use version-specific package matching the clang version
+          # setup pixi
+          curl -fsSL https://pixi.sh/install.sh | bash
+          export PATH="$HOME/.pixi/bin:$PATH"
+          
+          # install deps from pixi.toml
+          cd OpenMS
+          pixi install
+          cd ..
+          
+          # expose pixi environment bins to gh actions
+          echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
+          
+          # point cmake to the new pixi prefix
+          echo "cmake_prefix=$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default" >> $GITHUB_OUTPUT
+          
+          # keep libomp for clang (needed for OpenMP)
           if [[ "${{ matrix.compiler }}" == clang* ]]; then
             sudo apt-get -qq install -y libomp-${{ matrix.compiler_ver }}-dev
           fi
-          echo "Testing doxygen" && doxygen --version
-          echo "cmake_prefix=" >>$GITHUB_OUTPUT
-        fi
-
-        if [[ "${{ matrix.os }}" == windows-* ]]; then
-          choco install  -y --no-progress \
-                ccache \
-                cmake \
-                doxygen.portable \
-                eigen \
-                ghostscript \
-                graphviz \
-                ninja
-
-          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
-            curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
-            ## overwrite existing NSIS (which has only 1k-string support)
-            7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
-            # Ensure makensis.exe is discoverable during CMake configuration
-            echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
-          fi
-
-          echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
-          echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
-
-          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
-          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
-          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
-        fi
-
-        if [[ "${{ matrix.os }}" == macos-* ]]; then
-          # WARNING: Don't add any brew install commands here, edit
-          # the following script instead:
-          bash OpenMS/tools/ci/deps-macos.sh
-          brew install ccache
-          echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"
-          echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"
-        fi
+        fi 
 
     - name: Cache contrib (Windows)
       if: startsWith(matrix.os, 'windows')
