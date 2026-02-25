@@ -966,9 +966,9 @@ protected:
         Size updated_feature_pid_ids = 0;
         for (Feature& feature : fm)
         {
-          vector<PeptideIdentification> f_pids = feature.getPeptideIdentifications();
+          auto f_pids = feature.getPeptideIdentifications();
           bool updated = false;
-          for (PeptideIdentification& pid : f_pids)
+          for (auto& pid : f_pids)
           {
             if (pid.getIdentifier() != expected_identifier)
             {
