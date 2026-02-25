@@ -280,3 +280,23 @@ def get_base_peak(self) -> Tuple[float, float]:
     mz, intensity = self.get_peaks()
     idx = np.argmax(intensity)
     return (mz[idx], intensity[idx])
+
+@addon("MSSpectrum")
+def get_peaks_struct(self):
+    """
+    Returns a zero-copy numpy structured array of the spectrum's peaks (AoS layout).
+    """
+    # Get the raw 1D byte array from C++
+    raw_view = self.get_peaks_view()
+
+    # Define the exact 16-byte memory layout of OpenMS::Peak1D
+    # mz (double) is at offset 0, intensity (float) is at offset 8
+    peak_dtype = np.dtype({
+        'names': ['mz', 'intensity'],
+        'formats': [np.float64, np.float32],
+        'offsets': [0, 8],
+        'itemsize': 16
+    })
+
+    # Cast the byte array directly into our structured array
+    return raw_view.view(peak_dtype)
