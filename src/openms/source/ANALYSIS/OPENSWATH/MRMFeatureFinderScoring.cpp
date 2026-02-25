@@ -735,22 +735,6 @@ namespace OpenMS
           OpenSwath::MRMScoring::calcTransitionConfidences(imrmfeature, native_ids_detection,
                                                            signal_noise_estimators, confidence_weights);
 
-          // Store aggregate confidence scores
-          double conf_sum = 0, conf_sq_sum = 0;
-          for (double c : confidence_weights) { conf_sum += c; conf_sq_sum += c * c; }
-          double n_t = static_cast<double>(confidence_weights.size());
-          scores.transition_confidence_sum = conf_sum;
-          scores.transition_confidence_mean = (n_t > 0) ? conf_sum / n_t : 0.0;
-          scores.transition_confidence_variance = (n_t > 1)
-              ? (conf_sq_sum - conf_sum * conf_sum / n_t) / (n_t - 1.0) : 0.0;
-
-          // Store per-transition confidence as sub-feature metadata
-          for (Size k = 0; k < native_ids_detection.size(); k++)
-          {
-            Feature& f = mrmfeature.getFeature(native_ids_detection[k]);
-            f.setMetaValue("transition_confidence", confidence_weights[k]);
-          }
-
           // Modulate library intensity weights by confidence:
           // confidence × library_intensity preserves library knowledge while
           // down-weighting transitions with no real signal. In library-free mode
@@ -915,13 +899,6 @@ namespace OpenMS
           // a nice profile
           scores.elution_model_fit_score = emgscoring_.calcElutionFitScore(mrmfeature, transition_group_detection);
           mrmfeature.addScore("var_elution_model_fit_score", scores.elution_model_fit_score);
-        }
-
-        if (su_.use_transition_confidence_score_)
-        {
-          mrmfeature.addScore("var_transition_confidence_sum", scores.transition_confidence_sum);
-          mrmfeature.addScore("var_transition_confidence_mean", scores.transition_confidence_mean);
-          mrmfeature.addScore("var_transition_confidence_variance", scores.transition_confidence_variance);
         }
 
         xx_lda_prescore = -scores.calculate_lda_prescore(scores);
