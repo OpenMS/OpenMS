@@ -35,21 +35,16 @@ namespace OpenMS
           └── transitions.parquet
       @endcode
 
-      The metadata file contains a minimal mzSpecLib-compatible header and
-      OpenMS-specific QC counts:
+      The metadata file contains an OpenMS metadata block and QC counts. The
+      new canonical layout (matching OpenSwathOSWParquetWriter) looks like:
       @code{.json}
       {
-        "mzspec_lib": {
-          "format_version": "1.0",
-          "attributes": [
-            {"accession": "MS:1003186", "name": "library format version", "value": "1.0"},
-            {"accession": "MS:1003188", "name": "library name", "value": "<basename>"},
-            {"accession": "MS:1003207", "name": "library creation software", "value": "OpenMS"}
-          ]
-        },
         "openms": {
           "schema_version": 1,
-          "generator": "OpenMS TransitionParquetFile",
+          "generator": "TransitionParquetFile",
+          "openms_version": "<version>",
+          "build_time": "<build_time>",
+          "tool": {"name": "OpenSwathWorkflow", "version": "<version>"},
           "counts": {
             "proteins": {"total": 0, "target": 0, "decoy": 0},
             "peptides": {"total": 0, "target": 0, "decoy": 0},

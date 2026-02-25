@@ -15,6 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <fstream>
 #ifdef WITH_PARQUET
@@ -100,33 +101,42 @@ namespace
     return out;
   }
 
-  std::string jsonMap_(const std::map<int, Size>& values)
+  std::string jsonMapByClass_(const std::map<int, Size>& target, const std::map<int, Size>& decoy)
   {
-    std::ostringstream os;
-    os << "{";
+    std::ostringstream oss;
+    oss << "{";
+    // target
+    oss << "\"target\":{";
     bool first = true;
-    for (const auto& entry : values)
+    for (const auto& p : target)
     {
-      if (!first) os << ", ";
+      if (!first) oss << ",";
       first = false;
-      os << "\"" << entry.first << "\": " << entry.second;
+      oss << "\"" << p.first << "\":" << p.second;
     }
-    os << "}";
-    return os.str();
+    oss << "},";
+    // decoy
+    oss << "\"decoy\":{";
+    first = true;
+    for (const auto& p : decoy)
+    {
+      if (!first) oss << ",";
+      first = false;
+      oss << "\"" << p.first << "\":" << p.second;
+    }
+    oss << "}";
+    oss << "}";
+    return oss.str();
   }
 
-  std::string jsonMapByClass_(const std::map<int, Size>& target_values,
-                              const std::map<int, Size>& decoy_values)
+  void writeLibraryMetadata_(const OpenMS::String& library_dir, const OpenMS::String& library_name, const OpenMSLibraryStats& stats)
   {
-    std::ostringstream os;
-    os << "{\"target\": " << jsonMap_(target_values)
-       << ", \"decoy\": " << jsonMap_(decoy_values) << "}";
-    return os.str();
-  }
+    const Size proteins_target = stats.proteins_total - stats.proteins_decoy;
+    const Size peptides_target = stats.peptides_total - stats.peptides_decoy;
+    const Size precursors_target = stats.precursors_total - stats.precursors_decoy;
+    const Size compounds_target = stats.compounds_total - stats.compounds_decoy;
+    const Size transitions_target = stats.transitions_total - stats.transitions_decoy;
 
-  void writeLibraryMetadata_(const OpenMS::String& library_dir, const OpenMS::String& library_name,
-                             const OpenMSLibraryStats& stats)
-  {
     const OpenMS::String metadata_path = library_dir + "/metadata.json";
     std::ofstream out(metadata_path.c_str(), std::ios::out | std::ios::trunc);
     if (!out.is_open())
@@ -134,24 +144,13 @@ namespace
       throw OpenMS::Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, metadata_path);
     }
 
-    const Size proteins_target = stats.proteins_total - stats.proteins_decoy;
-    const Size peptides_target = stats.peptides_total - stats.peptides_decoy;
-    const Size precursors_target = stats.precursors_total - stats.precursors_decoy;
-    const Size compounds_target = stats.compounds_total - stats.compounds_decoy;
-    const Size transitions_target = stats.transitions_total - stats.transitions_decoy;
-
     out << "{\n"
-        << "  \"mzspec_lib\": {\n"
-        << "    \"format_version\": \"1.0\",\n"
-        << "    \"attributes\": [\n"
-        << "      {\"accession\": \"MS:1003186\", \"name\": \"library format version\", \"value\": \"1.0\"},\n"
-        << "      {\"accession\": \"MS:1003188\", \"name\": \"library name\", \"value\": \"" << jsonEscape_(library_name) << "\"},\n"
-        << "      {\"accession\": \"MS:1003207\", \"name\": \"library creation software\", \"value\": \"OpenMS\"}\n"
-        << "    ]\n"
-        << "  },\n"
         << "  \"openms\": {\n"
         << "    \"schema_version\": 1,\n"
-        << "    \"generator\": \"OpenMS TransitionParquetFile\",\n"
+        << "    \"generator\": \"TransitionParquetFile\",\n"
+        << "    \"openms_version\": \"" << jsonEscape_(VersionInfo::getVersion()) << "\",\n"
+        << "    \"build_time\": \"" << jsonEscape_(VersionInfo::getTime()) << "\",\n"
+        << "    \"tool\": {\"name\": \"OpenSwathWorkflow\", \"version\": \"" << jsonEscape_(VersionInfo::getVersion()) << "\"},\n"
         << "    \"counts\": {\n"
         << "      \"proteins\": {\"total\": " << stats.proteins_total << ", \"target\": " << proteins_target << ", \"decoy\": " << stats.proteins_decoy << "},\n"
         << "      \"peptides\": {\"total\": " << stats.peptides_total << ", \"target\": " << peptides_target << ", \"decoy\": " << stats.peptides_decoy << "},\n"
