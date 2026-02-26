@@ -121,6 +121,47 @@ namespace OpenMS
       std::vector<String> group_id;
     };
 
+    /// Result container for an "unscored" table similar to pyprophet's SQL
+    /// Provides many columns (feature, precursor, run, ms1/ms2 metrics and
+    /// discovered score columns) in a column-oriented layout for easy
+    /// conversion to pandas.DataFrame on the Python side.
+    struct UnscoredResult
+    {
+      std::vector<int64_t> id_run;
+      std::vector<int64_t> id_peptide; // optional, 0 if unknown
+      std::vector<int64_t> transition_group_id; // precursor id
+      std::vector<bool> decoy;
+      std::vector<int64_t> run_id;
+      std::vector<String> filename;
+      std::vector<double> RT;
+      std::vector<double> assay_rt;   // FEATURE.EXP_RT - FEATURE.DELTA_RT
+      std::vector<double> delta_rt;   // FEATURE.DELTA_RT
+      std::vector<double> assay_RT;   // PRECURSOR.LIBRARY_RT
+      std::vector<double> delta_RT;   // FEATURE.NORM_RT - PRECURSOR.LIBRARY_RT
+      std::vector<int64_t> id;        // FEATURE.ID
+      std::vector<int> Charge;        // PRECURSOR.CHARGE
+      std::vector<double> mz;         // PRECURSOR.PRECURSOR_MZ
+      std::vector<double> Intensity;  // FEATURE_MS2.AREA_INTENSITY
+
+      // aggregated MS1 metrics
+      std::vector<double> aggr_prec_Peak_Area;
+      std::vector<double> aggr_prec_Peak_Apex;
+
+      std::vector<double> leftWidth;
+      std::vector<double> rightWidth;
+
+      // ion-mobility columns (may be NULL)
+      std::vector<double> EXP_IM;
+      std::vector<double> IM_leftWidth;
+      std::vector<double> IM_rightWidth;
+
+      // Discovered score columns (var_ms1_ and var_ms2_) and their values
+      std::vector<String> ms2_columns;
+      std::vector<std::vector<double>> ms2_values;
+      std::vector<String> ms1_columns;
+      std::vector<std::vector<double>> ms1_values;
+    };
+
     /// Default constructor
     OpenSwathOSWParquetReader() = default;
 
@@ -166,6 +207,9 @@ namespace OpenMS
     /// Reads per-run feature_transition.parquet and joins to features/library to
     /// provide transition-level metrics alongside precursor/feature metadata.
     TransitionFeaturesResult fetchTransitionFeatures(const String& oswpq_dir) const;
+
+  /// Read an "unscored" table replicating pyprophet's SQL layout.
+  UnscoredResult fetchUnscoredData(const String& oswpq_dir) const;
 
   private:
     std::vector<Row> rows_;

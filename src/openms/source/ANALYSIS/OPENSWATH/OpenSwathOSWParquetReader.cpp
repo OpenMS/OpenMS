@@ -649,5 +649,202 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
 #endif
 }
 
+OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscoredData(const String& oswpq_dir) const
+{
+#ifdef WITH_PARQUET
+  UnscoredResult result;
+  std::unique_ptr<File::TempDir> temp_dir;
+  const String base_dir = ParquetFile::unzipDirectory(oswpq_dir, temp_dir);
+
+  const String precursors_path = base_dir + "/library/precursors.parquet";
+  if (!File::exists(precursors_path))
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Missing precursors.parquet in '" + base_dir + "'");
+  }
+
+  auto precursors_table = ParquetFile::readTable(precursors_path);
+  auto precursor_id_col = ParquetFile::getColumn(precursors_table, "precursor_id");
+  auto charge_col = ParquetFile::getOptionalColumn(precursors_table, "charge");
+  auto decoy_col = ParquetFile::getOptionalColumn(precursors_table, "decoy");
+  auto precursor_mz_col = ParquetFile::getOptionalColumn(precursors_table, "precursor_mz");
+  auto library_rt_col = ParquetFile::getOptionalColumn(precursors_table, "library_rt");
+
+  // build precursor info maps
+  std::unordered_map<int64_t, int> precursor_charge;
+  std::unordered_map<int64_t, bool> precursor_decoy;
+  std::unordered_map<int64_t, double> precursor_mz;
+  std::unordered_map<int64_t, double> precursor_library_rt;
+
+  for (int64_t row = 0; row < precursors_table->num_rows(); ++row)
+  {
+    const int64_t pid = ParquetFile::getInt64(precursor_id_col, row, 0, false);
+    if (charge_col) precursor_charge[pid] = static_cast<int>(ParquetFile::getInt64(charge_col, row, 0, false));
+    if (decoy_col) precursor_decoy[pid] = ParquetFile::getBool(decoy_col, row, false, true);
+    if (precursor_mz_col) precursor_mz[pid] = ParquetFile::getDouble(precursor_mz_col, row, std::numeric_limits<double>::quiet_NaN(), true);
+    if (library_rt_col) precursor_library_rt[pid] = ParquetFile::getDouble(library_rt_col, row, std::numeric_limits<double>::quiet_NaN(), true);
+  }
+
+  // try to read peptide mapping if present: precursor_peptide_mapping.parquet and peptides.parquet
+  std::unordered_map<int64_t, int64_t> precursor_to_peptide;
+  const String ppm_path = base_dir + "/library/precursor_peptide_mapping.parquet";
+  const String peptides_path = base_dir + "/library/peptides.parquet";
+  if (File::exists(ppm_path) && File::exists(peptides_path))
+  {
+    auto ppm_table = ParquetFile::readTable(ppm_path);
+    auto ppm_prec_col = ParquetFile::getColumn(ppm_table, "precursor_id");
+    auto ppm_pep_col = ParquetFile::getColumn(ppm_table, "peptide_id");
+    for (int64_t r = 0; r < ppm_table->num_rows(); ++r)
+    {
+      const int64_t pid = ParquetFile::getInt64(ppm_prec_col, r, 0, false);
+      const int64_t pep = ParquetFile::getInt64(ppm_pep_col, r, 0, false);
+      precursor_to_peptide[pid] = pep;
+    }
+  }
+
+  // Read runs
+  const String runs_parquet = base_dir + "/runs/runs.parquet";
+  if (!File::exists(runs_parquet))
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Missing runs.parquet in '" + base_dir + "'");
+  }
+  auto runs_table = ParquetFile::readTable(runs_parquet);
+  auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
+  auto run_filename_col = ParquetFile::getOptionalColumn(runs_table, "filename");
+  const int64_t num_runs = runs_table->num_rows();
+
+  // First pass: discover ms2 and ms1 score columns and IM presence
+  std::vector<std::string> all_ms2_cols;
+  std::vector<std::string> all_ms1_cols;
+  bool has_exp_im = false;
+  bool has_im_boundaries = false;
+
+  for (int64_t r = 0; r < num_runs; ++r)
+  {
+    const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
+    const String run_dir = base_dir + "/runs/run_id=" + String(run_id);
+    const String features_path = run_dir + "/features.parquet";
+    if (!File::exists(features_path))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Missing features.parquet for run_id=" + String(run_id) + " in '" + base_dir + "'");
+    }
+    auto features_table = ParquetFile::readTable(features_path);
+    const auto& schema = features_table->schema();
+    for (const auto &f : schema->fields())
+    {
+      const std::string name = f->name();
+      if (name.rfind("var_ms2_", 0) == 0 || name.rfind("ms2_", 0) == 0)
+      {
+        if (std::find(all_ms2_cols.begin(), all_ms2_cols.end(), name) == all_ms2_cols.end())
+          all_ms2_cols.push_back(name);
+      }
+      else if (name.rfind("var_ms1_", 0) == 0 || name.rfind("ms1_", 0) == 0)
+      {
+        if (std::find(all_ms1_cols.begin(), all_ms1_cols.end(), name) == all_ms1_cols.end())
+          all_ms1_cols.push_back(name);
+      }
+      // IM columns detection (case-insensitive checks)
+      std::string lc = name;
+      std::transform(lc.begin(), lc.end(), lc.begin(), ::tolower);
+      if (lc == "exp_im") has_exp_im = true;
+      if (lc == "exp_im_leftwidth" || lc == "exp_im_rightwidth") has_im_boundaries = true;
+    }
+  }
+
+  std::sort(all_ms2_cols.begin(), all_ms2_cols.end());
+  std::sort(all_ms1_cols.begin(), all_ms1_cols.end());
+
+  // Prepare ms score storage
+  result.ms2_columns.reserve(all_ms2_cols.size());
+  for (const auto &s : all_ms2_cols) result.ms2_columns.emplace_back(String(s));
+  result.ms2_values.assign(all_ms2_cols.size(), std::vector<double>());
+  result.ms1_columns.reserve(all_ms1_cols.size());
+  for (const auto &s : all_ms1_cols) result.ms1_columns.emplace_back(String(s));
+  result.ms1_values.assign(all_ms1_cols.size(), std::vector<double>());
+
+  // Second pass: populate rows
+  for (int64_t r = 0; r < num_runs; ++r)
+  {
+    const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
+    const String run_dir = base_dir + "/runs/run_id=" + String(run_id);
+    const String features_path = run_dir + "/features.parquet";
+    auto features_table = ParquetFile::readTable(features_path);
+
+    auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
+    auto feature_prec_col = ParquetFile::getColumn(features_table, "precursor_id");
+    auto exp_rt_col = ParquetFile::getOptionalColumn(features_table, "exp_rt");
+    auto delta_rt_col = ParquetFile::getOptionalColumn(features_table, "delta_rt");
+    auto norm_rt_col = ParquetFile::getOptionalColumn(features_table, "norm_rt");
+    auto ms2_area_col = ParquetFile::getOptionalColumn(features_table, "ms2_area_intensity");
+    auto ms1_area_col = ParquetFile::getOptionalColumn(features_table, "ms1_area_intensity");
+    auto ms1_apex_col = ParquetFile::getOptionalColumn(features_table, "ms1_apex_intensity");
+    auto left_col = ParquetFile::getOptionalColumn(features_table, "left_width");
+    auto right_col = ParquetFile::getOptionalColumn(features_table, "right_width");
+    auto exp_im_col = ParquetFile::getOptionalColumn(features_table, "exp_im");
+    auto exp_im_l_col = ParquetFile::getOptionalColumn(features_table, "exp_im_leftwidth");
+    auto exp_im_r_col = ParquetFile::getOptionalColumn(features_table, "exp_im_rightwidth");
+
+    // prefetch ms1/ms2 optional columns
+    std::vector<std::shared_ptr<arrow::Array>> ms2_cols_readers;
+    for (const auto &c : all_ms2_cols) ms2_cols_readers.push_back(ParquetFile::getOptionalColumn(features_table, c));
+    std::vector<std::shared_ptr<arrow::Array>> ms1_cols_readers;
+    for (const auto &c : all_ms1_cols) ms1_cols_readers.push_back(ParquetFile::getOptionalColumn(features_table, c));
+
+    const int64_t num_rows = features_table->num_rows();
+    for (int64_t i = 0; i < num_rows; ++i)
+    {
+      const int64_t fid = ParquetFile::getInt64(feature_id_col, i, 0, false);
+      const int64_t pid = ParquetFile::getInt64(feature_prec_col, i, 0, false);
+      const double rt = ParquetFile::getDouble(exp_rt_col, i, std::numeric_limits<double>::quiet_NaN(), true);
+      const double drt = ParquetFile::getDouble(delta_rt_col, i, std::numeric_limits<double>::quiet_NaN(), true);
+      const double nrt = ParquetFile::getDouble(norm_rt_col, i, std::numeric_limits<double>::quiet_NaN(), true);
+
+      result.id_run.push_back(run_id);
+      result.id_peptide.push_back(precursor_to_peptide.count(pid) ? precursor_to_peptide[pid] : 0);
+      result.transition_group_id.push_back(pid);
+      result.decoy.push_back(precursor_decoy.count(pid) ? precursor_decoy[pid] : false);
+      result.run_id.push_back(run_id);
+  result.filename.push_back(run_filename_col ? String(ParquetFile::getString(run_filename_col, r)) : String(""));
+      result.RT.push_back(rt);
+      result.assay_rt.push_back(rt - drt);
+      result.delta_rt.push_back(drt);
+      result.assay_RT.push_back(precursor_library_rt.count(pid) ? precursor_library_rt[pid] : std::numeric_limits<double>::quiet_NaN());
+      result.delta_RT.push_back(nrt - (precursor_library_rt.count(pid) ? precursor_library_rt[pid] : std::numeric_limits<double>::quiet_NaN()));
+      result.id.push_back(fid);
+      result.Charge.push_back(precursor_charge.count(pid) ? precursor_charge[pid] : 0);
+      result.mz.push_back(precursor_mz.count(pid) ? precursor_mz[pid] : std::numeric_limits<double>::quiet_NaN());
+      result.Intensity.push_back(ParquetFile::getDouble(ms2_area_col, i, std::numeric_limits<double>::quiet_NaN(), true));
+      result.aggr_prec_Peak_Area.push_back(ParquetFile::getDouble(ms1_area_col, i, std::numeric_limits<double>::quiet_NaN(), true));
+      result.aggr_prec_Peak_Apex.push_back(ParquetFile::getDouble(ms1_apex_col, i, std::numeric_limits<double>::quiet_NaN(), true));
+      result.leftWidth.push_back(ParquetFile::getDouble(left_col, i, std::numeric_limits<double>::quiet_NaN(), true));
+      result.rightWidth.push_back(ParquetFile::getDouble(right_col, i, std::numeric_limits<double>::quiet_NaN(), true));
+
+      result.EXP_IM.push_back(ParquetFile::getDouble(exp_im_col, i, std::numeric_limits<double>::quiet_NaN(), true));
+      result.IM_leftWidth.push_back(ParquetFile::getDouble(exp_im_l_col, i, std::numeric_limits<double>::quiet_NaN(), true));
+      result.IM_rightWidth.push_back(ParquetFile::getDouble(exp_im_r_col, i, std::numeric_limits<double>::quiet_NaN(), true));
+
+      // ms2 scores
+      for (size_t ci = 0; ci < ms2_cols_readers.size(); ++ci)
+      {
+        double v = ParquetFile::getDouble(ms2_cols_readers[ci], i, std::numeric_limits<double>::quiet_NaN(), true);
+        result.ms2_values[ci].push_back(v);
+      }
+      for (size_t ci = 0; ci < ms1_cols_readers.size(); ++ci)
+      {
+        double v = ParquetFile::getDouble(ms1_cols_readers[ci], i, std::numeric_limits<double>::quiet_NaN(), true);
+        result.ms1_values[ci].push_back(v);
+      }
+    }
+  }
+
+  return result;
+#else
+  (void)oswpq_dir;
+  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#endif
+}
+
 
 
