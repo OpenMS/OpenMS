@@ -251,7 +251,7 @@ if(ENABLE_DOCS)
                       VERBATIM)
 
     #------------------------------------------------------------------------------
-    # doc_internal target
+    # doc_xml target
     add_custom_target(doc_xml
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"

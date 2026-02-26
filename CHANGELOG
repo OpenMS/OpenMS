@@ -21,6 +21,7 @@ General:
   - Ubuntu CI runners updated to 24.04
   - macOS code signing and notarization integrated directly into CI (#8486, #8494, #8527)
   - Parquet support enabled across all platforms (#8370, #8422)
+  - Removed leftover traces of removed doc_internal target (#2256)
 
 Dependencies:
   - PyOpenMS now depends on Autowrap >= 0.26.0 (#8580, #8616)
