@@ -70,7 +70,7 @@ brew install \
   clp \
   qtbase \
   apache-arrow \
-  minizip-ng \
+  libzip \
   zstd \
   bash \
   uv

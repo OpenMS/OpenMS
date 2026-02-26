@@ -44,6 +44,6 @@
     "eigen3",
     "bzip2",
     "arrow",
-    "minizip-ng"
+    "libzip"
   ]
 }

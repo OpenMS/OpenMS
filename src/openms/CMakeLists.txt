@@ -80,7 +80,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   SIMDe
   SQLiteCpp
   ZLIB::ZLIB
-  ${OPENMS_MINIZIP_TARGET}
+  libzip::zip
   nlohmann_json::nlohmann_json
   IsoSpec
   eol-bspline
