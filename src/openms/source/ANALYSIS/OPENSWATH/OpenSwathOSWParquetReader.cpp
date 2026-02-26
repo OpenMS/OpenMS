@@ -248,14 +248,14 @@ OpenSwathOSWParquetReader::MS2FeaturesResult OpenSwathOSWParquetReader::fetchMS2
     auto precursor_id_col = ParquetFile::getColumn(features_table, "precursor_id");
     auto exp_rt_col = ParquetFile::getColumn(features_table, "exp_rt");
 
-    // Pre-fetch optional columns for ms2/ms1
-    std::vector<std::shared_ptr<parquet::ColumnReader>> ms2_cols_readers;
+    // Pre-fetch optional columns for ms2/ms1 (Arrow arrays)
+    std::vector<std::shared_ptr<arrow::Array>> ms2_cols_readers;
     ms2_cols_readers.reserve(all_ms2_cols.size());
     for (const auto &cname : all_ms2_cols)
     {
       ms2_cols_readers.push_back(ParquetFile::getOptionalColumn(features_table, cname));
     }
-    std::vector<std::shared_ptr<parquet::ColumnReader>> ms1_cols_readers;
+    std::vector<std::shared_ptr<arrow::Array>> ms1_cols_readers;
     ms1_cols_readers.reserve(all_ms1_cols.size());
     for (const auto &cname : all_ms1_cols)
     {
@@ -372,5 +372,6 @@ OpenSwathOSWParquetReader::MS2FeaturesResult OpenSwathOSWParquetReader::fetchMS2
   throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #endif
 }
+
 
 

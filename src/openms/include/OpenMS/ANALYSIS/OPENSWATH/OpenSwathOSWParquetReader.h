@@ -130,6 +130,8 @@ namespace OpenMS
     */
     MS2FeaturesResult fetchMS2Features(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
 
+    // fetchMS2FeaturesSOA removed: fetchMS2Features already returns a column-oriented MS2FeaturesResult (SOA).
+
   private:
     std::vector<Row> rows_;
     // store last-loaded path so Python-side code can call fetch methods without re-supplying the path
