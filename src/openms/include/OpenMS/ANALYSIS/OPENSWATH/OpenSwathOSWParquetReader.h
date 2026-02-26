@@ -29,8 +29,6 @@ namespace OpenMS
     run id, precursor id, RT, MS2 area/apex, precursor charge/decoy and the
     number of detecting transitions). Additional columns can be added easily
     if required.
-
-    @ingroup Analysis
   */
   class OPENMS_DLLAPI OpenSwathOSWParquetReader
   {
