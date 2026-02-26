@@ -49,8 +49,8 @@ namespace OpenMS
       String group_id;
     };
 
-  /// MS2 row declared at file scope for pybind/pyx friendliness
-  struct OpenSwathOSWParquetReaderRowMS2
+    /// MS2 row declared at file scope for pybind/pyx friendliness
+    struct OpenSwathOSWParquetReaderRowMS2
     {
       int64_t feature_id = 0;
       int64_t run_id = 0;
@@ -66,9 +66,9 @@ namespace OpenMS
       std::map<String, double> ms1_scores; // keys are e.g. "var_ms1_mi_score"
     };
 
-  /// Result container for fetchPeakGroupFeatures: column-oriented (SOA) layout
-  /// Contains discovered MS2 and optional MS1 score columns alongside core feature columns.
-  struct PeakGroupFeatureScoresResult
+    /// Result container for fetchPeakGroupFeatures: column-oriented (SOA) layout
+    /// Contains discovered MS2 and optional MS1 score columns alongside core feature columns.
+    struct PeakGroupFeatureScoresResult
     {
       // Core per-feature columns (all length N)
       std::vector<int64_t> feature_id;
@@ -88,6 +88,37 @@ namespace OpenMS
       // Discovered MS1 score columns and their column vectors (only present if requested)
       std::vector<String> ms1_columns;
       std::vector<std::vector<double>> ms1_values;
+    };
+
+    /// Result container for transition-level features (SOA)
+    struct TransitionFeaturesResult
+    {
+      // Core per-transition columns (all length N)
+      std::vector<int64_t> feature_id;
+      std::vector<int64_t> run_id;
+      std::vector<int64_t> precursor_id;
+      std::vector<double> exp_rt;
+      std::vector<int> precursor_charge;
+
+      std::vector<int64_t> transition_id;
+      std::vector<int> product_charge;
+      std::vector<bool> decoy; // transition-level decoy flag
+
+      // basic transition-level peak metrics
+      std::vector<double> area_intensity;
+      std::vector<double> total_area_intensity;
+      std::vector<double> apex_intensity;
+      std::vector<double> apex_rt;
+      std::vector<double> rt_fwhm;
+      std::vector<double> masserror_ppm;
+      std::vector<double> total_mi;
+
+      // Discovered transition-level var_ columns and their column vectors
+      std::vector<String> transition_var_columns;
+      std::vector<std::vector<double>> transition_var_values;
+
+      // Group id (run_feature_precursor_transition style)
+      std::vector<String> group_id;
     };
 
     /// Default constructor
@@ -129,10 +160,12 @@ namespace OpenMS
       @param[in] level       "ms2" (default) or "ms1ms2" to also include MS1 scores
       @param[in] main_score  Optional main score name to be used downstream
     */
-  PeakGroupFeatureScoresResult fetchPeakGroupFeatures(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
+    PeakGroupFeatureScoresResult fetchPeakGroupFeatures(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
 
-  // Note: fetchPeakGroupFeatures returns a column-oriented PeakGroupFeatureScoresResult (SOA) that includes
-  // discovered MS2 score columns and, when requested, MS1 score columns as well.
+    /// Extract transition-level feature rows across all runs (SOA)
+    /// Reads per-run feature_transition.parquet and joins to features/library to
+    /// provide transition-level metrics alongside precursor/feature metadata.
+    TransitionFeaturesResult fetchTransitionFeatures(const String& oswpq_dir) const;
 
   private:
     std::vector<Row> rows_;
