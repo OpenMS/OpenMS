@@ -162,6 +162,24 @@ Usage:
             return nb::make_tuple((int)result.first, (int)result.second);
         }, "Returns (index, drift_time_unit) for ion mobility data")
 
+        .def("get_peaks_view", [](OpenMS::MSSpectrum& self) {
+            // Cast to a raw byte pointer
+            uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+
+            // Shape is total number of peaks * size of one peak (16 bytes)
+            size_t shape[1] = { self.size() * sizeof(OpenMS::Peak1D) };
+
+            // Return as a 1D NumPy array of unsigned 8-bit integers (bytes)
+            return nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
+                data_ptr,
+                1,
+                shape,
+                nb::handle()
+            );
+        },
+        nb::rv_policy::reference_internal,
+        "Returns a raw byte view of the underlying Peak1D array (AoS layout).")
+
         .def("get_peaks", [](const OpenMS::MSSpectrum& self) {
             // Return (mz_array, intensity_array) as numpy arrays
             // mz as float64 (double), intensity as float32 (float) matching C++ storage
