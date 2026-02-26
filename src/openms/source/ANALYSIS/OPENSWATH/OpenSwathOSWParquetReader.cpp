@@ -140,10 +140,10 @@ void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
 #endif
 }
 
-OpenSwathOSWParquetReader::FeaturesScoresResult OpenSwathOSWParquetReader::fetchMS2Features(const String& oswpq_dir, const String& level, const String& main_score) const
+OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReader::fetchPeakGroupFeatures(const String& oswpq_dir, const String& level, const String& main_score) const
 {
 #ifdef WITH_PARQUET
-  FeaturesScoresResult result;
+  PeakGroupFeatureScoresResult result;
   std::unique_ptr<File::TempDir> temp_dir;
   const String base_dir = ParquetFile::unzipDirectory(oswpq_dir, temp_dir);
 

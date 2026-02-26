@@ -66,9 +66,9 @@ namespace OpenMS
       std::map<String, double> ms1_scores; // keys are e.g. "var_ms1_mi_score"
     };
 
-    /// Result container for fetchMS2Features: column-oriented (SOA) layout
-    /// Contains discovered MS2 and optional MS1 score columns alongside core feature columns.
-    struct FeaturesScoresResult
+  /// Result container for fetchPeakGroupFeatures: column-oriented (SOA) layout
+  /// Contains discovered MS2 and optional MS1 score columns alongside core feature columns.
+  struct PeakGroupFeatureScoresResult
     {
       // Core per-feature columns (all length N)
       std::vector<int64_t> feature_id;
@@ -129,9 +129,9 @@ namespace OpenMS
       @param[in] level       "ms2" (default) or "ms1ms2" to also include MS1 scores
       @param[in] main_score  Optional main score name to be used downstream
     */
-  FeaturesScoresResult fetchMS2Features(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
+  PeakGroupFeatureScoresResult fetchPeakGroupFeatures(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
 
-  // Note: fetchMS2Features returns a column-oriented FeaturesScoresResult (SOA) that includes
+  // Note: fetchPeakGroupFeatures returns a column-oriented PeakGroupFeatureScoresResult (SOA) that includes
   // discovered MS2 score columns and, when requested, MS1 score columns as well.
 
   private:

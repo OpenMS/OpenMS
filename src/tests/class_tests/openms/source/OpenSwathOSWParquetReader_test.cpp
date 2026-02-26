@@ -180,8 +180,8 @@ START_SECTION(void load(const String& oswpq_dir))
   // Check some values
   TEST_EQUAL(rows[0].feature_id == 1 || rows[1].feature_id == 1, true)
 
-  // fetchMS2Features should return two entries as well
-  auto result = reader.fetchMS2Features(base_dir);
+  // fetchPeakGroupFeatures should return two entries as well
+  auto result = reader.fetchPeakGroupFeatures(base_dir);
   TEST_EQUAL(result.feature_id.size(), 2)
   TEST_EQUAL(result.precursor_charge.size(), 2)
   TEST_EQUAL(result.precursor_charge[0], 2)
