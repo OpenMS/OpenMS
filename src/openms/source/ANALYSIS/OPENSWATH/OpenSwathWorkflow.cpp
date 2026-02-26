@@ -296,7 +296,7 @@ namespace OpenMS
 
           const Size n_compounds = transition_exp_used_all.getCompounds().size();
           SignedSize nr_batches = 0;
-          if (n_compounds > 0)
+          if (batch_size > 0)
           {
             nr_batches = static_cast<SignedSize>((n_compounds + batch_size - 1) / batch_size);
           }
