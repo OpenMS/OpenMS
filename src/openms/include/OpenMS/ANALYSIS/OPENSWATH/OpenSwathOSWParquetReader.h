@@ -68,6 +68,14 @@ namespace OpenMS
       std::map<String, double> ms1_scores; // keys are e.g. "var_ms1_mi_score"
     };
 
+    /// Result container for fetchMS2Features: rows plus discovered score column names
+    struct MS2FeaturesResult
+    {
+      std::vector<OpenSwathOSWParquetReaderRowMS2> rows;
+      std::vector<String> ms2_columns;
+      std::vector<String> ms1_columns;
+    };
+
     /// Default constructor
     OpenSwathOSWParquetReader() = default;
 
@@ -86,22 +94,13 @@ namespace OpenMS
 
       @param[in] oswpq_dir  Path to the unzipped directory or .oswpq archive
     */
-  void load(const String& oswpq_dir);
+    void load(const String& oswpq_dir);
 
-  /// Return the originally provided oswpq path (may be empty)
-  const String& oswpqPath() const { return oswpq_dir_; }
+    /// Return the originally provided oswpq path (may be empty)
+    const String& oswpqPath() const { return oswpq_dir_; }
 
     /// Return extracted rows
     const std::vector<Row>& rows() const { return rows_; }
-
-    /**
-      @brief Write extracted rows to a simple CSV file (no quoting)
-
-      The CSV contains a header and the columns:
-      feature_id,run_id,precursor_id,exp_rt,ms2_area,ms2_total_area,ms2_apex,
-      precursor_charge,decoy,transition_count
-    */
-    void writeCSV(const String& filename) const;
 
     /**
       @brief Extract MS2-level feature rows across all runs.
@@ -116,22 +115,8 @@ namespace OpenMS
       @param[in] level       "ms2" (default) or "ms1ms2" to also include MS1 scores
       @param[in] main_score  Optional main score name to be used downstream
     */
-  void fetchMS2Features(const String& oswpq_dir, std::vector<OpenSwathOSWParquetReaderRowMS2>& out_rows, const String& level = "ms2", const String& main_score = "") const;
+    MS2FeaturesResult fetchMS2Features(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
 
-    /**
-      @brief Write a flattened Parquet file of the MS2 (and optionally MS1) feature table.
-
-      The output Parquet file contains one row per feature and expands all
-      score columns discovered in the per-run features.parquet files into
-      top-level columns. This method is intended to be used by Python
-      bindings which can then load the Parquet file using pandas/pyarrow
-      to obtain an identical table shape to the sqlite-based extractor.
-
-      @param[in] oswpq_dir    Path to the unzipped directory or .oswpq archive
-      @param[in] output_path  Path where the parquet file will be written
-      @param[in] level        "ms2" (default) or "ms1ms2" to include MS1 score columns
-    */
-    void writeMS2FeaturesParquet(const String& oswpq_dir, const String& output_path, const String& level = "ms2") const;
   private:
     std::vector<Row> rows_;
     // store last-loaded path so Python-side code can call fetch methods without re-supplying the path
