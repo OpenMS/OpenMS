@@ -67,7 +67,8 @@ namespace OpenMS
     };
 
     /// Result container for fetchMS2Features: column-oriented (SOA) layout
-    struct MS2FeaturesResult
+    /// Contains discovered MS2 and optional MS1 score columns alongside core feature columns.
+    struct FeaturesScoresResult
     {
       // Core per-feature columns (all length N)
       std::vector<int64_t> feature_id;
@@ -128,9 +129,10 @@ namespace OpenMS
       @param[in] level       "ms2" (default) or "ms1ms2" to also include MS1 scores
       @param[in] main_score  Optional main score name to be used downstream
     */
-    MS2FeaturesResult fetchMS2Features(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
+  FeaturesScoresResult fetchMS2Features(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
 
-    // fetchMS2FeaturesSOA removed: fetchMS2Features already returns a column-oriented MS2FeaturesResult (SOA).
+  // Note: fetchMS2Features returns a column-oriented FeaturesScoresResult (SOA) that includes
+  // discovered MS2 score columns and, when requested, MS1 score columns as well.
 
   private:
     std::vector<Row> rows_;
