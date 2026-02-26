@@ -66,12 +66,27 @@ namespace OpenMS
       std::map<String, double> ms1_scores; // keys are e.g. "var_ms1_mi_score"
     };
 
-    /// Result container for fetchMS2Features: rows plus discovered score column names
+    /// Result container for fetchMS2Features: column-oriented (SOA) layout
     struct MS2FeaturesResult
     {
-      std::vector<OpenSwathOSWParquetReaderRowMS2> rows;
+      // Core per-feature columns (all length N)
+      std::vector<int64_t> feature_id;
+      std::vector<int64_t> run_id;
+      std::vector<int64_t> precursor_id;
+      std::vector<double> exp_rt;
+      std::vector<int> precursor_charge;
+      std::vector<bool> decoy;
+      std::vector<int64_t> transition_count;
+      std::vector<String> group_id;
+
+      // Discovered MS2 score columns and their column vectors (each vector length N)
+      // ms2_columns[i] corresponds to ms2_values[i]
       std::vector<String> ms2_columns;
+      std::vector<std::vector<double>> ms2_values;
+
+      // Discovered MS1 score columns and their column vectors (only present if requested)
       std::vector<String> ms1_columns;
+      std::vector<std::vector<double>> ms1_values;
     };
 
     /// Default constructor

@@ -191,100 +191,181 @@ OpenSwathOSWParquetReader::MS2FeaturesResult OpenSwathOSWParquetReader::fetchMS2
   auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
   const int64_t num_runs = runs_table->num_rows();
 
-  std::unordered_set<std::string> ms2_set;
-  std::unordered_set<std::string> ms1_set;
-
+  // First pass: discover all score columns across runs (ms2 + optionally ms1)
+  std::vector<std::string> all_ms2_cols;
+  std::vector<std::string> all_ms1_cols;
   for (int64_t r = 0; r < num_runs; ++r)
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
     const String run_dir = base_dir + "/runs/run_id=" + String(run_id);
     const String features_path = run_dir + "/features.parquet";
     if (!File::exists(features_path)) continue;
+    auto features_table = ParquetFile::readTable(features_path);
+    const auto& schema = features_table->schema();
+    for (const auto& f : schema->fields())
+    {
+      const std::string name = f->name();
+      if (name.rfind("var_ms2_", 0) == 0 || name.rfind("ms2_", 0) == 0)
+      {
+        if (std::find(all_ms2_cols.begin(), all_ms2_cols.end(), name) == all_ms2_cols.end())
+          all_ms2_cols.push_back(name);
+      }
+      else if (level == "ms1ms2" && (name.rfind("var_ms1_", 0) == 0 || name.rfind("ms1_", 0) == 0))
+      {
+        if (std::find(all_ms1_cols.begin(), all_ms1_cols.end(), name) == all_ms1_cols.end())
+          all_ms1_cols.push_back(name);
+      }
+    }
+  }
 
+  // Sort columns deterministically
+  std::sort(all_ms2_cols.begin(), all_ms2_cols.end());
+  std::sort(all_ms1_cols.begin(), all_ms1_cols.end());
+
+  // Prepare output vectors
+  std::vector<int64_t> feature_id_v;
+  std::vector<int64_t> run_id_v;
+  std::vector<int64_t> precursor_id_v;
+  std::vector<double> exp_rt_v;
+  std::vector<int> precursor_charge_v;
+  std::vector<bool> decoy_v;
+  std::vector<int64_t> transition_count_v;
+  std::vector<String> group_id_v;
+
+  std::vector<std::vector<double>> ms2_values(all_ms2_cols.size());
+  std::vector<std::vector<double>> ms1_values(all_ms1_cols.size());
+
+  // Second pass: populate vectors
+  for (int64_t r = 0; r < num_runs; ++r)
+  {
+    const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
+    const String run_dir = base_dir + "/runs/run_id=" + String(run_id);
+    const String features_path = run_dir + "/features.parquet";
+    if (!File::exists(features_path)) continue;
     auto features_table = ParquetFile::readTable(features_path);
 
-    // core columns
     auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
     auto precursor_id_col = ParquetFile::getColumn(features_table, "precursor_id");
     auto exp_rt_col = ParquetFile::getColumn(features_table, "exp_rt");
 
-    // collect column names and arrays for score extraction
-    const auto& schema = features_table->schema();
-    std::vector<std::string> col_names;
-    for (const auto& f : schema->fields()) col_names.push_back(f->name());
-
-    // precompute indices of ms2 and ms1 score columns
-    std::vector<std::string> ms2_cols;
-    std::vector<std::string> ms1_cols;
-    for (const auto& name : col_names)
+    // Pre-fetch optional columns for ms2/ms1
+    std::vector<std::shared_ptr<parquet::ColumnReader>> ms2_cols_readers;
+    ms2_cols_readers.reserve(all_ms2_cols.size());
+    for (const auto &cname : all_ms2_cols)
     {
-      const std::string lname = name;
-      if (lname.rfind("var_ms2_", 0) == 0 || lname.rfind("ms2_", 0) == 0)
-      {
-        ms2_cols.push_back(lname);
-        ms2_set.insert(lname);
-      }
-      else if (lname.rfind("var_ms1_", 0) == 0 || lname.rfind("ms1_", 0) == 0)
-      {
-        ms1_cols.push_back(lname);
-        ms1_set.insert(lname);
-      }
+      ms2_cols_readers.push_back(ParquetFile::getOptionalColumn(features_table, cname));
+    }
+    std::vector<std::shared_ptr<parquet::ColumnReader>> ms1_cols_readers;
+    ms1_cols_readers.reserve(all_ms1_cols.size());
+    for (const auto &cname : all_ms1_cols)
+    {
+      ms1_cols_readers.push_back(ParquetFile::getOptionalColumn(features_table, cname));
     }
 
     const int64_t num_rows = features_table->num_rows();
-    result.rows.reserve(result.rows.size() + static_cast<size_t>(num_rows));
+    feature_id_v.reserve(feature_id_v.size() + static_cast<size_t>(num_rows));
+    run_id_v.reserve(run_id_v.size() + static_cast<size_t>(num_rows));
+    precursor_id_v.reserve(precursor_id_v.size() + static_cast<size_t>(num_rows));
+    exp_rt_v.reserve(exp_rt_v.size() + static_cast<size_t>(num_rows));
+    precursor_charge_v.reserve(precursor_charge_v.size() + static_cast<size_t>(num_rows));
+    decoy_v.reserve(decoy_v.size() + static_cast<size_t>(num_rows));
+    transition_count_v.reserve(transition_count_v.size() + static_cast<size_t>(num_rows));
+    group_id_v.reserve(group_id_v.size() + static_cast<size_t>(num_rows));
+
     for (int64_t row = 0; row < num_rows; ++row)
     {
-      OpenSwathOSWParquetReaderRowMS2 out;
-      out.feature_id = ParquetFile::getInt64(feature_id_col, row, 0, false);
-      out.run_id = run_id;
-      out.precursor_id = ParquetFile::getInt64(precursor_id_col, row, 0, false);
-      out.exp_rt = ParquetFile::getDouble(exp_rt_col, row, 0.0, true);
-      out.group_id = String(out.run_id) + "_" + String(out.precursor_id);
+      const int64_t fid = ParquetFile::getInt64(feature_id_col, row, 0, false);
+      const int64_t pid = ParquetFile::getInt64(precursor_id_col, row, 0, false);
+      const double rt = ParquetFile::getDouble(exp_rt_col, row, 0.0, true);
 
-      auto pit = precursor_info.find(out.precursor_id);
+      feature_id_v.push_back(fid);
+      run_id_v.push_back(run_id);
+      precursor_id_v.push_back(pid);
+      exp_rt_v.push_back(rt);
+
+      auto pit = precursor_info.find(pid);
       if (pit != precursor_info.end())
       {
-        out.precursor_charge = pit->second.first;
-        out.decoy = pit->second.second;
+        precursor_charge_v.push_back(pit->second.first);
+        decoy_v.push_back(pit->second.second);
       }
-      auto tcit = transition_counts.find(out.precursor_id);
-      if (tcit != transition_counts.end()) out.transition_count = tcit->second;
-
-      // extract ms2 scores
-      for (const auto& cname : ms2_cols)
+      else
       {
-        double v = ParquetFile::getDouble(ParquetFile::getColumn(features_table, cname), row, std::numeric_limits<double>::quiet_NaN(), true);
-        out.ms2_scores[String(cname)] = v;
+        precursor_charge_v.push_back(0);
+        decoy_v.push_back(false);
       }
 
-      if (level == "ms1ms2")
+      auto tcit = transition_counts.find(pid);
+      if (tcit != transition_counts.end()) transition_count_v.push_back(tcit->second);
+      else transition_count_v.push_back(0);
+
+      const String gid = String(run_id) + "_" + String(pid);
+      group_id_v.push_back(gid);
+
+      // ms2 columns
+      for (size_t ci = 0; ci < all_ms2_cols.size(); ++ci)
       {
-        for (const auto& cname : ms1_cols)
-        {
-          double v = ParquetFile::getDouble(ParquetFile::getColumn(features_table, cname), row, std::numeric_limits<double>::quiet_NaN(), true);
-          out.ms1_scores[String(cname)] = v;
-        }
+        double v = ParquetFile::getDouble(ms2_cols_readers[ci], row, std::numeric_limits<double>::quiet_NaN(), true);
+        ms2_values[ci].push_back(v);
       }
 
-      result.rows.push_back(std::move(out));
+      // ms1 columns
+      for (size_t ci = 0; ci < all_ms1_cols.size(); ++ci)
+      {
+        double v = ParquetFile::getDouble(ms1_cols_readers[ci], row, std::numeric_limits<double>::quiet_NaN(), true);
+        ms1_values[ci].push_back(v);
+      }
     }
   }
 
-  // sort by run_id, precursor_id, exp_rt
-  std::sort(result.rows.begin(), result.rows.end(), [](const OpenSwathOSWParquetReaderRowMS2& a, const OpenSwathOSWParquetReaderRowMS2& b) {
-    if (a.run_id != b.run_id) return a.run_id < b.run_id;
-    if (a.precursor_id != b.precursor_id) return a.precursor_id < b.precursor_id;
-    return a.exp_rt < b.exp_rt;
+  // sort by run_id, precursor_id, exp_rt: produce an index permutation and apply to all vectors
+  const size_t N = feature_id_v.size();
+  std::vector<size_t> idx(N);
+  for (size_t i = 0; i < N; ++i) idx[i] = i;
+  std::sort(idx.begin(), idx.end(), [&](size_t a, size_t b){
+    if (run_id_v[a] != run_id_v[b]) return run_id_v[a] < run_id_v[b];
+    if (precursor_id_v[a] != precursor_id_v[b]) return precursor_id_v[a] < precursor_id_v[b];
+    return exp_rt_v[a] < exp_rt_v[b];
   });
 
-  // populate column lists
-  result.ms2_columns.reserve(ms2_set.size());
-  for (const auto &s : ms2_set) result.ms2_columns.emplace_back(s);
-  result.ms1_columns.reserve(ms1_set.size());
-  for (const auto &s : ms1_set) result.ms1_columns.emplace_back(s);
+  auto permute = [&](auto &vec)
+  {
+    using T = typename std::decay<decltype(vec)>::type::value_type;
+    std::vector<T> tmp;
+    tmp.reserve(vec.size());
+    for (size_t i = 0; i < idx.size(); ++i) tmp.push_back(vec[idx[i]]);
+    vec.swap(tmp);
+  };
 
-  // main_score handling is left to caller; we include the maps for flexible selection
+  permute(feature_id_v);
+  permute(run_id_v);
+  permute(precursor_id_v);
+  permute(exp_rt_v);
+  permute(precursor_charge_v);
+  permute(decoy_v);
+  permute(transition_count_v);
+  permute(group_id_v);
+  for (auto &col : ms2_values) permute(col);
+  for (auto &col : ms1_values) permute(col);
+
+  // fill result
+  result.feature_id = std::move(feature_id_v);
+  result.run_id = std::move(run_id_v);
+  result.precursor_id = std::move(precursor_id_v);
+  result.exp_rt = std::move(exp_rt_v);
+  result.precursor_charge = std::move(precursor_charge_v);
+  result.decoy = std::move(decoy_v);
+  result.transition_count = std::move(transition_count_v);
+  result.group_id = std::move(group_id_v);
+
+  result.ms2_columns.reserve(all_ms2_cols.size());
+  for (const auto &s : all_ms2_cols) result.ms2_columns.emplace_back(String(s));
+  result.ms2_values = std::move(ms2_values);
+
+  result.ms1_columns.reserve(all_ms1_cols.size());
+  for (const auto &s : all_ms1_cols) result.ms1_columns.emplace_back(String(s));
+  result.ms1_values = std::move(ms1_values);
+
   return result;
 #else
   (void)level; (void)main_score; (void)oswpq_dir;
