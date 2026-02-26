@@ -120,9 +120,11 @@ find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
 # libzip (ZIP64 archive support)
-# Uses our FindLibzip.cmake module which tries CONFIG mode first, then falls
-# back to manual header+library search (needed on Ubuntu where libzip <= 1.10
-# system config files reference uninstalled CLI tool binaries).
+# Uses our FindLibzip.cmake module which does a manual header+library search.
+# We intentionally avoid CONFIG mode because libzip <= 1.10 ships a CMake
+# targets file that references CLI tool binaries (zipcmp, zipmerge, ziptool)
+# and raises FATAL_ERROR if those aren't installed (e.g. Ubuntu without
+# libzip-tools).
 find_package(Libzip REQUIRED)
 
 #------------------------------------------------------------------------------

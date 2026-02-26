@@ -24,7 +24,6 @@
 #endif
 
 #include <cstring>
-#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -35,10 +34,11 @@
 /// on uncompressed entries (internally mapped to fseek on the physical file).
 ///
 /// Owns both the zip_t archive and the zip_file_t entry handle.
-/// Each instance can only access one entry; to read multiple entries from the
-/// same archive, open a separate ZipEntryRandomAccessFile per entry (each gets
-/// its own zip_t handle since libzip doesn't support concurrent entry reads
-/// from a single archive handle).
+/// Not thread-safe — each instance should be used by a single thread.
+/// To read multiple entries from the same archive, open a separate
+/// ZipEntryRandomAccessFile per entry (each gets its own zip_t handle
+/// since libzip doesn't support concurrent entry reads from a single
+/// archive handle).
 ///
 /// libzip handles ZIP64 extensions transparently — no explicit flags needed.
 class ZipEntryRandomAccessFile : public arrow::io::RandomAccessFile
@@ -107,20 +107,17 @@ public:
 
   arrow::Result<int64_t> ReadAt(int64_t position, int64_t nbytes, void* out) override
   {
-    std::lock_guard<std::mutex> lock(mutex_);
     ARROW_RETURN_NOT_OK(Seek(position));
     return Read(nbytes, out);
   }
 
   arrow::Result<std::shared_ptr<arrow::Buffer>> ReadAt(int64_t position, int64_t nbytes) override
   {
-    std::lock_guard<std::mutex> lock(mutex_);
     ARROW_RETURN_NOT_OK(Seek(position));
     return Read(nbytes);
   }
 
 private:
-  mutable std::mutex mutex_;
   zip_t* archive_;
   zip_file_t* entry_;
   int64_t entry_size_;

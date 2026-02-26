@@ -14,13 +14,15 @@ find_path(LIBZIP_INCLUDE_DIR
 )
 
 find_library(LIBZIP_LIBRARY
-  NAMES zip
+  NAMES zip libzip
 )
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Libzip
   REQUIRED_VARS LIBZIP_LIBRARY LIBZIP_INCLUDE_DIR
 )
+
+mark_as_advanced(LIBZIP_INCLUDE_DIR LIBZIP_LIBRARY)
 
 if(Libzip_FOUND AND NOT TARGET libzip::zip)
   add_library(libzip::zip UNKNOWN IMPORTED)
