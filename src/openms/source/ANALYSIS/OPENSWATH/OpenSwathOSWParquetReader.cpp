@@ -93,7 +93,11 @@ void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
     const String run_dir = base_dir + "/runs/run_id=" + String(run_id);
     const String features_path = run_dir + "/features.parquet";
-    if (!File::exists(features_path)) continue;
+    if (!File::exists(features_path))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Missing features.parquet for run_id=" + String(run_id) + " in '" + oswpq_dir + "'");
+    }
 
     auto features_table = ParquetFile::readTable(features_path);
     auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
@@ -199,7 +203,11 @@ OpenSwathOSWParquetReader::FeaturesScoresResult OpenSwathOSWParquetReader::fetch
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
     const String run_dir = base_dir + "/runs/run_id=" + String(run_id);
     const String features_path = run_dir + "/features.parquet";
-    if (!File::exists(features_path)) continue;
+    if (!File::exists(features_path))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Missing features.parquet for run_id=" + String(run_id) + " in '" + base_dir + "'");
+    }
     auto features_table = ParquetFile::readTable(features_path);
     const auto& schema = features_table->schema();
     for (const auto& f : schema->fields())
@@ -241,7 +249,11 @@ OpenSwathOSWParquetReader::FeaturesScoresResult OpenSwathOSWParquetReader::fetch
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
     const String run_dir = base_dir + "/runs/run_id=" + String(run_id);
     const String features_path = run_dir + "/features.parquet";
-    if (!File::exists(features_path)) continue;
+    if (!File::exists(features_path))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Missing features.parquet for run_id=" + String(run_id) + " in '" + base_dir + "'");
+    }
     auto features_table = ParquetFile::readTable(features_path);
 
     auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
