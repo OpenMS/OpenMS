@@ -120,7 +120,10 @@ find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
 # libzip (ZIP64 archive support)
-find_package(libzip REQUIRED)
+# Uses our FindLibzip.cmake module which tries CONFIG mode first, then falls
+# back to manual header+library search (needed on Ubuntu where libzip <= 1.10
+# system config files reference uninstalled CLI tool binaries).
+find_package(Libzip REQUIRED)
 
 #------------------------------------------------------------------------------
 # Find Eigen
