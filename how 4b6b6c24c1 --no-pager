@@ -1,0 +1,112 @@
+[33mcommit 4b6b6c24c1f6474ba0b0ef427af8ecffac581f05[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mpixi-migration[m[33m, [m[1;31morigin/develop[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mdevelop[m[33m)[m
+Author: Ayush Kumar Jha <182655559+Ayushj0704@users.noreply.github.com>
+Date:   Thu Feb 26 01:06:33 2026 +0530
+
+    migrate ubuntu CI dependencies to pixi
+
+[1mdiff --git a/.github/workflows/openms_ci_matrix_full.yml b/.github/workflows/openms_ci_matrix_full.yml[m
+[1mindex e5405089d6..d90aae4ffe 100644[m
+[1m--- a/.github/workflows/openms_ci_matrix_full.yml[m
+[1m+++ b/.github/workflows/openms_ci_matrix_full.yml[m
+[36m@@ -277,53 +277,26 @@[m [mjobs:[m
+         HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1[m
+       run: |[m
+         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then[m
+[31m-          # WARNING: Don't add any dependency install commands here.[m
+[31m-          # Instead edit the following script:[m
+[31m-          bash OpenMS/tools/ci/deps-ubuntu.sh[m
+[31m-          # Install libomp for clang compiler (needed for OpenMP support)[m
+[31m-          # Use version-specific package matching the clang version[m
+[32m+[m[32m          # setup pixi[m
+[32m+[m[32m          curl -fsSL https://pixi.sh/install.sh | bash[m
+[32m+[m[32m          export PATH="$HOME/.pixi/bin:$PATH"[m
+[32m+[m[41m          [m
+[32m+[m[32m          # install deps from pixi.toml[m
+[32m+[m[32m          cd OpenMS[m
+[32m+[m[32m          pixi install[m
+[32m+[m[32m          cd ..[m
+[32m+[m[41m          [m
+[32m+[m[32m          # expose pixi environment bins to gh actions[m
+[32m+[m[32m          echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH[m
+[32m+[m[41m          [m
+[32m+[m[32m          # point cmake to the new pixi prefix[m
+[32m+[m[32m          echo "cmake_prefix=$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default" >> $GITHUB_OUTPUT[m
+[32m+[m[41m          [m
+[32m+[m[32m          # keep libomp for clang (needed for OpenMP)[m
+           if [[ "${{ matrix.compiler }}" == clang* ]]; then[m
+             sudo apt-get -qq install -y libomp-${{ matrix.compiler_ver }}-dev[m
+           fi[m
+[31m-          echo "Testing doxygen" && doxygen --version[m
+[31m-          echo "cmake_prefix=" >>$GITHUB_OUTPUT[m
+[31m-        fi[m
+[31m-[m
+[31m-        if [[ "${{ matrix.os }}" == windows-* ]]; then[m
+[31m-          choco install  -y --no-progress \[m
+[31m-                ccache \[m
+[31m-                cmake \[m
+[31m-                doxygen.portable \[m
+[31m-                eigen \[m
+[31m-                ghostscript \[m
+[31m-                graphviz \[m
+[31m-                ninja[m
+[31m-[m
+[31m-          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then[m
+[31m-            # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already[m
+[31m-            curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz[m
+[31m-            ## overwrite existing NSIS (which has only 1k-string support)[m
+[31m-            7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"[m
+[31m-            # Ensure makensis.exe is discoverable during CMake configuration[m
+[31m-            echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH[m
+[31m-          fi[m
+[31m-[m
+[31m-          echo "cmake_prefix=" >>"$GITHUB_OUTPUT"[m
+[31m-          echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT[m
+[31m-[m
+[31m-          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.[m
+[31m-          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1[m
+[31m-          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH[m
+[31m-        fi[m
+[31m-[m
+[31m-        if [[ "${{ matrix.os }}" == macos-* ]]; then[m
+[31m-          # WARNING: Don't add any brew install commands here, edit[m
+[31m-          # the following script instead:[m
+[31m-          bash OpenMS/tools/ci/deps-macos.sh[m
+[31m-          brew install ccache[m
+[31m-          echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"[m
+[31m-          echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"[m
+[31m-        fi[m
+[32m+[m[32m        fi[m[41m [m
+ [m
+     - name: Cache contrib (Windows)[m
+       if: startsWith(matrix.os, 'windows')[m
+[1mdiff --git a/pixi.toml b/pixi.toml[m
+[1mnew file mode 100644[m
+[1mindex 0000000000..2d4535ab9a[m
+[1m--- /dev/null[m
+[1m+++ b/pixi.toml[m
+[36m@@ -0,0 +1,24 @@[m
+[32m+[m[32m[workspace][m
+[32m+[m[32mname = "openms"[m
+[32m+[m[32mchannels = ["conda-forge"][m
+[32m+[m[32mplatforms = ["linux-64", "osx-arm64", "win-64"][m
+[32m+[m
+[32m+[m[32m[dependencies][m
+[32m+[m[32mcmake = "*"[m
+[32m+[m[32mninja = "*"[m
+[32m+[m[32meigen = "*"[m
+[32m+[m[32mboost = "*"[m
+[32m+[m[32mxerces-c = "*"[m
+[32m+[m[32msqlite = "*"[m
+[32m+[m[32mhdf5 = "*"[m
+[32m+[m[32mcoin-or-clp = "*"[m
+[32m+[m[32mccache = "*"[m
+[32m+[m[32mzlib = "*"[m
+[32m+[m[32mlibsvm = "*"[m
+[32m+[m[32mdoxygen = "*"[m
+[32m+[m[32mghostscript = "*"[m
+[32m+[m[32mgraphviz = "*"[m
+[32m+[m[32mqt6-main = "*"[m
+[32m+[m
+[32m+[m[32m[target.linux-64.dependencies][m
+[32m+[m[32mlibarrow = "*"[m
+\ No newline at end of file[m

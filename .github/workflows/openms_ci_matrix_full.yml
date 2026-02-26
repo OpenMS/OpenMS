@@ -290,7 +290,7 @@ jobs:
           echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
           
           # point cmake to the new pixi prefix
-          echo "cmake_prefix=$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default" >> $GITHUB_OUTPUT
+          echo "cmake_prefix=$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default" >echo "cmake_prefix=$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default" >> $GITHUB_OUTPUT> $GITHUB_OUTPUT
           
           # keep libomp for clang (needed for OpenMP)
           if [[ "${{ matrix.compiler }}" == clang* ]]; then
