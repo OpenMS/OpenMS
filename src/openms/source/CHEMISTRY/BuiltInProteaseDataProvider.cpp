@@ -543,6 +543,53 @@ namespace OpenMS
       -1   // OMSSAID
     ));
 
+
+    // Percolator-specific enzymes (to maintain 100% compatibility with Percolator logic)
+
+    // Percolator Pepsin: cleaves if P1 or P1' is F,L,W,Y and P1 is not R
+    // Original logic: ((c in FLWY || n in FLWY) && n != R)
+    // Regex: (?<=[FLWY])(?!R)|(?<!R)(?=[FLWY])
+    enzymes.push_back(make_unique<DigestionEnzymeProtein>(
+      "Percolator Pepsin",
+      "(?<=[FLWY])(?!R)|(?<!R)(?=[FLWY])",
+      set<String>(),
+      "Percolator specific Pepsin: cleaves if P1 or P1' is F, L, W, or Y, and P1 is not R.",
+      EmpiricalFormula("H"),
+      EmpiricalFormula("OH"),
+      "",
+      "[FLWY]|{R}", // Approximate P1 specificity for display
+      -1, -1, -1
+    ));
+
+    // Percolator Elastase: cleaves after L,V,A,G if not followed by P
+    // Original logic: ((n in LVAG) && c != P)
+    // Regex: (?<=[LVAG])(?!P)
+    enzymes.push_back(make_unique<DigestionEnzymeProtein>(
+      "Percolator Elastase",
+      "(?<=[LVAG])(?!P)",
+      set<String>(),
+      "Percolator specific Elastase: cleaves after L, V, A, G if not followed by P.",
+      EmpiricalFormula("H"),
+      EmpiricalFormula("OH"),
+      "",
+      "[LVAG]|{P}",
+      -1, -1, -1
+    ));
+
+    // Percolator Glu-C: cleaves after E if not followed by P
+    // Original logic: ((n == 'E') && (c != 'P'))
+    // Regex: (?<=E)(?!P)
+    enzymes.push_back(make_unique<DigestionEnzymeProtein>(
+      "Percolator Glu-C",
+      "(?<=E)(?!P)",
+      set<String>(),
+      "Percolator specific Glu-C: cleaves after E if not followed by P.",
+      EmpiricalFormula("H"),
+      EmpiricalFormula("OH"),
+      "",
+      "E|{P}",
+      -1, -1, -1
+    ));
     return enzymes;
   }
 
