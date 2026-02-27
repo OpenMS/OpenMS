@@ -230,8 +230,8 @@ namespace OpenMS
       - feature identifiers and precursor metadata: `id` (FEATURE.ID), `Charge`, `mz`
       - MS2/MS1 intensity metrics: `Intensity` (FEATURE_MS2.AREA_INTENSITY),
         `aggr_prec_Peak_Area`, `aggr_prec_Peak_Apex`
-      - peak boundary widths: `leftWidth`, `rightWidth` (may be NaN if absent)
-      - optional ion-mobility fields: `EXP_IM`, `IM_leftWidth`, `IM_rightWidth`
+      - peak boundary widths: `left_width`, `right_width` (may be NaN if absent; available in the returned struct as `leftWidth`/`rightWidth`)
+      - optional ion-mobility fields: canonical Parquet names `exp_im`, `exp_im_leftwidth`, `exp_im_rightwidth` (returned as `EXP_IM`/`IM_leftWidth`/`IM_rightWidth` in the struct)
       - discovered score columns: `ms2_columns` / `ms2_values` and
         `ms1_columns` / `ms1_values` (discovered across runs, e.g. `var_ms2_*`)
 
