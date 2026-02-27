@@ -74,6 +74,7 @@ public:
 
   arrow::Result<int64_t> Tell() const override
   {
+    if (closed_) return arrow::Status::Invalid("File is closed");
     zip_int64_t pos = zip_ftell(entry_);
     if (pos < 0) return arrow::Status::IOError("zip_ftell failed");
     return static_cast<int64_t>(pos);
@@ -83,6 +84,7 @@ public:
 
   arrow::Status Seek(int64_t position) override
   {
+    if (closed_) return arrow::Status::Invalid("File is closed");
     if (position < 0 || position > entry_size_)
       return arrow::Status::IOError("Seek out of bounds");
     if (zip_fseek(entry_, position, SEEK_SET) < 0)
@@ -92,6 +94,7 @@ public:
 
   arrow::Result<int64_t> Read(int64_t nbytes, void* out) override
   {
+    if (closed_) return arrow::Status::Invalid("File is closed");
     zip_int64_t bytes_read = zip_fread(entry_, out, static_cast<zip_uint64_t>(nbytes));
     if (bytes_read < 0) return arrow::Status::IOError("zip_fread failed");
     return static_cast<int64_t>(bytes_read);
