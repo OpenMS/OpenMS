@@ -131,6 +131,7 @@ namespace
 
   void writeLibraryMetadata_(const OpenMS::String& library_dir, const OpenMS::String& library_name, const OpenMSLibraryStats& stats)
   {
+    (void)library_name;
     const Size proteins_target = stats.proteins_total - stats.proteins_decoy;
     const Size peptides_target = stats.peptides_total - stats.peptides_decoy;
     const Size precursors_target = stats.precursors_total - stats.precursors_decoy;
