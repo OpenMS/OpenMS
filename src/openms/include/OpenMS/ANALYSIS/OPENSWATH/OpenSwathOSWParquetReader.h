@@ -203,13 +203,66 @@ namespace OpenMS
     */
     PeakGroupFeatureScoresResult fetchPeakGroupFeatures(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
 
-    /// Extract transition-level feature rows across all runs (SOA)
-    /// Reads per-run feature_transition.parquet and joins to features/library to
-    /// provide transition-level metrics alongside precursor/feature metadata.
+    /**
+      @brief Extract transition-level feature rows across all runs (SOA)
+
+      Reads per-run `feature_transition.parquet` files and joins them with
+      the per-run `features.parquet` and library tables to produce a
+      column-oriented (structure-of-arrays) result. The returned
+      TransitionFeaturesResult contains per-transition columns including:
+
+      - feature identifiers and run/precursor metadata: `feature_id`,
+        `run_id`, `precursor_id`, `exp_rt`, `precursor_charge`
+      - transition identifiers and properties: `transition_id`, `product_charge`,
+        transition-level `decoy` flag
+      - basic transition peak metrics: `area_intensity`, `total_area_intensity`,
+        `apex_intensity`, `apex_rt`, `rt_fwhm`, `masserror_ppm`, `total_mi`
+      - discovered transition-level score columns (e.g. `var_ms2_*`) are
+        collected into `transition_var_columns` with their per-row values in
+        `transition_var_values` (one vector per discovered column)
+      - `group_id` strings in the form run_feature_precursor_transition to
+        allow easy grouping or joins on the Python side.
+
+      The ordering of rows is deterministic (sorted by run, precursor, feature,
+      transition) to match other extractors.
+
+      @param[in] oswpq_dir  Path to the unzipped OSW Parquet directory or
+                           a .oswpq archive (zip) that will be read.
+      @return TransitionFeaturesResult populated with transition-level columns
+    */
     TransitionFeaturesResult fetchTransitionFeatures(const String& oswpq_dir) const;
 
-  /// Read an "unscored" table replicating pyprophet's SQL layout.
-  UnscoredResult fetchUnscoredData(const String& oswpq_dir) const;
+    /**
+      @brief Read an "unscored" table and return a column-oriented result.
+
+      Reads per-run `features.parquet` (and supporting tables) and returns a
+      rich set of per-feature columns in a Structure-of-Arrays layout
+      convenient for conversion to a pandas.DataFrame. The returned
+      UnscoredResult contains the following columns (vectors of length N):
+
+      - feature/run identifiers: `id_run`, `id_peptide` (optional, 0 if unknown),
+        `transition_group_id` (precursor id), `decoy`, `run_id`, `filename`
+      - retention time fields: `RT` (feature EXP_RT), `assay_rt` (EXP_RT - DELTA_RT),
+        `delta_rt` (FEATURE.DELTA_RT), `assay_RT` (precursor/library RT),
+        `delta_RT` (norm_rt - library RT)
+      - feature identifiers and precursor metadata: `id` (FEATURE.ID), `Charge`, `mz`
+      - MS2/MS1 intensity metrics: `Intensity` (FEATURE_MS2.AREA_INTENSITY),
+        `aggr_prec_Peak_Area`, `aggr_prec_Peak_Apex`
+      - peak boundary widths: `leftWidth`, `rightWidth` (may be NaN if absent)
+      - optional ion-mobility fields: `EXP_IM`, `IM_leftWidth`, `IM_rightWidth`
+      - discovered score columns: `ms2_columns` / `ms2_values` and
+        `ms1_columns` / `ms1_values` (discovered across runs, e.g. `var_ms2_*`)
+
+      Optional columns that are not present in a given Parquet file will be
+      populated with default values (NaN for floating fields, empty strings for
+      filenames, 0 for integer ids) so all returned vectors have equal length
+      and are safe to convert into tabular formats.
+
+      @param[in] oswpq_dir  Path to the unzipped OSW Parquet directory or a
+                           .oswpq archive (zip) that will be read.
+      @return UnscoredResult containing the assembled column vectors.
+    */
+    UnscoredResult fetchUnscoredData(const String& oswpq_dir) const;
 
   private:
     std::vector<Row> rows_;
