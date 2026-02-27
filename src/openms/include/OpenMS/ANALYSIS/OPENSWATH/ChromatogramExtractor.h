@@ -70,7 +70,7 @@ public:
      * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
-     * @param[in] ppm Whether mz windows in in ppm
+     * @param[in] ppm Whether mz windows in ppm
      * @param[in] filter Which filter to use (bartlett or tophat)
      *
      *
@@ -97,7 +97,7 @@ public:
      * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
-     * @param[in] ppm Whether mz windows in in ppm
+     * @param[in] ppm Whether mz windows in ppm
      * @param[in] im_extraction_window Extracts a window of this size in ion mobility
      * @param[in] filter Which filter to use (bartlett or tophat)
      *
