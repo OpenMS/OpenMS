@@ -49,24 +49,7 @@ namespace OpenMS
       String group_id;
     };
 
-    /// MS2 row declared at file scope for pybind/pyx friendliness
-    struct OpenSwathOSWParquetReaderRowMS2
-    {
-      int64_t feature_id = 0;
-      int64_t run_id = 0;
-      int64_t precursor_id = 0;
-      double exp_rt = 0.0;
-      int precursor_charge = 0;
-      bool decoy = false;
-      int64_t transition_count = 0;
-      String group_id;
-
-      // Dynamic score maps (keyed by column name without prefix)
-      std::map<String, double> ms2_scores; // keys are e.g. "var_ms2_dotprod_score"
-      std::map<String, double> ms1_scores; // keys are e.g. "var_ms1_mi_score"
-    };
-
-    /// Result container for fetchPeakGroupFeatures: column-oriented (SOA) layout
+    /// Result container for fetchPeakGroupFeatures
     /// Contains discovered MS2 and optional MS1 score columns alongside core feature columns.
     struct PeakGroupFeatureScoresResult
     {
@@ -90,7 +73,7 @@ namespace OpenMS
       std::vector<std::vector<double>> ms1_values;
     };
 
-    /// Result container for transition-level features (SOA)
+    /// Result container for transition-level features
     struct TransitionFeaturesResult
     {
       // Core per-transition columns (all length N)
@@ -121,15 +104,14 @@ namespace OpenMS
       std::vector<String> group_id;
     };
 
-    /// Result container for an "unscored" table similar to pyprophet's SQL
+    /// Result container for an unscored (non-discrimant scored and no FDR estimation) table 
     /// Provides many columns (feature, precursor, run, ms1/ms2 metrics and
-    /// discovered score columns) in a column-oriented layout for easy
-    /// conversion to pandas.DataFrame on the Python side.
+    /// discovered feature score columns)
     struct UnscoredResult
     {
       std::vector<int64_t> id_run;
-      std::vector<int64_t> id_peptide; // optional, 0 if unknown
-      std::vector<int64_t> transition_group_id; // precursor id
+      std::vector<int64_t> id_peptide; 
+      std::vector<int64_t> transition_group_id; 
       std::vector<bool> decoy;
       std::vector<int64_t> run_id;
       std::vector<String> filename;
