@@ -25,7 +25,7 @@ jobs:
           activate-environment: bioconda_env
           auto-update-conda: true
           #environment-file: environment.yml # Replace with your Conda environment file if necessary
-          python-version: 3.9
+          python-version: "3.11"
           channels: conda-forge,bioconda,defaults
           channel-priority: true
 
