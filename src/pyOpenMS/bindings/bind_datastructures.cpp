@@ -46,6 +46,8 @@
 #include <nanobind/stl/vector.h>
 #include <sstream>
 #include "binding_utils.h"
+#include <nanobind/eigen/dense.h>
+#include <Eigen/Core>
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -192,7 +194,7 @@ NB_MODULE(_pyopenms_datastructures, m) {
     // -----------------------------------------------------------------------
     // ConvexHull2D
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConvexHull2D>(m, "ConvexHull2D", 
+    nb::class_<OpenMS::ConvexHull2D>(m, "ConvexHull2D",
         R"doc(
 A 2-dimensional hull representation in [counter]clockwise direction -
 depending on axis labelling
@@ -271,7 +273,7 @@ depending on axis labelling
     // -----------------------------------------------------------------------
     // CubicSpline2d
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::CubicSpline2d>(m, "CubicSpline2d", 
+    nb::class_<OpenMS::CubicSpline2d>(m, "CubicSpline2d",
         R"doc(
 cubic spline interpolation as described in R.L. Burden, J.D. Faires,
 Numerical Analysis, 4th ed. PWS-Kent, 1989, ISBN 0-53491-585-X, pp.
@@ -346,7 +348,7 @@ Numerical Analysis, 4th ed. PWS-Kent, 1989, ISBN 0-53491-585-X, pp.
         .def("setTime", [](OpenMS::DateTime& self, const OpenMS::String& date) { return self.setTime(date); }, "date"_a)
         .def("setDate", [](OpenMS::DateTime& self, unsigned int month, unsigned int day, unsigned int year) { return self.setDate(month, day, year); }, "month"_a, "day"_a, "year"_a)
         .def("setTime", [](OpenMS::DateTime& self, unsigned int hour, unsigned int minute, unsigned int second) { return self.setTime(hour, minute, second); }, "hour"_a, "minute"_a, "second"_a)
-        .def("set", [](OpenMS::DateTime& self, unsigned int month, unsigned int day, unsigned int year, unsigned int hour, unsigned int minute, unsigned int second) { return self.set(month, day, year, hour, minute, second); }, "month"_a, "day"_a, "year"_a, "hour"_a, "minute"_a, "second"_a, 
+        .def("set", [](OpenMS::DateTime& self, unsigned int month, unsigned int day, unsigned int year, unsigned int hour, unsigned int minute, unsigned int second) { return self.set(month, day, year, hour, minute, second); }, "month"_a, "day"_a, "year"_a, "hour"_a, "minute"_a, "second"_a,
             R"doc(
 @brief Sets date and time
 The following formats are supported:
@@ -368,12 +370,12 @@ The following formats are supported:
         .def("getTime", [](const OpenMS::DateTime& self) { return self.getTime(); })
         .def_static("now", []() { return OpenMS::DateTime::now(); })
         .def("clear", [](OpenMS::DateTime& self) { return self.clear(); })
-        .def("get", [](const OpenMS::DateTime& self) { return self.get(); }, 
+        .def("get", [](const OpenMS::DateTime& self) { return self.get(); },
             R"doc(
 @brief Returns a string representation of the date and time
 The format of the string will be yyyy-MM-dd hh:mm:ss
 )doc")
-        .def("set", [](OpenMS::DateTime& self, const OpenMS::String& date) { return self.set(date); }, "date"_a, 
+        .def("set", [](OpenMS::DateTime& self, const OpenMS::String& date) { return self.set(date); }, "date"_a,
             R"doc(
 @brief Sets date and time
 The following formats are supported:
@@ -579,14 +581,14 @@ Returns the objective value of the solution
     // -----------------------------------------------------------------------
     // LogConfigHandler
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::LogConfigHandler>(m, "LogConfigHandler", 
+    nb::class_<OpenMS::LogConfigHandler>(m, "LogConfigHandler",
         R"doc(
 The LogConfigHandler provides the functionality to configure the
 internal logging of OpenMS algorithms that use the global instances of
 LogStream
 )doc")
         .def("parse", [](OpenMS::LogConfigHandler& self, const std::vector<OpenMS::String>& setting) { return self.parse(setting); }, "setting"_a)
-        .def("configure", [](OpenMS::LogConfigHandler& self, const OpenMS::Param& param) { return self.configure(param); }, "param"_a, 
+        .def("configure", [](OpenMS::LogConfigHandler& self, const OpenMS::Param& param) { return self.configure(param); }, "param"_a,
             R"doc(
 Translates the given list of parameter settings into a LogStream configuration
 Translates the given list of parameter settings into a LogStream configuration.
@@ -604,7 +606,7 @@ This function will **not** apply to settings to the log handlers. Use configure(
 :raises ParseError: In case of an invalid configuration.
 :return: Param object containing all settings, that can be applied using the LogConfigHandler.configure() method
 )doc")
-        .def("setLogLevel", [](OpenMS::LogConfigHandler& self, const OpenMS::String& log_level) { return self.setLogLevel(log_level); }, "log_level"_a, 
+        .def("setLogLevel", [](OpenMS::LogConfigHandler& self, const OpenMS::String& log_level) { return self.setLogLevel(log_level); }, "log_level"_a,
             R"doc(
 Applies the given parameters (@p param) to the current configuration
 <LOG_NAME> <ACTION> <PARAMETER> <STREAMTYPE>
@@ -628,6 +630,9 @@ A classical configuration would contain a list of settings e.g.
     // -----------------------------------------------------------------------
     // MatrixDouble
     // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // MatrixDouble (Optimized Zero-Copy)
+    // -----------------------------------------------------------------------
     nb::class_<OpenMS::Matrix<double>>(m, "MatrixDouble", "OpenMS class MatrixDouble")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::Matrix<double>&>())
@@ -641,57 +646,58 @@ A classical configuration would contain a list of settings e.g.
         .def("size", [](OpenMS::Matrix<double>& self) { return self.size(); })
         .def("resize", [](OpenMS::Matrix<double>& self, size_t rows, size_t cols) { self.resize(rows, cols); }, "rows"_a, "cols"_a)
         .def("__len__", [](OpenMS::Matrix<double>& self) { return self.size(); })
-        .def("get_matrix_as_view", [](nb::object self_obj) -> nb::object {
-            // C++ Matrix stores data in column-major order: data[col * rows + row]
-            // Create as (cols, rows) C-contiguous (matching column-major layout), then transpose
+
+        .def("get_matrix_as_view", [](nb::object self_obj) {
             auto& self = nb::cast<OpenMS::Matrix<double>&>(self_obj);
-            size_t rows = self.rows();
-            size_t cols = self.cols();
-            // Shape (cols, rows) in C order: arr[j,i] = data[j*rows + i] = getValue(i,j)
-            auto arr = nb::ndarray<nb::numpy, double, nb::ndim<2>>(
-                self.data(), {cols, rows}, self_obj
+            size_t shape[2] = {self.rows(), self.cols()};
+            int64_t strides[2] = {1, static_cast<int64_t>(self.rows())};
+
+            return nb::ndarray<nb::numpy, double, nb::ndim<2>>(
+                self.data(), 2, shape, self_obj, strides
             );
-            // Transpose to (rows, cols): view[i,j] = arr[j,i] = getValue(i,j)
-            return nb::cast(arr).attr("T");
-        }, "Returns a numpy view of the matrix data (modifications affect the C++ object)")
+        }, "Returns a zero-copy numpy view of the matrix data (F-contiguous). Modifications affect the C++ object.")
+
         .def("get_matrix", [](const OpenMS::Matrix<double>& self) {
-            // Return a copy as a row-major numpy array
-            size_t rows = self.rows();
-            size_t cols = self.cols();
-            // Allocate and copy, converting from column-major to row-major
-            double* buf = new double[rows * cols];
-            for (size_t i = 0; i < rows; ++i) {
-                for (size_t j = 0; j < cols; ++j) {
-                    buf[i * cols + j] = self.getValue(i, j);
-                }
-            }
-            size_t shape[2] = {rows, cols};
-            nb::capsule deleter(buf, [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            return nb::ndarray<nb::numpy, double, nb::ndim<2>>(buf, 2, shape, deleter);
+            Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>
+                eigen_map(self.data(), self.rows(), self.cols());
+            return nb::cast(eigen_map);
         }, "Returns a copy of the matrix as a numpy array")
-        .def("set_matrix", [](OpenMS::Matrix<double>& self, nb::ndarray<double, nb::ndim<2>, nb::c_contig> arr) {
-            size_t rows = arr.shape(0);
-            size_t cols = arr.shape(1);
-            self.resize(rows, cols);
-            const double* data = arr.data();
-            for (size_t i = 0; i < rows; ++i) {
-                for (size_t j = 0; j < cols; ++j) {
-                    self.setValue(i, j, data[i * cols + j]);
-                }
+
+        .def("set_matrix", [](OpenMS::Matrix<double>& self, nb::ndarray<double, nb::ndim<2>> arr) {
+            self.resize(arr.shape(0), arr.shape(1));
+
+            Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>
+                dest_map(self.data(), self.rows(), self.cols());
+
+            if (arr.stride(1) == 1) { // C-contiguous
+                Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
+                    src_map(arr.data(), arr.shape(0), arr.shape(1));
+                dest_map = src_map;
+            } else { // F-contiguous
+                Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>
+                    src_map(arr.data(), arr.shape(0), arr.shape(1));
+                dest_map = src_map;
             }
-        }, "matrix"_a, "Sets the matrix from a numpy array")
-        .def_static("fromNdArray", [](nb::ndarray<double, nb::ndim<2>, nb::c_contig> arr) {
-            size_t rows = arr.shape(0);
-            size_t cols = arr.shape(1);
-            OpenMS::Matrix<double> mat(rows, cols, 0.0);
-            const double* data = arr.data();
-            for (size_t i = 0; i < rows; ++i) {
-                for (size_t j = 0; j < cols; ++j) {
-                    mat.setValue(i, j, data[i * cols + j]);
-                }
+        }, "matrix"_a, "Fast copy from a numpy array to the OpenMS Matrix.")
+
+        .def_static("fromNdArray", [](nb::ndarray<double, nb::ndim<2>> arr) {
+            OpenMS::Matrix<double> mat(arr.shape(0), arr.shape(1), 0.0);
+
+            Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>
+                dest_map(mat.data(), mat.rows(), mat.cols());
+
+            if (arr.stride(1) == 1) { // C-contiguous
+                Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
+                    src_map(arr.data(), arr.shape(0), arr.shape(1));
+                dest_map = src_map;
+            } else { // F-contiguous
+                Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>
+                    src_map(arr.data(), arr.shape(0), arr.shape(1));
+                dest_map = src_map;
             }
             return mat;
-        }, "array"_a, "Creates a MatrixDouble from a 2D numpy array")
+        }, "array"_a, "Creates a MatrixDouble from a 2D numpy array optimally.")
+
         .def("__str__", [](const OpenMS::Matrix<double>& self) {
             std::ostringstream oss;
             for (size_t i = 0; i < self.rows(); ++i) {
@@ -709,7 +715,7 @@ A classical configuration would contain a list of settings e.g.
     // -----------------------------------------------------------------------
     // MultipleTesting
     // -----------------------------------------------------------------------
-    auto multipletesting_class = nb::class_<OpenMS::Math::MultipleTesting>(m, "MultipleTesting", 
+    auto multipletesting_class = nb::class_<OpenMS::Math::MultipleTesting>(m, "MultipleTesting",
         R"doc(
 Statistical functions for multiple testing correction.
 Provides FDR estimation, q-value calculation, and local FDR computation
@@ -777,7 +783,7 @@ Example:
     // -----------------------------------------------------------------------
     // Param
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Param>(m, "Param", 
+    nb::class_<OpenMS::Param>(m, "Param",
         R"doc(
 Management and storage of parameters / INI files.
 This class provides a means to associate string names to int/double/string/StringList values.
@@ -810,18 +816,18 @@ Each parameter can be annotated with an arbitrary number of tags (e.g., 'advance
         .def("insert", [](OpenMS::Param& self, const OpenMS::String& prefix, const OpenMS::Param& param) { return self.insert(prefix, param); }, "prefix"_a, "param"_a, "Inserts all values of another Param object with the given prefix")
         .def("remove", [](OpenMS::Param& self, const OpenMS::String& key) { return self.remove(key); }, "key"_a, "Removes an entry or section (when key ends with ':') by exact name match")
         .def("removeAll", [](OpenMS::Param& self, const OpenMS::String& prefix) { return self.removeAll(prefix); }, "prefix"_a, "Removes all entries and sections that start with the given prefix")
-        .def("copy", [](const OpenMS::Param& self, const OpenMS::String& prefix, bool remove_prefix) { return self.copy(prefix, remove_prefix); }, "prefix"_a, "remove_prefix"_a = false, 
+        .def("copy", [](const OpenMS::Param& self, const OpenMS::String& prefix, bool remove_prefix) { return self.copy(prefix, remove_prefix); }, "prefix"_a, "remove_prefix"_a = false,
             R"doc(
 Returns a new Param containing all entries that start with the given prefix.
 If remove_prefix is True, the prefix is removed from the keys in the returned Param
 )doc")
         .def("merge", [](OpenMS::Param& self, const OpenMS::Param& toMerge) { return self.merge(toMerge); }, "toMerge"_a, "Adds missing parameters from another Param object without modifying existing ones")
-        .def("setDefaults", [](OpenMS::Param& self, const OpenMS::Param& defaults, const OpenMS::String& prefix, bool showMessage) { return self.setDefaults(defaults, prefix, showMessage); }, "defaults"_a, "prefix"_a = "", "showMessage"_a = false, 
+        .def("setDefaults", [](OpenMS::Param& self, const OpenMS::Param& defaults, const OpenMS::String& prefix, bool showMessage) { return self.setDefaults(defaults, prefix, showMessage); }, "defaults"_a, "prefix"_a = "", "showMessage"_a = false,
             R"doc(
 Inserts all values from defaults that are not already set.
 Optionally adds a prefix to all keys and prints a message for each default value set
 )doc")
-        .def("checkDefaults", [](const OpenMS::Param& self, const OpenMS::String& name, const OpenMS::Param& defaults, const OpenMS::String& prefix) { return self.checkDefaults(name, defaults, prefix); }, "name"_a, "defaults"_a, "prefix"_a = "", 
+        .def("checkDefaults", [](const OpenMS::Param& self, const OpenMS::String& name, const OpenMS::Param& defaults, const OpenMS::String& prefix) { return self.checkDefaults(name, defaults, prefix); }, "name"_a, "defaults"_a, "prefix"_a = "",
             R"doc(
 Checks current parameter entries against given defaults.
 Validates types, string restrictions, and numeric ranges. Raises exception on invalid parameters
@@ -997,7 +1003,7 @@ Validates types, string restrictions, and numeric ranges. Raises exception on in
     // -----------------------------------------------------------------------
     // Pi0Result
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Math::Pi0Result>(m, "Pi0Result", 
+    nb::class_<OpenMS::Math::Pi0Result>(m, "Pi0Result",
         R"doc(
 Result of pi0 estimation for multiple testing correction.
 Contains the estimated proportion of true null hypotheses (pi0),
@@ -1043,7 +1049,7 @@ pi0_smooth: Whether smoothing was successfully applied
     // -----------------------------------------------------------------------
     // RankData
     // -----------------------------------------------------------------------
-    auto rankdata_class = nb::class_<OpenMS::Math::RankData>(m, "RankData", 
+    auto rankdata_class = nb::class_<OpenMS::Math::RankData>(m, "RankData",
         R"doc(
 Rank items (1-based) with SciPy-like tie and NaN handling.
 This wrapper exposes the concrete forwarders rankdata_double/float/int
@@ -1081,7 +1087,7 @@ and the enum classes RankData.Method and RankData.NaNPolicy.
     // -----------------------------------------------------------------------
     // SpectraSTSimilarityScore
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SpectraSTSimilarityScore>(m, "SpectraSTSimilarityScore", 
+    nb::class_<OpenMS::SpectraSTSimilarityScore>(m, "SpectraSTSimilarityScore",
         R"doc(
 Similarity score of SpectraST
 PeakSpectrumCompareFunctor inheritance
@@ -1093,14 +1099,14 @@ PeakSpectrumCompareFunctor inheritance
         .def("preprocess", [](OpenMS::SpectraSTSimilarityScore& self, OpenMS::MSSpectrum& spec, float remove_peak_intensity_threshold, unsigned int cut_peaks_below, size_t min_peak_number, size_t max_peak_number) { return self.preprocess(spec, remove_peak_intensity_threshold, cut_peaks_below, min_peak_number, max_peak_number); }, "spec"_a, "remove_peak_intensity_threshold"_a = 2.01, "cut_peaks_below"_a = 1000, "min_peak_number"_a = 5, "max_peak_number"_a = 150)
         .def("transform", [](OpenMS::SpectraSTSimilarityScore& self, const OpenMS::MSSpectrum& spec) { return self.transform(spec); }, "spec"_a, "Spectrum is transformed into a binned spectrum with bin size 1 and spread 1 and the intensities are normalized")
         .def("dot_bias", [](const OpenMS::SpectraSTSimilarityScore& self, const OpenMS::BinnedSpectrum& bin1, const OpenMS::BinnedSpectrum& bin2, double dot_product) { return self.dot_bias(bin1, bin2, dot_product); }, "bin1"_a, "bin2"_a, "dot_product"_a = -1)
-        .def("delta_D", [](OpenMS::SpectraSTSimilarityScore& self, double top_hit, double runner_up) { return self.delta_D(top_hit, runner_up); }, "top_hit"_a, "runner_up"_a, 
+        .def("delta_D", [](OpenMS::SpectraSTSimilarityScore& self, double top_hit, double runner_up) { return self.delta_D(top_hit, runner_up); }, "top_hit"_a, "runner_up"_a,
             R"doc(
 Calculates how much of the dot product is dominated by a few peaks
 :param dot_product: If -1 this value will be calculated as well.
 :param bin1: First spectrum in binned representation
 :param bin2: Second spectrum in binned representation
 )doc")
-        .def("compute_F", [](OpenMS::SpectraSTSimilarityScore& self, double dot_product, double delta_D, double dot_bias) { return self.compute_F(dot_product, delta_D, dot_bias); }, "dot_product"_a, "delta_D"_a, "dot_bias"_a, 
+        .def("compute_F", [](OpenMS::SpectraSTSimilarityScore& self, double dot_product, double delta_D, double dot_bias) { return self.compute_F(dot_product, delta_D, dot_bias); }, "dot_product"_a, "delta_D"_a, "dot_bias"_a,
             R"doc(
 Calculates the normalized distance between top_hit and runner_up
 :param top_hit: Is the best score for a given match
