@@ -25,7 +25,7 @@ jobs:
           activate-environment: bioconda_env
           auto-update-conda: true
           #environment-file: environment.yml # Replace with your Conda environment file if necessary
-          python-version: 3.9
+          python-version: "3.12"
           channels: conda-forge,bioconda,defaults
           channel-priority: true
 
@@ -33,8 +33,8 @@ jobs:
         run: |       
           mkdir -p $GITHUB_WORKSPACE/output/noarch
           touch $GITHUB_WORKSPACE/output/noarch/repodata.json
-          conda install bioconda-utils -y
-          conda index $GITHUB_WORKSPACE/output
+          conda install bioconda-utils conda-index -y
+          python -m conda_index $GITHUB_WORKSPACE/output
           ls -l
           ls -l $GITHUB_WORKSPACE/output
 
@@ -57,23 +57,21 @@ jobs:
           cd bioconda-recipes
           bioconda-utils lint --packages pyopenms openms-meta
           bioconda-utils build --docker --pkg_dir $GITHUB_WORKSPACE/output --packages openms-meta || true
-          conda index $GITHUB_WORKSPACE/output
+          python -m conda_index $GITHUB_WORKSPACE/output
           
       - name: Build pyopenms package
         run: |
           cd bioconda-recipes
           bioconda-utils build --docker --mulled-test --pkg_dir $GITHUB_WORKSPACE/output --packages pyopenms || true
-          conda index $GITHUB_WORKSPACE/output
+          python -m conda_index $GITHUB_WORKSPACE/output
 
       - name: Upload Conda packages
         run: |
-          cd bioconda-recipes
+          pip install "setuptools<81"  # needed by anaconda-client for pkg_resources (removed in setuptools 81+)
           ls -l $GITHUB_WORKSPACE/output
-          anaconda -v -t ${{ secrets.ANACONDA_TOKEN }} upload -u openms --no-progress --force $GITHUB_WORKSPACE/output/linux-64/*.tar.bz2
-
-      - name: Check upload status
-        run: |
-          if [[ $? -ne 0 ]]; then
-            echo "Upload failed!"
+          if ls $GITHUB_WORKSPACE/output/linux-64/*.tar.bz2 1>/dev/null 2>&1; then
+            anaconda -v -t ${{ secrets.ANACONDA_TOKEN }} upload -u openms --no-progress --force $GITHUB_WORKSPACE/output/linux-64/*.tar.bz2
+          else
+            echo "No packages found to upload!"
             exit 1
           fi
