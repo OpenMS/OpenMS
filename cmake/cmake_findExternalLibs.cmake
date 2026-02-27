@@ -119,6 +119,15 @@ find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
+# libzip (ZIP64 archive support)
+# Uses our FindLibzip.cmake module which does a manual header+library search.
+# We intentionally avoid CONFIG mode because libzip <= 1.10 ships a CMake
+# targets file that references CLI tool binaries (zipcmp, zipmerge, ziptool)
+# and raises FATAL_ERROR if those aren't installed (e.g. Ubuntu without
+# libzip-tools).
+find_package(Libzip REQUIRED)
+
+#------------------------------------------------------------------------------
 # Find Eigen
 # creates Eigen3::Eigen3 package
 # CMake is garbage https://gitlab.kitware.com/cmake/cmake/-/issues/24581
