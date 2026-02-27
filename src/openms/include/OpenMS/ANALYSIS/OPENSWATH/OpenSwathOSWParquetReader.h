@@ -20,15 +20,10 @@ namespace OpenMS
     @brief Reader for OpenSwath OSW Parquet output.
 
     This class reads the Parquet output layout produced by
-    OpenSwathOSWParquetWriter (library/*.parquet, runs/runs.parquet and
+    OpenSwathOSWParquetWriter (library/precursors.parquet, runs/runs.parquet and
     per-run features.parquet) and exposes a flat table of feature rows that
-    combine feature-level scores with precursor/run metadata. The output is
-    suitable for downstream scoring workflows (for example pyProphet).
-
-    The reader focuses on a compact, commonly-used column set (feature id,
-    run id, precursor id, RT, MS2 area/apex, precursor charge/decoy and the
-    number of detecting transitions). Additional columns can be added easily
-    if required.
+    combine feature-level scores with precursor/run metadata. This output is
+    meant for downstream scoring workflows (PyProphet) or for simple single table exports.
   */
   class OPENMS_DLLAPI OpenSwathOSWParquetReader
   {

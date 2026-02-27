@@ -143,6 +143,7 @@ void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
 OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReader::fetchPeakGroupFeatures(const String& oswpq_dir, const String& level, const String& main_score) const
 {
 #ifdef WITH_PARQUET
+  (void)main_score;
   PeakGroupFeatureScoresResult result;
   std::unique_ptr<File::TempDir> temp_dir;
   const String base_dir = ParquetFile::unzipDirectory(oswpq_dir, temp_dir);
@@ -717,8 +718,6 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   // First pass: discover ms2 and ms1 score columns and IM presence
   std::vector<std::string> all_ms2_cols;
   std::vector<std::string> all_ms1_cols;
-  bool has_exp_im = false;
-  bool has_im_boundaries = false;
 
   for (int64_t r = 0; r < num_runs; ++r)
   {
@@ -745,11 +744,6 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
         if (std::find(all_ms1_cols.begin(), all_ms1_cols.end(), name) == all_ms1_cols.end())
           all_ms1_cols.push_back(name);
       }
-      // IM columns detection (case-insensitive checks)
-      std::string lc = name;
-      std::transform(lc.begin(), lc.end(), lc.begin(), ::tolower);
-      if (lc == "exp_im") has_exp_im = true;
-      if (lc == "exp_im_leftwidth" || lc == "exp_im_rightwidth") has_im_boundaries = true;
     }
   }
 
