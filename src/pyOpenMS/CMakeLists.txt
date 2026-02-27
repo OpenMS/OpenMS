@@ -125,6 +125,7 @@ else()
   endif()
 
   find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+  find_package(Eigen3 REQUIRED)
 
   # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
   set(Python_EXECUTABLE "${Python_EXECUTABLE}" PARENT_SCOPE)
@@ -217,10 +218,12 @@ else()
   function(_pyopenms_module_props target_name)
     target_include_directories(${target_name} PRIVATE
       ${CMAKE_CURRENT_SOURCE_DIR}/bindings/type_casters
+      ${EIGEN3_INCLUDE_DIR}
     )
     target_link_libraries(${target_name} PRIVATE
       ${OPENMS_TARGET}
       ${OPENSWATHALGO_TARGET}
+      Eigen3::Eigen
     )
     set_target_properties(${target_name} PROPERTIES
       LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
