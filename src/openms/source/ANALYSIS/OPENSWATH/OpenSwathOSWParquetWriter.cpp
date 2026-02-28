@@ -338,23 +338,15 @@ namespace OpenMS
     // library tables. Fail fast with a clear error message.
     if (library_ready)
     {
-      try
+      const int64_t existing_precursors = getParquetRowCount_(precursors_path);
+      const int64_t existing_transitions = getParquetRowCount_(transitions_path);
+      const int64_t expected_precursors = static_cast<int64_t>(assay_library.compounds.size());
+      const int64_t expected_transitions = static_cast<int64_t>(assay_library.transitions.size());
+      if (existing_precursors != expected_precursors || existing_transitions != expected_transitions)
       {
-        const int64_t existing_precursors = getParquetRowCount_(precursors_path);
-        const int64_t existing_transitions = getParquetRowCount_(transitions_path);
-        const int64_t expected_precursors = static_cast<int64_t>(assay_library.compounds.size());
-        const int64_t expected_transitions = static_cast<int64_t>(assay_library.transitions.size());
-        if (existing_precursors != expected_precursors || existing_transitions != expected_transitions)
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Existing library at '" + library_dir + "' appears incompatible with provided assay_library. Please rebuild the library or use a different output path.",
-                                        String("existing_precursors=") + String(existing_precursors) + ", expected_precursors=" + String(expected_precursors));
-        }
-      }
-      catch (const Exception&)
-      {
-        // rethrow to preserve context
-        throw;
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Existing library at '" + library_dir + "' appears incompatible with provided assay_library. Please rebuild the library or use a different output path.",
+                                      String("existing_precursors=") + String(existing_precursors) + ", expected_precursors=" + String(expected_precursors));
       }
     }
     if (!library_ready)
