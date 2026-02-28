@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include <limits>
 #if __has_include(<zip.h>)
 #include <zip.h>
 #define OPENMS_HAVE_LIBZIP 1
@@ -161,7 +162,16 @@ namespace OpenMS
       case arrow::Type::INT8:
         return static_cast<int64_t>(std::static_pointer_cast<arrow::Int8Array>(array)->Value(row));
       case arrow::Type::UINT64:
-        return static_cast<int64_t>(std::static_pointer_cast<arrow::UInt64Array>(array)->Value(row));
+      {
+        // Guard narrowing from uint64_t to int64_t to avoid silent wrap-around
+        const uint64_t v = std::static_pointer_cast<arrow::UInt64Array>(array)->Value(row);
+        if (v > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Unsigned integer value too large to fit into int64_t", String(std::to_string(v)));
+        }
+        return static_cast<int64_t>(v);
+      }
       case arrow::Type::UINT32:
         return static_cast<int64_t>(std::static_pointer_cast<arrow::UInt32Array>(array)->Value(row));
       case arrow::Type::UINT16:
@@ -413,14 +423,34 @@ namespace OpenMS
     }
 
     zip_int64_t num = zip_get_num_entries(za, 0);
+    const std::filesystem::path base_path = std::filesystem::u8path(std::string(unpack_dir)).lexically_normal();
     for (zip_uint64_t i = 0; i < static_cast<zip_uint64_t>(num); ++i)
     {
       const char* name = zip_get_name(za, i, 0);
       if (!name) continue;
       std::string entry_name(name);
-  std::filesystem::path outpath = std::filesystem::u8path(std::string(unpack_dir)) / std::filesystem::path(entry_name);
-      // create parent dirs
-      if (entry_name.back() == '/')
+
+      // Protect against path traversal: do not allow absolute paths or '..' to escape the base unpack dir.
+      std::filesystem::path entry_path = std::filesystem::u8path(entry_name);
+      if (entry_path.is_absolute())
+      {
+        zip_close(za);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Zip entry has absolute path", entry_name);
+      }
+
+      std::filesystem::path outpath = (base_path / entry_path).lexically_normal();
+      const std::string base_str = base_path.string();
+      const std::string out_str = outpath.string();
+      if (out_str.size() < base_str.size() || out_str.compare(0, base_str.size(), base_str) != 0)
+      {
+        zip_close(za);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Zip entry would extract outside target directory", entry_name);
+      }
+
+      // create parent dirs or directory entries
+      if (!entry_name.empty() && entry_name.back() == '/')
       {
         std::filesystem::create_directories(outpath);
         continue;
@@ -449,6 +479,19 @@ namespace OpenMS
       while ((nread = zip_fread(zf, buffer.data(), buffer.size())) > 0)
       {
         ofs.write(buffer.data(), static_cast<std::streamsize>(nread));
+        if (ofs.fail())
+        {
+          zip_fclose(zf);
+          zip_close(za);
+          throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outpath.string());
+        }
+      }
+      if (nread < 0)
+      {
+        zip_fclose(zf);
+        zip_close(za);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to read zip entry", entry_name);
       }
 
       ofs.close();
