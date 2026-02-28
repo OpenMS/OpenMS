@@ -51,3 +51,7 @@ mesalib = "*"
 libtool = "*"
 autoconf = "*"
 patch = "*"
+
+[target.win-64.dependencies]
+lapack = "*"
+blas = "*"
