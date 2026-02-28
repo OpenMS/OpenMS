@@ -550,7 +550,6 @@ jobs:
       if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
       shell: bash
       run: |
-        run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
         fi
