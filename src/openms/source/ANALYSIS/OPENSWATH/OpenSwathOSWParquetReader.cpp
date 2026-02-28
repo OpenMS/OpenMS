@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
@@ -143,7 +144,6 @@ void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
 OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReader::fetchPeakGroupFeatures(const String& oswpq_dir, const String& level, const String& main_score) const
 {
 #ifdef WITH_PARQUET
-  (void)main_score;
   PeakGroupFeatureScoresResult result;
   std::unique_ptr<File::TempDir> temp_dir;
   const String base_dir = ParquetFile::unzipDirectory(oswpq_dir, temp_dir);
@@ -378,6 +378,37 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
   result.ms1_columns.reserve(all_ms1_cols.size());
   for (const auto &s : all_ms1_cols) result.ms1_columns.emplace_back(String(s));
   result.ms1_values = std::move(ms1_values);
+
+  // If a main_score was requested, place it first among ms2 columns/values
+  if (!main_score.empty() && !result.ms2_columns.empty())
+  {
+    ssize_t found = -1;
+    for (size_t i = 0; i < result.ms2_columns.size(); ++i)
+    {
+      if (result.ms2_columns[i] == main_score)
+      {
+        found = static_cast<ssize_t>(i);
+        break;
+      }
+    }
+    if (found > 0)
+    {
+      // move chosen column to front
+      auto col_name = result.ms2_columns[found];
+      auto col_values = std::move(result.ms2_values[found]);
+      for (size_t i = static_cast<size_t>(found); i > 0; --i)
+      {
+        result.ms2_columns[i] = result.ms2_columns[i-1];
+        result.ms2_values[i] = std::move(result.ms2_values[i-1]);
+      }
+      result.ms2_columns[0] = col_name;
+      result.ms2_values[0] = std::move(col_values);
+    }
+    else if (found == -1)
+    {
+      OPENMS_LOG_WARN << "Requested main_score '" << main_score << "' not found among discovered MS2 columns\n";
+    }
+  }
 
   return result;
 #else

@@ -179,7 +179,9 @@ namespace OpenMS
       @param[in] oswpq_dir  Path to the unzipped OSW Parquet directory or a
                            .oswpq archive (zip) that will be read.
       @param[in] level       "ms2" (default) or "ms1ms2" to also include MS1 scores
-      @param[in] main_score  Optional main score name to be used downstream
+      @param[in] main_score  Optional main score name to be used downstream. If provided and present among discovered MS2 columns, the specified
+             column will be placed first in `ms2_columns`/`ms2_values`
+             to ease downstream usage where a primary score is expected.
       @return PeakGroupFeatureScoresResult populated with discovered columns
               and core feature fields.
     */
