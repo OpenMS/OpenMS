@@ -517,8 +517,14 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
     }
 
     // Build mapping feature_id -> (precursor_id, exp_rt) from features.parquet
+    // Fail fast if the features.parquet file is missing to avoid silently
+    // emitting transition rows with defaulted precursor/RT values.
     std::unordered_map<int64_t, std::pair<int64_t, double>> feature_map;
-    if (File::exists(features_path))
+    if (!File::exists(features_path))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Missing features.parquet for run_id=" + String(run_id) + " in '" + base_dir + "'");
+    }
     {
       auto features_table = ParquetFile::readTable(features_path);
       auto feat_id_col = ParquetFile::getColumn(features_table, "feature_id");
