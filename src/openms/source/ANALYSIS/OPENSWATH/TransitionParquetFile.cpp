@@ -258,8 +258,11 @@ namespace OpenMS
       const PrecursorInfo& info = entry.second;
       const String precursor_id_str(precursor_id);
 
-      OpenSwath::LightCompound compound;
-      compound.id = precursor_id_str;
+    OpenSwath::LightCompound compound;
+    // Preserve source traml_id when available to maintain round-trip identity
+    // fidelity. If traml_id is empty, fall back to the numeric precursor id.
+    const String compound_id = info.traml_id.empty() ? precursor_id_str : String(info.traml_id);
+    compound.id = compound_id;
       compound.drift_time = info.drift_time;
       compound.rt = info.library_rt;
       compound.charge = info.charge;
@@ -337,7 +340,9 @@ namespace OpenMS
 
       OpenSwath::LightTransition transition;
       transition.transition_name = transition_name;
-      transition.peptide_ref = String(precursor_id);
+      // Use precursor traml_id as peptide_ref when present to preserve source IDs
+      const String peptide_ref = precursor_it->second.traml_id.empty() ? String(precursor_id) : String(precursor_it->second.traml_id);
+      transition.peptide_ref = peptide_ref;
       transition.library_intensity = ParquetFile::getDouble(transition_intensity_col, row, 0.0, true);
       transition.precursor_mz = precursor_it->second.precursor_mz;
       transition.product_mz = ParquetFile::getDouble(product_mz_col, row, 0.0, false);

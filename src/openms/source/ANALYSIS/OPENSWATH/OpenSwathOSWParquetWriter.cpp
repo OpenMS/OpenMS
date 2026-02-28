@@ -1255,7 +1255,9 @@ namespace OpenMS
       }));
     }
 
-    if (fp_feature_id_builder.length() > 0)
+    // Always write a feature_precursor.parquet file for this run. Consumers
+    // expect a consistent per-run layout; writing an empty table when no
+    // precursor rows are present prevents downstream breakage.
     {
       auto fp_schema = arrow::schema({
         arrow::field("feature_id", arrow::int64()),
