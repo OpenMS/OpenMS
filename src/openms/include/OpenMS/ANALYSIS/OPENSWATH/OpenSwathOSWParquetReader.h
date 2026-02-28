@@ -99,9 +99,11 @@ namespace OpenMS
       std::vector<String> group_id;
     };
 
-    /// Result container for an unscored (non-discrimant scored and no FDR estimation) table 
-    /// Provides many columns (feature, precursor, run, ms1/ms2 metrics and
-    /// discovered feature score columns)
+  /// @brief Result container for an unscored table
+  ///
+  /// An "unscored" table contains feature-level columns but does not include
+  /// discriminant scores or FDR estimates. Provides many columns (feature,
+  /// precursor, run, MS1/MS2 metrics and discovered feature score columns).
     struct UnscoredResult
     {
       std::vector<int64_t> id_run;
@@ -168,15 +170,18 @@ namespace OpenMS
     /**
       @brief Extract MS2-level feature rows across all runs.
 
-      This method reads per-run features.parquet files and returns a vector of
-      RowMS2 containing feature identifiers, RT, precursor metadata and maps of
-      MS2 (and optionally MS1) score columns. The returned vector is sorted by
-      run_id, precursor_id and exp_rt to match the SQL ordering used in the
-      sqlite-based extractor.
+      This method reads per-run `features.parquet` files and returns a
+      PeakGroupFeatureScoresResult containing feature identifiers, retention
+      times, precursor metadata and discovered MS2 (and optionally MS1)
+      score columns. The returned result is sorted by run_id, precursor_id and
+      exp_rt to match the ordering used by the sqlite-based extractor.
 
-      @param[out] out_rows   Vector filled with extracted rows
+      @param[in] oswpq_dir  Path to the unzipped OSW Parquet directory or a
+                           .oswpq archive (zip) that will be read.
       @param[in] level       "ms2" (default) or "ms1ms2" to also include MS1 scores
       @param[in] main_score  Optional main score name to be used downstream
+      @return PeakGroupFeatureScoresResult populated with discovered columns
+              and core feature fields.
     */
     PeakGroupFeatureScoresResult fetchPeakGroupFeatures(const String& oswpq_dir, const String& level = "ms2", const String& main_score = "") const;
 
