@@ -11,6 +11,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetReader.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <iostream>
+#include <cmath>
 
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
@@ -110,24 +112,32 @@ START_SECTION(void load(const String& oswpq_dir))
   // transitions.parquet (one transition detecting true)
   arrow::Int64Builder transition_id_builder;
   arrow::Int64Builder transition_precursor_id_builder;
+  arrow::Int32Builder transition_charge_builder;
+  arrow::BooleanBuilder transition_decoy_builder;
   arrow::BooleanBuilder detecting_builder;
 
   appendOk_(transition_id_builder, (int64_t)1);
   appendOk_(transition_precursor_id_builder, (int64_t)1);
+  appendOk_(transition_charge_builder, (int32_t)1);
+  appendOk_(transition_decoy_builder, false);
   appendOk_(detecting_builder, true);
 
   auto transition_id_array = finishArray_(transition_id_builder);
   auto transition_precursor_id_array = finishArray_(transition_precursor_id_builder);
+  auto transition_charge_array = finishArray_(transition_charge_builder);
+  auto transition_decoy_array = finishArray_(transition_decoy_builder);
   auto detecting_array = finishArray_(detecting_builder);
 
   auto transition_schema = arrow::schema({
     arrow::field("transition_id", arrow::int64()),
     arrow::field("precursor_id", arrow::int64()),
+    arrow::field("charge", arrow::int32()),
+    arrow::field("decoy", arrow::boolean()),
     arrow::field("detecting", arrow::boolean())
   });
 
   auto transitions_table = arrow::Table::Make(transition_schema,
-    {transition_id_array, transition_precursor_id_array, detecting_array});
+    {transition_id_array, transition_precursor_id_array, transition_charge_array, transition_decoy_array, detecting_array});
 
   TEST_EQUAL(writeParquetTable_(transitions_table, library_dir + "/transitions.parquet").ok(), true)
 
@@ -172,6 +182,32 @@ START_SECTION(void load(const String& oswpq_dir))
 
   TEST_EQUAL(writeParquetTable_(features_table, run_subdir + "/features.parquet").ok(), true)
 
+  // feature_transition.parquet for run_id=1 (each feature linked to transition 1)
+  arrow::Int64Builder ft_feature_id_builder;
+  arrow::Int64Builder ft_transition_id_builder;
+  arrow::DoubleBuilder ft_area_builder;
+
+  appendOk_(ft_feature_id_builder, (int64_t)1);
+  appendOk_(ft_transition_id_builder, (int64_t)1);
+  appendOk_(ft_area_builder, 100.0);
+
+  appendOk_(ft_feature_id_builder, (int64_t)2);
+  appendOk_(ft_transition_id_builder, (int64_t)1);
+  appendOk_(ft_area_builder, 110.0);
+
+  auto ft_feature_id_array = finishArray_(ft_feature_id_builder);
+  auto ft_transition_id_array = finishArray_(ft_transition_id_builder);
+  auto ft_area_array = finishArray_(ft_area_builder);
+
+  auto ft_schema = arrow::schema({
+    arrow::field("feature_id", arrow::int64()),
+    arrow::field("transition_id", arrow::int64()),
+    arrow::field("area_intensity", arrow::float64())
+  });
+
+  auto ft_table = arrow::Table::Make(ft_schema, {ft_feature_id_array, ft_transition_id_array, ft_area_array});
+  TEST_EQUAL(writeParquetTable_(ft_table, run_subdir + "/feature_transition.parquet").ok(), true)
+
   // Now read with the reader
   OpenSwathOSWParquetReader reader(base_dir);
   // rows() should be populated by load()
@@ -186,6 +222,94 @@ START_SECTION(void load(const String& oswpq_dir))
   TEST_EQUAL(result.precursor_charge.size(), 2)
   TEST_EQUAL(result.precursor_charge[0], 2)
 
+  // fetchTransitionFeatures should return two transition rows as well
+  auto tresult = reader.fetchTransitionFeatures(base_dir);
+  TEST_EQUAL(tresult.feature_id.size(), 2)
+  TEST_EQUAL(tresult.transition_id.size(), 2)
+  TEST_EQUAL(tresult.product_charge.size(), 2)
+  TEST_EQUAL(tresult.product_charge[0], 1)
+  TEST_EQUAL(tresult.precursor_charge[0], 2)
+  TEST_EQUAL(tresult.group_id[0], String("1_1_1_1"))
+
+  // Test fetchUnscoredData on the synthetic temp .oswpq we just created
+  auto uresult = reader.fetchUnscoredData(base_dir);
+  // We created two features, so many vectors should be length 2
+  TEST_EQUAL(uresult.id.size(), 2)
+  TEST_EQUAL(uresult.RT.size(), 2)
+  // Print a short summary for inspection
+  std::cout << "Unscored synthetic rows: " << uresult.id.size() << "\n";
+  for (size_t i = 0; i < uresult.id.size(); ++i)
+  {
+    std::cout << "urow " << i << ": id=" << uresult.id[i]
+              << " transition_group_id=" << uresult.transition_group_id[i]
+              << " RT=" << uresult.RT[i]
+              << " Intensity=" << uresult.Intensity[i]
+              << " Charge=" << uresult.Charge[i]
+              << "\n";
+  }
+
+    
+  // Test using test file
+  const String real_path = OPENMS_GET_TEST_DATA_PATH("OpenSwathWorkflow_tworuns_1_17.output.oswpq");
+
+  // Read once 
+  OpenSwathOSWParquetReader real_reader(real_path);
+
+  // Peak-group (peak-level) checks
+  auto pf = real_reader.fetchPeakGroupFeatures(real_path);
+  TEST_NOT_EQUAL(pf.feature_id.size(), 0)
+  TEST_EQUAL(pf.feature_id.size(), pf.exp_rt.size())
+  // spot-check first few rows for sanity
+  for (size_t i = 0; i < std::min<size_t>(pf.feature_id.size(), 5); ++i)
+  {
+      std::cout << "Peak group feature " << i << ": feature_id=" << pf.feature_id[i]
+              << " exp_rt=" << pf.exp_rt[i]
+              << " precursor_charge=" << pf.precursor_charge[i]
+              << "\n";
+      TEST_EQUAL(pf.feature_id[i] > 0, true)
+      // exp_rt should be a finite number
+      TEST_EQUAL(std::isfinite(pf.exp_rt[i]), true)
+  }
+  // Transition-level checks
+  auto tf = real_reader.fetchTransitionFeatures(real_path);
+  TEST_NOT_EQUAL(tf.feature_id.size(), 0)
+  TEST_EQUAL(tf.feature_id.size(), tf.area_intensity.size())
+  for (size_t i = 0; i < std::min<size_t>(tf.feature_id.size(), 5); ++i)
+  {
+      std::cout << "Transition feature " << i << ": feature_id=" << tf.feature_id[i]
+              << " transition_id=" << tf.transition_id[i]
+              << " precursor_charge=" << tf.precursor_charge[i]
+              << " product_charge=" << tf.product_charge[i]
+              << " area_intensity=" << tf.area_intensity[i]
+              << "\n";
+      // area_intensity should be finite and non-negative
+      TEST_EQUAL(std::isfinite(tf.area_intensity[i]), true)
+      TEST_EQUAL(tf.area_intensity[i] >= 0.0, true)
+  }
+  // Unscored data (pyprophet-style) checks
+  auto uf = real_reader.fetchUnscoredData(real_path);
+  TEST_NOT_EQUAL(uf.id.size(), 0)
+  TEST_EQUAL(uf.id.size(), uf.RT.size())
+
+  if (uf.leftWidth.size() == uf.id.size())
+  {
+      for (size_t i = 0; i < std::min<size_t>(uf.id.size(), 5); ++i)
+      {
+        std::cout << "Unscored feature " << i << ": id=" << uf.id[i]
+                << " transition_group_id=" << uf.transition_group_id[i]
+                << " RT=" << uf.RT[i]
+                << " Intensity=" << uf.Intensity[i]
+                << " Charge=" << uf.Charge[i]
+                << " leftWidth=" << uf.leftWidth[i]
+                << " rightWidth=" << uf.rightWidth[i]
+                << "\n";
+       TEST_EQUAL(std::isfinite(uf.leftWidth[i]), true)
+       TEST_EQUAL(std::isfinite(uf.rightWidth[i]), true)
+      }
+  }
+
+  // Basic consistency: at least one of the result tables should contain more than one row
+  TEST_EQUAL((pf.feature_id.size() > 1) || (tf.feature_id.size() > 1) || (uf.id.size() > 1), true)
 #else
   NOT_TESTABLE
 #endif
