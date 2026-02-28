@@ -30,6 +30,8 @@ doxygen = "*"
 ghostscript = "*"
 graphviz = "*"
 qt6-main = "*"
+lapack = "*"
+blas = "*"
 
 [target.linux-64.dependencies]
 coinmp = "*"

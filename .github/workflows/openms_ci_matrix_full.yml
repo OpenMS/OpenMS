@@ -213,6 +213,8 @@ jobs:
           # tell cmake where to find libraries installed by pixi
           PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
           echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/Library;$PIXI_ENV/Library/lib/cmake;$PIXI_ENV/Library/lib;$PIXI_ENV/lib/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
+          echo "COIN_LAPACK_LIB=$PIXI_ENV/Library/lib/lapack.lib" >> $GITHUB_ENV
+          echo "COIN_BLAS_LIB=$PIXI_ENV/Library/lib/blas.lib" >> $GITHUB_ENV
         fi
 
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
@@ -320,6 +322,10 @@ jobs:
 
           if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
             export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
+          fi
+
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            export DYLD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_LIBRARY_PATH:-}"
           fi
 
           mkdir -p ${{ github.workspace }}/.ccache
@@ -544,8 +550,12 @@ jobs:
       if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
       shell: bash
       run: |
+        run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
+        fi
+        if [[ "${{ matrix.os }}" == macos-* ]]; then
+          export DYLD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_LIBRARY_PATH:-}"
         fi
         cd $GITHUB_WORKSPACE/OpenMS/bld/
         cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
