@@ -71,34 +71,7 @@ namespace
 
   std::string jsonEscape_(const OpenMS::String& input)
   {
-    std::string out;
-    out.reserve(input.size());
-    for (OpenMS::Size i = 0; i < input.size(); ++i)
-    {
-      const char c = input[i];
-      switch (c)
-      {
-        case '\\': out += "\\\\"; break;
-        case '"': out += "\\\""; break;
-        case '\n': out += "\\n"; break;
-        case '\r': out += "\\r"; break;
-        case '\t': out += "\\t"; break;
-        default:
-          if (static_cast<unsigned char>(c) < 0x20)
-          {
-            const char hex[] = "0123456789abcdef";
-            out += "\\u00";
-            out += hex[(c >> 4) & 0x0f];
-            out += hex[c & 0x0f];
-          }
-          else
-          {
-            out += c;
-          }
-          break;
-      }
-    }
-    return out;
+    return OpenMS::ParquetFile::jsonEscape(input);
   }
 
   std::string jsonMapByClass_(const std::map<int, Size>& target, const std::map<int, Size>& decoy)

@@ -205,12 +205,7 @@ namespace OpenMS
 
     int64_t getParquetRowCount_(const String& filename)
     {
-      if (!File::exists(filename))
-      {
-        return 0;
-      }
-      std::unique_ptr<parquet::ParquetFileReader> reader = parquet::ParquetFileReader::OpenFile(std::string(filename), false);
-      return reader->metadata()->num_rows();
+      return OpenMS::ParquetFile::rowCount(filename);
     }
 
     std::vector<RunEntry> readRuns_(const String& runs_parquet)
@@ -240,34 +235,7 @@ namespace OpenMS
 
     std::string jsonEscape_(const String& input)
     {
-      std::string output;
-      output.reserve(input.size());
-      for (Size i = 0; i < input.size(); ++i)
-      {
-        const char c = input[i];
-        switch (c)
-        {
-          case '\\': output += "\\\\"; break;
-          case '"': output += "\\\""; break;
-          case '\n': output += "\\n"; break;
-          case '\r': output += "\\r"; break;
-          case '\t': output += "\\t"; break;
-          default:
-            if (static_cast<unsigned char>(c) < 0x20)
-            {
-              const char hex[] = "0123456789abcdef";
-              output += "\\u00";
-              output += hex[(c >> 4) & 0x0f];
-              output += hex[c & 0x0f];
-            }
-            else
-            {
-              output += c;
-            }
-            break;
-        }
-      }
-      return output;
+      return OpenMS::ParquetFile::jsonEscape(input);
     }
 
     void writeMetadata_(const String& base_dir,

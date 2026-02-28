@@ -247,6 +247,27 @@ namespace OpenMS
 
     //@}
 
+    /** @name Misc helpers
+    */
+    //@{
+
+    /**
+      @brief Escape a string for safe embedding into JSON values.
+
+      Mirrors the ad-hoc jsonEscape_ implementations used in several
+      Parquet-writing sources so callers can reuse a single canonical
+      implementation.
+    */
+    static std::string jsonEscape(const String& input);
+
+    /**
+      @brief Return the number of rows in a parquet file using the low-level
+      parquet reader metadata. Returns 0 if the file does not exist.
+    */
+    static int64_t rowCount(const String& filename);
+
+    //@}
+
 #endif // WITH_PARQUET
 
     /** @name Parquet archive utilities
