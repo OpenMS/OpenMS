@@ -215,7 +215,7 @@ jobs:
         conda install -c conda-forge libarrow libparquet -y
 
         CONDA_ENV_PREFIX=$(
-          python -c "import json, subprocess; print(json.loads(subprocess.check_output(['conda', 'info', '--json']))['active_prefix'])" |
+          python -c "import json, os, subprocess; print(json.loads(subprocess.check_output([os.environ.get('CONDA_EXE', 'conda'), 'info', '--json']))['active_prefix'])" |
             sed 's|\\|/|g'
         )
 
@@ -265,6 +265,21 @@ jobs:
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
+          # pixi handles all native dependencies for macOS builds
+          curl -fsSL https://pixi.sh/install.sh | bash
+          export PATH="$HOME/.pixi/bin:$PATH"
+
+          cd OpenMS
+          pixi install --frozen
+          cd ..
+
+          # make pixi-managed binaries available to subsequent steps
+          echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
+
+          # tell cmake where to find libraries installed by pixi
+          PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
+          echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/lib/cmake;$PIXI_ENV/share/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
+
           brew install ccache graphviz
           echo "$(brew --prefix)/bin" >> $GITHUB_PATH
         fi
@@ -350,6 +365,10 @@ jobs:
       run: |
           set +e
 
+          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+            export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
+          fi
+
           mkdir -p ${{ github.workspace }}/.ccache
 
           echo "::group::ccache statistics before build"
@@ -415,6 +434,9 @@ jobs:
     - name: Test
       shell: bash
       run: |
+          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+            export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
+          fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -449,6 +471,9 @@ jobs:
       shell: bash
       run: |
           set +e
+          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+            export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
+          fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
