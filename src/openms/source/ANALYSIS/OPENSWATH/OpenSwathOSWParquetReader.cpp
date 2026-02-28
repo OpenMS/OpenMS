@@ -132,6 +132,9 @@ void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
       auto tcit = transition_counts.find(out.precursor_id);
       if (tcit != transition_counts.end()) out.transition_count = tcit->second;
 
+      // provide a stable group id for downstream grouping/join workflows
+      out.group_id = String(out.run_id) + "_" + String(out.precursor_id);
+
       rows_.push_back(std::move(out));
     }
   }
@@ -599,21 +602,22 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
       result.exp_rt.push_back(rt);
 
       auto pcit = precursor_charge.find(pid);
-      if (pcit != precursor_charge.end()) result.precursor_charge.push_back(pcit->second);
-      else result.precursor_charge.push_back(0);
+      if (pcit == precursor_charge.end())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Unknown precursor_id=" + String(pid) + " for run_id=" + String(run_id));
+      }
+      result.precursor_charge.push_back(pcit->second);
 
       result.transition_id.push_back(tid);
       auto ticit = transition_info.find(tid);
-      if (ticit != transition_info.end())
+      if (ticit == transition_info.end())
       {
-        result.product_charge.push_back(ticit->second.first);
-        result.decoy.push_back(ticit->second.second);
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Unknown transition_id=" + String(tid) + " for run_id=" + String(run_id));
       }
-      else
-      {
-        result.product_charge.push_back(0);
-        result.decoy.push_back(false);
-      }
+      result.product_charge.push_back(ticit->second.first);
+      result.decoy.push_back(ticit->second.second);
 
       const double area = ParquetFile::getDouble(ft_area_col, row, std::numeric_limits<double>::quiet_NaN(), true);
       const double total_area = ParquetFile::getDouble(ft_total_area_col, row, std::numeric_limits<double>::quiet_NaN(), true);
