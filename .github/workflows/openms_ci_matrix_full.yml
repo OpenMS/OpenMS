@@ -8,6 +8,13 @@ name: openms-ci-full
 on:
   workflow_dispatch:
     inputs:
+      matrix_subset:
+        type: choice
+        description: Which matrix jobs to run?
+        default: all
+        options:
+          - all
+          - failing-3
       package:
         type: boolean
         description: Build and upload packages/installer/documentation?
@@ -44,27 +51,34 @@ jobs:
       matrix:
         include:
           - os: windows-2025
+            matrix_id: windows
             compiler: cl.exe
             compiler_ver: 14.44
 
           - os: macos-14
+            matrix_id: macos
             compiler: xcode
             compiler_ver: "15.4"
 
           - os: ubuntu-24.04
+            matrix_id: ubuntu-gcc13
             compiler: g++
             compiler_ver: 13
 
           - os: ubuntu-24.04-arm
+            matrix_id: ubuntu-arm-gcc13
             compiler: g++
             compiler_ver: 13
 
           - os: ubuntu-24.04
+            matrix_id: ubuntu-clang17
             compiler: clang++
             compiler_ver: 17
 
     outputs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
+
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.matrix_subset == 'all' || (inputs.matrix_subset == 'failing-3' && (matrix.matrix_id == 'windows' || matrix.matrix_id == 'macos' || matrix.matrix_id == 'ubuntu-gcc13')) }}
 
     runs-on: ${{ matrix.os }}
     env: 
@@ -104,11 +118,8 @@ jobs:
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
           echo "tp_folder=Windows" >> $GITHUB_OUTPUT
-          echo "contrib_os=windows" >> $GITHUB_OUTPUT
-          echo "contrib_os_ver=" >> $GITHUB_OUTPUT
-          echo "contrib_compiler=msvc-14.2/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
-          echo "static_boost=ON" >> $GITHUB_OUTPUT
+          echo "static_boost=OFF" >> $GITHUB_OUTPUT
           echo "enable_docs=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=nsis" >> $GITHUB_OUTPUT
@@ -196,45 +207,20 @@ jobs:
       with:
         arch: x64
 
-    - name: Install Conda
+    - name: Install Pixi (Windows)
       if: startsWith(matrix.os, 'windows')
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        activate-environment: "ci"
-        python-version: 3.11
-        use-mamba: true
-
-    - name: Install Dependencies via Conda
-      id: conda-setup
-      if: startsWith(matrix.os, 'windows')
-      shell: bash -el {0}
+      shell: pwsh
       run: |
-        conda info
+        $ProgressPreference = "SilentlyContinue"
+        Invoke-RestMethod -Uri https://pixi.sh/install.ps1 | Invoke-Expression
+        "$env:USERPROFILE\.pixi\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-        conda install -c conda-forge libarrow libparquet -y
-
-        CONDA_ENV_PREFIX=$(
-          python -c "import json, os, subprocess; print(json.loads(subprocess.check_output([os.environ.get('CONDA_EXE', 'conda'), 'info', '--json']))['active_prefix'])" |
-            sed 's|\\|/|g'
-        )
-
-        echo "$CONDA_ENV_PREFIX/bin" >>"$GITHUB_PATH"
-        echo "$CONDA_ENV_PREFIX/Library/bin" >>"$GITHUB_PATH"
-        echo "cmake_prefix=$CONDA_ENV_PREFIX/Library" >>"$GITHUB_OUTPUT"
-
-        echo "CONDA_ENV_PREFIX=$CONDA_ENV_PREFIX"
-
-        conda init --reverse bash
-
-    - name: Install Qt (Windows)
+    - name: Install NSIS (Windows)
       if: startsWith(matrix.os, 'windows')
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '6.8.3'
-        arch: 'win64_msvc2022_64'
-        cache: 'false'
-        archives: 'qtsvg qtimageformats qtbase'
+      shell: pwsh
+      run: |
+        choco install nsis --no-progress -y
+        echo "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Set Up Build Tools
       id: tools-prefix
@@ -242,6 +228,20 @@ jobs:
       env:
         HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
+        if [[ "${{ matrix.os }}" == windows-* ]]; then
+          cd OpenMS
+          pixi install --frozen
+          cd ..
+
+          # make pixi-managed binaries available to subsequent steps
+          echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/Library/bin" >> $GITHUB_PATH
+
+          # tell cmake where to find libraries installed by pixi
+          PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
+          echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/Library;$PIXI_ENV/Library/lib/cmake;$PIXI_ENV/Library/lib;$PIXI_ENV/lib/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
+        fi
+
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           # pixi handles all native dependencies for Linux builds
           curl -fsSL https://pixi.sh/install.sh | bash
@@ -283,26 +283,6 @@ jobs:
           brew install ccache graphviz
           echo "$(brew --prefix)/bin" >> $GITHUB_PATH
         fi
-
-    - name: Cache contrib (Windows)
-      if: startsWith(matrix.os, 'windows')
-      id: cache-contrib
-      uses: actions/cache@v4
-      with:
-        path: ${{ github.workspace }}/OpenMS/contrib
-        key: ${{ runner.os }}-contrib3
-    
-    - name: Download contrib build from archive (Windows)
-      if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-          cd OpenMS/contrib
-          gh release download -R OpenMS/contrib --pattern 'contrib_build-Windows.tar.gz'
-          7z x -so contrib_build-Windows.tar.gz | 7z x -si -ttar
-          rm contrib_build-Windows.tar.gz
-          ls -la
 
     - name: Setup ccache cache
       uses: actions/cache@v4
@@ -395,8 +375,8 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '14.0' || '' }}
           PYOPENMS: "OFF"
           NO_DEPENDENCIES: "ON"
-          CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }};${{ steps.conda-setup.outputs.cmake_prefix }}"
-          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
+          CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }}"
+          OPENMS_CONTRIB_LIBS: ${{ startsWith(matrix.os, 'windows') && '' || format('{0}/OpenMS/contrib', github.workspace) }}
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -444,6 +424,7 @@ jobs:
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
 
     - name: Import Apple Developer Certificates
+      id: import-apple-certs
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'macos') && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT != '' && secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT != '' && secrets.KEYCHAIN_PASSWORD != ''
       env:
         APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
@@ -489,15 +470,15 @@ jobs:
           SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
-          SIGNING_IDENTITY: ${{ (startsWith(matrix.os, 'macos') && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT != '') && 'Developer ID Application: OpenMS Inc. (C64UCGJ5PL)' || '-' }}
-          SIGNING_EMAIL: ${{ (startsWith(matrix.os, 'macos') && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT != '') && 'apple@openms.de' || '' }}
-          CPACK_PRODUCTBUILD_IDENTITY_NAME: ${{ (startsWith(matrix.os, 'macos') && secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT != '') && 'Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)' || '' }}
+          SIGNING_IDENTITY: ${{ (startsWith(matrix.os, 'macos') && steps.import-apple-certs.outcome == 'success') && 'Developer ID Application: OpenMS Inc. (C64UCGJ5PL)' || '-' }}
+          SIGNING_EMAIL: ${{ (startsWith(matrix.os, 'macos') && steps.import-apple-certs.outcome == 'success') && 'apple@openms.de' || '' }}
+          CPACK_PRODUCTBUILD_IDENTITY_NAME: ${{ (startsWith(matrix.os, 'macos') && steps.import-apple-certs.outcome == 'success') && 'Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)' || '' }}
           USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}
           USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
 
     - name: Notarize macOS Package
-      if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos') && secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD != '' && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT != '' && secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT != ''
+      if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos') && steps.import-apple-certs.outcome == 'success' && secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD != ''
       shell: bash
       env:
         APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD }}
