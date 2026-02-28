@@ -14,8 +14,16 @@
 #include <nanobind/stl/vector.h>
 
 #include <arrow/c/abi.h>
+#include <arrow/c/bridge.h>
+#include <arrow/api.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
+#include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -79,6 +87,71 @@ static nb::object import_to_pyarrow(ArrowGuard& guard) {
     guard.release();
 
     return pa.attr("Table").attr("from_batches")(nb::make_tuple(batch));
+}
+
+// Convert a C++ arrow::Table to a PyArrow Table via the C Data Interface.
+// The table is combined into a single RecordBatch, exported to C structs,
+// then imported by PyArrow (zero-copy).
+static nb::object table_to_pyarrow(const std::shared_ptr<arrow::Table>& table) {
+    if (!table)
+        throw std::runtime_error("Arrow export returned null table");
+
+    auto batch_result = table->CombineChunksToBatch();
+    if (!batch_result.ok())
+        throw std::runtime_error("Failed to combine Arrow table chunks: " + batch_result.status().ToString());
+
+    auto batch = batch_result.ValueOrDie();
+
+    ArrowGuard guard;
+    auto schema_status = arrow::ExportSchema(*batch->schema(), guard.schema);
+    if (!schema_status.ok())
+        throw std::runtime_error("Failed to export Arrow schema: " + schema_status.ToString());
+
+    auto array_status = arrow::ExportRecordBatch(*batch, guard.array);
+    if (!array_status.ok())
+        throw std::runtime_error("Failed to export Arrow record batch: " + array_status.ToString());
+
+    return import_to_pyarrow(guard);
+}
+
+// Convert a PyArrow Table to a C++ arrow::Table via the C Data Interface.
+static std::shared_ptr<arrow::Table> pyarrow_to_table(nb::object pa_table) {
+    nb::module_ pa = nb::module_::import_("pyarrow");
+
+    // Ensure we have a Table
+    if (!nb::isinstance(pa_table, pa.attr("Table")))
+        throw nb::type_error("Expected a pyarrow.Table");
+
+    // Combine chunks into a single RecordBatch for C Data Interface export
+    nb::object combined = pa_table.attr("combine_chunks")();
+    auto batches = nb::cast<nb::list>(combined.attr("to_batches")());
+    if (batches.size() == 0)
+        throw std::runtime_error("PyArrow table has no record batches");
+    nb::object batch = batches[0];
+
+    // Allocate C structs for export
+    ArrowGuard guard;
+
+    // Export from PyArrow to C Data Interface
+    batch.attr("_export_to_c")(
+        reinterpret_cast<uintptr_t>(guard.array),
+        reinterpret_cast<uintptr_t>(guard.schema)
+    );
+
+    // Import into C++ Arrow (consumes the C structs — release callbacks become null)
+    auto schema_result = arrow::ImportSchema(guard.schema);
+    if (!schema_result.ok())
+        throw std::runtime_error("Failed to import Arrow schema: " + schema_result.status().ToString());
+
+    auto batch_result = arrow::ImportRecordBatch(guard.array, *schema_result);
+    if (!batch_result.ok())
+        throw std::runtime_error("Failed to import Arrow record batch: " + batch_result.status().ToString());
+
+    // C structs have been consumed by Import (release callbacks are now null),
+    // so the guard destructor will just free the malloc'd memory
+    return arrow::Table::Make((*batch_result)->schema(),
+                              (*batch_result)->columns(),
+                              (*batch_result)->num_rows());
 }
 
 NB_MODULE(_arrow_zerocopy, m) {
@@ -218,6 +291,254 @@ NB_MODULE(_arrow_zerocopy, m) {
         nb::arg("max_rt") = 0.0,
         nb::arg("columns") = nb::none(),
         "Export chromatograms to Arrow Table using zero-copy C Data Interface.\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    // -----------------------------------------------------------------------
+    // FeatureMapArrowIO — zero-copy Arrow export/import
+    // -----------------------------------------------------------------------
+
+    m.def("featuremap_features_to_arrow",
+        [](nb::object fmap_obj) -> nb::object
+        {
+            const auto& fmap = nb::cast<const OpenMS::FeatureMap&>(fmap_obj);
+            std::shared_ptr<arrow::Table> table;
+            {
+                nb::gil_scoped_release release;
+                table = OpenMS::FeatureMapArrowIO::exportFeaturesToArrow(fmap);
+            }
+            return table_to_pyarrow(table);
+        },
+        nb::arg("feature_map"),
+        "Export FeatureMap features to a PyArrow Table (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    m.def("featuremap_psms_to_arrow",
+        [](nb::object fmap_obj) -> nb::object
+        {
+            const auto& fmap = nb::cast<const OpenMS::FeatureMap&>(fmap_obj);
+            std::shared_ptr<arrow::Table> table;
+            {
+                nb::gil_scoped_release release;
+                table = OpenMS::FeatureMapArrowIO::exportPSMsToArrow(fmap);
+            }
+            return table_to_pyarrow(table);
+        },
+        nb::arg("feature_map"),
+        "Export FeatureMap PSMs to a PyArrow Table (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    m.def("featuremap_import_features_from_arrow",
+        [](nb::object pa_table, nb::object fmap_obj) -> bool
+        {
+            auto& fmap = nb::cast<OpenMS::FeatureMap&>(fmap_obj);
+            auto table = pyarrow_to_table(pa_table);
+            nb::gil_scoped_release release;
+            return OpenMS::FeatureMapArrowIO::importFeaturesFromArrow(table, fmap);
+        },
+        nb::arg("table"), nb::arg("feature_map"),
+        "Import features from a PyArrow Table into a FeatureMap (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    m.def("featuremap_import_psms_from_arrow",
+        [](nb::object pa_table, nb::object fmap_obj) -> bool
+        {
+            auto& fmap = nb::cast<OpenMS::FeatureMap&>(fmap_obj);
+            auto table = pyarrow_to_table(pa_table);
+            nb::gil_scoped_release release;
+            return OpenMS::FeatureMapArrowIO::importPSMsFromArrow(table, fmap);
+        },
+        nb::arg("table"), nb::arg("feature_map"),
+        "Import PSMs from a PyArrow Table into a FeatureMap (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    // -----------------------------------------------------------------------
+    // ConsensusMapArrowIO — zero-copy Arrow export/import
+    // -----------------------------------------------------------------------
+
+    m.def("consensusmap_features_to_arrow",
+        [](nb::object cmap_obj) -> nb::object
+        {
+            const auto& cmap = nb::cast<const OpenMS::ConsensusMap&>(cmap_obj);
+            std::shared_ptr<arrow::Table> table;
+            {
+                nb::gil_scoped_release release;
+                table = OpenMS::ConsensusMapArrowIO::exportFeaturesToArrow(cmap);
+            }
+            return table_to_pyarrow(table);
+        },
+        nb::arg("consensus_map"),
+        "Export ConsensusMap features to a PyArrow Table (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    m.def("consensusmap_psms_to_arrow",
+        [](nb::object cmap_obj) -> nb::object
+        {
+            const auto& cmap = nb::cast<const OpenMS::ConsensusMap&>(cmap_obj);
+            std::shared_ptr<arrow::Table> table;
+            {
+                nb::gil_scoped_release release;
+                table = OpenMS::ConsensusMapArrowIO::exportPSMsToArrow(cmap);
+            }
+            return table_to_pyarrow(table);
+        },
+        nb::arg("consensus_map"),
+        "Export ConsensusMap PSMs to a PyArrow Table (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    m.def("consensusmap_import_features_from_arrow",
+        [](nb::object pa_table, nb::object cmap_obj) -> bool
+        {
+            auto& cmap = nb::cast<OpenMS::ConsensusMap&>(cmap_obj);
+            auto table = pyarrow_to_table(pa_table);
+            nb::gil_scoped_release release;
+            return OpenMS::ConsensusMapArrowIO::importFeaturesFromArrow(table, cmap);
+        },
+        nb::arg("table"), nb::arg("consensus_map"),
+        "Import features from a PyArrow Table into a ConsensusMap (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    m.def("consensusmap_import_psms_from_arrow",
+        [](nb::object pa_table, nb::object cmap_obj) -> bool
+        {
+            auto& cmap = nb::cast<OpenMS::ConsensusMap&>(cmap_obj);
+            auto table = pyarrow_to_table(pa_table);
+            nb::gil_scoped_release release;
+            return OpenMS::ConsensusMapArrowIO::importPSMsFromArrow(table, cmap);
+        },
+        nb::arg("table"), nb::arg("consensus_map"),
+        "Import PSMs from a PyArrow Table into a ConsensusMap (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    // -----------------------------------------------------------------------
+    // ProteinIdentificationArrowIO — zero-copy Arrow export/import
+    // -----------------------------------------------------------------------
+
+    m.def("protein_ids_proteins_to_arrow",
+        [](nb::object prot_ids_obj) -> nb::object
+        {
+            const auto& prot_ids = nb::cast<const std::vector<OpenMS::ProteinIdentification>&>(prot_ids_obj);
+            std::shared_ptr<arrow::Table> table;
+            {
+                nb::gil_scoped_release release;
+                table = OpenMS::ProteinIdentificationArrowIO::exportProteinsToArrow(prot_ids);
+            }
+            return table_to_pyarrow(table);
+        },
+        nb::arg("protein_identifications"),
+        "Export protein hits to a PyArrow Table (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    m.def("protein_ids_groups_to_arrow",
+        [](nb::object prot_ids_obj) -> nb::object
+        {
+            const auto& prot_ids = nb::cast<const std::vector<OpenMS::ProteinIdentification>&>(prot_ids_obj);
+            std::shared_ptr<arrow::Table> table;
+            {
+                nb::gil_scoped_release release;
+                table = OpenMS::ProteinIdentificationArrowIO::exportProteinGroupsToArrow(prot_ids);
+            }
+            return table_to_pyarrow(table);
+        },
+        nb::arg("protein_identifications"),
+        "Export protein groups to a PyArrow Table (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    m.def("protein_ids_search_params_to_arrow",
+        [](nb::object prot_ids_obj) -> nb::object
+        {
+            const auto& prot_ids = nb::cast<const std::vector<OpenMS::ProteinIdentification>&>(prot_ids_obj);
+            std::shared_ptr<arrow::Table> table;
+            {
+                nb::gil_scoped_release release;
+                table = OpenMS::ProteinIdentificationArrowIO::exportSearchParamsToArrow(prot_ids);
+            }
+            return table_to_pyarrow(table);
+        },
+        nb::arg("protein_identifications"),
+        "Export search parameters to a PyArrow Table (zero-copy).\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    // Import methods: std::vector<ProteinIdentification>& is an output param.
+    // Since vectors go through nanobind's STL type caster (creates copies),
+    // we take by value, modify, and return the result.
+
+    m.def("protein_ids_import_search_params_from_arrow",
+        [](nb::object pa_table) -> std::vector<OpenMS::ProteinIdentification>
+        {
+            auto table = pyarrow_to_table(pa_table);
+            std::vector<OpenMS::ProteinIdentification> prot_ids;
+            bool ok;
+            {
+                nb::gil_scoped_release release;
+                ok = OpenMS::ProteinIdentificationArrowIO::importSearchParamsFromArrow(table, prot_ids);
+            }
+            if (!ok) throw std::runtime_error("Failed to import search parameters from Arrow table");
+            return prot_ids;
+        },
+        nb::arg("table"),
+        "Import search parameters from a PyArrow Table. Returns list of ProteinIdentifications.\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    m.def("protein_ids_import_proteins_from_arrow",
+        [](nb::object pa_table, std::vector<OpenMS::ProteinIdentification> prot_ids)
+            -> std::vector<OpenMS::ProteinIdentification>
+        {
+            auto table = pyarrow_to_table(pa_table);
+            bool ok;
+            {
+                nb::gil_scoped_release release;
+                ok = OpenMS::ProteinIdentificationArrowIO::importProteinsFromArrow(table, prot_ids);
+            }
+            if (!ok) throw std::runtime_error("Failed to import proteins from Arrow table");
+            return prot_ids;
+        },
+        nb::arg("table"), nb::arg("protein_identifications"),
+        "Import protein hits from a PyArrow Table into existing ProteinIdentifications. Returns updated list.\n\n"
+        ".. warning::\n"
+        "    **EXPERIMENTAL API**: This function is experimental and may change."
+    );
+
+    m.def("protein_ids_import_groups_from_arrow",
+        [](nb::object pa_table, std::vector<OpenMS::ProteinIdentification> prot_ids)
+            -> std::vector<OpenMS::ProteinIdentification>
+        {
+            auto table = pyarrow_to_table(pa_table);
+            bool ok;
+            {
+                nb::gil_scoped_release release;
+                ok = OpenMS::ProteinIdentificationArrowIO::importProteinGroupsFromArrow(table, prot_ids);
+            }
+            if (!ok) throw std::runtime_error("Failed to import protein groups from Arrow table");
+            return prot_ids;
+        },
+        nb::arg("table"), nb::arg("protein_identifications"),
+        "Import protein groups from a PyArrow Table into existing ProteinIdentifications. Returns updated list.\n\n"
         ".. warning::\n"
         "    **EXPERIMENTAL API**: This function is experimental and may change."
     );

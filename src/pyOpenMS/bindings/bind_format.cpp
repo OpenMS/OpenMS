@@ -63,6 +63,9 @@
 #include <OpenMS/FORMAT/XICParquetFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
+#include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #endif
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -2079,6 +2082,90 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
             "filename"_a, "export_all_psms"_a = false,
             "config"_a = OpenMS::ParquetWriteConfig{},
             "Export PSM data to Parquet file. Returns True on success")
+        ;
+
+    // -----------------------------------------------------------------------
+    // FeatureMapArrowIO
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureMapArrowIO>(m, "FeatureMapArrowIO",
+        "Import and export FeatureMap data to/from Apache Arrow/Parquet format")
+        .def(nb::init<>())
+        .def_static("exportToParquet", &OpenMS::FeatureMapArrowIO::exportToParquet,
+            "feature_map"_a, "directory"_a,
+            "config"_a = OpenMS::ParquetWriteConfig{},
+            "Export FeatureMap to a directory of Parquet files. Returns True on success")
+        .def_static("importFromParquet", &OpenMS::FeatureMapArrowIO::importFromParquet,
+            "directory"_a, "feature_map"_a,
+            "Import FeatureMap from a directory of Parquet files. Returns True on success")
+        ;
+
+    // -----------------------------------------------------------------------
+    // ConsensusMapArrowIO
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::ConsensusMapArrowIO>(m, "ConsensusMapArrowIO",
+        "Import and export ConsensusMap data to/from Apache Arrow/Parquet format")
+        .def(nb::init<>())
+        .def_static("exportToParquet", &OpenMS::ConsensusMapArrowIO::exportToParquet,
+            "cmap"_a, "directory"_a,
+            "config"_a = OpenMS::ParquetWriteConfig{},
+            "Export ConsensusMap to a directory of Parquet files. Returns True on success")
+        .def_static("importFromParquet", &OpenMS::ConsensusMapArrowIO::importFromParquet,
+            "directory"_a, "cmap"_a,
+            "Import ConsensusMap from a directory of Parquet files. Returns True on success")
+        ;
+
+    // -----------------------------------------------------------------------
+    // ProteinIdentificationArrowIO
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::ProteinIdentificationArrowIO>(m, "ProteinIdentificationArrowIO",
+        "Import and export ProteinIdentification data to/from Apache Arrow/Parquet format")
+        .def(nb::init<>())
+        .def_static("exportProteinsToParquet", &OpenMS::ProteinIdentificationArrowIO::exportProteinsToParquet,
+            "protein_identifications"_a, "filename"_a,
+            "config"_a = OpenMS::ParquetWriteConfig{},
+            "Export protein hits to Parquet file. Returns True on success")
+        .def_static("exportProteinGroupsToParquet", &OpenMS::ProteinIdentificationArrowIO::exportProteinGroupsToParquet,
+            "protein_identifications"_a, "filename"_a,
+            "config"_a = OpenMS::ParquetWriteConfig{},
+            "Export protein groups to Parquet file. Returns True on success")
+        .def_static("exportSearchParamsToParquet", &OpenMS::ProteinIdentificationArrowIO::exportSearchParamsToParquet,
+            "protein_identifications"_a, "filename"_a,
+            "config"_a = OpenMS::ParquetWriteConfig{},
+            "Export search parameters to Parquet file. Returns True on success")
+        // Import methods: std::vector<ProteinIdentification>& is an output param.
+        // Since vectors go through nanobind's STL type caster (creates copies),
+        // we must use lambdas that return the modified vector.
+        .def_static("importFromParquet", [](const OpenMS::String& proteins_filename,
+            const OpenMS::String& protein_groups_filename,
+            const OpenMS::String& search_params_filename) {
+            std::vector<OpenMS::ProteinIdentification> prot_ids;
+            bool ok = OpenMS::ProteinIdentificationArrowIO::importFromParquet(
+                proteins_filename, protein_groups_filename, search_params_filename, prot_ids);
+            if (!ok) throw std::runtime_error("Failed to import ProteinIdentifications from Parquet");
+            return prot_ids;
+        }, "proteins_filename"_a, "protein_groups_filename"_a, "search_params_filename"_a,
+            "Import all three Parquet files and return reconstructed ProteinIdentifications")
+        .def_static("importSearchParamsFromParquet", [](const OpenMS::String& filename) {
+            std::vector<OpenMS::ProteinIdentification> prot_ids;
+            bool ok = OpenMS::ProteinIdentificationArrowIO::importSearchParamsFromParquet(filename, prot_ids);
+            if (!ok) throw std::runtime_error("Failed to import search parameters from Parquet");
+            return prot_ids;
+        }, "filename"_a,
+            "Import search parameters from Parquet file. Returns list of ProteinIdentifications")
+        .def_static("importProteinsFromParquet", [](const OpenMS::String& filename,
+            std::vector<OpenMS::ProteinIdentification> prot_ids) {
+            bool ok = OpenMS::ProteinIdentificationArrowIO::importProteinsFromParquet(filename, prot_ids);
+            if (!ok) throw std::runtime_error("Failed to import proteins from Parquet");
+            return prot_ids;
+        }, "filename"_a, "protein_identifications"_a,
+            "Import protein hits from Parquet file into existing ProteinIdentifications. Returns updated list")
+        .def_static("importProteinGroupsFromParquet", [](const OpenMS::String& filename,
+            std::vector<OpenMS::ProteinIdentification> prot_ids) {
+            bool ok = OpenMS::ProteinIdentificationArrowIO::importProteinGroupsFromParquet(filename, prot_ids);
+            if (!ok) throw std::runtime_error("Failed to import protein groups from Parquet");
+            return prot_ids;
+        }, "filename"_a, "protein_identifications"_a,
+            "Import protein groups from Parquet file into existing ProteinIdentifications. Returns updated list")
         ;
 
 #endif // WITH_PARQUET
