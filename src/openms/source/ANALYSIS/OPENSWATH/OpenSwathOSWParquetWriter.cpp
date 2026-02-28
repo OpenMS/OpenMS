@@ -410,48 +410,6 @@ namespace OpenMS
       transition_to_id[transition.transition_name] = transition_id++;
     }
 
-    {
-      arrow::Int64Builder run_id_builder;
-      arrow::StringBuilder filename_builder;
-      ParquetFile::appendOrThrow(run_id_builder.Append(run_id_clean), "run_id");
-      ParquetFile::appendOrThrow(filename_builder.Append(std::string(input_filename)), "filename");
-
-      auto runs_schema = arrow::schema({
-        arrow::field("run_id", arrow::int64()),
-        arrow::field("filename", arrow::utf8())
-      });
-      auto runs_table = arrow::Table::Make(runs_schema, {
-        ParquetFile::finishArray(run_id_builder, "run_id"),
-        ParquetFile::finishArray(filename_builder, "filename")
-      });
-      const String runs_parquet = runs_dir + "/runs.parquet";
-      if (File::exists(runs_parquet))
-      {
-        auto existing_table = ParquetFile::readTable(runs_parquet);
-        auto existing_run_ids = std::static_pointer_cast<arrow::Int64Array>(ParquetFile::getColumn(existing_table, "run_id"));
-        const int64_t existing_rows = existing_table->num_rows();
-        for (int64_t row = 0; row < existing_rows; ++row)
-        {
-          if (existing_run_ids->Value(row) == static_cast<int64_t>(run_id_clean))
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Run id already present in runs.parquet", String(run_id_clean));
-          }
-        }
-        auto combined_result = arrow::ConcatenateTables({existing_table, runs_table});
-        if (!combined_result.ok())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Failed to append runs table", combined_result.status().ToString());
-        }
-        ParquetFile::writeTable(combined_result.ValueOrDie(), runs_parquet);
-      }
-      else
-      {
-        ParquetFile::writeTable(runs_table, runs_parquet);
-      }
-    }
-
     arrow::Int64Builder feature_id_builder;
     arrow::Int64Builder feature_run_id_builder;
     arrow::Int64Builder precursor_id_builder;
@@ -695,15 +653,29 @@ namespace OpenMS
           }
           const String native_id = sub_it.getMetaValue("native_id");
           int64_t transition_id_value = 0;
-          if (!parseOptionalInt64_(native_id, transition_id_value))
+          // Prefer explicit name lookup in the library mapping. Only use the
+          // numeric fallback when the native_id is numeric and the id falls
+          // inside the valid id domain (1..transition_id-1). This prevents
+          // accidental acceptance of arbitrary numeric strings that are not
+          // actually present in the library table.
+          auto it = transition_to_id.find(native_id);
+          if (it != transition_to_id.end())
           {
-            auto it = transition_to_id.find(native_id);
-            if (it == transition_to_id.end())
+            transition_id_value = it->second;
+          }
+          else if (parseOptionalInt64_(native_id, transition_id_value))
+          {
+            // numeric fallback is only valid if present in library id domain
+            if (transition_id_value <= 0 || transition_id_value >= transition_id)
             {
               throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Transition references unknown id", native_id);
+                                            "Transition references unknown numeric id", native_id);
             }
-            transition_id_value = it->second;
+          }
+          else
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Transition references unknown id", native_id);
           }
 
           ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
@@ -1272,7 +1244,52 @@ namespace OpenMS
 
     waitForWriteTasks_(write_tasks);
 
-    const String runs_parquet = runs_dir + "/runs.parquet";
+      // Now that all per-run files have been written (or their async tasks
+      // have thrown), update the global runs.parquet file. Doing this after
+      // successful writes prevents adding a runs entry that points to a
+      // partially-written run directory.
+      {
+        arrow::Int64Builder run_id_builder;
+        arrow::StringBuilder filename_builder;
+        ParquetFile::appendOrThrow(run_id_builder.Append(run_id_clean), "run_id");
+        ParquetFile::appendOrThrow(filename_builder.Append(std::string(input_filename)), "filename");
+
+        auto runs_schema = arrow::schema({
+          arrow::field("run_id", arrow::int64()),
+          arrow::field("filename", arrow::utf8())
+        });
+        auto runs_table = arrow::Table::Make(runs_schema, {
+          ParquetFile::finishArray(run_id_builder, "run_id"),
+          ParquetFile::finishArray(filename_builder, "filename")
+        });
+        const String runs_parquet = runs_dir + "/runs.parquet";
+        if (File::exists(runs_parquet))
+        {
+          auto existing_table = ParquetFile::readTable(runs_parquet);
+          auto existing_run_ids = std::static_pointer_cast<arrow::Int64Array>(ParquetFile::getColumn(existing_table, "run_id"));
+          const int64_t existing_rows = existing_table->num_rows();
+          for (int64_t row = 0; row < existing_rows; ++row)
+          {
+            if (existing_run_ids->Value(row) == static_cast<int64_t>(run_id_clean))
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Run id already present in runs.parquet", String(run_id_clean));
+            }
+          }
+          auto combined_result = arrow::ConcatenateTables({existing_table, runs_table});
+          if (!combined_result.ok())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Failed to append runs table", combined_result.status().ToString());
+          }
+          ParquetFile::writeTable(combined_result.ValueOrDie(), runs_parquet);
+        }
+        else
+        {
+          ParquetFile::writeTable(runs_table, runs_parquet);
+        }
+      }
+      const String runs_parquet = runs_dir + "/runs.parquet";
     auto runs = readRuns_(runs_parquet);
     std::vector<RunCounts> run_counts;
     run_counts.reserve(runs.size());
