@@ -434,7 +434,7 @@ NB_MODULE(_arrow_zerocopy, m) {
     m.def("protein_ids_proteins_to_arrow",
         [](nb::object prot_ids_obj) -> nb::object
         {
-            const auto& prot_ids = nb::cast<const std::vector<OpenMS::ProteinIdentification>&>(prot_ids_obj);
+            auto prot_ids = nb::cast<std::vector<OpenMS::ProteinIdentification>>(prot_ids_obj);
             std::shared_ptr<arrow::Table> table;
             {
                 nb::gil_scoped_release release;
@@ -451,7 +451,7 @@ NB_MODULE(_arrow_zerocopy, m) {
     m.def("protein_ids_groups_to_arrow",
         [](nb::object prot_ids_obj) -> nb::object
         {
-            const auto& prot_ids = nb::cast<const std::vector<OpenMS::ProteinIdentification>&>(prot_ids_obj);
+            auto prot_ids = nb::cast<std::vector<OpenMS::ProteinIdentification>>(prot_ids_obj);
             std::shared_ptr<arrow::Table> table;
             {
                 nb::gil_scoped_release release;
@@ -468,7 +468,7 @@ NB_MODULE(_arrow_zerocopy, m) {
     m.def("protein_ids_search_params_to_arrow",
         [](nb::object prot_ids_obj) -> nb::object
         {
-            const auto& prot_ids = nb::cast<const std::vector<OpenMS::ProteinIdentification>&>(prot_ids_obj);
+            auto prot_ids = nb::cast<std::vector<OpenMS::ProteinIdentification>>(prot_ids_obj);
             std::shared_ptr<arrow::Table> table;
             {
                 nb::gil_scoped_release release;

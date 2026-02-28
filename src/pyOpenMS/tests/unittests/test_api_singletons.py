@@ -55,9 +55,10 @@ class TestCrossLinksDB:
         _ = pyopenms.CrossLinksDB.getInstance()
         assert pyopenms.CrossLinksDB.isInstantiated()
 
-    def test_read_from_obo_file(self):
+    def test_read_from_obo_file_removed(self):
+        """readFromOBOFile was removed in the ModificationsDB/RibonucleotideDB refactoring."""
         db = pyopenms.CrossLinksDB.getInstance()
-        assert callable(getattr(db, 'readFromOBOFile', None))
+        assert not hasattr(db, 'readFromOBOFile')
 
 
 class TestModificationsDBGaps:
