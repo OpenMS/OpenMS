@@ -48,37 +48,10 @@ jobs:
   build-and-test:
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: windows-2025
-            matrix_id: windows
-            compiler: cl.exe
-            compiler_ver: 14.44
-
-          - os: macos-14
-            matrix_id: macos
-            compiler: xcode
-            compiler_ver: "15.4"
-
-          - os: ubuntu-24.04
-            matrix_id: ubuntu-gcc13
-            compiler: g++
-            compiler_ver: 13
-
-          - os: ubuntu-24.04-arm
-            matrix_id: ubuntu-arm-gcc13
-            compiler: g++
-            compiler_ver: 13
-
-          - os: ubuntu-24.04
-            matrix_id: ubuntu-clang17
-            compiler: clang++
-            compiler_ver: 17
+      matrix: ${{ fromJSON((github.event_name == 'workflow_dispatch' && inputs.matrix_subset == 'failing-3') && '{"include":[{"os":"windows-2025","matrix_id":"windows","compiler":"cl.exe","compiler_ver":"14.44"},{"os":"macos-14","matrix_id":"macos","compiler":"xcode","compiler_ver":"15.4"},{"os":"ubuntu-24.04","matrix_id":"ubuntu-gcc13","compiler":"g++","compiler_ver":"13"}]}' || '{"include":[{"os":"windows-2025","matrix_id":"windows","compiler":"cl.exe","compiler_ver":"14.44"},{"os":"macos-14","matrix_id":"macos","compiler":"xcode","compiler_ver":"15.4"},{"os":"ubuntu-24.04","matrix_id":"ubuntu-gcc13","compiler":"g++","compiler_ver":"13"},{"os":"ubuntu-24.04-arm","matrix_id":"ubuntu-arm-gcc13","compiler":"g++","compiler_ver":"13"},{"os":"ubuntu-24.04","matrix_id":"ubuntu-clang17","compiler":"clang++","compiler_ver":"17"}]}') }}
 
     outputs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
-
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.matrix_subset == 'all' || (inputs.matrix_subset == 'failing-3' && (matrix.matrix_id == 'windows' || matrix.matrix_id == 'macos' || matrix.matrix_id == 'ubuntu-gcc13')) }}
 
     runs-on: ${{ matrix.os }}
     env: 
