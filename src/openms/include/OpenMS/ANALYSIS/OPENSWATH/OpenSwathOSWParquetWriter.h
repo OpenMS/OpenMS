@@ -44,8 +44,8 @@ namespace OpenMS
           └── feature_transition.parquet
       @endcode
 
-      If the output directory already exists, the writer will append a new
-      run partition under runs/run_id=<id>/, update runs.parquet, and refresh
+  If the output directory already exists, the writer will append a new
+  run partition under runs/run_id=&lt;id&gt;/, update runs.parquet, and refresh
       metadata.json. Existing runs are not modified.
   */
   class OPENMS_DLLAPI OpenSwathOSWParquetWriter
