@@ -21,6 +21,7 @@ General:
   - Ubuntu CI runners updated to 24.04
   - macOS code signing and notarization integrated directly into CI (#8486, #8494, #8527)
   - Parquet support enabled across all platforms (#8370, #8422)
+  - Removed leftover traces of removed doc_internal target (#2256)
 
 Dependencies:
   - PyOpenMS now depends on Autowrap >= 0.26.0 (#8580, #8616)
@@ -206,6 +207,7 @@ Fixes:
   - Fix empty GENE table causing PQP file reading to return zero transitions (#8688)
   - Fix PeptideIndexer AhoCorasick segfault for short peptides (#8685)
   - Fix redundant PRAGMA foreign_keys execution in OMSFileStore
+  - Fix potential memory leak in SwathFile::loadMzXML on exception by using std::unique_ptr
 
 Documentation:
   - Comprehensive documentation for Targeted Quantitation algorithms (#8588)

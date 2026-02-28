@@ -64,6 +64,7 @@ foreach(t ${Boost_dependent_tests})
 endforeach()
 
 target_link_libraries(Base64_test ZLIB::ZLIB)
+target_link_libraries(Libzip_test libzip::zip)
 target_link_libraries(LPWrapper_test CoinOR::CoinOR)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
@@ -104,6 +105,11 @@ if (WITH_PARQUET)
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
   )
+  target_link_libraries(Libzip_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_compile_definitions(Libzip_test PRIVATE WITH_PARQUET)
   target_link_libraries(TransitionParquetFile_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
