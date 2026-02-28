@@ -110,14 +110,19 @@ if (WITH_PARQUET)
   ${OPENMS_PARQUET_TARGET}
   )
   target_compile_definitions(Libzip_test PRIVATE WITH_PARQUET)
-  target_link_libraries(TransitionParquetFile_test
-  ${OPENMS_ARROW_TARGET}
-  ${OPENMS_PARQUET_TARGET}
-  )
-  target_link_libraries(OpenSwathOSWParquetReader_test
-  ${OPENMS_ARROW_TARGET}
-  ${OPENMS_PARQUET_TARGET}
-  )
+
+  if (TARGET TransitionParquetFile_test)
+    target_link_libraries(TransitionParquetFile_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+  endif()
+  if (TARGET OpenSwathOSWParquetReader_test)
+    target_link_libraries(OpenSwathOSWParquetReader_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
