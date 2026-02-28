@@ -68,8 +68,10 @@ jobs:
         run: |
           pip install "anaconda-client>=1.14"  # bioconda-utils pulls 1.13.x which still uses removed pkg_resources
           ls -l $GITHUB_WORKSPACE/output
-          if ls $GITHUB_WORKSPACE/output/linux-64/*.tar.bz2 1>/dev/null 2>&1; then
-            anaconda -v -t ${{ secrets.ANACONDA_TOKEN }} upload -u openms --no-progress --force $GITHUB_WORKSPACE/output/linux-64/*.tar.bz2
+          shopt -s nullglob
+          pkgs=($GITHUB_WORKSPACE/output/linux-64/*.tar.bz2 $GITHUB_WORKSPACE/output/linux-64/*.conda)
+          if [ ${#pkgs[@]} -gt 0 ]; then
+            anaconda -v -t ${{ secrets.ANACONDA_TOKEN }} upload -u openms --no-progress --force "${pkgs[@]}"
           else
             echo "No packages found to upload!"
             exit 1
