@@ -470,15 +470,15 @@ jobs:
           SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
-          SIGNING_IDENTITY: "${{ (startsWith(matrix.os, 'macos') && steps.import-apple-certs.outcome == 'success') && 'Developer ID Application: OpenMS Inc. (C64UCGJ5PL)' || '-' }}"
-          SIGNING_EMAIL: "${{ (startsWith(matrix.os, 'macos') && steps.import-apple-certs.outcome == 'success') && 'apple@openms.de' || '' }}"
-          CPACK_PRODUCTBUILD_IDENTITY_NAME: "${{ (startsWith(matrix.os, 'macos') && steps.import-apple-certs.outcome == 'success') && 'Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)' || '' }}"
+          SIGNING_IDENTITY: "${{ (startsWith(matrix.os, 'macos') && steps['import-apple-certs'].outcome == 'success') && 'Developer ID Application: OpenMS Inc. (C64UCGJ5PL)' || '-' }}"
+          SIGNING_EMAIL: "${{ (startsWith(matrix.os, 'macos') && steps['import-apple-certs'].outcome == 'success') && 'apple@openms.de' || '' }}"
+          CPACK_PRODUCTBUILD_IDENTITY_NAME: "${{ (startsWith(matrix.os, 'macos') && steps['import-apple-certs'].outcome == 'success') && 'Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)' || '' }}"
           USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}
           USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
 
     - name: Notarize macOS Package
-      if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos') && steps.import-apple-certs.outcome == 'success' && secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD != ''
+      if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos') && steps['import-apple-certs'].outcome == 'success' && secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD != ''
       shell: bash
       env:
         APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD }}
