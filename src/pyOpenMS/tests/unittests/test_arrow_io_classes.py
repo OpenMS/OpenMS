@@ -14,6 +14,7 @@ import tempfile
 import os
 
 pa = pytest.importorskip("pyarrow")
+import pyarrow.parquet as pq
 
 import pyopenms as oms
 
@@ -356,7 +357,7 @@ class TestProteinIdentificationArrowIOParquet:
                 protein_identifications, path)
             assert ok
             assert os.path.exists(path)
-            table = pa.parquet.read_table(path)
+            table = pq.read_table(path)
             assert table.num_rows == 2  # 2 protein hits
         finally:
             os.unlink(path)
@@ -368,7 +369,7 @@ class TestProteinIdentificationArrowIOParquet:
             ok = oms.ProteinIdentificationArrowIO.exportProteinGroupsToParquet(
                 protein_identifications, path)
             assert ok
-            table = pa.parquet.read_table(path)
+            table = pq.read_table(path)
             assert table.num_rows >= 1
         finally:
             os.unlink(path)
@@ -380,7 +381,7 @@ class TestProteinIdentificationArrowIOParquet:
             ok = oms.ProteinIdentificationArrowIO.exportSearchParamsToParquet(
                 protein_identifications, path)
             assert ok
-            table = pa.parquet.read_table(path)
+            table = pq.read_table(path)
             assert table.num_rows == 1  # 1 search run
         finally:
             os.unlink(path)
