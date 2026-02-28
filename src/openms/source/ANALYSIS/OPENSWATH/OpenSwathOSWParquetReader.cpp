@@ -382,12 +382,12 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
   // If a main_score was requested, place it first among ms2 columns/values
   if (!main_score.empty() && !result.ms2_columns.empty())
   {
-    ssize_t found = -1;
+    SignedSize found = -1;
     for (size_t i = 0; i < result.ms2_columns.size(); ++i)
     {
       if (result.ms2_columns[i] == main_score)
       {
-        found = static_cast<ssize_t>(i);
+        found = static_cast<SignedSize>(i);
         break;
       }
     }
@@ -583,14 +583,15 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
       const int64_t fid = ParquetFile::getInt64(ft_feature_id_col, row, 0, false);
       const int64_t tid = ParquetFile::getInt64(ft_transition_id_col, row, 0, false);
 
-      int64_t pid = 0;
-      double rt = 0.0;
       auto fit = feature_map.find(fid);
-      if (fit != feature_map.end())
+      if (fit == feature_map.end())
       {
-        pid = fit->second.first;
-        rt = fit->second.second;
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "feature_transition.parquet references unknown feature_id=" + String(fid) +
+                                            " for run_id=" + String(run_id));
       }
+      const int64_t pid = fit->second.first;
+      const double rt = fit->second.second;
 
       result.feature_id.push_back(fid);
       result.run_id.push_back(run_id);
