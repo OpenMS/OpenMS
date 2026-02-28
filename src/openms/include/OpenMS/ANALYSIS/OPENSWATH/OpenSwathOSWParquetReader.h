@@ -151,6 +151,9 @@ namespace OpenMS
       after construction. It is provided for Python ergonomics so callers
       can create an instance with a single argument similarly to other
       Parquet helper classes.
+
+      @param[in] oswpq_dir  Path to the unzipped OSW Parquet directory or a
+                           .oswpq archive (zip) that will be read.
     */
     OpenSwathOSWParquetReader(const String& oswpq_dir);
 

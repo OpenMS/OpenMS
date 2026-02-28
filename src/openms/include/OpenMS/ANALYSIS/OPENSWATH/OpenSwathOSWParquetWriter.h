@@ -37,11 +37,11 @@ namespace OpenMS
       │   ├── precursors.parquet
       │   └── transitions.parquet
       └── runs/
-          ├── runs.parquet
-          └── run_id=<id>/
-              ├── features.parquet
-              ├── feature_precursor.parquet
-              └── feature_transition.parquet
+        ├── runs.parquet
+        └── run_id=&lt;id&gt;/
+          ├── features.parquet
+          ├── feature_precursor.parquet
+          └── feature_transition.parquet
       @endcode
 
       If the output directory already exists, the writer will append a new
