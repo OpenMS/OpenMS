@@ -288,6 +288,19 @@ else()
     set(_HAS_PARQUET TRUE)
   endif()
   if(_HAS_PARQUET)
+    # In standalone builds, OPENMS_ARROW_TARGET is not exported by OpenMSConfig.cmake.
+    # Find Arrow ourselves so we can link the C++ bridge functions (ExportSchema, etc.).
+    if(NOT OPENMS_ARROW_TARGET)
+      find_package(Arrow QUIET)
+      if(Arrow_FOUND)
+        if(TARGET Arrow::arrow_static)
+          set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+        elseif(TARGET Arrow::arrow_shared)
+          set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+        endif()
+      endif()
+    endif()
+
     message(STATUS "pyOpenMS: Building _arrow_zerocopy module (WITH_PARQUET detected)")
     nanobind_add_module(_arrow_zerocopy
       NB_DOMAIN pyopenms
@@ -295,8 +308,8 @@ else()
       ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
     )
     _pyopenms_module_props(_arrow_zerocopy)
-    # arrow_zerocopy.cpp includes <arrow/c/abi.h> directly (not via OpenMS headers),
-    # so it needs the Arrow include path explicitly.
+    # arrow_zerocopy.cpp uses Arrow C++ API (ExportSchema, ImportRecordBatch, etc.)
+    # for zero-copy Table conversion between C++ and PyArrow.
     target_link_libraries(_arrow_zerocopy PRIVATE ${OPENMS_ARROW_TARGET})
   else()
     message(STATUS "pyOpenMS: Skipping _arrow_zerocopy module (WITH_PARQUET not found)")
