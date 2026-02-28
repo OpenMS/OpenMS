@@ -281,8 +281,8 @@ jobs:
           PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
           echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/lib/cmake;$PIXI_ENV/share/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
 
-          # ccache is still pulled from brew since it's a build tool, not a library dep
-          brew install ccache
+          # ccache and graphviz from brew — more reliable on macOS ARM64
+          brew install ccache graphviz
           echo "$(brew --prefix)/bin" >> $GITHUB_PATH
         fi
 
