@@ -16,6 +16,8 @@
 #ifdef WITH_PARQUET
 #include <parquet/file_reader.h>
 #include <filesystem>
+#include <fstream>
+#include <vector>
 #if __has_include(<zip.h>)
 #include <zip.h>
 #define OPENMS_HAVE_LIBZIP 1
@@ -318,8 +320,8 @@ namespace OpenMS
   void ParquetFile::zipDirectory(const String& directory_path, const String& output_zip)
   {
 #ifdef WITH_PARQUET
-    const std::filesystem::path dirpath = std::filesystem::u8path(directory_path);
-    const std::filesystem::path outpath = std::filesystem::u8path(output_zip);
+  const std::filesystem::path dirpath = std::filesystem::u8path(std::string(directory_path));
+  const std::filesystem::path outpath = std::filesystem::u8path(std::string(output_zip));
     const String output_zip_abs = File::absolutePath(output_zip);
     if (File::exists(output_zip_abs))
     {
@@ -332,7 +334,7 @@ namespace OpenMS
     if (!za)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Failed to create zip archive: " + output_zip_abs);
+                                    "Failed to create zip archive", output_zip_abs);
     }
 
     for (auto it = std::filesystem::recursive_directory_iterator(dirpath); it != std::filesystem::recursive_directory_iterator(); ++it)
@@ -346,7 +348,7 @@ namespace OpenMS
       {
         zip_close(za);
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to add file to zip: " + full.string());
+                                      "Failed to add file to zip", full.string());
       }
       zip_int64_t idx = zip_file_add(za, rel.c_str(), zs, ZIP_FL_ENC_UTF_8);
       if (idx < 0)
@@ -354,14 +356,21 @@ namespace OpenMS
         zip_source_free(zs);
         zip_close(za);
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to add file to zip: " + full.string());
+                                      "Failed to add file to zip", full.string());
+      }
+      // Create an uncompressed archive
+      if (zip_set_file_compression(za, static_cast<zip_uint64_t>(idx), ZIP_CM_STORE, 0) < 0)
+      {
+        zip_close(za);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to set stored (no compression) for file in zip", full.string());
       }
     }
 
     if (zip_close(za) < 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Failed to finalize zip archive: " + output_zip_abs);
+                                    "Failed to finalize zip archive", output_zip_abs);
     }
 #else
     // libzip not available -> zipDirectory not implemented
@@ -400,7 +409,7 @@ namespace OpenMS
     if (!za)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Failed to open zip archive: " + input_path);
+                                    "Failed to open zip archive", input_path);
     }
 
     zip_int64_t num = zip_get_num_entries(za, 0);
@@ -409,7 +418,7 @@ namespace OpenMS
       const char* name = zip_get_name(za, i, 0);
       if (!name) continue;
       std::string entry_name(name);
-      std::filesystem::path outpath = std::filesystem::u8path(unpack_dir) / std::filesystem::path(entry_name);
+  std::filesystem::path outpath = std::filesystem::u8path(std::string(unpack_dir)) / std::filesystem::path(entry_name);
       // create parent dirs
       if (entry_name.back() == '/')
       {
@@ -423,7 +432,7 @@ namespace OpenMS
       {
         zip_close(za);
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to read zip entry: " + entry_name);
+                                      "Failed to read zip entry", entry_name);
       }
 
       std::ofstream ofs(outpath.string(), std::ios::binary);
