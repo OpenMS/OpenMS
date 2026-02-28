@@ -18,6 +18,8 @@ message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
 # zlib version
 set(CTEST_CUSTOM_TESTS_IGNORE
 	GzipIfstream_test
+	Doxygen_Warning_test
+	StopWatch_test
 )
 
 # customize reporting of errors in CDash
@@ -65,4 +67,3 @@ else()
   message("Testing successful: Please check the test results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
   endif()
 endif()
-

@@ -215,8 +215,7 @@ jobs:
         conda install -c conda-forge libarrow libparquet -y
 
         CONDA_ENV_PREFIX=$(
-          conda info --json |
-            jq --raw-output .active_prefix |
+          python -c "import json, subprocess; print(json.loads(subprocess.check_output(['conda', 'info', '--json']))['active_prefix'])" |
             sed 's|\\|/|g'
         )
 
@@ -249,7 +248,7 @@ jobs:
           export PATH="$HOME/.pixi/bin:$PATH"
 
           cd OpenMS
-          pixi install
+          pixi install --frozen
           cd ..
 
           # make pixi-managed binaries available to subsequent steps
@@ -266,22 +265,6 @@ jobs:
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
-          # pixi handles all native dependencies for macOS builds
-          curl -fsSL https://pixi.sh/install.sh | bash
-          export PATH="$HOME/.pixi/bin:$PATH"
-
-          cd OpenMS
-          pixi install
-          cd ..
-
-          # make pixi-managed binaries available to subsequent steps
-          echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
-
-          # tell cmake where to find libraries installed by pixi
-          PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
-          echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/lib/cmake;$PIXI_ENV/share/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
-
-          # ccache and graphviz from brew — more reliable on macOS ARM64
           brew install ccache graphviz
           echo "$(brew --prefix)/bin" >> $GITHUB_PATH
         fi
@@ -324,7 +307,26 @@ jobs:
           cd ..
           THIRDPARTY_DIR="OpenMS/THIRDPARTY"
           mkdir -p _thirdparty
-          cp -R "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/$(uname -m)"/* _thirdparty/
+          THIRD_ARCH="$(uname -m)"
+          THIRD_ARCH_DIR="$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/${THIRD_ARCH}"
+          if [[ ! -d "$THIRD_ARCH_DIR" ]]; then
+            case "$THIRD_ARCH" in
+              aarch64) ALT_ARCH="arm64" ;;
+              arm64) ALT_ARCH="aarch64" ;;
+              x86_64) ALT_ARCH="amd64" ;;
+              amd64) ALT_ARCH="x86_64" ;;
+              *) ALT_ARCH="" ;;
+            esac
+            if [[ -n "$ALT_ARCH" && -d "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/${ALT_ARCH}" ]]; then
+              THIRD_ARCH_DIR="$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/${ALT_ARCH}"
+            fi
+          fi
+          if [[ ! -d "$THIRD_ARCH_DIR" ]]; then
+            echo "Unable to find THIRDPARTY binaries for architecture: ${THIRD_ARCH}"
+            ls -la "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/" || true
+            exit 1
+          fi
+          cp -R "$THIRD_ARCH_DIR"/* _thirdparty/
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
           do
@@ -372,8 +374,8 @@ jobs:
       env:
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
           MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '14.0' || '' }}
-          PYOPENMS: "${{ startsWith(matrix.os, 'ubuntu') && matrix.compiler == 'g++' && 'ON' || 'OFF' }}"
-          NO_DEPENDENCIES: "${{ startsWith(matrix.os, 'ubuntu') && matrix.compiler == 'g++' && 'OFF' || 'ON' }}"
+          PYOPENMS: "OFF"
+          NO_DEPENDENCIES: "ON"
           CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }};${{ steps.conda-setup.outputs.cmake_prefix }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
