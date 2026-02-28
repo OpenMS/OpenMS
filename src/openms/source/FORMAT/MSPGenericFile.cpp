@@ -64,13 +64,13 @@ namespace OpenMS
         throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
     }
-    const Size BUFSIZE { 65536 };
-    char line[BUFSIZE];
+
+    std::string line;
     library.clear(true);
     MSSpectrum spectrum;
     spectrum.setMetaValue("is_valid", 0); // to avoid adding invalid spectra to the library
 
-    boost::cmatch m;
+    boost::smatch m;
     boost::regex re_name("(?:^Name|^NAME): (.+)", boost::regex::no_mod_s);
     boost::regex re_retention_time("(?:^Retention Time|^RETENTIONTIME): (.+)", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
@@ -91,7 +91,7 @@ namespace OpenMS
 
     while (!ifs.eof())
     {
-      ifs.getline(line, BUFSIZE);
+      std::getline(ifs, line);
       // Peaks
       if (boost::regex_search(line, m, re_points_line))
       {
@@ -103,7 +103,7 @@ namespace OpenMS
           const double position { std::stod(m[1]) };
           const double intensity { std::stod(m[2]) };
           spectrum.push_back( Peak1D(position, intensity) );
-        } while ( boost::regex_search(m[0].second, m, re_point) );
+        } while ( boost::regex_search(m[0].second, line.cend(), m, re_point) );
       }
       // Synon
       else if (boost::regex_search(line, m, re_synon))
