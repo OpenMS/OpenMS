@@ -202,6 +202,11 @@ namespace OpenMS
     const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const
   {
 #ifdef WITH_PARQUET
+    // Reset the output container to avoid appending to a caller-owned
+    // object that may contain stale data from previous calls. The caller
+    // expects this function to populate `targeted_exp` from the parquet
+    // files, not to append to it.
+    targeted_exp = OpenSwath::LightTargetedExperiment{};
     std::unique_ptr<File::TempDir> temp_dir;
     const String base_dir = ParquetFile::unzipDirectory(oswpq_dir, temp_dir);
     const String library_dir = base_dir + "/library";
@@ -473,7 +478,16 @@ namespace OpenMS
         stats.precursor_charge_counts_target[compound.charge]++;
       }
       ParquetFile::appendOrThrow(precursor_id_builder.Append(precursor_id), "precursor_id");
-      ParquetFile::appendOrThrow(precursor_mz_builder.Append(precursor_mz[compound.id]), "precursor_mz");
+      // Guard lookup in precursor_mz: using operator[] would insert a default
+      // 0.0 value if the key is missing. Instead, ensure the value exists and
+      // report a clear error if a compound has no matched transition.
+      auto mz_it = precursor_mz.find(compound.id);
+      if (mz_it == precursor_mz.end())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "No precursor_mz found for compound '" + String(compound.id) + "'");
+      }
+      ParquetFile::appendOrThrow(precursor_mz_builder.Append(mz_it->second), "precursor_mz");
       ParquetFile::appendOrThrow(precursor_charge_builder.Append(compound.charge), "charge");
       ParquetFile::appendOrThrow(library_rt_builder.Append(compound.rt), "library_rt");
       ParquetFile::appendOrThrow(drift_time_builder.Append(compound.drift_time), "library_drift_time");
