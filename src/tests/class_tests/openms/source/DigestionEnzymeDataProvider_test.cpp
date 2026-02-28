@@ -257,7 +257,7 @@ START_SECTION(BuiltInProteaseDataProvider - Thermolysin and Proteinase K)
     {
       found_pk = true;
       TEST_EQUAL(enz->getRegEx(), "(?<=[AEFILTVWY])")
-      TEST_EQUAL(enz->hasSynonym("proteinasek"), true)
+      TEST_EQUAL(enz->getSynonyms().count("proteinasek"), 1)
     }
   }
 
