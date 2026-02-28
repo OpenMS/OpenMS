@@ -444,7 +444,7 @@ jobs:
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
 
     - name: Import Apple Developer Certificates
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'macos')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'macos') && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT != '' && secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT != '' && secrets.KEYCHAIN_PASSWORD != ''
       env:
         APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
         APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_PASSWORD }}
@@ -489,15 +489,15 @@ jobs:
           SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
-          SIGNING_IDENTITY: "Developer ID Application: OpenMS Inc. (C64UCGJ5PL)"
-          SIGNING_EMAIL: "apple@openms.de"
-          CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
+          SIGNING_IDENTITY: ${{ (startsWith(matrix.os, 'macos') && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT != '') && 'Developer ID Application: OpenMS Inc. (C64UCGJ5PL)' || '-' }}
+          SIGNING_EMAIL: ${{ (startsWith(matrix.os, 'macos') && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT != '') && 'apple@openms.de' || '' }}
+          CPACK_PRODUCTBUILD_IDENTITY_NAME: ${{ (startsWith(matrix.os, 'macos') && secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT != '') && 'Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)' || '' }}
           USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}
           USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
 
     - name: Notarize macOS Package
-      if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos')
+      if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos') && secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD != '' && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT != '' && secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT != ''
       shell: bash
       env:
         APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD }}
@@ -579,6 +579,9 @@ jobs:
       if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
       shell: bash
       run: |
+        if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+          export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
+        fi
         cd $GITHUB_WORKSPACE/OpenMS/bld/
         cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
         cmake --build . --target prepare_knime_package
