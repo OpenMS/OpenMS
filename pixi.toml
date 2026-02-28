@@ -4,7 +4,7 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "linux-aarch64", "osx-arm64", "win-64"]
 
 [dependencies]
-cmake = "*"
+cmake = "3.28.*"
 ninja = "*"
 eigen = "*"
 boost = "*"
