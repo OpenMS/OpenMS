@@ -14,6 +14,8 @@
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 // TODO add handler support for other access
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -149,7 +151,7 @@ protected:
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "oms"};
+  vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "xic", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -684,6 +686,41 @@ protected:
 
       IBSpectraFile ibfile;
       ibfile.store(out, cm);
+    }
+    else if (out_type == FileTypes::CHROMPARQUET)
+    {
+      // Convert to OpenSWATH Parquet chromatogram file (.xic)
+      if (in_type == FileTypes::SQMASS)
+      {
+        // Use SqMassFile convenience method which streams chromatograms into parquet consumer
+        SqMassFile().convertToXICParquet(in, out, /*run_id=*/0, /*source_file=*/"");
+      }
+      else
+      {
+        // For other inputs, load chromatograms (if not already loaded) and stream them
+        if (exp.getChromatograms().empty())
+        {
+          // load experiment if not yet loaded
+          try
+          {
+            FileHandler().loadExperiment(in, exp, {in_type}, log_type_);
+          }
+          catch (...) {
+            OPENMS_LOG_ERROR << "Failed to load input file to extract chromatograms." << std::endl;
+            return ILLEGAL_PARAMETERS;
+          }
+        }
+
+        std::vector<MSChromatogram> chroms = exp.getChromatograms();
+        OpenSwath::LightTargetedExperiment transition_exp; // no transitions provided
+        MSChromatogramParquetConsumer consumer(out, 0, in, transition_exp);
+        consumer.setExpectedSize(exp.size(), chroms.size());
+        for (auto& c : chroms)
+        {
+          consumer.consumeChromatogram(c);
+        }
+        consumer.finalize();
+      }
     }
     else if (out_type == FileTypes::SQMASS)
     {

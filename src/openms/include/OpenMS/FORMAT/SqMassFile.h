@@ -71,6 +71,25 @@ public:
 
     void transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count = false, bool skip_first_pass = false) const;
 
+    /**
+      @brief Convert an sqMass file containing chromatogram data to an XIC Parquet file.
+
+      This is a convenience function that will stream chromatograms from the
+      input sqMass file into an OpenMS Parquet writer (MSChromatogramParquetConsumer)
+      and write them to disk. Transition metadata is optional and can be left
+      empty; in that case chromatogram rows will not be annotated with transition
+      library information.
+
+      @param[in] filename_in Path to the input sqMass file.
+      @param[in] xic_filename Path to the output .xic Parquet file.
+      @param[in] run_id Run identifier to store with each chromatogram (default 0).
+      @param[in] source_file Source filename to store in the parquet file (if empty, filename_in is used).
+    */
+    void convertToXICParquet(const String& filename_in,
+                             const String& xic_filename,
+                             UInt64 run_id = 0,
+                             const String& source_file = "") const;
+
     void setConfig(const SqMassConfig& config) 
     {
       config_ = config;

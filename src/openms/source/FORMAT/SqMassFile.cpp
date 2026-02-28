@@ -9,6 +9,8 @@
 #include <OpenMS/FORMAT/SqMassFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenMS
 {
@@ -89,6 +91,22 @@ namespace OpenMS
         }
       }
     }
+  }
+
+  void SqMassFile::convertToXICParquet(const String& filename_in, const String& xic_filename, UInt64 run_id, const String& source_file) const
+  {
+    // source_file fallback to input filename if not provided
+    String src = source_file.empty() ? filename_in : source_file;
+
+    // Create an MSChromatogramParquetConsumer which implements IMSDataConsumer
+    OpenSwath::LightTargetedExperiment transition_exp; // empty experiment (no transition annotations)
+    MSChromatogramParquetConsumer parquet_consumer(xic_filename, run_id, src, transition_exp);
+
+    // Delegate to transform which will call setExpectedSize and then stream chromatograms
+    transform(filename_in, &parquet_consumer, /*skip_full_count=*/false, /*skip_first_pass=*/false);
+
+    // Ensure writer finalizes (flush and close)
+    parquet_consumer.finalize();
   }
 
 }
