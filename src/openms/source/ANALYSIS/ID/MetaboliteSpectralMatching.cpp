@@ -42,7 +42,9 @@ namespace OpenMS
     sum_formula_(),
     inchi_string_(),
     smiles_string_(),
-    precursor_adduct_()
+    precursor_adduct_(),
+    observed_precursor_drift_time_(),
+    found_precursor_ccs_()
   {
   }
 
@@ -72,6 +74,8 @@ namespace OpenMS
     inchi_string_ = rhs.inchi_string_;
     smiles_string_ = rhs.smiles_string_;
     precursor_adduct_ = rhs.precursor_adduct_;
+    observed_precursor_drift_time_ = rhs.observed_precursor_drift_time_;
+    found_precursor_ccs_ = rhs.found_precursor_ccs_;
 
     return *this;
   }
@@ -253,6 +257,30 @@ namespace OpenMS
   void SpectralMatch::setPrecursorAdduct(const String& padd)
   {
     precursor_adduct_ = padd;
+  }
+
+
+  double SpectralMatch::getObservedPrecursorDriftTime() const
+  {
+    return observed_precursor_drift_time_;
+  }
+
+
+  void SpectralMatch::setObservedPrecursorDriftTime(const double& pdt)
+  {
+    observed_precursor_drift_time_ = pdt;
+  }
+
+
+  double SpectralMatch::getFoundPrecursorCCS() const
+  {
+    return found_precursor_ccs_;
+  }
+
+
+  void SpectralMatch::setFoundPrecursorCCS(const double& pccs)
+  {
+    found_precursor_ccs_ = pccs;
   }
 
 
@@ -589,6 +617,15 @@ namespace OpenMS
             tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
             tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
 
+            // extract observed drift time from experimental spectrum
+            tmp_match.setObservedPrecursorDriftTime(msexp[spec_idx].getDriftTime());
+
+            // extract library CCS if available
+            if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_CCS))
+            {
+              tmp_match.setFoundPrecursorCCS(static_cast<double>(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_CCS)));
+            }
+
             partial_results.push_back(tmp_match);
           }
         }
@@ -793,6 +830,24 @@ namespace OpenMS
       col1.first = "opt_adduct_ion";
       col1.second = addion;
       optionals.push_back(col1);
+
+      // set observed drift time
+      double dt_temp = current_id.getObservedPrecursorDriftTime();
+      MzTabString dt_str;
+      dt_str.set(String(dt_temp));
+      MzTabOptionalColumnEntry col_dt;
+      col_dt.first = "opt_observed_drift_time";
+      col_dt.second = dt_str;
+      optionals.push_back(col_dt);
+
+      // set library CCS
+      double ccs_temp = current_id.getFoundPrecursorCCS();
+      MzTabString ccs_str;
+      ccs_str.set(String(ccs_temp));
+      MzTabOptionalColumnEntry col_ccs;
+      col_ccs.first = "opt_library_ccs";
+      col_ccs.second = ccs_str;
+      optionals.push_back(col_ccs);
 
       // set isotope similarity score
       double sim_score_temp = current_id.getMatchingScore();

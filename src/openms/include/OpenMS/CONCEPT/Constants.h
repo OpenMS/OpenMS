@@ -613,6 +613,11 @@ namespace OpenMS
       */
       inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
 
+      /** User parameter name for the collision cross section of a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_CCS = "CCS";
+
       /** User parameter name for the base name which links to underlying peak map
               String
       */

@@ -84,6 +84,7 @@ namespace OpenMS
     boost::regex re_smiles("^SMILES: (.+)");
     boost::regex re_sum_formula("^FORMULA: (.+)");
     boost::regex re_precursor_type("^PRECURSORTYPE: (.+)");
+    boost::regex re_ccs("^CCS: (.+)");
     // matches everything else
     boost::regex re_metadatum("^(.+): (.+)", boost::regex::no_mod_s);
     OPENMS_LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;
@@ -163,6 +164,10 @@ namespace OpenMS
       else if (boost::regex_search(line, m, re_precursor_type))
       {
         spectrum.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, String(m[1]));
+      }
+      else if (boost::regex_search(line, m, re_ccs))
+      {
+        spectrum.setMetaValue(Constants::UserParam::MSM_CCS, String(m[1]));
       }      
       // Other metadata, needs to be last, matches everything
       else if (boost::regex_search(line, m, re_metadatum))

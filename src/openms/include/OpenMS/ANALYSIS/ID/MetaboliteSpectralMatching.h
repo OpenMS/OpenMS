@@ -92,6 +92,12 @@ namespace OpenMS
     String getPrecursorAdduct() const;
     void setPrecursorAdduct(const String&);
 
+    double getObservedPrecursorDriftTime() const;
+    void setObservedPrecursorDriftTime(const double&);
+
+    double getFoundPrecursorCCS() const;
+    void setFoundPrecursorCCS(const double&);
+
 
   private:
     double observed_precursor_mass_;
@@ -111,6 +117,8 @@ namespace OpenMS
     String inchi_string_;
     String smiles_string_;
     String precursor_adduct_;
+    double observed_precursor_drift_time_;
+    double found_precursor_ccs_;
 
   };
 
