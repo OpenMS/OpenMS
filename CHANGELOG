@@ -169,6 +169,8 @@ OpenMS Library:
       - PeptideIdentification.buildUSI() for generating USIs from identification results
       - TextExporter USI output with optional dataset_id/ms_run parameters
       - pyOpenMS bindings included
+    - OpenSwathWorkflow:
+      - Added parquet store archive for store spectral library information and multi run feature scores.
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
