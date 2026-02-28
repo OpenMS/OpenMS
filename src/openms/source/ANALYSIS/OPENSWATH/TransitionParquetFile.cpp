@@ -551,7 +551,13 @@ namespace OpenMS
     int64_t transition_id = 1;
     for (const auto& transition : targeted_exp.transitions)
     {
-      const int64_t precursor_ref = compound_to_precursor[transition.peptide_ref];
+      auto precursor_it = compound_to_precursor.find(transition.peptide_ref);
+      if (precursor_it == compound_to_precursor.end())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Transition references unknown peptide_ref '" + String(transition.peptide_ref) + "'");
+      }
+      const int64_t precursor_ref = precursor_it->second;
       ParquetFile::appendOrThrow(transition_id_builder.Append(transition_id++), "transition_id");
       ParquetFile::appendOrThrow(transition_precursor_id_builder.Append(precursor_ref), "precursor_id");
       ParquetFile::appendOrThrow(transition_traml_id_builder.Append(transition.transition_name), "traml_id");
