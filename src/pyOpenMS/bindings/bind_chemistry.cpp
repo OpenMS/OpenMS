@@ -1002,9 +1002,6 @@ The cross-linker modifications are read from an OBO file.
             // but we need to ensure the DB is loaded
             return OpenMS::CrossLinksDB::getInstance() != nullptr;
         }, "Check whether CrossLinksDB was instantiated")
-        .def("readFromOBOFile", [](OpenMS::CrossLinksDB& self, const OpenMS::String& filename) {
-            self.readFromOBOFile(filename);
-        }, "filename"_a, "Add cross-link modifications from an OBO file")
         .def("getAllSearchModifications", [](const OpenMS::CrossLinksDB& self) {
             std::vector<OpenMS::String> mods;
             self.getAllSearchModifications(mods);
