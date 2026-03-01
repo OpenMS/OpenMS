@@ -104,7 +104,6 @@ class TestIDMapper(unittest.TestCase):
         f = self.create_test_feature(500.0, 800.0)
 
         hull = oms.ConvexHull2D()
-        # CRITICAL FIX: Pass python lists instead of oms.DPosition2 objects
         hull.addPoint([490.0, 799.0])
         hull.addPoint([510.0, 799.0])
         hull.addPoint([510.0, 801.0])
@@ -126,10 +125,12 @@ class TestIDMapper(unittest.TestCase):
 
                 peptide_ids = [self.create_test_peptide_id(505.0, 800.5, "HULLTEST")]
 
-                try:
-                    mapper.annotate(features, peptide_ids, [], use_centroid_rt, use_centroid_mz, empty_exp)
-                except Exception as e:
-                    self.fail(f"Annotate failed with use_centroid_rt={use_centroid_rt}, use_centroid_mz={use_centroid_mz}: {e}")
+                mapper.annotate(features, peptide_ids, [], use_centroid_rt, use_centroid_mz, empty_exp)
+
+                # Assert the actual mapping outcome!
+                pep_ids = features[0].getPeptideIdentifications()
+                self.assertEqual(len(pep_ids), 1, f"Failed mapping with centroid_rt={use_centroid_rt}, mz={use_centroid_mz}")
+                self.assertEqual(pep_ids[0].getHits()[0].getSequence().toString(), "HULLTEST")
 
     # --- Phase 2: Edge Cases ---
     def test_annotate_empty_featuremap(self):
@@ -141,10 +142,7 @@ class TestIDMapper(unittest.TestCase):
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
 
-        try:
-            mapper.annotate(features, peptide_ids, [], True, True, empty_exp)
-        except Exception as e:
-            self.fail(f"Annotate raised an exception with empty FeatureMap: {e}")
+        mapper.annotate(features, peptide_ids, [], True, True, empty_exp)
 
     def test_annotate_empty_peptide_ids(self):
         """Verify no exceptions on empty PeptideIdentifications."""
