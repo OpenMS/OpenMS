@@ -85,8 +85,8 @@ CTestTestfile.cmake
 OpenMSConfig.cmake
 OpenMSConfigVersion.cmake
 OpenMSTargets.cmake
-# NOTE: Modules/ is a generated directory, but cmake/modules/ contains tracked files
-Modules/
+# NOTE: /Modules/ is a generated directory at the repo root, but cmake/Modules/ contains tracked files
+/Modules/
 
 # IDE and editor files
 *.code-workspace

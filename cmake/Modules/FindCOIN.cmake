@@ -132,15 +132,16 @@ endmacro()
 
 if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
-  if (VCPKG_TOOLCHAIN)
-    # Currently coin-or from vcpkg requires BLAS and LAPACK
-    # TODO: Find a better way to do this. Ideal would be if Coin exports a CMake config
-    #  Maybe we can parse a header file? Or try_compile?
-    #  The current approach fails if VCPKG toolchain is used but CMake somehow finds
-    #  an external coin-or. Should be rare to impossible.
-    find_package(BLAS)
-    find_package(LAPACK)
+  # CoinUtils depends on LAPACK (for DGETRF/DGETRS). On Windows (MSVC) transitive
+  # shared-library dependencies must be linked explicitly, so we always find and
+  # attach BLAS/LAPACK here regardless of the package manager in use (vcpkg, pixi,
+  # conda-forge, system, etc.).
+  find_package(BLAS)
+  find_package(LAPACK)
+  if (BLAS_FOUND AND LAPACK_FOUND)
     target_link_libraries(CoinOR::CoinOR INTERFACE BLAS::BLAS LAPACK::LAPACK)
+  elseif(WIN32)
+    message(WARNING "BLAS/LAPACK not found – CoinOR linking will likely fail on Windows.")
   endif()
 endif()
 

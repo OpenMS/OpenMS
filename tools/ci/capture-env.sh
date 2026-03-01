@@ -47,6 +47,8 @@ vars_to_cache=(
   "WITH_PARQUET"
   "WITH_THERMORAWFILEPARSER_TEST"
   "USE_EXTERNAL_JSON"
+  "USE_EXTERNAL_SQLITECPP"
+  "USE_EXTERNAL_SIMDE"
 )
 
 ################################################################################

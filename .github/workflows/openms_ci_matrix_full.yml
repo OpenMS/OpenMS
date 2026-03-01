@@ -1,5 +1,5 @@
 # This does the whole cmake build of OpenMS on github's runners. It is intended to replace our current Jenkins based jobs.
-# For Nightly and Release branches it builds the packages and submits them to our archive. 
+# For Nightly and Release branches it builds the packages and submits them to our archive.
 # NB: The actual upload is currently commented out so that this can get merged to develop. It will be re-added presently.
 name: openms-ci-full
 
@@ -54,109 +54,109 @@ jobs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
 
     runs-on: ${{ matrix.os }}
-    env: 
+    env:
       TERM: xterm-256color
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        path: OpenMS
+      - uses: actions/checkout@v4
+        with:
+          path: OpenMS
 
-    - id: extract_branch
-      name: Extract branch/PR infos
-      shell: bash
-      run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_OUTPUT
+      - id: extract_branch
+        name: Extract branch/PR infos
+        shell: bash
+        run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_OUTPUT
 
-    - name: Get number of CPU cores
-      uses: SimenB/github-actions-cpu-cores@v2
-      id: cpu-cores
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
 
-    - id: set-vars
-      name: Set extra variables
-      run: |
-        DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" || "${{ steps.extract_branch.outputs.RUN_NAME }}" =~ release/* ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
-        echo $DO_PACKAGE
-        if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-          echo "tp_folder=Linux" >> $GITHUB_OUTPUT
-          echo "xvfb=xvfb-run -a" >> $GITHUB_OUTPUT
-          echo "static_boost=OFF" >> $GITHUB_OUTPUT
-          echo "enable_docs=ON" >> $GITHUB_OUTPUT  
-          if [ "$DO_PACKAGE" = true ]; then
-            echo "pkg_type=deb" >> $GITHUB_OUTPUT
-          else
-            echo "pkg_type=none" >> $GITHUB_OUTPUT
+      - id: set-vars
+        name: Set extra variables
+        run: |
+          DO_PACKAGE=$( [[ ( "${{ inputs.package }}" || "${{ steps.extract_branch.outputs.RUN_NAME }}" == "nightly" || "${{ steps.extract_branch.outputs.RUN_NAME }}" =~ release/* ) && "${{ matrix.compiler }}" != "clang++" ]] && echo true || echo false)
+          echo $DO_PACKAGE
+          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+            echo "tp_folder=Linux" >> $GITHUB_OUTPUT
+            echo "xvfb=xvfb-run -a" >> $GITHUB_OUTPUT
+            echo "static_boost=OFF" >> $GITHUB_OUTPUT
+            echo "enable_docs=ON" >> $GITHUB_OUTPUT  
+            if [ "$DO_PACKAGE" = true ]; then
+              echo "pkg_type=deb" >> $GITHUB_OUTPUT
+            else
+              echo "pkg_type=none" >> $GITHUB_OUTPUT
+            fi
+            echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
           fi
-          echo "cxx_compiler=${{ matrix.compiler }}-${{ matrix.compiler_ver }}" >> $GITHUB_OUTPUT
-        fi
-        
-        if [[ "${{ matrix.os }}" == windows-* ]]; then
-          echo "tp_folder=Windows" >> $GITHUB_OUTPUT
-          echo "xvfb=" >> $GITHUB_OUTPUT
-          echo "static_boost=OFF" >> $GITHUB_OUTPUT
-          echo "enable_docs=ON" >> $GITHUB_OUTPUT
-          if [ "$DO_PACKAGE" = true ]; then
-            echo "pkg_type=nsis" >> $GITHUB_OUTPUT
-          else
-            echo "pkg_type=none" >> $GITHUB_OUTPUT
-          fi
-          echo "cxx_compiler=${{ matrix.compiler }}" >> $GITHUB_OUTPUT
-        fi
 
-        if [[ "${{ matrix.os }}" == macos-* ]]; then
-          echo "tp_folder=MacOS" >> $GITHUB_OUTPUT
-          echo "contrib_os=macOS" >> $GITHUB_OUTPUT
-          echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
-          echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
-          echo "xvfb=" >> $GITHUB_OUTPUT
-          echo "static_boost=OFF" >> $GITHUB_OUTPUT
-          echo "enable_docs=ON" >> $GITHUB_OUTPUT
-          if [ "$DO_PACKAGE" = true ]; then
-            echo "pkg_type=pkg" >> $GITHUB_OUTPUT
-          else
-            echo "pkg_type=none" >> $GITHUB_OUTPUT
+          if [[ "${{ matrix.os }}" == windows-* ]]; then
+            echo "tp_folder=Windows" >> $GITHUB_OUTPUT
+            echo "xvfb=" >> $GITHUB_OUTPUT
+            echo "static_boost=OFF" >> $GITHUB_OUTPUT
+            echo "enable_docs=ON" >> $GITHUB_OUTPUT
+            if [ "$DO_PACKAGE" = true ]; then
+              echo "pkg_type=nsis" >> $GITHUB_OUTPUT
+            else
+              echo "pkg_type=none" >> $GITHUB_OUTPUT
+            fi
+            echo "cxx_compiler=${{ matrix.compiler }}" >> $GITHUB_OUTPUT
           fi
-          if [[ "${{ matrix.compiler }}" == "xcode" ]]; then
-            ls -la /Applications/Xcode*
-            sudo xcode-select -s '/Applications/Xcode_${{ matrix.compiler_ver }}.app/Contents/Developer'
-            echo "cxx_compiler=clang++" >> $GITHUB_OUTPUT
-          elif [[ "${{ matrix.compiler }}" == "clang++" ]]; then
-            echo "cxx_compiler=$(brew --prefix llvm@${{ matrix.compiler_ver }})/bin/clang++" >> $GITHUB_OUTPUT
+
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            echo "tp_folder=MacOS" >> $GITHUB_OUTPUT
+            echo "contrib_os=macOS" >> $GITHUB_OUTPUT
+            echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
+            echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
+            echo "xvfb=" >> $GITHUB_OUTPUT
+            echo "static_boost=OFF" >> $GITHUB_OUTPUT
+            echo "enable_docs=ON" >> $GITHUB_OUTPUT
+            if [ "$DO_PACKAGE" = true ]; then
+              echo "pkg_type=pkg" >> $GITHUB_OUTPUT
+            else
+              echo "pkg_type=none" >> $GITHUB_OUTPUT
+            fi
+            if [[ "${{ matrix.compiler }}" == "xcode" ]]; then
+              ls -la /Applications/Xcode*
+              sudo xcode-select -s '/Applications/Xcode_${{ matrix.compiler_ver }}.app/Contents/Developer'
+              echo "cxx_compiler=clang++" >> $GITHUB_OUTPUT
+            elif [[ "${{ matrix.compiler }}" == "clang++" ]]; then
+              echo "cxx_compiler=$(brew --prefix llvm@${{ matrix.compiler_ver }})/bin/clang++" >> $GITHUB_OUTPUT
+            else
+              echo "Unsupported compiler"
+              exit 1
+            fi
+          fi
+        shell: bash
+
+      - id: create_changelog
+        if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
+        shell: bash
+        name: Create changelog for release on Ubuntu + GCC
+        run: |
+          if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} =~ ^release\/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            VERSION_NUMBER=${BASH_REMATCH[1]}
+            echo "Version number: $VERSION_NUMBER"
+            if [ "${VERSION_NUMBER##*.}" -eq "0" ]
+            then
+              VERSION_NUMBER=${VERSION_NUMBER%.*}
+            fi
+            echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+            grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
+            START=$(cat index_changelog.txt | grep -A 1 -E " $VERSION_NUMBER(\.0)? " | cut -f1 -d: | head -1)
+            END=$(cat index_changelog.txt | grep -A 1 -E " $VERSION_NUMBER(\.0)? " | cut -f1 -d: | tail -1)
+            echo "Extracting between lines:"
+            echo $START
+            echo $END
+            awk "NR > $START && NR < $END" OpenMS/CHANGELOG > ${{ github.workspace }}/changelog.txt
           else
-            echo "Unsupported compiler"
+            echo "Branch name does not match the expected pattern."
             exit 1
           fi
-        fi
-      shell: bash
 
-    - id: create_changelog
-      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
-      shell: bash
-      name: Create changelog for release on Ubuntu + GCC
-      run: |
-        if [[ ${{ steps.extract_branch.outputs.RUN_NAME }} =~ ^release\/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
-          VERSION_NUMBER=${BASH_REMATCH[1]}
-          echo "Version number: $VERSION_NUMBER"
-          if [ "${VERSION_NUMBER##*.}" -eq "0" ]
-          then
-            VERSION_NUMBER=${VERSION_NUMBER%.*}
-          fi
-          echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
-          grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
-          START=$(cat index_changelog.txt | grep -A 1 -E " $VERSION_NUMBER(\.0)? " | cut -f1 -d: | head -1)
-          END=$(cat index_changelog.txt | grep -A 1 -E " $VERSION_NUMBER(\.0)? " | cut -f1 -d: | tail -1)
-          echo "Extracting between lines:"
-          echo $START
-          echo $END
-          awk "NR > $START && NR < $END" OpenMS/CHANGELOG > ${{ github.workspace }}/changelog.txt
-        else
-          echo "Branch name does not match the expected pattern."
-          exit 1
-        fi
-
-    - name: check input options
-      if: github.event_name == 'workflow_dispatch'
-      shell: bash
-      run: |
+      - name: check input options
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
           if [[ 'true' == ${{ inputs.do_release }} ]]; then
             if [[ 'false' == ${{ inputs.knime }} || 'false' == ${{ inputs.package }} ]]; then
               echo "Can't do a release without building the OpenMS package and the KNIME package"
@@ -174,103 +174,103 @@ jobs:
             fi
           fi
 
-    - name: Emulate a Visual Studio shell (Windows)
-      if: startsWith(matrix.os, 'windows')
-      uses: egor-tensin/vs-shell@v2
-      with:
-        arch: x64
+      - name: Emulate a Visual Studio shell (Windows)
+        if: startsWith(matrix.os, 'windows')
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
 
-    - name: Install Pixi (Windows)
-      if: startsWith(matrix.os, 'windows')
-      shell: pwsh
-      run: |
-        $ProgressPreference = "SilentlyContinue"
-        Invoke-RestMethod -Uri https://pixi.sh/install.ps1 | Invoke-Expression
-        "$env:USERPROFILE\.pixi\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Install Pixi (Windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          $ProgressPreference = "SilentlyContinue"
+          Invoke-RestMethod -Uri https://pixi.sh/install.ps1 | Invoke-Expression
+          "$env:USERPROFILE\.pixi\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-    - name: Install NSIS (Windows)
-      if: startsWith(matrix.os, 'windows')
-      shell: pwsh
-      run: |
-        choco install nsis --no-progress -y
-        echo "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Install NSIS (Windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: pwsh
+        run: |
+          choco install nsis --no-progress -y
+          echo "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-    - name: Set Up Build Tools
-      id: tools-prefix
-      shell: bash
-      env:
-        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
-      run: |
-        if [[ "${{ matrix.os }}" == windows-* ]]; then
-          cd OpenMS
-          pixi install --frozen
-          cd ..
+      - name: Set Up Build Tools
+        id: tools-prefix
+        shell: bash
+        env:
+          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+        run: |
+          if [[ "${{ matrix.os }}" == windows-* ]]; then
+            cd OpenMS
+            pixi install --frozen
+            cd ..
 
-          # make pixi-managed binaries available to subsequent steps
-          echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
-          echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/Library/bin" >> $GITHUB_PATH
+            # make pixi-managed binaries available to subsequent steps
+            echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
+            echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/Library/bin" >> $GITHUB_PATH
 
-          # tell cmake where to find libraries installed by pixi
-          PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
-          echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/Library;$PIXI_ENV/Library/lib/cmake;$PIXI_ENV/Library/lib;$PIXI_ENV/lib/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
+            # tell cmake where to find libraries installed by pixi
+            PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
+            echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/Library;$PIXI_ENV/Library/lib/cmake;$PIXI_ENV/Library/lib;$PIXI_ENV/lib/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
 
-        fi
-
-        if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-          # pixi handles all native dependencies for Linux builds
-          curl -fsSL https://pixi.sh/install.sh | bash
-          export PATH="$HOME/.pixi/bin:$PATH"
-
-          cd OpenMS
-          pixi install --frozen
-          cd ..
-
-          # make pixi-managed binaries available to subsequent steps
-          echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
-
-          # tell cmake where to find libraries installed by pixi
-          PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
-          echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/lib/cmake;$PIXI_ENV/share/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
-
-          # clang needs the OpenMP runtime which isn't bundled with the compiler on Ubuntu
-          if [[ "${{ matrix.compiler }}" == clang* ]]; then
-            sudo apt-get -qq install -y libomp-${{ matrix.compiler_ver }}-dev
           fi
-        fi
 
-        if [[ "${{ matrix.os }}" == macos-* ]]; then
-          # pixi handles all native dependencies for macOS builds
-          curl -fsSL https://pixi.sh/install.sh | bash
-          export PATH="$HOME/.pixi/bin:$PATH"
+          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+            # pixi handles all native dependencies for Linux builds
+            curl -fsSL https://pixi.sh/install.sh | bash
+            export PATH="$HOME/.pixi/bin:$PATH"
 
-          cd OpenMS
-          pixi install --frozen
-          cd ..
+            cd OpenMS
+            pixi install --frozen
+            cd ..
 
-          # make pixi-managed binaries available to subsequent steps
-          echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
+            # make pixi-managed binaries available to subsequent steps
+            echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
 
-          # tell cmake where to find libraries installed by pixi
-          PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
-          echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/lib/cmake;$PIXI_ENV/share/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
+            # tell cmake where to find libraries installed by pixi
+            PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
+            echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/lib/cmake;$PIXI_ENV/share/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
 
-          brew install ccache graphviz
-          echo "$(brew --prefix)/bin" >> $GITHUB_PATH
-        fi
+            # clang needs the OpenMP runtime which isn't bundled with the compiler on Ubuntu
+            if [[ "${{ matrix.compiler }}" == clang* ]]; then
+              sudo apt-get -qq install -y libomp-${{ matrix.compiler_ver }}-dev
+            fi
+          fi
 
-    - name: Setup ccache cache
-      uses: actions/cache@v4
-      with:
-        path: .ccache
-        key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
-        restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
-          ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-develop
-          ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            # pixi handles all native dependencies for macOS builds
+            curl -fsSL https://pixi.sh/install.sh | bash
+            export PATH="$HOME/.pixi/bin:$PATH"
 
-    - name: Add THIRDPARTY
-      shell: bash
-      run: |
+            cd OpenMS
+            pixi install --frozen
+            cd ..
+
+            # make pixi-managed binaries available to subsequent steps
+            echo "$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/bin" >> $GITHUB_PATH
+
+            # tell cmake where to find libraries installed by pixi
+            PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
+            echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/lib/cmake;$PIXI_ENV/share/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
+
+            brew install ccache
+            echo "$(brew --prefix)/bin" >> $GITHUB_PATH
+          fi
+
+      - name: Setup ccache cache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
+            ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-develop
+            ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-
+
+      - name: Add THIRDPARTY
+        shell: bash
+        run: |
           cd OpenMS
           git submodule update --init THIRDPARTY
           cd ..
@@ -306,17 +306,17 @@ jobs:
             fi
           done
 
-    - name: Upload changelog as artifact
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
-      uses: actions/upload-artifact@v4
-      with:
-        name: changelog.txt
-        path: |
-          ${{ github.workspace }}/changelog.txt
+      - name: Upload changelog as artifact
+        if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog.txt
+          path: |
+            ${{ github.workspace }}/changelog.txt
 
-    - name: Build
-      shell: bash
-      run: |
+      - name: Build
+        shell: bash
+        run: |
           set +e
 
           if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
@@ -324,7 +324,10 @@ jobs:
           fi
 
           if [[ "${{ matrix.os }}" == macos-* ]]; then
-            export DYLD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_LIBRARY_PATH:-}"
+            # Use DYLD_FALLBACK_LIBRARY_PATH (not DYLD_LIBRARY_PATH) so that
+            # RPATH-based resolution in pixi-provided binaries (cmake, ctest, etc.)
+            # is not overridden, which can cause segfaults.
+            export DYLD_FALLBACK_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_FALLBACK_LIBRARY_PATH:-}"
           fi
 
           mkdir -p ${{ github.workspace }}/.ccache
@@ -337,18 +340,18 @@ jobs:
           bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
-          
+
           echo "::group::ccache statistics after build"
           CCACHE_DIR=${{ github.workspace }}/.ccache ccache -s || true
           echo "::endgroup::"
-          
+
           if [ $retVal -ne 0 ]; then
               echo -e "\033[0;31m Errors in build:"
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
               find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec rm {} \;
           fi
           exit $retVal
-      env:
+        env:
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
           MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '14.0' || '' }}
           PYOPENMS: "OFF"
@@ -390,56 +393,62 @@ jobs:
           USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
 
-    - name: Test
-      shell: bash
-      run: |
+      - name: Test
+        shell: bash
+        run: |
           if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
             export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
           fi
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            export DYLD_FALLBACK_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_FALLBACK_LIBRARY_PATH:-}"
+          fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
-      env:
+        env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
 
-    - name: Import Apple Developer Certificates
-      id: import-apple-certs
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'macos')
-      env:
-        APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
-        APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_PASSWORD }}
-        INSTALLER_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT }}
-        INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_PASSWORD }}
-        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      run: |
-        if [[ -z "$APPLE_CERTIFICATE" || -z "$INSTALLER_CERTIFICATE" || -z "$KEYCHAIN_PASSWORD" ]]; then
-          echo "Apple signing secrets missing; continuing without certificate import."
-          echo "imported=false" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
+      - name: Import Apple Developer Certificates
+        id: import-apple-certs
+        if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'macos')
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_PASSWORD }}
+          INSTALLER_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT }}
+          INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          if [[ -z "$APPLE_CERTIFICATE" || -z "$INSTALLER_CERTIFICATE" || -z "$KEYCHAIN_PASSWORD" ]]; then
+            echo "Apple signing secrets missing; continuing without certificate import."
+            echo "imported=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
-        echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
-        echo $INSTALLER_CERTIFICATE | base64 --decode > installer_certificate.p12
-        security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-        security list-keychains -d user -s build.keychain
-        security default-keychain -s build.keychain
-        security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-        security set-keychain-settings -t 3600 -u build.keychain
-        security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productbuild
-        security import installer_certificate.p12 -k build.keychain -P "$INSTALLER_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign -T /usr/bin/productbuild
-        security set-key-partition-list -S apple-tool:,apple:,codesign:,productsign:,productbuild: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-        
-        echo "=== Available signing identities ==="
-        security find-identity -v -p codesigning build.keychain
-        echo "imported=true" >> "$GITHUB_OUTPUT"
+          echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
+          echo $INSTALLER_CERTIFICATE | base64 --decode > installer_certificate.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security list-keychains -d user -s build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productbuild
+          security import installer_certificate.p12 -k build.keychain -P "$INSTALLER_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign -T /usr/bin/productbuild
+          security set-key-partition-list -S apple-tool:,apple:,codesign:,productsign:,productbuild: -s -k "$KEYCHAIN_PASSWORD" build.keychain
 
-    - name: Package
-      if: steps.set-vars.outputs.pkg_type != 'none'
-      shell: bash
-      run: |
+          echo "=== Available signing identities ==="
+          security find-identity -v -p codesigning build.keychain
+          echo "imported=true" >> "$GITHUB_OUTPUT"
+
+      - name: Package
+        if: steps.set-vars.outputs.pkg_type != 'none'
+        shell: bash
+        run: |
           set +e
           if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
             export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
+          fi
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            export DYLD_FALLBACK_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_FALLBACK_LIBRARY_PATH:-}"
           fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
@@ -450,7 +459,7 @@ jobs:
               cat OpenMS/bld/_CPack_Packages/win64/NSIS/NSISOutput.log || true
           fi
           exit $retVal
-      env:
+        env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
           SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
@@ -463,109 +472,109 @@ jobs:
           USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
 
-    - name: Notarize macOS Package
-      if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos') && steps['import-apple-certs'].outputs.imported == 'true'
-      shell: bash
-      env:
-        APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD }}
-        TEAM_ID: "C64UCGJ5PL"
-      run: |
-        if [[ -z "$APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" ]]; then
-          echo "Notarization secret missing; skipping notarization."
-          exit 0
-        fi
-        echo "=== Starting macOS package notarization ==="
-        cd $GITHUB_WORKSPACE/OpenMS/bld/
+      - name: Notarize macOS Package
+        if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos') && steps['import-apple-certs'].outputs.imported == 'true'
+        shell: bash
+        env:
+          APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD }}
+          TEAM_ID: "C64UCGJ5PL"
+        run: |
+          if [[ -z "$APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" ]]; then
+            echo "Notarization secret missing; skipping notarization."
+            exit 0
+          fi
+          echo "=== Starting macOS package notarization ==="
+          cd $GITHUB_WORKSPACE/OpenMS/bld/
 
-        PKG_FILE=$(ls -1 *.pkg 2>/dev/null | head -1)
-        if [[ -z "$PKG_FILE" ]]; then
-          echo "Error: No .pkg file found in build directory"
-          ls -la
-          exit 1
-        fi
+          PKG_FILE=$(ls -1 *.pkg 2>/dev/null | head -1)
+          if [[ -z "$PKG_FILE" ]]; then
+            echo "Error: No .pkg file found in build directory"
+            ls -la
+            exit 1
+          fi
 
-        echo "Found package: $PKG_FILE"
+          echo "Found package: $PKG_FILE"
 
-        $GITHUB_WORKSPACE/OpenMS/cmake/MacOSX/notarize.sh \
-          "$PKG_FILE" \
-          "de.openms" \
-          "apple@openms.de" \
-          "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
-          "$TEAM_ID" \
-          "$GITHUB_WORKSPACE/OpenMS/bld/"
+          $GITHUB_WORKSPACE/OpenMS/cmake/MacOSX/notarize.sh \
+            "$PKG_FILE" \
+            "de.openms" \
+            "apple@openms.de" \
+            "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
+            "$TEAM_ID" \
+            "$GITHUB_WORKSPACE/OpenMS/bld/"
 
-        echo "=== Notarization complete ==="
+          echo "=== Notarization complete ==="
 
-        echo "=== Verifying package signing and notarization ==="
-        pkgutil --check-signature "$PKG_FILE" || echo "Warning: pkgutil verification returned non-zero"
-        spctl -a -vvv -t install "$PKG_FILE" || echo "Warning: spctl assessment returned non-zero"
+          echo "=== Verifying package signing and notarization ==="
+          pkgutil --check-signature "$PKG_FILE" || echo "Warning: pkgutil verification returned non-zero"
+          spctl -a -vvv -t install "$PKG_FILE" || echo "Warning: spctl assessment returned non-zero"
 
-    - name: Upload packages as artifacts
-      if: steps.set-vars.outputs.pkg_type != 'none'
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ format('installer-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
-        path: |
-          ${{ github.workspace }}/OpenMS/bld/*.exe
-          ${{ github.workspace }}/OpenMS/bld/*.deb
-          ${{ github.workspace }}/OpenMS/bld/*.pkg
+      - name: Upload packages as artifacts
+        if: steps.set-vars.outputs.pkg_type != 'none'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ format('installer-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
+          path: |
+            ${{ github.workspace }}/OpenMS/bld/*.exe
+            ${{ github.workspace }}/OpenMS/bld/*.deb
+            ${{ github.workspace }}/OpenMS/bld/*.pkg
 
-    - name: Zip Documentation
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
-      uses: thedoctor0/zip-release@0.7.6
-      with:
-        type: 'zip'
-        directory: ${{ github.workspace }}/OpenMS/bld/doc
-        exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
-        filename: 'documentation.zip'
-    
-    - name: Create tarball
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
-      run: |
-        tar --exclude='bld/*' \
-            --exclude='OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz' \
-            --exclude='OpenMS/THIRDPARTY/**' \
-            --exclude='.git/**' \
-            --exclude='.github/**' \
-            --exclude='vcpkg*/**' \
-            -czf OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} OpenMS
-        
-    - name: Upload source tar as artifact
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
-      uses: actions/upload-artifact@v4
-      with:
-        name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
-        path: |
-          ${{ github.workspace }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
+      - name: Zip Documentation
+        if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
+        uses: thedoctor0/zip-release@0.7.6
+        with:
+          type: "zip"
+          directory: ${{ github.workspace }}/OpenMS/bld/doc
+          exclusions: "/CMakeFiles/* /doxygen/* /code_examples/*"
+          filename: "documentation.zip"
 
-    - name: Upload Documentation as artifacts
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
-      uses: actions/upload-artifact@v4
-      with:
-        name: documentation
-        path: |
-          ${{ github.workspace }}/OpenMS/bld/doc/documentation.zip
+      - name: Create tarball
+        if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
+        run: |
+          tar --exclude='bld/*' \
+              --exclude='OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz' \
+              --exclude='OpenMS/THIRDPARTY/**' \
+              --exclude='.git/**' \
+              --exclude='.github/**' \
+              --exclude='vcpkg*/**' \
+              -czf OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} OpenMS
 
-    - name: Generate KNIME descriptors and payloads
-      if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
-      shell: bash
-      run: |
-        if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-          export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
-        fi
-        if [[ "${{ matrix.os }}" == macos-* ]]; then
-          export DYLD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_LIBRARY_PATH:-}"
-        fi
-        cd $GITHUB_WORKSPACE/OpenMS/bld/
-        cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
-        cmake --build . --target prepare_knime_package
-        
-    - name: Upload KNIME payload and descriptors as artifacts
-      if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ format('knime-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
-        path: ${{ github.workspace }}/OpenMS/bld/knime/**/*
+      - name: Upload source tar as artifact
+        if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
+          path: |
+            ${{ github.workspace }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
+
+      - name: Upload Documentation as artifacts
+        if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: |
+            ${{ github.workspace }}/OpenMS/bld/doc/documentation.zip
+
+      - name: Generate KNIME descriptors and payloads
+        if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+            export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
+          fi
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            export DYLD_FALLBACK_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_FALLBACK_LIBRARY_PATH:-}"
+          fi
+          cd $GITHUB_WORKSPACE/OpenMS/bld/
+          cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
+          cmake --build . --target prepare_knime_package
+
+      - name: Upload KNIME payload and descriptors as artifacts
+        if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ format('knime-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
+          path: ${{ github.workspace }}/OpenMS/bld/knime/**/*
 
   deploy-installer:
     if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
@@ -595,7 +604,7 @@ jobs:
         uses: actions/download-artifact@v6
         with:
           name: changelog.txt
-      
+
       - name: Upload installer
         shell: bash
         env:
@@ -618,7 +627,7 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
-        
+
       - name: Make installer latest
         if: inputs.mark_as_latest
         shell: bash
@@ -646,45 +655,43 @@ jobs:
         if: inputs.do_release
         shell: bash
         run: |
-            cat > releaseTextHeader.txt << EOF
-            Dear OpenMS-Users,
+          cat > releaseTextHeader.txt << EOF
+          Dear OpenMS-Users,
 
-            we are proud to announce the release of OpenMS ${{ needs.build-and-test.outputs.version_number }}. Grab it <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/${{ needs.build-and-test.outputs.version_number }}">here</a>
+          we are proud to announce the release of OpenMS ${{ needs.build-and-test.outputs.version_number }}. Grab it <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/${{ needs.build-and-test.outputs.version_number }}">here</a>
 
-            In the following you find all important changes to the previous version:
+          In the following you find all important changes to the previous version:
 
-            EOF
+          EOF
 
-            cat > releaseTextParamHeader.txt << EOF
+          cat > releaseTextParamHeader.txt << EOF
 
-            Additionally, the following changes were made to parameters of our TOPP tools:
+          Additionally, the following changes were made to parameters of our TOPP tools:
 
-            EOF
+          EOF
 
-            cat > releaseTextFooter.txt << EOF
+          cat > releaseTextFooter.txt << EOF
 
-            Best regards,
-            The OpenMS-Developers
+          Best regards,
+          The OpenMS-Developers
 
-            EOF
-            RELEASE_TEXT=$(cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt)
-            RELEASE_TEXT_ESCAPED_QUOTES="${RELEASE_TEXT//\"/\\\"}"
-            cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt > RELEASE_TEXT_GH.md
-            echo release_text_contents=`base64 -w0 RELEASE_TEXT_GH.md` >> $GITHUB_OUTPUT
-      
+          EOF
+          RELEASE_TEXT=$(cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt)
+          RELEASE_TEXT_ESCAPED_QUOTES="${RELEASE_TEXT//\"/\\\"}"
+          cat releaseTextHeader.txt $GITHUB_WORKSPACE/changelog.txt releaseTextFooter.txt > RELEASE_TEXT_GH.md
+          echo release_text_contents=`base64 -w0 RELEASE_TEXT_GH.md` >> $GITHUB_OUTPUT
+
       - name: run GHA release action.
         id: create_release
         if: inputs.do_release
         uses: ncipollo/release-action@v1.16.0
-        with: 
+        with:
           bodyFile: RELEASE_TEXT_GH.md
           tag: ${{ github.ref_name }}
           draft: true
           artifactErrorsFailBuild: true
           makeLatest: ${{ inputs.mark_as_latest }}
-          artifacts:
-            ${{ github.workspace }}/*.exe, ${{ github.workspace }}/*.deb, ${{ github.workspace }}/*.pkg, ${{ github.workspace }}/*.tar.gz
-
+          artifacts: ${{ github.workspace }}/*.exe, ${{ github.workspace }}/*.deb, ${{ github.workspace }}/*.pkg, ${{ github.workspace }}/*.tar.gz
 
   deploy-docs:
     if: github.ref == 'refs/heads/nightly' || contains(github.ref, 'release/') || inputs.package
@@ -694,7 +701,7 @@ jobs:
       - name: Extract branch/PR infos
         shell: bash
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
-    
+
       - name: Download Documentation
         uses: actions/download-artifact@v4
         with:
@@ -732,7 +739,7 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}          
+          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
           if [[ "${GITHUB_REF_NAME}" == release/* ]]; then
@@ -747,7 +754,7 @@ jobs:
           sudo chmod 600 ~/.ssh/private.key
           ln -s ./$folder latest
           rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/release"
-      
+
   build-deploy-knime-updatesite:
     env:
       KNIME: 5.3
@@ -768,87 +775,87 @@ jobs:
           pattern: knime-*
           merge-multiple: true
           path: ${{ env.PLUGIN_SOURCE }}
-     
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VER }}
-          distribution: 'temurin'
+          distribution: "temurin"
 
       - name: Generate KNIME plugin sources
         shell: bash
         run: |
-            function replace_qualifier {
-              find $1 -name MANIFEST.MF -exec sed -i -e "s/qualifier/$2/g" {} \;
-            }
+          function replace_qualifier {
+            find $1 -name MANIFEST.MF -exec sed -i -e "s/qualifier/$2/g" {} \;
+          }
 
-            function replace_snapshot {
-              find $1 -name pom.xml -exec sed -i -e "1 h;1! H;\$! d;$ {g;s/-SNAPSHOT/\.$2/;}" {} \;
-            }
+          function replace_snapshot {
+            find $1 -name pom.xml -exec sed -i -e "1 h;1! H;\$! d;$ {g;s/-SNAPSHOT/\.$2/;}" {} \;
+          }
 
-            GKN_PLUGIN_PATH=${GITHUB_WORKSPACE}/GenericKnimeNodes
-            git clone -q https://github.com/genericworkflownodes/GenericKnimeNodes/ --branch develop --single-branch $GKN_PLUGIN_PATH
+          GKN_PLUGIN_PATH=${GITHUB_WORKSPACE}/GenericKnimeNodes
+          git clone -q https://github.com/genericworkflownodes/GenericKnimeNodes/ --branch develop --single-branch $GKN_PLUGIN_PATH
 
-            mkdir ${PLUGIN_BUILD}
-            PLUGIN_SOURCE_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.feature/contributing-plugins
-            mkdir -p ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
-            PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.thirdparty.feature/contributing-plugins
-            mkdir -p ${PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS}
+          mkdir ${PLUGIN_BUILD}
+          PLUGIN_SOURCE_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.feature/contributing-plugins
+          mkdir -p ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
+          PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS=${PLUGIN_SOURCE}/de.openms.thirdparty.feature/contributing-plugins
+          mkdir -p ${PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS}
 
-            pushd ${PLUGIN_SOURCE}/de.openms.feature/de.openms.lib/
-              amount=$(ls -1 payload | wc -l)
-              if [ $amount -le 2 ]; then
-                  echo "Not enough payloads for each platform. Aborting..."
-                  exit 1
-              fi
-            popd
+          pushd ${PLUGIN_SOURCE}/de.openms.feature/de.openms.lib/
+            amount=$(ls -1 payload | wc -l)
+            if [ $amount -le 2 ]; then
+                echo "Not enough payloads for each platform. Aborting..."
+                exit 1
+            fi
+          popd
 
-            pushd ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
+          pushd ${PLUGIN_SOURCE_CONTRIB_PLUGINS}
 
-              git clone -q https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
-              CONTRIBUTING_DATE=$(git log -1 --format="%cd" --date="format:%Y%m%d%H%M")
-              echo "Setting qualifier/SNAPSHOT for de.openms.knime contrib plugins to ${CONTRIBUTING_DATE}!"
-              git log -1 --format="%cd" --date=iso
-              
-              replace_qualifier de.openms.knime.startupCheck ${CONTRIBUTING_DATE}
-              replace_qualifier de.openms.knime.mzTab ${CONTRIBUTING_DATE}
-              replace_qualifier de.openms.knime.textexporter_reader ${CONTRIBUTING_DATE}
-              replace_qualifier de.openms.knime.importers ${CONTRIBUTING_DATE}
-              replace_qualifier de.openms.knime.qchandling ${CONTRIBUTING_DATE}
-              replace_qualifier de.openms.thirdparty.knime.startupCheck ${CONTRIBUTING_DATE}
-              replace_snapshot de.openms.knime.startupCheck ${CONTRIBUTING_DATE}
-              replace_snapshot de.openms.knime.mzTab ${CONTRIBUTING_DATE}
-              replace_snapshot de.openms.knime.textexporter_reader ${CONTRIBUTING_DATE}
-              replace_snapshot de.openms.knime.importers ${CONTRIBUTING_DATE}
-              replace_snapshot de.openms.knime.qchandling ${CONTRIBUTING_DATE}
-              replace_snapshot de.openms.thirdparty.knime.startupCheck ${CONTRIBUTING_DATE}
-              
-              mv de.openms.thirdparty.knime.startupCheck ${PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS}/de.openms.thirdparty.knime.startupCheck
-              rm -r .git
-              rm -r de.openms.knime.startupCheck.test
+            git clone -q https://github.com/OpenMS/de.openms.knime --branch develop --single-branch .
+            CONTRIBUTING_DATE=$(git log -1 --format="%cd" --date="format:%Y%m%d%H%M")
+            echo "Setting qualifier/SNAPSHOT for de.openms.knime contrib plugins to ${CONTRIBUTING_DATE}!"
+            git log -1 --format="%cd" --date=iso
+            
+            replace_qualifier de.openms.knime.startupCheck ${CONTRIBUTING_DATE}
+            replace_qualifier de.openms.knime.mzTab ${CONTRIBUTING_DATE}
+            replace_qualifier de.openms.knime.textexporter_reader ${CONTRIBUTING_DATE}
+            replace_qualifier de.openms.knime.importers ${CONTRIBUTING_DATE}
+            replace_qualifier de.openms.knime.qchandling ${CONTRIBUTING_DATE}
+            replace_qualifier de.openms.thirdparty.knime.startupCheck ${CONTRIBUTING_DATE}
+            replace_snapshot de.openms.knime.startupCheck ${CONTRIBUTING_DATE}
+            replace_snapshot de.openms.knime.mzTab ${CONTRIBUTING_DATE}
+            replace_snapshot de.openms.knime.textexporter_reader ${CONTRIBUTING_DATE}
+            replace_snapshot de.openms.knime.importers ${CONTRIBUTING_DATE}
+            replace_snapshot de.openms.knime.qchandling ${CONTRIBUTING_DATE}
+            replace_snapshot de.openms.thirdparty.knime.startupCheck ${CONTRIBUTING_DATE}
+            
+            mv de.openms.thirdparty.knime.startupCheck ${PLUGIN_SOURCE_THIRDPARTY_CONTRIB_PLUGINS}/de.openms.thirdparty.knime.startupCheck
+            rm -r .git
+            rm -r de.openms.knime.startupCheck.test
 
-            popd
+          popd
 
-            git clone -q https://github.com/genericworkflownodes/de.openms.knime.dynamicJSViewers --branch master --single-branch
-            pushd de.openms.knime.dynamicJSViewers
-              CONTRIBUTING_DATE=$(git log -1 --format="%cd" --date="format:%Y%m%d%H%M")
-            popd
+          git clone -q https://github.com/genericworkflownodes/de.openms.knime.dynamicJSViewers --branch master --single-branch
+          pushd de.openms.knime.dynamicJSViewers
+            CONTRIBUTING_DATE=$(git log -1 --format="%cd" --date="format:%Y%m%d%H%M")
+          popd
 
-            mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers.feature ${PLUGIN_SOURCE}/
-            mkdir ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins
-            rm -rf ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/.settings
-            mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
+          mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers.feature ${PLUGIN_SOURCE}/
+          mkdir ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins
+          rm -rf ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/.settings
+          mv de.openms.knime.dynamicJSViewers/de.openms.knime.dynamicJSViewers ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
 
-            pushd ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
-              echo "Setting qualifier/SNAPSHOT for de.openms.knime.dynamicJSViewers to ${CONTRIBUTING_DATE}"
-              replace_qualifier de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
-              replace_snapshot de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
-            popd
+          pushd ${PLUGIN_SOURCE}/de.openms.knime.dynamicJSViewers.feature/contributing-plugins/
+            echo "Setting qualifier/SNAPSHOT for de.openms.knime.dynamicJSViewers to ${CONTRIBUTING_DATE}"
+            replace_qualifier de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
+            replace_snapshot de.openms.knime.dynamicJSViewers ${CONTRIBUTING_DATE}
+          popd
 
-            rm -rf de.openms.knime.dynamicJSViewers
+          rm -rf de.openms.knime.dynamicJSViewers
 
-            cd ${GKN_PLUGIN_PATH}
-            ant -Dplugin.dir=${PLUGIN_SOURCE} -Dgenerate.extra.arguments="-r -u" -Dcustom.plugin.generator.target=${PLUGIN_BUILD}
+          cd ${GKN_PLUGIN_PATH}
+          ant -Dplugin.dir=${PLUGIN_SOURCE} -Dgenerate.extra.arguments="-r -u" -Dcustom.plugin.generator.target=${PLUGIN_BUILD}
 
       - name: Build KNIME update site
         shell: bash
@@ -877,7 +884,7 @@ jobs:
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
-          
+
         run: |
           echo "Upload"
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
@@ -892,7 +899,7 @@ jobs:
           chmod -R o+r $GITHUB_WORKSPACE/de.openms.update/target/repository/*
           chmod o+x $GITHUB_WORKSPACE/de.openms.update/target/repository/features
           chmod o+x $GITHUB_WORKSPACE/de.openms.update/target/repository/plugins
-          
+
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
@@ -905,7 +912,7 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
-          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}          
+          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
         run: |
           echo "Upload"
           if [[ "${{ github.ref_name }}" == release/* ]]; then
@@ -924,10 +931,9 @@ jobs:
   do-release:
     if: inputs.do_release
     runs-on: ubuntu-latest
-    needs: [build-deploy-knime-updatesite,deploy-installer, build-and-test]
+    needs: [build-deploy-knime-updatesite, deploy-installer, build-and-test]
     permissions: write-all
     steps:
-    
       - name: get a token so that we can update the tags
         uses: actions/create-github-app-token@v1
         id: app-token
@@ -939,7 +945,7 @@ jobs:
       - name: Extract branch/PR infos
         shell: bash
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
-    
+
       - name: Publish OpenMS release
         id: publish_release
         if: inputs.do_release
@@ -957,7 +963,7 @@ jobs:
       - id: bash_create_tags
         name: create tags for other repos
         shell: bash
-        env: 
+        env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           function handleGitTag() {
@@ -1037,7 +1043,6 @@ jobs:
     needs: [deploy-installer, build-and-test]
     permissions: write-all
     steps:
-
       - name: get a token so that we can update the website
         uses: actions/create-github-app-token@v1
         id: app-token
@@ -1055,16 +1060,16 @@ jobs:
 
       - name: create text for website and update it.
         shell: bash
-        env: 
+        env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run:  |
-            echo '${{ needs.deploy-installer.outputs.release_text_contents }}' | base64 -d >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
-            pushd OpenMS-website
-              git config --local user.email "action@github.com"
-              git config --local user.name "GitHub Action"
-              git checkout -b "releaseannouncement${{ needs.build-and-test.outputs.version_number }}"
-              git add content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
-            	git commit -am "Announce release ${{ needs.build-and-test.outputs.version_number }}"
-              git push --set-upstream origin releaseannouncement${{ needs.build-and-test.outputs.version_number }}
-              gh pr create --title "Release announcement for ${{ needs.build-and-test.outputs.version_number }}" --body "announces ${{ needs.build-and-test.outputs.version_number }}"
-            popd
+        run: |
+          echo '${{ needs.deploy-installer.outputs.release_text_contents }}' | base64 -d >> OpenMS-website/content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
+          pushd OpenMS-website
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git checkout -b "releaseannouncement${{ needs.build-and-test.outputs.version_number }}"
+            git add content/en/news/release${{ needs.build-and-test.outputs.version_number }}.md
+          	git commit -am "Announce release ${{ needs.build-and-test.outputs.version_number }}"
+            git push --set-upstream origin releaseannouncement${{ needs.build-and-test.outputs.version_number }}
+            gh pr create --title "Release announcement for ${{ needs.build-and-test.outputs.version_number }}" --body "announces ${{ needs.build-and-test.outputs.version_number }}"
+          popd
