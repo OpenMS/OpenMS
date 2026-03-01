@@ -51,9 +51,6 @@ if(NOT "$ENV{BLAS_LIBRARIES}" STREQUAL "")
 endif()
 if(NOT "$ENV{LAPACK_LIBRARIES}" STREQUAL "")
   list(APPEND OWN_OPTIONS "-DLAPACK_LIBRARIES=$ENV{LAPACK_LIBRARIES}")
-endif()set(OWN_OPTIONS "")
-if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
-  set(OWN_OPTIONS "-DCMAKE_CXX_RELEASE_FLAGS='/MD /Od /Ob0 /DNDEBUG /EHsc'")
 endif()
 
 # run the classical CTest suite

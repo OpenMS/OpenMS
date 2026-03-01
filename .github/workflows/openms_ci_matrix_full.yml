@@ -355,7 +355,7 @@ jobs:
           PYOPENMS: "OFF"
           NO_DEPENDENCIES: "ON"
           CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }}"
-          OPENMS_CONTRIB_LIBS: "${{ (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macos')) && '' || format('{0}/OpenMS/contrib', github.workspace) }} OPENMS_CONTRIB_LIBS: ${{ (startsWith(matrix.os, 'ubuntu')) && format('{0}/OpenMS/contrib', github.workspace) || '' }}"
+          OPENMS_CONTRIB_LIBS: ${{ startsWith(matrix.os, 'ubuntu') && format('{0}/OpenMS/contrib', github.workspace) || '' }}
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
