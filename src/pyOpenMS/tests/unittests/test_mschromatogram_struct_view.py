@@ -18,7 +18,7 @@ def test_chromatogram_zero_copy_modification():
     # PROVE ZERO-COPY
     arr[0, 1] = 999.0
 
-    rt_copy, int_copy = chrom.get_peaks()
+    _, int_copy = chrom.get_peaks()
     assert np.isclose(int_copy[0], 999.0), "Zero-copy modification failed!"
 
 
