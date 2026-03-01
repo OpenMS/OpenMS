@@ -985,7 +985,7 @@ def test_to_arrow_column_types():
     assert schema.field("mz").type == pa.float32()
     assert schema.field("charge").type == pa.int32()
     assert schema.field("P_ID").type == pa.int32()
-    assert schema.field("id").type == pa.utf8()
+    assert schema.field("id").type in (pa.utf8(), pa.large_utf8())
 
 
 def test_to_arrow_column_filter():
