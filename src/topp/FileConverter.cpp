@@ -16,6 +16,9 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 // TODO add handler support for other access
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -143,7 +146,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms", "sqMass"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
 
@@ -176,7 +179,16 @@ protected:
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
     registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
     registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
+    
+  // OpenSwath / chromatogram options: allow passing a transition library to enrich chromatogram metadata
+  registerTOPPSubsection_("OpenSwathWorkflow", "Options for loading OpenSWATH transition libraries used for chromatogram metadata");
+  registerInputFile_("OpenSwathWorkflow:tr", "<file>", "", "Optional transition library (PQP, TSV, TraML, or .oswpq) to supply precursor/transition metadata when converting to CHROMPARQUET.", false, true);
+  registerStringOption_("OpenSwathWorkflow:tr_type", "<type>", "", "Optional type hint for the transition file (pqp, tsv, traml). If not provided the type is inferred.", false, true);
+  registerFlag_("OpenSwathWorkflow:legacy_traml_id", "When loading PQP libraries: use legacy TraML IDs (TRAML_ID) instead of numeric IDs.", true);
   }
+
+  // Note: subsection defaults are not overridden here; TransitionTSVFile parameters
+  // are available via the standard parameter mechanism when requested.
 
   ExitCodes main_(int, const char**) override
   {
@@ -692,8 +704,64 @@ protected:
       // Convert to OpenSWATH Parquet chromatogram file (.xic)
       if (in_type == FileTypes::SQMASS)
       {
-        // Use SqMassFile convenience method which streams chromatograms into parquet consumer
-        SqMassFile().convertToXICParquet(in, out, /*run_id=*/0, /*source_file=*/"");
+        // If the user provided a transition library, load it and pass it to
+        // the parquet consumer so precursor/transition metadata are preserved.
+        OpenSwath::LightTargetedExperiment transition_exp;
+        String tr_file = getStringOption_("OpenSwathWorkflow:tr");
+        if (!tr_file.empty())
+        {
+          FileHandler fh_local;
+          FileTypes::Type tr_type = fh_local.getType(tr_file);
+          try
+          {
+            if (tr_type == FileTypes::PQP || tr_type == FileTypes::OSW)
+            {
+              TransitionPQPFile pqp_reader;
+              bool legacy = getFlag_("OpenSwathWorkflow:legacy_traml_id");
+              pqp_reader.setLogType(log_type_);
+              pqp_reader.convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp, legacy);
+            }
+            else if (tr_file.hasSuffix(".oswpq") || tr_file.hasSuffix(".oswpq.zip"))
+            {
+              writeLogWarn_(String(".oswpq libraries are not supported by this build of FileConverter. Skipping transition library '") + tr_file + "");
+            }
+            else if (tr_type == FileTypes::TSV)
+            {
+              TransitionTSVFile tsv_reader;
+              Param reader_parameters = getParam_().copy("OpenSwathWorkflow:", true);
+              tsv_reader.setLogType(log_type_);
+              tsv_reader.setParameters(reader_parameters);
+              tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+            }
+            else if (tr_type == FileTypes::TRAML)
+            {
+              TargetedExperiment targeted_exp;
+              FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
+              OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+            }
+            else
+            {
+              writeLogWarn_(String("Unrecognized transition library type for '") + tr_file + "' - proceeding without library metadata.");
+            }
+          }
+          catch (const Exception::BaseException& e)
+          {
+            writeLogWarn_(String("Failed to load transition library '") + tr_file + "': " + e.what() + " - proceeding without library metadata.");
+            transition_exp = OpenSwath::LightTargetedExperiment();
+          }
+        }
+
+        // Sanitize metadata source filename and stream chromatograms into consumer
+        auto sanitize_for_metadata = [](const String& s) {
+          String out = s;
+          out.substitute('%', '_');
+          return out;
+        };
+        String metadata_src = sanitize_for_metadata(in);
+        MSChromatogramParquetConsumer consumer(out, 0, metadata_src, transition_exp);
+        // Stream directly from the sqMass file (memory-efficient)
+        SqMassFile().transform(in, &consumer, /*skip_full_count=*/false, /*skip_first_pass=*/false);
+        consumer.finalize();
       }
       else
       {
@@ -713,7 +781,14 @@ protected:
 
         std::vector<MSChromatogram> chroms = exp.getChromatograms();
         OpenSwath::LightTargetedExperiment transition_exp; // no transitions provided
-        MSChromatogramParquetConsumer consumer(out, 0, in, transition_exp);
+          // Sanitize input filename for metadata passed to the parquet consumer
+          auto sanitize_for_metadata = [](const String& s) {
+            String out = s;
+            out.substitute('%', '_');
+            return out;
+          };
+          String metadata_in = sanitize_for_metadata(in);
+          MSChromatogramParquetConsumer consumer(out, 0, metadata_in, transition_exp);
         consumer.setExpectedSize(exp.size(), chroms.size());
         for (auto& c : chroms)
         {
