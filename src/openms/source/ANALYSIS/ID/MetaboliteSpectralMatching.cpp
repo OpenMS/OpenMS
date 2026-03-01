@@ -302,6 +302,8 @@ namespace OpenMS
     defaults_.setValue("merge_spectra", "true", "Merge MS2 spectra with the same precursor mass.");
     defaults_.setValidStrings("merge_spectra", {"true","false"});
 
+    defaults_.setValue("ccs_error_value", 0.0, "CCS tolerance in percent for filtering matches (0 = disabled). Matches with a relative CCS difference exceeding this value are rejected.");
+
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -626,6 +628,16 @@ namespace OpenMS
               tmp_match.setFoundPrecursorCCS(static_cast<double>(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_CCS)));
             }
 
+
+            // CCS tolerance filtering (skip if CCS data is missing or tolerance is disabled)
+            if (ccs_error_pct_ > 0.0
+                && tmp_match.getFoundPrecursorCCS() > 0.0
+                && tmp_match.getObservedPrecursorDriftTime() > 0.0)
+            {
+              double rel_error = std::abs(tmp_match.getObservedPrecursorDriftTime() - tmp_match.getFoundPrecursorCCS())
+                                 / tmp_match.getFoundPrecursorCCS() * 100.0;
+              if (rel_error > ccs_error_pct_) { continue; }
+            }
             partial_results.push_back(tmp_match);
           }
         }
@@ -674,6 +686,7 @@ namespace OpenMS
     mz_error_unit_ = param_.getValue("mass_error_unit").toString();
     report_mode_ = param_.getValue("report_mode").toString();
     merge_spectra_ = (bool)param_.getValue("merge_spectra").toBool();
+    ccs_error_pct_ = (double)param_.getValue("ccs_error_value");
   }
 
 

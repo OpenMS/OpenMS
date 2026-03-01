@@ -227,6 +227,111 @@ START_SECTION(([Integration] run() populates CCS and drift time in results))
 END_SECTION
 
 
+
+
+/////////////////////////////////////////////////////////////
+// Test: CCS tolerance filtering rejects matches outside tolerance
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([Integration] CCS tolerance filtering rejects matches outside tolerance))
+{
+  // Load the MSP library
+  MSExperiment spec_db;
+  MSPGenericFile msp_parser;
+  msp_parser.load(OPENMS_GET_TEST_DATA_PATH("MetaboliteSpectralMatching_test_library.msp"), spec_db);
+
+  // Create two experimental spectra with drift times far from library CCS
+  PeakMap msexp;
+
+  // Spectrum 1: matching Caffeine (195.0877 m/z), library CCS = 141.2
+  // Set drift time to 5.5 (very far from 141.2 -> will be filtered out)
+  {
+    MSSpectrum exp_spectrum;
+    exp_spectrum.setMSLevel(2);
+    exp_spectrum.setRT(60.0);
+    exp_spectrum.setDriftTime(5.5);
+
+    Precursor prec;
+    prec.setMZ(195.0877);
+    prec.setCharge(1);
+    exp_spectrum.setPrecursors({prec});
+
+    Peak1D p1; p1.setMZ(42.0); p1.setIntensity(100);
+    Peak1D p2; p2.setMZ(69.0); p2.setIntensity(200);
+    Peak1D p3; p3.setMZ(110.0); p3.setIntensity(360);
+    Peak1D p4; p4.setMZ(138.0); p4.setIntensity(800);
+    Peak1D p5; p5.setMZ(195.0); p5.setIntensity(999);
+    exp_spectrum.push_back(p1);
+    exp_spectrum.push_back(p2);
+    exp_spectrum.push_back(p3);
+    exp_spectrum.push_back(p4);
+    exp_spectrum.push_back(p5);
+
+    msexp.addSpectrum(exp_spectrum);
+  }
+
+  // Spectrum 2: matching L-Tryptophan (205.0972 m/z), library CCS = 156.78
+  {
+    MSSpectrum exp_spectrum;
+    exp_spectrum.setMSLevel(2);
+    exp_spectrum.setRT(120.0);
+    exp_spectrum.setDriftTime(7.2);
+
+    Precursor prec;
+    prec.setMZ(205.0972);
+    prec.setCharge(1);
+    exp_spectrum.setPrecursors({prec});
+
+    Peak1D p1; p1.setMZ(118.0); p1.setIntensity(300);
+    Peak1D p2; p2.setMZ(146.0); p2.setIntensity(500);
+    Peak1D p3; p3.setMZ(159.0); p3.setIntensity(700);
+    Peak1D p4; p4.setMZ(188.0); p4.setIntensity(999);
+    exp_spectrum.push_back(p1);
+    exp_spectrum.push_back(p2);
+    exp_spectrum.push_back(p3);
+    exp_spectrum.push_back(p4);
+
+    msexp.addSpectrum(exp_spectrum);
+  }
+
+  // Run with tight CCS tolerance (1%) - should reject all since
+  // drift time (5.5, 7.2) is very far from library CCS (141.2, 156.78)
+  MzTab mztab_filtered;
+  MetaboliteSpectralMatching msm_filtered;
+  Param params_filtered;
+  params_filtered.setValue("prec_mass_error_value", 10.0);
+  params_filtered.setValue("frag_mass_error_value", 500.0);
+  params_filtered.setValue("mass_error_unit", "ppm");
+  params_filtered.setValue("report_mode", "top3");
+  params_filtered.setValue("ccs_error_value", 1.0);  // 1% tolerance
+  msm_filtered.setParameters(params_filtered);
+
+  String dummy_db;
+  msm_filtered.run(msexp, spec_db, mztab_filtered, dummy_db);
+
+  // All matches should be filtered out because rel CCS error >> 1%
+  const MzTabSmallMoleculeSectionRows& filtered_rows = mztab_filtered.getSmallMoleculeSectionRows();
+  TEST_EQUAL(filtered_rows.empty(), true)
+
+  // Now run WITHOUT CCS filtering (default 0 = disabled)
+  MzTab mztab_unfiltered;
+  MetaboliteSpectralMatching msm_unfiltered;
+  Param params_unfiltered;
+  params_unfiltered.setValue("prec_mass_error_value", 10.0);
+  params_unfiltered.setValue("frag_mass_error_value", 500.0);
+  params_unfiltered.setValue("mass_error_unit", "ppm");
+  params_unfiltered.setValue("report_mode", "top3");
+  // ccs_error_value defaults to 0.0 (disabled)
+  msm_unfiltered.setParameters(params_unfiltered);
+
+  String dummy_db2;
+  msm_unfiltered.run(msexp, spec_db, mztab_unfiltered, dummy_db2);
+
+  // Matches should NOT be filtered out when CCS filtering is disabled
+  const MzTabSmallMoleculeSectionRows& unfiltered_rows = mztab_unfiltered.getSmallMoleculeSectionRows();
+  TEST_EQUAL(unfiltered_rows.empty(), false)
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

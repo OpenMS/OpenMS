@@ -187,6 +187,7 @@ namespace OpenMS
     String report_mode_;
 
     bool merge_spectra_;
+    double ccs_error_pct_;
   };
 
 }
