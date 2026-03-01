@@ -387,8 +387,6 @@ jobs:
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
-          BLAS_LIBRARIES: ${{ startsWith(matrix.os, 'windows') && 'D:/a/OpenMS/OpenMS/OpenMS/.pixi/envs/default/Library/lib/blis.lib' || '' }}
-          LAPACK_LIBRARIES: ${{ startsWith(matrix.os, 'windows') && 'D:/a/OpenMS/OpenMS/OpenMS/.pixi/envs/default/Library/lib/lapack.lib' || '' }}
           USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}
           USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}

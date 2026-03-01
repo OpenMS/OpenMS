@@ -111,16 +111,31 @@ else()
 endif()
 
 # TODO check if we can reduce the permissions
-install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
-        DESTINATION ${INSTALL_LIB_DIR}
-        PERMISSIONS
-          OWNER_READ OWNER_WRITE OWNER_EXECUTE
-          GROUP_READ GROUP_WRITE GROUP_EXECUTE
-          WORLD_READ WORLD_WRITE WORLD_EXECUTE
-        COMPONENT Dependencies
-        PRE_EXCLUDE_REGEXES ${PRE_EXCLUDE}
-        POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
-        DIRECTORIES ${RUNTIME_DEP_SEARCH_DIRS})
+# Keep explicit runtime dependency search DIRECTORIES on Windows/macOS, but skip them on Linux.
+# Linux CI packaging can fail in install/CPack with "Paths to dependencies are not supported"
+# when extra search paths are forwarded to file(GET_RUNTIME_DEPENDENCIES).
+if(WIN32 OR APPLE)
+  install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
+          DESTINATION ${INSTALL_LIB_DIR}
+          PERMISSIONS
+            OWNER_READ OWNER_WRITE OWNER_EXECUTE
+            GROUP_READ GROUP_WRITE GROUP_EXECUTE
+            WORLD_READ WORLD_WRITE WORLD_EXECUTE
+          COMPONENT Dependencies
+          PRE_EXCLUDE_REGEXES ${PRE_EXCLUDE}
+          POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
+          DIRECTORIES ${RUNTIME_DEP_SEARCH_DIRS})
+else()
+  install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
+          DESTINATION ${INSTALL_LIB_DIR}
+          PERMISSIONS
+            OWNER_READ OWNER_WRITE OWNER_EXECUTE
+            GROUP_READ GROUP_WRITE GROUP_EXECUTE
+            WORLD_READ WORLD_WRITE WORLD_EXECUTE
+          COMPONENT Dependencies
+          PRE_EXCLUDE_REGEXES ${PRE_EXCLUDE}
+          POST_EXCLUDE_REGEXES ${POST_EXCLUDE})
+endif()
 
 #install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
 #install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
