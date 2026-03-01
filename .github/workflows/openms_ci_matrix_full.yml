@@ -213,8 +213,7 @@ jobs:
           # tell cmake where to find libraries installed by pixi
           PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
           echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/Library;$PIXI_ENV/Library/lib/cmake;$PIXI_ENV/Library/lib;$PIXI_ENV/lib/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
-          echo "BLAS_LIBRARIES=$PIXI_ENV/Library/lib/blis.lib" >> $GITHUB_ENV
-          echo "LAPACK_LIBRARIES=$PIXI_ENV/Library/lib/lapack.lib" >> $GITHUB_ENV
+
         fi
 
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
@@ -385,8 +384,8 @@ jobs:
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
-          BLAS_LIBRARIES: "${{ env.BLAS_LIBRARIES }}"
-          LAPACK_LIBRARIES: "${{ env.LAPACK_LIBRARIES }}"
+          BLAS_LIBRARIES: ${{ startsWith(matrix.os, 'windows') && 'D:/a/OpenMS/OpenMS/OpenMS/.pixi/envs/default/Library/lib/blis.lib' || '' }}
+          LAPACK_LIBRARIES: ${{ startsWith(matrix.os, 'windows') && 'D:/a/OpenMS/OpenMS/OpenMS/.pixi/envs/default/Library/lib/lapack.lib' || '' }}
           USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}
           USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
