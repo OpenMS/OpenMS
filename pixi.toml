@@ -29,7 +29,6 @@ libxml2 = "*"
 doxygen = "*"
 ghostscript = "*"
 graphviz = "*"
-qt6-main = "*"
 lapack = "*"
 blas = "*"
 
@@ -39,6 +38,7 @@ libtool = "*"
 autoconf = "*"
 patch = "*"
 mesalib = "*"
+qt6-main = "*"
 
 [target.linux-aarch64.dependencies]
 coinmp = "*"
@@ -46,9 +46,11 @@ libtool = "*"
 autoconf = "*"
 patch = "*"
 mesalib = "*"
+qt6-main = "*"
 
 [target.osx-64.dependencies]  
 cmake = ">=3.26,<4.0"
+qt6-main = "*"
 
 
 [target.osx-arm64.dependencies]
@@ -56,8 +58,10 @@ cmake = ">=3.26,<4.0"
 libtool = "*"
 autoconf = "*"
 patch = "*"
-coinmp = "*"
+
+qt6-main = "*"
 
 [target.win-64.dependencies]
 lapack = "*"
 blas = "*"
+qt6-main = "*"
