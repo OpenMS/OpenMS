@@ -46,6 +46,16 @@ if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
   set(OWN_OPTIONS "-DCMAKE_CXX_RELEASE_FLAGS='/MD /Od /Ob0 /DNDEBUG /EHsc'")
 endif()
 
+if(NOT "$ENV{BLAS_LIBRARIES}" STREQUAL "")
+  list(APPEND OWN_OPTIONS "-DBLAS_LIBRARIES=$ENV{BLAS_LIBRARIES}")
+endif()
+if(NOT "$ENV{LAPACK_LIBRARIES}" STREQUAL "")
+  list(APPEND OWN_OPTIONS "-DLAPACK_LIBRARIES=$ENV{LAPACK_LIBRARIES}")
+endif()set(OWN_OPTIONS "")
+if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
+  set(OWN_OPTIONS "-DCMAKE_CXX_RELEASE_FLAGS='/MD /Od /Ob0 /DNDEBUG /EHsc'")
+endif()
+
 # run the classical CTest suite
 ctest_start(Continuous) # TODO think about adding GROUP GitHub-Actions to separate visually
 
