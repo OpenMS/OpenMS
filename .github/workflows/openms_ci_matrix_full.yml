@@ -213,8 +213,8 @@ jobs:
           # tell cmake where to find libraries installed by pixi
           PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
           echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/Library;$PIXI_ENV/Library/lib/cmake;$PIXI_ENV/Library/lib;$PIXI_ENV/lib/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
-          echo "COIN_LAPACK_LIB=$PIXI_ENV/Library/lib/lapack.lib" >> $GITHUB_ENV
-          echo "COIN_BLAS_LIB=$PIXI_ENV/Library/lib/blas.lib" >> $GITHUB_ENV
+          echo "BLAS_LIBRARIES=$PIXI_ENV/Library/lib/blis.lib" >> $GITHUB_ENV
+          echo "LAPACK_LIBRARIES=$PIXI_ENV/Library/lib/lapack.lib" >> $GITHUB_ENV
         fi
 
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
@@ -355,7 +355,7 @@ jobs:
           PYOPENMS: "OFF"
           NO_DEPENDENCIES: "ON"
           CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }}"
-          OPENMS_CONTRIB_LIBS: ${{ startsWith(matrix.os, 'windows') && '' || format('{0}/OpenMS/contrib', github.workspace) }}
+          OPENMS_CONTRIB_LIBS: ${{ (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macos')) && '' || format('{0}/OpenMS/contrib', github.workspace) }}
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -385,7 +385,8 @@ jobs:
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
-          Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}"
+          BLAS_LIBRARIES: "${{ env.BLAS_LIBRARIES }}"
+          LAPACK_LIBRARIES: "${{ env.LAPACK_LIBRARIES }}"
           USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}
           USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}

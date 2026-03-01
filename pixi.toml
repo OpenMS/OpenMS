@@ -47,10 +47,16 @@ autoconf = "*"
 patch = "*"
 mesalib = "*"
 
+[target.osx-64.dependencies]  
+cmake = ">=3.26,<4.0"
+
+
 [target.osx-arm64.dependencies]
+cmake = ">=3.26,<4.0"
 libtool = "*"
 autoconf = "*"
 patch = "*"
+coinmp = "*"
 
 [target.win-64.dependencies]
 lapack = "*"
