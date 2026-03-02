@@ -1,0 +1,851 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_14922766841822093970" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[file://BSA1_F2.mzML]"/>
+	<IdentificationRun id="PI_0" date="2009-11-17T11:11:11" search_engine="OMSSA" search_engine_version="2.1.4">
+		<SearchParameters db="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.05" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+			<UserParam type="string" name="PeptideIndexer:decoy_string" value="_rev"/>
+			<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="suffix"/>
+			<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin"/>
+			<UserParam type="string" name="PeptideIndexer:enzyme_specificity" value="full"/>
+			<UserParam type="int" name="PeptideIndexer:aaa_max" value="3"/>
+			<UserParam type="int" name="PeptideIndexer:mismatches_max" value="0"/>
+			<UserParam type="string" name="PeptideIndexer:IL_equivalent" value="false"/>
+			<UserParam type="string" name="PeptideIndexer:allow_nterm_protein_cleavage" value="true"/>
+			<UserParam type="string" name="PeptideIndexer:unmatched_action" value="error"/>
+			<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="FDR" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="tr|A9FUD7|A9FUD7_SORC5" score="0" sequence="MANDKGKARFGDGKWSAPFGRYENPDAAEWPANEFLVARVEQRRRFLNLLLTHGRRGAYLITGQRGSGKTSFVNYCLNEYRQDVFGRFLNGKVGRSIYDRAGLVTVICIFGVIAFTGKGLLHFIIHEWHPRPNENLRFVLAAPLLLAFLYPIIVARGLLEVATDFGLEKVRSGKPTEERRFRDWLYERRGFLAVVVVMLLVVRGALILYSGGSWSDRLREAISTPATVVAFLIASTSILGHACALRLTEVDQNRRHNKIARFLRILMIIGLLPALLNWAASLGLEHLPVLSSVTQWKPNVESPLLKRLSNSLAHILEAPSIQAVKTPLIIAALGWMGDLIAGFFGRSSRLDDWAGKPGGDSNDAGRNRPPRFVRQRVILVTKAVCLVVFSAIFILDAVVSRFSTTGVEIKDEITLLATLVILSISIARLEYNWIIRPHLRAKSGVVIDMARKDHQDVTVENYMRRLDNHTSFAFLYRWWIPSLVVRVNLGVEALDHRRVIDAMLTGLRDAYERTFLNWRSPLANAGWIVRLMLLVTATTLVADHFFVSSVNNAYMCNEMCALRPKINRILCPAGGIGESIARGLQFELISPRGDDSLWDEPCYVDPEAPWPRGASRQTIAQLVLPTSIRDFGQNGNHDYRHSIDLRLYHLLIFLVLLVAARIIERRWPIFAYRQTLRNIDDTIASLSSTLKQEHGIQLRLGKEILTIGDNRKQETAPLDPRTVELMFLRLLHQIDEAALRLPFVAGAHVSVPVPDVFFVFDELDKLGTRKGPASPAPGSDEGPAVSNSPGRERAVLLKNLLSDLKNVLSSAPARFIFVGGRNLHDEWLADQTSRQPLLTRLFVAEIYLPSLLTDRYDMDRLESGVEEFIRAQLNRANIIYGAWMRSRTLRWMRHAPREYLAPSFVPHENLPEFRLPFHSITDSASSSAAHQGKTASDPNDPNAQSVLRPSDVAEQLSILARSCRIPQDGRDDGWRKVLYGRLVSLANVILLAKDNSSVTSRMDTLDRDLIAFLTYRSMGNVKRLKEILDGTIEQVASGAVLPSMNNKGQPAAGGIDPHTHAIILRDADVHRIQLIADIYRGLVRMFGAGTWQDDKLAPAVFYMADFLLKFHRRAFTWSNLERIDELVHVHRAPELRKMLYTIVGAWTGNMLHPIRNGMFDFRFRIDTALELRLASRRSDEEMVALNFTLDEAQEIKEMYRRRLAMTTDPATFEFEAALGEHHDLDEEYDLARYHYRRAIRLLDDQVANDLIGTRPGQTMDAKDGSILHQLITRDPKTIETIRRHPHWAVGRIRLMLQIALTYERIRDFESAALGYRSARSLAEVLLESVPLSEVKLTSKEDSYELLKHANLLFQPAFAEAWVGEKEGTLVDASVALVERAIADSRKRLPFVNKPFERRRVATSPTSVHHALFALTLAELHDKAGDLLFFKGKPSSTHREDEGGAHRGYLDRSHFHYASSLHELRSYNRYRRCSSGPKLGFDQRTTTLPEGAAPDFVLQIAAGSLADLAEAMLAGMSLRATLNSGGPDGARVKKNIVLGVSIGKGPRTGAVPQMVECMIDWIGAVGGAERKFASEWIKIFGHSDGGDLSIWLGSVAMRRADFMGTRANVIPRSPSFEHGERGGRAQFAASLVCSMASARILKRDGRLEDAARESLQVAETVARWLLARHFWLSLDGRHMEEHLDEAWKNLLGLIAAYSVQKAQLWWRLSRRSLHPGGPGHENAGEATCRDVGSEKKNGIQVVTPRAVERIVTLLNHLYSGPGGASQELRDMLKDLIGPCGLRKDNLISQLEESLKYNMYPMTHQIYGRKILVDVRAIELFRRLEGPSEADVRALSDGLNSLWNDVETLMQADGEYDGRHRFTHSDIGLTLGFACFVANRVYGKHPGMSSAFAPDKVEQVRSNAITHLDRAEESFTLRRSYQLWIEDLYYLYDDFNDRRLHYNRAAEMAVSELIAAMLKKLREQARSCSSAGRSPPVQGEAG">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Putative membrane protein OS=Sorangium cellulosum (strain So ce56) GN=sce8452 PE=4 SV=1"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="tr|A9G0B6|A9G0B6_SORC5" score="0" sequence="MPVVLDACRAGAFSLPKDLGMEHDHSERIGGRHREVERCRDGGGCAAAACRREGRARERRLALGRPRVRSG">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Putative uncharacterized protein OS=Sorangium cellulosum (strain So ce56) GN=sce8672 PE=4 SV=1"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="Q15323|K1H1_HUMAN" score="0" sequence="MPYNFCLPSLSCRTSCSSRPCVPPSCHSCTLPGACNIPANVSNCNWFCEGSFNGSEKETMQFLNDRLASYLEKVRQLERDNAELENLIRERSQQQEPLLCPSYQSYFKTIEELQQKILCTKSENARLVVQIDNAKLAADDFRTKYQTELSLRHVVESDINGLRRILDELTLCKSDLEAQVESLKEELLCLKSNHEQEVNTLRCQLGDRLNVEVDAAPTVDLNRVLNETRSQYEALVETNRREVEQWFTTQTEELNKQVVSSSEQLQSYQAEIIELRRTVNALEIELQAQHNLRDSLENTLTESEARYSSQLSQVQSLITNVESQLAEIRSDLERQNQEYQVLLDVRARLECEINTYRSLLESEDCNLPSNPCATTNACSKPIGPCLSNPCTSCVPPAPCTPCAPRPRCGPCNSFVR">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha1 - Homo sapiens (Human)."/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="Q14532|K1H2_HUMAN" score="0" sequence="MTSSCCVTNNLQASLKSCPRPASVCSSGVNCRPELCLGYVCQPMACLPSVCLPTTFRPASCLSKTYLSSSCQAASGISGSMGPGSWYSEGAFNGNEKETMQFLNDRLASYLTRVRQLEQENAELESRIQEASHSQVLTMTPDYQSHFRTIDQLQQKILCTKAENARMVVNIDNAKLAADDFRAKYEAELAMRQLVEADINGLRRILDDLTLCKADLEAQVESLKEELMCLKKNHEEEVGSLRCQLGDRLNIEVDAAPPVDLTRVLEEMRCQYEAMVEANRRDVEEWFNMQMEELNQQVATSSEQLQNYQSDIIDLRRTVNTLEIELQAQHSLRDSLENTLTESEARYSSQLAQMQCMITNVEAQLAEIRAELERQNQEYQVLLDVRARLEGEINTYRSLLESEDCKLPCNPCSTPSCTTCVPSPCVTRTVCVPRTVGMPCSPCPQGRY">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha2 - Homo sapiens (Human)."/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="Q92764|KRT35_HUMAN" score="0" sequence="MYSSSSCKLPSLSPVARSFSACSVGLGRSSYRATSCLPALCLPAGGFATSYSGGGGWFGEGILTGNEKETMQSLNDRLAGYLEKVRHVEQENASLESRIREWCEQQVPYMCPDYQSYFRTIEELQKKTLCSKAENARLVVEIDNAKLAADDFRTKYETEVSLRQLVESDINGLRRILDDLTLCKSDLEAQVESLKEELLCLKKNHEEEVNSLRCQLGDRLNVEVDAAPPVDLNRVLEEMRCQYETLVENNRRDAEDWLDTQSEELNQQVVSSSEQLQSCQAEIIELRRTVNALEIELQAQHSMRDALESTLAETEARYSSQLAQMQCMITNVEAQLAEIRADLERQNQEYQVLLDVRARLECEINTYRGLLESEDSKLPCNPCAPDYSPSKSCLPCLPAASCGPSAARTNCSPRPICVPCPGGRF">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha5 - Homo sapiens (Human)."/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="O76013|KRT36_HUMAN" score="0" sequence="MATQTCTPTFSTGSIKGLCGTAGGISRVSSIRSVGSCRVPSLAGAAGYISSARSGLSGLGSCLPGSYLSSECHTSGFVGSGGWFCEGSFNGSEKETMQFLNDRLANYLEKVRQLERENAELESRIQEWYEFQIPYICPDYQSYFKTIEDFQQKILLTKSENARLVLQIDNAKLAADDFRTKYETELSLRQLVEADINGLRRILDELTLCKADLEAQVESLKEELMCLKKNHEEEVSVLRCQLGDRLNVEVDAAPPVDLNKILEDMRCQYEALVENNRRDVEAWFNTQTEELNQQVVSSSEQLQCCQTEIIELRRTVNALEIELQAQHSMRNSLESTLAETEARYSSQLAQMQCLISNVEAQLSEIRCDLERQNQEYQVLLDVKARLEGEIATYRHLLEGEDCKLPPQPCATACKPVIRVPSVPPVPCVPSVPCTPAPQVGTQIRTITEEIRDGKVISSREHVQSRPL">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha6 - Homo sapiens (Human)."/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="O76014|KRT37_HUMAN" score="0" sequence="MTSFYSTSSCPLGCTMAPGARNVFVSPIDVGCQPVAEANAASMCLLANVAHANRVRVGSTPLGRPSLCLPPTSHTACPLPGTCHIPGNIGICGAYGKNTLNGHEKETMKFLNDRLANYLEKVRQLEQENAELETTLLERSKCHESTVCPDYQSYFRTIEELQQKILCSKAENARLIVQIDNAKLAADDFRIKLESERSLHQLVEADKCGTQKLLDDATLAKADLEAQQESLKEEQLSLKSNHEQEVKILRSQLGEKFRIELDIEPTIDLNRVLGEMRAQYEAMVETNHQDVEQWFQAQSEGISLQAMSCSEELQCCQSEILELRCTVNALEVERQAQHTLKDCLQNSLCEAEDRYGTELAQMQSLISNLEEQLSEIRADLERQNQEYQVLLDVKARLENEIATYRNLLESEDCKLPCNPCSTPASCTSCPSCGPVTGGSPSGHGASMGR">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha7 - Homo sapiens (Human)."/>
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="O76015|KRT38_HUMAN" score="0" sequence="MTSSYSSSSCPLGCTMAPGARNVSVSPIDIGCQPGAEANIAPMCLLANVAHANRVRVGSTPLGRPSLCLPPTCHTACPLPGTCHIPGNIGICGAYGENTLNGHEKETMQFLNDRLANYLEKVRQLEQENAELEATLLERSKCHESTVCPDYQSYFHTIEELQQKILCSKAENARLIVQIDNAKLAADDFRIKLESERSLRQLVEADKCGTQKLLDDATLAKADLEAQQESLKEEQLSLKSNHEQEVKILRSQLGEKLRIELDIEPTIDLNRVLGEMRAQYEAMLETNRQDVEQWFQAQSEGISLQDMSCSEELQCCQSEILELRCTVNALEVERQAQHTLKDCLQNSLCEAEDRFGTELAQMQSLISNVEEQLSEIRADLERQNQEYQVLLDVKTRLENEIATYRNLLESEDCKLPCNPCSTPPSCVTAPCAPRPSCGPCTTCGPTCGASTTGSRF">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha8 - Homo sapiens (Human)."/>
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="Q14525|KT33B_HUMAN" score="0" sequence="MPYNFCLPSLSCRTSCSSRPCVPPSCHGYTLPGACNIPANVSNCNWFCEGSFNGSEKETMQFLNDRLASYLEKVRQLERDNAELENLIRERSQQQEPLLCPSYQSYFKTIEELQQKILCSKSENARLVVQIDNAKLAADDFRTKYQTEQSLRQLVESDINSLRRILDELTLCRSDLEAQMESLKEELLSLKQNHEQEVNTLRCQLGDRLNVEVDAAPAVDLNQVLNETRNQYEALVETNRREVEQWFATQTEELNKQVVSSSEQLQSYQAEIIELRRTVNALEIELQAQHNLRYSLENTLTESEARYSSQLSQVQSLITNVESQLAEIRSDLERQNQEYQVLLDVRARLECEINTYRSLLESEDCKLPSNPCATTNACEKPIGSCVTNPCGPRSRCGPCNTFGY">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha3-II - Homo sapiens (Human)."/>
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="P00761|TRYP_PIG" score="0" sequence="FPTDDDDKIVGGYTCAANSIPYQVSLNSGSHFCGGSLINSQWVVSAAHCYKSRIQVRLGEHNIDVLEGNEQFINAAKIITHPNFNGNTLDNDIMLIKLSSPATLNSRVATVSLPRSCAAAGTECLISGWGNTKSSGSSYPSLLQCLKAPVLSDSSCKSSYPGQITGNMICVGFLEGGKDSCQGDSGGPVVCNGQLQGIVSWGYGCAQKNKPGVYTKVCNYVNWIQQTIAAN">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Trypsin - Sus scrofa (Pig)."/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="P02769|ALBU_BOVIN" score="0" sequence="MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Serum albumin - Bos taurus (Bovine)."/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file://BSA1_F2.mzML]"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="455.713287353516" RT="2155.63891601562" spectrum_reference="spectrum=3173" >
+		<PeptideHit score="0.0454545454545455" sequence="AGDLLFFK" charge="2" aa_before="K" aa_after="G" start="1422" end="1429" protein_refs="PH_0">
+			<UserParam type="float" name="OMSSA_score" value="0.067676940044902"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="487.732208251953" RT="2013.36364746094" spectrum_reference="spectrum=2946" >
+		<PeptideHit score="0.0454545454545455" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="0.212602001856198"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="379.71484375" RT="2010.87902832031" spectrum_reference="spectrum=2941" >
+		<PeptideHit score="0" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" start="197" end="203" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="1.67901373867858e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="379.715118408203" RT="2032.04125976562" spectrum_reference="spectrum=2981" >
+		<PeptideHit score="0" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" start="197" end="203" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="1.15485160103966e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="379.715393066406" RT="2069.04321289062" spectrum_reference="spectrum=3047" >
+		<PeptideHit score="0.0344827586206897" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" start="197" end="203" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="9.374879623785739e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="653.361755371094" RT="2490.31689453125" spectrum_reference="spectrum=3546" >
+		<PeptideHit score="0.0344827586206897" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="0.01175757198192"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="435.910125732422" RT="2488.0380859375" spectrum_reference="spectrum=3542" >
+		<PeptideHit score="0" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="3.09620313351901e-07"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="404.203002929688" RT="2003.33984375" spectrum_reference="spectrum=2927" >
+		<PeptideHit score="0.0454545454545455" sequence="LAADDFR" charge="2" aa_before="K K K K K K K" aa_after="T A T T I I T" start="135 175 146 172 183 183 135" end="141 181 152 178 189 189 141" protein_refs="PH_2 PH_3 PH_4 PH_5 PH_6 PH_7 PH_8">
+			<UserParam type="float" name="OMSSA_score" value="0.060731076753908"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="526.261108398438" RT="2495.662109375" spectrum_reference="spectrum=3554" >
+		<PeptideHit score="0" sequence="LKPDPNTLC(Carbamidomethyl)DEFK" charge="3" aa_before="K" aa_after="A" start="138" end="150" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="2.6056879779557e-04"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="461.74755859375" RT="2038.95886230469" spectrum_reference="spectrum=2993" >
+		<PeptideHit score="0" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" start="248" end="255" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="1.2753925040404e-04"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="11533548632862703521"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="554.260375976562" RT="2058.83471679688" spectrum_reference="spectrum=3029" >
+		<PeptideHit score="0.0454545454545455" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" start="587" end="596" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="0.054859533530342"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="17507483629148540875"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="464.250030517578" RT="2357.07421875" spectrum_reference="spectrum=3375" >
+		<PeptideHit score="0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="9.1724848717909e-05"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="5216333901129607191"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="464.250335693359" RT="2398.77709960938" spectrum_reference="spectrum=3445" >
+		<PeptideHit score="0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="4.18055390056644e-05"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="5216333901129607191"/>
+	</UnassignedPeptideIdentification>
+	<featureList count="62">
+		<feature id="f_11533548632862703521">
+			<position dim="0">2023.952880356795049</position>
+			<position dim="1">461.747653035420967</position>
+			<intensity>1.546597e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.827962</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="461.747497558594" RT="2015.59265136719" spectrum_reference="spectrum=2950" >
+				<PeptideHit score="0" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" start="248" end="255" protein_refs="PH_10">
+					<UserParam type="float" name="OMSSA_score" value="2.96258184030238e-04"/>
+					<UserParam type="string" name="target_decoy" value="target"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+				<UserParam type="string" name="feature_id" value="11533548632862703521"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="11533548632862703521"/>
+		</feature>
+		<feature id="f_3761131165991829738">
+			<position dim="0">2072.094747027906124</position>
+			<position dim="1">395.726522907820936</position>
+			<intensity>7625.926758</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>-1.424676</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="395.700897216797" RT="2085.73901367188" spectrum_reference="spectrum=3077" >
+				<PeptideHit score="0.0454545454545455" sequence="AGAFSLPK" charge="2" aa_before="R" aa_after="D" start="9" end="16" protein_refs="PH_1">
+					<UserParam type="float" name="OMSSA_score" value="0.06319601345927"/>
+					<UserParam type="string" name="target_decoy" value="target"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+				<UserParam type="string" name="feature_id" value="3761131165991829738"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="3761131165991829738"/>
+		</feature>
+		<feature id="f_17507483629148540875">
+			<position dim="0">2074.443092404270828</position>
+			<position dim="1">554.26060201207099</position>
+			<intensity>3.17402e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>4.031395</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="554.260559082031" RT="2098.17504882812" spectrum_reference="spectrum=3097" >
+				<PeptideHit score="0" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" start="587" end="596" protein_refs="PH_10">
+					<UserParam type="float" name="OMSSA_score" value="4.91092752369064e-05"/>
+					<UserParam type="string" name="target_decoy" value="target"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+				<UserParam type="string" name="feature_id" value="17507483629148540875"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="17507483629148540875"/>
+		</feature>
+		<feature id="f_6528518835501741214">
+			<position dim="0">2298.172555172493048</position>
+			<position dim="1">435.910228820904251</position>
+			<intensity>2.260549e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>4.002216</overallquality>
+			<charge>3</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="435.909851074219" RT="2295.90209960938" spectrum_reference="spectrum=3307" >
+				<PeptideHit score="0.0344827586206897" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_10">
+					<UserParam type="float" name="OMSSA_score" value="0.013745856995003"/>
+					<UserParam type="string" name="target_decoy" value="target"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+				<UserParam type="string" name="feature_id" value="6528518835501741214"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="6528518835501741214"/>
+		</feature>
+		<feature id="f_10839820859832811007">
+			<position dim="0">2391.725498473171683</position>
+			<position dim="1">501.795134726820947</position>
+			<intensity>7.702322e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>4.191405</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="501.794891357422" RT="2431.52172851562" spectrum_reference="spectrum=3482" >
+				<PeptideHit score="0.0454545454545455" sequence="LVVSTQTALA" charge="2" aa_before="K" aa_after="]" start="597" end="606" protein_refs="PH_10">
+					<UserParam type="float" name="OMSSA_score" value="0.128894553541144"/>
+					<UserParam type="string" name="target_decoy" value="target"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+				<UserParam type="string" name="feature_id" value="10839820859832811007"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="10839820859832811007"/>
+		</feature>
+		<feature id="f_17767002659535624405">
+			<position dim="0">2089.596569519389959</position>
+			<position dim="1">421.758354535420949</position>
+			<intensity>2.062205e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.096094</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="421.758056640625" RT="2091.08642578125" spectrum_reference="spectrum=3087" >
+				<PeptideHit score="0.0344827586206897" sequence="VATVSLPR" charge="2" aa_before="R" aa_after="S" start="107" end="114" protein_refs="PH_9">
+					<UserParam type="float" name="OMSSA_score" value="3.02546175573277e-03"/>
+					<UserParam type="string" name="target_decoy" value="target"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+				<UserParam type="string" name="feature_id" value="17767002659535624405"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="17767002659535624405"/>
+		</feature>
+		<feature id="f_5216333901129607191">
+			<position dim="0">2334.721364663681015</position>
+			<position dim="1">464.250362519471025</position>
+			<intensity>2.378529e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.899464</overallquality>
+			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="464.250213623047" RT="2321.49926757812" spectrum_reference="spectrum=3328" >
+				<PeptideHit score="0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_10">
+					<UserParam type="float" name="OMSSA_score" value="5.28980302830806e-04"/>
+					<UserParam type="string" name="target_decoy" value="target"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+				<UserParam type="string" name="feature_id" value="5216333901129607191"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="5216333901129607191"/>
+		</feature>
+		<feature id="f_15655255823055338900">
+			<position dim="0">2198.448090312564091</position>
+			<position dim="1">630.259191392135563</position>
+			<intensity>7.297706e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.129516</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="15655255823055338900"/>
+		</feature>
+		<feature id="f_12263137904399033333">
+			<position dim="0">2204.457695055501972</position>
+			<position dim="1">391.747710631084601</position>
+			<intensity>8.180516e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.734546</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="12263137904399033333"/>
+		</feature>
+		<feature id="f_4595880619380027470">
+			<position dim="0">2017.252728068660417</position>
+			<position dim="1">392.519347228341985</position>
+			<intensity>3.562897e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.637974</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="4595880619380027470"/>
+		</feature>
+		<feature id="f_6229020800443641065">
+			<position dim="0">2028.534791218748524</position>
+			<position dim="1">561.628327672677415</position>
+			<intensity>1.749597e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.518445</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="6229020800443641065"/>
+		</feature>
+		<feature id="f_14063828943964060914">
+			<position dim="0">2150.385202938328803</position>
+			<position dim="1">570.246667543797116</position>
+			<intensity>4.440105e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.236332</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="14063828943964060914"/>
+		</feature>
+		<feature id="f_7928201559927589597">
+			<position dim="0">2400.542792545975772</position>
+			<position dim="1">671.335033888969406</position>
+			<intensity>7.5038e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.9055</overallquality>
+			<charge>5</charge>
+			<UserParam type="string" name="feature_id" value="7928201559927589597"/>
+		</feature>
+		<feature id="f_14971498114511482292">
+			<position dim="0">2111.761651642620564</position>
+			<position dim="1">606.295512468905599</position>
+			<intensity>6.607057e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.80447</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="14971498114511482292"/>
+		</feature>
+		<feature id="f_7346643084869045598">
+			<position dim="0">2332.737301141316493</position>
+			<position dim="1">724.603334689045596</position>
+			<intensity>7.11363e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.82141</overallquality>
+			<charge>4</charge>
+			<UserParam type="string" name="feature_id" value="7346643084869045598"/>
+		</feature>
+		<feature id="f_9528744638483284763">
+			<position dim="0">2358.351408236718271</position>
+			<position dim="1">545.255158688850202</position>
+			<intensity>4.378389e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.811979</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="9528744638483284763"/>
+		</feature>
+		<feature id="f_17499405906264444799">
+			<position dim="0">2085.290035364596406</position>
+			<position dim="1">664.30520008840233</position>
+			<intensity>7.284577e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.509934</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="17499405906264444799"/>
+		</feature>
+		<feature id="f_10368747866148695600">
+			<position dim="0">2324.541520058002789</position>
+			<position dim="1">684.338989523450891</position>
+			<intensity>2.385395e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.464636</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="10368747866148695600"/>
+		</feature>
+		<feature id="f_6213227367093029084">
+			<position dim="0">2301.905598237613958</position>
+			<position dim="1">518.889226723404363</position>
+			<intensity>5.44709e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.358965</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="6213227367093029084"/>
+		</feature>
+		<feature id="f_1965444166280891515">
+			<position dim="0">2356.871752091911276</position>
+			<position dim="1">427.191031674470082</position>
+			<intensity>3.191219e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.60221</overallquality>
+			<charge>4</charge>
+			<UserParam type="string" name="feature_id" value="1965444166280891515"/>
+		</feature>
+		<feature id="f_9436776281530767886">
+			<position dim="0">2199.053626083154086</position>
+			<position dim="1">510.951036817608156</position>
+			<intensity>3.018161e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.838714</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="9436776281530767886"/>
+		</feature>
+		<feature id="f_2291440726513863974">
+			<position dim="0">2147.735262095491635</position>
+			<position dim="1">608.23499241442596</position>
+			<intensity>5.710328e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.567748</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="2291440726513863974"/>
+		</feature>
+		<feature id="f_49095134999988649">
+			<position dim="0">2122.768198660569851</position>
+			<position dim="1">455.713242550122686</position>
+			<intensity>9.932181e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.273309</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="49095134999988649"/>
+		</feature>
+		<feature id="f_18370789485411583243">
+			<position dim="0">2198.550087766107936</position>
+			<position dim="1">383.465476454794782</position>
+			<intensity>1.46163e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.823635</overallquality>
+			<charge>4</charge>
+			<UserParam type="string" name="feature_id" value="18370789485411583243"/>
+		</feature>
+		<feature id="f_4888574427788455891">
+			<position dim="0">2272.648616749036592</position>
+			<position dim="1">674.534031955529599</position>
+			<intensity>2.010185e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.822236</overallquality>
+			<charge>5</charge>
+			<UserParam type="string" name="feature_id" value="4888574427788455891"/>
+		</feature>
+		<feature id="f_7627007820629700249">
+			<position dim="0">2297.949704885102619</position>
+			<position dim="1">653.362055851061768</position>
+			<intensity>1.07119e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.917936</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="7627007820629700249"/>
+		</feature>
+		<feature id="f_1075846414816069553">
+			<position dim="0">2179.804302191419993</position>
+			<position dim="1">600.740520948533344</position>
+			<intensity>4.519818e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.514659</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="1075846414816069553"/>
+		</feature>
+		<feature id="f_2805388755491344365">
+			<position dim="0">2275.200249200369399</position>
+			<position dim="1">485.207996702471917</position>
+			<intensity>5.242485e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.791414</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="2805388755491344365"/>
+		</feature>
+		<feature id="f_10052611142822186189">
+			<position dim="0">2409.77989837244786</position>
+			<position dim="1">613.646442466490612</position>
+			<intensity>1.907548e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.502163</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="10052611142822186189"/>
+		</feature>
+		<feature id="f_13505683867691933318">
+			<position dim="0">2461.863445276918355</position>
+			<position dim="1">490.935045506443544</position>
+			<intensity>3.129873e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.314621</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="13505683867691933318"/>
+		</feature>
+		<feature id="f_4380778467582659071">
+			<position dim="0">2328.402258502636869</position>
+			<position dim="1">760.807454474427914</position>
+			<intensity>5.010926e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.621419</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="4380778467582659071"/>
+		</feature>
+		<feature id="f_15732074305882321105">
+			<position dim="0">2214.246233913176184</position>
+			<position dim="1">428.234141032764455</position>
+			<intensity>5.757395e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.057975</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="15732074305882321105"/>
+		</feature>
+		<feature id="f_16295405623875006549">
+			<position dim="0">2268.193321927017678</position>
+			<position dim="1">577.225524405062401</position>
+			<intensity>3.356422e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.76551</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="16295405623875006549"/>
+		</feature>
+		<feature id="f_14479404484442646919">
+			<position dim="0">2024.117895312068413</position>
+			<position dim="1">771.737758789646819</position>
+			<intensity>2.157067e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.695978</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="14479404484442646919"/>
+		</feature>
+		<feature id="f_1416561145836710315">
+			<position dim="0">2370.156937420892064</position>
+			<position dim="1">742.938333461228012</position>
+			<intensity>9.089379e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.746518</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="1416561145836710315"/>
+		</feature>
+		<feature id="f_6756286233760257805">
+			<position dim="0">2433.066395835225194</position>
+			<position dim="1">748.901969770214009</position>
+			<intensity>2.997204e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.538015</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="6756286233760257805"/>
+		</feature>
+		<feature id="f_4574189283692974635">
+			<position dim="0">2450.113176980024036</position>
+			<position dim="1">494.2509076056391</position>
+			<intensity>9.623376e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.226588</overallquality>
+			<charge>4</charge>
+			<UserParam type="string" name="feature_id" value="4574189283692974635"/>
+		</feature>
+		<feature id="f_3791977242344765470">
+			<position dim="0">2064.237861767021968</position>
+			<position dim="1">767.797236878227977</position>
+			<intensity>2.654868e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.541096</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="3791977242344765470"/>
+		</feature>
+		<feature id="f_4200207319172468757">
+			<position dim="0">2357.743409799470101</position>
+			<position dim="1">529.546399179361515</position>
+			<intensity>4.465369e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.407652</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="4200207319172468757"/>
+		</feature>
+		<feature id="f_5303739415312456175">
+			<position dim="0">2245.690193500597616</position>
+			<position dim="1">655.629076683662333</position>
+			<intensity>4.030944e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.699908</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="5303739415312456175"/>
+		</feature>
+		<feature id="f_6315402523213282298">
+			<position dim="0">2010.276837244236503</position>
+			<position dim="1">666.301876304864777</position>
+			<intensity>4.011568e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.668419</overallquality>
+			<charge>4</charge>
+			<UserParam type="string" name="feature_id" value="6315402523213282298"/>
+		</feature>
+		<feature id="f_3680860277546310427">
+			<position dim="0">2420.821288010920398</position>
+			<position dim="1">418.197260694361546</position>
+			<intensity>1.815124e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.915283</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="3680860277546310427"/>
+		</feature>
+		<feature id="f_6833631326653683733">
+			<position dim="0">2309.97241360877797</position>
+			<position dim="1">419.198028113693965</position>
+			<intensity>5.125502e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.271394</overallquality>
+			<charge>4</charge>
+			<UserParam type="string" name="feature_id" value="6833631326653683733"/>
+		</feature>
+		<feature id="f_13278474238980148641">
+			<position dim="0">2067.83295353729045</position>
+			<position dim="1">616.959186822531592</position>
+			<intensity>6.591724e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.483109</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="13278474238980148641"/>
+		</feature>
+		<feature id="f_13799961852911827894">
+			<position dim="0">2397.51676896518893</position>
+			<position dim="1">587.63212034680339</position>
+			<intensity>2.126381e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.919866</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="13799961852911827894"/>
+		</feature>
+		<feature id="f_735049116380264423">
+			<position dim="0">2346.35836716752965</position>
+			<position dim="1">427.191016268493229</position>
+			<intensity>4.433183e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.255708</overallquality>
+			<charge>4</charge>
+			<UserParam type="string" name="feature_id" value="735049116380264423"/>
+		</feature>
+		<feature id="f_14808782246148957809">
+			<position dim="0">2473.112604196709981</position>
+			<position dim="1">701.697039277431827</position>
+			<intensity>1.493661e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.074853</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="14808782246148957809"/>
+		</feature>
+		<feature id="f_5612604754742160352">
+			<position dim="0">2392.027899161870664</position>
+			<position dim="1">677.318007920134733</position>
+			<intensity>1.428429e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.395676</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="5612604754742160352"/>
+		</feature>
+		<feature id="f_2837762687785902524">
+			<position dim="0">2151.635373103858001</position>
+			<position dim="1">561.239590986958888</position>
+			<intensity>1.099368e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.936936</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="2837762687785902524"/>
+		</feature>
+		<feature id="f_4149261815956662069">
+			<position dim="0">2140.964845971522664</position>
+			<position dim="1">668.977165770099759</position>
+			<intensity>1.097611e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.468797</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="4149261815956662069"/>
+		</feature>
+		<feature id="f_13342323147608436981">
+			<position dim="0">2391.626873257411717</position>
+			<position dim="1">528.25019714693542</position>
+			<intensity>1.198621e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.620836</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="13342323147608436981"/>
+		</feature>
+		<feature id="f_9092347233653124021">
+			<position dim="0">2069.325889629719313</position>
+			<position dim="1">738.803326803353343</position>
+			<intensity>1.571644e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.102063</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="9092347233653124021"/>
+		</feature>
+		<feature id="f_17316392403070017021">
+			<position dim="0">2412.537878723671383</position>
+			<position dim="1">774.923347070248497</position>
+			<intensity>1.024348e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.88997</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="17316392403070017021"/>
+		</feature>
+		<feature id="f_403496585277198736">
+			<position dim="0">2156.010277836207024</position>
+			<position dim="1">783.783268612101665</position>
+			<intensity>1.692087e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.49324</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="403496585277198736"/>
+		</feature>
+		<feature id="f_5052436323789535328">
+			<position dim="0">2311.841411336150486</position>
+			<position dim="1">556.837299674242104</position>
+			<intensity>4.824994e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.249514</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="5052436323789535328"/>
+		</feature>
+		<feature id="f_4774420240769544527">
+			<position dim="0">2078.354425617028028</position>
+			<position dim="1">654.973899237531327</position>
+			<intensity>6.680481e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.766978</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="4774420240769544527"/>
+		</feature>
+		<feature id="f_6291381373070936327">
+			<position dim="0">2440.014158630135171</position>
+			<position dim="1">561.241388859176709</position>
+			<intensity>4.762164e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.779644</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="6291381373070936327"/>
+		</feature>
+		<feature id="f_2773036183197966973">
+			<position dim="0">2078.274994855717523</position>
+			<position dim="1">504.710238498772867</position>
+			<intensity>7.566464e05</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.683191</overallquality>
+			<charge>4</charge>
+			<UserParam type="string" name="feature_id" value="2773036183197966973"/>
+		</feature>
+		<feature id="f_8611639076845965572">
+			<position dim="0">2115.158608120314966</position>
+			<position dim="1">655.301875883655271</position>
+			<intensity>1.028434e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.892986</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="8611639076845965572"/>
+		</feature>
+		<feature id="f_10161406566185909444">
+			<position dim="0">2174.445375075156335</position>
+			<position dim="1">728.602320252291065</position>
+			<intensity>1.363559e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>2.785922</overallquality>
+			<charge>4</charge>
+			<UserParam type="string" name="feature_id" value="10161406566185909444"/>
+		</feature>
+		<feature id="f_12228727437926033526">
+			<position dim="0">2419.911209758896803</position>
+			<position dim="1">325.820599401765549</position>
+			<intensity>1.432177e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.295623</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="feature_id" value="12228727437926033526"/>
+		</feature>
+		<feature id="f_16279246116032538447">
+			<position dim="0">2391.725597909173303</position>
+			<position dim="1">501.795006289146897</position>
+			<intensity>7.763384e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>3.86217</overallquality>
+			<charge>2</charge>
+			<UserParam type="string" name="feature_id" value="16279246116032538447"/>
+		</feature>
+	</featureList>
+</featureMap>
