@@ -1242,7 +1242,20 @@ namespace OpenMS
       }));
     }
 
-    waitForWriteTasks_(write_tasks);
+    try
+    {
+      waitForWriteTasks_(write_tasks);
+    }
+    catch (...)
+    {
+      // If any asynchronous write failed, remove the partially-created run
+      // directory to avoid leaving a stale run_id=<id> that blocks retries.
+      if (File::exists(run_path))
+      {
+        File::removeDirRecursively(run_path);
+      }
+      throw;
+    }
 
       // Now that all per-run files have been written (or their async tasks
       // have thrown), update the global runs.parquet file. Doing this after

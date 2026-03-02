@@ -123,11 +123,14 @@ void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
       out.ms2_apex_intensity = ParquetFile::getDouble(ms2_apex_col, row, 0.0, true);
 
       auto it = precursor_info.find(out.precursor_id);
-      if (it != precursor_info.end())
+      if (it == precursor_info.end())
       {
-        out.precursor_charge = it->second.first;
-        out.decoy = it->second.second;
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Unknown precursor_id=" + String(out.precursor_id) +
+                                            " for run_id=" + String(out.run_id));
       }
+      out.precursor_charge = it->second.first;
+      out.decoy = it->second.second;
 
       auto tcit = transition_counts.find(out.precursor_id);
       if (tcit != transition_counts.end()) out.transition_count = tcit->second;
@@ -300,16 +303,14 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
       exp_rt_v.push_back(rt);
 
       auto pit = precursor_info.find(pid);
-      if (pit != precursor_info.end())
+      if (pit == precursor_info.end())
       {
-        precursor_charge_v.push_back(pit->second.first);
-        decoy_v.push_back(pit->second.second);
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Unknown precursor_id=" + String(pid) +
+                                            " for run_id=" + String(run_id));
       }
-      else
-      {
-        precursor_charge_v.push_back(0);
-        decoy_v.push_back(false);
-      }
+      precursor_charge_v.push_back(pit->second.first);
+      decoy_v.push_back(pit->second.second);
 
       auto tcit = transition_counts.find(pid);
       if (tcit != transition_counts.end()) transition_count_v.push_back(tcit->second);
