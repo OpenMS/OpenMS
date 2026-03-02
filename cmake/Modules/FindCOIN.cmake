@@ -39,6 +39,14 @@
 # required scripts
 include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
 
+# Explicit toggle for linking BLAS/LAPACK into CoinOR. This is required for
+# conda-forge/pixi builds where CoinOR is provided without transitive BLAS
+# linkage and CMake's built-in BLAS/LAPACK detection is configured via
+# BLA_VENDOR.
+option(OPENMS_LINK_COIN_BLAS
+  "Explicitly link BLAS/LAPACK into CoinOR (required for conda-forge/pixi builds)"
+  OFF)
+
 # hint from the user
 set(COIN_ROOT_DIR "" CACHE PATH "COIN root directory")
 
@@ -132,16 +140,17 @@ endmacro()
 
 if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
-  # CoinUtils depends on LAPACK (for DGETRF/DGETRS). On Windows (MSVC) transitive
-  # shared-library dependencies must be linked explicitly, so we always find and
-  # attach BLAS/LAPACK here regardless of the package manager in use (vcpkg, pixi,
-  # conda-forge, system, etc.).
-  find_package(BLAS)
-  find_package(LAPACK)
-  if (BLAS_FOUND AND LAPACK_FOUND)
-    target_link_libraries(CoinOR::CoinOR INTERFACE BLAS::BLAS LAPACK::LAPACK)
-  elseif(WIN32)
-    message(WARNING "BLAS/LAPACK not found – CoinOR linking will likely fail on Windows.")
+  if(VCPKG_TOOLCHAIN OR OPENMS_LINK_COIN_BLAS)
+    # Currently coin-or from vcpkg requires BLAS and LAPACK. For conda-forge/
+    # pixi builds, BLAS/LAPACK are also needed but VCPKG_TOOLCHAIN is not set,
+    # so this option allows explicitly opting in from the build configuration.
+    # TODO: Find a better way to do this. Ideal would be if Coin exports a
+    # CMake config. Maybe we can parse a header file? Or try_compile?
+    find_package(BLAS)
+    find_package(LAPACK)
+    if(BLAS_FOUND AND LAPACK_FOUND)
+      target_link_libraries(CoinOR::CoinOR INTERFACE BLAS::BLAS LAPACK::LAPACK)
+    endif()
   endif()
 endif()
 

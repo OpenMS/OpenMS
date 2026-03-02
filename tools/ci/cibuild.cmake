@@ -52,6 +52,9 @@ endif()
 if(NOT "$ENV{LAPACK_LIBRARIES}" STREQUAL "")
   list(APPEND OWN_OPTIONS "-DLAPACK_LIBRARIES=$ENV{LAPACK_LIBRARIES}")
 endif()
+if(NOT "$ENV{OPENMS_LINK_COIN_BLAS}" STREQUAL "")
+  list(APPEND OWN_OPTIONS "-DOPENMS_LINK_COIN_BLAS=$ENV{OPENMS_LINK_COIN_BLAS}")
+endif()
 
 # run the classical CTest suite
 ctest_start(Continuous) # TODO think about adding GROUP GitHub-Actions to separate visually

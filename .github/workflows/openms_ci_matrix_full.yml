@@ -279,18 +279,6 @@ jobs:
           THIRD_ARCH="$(uname -m)"
           THIRD_ARCH_DIR="$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/${THIRD_ARCH}"
           if [[ ! -d "$THIRD_ARCH_DIR" ]]; then
-            case "$THIRD_ARCH" in
-              aarch64) ALT_ARCH="arm64" ;;
-              arm64) ALT_ARCH="aarch64" ;;
-              x86_64) ALT_ARCH="amd64" ;;
-              amd64) ALT_ARCH="x86_64" ;;
-              *) ALT_ARCH="" ;;
-            esac
-            if [[ -n "$ALT_ARCH" && -d "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/${ALT_ARCH}" ]]; then
-              THIRD_ARCH_DIR="$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/${ALT_ARCH}"
-            fi
-          fi
-          if [[ ! -d "$THIRD_ARCH_DIR" ]]; then
             echo "Unable to find THIRDPARTY binaries for architecture: ${THIRD_ARCH}"
             ls -la "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/" || true
             exit 1
@@ -318,17 +306,6 @@ jobs:
         shell: bash
         run: |
           set +e
-
-          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-            export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
-          fi
-
-          if [[ "${{ matrix.os }}" == macos-* ]]; then
-            # Use DYLD_FALLBACK_LIBRARY_PATH (not DYLD_LIBRARY_PATH) so that
-            # RPATH-based resolution in pixi-provided binaries (cmake, ctest, etc.)
-            # is not overridden, which can cause segfaults.
-            export DYLD_FALLBACK_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_FALLBACK_LIBRARY_PATH:-}"
-          fi
 
           mkdir -p ${{ github.workspace }}/.ccache
 
@@ -376,6 +353,8 @@ jobs:
           BUILD_TYPE: "Release"
           MT_ENABLE_OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
+          OPENMS_LINK_COIN_BLAS: ${{ startsWith(matrix.os, 'windows') && 'ON' || '' }}
+          BLA_VENDOR: ${{ startsWith(matrix.os, 'windows') && 'FLAME' || '' }}
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
           CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
           CMAKE_C_COMPILER_LAUNCHER: "ccache"
@@ -394,12 +373,6 @@ jobs:
       - name: Test
         shell: bash
         run: |
-          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-            export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
-          fi
-          if [[ "${{ matrix.os }}" == macos-* ]]; then
-            export DYLD_FALLBACK_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_FALLBACK_LIBRARY_PATH:-}"
-          fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
         env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -442,12 +415,6 @@ jobs:
         shell: bash
         run: |
           set +e
-          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-            export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
-          fi
-          if [[ "${{ matrix.os }}" == macos-* ]]; then
-            export DYLD_FALLBACK_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_FALLBACK_LIBRARY_PATH:-}"
-          fi
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
@@ -557,12 +524,6 @@ jobs:
         if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
         shell: bash
         run: |
-          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-            export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}"
-          fi
-          if [[ "${{ matrix.os }}" == macos-* ]]; then
-            export DYLD_FALLBACK_LIBRARY_PATH="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default/lib:${DYLD_FALLBACK_LIBRARY_PATH:-}"
-          fi
           cd $GITHUB_WORKSPACE/OpenMS/bld/
           cmake -DSEARCH_ENGINES_DIRECTORY="$GITHUB_WORKSPACE/_thirdparty" -DENABLE_PREPARE_KNIME_PACKAGE=ON .
           cmake --build . --target prepare_knime_package

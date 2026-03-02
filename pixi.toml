@@ -4,10 +4,10 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "linux-aarch64", "osx-arm64", "win-64"]
 
 [dependencies]
-cmake = "3.28.*"
+cmake = ">=3.26,<4.0"
 ninja = "*"
-eigen = "*"
-boost = "*"
+eigen = ">=3.4"
+boost = ">=1.74"
 xerces-c = "*"
 sqlite = "*"
 hdf5 = "*"
@@ -18,7 +18,7 @@ coin-or-osi = "*"
 ccache = "*"
 zlib = "*"
 bzip2 = "*"
-libsvm = "*"
+libsvm = ">=2.91"
 libcurl = "*"
 libarrow = "*"
 libparquet = "*"
@@ -38,7 +38,7 @@ libtool = "*"
 autoconf = "*"
 patch = "*"
 mesalib = "*"
-qt6-main = "*"
+qt6-main = ">=6.1"
 
 [target.linux-aarch64.dependencies]
 coinmp = "*"
@@ -46,22 +46,13 @@ libtool = "*"
 autoconf = "*"
 patch = "*"
 mesalib = "*"
-qt6-main = "*"
-
-[target.osx-64.dependencies]  
-cmake = ">=3.26,<4.0"
-qt6-main = "*"
-
+qt6-main = ">=6.1"
 
 [target.osx-arm64.dependencies]
-cmake = ">=3.26,<4.0"
 libtool = "*"
 autoconf = "*"
 patch = "*"
-
-qt6-main = "*"
+qt6-main = ">=6.1"
 
 [target.win-64.dependencies]
-lapack = "*"
-blas = "*"
-qt6-main = "*"
+qt6-main = ">=6.1"
