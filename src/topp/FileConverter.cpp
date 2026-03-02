@@ -751,14 +751,7 @@ protected:
           }
         }
 
-        // Sanitize metadata source filename and stream chromatograms into consumer
-        auto sanitize_for_metadata = [](const String& s) {
-          String out = s;
-          out.substitute('%', '_');
-          return out;
-        };
-        String metadata_src = sanitize_for_metadata(in);
-        MSChromatogramParquetConsumer consumer(out, 0, metadata_src, transition_exp);
+        MSChromatogramParquetConsumer consumer(out, 0, in, transition_exp);
         // Stream directly from the sqMass file (memory-efficient)
         SqMassFile().transform(in, &consumer, /*skip_full_count=*/false, /*skip_first_pass=*/false);
         consumer.finalize();
@@ -781,14 +774,7 @@ protected:
 
         std::vector<MSChromatogram> chroms = exp.getChromatograms();
         OpenSwath::LightTargetedExperiment transition_exp; // no transitions provided
-          // Sanitize input filename for metadata passed to the parquet consumer
-          auto sanitize_for_metadata = [](const String& s) {
-            String out = s;
-            out.substitute('%', '_');
-            return out;
-          };
-          String metadata_in = sanitize_for_metadata(in);
-          MSChromatogramParquetConsumer consumer(out, 0, metadata_in, transition_exp);
+        MSChromatogramParquetConsumer consumer(out, 0, in, transition_exp);
         consumer.setExpectedSize(exp.size(), chroms.size());
         for (auto& c : chroms)
         {
