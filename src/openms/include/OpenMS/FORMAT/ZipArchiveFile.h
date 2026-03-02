@@ -32,17 +32,60 @@ namespace OpenMS
   class OPENMS_DLLAPI ZipArchiveFile
   {
   public:
-    /// Create a store-only zip archive from a directory (no additional compression)
+    /**
+      @brief Create a store-only zip archive from a directory (no additional compression)
+
+      The created archive will store files without additional compression (ZIP_CM_STORE).
+      If libzip is not available this method will throw Exception::NotImplemented.
+
+      @param[in] directory_path Path to the directory whose contents will be archived.
+      @param[in] output_zip Path to the output zip file to create (existing file will be overwritten).
+      @throws Exception::FileNotWritable if the archive cannot be written.
+      @throws Exception::NotImplemented if libzip support is unavailable.
+    */
     static void zipDirectory(const String& directory_path, const String& output_zip);
 
-    /// Unpack a zip archive into a temporary directory and return the usable path
+    /**
+      @brief Unpack a zip archive into a temporary directory and return the usable path
+
+      Extracts the archive into a newly created File::TempDir and returns the path to
+      the unpacked directory. This function protects against path traversal and
+      absolute paths in archive entries. If the provided path already points to a
+      directory it is returned unchanged and no TempDir is created.
+
+      @param[in] input_path Path to the zip archive (or a directory).
+      @param[out] temp_dir A unique_ptr which will be set to the owned TempDir when an archive is extracted. If input_path is a directory this will remain unchanged.
+      @return The path where the archive was unpacked (or input_path if already a directory).
+      @throws Exception::FileNotFound if the input archive is not readable.
+      @throws Exception::InvalidValue on archive extraction errors.
+      @throws Exception::NotImplemented if libzip support is unavailable.
+    */
     static String unzipDirectory(const String& input_path, std::unique_ptr<File::TempDir>& temp_dir);
 
-    /// Add or replace an entry inside an existing zip archive from a file on disk
-    /// If the archive does not exist it will be created.
+    /**
+      @brief Add or replace an entry inside an existing zip archive from a file on disk
+
+      Streams the contents of @p source_file_path into @p archive_path as the entry
+      @p entry_name using a file-backed zip source. The archive is created if it
+      does not exist. This avoids loading the entire file into memory and is suitable
+      for large parquet blobs.
+
+      @param[in] archive_path Path to the zip archive to modify (created if missing).
+      @param[in] entry_name Relative entry name inside the archive (use '/' separators).
+      @param[in] source_file_path Path to the source file on disk to add or replace.
+      @throws Exception::FileNotFound if the source file is not readable.
+      @throws Exception::InvalidValue on libzip errors.
+      @throws Exception::NotImplemented if libzip support is unavailable.
+    */
     static void addOrReplaceFromFile(const String& archive_path, const String& entry_name, const String& source_file_path);
 
-    /// List entries in a zip archive (returns empty list if not available)
+    /**
+      @brief List entries in a zip archive (returns empty list if not available)
+
+      @param[in] archive_path Path to the zip archive to inspect.
+      @return A vector of entry names contained in the archive. Returns an empty
+              vector if the archive cannot be read or libzip is unavailable.
+    */
     static std::vector<String> listEntries(const String& archive_path);
   };
 
