@@ -526,10 +526,22 @@ namespace OpenMS
     void flushBuffers_()
     {
 #ifdef WITH_PARQUET
-      // If there is nothing to flush, return.
+      // If there is nothing to flush, we usually return early.
+      // However, if no outfile/writer has been created yet (i.e. no
+      // flush has ever happened) we still want to create an empty
+      // parquet file so consumers that expect the file to exist
+      // (even if it contains zero rows) can open it. Only return
+      // when there are truly no rows to flush and a writer/outfile
+      // already exists.
       if (accumulated_rows_ == 0)
       {
-        return;
+        if (outfile_ || parquet_writer_)
+        {
+          return;
+        }
+        // otherwise, fall through and create an empty file below
+        OPENMS_LOG_WARN << "No chromatograms written to '" << filename_
+                         << "': creating empty Parquet file with zero rows.\n";
       }
 
       // Build Arrow schema for the chromatogram table.
