@@ -211,10 +211,9 @@ namespace OpenMS
     // files, not to append to it.
     targeted_exp = OpenSwath::LightTargetedExperiment{};
     std::unique_ptr<File::TempDir> temp_dir;
-    const String base_dir = ParquetFile::unzipDirectory(oswpq_dir, temp_dir);
-    const String library_dir = base_dir + "/library";
-    const String precursors_path = library_dir + "/precursors.parquet";
-    const String transitions_path = library_dir + "/transitions.parquet";
+    // Extract only the parquet files we need from the archive into a temp dir
+    const String precursors_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "library/precursors.parquet", temp_dir);
+    const String transitions_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "library/transitions.parquet", temp_dir);
 
     if (!File::exists(precursors_path) || !File::exists(transitions_path))
     {

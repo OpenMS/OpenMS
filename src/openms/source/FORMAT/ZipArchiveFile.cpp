@@ -280,4 +280,111 @@ std::vector<String> ZipArchiveFile::listEntries(const String& archive_path)
   return out;
 }
 
+String ZipArchiveFile::extractEntryToTempFile(const String& archive_path, const String& entry_name, std::unique_ptr<File::TempDir>& temp_dir)
+{
+#if defined(OPENMS_HAVE_LIBZIP)
+  if (!File::readable(archive_path))
+  {
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, archive_path);
+  }
+
+  int err = 0;
+  zip_t* za = zip_open(archive_path.c_str(), ZIP_RDONLY, &err);
+  if (!za)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Failed to open zip archive", archive_path);
+  }
+
+  zip_int64_t idx = zip_name_locate(za, entry_name.c_str(), 0);
+  if (idx < 0)
+  {
+    zip_close(za);
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, entry_name);
+  }
+
+  zip_file_t* zf = zip_fopen_index(za, idx, 0);
+  if (!zf)
+  {
+    zip_close(za);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Failed to open zip entry", entry_name);
+  }
+
+  if (!temp_dir) temp_dir = std::make_unique<File::TempDir>();
+  const String base = temp_dir->getPath();
+
+  // construct output path and create parent dirs
+  const std::filesystem::path entry_path = std::filesystem::u8path(std::string(entry_name));
+  if (entry_path.is_absolute())
+  {
+    zip_fclose(zf);
+    zip_close(za);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Zip entry has absolute path", entry_name);
+  }
+
+  const std::filesystem::path outpath = (std::filesystem::u8path(std::string(base)) / entry_path).lexically_normal();
+  const std::string base_str = std::filesystem::u8path(std::string(base)).string();
+  const std::string out_str = outpath.string();
+  if (out_str.size() < base_str.size() || out_str.compare(0, base_str.size(), base_str) != 0)
+  {
+    zip_fclose(zf);
+    zip_close(za);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Zip entry would extract outside target directory", entry_name);
+  }
+
+  if (!entry_name.empty() && entry_name.back() == '/')
+  {
+    std::filesystem::create_directories(outpath);
+    zip_fclose(zf);
+    zip_close(za);
+    return String(outpath.string());
+  }
+
+  if (outpath.has_parent_path()) std::filesystem::create_directories(outpath.parent_path());
+
+  std::ofstream ofs(outpath.string(), std::ios::binary);
+  if (!ofs.is_open())
+  {
+    zip_fclose(zf);
+    zip_close(za);
+    throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outpath.string());
+  }
+
+  constexpr size_t BUF_SIZE = 1 << 16;
+  std::vector<char> buffer(BUF_SIZE);
+  zip_int64_t nread = 0;
+  while ((nread = zip_fread(zf, buffer.data(), buffer.size())) > 0)
+  {
+    ofs.write(buffer.data(), static_cast<std::streamsize>(nread));
+    if (ofs.fail())
+    {
+      zip_fclose(zf);
+      zip_close(za);
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outpath.string());
+    }
+  }
+  if (nread < 0)
+  {
+    zip_fclose(zf);
+    zip_close(za);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Failed to read zip entry", entry_name);
+  }
+
+  ofs.close();
+  zip_fclose(zf);
+  zip_close(za);
+
+  return String(outpath.string());
+#else
+  (void)archive_path;
+  (void)entry_name;
+  (void)temp_dir;
+  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#endif
+}
+
 } // namespace OpenMS

@@ -87,6 +87,24 @@ namespace OpenMS
               vector if the archive cannot be read or libzip is unavailable.
     */
     static std::vector<String> listEntries(const String& archive_path);
+
+    /**
+    @brief Extract a single entry from a zip archive into a temporary file and return its path
+
+      The function will create the provided @p temp_dir (if null) and extract the
+      requested entry into that directory, preserving any subdirectory structure
+      present in the entry name. This is a lightweight alternative to extracting
+      the whole archive when only a few files are needed.
+
+      @param[in] archive_path Path to the zip archive
+      @param[in] entry_name Relative name of the entry to extract
+      @param[out] temp_dir Unique pointer to a TempDir which will be created if null and will own the extracted file(s)
+      @return The absolute path to the extracted file on disk
+      @throws Exception::FileNotFound if the archive or entry is not found
+      @throws Exception::InvalidValue on extraction errors
+    */
+    static String extractEntryToTempFile(const String& archive_path, const String& entry_name, std::unique_ptr<File::TempDir>& temp_dir);
+
   };
 
 } // namespace OpenMS
