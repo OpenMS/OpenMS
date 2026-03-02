@@ -180,10 +180,10 @@ protected:
     registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
     registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
     
-  // OpenSwath / chromatogram options: allow passing a transition library to enrich chromatogram metadata
+  // OpenSwath / chromatogram options: allow passing a transition library to map extracted ion chromatograms to their matching metadata in the transition list
   registerTOPPSubsection_("OpenSwathWorkflow", "Options for loading OpenSWATH transition libraries used for chromatogram metadata");
   registerInputFile_("OpenSwathWorkflow:tr", "<file>", "", "Optional transition library (PQP, TSV, TraML, or .oswpq) to supply precursor/transition metadata when converting to CHROMPARQUET.", false, true);
-  setValidFormats_("OpenSwathWorkflow:tr", {"pqp", "tsv", "traml", "osw", "oswpq"});
+  setValidFormats_("OpenSwathWorkflow:tr", {"pqp", "tsv", "traml", "osw"});
   registerStringOption_("OpenSwathWorkflow:tr_type", "<type>", "", "Optional type hint for the transition file (pqp, tsv, traml). If not provided the type is inferred.", false, true);
   registerFlag_("OpenSwathWorkflow:legacy_traml_id", "When loading PQP libraries: use legacy TraML IDs (TRAML_ID) instead of numeric IDs.", true);
   }
