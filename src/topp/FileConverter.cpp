@@ -183,6 +183,7 @@ protected:
   // OpenSwath / chromatogram options: allow passing a transition library to enrich chromatogram metadata
   registerTOPPSubsection_("OpenSwathWorkflow", "Options for loading OpenSWATH transition libraries used for chromatogram metadata");
   registerInputFile_("OpenSwathWorkflow:tr", "<file>", "", "Optional transition library (PQP, TSV, TraML, or .oswpq) to supply precursor/transition metadata when converting to CHROMPARQUET.", false, true);
+  setValidFormats_("OpenSwathWorkflow:tr", {"pqp", "tsv", "traml", "osw", "oswpq"});
   registerStringOption_("OpenSwathWorkflow:tr_type", "<type>", "", "Optional type hint for the transition file (pqp, tsv, traml). If not provided the type is inferred.", false, true);
   registerFlag_("OpenSwathWorkflow:legacy_traml_id", "When loading PQP libraries: use legacy TraML IDs (TRAML_ID) instead of numeric IDs.", true);
   }
