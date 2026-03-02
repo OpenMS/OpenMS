@@ -36,9 +36,11 @@ START_SECTION(void write(const String&, const OpenSwath::LightTargetedExperiment
   fmap.push_back(f1);
   fmap.push_back(f2);
 
-  String tmp_dir;
-  NEW_TMP_FILE(tmp_dir);
-  String base = tmp_dir + "_oswpq";
+  // Use File::TempDir so the temporary directory is removed automatically
+  // even if the test aborts early. Create a subdirectory for the .oswpq
+  // content so it is contained inside the TempDir.
+  File::TempDir tmp_dir;
+  String base = tmp_dir.getPath() + "/oswpq";
   if (File::exists(base)) File::removeDirRecursively(base);
   File::makeDir(base);
 
@@ -68,7 +70,7 @@ START_SECTION(void write(const String&, const OpenSwath::LightTargetedExperiment
     TEST_EQUAL(lib_ids.find(pid) != lib_ids.end(), true)
   }
 
-  File::removeDirRecursively(base);
+  // TempDir destructor will remove the temporary directory and its contents.
 END_SECTION
 
 END_TEST
