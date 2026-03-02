@@ -573,15 +573,15 @@ namespace OpenMS
     // Reserve Arrow builders where possible to avoid repeated reallocations.
     // Feature-level builders: reserve by number of features
     const int64_t n_features = static_cast<int64_t>(feature_map.size());
-    feature_id_builder.Reserve(n_features);
-    feature_run_id_builder.Reserve(n_features);
-    precursor_id_builder.Reserve(n_features);
-    exp_rt_builder.Reserve(n_features);
+    ParquetFile::appendOrThrow(feature_id_builder.Reserve(n_features), "feature_id (reserve)");
+    ParquetFile::appendOrThrow(feature_run_id_builder.Reserve(n_features), "run_id (reserve)");
+    ParquetFile::appendOrThrow(precursor_id_builder.Reserve(n_features), "precursor_id (reserve)");
+    ParquetFile::appendOrThrow(exp_rt_builder.Reserve(n_features), "exp_rt (reserve)");
 
     // Feature-Transition builders: reserve conservatively (features * 2)
     const int64_t approx_ft = std::max<int64_t>(1, n_features * 2);
-    ft_feature_id_builder.Reserve(approx_ft);
-    ft_run_id_builder.Reserve(approx_ft);
+    ParquetFile::appendOrThrow(ft_feature_id_builder.Reserve(approx_ft), "ft.feature_id (reserve)");
+    ParquetFile::appendOrThrow(ft_run_id_builder.Reserve(approx_ft), "ft.run_id (reserve)");
 
     // Iterate features and populate builders
     for (Size idx = 0; idx < feature_map.size(); ++idx)
