@@ -340,8 +340,20 @@ namespace OpenMS
     {
       const int64_t existing_precursors = getParquetRowCount_(precursors_path);
       const int64_t existing_transitions = getParquetRowCount_(transitions_path);
-      const int64_t expected_precursors = static_cast<int64_t>(assay_library.compounds.size());
-      const int64_t expected_transitions = static_cast<int64_t>(assay_library.transitions.size());
+      // Use deduplicated counts from the provided assay_library (unique compound ids
+      // and unique transition names) to compare against existing parquet tables. The
+      // writer deduplicates compounds/transitions when generating the library, so a
+      // direct comparison to raw vector sizes can give false incompatibility errors.
+      std::unordered_set<String> unique_compounds;
+      unique_compounds.reserve(assay_library.compounds.size());
+      for (const auto& c : assay_library.compounds) unique_compounds.insert(c.id);
+      const int64_t expected_precursors = static_cast<int64_t>(unique_compounds.size());
+
+      std::unordered_set<String> unique_transitions;
+      unique_transitions.reserve(assay_library.transitions.size());
+      for (const auto& t : assay_library.transitions) unique_transitions.insert(t.transition_name);
+      const int64_t expected_transitions = static_cast<int64_t>(unique_transitions.size());
+
       if (existing_precursors != expected_precursors || existing_transitions != expected_transitions)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -558,6 +570,20 @@ namespace OpenMS
     arrow::DoubleBuilder fp_area_builder;
     arrow::DoubleBuilder fp_apex_builder;
 
+    // Reserve Arrow builders where possible to avoid repeated reallocations.
+    // Feature-level builders: reserve by number of features
+    const int64_t n_features = static_cast<int64_t>(feature_map.size());
+    feature_id_builder.Reserve(n_features);
+    feature_run_id_builder.Reserve(n_features);
+    precursor_id_builder.Reserve(n_features);
+    exp_rt_builder.Reserve(n_features);
+
+    // Feature-Transition builders: reserve conservatively (features * 2)
+    const int64_t approx_ft = std::max<int64_t>(1, n_features * 2);
+    ft_feature_id_builder.Reserve(approx_ft);
+    ft_run_id_builder.Reserve(approx_ft);
+
+    // Iterate features and populate builders
     for (Size idx = 0; idx < feature_map.size(); ++idx)
     {
       const Feature& feature = feature_map[idx];

@@ -103,11 +103,13 @@ namespace OpenMS
 
       @param[in] table     The Arrow Table to write
       @param[in] filename  Output file path
+      @param[in] row_group_size  Number of rows per row group (default: 262144)
 
       @throws Exception::FileNotWritable if the file cannot be opened
       @throws Exception::InvalidValue if writing fails
     */
-    static void writeTable(const std::shared_ptr<arrow::Table>& table, const String& filename);
+    static void writeTable(const std::shared_ptr<arrow::Table>& table, const String& filename,
+                int64_t row_group_size = 262144);
 
     /**
       @brief Read a Parquet file into an Arrow Table.

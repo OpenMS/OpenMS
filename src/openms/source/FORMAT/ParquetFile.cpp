@@ -49,7 +49,8 @@ namespace OpenMS
 
   // ---- Parquet file I/O -----------------------------------------------------
 
-  void ParquetFile::writeTable(const std::shared_ptr<arrow::Table>& table, const String& filename)
+  void ParquetFile::writeTable(const std::shared_ptr<arrow::Table>& table, const String& filename,
+                               int64_t row_group_size)
   {
     auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename));
     if (!outfile_result.ok())
@@ -57,7 +58,9 @@ namespace OpenMS
       throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     auto outfile = outfile_result.ValueOrDie();
-    auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024);
+    // Use a larger default row_group_size than 1024 to improve compression and reduce metadata overhead.
+    // Default is configurable by callers via the row_group_size parameter.
+    auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, static_cast<int>(row_group_size));
     if (!status.ok())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -89,6 +92,23 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Failed to read parquet table", filename);
+    }
+
+    // Only combine chunks when necessary: if every column already has a single chunk,
+    // avoid CombineChunks() which copies data and doubles memory usage for large tables.
+    bool need_combine = false;
+    for (int i = 0; i < static_cast<int>(table->num_columns()); ++i)
+    {
+      const auto& col = table->column(i);
+      if (col->num_chunks() > 1)
+      {
+        need_combine = true;
+        break;
+      }
+    }
+    if (!need_combine)
+    {
+      return table;
     }
 
     auto combined = table->CombineChunks(arrow::default_memory_pool());
