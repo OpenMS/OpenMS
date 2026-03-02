@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <iosfwd>
 #include <map>
+#include <memory>
 
 namespace OpenMS
 {
@@ -189,8 +190,8 @@ protected:
     DataPoints data_;
     /// Type of model
     String model_type_;
-    /// Pointer to model
-    TransformationModel* model_;
+    /// Owned model instance (std::unique_ptr)
+    std::unique_ptr<TransformationModel> model_;
   };
 
 } // end of namespace OpenMS
