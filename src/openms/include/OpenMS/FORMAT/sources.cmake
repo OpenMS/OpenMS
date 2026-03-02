@@ -121,6 +121,7 @@ if (WITH_HDF5)
 endif()
 
 if (WITH_PARQUET)
+  list(APPEND sources_list_h ZipArchiveFile.h)
   list(APPEND sources_list_h MSExperimentArrowExport.h)
   list(APPEND sources_list_h ConsensusMapArrowExport.h)
   list(APPEND sources_list_h ParquetFile.h)

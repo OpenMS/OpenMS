@@ -107,6 +107,7 @@ if (WITH_HDF5)
 endif()
 
 if (WITH_PARQUET)
+  list(APPEND sources_list ZipArchiveFile.cpp)
   list(APPEND sources_list MSExperimentArrowExport.cpp)
   list(APPEND sources_list ConsensusMapArrowExport.cpp)
   list(APPEND sources_list ParquetFile.cpp)

@@ -8,6 +8,8 @@
 
 #include <OpenMS/FORMAT/ParquetFile.h>
 
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
+
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -349,189 +351,15 @@ namespace OpenMS
 
   void ParquetFile::zipDirectory(const String& directory_path, const String& output_zip)
   {
-#ifdef WITH_PARQUET
-  const std::filesystem::path dirpath = std::filesystem::u8path(std::string(directory_path));
-  const std::filesystem::path outpath = std::filesystem::u8path(std::string(output_zip));
-    const String output_zip_abs = File::absolutePath(output_zip);
-    if (File::exists(output_zip_abs))
-    {
-      File::remove(output_zip_abs);
-    }
-
-#if defined(OPENMS_HAVE_LIBZIP)
-    int err = 0;
-    zip_t* za = zip_open(outpath.string().c_str(), ZIP_CREATE | ZIP_TRUNCATE, &err);
-    if (!za)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Failed to create zip archive", output_zip_abs);
-    }
-
-    for (auto it = std::filesystem::recursive_directory_iterator(dirpath); it != std::filesystem::recursive_directory_iterator(); ++it)
-    {
-      if (it->is_directory()) continue;
-      const auto full = it->path();
-      // compute relative path inside the zip
-      std::string rel = std::filesystem::relative(full, dirpath).generic_string();
-      zip_source_t* zs = zip_source_file(za, full.string().c_str(), 0, 0);
-      if (!zs)
-      {
-        zip_close(za);
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to add file to zip", full.string());
-      }
-      zip_int64_t idx = zip_file_add(za, rel.c_str(), zs, ZIP_FL_ENC_UTF_8);
-      if (idx < 0)
-      {
-        zip_source_free(zs);
-        zip_close(za);
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to add file to zip", full.string());
-      }
-      // Create an uncompressed archive
-      if (zip_set_file_compression(za, static_cast<zip_uint64_t>(idx), ZIP_CM_STORE, 0) < 0)
-      {
-        zip_close(za);
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to set stored (no compression) for file in zip", full.string());
-      }
-    }
-
-    if (zip_close(za) < 0)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Failed to finalize zip archive", output_zip_abs);
-    }
-#else
-    // libzip not available -> zipDirectory not implemented
-    (void)directory_path;
-    (void)output_zip;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
-#else
-    (void)directory_path;
-    (void)output_zip;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
+    // Delegate to ZipArchiveFile implementation (keeps ParquetFile API stable)
+    ZipArchiveFile::zipDirectory(directory_path, output_zip);
   }
 
   String ParquetFile::unzipDirectory(const String& input_path,
                                      std::unique_ptr<File::TempDir>& temp_dir)
   {
-#ifdef WITH_PARQUET
-    if (File::isDirectory(input_path))
-    {
-      return input_path;
-    }
-
-    if (!File::readable(input_path))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, input_path);
-    }
-
-    temp_dir = std::make_unique<File::TempDir>();
-    const String unpack_dir = temp_dir->getPath() + "/parquet_unpacked";
-    File::makeDir(unpack_dir);
-
-#if defined(OPENMS_HAVE_LIBZIP)
-    int err = 0;
-    zip_t* za = zip_open(input_path.c_str(), ZIP_RDONLY, &err);
-    if (!za)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Failed to open zip archive", input_path);
-    }
-
-    zip_int64_t num = zip_get_num_entries(za, 0);
-    const std::filesystem::path base_path = std::filesystem::u8path(std::string(unpack_dir)).lexically_normal();
-    for (zip_uint64_t i = 0; i < static_cast<zip_uint64_t>(num); ++i)
-    {
-      const char* name = zip_get_name(za, i, 0);
-      if (!name) continue;
-      std::string entry_name(name);
-
-      // Protect against path traversal: do not allow absolute paths or '..' to escape the base unpack dir.
-      std::filesystem::path entry_path = std::filesystem::u8path(entry_name);
-      if (entry_path.is_absolute())
-      {
-        zip_close(za);
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Zip entry has absolute path", entry_name);
-      }
-
-      std::filesystem::path outpath = (base_path / entry_path).lexically_normal();
-      const std::string base_str = base_path.string();
-      const std::string out_str = outpath.string();
-      if (out_str.size() < base_str.size() || out_str.compare(0, base_str.size(), base_str) != 0)
-      {
-        zip_close(za);
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Zip entry would extract outside target directory", entry_name);
-      }
-
-      // create parent dirs or directory entries
-      if (!entry_name.empty() && entry_name.back() == '/')
-      {
-        std::filesystem::create_directories(outpath);
-        continue;
-      }
-      if (outpath.has_parent_path()) std::filesystem::create_directories(outpath.parent_path());
-
-      zip_file_t* zf = zip_fopen_index(za, i, 0);
-      if (!zf)
-      {
-        zip_close(za);
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to read zip entry", entry_name);
-      }
-
-      std::ofstream ofs(outpath.string(), std::ios::binary);
-      if (!ofs.is_open())
-      {
-        zip_fclose(zf);
-        zip_close(za);
-        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outpath.string());
-      }
-
-      constexpr size_t BUF_SIZE = 1 << 16;
-      std::vector<char> buffer(BUF_SIZE);
-      zip_int64_t nread = 0;
-      while ((nread = zip_fread(zf, buffer.data(), buffer.size())) > 0)
-      {
-        ofs.write(buffer.data(), static_cast<std::streamsize>(nread));
-        if (ofs.fail())
-        {
-          zip_fclose(zf);
-          zip_close(za);
-          throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outpath.string());
-        }
-      }
-      if (nread < 0)
-      {
-        zip_fclose(zf);
-        zip_close(za);
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to read zip entry", entry_name);
-      }
-
-      ofs.close();
-      zip_fclose(zf);
-    }
-
-    zip_close(za);
-
-    return unpack_dir;
-#else
-    // libzip not available -> unzipDirectory not implemented
-    (void)input_path;
-    (void)temp_dir;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
-#else
-    (void)input_path;
-    (void)temp_dir;
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-#endif
+    // Delegate to ZipArchiveFile implementation (keeps ParquetFile API stable)
+    return ZipArchiveFile::unzipDirectory(input_path, temp_dir);
   }
 
 #ifdef WITH_PARQUET
