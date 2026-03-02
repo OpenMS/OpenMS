@@ -354,7 +354,6 @@ jobs:
           MT_ENABLE_OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           OPENMS_LINK_COIN_BLAS: ${{ startsWith(matrix.os, 'windows') && 'ON' || '' }}
-          BLA_VENDOR: ${{ startsWith(matrix.os, 'windows') && 'FLAME' || '' }}
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
           CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
           CMAKE_C_COMPILER_LAUNCHER: "ccache"
