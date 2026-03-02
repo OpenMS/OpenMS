@@ -8,6 +8,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
+
+#include <filesystem>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -672,7 +675,26 @@ namespace OpenMS
 
     if (!output_is_dir)
     {
-      ParquetFile::zipDirectory(base_dir, oswpq_path);
+      // Instead of zipping the whole directory in one go, add each file to the
+      // archive individually. This allows streaming large parquet files into the
+      // archive without unzipping/rezipping everything.
+      const std::filesystem::path dirpath = std::filesystem::u8path(std::string(base_dir));
+      const std::filesystem::path outpath = std::filesystem::u8path(std::string(oswpq_path));
+      const String output_zip_abs = File::absolutePath(oswpq_path);
+      if (File::exists(output_zip_abs))
+      {
+        // Truncate/replace existing archive to match previous behavior
+        File::remove(output_zip_abs);
+      }
+
+      for (auto it = std::filesystem::recursive_directory_iterator(dirpath); it != std::filesystem::recursive_directory_iterator(); ++it)
+      {
+        if (it->is_directory()) continue;
+        const auto full = it->path();
+        std::string rel = std::filesystem::relative(full, dirpath).generic_string();
+        // Ensure forward slashes (zip expects '/'). generic_string() already uses '/'.
+        ZipArchiveFile::addOrReplaceFromFile(oswpq_path, String(rel), String(full.string()));
+      }
     }
 #else
     (void)oswpq_path;
