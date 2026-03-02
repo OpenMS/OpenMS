@@ -234,10 +234,9 @@ namespace OpenMS
         }
         else
         {
-          appendOrThrow_(precursor_id_builder_.AppendNull(), "PRECURSOR_ID");
-          appendOrThrow_(modified_sequence_builder_.AppendNull(), "MODIFIED_SEQUENCE");
-          appendOrThrow_(precursor_charge_builder_.AppendNull(), "PRECURSOR_CHARGE");
-          appendOrThrow_(precursor_decoy_builder_.AppendNull(), "PRECURSOR_DECOY");
+          // If we have an extracted ion chromatogram to write out to disk, we likely would want to know what precursor the XIC belongs to. Otherwise we could end up with a parquet file with a log of XICs but without any meta data to identify them.
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        String("Chromatogram native ID '") + native_id + "' looks like a precursor but no matching compound metadata entry was found. Please ensure the native ID is correct and that the transition library contains metadata for this precursor.", String());
         }
 
         appendOrThrow_(transition_id_builder_.AppendNull(), "TRANSITION_ID");
@@ -268,17 +267,9 @@ namespace OpenMS
         }
         else
         {
-          appendOrThrow_(precursor_id_builder_.AppendNull(), "PRECURSOR_ID");
-          appendOrThrow_(transition_id_builder_.AppendNull(), "TRANSITION_ID");
-          appendOrThrow_(modified_sequence_builder_.AppendNull(), "MODIFIED_SEQUENCE");
-          appendOrThrow_(precursor_charge_builder_.AppendNull(), "PRECURSOR_CHARGE");
-          appendOrThrow_(product_charge_builder_.AppendNull(), "PRODUCT_CHARGE");
-          appendOrThrow_(detecting_transition_builder_.AppendNull(), "DETECTING_TRANSITION");
-          appendOrThrow_(precursor_decoy_builder_.AppendNull(), "PRECURSOR_DECOY");
-          appendOrThrow_(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
-          appendOrThrow_(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
-          appendOrThrow_(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
-          appendOrThrow_(annotation_builder_.AppendNull(), "ANNOTATION");
+          // Same comment as for the precursor case applies here: if we have a chromatogram to write out to disk, we likely would want to know what transition it belongs to. Otherwise we could end up with a parquet file with a log of chromatograms but without any meta data to identify them.
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        String("Chromatogram native ID '") + native_id + "' does not have a matching transition metadata entry. Please ensure the native ID is correct and that the transition library contains metadata for this transition.", String());
         }
       }
 
@@ -338,10 +329,6 @@ namespace OpenMS
     void buildTransitionMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
     {
       // Build lookup tables for precursor- and transition-level metadata.
-      int64_t next_precursor_id = 1;
-      int64_t next_transition_id = 1;
-      std::unordered_set<int64_t> used_precursor_ids;
-      std::unordered_set<int64_t> used_transition_ids;
 
       std::unordered_map<String, int64_t> precursor_ids;
       precursor_ids.reserve(transition_exp.getCompounds().size());
@@ -352,7 +339,7 @@ namespace OpenMS
       for (const auto& compound : transition_exp.getCompounds())
       {
         const String compound_id = compound.id;
-        const int64_t precursor_id = parseOrAssignId_(compound_id, next_precursor_id, used_precursor_ids);
+        const int64_t precursor_id = parseOrAssignId_(compound_id, next_precursor_id_, used_precursor_ids_);
         precursor_ids[compound_id] = precursor_id;
         precursor_decoy[compound_id] = 0;
 
@@ -373,7 +360,7 @@ namespace OpenMS
         auto it = transition_ids_.find(transition_name);
         if (it == transition_ids_.end())
         {
-          transition_id = parseOrAssignId_(transition_name, next_transition_id, used_transition_ids);
+          transition_id = parseOrAssignId_(transition_name, next_transition_id_, used_transition_ids_);
           transition_ids_[transition_name] = transition_id;
         }
         else
@@ -384,7 +371,7 @@ namespace OpenMS
         auto precursor_it = precursor_ids.find(peptide_ref);
         if (precursor_it == precursor_ids.end())
         {
-          const int64_t precursor_id = parseOrAssignId_(peptide_ref, next_precursor_id, used_precursor_ids);
+          const int64_t precursor_id = parseOrAssignId_(peptide_ref, next_precursor_id_, used_precursor_ids_);
           precursor_ids[peptide_ref] = precursor_id;
           precursor_decoy[peptide_ref] = 0;
 
@@ -491,10 +478,60 @@ namespace OpenMS
       appendBinary_(intensity_data_builder_, int_encoded, "INTENSITY_DATA");
       appendOrThrow_(rt_compression_builder_.Append(rt_compression), "RT_COMPRESSION");
       appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
+      
+      // Track accumulated binary size and row count. If we exceed thresholds,
+      // flush current builders to disk to avoid Arrow/Parquet int32 capacity
+      // limits and to keep memory bounded.
+      accumulated_rows_++;
+      accumulated_binary_bytes_ += rt_encoded.size();
+      accumulated_binary_bytes_ += int_encoded.size();
+
+      if (accumulated_rows_ >= flush_row_limit_ || accumulated_binary_bytes_ >= flush_byte_limit_)
+      {
+        flushBuffers_();
+      }
     }
 
     void write_()
     {
+      // Finalize builders into arrays and assemble the table and write any
+      // remaining data.
+      flushBuffers_();
+
+      // Close writer and outfile so Parquet metadata is written.
+#ifdef WITH_PARQUET
+      if (parquet_writer_)
+      {
+        auto s = parquet_writer_->Close();
+        if (!s.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to close parquet writer", s.ToString());
+        }
+      }
+      if (outfile_)
+      {
+        auto s2 = outfile_->Close();
+        if (!s2.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to close parquet outfile", s2.ToString());
+        }
+      }
+#endif
+      wrote_ = true;
+      return;
+    }
+
+    void flushBuffers_()
+    {
+#ifdef WITH_PARQUET
+      // If there is nothing to flush, return.
+      if (accumulated_rows_ == 0)
+      {
+        return;
+      }
+
       // Build Arrow schema for the chromatogram table.
       auto schema = arrow::schema({
         arrow::field("RUN_ID", arrow::int64()),
@@ -539,29 +576,81 @@ namespace OpenMS
         finishArray_(intensity_compression_builder_, "INTENSITY_COMPRESSION")
       });
 
-      // Open output file and write the parquet table.
-      auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename_));
-      if (!outfile_result.ok())
+      // Open output file on first flush and prepare writer properties.
+      if (!outfile_)
       {
-        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
+        auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename_));
+        if (!outfile_result.ok())
+        {
+          throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
+        }
+        outfile_ = outfile_result.ValueOrDie();
+        parquet::WriterProperties::Builder builder;
+        builder.compression(parquet::Compression::ZSTD);
+        builder.compression_level(11);
+        props_ = builder.build();
       }
-      auto outfile = outfile_result.ValueOrDie();
-      parquet::WriterProperties::Builder builder;
-      builder.compression(parquet::Compression::ZSTD);
-      builder.compression_level(11);
-      auto props = builder.build();
-      auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024, props);
+
+      // Write the table as row-group(s). Use parquet::arrow::FileWriter for
+      // incremental writes; create the writer on first flush and reuse it for
+      // subsequent flushes. FileWriter writes metadata at Close(), so we keep
+      // it open until finalize().
+      if (!parquet_writer_)
+      {
+        // Create a FileWriter (returns arrow::Result)
+  auto writer_result = parquet::arrow::FileWriter::Open(*schema,
+                   arrow::default_memory_pool(),
+                   outfile_,
+                   props_,
+                   parquet::default_arrow_writer_properties());
+        if (!writer_result.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to create parquet FileWriter", writer_result.status().ToString());
+        }
+        parquet_writer_ = std::move(writer_result.ValueOrDie());
+      }
+      auto status = parquet_writer_->WriteTable(*table, 1024);
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to write chromatogram parquet table", status.ToString());
       }
-      wrote_ = true;
+
+      // Reset builders by reconstructing them so we can append new data.
+      run_id_builder_ = arrow::Int64Builder();
+      source_file_builder_ = arrow::StringBuilder();
+      ms_level_builder_ = arrow::Int64Builder();
+      precursor_id_builder_ = arrow::Int64Builder();
+      transition_id_builder_ = arrow::Int64Builder();
+      modified_sequence_builder_ = arrow::StringBuilder();
+      precursor_charge_builder_ = arrow::Int64Builder();
+      product_charge_builder_ = arrow::Int64Builder();
+      detecting_transition_builder_ = arrow::Int64Builder();
+      precursor_decoy_builder_ = arrow::Int64Builder();
+      product_decoy_builder_ = arrow::Int64Builder();
+      transition_ordinal_builder_ = arrow::Int64Builder();
+      transition_type_builder_ = arrow::StringBuilder();
+      annotation_builder_ = arrow::StringBuilder();
+      rt_data_builder_ = arrow::BinaryBuilder();
+      intensity_data_builder_ = arrow::BinaryBuilder();
+      rt_compression_builder_ = arrow::Int64Builder();
+      intensity_compression_builder_ = arrow::Int64Builder();
+
+      // Reset counters
+      accumulated_rows_ = 0;
+      accumulated_binary_bytes_ = 0;
+#endif
     }
 
     std::unordered_map<String, CompoundInfo> compound_info_;
     std::unordered_map<String, TransitionInfo> transition_info_;
     std::unordered_map<String, int64_t> transition_ids_;
+    // Auto-assignment state for when no transition experiment is provided.
+    int64_t next_precursor_id_ = 1;
+    int64_t next_transition_id_ = 1;
+    std::unordered_set<int64_t> used_precursor_ids_;
+    std::unordered_set<int64_t> used_transition_ids_;
 
     arrow::Int64Builder run_id_builder_;
     arrow::StringBuilder source_file_builder_;
@@ -581,6 +670,17 @@ namespace OpenMS
     arrow::BinaryBuilder intensity_data_builder_;
     arrow::Int64Builder rt_compression_builder_;
     arrow::Int64Builder intensity_compression_builder_;
+    // Streaming/flush state to avoid building giant arrays that exceed Arrow's
+    // int32 capacity limits.
+    size_t accumulated_rows_ = 0;
+    size_t accumulated_binary_bytes_ = 0;
+    // Flush when this many chromatograms are buffered
+    const size_t flush_row_limit_ = 1000;
+    // Flush when this many binary bytes are buffered (safety margin below 2^31)
+    const size_t flush_byte_limit_ = 2147400000ULL;
+    std::shared_ptr<arrow::io::FileOutputStream> outfile_;
+    std::shared_ptr<parquet::WriterProperties> props_;
+    std::unique_ptr<parquet::arrow::FileWriter> parquet_writer_;
 #endif
   };
 
