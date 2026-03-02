@@ -213,6 +213,8 @@ jobs:
             # tell cmake where to find libraries installed by pixi
             PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
             echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/Library;$PIXI_ENV/Library/lib/cmake;$PIXI_ENV/Library/lib;$PIXI_ENV/lib/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
+            echo "pixi_env=$PIXI_ENV" >> $GITHUB_OUTPUT
+            echo "LIB=$PIXI_ENV/Library/lib${LIB:+;$LIB}" >> $GITHUB_ENV
 
           fi
 
@@ -231,6 +233,7 @@ jobs:
             # tell cmake where to find libraries installed by pixi
             PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
             echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/lib/cmake;$PIXI_ENV/share/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
+            echo "pixi_env=$PIXI_ENV" >> $GITHUB_OUTPUT
 
             # clang needs the OpenMP runtime which isn't bundled with the compiler on Ubuntu
             if [[ "${{ matrix.compiler }}" == clang* ]]; then
@@ -253,6 +256,7 @@ jobs:
             # tell cmake where to find libraries installed by pixi
             PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
             echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/lib/cmake;$PIXI_ENV/share/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
+            echo "pixi_env=$PIXI_ENV" >> $GITHUB_OUTPUT
 
             brew install ccache
             echo "$(brew --prefix)/bin" >> $GITHUB_PATH
@@ -353,7 +357,9 @@ jobs:
           BUILD_TYPE: "Release"
           MT_ENABLE_OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
-          OPENMS_LINK_COIN_BLAS: ${{ startsWith(matrix.os, 'windows') && 'ON' || '' }}
+          CMAKE_BUILD_RPATH: ${{ (!startsWith(matrix.os, 'windows')) && format('{0}/lib', steps.tools-prefix.outputs.pixi_env) || '' }}
+          CMAKE_INSTALL_RPATH: ${{ (!startsWith(matrix.os, 'windows')) && format('{0}/lib', steps.tools-prefix.outputs.pixi_env) || '' }}
+          CMAKE_INSTALL_RPATH_USE_LINK_PATH: ${{ (!startsWith(matrix.os, 'windows')) && 'ON' || '' }}
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
           CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
           CMAKE_C_COMPILER_LAUNCHER: "ccache"
