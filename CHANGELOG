@@ -21,6 +21,7 @@ General:
   - Ubuntu CI runners updated to 24.04
   - macOS code signing and notarization integrated directly into CI (#8486, #8494, #8527)
   - Parquet support enabled across all platforms (#8370, #8422)
+  - Fix undefined behavior in ProteinIdentification get*DataArrayByName by throwing ElementNotFound when the name is missing
   - Removed leftover traces of removed doc_internal target (#2256)
   - Refactored PercolatorAdapter/PercolatorInfile isEnz_ to use ProteaseDigestion (#5571)
 

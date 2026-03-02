@@ -216,7 +216,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "PepsinA",
       "(?<=[FLJX])",
-      set<String>(),
+      set<String>{"pepsin"},
       "PepsinA cuts after F or L(or J).",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -246,7 +246,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Trypsin/P",
       "(?<=[KRX])",
-      set<String>(),
+      set<String>{"trypsinp"},
       "Trypsin/P cuts after K or R.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -291,7 +291,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "leukocyte elastase",
       "(?<=[ALIJVX])(?!P)",
-      set<String>(),
+      set<String>{"elastase"},
       "leukocyte elastase cuts after A or L or I(or J) or V if not followed by P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),

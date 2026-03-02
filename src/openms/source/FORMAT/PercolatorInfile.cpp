@@ -573,40 +573,22 @@ namespace OpenMS
 
   bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
   {
-    // Terminal positions are always considered enzymatic.
-    // PeptideEvidence uses '['/']' for protein termini; PIN format uses '-'.
-    if (n == '-' || c == '-' || n == '[' || c == ']')
+    // Terminal positions (protein N/C-terminus) are always considered enzymatic
+    if (n == '-' || c == '-')
     {
       return true;
     }
 
-    // Map Percolator enzyme names to OpenMS ProteaseDB enzyme names
-    static const std::unordered_map<std::string, std::string> name_map = {
-      {"trypsin", "Trypsin"},
-      {"trypsinp", "Trypsin/P"},
-      {"chymotrypsin", "Chymotrypsin"},
-      {"elastase", "leukocyte elastase"},
-      {"pepsin", "PepsinA"},
-      {"lys-n", "Lys-N"},
-      {"lys-c", "Lys-C"},
-      {"arg-c", "Arg-C"},
-      {"asp-n", "Asp-N"},
-      {"glu-c", "glutamyl endopeptidase"},
-      {"thermolysin", "Thermolysin"},
-      {"proteinasek", "Proteinase K"},
-      {"no_enzyme", "unspecific cleavage"}
-    };
-
-    auto it = name_map.find(enz);
-    if (it == name_map.end())
+    // Enzymes not present in OpenMS ProteaseDB - keep Percolator-compatible logic
+    if (enz == "thermolysin")
     {
-      thread_local std::unordered_set<std::string> warned;
-      if (warned.insert(enz).second)
-      {
-        OPENMS_LOG_WARN << "Warning: unknown enzyme name '" << enz
-                        << "' in isEnz_. Assuming all sites are enzymatic." << '\n';
-      }
-      return true;
+      return (c == 'A' || c == 'F' || c == 'I' || c == 'L' || c == 'M'
+              || c == 'V' || (n == 'R' && c == 'G')) && n != 'D' && n != 'E';
+    }
+    if (enz == "proteinasek")
+    {
+      return n == 'A' || n == 'E' || n == 'F' || n == 'I' || n == 'L'
+             || n == 'T' || n == 'V' || n == 'W' || n == 'Y';
     }
 
     // Use OpenMS ProteaseDigestion to check enzymatic cleavage.
@@ -615,7 +597,20 @@ namespace OpenMS
     thread_local std::string cached_enz;
     if (enz != cached_enz)
     {
-      digest.setEnzyme(it->second);
+      try
+      {
+        digest.setEnzyme(enz);
+      }
+      catch (Exception::ElementNotFound&)
+      {
+        thread_local std::unordered_set<std::string> warned;
+        if (warned.insert(enz).second)
+        {
+          OPENMS_LOG_WARN << "Warning: unknown enzyme name '" << enz
+                          << "\' in isEnz_. Assuming all sites are enzymatic." << std::endl;
+        }
+        return true;
+      }
       cached_enz = enz;
     }
 
@@ -625,18 +620,6 @@ namespace OpenMS
     const String mini_protein = String(1, n) + String(1, c);
     return digest.isValidProduct(mini_protein, 0, 1, true);
   }
-
-  Size PercolatorInfile::countEnzymatic_(const String& peptide, const string& enz)
-  {
-    Size count = 0;
-    for (Size ix = 1; ix < peptide.size(); ++ix)
-    {
-      if (isEnz_(peptide[ix - 1], peptide[ix], enz))
-      {
-        ++count;
-      }
-    }
-    return count;
   }
 
 }

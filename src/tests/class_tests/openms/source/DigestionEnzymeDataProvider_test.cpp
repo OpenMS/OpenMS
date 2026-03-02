@@ -261,8 +261,8 @@ START_SECTION(BuiltInProteaseDataProvider - Thermolysin and Proteinase K)
     }
   }
 
-  TEST_EQUAL(found_thermo, true)
-  TEST_EQUAL(found_pk, true)
+  TEST_TRUE(found_thermo)
+  TEST_TRUE(found_pk)
 }
 END_SECTION
 
