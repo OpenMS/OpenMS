@@ -672,6 +672,7 @@ endif(NOT DISABLE_OPENSWATH)
 if(NOT DISABLE_OPENSWATH AND WITH_PARQUET)
   list(APPEND swath_executables_list TransitionParquetFile_test)
   list(APPEND swath_executables_list OpenSwathOSWParquetReader_test)
+  list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
 endif()
 
 set(Boost_dependent_tests
