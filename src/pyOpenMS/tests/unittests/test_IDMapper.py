@@ -47,7 +47,8 @@ class TestIDMapper(unittest.TestCase):
         features = oms.FeatureMap()
         features.push_back(self.create_test_feature(500.0, 800.0))
 
-        peptide_ids = [self.create_test_peptide_id(500.1, 800.01, "TESTPEPTIDE")]
+        peptide_ids = oms.PeptideIdentificationList()
+        peptide_ids.append(self.create_test_peptide_id(500.1, 800.01, "TESTPEPTIDE"))
         protein_ids = []
 
         empty_exp = oms.MSExperiment()
@@ -62,7 +63,8 @@ class TestIDMapper(unittest.TestCase):
         features = oms.FeatureMap()
         features.push_back(self.create_test_feature(500.0, 800.0))
 
-        peptide_ids = [self.create_test_peptide_id(500.0, 800.0, "MATCHEDPEP")]
+        peptide_ids = oms.PeptideIdentificationList()
+        peptide_ids.append(self.create_test_peptide_id(500.0, 800.0, "MATCHEDPEP"))
         protein_ids = []
 
         exp = oms.MSExperiment()
@@ -85,10 +87,9 @@ class TestIDMapper(unittest.TestCase):
         features = oms.FeatureMap()
         features.push_back(self.create_test_feature(500.0, 800.0))
 
-        peptide_ids = [
-            self.create_test_peptide_id(504.0, 800.02, "INSIDE"),
-            self.create_test_peptide_id(506.0, 800.02, "OUTSIDE")
-        ]
+        peptide_ids = oms.PeptideIdentificationList()
+        peptide_ids.append(self.create_test_peptide_id(504.0, 800.02, "INSIDE"))
+        peptide_ids.append(self.create_test_peptide_id(506.0, 800.02, "OUTSIDE"))
 
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
@@ -123,7 +124,8 @@ class TestIDMapper(unittest.TestCase):
                 features = oms.FeatureMap()
                 features.push_back(f)
 
-                peptide_ids = [self.create_test_peptide_id(505.0, 800.5, "HULLTEST")]
+                peptide_ids = oms.PeptideIdentificationList()
+                peptide_ids.append(self.create_test_peptide_id(505.0, 800.5, "HULLTEST"))
 
                 mapper.annotate(features, peptide_ids, [], use_centroid_rt, use_centroid_mz, empty_exp)
 
@@ -137,7 +139,9 @@ class TestIDMapper(unittest.TestCase):
         """Verify no exceptions on empty FeatureMap."""
         mapper = oms.IDMapper()
         features = oms.FeatureMap()
-        peptide_ids = [self.create_test_peptide_id(500.0, 800.0)]
+
+        peptide_ids = oms.PeptideIdentificationList()
+        peptide_ids.append(self.create_test_peptide_id(500.0, 800.0))
 
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
@@ -149,7 +153,8 @@ class TestIDMapper(unittest.TestCase):
         mapper = oms.IDMapper()
         features = oms.FeatureMap()
         features.push_back(self.create_test_feature(500.0, 800.0))
-        peptide_ids = []
+
+        peptide_ids = oms.PeptideIdentificationList()
 
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
@@ -164,10 +169,9 @@ class TestIDMapper(unittest.TestCase):
         features.push_back(self.create_test_feature(100.0, 400.0))
         features.push_back(self.create_test_feature(200.0, 500.0))
 
-        peptide_ids = [
-            self.create_test_peptide_id(100.1, 400.01, "PEPONE"),
-            self.create_test_peptide_id(200.1, 500.01, "PEPTWO")
-        ]
+        peptide_ids = oms.PeptideIdentificationList()
+        peptide_ids.append(self.create_test_peptide_id(100.1, 400.01, "PEPONE"))
+        peptide_ids.append(self.create_test_peptide_id(200.1, 500.01, "PEPTWO"))
 
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
