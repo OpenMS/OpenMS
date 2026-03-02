@@ -33,22 +33,63 @@ namespace OpenMS::Internal
 
     namespace Sql = Internal::SqliteHelper;
 
-    /*
-     * @brief Helper function to concatenate integers with ","
-     *
-     * @param[in] The integers to concatenate
-     * 
-     */
+  /**
+   * @brief Helper function to concatenate integers with "," for SQL IN(...) lists.
+   *
+   * This function builds a comma-separated string of the provided integer
+   * indices suitable for embedding into SQL queries such as
+   * "... WHERE ID IN (<list>)".
+   *
+   * @param[in] indices The integers to concatenate
+   *
+   * Notes on correctness and edge-cases:
+   * - The function explicitly handles the empty input case and returns an
+   *   empty String. Callers should check for an empty return and avoid
+   *   producing SQL fragments like "IN ()" since some SQL engines treat
+   *   an empty IN-list as a syntax error or behave unexpectedly.
+   * - We compute a small reservation estimate (digits + comma) to reduce
+   *   reallocations for larger lists. The digit estimate uses floor(log10)
+   *   of the largest index; we guard against log10(0) by checking
+   *   max_idx > 0. This is a lightweight heuristic, not an exact size.
+   * - The final resize(tmp.size()-1) removes the trailing comma. That
+   *   operation is only safe because we return early for empty input.
+   *
+   * Performance: reserving capacity reduces reallocations but is optional.
+   * If you expect extremely large index lists or negative IDs, consider
+   * revising the reservation heuristic or using a different formatting
+   * strategy (e.g., writing the first item separately and prefixing commas
+   * for subsequent items) to avoid any trailing-trim logic.
+   */
     String integerConcatenateHelper(const std::vector<int> & indices)
     {
       String tmp;
-      // each element has a size of the "," character plus n digits in base10 
-      tmp.reserve( int(log10(indices.size())+2) * indices.size() );
+      // handle empty input early: prevents underflow when trimming trailing comma
+      if (indices.empty())
+      {
+        return tmp;
+      }
+
+      // Each element will contribute a comma plus n digits. Estimate the
+      // maximum digit count using log10 of the largest index to avoid
+      // excessive reallocations for large lists. We guard the log10 call by
+      // checking max_idx > 0 to avoid log10(0).
+      int max_digits = 1;
+      {
+        int max_idx = indices[0];
+        for (Size i = 1; i < indices.size(); ++i) if (indices[i] > max_idx) max_idx = indices[i];
+        if (max_idx > 0)
+        {
+          max_digits = int(std::floor(std::log10(static_cast<double>(max_idx))) + 1);
+        }
+      }
+
+      tmp.reserve( static_cast<size_t>((max_digits + 1) * indices.size()) );
       for (Size k = 0; k < indices.size(); k++)
       {
-        tmp += String(indices[k]) + ",";
+        tmp += String(indices[k]) + ',';
       }
-      tmp.resize(tmp.size() - 1); // remove last ","
+      // remove last comma (safe because we returned for empty input above)
+      tmp.resize(tmp.size() - 1);
       return tmp;
     }
 
