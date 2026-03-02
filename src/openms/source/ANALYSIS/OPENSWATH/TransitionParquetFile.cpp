@@ -407,6 +407,7 @@ namespace OpenMS
     OpenMSLibraryStats stats;
 
     int64_t next_precursor_id = 1;
+    std::unordered_set<int64_t> used_precursor_ids;
     for (const auto& compound : targeted_exp.compounds)
     {
       if (compound_to_precursor.find(compound.id) != compound_to_precursor.end())
@@ -415,20 +416,37 @@ namespace OpenMS
       }
 
       int64_t precursor_id = 0;
+      bool parsed_numeric = false;
       try
       {
         precursor_id = OpenMS::String(compound.id).toInt64();
+        parsed_numeric = true;
       }
       catch (OpenMS::Exception::ConversionError&)
+      {
+        // will assign auto id below
+      }
+
+      if (parsed_numeric)
+      {
+        if (precursor_id <= 0 || used_precursor_ids.find(precursor_id) != used_precursor_ids.end())
+        {
+          precursor_id = next_precursor_id++;
+        }
+        else
+        {
+          if (precursor_id >= next_precursor_id)
+          {
+            next_precursor_id = precursor_id + 1;
+          }
+        }
+      }
+      else
       {
         precursor_id = next_precursor_id++;
       }
 
-      if (precursor_id >= next_precursor_id)
-      {
-        next_precursor_id = precursor_id + 1;
-      }
-
+      used_precursor_ids.insert(precursor_id);
       compound_to_precursor[compound.id] = precursor_id;
     }
 

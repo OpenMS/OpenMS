@@ -375,8 +375,15 @@ namespace OpenMS
     }
     File::makeDir(run_path);
 
+    // Map compound.id -> precursor_id (int64). We must avoid collisions
+    // between numeric ids present in the source library and auto-assigned ids
+    // generated here (next_precursor_id). If a numeric id duplicates a
+    // previously-assigned id, prefer to auto-assign a fresh id to ensure
+    // uniqueness and preserve the original string id in the library's
+    // traml_id column for round-tripping.
     std::unordered_map<String, int64_t> compound_to_precursor;
     compound_to_precursor.reserve(assay_library.compounds.size());
+    std::unordered_set<int64_t> used_precursor_ids;
     int64_t next_precursor_id = 1;
     for (const auto& compound : assay_library.compounds)
     {
@@ -386,19 +393,41 @@ namespace OpenMS
       }
 
       int64_t precursor_id = 0;
+      bool parsed_numeric = false;
       try
       {
         precursor_id = String(compound.id).toInt64();
+        parsed_numeric = true;
       }
       catch (Exception::ConversionError&)
+      {
+        // fall through - we'll assign an auto id below
+      }
+
+      if (parsed_numeric)
+      {
+        // If numeric id collides with an already-used id, reject the numeric
+        // value and fall back to auto-assigning. This prevents accidental
+        // collisions between user-provided numeric ids and our auto ids.
+        if (used_precursor_ids.find(precursor_id) != used_precursor_ids.end() || precursor_id <= 0)
+        {
+          precursor_id = next_precursor_id++;
+        }
+        else
+        {
+          // accept the numeric id and ensure next_precursor_id moves past it
+          if (precursor_id >= next_precursor_id)
+          {
+            next_precursor_id = precursor_id + 1;
+          }
+        }
+      }
+      else
       {
         precursor_id = next_precursor_id++;
       }
 
-      if (precursor_id >= next_precursor_id)
-      {
-        next_precursor_id = precursor_id + 1;
-      }
+      used_precursor_ids.insert(precursor_id);
       compound_to_precursor[compound.id] = precursor_id;
     }
 
@@ -642,6 +671,11 @@ namespace OpenMS
 
       auto masserror_ppm = getSeparateScore_(feature, "masserror_ppm");
       const auto& subordinates = feature.getSubordinates();
+      // Use an MS2-only counter when indexing per-MS2 lists (like
+      // masserror_ppm). Several separate-score lists only contain entries
+      // for MS2 subordinates; using the raw subordinate index `i` can lead
+      // to misalignment when MS1 entries are present.
+      int64_t ms2_index = 0;
       for (Size i = 0; i < subordinates.size(); ++i)
       {
         const auto& sub_it = subordinates[i];
@@ -686,7 +720,8 @@ namespace OpenMS
           appendOptionalFloat_(ft_apex_int_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "apex_intensity");
           appendOptionalFloat_(ft_apex_rt_builder, extractMetaDouble_(sub_it, "peak_apex_position", value), value, "apex_rt");
           appendOptionalFloat_(ft_rt_fwhm_builder, extractMetaDouble_(sub_it, "width_at_50", value), value, "rt_fwhm");
-          appendOptionalFloatFromList_(ft_masserror_builder, masserror_ppm, i, "masserror_ppm");
+          appendOptionalFloatFromList_(ft_masserror_builder, masserror_ppm, static_cast<Size>(ms2_index), "masserror_ppm");
+          ++ms2_index;
           appendOptionalFloat_(ft_total_mi_builder, extractMetaDouble_(sub_it, "total_mi", value), value, "total_mi");
           ParquetFile::appendOrThrow(ft_var_intensity_builder.AppendNull(), "var_intensity_score");
           ParquetFile::appendOrThrow(ft_var_intensity_ratio_builder.AppendNull(), "var_intensity_ratio_score");
