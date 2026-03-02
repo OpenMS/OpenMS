@@ -44,11 +44,6 @@ namespace OpenMS
       files are already internally compressed; re-compressing with deflate wastes
       CPU for negligible size reduction.
 
-      @note The zipDirectory() and unzipDirectory() methods use the libzip C API
-      when available to create and extract store-only ZIP archives. If
-      libzip is not available at build time, these methods will throw
-      Exception::NotImplemented. 
-
       @ingroup FileIO
   */
   class OPENMS_DLLAPI ParquetFile
@@ -269,43 +264,6 @@ namespace OpenMS
     //@}
 
 #endif // WITH_PARQUET
-
-    /** @name Parquet archive utilities
-    */
-    //@{
-
-    /**
-      @brief Zip a directory into a store-only (no compression) zip archive.
-
-      Uses libzip (zip_open(), zip_file_add(), ...) when available to create
-      a store-only archive. Parquet files are already internally compressed,
-      so storing without additional compression avoids wasted CPU time.
-
-      @param[in] directory_path  Path to the directory to zip
-      @param[in] output_zip     Output zip file path
-
-      @throws Exception::InvalidValue if archive creation fails
-    */
-    static void zipDirectory(const String& directory_path, const String& output_zip);
-
-    /**
-      @brief Unzip a zip archive into a temporary directory.
-
-      If the input path is already a directory, returns it directly. Otherwise
-      extracts the archive using libzip into a new temporary directory.
-
-      @param[in] input_path  Path to a directory or zip archive
-      @param[out] temp_dir   Will hold the temporary directory (caller keeps it alive)
-
-      @return Path to the usable directory (either input_path or unpacked location)
-
-      @throws Exception::FileNotFound if input_path is not readable
-      @throws Exception::InvalidValue if archive extraction fails
-    */
-    static String unzipDirectory(const String& input_path,
-                                 std::unique_ptr<File::TempDir>& temp_dir);
-
-    //@}
 
   private:
 #ifdef WITH_PARQUET

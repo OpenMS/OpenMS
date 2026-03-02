@@ -8,7 +8,6 @@
 
 #include <OpenMS/FORMAT/ParquetFile.h>
 
-#include <OpenMS/FORMAT/ZipArchiveFile.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -349,18 +348,6 @@ namespace OpenMS
 
   // ---- Parquet archive utilities --------------------------------------------
 
-  void ParquetFile::zipDirectory(const String& directory_path, const String& output_zip)
-  {
-    // Delegate to ZipArchiveFile implementation (keeps ParquetFile API stable)
-    ZipArchiveFile::zipDirectory(directory_path, output_zip);
-  }
-
-  String ParquetFile::unzipDirectory(const String& input_path,
-                                     std::unique_ptr<File::TempDir>& temp_dir)
-  {
-    // Delegate to ZipArchiveFile implementation (keeps ParquetFile API stable)
-    return ZipArchiveFile::unzipDirectory(input_path, temp_dir);
-  }
 
 #ifdef WITH_PARQUET
   std::string ParquetFile::jsonEscape(const String& input)
