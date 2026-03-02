@@ -148,8 +148,27 @@ if(NOT TARGET CoinOR::CoinOR)
     # CMake config. Maybe we can parse a header file? Or try_compile?
     find_package(BLAS)
     find_package(LAPACK)
-    if(BLAS_FOUND AND LAPACK_FOUND)
-      target_link_libraries(CoinOR::CoinOR INTERFACE BLAS::BLAS LAPACK::LAPACK)
+
+    # On some configurations (e.g. conda-forge/Windows with BLA_VENDOR set to
+    # FLAME), CMake's FindLAPACK may fail to detect a generic lapack.lib even
+    # though it is present in the prefix. In that case, try a second LAPACK
+    # search without the vendor restriction before giving up.
+    if(NOT LAPACK_FOUND AND (DEFINED BLA_VENDOR OR DEFINED ENV{BLA_VENDOR}))
+      set(_saved_BLA_VENDOR "${BLA_VENDOR}")
+      unset(BLA_VENDOR CACHE)
+      unset(LAPACK_LIBRARIES CACHE)
+      unset(LAPACK_LIBRARIES)
+      find_package(LAPACK)
+      if(_saved_BLA_VENDOR)
+        set(BLA_VENDOR "${_saved_BLA_VENDOR}" CACHE STRING "" FORCE)
+      endif()
+    endif()
+
+    if(BLAS_FOUND)
+      target_link_libraries(CoinOR::CoinOR INTERFACE BLAS::BLAS)
+      if(LAPACK_FOUND)
+        target_link_libraries(CoinOR::CoinOR INTERFACE LAPACK::LAPACK)
+      endif()
     endif()
   endif()
 endif()
