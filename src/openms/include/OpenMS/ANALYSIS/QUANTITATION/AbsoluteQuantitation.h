@@ -201,7 +201,7 @@ public:
       @param[in] transformation_model_params parameters used by the transformation_model
       @param[out] optimized_params optimized parameters
 
-      @returns true if a a fit was found, false otherwise
+      @returns true if a fit was found, false otherwise
 
       @exception Exception::UnableToFit
     */

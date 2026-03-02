@@ -179,7 +179,6 @@ namespace OpenMS
                       const bool force,
                       const bool sort_swath_maps,
                       const bool prm,
-                      const bool pasef,
                       Interfaces::IMSDataConsumer* plugin_consumer)
   {
     // (i) Load files
@@ -234,6 +233,10 @@ namespace OpenMS
     // sort by lower bound (first entry in pair)
     std::sort(sw_windows.begin(), sw_windows.end());
 
+    // Auto-detect PASEF/IM data: check if any non-MS1 swath map has ion mobility bounds
+    bool has_im_windows = std::any_of(swath_maps.begin(), swath_maps.end(),
+      [](const OpenSwath::SwathMap& m) { return !m.ms1 && m.imLower >= 0 && m.imUpper >= 0; });
+
     for (Size i = 1; i < sw_windows.size(); i++)
     {
       double lower_map_end = sw_windows[i-1].second - min_upper_edge_dist;
@@ -252,15 +255,14 @@ namespace OpenMS
         }
       }
 
-      if (pasef) {continue;} // skip this step, expect there to be overlap ...
+      if (has_im_windows) {continue;} // IM data present: m/z overlap expected across IM dimension
 
       if (lower_map_end - upper_map_start > 0.01)
       {
         OPENMS_LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << "!\n"
                         << "This will lead to multiple extraction of the transitions in the overlapping region "
                         << "which will lead to duplicated output. It is very unlikely that you want this." << "\n"
-                        << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << "\n"
-                        << "Did you mean to set the -pasef Flag?" << std::endl;
+                        << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
         if (!force)
         {
           OPENMS_LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;

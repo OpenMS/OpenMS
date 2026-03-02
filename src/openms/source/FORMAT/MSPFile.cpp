@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/MSPFile.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/SYSTEM/File.h>

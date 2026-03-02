@@ -84,9 +84,11 @@ function(openms_add_compiler_flags target_name)
   endif()
   
   # SIMD extensions (PUBLIC for binary compatibility)
-  if(MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
-    target_compile_options(${target_name} PUBLIC /arch:AVX)
-  elseif(NOT MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
+  # MSVC x64 defaults to SSE2 (128-bit); do NOT use /arch:AVX here because
+  # AVX's 256-bit reductions change Eigen's floating-point evaluation order
+  # vs the 128-bit paths used by GCC/Clang, causing cross-platform numeric
+  # divergence in sensitive algorithms (e.g. normalizedCrossCorrelation).
+  if(NOT MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
     target_compile_options(${target_name} PUBLIC -mssse3)
   endif()
   
