@@ -24,6 +24,8 @@
 #ifdef WITH_PARQUET
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <filesystem>
 #endif
 #include <OpenMS/SYSTEM/File.h>
 
@@ -1313,7 +1315,23 @@ protected:
 #ifdef WITH_PARQUET
     if (write_parquet && parquet_zip_output)
     {
-      ParquetFile::zipDirectory(parquet_dir, out_features);
+      // Stream files into the zip archive instead of unzipping/rezipping the
+      // whole directory. This uses ZipArchiveFile::addOrReplaceFromFile which
+      // streams from disk and avoids loading large parquet blobs into memory.
+      const std::filesystem::path dirpath = std::filesystem::u8path(std::string(parquet_dir));
+      const String output_zip_abs = File::absolutePath(out_features);
+      if (File::exists(output_zip_abs))
+      {
+        File::remove(output_zip_abs);
+      }
+
+      for (auto it = std::filesystem::recursive_directory_iterator(dirpath); it != std::filesystem::recursive_directory_iterator(); ++it)
+      {
+        if (it->is_directory()) continue;
+        const auto full = it->path();
+        std::string rel = std::filesystem::relative(full, dirpath).generic_string();
+        ZipArchiveFile::addOrReplaceFromFile(out_features, String(rel), String(full.string()));
+      }
     }
 #endif
 
