@@ -2658,7 +2658,7 @@ Detailed list of changes to specific OpenMS classes
   - PoseClusteringAffineSuperimposer: full rewrite, not using CGAL
 
 Changes to the contrib package:
-- Added CoinMP 1.3.3
+- Added COIN-OR (CBC/Clp/Osi) 1.3.3
 - Added IMSlib 0.1.0
 - Update Xerces-C to revision 806068 of SVN trunk
 

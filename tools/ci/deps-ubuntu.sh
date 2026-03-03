@@ -38,7 +38,6 @@ sudo apt-get -qq install -y \
   zlib1g-dev \
   libsvm-dev \
   libbz2-dev \
-  coinor-libcoinmp-dev \
   libhdf5-dev \
   libsqlite3-dev \
   libsqlitecpp-dev \
