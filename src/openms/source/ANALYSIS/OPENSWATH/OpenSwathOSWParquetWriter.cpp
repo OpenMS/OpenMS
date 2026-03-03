@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
@@ -25,6 +26,8 @@
 #include <vector>
 
 #include <QString>
+
+#include <filesystem>
 
 #ifdef WITH_PARQUET
 #ifdef signals
@@ -314,7 +317,14 @@ namespace OpenMS
                                     "OpenMS was built without Parquet support");
 #else
     const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
-    const String base_dir = output_path;
+    const bool output_is_dir = File::isDirectory(output_path);
+    std::unique_ptr<File::TempDir> temp_dir;
+    String base_dir = output_path;
+    if (!output_is_dir)
+    {
+      temp_dir = std::make_unique<File::TempDir>();
+      base_dir = temp_dir->getPath() + "/oswpq_output";
+    }
 
     const String library_dir = base_dir + "/library";
     const String runs_dir = base_dir + "/runs";
@@ -1384,6 +1394,26 @@ namespace OpenMS
     }
 
     writeMetadata_(base_dir, runs, run_counts, total_counts);
+    // If the requested output was a single archive file (not a directory),
+    // stream files into the archive and write a sidecar index to enable
+    // robust random-access reads later.
+    if (!output_is_dir)
+    {
+      const std::filesystem::path dirpath = std::filesystem::u8path(std::string(base_dir));
+      const String output_zip_abs = File::absolutePath(output_path);
+      if (File::exists(output_zip_abs))
+      {
+        File::remove(output_zip_abs);
+      }
+      for (auto it = std::filesystem::recursive_directory_iterator(dirpath); it != std::filesystem::recursive_directory_iterator(); ++it)
+      {
+        if (it->is_directory()) continue;
+        const auto full = it->path();
+        std::string rel = std::filesystem::relative(full, dirpath).generic_string();
+        ZipArchiveFile::addOrReplaceFromFile(output_path, String(rel), String(full.string()));
+      }
+      ZipArchiveFile::writeSidecarIndex(output_zip_abs);
+    }
 #endif
   }
 
