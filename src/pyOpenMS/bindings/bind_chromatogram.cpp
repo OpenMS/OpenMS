@@ -139,7 +139,43 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
             auto int_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(int_data, {n}, owner);
             return nb::make_tuple(rt_arr, int_arr);
         }, "Returns a tuple of (rt_array, intensity_array) as numpy arrays")
+    
+    
+    
+        .def("get_peaks_struct",
+            [](OpenMS::MSChromatogram& self)
+                -> nb::ndarray<nb::numpy, double, nb::ndim<2>>
+            {
+                const size_t n = self.size();
 
+                if (n == 0)
+                {
+                    size_t shape[2] = { 0, 2 };
+
+                        return nb::ndarray<nb::numpy, double, nb::ndim<2>>(
+                            nullptr,
+                            2,
+                            shape,
+                            nb::handle()
+                        );
+                }
+
+                OpenMS::ChromatogramPeak* first = &self[0];
+                double* raw_ptr = reinterpret_cast<double*>(first);
+
+                size_t shape[2] = { n, 2 };
+
+                return nb::ndarray<nb::numpy, double, nb::ndim<2>>(
+                    raw_ptr,
+                    2,
+                    shape,
+                    nb::find(self)
+                );
+            },
+            nb::rv_policy::reference_internal,
+            "Returns zero-copy (n,2) float64 array: [RT, intensity]"
+        )
+    
         .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj) {
             auto rt_arr = as_numpy_array<double>(rt_obj);
             auto int_arr = as_numpy_array<double>(int_obj);
