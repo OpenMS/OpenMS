@@ -54,7 +54,7 @@ namespace OpenMS
   if (param_.getValue("enable_isotope_shift_fallback").toBool())
   {
       Int max_shift = (Int)param_.getValue("max_isotope_shift");
-      double c13_mass = 1.0033548; // Mass difference between 13C and 12C
+      double c13_mass = 1.0033548;
 
       // Greedy pass to merge unlinked features (singletons)
       for (auto it1 = out.begin(); it1 != out.end(); ++it1)
@@ -74,13 +74,11 @@ namespace OpenMS
 
               // Charges must match (if known)
               int charge = it1->getCharge();
-              if (charge == 0) charge = 1; // Prevent division by zero
+              if (charge == 0) charge = 1;
               if (charge != it2->getCharge() && it2->getCharge() != 0) continue;
 
               double mz_diff = std::abs(it1->getMZ() - it2->getMZ());
               bool match_found = false;
-
-              // Check for isotope shifts (M+1, M+2, etc.)
               for (int k = 1; k <= max_shift; ++k)
               {
                   double expected_shift = (k * c13_mass) / std::abs(charge);
@@ -95,15 +93,10 @@ namespace OpenMS
 
               if (match_found)
               {
-                  // 1. Merge the feature from it2 into it1
                   it1->insert(*it2->getFeatures().begin());
-
-                  // 2. Annotate the rescue for downstream data integrity
                   it1->setMetaValue("isotope_shift_rescued", "true");
-
-                  // 3. Remove it2 from the map so it isn't processed again
                   it2 = out.erase(it2);
-                  --it2; // Adjust iterator after erasure
+                  --it2;
               }
           }
       }
