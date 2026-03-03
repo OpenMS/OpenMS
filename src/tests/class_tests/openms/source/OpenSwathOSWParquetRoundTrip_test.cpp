@@ -49,9 +49,14 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
   FeatureMap empty_map;
   writer.write(out_archive, light_exp, empty_map, 1, String("test_input"), false);
 
-  // Archive and sidecar should exist
+  // Archive and embedded sidecar should exist (sidecar is written inside the zip)
   TEST_EQUAL(File::exists(out_archive), true)
-  TEST_EQUAL(File::exists(out_archive + ".idx.json"), true)
+  {
+    auto entries = ZipArchiveFile::listEntries(out_archive);
+    bool found = false;
+    for (const auto& e : entries) if (e == ".oswpq.idx.json") { found = true; break; }
+    TEST_EQUAL(found, true)
+  }
 
   // Read back using TransitionParquetFile which should prefer RAF-based reads when available
   // Reset test extraction counter and assert no extraction occurs (i.e., RAF path used)

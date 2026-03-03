@@ -87,15 +87,19 @@ namespace OpenMS
     static std::vector<String> listEntries(const String& archive_path);
 
     /**
-      @brief Write a small JSON sidecar index next to the archive listing entries and sizes.
+      @brief Write a small JSON sidecar index for the archive listing entries and sizes.
 
-      This helper writes a file named '<archive_path>.idx.json' containing a
-      JSON object mapping entry name -> size in bytes. The sidecar is useful
-      for prototyping random access without modifying the archive layout.
+        For zip archives this helper will write the sidecar JSON as an entry inside
+        the archive (named '.oswpq.idx.json'). This keeps the archive self-contained
+        and portable. When the provided path is a directory (an unpacked layout)
+        the helper will still write an external '<archive_path>.idx.json' file.
 
-      @param[in] archive_path Path to the zip archive to index.
+        The JSON object maps entry name -> size in bytes and can be used by
+        readers to implement fast index-based access.
 
-      If libzip is unavailable this method will throw Exception::NotImplemented.
+        @param[in] archive_path Path to the zip archive (or directory) to index.
+
+        If libzip is unavailable this method will throw Exception::NotImplemented.
     */
     static void writeSidecarIndex(const String& archive_path);
 

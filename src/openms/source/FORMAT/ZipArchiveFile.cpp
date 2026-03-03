@@ -328,15 +328,9 @@ void ZipArchiveFile::writeSidecarIndex(const String& archive_path)
   }
 
   zip_int64_t num = zip_get_num_entries(za, 0);
-  const std::string outpath = std::string(archive_path) + ".idx.json";
-  std::ofstream ofs(outpath, std::ios::binary);
-  if (!ofs.is_open())
-  {
-    zip_close(za);
-    throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outpath);
-  }
 
-  ofs << "{\n";
+  // Build JSON sidecar in memory
+  std::string json = "{\n";
   bool first = true;
   for (zip_uint64_t i = 0; i < static_cast<zip_uint64_t>(num); ++i)
   {
@@ -345,14 +339,70 @@ void ZipArchiveFile::writeSidecarIndex(const String& archive_path)
     {
       const char* name = st.name;
       if (!name) continue;
-      if (!first) ofs << ",\n";
+      if (!first) json += ",\n";
       first = false;
-      ofs << "  \"" << name << "\": " << static_cast<uint64_t>(st.size);
+      json += "  \"";
+      json += name;
+      json += "\": ";
+      json += std::to_string(static_cast<uint64_t>(st.size));
     }
   }
-  ofs << "\n}\n";
-  ofs.close();
+  json += "\n}\n";
+
+  // Close the read-only handle and reopen archive for modification to add the sidecar
   zip_close(za);
+
+  int err2 = 0;
+  zip_t* za2 = zip_open(archive_path.c_str(), ZIP_CREATE, &err2);
+  if (!za2)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Failed to open zip archive for sidecar write", archive_path);
+  }
+
+  const char* sidecar_name = ".oswpq.idx.json";
+  zip_source_t* src = zip_source_buffer(za2, json.data(), json.size(), 0);
+  if (!src)
+  {
+    zip_close(za2);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Failed to create zip source for sidecar", archive_path);
+  }
+
+  zip_int64_t side_idx = zip_name_locate(za2, sidecar_name, 0);
+  if (side_idx >= 0)
+  {
+    if (zip_replace(za2, side_idx, src) < 0)
+    {
+      zip_source_free(src);
+      zip_close(za2);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "zip_replace failed for sidecar: " + String(zip_strerror(za2)), "");
+    }
+  }
+  else
+  {
+    if (zip_file_add(za2, sidecar_name, src, ZIP_FL_OVERWRITE | ZIP_FL_ENC_UTF_8) < 0)
+    {
+      zip_source_free(src);
+      zip_close(za2);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "zip_file_add failed for sidecar: " + String(zip_strerror(za2)), "");
+    }
+  }
+
+  // Store sidecar uncompressed
+  zip_int64_t new_idx = zip_name_locate(za2, sidecar_name, 0);
+  if (new_idx >= 0)
+  {
+    zip_set_file_compression(za2, static_cast<zip_uint64_t>(new_idx), ZIP_CM_STORE, 0);
+  }
+
+  if (zip_close(za2) < 0)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Failed to finalize zip archive while writing sidecar", archive_path);
+  }
 #else
   (void)archive_path;
   throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
