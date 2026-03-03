@@ -89,6 +89,17 @@ namespace OpenMS
     static std::vector<String> listEntries(const String& archive_path);
 
     /**
+      @brief Write a small JSON sidecar index next to the archive listing entries and sizes.
+
+      This helper writes a file named '<archive_path>.idx.json' containing a
+      JSON object mapping entry name -> size in bytes. The sidecar is useful
+      for prototyping random access without modifying the archive layout.
+
+      If libzip is unavailable this method will throw Exception::NotImplemented.
+    */
+    static void writeSidecarIndex(const String& archive_path);
+
+    /**
     @brief Extract a single entry from a zip archive into a temporary file and return its path
 
       The function will create the provided @p temp_dir (if null) and extract the

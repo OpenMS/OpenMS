@@ -280,6 +280,78 @@ std::vector<String> ZipArchiveFile::listEntries(const String& archive_path)
   return out;
 }
 
+void ZipArchiveFile::writeSidecarIndex(const String& archive_path)
+{
+#if defined(OPENMS_HAVE_LIBZIP)
+  // If path is a directory, scan files under it
+  if (File::isDirectory(archive_path))
+  {
+    std::vector<std::pair<std::string, uint64_t>> entries;
+    const std::filesystem::path base = std::filesystem::u8path(std::string(archive_path));
+    for (auto it = std::filesystem::recursive_directory_iterator(base); it != std::filesystem::recursive_directory_iterator(); ++it)
+    {
+      if (it->is_directory()) continue;
+      const auto full = it->path();
+      const std::string rel = std::filesystem::relative(full, base).generic_string();
+      const uint64_t sz = static_cast<uint64_t>(std::filesystem::file_size(full));
+      entries.emplace_back(rel, sz);
+    }
+    const std::string outpath = std::string(archive_path) + ".idx.json";
+    std::ofstream ofs(outpath, std::ios::binary);
+    if (!ofs.is_open()) throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outpath);
+    ofs << "{\n";
+    for (size_t i = 0; i < entries.size(); ++i)
+    {
+      ofs << "  \"" << entries[i].first << "\": " << entries[i].second;
+      if (i + 1 < entries.size()) ofs << ",\n";
+      else ofs << "\n";
+    }
+    ofs << "}\n";
+    ofs.close();
+    return;
+  }
+
+  // Otherwise, open zip and stat entries
+  int err = 0;
+  zip_t* za = zip_open(archive_path.c_str(), ZIP_RDONLY, &err);
+  if (!za)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Failed to open zip archive", archive_path);
+  }
+
+  zip_int64_t num = zip_get_num_entries(za, 0);
+  const std::string outpath = std::string(archive_path) + ".idx.json";
+  std::ofstream ofs(outpath, std::ios::binary);
+  if (!ofs.is_open())
+  {
+    zip_close(za);
+    throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outpath);
+  }
+
+  ofs << "{\n";
+  bool first = true;
+  for (zip_uint64_t i = 0; i < static_cast<zip_uint64_t>(num); ++i)
+  {
+    zip_stat_t st;
+    if (zip_stat_index(za, i, 0, &st) == 0)
+    {
+      const char* name = st.name;
+      if (!name) continue;
+      if (!first) ofs << ",\n";
+      first = false;
+      ofs << "  \"" << name << "\": " << static_cast<uint64_t>(st.size);
+    }
+  }
+  ofs << "\n}\n";
+  ofs.close();
+  zip_close(za);
+#else
+  (void)archive_path;
+  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#endif
+}
+
 String ZipArchiveFile::extractEntryToTempFile(const String& archive_path, const String& entry_name, std::unique_ptr<File::TempDir>& temp_dir)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
