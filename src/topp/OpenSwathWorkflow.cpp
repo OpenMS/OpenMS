@@ -979,6 +979,11 @@ protected:
       {
         parquet_temp_dir = std::make_unique<File::TempDir>();
         parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
+        // Pre-create the directory so that OpenSwathOSWParquetWriter::write()
+        // detects it as an existing directory (File::isDirectory() returns true)
+        // and persists all run data there instead of redirecting to its own
+        // internal temp dir (which is destroyed after each call).
+        File::makeDir(parquet_dir);
       }
     }
 #endif
