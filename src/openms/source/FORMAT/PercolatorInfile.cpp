@@ -622,4 +622,17 @@ namespace OpenMS
     return digest.isValidProduct(mini_protein, 0, 1, true);
   }
 
+
+  Size PercolatorInfile::countEnzymatic_(const String& peptide, const std::string& enz)
+  {
+    Size count = 0;
+    for (Size ix = 1; ix < peptide.size(); ++ix)
+    {
+      if (isEnz_(peptide[ix - 1], peptide[ix], enz))
+      {
+        ++count;
+      }
+    }
+    return count;
+  }
 }
