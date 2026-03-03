@@ -22,11 +22,9 @@ namespace OpenMS
   /**
     @brief Small libzip-based helpers for working with ZIP archives.
 
-    These helpers were extracted from ParquetFile to provide a reusable
-    place for ZIP-related utilities. The implementation uses libzip when
-    available; otherwise methods will throw Exception::NotImplemented.
+    The implementation uses libzip when available; otherwise methods will throw Exception::NotImplemented.
 
-    The API is intentionally small: zip a directory, unzip an archive to a
+    Zip a directory, unzip an archive to a
     temp directory, and add/replace an entry from a filesystem path.
   */
   class OPENMS_DLLAPI ZipArchiveFile
@@ -95,6 +93,8 @@ namespace OpenMS
       JSON object mapping entry name -> size in bytes. The sidecar is useful
       for prototyping random access without modifying the archive layout.
 
+      @param[in] archive_path Path to the zip archive to index.
+
       If libzip is unavailable this method will throw Exception::NotImplemented.
     */
     static void writeSidecarIndex(const String& archive_path);
@@ -115,6 +115,12 @@ namespace OpenMS
       @throws Exception::InvalidValue on extraction errors
     */
     static String extractEntryToTempFile(const String& archive_path, const String& entry_name, std::unique_ptr<File::TempDir>& temp_dir);
+
+  // Test helpers (used by unit tests to assert whether extraction was performed)
+#if defined(OPENMS_ENABLE_TESTING_HOOKS)
+  static void testResetExtractionCount();
+  static int testGetExtractionCount();
+#endif
 
   };
 

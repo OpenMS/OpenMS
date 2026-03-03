@@ -22,6 +22,7 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include <atomic>
 
 namespace OpenMS
 {
@@ -198,6 +199,12 @@ String ZipArchiveFile::unzipDirectory(const String& input_path, std::unique_ptr<
 #endif
 }
 
+// Simple global counter to help tests detect whether extractEntryToTempFile was used.
+#if defined(OPENMS_ENABLE_TESTING_HOOKS)
+static std::atomic<int> g_zip_extract_count{0};
+#endif
+
+
 void ZipArchiveFile::addOrReplaceFromFile(const String& archive_path, const String& entry_name, const String& source_file_path)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
@@ -352,6 +359,18 @@ void ZipArchiveFile::writeSidecarIndex(const String& archive_path)
 #endif
 }
 
+#if defined(OPENMS_ENABLE_TESTING_HOOKS)
+void ZipArchiveFile::testResetExtractionCount()
+{
+  g_zip_extract_count.store(0);
+}
+
+int ZipArchiveFile::testGetExtractionCount()
+{
+  return static_cast<int>(g_zip_extract_count.load());
+}
+#endif
+
 String ZipArchiveFile::extractEntryToTempFile(const String& archive_path, const String& entry_name, std::unique_ptr<File::TempDir>& temp_dir)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
@@ -397,6 +416,10 @@ String ZipArchiveFile::extractEntryToTempFile(const String& archive_path, const 
   }
 
   if (!temp_dir) temp_dir = std::make_unique<File::TempDir>();
+#if defined(OPENMS_ENABLE_TESTING_HOOKS)
+  // increment test counter to signal an extraction occurred
+  ++g_zip_extract_count;
+#endif
   const String base = temp_dir->getPath();
 
   // construct output path and create parent dirs
