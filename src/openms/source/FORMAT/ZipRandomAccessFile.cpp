@@ -115,8 +115,11 @@ private:
 
 arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile::Open(const String& archive_path,
 																																											const String& entry_name,
-																																											std::unique_ptr<File::TempDir>& temp_dir)
+											std::unique_ptr<File::TempDir>& temp_dir)
 {
+    // temp_dir is only used on the extraction fallback path; silence unused-parameter
+    // warnings when building with libzip support enabled.
+    (void)temp_dir;
 	// If the archive_path is a directory, return a plain ReadableFile for the path on disk
 	if (File::isDirectory(archive_path))
 	{
