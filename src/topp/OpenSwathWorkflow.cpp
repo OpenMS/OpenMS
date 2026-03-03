@@ -567,6 +567,19 @@ protected:
     // Extract parameters needed for OpenSwathWorkflow validation logic
     UInt irt_bins_lin = irt_calibration_params.getValue("auto_irt:irt_bins");
     UInt irt_pep_lin  = irt_calibration_params.getValue("auto_irt:irt_peptides_per_bin");
+
+    // If a linear iRT file is explicitly provided, auto_irt must be disabled
+    // and any priority sampling iRT file should be ignored.
+    if (!irt_tr_file.empty())
+    {
+      if (auto_irt)
+      {
+        OPENMS_LOG_WARN << "Calibration:files:linear_irt_file provided -> disabling auto_irt and ignoring tr_irt_priority_sampling." << std::endl;
+      }
+      auto_irt = false;
+      // clear the priority sampling file so downstream logic won't attempt to use/validate it
+      priority_sampling_irt_tr_file.clear();
+    }
     
     String swath_windows_file = getStringOption_("swath_windows_file");
 
@@ -652,21 +665,29 @@ protected:
       }
     }
     
-    // Validate priority iRT sampling file format if provided
+    // Validate priority iRT sampling file format if provided and if auto_irt is enabled
     if (!priority_sampling_irt_tr_file.empty())
     {
-      if (!File::exists(priority_sampling_irt_tr_file))
+      if (!auto_irt)
       {
-        writeLogError_("Parameter error: Priority iRT file does not exist: " + priority_sampling_irt_tr_file);
-        return PARSE_ERROR;
+        // auto_irt disabled (possibly due to explicit linear iRT file); ignore provided priority sampling file
+        OPENMS_LOG_WARN << "Priority iRT sampling file provided but auto_irt is disabled; ignoring: " << priority_sampling_irt_tr_file << std::endl;
       }
-      
-      FileTypes::Type priority_file_type = FileHandler::getType(priority_sampling_irt_tr_file);
-      if (priority_file_type != FileTypes::TSV)
+      else
       {
-        writeLogError_("Parameter error: Priority iRT file must be in TSV format. Provided: " + 
-                       FileTypes::typeToName(priority_file_type));
-        return PARSE_ERROR;
+        if (!File::exists(priority_sampling_irt_tr_file))
+        {
+          writeLogError_("Parameter error: Priority iRT file does not exist: " + priority_sampling_irt_tr_file);
+          return PARSE_ERROR;
+        }
+        
+        FileTypes::Type priority_file_type = FileHandler::getType(priority_sampling_irt_tr_file);
+        if (priority_file_type != FileTypes::TSV)
+        {
+          writeLogError_("Parameter error: Priority iRT file must be in TSV format. Provided: " + 
+                         FileTypes::typeToName(priority_file_type));
+          return PARSE_ERROR;
+        }
       }
     }
 
