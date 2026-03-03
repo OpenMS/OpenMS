@@ -20,176 +20,160 @@ using namespace std;
 
 namespace OpenMS
 {
-  namespace
+
+FeatureGroupingAlgorithmQT::FeatureGroupingAlgorithmQT() :
+  FeatureGroupingAlgorithm()
+{
+  setName("FeatureGroupingAlgorithmQT");
+  defaults_.insert("", QTClusterFinder().getParameters());
+
+  defaults_.setValue("enable_isotope_shift_fallback", "false",
+    "If true, performs a second linking pass to rescue features missing a monoisotopic peak.");
+  defaults_.setValidStrings("enable_isotope_shift_fallback", {"true","false"});
+
+  defaults_.setValue("max_isotope_shift", 2,
+    "Maximum number of isotopic peaks to shift when matching missing M+0 features.");
+  defaults_.setMinInt("max_isotope_shift", 1);
+
+  defaults_.setValue("max_assumed_charge", 3,
+    "Maximum charge state assumed when both features have unknown charge in isotope rescue.");
+  defaults_.setMinInt("max_assumed_charge", 1);
+
+  defaultsToParam_();
+}
+
+FeatureGroupingAlgorithmQT::~FeatureGroupingAlgorithmQT() = default;
+
+template <typename MapType>
+void FeatureGroupingAlgorithmQT::group_(const vector<MapType>& maps, ConsensusMap& out)
+{
+  if (maps.size() < 2)
   {
-    using ::OpenMS::ConsensusFeature;
-    using ::OpenMS::Size;
+    throw Exception::IllegalArgument(__FILE__, __LINE__,
+      OPENMS_PRETTY_FUNCTION, "At least two maps must be given!");
+  }
 
-    inline std::unordered_set<Size> buildMapIndexSet(const ConsensusFeature& cf)
+  QTClusterFinder cluster_finder;
+  cluster_finder.setParameters(param_.copy("", true));
+
+  // PASS 1: Standard QT clustering
+  cluster_finder.run(maps, out);
+
+  // PASS 2: Optional isotope rescue
+  if (param_.getValue("enable_isotope_shift_fallback").toBool())
+  {
+    rescueIsotopeShift_(out);
+  }
+
+  postprocess_(maps, out);
+}
+
+void FeatureGroupingAlgorithmQT::rescueIsotopeShift_(ConsensusMap& out)
+{
+  const Int max_shift = (Int)param_.getValue("max_isotope_shift");
+  const Int max_assumed_charge = (Int)param_.getValue("max_assumed_charge");
+
+  const double rt_tol = param_.getValue("distance_RT:max_difference");
+  const double mz_tol = param_.getValue("distance_MZ:max_difference");
+  const bool mz_ppm = param_.getValue("distance_MZ:unit").toString() == "ppm";
+
+  const double c13_mass = 1.0033548378;
+
+  auto mzMatches = [&](double mz1, double mz2, double expected_shift)
+  {
+    double diff = std::abs(mz1 - mz2 - expected_shift);
+
+    if (mz_ppm)
     {
-      std::unordered_set<Size> s;
-      for (const auto& f : cf.getFeatures())
-      {
-        s.insert(f.getMapIndex());
-      }
-      return s;
+      if (mz1 <= 0.0) return false;
+      double ppm = (diff / mz1) * 1e6;
+      return ppm <= mz_tol;
+    }
+    return diff <= mz_tol;
+  };
+
+  for (auto it1 = out.begin(); it1 != out.end(); ++it1)
+  {
+    if (it1->getFeatures().size() != 1) continue;
+
+    // Collect map indices of first group
+    std::unordered_set<Size> maps_it1;
+    for (const auto& f : it1->getFeatures())
+    {
+      maps_it1.insert(f.getMapIndex());
     }
 
-    // Compare an expected shifted m/z to two mz values, honoring ppm vs Da tolerance
-    inline bool mzMatches(double mz1, double mz2, double expected_shift, bool mz_ppm, double mz_tol)
+    for (auto it2 = it1 + 1; it2 != out.end(); ++it2)
     {
-      double diff = std::abs(mz1 - mz2 - expected_shift);
-      if (mz_ppm)
+      if (it2->getFeatures().size() != 1) continue;
+
+      // Robust map uniqueness guard
+      bool overlap = false;
+      for (const auto& f : it2->getFeatures())
       {
-        // preventive guard: avoid division by zero (mz1 should not be zero for real peaks)
-        if (mz1 <= 0.0) return false;
-        double ppm = (diff / mz1) * 1e6;
-        return ppm <= mz_tol;
+        if (maps_it1.count(f.getMapIndex()))
+        {
+          overlap = true;
+          break;
+        }
       }
-      else
-      {
-        return diff <= mz_tol;
-      }
-    }
+      if (overlap) continue;
 
-    inline bool tryIsotopeShiftMatch(const ConsensusFeature& f1,
-                                     const ConsensusFeature& f2,
-                                     int max_shift,
-                                     int max_assumed_charge,
-                                     double c13_mass,
-                                     bool mz_ppm,
-                                     double mz_tol)
-    {
-      int charge1 = f1.getCharge();
-      int charge2 = f2.getCharge();
+      // RT tolerance check
+      if (std::abs(it1->getRT() - it2->getRT()) > rt_tol) continue;
 
-      if (charge1 != 0 && charge2 != 0 && charge1 != charge2) return false;
+      int charge1 = it1->getCharge();
+      int charge2 = it2->getCharge();
 
-      double mz1 = f1.getMZ();
-      double mz2 = f2.getMZ();
+      if (charge1 != 0 && charge2 != 0 && charge1 != charge2)
+        continue;
 
-      for (int k = 1; k <= max_shift; ++k)
+      bool match_found = false;
+
+      for (int k = 1; k <= max_shift && !match_found; ++k)
       {
         if (charge1 == 0 && charge2 == 0)
         {
-          // both unknown: try plausible charges
-          for (int z = 1; z <= max_assumed_charge; ++z)
+          // Try plausible charges
+          for (int z = 1; z <= max_assumed_charge && !match_found; ++z)
           {
-            double expected_shift = (k * c13_mass) / static_cast<double>(z);
-            if (mzMatches(mz1, mz2, expected_shift, mz_ppm, mz_tol)) return true;
+            double expected_shift = (k * c13_mass) / (double)z;
+            if (mzMatches(it1->getMZ(), it2->getMZ(), expected_shift))
+              match_found = true;
           }
         }
         else
         {
-          // at least one known: use the known one
           int z = (charge1 != 0) ? std::abs(charge1) : std::abs(charge2);
-          double expected_shift = (k * c13_mass) / static_cast<double>(z);
-          if (mzMatches(mz1, mz2, expected_shift, mz_ppm, mz_tol)) return true;
+          double expected_shift = (k * c13_mass) / (double)z;
+
+          if (mzMatches(it1->getMZ(), it2->getMZ(), expected_shift))
+            match_found = true;
         }
       }
 
-      return false;
-    }
-  } // unnamed namespace
-
-  FeatureGroupingAlgorithmQT::FeatureGroupingAlgorithmQT() :
-    FeatureGroupingAlgorithm()
-  {
-    setName("FeatureGroupingAlgorithmQT");
-    defaults_.insert("", QTClusterFinder().getParameters());
-
-    defaults_.setValue("enable_isotope_shift_fallback", "false",
-      "If true, performs a second linking pass to rescue features missing a monoisotopic peak.");
-    defaults_.setValidStrings("enable_isotope_shift_fallback", {"true","false"});
-
-    defaults_.setValue("max_isotope_shift", 2,
-      "Maximum number of isotopic peaks to shift when matching missing M+0 features (e.g., 1 for M+1, 2 for M+2).");
-    defaults_.setMinInt("max_isotope_shift", 1);
-
-    defaults_.setValue("max_assumed_charge", 3,
-      "Maximum charge state assumed when both features have unknown charge in isotope rescue.");
-    defaults_.setMinInt("max_assumed_charge", 1);
-
-    defaultsToParam_();
-  }
-
-  FeatureGroupingAlgorithmQT::~FeatureGroupingAlgorithmQT() = default;
-
-  template <typename MapType>
-  void FeatureGroupingAlgorithmQT::group_(const vector<MapType>& maps, ConsensusMap& out)
-  {
-    if (maps.size() < 2)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-        OPENMS_PRETTY_FUNCTION, "At least two maps must be given!");
-    }
-
-    QTClusterFinder cluster_finder;
-    cluster_finder.setParameters(param_.copy("", true));
-
-    // PASS 1: Standard exact m/z clustering
-    cluster_finder.run(maps, out);
-
-    // PASS 2: Isotopic shift rescue (refactored into helpers to reduce method complexity)
-    if (param_.getValue("enable_isotope_shift_fallback").toBool())
-    {
-      const Int max_shift = (Int)param_.getValue("max_isotope_shift");
-      const Int max_assumed_charge = (Int)param_.getValue("max_assumed_charge");
-
-      // Reuse QT tolerances (no hardcoding)
-      const double rt_tol = param_.getValue("distance_RT:max_difference");
-      const double mz_tol = param_.getValue("distance_MZ:max_difference");
-      const bool mz_ppm = param_.getValue("distance_MZ:unit").toString() == "ppm";
-
-      const double c13_mass = 1.0033548378;
-
-      // Greedy pass to merge unlinked singleton consensus features
-      for (auto it1 = out.begin(); it1 != out.end(); ++it1)
+      if (match_found)
       {
-        if (it1->getFeatures().size() != 1) continue;
+        it1->insert(*it2->getFeatures().begin());
+        it1->setMetaValue("isotope_shift_rescued", "true");
 
-        const auto maps_it1 = buildMapIndexSet(*it1);
-
-        for (auto it2 = it1 + 1; it2 != out.end(); ++it2)
-        {
-          if (it2->getFeatures().size() != 1) continue;
-
-          // Skip if any map index overlaps (robust multi-map guard)
-          bool overlap = false;
-          for (const auto& f : it2->getFeatures())
-          {
-            if (maps_it1.count(f.getMapIndex()))
-            {
-              overlap = true;
-              break;
-            }
-          }
-          if (overlap) continue;
-          if (std::abs(it1->getRT() - it2->getRT()) > rt_tol) continue;
-          if (tryIsotopeShiftMatch(*it1, *it2, max_shift, max_assumed_charge, c13_mass, mz_ppm, mz_tol))
-          {
-            it1->insert(*it2->getFeatures().begin());
-            it1->setMetaValue("isotope_shift_rescued", "true");
-            it2 = out.erase(it2);
-            --it2;
-          }
-        }
+        it2 = out.erase(it2);
+        --it2;
       }
     }
-
-    postprocess_(maps, out);
   }
+}
 
-  void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,
-                                         ConsensusMap& out)
-  {
-    group_(maps, out);
-  }
+void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,
+                                       ConsensusMap& out)
+{
+  group_(maps, out);
+}
 
-  void FeatureGroupingAlgorithmQT::group(const std::vector<ConsensusMap>& maps,
-                                         ConsensusMap& out)
-  {
-    group_(maps, out);
-  }
+void FeatureGroupingAlgorithmQT::group(const std::vector<ConsensusMap>& maps,
+                                       ConsensusMap& out)
+{
+  group_(maps, out);
+}
 
 } // namespace OpenMS
