@@ -7,6 +7,9 @@
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <filesystem>
+#include <vector>
+#include <arrow/buffer.h>
 
 #ifdef WITH_PARQUET
 #if __has_include(<zip.h>)
@@ -77,9 +80,16 @@ public:
 
 	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override
 	{
-		ARROW_ASSIGN_OR_RAISE(auto buf, arrow::AllocateResizableBuffer(nbytes));
-		ARROW_ASSIGN_OR_RAISE(int64_t bytes_read, Read(nbytes, buf->mutable_data()));
-		ARROW_RETURN_NOT_OK(buf->Resize(bytes_read));
+		if (closed_) return arrow::Status::Invalid("File is closed");
+		if (nbytes <= 0) return arrow::Buffer::Copy(nullptr, 0);
+
+		// Read into a temporary vector then copy into an Arrow buffer. This avoids
+		// relying on AllocateResizableBuffer which may not be available in all
+		// Arrow versions present in build environments.
+		std::vector<uint8_t> tmp(static_cast<size_t>(nbytes));
+		ARROW_ASSIGN_OR_RAISE(int64_t bytes_read, Read(nbytes, tmp.data()));
+		if (bytes_read < 0) return arrow::Status::IOError("Read failed");
+		auto buf = arrow::Buffer::FromVector(std::move(tmp));
 		return buf;
 	}
 
@@ -110,8 +120,9 @@ arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile:
 	// If the archive_path is a directory, return a plain ReadableFile for the path on disk
 	if (File::isDirectory(archive_path))
 	{
-		const std::filesystem::path base = std::filesystem::u8path(std::string(archive_path));
-		const std::filesystem::path entry_path = (base / std::filesystem::u8path(std::string(entry_name))).lexically_normal();
+		// Build the entry path relative to the provided directory
+		const std::filesystem::path base{std::string(archive_path)};
+		const std::filesystem::path entry_path = (base / std::filesystem::path(std::string(entry_name))).lexically_normal();
 		if (!std::filesystem::exists(entry_path))
 		{
 			return arrow::Status::IOError("Entry not found in directory: " + entry_path.string());

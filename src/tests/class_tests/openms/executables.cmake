@@ -273,6 +273,7 @@ set(format_executables_list
   ZlibCompression_test
   Libzip_test
   ZipArchiveFile_test
+  ZipRandomAccessFile_test
   # DATAACCESS
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test

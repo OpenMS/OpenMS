@@ -28,7 +28,7 @@ namespace OpenMS
 
   Returns an Arrow Result wrapping a shared_ptr to the RandomAccessFile.
 */
-struct ZipRandomAccessFile
+struct OPENMS_DLLAPI ZipRandomAccessFile
 {
   static arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> Open(const String& archive_path,
                                                                          const String& entry_name,
