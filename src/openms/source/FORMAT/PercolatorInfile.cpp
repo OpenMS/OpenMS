@@ -607,7 +607,8 @@ namespace OpenMS
         thread_local std::unordered_set<std::string> warned;
         if (warned.insert(enz).second)
         {
-          // Warning removed to fix compilation
+                    OPENMS_LOG_WARN << "Warning: unknown enzyme name '" << enz
+                          << "' in isEnz_. Assuming all sites are enzymatic." << std::endl;
         }
         return true;
       }
@@ -619,7 +620,6 @@ namespace OpenMS
     // (i.e., there is a valid cleavage site between n and c)
     const String mini_protein = String(1, n) + String(1, c);
     return digest.isValidProduct(mini_protein, 0, 1, true);
-  }
   }
 
 }
