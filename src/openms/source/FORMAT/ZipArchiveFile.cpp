@@ -283,6 +283,19 @@ std::vector<String> ZipArchiveFile::listEntries(const String& archive_path)
 String ZipArchiveFile::extractEntryToTempFile(const String& archive_path, const String& entry_name, std::unique_ptr<File::TempDir>& temp_dir)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
+  // If archive_path is actually a directory (tests create a .oswpq directory),
+  // treat it as an unpacked layout and return the matching file path directly.
+  if (File::isDirectory(archive_path))
+  {
+    const std::filesystem::path base = std::filesystem::u8path(std::string(archive_path));
+    const std::filesystem::path entry_path = (base / std::filesystem::u8path(std::string(entry_name))).lexically_normal();
+    if (!std::filesystem::exists(entry_path))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, entry_path.string());
+    }
+    return String(entry_path.string());
+  }
+
   if (!File::readable(archive_path))
   {
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, archive_path);
