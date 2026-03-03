@@ -122,6 +122,49 @@ namespace OpenMS
     return *combined;
   }
 
+  std::shared_ptr<arrow::Table> ParquetFile::readTable(const std::shared_ptr<arrow::io::RandomAccessFile>& infile)
+  {
+    auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
+    if (!reader_result.ok())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Failed to create parquet reader from RandomAccessFile", "");
+    }
+    std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
+
+    std::shared_ptr<arrow::Table> table;
+    auto read_status = reader->ReadTable(&table);
+    if (!read_status.ok())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Failed to read parquet table from RandomAccessFile", "");
+    }
+
+    bool need_combine = false;
+    for (int i = 0; i < static_cast<int>(table->num_columns()); ++i)
+    {
+      const auto& col = table->column(i);
+      if (col->num_chunks() > 1)
+      {
+        need_combine = true;
+        break;
+      }
+    }
+    if (!need_combine)
+    {
+      return table;
+    }
+
+    auto combined = table->CombineChunks(arrow::default_memory_pool());
+    if (!combined.ok())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Failed to combine parquet chunks from RandomAccessFile", "");
+    }
+
+    return *combined;
+  }
+
   // ---- Column accessors -----------------------------------------------------
 
   std::shared_ptr<arrow::Array> ParquetFile::getColumn(const std::shared_ptr<arrow::Table>& table,

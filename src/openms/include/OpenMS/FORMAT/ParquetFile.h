@@ -118,6 +118,12 @@ namespace OpenMS
       @throws Exception::InvalidValue if reading fails
     */
     static std::shared_ptr<arrow::Table> readTable(const String& filename);
+    /**
+      @brief Read a Parquet file from an Arrow RandomAccessFile into an Arrow Table.
+
+      Allows reading Parquet data directly from an in-archive RandomAccessFile (e.g. libzip-backed).
+    */
+    static std::shared_ptr<arrow::Table> readTable(const std::shared_ptr<arrow::io::RandomAccessFile>& infile);
 
     //@}
 
