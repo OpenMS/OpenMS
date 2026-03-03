@@ -2,7 +2,7 @@ Under certain circumstances you may want to build all dependencies
 from source code.  In order to facilitate the installation of the
 libraries required for %OpenMS we provide a "contrib" package
 containing the following libraries: Boost, %Eigen, libSVM, libHDF5,
-glpk, zlib, bzip2, COIN-OR (CoinUtils/Cbc/Clp/Osi) and Xerces-C.
+glpk, zlib, bzip2, CoinMP and Xerces-C.
 
 The following commands can be used to build all of these dependencies
 (assuming you have already cloned the %OpenMS repository using the

@@ -37,6 +37,7 @@ RUN apt-get update \
     libbz2-dev \
     libomp-dev \
     libhdf5-dev\
+    coinor-libcoinmp-dev \
     libeigen3-dev \
     libboost-date-time1.74-dev \
     libboost-iostreams1.74-dev \
@@ -168,6 +169,7 @@ RUN apt-get update \
     libgomp1 \
     libqt6svg6 \
     libxerces-c3.2 \
+    coinor-libcoinmp1v5 \
     libboost-date-time1.74-dev  \
     libboost-iostreams1.74-dev \
     libboost-regex1.74-dev \
