@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/FORMAT/ZipRandomAccessFile.h>
 
 #include <filesystem>
 
@@ -211,18 +212,30 @@ namespace OpenMS
     // files, not to append to it.
     targeted_exp = OpenSwath::LightTargetedExperiment{};
     std::unique_ptr<File::TempDir> temp_dir;
-    // Extract only the parquet files we need from the archive into a temp dir
-    const String precursors_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "library/precursors.parquet", temp_dir);
-    const String transitions_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "library/transitions.parquet", temp_dir);
 
-    if (!File::exists(precursors_path) || !File::exists(transitions_path))
+    // Try to open parquet entries directly from the archive using a RandomAccessFile.
+    // If that fails (e.g., compressed entry or libzip not available), fall back to
+    // extracting the entry to a temporary file and reading from disk.
+    auto open_table_from_entry = [&](const String& entry) -> std::shared_ptr<arrow::Table>
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Missing required parquet files in '" + oswpq_dir + "'");
-    }
+      auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
+      if (ra_res.ok())
+      {
+        auto raf = ra_res.ValueOrDie();
+        return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
+      }
+      // Fallback to extract
+      const String path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
+      if (!File::exists(path))
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Missing required parquet file '" + entry + "' in '" + oswpq_dir + "'");
+      }
+      return ParquetFile::readTable(path);
+    };
 
-    auto precursors_table = ParquetFile::readTable(precursors_path);
-    auto transitions_table = ParquetFile::readTable(transitions_path);
+    auto precursors_table = open_table_from_entry("library/precursors.parquet");
+    auto transitions_table = open_table_from_entry("library/transitions.parquet");
 
     auto precursor_id_col = ParquetFile::getColumn(precursors_table, "precursor_id");
     auto precursor_mz_col = ParquetFile::getColumn(precursors_table, "precursor_mz");
@@ -694,6 +707,10 @@ namespace OpenMS
         // Ensure forward slashes (zip expects '/'). generic_string() already uses '/'.
         ZipArchiveFile::addOrReplaceFromFile(oswpq_path, String(rel), String(full.string()));
       }
+      // After adding/replacing files in the archive, write a sidecar index to
+      // enable robust random access readers to locate entries without a full
+      // directory listing or extraction. This is a no-op for directory outputs.
+      ZipArchiveFile::writeSidecarIndex(output_zip_abs);
     }
 #else
     (void)oswpq_path;
