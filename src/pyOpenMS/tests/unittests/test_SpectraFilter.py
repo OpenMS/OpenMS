@@ -14,7 +14,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_map_NLargest(self):
         thisfilter = pyopenms.NLargest();
 
-        old_firstspec = self.exp[0]
+        old_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterPeakMap(self.exp)
 
         self.assertNotEqual(self.exp.size(), 0)
@@ -27,7 +27,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_spectrum_NLargest(self):
         thisfilter = pyopenms.NLargest();
 
-        new_firstspec = self.exp[0]
+        new_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterSpectrum(new_firstspec)
 
         self.assertNotEqual(new_firstspec.size(), 0)
@@ -40,7 +40,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_map_Normalizer(self):
         thisfilter = pyopenms.Normalizer();
 
-        old_firstspec = self.exp[0]
+        old_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterPeakMap(self.exp)
 
         self.assertNotEqual(self.exp.size(), 0)
@@ -52,7 +52,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_spectrum_Normalizer(self):
         thisfilter = pyopenms.Normalizer();
 
-        new_firstspec = self.exp[0]
+        new_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterSpectrum(new_firstspec)
 
         self.assertNotEqual(new_firstspec.size(), 0)
@@ -65,7 +65,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_map_Scaler(self):
         thisfilter = pyopenms.RankScaler();
 
-        old_firstspec = self.exp[0]
+        old_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterPeakMap(self.exp)
 
         self.assertNotEqual(self.exp.size(), 0)
@@ -78,7 +78,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_spectrum_Scaler(self):
         thisfilter = pyopenms.RankScaler();
 
-        new_firstspec = self.exp[0]
+        new_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterSpectrum(new_firstspec)
 
         self.assertNotEqual(new_firstspec.size(), 0)
@@ -91,7 +91,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_map_SqrtScaler(self):
         thisfilter = pyopenms.SqrtScaler();
 
-        old_firstspec = self.exp[0]
+        old_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterPeakMap(self.exp)
 
         self.assertNotEqual(self.exp.size(), 0)
@@ -104,7 +104,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_spectrum_SqrtScaler(self):
         thisfilter = pyopenms.SqrtScaler();
 
-        new_firstspec = self.exp[0]
+        new_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterSpectrum(new_firstspec)
 
         self.assertNotEqual(new_firstspec.size(), 0)
@@ -117,7 +117,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_map_ThresholdMower(self):
         thisfilter = pyopenms.ThresholdMower();
 
-        old_firstspec = self.exp[0]
+        old_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterPeakMap(self.exp)
 
         self.assertNotEqual(self.exp.size(), 0)
@@ -130,7 +130,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_spectrum_ThresholdMower(self):
         thisfilter = pyopenms.ThresholdMower();
 
-        new_firstspec = self.exp[0]
+        new_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterSpectrum(new_firstspec)
 
         self.assertNotEqual(new_firstspec.size(), 0)
@@ -143,7 +143,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_map_WindowMower(self):
         thisfilter = pyopenms.WindowMower();
 
-        old_firstspec = self.exp[0]
+        old_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterPeakMap(self.exp)
 
         self.assertNotEqual(self.exp.size(), 0)
@@ -156,7 +156,7 @@ class TestSpectraFilter(unittest.TestCase):
     def test_spectrum_WindowMower(self):
         thisfilter = pyopenms.WindowMower();
 
-        new_firstspec = self.exp[0]
+        new_firstspec = pyopenms.MSSpectrum(self.exp[0])
         thisfilter.filterPeakSpectrumForTopNInSlidingWindow(new_firstspec)
 
         self.assertNotEqual(new_firstspec.size(), 0)

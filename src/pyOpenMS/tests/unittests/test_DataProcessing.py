@@ -72,10 +72,10 @@ class TestDataProcessing(unittest.TestCase):
         """Test getting all processing action names."""
         names = pyopenms.DataProcessing.getAllNamesOfProcessingAction()
         self.assertGreater(len(names), 0)
-        # getAllNames returns bytes
-        self.assertIn(b"Peak picking", names)
-        self.assertIn(b"Smoothing", names)
-        self.assertIn(b"Calibration of m/z positions", names)
+        # getAllNames returns str
+        self.assertIn("Peak picking", names)
+        self.assertIn("Smoothing", names)
+        self.assertIn("Calibration of m/z positions", names)
 
     def test_toProcessingAction_invalid(self):
         """Test that invalid string raises exception."""

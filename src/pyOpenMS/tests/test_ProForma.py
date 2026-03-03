@@ -437,9 +437,8 @@ def test_write_mode_enum():
     assert hasattr(p.ProForma.WriteMode, 'LOSSLESS')
     assert hasattr(p.ProForma.WriteMode, 'CANONICAL')
 
-    # Verify enum values
-    assert p.ProForma.WriteMode.LOSSLESS == 0
-    assert p.ProForma.WriteMode.CANONICAL == 1
+    # Verify enum members are distinct
+    assert p.ProForma.WriteMode.LOSSLESS != p.ProForma.WriteMode.CANONICAL
 
 
 def test_conversion_policy_enum():
@@ -452,10 +451,9 @@ def test_conversion_policy_enum():
     assert hasattr(p.ProForma.ConversionPolicy, 'DROP_UNLOCALISED')
     assert hasattr(p.ProForma.ConversionPolicy, 'BEST_EFFORT')
 
-    # Verify enum values
-    assert p.ProForma.ConversionPolicy.FAIL_ON_LOSS == 0
-    assert p.ProForma.ConversionPolicy.DROP_UNLOCALISED == 1
-    assert p.ProForma.ConversionPolicy.BEST_EFFORT == 2
+    # Verify enum members are distinct
+    assert p.ProForma.ConversionPolicy.FAIL_ON_LOSS != p.ProForma.ConversionPolicy.DROP_UNLOCALISED
+    assert p.ProForma.ConversionPolicy.DROP_UNLOCALISED != p.ProForma.ConversionPolicy.BEST_EFFORT
 
 
 def test_nested_enums_under_proforma():

@@ -345,10 +345,10 @@ namespace OpenMS
     return score;
   }
 
-  std::map<String, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, bool ignore_missing_precursor_spectra)
+  std::unordered_map<String, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, bool ignore_missing_precursor_spectra)
   {
-    std::map<String, PrecursorPurity::PurityScores> purityscores;
-    std::pair<std::map<String, PrecursorPurity::PurityScores>::iterator, bool> insert_return_value;
+    std::unordered_map<String, PrecursorPurity::PurityScores> purityscores;
+    std::pair<std::unordered_map<String, PrecursorPurity::PurityScores>::iterator, bool> insert_return_value;
     int spectra_size = static_cast<int>(spectra.size());
 
     if (spectra[0].getMSLevel() != 1 && !ignore_missing_precursor_spectra)
@@ -365,12 +365,12 @@ namespace OpenMS
         if (parent_spectrum_it == spectra.end() && !ignore_missing_precursor_spectra)
         {
           OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. An MS2 spectrum without parent spectrum detected. Precursor Purity info will not be calculated!\n";
-          return std::map<String, PrecursorPurity::PurityScores>();
+          return std::unordered_map<String, PrecursorPurity::PurityScores>();
         }
         if (spectra[i].getNativeID().empty())
         {
           OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Spectrum without an ID. Precursor Purity info will not be calculated!\n";
-          return std::map<String, PrecursorPurity::PurityScores>();
+          return std::unordered_map<String, PrecursorPurity::PurityScores>();
         }
 
         // check for uniqueness of IDs by inserting initialized (0-value) scores into map
@@ -378,7 +378,7 @@ namespace OpenMS
         if (!insert_return_value.second)
         {
           OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Duplicate Spectrum IDs. Precursor Purity info will not be calculated!\n";
-          return std::map<String, PrecursorPurity::PurityScores>();
+          return std::unordered_map<String, PrecursorPurity::PurityScores>();
         }
       }
     }
