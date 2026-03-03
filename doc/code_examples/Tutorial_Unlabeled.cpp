@@ -6,6 +6,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 
 using namespace OpenMS;

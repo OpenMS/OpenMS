@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/CachedMzML.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CONCEPT/Types.h>

@@ -271,6 +271,7 @@ set(format_executables_list
   XTandemInfile_test
   XTandemXMLFile_test
   ZlibCompression_test
+  Libzip_test
   # DATAACCESS
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
@@ -287,9 +288,12 @@ if(WITH_HDF5)
 endif()
 
 if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QuantmsIO_test
+  list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
     MSChromatogramParquetConsumer_test
-    XICParquetFile_test)
+    XICParquetFile_test
+    ProteinIdentificationArrowIO_test
+    FeatureMapArrowIO_test
+    ConsensusMapArrowIO_test)
 endif()
 
 set(math_executables_list
@@ -415,6 +419,7 @@ set(chemistry_executables_list
   IsoSpec_test
   IsotopeDistribution_test
   MassDecomposer_test
+  ModificationDataProvider_test
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test
@@ -422,6 +427,7 @@ set(chemistry_executables_list
   MzPAF_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
+  DigestionEnzymeDataProvider_test
   ProFormaParser_test
   ProteaseDB_test
   ProteaseDigestion_test
@@ -431,6 +437,7 @@ set(chemistry_executables_list
   ResidueModification_test
   Residue_test
   RibonucleotideDB_test
+  RibonucleotideDataProvider_test
   Ribonucleotide_test
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
@@ -480,6 +487,7 @@ set(analysis_executables_list
   FIAMSDataProcessor_test
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
+  OpenSearchModificationAnalysis_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test
@@ -547,6 +555,7 @@ set(analysis_executables_list
   ReactionMonitoringTransition_test
   NuXLModificationsGenerator_test
   NuXLParameterParsing_test
+  PeptideSearchEngineFIAlgorithm_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   SpectralDeconvolution_test

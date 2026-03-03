@@ -27,12 +27,10 @@ ExposedVector.cpp
 FASTAContainer.cpp
 FlagSet.cpp
 GridFeature.cpp
-#IsotopeCluster.h
-#KDTree.h
 ListUtils.cpp
 ListUtilsIO.cpp
 LPWrapper.cpp
-        MassExplainer.cpp
+MassExplainer.cpp
 MatchedIterator.cpp
 Matrix.cpp
 OSWData.cpp

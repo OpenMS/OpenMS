@@ -10,6 +10,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 using namespace OpenMS;
 using namespace Math; //PosteriorErrorProbabilityModel

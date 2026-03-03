@@ -17,6 +17,7 @@
 
 // files
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/SYSTEM/File.h>
 

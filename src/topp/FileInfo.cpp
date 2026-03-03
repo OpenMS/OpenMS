@@ -18,6 +18,10 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -814,27 +818,16 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      std::cout << "Checking mzML file for valid indices ... " << std::endl;
+      os << "Checking mzML file for valid indices ... " << std::endl;
       Internal::IndexedMzMLHandler ifile;
       ifile.openFile(in);
       if (ifile.getParsingSuccess())
       {
-        // Validate that we can access each single spectrum and chromatogram
-        for (int i = 0; i < (int)ifile.getNrSpectra(); i++)
-        {
-          OpenMS::Interfaces::SpectrumPtr p = ifile.getSpectrumById(i);
-        }
-        for (int i = 0; i < (int)ifile.getNrChromatograms(); i++)
-        {
-          OpenMS::Interfaces::ChromatogramPtr p = ifile.getChromatogramById(i);
-        }
-
-        std::cout << "Found a valid indexed mzML XML File with " << ifile.getNrSpectra() << " spectra and " << ifile.getNrChromatograms() << " chromatograms." << std::endl
-                  << std::endl;
+        os << "Found a valid indexed mzML XML File with " << ifile.getNrSpectra() << " spectra and " << ifile.getNrChromatograms() << " chromatograms.\n";
       }
       else
       {
-        std::cout << "Could not detect a valid index for the mzML file " << in << "\nEither the index is not present or is not correct." << std::endl;
+        os << "Could not detect a valid index for the mzML file " << in << "\nEither the index is not present or is not correct.\n";
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -861,7 +854,7 @@ protected:
       Size dup_header(0);
       Size dup_seq(0);
 
-      typedef std::unordered_map<size_t, vector<ptrdiff_t> > SHashmap;
+      using SHashmap = std::unordered_map<size_t, vector<ptrdiff_t> >;
       SHashmap m_headers;
       SHashmap m_seqs;
 
@@ -918,7 +911,7 @@ protected:
             vector<ptrdiff_t>::const_iterator iter = find_if(it_id->second.begin(), it_id->second.end(), [&loopiter, &entries](const ptrdiff_t& idx) { return entries[idx].headerMatches(*loopiter); });
             if (iter != it_id->second.end())
             {
-              os << "Warning: Duplicate header, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " = #" << *iter << ", ID: " << entries[*iter].identifier << '\n';
+              OPENMS_LOG_WARN << "Warning: Duplicate header, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " = #" << *iter << ", ID: " << entries[*iter].identifier << '\n';
               ++dup_header;
             }
 
@@ -935,7 +928,8 @@ protected:
             vector<ptrdiff_t>::const_iterator iter = find_if(it_id->second.begin(), it_id->second.end(), [&loopiter, &entries](const ptrdiff_t& idx) { return entries[idx].sequenceMatches(*loopiter); });
             if (iter != it_id->second.end())
             {
-              os << "Warning: Duplicate sequence, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " == #" << *iter << ", ID: " << entries[*iter].identifier << '\n';
+              OPENMS_LOG_WARN << "Warning: Duplicate sequence, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier
+                              << " == #" << *iter << ", ID: " << entries[*iter].identifier << '\n';
               ++dup_seq;
             }
 

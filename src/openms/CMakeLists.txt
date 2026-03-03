@@ -80,6 +80,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   SIMDe
   SQLiteCpp
   ZLIB::ZLIB
+  libzip::zip
   nlohmann_json::nlohmann_json
   IsoSpec
   eol-bspline
@@ -138,6 +139,15 @@ openms_add_library(TARGET_NAME  OpenMS
 
 if (OPENMS_ARROW_DATASET_TARGET)
   target_compile_definitions(OpenMS PRIVATE WITH_ARROW_DATASET)
+endif()
+
+# When Arrow is statically linked, hide its bundled third-party symbols from
+# libOpenMS.so's dynamic symbol table to avoid conflicts with system libraries.
+# NOTE: We intentionally do NOT hide libarrow.a or libparquet.a symbols because
+# the OpenMS public API exposes arrow::Table etc., and downstream consumers
+# (including test executables) need to resolve those symbols from libOpenMS.so.
+if(WITH_PARQUET AND ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE)
+  target_link_options(OpenMS PRIVATE "LINKER:--exclude-libs,libarrow_bundled_dependencies.a")
 endif()
 
 if (MSVC)

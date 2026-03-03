@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -293,7 +294,12 @@ namespace OpenMS
             batch_size = batchSize;
           }
 
-          SignedSize nr_batches = (transition_exp_used_all.getCompounds().size() / batch_size);
+          const Size n_compounds = transition_exp_used_all.getCompounds().size();
+          SignedSize nr_batches = 0;
+          if (batch_size > 0)
+          {
+            nr_batches = static_cast<SignedSize>((n_compounds + batch_size - 1) / batch_size);
+          }
 
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
@@ -310,7 +316,7 @@ namespace OpenMS
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
 #endif
-          for (SignedSize pep_idx = 0; pep_idx <= nr_batches; pep_idx++)
+          for (SignedSize pep_idx = 0; pep_idx < nr_batches; ++pep_idx)
           {
             OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
 
@@ -850,5 +856,3 @@ namespace OpenMS
     }
   }
 }
-
-

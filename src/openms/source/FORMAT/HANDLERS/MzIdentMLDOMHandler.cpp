@@ -15,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/lexical_cast.hpp>
 
