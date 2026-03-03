@@ -39,6 +39,14 @@
 # required scripts
 include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
 
+# Explicit toggle for linking BLAS/LAPACK into CoinOR. This is required for
+# conda-forge/pixi builds where CoinOR is provided without transitive BLAS
+# linkage and CMake's built-in BLAS/LAPACK detection is configured via
+# BLA_VENDOR.
+option(OPENMS_LINK_COIN_BLAS
+  "Explicitly link BLAS/LAPACK into CoinOR (required for conda-forge/pixi builds)"
+  OFF)
+
 # hint from the user
 set(COIN_ROOT_DIR "" CACHE PATH "COIN root directory")
 
@@ -132,19 +140,26 @@ endmacro()
 
 if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
-  if(VCPKG_TOOLCHAIN)
-    # vcpkg provides proper BLAS/LAPACK CMake config targets; keep the legacy
-    # behaviour for that toolchain.
+  if(VCPKG_TOOLCHAIN OR OPENMS_LINK_COIN_BLAS)
+    # Currently coin-or from vcpkg requires BLAS and LAPACK. For conda-forge/
+    # pixi builds, BLAS/LAPACK are also needed but VCPKG_TOOLCHAIN is not set,
+    # so this option allows explicitly opting in from the build configuration.
+    # TODO: Find a better way to do this. Ideal would be if Coin exports a
+    # CMake config. Maybe we can parse a header file? Or try_compile?
     find_package(BLAS)
     find_package(LAPACK)
 
+    # On some configurations (e.g. conda-forge/Windows with BLA_VENDOR set to
+    # FLAME), CMake's FindLAPACK may fail to detect a generic lapack.lib even
+    # though it is present in the prefix. In that case, try a second LAPACK
+    # search without the vendor restriction before giving up.
     if(NOT LAPACK_FOUND AND (DEFINED BLA_VENDOR OR DEFINED ENV{BLA_VENDOR}))
       set(_saved_BLA_VENDOR "${BLA_VENDOR}")
       unset(BLA_VENDOR CACHE)
       unset(LAPACK_LIBRARIES CACHE)
       unset(LAPACK_LIBRARIES)
       find_package(LAPACK)
-      if(DEFINED _saved_BLA_VENDOR)
+      if(_saved_BLA_VENDOR)
         set(BLA_VENDOR "${_saved_BLA_VENDOR}" CACHE STRING "" FORCE)
       endif()
     endif()
