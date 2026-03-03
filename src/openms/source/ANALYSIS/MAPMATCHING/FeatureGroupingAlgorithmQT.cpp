@@ -11,7 +11,6 @@
 #include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -61,9 +60,10 @@ namespace OpenMS
       bool mz_ppm = param_.getValue("distance_MZ:unit").toString() == "ppm";
       double rt_tol = param_.getValue("distance_RT:max_difference");
 
+      // Greedy pass to merge unlinked features (singletons)
       for (auto it1 = out.begin(); it1 != out.end(); ++it1)
       {
-
+        // Only look at features that failed to link in Pass 1
         if (it1->getFeatures().size() != 1) continue;
 
         for (auto it2 = it1 + 1; it2 != out.end(); ++it2)
@@ -121,11 +121,17 @@ namespace OpenMS
 
           if (match_found)
           {
-
+            // 1. Merge the feature from it2 into it1
             it1->insert(*it2->getFeatures().begin());
+
+            // 2. Annotate the rescue for downstream data integrity
             it1->setMetaValue("isotope_shift_rescued", "true");
+
+            // 3. Log the successful rescue event
             OPENMS_LOG_DEBUG << "FeatureGroupingAlgorithmQT: Isotope-shift rescue applied. Merged map "
                              << candidate_map_index << " into consensus feature." << std::endl;
+
+            // 4. Remove it2 from the map so it isn't processed again
             it2 = out.erase(it2);
             --it2;
           }
