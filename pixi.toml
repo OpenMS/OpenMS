@@ -31,7 +31,6 @@ ghostscript = ">=10.2,<11.0"
 graphviz = ">=9.0,<10.0"
 
 [target.linux-64.dependencies]
-coinmp = ">=1.8,<2.0"
 libtool = ">=2.4,<3.0"
 autoconf = ">=2.71,<3.0"
 patch = ">=2.7,<3.0"
@@ -41,7 +40,6 @@ lapack = ">=3.11,<4.0"
 blas = ">=2.116,<3.0"
 
 [target.linux-aarch64.dependencies]
-coinmp = ">=1.8,<2.0"
 libtool = ">=2.4,<3.0"
 autoconf = ">=2.71,<3.0"
 patch = ">=2.7,<3.0"

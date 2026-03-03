@@ -149,8 +149,8 @@ if(NOT TARGET CoinOR::CoinOR)
     find_package(BLAS)
     find_package(LAPACK)
 
-    # On some configurations (e.g. conda-forge/Windows with BLA_VENDOR set to
-    # FLAME), CMake's FindLAPACK may fail to detect a generic lapack.lib even
+    # On some configurations, CMake's FindLAPACK may fail to detect lapack.lib
+    # when BLA_VENDOR is set. Retry without vendor restriction before giving up.
     # though it is present in the prefix. In that case, try a second LAPACK
     # search without the vendor restriction before giving up.
     if(NOT LAPACK_FOUND AND (DEFINED BLA_VENDOR OR DEFINED ENV{BLA_VENDOR}))
