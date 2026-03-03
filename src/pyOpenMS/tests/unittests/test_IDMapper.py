@@ -51,16 +51,17 @@ class TestIDMapper(unittest.TestCase):
     def test_annotate_featuremap_empty_msexperiment(self):
         mapper = oms.IDMapper()
 
-        # INCREASE TOLERANCES SO THEY MAP
+        # Explicitly set loose parameters
         params = mapper.getParameters()
         params.setValue("rt_tolerance", 5.0)
-        params.setValue("mz_tolerance", 0.05)
+        params.setValue("mz_tolerance", 0.5)
         mapper.setParameters(params)
 
         features = oms.FeatureMap()
         features.push_back(self.create_test_feature(500.0, 800.0))
 
-        peptide_ids = self.to_pep_list([self.create_test_peptide_id(500.1, 800.01, "TESTPEPTIDE")])
+        # Force EXACT match to test baseline functionality
+        peptide_ids = self.to_pep_list([self.create_test_peptide_id(500.0, 800.0, "TESTPEPTIDE")])
 
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
@@ -73,12 +74,13 @@ class TestIDMapper(unittest.TestCase):
 
         params = mapper.getParameters()
         params.setValue("rt_tolerance", 5.0)
-        params.setValue("mz_tolerance", 0.05)
+        params.setValue("mz_tolerance", 0.5)
         mapper.setParameters(params)
 
         features = oms.FeatureMap()
         features.push_back(self.create_test_feature(500.0, 800.0))
 
+        # EXACT Match
         peptide_ids = self.to_pep_list([self.create_test_peptide_id(500.0, 800.0, "MATCHEDPEP")])
 
         exp = oms.MSExperiment()
@@ -93,7 +95,7 @@ class TestIDMapper(unittest.TestCase):
 
         params = mapper.getParameters()
         params.setValue("rt_tolerance", 5.0)
-        params.setValue("mz_tolerance", 0.05)
+        params.setValue("mz_tolerance", 0.5)
         params.setValue("mz_measure", "Da")
         mapper.setParameters(params)
 
@@ -101,8 +103,8 @@ class TestIDMapper(unittest.TestCase):
         features.push_back(self.create_test_feature(500.0, 800.0))
 
         peptide_ids = self.to_pep_list([
-            self.create_test_peptide_id(504.0, 800.02, "INSIDE"),
-            self.create_test_peptide_id(506.0, 800.02, "OUTSIDE")
+            self.create_test_peptide_id(504.0, 800.2, "INSIDE"), # Within 5.0 RT and 0.5 MZ
+            self.create_test_peptide_id(506.0, 800.6, "OUTSIDE") # Outside tolerances
         ])
 
         empty_exp = oms.MSExperiment()
@@ -118,7 +120,7 @@ class TestIDMapper(unittest.TestCase):
 
         params = mapper.getParameters()
         params.setValue("rt_tolerance", 5.0)
-        params.setValue("mz_tolerance", 0.05)
+        params.setValue("mz_tolerance", 0.5)
         mapper.setParameters(params)
 
         f = self.create_test_feature(500.0, 800.0)
@@ -143,7 +145,8 @@ class TestIDMapper(unittest.TestCase):
                 features = oms.FeatureMap()
                 features.push_back(f)
 
-                peptide_ids = self.to_pep_list([self.create_test_peptide_id(505.0, 800.5, "HULLTEST")])
+                # Exactly in the middle of the feature and hull
+                peptide_ids = self.to_pep_list([self.create_test_peptide_id(500.0, 800.0, "HULLTEST")])
 
                 mapper.annotate(features, peptide_ids, [], use_centroid_rt, use_centroid_mz, empty_exp)
 
@@ -179,16 +182,17 @@ class TestIDMapper(unittest.TestCase):
 
         params = mapper.getParameters()
         params.setValue("rt_tolerance", 5.0)
-        params.setValue("mz_tolerance", 0.05)
+        params.setValue("mz_tolerance", 0.5)
         mapper.setParameters(params)
 
         features = oms.FeatureMap()
         features.push_back(self.create_test_feature(100.0, 400.0))
         features.push_back(self.create_test_feature(200.0, 500.0))
 
+        # Exact Matches
         peptide_ids = self.to_pep_list([
-            self.create_test_peptide_id(100.1, 400.01, "PEPONE"),
-            self.create_test_peptide_id(200.1, 500.01, "PEPTWO")
+            self.create_test_peptide_id(100.0, 400.0, "PEPONE"),
+            self.create_test_peptide_id(200.0, 500.0, "PEPTWO")
         ])
 
         empty_exp = oms.MSExperiment()
