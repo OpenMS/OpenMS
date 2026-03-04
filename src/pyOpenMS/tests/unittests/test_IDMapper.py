@@ -3,7 +3,6 @@ import pyopenms as oms
 
 class TestIDMapper(unittest.TestCase):
 
-    # --- Helper Functions ---
     def create_test_feature(self, rt, mz, intensity=1000.0, charge=2):
         f = oms.Feature()
         f.setRT(rt)
@@ -20,7 +19,7 @@ class TestIDMapper(unittest.TestCase):
         hit = oms.PeptideHit()
         hit.setSequence(oms.AASequence.fromString(sequence))
         hit.setScore(score)
-        hit.setCharge(charge) # <-- THE CRITICAL FIX
+        hit.setCharge(charge)
         pi.setHits([hit])
         return pi
 
@@ -42,14 +41,14 @@ class TestIDMapper(unittest.TestCase):
         self.assertEqual(hits[0].getSequence().toString(), expected_sequence)
 
     def to_pep_list(self, peps):
-        """Helper to convert Python lists to C++ PeptideIdentificationList"""
+        """Helper to convert Python lists to C++ PeptideIdentificationList."""
         pep_list = oms.PeptideIdentificationList()
         for p in peps:
             pep_list.append(p)
         return pep_list
 
-    # --- Phase 1: Core Functionality Tests ---
     def test_annotate_featuremap_empty_msexperiment(self):
+        """Test annotate with an empty MSExperiment."""
         mapper = oms.IDMapper()
 
         params = mapper.getParameters()
@@ -70,6 +69,7 @@ class TestIDMapper(unittest.TestCase):
         self.assert_feature_has_identification(features[0], "TESTPEPTIDE")
 
     def test_annotate_featuremap_with_msexperiment(self):
+        """Test with populated MSExperiment containing MS2 spectra."""
         mapper = oms.IDMapper()
 
         params = mapper.getParameters()
@@ -91,6 +91,7 @@ class TestIDMapper(unittest.TestCase):
         self.assert_feature_has_identification(features[0], "MATCHEDPEP")
 
     def test_annotate_tolerance_settings(self):
+        """Test RT and m/z tolerance boundaries."""
         mapper = oms.IDMapper()
 
         params = mapper.getParameters()
@@ -116,6 +117,7 @@ class TestIDMapper(unittest.TestCase):
         self.assertEqual(pep_ids[0].getHits()[0].getSequence().toString(), "INSIDE")
 
     def test_annotate_centroid_parameters(self):
+        """Test boolean parameter combinations for use_centroid_rt and use_centroid_mz."""
         mapper = oms.IDMapper()
 
         params = mapper.getParameters()
@@ -151,11 +153,11 @@ class TestIDMapper(unittest.TestCase):
                 mapper.annotate(features, peptide_ids, [], use_centroid_rt, use_centroid_mz, empty_exp)
 
                 pep_ids = features[0].getPeptideIdentifications()
-                self.assertEqual(len(pep_ids), 1, f"Failed mapping with centroid_rt={use_centroid_rt}, mz={use_centroid_mz}")
+                self.assertEqual(len(pep_ids), 1)
                 self.assertEqual(pep_ids[0].getHits()[0].getSequence().toString(), "HULLTEST")
 
-    # --- Phase 2: Edge Cases ---
     def test_annotate_empty_featuremap(self):
+        """Verify no exceptions on empty FeatureMap."""
         mapper = oms.IDMapper()
         features = oms.FeatureMap()
         peptide_ids = self.to_pep_list([self.create_test_peptide_id(500.0, 800.0)])
@@ -166,6 +168,7 @@ class TestIDMapper(unittest.TestCase):
         mapper.annotate(features, peptide_ids, [], True, True, empty_exp)
 
     def test_annotate_empty_peptide_ids(self):
+        """Verify no exceptions on empty PeptideIdentifications."""
         mapper = oms.IDMapper()
         features = oms.FeatureMap()
         features.push_back(self.create_test_feature(500.0, 800.0))
@@ -178,6 +181,7 @@ class TestIDMapper(unittest.TestCase):
         self.assertEqual(len(features[0].getPeptideIdentifications()), 0)
 
     def test_annotate_multiple_features_multiple_ids(self):
+        """Test many-to-many mapping behavior."""
         mapper = oms.IDMapper()
 
         params = mapper.getParameters()
