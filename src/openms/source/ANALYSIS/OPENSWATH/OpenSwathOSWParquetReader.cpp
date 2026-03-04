@@ -135,7 +135,8 @@ void OpenSwathOSWParquetReader::load(const String& oswpq_dir)
       if (tcit != transition_counts.end()) out.transition_count = tcit->second;
 
       // provide a stable group id for downstream grouping/join workflows
-      out.group_id = String(out.run_id) + "_" + String(out.precursor_id);
+      // include feature_id to avoid collisions for multiple features with same run/precursor
+      out.group_id = String(out.run_id) + "_" + String(out.precursor_id) + "_" + String(out.feature_id);
 
       rows_.push_back(std::move(out));
     }
@@ -305,7 +306,8 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
       if (tcit != transition_counts.end()) transition_count_v.push_back(tcit->second);
       else transition_count_v.push_back(0);
 
-      const String gid = String(run_id) + "_" + String(pid);
+  // include feature id in group id to avoid collisions when multiple features exist
+  const String gid = String(run_id) + "_" + String(pid) + "_" + String(fid);
       group_id_v.push_back(gid);
 
       // ms2 columns
