@@ -90,7 +90,8 @@ namespace OpenMS
       @brief Write a small JSON sidecar index for the archive listing entries and sizes.
 
         For zip archives this helper will write the sidecar JSON as an entry inside
-        the archive (named '.oswpq.idx.json'). This keeps the archive self-contained
+        the archive (named '<basename>.idx.json', e.g. 'results.oswpq.idx.json'
+        for an archive named 'results.oswpq'). This keeps the archive self-contained
         and portable. When the provided path is a directory (an unpacked layout)
         the helper will still write an external '<archive_path>.idx.json' file.
 

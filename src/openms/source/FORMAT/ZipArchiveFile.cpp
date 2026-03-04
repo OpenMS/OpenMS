@@ -360,7 +360,8 @@ void ZipArchiveFile::writeSidecarIndex(const String& archive_path)
                                   "Failed to open zip archive for sidecar write", archive_path);
   }
 
-  const char* sidecar_name = ".oswpq.idx.json";
+  const std::string sidecar_name_str = std::filesystem::path(std::string(archive_path)).filename().string() + ".idx.json";
+  const char* sidecar_name = sidecar_name_str.c_str();
   zip_source_t* src = zip_source_buffer(za2, json.data(), json.size(), 0);
   if (!src)
   {

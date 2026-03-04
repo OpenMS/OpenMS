@@ -1337,6 +1337,9 @@ protected:
         std::string rel = std::filesystem::relative(full, dirpath).generic_string();
         ZipArchiveFile::addOrReplaceFromFile(out_features, String(rel), String(full.string()));
       }
+      // Write the embedded sidecar index that enables random-access reads
+      // directly from the archive without extracting (RAF pattern).
+      ZipArchiveFile::writeSidecarIndex(output_zip_abs);
     }
 #endif
 

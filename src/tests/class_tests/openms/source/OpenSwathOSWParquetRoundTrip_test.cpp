@@ -54,7 +54,7 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
   {
     auto entries = ZipArchiveFile::listEntries(out_archive);
     bool found = false;
-    for (const auto& e : entries) if (e == ".oswpq.idx.json") { found = true; break; }
+    for (const auto& e : entries) if (e == "roundtrip.oswpq.idx.json") { found = true; break; }
     TEST_EQUAL(found, true)
   }
 
