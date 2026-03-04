@@ -91,17 +91,15 @@ namespace OpenMS
     }
   }
 
-  void SqMassFile::convertToXICParquet(const String& filename_in, const String& xic_filename, UInt64 run_id, const String& source_file) const
+  void SqMassFile::convertToXICParquet(const String& filename_in, const String& xic_filename, UInt64 run_id, const String& source_file, const OpenSwath::LightTargetedExperiment& transition_exp) const
   {
     // source_file fallback to input filename if not provided
     String src = source_file.empty() ? filename_in : source_file;
 
-    // Create an MSChromatogramParquetConsumer which implements IMSDataConsumer
-    // Use the provided transition experiment (may be empty). Callers should
-    // provide a populated transition experiment when available; otherwise the
-    // consumer may throw for chromatograms that reference missing metadata.
-    // The reason for this, is because in most cases it likely would not make sense
-    // to have chromatograms without corresponding transition metadata.
+    // Create an MSChromatogramParquetConsumer and stream chromatograms from the
+    // sqMass file. Callers must supply a populated transition experiment;
+    // chromatograms that reference missing metadata will cause the consumer to
+    // throw an InvalidValue exception.
     MSChromatogramParquetConsumer parquet_consumer(xic_filename, run_id, src, transition_exp);
 
     // Delegate to transform which will call setExpectedSize and then stream chromatograms

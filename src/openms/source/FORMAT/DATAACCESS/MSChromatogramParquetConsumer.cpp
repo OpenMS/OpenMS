@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
 #include <exception>
+#include <limits>
 #include <memory>
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
@@ -88,6 +89,12 @@ namespace OpenMS
 
     void appendBinary_(arrow::BinaryBuilder& builder, const String& value, const char* column)
     {
+      if (value.size() > static_cast<size_t>(std::numeric_limits<int32_t>::max()))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      String("Binary value for column ") + column + " exceeds Arrow int32 size limit (2 GB).",
+                                      String(value.size()));
+      }
       appendOrThrow_(builder.Append(reinterpret_cast<const uint8_t*>(value.c_str()),
                                     static_cast<int32_t>(value.size())), column);
     }
@@ -184,6 +191,27 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
       buildTransitionMaps_(transition_exp);
+      // Build the invariant schema once; reuse on every flushBuffers_() call.
+      schema_ = arrow::schema({
+        arrow::field("RUN_ID", arrow::int64()),
+        arrow::field("SOURCE_FILE", arrow::utf8()),
+        arrow::field("MS_LEVEL", arrow::int64()),
+        arrow::field("PRECURSOR_ID", arrow::int64()),
+        arrow::field("TRANSITION_ID", arrow::int64()),
+        arrow::field("MODIFIED_SEQUENCE", arrow::utf8()),
+        arrow::field("PRECURSOR_CHARGE", arrow::int64()),
+        arrow::field("PRODUCT_CHARGE", arrow::int64()),
+        arrow::field("DETECTING_TRANSITION", arrow::int64()),
+        arrow::field("PRECURSOR_DECOY", arrow::int64()),
+        arrow::field("PRODUCT_DECOY", arrow::int64()),
+        arrow::field("TRANSITION_ORDINAL", arrow::int64()),
+        arrow::field("TRANSITION_TYPE", arrow::utf8()),
+        arrow::field("ANNOTATION", arrow::utf8()),
+        arrow::field("RT_DATA", arrow::binary()),
+        arrow::field("INTENSITY_DATA", arrow::binary()),
+        arrow::field("RT_COMPRESSION", arrow::int64()),
+        arrow::field("INTENSITY_COMPRESSION", arrow::int64())
+      });
 #endif
     }
 
@@ -198,6 +226,16 @@ namespace OpenMS
       {
         OPENMS_LOG_ERROR << "Failed to write chromatogram parquet file '" << filename_
                          << "': " << e.what() << "\n";
+      }
+      catch (const std::exception& e)
+      {
+        OPENMS_LOG_ERROR << "Failed to write chromatogram parquet file '" << filename_
+                         << "': " << e.what() << "\n";
+      }
+      catch (...)
+      {
+        OPENMS_LOG_ERROR << "Failed to write chromatogram parquet file '" << filename_
+                         << "': unknown exception.\n";
       }
 #endif
     }
@@ -479,9 +517,9 @@ namespace OpenMS
       appendOrThrow_(rt_compression_builder_.Append(rt_compression), "RT_COMPRESSION");
       appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
       
-      // Track accumulated binary size and row count. If we exceed thresholds,
-      // flush current builders to disk to avoid Arrow/Parquet int32 capacity
-      // limits and to keep memory bounded.
+      // Track accumulated binary size and row count. Flush BEFORE the next
+      // append if the thresholds would be exceeded, so we never exceed Arrow's
+      // int32 capacity limits within a single batch.
       accumulated_rows_++;
       accumulated_binary_bytes_ += rt_encoded.size();
       accumulated_binary_bytes_ += int_encoded.size();
@@ -499,19 +537,26 @@ namespace OpenMS
       flushBuffers_();
 
       // Close writer and outfile so Parquet metadata is written.
+      // Null out each pointer immediately after closing so a subsequent call
+      // from the destructor (if the first call threw) cannot double-close.
 #ifdef WITH_PARQUET
       if (parquet_writer_)
       {
         auto s = parquet_writer_->Close();
+        parquet_writer_.reset(); // prevent double-close even if outfile_ close throws
         if (!s.ok())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Failed to close parquet writer", s.ToString());
         }
       }
+      // Mark as written before closing the file so the destructor's retry path
+      // (triggered if outfile_->Close() throws) does not re-enter write_().
+      wrote_ = true;
       if (outfile_)
       {
         auto s2 = outfile_->Close();
+        outfile_.reset(); // prevent double-close
         if (!s2.ok())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -519,7 +564,6 @@ namespace OpenMS
         }
       }
 #endif
-      wrote_ = true;
       return;
     }
 
@@ -545,47 +589,61 @@ namespace OpenMS
       }
 
       // Build Arrow schema for the chromatogram table.
-      auto schema = arrow::schema({
-        arrow::field("RUN_ID", arrow::int64()),
-        arrow::field("SOURCE_FILE", arrow::utf8()),
-        arrow::field("MS_LEVEL", arrow::int64()),
-        arrow::field("PRECURSOR_ID", arrow::int64()),
-        arrow::field("TRANSITION_ID", arrow::int64()),
-        arrow::field("MODIFIED_SEQUENCE", arrow::utf8()),
-        arrow::field("PRECURSOR_CHARGE", arrow::int64()),
-        arrow::field("PRODUCT_CHARGE", arrow::int64()),
-        arrow::field("DETECTING_TRANSITION", arrow::int64()),
-        arrow::field("PRECURSOR_DECOY", arrow::int64()),
-        arrow::field("PRODUCT_DECOY", arrow::int64()),
-        arrow::field("TRANSITION_ORDINAL", arrow::int64()),
-        arrow::field("TRANSITION_TYPE", arrow::utf8()),
-        arrow::field("ANNOTATION", arrow::utf8()),
-        arrow::field("RT_DATA", arrow::binary()),
-        arrow::field("INTENSITY_DATA", arrow::binary()),
-        arrow::field("RT_COMPRESSION", arrow::int64()),
-        arrow::field("INTENSITY_COMPRESSION", arrow::int64())
-      });
+      auto schema = schema_;
 
       // Finalize builders into arrays and assemble the table.
+      // Finish arrays from the current builders, then immediately reset the
+      // builders so they are fresh for the next batch regardless of whether
+      // WriteTable succeeds or throws.
+      auto arr_run_id         = finishArray_(run_id_builder_,                "RUN_ID");
+      auto arr_source_file    = finishArray_(source_file_builder_,           "SOURCE_FILE");
+      auto arr_ms_level       = finishArray_(ms_level_builder_,              "MS_LEVEL");
+      auto arr_prec_id        = finishArray_(precursor_id_builder_,          "PRECURSOR_ID");
+      auto arr_tr_id          = finishArray_(transition_id_builder_,         "TRANSITION_ID");
+      auto arr_mod_seq        = finishArray_(modified_sequence_builder_,     "MODIFIED_SEQUENCE");
+      auto arr_prec_charge    = finishArray_(precursor_charge_builder_,      "PRECURSOR_CHARGE");
+      auto arr_prod_charge    = finishArray_(product_charge_builder_,        "PRODUCT_CHARGE");
+      auto arr_detecting      = finishArray_(detecting_transition_builder_,  "DETECTING_TRANSITION");
+      auto arr_prec_decoy     = finishArray_(precursor_decoy_builder_,       "PRECURSOR_DECOY");
+      auto arr_prod_decoy     = finishArray_(product_decoy_builder_,         "PRODUCT_DECOY");
+      auto arr_tr_ordinal     = finishArray_(transition_ordinal_builder_,    "TRANSITION_ORDINAL");
+      auto arr_tr_type        = finishArray_(transition_type_builder_,       "TRANSITION_TYPE");
+      auto arr_annotation     = finishArray_(annotation_builder_,            "ANNOTATION");
+      auto arr_rt_data        = finishArray_(rt_data_builder_,               "RT_DATA");
+      auto arr_int_data       = finishArray_(intensity_data_builder_,        "INTENSITY_DATA");
+      auto arr_rt_comp        = finishArray_(rt_compression_builder_,        "RT_COMPRESSION");
+      auto arr_int_comp       = finishArray_(intensity_compression_builder_, "INTENSITY_COMPRESSION");
+
+      // Reset builders and counters immediately — before WriteTable — so the
+      // destructor's retry path always finds builders in a usable state.
+      run_id_builder_               = arrow::Int64Builder();
+      source_file_builder_          = arrow::StringBuilder();
+      ms_level_builder_             = arrow::Int64Builder();
+      precursor_id_builder_         = arrow::Int64Builder();
+      transition_id_builder_        = arrow::Int64Builder();
+      modified_sequence_builder_    = arrow::StringBuilder();
+      precursor_charge_builder_     = arrow::Int64Builder();
+      product_charge_builder_       = arrow::Int64Builder();
+      detecting_transition_builder_ = arrow::Int64Builder();
+      precursor_decoy_builder_      = arrow::Int64Builder();
+      product_decoy_builder_        = arrow::Int64Builder();
+      transition_ordinal_builder_   = arrow::Int64Builder();
+      transition_type_builder_      = arrow::StringBuilder();
+      annotation_builder_           = arrow::StringBuilder();
+      rt_data_builder_              = arrow::BinaryBuilder();
+      intensity_data_builder_       = arrow::BinaryBuilder();
+      rt_compression_builder_       = arrow::Int64Builder();
+      intensity_compression_builder_= arrow::Int64Builder();
+      accumulated_rows_             = 0;
+      accumulated_binary_bytes_     = 0;
+
       auto table = arrow::Table::Make(schema, {
-        finishArray_(run_id_builder_, "RUN_ID"),
-        finishArray_(source_file_builder_, "SOURCE_FILE"),
-        finishArray_(ms_level_builder_, "MS_LEVEL"),
-        finishArray_(precursor_id_builder_, "PRECURSOR_ID"),
-        finishArray_(transition_id_builder_, "TRANSITION_ID"),
-        finishArray_(modified_sequence_builder_, "MODIFIED_SEQUENCE"),
-        finishArray_(precursor_charge_builder_, "PRECURSOR_CHARGE"),
-        finishArray_(product_charge_builder_, "PRODUCT_CHARGE"),
-        finishArray_(detecting_transition_builder_, "DETECTING_TRANSITION"),
-        finishArray_(precursor_decoy_builder_, "PRECURSOR_DECOY"),
-        finishArray_(product_decoy_builder_, "PRODUCT_DECOY"),
-        finishArray_(transition_ordinal_builder_, "TRANSITION_ORDINAL"),
-        finishArray_(transition_type_builder_, "TRANSITION_TYPE"),
-        finishArray_(annotation_builder_, "ANNOTATION"),
-        finishArray_(rt_data_builder_, "RT_DATA"),
-        finishArray_(intensity_data_builder_, "INTENSITY_DATA"),
-        finishArray_(rt_compression_builder_, "RT_COMPRESSION"),
-        finishArray_(intensity_compression_builder_, "INTENSITY_COMPRESSION")
+        arr_run_id, arr_source_file, arr_ms_level,
+        arr_prec_id, arr_tr_id, arr_mod_seq,
+        arr_prec_charge, arr_prod_charge, arr_detecting,
+        arr_prec_decoy, arr_prod_decoy, arr_tr_ordinal,
+        arr_tr_type, arr_annotation,
+        arr_rt_data, arr_int_data, arr_rt_comp, arr_int_comp
       });
 
       // Open output file on first flush and prepare writer properties.
@@ -596,7 +654,7 @@ namespace OpenMS
         {
           throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
         }
-        outfile_ = outfile_result.ValueOrDie();
+        outfile_ = std::move(outfile_result).ValueOrDie();
         parquet::WriterProperties::Builder builder;
         builder.compression(parquet::Compression::ZSTD);
         builder.compression_level(11);
@@ -610,17 +668,17 @@ namespace OpenMS
       if (!parquet_writer_)
       {
         // Create a FileWriter (returns arrow::Result)
-  auto writer_result = parquet::arrow::FileWriter::Open(*schema,
-                   arrow::default_memory_pool(),
-                   outfile_,
-                   props_,
-                   parquet::default_arrow_writer_properties());
+        auto writer_result = parquet::arrow::FileWriter::Open(*schema,
+                             arrow::default_memory_pool(),
+                             outfile_,
+                             props_,
+                             parquet::default_arrow_writer_properties());
         if (!writer_result.ok())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Failed to create parquet FileWriter", writer_result.status().ToString());
         }
-        parquet_writer_ = std::move(writer_result.ValueOrDie());
+        parquet_writer_ = std::move(writer_result).ValueOrDie();
       }
       auto status = parquet_writer_->WriteTable(*table, 1024);
       if (!status.ok())
@@ -629,29 +687,6 @@ namespace OpenMS
                                       "Failed to write chromatogram parquet table", status.ToString());
       }
 
-      // Reset builders by reconstructing them so we can append new data.
-      run_id_builder_ = arrow::Int64Builder();
-      source_file_builder_ = arrow::StringBuilder();
-      ms_level_builder_ = arrow::Int64Builder();
-      precursor_id_builder_ = arrow::Int64Builder();
-      transition_id_builder_ = arrow::Int64Builder();
-      modified_sequence_builder_ = arrow::StringBuilder();
-      precursor_charge_builder_ = arrow::Int64Builder();
-      product_charge_builder_ = arrow::Int64Builder();
-      detecting_transition_builder_ = arrow::Int64Builder();
-      precursor_decoy_builder_ = arrow::Int64Builder();
-      product_decoy_builder_ = arrow::Int64Builder();
-      transition_ordinal_builder_ = arrow::Int64Builder();
-      transition_type_builder_ = arrow::StringBuilder();
-      annotation_builder_ = arrow::StringBuilder();
-      rt_data_builder_ = arrow::BinaryBuilder();
-      intensity_data_builder_ = arrow::BinaryBuilder();
-      rt_compression_builder_ = arrow::Int64Builder();
-      intensity_compression_builder_ = arrow::Int64Builder();
-
-      // Reset counters
-      accumulated_rows_ = 0;
-      accumulated_binary_bytes_ = 0;
 #endif
     }
 
@@ -689,10 +724,11 @@ namespace OpenMS
     // Flush when this many chromatograms are buffered
     const size_t flush_row_limit_ = 1000;
     // Flush when this many binary bytes are buffered (safety margin below 2^31)
-    const size_t flush_byte_limit_ = 2147400000ULL;
+    const size_t flush_byte_limit_ = 1900000000ULL; // ~1.9 GB: well below Arrow's int32 limit
     std::shared_ptr<arrow::io::FileOutputStream> outfile_;
     std::shared_ptr<parquet::WriterProperties> props_;
     std::unique_ptr<parquet::arrow::FileWriter> parquet_writer_;
+    std::shared_ptr<arrow::Schema> schema_;
 #endif
   };
 
