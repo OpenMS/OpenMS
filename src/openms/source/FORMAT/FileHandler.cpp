@@ -606,7 +606,7 @@ namespace OpenMS
     // determine file type
     FileTypes::Type type = getType(filename);
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {    
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -642,7 +642,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -679,7 +679,7 @@ namespace OpenMS
     // determine file type
     FileTypes::Type type = getType(filename);
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -821,7 +821,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -927,7 +927,7 @@ namespace OpenMS
   {
     // determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -989,7 +989,7 @@ namespace OpenMS
     }
 
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1055,7 +1055,7 @@ namespace OpenMS
     //determine file type
     FileTypes::Type type = getType(filename);
 
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1104,7 +1104,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1148,7 +1148,7 @@ namespace OpenMS
     
     //determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1228,7 +1228,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1283,7 +1283,7 @@ namespace OpenMS
   {
     //determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1316,7 +1316,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1344,7 +1344,7 @@ namespace OpenMS
   {
     //determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1374,7 +1374,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1418,7 +1418,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
