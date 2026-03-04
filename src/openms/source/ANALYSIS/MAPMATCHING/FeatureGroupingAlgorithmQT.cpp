@@ -13,6 +13,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 
@@ -21,65 +22,40 @@ namespace OpenMS
 
   namespace
   {
-    // Helper 1: Charge compatibility check
-    bool isChargeCompatible(const ConsensusFeature& a, const ConsensusFeature& b)
+    // Helper 1: Charge compatibility check (Simplified per maintainer review)
+    bool isChargeCompatible(const ConsensusFeature& a, const ConsensusFeature& b, Int& effective_charge)
     {
-      const Int charge_1 = a.getCharge();
-      const Int charge_2 = b.getCharge();
+      const Int& charge_1 = a.getCharge();
+      const Int& charge_2 = b.getCharge();
 
-      if (charge_1 != 0 && charge_2 != 0 && std::abs(charge_1) != std::abs(charge_2))
-      {
-        return false;
-      }
+      // Handle both zero early
+      if (charge_1 == 0 && charge_2 == 0) return false;
 
-      const Int effective_charge = (charge_1 != 0) ? std::abs(charge_1) : std::abs(charge_2);
-      if (effective_charge == 0)
-      {
-        return false;
-      }
+      // Charges must be identical if both are known (no std::abs needed)
+      if (charge_1 != 0 && charge_2 != 0 && charge_1 != charge_2) return false;
 
+      effective_charge = (charge_1 != 0) ? charge_1 : charge_2;
       return true;
     }
 
-    // Helper 2: Isotope shift math and tolerance check
-    bool isIsotopeShiftMatch(const ConsensusFeature& a, const ConsensusFeature& b, int max_shift, double c13_mass, double mz_tol, bool mz_ppm)
+    // Helper 2: Isotope shift math and tolerance check using OpenMS constants
+    bool isIsotopeShiftMatch(const ConsensusFeature& a, const ConsensusFeature& b, const std::vector<int>& allowed_shifts, Int effective_charge, double mz_tol, bool mz_ppm, int& matched_error)
     {
-      const Int charge_1 = a.getCharge();
-      const Int charge_2 = b.getCharge();
-      const Int effective_charge = (charge_1 != 0) ? std::abs(charge_1) : std::abs(charge_2);
-
       double mz_diff = std::abs(a.getMZ() - b.getMZ());
 
-      for (int k = 1; k <= max_shift; ++k)
+      for (int k : allowed_shifts)
       {
-        double expected_shift = (k * c13_mass) / effective_charge;
-        double shift_diff = std::abs(mz_diff - expected_shift);
+        double expected_mz_shift = (k * Constants::C13C12_MASSDIFF_U) / effective_charge;
+        double shift_diff = std::abs(mz_diff - expected_mz_shift);
         double tolerance = mz_ppm ? (mz_tol * a.getMZ() / 1e6) : mz_tol;
 
         if (shift_diff <= tolerance)
         {
+          matched_error = k;
           return true;
         }
       }
       return false;
-    }
-
-    // Helper 3: Merge, annotate, log, and erase
-    void mergeAndAnnotateRescue(ConsensusFeature& target, ConsensusMap::iterator& src_it, int candidate_map_index, ConsensusMap& out)
-    {
-      // 1. Merge the feature
-      target.insert(*src_it->getFeatures().begin());
-
-      // 2. Annotate the rescue for downstream data integrity
-      target.setMetaValue("isotope_shift_rescued", "true");
-
-      // 3. Log the successful rescue event
-      OPENMS_LOG_DEBUG << "FeatureGroupingAlgorithmQT: Isotope-shift rescue applied. Merged map "
-                       << candidate_map_index << " into consensus feature.\n";
-
-      // 4. Remove the source feature from the map
-      src_it = out.erase(src_it);
-      --src_it;
     }
   }
 
@@ -89,16 +65,24 @@ namespace OpenMS
     setName("FeatureGroupingAlgorithmQT");
     defaults_.insert("", QTClusterFinder().getParameters());
 
-    defaults_.setValue("enable_isotope_shift_fallback", "false", "If true, performs a second linking pass to rescue features missing a monoisotopic peak.");
-    defaults_.setValidStrings("enable_isotope_shift_fallback", {"true","false"});
-
-    defaults_.setValue("max_isotope_shift", 2, "Maximum number of isotopic peaks to shift when matching missing M+0 features (e.g., 1 for M+1, 2 for M+2).");
-    defaults_.setMinInt("max_isotope_shift", 1);
+    // Consolidated parameters into a single IntList
+    defaults_.setValue("add_isotope_error", std::vector<int>(), "If not empty, performs a second linking pass to rescue features missing a monoisotopic peak. Specifies the allowed isotope errors (e.g., [1, 2] for M+1 and M+2).");
 
     defaultsToParam_();
   }
 
   FeatureGroupingAlgorithmQT::~FeatureGroupingAlgorithmQT() = default;
+
+  void FeatureGroupingAlgorithmQT::updateMembers_()
+  {
+    FeatureGroupingAlgorithm::updateMembers_();
+
+    // Read params BEFORE running cluster finder
+    add_isotope_error_ = param_.getValue("add_isotope_error");
+    rt_tolerance_ = param_.getValue("distance_RT:max_difference");
+    mz_tolerance_ = param_.getValue("distance_MZ:max_difference");
+    mz_measure_is_ppm_ = param_.getValue("distance_MZ:unit").toString() == "ppm";
+  }
 
   template <typename MapType>
   void FeatureGroupingAlgorithmQT::group_(const vector<MapType>& maps, ConsensusMap& out)
@@ -115,24 +99,25 @@ namespace OpenMS
     cluster_finder.run(maps, out);
 
     // PASS 2: Isotopic shift rescue
-    if (param_.getValue("enable_isotope_shift_fallback").toBool())
+    if (!add_isotope_error_.empty())
     {
-      const Int max_shift = static_cast<Int>(param_.getValue("max_isotope_shift"));
-      constexpr double c13_mass = 1.0033548;
+      // 1. Sort by RT to allow for a high-performance O(N log N) sliding window
+      out.sortByRT();
 
-      double mz_tol = param_.getValue("distance_MZ:max_difference");
-      bool mz_ppm = param_.getValue("distance_MZ:unit").toString() == "ppm";
-      double rt_tol = param_.getValue("distance_RT:max_difference");
-
-      // Greedy pass to merge unlinked features (singletons)
       for (auto it1 = out.begin(); it1 != out.end(); ++it1)
       {
-        // Only look at features that failed to link in Pass 1
-        if (it1->getFeatures().size() != 1) continue;
+        // Skip features that were already merged or aren't singletons
+        if (it1->metaValueExists("merged_in_rescue") || it1->getFeatures().size() != 1) continue;
 
         for (auto it2 = it1 + 1; it2 != out.end(); ++it2)
         {
-          if (it2->getFeatures().size() != 1) continue;
+          if (it2->metaValueExists("merged_in_rescue") || it2->getFeatures().size() != 1) continue;
+
+          // Sliding Window: Break inner loop early if RT difference exceeds tolerance
+          if ((it2->getRT() - it1->getRT()) > rt_tolerance_)
+          {
+            break;
+          }
 
           // Ensure candidate map is not already represented in the merged group
           const auto candidate_map_index = it2->getFeatures().begin()->getMapIndex();
@@ -143,25 +128,33 @@ namespace OpenMS
               return handle.getMapIndex() == candidate_map_index;
             });
 
-          if (map_already_present)
+          if (map_already_present) continue;
+
+          Int effective_charge = 0;
+          if (!isChargeCompatible(*it1, *it2, effective_charge)) continue;
+
+          int matched_error = 0;
+          if (isIsotopeShiftMatch(*it1, *it2, add_isotope_error_, effective_charge, mz_tolerance_, mz_measure_is_ppm_, matched_error))
           {
-            continue;
-          }
+            // Merge the feature
+            it1->insert(*it2->getFeatures().begin());
 
-          // Basic RT check using configured tolerance
-          if (std::abs(it1->getRT() - it2->getRT()) > rt_tol) continue;
+            // Annotate the integer isotope error per maintainer request
+            it1->setMetaValue("isotope_error", matched_error);
 
-          // Delegate to Helper: Charges must match when both are known
-          if (!isChargeCompatible(*it1, *it2)) continue;
+            OPENMS_LOG_DEBUG << "FeatureGroupingAlgorithmQT: Isotope-shift rescue applied. Merged map "
+                             << candidate_map_index << " into consensus feature.\n";
 
-          // Delegate to Helper: Check for isotope shifts
-          if (isIsotopeShiftMatch(*it1, *it2, max_shift, c13_mass, mz_tol, mz_ppm))
-          {
-            // Delegate to Helper: Merge, annotate, log, and erase
-            mergeAndAnnotateRescue(*it1, it2, candidate_map_index, out);
+            // Mark it2 for safe O(N) deletion later
+            it2->setMetaValue("merged_in_rescue", "true");
           }
         }
       }
+
+      // Cleanup: Safely remove all singletons that were merged
+      out.erase(std::remove_if(out.begin(), out.end(),
+                [](const ConsensusFeature& f) { return f.metaValueExists("merged_in_rescue"); }),
+                out.end());
     }
 
     postprocess_(maps, out);

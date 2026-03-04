@@ -2226,7 +2226,7 @@ add_test("TOPP_FeatureLinkerUnlabeledQT_IsotopeShift"
          -test
          -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_IsotopeShift_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_IsotopeShift_input2.featureXML
          -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledQT_IsotopeShift_output.tmp.consensusXML
-         -algorithm:enable_isotope_shift_fallback)
+         -algorithm:add_isotope_error 1 2)
 add_test("TOPP_FeatureLinkerUnlabeledQT_IsotopeShift_out1"
          ${DIFF} -whitelist "id=" "href=" "completion_time=" "version="
          -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledQT_IsotopeShift_output.tmp.consensusXML

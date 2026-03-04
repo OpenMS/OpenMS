@@ -19,7 +19,7 @@
 				<element map="0" id="1" rt="50.0" mz="1000.0" it="1.0e04" charge="2"/>
 				<element map="1" id="2" rt="50.0" mz="1000.501650000000041" it="8000.0" charge="2"/>
 			</groupedElementList>
-			<UserParam type="string" name="isotope_shift_rescued" value="true"/>
+			<UserParam type="int" name="isotope_error" value="1"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>
