@@ -112,7 +112,11 @@ namespace OpenMS
     String metadata_src = sanitize_for_metadata(src);
 
     // Create an MSChromatogramParquetConsumer which implements IMSDataConsumer
-    OpenSwath::LightTargetedExperiment transition_exp; // empty experiment (no transition annotations)
+    // Use the provided transition experiment (may be empty). Callers should
+    // provide a populated transition experiment when available; otherwise the
+    // consumer may throw for chromatograms that reference missing metadata.
+    // The reason for this, is because in most cases it likely would not make sense
+    // to have chromatograms without corresponding transition metadata.
     MSChromatogramParquetConsumer parquet_consumer(xic_filename, run_id, metadata_src, transition_exp);
 
     // Delegate to transform which will call setExpectedSize and then stream chromatograms

@@ -11,6 +11,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenMS
 {
@@ -90,6 +91,7 @@ public:
       @param[in] xic_filename Path to the output .xic Parquet file.
       @param[in] run_id Run identifier to store with each chromatogram (default 0).
       @param[in] source_file Source filename to store in the parquet file (if empty, filename_in is used).
+      @param[in] transition_exp Optional transition/precursor metadata (LightTargetedExperiment) used to annotate chromatograms. If left empty, no transition metadata will be available to the writer and conversion may fail for chromatograms that require such metadata. Prefer supplying a populated transition experiment when available.
 
       @throws Exception::InvalidValue If a chromatogram refers to a precursor or
       transition for which no matching metadata entry exists, or if Arrow/Parquet
@@ -101,9 +103,10 @@ public:
       the writer/encoding layers may also be thrown.
     */
     void convertToXICParquet(const String& filename_in,
-                             const String& xic_filename,
-                             UInt64 run_id = 0,
-                             const String& source_file = "") const;
+                const String& xic_filename,
+                UInt64 run_id = 0,
+                const String& source_file = "",
+                const OpenSwath::LightTargetedExperiment& transition_exp = OpenSwath::LightTargetedExperiment()) const;
 
     void setConfig(const SqMassConfig& config) 
     {
