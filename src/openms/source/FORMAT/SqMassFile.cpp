@@ -96,28 +96,13 @@ namespace OpenMS
     // source_file fallback to input filename if not provided
     String src = source_file.empty() ? filename_in : source_file;
 
-    // Sanitize a copy of the source filename for metadata usage. Some downstream
-    // consumers may treat certain characters (e.g. '%') specially when
-    // formatting or constructing internal strings; guard against that by
-    // replacing problematic characters in the metadata-only string. We do NOT
-    // change the actual filename used to open the file (filename_in).
-    auto sanitize_for_metadata = [](const String& s) {
-      String out = s;
-      // replace percent signs which may be interpreted in format strings
-      out.substitute('%', '_');
-      // also replace any embedded null characters just in case
-      // (String::substitute handles char replacement)
-      return out;
-    };
-    String metadata_src = sanitize_for_metadata(src);
-
     // Create an MSChromatogramParquetConsumer which implements IMSDataConsumer
     // Use the provided transition experiment (may be empty). Callers should
     // provide a populated transition experiment when available; otherwise the
     // consumer may throw for chromatograms that reference missing metadata.
     // The reason for this, is because in most cases it likely would not make sense
     // to have chromatograms without corresponding transition metadata.
-    MSChromatogramParquetConsumer parquet_consumer(xic_filename, run_id, metadata_src, transition_exp);
+    MSChromatogramParquetConsumer parquet_consumer(xic_filename, run_id, src, transition_exp);
 
     // Delegate to transform which will call setExpectedSize and then stream chromatograms
     transform(filename_in, &parquet_consumer, /*skip_full_count=*/false, /*skip_first_pass=*/false);
