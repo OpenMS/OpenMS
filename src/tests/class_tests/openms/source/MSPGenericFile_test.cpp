@@ -12,6 +12,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
+#include <fstream>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -158,6 +159,39 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_EQUAL(s3[14].getIntensity(), 20)
   TEST_EQUAL(s3[15].getPos(), 111)
   TEST_EQUAL(s3[15].getIntensity(), 44)
+
+  // Test CCS metadata parsing
+  const String ccs_filepath = OPENMS_GET_TEST_DATA_PATH("MSPGenericFile_ccs_test.msp");
+  // We need to create this file or use one that has CCS.
+  // For the sake of this test, I will assume I can create a temporary file with CCS.
+  MSExperiment ccs_exp;
+  String ccs_tmp_content = "Name: ccs_test\n"
+                           "CCS: 123.45\n"
+                           "Num Peaks: 1\n"
+                           "100:100\n";
+  String ccs_tmp_path;
+  NEW_TMP_FILE(ccs_tmp_path)
+  {
+    ofstream ofs(ccs_tmp_path.c_str());
+    ofs << ccs_tmp_content;
+  }
+  msp.load(ccs_tmp_path, ccs_exp);
+  TEST_EQUAL(ccs_exp.getSpectra().size(), 1)
+  TEST_EQUAL(ccs_exp.getSpectra()[0].metaValueExists(Constants::UserParam::MSM_CCS), true)
+  TEST_REAL_SIMILAR((double)ccs_exp.getSpectra()[0].getMetaValue(Constants::UserParam::MSM_CCS), 123.45)
+
+  // Test non-numeric CCS (should now throw Exception::ParseError)
+  MSExperiment ccs_invalid_exp;
+  String ccs_invalid_tmp_content = "Name: ccs_invalid_test\n"
+                                   "CCS: abc\n"
+                                   "Num Peaks: 1\n"
+                                   "100:100\n";
+  NEW_TMP_FILE(ccs_tmp_path)
+  {
+    ofstream ofs(ccs_tmp_path.c_str());
+    ofs << ccs_invalid_tmp_content;
+  }
+  TEST_EXCEPTION(Exception::ParseError, msp.load(ccs_tmp_path, ccs_invalid_exp))
 }
 END_SECTION
 
@@ -231,7 +265,7 @@ START_SECTION(void store(const String& filename, const MSExperiment& library) co
   peak.setIntensity(103.5f);
   spec.push_back(peak);
   exp.addSpectrum(spec);
-  
+
   String output_filepath;
   NEW_TMP_FILE(output_filepath)
   msp.store(output_filepath, exp);
@@ -321,10 +355,7 @@ START_SECTION(void store(const String& filename, const MSExperiment& library) co
 }
 END_SECTION
 
-START_SECTION(void addSpectrumToLibrary(
-  MSSpectrum& spectrum,
-  MSExperiment& library
-))
+START_SECTION(void addSpectrumToLibrary(MSSpectrum& spectrum, MSExperiment& library))
 {
   MSPGenericFile_friend msp_f;
   MSExperiment lib;
