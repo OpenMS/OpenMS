@@ -76,6 +76,16 @@ namespace OpenMS
                UInt64 run_id,
                const String& input_filename,
                bool enable_uis_scoring) const;
+
+    /**
+     * @brief Set whether the writer should preserve (append) existing archives.
+     * 
+     * @param[in] preserve If true, the writer will append to existing .oswpq archives instead of overwriting them.
+     */
+    void setPreserveExisting(bool preserve);
+  private:
+    // Mutable so the const write() method may consult this flag.
+    mutable bool preserve_existing_ = false;
   };
 
 } // namespace OpenMS

@@ -322,8 +322,20 @@ namespace OpenMS
     String base_dir = output_path;
     if (!output_is_dir)
     {
-      temp_dir = std::make_unique<File::TempDir>();
-      base_dir = temp_dir->getPath() + "/oswpq_output";
+      if (File::exists(output_path) && preserve_existing_)
+      {
+        // Preserve prior runs/library by unpacking existing archive first.
+          base_dir = ZipArchiveFile::unzipDirectory(output_path, temp_dir);
+        // Inform the user that existing runs were found and will be preserved
+        OPENMS_LOG_WARN << "Existing archive '" << File::absolutePath(output_path)
+                        << "' was detected — its contents will be preserved and new runs will be appended.\n"
+                        << "To overwrite the archive remove it before running the writer." << std::endl;
+      }
+      else
+      {
+        temp_dir = std::make_unique<File::TempDir>();
+        base_dir = temp_dir->getPath() + "/oswpq_output";
+      }
     }
 
     const String library_dir = base_dir + "/library";
@@ -1401,7 +1413,9 @@ namespace OpenMS
     {
       const std::filesystem::path dirpath = std::filesystem::u8path(std::string(base_dir));
       const String output_zip_abs = File::absolutePath(output_path);
-      if (File::exists(output_zip_abs))
+      // If we're preserving an existing archive (we unpacked it above), don't
+      // remove it here. Otherwise remove any existing file to start fresh.
+      if (File::exists(output_zip_abs) && !preserve_existing_)
       {
         File::remove(output_zip_abs);
       }
@@ -1416,5 +1430,10 @@ namespace OpenMS
     }
 #endif
   }
+
+void OpenSwathOSWParquetWriter::setPreserveExisting(bool preserve)
+{
+  preserve_existing_ = preserve;
+}
 
 } // namespace OpenMS
