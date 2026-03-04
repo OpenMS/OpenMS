@@ -572,13 +572,25 @@ namespace OpenMS
   }
 
 
-  bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
+    bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
   {
     // Terminal positions (protein N/C-terminus) are always considered enzymatic
     if (n == '-' || c == '-')
     {
       return true;
     }
+
+    // Use OpenMS ProteaseDigestion to check enzymatic cleavage.
+    // Use thread_local to avoid recreation overhead, but rely on setEnzyme throwing if invalid.
+    thread_local ProteaseDigestion digest;
+    digest.setEnzyme(enz);
+
+    // Construct a minimal 2-residue "protein" and check if the
+    // single-residue peptide at position 0 is a valid digestion product
+    // (i.e., there is a valid cleavage site between n and c)
+    const String mini_protein = String(1, n) + String(1, c);
+    return digest.isValidProduct(mini_protein, 0, 1, true);
+  }
 
     // Enzymes not present in OpenMS ProteaseDB - keep Percolator-compatible logic
     if (enz == "thermolysin")
@@ -623,15 +635,23 @@ namespace OpenMS
   }
 
 
-  Size PercolatorInfile::countEnzymatic_(const String& peptide, const std::string& enz)
+    Size PercolatorInfile::countEnzymatic_(const String& peptide, const std::string& enz)
   {
-    Size count = 0;
-    for (Size ix = 1; ix < peptide.size(); ++ix)
-    {
-      if (isEnz_(peptide[ix - 1], peptide[ix], enz))
-      {
-        ++count;
-      }
+    ProteaseDigestion digest;
+    digest.setEnzyme(enz);
+    
+    // peptideCount returns the number of peptides produced.
+    // Number of cleavage sites = number of peptides - 1.
+    // However, we must handle the case where the peptide is fully enzymatic/consistent?
+    // Wait, peptideCount counts how many peptides this sequence would produce if digested.
+    // If the input 'peptide' is a fragment, digest.digest(peptide) would cut it further.
+    // We want to count internal cleavage sites.
+    
+    // Let's check ProteaseDigestion API for counting internal sites.
+    // It has countInternalCleavageSites(sequence).
+    
+    return digest.countInternalCleavageSites(peptide);
+  }
     }
     return count;
   }
