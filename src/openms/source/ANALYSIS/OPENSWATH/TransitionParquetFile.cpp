@@ -631,7 +631,10 @@ namespace OpenMS
         stats.transition_charge_counts_target[transition.fragment_charge]++;
       }
       std::string fragment_type = transition.getFragmentType();
-      for (auto& c : fragment_type) c = static_cast<char>(std::tolower(c));
+      for (auto& c : fragment_type)
+      {
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+      }
       if (fragment_type == "b")
       {
         if (transition_decoy) stats.fragment_b_decoy++;
@@ -689,14 +692,17 @@ namespace OpenMS
     {
       // Instead of zipping the whole directory in one go, add each file to the
       // archive individually. This allows streaming large parquet files into the
-      // archive without unzipping/rezipping everything.
+      // archive without unzipping/rezipping everything. Use a staging archive
+      // and rename into place atomically to avoid destroying the existing
+      // archive on partial failures.
       const std::filesystem::path dirpath = std::filesystem::u8path(std::string(base_dir));
       const std::filesystem::path outpath = std::filesystem::u8path(std::string(oswpq_path));
       const String output_zip_abs = File::absolutePath(oswpq_path);
-      if (File::exists(output_zip_abs))
+      const String staging_zip = output_zip_abs + ".tmp";
+
+      if (File::exists(staging_zip))
       {
-        // Truncate/replace existing archive to match previous behavior
-        File::remove(output_zip_abs);
+        File::remove(staging_zip);
       }
 
       for (auto it = std::filesystem::recursive_directory_iterator(dirpath); it != std::filesystem::recursive_directory_iterator(); ++it)
@@ -705,12 +711,17 @@ namespace OpenMS
         const auto full = it->path();
         std::string rel = std::filesystem::relative(full, dirpath).generic_string();
         // Ensure forward slashes (zip expects '/'). generic_string() already uses '/'.
-        ZipArchiveFile::addOrReplaceFromFile(oswpq_path, String(rel), String(full.string()));
+        ZipArchiveFile::addOrReplaceFromFile(staging_zip, String(rel), String(full.string()));
       }
-      // After adding/replacing files in the archive, write a sidecar index to
-      // enable robust random access readers to locate entries without a full
-      // directory listing or extraction. This is a no-op for directory outputs.
-      ZipArchiveFile::writeSidecarIndex(output_zip_abs);
+      // After adding/replacing files in the staging archive, write a sidecar index
+      // and then atomically move the staging archive into place.
+      ZipArchiveFile::writeSidecarIndex(staging_zip);
+      if (File::exists(output_zip_abs))
+      {
+        File::remove(output_zip_abs);
+      }
+      std::filesystem::rename(std::filesystem::u8path(std::string(staging_zip)),
+                              std::filesystem::u8path(std::string(output_zip_abs)));
     }
 #else
     (void)oswpq_path;
