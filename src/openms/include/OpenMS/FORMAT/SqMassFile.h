@@ -76,14 +76,29 @@ public:
 
       This is a convenience function that will stream chromatograms from the
       input sqMass file into an OpenMS Parquet writer (MSChromatogramParquetConsumer)
-      and write them to disk. Transition metadata is optional and can be left
-      empty; in that case chromatogram rows will not be annotated with transition
-      library information.
+      and write them to disk.
+
+      Note: The transition/precursor metadata passed to the underlying Parquet
+      consumer is optional from the API perspective, but the writer expects
+      chromatogram native IDs to have matching transition/precursor metadata in
+      many cases. If required metadata for a chromatogram (precursor or
+      transition) is missing the writer will throw an exception and the
+      conversion will fail. Therefore it is recommended to provide a
+      populated transition experiment when possible.
 
       @param[in] filename_in Path to the input sqMass file.
       @param[in] xic_filename Path to the output .xic Parquet file.
       @param[in] run_id Run identifier to store with each chromatogram (default 0).
       @param[in] source_file Source filename to store in the parquet file (if empty, filename_in is used).
+
+      @throws Exception::InvalidValue If a chromatogram refers to a precursor or
+      transition for which no matching metadata entry exists, or if Arrow/Parquet
+      operations fail while assembling/writing the table.
+      @throws Exception::FileNotWritable If the output parquet file cannot be
+      opened for writing.
+      @throws Exception::NotImplemented If Parquet support was not compiled in.
+      @throws Exception::BaseException Other OpenMS exceptions propagated from
+      the writer/encoding layers may also be thrown.
     */
     void convertToXICParquet(const String& filename_in,
                              const String& xic_filename,
