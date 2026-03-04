@@ -31,9 +31,15 @@ jobs:
       - name: Prepare output directory
         run: |
           mkdir -p $GITHUB_WORKSPACE/output/noarch
+          mkdir -p $GITHUB_WORKSPACE/output/linux-64
           touch $GITHUB_WORKSPACE/output/noarch/repodata.json
           conda install bioconda-utils conda-index -y
           python -m conda_index $GITHUB_WORKSPACE/output
+          # Register the local output directory as a conda channel so that
+          # host-side metadata finalization can resolve packages built in
+          # earlier steps (e.g. pyopenms finding libopenms==3.6.0dev).
+          # Without this, only the Docker container sees the local channel.
+          conda config --add channels file://$GITHUB_WORKSPACE/output
           ls -l
           ls -l $GITHUB_WORKSPACE/output
 
