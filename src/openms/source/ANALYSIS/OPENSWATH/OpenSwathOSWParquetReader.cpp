@@ -715,9 +715,20 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
 
   // try to read peptide mapping if present: precursor_peptide_mapping.parquet and peptides.parquet
   std::unordered_map<int64_t, int64_t> precursor_to_peptide;
-  auto entries = ZipArchiveFile::listEntries(oswpq_dir);
-  const bool has_ppm = std::find(entries.begin(), entries.end(), std::string("library/precursor_peptide_mapping.parquet")) != entries.end();
-  const bool has_pep = std::find(entries.begin(), entries.end(), std::string("library/peptides.parquet")) != entries.end();
+  bool has_ppm = false;
+  bool has_pep = false;
+  if (File::isDirectory(oswpq_dir))
+  {
+    // Directory input: check files directly
+    has_ppm = File::exists(oswpq_dir + "/library/precursor_peptide_mapping.parquet");
+    has_pep = File::exists(oswpq_dir + "/library/peptides.parquet");
+  }
+  else
+  {
+    auto entries = ZipArchiveFile::listEntries(oswpq_dir);
+    has_ppm = std::find(entries.begin(), entries.end(), std::string("library/precursor_peptide_mapping.parquet")) != entries.end();
+    has_pep = std::find(entries.begin(), entries.end(), std::string("library/peptides.parquet")) != entries.end();
+  }
   if (has_ppm && has_pep)
   {
     auto ppm_table = open_table_from_entry("library/precursor_peptide_mapping.parquet");
