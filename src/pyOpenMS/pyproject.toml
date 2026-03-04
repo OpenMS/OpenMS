@@ -1,4 +1,4 @@
-# pyOpenMS - Python bindings for OpenMS
+# pyOpenMS - nanobind-based Python bindings for OpenMS
 # Build system configuration using PEP 517/518/621 with py-build-cmake
 #
 # Prerequisites:
@@ -9,20 +9,13 @@
 #   pip wheel . --no-build-isolation  (after setting OpenMS_ROOT)
 #   uv build --wheel
 #   pip install . --config-settings=cmake.options.OpenMS_ROOT=/path/to/openms
-#
-# This uses py-build-cmake to drive the build process:
-# 1. pip/uv installs build dependencies automatically
-# 2. py-build-cmake invokes CMake with correct Python hints
-# 3. CMake builds the extension modules
-# 4. py-build-cmake packages the result into a wheel
 
 [build-system]
 # Also update dependency-group.build when making changes here!!!
 requires = [
     "build>=1.3.0",
     "py-build-cmake>=0.3.0",
-    "autowrap>=0.27.0",
-    "Cython>=3.1.0",
+    "nanobind>=2.4.0",
     "numpy>=2.0",
     "auditwheel; sys_platform == 'linux'",
     "delocate; sys_platform == 'darwin'",
@@ -87,8 +80,7 @@ all = ["pandas", "pyarrow"]
 build = [
     "build>=1.3.0",
     "py-build-cmake>=0.3.0",
-    "autowrap>=0.27.0",
-    "Cython>=3.1.0",
+    "nanobind>=2.4.0",
     "numpy>=2.0",
     "auditwheel; sys_platform == 'linux'",
     "delocate; sys_platform == 'darwin'",
@@ -126,24 +118,20 @@ include = [
     "pyopenms/*.py",
     "pyopenms/*.pyi",
     "pyopenms/py.typed",
-    "pxds/*.pxd",
-    "addons/*.pyx",
-    "converters/*",
-    "extra_includes/*",
-    "create_cpp_extension.py",
-    "fix_pyi_imports.py",
+    "pyopenms/addons/*.py",
+    "bindings/bind_*.cpp",
+    "bindings/main_module.cpp",
+    "bindings/arrow_zerocopy.cpp",
+    "bindings/type_casters/*.h",
+    "fix_stubs.py",
+    "stubs.patch",
 ]
 
 [tool.py-build-cmake.cmake]
 # CMake build configuration
 build_type = "Release"
-# Add generator if needed (e.g. "Ninja" for faster builds)
-#generator = "Ninja"
 source_path = "."
 install_args = ["--strip"]
-# Use args e.g. for debugging
-#args = ["--debug-find"]
-# Avoid passing -j here if you use the CMAKE_BUILD_PARALLEL_LEVEL env var. It would override it.
 build_args = []
 install_components = ["python_modules"]
 
@@ -152,12 +140,6 @@ install_components = ["python_modules"]
 # Example: pip install . --config-settings=cmake.options.OpenMS_ROOT=/path/to/openms
 # Or set environment variable: export OpenMS_ROOT=/path/to/openms
 #
-# PY_NUM_MODULES: Number of submodules to split pyopenms into (reduces per-module memory)
-# PY_NUM_THREADS: Number of parallel Cython compilations (each uses 2-4GB RAM)
-# Defaults are conservative for CI (~7GB RAM). Local builds with more RAM can increase:
-#   pip install . --config-settings=cmake.options.PY_NUM_THREADS=4
-PY_NUM_MODULES = "8"
-PY_NUM_THREADS = "2"
 # Skip dependency bundling - wheel repair tools will usually handle this
 NO_DEPENDENCIES = "ON"
 
@@ -173,11 +155,6 @@ build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
 skip = "*-win32 *-musllinux_* pp*"
 
 # Test the wheel after building
-# IMPORTANT: Run pytest from a different directory (not from source tree) to force Python to import
-# from the installed wheel in site-packages, not from the source tree.
-# The source tree is missing generated files like _version.py which causes import errors.
-# Using --import-mode=importlib ensures pytest uses standard Python imports.
-# TODO check if import-mode is enough and fix the missing file issue (ideally by not relying on them at all).
 test-requires = ["pytest", "numpy", "pandas", "pyarrow"]
 test-command = "pytest \"{package}/tests\" --import-mode=importlib"
 build-verbosity = 1
@@ -222,14 +199,7 @@ repair-wheel-command = [
 [tool.cibuildwheel.macos.environment]
 # Homebrew paths
 CMAKE_PREFIX_PATH = "$(brew --prefix):$(brew --prefix libomp)"
-# TODO we get warnings about mismatch to _PYTHON_HOST_PLATFORM 
-# (which cibuildwheel computes as macos-11.0-arm64) which is probably a default
-# We should fix this, although wheels seem to be produced correctly (with 14.0)
-# This is required because we use brew dependencies which do not set any
-# MACOSX_DEPLOYMENT_TARGET by default (therefore are built for the current OS version)
 MACOSX_DEPLOYMENT_TARGET = "14.0"
-# OpenMS must be built separately and OpenMS_ROOT set in CI
-# OpenMS_ROOT = "$GITHUB_WORKSPACE/openms-build"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
@@ -247,5 +217,5 @@ repair-wheel-command = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-python_functions = ["test_*"]
+python_functions = ["test*"]
 addopts = "-v --tb=short"

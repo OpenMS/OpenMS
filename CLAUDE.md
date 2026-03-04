@@ -20,9 +20,8 @@
 
 ## pyOpenMS
 
-See `src/pyOpenMS/CLAUDE.md` for Python binding development.
+See `src/pyOpenMS/CLAUDE.md` for Python binding development using nanobind.
 
 Quick commands:
 - Build: `cmake --build OpenMS-build --target pyopenms -j$(nproc)`
 - Test: `PYTHONPATH=OpenMS-build/pyOpenMS python3 -m pytest src/pyOpenMS/tests/ -v`
-- Force rebuild after addon changes: `rm OpenMS-build/pyOpenMS/.cpp_extension_generated`

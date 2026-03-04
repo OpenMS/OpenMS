@@ -911,4 +911,38 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+
+START_SECTION((get*DataArrayByName throws ElementNotFound for missing name))
+{
+  ProteinIdentification::ProteinGroup pg;
+
+  // Integer
+  ProteinIdentification::ProteinGroup::IntegerDataArray ida;
+  ida.setName("int_da");
+  pg.getIntegerDataArrays().push_back(ida);
+  TEST_EQUAL(pg.getIntegerDataArrayByName("int_da").getName(), "int_da")
+  TEST_EXCEPTION(Exception::ElementNotFound, pg.getIntegerDataArrayByName("missing_int"))
+
+  // String
+  ProteinIdentification::ProteinGroup::StringDataArray sda;
+  sda.setName("str_da");
+  pg.getStringDataArrays().push_back(sda);
+  TEST_EQUAL(pg.getStringDataArrayByName("str_da").getName(), "str_da")
+  TEST_EXCEPTION(Exception::ElementNotFound, pg.getStringDataArrayByName("missing_str"))
+
+  // Float
+  ProteinIdentification::ProteinGroup::FloatDataArray fda;
+  fda.setName("float_da");
+  pg.getFloatDataArrays().push_back(fda);
+  TEST_EQUAL(pg.getFloatDataArrayByName("float_da").getName(), "float_da")
+  TEST_EXCEPTION(Exception::ElementNotFound, pg.getFloatDataArrayByName("missing_float"))
+
+  // const overloads should throw as well
+  const ProteinIdentification::ProteinGroup& cpg = pg;
+  TEST_EXCEPTION(Exception::ElementNotFound, cpg.getIntegerDataArrayByName("missing_int"))
+  TEST_EXCEPTION(Exception::ElementNotFound, cpg.getStringDataArrayByName("missing_str"))
+  TEST_EXCEPTION(Exception::ElementNotFound, cpg.getFloatDataArrayByName("missing_float"))
+}
+END_SECTION
+
 END_TEST
