@@ -572,13 +572,15 @@ protected:
     // and any priority sampling iRT file should be ignored.
     if (!irt_tr_file.empty())
     {
-      if (auto_irt)
+      if (auto_irt || !priority_sampling_irt_tr_file.empty())
       {
         OPENMS_LOG_WARN << "Calibration:files:linear_irt_file provided -> disabling auto_irt and ignoring tr_irt_priority_sampling." << std::endl;
       }
       auto_irt = false;
+      irt_calibration_params.setValue("auto_irt:enabled", "false");
       // clear the priority sampling file so downstream logic won't attempt to use/validate it
       priority_sampling_irt_tr_file.clear();
+      irt_calibration_params.setValue("tr_irt_priority_sampling", "");
     }
     
     String swath_windows_file = getStringOption_("swath_windows_file");
