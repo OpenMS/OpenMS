@@ -168,7 +168,7 @@ endif()
 
 ## Enable test-only hooks in the OpenMS library when building tests
 if(BUILD_TESTING)
-  target_compile_definitions(OpenMS PUBLIC OPENMS_ENABLE_TESTING_HOOKS=1)
+  target_compile_definitions(OpenMS PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
 endif()
 
 

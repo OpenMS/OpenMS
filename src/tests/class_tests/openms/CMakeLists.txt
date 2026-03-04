@@ -124,6 +124,13 @@ if (WITH_PARQUET)
       ${OPENMS_PARQUET_TARGET}
     )
   endif()
+  if (TARGET OpenSwathOSWParquetRoundTrip_test)
+    target_link_libraries(OpenSwathOSWParquetRoundTrip_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+    target_compile_definitions(OpenSwathOSWParquetRoundTrip_test PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
