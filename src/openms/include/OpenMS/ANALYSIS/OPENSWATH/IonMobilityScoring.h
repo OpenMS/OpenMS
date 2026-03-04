@@ -32,6 +32,9 @@ namespace OpenMS
   struct RangeMobility;
   struct RangeMZ;
 
+  // Forward declaration for optional mobilogram consumer to stream mobilograms to disk
+  class MobilogramParquetConsumer;
+
   /** @brief A class that calls the ion mobility scoring routines
    *
    * Use this class to invoke the individual OpenSWATH ion mobility scoring
@@ -82,7 +85,8 @@ namespace OpenMS
                              const double dia_extraction_window_,
                              const bool dia_extraction_ppm_,
                              const double drift_extra,
-                             const bool apply_im_peak_picking);
+                             const bool apply_im_peak_picking,
+                             MobilogramParquetConsumer* mobilogram_consumer = nullptr);
 
     /**
       @brief Performs scoring of the ion mobility dimension in MS1
@@ -105,7 +109,8 @@ namespace OpenMS
                                 RangeMobility im_range,
                                 const double dia_extraction_window_,
                                 const bool dia_extraction_ppm_,
-                                const double drift_extra);
+                                const double drift_extra,
+                                MobilogramParquetConsumer* mobilogram_consumer = nullptr);
 
     /**
       @brief Performs scoring of the ion mobility dimension in MS1 and MS2 (contrast)
@@ -127,7 +132,8 @@ namespace OpenMS
                                         RangeMobility im_range,
                                         const double dia_extraction_window_,
                                         const bool dia_extraction_ppm_,
-                                        const double drift_extra);
+                                        const double drift_extra,
+                                        MobilogramParquetConsumer* mobilogram_consumer = nullptr);
 
     /**
       @brief Performs scoring of the ion mobility dimension for identification transitions against detection transitions
@@ -152,7 +158,8 @@ namespace OpenMS
                                 const double dia_extract_window_,
                                 const bool dia_extraction_ppm_,
                                 const double drift_extra,
-                                const bool apply_im_peak_picking);
+                                const bool apply_im_peak_picking,
+                                MobilogramParquetConsumer* mobilogram_consumer = nullptr);
 
     /**
      * @brief computes ion mobilogram to be used in scoring based on mz_range and im_range.
@@ -172,7 +179,8 @@ namespace OpenMS
                               double & im,
                               double & intensity,
                               Mobilogram & res,
-                              double eps);
+                              double eps,
+                              MobilogramParquetConsumer* mobilogram_consumer = nullptr);
 
 
   private:

@@ -146,7 +146,8 @@ namespace OpenMS
                               double & im,
                               double & intensity,
                               Mobilogram & res,
-                              double eps)
+                              double eps,
+                              MobilogramParquetConsumer* mobilogram_consumer)
   {
 
     // rounding multiplier for the ion mobility value
@@ -160,6 +161,7 @@ namespace OpenMS
 
     for (const auto& spectrum : spectra)
     {
+      (void)mobilogram_consumer;
       OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
       OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
       OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
@@ -258,7 +260,8 @@ namespace OpenMS
                                                    RangeMobility im_range,
                                                    const double dia_extract_window_,
                                                    const bool dia_extraction_ppm_,
-                                                   const double drift_extra)
+                                                   const double drift_extra,
+                                                   MobilogramParquetConsumer* mobilogram_consumer)
   {
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty")
     OPENMS_PRECONDITION(!ms1spectrum.empty(), "MS1 spectrum cannot be empty")
@@ -379,7 +382,8 @@ namespace OpenMS
                                            RangeMobility im_range,
                                            const double dia_extract_window_,
                                            const bool dia_extraction_ppm_,
-                                           const double drift_extra)
+                                           const double drift_extra,
+                                           MobilogramParquetConsumer* mobilogram_consumer)
   {
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty")
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
@@ -399,6 +403,8 @@ namespace OpenMS
 
     DIAHelpers::integrateWindow(spectra, mz, im, intensity, mz_range, im_range);
 
+  (void)mobilogram_consumer;
+
     // Record the measured ion mobility
     scores.im_ms1_drift = im;
 
@@ -414,8 +420,9 @@ namespace OpenMS
                                         RangeMobility im_range,
                                         const double dia_extract_window_,
                                         const bool dia_extraction_ppm_,
-                                        const double drift_extra,
-                                        const bool apply_im_peak_picking)
+                                         const double drift_extra,
+                                         const bool apply_im_peak_picking,
+                                         MobilogramParquetConsumer* mobilogram_consumer)
   {
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty");
     for (auto s:spectra)
@@ -428,6 +435,8 @@ namespace OpenMS
     }
 
     im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
+
+    (void)mobilogram_consumer;
 
     // Compute eps as a fraction of the IM range to be scale-invariant across different IM units
     // For VSSC (~0.8-1.5 range), this gives ~1e-5; for CCS (~300-500 range), this gives ~0.002
@@ -558,8 +567,9 @@ namespace OpenMS
                                           RangeMobility im_range,
                                           const double dia_extract_window_,
                                           const bool dia_extraction_ppm_,
-                                          const double drift_extra,
-                                          const bool apply_im_peak_picking)
+                                           const double drift_extra,
+                                           const bool apply_im_peak_picking,
+                                           MobilogramParquetConsumer* mobilogram_consumer)
   {
       // OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
       // OPENMS_PRECONDITION(!transition.empty(), "Need at least one transition");
