@@ -73,6 +73,8 @@ public:
 	arrow::Result<int64_t> Read(int64_t nbytes, void* out) override
 	{
 		if (closed_) return arrow::Status::Invalid("File is closed");
+		if (nbytes < 0) return arrow::Status::Invalid("nbytes must be non-negative");
+		if (nbytes == 0) return int64_t{0};
 		zip_int64_t bytes_read = zip_fread(entry_, out, static_cast<zip_uint64_t>(nbytes));
 		if (bytes_read < 0) return arrow::Status::IOError("zip_fread failed");
 		return static_cast<int64_t>(bytes_read);
@@ -81,7 +83,8 @@ public:
 	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override
 	{
 		if (closed_) return arrow::Status::Invalid("File is closed");
-		if (nbytes <= 0) return arrow::Buffer::Copy(nullptr, 0);
+		if (nbytes < 0) return arrow::Status::Invalid("nbytes must be non-negative");
+		if (nbytes == 0) return arrow::Buffer::Copy(nullptr, 0);
 
 		// Read into a temporary vector then copy into an Arrow buffer. This avoids
 		// relying on AllocateResizableBuffer which may not be available in all
@@ -89,6 +92,9 @@ public:
 		std::vector<uint8_t> tmp(static_cast<size_t>(nbytes));
 		ARROW_ASSIGN_OR_RAISE(int64_t bytes_read, Read(nbytes, tmp.data()));
 		if (bytes_read < 0) return arrow::Status::IOError("Read failed");
+		// Resize to actual bytes read to avoid returning uninitialized data when
+		// a short read (e.g., EOF) occurred.
+		tmp.resize(static_cast<size_t>(bytes_read));
 		auto buf = arrow::Buffer::FromVector(std::move(tmp));
 		return buf;
 	}
