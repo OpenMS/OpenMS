@@ -28,10 +28,12 @@ namespace OpenMS
       const Int& charge_1 = a.getCharge();
       const Int& charge_2 = b.getCharge();
 
-      // Handle both zero early
+      // Note: While charge 0 (unknown) features are compatible for general clustering,
+      // we skip them in this rescue pass. A known charge is required to calculate
+      // the expected isotope mass shift and prevent division by zero.
       if (charge_1 == 0 && charge_2 == 0) return false;
 
-      // Charges must be identical if both are known (no std::abs needed)
+      // Charges must be identical if both are known
       if (charge_1 != 0 && charge_2 != 0 && charge_1 != charge_2) return false;
 
       effective_charge = (charge_1 != 0) ? charge_1 : charge_2;
