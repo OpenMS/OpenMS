@@ -250,13 +250,7 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
     const String features_entry = String("runs/run_id=") + String(run_id) + "/features.parquet";
-    const String features_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, features_entry, temp_dir);
-    if (!File::exists(features_path))
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Missing features.parquet for run_id=" + String(run_id) + " in '" + oswpq_dir + "'");
-    }
-    auto features_table = ParquetFile::readTable(features_path);
+    auto features_table = open_table_from_entry(features_entry);
 
     auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
     auto precursor_id_col = ParquetFile::getColumn(features_table, "precursor_id");
@@ -421,18 +415,25 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
 #ifdef WITH_PARQUET
   TransitionFeaturesResult result;
   std::unique_ptr<File::TempDir> temp_dir;
-  // Extract only library + runs index files upfront; extract per-run files on demand.
-  const String precursors_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "library/precursors.parquet", temp_dir);
-  const String transitions_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "library/transitions.parquet", temp_dir);
-  const String runs_parquet = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "runs/runs.parquet", temp_dir);
-
-  if (!File::exists(precursors_path) || !File::exists(transitions_path) || !File::exists(runs_parquet))
+  // Use RandomAccessFile-backed reads when possible; fall back to extraction when not.
+  auto open_table_from_entry = [&](const String& entry) -> std::shared_ptr<arrow::Table>
   {
-    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Missing library parquet files in '" + oswpq_dir + "'");
-  }
+    auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
+    if (ra_res.ok())
+    {
+      auto raf = ra_res.ValueOrDie();
+      return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
+    }
+    const String path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
+    if (!File::exists(path))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Missing parquet file '" + entry + "' in '" + oswpq_dir + "'");
+    }
+    return ParquetFile::readTable(path);
+  };
 
-  auto precursors_table = ParquetFile::readTable(precursors_path);
+  auto precursors_table = open_table_from_entry("library/precursors.parquet");
   auto precursor_id_col = ParquetFile::getColumn(precursors_table, "precursor_id");
   auto charge_col = ParquetFile::getColumn(precursors_table, "charge");
 
@@ -446,7 +447,7 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
   }
 
   // Read library transitions for product charge and decoy
-  auto transitions_table = ParquetFile::readTable(transitions_path);
+  auto transitions_table = open_table_from_entry("library/transitions.parquet");
   auto transition_id_col = ParquetFile::getColumn(transitions_table, "transition_id");
   auto transition_charge_col = ParquetFile::getColumn(transitions_table, "charge");
   auto transition_decoy_col = ParquetFile::getOptionalColumn(transitions_table, "decoy");
@@ -461,8 +462,8 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
     transition_info.emplace(tid, std::make_pair(charge, dec));
   }
 
-  // Read runs list (we already extracted runs_parquet above)
-  auto runs_table = ParquetFile::readTable(runs_parquet);
+  // Read runs list
+  auto runs_table = open_table_from_entry("runs/runs.parquet");
   auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
   const int64_t num_runs = runs_table->num_rows();
 
@@ -472,8 +473,7 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
     const String ft_entry = String("runs/run_id=") + String(run_id) + "/feature_transition.parquet";
-    const String ft_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, ft_entry, temp_dir);
-    auto ft_table = ParquetFile::readTable(ft_path);
+    auto ft_table = open_table_from_entry(ft_entry);
     const auto& schema = ft_table->schema();
     for (const auto& f : schema->fields())
     {
@@ -496,16 +496,14 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
     const String ft_entry2 = String("runs/run_id=") + String(run_id) + "/feature_transition.parquet";
-    const String ft_path2 = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, ft_entry2, temp_dir);
     const String features_entry2 = String("runs/run_id=") + String(run_id) + "/features.parquet";
-    const String features_path2 = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, features_entry2, temp_dir);
 
     // Build mapping feature_id -> (precursor_id, exp_rt) from features.parquet
     // Fail fast if the features.parquet file is missing to avoid silently
     // emitting transition rows with defaulted precursor/RT values.
     std::unordered_map<int64_t, std::pair<int64_t, double>> feature_map;
     {
-      auto features_table = ParquetFile::readTable(features_path2);
+      auto features_table = open_table_from_entry(features_entry2);
       auto feat_id_col = ParquetFile::getColumn(features_table, "feature_id");
       auto precursor_id_col = ParquetFile::getColumn(features_table, "precursor_id");
       auto exp_rt_col = ParquetFile::getColumn(features_table, "exp_rt");
@@ -519,7 +517,7 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
       }
     }
 
-    auto ft_table = ParquetFile::readTable(ft_path2);
+    auto ft_table = open_table_from_entry(ft_entry2);
     auto ft_feature_id_col = ParquetFile::getColumn(ft_table, "feature_id");
     auto ft_transition_id_col = ParquetFile::getColumn(ft_table, "transition_id");
     auto ft_area_col = ParquetFile::getOptionalColumn(ft_table, "area_intensity");
@@ -673,16 +671,25 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
 #ifdef WITH_PARQUET
   UnscoredResult result;
   std::unique_ptr<File::TempDir> temp_dir;
-  const String precursors_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "library/precursors.parquet", temp_dir);
-  const String runs_parquet = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "runs/runs.parquet", temp_dir);
-
-  if (!File::exists(precursors_path) || !File::exists(runs_parquet))
+  // Use RandomAccessFile-backed reads when possible; fall back to extraction when not.
+  auto open_table_from_entry = [&](const String& entry) -> std::shared_ptr<arrow::Table>
   {
-    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Missing precursors.parquet or runs.parquet in '" + oswpq_dir + "'");
-  }
+    auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
+    if (ra_res.ok())
+    {
+      auto raf = ra_res.ValueOrDie();
+      return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
+    }
+    const String path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
+    if (!File::exists(path))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Missing parquet file '" + entry + "' in '" + oswpq_dir + "'");
+    }
+    return ParquetFile::readTable(path);
+  };
 
-  auto precursors_table = ParquetFile::readTable(precursors_path);
+  auto precursors_table = open_table_from_entry("library/precursors.parquet");
   auto precursor_id_col = ParquetFile::getColumn(precursors_table, "precursor_id");
   auto charge_col = ParquetFile::getOptionalColumn(precursors_table, "charge");
   auto decoy_col = ParquetFile::getOptionalColumn(precursors_table, "decoy");
@@ -711,9 +718,9 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   const bool has_pep = std::find(entries.begin(), entries.end(), std::string("library/peptides.parquet")) != entries.end();
   if (has_ppm && has_pep)
   {
-    const String ppm_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "library/precursor_peptide_mapping.parquet", temp_dir);
-    const String peptides_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, "library/peptides.parquet", temp_dir);
-    auto ppm_table = ParquetFile::readTable(ppm_path);
+    auto ppm_table = open_table_from_entry("library/precursor_peptide_mapping.parquet");
+    auto pep_table = open_table_from_entry("library/peptides.parquet");
+    (void)pep_table; // loaded to validate presence; fields used via ppm_table
     auto ppm_prec_col = ParquetFile::getColumn(ppm_table, "precursor_id");
     auto ppm_pep_col = ParquetFile::getColumn(ppm_table, "peptide_id");
     for (int64_t r = 0; r < ppm_table->num_rows(); ++r)
@@ -725,7 +732,7 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   }
 
   // Read runs
-  auto runs_table = ParquetFile::readTable(runs_parquet);
+  auto runs_table = open_table_from_entry("runs/runs.parquet");
   auto run_id_col = ParquetFile::getColumn(runs_table, "run_id");
   auto run_filename_col = ParquetFile::getOptionalColumn(runs_table, "filename");
   const int64_t num_runs = runs_table->num_rows();
@@ -738,8 +745,7 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
     const String features_entry = String("runs/run_id=") + String(run_id) + "/features.parquet";
-    const String features_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, features_entry, temp_dir);
-    auto features_table = ParquetFile::readTable(features_path);
+    auto features_table = open_table_from_entry(features_entry);
     const auto& schema = features_table->schema();
     for (const auto &f : schema->fields())
     {
@@ -773,13 +779,7 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   {
     const int64_t run_id = ParquetFile::getInt64(run_id_col, r, 0, false);
     const String features_entry = String("runs/run_id=") + String(run_id) + "/features.parquet";
-    const String features_path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, features_entry, temp_dir);
-    if (!File::exists(features_path))
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Missing features.parquet for run_id=" + String(run_id) + " in '" + oswpq_dir + "'");
-    }
-    auto features_table = ParquetFile::readTable(features_path);
+    auto features_table = open_table_from_entry(features_entry);
 
     auto feature_id_col = ParquetFile::getColumn(features_table, "feature_id");
     auto feature_prec_col = ParquetFile::getColumn(features_table, "precursor_id");
