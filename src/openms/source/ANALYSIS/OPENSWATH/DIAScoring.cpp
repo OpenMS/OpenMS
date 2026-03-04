@@ -122,6 +122,7 @@ namespace OpenMS
     ppm_score = 0;
     ppm_score_weighted = 0;
     diff_ppm.clear();
+    size_t n_observed = 0;
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
       const TransitionType& transition = transitions[k];
@@ -137,6 +138,7 @@ namespace OpenMS
         continue;
       }
 
+      ++n_observed;
       double ppm = Math::getPPM(mz, transition.getProductMZ());
       diff_ppm.push_back(ppm);
       ppm_score += std::fabs(ppm);
@@ -146,8 +148,8 @@ namespace OpenMS
 #endif
     }
 
-    // FEATURE we should not punish so much when one transition is missing!
-    ppm_score /= transitions.size();
+    // Only average over transitions where signal was actually found
+    ppm_score = (n_observed > 0) ? ppm_score / n_observed : 0.0;
   }
 
   bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, const SpectrumSequence& spectrum,
