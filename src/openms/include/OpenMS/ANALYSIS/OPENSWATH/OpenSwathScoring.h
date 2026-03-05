@@ -238,6 +238,7 @@ namespace OpenMS
      * @param[in] diascoring DIA Scoring object to use for scoring
      * @param[out] scores The object to store the result
      * @param[out] drift_target target drift value
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      *
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -247,7 +248,8 @@ namespace OpenMS
                               RangeMobility& range_im,
                               const OpenMS::DIAScoring & diascoring,
                               OpenSwath_Scores & scores,
-                              const double drift_target);
+                              const double drift_target,
+                              MobilogramParquetConsumer* mobilogram_consumer = nullptr);
 
     /** @brief Computing the normalized library intensities from the transition objects
      *

@@ -323,7 +323,8 @@ namespace OpenMS
                                                                      const double det_mi_ratio_score,
                                                                      const std::vector<OpenSwath::SwathMap>& swath_maps,
                                                                      const double drift_target,
-                                                                     RangeMobility& im_range) const
+                                                                     RangeMobility& im_range,
+                                                                     MobilogramParquetConsumer* mobilogram_consumer) const
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
     OpenSwath::IMRMFeature* idimrmfeature;
@@ -460,7 +461,7 @@ namespace OpenMS
         scorer.calculateDIAIdScores(idimrmfeature,
                                     trgr_ident.getTransition(native_ids_identification[i]),
                                     trgr_detect,
-                                    swath_maps, im_range, diascoring_, tmp_scores, drift_target);
+                                    swath_maps, im_range, diascoring_, tmp_scores, drift_target, mobilogram_consumer);
 
         ind_isotope_correlation.push_back(tmp_scores.isotope_correlation);
         ind_isotope_overlap.push_back(tmp_scores.isotope_overlap);
@@ -765,14 +766,14 @@ namespace OpenMS
         {
           OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
                                                                native_ids_detection, det_intensity_ratio_score,
-                                                               det_mi_ratio_score, swath_maps,drift_target, im_range);
+                                                               det_mi_ratio_score, swath_maps,drift_target, im_range, mobilogram_consumer);
           mrmfeature.IDScoresAsMetaValue(false, idscores);
         }
         if (su_.use_uis_scores && !transition_group_identification_decoy.getTransitions().empty())
         {
           OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
                                                                native_ids_detection, det_intensity_ratio_score,
-                                                               det_mi_ratio_score, swath_maps, drift_target, im_range);
+                                                               det_mi_ratio_score, swath_maps, drift_target, im_range, mobilogram_consumer);
           mrmfeature.IDScoresAsMetaValue(true, idscores);
         }
 

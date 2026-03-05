@@ -251,6 +251,7 @@ private:
      *                  data is available.
      * @param[out] drift_target The target drift value
      * @param[in] im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering). If scoring non-IMS data, this should be empty, otherwise a missing information exception is thrown when integrating spectra for scoring.
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
     OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
@@ -262,7 +263,8 @@ private:
                                               const double det_mi_ratio_score,
                                               const std::vector<OpenSwath::SwathMap>& swath_maps,
                                               const double drift_target,
-                                              RangeMobility& im_range) const;
+                                              RangeMobility& im_range,
+                                              MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
 
     void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const;
 

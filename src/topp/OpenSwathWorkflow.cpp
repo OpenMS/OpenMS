@@ -1259,6 +1259,13 @@ protected:
     wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
              out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer);
 
+    if (mobilogramConsumer != nullptr)
+    {
+      mobilogramConsumer->finalize();
+      delete mobilogramConsumer;
+      mobilogramConsumer = nullptr;
+    }
+
     //// Write out data
 
     delete chromatogramConsumer;

@@ -286,7 +286,8 @@ namespace OpenMS
                                               RangeMobility& im_range,
                                               const OpenMS::DIAScoring & diascoring,
                                               OpenSwath_Scores & scores,
-                                              const double drift_target)
+                                              const double drift_target,
+                                              MobilogramParquetConsumer* mobilogram_consumer)
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
@@ -350,7 +351,7 @@ namespace OpenMS
       IonMobilityScoring::driftIdScoring(spectrum, transitionVector, trgr_detect, scores,
                                        drift_target, im_range,
                                        dia_extract_window_, dia_extraction_ppm_,
-                                       im_drift_extra_pcnt_, apply_im_peak_picking_);
+                                       im_drift_extra_pcnt_, apply_im_peak_picking_, mobilogram_consumer);
     }
   }
 

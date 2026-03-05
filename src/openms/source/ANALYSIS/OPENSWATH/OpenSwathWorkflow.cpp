@@ -733,7 +733,7 @@ namespace OpenMS
 
       try
       {
-        featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
+        featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only, mobilogram_consumer);
       }
       catch (const Exception::InvalidRange & e)
       {
