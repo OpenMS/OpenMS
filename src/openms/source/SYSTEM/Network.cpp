@@ -22,8 +22,8 @@ namespace OpenMS
 
 namespace
 {
-  // construct a filename from URL. Add number suffix if already exists.
-  std::string saveFileName_(const std::string& url)
+  // construct a filename from URL. Add number suffix if file already exists in dest_folder.
+  std::string saveFileName_(const std::string& url, const std::string& dest_folder)
   {
     namespace fs = std::filesystem;
     // extract filename from URL path
@@ -36,11 +36,12 @@ namespace
     std::string basename = fs::path(path_part).filename().string();
     if (basename.empty()) basename = "download";
 
-    if (!fs::exists(basename)) return basename;
+    fs::path dest(dest_folder);
+    if (!fs::exists(dest / basename)) return basename;
 
     // already exists, don't overwrite
     int i = 0;
-    while (fs::exists(basename + "." + std::to_string(i)))
+    while (fs::exists(dest / (basename + "." + std::to_string(i))))
       ++i;
     return basename + "." + std::to_string(i);
   }
@@ -56,7 +57,7 @@ void Network::downloadFile(const std::string& url, const std::string& download_f
   if (!query.hasError())
   {
     std::string folder = download_folder.empty() ? "./" : download_folder;
-    std::string filename = folder + "/" + saveFileName_(url);
+    std::string filename = folder + "/" + saveFileName_(url, folder);
     std::ofstream ofs(filename, std::ios::binary);
     if (!ofs)
     {

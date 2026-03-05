@@ -261,7 +261,7 @@ namespace OpenMS
     addField("onerrdisplay", "login_prompt");
     body += "--" + boundary + "--\r\n";
 
-    string content_type = "multipart/form-data, boundary=" + boundary;
+    string content_type = "multipart/form-data; boundary=" + boundary;
     string response = httpPost(curl, server_path_ + "/cgi/login.pl", body, content_type);
 
     if (hasError()) return;
@@ -305,7 +305,7 @@ namespace OpenMS
          << "<<<< Query (end)." << endl;
 #endif
 
-    string content_type = "multipart/form-data, boundary=" + boundary;
+    string content_type = "multipart/form-data; boundary=" + boundary;
     string response = httpPost(curl, server_path_ + "/cgi/nph-mascot.exe?1", body, content_type);
 
     if (hasError()) return;
@@ -521,6 +521,7 @@ namespace OpenMS
     mascot_xml_.clear();
     mascot_decoy_xml_.clear();
     error_message_.clear();
+    search_identifier_.clear();
 
     to_ = param_.getValue("timeout");
     requires_login_ = param_.getValue("login").toBool();

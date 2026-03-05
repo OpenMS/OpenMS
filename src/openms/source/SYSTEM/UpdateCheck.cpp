@@ -108,11 +108,20 @@ namespace OpenMS
       {
         // update modification time stamp
         struct stat old_stat;
-        struct utimbuf new_times;
-        stat(version_file_name.c_str(), &old_stat);
-        new_times.actime = old_stat.st_atime; // keep accession time unchanged
-        new_times.modtime = time(nullptr);  // mod time to current time
-        utime(version_file_name.c_str(), &new_times);
+        if (stat(version_file_name.c_str(), &old_stat) != 0)
+        {
+          OPENMS_LOG_WARN << "Warning: stat() failed for '" << version_file_name << "' (errno " << errno << ")" << std::endl;
+        }
+        else
+        {
+          struct utimbuf new_times;
+          new_times.actime = old_stat.st_atime; // keep accession time unchanged
+          new_times.modtime = time(nullptr);  // mod time to current time
+          if (utime(version_file_name.c_str(), &new_times) != 0)
+          {
+            OPENMS_LOG_WARN << "Warning: utime() failed for '" << version_file_name << "' (errno " << errno << ")" << std::endl;
+          }
+        }
 
         if (debug_level > 0)
         {

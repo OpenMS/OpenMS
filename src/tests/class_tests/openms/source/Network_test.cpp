@@ -27,12 +27,19 @@ START_TEST(Network, "$Id$")
 
 START_SECTION(static void downloadFile(const std::string& url, const std::string& download_folder))
 {
-  std::string url = R"(http://raw.githubusercontent.com/OpenMS/OpenMS/refs/heads/develop/README.md)";
-  std::string folder = File::getTempDirectory();
-  Network::downloadFile(url, folder);
-  std::string output_file_path = folder + "/README.md";
+  // Use a local file:// URL to avoid external network dependency
+  std::string fixture_path = OPENMS_GET_TEST_DATA_PATH("Network_test_fixture.txt");
+  std::string url = "file://" + fixture_path;
 
-  TEST_EQUAL(File::exists(output_file_path), 1);
+  std::string tmp_file;
+  NEW_TMP_FILE(tmp_file);
+  // NEW_TMP_FILE gives a file path; we need the directory
+  std::string folder = std::filesystem::path(tmp_file).parent_path().string();
+
+  Network::downloadFile(url, folder);
+  std::string output_file_path = folder + "/Network_test_fixture.txt";
+
+  TEST_EQUAL(File::exists(output_file_path), true);
   if (File::exists(output_file_path))
   {
     std::filesystem::remove(output_file_path);

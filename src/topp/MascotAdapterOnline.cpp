@@ -25,6 +25,7 @@
 #include <sstream>
 #include <fstream>
 #include <filesystem>
+#include <memory>
 
 using namespace OpenMS;
 using namespace std;
@@ -170,7 +171,12 @@ protected:
     }
     else
     {
-      std::filesystem::remove(std::string(mascot_tmp_file_name));
+      std::error_code ec;
+      std::filesystem::remove(std::filesystem::path(std::string(mascot_tmp_file_name)), ec);
+      if (ec)
+      {
+        OPENMS_LOG_WARN << "Warning: Failed to remove temporary file '" << mascot_tmp_file_name << "': " << ec.message() << std::endl;
+      }
     }
   }
 
@@ -302,7 +308,7 @@ protected:
       stringstream ss;
       mgf_file.store(ss, in, current_batch, true); // write in compact format
 
-      MascotRemoteQuery* mascot_query = new MascotRemoteQuery();
+      auto mascot_query = std::make_unique<MascotRemoteQuery>();
       writeDebug_("Setting parameters for Mascot query", 1);
       mascot_query->setParameters(mascot_query_param);
 
@@ -326,7 +332,6 @@ protected:
       if (mascot_query->hasError())
       {
         writeLogError_("An error occurred during the query: " + mascot_query->getErrorMessage());
-        delete mascot_query;
         return EXTERNAL_PROGRAM_ERROR;
       }
 
@@ -337,7 +342,7 @@ protected:
           !mascot_query_param.getValue("skip_export").toBool())
       {
         // write Mascot response to file
-        parseMascotResponse_(current_batch, false, mascot_query, prot_id, pep_ids); // targets
+        parseMascotResponse_(current_batch, false, mascot_query.get(), prot_id, pep_ids); // targets
 
         // reannotate proper spectrum native id if missing
         for (auto& pep : pep_ids)
@@ -364,7 +369,7 @@ protected:
         {
           PeptideIdentificationList decoy_pep_ids;
           ProteinIdentification decoy_prot_id;
-          parseMascotResponse_(current_batch, true, mascot_query, decoy_prot_id, decoy_pep_ids);  // decoys
+          parseMascotResponse_(current_batch, true, mascot_query.get(), decoy_prot_id, decoy_pep_ids);  // decoys
 
           // reannotate proper spectrum native id if missing
           for (auto& pep : decoy_pep_ids)
@@ -406,7 +411,7 @@ protected:
       }
 
       // clean up
-      delete mascot_query;
+      mascot_query.reset();
       
       current_batch.clear(true); // clear meta data
 

@@ -23,6 +23,7 @@
 #include <QtCore/QFileInfo>
 
 #include <atomic>
+#include <cerrno>
 #include <filesystem>
 #include <fstream>
 
@@ -477,11 +478,22 @@ namespace OpenMS
       char hbuf[256] = {};
 #ifdef OPENMS_WINDOWSPLATFORM
       DWORD sz = sizeof(hbuf);
-      GetComputerNameA(hbuf, &sz);
+      if (!GetComputerNameA(hbuf, &sz))
+      {
+        OPENMS_LOG_WARN << "Warning: GetComputerNameA failed (error " << GetLastError() << ")" << std::endl;
+        hbuf[0] = '\0';
+      }
 #else
-      gethostname(hbuf, sizeof(hbuf));
+      if (gethostname(hbuf, sizeof(hbuf)) != 0)
+      {
+        OPENMS_LOG_WARN << "Warning: gethostname failed (errno " << errno << ")" << std::endl;
+        hbuf[0] = '\0';
+      }
 #endif
-      hostname_str = String(hbuf) + "_";
+      if (hbuf[0] != '\0')
+      {
+        hostname_str = String(hbuf) + "_";
+      }
     }
     return now.getDate().remove('-') + "_" + now.getTime().remove(':') + "_" + hostname_str + pid + "_" + (++number);
   }
