@@ -24,13 +24,32 @@ using namespace Internal;
 
 void convertINI2HTML(const Param& p, ostream& os)
 {
-  // the .css file is included via the Header.html (see doc/doxygen/common/Header.html)
-  // TODO add some general description on how to handle subsections, what each column means, what the tags mean, etc.
   os << "<div class=\"ini_global\">\n";
   os << "<div class=\"legend\">\n";
   os << "<b>Legend:</b><br>\n";
   os << " <div class=\"item item_required\">required parameter</div>\n";
   os << " <div class=\"item item_advanced\">advanced parameter</div>\n";
+  os << "</div>\n";
+  os << "<div class=\"ini_description\">\n";
+  os << "<p>This section lists all parameters supported by the tool. Parameters are organized into hierarchical subsections that group related settings together. Subsections may contain further subsections or individual parameters.</p>\n";
+  os << "<p>Each parameter entry contains the following information:</p>\n";
+  os << "<ul>\n";
+  os << "<li><b>Name</b>  The identifier used in configuration files and on the command line.</li>\n";
+  os << "<li><b>Default value</b>  The value used if the parameter is not explicitly specified.</li>\n";
+  os << "<li><b>Description</b>  A short explanation describing the purpose and behavior of the parameter.</li>\n";
+  os << "<li><b>Tags</b>  Additional metadata associated with the parameter.</li>\n";
+  os << "<li><b>Restrictions</b>  Allowed value ranges for numeric parameters or valid options for string parameters.</li>\n";
+  os << "</ul>\n";
+  os << "<p><b>Parameter tags</b> provide additional semantic information used by OpenMS tools and workflow environments. Examples include:</p>\n";
+  os << "<ul>\n";
+  os << "<li><b>required</b>  Indicates that the parameter must be provided by the user.</li>\n";
+  os << "<li><b>advanced</b>  Marks parameters intended for advanced users and expert configuration.</li>\n";
+  os << "<li>Input or output related tags describing expected file usage.</li>\n";
+  os << "<li>File format tags describing supported data formats.</li>\n";
+  os << "<li>Workflow metadata used by environments such as KNIME, Galaxy, and TOPPAS.</li>\n";
+  os << "</ul>\n";
+
+  os << "<p>Parameters highlighted as <span class=\"item_required\">required</span> must be specified for the tool to run successfully. Parameters marked as <span class=\"item_advanced\">advanced</span> allow fine-tuning of algorithm behavior and are typically not needed for standard workflows.</p>\n";
   os << "</div>\n";
 
   Param::ParamIterator it = p.begin();
