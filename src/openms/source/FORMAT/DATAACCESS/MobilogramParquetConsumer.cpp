@@ -13,6 +13,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <OpenMS/METADATA/ExperimentalSettings.h>
+
 #include <memory>
 #include <vector>
 

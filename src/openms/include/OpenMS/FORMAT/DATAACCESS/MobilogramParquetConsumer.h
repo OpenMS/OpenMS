@@ -17,6 +17,9 @@
 
 namespace OpenMS
 {
+  // Forward-declare ExperimentalSettings to avoid heavy includes in header
+  class ExperimentalSettings;
+
   class MobilogramParquetConsumerImpl;
 
   /// Writes Mobilograms (ion-mobility traces) to a Parquet file using a PyProphet-compatible-like schema.
