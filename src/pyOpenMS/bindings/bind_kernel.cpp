@@ -1656,9 +1656,14 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
                 );
             },
             nb::rv_policy::reference_internal,
-            "Returns raw zero-copy byte view of MobilityPeak1D array"
+            "Returns raw zero-copy byte view (dtype=uint8) of MobilityPeak1D array. "
+            "Warning: the returned view points directly to the internal Mobilogram "
+            "storage and may become invalid if the container reallocates "
+            "(e.g. resize, reserve, push_back, set_peaks, clear). "
+            "The Python object lifetime is preserved via reference_internal, "
+            "but the underlying buffer may still be reallocated."
         )
-
+    
         .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj) {
             auto mob_arr = as_numpy_array<double>(mob_obj);
             auto int_arr = as_numpy_array<float>(int_obj);
