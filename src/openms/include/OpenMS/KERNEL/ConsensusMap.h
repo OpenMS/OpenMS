@@ -12,7 +12,6 @@
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -37,6 +36,7 @@ namespace OpenMS
   class PeptideHit;
   class ProteinIdentification;
   class DataProcessing;
+  class MSExperiment;
   namespace Logger
   {
     class LogStream;
