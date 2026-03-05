@@ -40,15 +40,9 @@ void convertINI2HTML(const Param& p, ostream& os)
   os << "<li><b>Tags</b>  Additional metadata associated with the parameter.</li>\n";
   os << "<li><b>Restrictions</b>  Allowed value ranges for numeric parameters or valid options for string parameters.</li>\n";
   os << "</ul>\n";
-  os << "<p><b>Parameter tags</b> provide additional semantic information used by OpenMS tools and workflow environments. Examples include:</p>\n";
-  os << "<ul>\n";
-  os << "<li><b>required</b>  Indicates that the parameter must be provided by the user.</li>\n";
-  os << "<li><b>advanced</b>  Marks parameters intended for advanced users and expert configuration.</li>\n";
-  os << "<li>Input or output related tags describing expected file usage.</li>\n";
-  os << "<li>File format tags describing supported data formats.</li>\n";
-  os << "<li>Workflow metadata used by environments such as KNIME, Galaxy, and TOPPAS.</li>\n";
-  os << "</ul>\n";
-
+  os << "<p><b>Parameter tags</b> provide additional information about how a parameter is used. ";
+  os << "Some tags indicate whether a parameter is required or intended for advanced configuration, ";
+  os << "while others may be used internally by OpenMS or workflow tools.</p>\n";
   os << "<p>Parameters highlighted as <span class=\"item_required\">required</span> must be specified for the tool to run successfully. Parameters marked as <span class=\"item_advanced\">advanced</span> allow fine-tuning of algorithm behavior and are typically not needed for standard workflows.</p>\n";
   os << "</div>\n";
 
