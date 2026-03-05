@@ -1550,7 +1550,12 @@ etc) is implicit
     // -----------------------------------------------------------------------
     // Mobilogram
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Mobilogram>(m, "Mobilogram", 
+    
+    // ABI guard for zero-copy access
+    static_assert(sizeof(OpenMS::MobilityPeak1D) == 16,
+                  "Unexpected MobilityPeak1D size (expected 16 bytes)");
+    nb::class_<OpenMS::Mobilogram>(m, "Mobilogram",
+                                   
         R"doc(
 RangeManagerMobInt
 
