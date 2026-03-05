@@ -120,7 +120,7 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-amd64 \
             bash -c '
-              yum install -y cmake ninja-build
+              yum install -y cmake ninja-build libcurl-devel
               mkdir build && cd build
               cmake .. \
                 -G Ninja \
@@ -199,7 +199,7 @@ jobs:
             -w /project \
             ghcr.io/openms/contrib_manylinux_2_34:latest-arm64 \
             bash -c '
-              yum install -y cmake ninja-build
+              yum install -y cmake ninja-build libcurl-devel
               mkdir build && cd build
               cmake .. \
                 -G Ninja \
@@ -350,6 +350,22 @@ jobs:
         uses: egor-tensin/vs-shell@v2
         with:
           arch: x64
+
+      - name: Build libcurl from source
+        shell: bash
+        run: |
+          curl -L -o curl-src.tar.gz https://curl.se/download/curl-8.12.1.tar.gz
+          tar xzf curl-src.tar.gz
+          cd curl-8.12.1
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/contrib" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCURL_USE_SCHANNEL=ON \
+            -DBUILD_CURL_EXE=OFF \
+            -DBUILD_TESTING=OFF
+          cmake --build build
+          cmake --install build
 
       - name: Build and install OpenMS
         shell: bash

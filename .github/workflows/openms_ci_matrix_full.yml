@@ -347,6 +347,23 @@ jobs:
           rm contrib_build-Windows.tar.gz
           ls -la
 
+    - name: Build libcurl from source (Windows)
+      if: startsWith(matrix.os, 'windows')
+      shell: bash
+      run: |
+          curl -L -o curl-src.tar.gz https://curl.se/download/curl-8.12.1.tar.gz
+          tar xzf curl-src.tar.gz
+          cd curl-8.12.1
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/OpenMS/contrib" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCURL_USE_SCHANNEL=ON \
+            -DBUILD_CURL_EXE=OFF \
+            -DBUILD_TESTING=OFF
+          cmake --build build
+          cmake --install build
+
     - name: Setup ccache cache
       uses: actions/cache@v4
       with:
