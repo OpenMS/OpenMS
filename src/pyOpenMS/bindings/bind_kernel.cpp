@@ -1555,7 +1555,7 @@ etc) is implicit
 RangeManagerMobInt
 
 The representation of a 1D ion mobilogram.
-Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
+Raw data access is provided by `get_peaks`, `get_peaks_struct_raw`, and `set_peaks`.
 Iterations yields access to underlying peak objects but is slower
 Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
 Usage:
@@ -1632,6 +1632,32 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, owner);
             return nb::make_tuple(mob_arr, int_arr);
         }, "Get mobility and intensity arrays as numpy arrays")
+    
+        .def("get_peaks_struct_raw",
+            [](OpenMS::Mobilogram& self)
+            {
+                const size_t n = self.size();
+
+                if (n == 0)
+                {
+                    return nb::ndarray<nb::numpy, uint8_t>(
+                        nullptr,
+                        {0},
+                        nb::handle()
+                    );
+                }
+
+                OpenMS::MobilityPeak1D* first = &self[0];
+
+                return nb::ndarray<nb::numpy, uint8_t>(
+                    reinterpret_cast<uint8_t*>(first),
+                    { n * sizeof(OpenMS::MobilityPeak1D) },
+                    nb::find(self)
+                );
+            },
+            nb::rv_policy::reference_internal,
+            "Returns raw zero-copy byte view of MobilityPeak1D array"
+        )
 
         .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj) {
             auto mob_arr = as_numpy_array<double>(mob_obj);
