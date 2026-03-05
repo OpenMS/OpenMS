@@ -10,9 +10,10 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
 #include <nlohmann/json.hpp>
+
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -230,20 +231,20 @@ namespace OpenMS
 
     String full_path = File::find(filename_);
 
-    // the input file is Unicode encoded, so we need Qt to read it:
-    QFile file(full_path.toQString());
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    // Data files are UTF-8 encoded (verified). std::ifstream reads UTF-8 correctly.
+    std::ifstream file(full_path);
+    if (!file.is_open())
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, full_path);
     }
 
-    QTextStream source(&file);
-    source.setAutoDetectUnicode(true);
     Size line_count = 0;
     json mod_obj;
     try
     {
-      mod_obj = json::parse(String(source.readAll()));
+      std::ostringstream content;
+      content << file.rdbuf();
+      mod_obj = json::parse(content.str());
     }
     catch (nlohmann::json::parse_error& e)
     {

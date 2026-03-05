@@ -12,8 +12,9 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <nlohmann/json.hpp>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
+
+#include <fstream>
+#include <sstream>
 
 namespace OpenMS
 {
@@ -38,19 +39,19 @@ namespace OpenMS
 
     OPENMS_LOG_DEBUG << "Loading monosaccharide data from " << full_path << "\n";
 
-    QFile file(full_path.toQString());
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    // Data files are UTF-8 encoded (verified). std::ifstream reads UTF-8 correctly.
+    std::ifstream file(full_path);
+    if (!file.is_open())
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, full_path);
     }
 
-    QTextStream source(&file);
-    source.setAutoDetectUnicode(true);
-
     json data;
     try
     {
-      data = json::parse(String(source.readAll()));
+      std::ostringstream content;
+      content << file.rdbuf();
+      data = json::parse(content.str());
     }
     catch (const json::parse_error& e)
     {
