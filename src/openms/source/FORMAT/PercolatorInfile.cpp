@@ -17,9 +17,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <regex>
-#include <functional>
 #include <unordered_map>
-#include <unordered_set>
 
 namespace OpenMS
 {
