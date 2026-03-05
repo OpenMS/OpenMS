@@ -363,7 +363,9 @@ jobs:
             -DBUILD_SHARED_LIBS=ON \
             -DCURL_USE_SCHANNEL=ON \
             -DBUILD_CURL_EXE=OFF \
-            -DBUILD_TESTING=OFF
+            -DBUILD_TESTING=OFF \
+            -DCURL_DISABLE_LDAP=ON \
+            -DCURL_USE_LIBPSL=OFF
           cmake --build build
           cmake --install build
 
