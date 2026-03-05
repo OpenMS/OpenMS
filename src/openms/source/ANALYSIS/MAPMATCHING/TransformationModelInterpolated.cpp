@@ -220,10 +220,10 @@ private:
     {
       x_.resize(data.size());
       y_.resize(data.size());
-      for (const std::pair<double,double>& pair : data)
+      for (Size i = 0; i < data.size(); ++i)
       {
-        x_.push_back(pair.first);
-        y_.push_back(pair.second);
+        x_[i] = data[i].first;
+        y_[i] = data[i].second;
       }
     }
 
