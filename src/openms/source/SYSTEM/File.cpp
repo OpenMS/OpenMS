@@ -44,7 +44,6 @@
 #include <QtCore/QUrl>
 #include <QtCore/QDateTime>
 #include <QtCore/QFile>
-#include <QtCore/QDebug>
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <QtCore/QDir>
