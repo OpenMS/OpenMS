@@ -90,6 +90,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::MS, "ms", "SIRIUS file", {}),
     TypeNameBinding(FileTypes::OSW, "osw", "OpenSwath output files", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::CHROMPARQUET, "xic", "OpenSwath Parquet chromatogram output", {PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::MOBILPARQUET, "xim", "OpenSwath Parquet mobilogram output", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::PSMS, "psms", "Percolator tab-delimited output (PSM level)", {PROP::READABLE}),
     TypeNameBinding(FileTypes::PIN, "pin", "Percolator tab-delimited input (PSM level)", {}),
     TypeNameBinding(FileTypes::PARAMXML, "paramXML", "OpenMS internal XML file", {}),
