@@ -137,7 +137,6 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
 
-# Precompiled headers to speed up build (reduces redundant parsing of hot headers)
 target_precompile_headers(OpenMS PRIVATE
   <string>
   <vector>
