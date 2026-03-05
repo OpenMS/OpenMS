@@ -1207,23 +1207,21 @@ protected:
     }
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, run_id, current_run_files[0]);
 
-    // Create a run id per unique input filename and register it in the OSW
-    UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
     // For OSW, use the first file in the run group as the representative filename
-    oswwriter.addRun(cur_run, current_run_files[0]);
+    oswwriter.addRun(run_id, current_run_files[0]);
     // Also register run in chromatogram consumer if it is a SQL consumer
     MSDataSqlConsumer* sql_cons = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
     if (sql_cons != nullptr)
     {
-      sql_cons->addRun(current_run_files[0], cur_run);
+      sql_cons->addRun(current_run_files[0], run_id);
     }
 
     // set current run id in writer
-    oswwriter.setRunId(cur_run);
+    oswwriter.setRunId(run_id);
     // set current run id for sqMass writer as well (reuse previous cast)
     if (sql_cons != nullptr)
     {
-      sql_cons->setRunId(cur_run);
+      sql_cons->setRunId(run_id);
     }
 
     OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
