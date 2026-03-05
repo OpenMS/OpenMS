@@ -121,8 +121,8 @@ public:
   /**
     @brief Import all three Parquet files and reconstruct ProteinIdentifications
 
-    Reads search_params, proteins, and protein_groups files in order,
-    combining them into a single vector of ProteinIdentification objects.
+    Reads the three Parquet files and reconstructs a vector of
+    ProteinIdentification objects with hits, groups, and search parameters.
 
     @param[in] proteins_filename Path to proteins Parquet file
     @param[in] protein_groups_filename Path to protein groups Parquet file

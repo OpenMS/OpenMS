@@ -38,7 +38,7 @@ namespace OpenMS
 
   TransformationDescription::~TransformationDescription()
   {
-    delete model_;
+    // model_ is unique_ptr, deleted automatically
   }
 
   TransformationDescription::TransformationDescription(
@@ -71,37 +71,34 @@ namespace OpenMS
     // if (previous) transformation is the identity, don't fit another model:
     if (model_type_ == "identity") return;
 
-    delete model_;
-    model_ = nullptr; // avoid segmentation fault in case of exception
+    std::unique_ptr<TransformationModel> next_model;
+
     if ((model_type == "none") || (model_type == "identity"))
     {
-      model_ = new TransformationModel();
+      next_model = std::make_unique<TransformationModel>();
     }
     else if (model_type == "linear")
     {
-      model_ = new TransformationModelLinear(data_, params);
-      // // debug output:
-      // double slope, intercept;
-      // TransformationModelLinear* lm = dynamic_cast<TransformationModelLinear*>(model_);
-      // lm->getParameters(slope, intercept);
-      // cout << "slope: " << slope << ", intercept: " << intercept << endl;
+      next_model = std::make_unique<TransformationModelLinear>(data_, params);
     }
     else if (model_type == "b_spline")
     {
-      model_ = new TransformationModelBSpline(data_, params);
+      next_model = std::make_unique<TransformationModelBSpline>(data_, params);
     }
     else if (model_type == "lowess")
     {
-      model_ = new TransformationModelLowess(data_, params);
+      next_model = std::make_unique<TransformationModelLowess>(data_, params);
     }
     else if (model_type == "interpolated")
     {
-      model_ = new TransformationModelInterpolated(data_, params);
+      next_model = std::make_unique<TransformationModelInterpolated>(data_, params);
     }
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unknown model type '" + model_type + "'");
     }
+
+    model_ = std::move(next_model);
     model_type_ = model_type;
   }
 
@@ -125,8 +122,8 @@ namespace OpenMS
   {
     data_ = data;
     model_type_ = "none"; // reset the model even if it was "identity"
-    delete model_;
-    model_ = new TransformationModel();
+    // model_ is unique_ptr, deleted automatically
+    model_ = std::make_unique<TransformationModel>();
   }
 
   void TransformationDescription::setDataPoints(const vector<pair<double, double> >& data)
@@ -137,8 +134,8 @@ namespace OpenMS
       data_[i] = data[i];
     }
     model_type_ = "none"; // reset the model even if it was "identity"
-    delete model_;
-    model_ = new TransformationModel();
+    // model_ is unique_ptr, deleted automatically
+    model_ = std::make_unique<TransformationModel>();
   }
 
   const TransformationDescription::DataPoints&
@@ -164,7 +161,7 @@ namespace OpenMS
     if ((model_type_ == "linear") && data_.empty())
     {
       TransformationModelLinear* lm =
-        dynamic_cast<TransformationModelLinear*>(model_);
+        dynamic_cast<TransformationModelLinear*>(model_.get());
       lm->invert();
     }
     else

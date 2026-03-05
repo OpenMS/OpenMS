@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ModificationDataProvider.h>
 
 namespace OpenMS
 {
@@ -23,15 +24,6 @@ namespace OpenMS
       static CrossLinksDB* db_ = new CrossLinksDB;
       return db_;
     }
-
-    /**
-      @brief Adds modifications from a given file in OBO format
-      
-      @note readFromOBOFile should be called in a single threaded context with
-      no other threads accessing the CrossLinkDB
-      @throw Exception::ParseError if the file cannot be parsed correctly
-    */
-    void readFromOBOFile(const String& filename);
 
     /// Collects all modifications that can be used for identification searches
     void getAllSearchModifications(std::vector<String>& modifications) const;
@@ -57,6 +49,9 @@ namespace OpenMS
       /// Assignment operator
       CrossLinksDB & operator=(const CrossLinksDB& aa);
       //@}
+
+      /// Creates the OBO provider for cross-linker loading
+      static std::vector<std::unique_ptr<ModificationDataProvider>> makeCrossLinkProviders_();
 
   };
 }

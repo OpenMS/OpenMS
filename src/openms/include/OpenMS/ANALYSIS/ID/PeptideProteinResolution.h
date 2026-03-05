@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <vector>
 #include <set>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -73,7 +74,7 @@ namespace OpenMS
     /** represents the middle layer of an implicit tripartite graph:
     consists of single protein accessions and their mapping to the (indist.)
     group's indices */
-    std::map<String, Size> prot_acc_to_indist_prot_grp_;
+    std::unordered_map<String, Size> prot_acc_to_indist_prot_grp_;
     
     /// log debug information?
     bool statistics_;

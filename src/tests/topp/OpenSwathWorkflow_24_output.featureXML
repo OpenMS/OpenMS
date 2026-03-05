@@ -12,7 +12,7 @@
 			<intensity>9127.391602</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>-30.848314</overallquality>
+			<overallquality>-30.980438</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_7804704400743266335_12999979801269632061">
@@ -125,10 +125,10 @@
 			<UserParam type="float" name="leftWidth" value="480.94500732421875"/>
 			<UserParam type="float" name="rightWidth" value="527.385986328125"/>
 			<UserParam type="float" name="peak_apices_sum" value="2171.438430077558223"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="7.936717407973299"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.719151471220324"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.711637225873942"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.673380312715402"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="6.814472761578489"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="4.213699248344791"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.669994332437356"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.619082778670647"/>
 			<UserParam type="float" name="var_library_corr" value="0.83299492228615"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.098485984902119"/>
 			<UserParam type="float" name="var_library_sangle" value="0.520657700045852"/>
@@ -144,8 +144,8 @@
 			<UserParam type="float" name="nr_peaks" value="6.0"/>
 			<UserParam type="float" name="sn_ratio" value="1.440682365313717"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.365116866150633"/>
-			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="-30.848315148841756"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="-30.848315148841756"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="-30.980438979959754"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="-30.980438979959754"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="377.551778000000013"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>

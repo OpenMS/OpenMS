@@ -59,9 +59,12 @@ namespace // anonymous
       switch (val.valueType())
       {
         case DataValue::INT_VALUE: (void)type_b->Append("int"); break;
-        case DataValue::DOUBLE_VALUE: (void)type_b->Append("float"); break;
-        case DataValue::STRING_VALUE: (void)type_b->Append("str"); break;
-        default: (void)type_b->Append("str"); break;
+        case DataValue::DOUBLE_VALUE: (void)type_b->Append("double"); break;
+        case DataValue::STRING_VALUE: (void)type_b->Append("string"); break;
+        case DataValue::INT_LIST: (void)type_b->Append("int_list"); break;
+        case DataValue::DOUBLE_LIST: (void)type_b->Append("double_list"); break;
+        case DataValue::STRING_LIST: (void)type_b->Append("string_list"); break;
+        default: (void)type_b->Append("string"); break;
       }
     }
   }
@@ -206,9 +209,12 @@ namespace // anonymous
         switch (val.valueType())
         {
           case DataValue::INT_VALUE: type_str = "int"; break;
-          case DataValue::DOUBLE_VALUE: type_str = "float"; break;
-          case DataValue::STRING_VALUE: type_str = "str"; break;
-          default: type_str = "str"; break;
+          case DataValue::DOUBLE_VALUE: type_str = "double"; break;
+          case DataValue::STRING_VALUE: type_str = "string"; break;
+          case DataValue::INT_LIST: type_str = "int_list"; break;
+          case DataValue::DOUBLE_LIST: type_str = "double_list"; break;
+          case DataValue::STRING_LIST: type_str = "string_list"; break;
+          default: type_str = "string"; break;
         }
         json += "{\"name\":\"" + escapeJsonString_(std::string(key))
               + "\",\"value\":\"" + escapeJsonString_(val.toString())
@@ -367,9 +373,41 @@ namespace // anonymous
                   try { dp.setMetaValue(mv_name, DataValue(std::stoi(mv_value))); }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
                 }
-                else if (mv_type == "float")
+                else if (mv_type == "double" || mv_type == "float")
                 {
                   try { dp.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+                  catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
+                }
+                else if (mv_type == "int_list")
+                {
+                  try
+                  {
+                    String s(mv_value);
+                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+                    dp.setMetaValue(mv_name, DataValue(ListUtils::create<Int>(s)));
+                  }
+                  catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
+                }
+                else if (mv_type == "double_list")
+                {
+                  try
+                  {
+                    String s(mv_value);
+                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+                    dp.setMetaValue(mv_name, DataValue(ListUtils::create<double>(s)));
+                  }
+                  catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
+                }
+                else if (mv_type == "string_list")
+                {
+                  try
+                  {
+                    String s(mv_value);
+                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+                    auto sl = ListUtils::create<String>(s);
+                    for (auto& e : sl) { e = e.trim(); }
+                    dp.setMetaValue(mv_name, DataValue(sl));
+                  }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
                 }
                 else
@@ -648,6 +686,13 @@ namespace // anonymous
     return std::static_pointer_cast<arrow::Int32Array>(array)->Value(row);
   }
 
+  /// Get boolean value at a row, returning default_val if null.
+  bool getBoolValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, bool default_val = false)
+  {
+    if (!array || array->IsNull(row)) return default_val;
+    return std::static_pointer_cast<arrow::BooleanArray>(array)->Value(row);
+  }
+
   /// Check if value at row is null.
   bool isNull_(const std::shared_ptr<arrow::Array>& array, int64_t row)
   {
@@ -684,9 +729,41 @@ namespace // anonymous
         try { target.setMetaValue(name, static_cast<int>(std::stol(value_str))); }
         catch (...) { target.setMetaValue(name, value_str); }
       }
-      else if (type_str == "float")
+      else if (type_str == "double" || type_str == "float")
       {
         try { target.setMetaValue(name, std::stod(value_str)); }
+        catch (...) { target.setMetaValue(name, value_str); }
+      }
+      else if (type_str == "int_list")
+      {
+        try
+        {
+          String s(value_str);
+          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+          target.setMetaValue(name, DataValue(ListUtils::create<Int>(s)));
+        }
+        catch (...) { target.setMetaValue(name, value_str); }
+      }
+      else if (type_str == "double_list")
+      {
+        try
+        {
+          String s(value_str);
+          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+          target.setMetaValue(name, DataValue(ListUtils::create<double>(s)));
+        }
+        catch (...) { target.setMetaValue(name, value_str); }
+      }
+      else if (type_str == "string_list")
+      {
+        try
+        {
+          String s(value_str);
+          if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+          auto sl = ListUtils::create<String>(s);
+          for (auto& e : sl) { e = e.trim(); }
+          target.setMetaValue(name, DataValue(sl));
+        }
         catch (...) { target.setMetaValue(name, value_str); }
       }
       else
@@ -857,7 +934,7 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
     // === quality_mz (not nullable) ===
     (void)quality_mz_builder.Append(feature.getQuality(1));
 
-    // === width (nullable: null if 0) ===
+    // === width (nullable: null if 0.0, since 0.0 is the unset default; round-trip correct) ===
     float w = feature.getWidth();
     if (w == 0.0f)
     {
@@ -964,7 +1041,7 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
     arrow::field("mz", arrow::float64(), /*nullable=*/false),
     arrow::field("intensity", arrow::float32(), /*nullable=*/false),
     arrow::field("charge", arrow::int32(), /*nullable=*/false),
-    arrow::field("overall_quality", arrow::float32(), /*nullable=*/false),
+    arrow::field("quality", arrow::float32(), /*nullable=*/false),
     arrow::field("quality_rt", arrow::float32(), /*nullable=*/false),
     arrow::field("quality_mz", arrow::float32(), /*nullable=*/false),
     arrow::field("width", arrow::float32(), /*nullable=*/true),
@@ -1075,7 +1152,7 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
 
   // 4. Add feature_id as the first column in the table.
   auto chunked_feature_id = std::make_shared<arrow::ChunkedArray>(feature_id_array);
-  auto result = base_table->AddColumn(0, arrow::field("feature_id", arrow::int64()), chunked_feature_id);
+  auto result = base_table->AddColumn(0, arrow::field("feature_unique_id", arrow::int64()), chunked_feature_id);
   if (!result.ok())
   {
     OPENMS_LOG_ERROR << "FeatureMapArrowIO: AddColumn failed: " << result.status().ToString() << std::endl;
@@ -1186,7 +1263,7 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
   auto col_mz = getColumn_(tbl, "mz");
   auto col_intensity = getColumn_(tbl, "intensity");
   auto col_charge = getColumn_(tbl, "charge");
-  auto col_overall_quality = getColumn_(tbl, "overall_quality");
+  auto col_overall_quality = getColumn_(tbl, "quality");
   auto col_quality_rt = getColumn_(tbl, "quality_rt");
   auto col_quality_mz = getColumn_(tbl, "quality_mz");
   auto col_width = getColumn_(tbl, "width");
@@ -1235,6 +1312,7 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
     f.setQuality(0, getFloatValue_(col_quality_rt, i));
     f.setQuality(1, getFloatValue_(col_quality_mz, i));
 
+    // width: null means unset (default 0.0); only set if non-null and non-zero
     float w = getFloatValue_(col_width, i, 0.0f);
     if (w != 0.0f)
     {
@@ -1344,8 +1422,8 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   }
 
   // Read columns
-  auto col_feature_id = getColumn_(tbl, "feature_id");
-  auto col_p_id = getColumn_(tbl, "P_ID");
+  auto col_feature_id = getColumn_(tbl, "feature_unique_id");
+  auto col_p_id = getColumn_(tbl, "peptide_identification_index");
   auto col_peptidoform = getColumn_(tbl, "peptidoform", /*required=*/false);
   auto col_sequence = getColumn_(tbl, "sequence", /*required=*/false);
   auto col_charge = getColumn_(tbl, "precursor_charge");
@@ -1363,6 +1441,9 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   auto col_spectrum_metavalues = getColumn_(tbl, "spectrum_metavalues", /*required=*/false);
   auto col_predicted_rt = getColumn_(tbl, "predicted_rt", /*required=*/false);
   auto col_ion_mobility = getColumn_(tbl, "ion_mobility", /*required=*/false);
+  auto col_hsb = getColumn_(tbl, "higher_score_better", /*required=*/false);
+  auto col_scan = getColumn_(tbl, "scan", /*required=*/false);
+  auto col_ref_file = getColumn_(tbl, "reference_file_name", /*required=*/false);
 
   if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
   {
@@ -1414,18 +1495,32 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       // Set PeptideIdentification-level fields
       PeptideIdentification& pid = group.pep_id;
       pid.setScoreType(getStringValue_(col_score_type, row));
-      pid.setHigherScoreBetter(true); // default
-
-      // Run identifier (links to ProteinIdentification) + higher_score_better lookup
+      // Run identifier (links to ProteinIdentification)
       if (col_run_id && !isNull_(col_run_id, row))
       {
-        String run_id = getStringValue_(col_run_id, row);
-        pid.setIdentifier(run_id);
-        auto hsb_it = higher_score_better_lookup.find(run_id);
+        pid.setIdentifier(getStringValue_(col_run_id, row));
+      }
+
+      // higher_score_better: prefer per-PSM column, fall back to ProteinIdentification lookup
+      if (col_hsb && !isNull_(col_hsb, row))
+      {
+        pid.setHigherScoreBetter(getBoolValue_(col_hsb, row, true));
+      }
+      else if (col_run_id && !isNull_(col_run_id, row))
+      {
+        auto hsb_it = higher_score_better_lookup.find(pid.getIdentifier());
         if (hsb_it != higher_score_better_lookup.end())
         {
           pid.setHigherScoreBetter(hsb_it->second);
         }
+        else
+        {
+          pid.setHigherScoreBetter(true);
+        }
+      }
+      else
+      {
+        pid.setHigherScoreBetter(true);
       }
 
       // RT
@@ -1496,8 +1591,8 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     // is_decoy -> target_decoy metavalue
     if (col_is_decoy && !isNull_(col_is_decoy, row))
     {
-      int32_t is_decoy = getInt32Value_(col_is_decoy, row, 0);
-      hit.setMetaValue("target_decoy", is_decoy == 1 ? "decoy" : "target");
+      bool is_decoy = getBoolValue_(col_is_decoy, row, false);
+      hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
     }
 
     // protein_accessions -> PeptideEvidence
@@ -1545,11 +1640,24 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       hit.setMetaValue("ion_mobility", getDoubleValue_(col_ion_mobility, row));
     }
 
+    // scan -> PeptideHit metavalue
+    if (col_scan && !isNull_(col_scan, row))
+    {
+      hit.setMetaValue("scan", static_cast<int>(getInt32Value_(col_scan, row)));
+    }
+
+    // reference_file_name -> PeptideHit metavalue
+    if (col_ref_file && !isNull_(col_ref_file, row))
+    {
+      hit.setMetaValue("reference_file_name", getStringValue_(col_ref_file, row));
+    }
+
     // psm_metavalues -> PeptideHit metavalues (exclude keys that have dedicated columns)
     if (col_psm_metavalues)
     {
       static const std::unordered_set<std::string> psm_excluded_mvs =
-        {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM"};
+        {"target_decoy", "predicted_RT", "predicted_rt", "ion_mobility", "IM",
+         "scan", "reference_file_name"};
       readMetaValues_(col_psm_metavalues, row, hit, psm_excluded_mvs);
     }
 
@@ -1587,6 +1695,8 @@ bool FeatureMapArrowIO::importFromParquet(
   const String& directory,
   FeatureMap& feature_map)
 {
+  feature_map = FeatureMap{};
+
   // 1. Import protein identification data
   std::vector<ProteinIdentification> prot_ids;
   if (!ProteinIdentificationArrowIO::importFromParquet(
