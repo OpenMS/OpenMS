@@ -40,6 +40,8 @@ namespace OpenMS
    * Use this class to invoke the individual OpenSWATH scoring routines.
    *
   */
+  class MobilogramParquetConsumer;
+
   class OPENMS_DLLAPI OpenSwathScoring
   {
     typedef OpenSwath::LightCompound CompoundType;
@@ -188,18 +190,20 @@ namespace OpenMS
      * @param[in] mzerror_ppm m/z and mass error (in ppm) for all transitions
      * @param[in] drift_target target drift value
      * @param[in] range_im drift time lower and upper bounds
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      *
     */
-    void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
-                            const std::vector<TransitionType>& transitions,
-                            const std::vector<OpenSwath::SwathMap>& swath_maps,
-                            const OpenSwath::SpectrumAccessPtr& ms1_map,
-                            const OpenMS::DIAScoring& diascoring,
-                            const CompoundType& compound,
-                            OpenSwath_Scores& scores,
-                            std::vector<double>& mzerror_ppm,
-                            const double drift_target,
-                            const RangeMobility& range_im);
+  void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
+              const std::vector<TransitionType>& transitions,
+              const std::vector<OpenSwath::SwathMap>& swath_maps,
+              const OpenSwath::SpectrumAccessPtr& ms1_map,
+              const OpenMS::DIAScoring& diascoring,
+              const CompoundType& compound,
+              OpenSwath_Scores& scores,
+              std::vector<double>& mzerror_ppm,
+              const double drift_target,
+              const RangeMobility& range_im,
+              MobilogramParquetConsumer* mobilogram_consumer = nullptr);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *

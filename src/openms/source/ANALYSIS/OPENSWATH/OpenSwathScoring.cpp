@@ -98,7 +98,8 @@ namespace OpenMS
                                             OpenSwath_Scores& scores,
                                             std::vector<double>& masserror_ppm,
                                             const double drift_target,// TODO is this needed
-                                            const RangeMobility& im_range)
+                                            const RangeMobility& im_range,
+                                            MobilogramParquetConsumer* mobilogram_consumer)
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
@@ -141,7 +142,7 @@ namespace OpenMS
       IonMobilityScoring::driftScoring(spectra, transitions, scores,
                                        drift_target, im_range,
                                        dia_extract_window_, dia_extraction_ppm_,
-                                       im_drift_extra_pcnt_, apply_im_peak_picking_);
+                                       im_drift_extra_pcnt_, apply_im_peak_picking_, mobilogram_consumer);
     }
 
 
@@ -203,10 +204,10 @@ namespace OpenMS
 
         std::vector<OpenSwath::SpectrumPtr> ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, n_merge_spectra, im_range_ms1);
         IonMobilityScoring::driftScoringMS1(ms1_spectrum,
-            transitions, scores, drift_target, im_range_ms1, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_);
+          transitions, scores, drift_target, im_range_ms1, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_, mobilogram_consumer);
 
         IonMobilityScoring::driftScoringMS1Contrast(spectra, ms1_spectrum,
-            transitions, scores, im_range_ms1, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_);
+          transitions, scores, im_range_ms1, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_, mobilogram_consumer);
     }
   }
 

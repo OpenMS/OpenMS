@@ -17,6 +17,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
@@ -335,6 +336,43 @@ namespace OpenMS
     else
     {
       *chromatogramConsumer = new NoopMSDataWritingConsumer("");
+    }
+  }
+
+
+  void TOPPOpenSwathBase::prepareMobilogramOutput(MobilogramParquetConsumer ** mobilogramConsumer,
+                                                  const std::shared_ptr<ExperimentalSettings>& /*exp_meta*/,
+                                                  const OpenSwath::LightTargetedExperiment& transition_exp,
+                                                  const String& out_mobilogram,
+                                                  const UInt64 run_id,
+                                                  const String& source_file)
+  {
+    if (!out_mobilogram.empty())
+    {
+      const FileTypes::Type out_mob_type = FileHandler::getType(out_mobilogram);
+      if (out_mob_type == FileTypes::MOBILPARQUET)
+      {
+#ifndef WITH_PARQUET
+        (void)&source_file;
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#else
+        auto * mobConsumer = new MobilogramParquetConsumer(out_mobilogram, run_id, source_file, transition_exp);
+        // estimate expected mobilograms from transitions
+        Size expected = transition_exp.transitions.size();
+        mobConsumer->setExpectedSize(expected);
+        *mobilogramConsumer = mobConsumer;
+#endif
+      }
+      else
+      {
+        // Unknown mobilogram format: currently only MOBILPARQUET supported
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Unsupported mobilogram output type: " + FileTypes::typeToName(out_mob_type));
+      }
+    }
+    else
+    {
+      *mobilogramConsumer = nullptr;
     }
   }
 

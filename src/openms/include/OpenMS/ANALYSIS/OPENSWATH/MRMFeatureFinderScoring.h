@@ -38,6 +38,9 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
 
 namespace OpenMS
 {
+  // Forward declaration for optional mobilogram consumer
+  class MobilogramParquetConsumer;
+
 
   /**
   @brief The MRMFeatureFinder finds and scores peaks of transitions that co-elute.
@@ -155,13 +158,15 @@ public:
      * @param[out] output The output features with corresponding scores (the found
      *               features will be added to this FeatureMap).
      * @param[in] ms1only Whether to only do MS1 scoring and skip all MS2 scoring
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      *
     */
-    void scorePeakgroups(MRMTransitionGroupType& transition_group,
-                         const TransformationDescription & trafo,
-                         const std::vector<OpenSwath::SwathMap>& swath_maps,
-                         FeatureMap& output,
-                         bool ms1only = false) const;
+  void scorePeakgroups(MRMTransitionGroupType& transition_group,
+             const TransformationDescription & trafo,
+             const std::vector<OpenSwath::SwathMap>& swath_maps,
+             FeatureMap& output,
+             bool ms1only = false,
+             MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
 
     /** @brief Set the flag for strict mapping
     */

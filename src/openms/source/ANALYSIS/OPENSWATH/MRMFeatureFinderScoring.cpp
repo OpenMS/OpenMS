@@ -502,7 +502,8 @@ namespace OpenMS
                                                 const TransformationDescription& trafo,
                                                 const std::vector<OpenSwath::SwathMap>& swath_maps,
                                                 FeatureMap& output,
-                                                bool ms1only) const
+                                                bool ms1only,
+                                                MobilogramParquetConsumer* mobilogram_consumer) const
   {
     if (PeptideRefMap_.empty())
     {
@@ -737,7 +738,7 @@ namespace OpenMS
           scorer.calculateDIAScores(imrmfeature,
                                     transition_group_detection.getTransitions(),
                                     swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
-                                    drift_target, im_range);
+                                    drift_target, im_range, mobilogram_consumer);
           mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
         }
         
