@@ -296,6 +296,7 @@ namespace OpenMS
     body += "Content-Disposition: form-data; name=\"QUE\"\r\n";
     body += "\r\n";
     body += string(query_spectra_.c_str());
+    body += "\r\n";
     body += "--" + boundary + "--\r\n";
 
 #ifdef MASCOTREMOTEQUERY_DEBUG_FULL_QUERY

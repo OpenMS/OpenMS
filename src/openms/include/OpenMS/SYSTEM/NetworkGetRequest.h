@@ -16,32 +16,32 @@
 namespace OpenMS
 {
   /// Synchronous HTTP GET request using libcurl.
-  class NetworkGetRequest
+  class OPENMS_DLLAPI NetworkGetRequest
   {
   public:
-    OPENMS_DLLAPI NetworkGetRequest();
-    OPENMS_DLLAPI ~NetworkGetRequest();
+    NetworkGetRequest();
+    ~NetworkGetRequest();
 
     /// set the URL to request
-    OPENMS_DLLAPI void setUrl(const std::string& url);
+    void setUrl(const std::string& url);
 
     /// set the timeout in seconds (0 = no timeout)
-    OPENMS_DLLAPI void setTimeout(int seconds);
+    void setTimeout(int seconds);
 
     /// execute the GET request (blocks until complete or timeout)
-    OPENMS_DLLAPI void run();
+    void run();
 
     /// returns the response as a string
-    OPENMS_DLLAPI std::string getResponse() const;
+    std::string getResponse() const;
 
     /// returns the raw response bytes
-    OPENMS_DLLAPI const std::vector<char>& getResponseBinary() const;
+    const std::vector<char>& getResponseBinary() const;
 
     /// returns true if an error occurred during the query
-    OPENMS_DLLAPI bool hasError() const;
+    bool hasError() const;
 
     /// returns the error message
-    OPENMS_DLLAPI std::string getErrorString() const;
+    std::string getErrorString() const;
 
   private:
     NetworkGetRequest(const NetworkGetRequest&) = delete;

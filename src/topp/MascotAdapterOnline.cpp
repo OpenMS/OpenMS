@@ -141,7 +141,16 @@ protected:
     {
       const std::string& data = decoy ? mascot_query->getMascotXMLDecoyResponse() : mascot_query->getMascotXMLResponse();
       std::ofstream ofs(mascot_tmp_file_name, std::ios::binary);
+      if (!ofs)
+      {
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mascot_tmp_file_name);
+      }
       ofs.write(data.data(), static_cast<std::streamsize>(data.size()));
+      if (!ofs)
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Failed to write Mascot response to: " + mascot_tmp_file_name);
+      }
     }
 
     writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
