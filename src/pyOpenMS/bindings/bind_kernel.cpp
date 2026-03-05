@@ -1560,7 +1560,7 @@ etc) is implicit
 RangeManagerMobInt
 
 The representation of a 1D ion mobilogram.
-Raw data access is provided by `get_peaks`, `get_peaks_struct_raw`, and `set_peaks`.
+Raw data access is provided by `get_peaks`, `get_peaks_struct_mv`, and `set_peaks`.
 Iterations yields access to underlying peak objects but is slower
 Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
 Usage:
