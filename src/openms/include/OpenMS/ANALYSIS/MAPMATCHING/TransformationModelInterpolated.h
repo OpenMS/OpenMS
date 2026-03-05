@@ -12,10 +12,11 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <memory>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+
 
 namespace OpenMS
 {
+  class TransformationModelLinear;
   /**
     @brief Interpolation model for transformations
 

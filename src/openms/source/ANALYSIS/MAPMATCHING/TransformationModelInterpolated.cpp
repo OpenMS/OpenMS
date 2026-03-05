@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
 // Spline2dInterpolator
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
@@ -39,7 +40,7 @@ public:
       if (spline_ != (CubicSpline2d*) nullptr) 
 
       // initialize spline
-      spline_ = new CubicSpline2d(x, y);
+      spline_ = std::make_unique<CubicSpline2d>(x, y);
     }
 
     double eval(const double& x) const override
@@ -47,10 +48,7 @@ public:
       return spline_->eval(x);
     }
 
-    ~Spline2dInterpolator() override
-    {
-      
-    }
+    ~Spline2dInterpolator() override = default;
 
 private:
     CubicSpline2d* spline_{nullptr};
@@ -72,7 +70,7 @@ public:
     {
       if (interpolator_ != (gte::IntpAkimaNonuniform1<double>*) nullptr) 
       // re-construct a new interpolator
-      interpolator_ = new gte::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
+      interpolator_ = std::make_unique<gte::IntpAkimaNonuniform1<double>>(static_cast<int>(x.size()), &x.front(), &y.front());
     }
 
     double eval(const double& x) const override
@@ -80,10 +78,7 @@ public:
       return (* interpolator_)(x);
     }
 
-    ~AkimaInterpolator() override
-    {
-      
-    }
+    ~AkimaInterpolator() override = default;
 
 private:
     gte::IntpAkimaNonuniform1<double>* interpolator_{nullptr};
@@ -291,10 +286,7 @@ private:
     }
     else
     {
-      if (interp_)
-      {
-        
-      }
+      
 
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
@@ -362,22 +354,14 @@ private:
     }
     else
     {
-      if (interp_) 
-      {
-        
-      }
+      
 
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
     }
   }
 
-  TransformationModelInterpolated::~TransformationModelInterpolated()
-  {
-    
-    
-    
-  }
+  TransformationModelInterpolated::~TransformationModelInterpolated() = default;
 
   double TransformationModelInterpolated::evaluate(double value) const
   {
