@@ -22,6 +22,7 @@ CurlInit.h
 ExternalProcess.h
 File.h
 JavaInfo.h
+Network.h
 NetworkGetRequest.h
 PythonInfo.h
 RWrapper.h

@@ -8,6 +8,7 @@ CurlInit.cpp
 ExternalProcess.cpp
 File.cpp
 JavaInfo.cpp
+Network.cpp
 NetworkGetRequest.cpp
 PythonInfo.cpp
 RWrapper.cpp
