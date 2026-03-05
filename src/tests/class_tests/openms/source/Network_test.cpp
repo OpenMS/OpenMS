@@ -31,10 +31,7 @@ START_SECTION(static void downloadFile(const std::string& url, const std::string
   std::string fixture_path = OPENMS_GET_TEST_DATA_PATH("Network_test_fixture.txt");
   std::string url = "file://" + fixture_path;
 
-  std::string tmp_file;
-  NEW_TMP_FILE(tmp_file);
-  // NEW_TMP_FILE gives a file path; we need the directory
-  std::string folder = std::filesystem::path(tmp_file).parent_path().string();
+  std::string folder = File::getTempDirectory();
 
   Network::downloadFile(url, folder);
   std::string output_file_path = folder + "/Network_test_fixture.txt";
