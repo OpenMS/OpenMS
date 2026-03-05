@@ -243,6 +243,9 @@ protected:
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML), sqMass (SQLite format) or xic (Parquet)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass,xic"));
 
+    registerOutputFile_("out_mobilogram", "<file>", "", "Also output extracted ion mobilograms in Parquet format", false, true);
+    setValidFormats_("out_mobilogram", ListUtils::create<String>("xim"));
+
     // additional QC data
     registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
     setValidFormats_("out_qc", ListUtils::create<String>("json"));
@@ -586,6 +589,7 @@ protected:
     String swath_windows_file = getStringOption_("swath_windows_file");
 
     String out_chrom = getStringOption_("out_chrom");
+    String out_mobilogram = getStringOption_("out_mobilogram");
     if (!out_chrom.empty())
     {
       const FileTypes::Type out_chrom_type = FileHandler::getType(out_chrom);
@@ -593,6 +597,17 @@ protected:
       if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
         writeLogError_("Error: OpenMS was built without Parquet support, cannot write chrom_parquet output.");
+        return PARSE_ERROR;
+      }
+#endif
+    }
+    if (!out_mobilogram.empty())
+    {
+      const FileTypes::Type out_mob_type = FileHandler::getType(out_mobilogram);
+#ifndef WITH_PARQUET
+      if (out_mob_type == FileTypes::MOBILPARQUET)
+      {
+        writeLogError_("Error: OpenMS was built without Parquet support, cannot write mobilogram parquet output.");
         return PARSE_ERROR;
       }
 #endif
@@ -1207,6 +1222,17 @@ protected:
     }
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, run_id, current_run_files[0]);
 
+    // Prepare mobilogram output (per-run)
+    MobilogramParquetConsumer* mobilogramConsumer = nullptr;
+    String out_mobilogram_current = out_mobilogram;
+    if (!out_mobilogram.empty() && run_groups.size() > 1)
+    {
+      String base_name = out_mobilogram.substr(0, out_mobilogram.find_last_of('.'));
+      String extension = out_mobilogram.substr(out_mobilogram.find_last_of('.'));
+      out_mobilogram_current = file_basename + "_" + base_name + extension;
+    }
+    prepareMobilogramOutput(&mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, run_id, current_run_files[0]);
+
     // Create a run id per unique input filename and register it in the OSW
     UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
     // For OSW, use the first file in the run group as the representative filename
@@ -1231,7 +1257,7 @@ protected:
 
     // perform extraction for this file's swath maps
     wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
-                         out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param);
+             out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer);
 
     //// Write out data
 
