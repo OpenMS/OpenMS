@@ -16,8 +16,6 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedClustering.h>
 
-#include <QtCore/QDir>
-
 using namespace std;
 
 namespace OpenMS
