@@ -497,6 +497,17 @@ void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mz
 
       vector<SpectralMatch> partial_results;
 
+      // Fail early if units don't match for CCS filtering
+      if (ccs_error_pct_ > 0.0 && msexp[spec_idx].getDriftTime() > 0.0)
+      {
+        if (msexp[spec_idx].getDriftTimeUnit() != DriftTimeUnit::CCS)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "CCS tolerance filtering requested, but experimental spectrum drift time unit is not CCS. Found: "
+                                             + msexp[spec_idx].getDriftTimeUnitAsString());
+        }
+      }
+
       for (Size search_idx = start_idx; search_idx < end_idx; ++search_idx)
       {
         // do spectral matching
@@ -586,7 +597,8 @@ void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mz
           tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
 
           // extract observed drift time from experimental spectrum
-          tmp_match.setObservedPrecursorDriftTime(msexp[spec_idx].getDriftTime());
+          double obs_dt = msexp[spec_idx].getDriftTime();
+          tmp_match.setObservedPrecursorDriftTime(obs_dt);
 
           // extract library CCS if available
           if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_CCS))

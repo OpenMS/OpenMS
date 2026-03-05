@@ -140,6 +140,7 @@ START_SECTION(([Integration] run() populates CCS and drift time in results))
     exp_spectrum.setMSLevel(2);
     exp_spectrum.setRT(60.0);
     exp_spectrum.setDriftTime(5.5);
+    exp_spectrum.setDriftTimeUnit(DriftTimeUnit::CCS);
 
     Precursor prec;
     prec.setMZ(195.0877);
@@ -176,6 +177,7 @@ START_SECTION(([Integration] run() populates CCS and drift time in results))
     exp_spectrum.setMSLevel(2);
     exp_spectrum.setRT(120.0);
     exp_spectrum.setDriftTime(7.2);
+    exp_spectrum.setDriftTimeUnit(DriftTimeUnit::CCS);
 
     Precursor prec;
     prec.setMZ(205.0972);
@@ -260,6 +262,7 @@ START_SECTION(([Integration] CCS tolerance filtering rejects matches outside tol
     exp_spectrum.setMSLevel(2);
     exp_spectrum.setRT(60.0);
     exp_spectrum.setDriftTime(5.5);
+    exp_spectrum.setDriftTimeUnit(DriftTimeUnit::CCS);
 
     Precursor prec;
     prec.setMZ(195.0877);
@@ -296,6 +299,7 @@ START_SECTION(([Integration] CCS tolerance filtering rejects matches outside tol
     exp_spectrum.setMSLevel(2);
     exp_spectrum.setRT(120.0);
     exp_spectrum.setDriftTime(7.2);
+    exp_spectrum.setDriftTimeUnit(DriftTimeUnit::CCS);
 
     Precursor prec;
     prec.setMZ(205.0972);
@@ -358,6 +362,47 @@ START_SECTION(([Integration] CCS tolerance filtering rejects matches outside tol
   // Matches should NOT be filtered out when CCS filtering is disabled
   const MzTabSmallMoleculeSectionRows& unfiltered_rows = mztab_unfiltered.getSmallMoleculeSectionRows();
   TEST_EQUAL(unfiltered_rows.empty(), false)
+}
+END_SECTION
+
+START_SECTION(([Integration] run() fails with unit mismatch))
+{
+  MSExperiment spec_db;
+  MSPGenericFile msp_parser;
+  msp_parser.load(OPENMS_GET_TEST_DATA_PATH("MetaboliteSpectralMatching_test_library.msp"), spec_db);
+
+  PeakMap msexp;
+  {
+    MSSpectrum exp_spectrum;
+    exp_spectrum.setMSLevel(2);
+    exp_spectrum.setDriftTime(5.5);
+    exp_spectrum.setDriftTimeUnit(DriftTimeUnit::MILLISECOND); // Wrong unit for CCS filtering
+
+    Precursor prec;
+    prec.setMZ(195.0877);
+    exp_spectrum.setPrecursors({prec});
+    msexp.addSpectrum(exp_spectrum);
+  }
+  {
+    MSSpectrum exp_spectrum;
+    exp_spectrum.setMSLevel(2);
+    exp_spectrum.setDriftTime(7.2);
+    exp_spectrum.setDriftTimeUnit(DriftTimeUnit::MILLISECOND); // Wrong unit for CCS filtering
+
+    Precursor prec;
+    prec.setMZ(205.0972);
+    exp_spectrum.setPrecursors({prec});
+    msexp.addSpectrum(exp_spectrum);
+  }
+
+  MetaboliteSpectralMatching msm;
+  Param params = msm.getParameters();
+  params.setValue("ccs_error_value", 5.0); // Enable CCS filtering
+  msm.setParameters(params);
+
+  MzTab mztab_out;
+  String out_spectra = "";
+  TEST_EXCEPTION(Exception::IllegalArgument, msm.run(msexp, spec_db, mztab_out, out_spectra))
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
