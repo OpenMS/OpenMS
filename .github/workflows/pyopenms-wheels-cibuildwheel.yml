@@ -159,6 +159,7 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-x64 }}
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
+          CIBW_BEFORE_ALL: yum install -y libcurl-devel
           # Use install directory with stripped libraries
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT=/project/install
@@ -238,6 +239,7 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
+          CIBW_BEFORE_ALL: yum install -y libcurl-devel
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT=/project/install
             CMAKE_PREFIX_PATH=/contrib-build:/project/install
