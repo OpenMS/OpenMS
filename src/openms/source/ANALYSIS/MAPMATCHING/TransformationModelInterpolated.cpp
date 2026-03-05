@@ -36,7 +36,7 @@ public:
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
       // cleanup before we use a new one
-      if (spline_ != (CubicSpline2d*) nullptr) delete spline_;
+      if (spline_ != (CubicSpline2d*) nullptr) 
 
       // initialize spline
       spline_ = new CubicSpline2d(x, y);
@@ -49,7 +49,7 @@ public:
 
     ~Spline2dInterpolator() override
     {
-      delete spline_;
+      
     }
 
 private:
@@ -70,7 +70,7 @@ public:
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
-      if (interpolator_ != (gte::IntpAkimaNonuniform1<double>*) nullptr) delete interpolator_;
+      if (interpolator_ != (gte::IntpAkimaNonuniform1<double>*) nullptr) 
       // re-construct a new interpolator
       interpolator_ = new gte::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
     }
@@ -82,7 +82,7 @@ public:
 
     ~AkimaInterpolator() override
     {
-      delete interpolator_;
+      
     }
 
 private:
@@ -237,15 +237,15 @@ private:
     const String interpolation_type = params_.getValue("interpolation_type").toString();
     if (interpolation_type == "linear")
     {
-      interp_ = new LinearInterpolator();
+      interp_ = std::make_unique<LinearInterpolator>();
     }
     else if (interpolation_type == "cspline")
     {
-      interp_ = new Spline2dInterpolator();
+      interp_ = std::make_unique<Spline2dInterpolator>();
     }
     else if (interpolation_type == "akima")
     {
-      interp_ = new AkimaInterpolator();
+      interp_ = std::make_unique<AkimaInterpolator>();
     }
     else
     {
@@ -267,33 +267,33 @@ private:
       {
         bloated_data.emplace_back(TransformationModel::DataPoint(x_[s],y_[s]));
       }
-      lm_front_ = new TransformationModelLinear(bloated_data, Param());
-      lm_back_ = new TransformationModelLinear(bloated_data, Param());
+      lm_front_ = std::make_unique<TransformationModelLinear>(bloated_data, Param());
+      lm_back_ = std::make_unique<TransformationModelLinear>(bloated_data, Param());
     }
     else if (extrapolation_type == "two-point-linear")
     {
       TransformationModel::DataPoints lm_data(2);
       lm_data[0] = std::make_pair(x_.front(), y_.front());
       lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
-      lm_front_ = new TransformationModelLinear(lm_data, Param());
-      lm_back_ = new TransformationModelLinear(lm_data, Param());
+      lm_front_ = std::make_unique<TransformationModelLinear>(lm_data, Param());
+      lm_back_ = std::make_unique<TransformationModelLinear>(lm_data, Param());
     }
     else if (extrapolation_type == "four-point-linear")
     {
       TransformationModel::DataPoints lm_data(2);
       lm_data[0] = std::make_pair(x_[0], y_[0]);
       lm_data[1] = std::make_pair(x_[1], y_[1]);
-      lm_front_ = new TransformationModelLinear(lm_data, Param());
+      lm_front_ = std::make_unique<TransformationModelLinear>(lm_data, Param());
 
       lm_data[0] = std::make_pair(x_[ x_.size()-2 ], y_[ y_.size()-2] ); // second to last point
       lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
-      lm_back_ = new TransformationModelLinear(lm_data, Param());
+      lm_back_ = std::make_unique<TransformationModelLinear>(lm_data, Param());
     }
     else
     {
       if (interp_)
       {
-        delete interp_;
+        
       }
 
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -315,15 +315,15 @@ private:
     const String interpolation_type = params_.getValue("interpolation_type").toString();
     if (interpolation_type == "linear")
     {
-      interp_ = new LinearInterpolator();
+      interp_ = std::make_unique<LinearInterpolator>();
     }
     else if (interpolation_type == "cspline")
     {
-      interp_ = new Spline2dInterpolator();
+      interp_ = std::make_unique<Spline2dInterpolator>();
     }
     else if (interpolation_type == "akima")
     {
-      interp_ = new AkimaInterpolator();
+      interp_ = std::make_unique<AkimaInterpolator>();
     }
     else
     {
@@ -338,33 +338,33 @@ private:
     const String extrapolation_type = params_.getValue("extrapolation_type").toString();
     if (extrapolation_type == "global-linear")
     {
-      lm_front_ = new TransformationModelLinear(data, Param());
-      lm_back_ = new TransformationModelLinear(data, Param());
+      lm_front_ = std::make_unique<TransformationModelLinear>(data, Param());
+      lm_back_ = std::make_unique<TransformationModelLinear>(data, Param());
     }
     else if (extrapolation_type == "two-point-linear")
     {
       TransformationModel::DataPoints lm_data(2);
       lm_data[0] = std::make_pair(x_.front(), y_.front());
       lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
-      lm_front_ = new TransformationModelLinear(lm_data, Param());
-      lm_back_ = new TransformationModelLinear(lm_data, Param());
+      lm_front_ = std::make_unique<TransformationModelLinear>(lm_data, Param());
+      lm_back_ = std::make_unique<TransformationModelLinear>(lm_data, Param());
     }
     else if (extrapolation_type == "four-point-linear")
     {
       TransformationModel::DataPoints lm_data(2);
       lm_data[0] = std::make_pair(x_[0], y_[0]); 
       lm_data[1] = std::make_pair(x_[1], y_[1]);
-      lm_front_ = new TransformationModelLinear(lm_data, Param());
+      lm_front_ = std::make_unique<TransformationModelLinear>(lm_data, Param());
 
       lm_data[0] = std::make_pair(x_[ x_.size()-2 ], y_[ y_.size()-2] ); // second to last point
       lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
-      lm_back_ = new TransformationModelLinear(lm_data, Param());
+      lm_back_ = std::make_unique<TransformationModelLinear>(lm_data, Param());
     }
     else
     {
       if (interp_) 
       {
-        delete interp_;
+        
       }
 
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -374,9 +374,9 @@ private:
 
   TransformationModelInterpolated::~TransformationModelInterpolated()
   {
-    if (interp_) delete interp_;
-    if (lm_front_) delete lm_front_;
-    if (lm_back_) delete lm_back_;
+    
+    
+    
   }
 
   double TransformationModelInterpolated::evaluate(double value) const

@@ -21,6 +21,7 @@ General:
   - Ubuntu CI runners updated to 24.04
   - macOS code signing and notarization integrated directly into CI (#8486, #8494, #8527)
   - Parquet support enabled across all platforms (#8370, #8422)
+  - Modernized TransformationModelInterpolated to use std::unique_ptr for memory safety
   - Modernized TransformationDescription to use std::unique_ptr for memory safety
   - Fix undefined behavior in ProteinIdentification get*DataArrayByName by throwing ElementNotFound when the name is missing
   - Removed leftover traces of removed doc_internal target (#2256)

@@ -11,6 +11,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <memory>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
 namespace OpenMS
@@ -113,13 +114,13 @@ private:
     std::vector<double> y_;
 
     /// Interpolation function
-    Interpolator* interp_;
+    std::unique_ptr<Interpolator> interp_;
 
     /// Linear model for extrapolation (front)
-    TransformationModelLinear* lm_front_;
+    std::unique_ptr<TransformationModelLinear> lm_front_;
 
     /// Linear model for extrapolation (back)
-    TransformationModelLinear* lm_back_;
+    std::unique_ptr<TransformationModelLinear> lm_back_;
 
     /// Preprocesses the incoming data and fills the (private) vectors x_ and y_
     void preprocessDataPoints_(const DataPoints& data);
