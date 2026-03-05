@@ -138,13 +138,36 @@ void MSPGenericFile::load(const String& filename, MSExperiment& library)
     else if (boost::regex_search(line, m, re_precursor_type)) { spectrum.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, String(m[1])); }
     else if (boost::regex_search(line, m, re_ccs))
     {
+      String val(m[1].str());
+      val.trim();
       try
       {
-        spectrum.setMetaValue(Constants::UserParam::MSM_CCS, String(m[1]).toDouble());
+        spectrum.setMetaValue(Constants::UserParam::MSM_CCS, val.toDouble());
       }
       catch (Exception::ConversionError&)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, m[1], "CCS must be a numeric value.");
+        // Try to handle optional units
+        boost::smatch ccs_match;
+        // matches number and everything after
+        static const boost::regex re_val_unit(std::string("^([+-]?\\d*(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\s*(.*)$"));
+        const std::string& val_std = static_cast<const std::string&>(val);
+        if (boost::regex_search(val_std, ccs_match, re_val_unit))
+        {
+          String num_part = ccs_match.str(1);
+          double d_val = atof(num_part.c_str());
+          String unit_part = ccs_match.str(2);
+          unit_part.trim();
+          if (unit_part.hasPrefix("[") && unit_part.hasSuffix("]")) unit_part = unit_part.substr(1, unit_part.size() - 2);
+          unit_part.toLower();
+
+          if (unit_part == "a^2" || unit_part == "angstrom^2" || unit_part == "sq a" || unit_part == "å^2")
+          {
+            spectrum.setMetaValue(Constants::UserParam::MSM_CCS, d_val);
+          }
+          else if (unit_part == "nm^2" || unit_part == "nanometer^2") { spectrum.setMetaValue(Constants::UserParam::MSM_CCS, d_val * 100.0); }
+          else { throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, val, "Unknown or malformed CCS unit: " + unit_part); }
+        }
+        else { throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, val, "CCS must be a numeric value."); }
       }
     }
     // Other metadata, needs to be last, matches everything

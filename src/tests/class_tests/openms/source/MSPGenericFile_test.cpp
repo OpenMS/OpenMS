@@ -164,34 +164,54 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   const String ccs_filepath = OPENMS_GET_TEST_DATA_PATH("MSPGenericFile_ccs_test.msp");
   // We need to create this file or use one that has CCS.
   // For the sake of this test, I will assume I can create a temporary file with CCS.
-  MSExperiment ccs_exp;
-  String ccs_tmp_content = "Name: ccs_test\n"
-                           "CCS: 123.45\n"
-                           "Num Peaks: 1\n"
-                           "100:100\n";
-  String ccs_tmp_path;
-  NEW_TMP_FILE(ccs_tmp_path)
   {
-    ofstream ofs(ccs_tmp_path.c_str());
-    ofs << ccs_tmp_content;
+    MSExperiment ccs_exp;
+    String ccs_tmp_content = "Name: ccs_test\n"
+                             "CCS: 123.45\n"
+                             "Num Peaks: 1\n"
+                             "100:100\n";
+    String ccs_tmp_path;
+    NEW_TMP_FILE(ccs_tmp_path)
+    {
+      ofstream ofs(ccs_tmp_path.c_str());
+      ofs << ccs_tmp_content;
+    }
+    msp.load(ccs_tmp_path, ccs_exp);
+    TEST_EQUAL(ccs_exp.getSpectra().size(), 1)
+    TEST_EQUAL(ccs_exp.getSpectra()[0].metaValueExists(Constants::UserParam::MSM_CCS), true)
+    TEST_REAL_SIMILAR((double)ccs_exp.getSpectra()[0].getMetaValue(Constants::UserParam::MSM_CCS), 123.45)
   }
-  msp.load(ccs_tmp_path, ccs_exp);
-  TEST_EQUAL(ccs_exp.getSpectra().size(), 1)
-  TEST_EQUAL(ccs_exp.getSpectra()[0].metaValueExists(Constants::UserParam::MSM_CCS), true)
-  TEST_REAL_SIMILAR((double)ccs_exp.getSpectra()[0].getMetaValue(Constants::UserParam::MSM_CCS), 123.45)
 
-  // Test non-numeric CCS (should now throw Exception::ParseError)
-  MSExperiment ccs_invalid_exp;
-  String ccs_invalid_tmp_content = "Name: ccs_invalid_test\n"
-                                   "CCS: abc\n"
-                                   "Num Peaks: 1\n"
-                                   "100:100\n";
-  NEW_TMP_FILE(ccs_tmp_path)
+  // Test CCS with units
   {
-    ofstream ofs(ccs_tmp_path.c_str());
-    ofs << ccs_invalid_tmp_content;
+    struct TestCase
+    {
+      String input;
+      double expected;
+      bool should_fail;
+    };
+    vector<TestCase> test_cases = {{"CCS: 123.45 A^2", 123.45, false}, {"CCS: 123.45 [A^2]", 123.45, false}, {"CCS: 1.2345 nm^2", 123.45, false},
+                                   {"CCS: 123.45 å^2", 123.45, false}, {"CCS: 123.45 unknown", 0.0, true},   {"CCS: abc", 0.0, true}};
+
+    for (const auto& tc : test_cases)
+    {
+      MSExperiment exp;
+      String tmp_content = "Name: unit_test\n" + tc.input + "\nNum Peaks: 1\n100:100\n";
+      String tmp_path;
+      NEW_TMP_FILE(tmp_path)
+      {
+        ofstream ofs(tmp_path.c_str());
+        ofs << tmp_content;
+      }
+      if (tc.should_fail) { TEST_EXCEPTION(Exception::ParseError, msp.load(tmp_path, exp)) }
+      else
+      {
+        msp.load(tmp_path, exp);
+        TEST_EQUAL(exp.getSpectra().size(), 1)
+        TEST_REAL_SIMILAR((double)exp.getSpectra()[0].getMetaValue(Constants::UserParam::MSM_CCS), tc.expected)
+      }
+    }
   }
-  TEST_EXCEPTION(Exception::ParseError, msp.load(ccs_tmp_path, ccs_invalid_exp))
 }
 END_SECTION
 

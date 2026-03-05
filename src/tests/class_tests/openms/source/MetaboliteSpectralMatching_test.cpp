@@ -1,6 +1,6 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: $
 // $Authors: $
@@ -13,8 +13,8 @@
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 ///////////////////////////
 
-#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -28,14 +28,14 @@ MetaboliteSpectralMatching* ptr = nullptr;
 MetaboliteSpectralMatching* null_ptr = nullptr;
 START_SECTION(MetaboliteSpectralMatching())
 {
-	ptr = new MetaboliteSpectralMatching();
-	TEST_NOT_EQUAL(ptr, null_ptr)
+  ptr = new MetaboliteSpectralMatching();
+  TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(~MetaboliteSpectralMatching())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -45,13 +45,13 @@ START_SECTION((virtual ~MetaboliteSpectralMatching()))
 }
 END_SECTION
 
-START_SECTION((double computeHyperScore(MSSpectrum, MSSpectrum, const double &, const double &)))
+START_SECTION((double computeHyperScore(MSSpectrum, MSSpectrum, const double&, const double&)))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void run(PeakMap &, MzTab &)))
+START_SECTION((void run(PeakMap&, MzTab&)))
 {
   // TODO
 }
@@ -106,11 +106,11 @@ START_SECTION(([Integration] MSPGenericFile parses CCS from MSP library))
 
   // First spectrum: Caffeine with CCS = 141.2
   TEST_EQUAL(library[0].metaValueExists(Constants::UserParam::MSM_CCS), true)
-  TEST_STRING_EQUAL(library[0].getMetaValue(Constants::UserParam::MSM_CCS).toString(), "141.2")
+  TEST_REAL_SIMILAR((double)library[0].getMetaValue(Constants::UserParam::MSM_CCS), 141.2)
 
   // Second spectrum: L-Tryptophan with CCS = 156.78
   TEST_EQUAL(library[1].metaValueExists(Constants::UserParam::MSM_CCS), true)
-  TEST_STRING_EQUAL(library[1].getMetaValue(Constants::UserParam::MSM_CCS).toString(), "156.78")
+  TEST_REAL_SIMILAR((double)library[1].getMetaValue(Constants::UserParam::MSM_CCS), 156.78)
 
   // Verify other MSM meta values are also parsed
   TEST_EQUAL(library[0].metaValueExists(Constants::UserParam::MSM_SUM_FORMULA), true)
@@ -146,11 +146,21 @@ START_SECTION(([Integration] run() populates CCS and drift time in results))
     prec.setCharge(1);
     exp_spectrum.setPrecursors({prec});
 
-    Peak1D p1; p1.setMZ(42.0); p1.setIntensity(100);
-    Peak1D p2; p2.setMZ(69.0); p2.setIntensity(200);
-    Peak1D p3; p3.setMZ(110.0); p3.setIntensity(360);
-    Peak1D p4; p4.setMZ(138.0); p4.setIntensity(800);
-    Peak1D p5; p5.setMZ(195.0); p5.setIntensity(999);
+    Peak1D p1;
+    p1.setMZ(42.0);
+    p1.setIntensity(100);
+    Peak1D p2;
+    p2.setMZ(69.0);
+    p2.setIntensity(200);
+    Peak1D p3;
+    p3.setMZ(110.0);
+    p3.setIntensity(360);
+    Peak1D p4;
+    p4.setMZ(138.0);
+    p4.setIntensity(800);
+    Peak1D p5;
+    p5.setMZ(195.0);
+    p5.setIntensity(999);
     exp_spectrum.push_back(p1);
     exp_spectrum.push_back(p2);
     exp_spectrum.push_back(p3);
@@ -172,10 +182,18 @@ START_SECTION(([Integration] run() populates CCS and drift time in results))
     prec.setCharge(1);
     exp_spectrum.setPrecursors({prec});
 
-    Peak1D p1; p1.setMZ(118.0); p1.setIntensity(300);
-    Peak1D p2; p2.setMZ(146.0); p2.setIntensity(500);
-    Peak1D p3; p3.setMZ(159.0); p3.setIntensity(700);
-    Peak1D p4; p4.setMZ(188.0); p4.setIntensity(999);
+    Peak1D p1;
+    p1.setMZ(118.0);
+    p1.setIntensity(300);
+    Peak1D p2;
+    p2.setMZ(146.0);
+    p2.setIntensity(500);
+    Peak1D p3;
+    p3.setMZ(159.0);
+    p3.setIntensity(700);
+    Peak1D p4;
+    p4.setMZ(188.0);
+    p4.setIntensity(999);
     exp_spectrum.push_back(p1);
     exp_spectrum.push_back(p2);
     exp_spectrum.push_back(p3);
@@ -202,7 +220,7 @@ START_SECTION(([Integration] run() populates CCS and drift time in results))
   TEST_EQUAL(rows.empty(), false)
 
   // Verify results contain our drift time and CCS in optional columns
-  if (!rows.empty())
+  if (! rows.empty())
   {
     bool found_dt = false;
     bool found_ccs = false;
@@ -210,14 +228,8 @@ START_SECTION(([Integration] run() populates CCS and drift time in results))
     {
       for (const auto& opt : row.opt_)
       {
-        if (opt.first == "opt_observed_drift_time" && !found_dt)
-        {
-          found_dt = true;
-        }
-        if (opt.first == "opt_library_ccs" && !found_ccs)
-        {
-          found_ccs = true;
-        }
+        if (opt.first == "opt_observed_drift_time" && ! found_dt) { found_dt = true; }
+        if (opt.first == "opt_library_ccs" && ! found_ccs) { found_ccs = true; }
       }
     }
     TEST_EQUAL(found_dt, true)
@@ -225,8 +237,6 @@ START_SECTION(([Integration] run() populates CCS and drift time in results))
   }
 }
 END_SECTION
-
-
 
 
 /////////////////////////////////////////////////////////////
@@ -256,11 +266,21 @@ START_SECTION(([Integration] CCS tolerance filtering rejects matches outside tol
     prec.setCharge(1);
     exp_spectrum.setPrecursors({prec});
 
-    Peak1D p1; p1.setMZ(42.0); p1.setIntensity(100);
-    Peak1D p2; p2.setMZ(69.0); p2.setIntensity(200);
-    Peak1D p3; p3.setMZ(110.0); p3.setIntensity(360);
-    Peak1D p4; p4.setMZ(138.0); p4.setIntensity(800);
-    Peak1D p5; p5.setMZ(195.0); p5.setIntensity(999);
+    Peak1D p1;
+    p1.setMZ(42.0);
+    p1.setIntensity(100);
+    Peak1D p2;
+    p2.setMZ(69.0);
+    p2.setIntensity(200);
+    Peak1D p3;
+    p3.setMZ(110.0);
+    p3.setIntensity(360);
+    Peak1D p4;
+    p4.setMZ(138.0);
+    p4.setIntensity(800);
+    Peak1D p5;
+    p5.setMZ(195.0);
+    p5.setIntensity(999);
     exp_spectrum.push_back(p1);
     exp_spectrum.push_back(p2);
     exp_spectrum.push_back(p3);
@@ -282,10 +302,18 @@ START_SECTION(([Integration] CCS tolerance filtering rejects matches outside tol
     prec.setCharge(1);
     exp_spectrum.setPrecursors({prec});
 
-    Peak1D p1; p1.setMZ(118.0); p1.setIntensity(300);
-    Peak1D p2; p2.setMZ(146.0); p2.setIntensity(500);
-    Peak1D p3; p3.setMZ(159.0); p3.setIntensity(700);
-    Peak1D p4; p4.setMZ(188.0); p4.setIntensity(999);
+    Peak1D p1;
+    p1.setMZ(118.0);
+    p1.setIntensity(300);
+    Peak1D p2;
+    p2.setMZ(146.0);
+    p2.setIntensity(500);
+    Peak1D p3;
+    p3.setMZ(159.0);
+    p3.setIntensity(700);
+    Peak1D p4;
+    p4.setMZ(188.0);
+    p4.setIntensity(999);
     exp_spectrum.push_back(p1);
     exp_spectrum.push_back(p2);
     exp_spectrum.push_back(p3);
@@ -303,7 +331,7 @@ START_SECTION(([Integration] CCS tolerance filtering rejects matches outside tol
   params_filtered.setValue("frag_mass_error_value", 500.0);
   params_filtered.setValue("mass_error_unit", "ppm");
   params_filtered.setValue("report_mode", "top3");
-  params_filtered.setValue("ccs_error_value", 1.0);  // 1% tolerance
+  params_filtered.setValue("ccs_error_value", 1.0); // 1% tolerance
   msm_filtered.setParameters(params_filtered);
 
   String dummy_db;
