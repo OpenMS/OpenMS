@@ -23,10 +23,8 @@
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <sstream>
-
-#include <QtCore/QFile>
-#include <QtCore/QCoreApplication>
-#include <QtCore/QTimer>
+#include <fstream>
+#include <filesystem>
 
 using namespace OpenMS;
 using namespace std;
@@ -63,10 +61,6 @@ itself).
 The adapter supports Mascot security features as well as proxy connections.
 Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully
 tested (to varying degrees).
-
-@bug Running the adapter on Mascot 2.4 (possibly also other versions) produces the following error messages, which should be ignored:\n
-MascotRemoteQuery: An error occurred (requestId=11): Request aborted (QT Error Code: 7)\n
-MascotRemoteQuery: An error occurred (requestId=12): Request aborted (QT Error Code: 7)
 
 @note Some Mascot server instances seem to fail without reporting back an
 error message. In such cases, try to run the search on another Mascot
@@ -141,20 +135,15 @@ protected:
   }
 
   void parseMascotResponse_(const PeakMap& exp, bool decoy, MascotRemoteQuery* mascot_query, ProteinIdentification& prot_id, PeptideIdentificationList& pep_ids)
-  {   
+  {
     String mascot_tmp_file_name = decoy ? (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_decoy_response") : (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
-    QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
-    mascot_tmp_file.open(QIODevice::WriteOnly);
-    if (decoy)
+
     {
-      mascot_tmp_file.write(mascot_query->getMascotXMLDecoyResponse());
+      const std::string& data = decoy ? mascot_query->getMascotXMLDecoyResponse() : mascot_query->getMascotXMLResponse();
+      std::ofstream ofs(mascot_tmp_file_name, std::ios::binary);
+      ofs.write(data.data(), static_cast<std::streamsize>(data.size()));
     }
-    else
-    {
-      mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
-    }
-    mascot_tmp_file.close();
-  
+
     writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
 
     // set up helper object for looking up spectrum meta data:
@@ -172,7 +161,7 @@ protected:
     }
     else
     {
-      mascot_tmp_file.remove(); // delete file
+      std::filesystem::remove(std::string(mascot_tmp_file_name));
     }
   }
 
@@ -304,15 +293,10 @@ protected:
       stringstream ss;
       mgf_file.store(ss, in, current_batch, true); // write in compact format
 
-      // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
-      // QEventLoop to process the signals and slots and grab the results afterwards from
-      // the MascotRemotQuery instance
-      char** argv2 = const_cast<char**>(argv);
-      QCoreApplication event_loop(argc, argv2);
-      MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
+      MascotRemoteQuery* mascot_query = new MascotRemoteQuery();
       writeDebug_("Setting parameters for Mascot query", 1);
       mascot_query->setParameters(mascot_query_param);
-      
+
       bool internal_decoys = mascot_param.getValue("decoy") == "true";
       // We used internal decoy search. Set that we want to retrieve decoy search results during export.
       if (internal_decoys)
@@ -326,10 +310,8 @@ protected:
       // remove unnecessary spectra
       ss.clear();
 
-      QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
-      QTimer::singleShot(1000, mascot_query, SLOT(run()));
       writeLogInfo_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
-      event_loop.exec();
+      mascot_query->run();
       writeLogInfo_("Mascot query finished");
 
       if (mascot_query->hasError())
