@@ -1632,9 +1632,9 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, owner);
             return nb::make_tuple(mob_arr, int_arr);
         }, "Get mobility and intensity arrays as numpy arrays")
-    
-        .def("get_peaks_struct_raw",
-            [](OpenMS::Mobilogram& self)
+
+        .def("get_peaks_struct_mv",
+            [](OpenMS::Mobilogram& self) -> nb::ndarray<nb::numpy, uint8_t>
             {
                 const size_t n = self.size();
 

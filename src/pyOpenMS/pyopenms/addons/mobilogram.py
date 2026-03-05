@@ -88,7 +88,7 @@ def get_peaks_struct(self):
     Returns a zero-copy numpy structured array of the mobilogram's peaks (AoS layout).
     """
     # Get the raw 1D byte array from C++
-    raw_view = self.get_peaks_struct_raw()
+    raw_view = self.get_peaks_struct_mv()
 
     peak_dtype = np.dtype({
         "names": ["mobility", "intensity"],
