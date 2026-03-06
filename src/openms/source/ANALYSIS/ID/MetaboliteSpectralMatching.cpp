@@ -564,6 +564,7 @@ void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mz
 
           // score result temporarily
           SpectralMatch tmp_match;
+          if (spec_db[search_idx].getPrecursors().empty()) { continue; }
           tmp_match.setObservedPrecursorMass(precursor_mz);
           tmp_match.setFoundPrecursorMass(spec_db[search_idx].getPrecursors()[0].getMZ());
           double obs_rt = floor(msexp[spec_idx].getRT() * 10) / 10.0;
@@ -802,7 +803,8 @@ void MetaboliteSpectralMatching::exportMzTab_(const vector<SpectralMatch>& overa
     vector<MzTabOptionalColumnEntry> optionals;
 
     // ppm error
-    double error_ppm(((current_id.getFoundPrecursorMass() - current_id.getObservedPrecursorMass()) / current_id.getFoundPrecursorMass()) * 1e6);
+    double found_mass = current_id.getFoundPrecursorMass();
+    double error_ppm = (found_mass > 0.0) ? ((found_mass - current_id.getObservedPrecursorMass()) / found_mass * 1e6) : 0.0;
     error_ppm = floor(error_ppm * 100) / 100;
 
     MzTabString ppmerr;

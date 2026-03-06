@@ -14,6 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 
 using namespace OpenMS;
@@ -362,6 +363,72 @@ START_SECTION(([Integration] CCS tolerance filtering rejects matches outside tol
   // Matches should NOT be filtered out when CCS filtering is disabled
   const MzTabSmallMoleculeSectionRows& unfiltered_rows = mztab_unfiltered.getSmallMoleculeSectionRows();
   TEST_EQUAL(unfiltered_rows.empty(), false)
+}
+END_SECTION
+
+START_SECTION(([Integration] run() with real mzML and MSP files))
+{
+  FileHandler fh;
+  MSExperiment msexp;
+  fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MetaboliteSpectralMatching_real_file.mzML"), msexp);
+  TEST_EQUAL(msexp.size(), 2)
+  TEST_EQUAL(msexp[0].size(), 3)
+  TEST_EQUAL(msexp[1].size(), 3)
+
+  MSPGenericFile msp;
+  MSExperiment spec_db;
+  msp.load(OPENMS_GET_TEST_DATA_PATH("MetaboliteSpectralMatching_real_file.msp"), spec_db);
+  TEST_EQUAL(spec_db.size(), 2)
+  TEST_EQUAL(spec_db[0].size(), 3)
+  TEST_EQUAL(spec_db[1].size(), 3)
+
+  MetaboliteSpectralMatching msm;
+  Param params = msm.getParameters();
+  params.setValue("ccs_error_value", 5.0); // 5% tolerance
+  params.setValue("prec_mass_error_value", 10.0);
+  params.setValue("frag_mass_error_value", 500.0);
+  params.setValue("mass_error_unit", "ppm");
+  msm.setParameters(params);
+
+  MzTab mztab_out;
+  String out_spectra = "";
+  msm.run(msexp, spec_db, mztab_out, out_spectra);
+
+  const MzTabSmallMoleculeSectionRows& sm_rows = mztab_out.getSmallMoleculeSectionRows();
+
+  // Spectrum 1 (Caffeine): obs CCS 150.0, lib CCS 151.5. Error = 0.99% < 5%. Should MATCH.
+  // Spectrum 2 (L-Tryptophan): obs CCS 150.0, lib CCS 160.0. Error = 6.25% > 5%. Should NOT match.
+
+  bool caffeine_found = false;
+  bool tryptophan_found = false;
+  for (const auto& row : sm_rows)
+  {
+    if (row.identifier.get().at(0).get().find("Caffeine") != String::npos)
+    {
+      caffeine_found = true;
+      bool found_dt = false;
+      bool found_ccs = false;
+      for (const auto& opt : row.opt_)
+      {
+        if (opt.first == "opt_observed_drift_time")
+        {
+          found_dt = true;
+          TEST_REAL_SIMILAR(opt.second.get().toDouble(), 150.0)
+        }
+        if (opt.first == "opt_library_ccs")
+        {
+          found_ccs = true;
+          TEST_REAL_SIMILAR(opt.second.get().toDouble(), 151.5)
+        }
+      }
+      TEST_EQUAL(found_dt, true)
+      TEST_EQUAL(found_ccs, true)
+    }
+    if (row.identifier.get().at(0).get().find("L-Tryptophan") != String::npos) tryptophan_found = true;
+  }
+
+  TEST_EQUAL(caffeine_found, true)
+  TEST_EQUAL(tryptophan_found, false)
 }
 END_SECTION
 
