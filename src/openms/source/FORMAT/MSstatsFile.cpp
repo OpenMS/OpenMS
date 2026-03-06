@@ -266,6 +266,10 @@ void MSstatsFile::storeLFQ(const String& filename,
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
   }
+  else if (spectra_paths.size() < design_filenames.size())
+  {
+    OPENMS_LOG_WARN << "Warning: The consensus map contains a subset of the files specified in the experimental design. Proceeding with the available subset." << endl;
+  }
 
   // Extract information from the consensus features.
   MSstatsFile::AggregatedConsensusInfo aggregatedInfo = MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
@@ -534,6 +538,10 @@ void MSstatsFile::storeISO(const String& filename,
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
   }
+  else if (spectra_paths.size() < design_filenames.size())
+  {
+    OPENMS_LOG_WARN << "Warning: The consensus map contains a subset of the files specified in the experimental design. Proceeding with the available subset." << endl;
+  }
 
   // Extract information from the consensus features.
   MSstatsFile::AggregatedConsensusInfo AggregatedInfo = MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
@@ -669,8 +677,9 @@ bool MSstatsFile::checkUnorderedContent_(const std::vector<String> &first, const
 {
   const std::set< String > lhs(first.begin(), first.end());
   const std::set< String > rhs(second.begin(), second.end());
-  return lhs == rhs
-         && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+
+  // Return true if lhs (consensus map files) is a subset of rhs (design files)
+  return std::includes(rhs.begin(), rhs.end(), lhs.begin(), lhs.end());
 }
 
 void MSstatsFile::assembleRunMap_(
@@ -743,6 +752,6 @@ bool MSstatsFile::isQuantifyable_(
       return false;
     }
   }
-  
+
   return true;
 }
