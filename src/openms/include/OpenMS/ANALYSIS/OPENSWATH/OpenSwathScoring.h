@@ -191,6 +191,7 @@ namespace OpenMS
      * @param[in] drift_target target drift value
      * @param[in] range_im drift time lower and upper bounds
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to
      *
     */
   void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -203,7 +204,8 @@ namespace OpenMS
               std::vector<double>& mzerror_ppm,
               const double drift_target,
               const RangeMobility& range_im,
-              MobilogramParquetConsumer* mobilogram_consumer = nullptr);
+              MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+              Int64 feature_id = -1);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
@@ -239,6 +241,7 @@ namespace OpenMS
      * @param[out] scores The object to store the result
      * @param[out] drift_target target drift value
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to
      *
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -249,7 +252,8 @@ namespace OpenMS
                               const OpenMS::DIAScoring & diascoring,
                               OpenSwath_Scores & scores,
                               const double drift_target,
-                              MobilogramParquetConsumer* mobilogram_consumer = nullptr);
+                              MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+                              Int64 feature_id = -1);
 
     /** @brief Computing the normalized library intensities from the transition objects
      *
