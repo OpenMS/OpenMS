@@ -25,6 +25,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMobilogram.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <limits>
 #include <vector>
 namespace OpenMS
 {
@@ -76,6 +77,9 @@ namespace OpenMS
       @param[in] dia_extraction_ppm_ Whether m/z extraction width is in ppm
       @param[in] drift_extra Extend the extraction window to gain a larger field of view beyond drift_upper - drift_lower (in percent)
       @param[in] apply_im_peak_picking Apply peak picking on the ion mobilogram
+      @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms to disk. 
+      @param[in] feature_rt Optional retention time apex that the extract ion mobilogram corresponds to.
+      @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to.
     */
     static void driftScoring(const SpectrumSequence& spectra,
                              const std::vector<TransitionType> & transitions,
@@ -86,7 +90,9 @@ namespace OpenMS
                              const bool dia_extraction_ppm_,
                              const double drift_extra,
                              const bool apply_im_peak_picking,
-                             MobilogramParquetConsumer* mobilogram_consumer = nullptr);
+                             MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+                             const double feature_rt = std::numeric_limits<double>::quiet_NaN(),
+                             Int64 feature_id = -1);
 
     /**
       @brief Performs scoring of the ion mobility dimension in MS1
@@ -101,6 +107,9 @@ namespace OpenMS
       @param[in] dia_extraction_window_ m/z extraction width
       @param[in] dia_extraction_ppm_ Whether m/z extraction width is in ppm
       @param[in] drift_extra Extra extraction to use for drift time (in percent)
+      @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms to disk.
+      @param[in] feature_rt Optional retention time apex that the extract ion mobilogram corresponds to.
+      @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to.      
     */
     static void driftScoringMS1(const SpectrumSequence& spectra,
                                 const std::vector<TransitionType> & transitions,
@@ -110,7 +119,9 @@ namespace OpenMS
                                 const double dia_extraction_window_,
                                 const bool dia_extraction_ppm_,
                                 const double drift_extra,
-                                MobilogramParquetConsumer* mobilogram_consumer = nullptr);
+                                MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+                                const double feature_rt = std::numeric_limits<double>::quiet_NaN(),
+                                Int64 feature_id = -1);
 
     /**
       @brief Performs scoring of the ion mobility dimension in MS1 and MS2 (contrast)
@@ -125,6 +136,9 @@ namespace OpenMS
       @param[in] dia_extraction_window_ m/z extraction width
       @param[in] dia_extraction_ppm_ Whether m/z extraction width is in ppm
       @param[in] drift_extra Extra extraction to use for drift time (in percent)
+      @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms to disk.
+      @param[in] feature_rt Optional retention time apex that the extract ion mobilogram corresponds to.
+      @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to.
     */
     static void driftScoringMS1Contrast(const SpectrumSequence& spectra, const SpectrumSequence& ms1spectrum,
                                         const std::vector<TransitionType> & transitions,
@@ -133,7 +147,9 @@ namespace OpenMS
                                         const double dia_extraction_window_,
                                         const bool dia_extraction_ppm_,
                                         const double drift_extra,
-                                        MobilogramParquetConsumer* mobilogram_consumer = nullptr);
+                                        MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+                                        const double feature_rt = std::numeric_limits<double>::quiet_NaN(),
+                                        Int64 feature_id = -1);
 
     /**
       @brief Performs scoring of the ion mobility dimension for identification transitions against detection transitions
@@ -148,6 +164,9 @@ namespace OpenMS
       @param[in] dia_extraction_ppm_ Whether m/z extraction width is in ppm
       @param[in] drift_extra Extra extraction to use for drift time (in percent)
       @param[in] apply_im_peak_picking Apply peak pickng on the ion mobilogram
+      @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms to disk.
+      @param[in] feature_rt Optional retention time apex that the extract ion mobilogram corresponds to.
+      @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to.
     */
     static void driftIdScoring(const SpectrumSequence& spectra,
                                 const std::vector<TransitionType> & transitions,
@@ -159,7 +178,9 @@ namespace OpenMS
                                 const bool dia_extraction_ppm_,
                                 const double drift_extra,
                                 const bool apply_im_peak_picking,
-                                MobilogramParquetConsumer* mobilogram_consumer = nullptr);
+                                MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+                                const double feature_rt = std::numeric_limits<double>::quiet_NaN(),
+                                Int64 feature_id = -1);
 
     /**
      * @brief computes ion mobilogram to be used in scoring based on mz_range and im_range.
