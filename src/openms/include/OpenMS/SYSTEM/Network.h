@@ -20,7 +20,7 @@ namespace OpenMS
     /**
       @brief Download file from given URL into a download folder. Returns when done.
 
-      If a file with same filename already exists, continues download and appends '.\#number' to basename.
+      If a file with same filename already exists, creates a new file with '.number' appended to the basename.
 
       @throw IOException if download failed.
     */
