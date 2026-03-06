@@ -231,31 +231,31 @@ tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {Fi
 // compute hash
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
 
-// Regression test: computeFileHash must work with non-ASCII (UTF-8) paths
+// Regression test: computeFileHash must work with non-ASCII paths
 {
   namespace fs = std::filesystem;
-  // Create a subdirectory with non-ASCII characters (German umlauts, Japanese)
-  fs::path utf8_dir = fs::path(std::string(File::getTempDirectory())) / u8"openms_t\u00e4st_\u30c6\u30b9\u30c8";
+  // Use u8"" for portable path construction. Only use Latin-1 characters (ä, ü) that are
+  // representable in Windows-1252 so that path::string() round-trips correctly on Windows.
+  // CJK characters would fail because Windows path::string() uses the Active Code Page.
+  fs::path nonascii_dir = fs::path(std::string(File::getTempDirectory())) / u8"openms_t\u00e4st_\u00fc";
   std::error_code ec;
-  fs::create_directories(utf8_dir, ec);
+  fs::create_directories(nonascii_dir, ec);
   if (!ec)
   {
-    // Write a small test file
-    fs::path utf8_file = utf8_dir / "test.txt";
+    fs::path nonascii_file = nonascii_dir / "test.txt";
     {
-      std::ofstream ofs{utf8_file, std::ios::binary};
+      std::ofstream ofs{nonascii_file, std::ios::binary};
       ofs << "hello";
     }
-    String hash = FileHandler::computeFileHash(utf8_file.string());
+    String hash = FileHandler::computeFileHash(nonascii_file.string());
     TEST_EQUAL(hash.empty(), false) // must succeed, not return ""
     // Clean up
-    fs::remove(utf8_file, ec);
-    fs::remove(utf8_dir, ec);
+    fs::remove(nonascii_file, ec);
+    fs::remove(nonascii_dir, ec);
   }
   else
   {
-    // If the OS can't create non-ASCII dirs (unlikely), skip silently
-    STATUS("Skipping UTF-8 path test: could not create directory with non-ASCII name")
+    STATUS("Skipping non-ASCII path test: could not create directory")
   }
 }
 END_SECTION
