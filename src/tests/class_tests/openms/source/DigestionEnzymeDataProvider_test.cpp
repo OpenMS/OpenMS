@@ -12,14 +12,14 @@
 
 ///////////////////////////
 
-#include <OpenMS/CHEMISTRY/DigestionEnzymeDataProvider.h>
-#include <OpenMS/CHEMISTRY/EnzymeXMLDataProvider.h>
 #include <OpenMS/CHEMISTRY/BuiltInProteaseDataProvider.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeDataProvider.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/EnzymeXMLDataProvider.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -35,10 +35,8 @@ START_TEST(DigestionEnzymeDataProvider, "$Id$")
 START_SECTION(InMemoryDigestionEnzymeDataProvider - DigestionEnzymeProtein)
 {
   vector<unique_ptr<DigestionEnzymeProtein>> enzymes;
-  enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "TestProtease", "(?<=[K])", set<String>{"test_syn"}, "Test protease description"));
-  enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "TestProtease2", "(?<=[R])", set<String>(), "Another test protease"));
+  enzymes.push_back(make_unique<DigestionEnzymeProtein>("TestProtease", "(?<=[K])", set<String> {"test_syn"}, "Test protease description"));
+  enzymes.push_back(make_unique<DigestionEnzymeProtein>("TestProtease2", "(?<=[R])", set<String>(), "Another test protease"));
 
   InMemoryDigestionEnzymeDataProvider<DigestionEnzymeProtein> provider(std::move(enzymes));
   auto loaded = provider.loadEnzymes();
@@ -89,7 +87,7 @@ START_SECTION(EnzymeXMLDataProvider - load RNA enzymes from XML)
   bool found_rnase = false;
   for (const auto& e : loaded)
   {
-    if (!e->getName().empty())
+    if (! e->getName().empty())
     {
       found_rnase = true;
       break;
@@ -118,7 +116,7 @@ END_SECTION
 // BuiltInProteaseDataProvider tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(BuiltInProteaseDataProvider - load built-in enzymes)
+START_SECTION(BuiltInProteaseDataProvider - load built - in enzymes)
 {
   BuiltInProteaseDataProvider provider;
   auto loaded = provider.loadEnzymes();
@@ -128,15 +126,23 @@ START_SECTION(BuiltInProteaseDataProvider - load built-in enzymes)
   bool found_trypsin = false;
   bool found_argc = false;
   bool found_lysc = false;
+  bool found_thermo = false;
+  bool found_pk = false;
   for (const auto& e : loaded)
   {
     if (e->getName() == "Trypsin") found_trypsin = true;
     if (e->getName() == "Arg-C") found_argc = true;
     if (e->getName() == "Lys-C") found_lysc = true;
+    if (e->getName() == "thermolysin" || e->hasSynonym("thermolysin") || e->getName() == "Thermolysin" || e->hasSynonym("Thermolysin"))
+      found_thermo = true;
+    if (e->getName() == "proteinasek" || e->hasSynonym("proteinasek") || e->getName() == "Proteinase K" || e->hasSynonym("Proteinase K"))
+      found_pk = true;
   }
-  TEST_EQUAL(found_trypsin, true)
-  TEST_EQUAL(found_argc, true)
-  TEST_EQUAL(found_lysc, true)
+  TEST_TRUE(found_trypsin)
+  TEST_TRUE(found_argc)
+  TEST_TRUE(found_lysc)
+  TEST_TRUE(found_thermo)
+  TEST_TRUE(found_pk)
 }
 END_SECTION
 
@@ -173,17 +179,15 @@ START_SECTION(ProteaseDB - construct from providers)
 
   // Add just two test enzymes via InMemoryDigestionEnzymeDataProvider
   vector<unique_ptr<DigestionEnzymeProtein>> enzymes;
-  enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "CustomEnzyme1", "(?<=[K])", set<String>{"custom_syn"}, "Custom enzyme 1"));
-  enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "CustomEnzyme2", "(?<=[R])", set<String>(), "Custom enzyme 2"));
+  enzymes.push_back(make_unique<DigestionEnzymeProtein>("CustomEnzyme1", "(?<=[K])", set<String> {"custom_syn"}, "Custom enzyme 1"));
+  enzymes.push_back(make_unique<DigestionEnzymeProtein>("CustomEnzyme2", "(?<=[R])", set<String>(), "Custom enzyme 2"));
   providers.push_back(make_unique<InMemoryDigestionEnzymeDataProvider<DigestionEnzymeProtein>>(std::move(enzymes)));
 
   ProteaseDB db(std::move(providers));
   TEST_EQUAL(db.hasEnzyme("CustomEnzyme1"), true)
   TEST_EQUAL(db.hasEnzyme("CustomEnzyme2"), true)
   TEST_EQUAL(db.hasEnzyme("custom_syn"), true) // synonym
-  TEST_EQUAL(db.hasEnzyme("Trypsin"), false) // not loaded
+  TEST_EQUAL(db.hasEnzyme("Trypsin"), false)   // not loaded
 
   vector<String> names;
   db.getAllNames(names);

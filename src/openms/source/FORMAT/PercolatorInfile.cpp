@@ -6,6 +6,8 @@
 // $Authors: Timo Sachsenberg, Johannes von Kleist $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
@@ -542,29 +544,39 @@ TextFile PercolatorInfile::preparePin_(const PeptideIdentificationList& peptide_
 
 bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
 {
-  if (enz == "trypsin") { return ((n == 'K' || n == 'R') && c != 'P') || n == '-' || c == '-'; }
-  else if (enz == "trypsinp") { return (n == 'K' || n == 'R') || n == '-' || c == '-'; }
-  else if (enz == "chymotrypsin") { return ((n == 'F' || n == 'W' || n == 'Y' || n == 'L') && c != 'P') || n == '-' || c == '-'; }
-  else if (enz == "thermolysin")
+  // Terminal positions (protein N/C-terminus) are always considered enzymatic
+  if (n == '-' || c == '-') { return true; }
+
+  // Use OpenMS ProteaseDigestion to check enzymatic cleavage.
+  // We do not cache locally; setEnzyme is reasonably fast, and caller should optimize if needed.
+  ProteaseDigestion digest;
+
+  // Map Percolator enzyme names to OpenMS ProteaseDB enzyme names via ProteaseDB
+  try
   {
-    return ((c == 'A' || c == 'F' || c == 'I' || c == 'L' || c == 'M' || c == 'V' || (n == 'R' && c == 'G')) && n != 'D' && n != 'E') || n == '-'
-           || c == '-';
+    if (ProteaseDB::getInstance()->hasEnzyme(String(enz))) { digest.setEnzyme(String(enz)); }
+    else
+    {
+      // Try checking if it's a known synonym. ProteaseDB handles synonyms.
+      digest.setEnzyme(String(enz)); // this throws if not found
+    }
   }
-  else if (enz == "proteinasek")
+  catch (Exception::ElementNotFound&)
   {
-    return (n == 'A' || n == 'E' || n == 'F' || n == 'I' || n == 'L' || n == 'T' || n == 'V' || n == 'W' || n == 'Y') || n == '-' || c == '-';
+    // Map known Percolator enzyme names to OpenMS ProteaseDB enzyme names
+    static const std::unordered_map<std::string, std::string> name_map
+      = {{"trypsinp", "Trypsin/P"},           {"elastase", "leukocyte elastase"}, {"pepsin", "PepsinA"},
+         {"glu-c", "glutamyl endopeptidase"}, {"proteinasek", "Proteinase K"},    {"no_enzyme", "unspecific cleavage"}};
+
+    auto mapped_enz = name_map.find(enz);
+    if (mapped_enz != name_map.end()) { digest.setEnzyme(mapped_enz->second); }
+    else { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown enzyme name in isEnz_", enz); }
   }
-  else if (enz == "pepsin")
-  {
-    return ((c == 'F' || c == 'L' || c == 'W' || c == 'Y' || n == 'F' || n == 'L' || n == 'W' || n == 'Y') && n != 'R') || n == '-' || c == '-';
-  }
-  else if (enz == "elastase") { return ((n == 'L' || n == 'V' || n == 'A' || n == 'G') && c != 'P') || n == '-' || c == '-'; }
-  else if (enz == "lys-n") { return (c == 'K') || n == '-' || c == '-'; }
-  else if (enz == "lys-c") { return ((n == 'K') && c != 'P') || n == '-' || c == '-'; }
-  else if (enz == "arg-c") { return ((n == 'R') && c != 'P') || n == '-' || c == '-'; }
-  else if (enz == "asp-n") { return (c == 'D') || n == '-' || c == '-'; }
-  else if (enz == "glu-c") { return ((n == 'E') && (c != 'P')) || n == '-' || c == '-'; }
-  else { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown enzyme name in isEnz_", enz); }
+
+  // Construct a minimal 2-residue "protein" and check if the
+  // single-residue peptide at position 0 is a valid digestion product
+  const String mini_protein = String(1, n) + String(1, c);
+  return digest.isValidProduct(mini_protein, 0, 1, true);
 }
 
 // Function adapted from Enzyme.h in Percolator converter
