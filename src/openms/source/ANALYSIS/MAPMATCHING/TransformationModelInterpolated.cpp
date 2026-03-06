@@ -27,9 +27,7 @@ namespace OpenMS
 class Spline2dInterpolator : public TransformationModelInterpolated::Interpolator
 {
 public:
-  Spline2dInterpolator()
-
-    = default;
+  Spline2dInterpolator() = default;
 
   void init(std::vector<double>& x, std::vector<double>& y) override
   {
@@ -54,9 +52,7 @@ private:
 class AkimaInterpolator : public TransformationModelInterpolated::Interpolator
 {
 public:
-  AkimaInterpolator()
-
-    = default;
+  AkimaInterpolator() = default;
 
   void init(std::vector<double>& x, std::vector<double>& y) override
   {
@@ -129,61 +125,46 @@ private:
   std::vector<double> y_;
 };
 
-void TransformationModelInterpolated::preprocessDataPoints_(const DataPoints& data)
+template<typename Container>
+void preprocessDataPointsImpl_(const Container& data, std::vector<double>& x, std::vector<double>& y)
 {
   // need monotonically increasing x values (can't have the same value twice):
   std::map<double, std::vector<double>> mapping;
-  for (TransformationModel::DataPoints::const_iterator it = data.begin(); it != data.end(); ++it)
+  for (auto it = data.begin(); it != data.end(); ++it)
   {
     mapping[it->first].push_back(it->second);
   }
-  x_.resize(mapping.size());
-  y_.resize(mapping.size());
+  x.resize(mapping.size());
+  y.resize(mapping.size());
   size_t i = 0;
-  for (std::map<double, std::vector<double>>::const_iterator it = mapping.begin(); it != mapping.end(); ++it, ++i)
+  for (auto it = mapping.begin(); it != mapping.end(); ++it, ++i)
   {
-    x_[i] = it->first;
+    x[i] = it->first;
     // use average y value:
-    y_[i] = std::accumulate(it->second.begin(), it->second.end(), 0.0) / it->second.size();
+    y[i] = std::accumulate(it->second.begin(), it->second.end(), 0.0) / it->second.size();
   }
 
   // ensure that we have enough points for an interpolation
-  if (x_.size() < 3)
+  if (x.size() < 3)
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "Cubic spline model needs at least 3 data points (with unique x values)");
   }
+}
+
+void TransformationModelInterpolated::preprocessDataPoints_(const DataPoints& data)
+{
+  preprocessDataPointsImpl_(data, x_, y_);
 }
 
 void TransformationModelInterpolated::preprocessDataPoints_(const std::vector<std::pair<double, double>>& data)
 {
-  // need monotonically increasing x values (can't have the same value twice):
-  std::map<double, std::vector<double>> mapping;
-  for (std::vector<std::pair<double, double>>::const_iterator it = data.begin(); it != data.end(); ++it)
-  {
-    mapping[it->first].push_back(it->second);
-  }
-  x_.resize(mapping.size());
-  y_.resize(mapping.size());
-  size_t i = 0;
-  for (std::map<double, std::vector<double>>::const_iterator it = mapping.begin(); it != mapping.end(); ++it, ++i)
-  {
-    x_[i] = it->first;
-    // use average y value:
-    y_[i] = std::accumulate(it->second.begin(), it->second.end(), 0.0) / it->second.size();
-  }
-
-  // ensure that we have enough points for an interpolation
-  if (x_.size() < 3)
-  {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     "Cubic spline model needs at least 3 data points (with unique x values)");
-  }
+  preprocessDataPointsImpl_(data, x_, y_);
 }
 
 TransformationModelInterpolated::TransformationModelInterpolated(const std::vector<std::pair<double, double>>& data,
                                                                  const Param& params,
-                                                                 bool preprocess = true)
+                                                                 bool preprocess)
 {
   params_ = params;
   Param defaults;
@@ -253,8 +234,6 @@ TransformationModelInterpolated::TransformationModelInterpolated(const std::vect
   }
   else
   {
-
-
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
   }
@@ -312,8 +291,6 @@ TransformationModelInterpolated::TransformationModelInterpolated(const Transform
   }
   else
   {
-
-
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
   }

@@ -299,6 +299,24 @@ vector<unique_ptr<DigestionEnzymeProtein>> BuiltInProteaseDataProvider::loadEnzy
                                                         17 // OMSSAID
                                                         ));
 
+  // Thermolysin
+  enzymes.push_back(make_unique<DigestionEnzymeProtein>("Thermolysin", "(?=[AFVILM])(?<![DE])", set<String> {"thermolysin"},
+                                                        "Thermolysin cleaves before A, F, I, L, M, V unless preceded by D or E.",
+                                                        EmpiricalFormula("H"), EmpiricalFormula("OH"), "", "",
+                                                        -1, // CometID
+                                                        -1, // MSGFID
+                                                        -1  // OMSSAID
+                                                        ));
+
+  // Proteinase K
+  enzymes.push_back(make_unique<DigestionEnzymeProtein>("Proteinase K", "(?<=[AEFILTVWY])", set<String> {"proteinasek"},
+                                                        "Proteinase K cleaves after A, E, F, I, L, T, V, W, Y.", EmpiricalFormula("H"),
+                                                        EmpiricalFormula("OH"), "", "",
+                                                        -1, // CometID
+                                                        -1, // MSGFID
+                                                        -1  // OMSSAID
+                                                        ));
+
   return enzymes;
 }
 

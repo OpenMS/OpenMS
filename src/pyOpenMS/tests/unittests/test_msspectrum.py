@@ -176,11 +176,7 @@ class TestMSSpectrum(unittest.TestCase):
         
         # Empty spectrum - should return UNKNOWN
         spec_type = spec.getType(False)
-        self.assertIn(spec_type, [
-            pyopenms.SpectrumSettings.SpectrumType.UNKNOWN,
-            pyopenms.SpectrumSettings.SpectrumType.CENTROID,
-            pyopenms.SpectrumSettings.SpectrumType.PROFILE
-        ])
+        self.assertEqual(spec_type, pyopenms.SpectrumSettings.SpectrumType.UNKNOWN)
         
         # Set type explicitly
         spec.setType(pyopenms.SpectrumSettings.SpectrumType.CENTROID)
