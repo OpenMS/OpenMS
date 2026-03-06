@@ -235,7 +235,7 @@ TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d
 {
   namespace fs = std::filesystem;
   // Create a subdirectory with non-ASCII characters (German umlauts, Japanese)
-  fs::path utf8_dir = fs::path(File::getTempDirectory()) / u8"openms_t\u00e4st_\u30c6\u30b9\u30c8";
+  fs::path utf8_dir = fs::path(std::string(File::getTempDirectory())) / u8"openms_t\u00e4st_\u30c6\u30b9\u30c8";
   std::error_code ec;
   fs::create_directories(utf8_dir, ec);
   if (!ec)
