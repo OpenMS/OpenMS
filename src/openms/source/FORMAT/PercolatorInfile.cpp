@@ -368,6 +368,22 @@ TextFile PercolatorInfile::preparePin_(const PeptideIdentificationList& peptide_
                                        int min_charge,
                                        int max_charge)
 {
+  ProteaseDigestion digest;
+  try
+  {
+    if (ProteaseDB::getInstance()->hasEnzyme(String(enz))) { digest.setEnzyme(String(enz)); }
+    else { digest.setEnzyme(String(enz)); }
+  }
+  catch (Exception::ElementNotFound&)
+  {
+    static const std::unordered_map<std::string, std::string> name_map
+      = {{"trypsinp", "Trypsin/P"},           {"elastase", "leukocyte elastase"}, {"pepsin", "PepsinA"},
+         {"glu-c", "glutamyl endopeptidase"}, {"proteinasek", "Proteinase K"},    {"no_enzyme", "unspecific cleavage"}};
+    auto mapped_enz = name_map.find(enz);
+    if (mapped_enz != name_map.end()) { digest.setEnzyme(mapped_enz->second); }
+    else { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown enzyme name in preparePin_", enz); }
+  }
+
   TextFile txt;
   txt.addLine(ListUtils::concatenate(feature_set, '\t'));
   if (peptide_ids.empty())
@@ -471,11 +487,11 @@ TextFile PercolatorInfile::preparePin_(const PeptideIdentificationList& peptide_
       char aa_before = hit.getPeptideEvidences().front().getAABefore();
       char aa_after = hit.getPeptideEvidences().front().getAAAfter();
 
-      bool enzN = isEnz_(aa_before, unmodified_sequence.prefix(1)[0], enz);
+      bool enzN = isEnz_(aa_before, unmodified_sequence.prefix(1)[0], digest);
       hit.setMetaValue("enzN", enzN);
-      bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], aa_after, enz);
+      bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], aa_after, digest);
       hit.setMetaValue("enzC", enzC);
-      int enzInt = countEnzymatic_(unmodified_sequence, enz);
+      int enzInt = countEnzymatic_(unmodified_sequence, digest);
       hit.setMetaValue("enzInt", enzInt);
 
       hit.setMetaValue("dm", delta_mass);
@@ -581,11 +597,8 @@ bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& e
   return digest.isValidProduct(mini_protein, 0, 1, true);
 }
 
-Size PercolatorInfile::countEnzymatic_(const String& peptide, const std::string& enz)
+Size PercolatorInfile::countEnzymatic_(const String& peptide, const ProteaseDigestion& digest)
 {
-  ProteaseDigestion digest;
-  digest.setEnzyme(enz);
-
   // Use optimized internal counting
   return digest.countInternalCleavageSites(peptide);
 }
