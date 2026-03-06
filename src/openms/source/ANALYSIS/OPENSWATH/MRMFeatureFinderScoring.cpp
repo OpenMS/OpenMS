@@ -20,6 +20,7 @@
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <boost/range/adaptor/map.hpp>
 #include <memory>
@@ -318,6 +319,7 @@ namespace OpenMS
                                                                      MRMTransitionGroupType& trgr_detect,
                                                                      OpenSwathScoring& scorer,
                                                                      const size_t feature_idx,
+                                                                     const Int64 feature_id,
                                                                      const std::vector<std::string>& native_ids_detection,
                                                                      const double det_intensity_ratio_score,
                                                                      const double det_mi_ratio_score,
@@ -461,7 +463,7 @@ namespace OpenMS
         scorer.calculateDIAIdScores(idimrmfeature,
                                     trgr_ident.getTransition(native_ids_identification[i]),
                                     trgr_detect,
-                                    swath_maps, im_range, diascoring_, tmp_scores, drift_target, mobilogram_consumer);
+                                    swath_maps, im_range, diascoring_, tmp_scores, drift_target, mobilogram_consumer, feature_id);
 
         ind_isotope_correlation.push_back(tmp_scores.isotope_correlation);
         ind_isotope_overlap.push_back(tmp_scores.isotope_overlap);
@@ -622,8 +624,10 @@ namespace OpenMS
     for (SignedSize feature_idx = 0; feature_idx < (SignedSize) mrmfeatures.size(); ++feature_idx)
     {
       auto& mrmfeature = mrmfeatures[feature_idx];
+      mrmfeature.ensureUniqueId();
       OpenSwath::IMRMFeature* imrmfeature;
       imrmfeature = new MRMFeatureOpenMS(mrmfeature);
+      const Int64 feature_id = mrmfeature.hasValidUniqueId() ? static_cast<Int64>(Internal::SqliteHelper::clearSignBit(mrmfeature.getUniqueId())) : -1;
 
       OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
         " [ expected RT " << PeptideRefMap_.at(mrmfeature.getMetaValue("PeptideRef"))->rt << " / " << expected_rt << " ]" <<
@@ -739,7 +743,7 @@ namespace OpenMS
           scorer.calculateDIAScores(imrmfeature,
                                     transition_group_detection.getTransitions(),
                                     swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
-                                    drift_target, im_range, mobilogram_consumer);
+                                    drift_target, im_range, mobilogram_consumer, feature_id);
           mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
         }
         
@@ -765,6 +769,7 @@ namespace OpenMS
         if (su_.use_uis_scores && !transition_group_identification.getTransitions().empty())
         {
           OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
+                                                               feature_id,
                                                                native_ids_detection, det_intensity_ratio_score,
                                                                det_mi_ratio_score, swath_maps,drift_target, im_range, mobilogram_consumer);
           mrmfeature.IDScoresAsMetaValue(false, idscores);
@@ -772,6 +777,7 @@ namespace OpenMS
         if (su_.use_uis_scores && !transition_group_identification_decoy.getTransitions().empty())
         {
           OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
+                                                               feature_id,
                                                                native_ids_detection, det_intensity_ratio_score,
                                                                det_mi_ratio_score, swath_maps, drift_target, im_range, mobilogram_consumer);
           mrmfeature.IDScoresAsMetaValue(true, idscores);

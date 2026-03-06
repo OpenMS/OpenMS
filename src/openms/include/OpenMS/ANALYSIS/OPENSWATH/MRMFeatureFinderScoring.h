@@ -243,6 +243,7 @@ private:
      * @param[out] transition_group_detection Containing all detecting transitions
      * @param[in] scorer An instance of OpenSwathScoring
      * @param[in] feature_idx The index of the current feature
+     * @param[in] feature_id The id of the current feature
      * @param[in] native_ids_detection The native IDs of the detecting transitions
      * @param[in] det_intensity_ratio_score The intensity score of the detection transitions for normalization
      * @param[in] det_mi_ratio_score The MI score of the detection transitions for normalization
@@ -258,6 +259,7 @@ private:
                                               MRMTransitionGroupType& transition_group_detection,
                                               OpenSwathScoring& scorer,
                                               const size_t feature_idx,
+                                              const Int64 feature_id,
                                               const std::vector<std::string> & native_ids_detection,
                                               const double det_intensity_ratio_score,
                                               const double det_mi_ratio_score,
