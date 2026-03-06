@@ -1307,11 +1307,12 @@ add_test("TOPP_MSstatsConverter_3" ${TOPP_BIN_PATH}/MSstatsConverter -test -in $
 add_test("TOPP_MSstatsConverter_3_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MSstatsConverter_3_out.tmp.csv -in2 ${DATA_DIR_TOPP}/MSstatsConverter_3_out.csv )
 set_tests_properties("TOPP_MSstatsConverter_3_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_3")
 
-add_test(NAME TOPP_MSstatsConverter_subset COMMAND $<TARGET_FILE:MSstatsConverter> -in ${DATA_DIR_TOPP}/MSstatsConverter_subset_in.consensusXML -in_design ${DATA_DIR_TOPP}/MSstatsConverter_subset_design.tsv -out MSstatsConverter_subset_out.csv)
+# MSstatsConverter subset test
+add_test("TOPP_MSstatsConverter_subset" ${TOPP_BIN_PATH}/MSstatsConverter -test -in ${DATA_DIR_TOPP}/MSstatsConverter_subset_in.consensusXML -in_design ${DATA_DIR_TOPP}/MSstatsConverter_subset_design.tsv -out ${TESTS_TEMP_DIR}/MSstatsConverter_subset_out.tmp.csv)
 
-# Use standard diff for CSV comparison
-add_test(NAME TOPP_MSstatsConverter_subset_out1 COMMAND diff MSstatsConverter_subset_out.csv ${DATA_DIR_TOPP}/MSstatsConverter_subset_out.csv)
-set_tests_properties(TOPP_MSstatsConverter_subset_out1 PROPERTIES DEPENDS TOPP_MSstatsConverter_subset)
+add_test("TOPP_MSstatsConverter_subset_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MSstatsConverter_subset_out.tmp.csv -in2 ${DATA_DIR_TOPP}/MSstatsConverter_subset_out.csv)
+
+set_tests_properties("TOPP_MSstatsConverter_subset_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_subset")
 if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
   # MRM / SWATH tests (from OpenSWATH)

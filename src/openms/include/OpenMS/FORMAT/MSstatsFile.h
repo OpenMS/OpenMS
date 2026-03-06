@@ -46,7 +46,17 @@ namespace OpenMS
                       const String& condition,
                       const String& retention_time_summarization_method);
 
-        /// store isobaric experiment (MSstatsTMT)
+        /**
+         * @brief Store isobaric experiment (MSstatsTMT)
+         * @param[in] filename Output filename
+         * @param[in] consensus_map ConsensusMap with quantification data
+         * @param[in] design ExperimentalDesign file
+         * @param[in] reannotate_filenames Optional filenames for reannotation
+         * @param[in] bioreplicate Column name for biological replicate in design
+         * @param[in] condition Column name for condition in design
+         * @param[in] mixture Column name for mixture in design (used for TMT experiments)
+         * @param[in] retention_time_summarization_method Method for RT summarization
+         */
         void storeISO(const String& filename,
                       const ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
@@ -108,6 +118,7 @@ namespace OpenMS
         * @brief checks if the first vector is a subset of the second
         */
       static bool isSubsetOf_(const std::vector< String> &first, const std::vector< String > &second);
+      static void warnOnSubsetFiles_(const std::vector<String>& spectra_paths, const std::vector<String>& design_filenames);
 
       OpenMS::Peak2D::IntensityType sumIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities) const
       {

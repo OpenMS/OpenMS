@@ -267,24 +267,9 @@ void MSstatsFile::storeLFQ(const String& filename,
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
   }
   else if (spectra_paths.size() < design_filenames.size())
-  {
-    std::vector<String> missing_files;
-    std::set<String> design_set(design_filenames.begin(), design_filenames.end());
-    std::set<String> spectra_set(spectra_paths.begin(), spectra_paths.end());
-
-    std::set_difference(design_set.begin(), design_set.end(),
-                        spectra_set.begin(), spectra_set.end(),
-                        std::inserter(missing_files, missing_files.begin()));
-
-    OPENMS_LOG_WARN << "Warning: The consensus map contains " << spectra_paths.size()
-                    << " of " << design_filenames.size() << " files from the experimental design.\n"
-                    << "Missing files: ";
-    for (size_t i = 0; i < missing_files.size(); ++i)
     {
-      OPENMS_LOG_WARN << missing_files[i] << (i < missing_files.size() - 1 ? ", " : "");
+      warnOnSubsetFiles_(spectra_paths, design_filenames);
     }
-    OPENMS_LOG_WARN << "\nProceeding with the available subset." << std::endl;
-  }
 
   // Extract information from the consensus features.
   MSstatsFile::AggregatedConsensusInfo aggregatedInfo = MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
@@ -554,24 +539,9 @@ void MSstatsFile::storeISO(const String& filename,
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
   }
   else if (spectra_paths.size() < design_filenames.size())
-  {
-    std::vector<String> missing_files;
-    std::set<String> design_set(design_filenames.begin(), design_filenames.end());
-    std::set<String> spectra_set(spectra_paths.begin(), spectra_paths.end());
-
-    std::set_difference(design_set.begin(), design_set.end(),
-                        spectra_set.begin(), spectra_set.end(),
-                        std::inserter(missing_files, missing_files.begin()));
-
-    OPENMS_LOG_WARN << "Warning: The consensus map contains " << spectra_paths.size()
-                    << " of " << design_filenames.size() << " files from the experimental design.\n"
-                    << "Missing files: ";
-    for (size_t i = 0; i < missing_files.size(); ++i)
     {
-      OPENMS_LOG_WARN << missing_files[i] << (i < missing_files.size() - 1 ? ", " : "");
+      warnOnSubsetFiles_(spectra_paths, design_filenames);
     }
-    OPENMS_LOG_WARN << "\nProceeding with the available subset." << std::endl;
-  }
 
   // Extract information from the consensus features.
   MSstatsFile::AggregatedConsensusInfo AggregatedInfo = MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
@@ -785,3 +755,25 @@ bool MSstatsFile::isQuantifyable_(
 
   return true;
 }
+
+void MSstatsFile::warnOnSubsetFiles_(const std::vector<String>& spectra_paths, const std::vector<String>& design_filenames)
+  {
+    std::vector<String> missing_files;
+    std::set<String> design_set(design_filenames.begin(), design_filenames.end());
+    std::set<String> spectra_set(spectra_paths.begin(), spectra_paths.end());
+
+    std::set_difference(design_set.begin(), design_set.end(),
+                        spectra_set.begin(), spectra_set.end(),
+                        std::inserter(missing_files, missing_files.begin()));
+
+    OPENMS_LOG_WARN << "Warning: The consensus map contains " << spectra_paths.size()
+                    << " of " << design_filenames.size() << " files from the experimental design.\n"
+                    << "Missing files: ";
+
+    // Using OpenMS 'Size' type instead of 'size_t' to satisfy the portability guideline
+    for (Size i = 0; i < missing_files.size(); ++i)
+    {
+      OPENMS_LOG_WARN << missing_files[i] << (i < missing_files.size() - 1 ? ", " : "");
+    }
+    OPENMS_LOG_WARN << "\nProceeding with the available subset.\n";
+  }
