@@ -251,7 +251,7 @@ void MSstatsFile::storeLFQ(const String& filename,
     spectra_paths[i] = File::basename(spectra_paths[i]);
   }
 
-  if (!checkUnorderedContent_(spectra_paths, design_filenames))
+  if (!isSubsetOf_(spectra_paths, design_filenames))
   {
     OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
     OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
@@ -268,7 +268,22 @@ void MSstatsFile::storeLFQ(const String& filename,
   }
   else if (spectra_paths.size() < design_filenames.size())
   {
-    OPENMS_LOG_WARN << "Warning: The consensus map contains a subset of the files specified in the experimental design. Proceeding with the available subset." << endl;
+    std::vector<String> missing_files;
+    std::set<String> design_set(design_filenames.begin(), design_filenames.end());
+    std::set<String> spectra_set(spectra_paths.begin(), spectra_paths.end());
+
+    std::set_difference(design_set.begin(), design_set.end(),
+                        spectra_set.begin(), spectra_set.end(),
+                        std::inserter(missing_files, missing_files.begin()));
+
+    OPENMS_LOG_WARN << "Warning: The consensus map contains " << spectra_paths.size()
+                    << " of " << design_filenames.size() << " files from the experimental design.\n"
+                    << "Missing files: ";
+    for (size_t i = 0; i < missing_files.size(); ++i)
+    {
+      OPENMS_LOG_WARN << missing_files[i] << (i < missing_files.size() - 1 ? ", " : "");
+    }
+    OPENMS_LOG_WARN << "\nProceeding with the available subset." << std::endl;
   }
 
   // Extract information from the consensus features.
@@ -523,7 +538,7 @@ void MSstatsFile::storeISO(const String& filename,
     spectra_paths[i] = File::basename(spectra_paths[i]);
   }
 
-  if (!checkUnorderedContent_(spectra_paths, design_filenames))
+  if (!isSubsetOf_(spectra_paths, design_filenames))
   {
     OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
     OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
@@ -540,7 +555,22 @@ void MSstatsFile::storeISO(const String& filename,
   }
   else if (spectra_paths.size() < design_filenames.size())
   {
-    OPENMS_LOG_WARN << "Warning: The consensus map contains a subset of the files specified in the experimental design. Proceeding with the available subset." << endl;
+    std::vector<String> missing_files;
+    std::set<String> design_set(design_filenames.begin(), design_filenames.end());
+    std::set<String> spectra_set(spectra_paths.begin(), spectra_paths.end());
+
+    std::set_difference(design_set.begin(), design_set.end(),
+                        spectra_set.begin(), spectra_set.end(),
+                        std::inserter(missing_files, missing_files.begin()));
+
+    OPENMS_LOG_WARN << "Warning: The consensus map contains " << spectra_paths.size()
+                    << " of " << design_filenames.size() << " files from the experimental design.\n"
+                    << "Missing files: ";
+    for (size_t i = 0; i < missing_files.size(); ++i)
+    {
+      OPENMS_LOG_WARN << missing_files[i] << (i < missing_files.size() - 1 ? ", " : "");
+    }
+    OPENMS_LOG_WARN << "\nProceeding with the available subset." << std::endl;
   }
 
   // Extract information from the consensus features.
@@ -673,7 +703,7 @@ void MSstatsFile::storeISO(const String& filename,
   csv_out.store(filename);
 }
 
-bool MSstatsFile::checkUnorderedContent_(const std::vector<String> &first, const std::vector<String> &second)
+bool MSstatsFile::isSubsetOf_(const std::vector<String> &first, const std::vector<String> &second)
 {
   const std::set< String > lhs(first.begin(), first.end());
   const std::set< String > rhs(second.begin(), second.end());
