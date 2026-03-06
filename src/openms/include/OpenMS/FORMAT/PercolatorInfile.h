@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <vector>
 
 namespace OpenMS

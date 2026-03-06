@@ -560,10 +560,19 @@ TextFile PercolatorInfile::preparePin_(const PeptideIdentificationList& peptide_
 }
 
 
-bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
-{
-  // Terminal positions (protein N/C-terminus) are always considered enzymatic
-  if (n == '-' || c == '-') { return true; }
+  bool PercolatorInfile::isEnz_(const char& n, const char& c, const ProteaseDigestion& digest)
+  {
+    // Terminal positions (protein N/C-terminus) are always considered enzymatic
+    if (n == '-' || c == '-' || n == '[' || c == ']')
+    {
+      return true;
+    }
+
+    // Construct a minimal 2-residue "protein" and check if the
+    // single-residue peptide at position 0 is a valid digestion product
+    const String mini_protein = String(1, n) + String(1, c);
+    return digest.isValidProduct(mini_protein, 0, 1, true);
+  }
 
   // Use OpenMS ProteaseDigestion to check enzymatic cleavage.
   // We do not cache locally; setEnzyme is reasonably fast, and caller should optimize if needed.
