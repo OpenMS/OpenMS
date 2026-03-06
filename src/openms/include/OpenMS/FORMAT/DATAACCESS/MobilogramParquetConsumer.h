@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
+#include <limits>
 #include <memory>
 
 namespace OpenMS
@@ -42,16 +43,36 @@ namespace OpenMS
     /// Destructor flushes pending data and closes the parquet writer.
     ~MobilogramParquetConsumer();
 
-    /// Consume a Mobilogram and append it to the parquet output.
-    void consumeMobilogram(Mobilogram& m);
+    /**
+      @brief Consume a mobilogram and write it to the parquet file.
+
+      @param[in] m The mobilogram to consume
+      @param[in] mobilogram_type The type of the mobilogram (e.g. "precursor" or "fragment")
+      @param[in] ms_level The MS level of the mobilogram (e.g. 1 for precursor, 2 for fragment)
+      @param[in] transition_id The id of the corresponding transition in the transition experiment (nullable use-case)
+      @param[in] transition_native_id The native id of the corresponding transition in the transition experiment (nullable use-case)
+    */
+    void consumeMobilogram(Mobilogram& m,
+                 const String& mobilogram_type = "",
+                 Int64 ms_level = -1,
+                 Int64 transition_id = -1,
+                 const String& transition_native_id = "",
+                 double feature_rt = std::numeric_limits<double>::quiet_NaN(),
+                 Int64 feature_id = -1);
 
     /// Finalize and write the parquet file. Call to surface write errors.
     void finalize();
 
-    /// Reserve storage for expected number of mobilograms
+    /**
+      @brief Reserve storage for expected number of mobilograms
+      @param[in] expectedMobilograms The expected number of mobilograms
+    */
     void setExpectedSize(Size expectedMobilograms);
 
-    /// Set experimental settings (currently unused)
+    /**
+      @brief Set experimental settings (currently unused)
+      @param[in] exp The experimental settings to set
+    */
     void setExperimentalSettings(const ExperimentalSettings& exp);
 
   private:
