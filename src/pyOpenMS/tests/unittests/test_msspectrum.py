@@ -13,18 +13,18 @@ class TestMSSpectrum(unittest.TestCase):
         spec.push_back(p)
 
         p_back, = list(spec)
-        assert isinstance(p_back, pyopenms.Peak1D)
-        assert p_back.getMZ() == 500.0
-        assert p_back.getIntensity() == 1e5
+        self.assertIsInstance(p_back, pyopenms.Peak1D)
+        self.assertEqual(p_back.getMZ(), 500.0)
+        self.assertEqual(p_back.getIntensity(), 1e5)
 
         spec.updateRanges()
-        assert isinstance(spec.getMinMZ(), float)
-        assert isinstance(spec.getMaxMZ(), float)
-        assert isinstance(spec.getMinIntensity(), float)
-        assert isinstance(spec.getMaxIntensity(), float)
+        self.assertIsInstance(spec.getMinMZ(), float)
+        self.assertIsInstance(spec.getMaxMZ(), float)
+        self.assertIsInstance(spec.getMinIntensity(), float)
+        self.assertIsInstance(spec.getMaxIntensity(), float)
 
-        assert spec.getMinIntensity() == 1e5
-        assert spec.getMaxIntensity() == 1e5
+        self.assertEqual(spec.getMinIntensity(), 1e5)
+        self.assertEqual(spec.getMaxIntensity(), 1e5)
 
     def testMSSpectrumGetPeaks(self):
         """Test optimized get_peaks method"""
@@ -40,9 +40,9 @@ class TestMSSpectrum(unittest.TestCase):
         self.assertEqual(mz.dtype, np.float64)
         self.assertEqual(intensities.dtype, np.float32)
 
-        for m, e in zip(mz, mz_exp):
+        for m, e in zip(mz, mz_exp, strict=True):
             self.assertAlmostEqual(m, e)
-        for i, e in zip(intensities, int_exp):
+        for i, e in zip(intensities, int_exp, strict=True):
             self.assertAlmostEqual(i, e, places=1)
 
     def testMSSpectrumGetPeaksEmpty(self):
@@ -65,7 +65,7 @@ class TestMSSpectrum(unittest.TestCase):
         mz = spec.get_mz_array()
         self.assertEqual(len(mz), 3)
         self.assertEqual(mz.dtype, np.float64)
-        for m, e in zip(mz, mz_exp):
+        for m, e in zip(mz, mz_exp, strict=True):
             self.assertAlmostEqual(m, e)
 
     def testMSSpectrumGetIntensityArray(self):
@@ -78,7 +78,7 @@ class TestMSSpectrum(unittest.TestCase):
         intensities = spec.get_intensity_array()
         self.assertEqual(len(intensities), 3)
         self.assertEqual(intensities.dtype, np.float32)
-        for i, e in zip(intensities, int_exp):
+        for i, e in zip(intensities, int_exp, strict=True):
             self.assertAlmostEqual(i, e, places=1)
 
     def testMSSpectrumDriftTimeNoIM(self):
