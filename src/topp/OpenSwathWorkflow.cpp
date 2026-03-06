@@ -9,6 +9,7 @@
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -590,28 +591,26 @@ protected:
 
     String out_chrom = getStringOption_("out_chrom");
     String out_mobilogram = getStringOption_("out_mobilogram");
+#ifndef WITH_PARQUET
     if (!out_chrom.empty())
     {
       const FileTypes::Type out_chrom_type = FileHandler::getType(out_chrom);
-#ifndef WITH_PARQUET
       if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
         writeLogError_("Error: OpenMS was built without Parquet support, cannot write chrom_parquet output.");
         return PARSE_ERROR;
       }
-#endif
     }
     if (!out_mobilogram.empty())
     {
       const FileTypes::Type out_mob_type = FileHandler::getType(out_mobilogram);
-#ifndef WITH_PARQUET
       if (out_mob_type == FileTypes::MOBILPARQUET)
       {
         writeLogError_("Error: OpenMS was built without Parquet support, cannot write mobilogram parquet output.");
         return PARSE_ERROR;
       }
-#endif
     }
+#endif
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
@@ -1208,10 +1207,12 @@ protected:
     // perform extraction on current file
     ///////////////////////////////////
 
+    // Create one run ID per input run and reuse it across all run-level outputs.
+    UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
+
     // Set up chromatogram output for this file
     // Either use chrom.mzML or sqliteDB (sqMass)
     Interfaces::IMSDataConsumer* chromatogramConsumer;
-    UInt64 run_id = OpenMS::UniqueIdGenerator::getUniqueId();
     String out_chrom_current = out_chrom;
     if (!out_chrom.empty() && run_groups.size() > 1)
     {
@@ -1220,7 +1221,7 @@ protected:
       String extension = out_chrom.substr(out_chrom.find_last_of('.'));
       out_chrom_current = file_basename + "_" + base_name + extension;
     }
-    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, run_id, current_run_files[0]);
+    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, cur_run, current_run_files[0]);
 
     // Prepare mobilogram output (per-run)
     MobilogramParquetConsumer* mobilogramConsumer = nullptr;
@@ -1231,10 +1232,9 @@ protected:
       String extension = out_mobilogram.substr(out_mobilogram.find_last_of('.'));
       out_mobilogram_current = file_basename + "_" + base_name + extension;
     }
-    prepareMobilogramOutput(&mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, run_id, current_run_files[0]);
+    prepareMobilogramOutput(&mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, cur_run, current_run_files[0]);
 
-    // Create a run id per unique input filename and register it in the OSW
-    UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
+    // Register the same run ID in OSW.
     // For OSW, use the first file in the run group as the representative filename
     oswwriter.addRun(cur_run, current_run_files[0]);
     // Also register run in chromatogram consumer if it is a SQL consumer
