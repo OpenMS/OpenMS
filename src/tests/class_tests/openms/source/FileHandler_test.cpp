@@ -17,6 +17,10 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <filesystem>
+#include <fstream>
 
 START_TEST(FileHandler, "$Id$")
 
@@ -226,6 +230,34 @@ FileHandler tmp;
 tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, ProgressLogger::NONE, true, true);
 // compute hash
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
+
+// Regression test: computeFileHash must work with non-ASCII (UTF-8) paths
+{
+  namespace fs = std::filesystem;
+  // Create a subdirectory with non-ASCII characters (German umlauts, Japanese)
+  fs::path utf8_dir = fs::path(File::getTempDirectory()) / u8"openms_t\u00e4st_\u30c6\u30b9\u30c8";
+  std::error_code ec;
+  fs::create_directories(utf8_dir, ec);
+  if (!ec)
+  {
+    // Write a small test file
+    fs::path utf8_file = utf8_dir / "test.txt";
+    {
+      std::ofstream ofs{utf8_file, std::ios::binary};
+      ofs << "hello";
+    }
+    String hash = FileHandler::computeFileHash(utf8_file.string());
+    TEST_EQUAL(hash.empty(), false) // must succeed, not return ""
+    // Clean up
+    fs::remove(utf8_file, ec);
+    fs::remove(utf8_dir, ec);
+  }
+  else
+  {
+    // If the OS can't create non-ASCII dirs (unlikely), skip silently
+    STATUS("Skipping UTF-8 path test: could not create directory with non-ASCII name")
+  }
+}
 END_SECTION
 
 
