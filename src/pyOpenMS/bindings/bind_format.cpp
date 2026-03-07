@@ -61,6 +61,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 #ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/XICParquetFile.h>
+#include <OpenMS/FORMAT/XIMParquetFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
@@ -2045,6 +2046,215 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
             return "XICParquetFile(n_files=" + std::to_string(files.size()) + ")";
         })
         .def("__str__", [](const OpenMS::XICParquetFile& self) { return nb::cast(self).attr("__repr__")(); })
+        ;
+
+    // -----------------------------------------------------------------------
+    // XIMParquetFile
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::XIMParquetFile>(m, "XIMParquetFile", "OpenMS class XIMParquetFile")
+        .def(nb::init<OpenMS::String>())
+        .def(nb::init<std::vector<OpenMS::String>>())
+        .def(nb::init<const OpenMS::XIMParquetFile &>())
+        .def("__copy__", [](const OpenMS::XIMParquetFile& self) { return OpenMS::XIMParquetFile(self); })
+        .def("__deepcopy__", [](const OpenMS::XIMParquetFile& self, nb::dict) { return OpenMS::XIMParquetFile(self); }, "memo"_a)
+        .def("getFilename", [](const OpenMS::XIMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH mobilogram Parquet files (.xim).")
+        .def("getFilenames", [](const OpenMS::XIMParquetFile& self) -> const std::vector<OpenMS::String> & { return self.getFilenames(); }, nb::rv_policy::reference_internal)
+
+        .def("getColumns", [](const OpenMS::XIMParquetFile& self) {
+            std::vector<OpenMS::String> columns;
+            self.getColumns(columns);
+            nb::list result;
+            for (const auto& col : columns) {
+                result.append(nb::str(col.c_str()));
+            }
+            return result;
+        }, "Return parquet schema column names as a list")
+
+        .def("getRuns", [](const OpenMS::XIMParquetFile& self) {
+            std::vector<OpenMS::XIMParquetFile::XIMRunInfo> runs;
+            self.getRuns(runs);
+            nb::list run_ids, source_files;
+            for (const auto& r : runs) {
+                run_ids.append(r.run_id);
+                source_files.append(nb::str(r.source_file.c_str()));
+            }
+            nb::dict result;
+            result["run_id"] = run_ids;
+            result["source_file"] = source_files;
+            return result;
+        }, "Return unique run metadata as a dict")
+
+        .def("getAnalytes", [](const OpenMS::XIMParquetFile& self, bool nest_transitions, nb::object columns_obj) {
+            std::vector<OpenMS::String> columns;
+            std::set<std::string> requested_cols;
+            bool filter_cols = !columns_obj.is_none();
+            if (filter_cols) {
+                for (auto item : columns_obj) {
+                    std::string col = nb::cast<std::string>(item);
+                    columns.push_back(col);
+                    std::string lower_col = col;
+                    std::transform(lower_col.begin(), lower_col.end(), lower_col.begin(), ::tolower);
+                    requested_cols.insert(lower_col);
+                }
+            }
+            std::vector<OpenMS::XIMParquetFile::XIMAnalyte> analytes;
+            self.getAnalytes(analytes, columns, nest_transitions);
+
+            nb::list precursor_id_list, modified_sequence_list, precursor_charge_list, precursor_decoy_list;
+            nb::list transition_id_list, product_charge_list, transition_ordinal_list;
+            nb::list detecting_transition_list, product_decoy_list, transition_type_list, annotation_list;
+
+            auto want = [&](const std::string& col) { return !filter_cols || requested_cols.count(col) > 0; };
+
+            for (const auto& a : analytes) {
+                if (want("precursor_id")) precursor_id_list.append(a.has_precursor_id ? nb::cast(a.precursor_id) : nb::none());
+                if (want("modified_sequence")) modified_sequence_list.append(nb::str(a.modified_sequence.c_str()));
+                if (want("precursor_charge")) precursor_charge_list.append(a.has_precursor_charge ? nb::cast(a.precursor_charge) : nb::none());
+                if (want("precursor_decoy")) precursor_decoy_list.append(a.has_precursor_decoy ? nb::cast(a.precursor_decoy) : nb::none());
+
+                if (!nest_transitions) {
+                    if (want("transition_id")) transition_id_list.append(a.has_transition_id ? nb::cast(a.transition_id) : nb::none());
+                    if (want("product_charge")) product_charge_list.append(a.has_product_charge ? nb::cast(a.product_charge) : nb::none());
+                    if (want("transition_ordinal")) transition_ordinal_list.append(a.has_transition_ordinal ? nb::cast(a.transition_ordinal) : nb::none());
+                    if (want("detecting_transition")) detecting_transition_list.append(a.has_detecting_transition ? nb::cast(a.detecting_transition) : nb::none());
+                    if (want("product_decoy")) product_decoy_list.append(a.has_product_decoy ? nb::cast(a.product_decoy) : nb::none());
+                    if (want("transition_type")) transition_type_list.append(nb::str(a.transition_type.c_str()));
+                    if (want("annotation")) annotation_list.append(nb::str(a.annotation.c_str()));
+                } else {
+                    nb::list t_ids, p_charges, t_ordinals, d_transitions, p_decoys, t_types, annots;
+                    for (auto v : a.transition_ids) t_ids.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.product_charges) p_charges.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.transition_ordinals) t_ordinals.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.detecting_transitions) d_transitions.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (auto v : a.product_decoys) p_decoys.append(v >= 0 ? nb::cast(v) : nb::none());
+                    for (const auto& s : a.transition_types) t_types.append(nb::str(s.c_str()));
+                    for (const auto& s : a.annotations) annots.append(nb::str(s.c_str()));
+                    if (want("transition_id")) transition_id_list.append(t_ids);
+                    if (want("product_charge")) product_charge_list.append(p_charges);
+                    if (want("transition_ordinal")) transition_ordinal_list.append(t_ordinals);
+                    if (want("detecting_transition")) detecting_transition_list.append(d_transitions);
+                    if (want("product_decoy")) product_decoy_list.append(p_decoys);
+                    if (want("transition_type")) transition_type_list.append(t_types);
+                    if (want("annotation")) annotation_list.append(annots);
+                }
+            }
+
+            nb::dict result;
+            if (want("precursor_id")) result["precursor_id"] = precursor_id_list;
+            if (want("modified_sequence")) result["modified_sequence"] = modified_sequence_list;
+            if (want("precursor_charge")) result["precursor_charge"] = precursor_charge_list;
+            if (want("precursor_decoy")) result["precursor_decoy"] = precursor_decoy_list;
+            if (want("transition_id")) result["transition_id"] = transition_id_list;
+            if (want("product_charge")) result["product_charge"] = product_charge_list;
+            if (want("transition_ordinal")) result["transition_ordinal"] = transition_ordinal_list;
+            if (want("detecting_transition")) result["detecting_transition"] = detecting_transition_list;
+            if (want("product_decoy")) result["product_decoy"] = product_decoy_list;
+            if (want("transition_type")) result["transition_type"] = transition_type_list;
+            if (want("annotation")) result["annotation"] = annotation_list;
+            return result;
+        }, "nest_transitions"_a = true, "columns"_a = nb::none(),
+           "Return unique analyte metadata as a dict")
+
+        .def("getMobilograms", [](const OpenMS::XIMParquetFile& self,
+                                    int64_t precursor_id, int64_t transition_id,
+                                    const std::string& modified_sequence,
+                                    int64_t precursor_charge, int64_t product_charge,
+                                    int64_t ms_level, int64_t run_id,
+                                    const std::string& mobilogram_type, int64_t feature_id, double feature_rt,
+                                    const std::string& filter, bool explode) {
+            std::vector<OpenMS::XIMParquetFile::XIMMobilogram> mobilos;
+            self.getMobilograms(mobilos, precursor_id, transition_id,
+                                  OpenMS::String(modified_sequence),
+                                  precursor_charge, product_charge,
+                                  ms_level, run_id, OpenMS::String(mobilogram_type), feature_id, feature_rt, OpenMS::String(filter));
+
+            nb::list run_id_list, source_file_list, ms_level_list;
+            nb::list precursor_id_list, transition_id_list, modified_sequence_list;
+            nb::list precursor_charge_list, product_charge_list, detecting_transition_list;
+            nb::list precursor_decoy_list, product_decoy_list, transition_ordinal_list;
+            nb::list transition_type_list, annotation_list, mobility_list, intensity_list;
+            nb::list mobilogram_type_list, feature_id_list, feature_rt_list;
+
+            for (const auto& c : mobilos) {
+                if (explode) {
+                    if (c.mobility.empty()) continue;
+                    for (size_t j = 0; j < c.mobility.size(); ++j) {
+                        run_id_list.append(c.run_id);
+                        source_file_list.append(nb::str(c.source_file.c_str()));
+                        ms_level_list.append(c.ms_level);
+                        precursor_id_list.append(c.has_precursor_id ? nb::cast(c.precursor_id) : nb::none());
+                        transition_id_list.append(c.has_transition_id ? nb::cast(c.transition_id) : nb::none());
+                        modified_sequence_list.append(nb::str(c.modified_sequence.c_str()));
+                        precursor_charge_list.append(c.has_precursor_charge ? nb::cast(c.precursor_charge) : nb::none());
+                        product_charge_list.append(c.has_product_charge ? nb::cast(c.product_charge) : nb::none());
+                        detecting_transition_list.append(c.has_detecting_transition ? nb::cast(c.detecting_transition) : nb::none());
+                        precursor_decoy_list.append(c.has_precursor_decoy ? nb::cast(c.precursor_decoy) : nb::none());
+                        product_decoy_list.append(c.has_product_decoy ? nb::cast(c.product_decoy) : nb::none());
+                        transition_ordinal_list.append(c.has_transition_ordinal ? nb::cast(c.transition_ordinal) : nb::none());
+                        transition_type_list.append(nb::str(c.transition_type.c_str()));
+                        annotation_list.append(nb::str(c.annotation.c_str()));
+                        mobilogram_type_list.append(nb::str(c.mobilogram_type.c_str()));
+                        feature_id_list.append(c.has_feature_id ? nb::cast(c.feature_id) : nb::none());
+                        feature_rt_list.append(c.has_feature_rt ? nb::cast(c.feature_rt) : nb::none());
+                        mobility_list.append(c.mobility[j]);
+                        intensity_list.append(c.intensity[j]);
+                    }
+                } else {
+                    run_id_list.append(c.run_id);
+                    source_file_list.append(nb::str(c.source_file.c_str()));
+                    ms_level_list.append(c.ms_level);
+                    precursor_id_list.append(c.has_precursor_id ? nb::cast(c.precursor_id) : nb::none());
+                    transition_id_list.append(c.has_transition_id ? nb::cast(c.transition_id) : nb::none());
+                    modified_sequence_list.append(nb::str(c.modified_sequence.c_str()));
+                    precursor_charge_list.append(c.has_precursor_charge ? nb::cast(c.precursor_charge) : nb::none());
+                    product_charge_list.append(c.has_product_charge ? nb::cast(c.product_charge) : nb::none());
+                    detecting_transition_list.append(c.has_detecting_transition ? nb::cast(c.detecting_transition) : nb::none());
+                    precursor_decoy_list.append(c.has_precursor_decoy ? nb::cast(c.precursor_decoy) : nb::none());
+                    product_decoy_list.append(c.has_product_decoy ? nb::cast(c.product_decoy) : nb::none());
+                    transition_ordinal_list.append(c.has_transition_ordinal ? nb::cast(c.transition_ordinal) : nb::none());
+                    transition_type_list.append(nb::str(c.transition_type.c_str()));
+                    annotation_list.append(nb::str(c.annotation.c_str()));
+                    mobilogram_type_list.append(nb::str(c.mobilogram_type.c_str()));
+                    feature_id_list.append(c.has_feature_id ? nb::cast(c.feature_id) : nb::none());
+                    feature_rt_list.append(c.has_feature_rt ? nb::cast(c.feature_rt) : nb::none());
+                    nb::list mobility_vals, int_vals;
+                    for (auto v : c.mobility) mobility_vals.append(v);
+                    for (auto v : c.intensity) int_vals.append(v);
+                    mobility_list.append(mobility_vals);
+                    intensity_list.append(int_vals);
+                }
+            }
+
+            nb::dict result;
+            result["run_id"] = run_id_list;
+            result["source_file"] = source_file_list;
+            result["ms_level"] = ms_level_list;
+            result["precursor_id"] = precursor_id_list;
+            result["transition_id"] = transition_id_list;
+            result["modified_sequence"] = modified_sequence_list;
+            result["precursor_charge"] = precursor_charge_list;
+            result["product_charge"] = product_charge_list;
+            result["detecting_transition"] = detecting_transition_list;
+            result["precursor_decoy"] = precursor_decoy_list;
+            result["product_decoy"] = product_decoy_list;
+            result["transition_ordinal"] = transition_ordinal_list;
+            result["transition_type"] = transition_type_list;
+            result["annotation"] = annotation_list;
+            result["mobilogram_type"] = mobilogram_type_list;
+            result["feature_id"] = feature_id_list;
+            result["feature_rt"] = feature_rt_list;
+            result["mobility"] = mobility_list;
+            result["intensity"] = intensity_list;
+            return result;
+        }, "precursor_id"_a = -1, "transition_id"_a = -1, "modified_sequence"_a = "",
+           "precursor_charge"_a = -1, "product_charge"_a = -1, "ms_level"_a = -1,
+           "run_id"_a = -1, "mobilogram_type"_a = "", "feature_id"_a = -1, "feature_rt"_a = -1.0, "filter"_a = "", "explode"_a = false,
+           "Return mobilogram data as a dict")
+        .def("__repr__", [](const OpenMS::XIMParquetFile& self) {
+            const auto& files = self.getFilenames();
+            return "XIMParquetFile(n_files=" + std::to_string(files.size()) + ")";
+        })
+        .def("__str__", [](const OpenMS::XIMParquetFile& self) { return nb::cast(self).attr("__repr__")(); })
         ;
 
     // -----------------------------------------------------------------------
