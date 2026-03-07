@@ -20,7 +20,6 @@
 #include <QtWidgets/QButtonGroup>
 #include <QtCore/QProcess>
 #include <QtWidgets/QSplashScreen>
-#include <QtNetwork/QNetworkReply>
 
 class QToolBar;
 class QListWidget;
@@ -30,8 +29,6 @@ class QLabel;
 class QWidget;
 class QTreeWidget;
 class QTreeWidgetItem;
-class QWebView;
-class QNetworkAccessManager;
 
 namespace Ui
 {

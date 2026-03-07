@@ -1,0 +1,2 @@
+This is a test fixture for Network::downloadFile().
+It verifies that file:// URL downloads work correctly.
