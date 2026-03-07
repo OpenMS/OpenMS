@@ -587,11 +587,26 @@ namespace OpenMS
         picker_.setParameters(picker_params);
         Mobilogram picked_mobilogram;
 
-        picker_.pickMobilogram(summed_mobilogram, picked_mobilogram);
-        picker_.filterTopPeak(picked_mobilogram, aligned_ms2_mobilograms, peak_pos);
-
-        scores.im_drift_left = im_grid[peak_pos.left];
-        scores.im_drift_right = im_grid[peak_pos.right];
+        if (summed_mobilogram.size() > 1)
+        {
+          picker_.pickMobilogram(summed_mobilogram, picked_mobilogram);
+          if (picked_mobilogram.getFloatDataArrays().size() > PeakPickerMobilogram::IDX_OF_RIGHTBORDER_IDX)
+          {
+            picker_.filterTopPeak(picked_mobilogram, aligned_ms2_mobilograms, peak_pos);
+            scores.im_drift_left = im_grid[peak_pos.left];
+            scores.im_drift_right = im_grid[peak_pos.right];
+          }
+          else
+          {
+            scores.im_drift_left = -1;
+            scores.im_drift_right = -1;
+          }
+        }
+        else
+        {
+          scores.im_drift_left = -1;
+          scores.im_drift_right = -1;
+        }
       }
       else
       {
@@ -760,11 +775,27 @@ namespace OpenMS
           {
             Mobilogram summed_mobilogram = sumAlignedMobilograms(aligned_mobilograms);
 
-            picker_.pickMobilogram(summed_mobilogram, picked_mobilogram);
-            picker_.filterTopPeak(picked_mobilogram, aligned_mobilograms, peak_pos);
+            if (summed_mobilogram.size() > 1)
+            {
+              picker_.pickMobilogram(summed_mobilogram, picked_mobilogram);
+              if (picked_mobilogram.getFloatDataArrays().size() > PeakPickerMobilogram::IDX_OF_RIGHTBORDER_IDX)
+              {
+                picker_.filterTopPeak(picked_mobilogram, aligned_mobilograms, peak_pos);
 
-            scores.im_drift_left = im_grid[peak_pos.left];
-            scores.im_drift_right = im_grid[peak_pos.right];
+                scores.im_drift_left = im_grid[peak_pos.left];
+                scores.im_drift_right = im_grid[peak_pos.right];
+              }
+              else
+              {
+                scores.im_drift_left = -1;
+                scores.im_drift_right = -1;
+              }
+            }
+            else
+            {
+              scores.im_drift_left = -1;
+              scores.im_drift_right = -1;
+            }
           }
           else
           {
@@ -773,7 +804,8 @@ namespace OpenMS
           }
 
           // Identification ion mobilogram cannot be empty and cannot have a single point
-          if ( !aligned_identification_mobilogram.empty() && aligned_identification_mobilogram.size()!=1 )
+          if ( !aligned_identification_mobilogram.empty() && aligned_identification_mobilogram.size()!=1 &&
+               picked_mobilogram.getFloatDataArrays().size() > PeakPickerMobilogram::IDX_OF_RIGHTBORDER_IDX )
           {
             picker_.filterTopPeak(picked_mobilogram, aligned_identification_mobilogram, peak_pos);
           }
