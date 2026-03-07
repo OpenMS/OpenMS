@@ -15,6 +15,7 @@ tools:
   web-fetch:
 safe-outputs:
   create-pull-request:
+    base: develop
     title-prefix: "[doc-sync] "
     labels: [documentation, automated]
     draft: false
@@ -82,7 +83,7 @@ For each documentation file that needs updating:
 
 ### 5. Create a Pull Request
 
-After making all necessary edits, create a pull request with:
+After making all necessary edits, create a pull request to the develop branch you stupid bot, with:
 
 - A clear title describing what documentation was updated and why.
 - A body that lists:
