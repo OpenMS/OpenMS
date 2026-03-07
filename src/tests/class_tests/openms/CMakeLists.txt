@@ -111,6 +111,11 @@ if (WITH_PARQUET)
   ${OPENMS_PARQUET_TARGET}
   )
   target_compile_definitions(Libzip_test PRIVATE WITH_PARQUET)
+  target_link_libraries(ZipRandomAccessFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_compile_definitions(ZipRandomAccessFile_test PRIVATE WITH_PARQUET)
 
   if (TARGET TransitionParquetFile_test)
     target_link_libraries(TransitionParquetFile_test
