@@ -232,30 +232,51 @@ void MSstatsFile::storeLFQ(const String& filename,
   const bool has_fraction = design.isFractionated();
 
   //vector< BaseFeature> features{};
-  vector< String > spectra_paths{};
+  //vector< BaseFeature> features{};
+  vector< String > spectra_paths;
+  vector< String > raw_spectra_paths;
 
   //features.reserve(consensus_map.size());
 
   if (reannotate_filenames.empty())
   {
-    consensus_map.getPrimaryMSRunPath(spectra_paths);
+    consensus_map.getPrimaryMSRunPath(raw_spectra_paths);
   }
   else
   {
-    spectra_paths = reannotate_filenames;
+    raw_spectra_paths = reannotate_filenames;
   }
 
-  // Reduce spectra path to the basename of the files
-  for (Size i = 0; i < spectra_paths.size(); ++i)
+  // FileFilter leaves gaps in the map indices.
+  Size max_map_index = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
   {
-    spectra_paths[i] = File::basename(spectra_paths[i]);
+    max_map_index = std::max(max_map_index, (Size)kv.first);
   }
 
-  if (!isSubsetOf_(spectra_paths, design_filenames))
+  spectra_paths.assign(max_map_index + 1, "");
+  Size file_idx = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    if (file_idx < raw_spectra_paths.size())
+    {
+      spectra_paths[kv.first] = File::basename(raw_spectra_paths[file_idx++]);
+    }
+  }
+
+  // --- NEW FIX: Extract only the active paths that weren't removed by FileFilter ---
+  std::vector<String> active_spectra_paths;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    active_spectra_paths.push_back(spectra_paths[kv.first]);
+  }
+
+  // Check the active paths against the design instead of the raw spectra_paths
+  if (!isSubsetOf_(active_spectra_paths, design_filenames))
   {
     OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
     OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
-    for (auto const & s : spectra_paths)
+    for (auto const & s : active_spectra_paths)
     {
       OPENMS_LOG_FATAL_ERROR << s << endl;
     }
@@ -266,10 +287,10 @@ void MSstatsFile::storeLFQ(const String& filename,
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
   }
-  else if (spectra_paths.size() < design_filenames.size())
-    {
-      warnOnSubsetFiles_(spectra_paths, design_filenames);
-    }
+  else if (active_spectra_paths.size() < design_filenames.size())
+  {
+    warnOnSubsetFiles_(active_spectra_paths, design_filenames);
+  }
 
   // Extract information from the consensus features.
   MSstatsFile::AggregatedConsensusInfo aggregatedInfo = MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
@@ -504,30 +525,50 @@ void MSstatsFile::storeISO(const String& filename,
   }
 
   vector< BaseFeature> features;
-  vector< String > spectra_paths;
-
   features.reserve(consensus_map.size());
+
+  vector< String > spectra_paths;
+  vector< String > raw_spectra_paths;
 
   if (reannotate_filenames.empty())
   {
-    consensus_map.getPrimaryMSRunPath(spectra_paths);
+    consensus_map.getPrimaryMSRunPath(raw_spectra_paths);
   }
   else
   {
-    spectra_paths = reannotate_filenames;
+    raw_spectra_paths = reannotate_filenames;
   }
 
-  // Reduce spectra path to the basename of the files
-  for (Size i = 0; i < spectra_paths.size(); ++i)
+  // FileFilter leaves gaps in the map indices.
+  Size max_map_index = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
   {
-    spectra_paths[i] = File::basename(spectra_paths[i]);
+    max_map_index = std::max(max_map_index, (Size)kv.first);
   }
 
-  if (!isSubsetOf_(spectra_paths, design_filenames))
+  spectra_paths.assign(max_map_index + 1, "");
+  Size file_idx = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    if (file_idx < raw_spectra_paths.size())
+    {
+      spectra_paths[kv.first] = File::basename(raw_spectra_paths[file_idx++]);
+    }
+  }
+
+  // --- NEW FIX: Extract only the active paths that weren't removed by FileFilter ---
+  std::vector<String> active_spectra_paths;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    active_spectra_paths.push_back(spectra_paths[kv.first]);
+  }
+
+  // Check the active paths against the design instead of the raw spectra_paths
+  if (!isSubsetOf_(active_spectra_paths, design_filenames))
   {
     OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
     OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
-    for (auto const & s : spectra_paths)
+    for (auto const & s : active_spectra_paths)
     {
       OPENMS_LOG_FATAL_ERROR << s << endl;
     }
@@ -538,10 +579,10 @@ void MSstatsFile::storeISO(const String& filename,
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
   }
-  else if (spectra_paths.size() < design_filenames.size())
-    {
-      warnOnSubsetFiles_(spectra_paths, design_filenames);
-    }
+  else if (active_spectra_paths.size() < design_filenames.size())
+  {
+    warnOnSubsetFiles_(active_spectra_paths, design_filenames);
+  }
 
   // Extract information from the consensus features.
   MSstatsFile::AggregatedConsensusInfo AggregatedInfo = MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
