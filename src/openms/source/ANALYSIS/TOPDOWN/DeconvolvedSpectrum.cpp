@@ -343,7 +343,7 @@ namespace OpenMS
     return false;
   }
 
-  FLASHHelperClasses::IsobaricQuantities DeconvolvedSpectrum::getQuantities() const
+  const FLASHHelperClasses::IsobaricQuantities DeconvolvedSpectrum::getQuantities() const
   {
     return quantities_;
   }
@@ -353,7 +353,7 @@ namespace OpenMS
     quantities_ = quantities;
   }
 
-  void DeconvolvedSpectrum::setPeakGroups(std::vector<PeakGroup>& x)
+  void DeconvolvedSpectrum::setPeakGroups(const std::vector<PeakGroup>& x)
   {
     std::vector<PeakGroup>().swap(peak_groups_);
     peak_groups_ = x;

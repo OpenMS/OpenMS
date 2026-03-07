@@ -156,5 +156,8 @@ namespace OpenMS
 
     /// filter low intensity peaks
     static void filterLowPeaks_(MSExperiment& map);
+
+    /// append decoy peak groups to deconvolved spectrum
+    void appendDecoyPeakGroups_(DeconvolvedSpectrum& deconvolved_spectrum, const MSSpectrum& spec, int scan_number, const PeakGroup& precursor_pg);
   };
 } // namespace OpenMS
