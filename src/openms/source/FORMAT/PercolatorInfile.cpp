@@ -14,11 +14,9 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <regex>
 #include <functional>
-#include <unordered_map>
 #include <unordered_set>
 
 namespace OpenMS
@@ -29,79 +27,366 @@ namespace OpenMS
     const PeptideIdentificationList& peptide_ids, 
     const StringList& feature_set, 
     const std::string& enz, 
-    int min_charge, int max_charge)
+    int min_charge, 
+    int max_charge)
   {
-    TextFile::store(pin_file, preparePin_(peptide_ids, feature_set, enz, min_charge, max_charge));
+    TextFile txt = preparePin_(peptide_ids, feature_set, enz, min_charge, max_charge);
+    txt.store(pin_file);
   }
 
-  PeptideIdentificationList PercolatorInfile::load(const String& pin_file)
+  // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
+  String PercolatorInfile::getScanIdentifier(
+    const PeptideIdentification& pid, size_t index)
   {
-    PeptideIdentificationList peptide_ids;
+    // MSGF+ uses this field, is empty if not specified
+    String scan_identifier = pid.getSpectrumReference();
+
+    if (scan_identifier.empty())
+    {
+      // XTandem uses this (integer) field
+      // these ids are 1-based in contrast to the index which is 0-based. This might be problematic to use for merging
+      if (pid.metaValueExists("spectrum_id") && !pid.getMetaValue("spectrum_id").toString().empty())
+      {
+        scan_identifier = "scan=" + pid.getMetaValue("spectrum_id").toString();
+      }
+      else
+      {
+        scan_identifier = "index=" + String(index); // fall back
+        OPENMS_LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
+      }
+    }
+    return scan_identifier.removeWhitespaces();
+  }
+
+  PeptideIdentificationList PercolatorInfile::load(
+    const String& pin_file,
+    bool higher_score_better,
+    const String& score_name,
+    const StringList& extra_scores,
+    StringList& filenames,
+    String decoy_prefix, 
+    double threshold, 
+    bool SageAnnotation)
+  {
     CsvFile csv(pin_file, '\t');
     
-    map<String, PeptideHit> scan_id_to_peptide_hit;
+    //Sage Variables, initialized in the following block if SageAnnotation is set 
+    map<int, vector<PeptideHit::PeakAnnotation>> anno_mapping; 
+    CsvFile tsv; 
+    CsvFile annos; 
+    unordered_map<String, size_t> to_idx_t; 
 
-    StringList header;
-    csv.getRow(0, header);
-    Size scan_id_col = -1, score_col = -1, q_value_col = -1, pep_col = -1, peptide_col = -1, protein_col = -1;
+    if (SageAnnotation) // Block for special treatment of sage 
+    {
+      String tsv_file_path = pin_file.substr(0, pin_file.size()-3);
+      tsv_file_path = tsv_file_path + "tsv"; 
+      tsv = CsvFile(tsv_file_path,'\t'); 
+
+      String temp_diff = "results.sage.pin"; 
+      String anno_file_path = pin_file.substr(0, pin_file.size()-temp_diff.length());
+      anno_file_path = anno_file_path + "matched_fragments.sage.tsv"; 
+      annos = CsvFile(anno_file_path, '\t'); 
+      //map PSMID to vec of PeakAnnotation 
+      StringList sage_tsv_header;
+      tsv.getRow(0, sage_tsv_header); 
+      {
+        int idx_t{};
+        for (const auto& h : sage_tsv_header) { to_idx_t[h] = idx_t++; }
+      }
+
+      // processs annotation file
+      StringList sage_annotation_header; 
+      annos.getRow(0, sage_annotation_header);
+      unordered_map<String, size_t> to_idx_a; // map column name to column index, for full annotation file file 
+      {
+        int idx_a{};
+        for (const auto& h : sage_annotation_header) { to_idx_a[h] = idx_a++; }
+      }
+      // map PSMs -> PeakAnnotation vector
+      auto num_rows = annos.rowCount(); 
+
+      for (size_t i = 1; i < num_rows; ++i)
+      {
+        StringList row;
+        annos.getRow(i, row);
+        
+        //Check if mapping already has PSM, if it does add 
+        if (anno_mapping.find(row[to_idx_a.at("psm_id")].toInt()) == anno_mapping.end())
+        {                 
+          //Make a new vector of annotations 
+          PeptideHit::PeakAnnotation peak_temp; 
+
+          peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]; 
+          peak_temp.charge = row[to_idx_a.at("fragment_charge")].toInt(); 
+          peak_temp.intensity = row[to_idx_a.at("fragment_intensity")].toDouble(); 
+          peak_temp.mz = row[to_idx_a.at("fragment_mz_experimental")].toDouble(); 
+
+          vector<PeptideHit::PeakAnnotation> temp_anno_vec; 
+          temp_anno_vec.push_back(peak_temp); 
+          anno_mapping[ row[to_idx_a.at("psm_id")].toInt() ] = temp_anno_vec;
+        }
+        else
+        {
+          //Add values to exisiting vector 
+          PeptideHit::PeakAnnotation peak_temp; 
+
+          peak_temp.annotation = row[to_idx_a.at("fragment_type")] + row[to_idx_a.at("fragment_ordinals")]; 
+          peak_temp.charge = row[to_idx_a.at("fragment_charge")].toInt(); 
+          peak_temp.intensity = row[to_idx_a.at("fragment_intensity")].toDouble(); 
+          peak_temp.mz = row[to_idx_a.at("fragment_mz_experimental")].toDouble(); 
+
+          anno_mapping[ row[to_idx_a.at("psm_id")].toInt() ].push_back(peak_temp);         
+        }
+      }      
+    }
     
-    for (Size i = 0; i < header.size(); ++i)
+    StringList pin_header;
+
+    csv.getRow(0, pin_header);
+
+    unordered_map<String, size_t> to_idx; // map column name to column index
     {
-      if (header[i] == "ScanId") scan_id_col = i;
-      else if (header[i] == "score") score_col = i;
-      else if (header[i] == "q-value") q_value_col = i;
-      else if (header[i] == "posterior_error_prob") pep_col = i;
-      else if (header[i] == "peptide") peptide_col = i;
-      else if (header[i] == "proteinIds") protein_col = i;
+      int idx{};
+      for (const auto& h : pin_header) { to_idx[h] = idx++; }
     }
 
-    if (scan_id_col == -1 || score_col == -1 || q_value_col == -1 || pep_col == -1 || peptide_col == -1 || protein_col == -1)
+    // determine file name column index in percolator in file
+    int file_name_column_index{-1};
+    if (auto it = std::find(pin_header.begin(), pin_header.end(), "FileName"); it != pin_header.end())
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Percolator input file is missing required columns (ScanId, score, q-value, posterior_error_prob, peptide, proteinIds).", "");
+      file_name_column_index = it - pin_header.begin();
+    }
+ 
+    // determine extra scores and store column indices
+    std::set<String> found_extra_scores; // additional (non-main) scores that should be stored in the PeptideHit, order important for comparable idXML  
+    for (const String& s : extra_scores)
+    {
+      if (auto it = std::find(pin_header.begin(), pin_header.end(), s); it != pin_header.end())
+      {
+        found_extra_scores.insert(s);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Extra score: " << s << " not found in Percolator input file." << endl;
+      }
+    }
+      
+    // charge columns are not standardized, so we check for the format and create hash to lookup column name to charge mapping
+    std::regex charge_one_hot_pattern("^charge\\d+$");
+    std::regex sage_one_hot_pattern("^z=\\d+$");
+    String charge_prefix;
+    unordered_map<String, int> col_name_to_charge;
+
+    // Special handling for sage: sage produces an additional column for PSMs outside of the "suggested" charge search range (e.g., charge 2-5).
+    // The reason is that sage searches always for the charge annotated in the spectrum raw file. Only if the annotation is missing it will search
+    // the suggested charge range.
+    bool found_sage_otherz_charge_column{false}; 
+    for (const String& c : pin_header)
+    {
+      if (std::regex_match(c, charge_one_hot_pattern))
+      {
+        col_name_to_charge[c] = c.substr(6).toInt();
+        charge_prefix = "charge";
+      }
+      else if (std::regex_match(c, sage_one_hot_pattern))
+      {
+        col_name_to_charge[c] = c.substr(2).toInt();
+        charge_prefix = "z=";
+      }      
+      else if (c == "z=other") // SAGE
+      {
+        found_sage_otherz_charge_column = true;
+        OPENMS_LOG_DEBUG << "Found SAGE charge column 'z=other'. Will extract charge from this column if charge was not set in the one-hot encoded charge columns." << endl;
+      }
     }
 
-    StringList row;
-    for (Size i = 1; i < csv.rowCount(); ++i)
+    auto n_rows = csv.rowCount();
+
+    PeptideIdentificationList pids;
+    pids.reserve(n_rows);
+    String spec_id;
+    String raw_file_name("UNKNOWN");
+    unordered_map<String, size_t> map_filename_to_idx; // fast lookup of filename to index in filenames vector
+
+    for (size_t i = 1; i != n_rows; ++i)
     {
+      StringList row;
       csv.getRow(i, row);
-      PeptideHit hit;
-      hit.setScore(row[score_col].toDouble());
-      hit.setMetaValue("spectral_q_value", row[q_value_col].toDouble()); 
-      hit.setMetaValue("Posterior Error Probability", row[pep_col].toDouble()); 
-      
-      String seq = row[peptide_col];
-      if (seq.size() > 4 && seq[1] == '.' && seq[seq.size() - 2] == '.')
-      {
-        seq = seq.substr(2, seq.size() - 4);
-      }
-      hit.setSequence(AASequence::fromString(seq));
 
-      String proteins = row[protein_col];
-      proteins.trim();
-      vector<String> protein_accessions;
-      proteins.split('\t', protein_accessions); 
-      
-      for (const auto& acc : protein_accessions)
+      StringList t_row; 
+
+      if (SageAnnotation)
       {
-        PeptideEvidence pe;
-        pe.setProteinAccession(acc);
-        hit.addPeptideEvidence(pe);
+        tsv.getRow(i, t_row); 
+        // skip if spectrum_q is above threshold
+        if (t_row[to_idx_t.at("spectrum_q")].toDouble() > threshold ) continue;
       }
-      peptide_ids.insertHit(hit);
+
+      if (row.size() != pin_header.size())
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: line " + String(i) + " of file '" + pin_file + "' does not have the same number of columns as the pin_header!", String(i));
+      }
+
+
+      if (file_name_column_index >= 0)
+      {
+        raw_file_name = row[file_name_column_index];
+        if (map_filename_to_idx.find(raw_file_name) == map_filename_to_idx.end())
+        {
+          filenames.push_back(raw_file_name);
+          map_filename_to_idx[raw_file_name] = filenames.size() - 1;
+        }
+      }
+      // NOTE: In our pin files that we WRITE, SpecID will be filename + vendor spectrum native ID
+      // However, many search engines (e.g. Sage) choose arbitrary IDs, which is unfortunately allowed
+      //  by this loosely defined format.
+      const String& sSpecId = row[to_idx.at("SpecId")];
+
+      double IM = 0.0;
+      if (auto it = to_idx.find("ion_mobility"); it != to_idx.end())
+      {
+        const String& sIM = row[it->second]; // read IM from e.g. Sage output
+        IM = sIM.toDouble();  
+      }
+      // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs,
+      //  so it writes the full ID as string
+      String sScanNr = row[to_idx.at("ScanNr")];
+      if (sSpecId != spec_id)
+      {
+        pids.resize(pids.size() + 1);
+        pids.back().setHigherScoreBetter(higher_score_better);
+        pids.back().setScoreType(score_name);
+        pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
+        pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0); // search engines typically write minutes (e.g., sage)
+        pids.back().setMetaValue("PinSpecId", sSpecId);
+        if (IM > 0.0) // Sage might annotate 0.0 if no IM is present
+        {
+          pids.back().setMetaValue(Constants::UserParam::IM, IM);
+        }
+        // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
+        // we use it as spectrum_reference. Since it can be integer only or the complete
+        // vendor ID, you will need a lookup in case of number only later!!
+        pids.back().setSpectrumReference(sScanNr);     
+      }
+      String sPeptide = row[to_idx.at("Peptide")];
+      const double score = row[to_idx.at(score_name)].toDouble();
+      String target_decoy = row[to_idx.at("Label")].toInt() == 1 ? "target" : "decoy";
+      const String& sProteins = row[to_idx.at("Proteins")];
+      int rank = to_idx.count("rank") ? row[to_idx.at("rank")].toInt() : 1;
+      StringList accessions;
+
+      int charge = 0;
+      for (const auto& [name, z] : col_name_to_charge)
+      {        
+        if (row[to_idx.at(name)] == "1")
+        {
+          charge = z;
+          break;
+        }
+      }
+
+      // all one-hot encoded charge columns are zero. Use value in the sage "z=other" column if it exists.
+      if (charge == 0 && found_sage_otherz_charge_column)
+      {
+        charge = row[to_idx.at("z=other")].toInt();
+      }
+      
+      if (charge != 0)
+      {
+        pids.back().setMZ(row[to_idx.at("ExpMass")].toDouble() / std::fabs(charge) + Constants::PROTON_MASS_U);
+      }
+
+      sProteins.split(';', accessions);
+
+      // deduce decoy state from accessions if decoy_prefix is set
+      if (!decoy_prefix.empty())
+      {
+        bool dec = false;
+        bool tgt = false;
+        for (const auto& acc : accessions)
+        {
+          if (!(dec && tgt))
+          {
+            if (acc.hasPrefix(decoy_prefix))
+            {
+              dec = true;
+            }
+            else
+            {
+              tgt = true;
+            }
+          }
+          else
+          {
+            break;
+          }
+        }
+        if (tgt && dec)
+        {
+          target_decoy = "target+decoy";
+        }
+        else if (tgt)
+        {
+          target_decoy = "target";
+        }
+        else {
+          target_decoy = "decoy";
+        }
+      }
+
+      // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER etc.
+      sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
+      sPeptide.substitute("-[", ".["); // we can parse MVLVQDLLHPTAASEAR.[+111]
+      AASequence aa_seq = AASequence::fromString(sPeptide);
+      PeptideHit ph(score, rank - 1, charge, std::move(aa_seq));
+      ph.setMetaValue("target_decoy", target_decoy);
+
+      for (const auto& name : found_extra_scores)
+      {
+        String value = row[to_idx.at(name)];
+        if (name == "ln(-poisson)" && value == "inf") value = "3.5"; // workaround for Sage
+        ph.setMetaValue(name, value);
+      }
+
+      // adding own meta values 
+      if (SageAnnotation)
+      {
+        ph.setMetaValue("spectrum_q", t_row[to_idx_t.at("spectrum_q")].toDouble());  //TODO: check if column exists / SAGE specific treatment
+      }
+      ph.setMetaValue("DeltaMass", ( row[to_idx.at("ExpMass")].toDouble() - row[to_idx.at("CalcMass")].toDouble()) ); 
+      // add annotations
+      if (SageAnnotation)
+      {
+        if (anno_mapping.find(sSpecId.toInt()) != anno_mapping.end())
+        {
+          // copy annotations from mapping to PeptideHit
+          vector<PeptideHit::PeakAnnotation> pep_vec;
+          for (const PeptideHit::PeakAnnotation& pep : anno_mapping[sSpecId.toInt()])
+          {
+            pep_vec.push_back(pep) ; 
+          }        
+          ph.setPeakAnnotations(pep_vec);        
+        } 
+      }
+      // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
+      for (const String& accession : accessions)
+      {
+        ph.addPeptideEvidence(PeptideEvidence(accession));
+      }
+
+      pids.back().insertHit(std::move(ph));
     }
-    return peptide_ids;
+
+    return pids;
   }
 
-  String PercolatorInfile::getScanIdentifier(const String& path_to_spectrum_file, const String& spectrum_native_id)
-  {
-    return File::basename(path_to_spectrum_file) + ":" + spectrum_native_id;
-  }
 
-  TextFile PercolatorInfile::preparePin_(const PeptideIdentificationList& peptide_ids,
-                                       const StringList& feature_set,
-                                       const std::string& enz,
-                                       int min_charge,
-                                       int max_charge)
+  TextFile PercolatorInfile::preparePin_(
+    const PeptideIdentificationList& peptide_ids, 
+    const StringList& feature_set, 
+    const std::string& enz, 
+    int min_charge, 
+    int max_charge)
   {
     ProteaseDigestion digest;
     if (!enz.empty() && enz != "no_enzyme")
@@ -120,99 +405,182 @@ namespace OpenMS
       digest.setEnzyme("unspecific cleavage");
     }
 
-    TextFile txt;
+    TextFile txt;  
     txt.addLine(ListUtils::concatenate(feature_set, '\t'));
-    if (peptide_ids.empty())
+    if (peptide_ids.empty()) 
     {
-      OPENMS_LOG_WARN << "No identifications provided. Creating empty percolator input." << std::endl;
+      OPENMS_LOG_WARN << "No identifications provided. Creating empty percolator input." << endl;
       return txt;
     }
 
+    // extract native id (usually in spectrum_reference)
     const String sid = getScanIdentifier(peptide_ids[0], 0);
 
-    for (Size i = 0; i < peptide_ids.getHits().size(); ++i)
+    // determine RegEx to extract scan/index number
+    boost::regex scan_regex = boost::regex(SpectrumLookup::getRegExFromNativeID(sid));
+
+    // keep track of errors
+    size_t missing_meta_value_count{};
+    set<String> missing_meta_values;
+
+    size_t index = 0;
+    for (const PeptideIdentification& pep_id : peptide_ids)
     {
-      const PeptideHit& hit = peptide_ids.getHits()[i];
-      int label = 0;
-      if (hit.getMetaValue("target_decoy").toString() == "target") label = 1;
-      else if (hit.getMetaValue("target_decoy").toString() == "decoy") label = -1;
-      else
+      index++;
+      // try to make a file and scan unique identifier
+      String scan_identifier = getScanIdentifier(pep_id, index);
+      String file_identifier = pep_id.getMetaValue("file_origin", String());
+
+      file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
+
+      Int scan_number = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, true);
+      
+      double exp_mass = pep_id.getMZ();
+      double retention_time = pep_id.getRT();
+      for (const PeptideHit& psm : pep_id.getHits())
       {
-        OPENMS_LOG_WARN << "PSM without target/decoy information found. "
-                        << "This may indicate incomplete mapping during PeptideIndexing. " 
-                        << "Will skip this PSM." << std::endl;
-        continue;
-      }
-
-      if (hit.getPeptideEvidences().empty())
-      {
-        OPENMS_LOG_WARN << "PSM (PeptideHit) without protein reference found. "
-                        << "This may indicate incomplete mapping during PeptideIndexing. " 
-                        << "Will skip this PSM." << std::endl;
-        continue;
-      }
-
-      String unmodified_sequence = hit.getSequence().toUnmodifiedString();
-      String line = sid + "\t" + String(label) + "\t" + sid + "\t";
-
-      double exp_mass = 0;
-      if (hit.metaValueExists("mass"))
-      {
-        exp_mass = hit.getMetaValue("mass");
-      }
-
-      double calc_mass = hit.getSequence().getMonoWeight();
-      double delta_mass = exp_mass - calc_mass;
-      int charge = hit.getCharge();
-
-      char aa_before = hit.getPeptideEvidences().front().getAABefore();
-      char aa_after = hit.getPeptideEvidences().front().getAAAfter();
-
-      bool enzN = isEnz_(aa_before, unmodified_sequence.prefix(1)[0], digest);
-      bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], aa_after, digest);
-      int enzInt = countEnzymatic_(unmodified_sequence, digest);
-
-      StringList features;
-      for (const auto& f : feature_set)
-      {
-        if (f == "ExpMass") features.push_back(String(exp_mass));
-        else if (f == "CalcMass") features.push_back(String(calc_mass));
-        else if (f == "lnrSp") features.push_back(String(hit.getMetaValue("lnrSp", 0.0)));
-        else if (f == "deltLCn") features.push_back(String(hit.getMetaValue("deltLCn", 0.0)));
-        else if (f == "deltCn") features.push_back(String(hit.getMetaValue("deltCn", 0.0)));
-        else if (f == "Xcorr") features.push_back(String(hit.getMetaValue("Xcorr", 0.0)));
-        else if (f == "Sp") features.push_back(String(hit.getMetaValue("Sp", 0.0)));
-        else if (f == "IonFrac") features.push_back(String(hit.getMetaValue("IonFrac", 0.0)));
-        else if (f == "Mass") features.push_back(String(exp_mass));
-        else if (f == "PepLen") features.push_back(String(unmodified_sequence.size()));
-        else if (f == "Charge1") features.push_back(String(charge == 1 ? 1 : 0));
-        else if (f == "Charge2") features.push_back(String(charge == 2 ? 1 : 0));
-        else if (f == "Charge3") features.push_back(String(charge == 3 ? 1 : 0));
-        else if (f == "Charge4") features.push_back(String(charge == 4 ? 1 : 0));
-        else if (f == "EnzN") features.push_back(String(enzN ? 1 : 0));
-        else if (f == "EnzC") features.push_back(String(enzC ? 1 : 0));
-        else if (f == "EnzInt") features.push_back(String(enzInt));
-        else if (f == "LnNumSP") features.push_back(String(hit.getMetaValue("LnNumSP", 0.0)));
-        else if (f == "DM") features.push_back(String(delta_mass));
-        else if (f == "AbsDM") features.push_back(String(std::abs(delta_mass)));
+        if (psm.getPeptideEvidences().empty())
+        {
+          OPENMS_LOG_WARN << "PSM (PeptideHit) without protein reference found. "
+                  << "This may indicate incomplete mapping during PeptideIndexing (e.g., wrong enzyme settings)." 
+                  << "Will skip this PSM." << endl;
+          continue;
+        }
+        PeptideHit hit(psm); // make a copy of the hit to store temporary features
+        hit.setMetaValue("SpecId", file_identifier + scan_identifier);
+        hit.setMetaValue("ScanNr", scan_number);
+        
+        if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
+        { 
+          OPENMS_LOG_WARN << "PSM without target/decoy information found. "
+                  << "This may indicate incomplete mapping during PeptideIndexing (e.g., wrong decoy prefix settings)." 
+                  << "Will skip this PSM." << endl;
+          continue;
+        }
+        
+        int label = hit.isDecoy() ? -1 : 1;
+        hit.setMetaValue("Label", label);
+        
+        int charge = hit.getCharge();
+        String unmodified_sequence = hit.getSequence().toUnmodifiedString();
+      
+        double calc_mass; 
+        if (!hit.metaValueExists("CalcMass"))
+        {
+          calc_mass = hit.getSequence().getMZ(charge);
+          hit.setMetaValue("CalcMass", calc_mass); // Percolator calls is CalcMass instead of m/z
+        }
         else
         {
-          features.push_back(String(hit.getMetaValue(f, 0.0)));
+          calc_mass = hit.getMetaValue("CalcMass");
+        }
+
+        if (hit.metaValueExists("IsotopeError"))  // for backwards compatibility (generated by MSGFPlusAdaper OpenMS < 2.6)
+        {
+          float isoErr = hit.getMetaValue("IsotopeError").toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+        else if (hit.metaValueExists(Constants::UserParam::ISOTOPE_ERROR)) // OpenMS user param name for isotope error
+        {
+          float isoErr = hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR).toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+                
+        hit.setMetaValue("ExpMass", exp_mass);
+
+        // needed in case "description of correct" option is used
+        double delta_mass = exp_mass - calc_mass;
+        hit.setMetaValue("deltamass", delta_mass);
+        hit.setMetaValue("retentiontime", retention_time);
+
+        hit.setMetaValue("mass", exp_mass);
+        
+        double score = hit.getScore();
+        // TODO better to use log scores for E-value based scores
+        hit.setMetaValue("score", score);
+        
+        int peptide_length = unmodified_sequence.size();
+        hit.setMetaValue("peplen", peptide_length);
+        
+        for (int i = min_charge; i <= max_charge; ++i)
+        {
+          hit.setMetaValue("charge" + String(i), charge == i);
+        }
+
+        // just first peptide evidence
+        char aa_before = hit.getPeptideEvidences().front().getAABefore();
+        char aa_after = hit.getPeptideEvidences().front().getAAAfter();
+
+        bool enzN = isEnz_(aa_before, unmodified_sequence.prefix(1)[0], digest);
+        hit.setMetaValue("enzN", enzN);
+        bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], aa_after, digest);
+        hit.setMetaValue("enzC", enzC);
+        int enzInt = countEnzymatic_(unmodified_sequence, digest);
+        hit.setMetaValue("enzInt", enzInt);
+
+        hit.setMetaValue("dm", delta_mass);
+        
+        double abs_delta_mass = abs(delta_mass);
+        hit.setMetaValue("absdm", abs_delta_mass);
+        
+        //peptide
+        String sequence = "";
+
+        aa_before = aa_before == '[' ? '-' : aa_before;
+        aa_after = aa_after == ']' ? '-' : aa_after;
+
+        sequence += aa_before;
+        sequence += "."; 
+        // Percolator uses square brackets to indicate PTMs
+        sequence += hit.getSequence().toBracketString(false, true);
+        sequence += "."; 
+        sequence += aa_after;
+        
+        hit.setMetaValue("Peptide", sequence);
+        
+        //proteinId1
+        StringList proteins;
+        for (const PeptideEvidence& pep : hit.getPeptideEvidences())
+        {
+          proteins.push_back(pep.getProteinAccession());
+        }
+        hit.setMetaValue("Proteins", ListUtils::concatenate(proteins, '\t'));
+        
+        StringList feats;
+        for (const String& feat : feature_set)
+        {
+        // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
+          if (hit.metaValueExists(feat))
+          {
+            feats.push_back(hit.getMetaValue(feat).toString());
+          }
+        }
+        // here: feats (metavalues in peptide hits) and feature_set are equal if they have same size (if no metavalue is missing)
+
+        if (feats.size() == feature_set.size())
+        { // only if all feats were present add
+          txt.addLine(ListUtils::concatenate(feats, '\t'));
+        }        
+        else
+        { // at least one feature is missing in the current peptide hit
+          missing_meta_value_count++;        
+          for (const auto& f : feature_set)
+          {
+            if (std::find(feats.begin(), feats.end(), f) == feats.end()) missing_meta_values.insert(f);
+          }
         }
       }
+    }
 
-      line += ListUtils::concatenate(features, '\t');
-      line += "\t-." + unmodified_sequence + ".-"; 
-      
-      String proteins;
-      for (const auto& pe : hit.getPeptideEvidences())
+    // print warnings
+    if (missing_meta_value_count != 0)
+    {
+      OPENMS_LOG_WARN << "There were peptide hits with missing features/meta values. Skipped peptide hits: " << missing_meta_value_count << endl;
+      OPENMS_LOG_WARN << "Names of missing meta values: " << endl;
+      for (const auto& f : missing_meta_values)
       {
-        if (!proteins.empty()) proteins += "\t";
-        proteins += pe.getProteinAccession();
+        OPENMS_LOG_WARN << f << endl;
       }
-      line += "\t" + proteins;
-
-      txt.addLine(line);
     }
 
     return txt;
@@ -220,10 +588,7 @@ namespace OpenMS
 
   bool PercolatorInfile::isEnz_(const char& n, const char& c, const ProteaseDigestion& digest)
   {
-    if (n == '-' || c == '-' || n == '[' || c == ']')
-    {
-      return true;
-    }
+    if (n == '-' || c == '-' || n == '[' || c == ']') return true;
     const String mini_protein = String(1, n) + String(1, c);
     return digest.isValidProduct(mini_protein, 0, 1, true);
   }
