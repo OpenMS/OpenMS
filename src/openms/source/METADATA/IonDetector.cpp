@@ -95,5 +95,27 @@ namespace OpenMS
     order_ = order;
   }
 
+  StringList IonDetector::getAllNamesOfType()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_TYPE);
+    for (size_t i = 0; i < SIZE_OF_TYPE; ++i)
+    {
+      names.push_back(NamesOfType[i]);
+    }
+    return names;
+  }
+
+  StringList IonDetector::getAllNamesOfAcquisitionMode()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_ACQUISITIONMODE);
+    for (size_t i = 0; i < SIZE_OF_ACQUISITIONMODE; ++i)
+    {
+      names.push_back(NamesOfAcquisitionMode[i]);
+    }
+    return names;
+  }
+
 }
 

@@ -120,7 +120,7 @@ namespace OpenMS
           {
             if (fda[idx].size() != spec.size())
             {
-              throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spec.size());
+              throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spec.size(), "FloatDataArray size does not match spectrum size");
             }
             ++valid_count;
           }

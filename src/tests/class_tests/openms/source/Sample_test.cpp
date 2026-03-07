@@ -299,6 +299,13 @@ START_SECTION((bool operator== (const Sample& rhs) const))
 	TEST_EQUAL(edit==empty,true)
 END_SECTION
 
+START_SECTION((static StringList getAllNamesOfSampleState()))
+  StringList names = Sample::getAllNamesOfSampleState();
+  TEST_EQUAL(names.size(), Sample::SIZE_OF_SAMPLESTATE);
+  TEST_EQUAL(names[Sample::LIQUID], "liquid");
+  TEST_EQUAL(names[Sample::SOLID], "solid");
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

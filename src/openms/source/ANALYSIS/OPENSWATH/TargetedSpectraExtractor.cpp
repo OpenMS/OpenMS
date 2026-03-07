@@ -497,7 +497,7 @@ namespace OpenMS
     scored_spectra.resize(annotated_spectra.size());
     if (compute_features && scored_spectra.size() != features.size())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, scored_spectra.size(), "scored_spectra size does not match features size");
     }
     for (Size i = 0; i < annotated_spectra.size(); ++i)
     {
@@ -587,7 +587,7 @@ namespace OpenMS
   {
     if (compute_features && scored_spectra.size() != features.size())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, scored_spectra.size(), "scored_spectra size does not match features size");
     }
     std::map<std::string,UInt> transition_best_spec;
     for (UInt i = 0; i < scored_spectra.size(); ++i)
@@ -774,7 +774,7 @@ namespace OpenMS
   {
     if (spectra.size() != features.size())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spectra.size(), "spectra size does not match features size");
     }
 
     std::vector<Size> no_matches_idx; // to keep track of those features without a match

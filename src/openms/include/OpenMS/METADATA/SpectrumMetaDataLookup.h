@@ -269,17 +269,35 @@ namespace OpenMS
 
     /**
      * @brief Adds missing ion mobility information to peptide identifications.
-     * 
+     *
      * This function adds missing ion mobility (IM) information to the peptide identifications.
      * The missing IM information is retrieved from the MSExperiment.
-     * 
+     *
      * @param peptides The vector of peptide identifications to update.
      * @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up IM values.
-     * 
+     *
      * @return True if all missing IM information was successfully added to the peptide identifications, false otherwise.
     */
     static bool addMissingIMToPeptideIDs(PeptideIdentificationList& peptides,
     									const MSExperiment& exp);
+
+    /**
+     * @brief Adds FAIMS compensation voltage information to peptide identifications.
+     *
+     * This function adds FAIMS compensation voltage (CV) information to the peptide identifications
+     * by looking up the corresponding spectrum and extracting the FAIMS CV.
+     *
+     * Both MS1 and MS2 spectra can have explicit FAIMS CV annotations (DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE).
+     * For MS2 spectra without explicit FAIMS CV, the function falls back to the last seen FAIMS CV
+     * from a preceding spectrum in run order.
+     *
+     * @param peptides The vector of peptide identifications to update.
+     * @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up FAIMS CV values.
+     *
+     * @return True if FAIMS data was present and at least some IDs were annotated, false if no FAIMS data present.
+    */
+    static bool addMissingFAIMSToPeptideIDs(PeptideIdentificationList& peptides,
+                                            const MSExperiment& exp);
 
     /**
      * @brief Add missing "spectrum_reference"s to peptide identifications based on raw data

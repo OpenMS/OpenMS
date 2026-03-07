@@ -268,13 +268,14 @@ namespace OpenMS
       The constructor has an additional argument: the value of of the
       requested size.
       @param	size the size causing the problem
+      @param	message context message explaining why the size is invalid
 
       @ingroup Exceptions
     */
     class OPENMS_DLLAPI InvalidSize : public BaseException
     {
     public:
-      InvalidSize(const char* file, int line, const char* function, Size size = 0) noexcept;
+      InvalidSize(const char* file, int line, const char* function, Size size, const std::string& message) noexcept;
     };
 
 

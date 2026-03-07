@@ -13,7 +13,7 @@
 namespace OpenMS
 {
 
-  bool SimpleOpenMSSpectraFactory::isExperimentCached(const boost::shared_ptr<PeakMap>& exp)
+  bool SimpleOpenMSSpectraFactory::isExperimentCached(const std::shared_ptr<PeakMap>& exp)
   {
     for (std::size_t i = 0; i < exp->getSpectra().size(); ++i)
     {
@@ -38,7 +38,7 @@ namespace OpenMS
     return false;
   }
 
-  OpenSwath::SpectrumAccessPtr SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(const boost::shared_ptr<PeakMap>& exp)
+  OpenSwath::SpectrumAccessPtr SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(const std::shared_ptr<PeakMap>& exp)
   {
     bool is_cached = SimpleOpenMSSpectraFactory::isExperimentCached(exp);
     if (is_cached)

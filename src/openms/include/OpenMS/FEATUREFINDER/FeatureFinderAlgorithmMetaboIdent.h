@@ -29,25 +29,27 @@ class OPENMS_DLLAPI FeatureFinderAlgorithmMetaboIdent :
 {
 public:
   /// @brief represents a compound in the assay library
-  struct OPENMS_DLLAPI FeatureFinderMetaboIdentCompound 
-  {    
-    FeatureFinderMetaboIdentCompound(const String& _name, 
-        const String& _formula, 
-        double _mass, 
-        const std::vector<int>& _charges, 
-        const std::vector<double>& _rts, 
-        const std::vector<double>& _rt_ranges, 
-        const std::vector<double>& _iso_distrib):
+  struct OPENMS_DLLAPI FeatureFinderMetaboIdentCompound
+  {
+    FeatureFinderMetaboIdentCompound(const String& _name,
+        const String& _formula,
+        double _mass,
+        const std::vector<int>& _charges,
+        const std::vector<double>& _rts,
+        const std::vector<double>& _rt_ranges,
+        const std::vector<double>& _iso_distrib,
+        const std::vector<double>& _ion_mobilities = {}):
       name_(_name),
       formula_(_formula),
       mass_(_mass),
       charges_(_charges),
       rts_(_rts),
       rt_ranges_(_rt_ranges),
-      iso_distrib_(_iso_distrib)
-      {        
+      iso_distrib_(_iso_distrib),
+      ion_mobilities_(_ion_mobilities)
+      {
       }
-    
+
     private:
       String name_;
       String formula_;
@@ -56,6 +58,7 @@ public:
       std::vector<double> rts_;
       std::vector<double> rt_ranges_;
       std::vector<double> iso_distrib_;
+      std::vector<double> ion_mobilities_; ///< Expected ion mobility values (optional)
 
     public:
       const String& getName() const {
@@ -85,6 +88,10 @@ public:
       const std::vector<double>& getIsotopeDistribution() const {
         return iso_distrib_;
       }
+
+      const std::vector<double>& getIonMobilities() const {
+        return ion_mobilities_;
+      }
   };
 
   /// default constructor
@@ -93,7 +100,12 @@ public:
   /// @brief perform targeted feature extraction of compounds from @p metaboIdentTable and stores them in @p features.
   /// If @p spectra_file is provided it will be used as a fall-back to setPrimaryMSRunPath
   /// in the feature map in case a proper primaryMSRunPath is not annotated in the MSExperiment.
-  /// If there are no MS1 scans in the MSData return @p features unchanged
+  /// If there are no MS1 scans in the MSData return @p features unchanged.
+  ///
+  /// FAIMS data is handled automatically: if the MS data contains multiple FAIMS compensation
+  /// voltages, each CV group is processed independently and results are combined with
+  /// FAIMS_CV annotation on features. For multi-FAIMS data, getLibrary() returns an empty
+  /// library since each FAIMS group has its own assay library.
   void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, const String& spectra_file = "");
 
   /// @brief Retrieve chromatograms (empty if run was not executed)
@@ -118,7 +130,7 @@ public:
   /// @brief Retrieve number of features with shared identifications
   size_t getNShared() const  { return n_shared_; }
 
-  String prettyPrintCompound(const TargetedExperiment::Compound& compound);
+  static String prettyPrintCompound(const TargetedExperiment::Compound& compound);
 protected:
 
   /// Boundaries for a mass trace in a feature
@@ -168,7 +180,8 @@ protected:
                            double mass, const std::vector<Int>& charges,
                            const std::vector<double>& rts,
                            std::vector<double> rt_ranges,
-                           const std::vector<double>& iso_distrib);
+                           const std::vector<double>& iso_distrib,
+                           const std::vector<double>& ion_mobilities = {});
 
   /// Add "peptide" identifications with information about targets to features
   Size addTargetAnnotations_(FeatureMap& features);
@@ -187,9 +200,16 @@ protected:
 
   void selectFeaturesFromCandidates_(FeatureMap& features);
 
+  /// Core processing logic for a single (non-FAIMS or single FAIMS group) dataset
+  /// Called by run() either directly or for each FAIMS CV group
+  void runSingleGroup_(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable,
+                       FeatureMap& features,
+                       const String& spectra_file);
+
   double rt_window_; ///< RT window width
   double mz_window_; ///< m/z window width
   bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
+  double im_window_; ///< Ion mobility window width (0 = disabled)
 
   double isotope_pmin_; ///< min. isotope probability for peptide assay
   Size n_isotopes_; ///< number of isotopes for peptide assay

@@ -611,11 +611,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out1 = "MRMAssay_uisTransitions_output_1.TraML";
-#else
-  String out1 = "MRMAssay_uisTransitions_output_1_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
@@ -636,11 +632,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out2 = "MRMAssay_uisTransitions_output_2.TraML";
-#else
-  String out2 = "MRMAssay_uisTransitions_output_2_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
@@ -707,11 +699,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out1 = "MRMAssay_uisTransitions_output_3.TraML";
-#else
-  String out1 = "MRMAssay_uisTransitions_output_3_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
@@ -735,11 +723,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out2 = "MRMAssay_uisTransitions_output_4.TraML";
-#else
-  String out2 = "MRMAssay_uisTransitions_output_4_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
@@ -763,11 +747,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors3 = true;
   double product_mz_threshold3 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out3 = "MRMAssay_uisTransitions_output_5.TraML";
-#else
-  String out3 = "MRMAssay_uisTransitions_output_5_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp3 = targeted_exp;
 

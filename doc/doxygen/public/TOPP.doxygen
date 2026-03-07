@@ -54,6 +54,7 @@
 
   <b>Spectrum processing: Centroiding</b>
   - @subpage TOPP_PeakPickerHiRes - Peak detection in high-resolution profile mass spectra.
+  - @subpage TOPP_PeakPickerIM - Peak detection in the ion mobility dimension.
   - @subpage TOPP_PeakPickerIterative - Peak detection in high-resolution profile TOF data (based on PeakPickerHiRes with some postprocessing) 
   
 
@@ -84,6 +85,7 @@
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC-MS maps.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
+  - @subpage TOPP_FeatureFinderLFQ - Detects peptide features in centroided LC-MS1 data using the Biosaur2 algorithm.
   - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
   - @subpage TOPP_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
@@ -105,6 +107,7 @@
   - @subpage TOPP_MSFraggerAdapter - Peptide Identification with MSFragger.
   - @subpage TOPP_MSGFPlusAdapter - Identifies MS/MS spectra using MSGFPlus (external).
   - @subpage TOPP_NovorAdapter - De novo sequencing from tandem mass spectrometry data.
+  - @subpage TOPP_PeptideDataBaseSearchFI - Peptide identification using fragment ions.
   - @subpage TOPP_SageAdapter - Identifies MS/MS spectra using Sage (external).
   - @subpage TOPP_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
   - @subpage TOPP_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
@@ -164,6 +167,7 @@
   - @subpage TOPP_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
 
   <b>Cross-linking</b>
+  - @subpage TOPP_OpenNuXL - Annotate RNA/DNA-peptide cross-links in MS/MS spectra.
   - @subpage TOPP_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
   - @subpage TOPP_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNA-to-peptide cross-linking experiments.
   - @subpage TOPP_XFDR - Calculates false discovery rate estimates on cross-link identifications.

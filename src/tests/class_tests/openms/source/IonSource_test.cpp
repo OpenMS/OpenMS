@@ -168,6 +168,30 @@ START_SECTION((bool operator!= (const IonSource& rhs) const))
 	TEST_EQUAL(edit!=empty,true);
 END_SECTION
 
+START_SECTION((static StringList getAllNamesOfInletType()))
+  StringList names = IonSource::getAllNamesOfInletType();
+  TEST_EQUAL(names.size(), IonSource::SIZE_OF_INLETTYPE);
+  TEST_EQUAL(names[IonSource::INLETNULL], "Unknown");
+  TEST_EQUAL(names[IonSource::DIRECT], "Direct");
+  TEST_EQUAL(names[IonSource::NANOSPRAY], "Nanospray inlet");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfIonizationMethod()))
+  StringList names = IonSource::getAllNamesOfIonizationMethod();
+  TEST_EQUAL(names.size(), IonSource::SIZE_OF_IONIZATIONMETHOD);
+  TEST_EQUAL(names[IonSource::IONMETHODNULL], "Unknown");
+  TEST_EQUAL(names[IonSource::ESI], "Electrospray ionisation");
+  TEST_EQUAL(names[IonSource::MALDI], "Matrix-assisted laser desorption ionization");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfPolarity()))
+  StringList names = IonSource::getAllNamesOfPolarity();
+  TEST_EQUAL(names.size(), IonSource::SIZE_OF_POLARITY);
+  TEST_EQUAL(names[IonSource::POLNULL], "unknown");
+  TEST_EQUAL(names[IonSource::POSITIVE], "positive");
+  TEST_EQUAL(names[IonSource::NEGATIVE], "negative");
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

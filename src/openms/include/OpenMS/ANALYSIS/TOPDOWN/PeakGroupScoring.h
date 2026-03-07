@@ -46,10 +46,9 @@ namespace OpenMS
     /// get Deep learning based peak group score. Not implemented yet.
     static double getDLscore(PeakGroup* pg, const MSSpectrum& spec, const FLASHHelperClasses::PrecalculatedAveragine& avg, double tol);
 
-    /// convert a peak group to a feature vector for setQscore calculation
-    static std::vector<double> toFeatureVector(const PeakGroup* pg);
-
   private:
+    /// convert a peak group to a feature vector for setQscore calculation
+    static std::vector<double> toFeatureVector_(const PeakGroup* pg);
     /// the weights for Qscore calculation
     static std::vector<double> weight_;
 

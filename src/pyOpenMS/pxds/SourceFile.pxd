@@ -1,5 +1,6 @@
 from Types cimport *
 from String cimport *
+from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
 
@@ -28,6 +29,9 @@ cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
 
         String getNativeIDTypeAccession() except + nogil  # wrap-doc:Returns the nativeID of the spectra
         void setNativeIDTypeAccession(const String & accesssion) except + nogil  # wrap-doc:Sets the native ID of the spectra
+
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfChecksumType() except + nogil  # wrap-doc:Returns all checksum type names known to OpenMS
 
 cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS::SourceFile":
     cdef enum ChecksumType:

@@ -199,6 +199,13 @@ START_SECTION((bool operator!= (const SourceFile& rhs) const))
 	TEST_FALSE(tmp == tmp2);
 END_SECTION
 
+START_SECTION((static StringList getAllNamesOfChecksumType()))
+  StringList names = SourceFile::getAllNamesOfChecksumType();
+  TEST_EQUAL(names.size(), SourceFile::SIZE_OF_CHECKSUMTYPE);
+  TEST_EQUAL(names[SourceFile::SHA1], "SHA-1");
+  TEST_EQUAL(names[SourceFile::MD5], "MD5");
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

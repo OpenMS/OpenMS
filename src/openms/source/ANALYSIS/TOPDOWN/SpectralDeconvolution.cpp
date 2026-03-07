@@ -36,8 +36,7 @@ namespace OpenMS
                        "Minimum charge state for MS1 spectra (can be negative for negative mode). For MSn (n > 1), minimum charge is fixed to 1.");
     defaults_.setValue(
       "max_charge", 100,
-      "Maximum charge state for spectra (can be negative for negative mode). Apart from min_charge, this option applies to all MS levelss.");
-
+      "Maximum charge state for spectra (can be negative for negative mode). Apart from min_charge, this option applies to all MS levels.");
     defaults_.setValue("precursor_charge", 0,
                        "Charge state of the target precursor. All precursor charge for MSn (n > 1) is fixed to this value. When precursor m/z is "
                        "provided within the input mzML file or is specified using precursor_mz option, "
@@ -91,18 +90,7 @@ namespace OpenMS
       return;
     }
 
-    // Get precursor from spectrum if available, otherwise create one from target parameters
-    Precursor precursor;
-    if (!spec.getPrecursors().empty())
-    {
-      precursor = spec.getPrecursors()[0];
-    }
-    else
-    {
-      // Create precursor from target parameters when spectrum has no precursors
-      precursor.setMZ(target_precursor_mz_);
-    }
-
+    auto precursor = spec.getPrecursors()[0];
     double target_precursor_mass
       = (precursor.getMZ() - FLASHHelperClasses::getChargeMass(target_precursor_charge_ > 0)) * std::abs(target_precursor_charge_);
     precursor.setCharge(target_precursor_charge_);
@@ -119,6 +107,76 @@ namespace OpenMS
     deconvolved_spectrum_.setPrecursorPeakGroup(precursorPeakGroup);
   }
 
+  void SpectralDeconvolution::prepareSignalDecoyExclusions_()
+  {
+    for (const auto& pg : *target_dspec_for_decoy_calculation_)
+    {
+      for (int i = 0; i <= 0; i++)
+      {
+        excluded_masses_for_decoy_runs_.push_back(pg.getMonoMass() + i * iso_da_distance_);
+        excluded_peak_masses_for_decoy_runs_.push_back(pg.getMonoMass() + avg_.getAverageMassDelta(pg.getMonoMass()) + i * iso_da_distance_);
+      }
+    }
+    std::sort(excluded_masses_for_decoy_runs_.begin(), excluded_masses_for_decoy_runs_.end());
+    excluded_masses_for_decoy_runs_.erase(unique(excluded_masses_for_decoy_runs_.begin(), excluded_masses_for_decoy_runs_.end()),
+                                          excluded_masses_for_decoy_runs_.end());
+
+    std::sort(excluded_peak_masses_for_decoy_runs_.begin(), excluded_peak_masses_for_decoy_runs_.end());
+    excluded_peak_masses_for_decoy_runs_.erase(unique(excluded_peak_masses_for_decoy_runs_.begin(), excluded_peak_masses_for_decoy_runs_.end()),
+                                               excluded_peak_masses_for_decoy_runs_.end());
+  }
+
+  void SpectralDeconvolution::prepareNoiseDecoySpectrum_(const MSSpectrum& spec)
+  {
+    std::set<double> signal_mzs;
+    for (const auto& pg : *target_dspec_for_decoy_calculation_)
+    {
+      for (const auto& p : pg)
+      {
+        signal_mzs.insert(p.mz);
+      }
+    }
+
+    auto nspec = spec;
+    nspec.clear(false);
+
+    for (const auto& p : spec)
+    {
+      if (signal_mzs.find(p.getMZ()) != signal_mzs.end()) { continue; }
+      nspec.push_back(p);
+    }
+    deconvolved_spectrum_.setOriginalSpectrum(nspec);
+  }
+
+  void SpectralDeconvolution::registerPrecursorForMSn_(const PeakGroup& precursor_peak_group)
+  {
+    for (const auto& precursor : deconvolved_spectrum_.getOriginalSpectrum().getPrecursors())
+    {
+      for (const auto& activation_method : precursor.getActivationMethods())
+      {
+        deconvolved_spectrum_.setActivationMethod(activation_method);
+        if (deconvolved_spectrum_.getActivationMethod() == Precursor::ActivationMethod::HCID)
+        {
+          deconvolved_spectrum_.setActivationMethod(Precursor::ActivationMethod::HCD);
+        }
+        break;
+      }
+      deconvolved_spectrum_.setPrecursor(precursor);
+    }
+
+    if (target_precursor_charge_ != 0 || target_precursor_mz_ > 0) { setTargetPrecursorCharge_(); }
+
+    if (deconvolved_spectrum_.getPrecursorPeakGroup().empty() && !precursor_peak_group.empty())
+    {
+      deconvolved_spectrum_.setPrecursorPeakGroup(precursor_peak_group);
+      deconvolved_spectrum_.setPrecursorScanNumber(precursor_peak_group.getScanNumber());
+      Precursor precursor(deconvolved_spectrum_.getPrecursor());
+      int abs_charge = (int)round(precursor_peak_group.getMonoMass() / precursor.getMZ());
+      precursor.setCharge(precursor_peak_group.isPositive() ? abs_charge : -abs_charge);
+      deconvolved_spectrum_.setPrecursor(precursor);
+    }
+  }
+
   // The main function called from outside. precursor_map_for_FLASHIda is used to read FLASHIda information
   void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const int scan_number, const PeakGroup& precursor_peak_group)
   {
@@ -132,94 +190,24 @@ namespace OpenMS
     excluded_mass_bins_for_decoy_runs_.reset();
     excluded_masses_for_decoy_runs_.clear();
 
-    if (target_decoy_type_ == PeakGroup::signal_decoy) // charge decoy
-    {
-      for (const auto& pg : *target_dspec_for_decoy_calculation_) // pg are the target peak groups from normal spectrum deconvolution
-      {
-        for (int i = -0; i <= 0; i++)
-        {
-          excluded_masses_for_decoy_runs_.push_back(pg.getMonoMass() + i * iso_da_distance_);
-          excluded_peak_masses_for_decoy_runs_.push_back(pg.getMonoMass() + avg_.getAverageMassDelta(pg.getMonoMass()) + i * iso_da_distance_);
-        }
-      }
-      std::sort(excluded_masses_for_decoy_runs_.begin(), excluded_masses_for_decoy_runs_.end());
-      excluded_masses_for_decoy_runs_.erase( unique(excluded_masses_for_decoy_runs_.begin(), excluded_masses_for_decoy_runs_.end() ),
-                                            excluded_masses_for_decoy_runs_.end() );
-
-      std::sort(excluded_peak_masses_for_decoy_runs_.begin(), excluded_peak_masses_for_decoy_runs_.end());
-      excluded_peak_masses_for_decoy_runs_.erase( unique(excluded_peak_masses_for_decoy_runs_.begin(), excluded_peak_masses_for_decoy_runs_.end() ),
-                                                 excluded_peak_masses_for_decoy_runs_.end() );
-    }
+    if (target_decoy_type_ == PeakGroup::signal_decoy) { prepareSignalDecoyExclusions_(); }
 
     ms_level_ = spec.getMSLevel();
     deconvolved_spectrum_ = DeconvolvedSpectrum(scan_number);
     deconvolved_spectrum_.setOriginalSpectrum(spec);
 
-    // for noise decoy, we exclude all raw peaks used for the normal run
-    if (target_decoy_type_ == PeakGroup::noise_decoy)
-    {
-      std::set<double> signal_mzs;
-      for (const auto& pg : *target_dspec_for_decoy_calculation_)
-      {
-        for (const auto& p : pg)
-          signal_mzs.insert(p.mz);
-      }
+    if (target_decoy_type_ == PeakGroup::noise_decoy) { prepareNoiseDecoySpectrum_(spec); }
 
-      auto nspec = spec;
-      nspec.clear(false);
-
-      for (const auto& p : spec)
-      {
-        if (signal_mzs.find(p.getMZ()) != signal_mzs.end()) continue;
-        nspec.push_back(p);
-      }
-      deconvolved_spectrum_.setOriginalSpectrum(nspec);
-    }
-
-    // here register targeted peak mzs etc.
-    // for MSn (n>1) register precursor peak and peak group.
-    if (ms_level_ > 1)
-    {
-      for (const auto& precursor : deconvolved_spectrum_.getOriginalSpectrum().getPrecursors())
-      {
-        for (const auto& activation_method : precursor.getActivationMethods())
-        {
-          deconvolved_spectrum_.setActivationMethod(activation_method);
-          if (deconvolved_spectrum_.getActivationMethod() == Precursor::HCID) { deconvolved_spectrum_.setActivationMethod(Precursor::HCD); }
-          break;
-        }
-        deconvolved_spectrum_.setPrecursor(precursor);
-      }
-
-      if (target_precursor_charge_ != 0 || target_precursor_mz_ > 0) { setTargetPrecursorCharge_(); }
-
-      if (deconvolved_spectrum_.getPrecursorPeakGroup().empty())
-      {
-        if (! precursor_peak_group.empty())
-        {
-          deconvolved_spectrum_.setPrecursorPeakGroup(precursor_peak_group);
-          deconvolved_spectrum_.setPrecursorScanNumber(precursor_peak_group.getScanNumber());
-          Precursor precursor(deconvolved_spectrum_.getPrecursor());
-          int abs_charge = (int)round(precursor_peak_group.getMonoMass() / precursor.getMZ());
-          precursor.setCharge(precursor_peak_group.isPositive() ? abs_charge : -abs_charge);
-          deconvolved_spectrum_.setPrecursor(precursor);
-        }
-        else
-        {
-
-        }
-      }
-    }
+    if (ms_level_ > 1) { registerPrecursorForMSn_(precursor_peak_group); }
 
     // based on MS level, adjust charge and mass ranges. Precursor charge and mass determine those.
-    current_max_charge_ = deconvolved_spectrum_.getCurrentMaxAbsCharge(max_abs_charge_); //
+    current_max_charge_ = deconvolved_spectrum_.getCurrentMaxAbsCharge(max_abs_charge_);
     current_max_mass_ = deconvolved_spectrum_.getCurrentMaxMass(max_mass_);
     current_min_mass_ = deconvolved_spectrum_.getCurrentMinMass(min_mass_);
 
     // set universal pattern filter and harmonic pattern filters
     setFilters_();
     // LogMzPeaks are generated from raw peaks
-
     updateLogMzPeaks_();
     if (log_mz_peaks_.empty()) { return; }
 
@@ -1154,7 +1142,9 @@ namespace OpenMS
     deconvolved_spectrum_.sort();
 
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * 1.2, target_decoy_type_);
+    removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_, tol);
 
+    /// test
     filtered_peak_groups.clear();
     filtered_peak_groups.reserve(deconvolved_spectrum_.size());
 
@@ -1206,7 +1196,6 @@ namespace OpenMS
     }
 
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
-    removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_, tol);
     deconvolved_spectrum_.sort();
   }
 

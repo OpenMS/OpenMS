@@ -72,14 +72,14 @@ END_SECTION
 
 START_SECTION((set<ActivationMethod>& getActivationMethods()))
   Precursor tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
   TEST_EQUAL(tmp.getActivationMethods().size(),1);
 END_SECTION
 
 START_SECTION((void setActivationMethods(const set<ActivationMethod>& activation_methods)))
   Precursor tmp;
 	set<Precursor::ActivationMethod> methods;
-	methods.insert(Precursor::CID);
+	methods.insert(Precursor::ActivationMethod::CID);
 	tmp.setActivationMethods(methods);
   TEST_EQUAL(tmp.getActivationMethods().size(),1);
 END_SECTION
@@ -87,7 +87,7 @@ END_SECTION
 START_SECTION((StringList getActivationMethodsAsString() const))
   Precursor tmp;
   set<Precursor::ActivationMethod> methods;
-  methods.insert(Precursor::CID);
+  methods.insert(Precursor::ActivationMethod::CID);
   tmp.setActivationMethods(methods);
   StringList result = tmp.getActivationMethodsAsString();
   TEST_EQUAL(result.size(), 1);
@@ -97,7 +97,7 @@ END_SECTION
 START_SECTION((StringList getActivationMethodsAsShortString() const))
   Precursor tmp;
   set<Precursor::ActivationMethod> methods;
-  methods.insert(Precursor::CID);
+  methods.insert(Precursor::ActivationMethod::CID);
   tmp.setActivationMethods(methods);
   StringList result = tmp.getActivationMethodsAsShortString();
   TEST_EQUAL(result.size(), 1);
@@ -106,12 +106,12 @@ END_SECTION
 
 START_SECTION((static StringList getAllNamesOfActivationMethods()))
   StringList result = Precursor::getAllNamesOfActivationMethods();
-  TEST_EQUAL(result.size(), Precursor::SIZE_OF_ACTIVATIONMETHOD);
+  TEST_EQUAL(result.size(), static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD));
 END_SECTION
 
 START_SECTION((static StringList getAllShortNamesOfActivationMethods()))
   StringList result = Precursor::getAllShortNamesOfActivationMethods();
-  TEST_EQUAL(result.size(), Precursor::SIZE_OF_ACTIVATIONMETHOD);
+  TEST_EQUAL(result.size(), static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD));
 END_SECTION
 
 START_SECTION((double getIsolationWindowUpperOffset() const))
@@ -190,7 +190,7 @@ END_SECTION
 START_SECTION((Precursor(const Precursor& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
   tmp.setActivationEnergy(47.11);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -220,8 +220,8 @@ END_SECTION
 START_SECTION((Precursor(const Precursor&& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
-  tmp.getActivationMethods().insert(Precursor::BIRD);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::BIRD);
   tmp.setActivationEnergy(40.11);
   tmp.setIsolationWindowUpperOffset(20.7);
   tmp.setIsolationWindowLowerOffset(20.8);
@@ -257,7 +257,7 @@ END_SECTION
 START_SECTION((Precursor& operator= (const Precursor& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
   tmp.setActivationEnergy(47.11);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -303,8 +303,8 @@ END_SECTION
 START_SECTION((Precursor& operator= (const Precursor&& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
-  tmp.getActivationMethods().insert(Precursor::BIRD);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::BIRD);
   tmp.setActivationEnergy(40.11);
   tmp.setIsolationWindowUpperOffset(20.7);
   tmp.setIsolationWindowLowerOffset(20.8);
@@ -355,7 +355,7 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
@@ -404,7 +404,7 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
 	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;	tmp2 = tmp;

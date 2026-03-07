@@ -319,6 +319,12 @@ START_SECTION(bool operator!= (const Instrument& rhs) const)
 	TEST_EQUAL(edit!=empty,true);
 END_SECTION
 
+START_SECTION((static StringList getAllNamesOfIonOpticsType()))
+  StringList names = Instrument::getAllNamesOfIonOpticsType();
+  TEST_EQUAL(names.size(), Instrument::SIZE_OF_IONOPTICSTYPE);
+  TEST_EQUAL(names[Instrument::REFLECTRON], "reflectron");
+END_SECTION
+
 
 
 /////////////////////////////////////////////////////////////

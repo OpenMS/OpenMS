@@ -405,7 +405,7 @@ private:
     
     if (pattern.size() != delta_mass_matched.size())
     {
-       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, delta_mass_matched.size());
+       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, delta_mass_matched.size(), "pattern size does not match delta_mass_matched size");
     }
     
     // new complete consensus feature

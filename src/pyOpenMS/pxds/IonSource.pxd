@@ -34,6 +34,15 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
 
         void setOrder(Int order) except + nogil  # wrap-doc:Sets the order
 
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfInletType() except + nogil  # wrap-doc:Returns all inlet type names known to OpenMS
+
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfIonizationMethod() except + nogil  # wrap-doc:Returns all ionization method names known to OpenMS
+
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfPolarity() except + nogil  # wrap-doc:Returns all polarity names known to OpenMS
+
 cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":
 
     cdef enum Polarity:

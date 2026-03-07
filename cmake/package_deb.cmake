@@ -7,15 +7,12 @@
 # --------------------------------------------------------------------------
 
 
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "OpenMS developers <open-ms-general@lists.sourceforge.net>")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "OpenMS Inc <info@openms.de>")
 if((DEFINED ENV{CPACK_PACKAGE_FILE_NAME}) AND (NOT "$ENV{CPACK_PACKAGE_FILE_NAME}" STREQUAL ""))
   set(CPACK_PACKAGE_FILE_NAME "$ENV{CPACK_PACKAGE_FILE_NAME}")
 else()
-  if (OPENMS_64BIT_ARCHITECTURE)
-    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Debian-Linux-x86_64")
-  else()
-    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Debian-Linux-x86")
-  endif()
+  # Use CMAKE_SYSTEM_PROCESSOR to detect actual architecture
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Debian-Linux-${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
 ## CPack issues when building the package.

@@ -59,7 +59,7 @@ namespace OpenSwath
         typedef OpenSwath::LightCompound PeptideType;
         typedef OpenSwath::LightProtein ProteinType;
 
-        typedef boost::shared_ptr<OpenSwath::IFeature> FeatureType;
+        typedef std::shared_ptr<OpenSwath::IFeature> FeatureType;
         //@}
 
         /** @name Accessors */

@@ -34,7 +34,7 @@ int main(int argc, const char** argv)
     const vector<Precursor>& precursors = spectrum.getPrecursors();
 
     // size check & throw exception if needed 
-    if (precursors.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, precursors.size());
+    if (precursors.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, precursors.size(), "precursors vector must not be empty");
 
     // get m/z and intensity of precursor
     double precursor_mz = precursors[0].getMZ();

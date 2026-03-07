@@ -182,6 +182,9 @@ set(format_executables_list
   FASTAFile_test
   FeatureFileOptions_test
   FeatureXMLFile_test
+  FLASHDeconvFeatureFile_test
+  FLASHDeconvSpectrumFile_test
+  FLASHHelperClasses_test
   FileHandler_test
   FileTypes_test
   GzipIfstream_test
@@ -275,6 +278,7 @@ set(format_executables_list
 if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
+
 if(WITH_PARQUET)
   list(APPEND format_executables_list Arrow_test QuantmsIO_test)
 endif()
@@ -308,6 +312,7 @@ set(math_executables_list
 )
 
 set(filtering_executables_list
+  Biosaur2Algorithm_test
   DataFilters_test
   Deisotoper_test
   ElutionPeakDetection_test
@@ -458,10 +463,8 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
   FIAMSDataProcessor_test
-  # FIAMSScheduler_test
-  # FLASHDeconvAlgorithm_test
-  # FLASHDeconvHelperStructs_test
-  # FLASHTaggerAlgorithm_test
+  FLASHDeconvAlgorithm_test
+  FLASHDeconvHelperStructs_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test
@@ -577,6 +580,7 @@ set(transformations_executables_list
   ModelDescription_test
   PeakPickerHiRes_test
   PeakPickerIterative_test
+  PeakPickerIM_test
   PeakWidthEstimator_test
   SeedListGenerator_test
   TraceFitter_test

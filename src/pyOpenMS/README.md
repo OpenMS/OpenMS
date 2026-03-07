@@ -69,3 +69,84 @@ Build instructions
    ```
    
    `--no-binary` is used because the binaries are/were built with CMake.
+
+Development Patterns
+--------------------
+
+### Naming Conventions
+
+Use **lowercase snake_case** for all Python-facing names to follow PEP 8:
+
+| Type | Convention | Examples |
+|------|------------|----------|
+| DataFrame columns | `snake_case` | `precursor_mz`, `native_id`, `ion_mobility` |
+| Method names | `snake_case` | `get_peaks()`, `get_data_dict()`, `get_df()` |
+| Variables | `snake_case` | `peak_count`, `meta_values` |
+
+**Note**: C++ OpenMS uses camelCase (e.g., `getPrecursorMZ()`), but Python convenience methods
+and DataFrame columns should use snake_case for Pythonic consistency.
+
+### DataFrame Export Pattern (get_data_dict → get_df)
+
+To add DataFrame export to a class while keeping pandas as an **optional dependency**:
+
+1. **Cython addon** (`addons/<Class>.pyx`): Implement `get_data_dict(columns=None)` returning a dict of numpy arrays
+2. **Python wrapper** (`pyopenms/_dataframes.py`): Create `_<Class>DF` wrapper that adds `get_df()` calling `get_data_dict()`
+
+This two-layer pattern ensures:
+- Users without pandas can still access data via `get_data_dict()`
+- Pandas import only happens when `get_df()` is called
+- Column selection happens at the data extraction level for efficiency
+
+**Example addon** (`addons/MyClass.pyx`):
+```cython
+cimport numpy as np
+import numpy as np
+
+    def get_data_dict(self, columns=None):
+        """Returns dict of numpy arrays for DataFrame conversion."""
+        # Determine which columns to include
+        if columns is not None:
+            requested = set(columns)
+        else:
+            requested = None
+
+        def want(col):
+            return requested is None or col in requested
+
+        data = {}
+        if want('mz'):
+            data['mz'] = self.get_mz_array()
+        if want('intensity'):
+            data['intensity'] = self.get_intensity_array()
+        return data
+```
+
+**Example wrapper** (`pyopenms/_dataframes.py`):
+```python
+class _MyClassDF(_MyClass):
+    def get_df(self, columns=None):
+        """Returns pandas DataFrame."""
+        return _pd.DataFrame(self.get_data_dict(columns=columns))
+
+MyClass = _MyClassDF
+```
+
+### Adding Pythonic Methods
+
+Common methods to add for container-like classes:
+
+- `__len__()`: Return `self.size()` or similar
+- `__repr__()`: Return `f"ClassName(key_prop={value}, ...)"` with important properties
+- `__str__()`: Delegate to `__repr__()` or return simpler output
+- `get_data()`: Return safe copy of data (for DataArray classes)
+- `get_data_mv()`: Return memory view (fast but unsafe, document lifetime)
+
+### Rebuilding After Addon Changes
+
+After modifying addon `.pyx` files, force regeneration:
+
+```bash
+rm OpenMS-build/pyOpenMS/.cpp_extension_generated
+cmake --build OpenMS-build --target pyopenms -j4
+```

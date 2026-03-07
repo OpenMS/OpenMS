@@ -123,5 +123,16 @@ namespace OpenMS
     native_id_type_accession_ = accession;
   }
 
+  StringList SourceFile::getAllNamesOfChecksumType()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_CHECKSUMTYPE);
+    for (size_t i = 0; i < SIZE_OF_CHECKSUMTYPE; ++i)
+    {
+      names.push_back(NamesOfChecksumType[i]);
+    }
+    return names;
+  }
+
 }
 
