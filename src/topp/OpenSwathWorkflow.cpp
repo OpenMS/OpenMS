@@ -1296,26 +1296,24 @@ protected:
     }
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, run_id, current_run_files[0]);
 
-    // Create a run id per unique input filename and register it in the OSW
-    UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
     // For OSW, use the first file in the run group as the representative filename
     if (write_osw)
     {
-      oswwriter.addRun(cur_run, current_run_files[0]);
+      oswwriter.addRun(run_id, current_run_files[0]);
     }
     // Also register run in chromatogram consumer if it is a SQL consumer
     MSDataSqlConsumer* sql_cons = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
     if (sql_cons != nullptr)
     {
-      sql_cons->addRun(current_run_files[0], cur_run);
+      sql_cons->addRun(current_run_files[0], run_id);
     }
 
     // set current run id in writer
-    oswwriter.setRunId(cur_run);
+    oswwriter.setRunId(run_id);
     // set current run id for sqMass writer as well (reuse previous cast)
     if (sql_cons != nullptr)
     {
-      sql_cons->setRunId(cur_run);
+      sql_cons->setRunId(run_id);
     }
 
     FeatureMap run_featureFile;
@@ -1336,7 +1334,7 @@ protected:
     {
 #ifdef WITH_PARQUET
       parquet_writer.write(parquet_dir, transition_exp, active_feature_map,
-                           cur_run, current_run_files[0], enable_uis_scoring);
+                           run_id, current_run_files[0], enable_uis_scoring);
 #endif
     }
 
