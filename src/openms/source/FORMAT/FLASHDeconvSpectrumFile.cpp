@@ -117,7 +117,7 @@ namespace OpenMS
 
     for (int i = 0; i < dspec.size(); i++)
     {
-      auto& pg = dspec[i];
+      const auto& pg = dspec[i];
       if (!report_decoy && pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target) continue;
 
       /// TODO : make this non-random. And move this to FLASHDeconv.cpp before this function is called.
@@ -127,10 +127,6 @@ namespace OpenMS
         if (number > noise_decoy_weight)
         {
           continue;
-        }
-        if (number * noise_decoy_weight > 1.0)
-        {
-          i --;
         }
       }
 
@@ -143,7 +139,6 @@ namespace OpenMS
       int min_charge = pg.isPositive() ? std::get<0>(charge_range) : -std::get<1>(charge_range);
       int max_charge = pg.isPositive() ? std::get<1>(charge_range) : -std::get<0>(charge_range);
 
-      pg.setIndex(index);
       // Output the current index (no need to store it in the PeakGroup)
       ss << index++ << "\t" << file_name << "\t" << pg.getScanNumber() << "\t" << (pg.getFeatureIndex() == 0 ? "nan" : std::to_string(pg.getFeatureIndex())) << "\t";
 
@@ -510,8 +505,8 @@ namespace OpenMS
       }
 
       ss << total_int << "\t" << dspec.getOriginalSpectrum().getRT() << "\t" << dspec.size() << "\t" << ch_count << "\t"
-         << (dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD
-               ? Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()]
+         << (static_cast<size_t>(dspec.getActivationMethod()) < static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+               ? Precursor::NamesOfActivationMethodShort[static_cast<size_t>(dspec.getActivationMethod())]
                : "N/A")
          << "\t" << dspec.getPrecursor().getActivationEnergy();
 
