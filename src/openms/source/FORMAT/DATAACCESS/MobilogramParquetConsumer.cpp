@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <cmath>
+#include <limits>
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
@@ -91,6 +92,12 @@ namespace OpenMS
 
     void appendBinary_(arrow::BinaryBuilder& builder, const String& value, const char* column)
     {
+      if (value.size() > static_cast<Size>(std::numeric_limits<int32_t>::max()))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      String("Failed to append value for ") + column,
+                                      "Single binary payload exceeds Arrow binary cell limit");
+      }
       appendOrThrow_(builder.Append(reinterpret_cast<const uint8_t*>(value.c_str()),
                                     static_cast<int32_t>(value.size())), column);
     }
@@ -224,6 +231,14 @@ namespace OpenMS
 #else
       std::lock_guard<std::mutex> lock(write_mutex_);
 
+      EncodedMobilogram encoded = encodeMobilogram_(m);
+      const int64_t next_binary_bytes = pending_binary_bytes_ +
+        static_cast<int64_t>(encoded.mobility_encoded.size() + encoded.intensity_encoded.size());
+      if (pending_rows_ > 0 && next_binary_bytes > MAX_BUFFERED_BINARY_BYTES_)
+      {
+        flushChunk_();
+      }
+
       // Store contextual information for each mobilogram row.
       appendOrThrow_(run_id_builder_.Append(static_cast<int64_t>(run_id_)), "RUN_ID");
       appendOptionalString_(source_file_builder_, source_file_, "SOURCE_FILE");
@@ -266,7 +281,11 @@ namespace OpenMS
         appendOrThrow_(annotation_builder_.AppendNull(), "ANNOTATION");
       }
 
-      encodeMobilogram_(m);
+      appendEncodedMobilogram_(encoded);
+      if (pending_binary_bytes_ >= MAX_BUFFERED_BINARY_BYTES_)
+      {
+        flushChunk_();
+      }
       m.clear();
 #endif
     }
@@ -310,7 +329,44 @@ namespace OpenMS
 #ifdef WITH_PARQUET
       std::lock_guard<std::mutex> lock(write_mutex_);
       if (wrote_) return;
-      write_();
+
+      if (pending_rows_ > 0)
+      {
+        flushChunk_();
+      }
+      else if (!writer_)
+      {
+        openWriterIfNeeded_();
+        auto empty_table = buildTableFromBuilders_();
+        auto status = writer_->WriteTable(*empty_table, PARQUET_ROW_GROUP_SIZE_);
+        if (!status.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to write empty mobilogram parquet table", status.ToString());
+        }
+      }
+
+      if (writer_)
+      {
+        auto status = writer_->Close();
+        if (!status.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to close mobilogram parquet writer", status.ToString());
+        }
+        writer_.reset();
+      }
+      if (outfile_)
+      {
+        auto status = outfile_->Close();
+        if (!status.ok())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Failed to close mobilogram parquet output stream", status.ToString());
+        }
+        outfile_.reset();
+      }
+      wrote_ = true;
 #endif
     }
 
@@ -322,6 +378,17 @@ namespace OpenMS
     std::mutex write_mutex_;
 
 #ifdef WITH_PARQUET
+    struct EncodedMobilogram
+    {
+      String mobility_encoded;
+      String intensity_encoded;
+      int64_t mobility_compression = 0;
+      int64_t intensity_compression = 0;
+    };
+
+    static constexpr int64_t PARQUET_ROW_GROUP_SIZE_ = 1024;
+    static constexpr int64_t MAX_BUFFERED_BINARY_BYTES_ = 256LL * 1024LL * 1024LL;
+
     void buildTransitionMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
     {
       int64_t next_precursor_id = 1;
@@ -409,70 +476,9 @@ namespace OpenMS
       }
     }
 
-    void encodeMobilogram_(const Mobilogram& m)
+    std::shared_ptr<arrow::Schema> buildSchema_() const
     {
-      std::vector<double> mobility;
-      std::vector<double> intensity;
-      mobility.reserve(m.size());
-      intensity.reserve(m.size());
-      for (const auto& p : m)
-      {
-        mobility.push_back(p.getMobility());
-        intensity.push_back(p.getIntensity());
-      }
-
-      const bool use_lossy = true;
-      const int64_t mobility_compression = use_lossy ? 5 : 1;
-      const int64_t intensity_compression = use_lossy ? 6 : 1;
-
-      String mobility_encoded;
-      String intensity_encoded;
-      if (mobility.empty())
-      {
-        appendBinary_(mobility_data_builder_, mobility_encoded, "MOBILITY_DATA");
-        appendBinary_(intensity_data_builder_, intensity_encoded, "INTENSITY_DATA");
-        appendOrThrow_(mobility_compression_builder_.Append(mobility_compression), "MOBILITY_COMPRESSION");
-        appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
-        return;
-      }
-
-      if (use_lossy)
-      {
-        MSNumpressCoder::NumpressConfig npcfg_m;
-        npcfg_m.estimate_fixed_point = true;
-        npcfg_m.numpressErrorTolerance = -1.0;
-        npcfg_m.setCompression("linear");
-
-        MSNumpressCoder::NumpressConfig npcfg_i;
-        npcfg_i.estimate_fixed_point = true;
-        npcfg_i.numpressErrorTolerance = -1.0;
-        npcfg_i.setCompression("slof");
-
-        String mob_uncomp;
-        MSNumpressCoder().encodeNPRaw(mobility, mob_uncomp, npcfg_m);
-        ZlibCompression::compressString(mob_uncomp, mobility_encoded);
-
-        String int_uncomp;
-        MSNumpressCoder().encodeNPRaw(intensity, int_uncomp, npcfg_i);
-        ZlibCompression::compressString(int_uncomp, intensity_encoded);
-      }
-      else
-      {
-        std::string mob_bytes(reinterpret_cast<const char*>(mobility.data()), mobility.size() * sizeof(double));
-        ZlibCompression::compressString(mob_bytes, mobility_encoded);
-        std::string int_bytes(reinterpret_cast<const char*>(intensity.data()), intensity.size() * sizeof(double));
-        ZlibCompression::compressString(int_bytes, intensity_encoded);
-      }
-
-      appendBinary_(mobility_data_builder_, mobility_encoded, "MOBILITY_DATA");
-      appendBinary_(intensity_data_builder_, intensity_encoded, "INTENSITY_DATA");
-      appendOrThrow_(mobility_compression_builder_.Append(mobility_compression), "MOBILITY_COMPRESSION");
-      appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
-    }
-
-    void write_()
-    {
-      auto schema = arrow::schema({
+      return arrow::schema({
         arrow::field("RUN_ID", arrow::int64()),
         arrow::field("SOURCE_FILE", arrow::utf8()),
         arrow::field("MS_LEVEL", arrow::int64()),
@@ -495,8 +501,48 @@ namespace OpenMS
         arrow::field("MOBILITY_COMPRESSION", arrow::int64()),
         arrow::field("INTENSITY_COMPRESSION", arrow::int64())
       });
+    }
 
-      auto table = arrow::Table::Make(schema, {
+    void openWriterIfNeeded_()
+    {
+      if (writer_)
+      {
+        return;
+      }
+
+      schema_ = buildSchema_();
+      auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename_));
+      if (!outfile_result.ok())
+      {
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
+      }
+      outfile_ = outfile_result.ValueOrDie();
+
+      parquet::WriterProperties::Builder builder;
+      builder.compression(parquet::Compression::ZSTD);
+      builder.compression_level(11);
+      auto props = builder.build();
+
+      auto writer_result = parquet::arrow::FileWriter::Open(*schema_,
+                                                            arrow::default_memory_pool(),
+                                                            outfile_,
+                                                            props);
+      if (!writer_result.ok())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Failed to open mobilogram parquet writer", writer_result.status().ToString());
+      }
+      writer_ = std::move(writer_result.ValueOrDie());
+    }
+
+    std::shared_ptr<arrow::Table> buildTableFromBuilders_()
+    {
+      if (!schema_)
+      {
+        schema_ = buildSchema_();
+      }
+
+      return arrow::Table::Make(schema_, {
         finishArray_(run_id_builder_, "RUN_ID"),
         finishArray_(source_file_builder_, "SOURCE_FILE"),
         finishArray_(ms_level_builder_, "MS_LEVEL"),
@@ -519,24 +565,89 @@ namespace OpenMS
         finishArray_(mobility_compression_builder_, "MOBILITY_COMPRESSION"),
         finishArray_(intensity_compression_builder_, "INTENSITY_COMPRESSION")
       });
+    }
 
-      auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename_));
-      if (!outfile_result.ok())
+    void flushChunk_()
+    {
+      if (pending_rows_ == 0)
       {
-        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
+        return;
       }
-      auto outfile = outfile_result.ValueOrDie();
-      parquet::WriterProperties::Builder builder;
-      builder.compression(parquet::Compression::ZSTD);
-      builder.compression_level(11);
-      auto props = builder.build();
-      auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024, props);
+
+      openWriterIfNeeded_();
+      auto table = buildTableFromBuilders_();
+      auto status = writer_->WriteTable(*table, PARQUET_ROW_GROUP_SIZE_);
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to write mobilogram parquet table", status.ToString());
+                                      "Failed to write mobilogram parquet chunk", status.ToString());
       }
-      wrote_ = true;
+
+      pending_rows_ = 0;
+      pending_binary_bytes_ = 0;
+    }
+
+    EncodedMobilogram encodeMobilogram_(const Mobilogram& m)
+    {
+      std::vector<double> mobility;
+      std::vector<double> intensity;
+      mobility.reserve(m.size());
+      intensity.reserve(m.size());
+      for (const auto& p : m)
+      {
+        mobility.push_back(p.getMobility());
+        intensity.push_back(p.getIntensity());
+      }
+
+      const bool use_lossy = true;
+      EncodedMobilogram encoded;
+      encoded.mobility_compression = use_lossy ? 5 : 1;
+      encoded.intensity_compression = use_lossy ? 6 : 1;
+
+      if (mobility.empty())
+      {
+        return encoded;
+      }
+
+      if (use_lossy)
+      {
+        MSNumpressCoder::NumpressConfig npcfg_m;
+        npcfg_m.estimate_fixed_point = true;
+        npcfg_m.numpressErrorTolerance = -1.0;
+        npcfg_m.setCompression("linear");
+
+        MSNumpressCoder::NumpressConfig npcfg_i;
+        npcfg_i.estimate_fixed_point = true;
+        npcfg_i.numpressErrorTolerance = -1.0;
+        npcfg_i.setCompression("slof");
+
+        String mob_uncomp;
+        MSNumpressCoder().encodeNPRaw(mobility, mob_uncomp, npcfg_m);
+        ZlibCompression::compressString(mob_uncomp, encoded.mobility_encoded);
+
+        String int_uncomp;
+        MSNumpressCoder().encodeNPRaw(intensity, int_uncomp, npcfg_i);
+        ZlibCompression::compressString(int_uncomp, encoded.intensity_encoded);
+      }
+      else
+      {
+        std::string mob_bytes(reinterpret_cast<const char*>(mobility.data()), mobility.size() * sizeof(double));
+        ZlibCompression::compressString(mob_bytes, encoded.mobility_encoded);
+        std::string int_bytes(reinterpret_cast<const char*>(intensity.data()), intensity.size() * sizeof(double));
+        ZlibCompression::compressString(int_bytes, encoded.intensity_encoded);
+      }
+
+      return encoded;
+    }
+
+    void appendEncodedMobilogram_(const EncodedMobilogram& encoded)
+    {
+      appendBinary_(mobility_data_builder_, encoded.mobility_encoded, "MOBILITY_DATA");
+      appendBinary_(intensity_data_builder_, encoded.intensity_encoded, "INTENSITY_DATA");
+      appendOrThrow_(mobility_compression_builder_.Append(encoded.mobility_compression), "MOBILITY_COMPRESSION");
+      appendOrThrow_(intensity_compression_builder_.Append(encoded.intensity_compression), "INTENSITY_COMPRESSION");
+      ++pending_rows_;
+      pending_binary_bytes_ += static_cast<int64_t>(encoded.mobility_encoded.size() + encoded.intensity_encoded.size());
     }
 
     // Builders
@@ -561,6 +672,11 @@ namespace OpenMS
     arrow::BinaryBuilder intensity_data_builder_;
     arrow::Int64Builder mobility_compression_builder_;
     arrow::Int64Builder intensity_compression_builder_;
+    std::shared_ptr<arrow::Schema> schema_;
+    std::shared_ptr<arrow::io::FileOutputStream> outfile_;
+    std::unique_ptr<parquet::arrow::FileWriter> writer_;
+    int64_t pending_rows_{0};
+    int64_t pending_binary_bytes_{0};
 
     std::unordered_map<String, CompoundInfo> compound_info_;
     std::unordered_map<String, TransitionInfo> transition_info_;
