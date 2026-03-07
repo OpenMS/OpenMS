@@ -320,8 +320,6 @@ vector<unique_ptr<DigestionEnzymeProtein>> BuiltInProteaseDataProvider::loadEnzy
                                                         ));
 
 
-  // Percolator-specific enzymes (to maintain 100% compatibility with Percolator logic)
-
 
   return enzymes;
 }
