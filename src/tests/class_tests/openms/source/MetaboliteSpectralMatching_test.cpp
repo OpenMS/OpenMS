@@ -366,21 +366,25 @@ START_SECTION(([Integration] CCS tolerance filtering rejects matches outside tol
 }
 END_SECTION
 
+// [Integration] run() with real mzML and MSP files
+// Citations for real experimental data:
+// - CCS: Zhou et al., 2018, Analytical Chemistry, 90 (6), 4089-4097 (DOI: 10.1021/acs.analchem.7b04696)
+// - MS2: MassBank of North America (MoNA), Accession MSBNK-CASMI_2016-SM866601 (Caffeine) and MSBNK-Keio_Univ-KO004073 (Tryptophan)
 START_SECTION(([Integration] run() with real mzML and MSP files))
 {
   FileHandler fh;
   MSExperiment msexp;
   fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MetaboliteSpectralMatching_real_file.mzML"), msexp);
   TEST_EQUAL(msexp.size(), 2)
-  TEST_EQUAL(msexp[0].size(), 3)
-  TEST_EQUAL(msexp[1].size(), 3)
+  TEST_EQUAL(msexp[0].size(), 5) // Caffeine
+  TEST_EQUAL(msexp[1].size(), 5) // Tryptophan
 
   MSPGenericFile msp;
   MSExperiment spec_db;
   msp.load(OPENMS_GET_TEST_DATA_PATH("MetaboliteSpectralMatching_real_file.msp"), spec_db);
   TEST_EQUAL(spec_db.size(), 2)
-  TEST_EQUAL(spec_db[0].size(), 3)
-  TEST_EQUAL(spec_db[1].size(), 3)
+  TEST_EQUAL(spec_db[0].size(), 5) // Caffeine
+  TEST_EQUAL(spec_db[1].size(), 5) // Tryptophan
 
   MetaboliteSpectralMatching msm;
   Param params = msm.getParameters();
@@ -396,8 +400,8 @@ START_SECTION(([Integration] run() with real mzML and MSP files))
 
   const MzTabSmallMoleculeSectionRows& sm_rows = mztab_out.getSmallMoleculeSectionRows();
 
-  // Spectrum 1 (Caffeine): obs CCS 150.0, lib CCS 151.5. Error = 0.99% < 5%. Should MATCH.
-  // Spectrum 2 (L-Tryptophan): obs CCS 150.0, lib CCS 160.0. Error = 6.25% > 5%. Should NOT match.
+  // Spectrum 1 (Caffeine): obs CCS 142.1, lib CCS 141.5. Error = 0.42% < 5%. Should MATCH.
+  // Spectrum 2 (L-Tryptophan): obs CCS 142.1, lib CCS 153.5. Error = 7.42% > 5%. Should NOT match.
 
   bool caffeine_found = false;
   bool tryptophan_found = false;
@@ -413,12 +417,12 @@ START_SECTION(([Integration] run() with real mzML and MSP files))
         if (opt.first == "opt_observed_drift_time")
         {
           found_dt = true;
-          TEST_REAL_SIMILAR(opt.second.get().toDouble(), 150.0)
+          TEST_REAL_SIMILAR(opt.second.get().toDouble(), 142.1)
         }
         if (opt.first == "opt_library_ccs")
         {
           found_ccs = true;
-          TEST_REAL_SIMILAR(opt.second.get().toDouble(), 151.5)
+          TEST_REAL_SIMILAR(opt.second.get().toDouble(), 141.2)
         }
       }
       TEST_EQUAL(found_dt, true)
