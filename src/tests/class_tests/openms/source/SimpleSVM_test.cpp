@@ -350,6 +350,58 @@ START_SECTION(regression_train_and_predict_on_separate)
 END_SECTION
 
 
+START_SECTION((void saveModel(const String& path) const))
+{
+  TEST_EXCEPTION(Exception::Precondition, untrained_svm.saveModel("/tmp/test_nosave.svm"));
+
+  string tmp_model_file;
+  NEW_TMP_FILE(tmp_model_file);
+  svm.saveModel(tmp_model_file);
+
+  ifstream f(tmp_model_file);
+  TEST_EQUAL(f.good(), true);
+}
+END_SECTION
+
+START_SECTION((void loadModel(const String& path)))
+{
+  TEST_EXCEPTION(Exception::IOException, untrained_svm.loadModel("/nonexistent/path.svm"));
+
+  string tmp_model_file;
+  NEW_TMP_FILE(tmp_model_file);
+  svm.saveModel(tmp_model_file);
+
+  SimpleSVM loaded_svm;
+  loaded_svm.loadModel(tmp_model_file);
+}
+END_SECTION
+
+START_SECTION((double predictSingle(const std::vector<double>& scaled_feature_values) const))
+{
+  TEST_EXCEPTION(Exception::Precondition, untrained_svm.predictSingle({0.5, 0.3}));
+
+  string tmp_model_file;
+  NEW_TMP_FILE(tmp_model_file);
+  svm.saveModel(tmp_model_file);
+
+  SimpleSVM loaded_svm;
+  loaded_svm.loadModel(tmp_model_file);
+
+  // predictors were scaled in-place to [0,1] by setup() above
+  vector<double> scaled_obs;
+  for (const auto& pred : predictors)
+  {
+    scaled_obs.push_back(pred.second[0]);
+  }
+
+  vector<SimpleSVM::Prediction> predictions;
+  vector<Size> idx(1, 0);
+  svm.predict(predictions, idx);
+
+  TEST_REAL_SIMILAR(loaded_svm.predictSingle(scaled_obs), predictions[0].outcome);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

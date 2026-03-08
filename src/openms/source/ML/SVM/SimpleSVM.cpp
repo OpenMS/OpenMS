@@ -101,6 +101,10 @@ void SimpleSVM::Impl::clear_()
   delete[] data_.y;
   data_.x = nullptr;
   data_.y = nullptr;
+  nodes_.clear();
+  scaling_.clear();
+  predictor_names_.clear();
+  performance_.clear();
 }
 
 void SimpleSVM::Impl::scaleData_(PredictorMap& predictors)
@@ -358,6 +362,49 @@ void SimpleSVM::Impl::optimizeParameters_(bool classification)
   OPENMS_LOG_INFO << "... done." << endl;
 }
 
+
+void SimpleSVM::saveModel(const String& path) const
+{
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "No model trained. Call setup() before saveModel().");
+  }
+  if (svm_save_model(path.c_str(), pimpl_->model_) != 0)
+  {
+    throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not save SVM model to: " + path);
+  }
+}
+
+void SimpleSVM::loadModel(const String& path)
+{
+  pimpl_->clear_();
+  pimpl_->model_ = svm_load_model(path.c_str());
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                 "Could not load SVM model from: " + path);
+  }
+}
+
+double SimpleSVM::predictSingle(const std::vector<double>& scaled_feature_values) const
+{
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "No model loaded. Call setup() or loadModel() before predictSingle().");
+  }
+  Size n = scaled_feature_values.size();
+  std::vector<svm_node> nodes(n + 1);
+  for (Size i = 0; i < n; ++i)
+  {
+    nodes[i].index = static_cast<int>(i + 1);
+    nodes[i].value = scaled_feature_values[i];
+  }
+  nodes[n].index = -1;
+  nodes[n].value = 0.0;
+  return svm_predict(pimpl_->model_, nodes.data());
+}
 
 // SimpleSVM methods that delegate to the implementation
 SimpleSVM::SimpleSVM() :

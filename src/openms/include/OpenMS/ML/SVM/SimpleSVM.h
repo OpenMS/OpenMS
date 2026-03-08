@@ -10,9 +10,6 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-// Remove libSVM header include
-// #include <svm.h>
-
 #include <map>
 #include <vector>
 #include <utility> // for "pair"
@@ -126,6 +123,39 @@ namespace OpenMS
     */
     void getFeatureWeights(std::map<String, double>& feature_weights) const;
 
+    /**
+       @brief Save the trained SVM model to a file.
+
+       @param[in] path File path to save the model.
+
+       @throw Exception::Precondition if no model has been trained
+       @throw Exception::IOException if the model cannot be written to @p path
+    */
+    void saveModel(const String& path) const;
+
+    /**
+       @brief Load a pre-trained SVM model from a file.
+
+       @param[in] path File path to load the model from.
+
+       @throw Exception::IOException if the model cannot be read from @p path
+    */
+    void loadModel(const String& path);
+
+    /**
+       @brief Predict a single observation from pre-scaled feature values.
+
+       Unlike predict(), this method does not use probability estimation and
+       does not require setup() to have been called — loadModel() is sufficient.
+
+       @param[in] scaled_feature_values Pre-scaled feature values for one observation.
+
+       @return Predicted class label or regression value.
+
+       @throw Exception::Precondition if no model has been trained or loaded
+    */
+    double predictSingle(const std::vector<double>& scaled_feature_values) const;
+
     /// Write cross-validation (parameter optimization) results to a CSV file
     void writeXvalResults(const String& path) const;
 
@@ -135,7 +165,7 @@ namespace OpenMS
   protected:
     // Forward declaration of implementation class
     class Impl;
-    
+
     // Pointer to implementation (Pimpl pattern)
     std::unique_ptr<Impl> pimpl_;
   };

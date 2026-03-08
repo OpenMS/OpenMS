@@ -20,8 +20,6 @@
 
 #include <boost/dynamic_bitset.hpp>
 
-#include "svm.h"
-
 // #define FFM_DEBUG
 
 namespace OpenMS
@@ -300,13 +298,7 @@ namespace OpenMS
     this->setLogType(CMD);
   }
 
-  FeatureFindingMetabo::~FeatureFindingMetabo()
-  {
-    if (isotope_filt_svm_ != nullptr)
-    {
-      svm_free_and_destroy_model(&isotope_filt_svm_);
-    }
-  }
+  FeatureFindingMetabo::~FeatureFindingMetabo() = default;
 
   void FeatureFindingMetabo::updateMembers_()
   {
@@ -404,7 +396,7 @@ namespace OpenMS
     double mono_int(all_ints[0]); // monoisotopic intensity
 
     const Size FEAT_NUM(4);
-    svm_node* nodes = new svm_node[FEAT_NUM + 1];
+    std::vector<double> scaled_features(FEAT_NUM);
 
     double act_mass(feat_hypo.getCentroidMZ() * feat_hypo.getCharge());
 
@@ -414,8 +406,7 @@ namespace OpenMS
       act_mass = 1000.0;
     }
 
-    nodes[0].index = 1;
-    nodes[0].value = (act_mass - svm_feat_centers_[0]) / svm_feat_scales_[0];
+    scaled_features[0] = (act_mass - svm_feat_centers_[0]) / svm_feat_scales_[0];
 
     // Iterate, start with first isotopic trace (skip monoisotopic)
     Size i = 2;
@@ -429,37 +420,28 @@ namespace OpenMS
 
     for (; i - 1 < feat_size; ++i)
     {
-      nodes[i - 1].index = static_cast<Int>(i);
-
       // compute ratio of trace to monoisotopic intensity
       double ratio((all_ints[i - 1] / mono_int));
-
-      double tmp_val((ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1]);
-      nodes[i - 1].value = tmp_val;
+      scaled_features[i - 1] = (ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
     }
 
     for (; i < FEAT_NUM + 1; ++i)
     {
-      nodes[i - 1].index = static_cast<Int>(i);
-      nodes[i - 1].value = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
+      scaled_features[i - 1] = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
     }
-
-    nodes[FEAT_NUM].index = -1;
-    nodes[FEAT_NUM].value = 0;
 
     // debug output
     //    std::cout << "isocheck for " << feat_hypo.getLabel() << " " << feat_hypo.getSize() << '\n';
-    //    for (Size i = 0; i < FEAT_NUM + 1; ++i)
+    //    for (Size i = 0; i < FEAT_NUM; ++i)
     //    {
-    //        std::cout << "idx: " << nodes[i].index << " val: " << nodes[i].value << '\n';
+    //        std::cout << "idx: " << i+1 << " val: " << scaled_features[i] << '\n';
     //    }
 
     // Use SVM model to predict the category in which the current trace group
     // belongs ...
-    double predict = svm_predict(isotope_filt_svm_, nodes);
+    double predict = isotope_filt_svm_->predictSingle(scaled_features);
 
     // std::cout << "predict: " << predict << '\n';
-    delete[] nodes;
 
     return (predict == 2.0) ? 1 : 0;
   }
@@ -471,17 +453,8 @@ namespace OpenMS
     std::string model_filename = File::find(search_name + ".svm");
     std::string scale_filename = File::find(search_name + ".scale");
 
-    if (isotope_filt_svm_ != nullptr)
-    {
-      svm_free_and_destroy_model(&isotope_filt_svm_);
-    }
-    isotope_filt_svm_ = svm_load_model(model_filename.c_str());
-    if (isotope_filt_svm_ == nullptr)
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Loading " + model_filename + " failed", model_filename);
-    }
-
+    isotope_filt_svm_ = std::make_unique<SimpleSVM>();
+    isotope_filt_svm_->loadModel(model_filename);
 
     std::ifstream ifs(scale_filename.c_str());
 

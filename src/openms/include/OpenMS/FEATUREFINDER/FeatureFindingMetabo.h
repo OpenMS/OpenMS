@@ -14,10 +14,9 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/ML/SVM/SimpleSVM.h>
 
 #include <vector>
-
-struct svm_model;
 
 namespace OpenMS
 {
@@ -307,7 +306,7 @@ private:
     void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
 
     /// SVM parameters
-    svm_model* isotope_filt_svm_ = nullptr;
+    std::unique_ptr<SimpleSVM> isotope_filt_svm_;
     std::vector<double> svm_feat_centers_;
     std::vector<double> svm_feat_scales_;
 
