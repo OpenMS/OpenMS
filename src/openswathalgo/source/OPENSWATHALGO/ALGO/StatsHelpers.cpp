@@ -13,6 +13,7 @@
 #include <functional>
 #include <stdexcept>
 #include <Eigen/Core>
+#include <Eigen/Dense>
 
 namespace OpenSwath
 {
@@ -37,11 +38,12 @@ namespace OpenSwath
 
   double dotprodScoring(std::vector<double> intExp, std::vector<double> theorint)
   {
-    for (unsigned int i = 0; i < intExp.size(); ++i)
-    {
-      intExp[i] = sqrt(intExp[i]);
-      theorint[i] = sqrt(theorint[i]);
-    }
+    // Vectorized square roots
+    Eigen::Map<Eigen::VectorXd> mapExp(intExp.data(), intExp.size());
+    Eigen::Map<Eigen::VectorXd> mapTheor(theorint.data(), theorint.size());
+
+    mapExp = mapExp.cwiseSqrt();
+    mapTheor = mapTheor.cwiseSqrt();
 
     double intExptotal = norm(intExp.begin(), intExp.end());
     double intTheorTotal = norm(theorint.begin(), theorint.end());
@@ -53,17 +55,16 @@ namespace OpenSwath
 
   double manhattanScoring(std::vector<double> intExp, std::vector<double> theorint)
   {
+    // Vectorized square roots
+    Eigen::Map<Eigen::VectorXd> mapExp(intExp.data(), intExp.size());
+    Eigen::Map<Eigen::VectorXd> mapTheor(theorint.data(), theorint.size());
 
-    for (unsigned int i = 0; i < intExp.size(); ++i)
-    {
-      intExp[i] = sqrt(intExp[i]);
-      theorint[i] = sqrt(theorint[i]);
-      //std::transform(intExp.begin(), intExp.end(), intExp.begin(), sqrt);
-      //std::transform(theorint.begin(), theorint.end(), theorint.begin(), sqrt);
-    }
+    mapExp = mapExp.cwiseSqrt();
+    mapTheor = mapTheor.cwiseSqrt();
 
-    double intExptotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);
-    double intTheorTotal = std::accumulate(theorint.begin(), theorint.end(), 0.0);
+    double intExptotal = mapExp.sum();
+    double intTheorTotal = mapTheor.sum();
+
     OpenSwath::normalize(intExp, intExptotal, intExp);
     OpenSwath::normalize(theorint, intTheorTotal, theorint);
     double score2 = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), theorint.begin());
@@ -113,15 +114,15 @@ namespace OpenSwath
   double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
   {
     size_t size = std::distance(intExpBeg, intExpEnd);
-    
+
     // Get the value types
     using ExpType = typename std::iterator_traits<Texp>::value_type;
     using TheoType = typename std::iterator_traits<Ttheo>::value_type;
-    
+
     // Create appropriate Eigen maps based on the actual data types
     Eigen::Map<const Eigen::Matrix<ExpType, Eigen::Dynamic, 1>> vec1(&(*intExpBeg), size);
     Eigen::Map<const Eigen::Matrix<TheoType, Eigen::Dynamic, 1>> vec2(&(*intTheo), size);
-    
+
     // Compute dot product and cast result to double
     return static_cast<double>(vec1.dot(vec2));
   }
@@ -129,10 +130,10 @@ namespace OpenSwath
   // Explicit template instantiation definitions (compile these specific versions)
   template OPENSWATHALGO_DLLAPI double dotProd<std::vector<double>::const_iterator, std::vector<double>::const_iterator>(
     std::vector<double>::const_iterator, std::vector<double>::const_iterator, std::vector<double>::const_iterator);
-  
+
   template OPENSWATHALGO_DLLAPI double dotProd<std::vector<float>::const_iterator, std::vector<float>::const_iterator>(
     std::vector<float>::const_iterator, std::vector<float>::const_iterator, std::vector<float>::const_iterator);
-  
+
   template OPENSWATHALGO_DLLAPI double dotProd<std::vector<int>::const_iterator, std::vector<int>::const_iterator>(
     std::vector<int>::const_iterator, std::vector<int>::const_iterator, std::vector<int>::const_iterator);
 

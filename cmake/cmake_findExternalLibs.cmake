@@ -119,6 +119,15 @@ find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
+# libzip (ZIP64 archive support)
+# Uses our FindLibzip.cmake module which does a manual header+library search.
+# We intentionally avoid CONFIG mode because libzip <= 1.10 ships a CMake
+# targets file that references CLI tool binaries (zipcmp, zipmerge, ziptool)
+# and raises FATAL_ERROR if those aren't installed (e.g. Ubuntu without
+# libzip-tools).
+find_package(Libzip REQUIRED)
+
+#------------------------------------------------------------------------------
 # Find Eigen
 # creates Eigen3::Eigen3 package
 # CMake is garbage https://gitlab.kitware.com/cmake/cmake/-/issues/24581
@@ -162,13 +171,15 @@ endif()
 
 
 #------------------------------------------------------------------------------
+# libcurl (used for HTTP in OpenMS core; also needed by Apache Arrow 23+)
+find_package(CURL REQUIRED)
+
+#------------------------------------------------------------------------------
  # Apache Arrow and Parquet
  if (WITH_PARQUET)
-   # Workaround for Arrow 23+ CMake configuration issue where CURL dependency
-   # is not properly exported. See: https://github.com/apache/arrow/issues/48885
-   find_package(CURL QUIET)
-   find_package(Arrow CONFIG REQUIRED)
-   find_package(Parquet CONFIG REQUIRED)
+   # Arrow 23+ required for parquet file format compatibility
+   find_package(Arrow 23 CONFIG REQUIRED)
+   find_package(Parquet 23 CONFIG REQUIRED)
    
    # Determine Arrow target based on ARROW_USE_STATIC preference
    if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
@@ -265,7 +276,7 @@ endif()
 SET(QT_MIN_VERSION "6.1.0")
 
 # find qt
-set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
+set(OpenMS_QT_COMPONENTS Core CACHE INTERNAL "QT components for core lib")
 find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt6Core_FOUND)

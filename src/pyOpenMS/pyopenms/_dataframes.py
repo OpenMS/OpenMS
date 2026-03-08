@@ -1,81 +1,282 @@
-"""DataFrame export utilities for pyOpenMS.
-
-This module provides utility functions for converting OpenMS data structures to pandas DataFrames.
-The to_df() methods are now implemented directly in the Cython classes (MSSpectrum, MSChromatogram,
-Mobilogram, MSExperiment, ConsensusMap, FeatureMap, MRMTransitionGroupCP, PeptideIdentificationList).
-
-This module provides backwards-compatible function aliases:
-- peptide_identifications_to_df: Calls PeptideIdentificationList.to_df()
-- update_scores_from_df: Calls PeptideIdentificationList.update_scores_from_df()
 """
+DataFrame integration for pyOpenMS
+
+Provides pandas DataFrame export functionality for OpenMS data structures.
+"""
+
 from __future__ import annotations
 
-__all__ = [
-    'peptide_identifications_to_df',
-    'update_scores_from_df',
-]
+from typing import TYPE_CHECKING, Optional, Sequence
 
-from typing import Any, TYPE_CHECKING
-
-from . import PeptideIdentificationList as _PeptideIdentificationList
+import numpy as np
 
 if TYPE_CHECKING:
-    import pandas as _pd
-else:
-    class _PandasStub:
-        DataFrame = Any
-
-    _pd = _PandasStub()
+    import pandas as pd
 
 
-def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontology: bool = True,
-                                  default_missing_values: dict = None,
-                                  export_unidentified: bool = True):
-    """Converts a list of peptide identifications to a pandas DataFrame.
+class DataFrameMixin:
+    """Mixin class providing DataFrame export capabilities."""
 
-    .. deprecated::
-        Use ``peps.to_df()`` instead.
+    def to_df(
+        self,
+        columns: Optional[Sequence[str]] = None,
+        export_meta_values: bool = True,
+    ) -> "pd.DataFrame":
+        """
+        Export data to a pandas DataFrame.
 
-    :param peps: list of PeptideIdentification objects
-    :type peps: PeptideIdentificationList
-    :param decode_ontology: decode meta value names
-    :type decode_ontology: bool
-    :param default_missing_values: default value for missing values for each data type
-    :type default_missing_values: dict
-    :param export_unidentified: export PeptideIdentifications without PeptideHit
-    :type export_unidentified: bool
-    :return: peptide identifications in a DataFrame
-    :rtype: pandas.DataFrame
+        Parameters
+        ----------
+        columns : sequence of str, optional
+            Columns to include. If None, includes all available columns.
+        export_meta_values : bool, default True
+            Whether to include meta values as columns.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing the data.
+        """
+        import pandas as pd
+
+        data = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        return pd.DataFrame(data)
+
+
+def spectrum_to_dataframe(
+    spectrum,
+    columns: Optional[Sequence[str]] = None,
+    export_meta_values: bool = True,
+) -> "pd.DataFrame":
     """
-    import warnings
-    warnings.warn(
-        "peptide_identifications_to_df() is deprecated and will be removed in a future version. "
-        "Use peps.to_df() instead.",
-        DeprecationWarning,
-        stacklevel=2
+    Convert an MSSpectrum to a pandas DataFrame.
+
+    Parameters
+    ----------
+    spectrum : MSSpectrum
+        The spectrum to convert.
+    columns : sequence of str, optional
+        Columns to include.
+    export_meta_values : bool, default True
+        Whether to include meta values.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with m/z, intensity, and optional metadata.
+    """
+    import pandas as pd
+
+    data = spectrum.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+    return pd.DataFrame(data)
+
+
+def chromatogram_to_dataframe(
+    chromatogram,
+    columns: Optional[Sequence[str]] = None,
+    export_meta_values: bool = True,
+) -> "pd.DataFrame":
+    """
+    Convert an MSChromatogram to a pandas DataFrame.
+
+    Parameters
+    ----------
+    chromatogram : MSChromatogram
+        The chromatogram to convert.
+    columns : sequence of str, optional
+        Columns to include.
+    export_meta_values : bool, default True
+        Whether to include meta values.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with RT, intensity, and optional metadata.
+    """
+    import pandas as pd
+
+    data = chromatogram.get_data_dict(
+        columns=columns, export_meta_values=export_meta_values
     )
-    return peps.to_df(decode_ontology=decode_ontology,
-                      default_missing_values=default_missing_values,
-                      export_unidentified=export_unidentified)
+    return pd.DataFrame(data)
 
 
-def update_scores_from_df(peps: _PeptideIdentificationList, df: _pd.DataFrame, main_score_name: str):
+def experiment_to_dataframe(
+    experiment,
+    long_format: bool = True,
+    include_precursor: bool = True,
+) -> "pd.DataFrame":
     """
-    Updates the scores in PeptideIdentification objects using a pandas dataframe.
+    Convert an MSExperiment to a pandas DataFrame.
 
-    .. deprecated::
-        Use ``peps.update_scores_from_df(df, main_score_name)`` instead.
+    Parameters
+    ----------
+    experiment : MSExperiment
+        The experiment to convert.
+    long_format : bool, default True
+        If True, returns long format with one row per peak.
+        If False, returns wide format with one row per spectrum.
+    include_precursor : bool, default True
+        Whether to include precursor information for MS2 spectra.
 
-    :param peps: list of PeptideIdentification objects
-    :param df: pandas dataframe obtained by converting peps to a dataframe. Minimum required: P_ID column and column with name passed by main_score_name
-    :param main_score_name: name of the score column
-    :return: the updated list of peptide identifications
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing all spectra data.
     """
-    import warnings
-    warnings.warn(
-        "update_scores_from_df() is deprecated and will be removed in a future version. "
-        "Use peps.update_scores_from_df(df, main_score_name) instead.",
-        DeprecationWarning,
-        stacklevel=2
-    )
-    return peps.update_scores_from_df(df, main_score_name)
+    import pandas as pd
+
+    if long_format:
+        records = []
+        for i, spec in enumerate(experiment):
+            mz, intensity = spec.get_peaks()
+            n_peaks = len(mz)
+            if n_peaks == 0:
+                continue
+
+            record = {
+                "spectrum_index": np.full(n_peaks, i, dtype=np.int32),
+                "mz": mz,
+                "intensity": intensity,
+                "rt": np.full(n_peaks, spec.getRT(), dtype=np.float64),
+                "ms_level": np.full(n_peaks, spec.getMSLevel(), dtype=np.int32),
+            }
+
+            if include_precursor and spec.getMSLevel() > 1:
+                precursors = spec.getPrecursors()
+                if precursors:
+                    precursor = precursors[0]
+                    record["precursor_mz"] = np.full(
+                        n_peaks, precursor.getMZ(), dtype=np.float64
+                    )
+                    record["precursor_charge"] = np.full(
+                        n_peaks, precursor.getCharge(), dtype=np.int32
+                    )
+
+            records.append(record)
+
+        if not records:
+            return pd.DataFrame()
+
+        # Concatenate all records
+        data = {
+            key: np.concatenate([r[key] for r in records if key in r])
+            for key in records[0].keys()
+        }
+        return pd.DataFrame(data)
+    else:
+        records = []
+        for i, spec in enumerate(experiment):
+            mz, intensity = spec.get_peaks()
+            record = {
+                "spectrum_index": i,
+                "rt": spec.getRT(),
+                "ms_level": spec.getMSLevel(),
+                "n_peaks": len(mz),
+                "tic": intensity.sum() if len(intensity) > 0 else 0.0,
+                "base_peak_mz": mz[intensity.argmax()] if len(intensity) > 0 else 0.0,
+                "base_peak_intensity": intensity.max() if len(intensity) > 0 else 0.0,
+            }
+
+            if include_precursor and spec.getMSLevel() > 1:
+                precursors = spec.getPrecursors()
+                if precursors:
+                    precursor = precursors[0]
+                    record["precursor_mz"] = precursor.getMZ()
+                    record["precursor_charge"] = precursor.getCharge()
+
+            records.append(record)
+
+        return pd.DataFrame(records)
+
+
+def feature_map_to_dataframe(
+    feature_map,
+    include_subordinates: bool = False,
+) -> "pd.DataFrame":
+    """
+    Convert a FeatureMap to a pandas DataFrame.
+
+    Parameters
+    ----------
+    feature_map : FeatureMap
+        The feature map to convert.
+    include_subordinates : bool, default False
+        Whether to include subordinate features.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with feature data.
+    """
+    import pandas as pd
+
+    records = []
+    for feature in feature_map:
+        record = {
+            "rt": feature.getRT(),
+            "mz": feature.getMZ(),
+            "intensity": feature.getIntensity(),
+            "charge": feature.getCharge(),
+            "quality": feature.getOverallQuality(),
+            "width": feature.getWidth(),
+        }
+
+        # Add convex hull bounds if available
+        hulls = feature.getConvexHulls()
+        if hulls:
+            hull = hulls[0]
+            bbox = hull.getBoundingBox()
+            record["rt_start"] = bbox.minPosition()[0]
+            record["rt_end"] = bbox.maxPosition()[0]
+            record["mz_start"] = bbox.minPosition()[1]
+            record["mz_end"] = bbox.maxPosition()[1]
+
+        records.append(record)
+
+        if include_subordinates:
+            for sub in feature.getSubordinates():
+                sub_record = {
+                    "rt": sub.getRT(),
+                    "mz": sub.getMZ(),
+                    "intensity": sub.getIntensity(),
+                    "charge": sub.getCharge(),
+                    "quality": sub.getOverallQuality(),
+                    "width": sub.getWidth(),
+                    "parent_rt": feature.getRT(),
+                    "parent_mz": feature.getMZ(),
+                }
+                records.append(sub_record)
+
+    return pd.DataFrame(records)
+
+
+def consensus_map_to_dataframe(consensus_map) -> "pd.DataFrame":
+    """
+    Convert a ConsensusMap to a pandas DataFrame.
+
+    Parameters
+    ----------
+    consensus_map : ConsensusMap
+        The consensus map to convert.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with consensus feature data.
+    """
+    import pandas as pd
+
+    records = []
+    for cf in consensus_map:
+        record = {
+            "rt": cf.getRT(),
+            "mz": cf.getMZ(),
+            "intensity": cf.getIntensity(),
+            "charge": cf.getCharge(),
+            "quality": cf.getQuality(),
+            "n_features": cf.size(),
+        }
+        records.append(record)
+
+    return pd.DataFrame(records)

@@ -236,7 +236,7 @@ jobs:
         conda info
 
         # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
-        conda install -c conda-forge libarrow libparquet -y
+        conda install -c conda-forge libarrow libparquet libzip -y
 
         # Set variables required for the following steps so they
         # don't need a conda environment or login shell:
@@ -346,6 +346,25 @@ jobs:
           7z x -so contrib_build-Windows.tar.gz | 7z x -si -ttar
           rm contrib_build-Windows.tar.gz
           ls -la
+
+    - name: Build libcurl from source (Windows)
+      if: startsWith(matrix.os, 'windows')
+      shell: bash
+      run: |
+          curl -L -o curl-src.tar.gz https://curl.se/download/curl-8.12.1.tar.gz
+          tar xzf curl-src.tar.gz
+          cd curl-8.12.1
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/OpenMS/contrib" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCURL_USE_SCHANNEL=ON \
+            -DBUILD_CURL_EXE=OFF \
+            -DBUILD_TESTING=OFF \
+            -DCURL_DISABLE_LDAP=ON \
+            -DCURL_USE_LIBPSL=OFF
+          cmake --build build
+          cmake --install build
 
     - name: Setup ccache cache
       uses: actions/cache@v4

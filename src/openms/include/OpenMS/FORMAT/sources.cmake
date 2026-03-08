@@ -3,7 +3,6 @@ set(directory include/OpenMS/FORMAT)
 
 ### list all MOC filenames of the directory here
 set(sources_list
-MascotRemoteQuery.h
 )
 
 ### add path to the filenames

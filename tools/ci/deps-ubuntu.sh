@@ -45,6 +45,9 @@ sudo apt-get -qq install -y \
   nlohmann-json3-dev \
   libsimde-dev
 
+# libzip (ZIP64 archive support) — available via apt on Ubuntu 24.04
+sudo apt-get -qq install -y libzip-dev
+
 # Install uv (Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
