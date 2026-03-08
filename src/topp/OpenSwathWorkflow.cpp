@@ -567,6 +567,21 @@ protected:
     // Extract parameters needed for OpenSwathWorkflow validation logic
     UInt irt_bins_lin = irt_calibration_params.getValue("auto_irt:irt_bins");
     UInt irt_pep_lin  = irt_calibration_params.getValue("auto_irt:irt_peptides_per_bin");
+
+    // If a linear iRT file is explicitly provided, auto_irt must be disabled
+    // and any priority sampling iRT file should be ignored.
+    if (!irt_tr_file.empty())
+    {
+      if (auto_irt || !priority_sampling_irt_tr_file.empty())
+      {
+        OPENMS_LOG_WARN << "Calibration:files:linear_irt_file provided -> disabling auto_irt and ignoring tr_irt_priority_sampling." << std::endl;
+      }
+      auto_irt = false;
+      irt_calibration_params.setValue("auto_irt:enabled", "false");
+      // clear the priority sampling file so downstream logic won't attempt to use/validate it
+      priority_sampling_irt_tr_file.clear();
+      irt_calibration_params.setValue("tr_irt_priority_sampling", "");
+    }
     
     String swath_windows_file = getStringOption_("swath_windows_file");
 
@@ -652,21 +667,29 @@ protected:
       }
     }
     
-    // Validate priority iRT sampling file format if provided
+    // Validate priority iRT sampling file format if provided and if auto_irt is enabled
     if (!priority_sampling_irt_tr_file.empty())
     {
-      if (!File::exists(priority_sampling_irt_tr_file))
+      if (!auto_irt)
       {
-        writeLogError_("Parameter error: Priority iRT file does not exist: " + priority_sampling_irt_tr_file);
-        return PARSE_ERROR;
+        // auto_irt disabled (possibly due to explicit linear iRT file); ignore provided priority sampling file
+        OPENMS_LOG_WARN << "Priority iRT sampling file provided but auto_irt is disabled; ignoring: " << priority_sampling_irt_tr_file << std::endl;
       }
-      
-      FileTypes::Type priority_file_type = FileHandler::getType(priority_sampling_irt_tr_file);
-      if (priority_file_type != FileTypes::TSV)
+      else
       {
-        writeLogError_("Parameter error: Priority iRT file must be in TSV format. Provided: " + 
-                       FileTypes::typeToName(priority_file_type));
-        return PARSE_ERROR;
+        if (!File::exists(priority_sampling_irt_tr_file))
+        {
+          writeLogError_("Parameter error: Priority iRT file does not exist: " + priority_sampling_irt_tr_file);
+          return PARSE_ERROR;
+        }
+        
+        FileTypes::Type priority_file_type = FileHandler::getType(priority_sampling_irt_tr_file);
+        if (priority_file_type != FileTypes::TSV)
+        {
+          writeLogError_("Parameter error: Priority iRT file must be in TSV format. Provided: " + 
+                         FileTypes::typeToName(priority_file_type));
+          return PARSE_ERROR;
+        }
       }
     }
 
@@ -1184,23 +1207,21 @@ protected:
     }
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, run_id, current_run_files[0]);
 
-    // Create a run id per unique input filename and register it in the OSW
-    UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
     // For OSW, use the first file in the run group as the representative filename
-    oswwriter.addRun(cur_run, current_run_files[0]);
+    oswwriter.addRun(run_id, current_run_files[0]);
     // Also register run in chromatogram consumer if it is a SQL consumer
     MSDataSqlConsumer* sql_cons = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
     if (sql_cons != nullptr)
     {
-      sql_cons->addRun(current_run_files[0], cur_run);
+      sql_cons->addRun(current_run_files[0], run_id);
     }
 
     // set current run id in writer
-    oswwriter.setRunId(cur_run);
+    oswwriter.setRunId(run_id);
     // set current run id for sqMass writer as well (reuse previous cast)
     if (sql_cons != nullptr)
     {
-      sql_cons->setRunId(cur_run);
+      sql_cons->setRunId(run_id);
     }
 
     OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);

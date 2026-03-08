@@ -27,7 +27,7 @@ namespace OpenMS
     @brief File adapter for MSstats files
     @ingroup FileIO
   */
-  
+
     class OPENMS_DLLAPI MSstatsFile
     {
     public:
@@ -37,7 +37,7 @@ namespace OpenMS
         ~MSstatsFile() = default;
 
         /// store label free experiment (MSstats)
-        void storeLFQ(const String& filename, 
+        void storeLFQ(const String& filename,
                       const ConsensusMap &consensus_map, // we might add singleton protein groups
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
@@ -45,9 +45,19 @@ namespace OpenMS
                       const String& bioreplicate,
                       const String& condition,
                       const String& retention_time_summarization_method);
-        
-        /// store isobaric experiment (MSstatsTMT)
-        void storeISO(const String& filename, 
+
+        /**
+         * @brief Store isobaric experiment (MSstatsTMT)
+         * @param[in] filename Output filename
+         * @param[in] consensus_map ConsensusMap with quantification data
+         * @param[in] design ExperimentalDesign file
+         * @param[in] reannotate_filenames Optional filenames for reannotation
+         * @param[in] bioreplicate Column name for biological replicate in design
+         * @param[in] condition Column name for condition in design
+         * @param[in] mixture Column name for mixture in design (used for TMT experiments)
+         * @param[in] retention_time_summarization_method Method for RT summarization
+         */
+        void storeISO(const String& filename,
                       const ConsensusMap &consensus_map,
                       const ExperimentalDesign& design,
                       const StringList& reannotate_filenames,
@@ -105,9 +115,10 @@ namespace OpenMS
               const ExperimentalDesign &design);
 
       /*
-        * @brief checks two vectors for same content
+        * @brief checks if the first vector is a subset of the second
         */
-      static bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second);
+      static bool isSubsetOf_(const std::vector< String> &first, const std::vector< String > &second);
+      static void warnOnSubsetFiles_(const std::vector<String>& spectra_paths, const std::vector<String>& design_filenames);
 
       OpenMS::Peak2D::IntensityType sumIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities) const
       {

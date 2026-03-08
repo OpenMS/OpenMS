@@ -37,12 +37,14 @@
     "libsvm",
     "qtsvg",
     "zlib",
+    "curl",
     "coin-or-cgl",
     "coin-or-clp",
     "coin-or-cbc",
     "coinutils",
     "eigen3",
     "bzip2",
-    "arrow"
+    "arrow",
+    "libzip"
   ]
 }

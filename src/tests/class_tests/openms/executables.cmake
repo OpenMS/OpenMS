@@ -127,6 +127,7 @@ set(metadata_executables_list
 set(system_executables_list
   ExternalProcess_test
   File_test
+  Network_test
   JavaInfo_test
   PythonInfo_test
   StopWatch_test
@@ -271,6 +272,7 @@ set(format_executables_list
   XTandemInfile_test
   XTandemXMLFile_test
   ZlibCompression_test
+  Libzip_test
   # DATAACCESS
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test

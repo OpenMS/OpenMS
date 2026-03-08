@@ -19,9 +19,11 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <functional>
 #include <set>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -145,45 +147,75 @@ public:
       void setIntegerDataArrays(const IntegerDataArrays& ida);
 
       /// Returns a mutable reference to the first integer meta data array with the given name
-      inline IntegerDataArray& getIntegerDataArrayByName(String name)
+      inline IntegerDataArray& getIntegerDataArrayByName(const String& name)
       {
-        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+        auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+        if (it == integer_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IntegerDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a mutable reference to the first string meta data array with the given name
-      inline StringDataArray& getStringDataArrayByName(String name)
+      inline StringDataArray& getStringDataArrayByName(const String& name)
       {
-        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+        auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
           [&name](const StringDataArray& da) { return da.getName() == name; } );
+        if (it == string_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("StringDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a mutable reference to the first float meta data array with the given name
-      inline FloatDataArray& getFloatDataArrayByName(String name)
+      inline FloatDataArray& getFloatDataArrayByName(const String& name)
       {
-        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+        auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
+        if (it == float_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("FloatDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a const reference to the first integer meta data array with the given name
-      inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
+      inline const IntegerDataArray& getIntegerDataArrayByName(const String& name) const
       {
-        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+        auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+        if (it == integer_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IntegerDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a const reference to the first string meta data array with the given name
-      inline const StringDataArray& getStringDataArrayByName(String name) const
+      inline const StringDataArray& getStringDataArrayByName(const String& name) const
       {
-        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+        auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
           [&name](const StringDataArray& da) { return da.getName() == name; } );
+        if (it == string_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("StringDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a const reference to the first float meta data array with the given name
-      inline const FloatDataArray& getFloatDataArrayByName(String name) const
+      inline const FloatDataArray& getFloatDataArrayByName(const String& name) const
       {
-        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+        auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
+        if (it == float_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("FloatDataArray: ") + name);
+        }
+        return *it;
       }
 
     private:
