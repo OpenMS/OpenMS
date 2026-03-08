@@ -1,5 +1,6 @@
 {
   "name": "openms",
+  
   "version-string": "3.6.0",
   "dependencies": [
     "boost-core",
@@ -34,9 +35,7 @@
     "boost-typeof",
     "boost-process",
     "xerces-c",
-    "qtbase",
     "libsvm",
-    "qtsvg",
     "zlib",
     "curl",
     "coin-or-cgl",
@@ -46,6 +45,14 @@
     "eigen3",
     "bzip2",
     "arrow",
-    "libzip"
+    "libzip",
+    "sqlite3",
+    "sqlitecpp",
+    "libxml2",
+    "nlohmann-json",
+    "glpk",
+    "curl",
+    "simde",
+    "hdf5"
   ]
 }
