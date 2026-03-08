@@ -148,3 +148,20 @@ def to_arrow(self, columns=None, export_meta_values=True):
     """Returns an Apache Arrow Table representation."""
     import pyarrow as pa
     return pa.Table.from_pydict(self.get_data_dict(columns=columns, export_meta_values=export_meta_values))
+
+
+@addon("MSChromatogram")
+def get_peaks_struct(self):
+    """
+    Returns a zero-copy numpy structured array of the chromatogram's peaks (AoS layout).
+    """
+    raw_view = self.get_peaks_struct_mv()
+
+    peak_dtype = np.dtype({
+        "names": ["rt", "intensity"],
+        "formats": [np.float64, np.float32],
+        "offsets": [0, 8],
+        "itemsize": 16
+    })
+
+    return raw_view.view(peak_dtype)
