@@ -40,7 +40,7 @@ namespace OpenMS
     
     defaults_.setValue("auto_irt:irt_peptides_per_bin", 5, "Peptides sampled per bin for linear iRT");
     defaults_.setMinInt("auto_irt:irt_peptides_per_bin", 1);
-    defaults_.setMaxInt("auto_irt:irt_peptides_per_bin", 1000);
+    // defaults_.setMaxInt("auto_irt:irt_peptides_per_bin", 1000);
     
     defaults_.setValue("auto_irt:irt_seed", 5489, "RNG seed for reproducible sampling (0 = non-deterministic)");
     defaults_.setMinInt("auto_irt:irt_seed", 0);
@@ -51,7 +51,7 @@ namespace OpenMS
     
     defaults_.setValue("auto_irt:irt_peptides_per_bin_nonlinear", 50, "Peptides sampled per bin for nonlinear iRT (0 = skip nonlinear)");
     defaults_.setMinInt("auto_irt:irt_peptides_per_bin_nonlinear", 0);
-    defaults_.setMaxInt("auto_irt:irt_peptides_per_bin_nonlinear", 1000);
+    // defaults_.setMaxInt("auto_irt:irt_peptides_per_bin_nonlinear", 10000);
     
     defaults_.setValue("auto_irt:linear_top_fraction", 0.4, "Top fraction of intense peptides to sample for linear iRT");
     defaults_.setMinFloat("auto_irt:linear_top_fraction", 0.01);
