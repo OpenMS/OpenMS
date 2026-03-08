@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -271,6 +272,26 @@ namespace OpenMS
 
     // append protein identifications to Map
     map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
+
+    // preserve data processing from identification runs (search engine, database, etc.)
+    for (const auto& prot_id : protein_ids)
+    {
+      DataProcessing dp;
+      dp.getSoftware().setName(prot_id.getSearchEngine());
+      dp.getSoftware().setVersion(prot_id.getSearchEngineVersion());
+      dp.setCompletionTime(prot_id.getDateTime());
+      dp.getProcessingActions().insert(DataProcessing::IDENTIFICATION);
+      const auto& search_params = prot_id.getSearchParameters();
+      if (!search_params.db.empty())
+      {
+        dp.setMetaValue("parameter: db", search_params.db);
+      }
+      if (!search_params.db_version.empty())
+      {
+        dp.setMetaValue("parameter: db_version", search_params.db_version);
+      }
+      map.getDataProcessing().push_back(dp);
+    }
 
     // keep track of assigned/unassigned peptide identifications.
     // maps Pep.Id. index to number of assignments to a feature
@@ -664,6 +685,26 @@ namespace OpenMS
 
     // append protein identifications
     map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
+
+    // preserve data processing from identification runs (search engine, database, etc.)
+    for (const auto& prot_id : protein_ids)
+    {
+      DataProcessing dp;
+      dp.getSoftware().setName(prot_id.getSearchEngine());
+      dp.getSoftware().setVersion(prot_id.getSearchEngineVersion());
+      dp.setCompletionTime(prot_id.getDateTime());
+      dp.getProcessingActions().insert(DataProcessing::IDENTIFICATION);
+      const auto& search_params = prot_id.getSearchParameters();
+      if (!search_params.db.empty())
+      {
+        dp.setMetaValue("parameter: db", search_params.db);
+      }
+      if (!search_params.db_version.empty())
+      {
+        dp.setMetaValue("parameter: db_version", search_params.db_version);
+      }
+      map.getDataProcessing().push_back(dp);
+    }
 
     // check if all features have at least one convex hull
     // if not, use the centroid and the given tolerances
