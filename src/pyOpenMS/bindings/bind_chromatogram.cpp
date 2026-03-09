@@ -124,19 +124,19 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
         }, "i"_a, "val"_a, "Sets peak at index i")
 
         .def("get_peaks", [](const OpenMS::MSChromatogram& self) {
-            // Single allocation + single capsule to reduce overhead for small arrays
             const size_t n = self.size();
-            const size_t total_bytes = 2 * n * sizeof(double);
-            char* buf = new char[total_bytes];
+            const size_t rt_bytes = n * sizeof(double);
+            const size_t int_bytes = n * sizeof(float);
+            char* buf = new char[rt_bytes + int_bytes];
             double* rt_data = reinterpret_cast<double*>(buf);
-            double* int_data = reinterpret_cast<double*>(buf + n * sizeof(double));
+            float* int_data = reinterpret_cast<float*>(buf + rt_bytes);
             for (size_t i = 0; i < n; ++i) {
                 rt_data[i] = self[i].getRT();
                 int_data[i] = self[i].getIntensity();
             }
             nb::capsule owner(buf, [](void* p) noexcept { delete[] static_cast<char*>(p); });
             auto rt_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(rt_data, {n}, owner);
-            auto int_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(int_data, {n}, owner);
+            auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, owner);
             return nb::make_tuple(rt_arr, int_arr);
         }, "Returns a tuple of (rt_array, intensity_array) as numpy arrays")
     
@@ -178,14 +178,14 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
     
         .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj) {
             auto rt_arr = as_numpy_array<double>(rt_obj);
-            auto int_arr = as_numpy_array<double>(int_obj);
+            auto int_arr = as_numpy_array<float>(int_obj);
             const size_t n = rt_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
             self.resize(n);
             const double* rt_ptr = static_cast<const double*>(rt_arr.data());
-            const double* int_ptr = static_cast<const double*>(int_arr.data());
+            const float* int_ptr = static_cast<const float*>(int_arr.data());
             for (size_t i = 0; i < n; ++i) {
                 self[i].setRT(rt_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
@@ -196,14 +196,14 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (rt, intensity)");
             }
             auto rt_arr = as_numpy_array<double>(peaks_seq[0]);
-            auto int_arr = as_numpy_array<double>(peaks_seq[1]);
+            auto int_arr = as_numpy_array<float>(peaks_seq[1]);
             const size_t n = rt_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
             self.resize(n);
             const double* rt_ptr = static_cast<const double*>(rt_arr.data());
-            const double* int_ptr = static_cast<const double*>(int_arr.data());
+            const float* int_ptr = static_cast<const float*>(int_arr.data());
             for (size_t i = 0; i < n; ++i) {
                 self[i].setRT(rt_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
