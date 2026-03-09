@@ -166,9 +166,10 @@ class TestMSSpectrum(unittest.TestCase):
         data_copy = fda.get_data()
         self.assertEqual(len(data_copy), 0)
 
-        # get_data_view returns None for empty
+        # get_data_view returns empty array for empty
         data_view = fda.get_data_view()
-        self.assertIsNone(data_view)
+        self.assertIsInstance(data_view, __import__('numpy').ndarray)
+        self.assertEqual(len(data_view), 0)
 
     def testGetTypeWithQueryData(self):
         """Test getType(bool) method with query_data parameter"""
