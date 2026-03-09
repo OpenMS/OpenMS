@@ -2853,7 +2853,6 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         ;
 
     using OSSpec = OpenSwath::OSSpectrum;
-    using OSBDA = OpenSwath::OSBinaryDataArray;
     using BDAPtr = std::shared_ptr<OpenSwath::BinaryDataArray>;
     // -----------------------------------------------------------------------
     // OSSpectrum

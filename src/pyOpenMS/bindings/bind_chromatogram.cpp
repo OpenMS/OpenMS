@@ -93,8 +93,8 @@ rt, intensities = chromatogram.get_peaks()
         .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false)
         .def("sortByPosition", [](OpenMS::MSChromatogram& self) { return self.sortByPosition(); },
             R"doc(
-Lexicographically sorts the peaks by their intensity
-Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
+Lexicographically sorts the peaks by their position (RT).
+Sorts the peaks according to ascending RT. Meta data arrays will be sorted accordingly
 )doc")
         .def("isSorted", [](const OpenMS::MSChromatogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending RT")
         .def("findNearest", [](const OpenMS::MSChromatogram& self, double rt) { return self.findNearest(rt); }, "rt"_a,
