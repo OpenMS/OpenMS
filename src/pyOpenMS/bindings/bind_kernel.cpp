@@ -1633,6 +1633,49 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             return nb::make_tuple(mob_arr, int_arr);
         }, "Get mobility and intensity arrays as numpy arrays")
 
+        .def("get_peaks_view", [](OpenMS::Mobilogram& self) {
+            uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+            size_t shape[1] = { self.size() * sizeof(OpenMS::MobilityPeak1D) };
+            return nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
+                data_ptr,
+                1,
+                shape,
+                nb::handle()
+            );
+        },
+        nb::rv_policy::reference_internal,
+        "Returns a raw byte view of the underlying MobilityPeak1D array (AoS layout).")
+
+        .def("get_peaks_struct",
+            [](OpenMS::Mobilogram& self) {
+                uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+                size_t n = self.size();
+
+                auto np = nb::module_::import_("numpy");
+                auto py_dtype = np.attr("dtype")(nb::dict(
+                    "names"_a = nb::make_tuple("mobility", "intensity"),
+                    "formats"_a = nb::make_tuple(
+                        np.attr("float64"),
+                        np.attr("float32")
+                    ),
+                    "offsets"_a = nb::make_tuple(0, 8),
+                    "itemsize"_a = 16
+                ));
+
+                size_t byte_shape[1] = { n * sizeof(OpenMS::MobilityPeak1D) };
+                auto raw = nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
+                    data_ptr,
+                    1,
+                    byte_shape,
+                    nb::find(self)
+                );
+
+                return np.attr("frombuffer")(raw, py_dtype);
+            },
+            nb::rv_policy::reference_internal,
+            "Returns zero-copy structured array with fields 'mobility' (float64) and 'intensity' (float32)."
+        )
+
         .def("set_peaks", [](OpenMS::Mobilogram& self, nb::object mob_obj, nb::object int_obj) {
             auto mob_arr = as_numpy_array<double>(mob_obj);
             auto int_arr = as_numpy_array<float>(int_obj);
