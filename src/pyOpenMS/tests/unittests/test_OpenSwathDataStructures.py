@@ -161,5 +161,23 @@ class TestOpenSwathDataStructures(unittest.TestCase):
         for i,e in zip(intensity, int_exp):
             self.assertAlmostEqual(i,e)
 
+    def test_osbinarydataarray_get_data_mv_empty(self):
+        """get_data_mv() should return None for empty OSBinaryDataArray."""
+        bda = pyopenms.OSBinaryDataArray()
+        self.assertIsNone(bda.get_data_mv())
+
+    def test_osspectrum_mv_empty(self):
+        """All _mv methods should return None for empty OSSpectrum."""
+        spec = pyopenms.OSSpectrum()
+        self.assertIsNone(spec.get_mz_array_mv())
+        self.assertIsNone(spec.get_intensity_array_mv())
+        self.assertIsNone(spec.get_drift_time_array_mv())
+
+    def test_oschromatogram_mv_empty(self):
+        """All _mv methods should return None for empty OSChromatogram."""
+        chrom = pyopenms.OSChromatogram()
+        self.assertIsNone(chrom.get_time_array_mv())
+        self.assertIsNone(chrom.get_intensity_array_mv())
+
 if __name__ == '__main__':
     unittest.main()
