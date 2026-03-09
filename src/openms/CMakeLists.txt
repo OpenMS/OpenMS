@@ -59,7 +59,7 @@ set(OPENMS_DEP_LIBRARIES
   LibSVM::LibSVM
   XercesC::XercesC
   Qt6::Core
-  Qt6::Network
+  CURL::libcurl
 )
 
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'

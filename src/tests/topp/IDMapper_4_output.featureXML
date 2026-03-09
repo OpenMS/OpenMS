@@ -13,6 +13,11 @@
 		<UserParam type="string" name="parameter: force" value="false"/>
 		<UserParam type="string" name="parameter: test" value="false"/>
 	</dataProcessing>
+	<dataProcessing completion_time="0000-00-00T00:00:00">
+		<software name="MS-GF+" version="Beta (v9176)" />
+		<processingAction name="Identification" />
+		<UserParam type="string" name="parameter: db" value="."/>
+	</dataProcessing>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="IDMapper" version="version_string" />
 		<processingAction name="Identification mapping" />
