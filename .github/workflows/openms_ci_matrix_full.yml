@@ -214,6 +214,8 @@ jobs:
             PIXI_ENV="$GITHUB_WORKSPACE/OpenMS/.pixi/envs/default"
             echo "cmake_prefix=$PIXI_ENV;$PIXI_ENV/Library;$PIXI_ENV/Library/lib/cmake;$PIXI_ENV/Library/lib;$PIXI_ENV/lib/cmake;$PIXI_ENV/lib" >> $GITHUB_OUTPUT
             echo "pixi_env=$PIXI_ENV" >> $GITHUB_OUTPUT
+            # Append pixi Library/lib to MSVC linker search path so mkl_rt.lib
+            # and other import libs are found for transitive coin-or BLAS linking
             echo "LIB=$PIXI_ENV/Library/lib${LIB:+;$LIB}" >> $GITHUB_ENV
 
           fi
@@ -261,6 +263,31 @@ jobs:
             brew install ccache
             echo "$(brew --prefix)/bin" >> $GITHUB_PATH
           fi
+
+      # FIX: Set DYLD_LIBRARY_PATH on macOS so that built binaries (run during
+      # prepare_knime_payload_binaries / create_ctds) can find pixi-managed dylibs
+      # at runtime. Without this, libsvm.4.dylib and libQt6Core loads fail with
+      # exit 134 (SIGABRT / dyld error). CMAKE_BUILD_RPATH covers link-time but
+      # dyld still needs this env var when the runner shell executes the binary.
+      - name: Set macOS runtime library path
+        if: startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          PIXI_ENV="${{ steps.tools-prefix.outputs.pixi_env }}"
+          echo "DYLD_LIBRARY_PATH=${PIXI_ENV}/lib${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}" >> $GITHUB_ENV
+
+      # FIX: Set LD_LIBRARY_PATH on Linux so that built binaries invoked during
+      # prepare_knime_payload_binaries / create_ctds can find pixi-managed .so
+      # files (Qt6, libsvm, etc.) at runtime. Exit code 127 means the shared
+      # library loader cannot find the required .so; CMAKE_BUILD_RPATH bakes in
+      # the path at link time but the loader still needs LD_LIBRARY_PATH as a
+      # fallback when the binary is run as a subprocess from ninja/cmake.
+      - name: Set Linux runtime library path
+        if: startsWith(matrix.os, 'ubuntu')
+        shell: bash
+        run: |
+          PIXI_ENV="${{ steps.tools-prefix.outputs.pixi_env }}"
+          echo "LD_LIBRARY_PATH=${PIXI_ENV}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" >> $GITHUB_ENV
 
       - name: Setup ccache cache
         uses: actions/cache@v4
@@ -338,6 +365,11 @@ jobs:
           PYOPENMS: "OFF"
           NO_DEPENDENCIES: "ON"
           CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }}"
+          # Windows BLAS/LAPACK: coin-or-cbc from conda-forge links against MKL on win-64.
+          # mkl-devel (in pixi.toml win-64 deps) provides mkl_rt.lib; we pass it explicitly
+          # so CMake's FindBLAS and the MSVC linker both resolve DGETRF/DGETRS symbols.
+          BLAS_LIBRARIES: ${{ startsWith(matrix.os, 'windows') && format('{0}/Library/lib/mkl_rt.lib', steps.tools-prefix.outputs.pixi_env) || '' }}
+          LAPACK_LIBRARIES: ${{ startsWith(matrix.os, 'windows') && format('{0}/Library/lib/mkl_rt.lib', steps.tools-prefix.outputs.pixi_env) || '' }}
           OPENMS_CONTRIB_LIBS: ${{ startsWith(matrix.os, 'ubuntu') && format('{0}/OpenMS/contrib', github.workspace) || '' }}
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
@@ -357,6 +389,11 @@ jobs:
           BUILD_TYPE: "Release"
           MT_ENABLE_OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
+          # RPATH: bake pixi env lib dir into every built binary so that
+          # executables run during the build (create_ctds, prepare_knime_payload)
+          # can find Qt6, libsvm, and other pixi-managed shared libs without
+          # needing LD_LIBRARY_PATH/DYLD_LIBRARY_PATH at configure time.
+          # The LD_/DYLD_ env vars set above serve as a runtime fallback.
           CMAKE_BUILD_RPATH: ${{ (!startsWith(matrix.os, 'windows')) && format('{0}/lib', steps.tools-prefix.outputs.pixi_env) || '' }}
           CMAKE_INSTALL_RPATH: ${{ (!startsWith(matrix.os, 'windows')) && format('{0}/lib', steps.tools-prefix.outputs.pixi_env) || '' }}
           CMAKE_INSTALL_RPATH_USE_LINK_PATH: ${{ (!startsWith(matrix.os, 'windows')) && 'ON' || '' }}
