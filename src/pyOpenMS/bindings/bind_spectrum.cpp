@@ -47,6 +47,9 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>> as_numpy_array(nb::object obj) {
 NB_MODULE(_pyopenms_spectrum, m) {
     m.doc() = "pyOpenMS spectrum bindings";
 
+    static_assert(sizeof(OpenMS::Peak1D) == 16,
+        "Peak1D must be 16 bytes for zero-copy structured array access");
+
     // -----------------------------------------------------------------------
     // MSSpectrum
     // -----------------------------------------------------------------------
