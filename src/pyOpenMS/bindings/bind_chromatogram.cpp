@@ -25,25 +25,32 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 
-// Helper: ensure an object is a contiguous numpy array of type T.
+// Helper: ensure an object is a C-contiguous numpy array of type T.
 template <typename T>
-nb::ndarray<nb::numpy, T, nb::ndim<1>> as_numpy_array(nb::object obj) {
-    nb::ndarray<nb::numpy, T, nb::ndim<1>> arr;
+nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object obj) {
+    nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> arr;
     if (nb::try_cast(obj, arr)) return arr;
     auto np = nb::module_::import_("numpy");
     nb::object dtype;
     if constexpr (std::is_same_v<T, float>) dtype = np.attr("float32");
     else dtype = np.attr("float64");
-    nb::object np_arr = np.attr("asarray")(obj, dtype);
+    nb::object np_arr = np.attr("ascontiguousarray")(obj, dtype);
     if (!nb::try_cast(np_arr, arr)) {
-        throw std::runtime_error("Failed to convert input to numpy array");
+        throw std::runtime_error("Failed to convert input to contiguous numpy array");
     }
     return arr;
 }
 
 NB_MODULE(_pyopenms_chromatogram, m) {
+    // ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these)
+    static_assert(std::is_standard_layout_v<OpenMS::ChromatogramPeak>,
+                  "ChromatogramPeak must be standard-layout for zero-copy struct views (guarantees member order matches dtype)");
     static_assert(sizeof(OpenMS::ChromatogramPeak) == 16,
-                  "Unexpected ChromatogramPeak size (expected 16 bytes)");
+                  "ChromatogramPeak must be 16 bytes for zero-copy structured array access");
+    static_assert(std::is_same_v<OpenMS::ChromatogramPeak::CoordinateType, double>,
+                  "ChromatogramPeak::CoordinateType must be double (dtype assumes float64 for position)");
+    static_assert(std::is_same_v<OpenMS::ChromatogramPeak::IntensityType, float>,
+                  "ChromatogramPeak::IntensityType must be float (dtype assumes float32 for intensity)");
 
     m.doc() = "pyOpenMS chromatogram bindings";
 
@@ -145,14 +152,15 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
     
     
     
-        .def("_get_peaks_view", [](OpenMS::MSChromatogram& self) {
+        .def("_get_peaks_view", [](nb::object self_obj) {
+            auto& self = nb::cast<OpenMS::MSChromatogram&>(self_obj);
             uint8_t* data_ptr = self.empty() ? nullptr : reinterpret_cast<uint8_t*>(&self[0]);
             size_t shape[1] = { self.size() * sizeof(OpenMS::ChromatogramPeak) };
             return nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
                 data_ptr,
                 1,
                 shape,
-                nb::handle()
+                self_obj
             );
         },
         nb::rv_policy::reference_internal,
@@ -163,12 +171,14 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
                 size_t n = self.size();
                 auto np = nb::module_::import_("numpy");
 
-                // Build structured dtype: {rt: float64 @ 0, intensity: float32 @ 8, itemsize: 16}
+                // Derive dtype from C++ layout (validated by static_asserts at module init)
+                constexpr size_t pos_offset = 0; // standard-layout: first member at offset 0
+                constexpr size_t int_offset = sizeof(OpenMS::ChromatogramPeak::PositionType);
                 nb::dict dtype_dict;
                 dtype_dict["names"] = nb::make_tuple("rt", "intensity");
                 dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
-                dtype_dict["offsets"] = nb::make_tuple(0, 8);
-                dtype_dict["itemsize"] = 16;
+                dtype_dict["offsets"] = nb::make_tuple(pos_offset, int_offset);
+                dtype_dict["itemsize"] = sizeof(OpenMS::ChromatogramPeak);
                 auto py_dtype = np.attr("dtype")(dtype_dict);
 
                 if (n == 0) {

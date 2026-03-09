@@ -87,29 +87,36 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 
-// Helper: ensure an object is a contiguous numpy array of type T.
-// Accepts numpy arrays (zero-copy if already correct dtype) and Python lists/tuples
-// (converts via numpy.asarray). This maintains backward compatibility with code
-// that passes plain Python lists to set_peaks() etc.
+// Helper: ensure an object is a C-contiguous numpy array of type T.
+// Accepts numpy arrays (zero-copy if already correct dtype and contiguous) and
+// Python lists/tuples (converts via numpy.ascontiguousarray). This maintains
+// backward compatibility with code that passes plain Python lists to set_peaks() etc.
 template <typename T>
-nb::ndarray<nb::numpy, T, nb::ndim<1>> as_numpy_array(nb::object obj) {
-    nb::ndarray<nb::numpy, T, nb::ndim<1>> arr;
-    if (nb::try_cast(obj, arr)) return arr;  // already the right type — zero-copy
-    // Convert lists/sequences to numpy array with the right dtype
+nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object obj) {
+    nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> arr;
+    if (nb::try_cast(obj, arr)) return arr;  // already the right type and contiguous — zero-copy
+    // Convert lists/sequences/non-contiguous arrays to contiguous numpy array
     auto np = nb::module_::import_("numpy");
     nb::object dtype;
     if constexpr (std::is_same_v<T, float>) dtype = np.attr("float32");
     else dtype = np.attr("float64");
-    nb::object np_arr = np.attr("asarray")(obj, dtype);
+    nb::object np_arr = np.attr("ascontiguousarray")(obj, dtype);
     if (!nb::try_cast(np_arr, arr)) {
-        throw std::runtime_error("Failed to convert input to numpy array");
+        throw std::runtime_error("Failed to convert input to contiguous numpy array");
     }
     return arr;
 }
 
 NB_MODULE(_pyopenms_kernel, m) {
+    // ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these)
+    static_assert(std::is_standard_layout_v<OpenMS::MobilityPeak1D>,
+                  "MobilityPeak1D must be standard-layout for zero-copy struct views (guarantees member order matches dtype)");
     static_assert(sizeof(OpenMS::MobilityPeak1D) == 16,
-                  "Unexpected MobilityPeak1D size (expected 16 bytes)");
+                  "MobilityPeak1D must be 16 bytes for zero-copy structured array access");
+    static_assert(std::is_same_v<OpenMS::MobilityPeak1D::CoordinateType, double>,
+                  "MobilityPeak1D::CoordinateType must be double (dtype assumes float64 for position)");
+    static_assert(std::is_same_v<OpenMS::MobilityPeak1D::IntensityType, float>,
+                  "MobilityPeak1D::IntensityType must be float (dtype assumes float32 for intensity)");
 
     m.doc() = "pyOpenMS kernel bindings";
 
@@ -1364,7 +1371,7 @@ Commonly used for storing ion mobility values or other per-peak float annotation
             return nb::ndarray<nb::numpy, float, nb::ndim<1>>(
                 self.data(), {self.size()}, self_obj
             );
-        }, "Returns a writable view of the data as numpy array (fast but unsafe, None if empty)")
+        }, "Returns a zero-copy writable view of the data as numpy array (None if empty)")
 
         .def("set_data", [](OpenMS::DataArrays::FloatDataArray& self, nb::object data_obj) {
             // Fast path: float32 numpy array — direct memcpy
@@ -1465,7 +1472,7 @@ Used for storing per-peak integer annotations.
             return nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>(
                 self.data(), {self.size()}, self_obj
             );
-        }, "Returns a writable view of the data as numpy array (fast but unsafe, None if empty)")
+        }, "Returns a zero-copy writable view of the data as numpy array (None if empty)")
 
         .def("set_data", [](OpenMS::DataArrays::IntegerDataArray& self, nb::object data_obj) {
             // Fast path: int32 numpy array — direct memcpy
@@ -1554,9 +1561,7 @@ etc) is implicit
     // Mobilogram
     // -----------------------------------------------------------------------
     
-    // ABI guard for zero-copy access
-    static_assert(sizeof(OpenMS::MobilityPeak1D) == 16,
-                  "Unexpected MobilityPeak1D size (expected 16 bytes)");
+    // ABI guard for zero-copy access (sizeof + standard-layout at top of module)
     nb::class_<OpenMS::Mobilogram>(m, "Mobilogram",
                                    
         R"doc(
@@ -1641,14 +1646,15 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
             return nb::make_tuple(mob_arr, int_arr);
         }, "Get mobility and intensity arrays as numpy arrays")
 
-        .def("_get_peaks_view", [](OpenMS::Mobilogram& self) {
+        .def("_get_peaks_view", [](nb::object self_obj) {
+            auto& self = nb::cast<OpenMS::Mobilogram&>(self_obj);
             uint8_t* data_ptr = self.empty() ? nullptr : reinterpret_cast<uint8_t*>(&self[0]);
             size_t shape[1] = { self.size() * sizeof(OpenMS::MobilityPeak1D) };
             return nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
                 data_ptr,
                 1,
                 shape,
-                nb::handle()
+                self_obj
             );
         },
         nb::rv_policy::reference_internal,
@@ -1659,10 +1665,13 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
                 size_t n = self.size();
                 auto np = nb::module_::import_("numpy");
                 nb::dict dtype_dict;
+                // Derive dtype from C++ layout (validated by static_asserts at module init)
+                constexpr size_t pos_offset = 0; // standard-layout: first member at offset 0
+                constexpr size_t int_offset = sizeof(OpenMS::MobilityPeak1D::PositionType);
                 dtype_dict["names"] = nb::make_tuple("mobility", "intensity");
                 dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
-                dtype_dict["offsets"] = nb::make_tuple(0, 8);
-                dtype_dict["itemsize"] = 16;
+                dtype_dict["offsets"] = nb::make_tuple(pos_offset, int_offset);
+                dtype_dict["itemsize"] = sizeof(OpenMS::MobilityPeak1D);
                 auto py_dtype = np.attr("dtype")(dtype_dict);
                 if (n == 0) {
                     return np.attr("empty")(0, py_dtype);

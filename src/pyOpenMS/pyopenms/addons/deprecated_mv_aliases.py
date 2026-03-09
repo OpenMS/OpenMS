@@ -28,6 +28,7 @@ _deprecated_mv("IntegerDataArray", "get_data_mv", "get_data_view")
 
 # MatrixDouble
 _deprecated_mv("MatrixDouble", "get_matrix_mv", "get_matrix_view")
+_deprecated_mv("MatrixDouble", "get_matrix_as_view", "get_matrix_view")
 
 # MSSpectrum
 _deprecated_mv("MSSpectrum", "get_drift_time_array_mv", "get_drift_time_array_view")

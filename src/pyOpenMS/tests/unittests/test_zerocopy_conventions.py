@@ -78,10 +78,16 @@ def test_struct_returns_structured_array():
 
 def test_no_public_as_view_methods():
     """No public methods should use _as_view suffix (removed convention)."""
-    for cls_name in ['MSSpectrum', 'MSChromatogram', 'Mobilogram', 'MatrixDouble']:
+    # get_matrix_as_view is an intentional deprecated alias for get_matrix_view
+    deprecated_aliases = {
+        'MatrixDouble': {'get_matrix_as_view'},
+    }
+    for cls_name in ['MSSpectrum', 'MSChromatogram', 'Mobilogram', 'MatrixDouble',
+                     'OSBinaryDataArray', 'OSSpectrum', 'OSChromatogram']:
         cls = getattr(pyopenms, cls_name)
+        allowed = deprecated_aliases.get(cls_name, set())
         public_methods = [m for m in dir(cls) if not m.startswith('_')]
-        bad_methods = [m for m in public_methods if '_as_view' in m]
+        bad_methods = [m for m in public_methods if '_as_view' in m and m not in allowed]
         assert bad_methods == [], \
             f"{cls_name} has public _as_view methods: {bad_methods}. " \
             f"Use _view suffix instead."
