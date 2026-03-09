@@ -116,3 +116,30 @@ def test_struct_writeback():
     arr['intensity'][0] = np.float32(999.0)
     _, ints = chrom.get_peaks()
     assert np.isclose(ints[0], np.float32(999.0))
+
+
+def test_deprecated_mv_aliases_emit_warning():
+    """Deprecated _mv aliases should still work but emit DeprecationWarning."""
+    import warnings
+
+    # FloatDataArray
+    fda = pyopenms.FloatDataArray()
+    fda.push_back(1.0)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        arr = fda.get_data_mv()
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
+        assert "get_data_view" in str(w[0].message)
+    assert arr is not None
+    assert arr.dtype == np.float32
+
+    # MatrixDouble
+    mat = pyopenms.MatrixDouble(2, 2, 1.0)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        view = mat.get_matrix_mv()
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
+        assert "get_matrix_view" in str(w[0].message)
+    assert view is not None
