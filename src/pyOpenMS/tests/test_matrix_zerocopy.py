@@ -22,9 +22,11 @@ def test_matrix_double_zerocopy():
     assert view_arr.flags['F_CONTIGUOUS'] == True
 
 def test_matrix_view_empty():
-    """get_matrix_view() should return None for empty matrix."""
+    """get_matrix_view() should return empty array for empty matrix."""
     mat = poms.MatrixDouble()
-    assert mat.get_matrix_view() is None
+    arr = mat.get_matrix_view()
+    assert isinstance(arr, np.ndarray)
+    assert arr.size == 0
 
 if __name__ == "__main__":
     test_matrix_double_zerocopy()

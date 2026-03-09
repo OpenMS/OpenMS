@@ -1363,15 +1363,14 @@ Commonly used for storing ion mobility values or other per-peak float annotation
             return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
         }, "Returns a copy of the data as numpy array")
 
-        .def("get_data_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
-            // Return a writable view (zero-copy)
+        .def("get_data_view", [](nb::object self_obj) {
+            // Return a writable view (zero-copy), empty array if empty
             auto& self = nb::cast<OpenMS::DataArrays::FloatDataArray&>(self_obj);
-            if (self.empty()) return std::nullopt;
-            // Create view with self_obj as owner to keep the array alive and writable
+            float* data_ptr = self.empty() ? nullptr : self.data();
             return nb::ndarray<nb::numpy, float, nb::ndim<1>>(
-                self.data(), {self.size()}, self_obj
+                data_ptr, {self.size()}, self_obj
             );
-        }, "Returns a zero-copy writable view of the data as numpy array (None if empty)")
+        }, "Returns a zero-copy writable view of the data as numpy array (empty array if empty)")
 
         .def("set_data", [](OpenMS::DataArrays::FloatDataArray& self, nb::object data_obj) {
             // Fast path: float32 numpy array — direct memcpy
@@ -1465,14 +1464,14 @@ Used for storing per-peak integer annotations.
             return nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>(data, {n}, owner);
         }, "Returns a copy of the data as numpy array")
 
-        .def("get_data_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>> {
-            // Return a writable view (zero-copy)
+        .def("get_data_view", [](nb::object self_obj) {
+            // Return a writable view (zero-copy), empty array if empty
             auto& self = nb::cast<OpenMS::DataArrays::IntegerDataArray&>(self_obj);
-            if (self.empty()) return std::nullopt;
+            int32_t* data_ptr = self.empty() ? nullptr : self.data();
             return nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>(
-                self.data(), {self.size()}, self_obj
+                data_ptr, {self.size()}, self_obj
             );
-        }, "Returns a zero-copy writable view of the data as numpy array (None if empty)")
+        }, "Returns a zero-copy writable view of the data as numpy array (empty array if empty)")
 
         .def("set_data", [](OpenMS::DataArrays::IntegerDataArray& self, nb::object data_obj) {
             // Fast path: int32 numpy array — direct memcpy

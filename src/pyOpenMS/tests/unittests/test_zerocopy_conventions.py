@@ -1,8 +1,8 @@
 """Verify zero-copy API naming conventions across all pyOpenMS types.
 
 Convention:
-  _view  = typed zero-copy column view, returns ndarray<T> or None if empty
-  _struct = structured zero-copy record view, returns structured ndarray or empty array
+  _view  = typed zero-copy column view, returns empty ndarray<T> if empty
+  _struct = structured zero-copy record view, returns empty structured ndarray if empty
 
 No public methods should use _as_view suffix.
 """
@@ -10,23 +10,31 @@ import numpy as np
 import pyopenms
 
 
-def test_view_returns_none_on_empty():
-    """All _view methods return None when container is empty."""
+def test_view_returns_empty_array_on_empty():
+    """All _view methods return empty arrays (not None) when container is empty."""
     # FloatDataArray
     fda = pyopenms.FloatDataArray()
-    assert fda.get_data_view() is None
+    arr = fda.get_data_view()
+    assert isinstance(arr, np.ndarray)
+    assert len(arr) == 0
+    assert arr.dtype == np.float32
 
     # IntegerDataArray
     ida = pyopenms.IntegerDataArray()
-    assert ida.get_data_view() is None
+    arr = ida.get_data_view()
+    assert isinstance(arr, np.ndarray)
+    assert len(arr) == 0
+    assert arr.dtype == np.int32
 
-    # MSSpectrum drift time (no IM data)
+    # MSSpectrum drift time (no IM data — None is correct here, data doesn't exist)
     spec = pyopenms.MSSpectrum()
     assert spec.get_drift_time_array_view() is None
 
     # MatrixDouble (empty)
     mat = pyopenms.MatrixDouble()
-    assert mat.get_matrix_view() is None
+    arr = mat.get_matrix_view()
+    assert isinstance(arr, np.ndarray)
+    assert arr.size == 0
 
 
 def test_view_returns_typed_array():

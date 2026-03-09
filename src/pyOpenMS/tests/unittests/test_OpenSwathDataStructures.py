@@ -162,22 +162,29 @@ class TestOpenSwathDataStructures(unittest.TestCase):
             self.assertAlmostEqual(i,e)
 
     def test_osbinarydataarray_get_data_view_empty(self):
-        """get_data_view() should return None for empty OSBinaryDataArray."""
+        """get_data_view() should return empty array for empty OSBinaryDataArray."""
+        import numpy as np
         bda = pyopenms.OSBinaryDataArray()
-        self.assertIsNone(bda.get_data_view())
+        arr = bda.get_data_view()
+        self.assertIsInstance(arr, np.ndarray)
+        self.assertEqual(len(arr), 0)
 
     def test_osspectrum_view_empty(self):
-        """All _view methods should return None for empty OSSpectrum."""
+        """All _view methods should return empty arrays for empty OSSpectrum."""
+        import numpy as np
         spec = pyopenms.OSSpectrum()
-        self.assertIsNone(spec.get_mz_array_view())
-        self.assertIsNone(spec.get_intensity_array_view())
-        self.assertIsNone(spec.get_drift_time_array_view())
+        for arr in [spec.get_mz_array_view(), spec.get_intensity_array_view(),
+                     spec.get_drift_time_array_view()]:
+            self.assertIsInstance(arr, np.ndarray)
+            self.assertEqual(len(arr), 0)
 
     def test_oschromatogram_view_empty(self):
-        """All _view methods should return None for empty OSChromatogram."""
+        """All _view methods should return empty arrays for empty OSChromatogram."""
+        import numpy as np
         chrom = pyopenms.OSChromatogram()
-        self.assertIsNone(chrom.get_time_array_view())
-        self.assertIsNone(chrom.get_intensity_array_view())
+        for arr in [chrom.get_time_array_view(), chrom.get_intensity_array_view()]:
+            self.assertIsInstance(arr, np.ndarray)
+            self.assertEqual(len(arr), 0)
 
 if __name__ == '__main__':
     unittest.main()

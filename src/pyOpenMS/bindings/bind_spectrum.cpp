@@ -342,9 +342,9 @@ Usage:
             auto& fda = self.getFloatDataArrays();
             for (auto& arr : fda) {
                 if (arr.getName() == "Ion Mobility" || arr.getMetaValue("name") == "Ion Mobility") {
-                    if (arr.empty()) return std::nullopt;
+                    float* data_ptr = arr.empty() ? nullptr : arr.data();
                     return nb::ndarray<nb::numpy, float, nb::ndim<1>>(
-                        arr.data(), {arr.size()}, self_obj
+                        data_ptr, {arr.size()}, self_obj
                     );
                 }
             }
