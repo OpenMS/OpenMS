@@ -47,6 +47,7 @@ TOPP tools:
     ProteomicsLFQ:
       - Removed unnecessary group reindexing, added stricter validation (#8752)
       - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
+      - Added -in_feat parameter to accept pre-computed featureXML files, bypassing internal feature finding (#8796)
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
@@ -110,6 +111,8 @@ PyOpenMS:
   - Param to_dict quality-of-life improvements: dict-like API for parameter access (#8631)
   - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720)
   - XICParquetFile: Python bindings with multi-file support and filtering for reading XIC data from Parquet files (#8737, #8738)
+  - Zero-copy get_peaks_struct() accessor for MSChromatogram and Mobilogram (#8825, #8842)
+  - Complete FileHandler wrapper: 14 new load/store methods for FeatureMap, ConsensusMap, identifications, and transformations (#8762)
 
 TOPP tools:
   Changes:
@@ -137,12 +140,6 @@ TOPP tools:
       - Documented input/output file type combinations (#8615)
     TextExporter:
       - Added support for XIC Parquet files (#8737, #8738)
-    ProteomicsLFQ:
-      - Added -in_feat parameter to accept pre-computed featureXML files, bypassing internal feature finding (#8796)
-
-PyOpenMS:
-  - Zero-copy get_peaks_struct() accessor for MSChromatogram and Mobilogram (#8825, #8842)
-  - Complete FileHandler wrapper: 14 new load/store methods for FeatureMap, ConsensusMap, identifications, and transformations (#8762)
 
 OpenMS Library:
   Added:
