@@ -9,8 +9,8 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideTSVDataProvider.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
+#include <filesystem>
+#include <fstream>
 
 using namespace std;
 
@@ -132,20 +132,19 @@ namespace OpenMS
 
     String header = "name\tshort_name\tnew_nomenclature\toriginating_base\trnamods_abbrev\thtml_abbrev\tformula\tmonoisotopic_mass\taverage_mass";
 
-    // the input file is Unicode encoded, so we need Qt to read it:
-    QFile file(full_path.toQString());
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    // Use std::filesystem::path to support non-ASCII paths on Windows (wide-string open)
+    std::ifstream file{std::filesystem::path{std::string(full_path)}};
+    if (!file.is_open())
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, full_path);
     }
 
-    QTextStream source(&file);
-    source.setAutoDetectUnicode(true);
     Size line_count = 1;
-    String line = source.readLine();
+    String line;
+    std::getline(file, line);
     while (!line.empty() && line[0] == '#') // skip leading comments
     {
-      line = source.readLine();
+      std::getline(file, line);
       ++line_count;
     }
     if (!line.hasPrefix(header)) // additional columns are allowed
@@ -154,20 +153,24 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, msg);
     }
 
-    QChar prime(0x2032); // Unicode "prime" character
+    const std::string prime = "\xE2\x80\xB2"; // UTF-8 encoding of Unicode "prime" character U+2032
 
     std::vector<RibonucleotideEntry> result;
 
-    while (!source.atEnd())
+    while (std::getline(file, line))
     {
       line_count++;
-      QString row = source.readLine();
 
       // replace all "prime" characters with apostrophes (e.g. in "5'", "3'"):
-      row.replace(prime, '\'');
+      std::string::size_type pos = 0;
+      while ((pos = line.find(prime, pos)) != std::string::npos)
+      {
+        line.replace(pos, prime.size(), "'");
+        ++pos;
+      }
       try
       {
-        RibonucleotideEntry entry = parseRow_(row.toStdString(), line_count);
+        RibonucleotideEntry entry = parseRow_(line, line_count);
         result.push_back(std::move(entry));
       }
       catch (Exception::BaseException& e)

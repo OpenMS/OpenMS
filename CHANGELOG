@@ -28,6 +28,8 @@ General:
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
   - Eigen minimum version updated from 3.3.4 to 3.4.0 (#8366)
+  - Qt6::Network replaced with libcurl for all HTTP operations in the core library (#8841)
+  - minizip-ng replaced with libzip for ZIP64 archive support (#8808)
 
 TOPP tools:
   Changes:
@@ -45,6 +47,7 @@ TOPP tools:
     ProteomicsLFQ:
       - Removed unnecessary group reindexing, added stricter validation (#8752)
       - Arrow/DataFrame/Parquet export for ConsensusMap (#8729)
+      - Added -in_feat parameter to accept pre-computed featureXML files, bypassing internal feature finding (#8796)
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
@@ -108,6 +111,8 @@ PyOpenMS:
   - Param to_dict quality-of-life improvements: dict-like API for parameter access (#8631)
   - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720)
   - XICParquetFile: Python bindings with multi-file support and filtering for reading XIC data from Parquet files (#8737, #8738)
+  - Zero-copy get_peaks_struct() accessor for MSChromatogram and Mobilogram (#8825, #8842)
+  - Complete FileHandler wrapper: 14 new load/store methods for FeatureMap, ConsensusMap, identifications, and transformations (#8762)
 
 TOPP tools:
   Changes:
@@ -175,6 +180,10 @@ OpenMS Library:
       - PeptideIdentification.buildUSI() for generating USIs from identification results
       - TextExporter USI output with optional dataset_id/ms_run parameters
       - pyOpenMS bindings included
+    - OpenSwathWorkflow:
+      - Added Parquet-based archive (.oswpq) to store spectral library information and multi-run feature scores. (#8813)
+    - FeatureFindingMetabo: Added ion mobility support with local_im_range parameter for coeluting mass trace filtering (#8758)
+    - IDMapper: Preserve upstream identification data processing metadata when annotating featureXML/consensusXML (#8852)
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
@@ -197,6 +206,11 @@ OpenMS Library:
     - Date class refactored from QDate inheritance to composition (#8710)
     - Thread-safe logging with OPENMS_LOG_* macro optimizations (#8620)
     - MetaInfo: Iterator support and merge optimizations (#8621)
+    - BREAKING: QuantmsIO renamed to QPXFile; PSM Parquet export rewritten using QPX pattern (#8756)
+    - Vectorized dotprodScoring and manhattanScoring in StatsHelpers using Eigen (#8848)
+    - Data provider pattern extracted for ModificationsDB, RibonucleotideDB, ProteaseDB, and RNaseDB (#8775, #8779)
+    - Use unordered_map in PrecursorPurity, PeptideProteinResolution, and PeptideIndexing for faster lookups (#8806, #8763)
+    - OpenSwath scoring speedups: cap XCorr maxdelay, vectorize DIAScoring, hoist loop-invariant computations, pass SwathMap by const& (#8787, #8785)
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
@@ -214,6 +228,11 @@ Fixes:
   - Fix PeptideIndexer AhoCorasick segfault for short peptides (#8685)
   - Fix redundant PRAGMA foreign_keys execution in OMSFileStore
   - Fix potential memory leak in SwathFile::loadMzXML on exception by using std::unique_ptr
+  - Fix: disable auto_irt and ignore tr_irt_priority_sampling when linear_irt_file is provided in OpenSwathWorkflow (#8830)
+  - Fix MSstatsConverter to allow subset of experimental design files (#8846, fixes #7314)
+  - Fix massdev_score denominator to count only observed transitions instead of total (#8831)
+  - Fix OpenSwathWorkflow run_id mismatch between Parquet/mzML XIC files and OSW/sqMass output (#8833)
+  - Fix OpenSwathWorkflow batch counting and loop bounds for empty compound sets (#8790)
 
 Documentation:
   - Comprehensive documentation for Targeted Quantitation algorithms (#8588)

@@ -246,6 +246,9 @@ protected:
     /// whether average peptide masses should be used for matching
     bool checkMassType_(const std::vector<DataProcessing>& processing) const;
 
+    /// create DataProcessing entries from ProteinIdentification objects and append to the given vector
+    static void addIdentificationDataProcessing_(std::vector<DataProcessing>& data_processing, const std::vector<ProteinIdentification>& protein_ids);
+
   };
 
 } // namespace OpenMS

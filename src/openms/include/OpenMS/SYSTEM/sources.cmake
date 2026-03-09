@@ -3,7 +3,6 @@ set(directory include/OpenMS/SYSTEM)
 
 ### list all MOC filenames of the directory here
 set(sources_list
-NetworkGetRequest.h
 )
 
 ### add path to the filenames
@@ -19,9 +18,11 @@ source_group("Source Files\\OpenMS\\SYSTEM" FILES ${sources})
 ### list all header files of the directory here
 set(sources_list_h
 BuildInfo.h
+CurlInit.h
 ExternalProcess.h
 File.h
 JavaInfo.h
+Network.h
 NetworkGetRequest.h
 PythonInfo.h
 RWrapper.h

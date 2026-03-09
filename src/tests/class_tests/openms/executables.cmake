@@ -127,6 +127,7 @@ set(metadata_executables_list
 set(system_executables_list
   ExternalProcess_test
   File_test
+  Network_test
   JavaInfo_test
   PythonInfo_test
   StopWatch_test
@@ -272,6 +273,8 @@ set(format_executables_list
   XTandemXMLFile_test
   ZlibCompression_test
   Libzip_test
+  ZipArchiveFile_test
+  ZipRandomAccessFile_test
   # DATAACCESS
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
@@ -291,6 +294,7 @@ if(WITH_PARQUET)
   list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
     MSChromatogramParquetConsumer_test
     XICParquetFile_test
+    OpenSwathOSWParquetRoundTrip_test
     ProteinIdentificationArrowIO_test
     FeatureMapArrowIO_test
     ConsensusMapArrowIO_test)
@@ -668,6 +672,12 @@ if(NOT DISABLE_OPENSWATH)
     CachedMzMLHandler_test
   )
 endif(NOT DISABLE_OPENSWATH)
+
+if(NOT DISABLE_OPENSWATH AND WITH_PARQUET)
+  list(APPEND swath_executables_list TransitionParquetFile_test)
+  list(APPEND swath_executables_list OpenSwathOSWParquetReader_test)
+  list(APPEND swath_executables_list OpenSwathOSWParquetWriter_test)
+endif()
 
 set(Boost_dependent_tests
   DIAHelper_test

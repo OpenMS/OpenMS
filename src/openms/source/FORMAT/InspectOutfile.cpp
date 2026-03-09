@@ -15,9 +15,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QRegularExpression>
-
 #include <fstream>
+#include <regex>
 
 #ifdef __clang__
   #pragma clang diagnostic push
@@ -1201,14 +1200,14 @@ namespace OpenMS
     protein_identification.setSearchEngine("InsPecT");
     protein_identification.setSearchEngineVersion("unknown");
     // searching for something like this: InsPecT version 20060907, InsPecT version 20100331
-    QString response(cmd_output.toQString());
-    QRegularExpression rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
-    auto match = rx.match(response);
-    if (!match.hasMatch())
+    std::smatch match;
+    std::string response(cmd_output);
+    static const std::regex rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
+    if (!std::regex_search(response, match, rx))
     {
       return false;
     }
-    protein_identification.setSearchEngineVersion(match.captured(2));
+    protein_identification.setSearchEngineVersion(match[2].str());
     return true;
   }
 
