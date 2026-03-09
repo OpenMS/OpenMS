@@ -108,6 +108,9 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>> as_numpy_array(nb::object obj) {
 }
 
 NB_MODULE(_pyopenms_kernel, m) {
+    static_assert(sizeof(OpenMS::MobilityPeak1D) == 16,
+                  "Unexpected MobilityPeak1D size (expected 16 bytes)");
+
     m.doc() = "pyOpenMS kernel bindings";
 
 
