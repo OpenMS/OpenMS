@@ -1660,7 +1660,8 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
         "Returns a raw byte view of the underlying MobilityPeak1D array (AoS layout).")
 
         .def("get_peaks_struct",
-            [](OpenMS::Mobilogram& self) -> nb::object {
+            [](nb::object self_obj) -> nb::object {
+                auto& self = nb::cast<OpenMS::Mobilogram&>(self_obj);
                 size_t n = self.size();
                 auto np = nb::module_::import_("numpy");
                 nb::dict dtype_dict;
@@ -1678,7 +1679,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
                 uint8_t* data_ptr = reinterpret_cast<uint8_t*>(&self[0]);
                 size_t byte_shape[1] = { n * sizeof(OpenMS::MobilityPeak1D) };
                 auto raw = nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
-                    data_ptr, 1, byte_shape, nb::find(self)
+                    data_ptr, 1, byte_shape, self_obj
                 );
                 return np.attr("frombuffer")(raw, py_dtype);
             },

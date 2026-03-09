@@ -167,7 +167,8 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
         "Returns a raw byte view of the underlying ChromatogramPeak array (AoS layout).")
 
         .def("get_peaks_struct",
-            [](OpenMS::MSChromatogram& self) -> nb::object {
+            [](nb::object self_obj) -> nb::object {
+                auto& self = nb::cast<OpenMS::MSChromatogram&>(self_obj);
                 size_t n = self.size();
                 auto np = nb::module_::import_("numpy");
 
@@ -191,7 +192,7 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
                     data_ptr,
                     1,
                     byte_shape,
-                    nb::find(self)
+                    self_obj
                 );
 
                 return np.attr("frombuffer")(raw, py_dtype);
