@@ -26,6 +26,9 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
@@ -36,6 +39,7 @@
 #include <fstream>
 #include <algorithm>
 #include <random>
+#include <optional>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -46,6 +50,19 @@ using namespace OpenMS::Internal;
 
 namespace OpenMS
 {
+  // Helper to get IM unit from first spectrum with IM data
+  static DriftTimeUnit getIMUnitFromExperiment(const PeakMap& exp)
+  {
+    for (const auto& spec : exp)
+    {
+      if (spec.containsIMData())
+      {
+        auto [idx, unit] = spec.getIMData();
+        return unit;
+      }
+    }
+    return DriftTimeUnit::NONE;
+  }
 
   FeatureFinderIdentificationAlgorithm::FeatureFinderIdentificationAlgorithm() :
     DefaultParamHandler("FeatureFinderIdentificationAlgorithm")
@@ -72,7 +89,7 @@ namespace OpenMS
       "This parameter is automatically ignored if the input data does not contain IM information "
       "(determined via IMTypes::determineIMFormat). "
       "Currently only concatenated IM format is supported. "
-      "Typical values: 0.05-0.10 for TIMS data (1/K0 units), 3-5 for FAIMS data (compensation voltage). "
+      "Typical values: 0.05-0.10 for TIMS data (1/K0 units), 10-50 for CCS data (square angstroms), 3-5 for FAIMS data (compensation voltage)."
       "Note: IM values are calculated per peptide/charge/RT-region, using the median of all identifications "
       "in that region for robustness. The median, min, and max IM values are propagated to output features "
       "as meta-values (IM_median, IM_min, IM_max) for quality control.");
@@ -680,6 +697,18 @@ namespace OpenMS
     if (im_format == IMFormat::CONCATENATED)
     {
       has_IM = true;
+      // Check IM unit and warn if CCS data with small window
+      if (IM_window > 0.0)
+      {
+        DriftTimeUnit im_unit = getIMUnitFromExperiment(ms_data_);
+        if (im_unit == DriftTimeUnit::CCS && IM_window < 1.0)
+        {
+          OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but "
+                          << "IM_window = " << IM_window
+                          << " appears to be set for 1/K0 data. "
+                          << "For CCS data, consider using larger values (e.g., 10-50)." << '\n';
+        }
+      }
     }
     else if (im_format != IMFormat::NONE) // has IM but wrong format
     {
@@ -823,16 +852,13 @@ namespace OpenMS
 
       OPENMS_LOG_DEBUG << "Detecting chromatographic peaks..." << endl;
       // suppress status output from OpenSWATH, unless in debug mode:
+      std::optional<Logger::LogSinkGuard> log_guard; // RAII: re-inserts cout on scope exit (exception-safe)
       if (debug_level_ < 1)
       {
-        OpenMS_Log_info.remove(cout);
+        log_guard.emplace(getGlobalLogInfo(), cout);
       }
       feat_finder_.pickExperiment(chrom_data_, features, library_,
                                   TransformationDescription(), ms_data_);
-      if (debug_level_ < 1)
-      {
-        OpenMS_Log_info.insert(cout); // revert logging change
-      }
       chrom_data_.clear(true);
       // Accumulate library entries for output before clearing
       for (const auto& pep : library_.getPeptides())

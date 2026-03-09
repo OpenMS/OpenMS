@@ -9,6 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 

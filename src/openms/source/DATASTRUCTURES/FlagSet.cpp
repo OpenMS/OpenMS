@@ -6,9 +6,4 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-
-// class template  .. nothing to see or include here...
-#if 0
-#include <OpenMS/DATASTRUCTURES/FlagSet.h>
-#endif
-
+// FlagSet is header-only; this file is intentionally empty.

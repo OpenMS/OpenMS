@@ -28,6 +28,9 @@
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -375,7 +378,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.db = database_name;
     search_parameters.charges = String(precursor_min_charge) + ":" + String(precursor_max_charge);
 
-    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_parameters.mass_type = mass_type;
     search_parameters.fixed_modifications = modifications_fixed;
     search_parameters.variable_modifications = modifications_variable;
@@ -703,14 +706,14 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
 
-    if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-        (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+    if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
+        (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
     {
-      if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+      if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
       {
-        return ExitCodes::INPUT_FILE_EMPTY;       
+        return ExitCodes::INPUT_FILE_EMPTY;
       }
-      else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+      else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
       {
         return ExitCodes::UNEXPECTED_RESULT;
       }

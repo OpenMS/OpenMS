@@ -10,6 +10,7 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -441,6 +442,30 @@ namespace OpenMS
   void ConsensusMap::setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications)
   {
     protein_identifications_ = std::move(protein_identifications);
+  }
+
+  const ProteinIdentification* ConsensusMap::findProteinIdentification(const String& identifier) const
+  {
+    for (const auto& prot_id : protein_identifications_)
+    {
+      if (prot_id.getIdentifier() == identifier)
+      {
+        return &prot_id;
+      }
+    }
+    return nullptr;
+  }
+
+  ProteinIdentification* ConsensusMap::findProteinIdentification(const String& identifier)
+  {
+    for (auto& prot_id : protein_identifications_)
+    {
+      if (prot_id.getIdentifier() == identifier)
+      {
+        return &prot_id;
+      }
+    }
+    return nullptr;
   }
 
   /// non-mutable access to the unassigned peptide identifications

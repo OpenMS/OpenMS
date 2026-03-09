@@ -10,6 +10,8 @@
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 using namespace OpenMS;
 using namespace std;

@@ -259,7 +259,7 @@ protected:
 
     AScore ascore;
     Param ascore_params = ascore.getDefaults();
-    ascore_params.update(getParam_(), false, false, false, false, OpenMS_Log_debug);
+    ascore_params.update(getParam_(), false, false, false, false, getGlobalLogDebug());
     ascore.setParameters(ascore_params);
 
     //-------------------------------------------------------------

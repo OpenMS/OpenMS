@@ -17,6 +17,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
 namespace OpenMS

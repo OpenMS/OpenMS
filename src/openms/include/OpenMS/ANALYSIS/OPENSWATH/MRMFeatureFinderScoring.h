@@ -290,7 +290,6 @@ private:
 
     double im_extra_drift_;
 
-    // members (unordered_map for O(1) lookup performance)
     std::unordered_map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;

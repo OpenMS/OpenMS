@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
 #include <boost/regex.hpp>
 
@@ -36,7 +37,21 @@ namespace OpenMS
     Reference formats are registered via addReferenceFormat().
     Several possible formats can be added and will be tried in order by the function findByReference().
 
-    @see SpectrumMetaDataLookup
+    @par Native ID Parsing
+    For standalone parsing of spectrum native IDs (without spectrum lookup), use SpectrumNativeIDParser directly:
+    @code
+    // Extract scan number from native ID using CV accession
+    Int scan = SpectrumNativeIDParser::extractScanNumber("scan=42", "MS:1000768");
+
+    // Check if a string is a native ID
+    if (SpectrumNativeIDParser::isNativeID(spectrum_id))
+    {
+      String regex = SpectrumNativeIDParser::getRegExFromNativeID(spectrum_id);
+      // use regex for further processing...
+    }
+    @endcode
+
+    @see SpectrumMetaDataLookup, SpectrumNativeIDParser
   */
   class OPENMS_DLLAPI SpectrumLookup
   {
@@ -181,22 +196,49 @@ namespace OpenMS
        @throw Exception::ParseError if the scan number could not be extracted (unless @p no_error is set)
 
        @return Scan number of the spectrum (or -1 on failure to extract)
+
+       @deprecated Use SpectrumNativeIDParser::extractScanNumber() instead for better discoverability.
+       @see SpectrumNativeIDParser::extractScanNumber()
     */
     static Int extractScanNumber(const String& native_id,
                                  const boost::regex& scan_regexp,
                                  bool no_error = false);
 
+    /**
+       @brief Extract the scan number from the native ID using a CV accession
+
+       @param[in] native_id Spectrum native ID
+       @param[in] native_id_type_accession CV accession specifying the native ID format
+
+       @return Scan number of the spectrum (or -1 on failure to extract)
+
+       @deprecated Use SpectrumNativeIDParser::extractScanNumber() instead for better discoverability.
+       @see SpectrumNativeIDParser::extractScanNumber()
+    */
     static Int extractScanNumber(const String& native_id,
                                  const String& native_id_type_accession);
+
    /**
        @brief Determine the RegEx string to extract scan/index number from native IDs. Can be used for extractScanNumber
 
-       @param[in] native_id RegEx string
+       @param[in] native_id Native ID string to analyze
+
+       @return Regular expression string with named group
+
+       @deprecated Use SpectrumNativeIDParser::getRegExFromNativeID() instead for better discoverability.
+       @see SpectrumNativeIDParser::getRegExFromNativeID()
    */
     static std::string getRegExFromNativeID(const String& native_id);
 
     /**
        @brief Simple prefix check if a spectrum identifier @p id is a nativeID from a vendor file.
+
+       @param[in] id Spectrum identifier to check
+
+       @return True if the string matches a known native ID prefix pattern
+
+       @deprecated Use SpectrumNativeIDParser::isNativeID() instead for better discoverability.
+       @see SpectrumNativeIDParser::isNativeID()
     */
     static bool isNativeID(const String& id);
 

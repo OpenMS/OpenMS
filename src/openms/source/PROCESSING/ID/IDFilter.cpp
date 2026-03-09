@@ -14,6 +14,66 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace // anonymous namespace for internal helpers
+  {
+    /// Collect protein accessions referenced by peptide hits, grouped by run identifier
+    std::map<String, std::unordered_set<String>> collectReferencedAccessions(const PeptideIdentificationList& peptides)
+    {
+      std::map<String, std::unordered_set<String>> run_to_accessions;
+      for (const PeptideIdentification& pep : peptides)
+      {
+        const String& run_id = pep.getIdentifier();
+        for (const PeptideHit& hit : pep.getHits())
+        {
+          const set<String>& current_accessions = hit.extractProteinAccessionsSet();
+          run_to_accessions[run_id].insert(current_accessions.begin(), current_accessions.end());
+        }
+      }
+      return run_to_accessions;
+    }
+
+    /// Collect valid protein accessions from protein identifications, grouped by run identifier
+    std::map<String, std::unordered_set<String>> collectProteinAccessions(const std::vector<ProteinIdentification>& proteins)
+    {
+      std::map<String, std::unordered_set<String>> run_to_accessions;
+      for (const ProteinIdentification& prot : proteins)
+      {
+        const String& run_id = prot.getIdentifier();
+        for (const ProteinHit& hit : prot.getHits())
+        {
+          run_to_accessions[run_id].insert(hit.getAccession());
+        }
+      }
+      return run_to_accessions;
+    }
+
+    /// Filter peptide evidences to keep only those referencing proteins in the given accession set
+    void filterEvidencesByAccessions(PeptideHit& hit, const std::unordered_set<String>& accessions)
+    {
+      IDFilter::HasMatchingAccessionUnordered<PeptideEvidence> acc_filter(accessions);
+      vector<PeptideEvidence> evidences;
+      remove_copy_if(hit.getPeptideEvidences().begin(), hit.getPeptideEvidences().end(),
+                     back_inserter(evidences), std::not_fn(acc_filter));
+      hit.setPeptideEvidences(evidences);
+    }
+
+    /// Process a PeptideIdentification to filter evidences and optionally remove hits without references
+    void filterPeptideReferences(PeptideIdentification& pep,
+                                 const std::unordered_set<String>& accessions,
+                                 bool remove_peptides_without_reference)
+    {
+      for (PeptideHit& hit : pep.getHits())
+      {
+        filterEvidencesByAccessions(hit, accessions);
+      }
+      if (remove_peptides_without_reference)
+      {
+        auto has_no_evidence = [](const PeptideHit& hit) { return hit.getPeptideEvidences().empty(); };
+        IDFilter::removeMatchingItems(pep.getHits(), has_no_evidence);
+      }
+    }
+  } // anonymous namespace
+
 
   struct IDFilter::HasMinPeptideLength {
     typedef PeptideHit argument_type; // for use as a predicate
@@ -220,7 +280,7 @@ namespace OpenMS
       const String& run_id = prot.getIdentifier();
       auto target = result.emplace(run_id, vector<ProteinHit> {});
       const unordered_set<String>& accessions = run_to_accessions[run_id];
-      struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
+      HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
       moveMatchingItems(prot.getHits(), std::not_fn(acc_filter), target.first->second);
     }
     return result;
@@ -248,159 +308,60 @@ namespace OpenMS
     {
       const String& run_id = prot.getIdentifier();
       const unordered_set<String>& accessions = run_to_accessions[run_id];
-      struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
+      HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
       keepMatchingItems(prot.getHits(), acc_filter);
     }
   }
 
   void IDFilter::removeUnreferencedProteins(ProteinIdentification& proteins, const PeptideIdentificationList& peptides)
   {
-    // collect accessions that are referenced by peptides for each ID run:
-    map<String, unordered_set<String>> run_to_accessions;
-    for (const PeptideIdentification& pep : peptides)
-    {
-      const String& run_id = pep.getIdentifier();
-      // extract protein accessions of each peptide hit:
-      for (const PeptideHit& hit : pep.getHits())
-      {
-        const set<String>& current_accessions = hit.extractProteinAccessionsSet();
-        run_to_accessions[run_id].insert(current_accessions.begin(), current_accessions.end());
-      }
-    }
-
-    const String& run_id = proteins.getIdentifier();
-    const unordered_set<String>& accessions = run_to_accessions[run_id];
-    struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
+    auto run_to_accessions = collectReferencedAccessions(peptides);
+    const unordered_set<String>& accessions = run_to_accessions[proteins.getIdentifier()];
+    HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
     keepMatchingItems(proteins.getHits(), acc_filter);
   }
 
   void IDFilter::removeUnreferencedProteins(vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides)
   {
-    // collect accessions that are referenced by peptides for each ID run:
-    map<String, unordered_set<String>> run_to_accessions;
-    for (const PeptideIdentification& pep : peptides)
-    {
-      const String& run_id = pep.getIdentifier();
-      // extract protein accessions of each peptide hit:
-      for (const PeptideHit& hit : pep.getHits())
-      {
-        const set<String>& current_accessions = hit.extractProteinAccessionsSet();
-        run_to_accessions[run_id].insert(current_accessions.begin(), current_accessions.end());
-      }
-    }
-
+    auto run_to_accessions = collectReferencedAccessions(peptides);
     for (ProteinIdentification& prot : proteins)
     {
-      const String& run_id = prot.getIdentifier();
-      const unordered_set<String>& accessions = run_to_accessions[run_id];
-      struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
+      const unordered_set<String>& accessions = run_to_accessions[prot.getIdentifier()];
+      HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
       keepMatchingItems(prot.getHits(), acc_filter);
     }
   }
 
-  // TODO write version where you look up in a specific run (e.g. first inference run)
   void IDFilter::removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference)
   {
-    vector<ProteinIdentification>& proteins = cmap.getProteinIdentifications();
-    // collect valid protein accessions for each ID run:
-    map<String, unordered_set<String>> run_to_accessions;
-    for (const ProteinIdentification& prot : proteins)
-    {
-      const String& run_id = prot.getIdentifier();
-      for (const ProteinHit& hit : prot.getHits())
-      {
-        run_to_accessions[run_id].insert(hit.getAccession());
-      }
-    }
+    auto run_to_accessions = collectProteinAccessions(cmap.getProteinIdentifications());
 
-    auto check_prots_avail = [&run_to_accessions, &remove_peptides_without_reference](PeptideIdentification& pep) -> void {
-      const String& run_id = pep.getIdentifier();
-      const unordered_set<String>& accessions = run_to_accessions[run_id];
-      struct HasMatchingAccessionUnordered<PeptideEvidence> acc_filter(accessions);
-      // check protein accessions of each peptide hit
-      for (PeptideHit& hit : pep.getHits())
-      {
-        // no non-const "PeptideHit::getPeptideEvidences" implemented, so we
-        // can't use "keepMatchingItems":
-        vector<PeptideEvidence> evidences;
-        remove_copy_if(hit.getPeptideEvidences().begin(), hit.getPeptideEvidences().end(), back_inserter(evidences), std::not_fn(acc_filter));
-        hit.setPeptideEvidences(evidences);
-      }
-
-      if (remove_peptides_without_reference)
-      {
-        removeMatchingItems(pep.getHits(), HasNoEvidence());
-      }
+    auto filter_func = [&run_to_accessions, remove_peptides_without_reference](PeptideIdentification& pep) {
+      filterPeptideReferences(pep, run_to_accessions[pep.getIdentifier()], remove_peptides_without_reference);
     };
-
-    cmap.applyFunctionOnPeptideIDs(check_prots_avail);
+    cmap.applyFunctionOnPeptideIDs(filter_func);
   }
 
   void IDFilter::removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference)
   {
-    // collect valid protein accessions for each ID run:
-    unordered_set<String> accessions_avail;
-
+    unordered_set<String> accessions;
     for (const ProteinHit& hit : ref_run.getHits())
     {
-      accessions_avail.insert(hit.getAccession());
+      accessions.insert(hit.getAccession());
     }
 
-    // TODO could be refactored and pulled out
-    auto check_prots_avail = [&accessions_avail, &remove_peptides_without_reference](PeptideIdentification& pep) -> void {
-      const unordered_set<String>& accessions = accessions_avail;
-      struct HasMatchingAccessionUnordered<PeptideEvidence> acc_filter(accessions);
-      // check protein accessions of each peptide hit
-      for (PeptideHit& hit : pep.getHits())
-      {
-        // no non-const "PeptideHit::getPeptideEvidences" implemented, so we
-        // can't use "keepMatchingItems":
-        vector<PeptideEvidence> evidences;
-        remove_copy_if(hit.getPeptideEvidences().begin(), hit.getPeptideEvidences().end(), back_inserter(evidences), std::not_fn(acc_filter));
-        hit.setPeptideEvidences(evidences);
-      }
-
-      if (remove_peptides_without_reference)
-      {
-        removeMatchingItems(pep.getHits(), HasNoEvidence());
-      }
+    auto filter_func = [&accessions, remove_peptides_without_reference](PeptideIdentification& pep) {
+      filterPeptideReferences(pep, accessions, remove_peptides_without_reference);
     };
-
-    cmap.applyFunctionOnPeptideIDs(check_prots_avail);
+    cmap.applyFunctionOnPeptideIDs(filter_func);
   }
 
   void IDFilter::removeDanglingProteinReferences(PeptideIdentificationList& peptides, const vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference)
   {
-    // collect valid protein accessions for each ID run:
-    map<String, unordered_set<String>> run_to_accessions;
-    for (const ProteinIdentification& prot : proteins)
-    {
-      const String& run_id = prot.getIdentifier();
-      for (const ProteinHit& hit : prot.getHits())
-      {
-        run_to_accessions[run_id].insert(hit.getAccession());
-      }
-    }
-
+    auto run_to_accessions = collectProteinAccessions(proteins);
     for (PeptideIdentification& pep : peptides)
     {
-      const String& run_id = pep.getIdentifier();
-      const unordered_set<String>& accessions = run_to_accessions[run_id];
-      struct HasMatchingAccessionUnordered<PeptideEvidence> acc_filter(accessions);
-      // check protein accessions of each peptide hit
-      for (PeptideHit& hit : pep.getHits())
-      {
-        // no non-const "PeptideHit::getPeptideEvidences" implemented, so we
-        // can't use "keepMatchingItems":
-        vector<PeptideEvidence> evidences;
-        remove_copy_if(hit.getPeptideEvidences().begin(), hit.getPeptideEvidences().end(), back_inserter(evidences), std::not_fn(acc_filter));
-        hit.setPeptideEvidences(evidences);
-      }
-
-      if (remove_peptides_without_reference)
-      {
-        removeMatchingItems(pep.getHits(), HasNoEvidence());
-      }
+      filterPeptideReferences(pep, run_to_accessions[pep.getIdentifier()], remove_peptides_without_reference);
     }
   }
 

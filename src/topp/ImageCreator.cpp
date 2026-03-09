@@ -10,6 +10,8 @@
 
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>

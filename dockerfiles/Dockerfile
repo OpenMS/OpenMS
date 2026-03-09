@@ -35,6 +35,7 @@ RUN apt-get update \
     zlib1g \
     libxerces-c-dev \
     libbz2-dev \
+    libcurl4-openssl-dev \
     libomp-dev \
     libhdf5-dev\
     coinor-libcoinmp-dev \
@@ -166,6 +167,7 @@ RUN apt-get update \
     libzip4 \
     zlib1g \
     libbz2-1.0 \
+    libcurl4 \
     libgomp1 \
     libqt6svg6 \
     libxerces-c3.2 \

@@ -221,7 +221,7 @@ jobs:
       with:
         auto-update-conda: true
         activate-environment: "ci"
-        python-version: 3.9
+        python-version: 3.11
         use-mamba: true
 
     - name: Install Dependencies via Conda
@@ -236,7 +236,7 @@ jobs:
         conda info
 
         # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
-        conda install -c conda-forge libarrow libparquet -y
+        conda install -c conda-forge libarrow libparquet libzip -y
 
         # Set variables required for the following steps so they
         # don't need a conda environment or login shell:
@@ -252,6 +252,12 @@ jobs:
 
         # Some output for debugging:
         echo "CONDA_ENV_PREFIX=$CONDA_ENV_PREFIX"
+
+        # Disable conda auto-activation to prevent race conditions during parallel
+        # CMake builds. See https://github.com/conda/conda/issues/8733
+        # The paths are already added to GITHUB_PATH above, so conda activation
+        # is no longer needed for subsequent steps.
+        conda init --reverse bash
 
     - name: Install Qt (Windows)
       if: startsWith(matrix.os, 'windows')
@@ -314,7 +320,7 @@ jobs:
           # WARNING: Don't add any brew install commands here, edit
           # the following script instead:
           bash OpenMS/tools/ci/deps-macos.sh
-
+          brew install ccache
           echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"
           echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"
         fi
@@ -340,6 +346,25 @@ jobs:
           7z x -so contrib_build-Windows.tar.gz | 7z x -si -ttar
           rm contrib_build-Windows.tar.gz
           ls -la
+
+    - name: Build libcurl from source (Windows)
+      if: startsWith(matrix.os, 'windows')
+      shell: bash
+      run: |
+          curl -L -o curl-src.tar.gz https://curl.se/download/curl-8.12.1.tar.gz
+          tar xzf curl-src.tar.gz
+          cd curl-8.12.1
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/OpenMS/contrib" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCURL_USE_SCHANNEL=ON \
+            -DBUILD_CURL_EXE=OFF \
+            -DBUILD_TESTING=OFF \
+            -DCURL_DISABLE_LDAP=ON \
+            -DCURL_USE_LIBPSL=OFF
+          cmake --build build
+          cmake --install build
 
     - name: Setup ccache cache
       uses: actions/cache@v4
@@ -393,28 +418,12 @@ jobs:
           # do not fail immediately
           set +e
 
-          # On Linux we always build pyOpenMS
-          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-            export PYOPENMS=ON
-          fi
-
-          # Generate the CWL descriptors if we are going to build a package
-          if [[ "${{steps.set-vars.outputs.pkg_type}}" != "none" ]] ||
-             [[ "${PYOPENMS:-}" == "ON" ]]
-          then
-            python -m venv openms-cwl
-            source openms-cwl/bin/activate
-            pip install -q cwltool
-            export ENABLE_CWL=ON
-          fi
-
-          if [[ "${PYOPENMS:-}" == "ON" ]]; then
-            python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
-          fi
+          # Create ccache directory if it doesn't exist
+          mkdir -p ${{ github.workspace }}/.ccache
 
           # Display ccache statistics before build
           echo "::group::ccache statistics before build"
-          ccache -s || true
+          CCACHE_DIR=${{ github.workspace }}/.ccache ccache -s || true
           echo "::endgroup::"
 
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
@@ -424,7 +433,7 @@ jobs:
           
           # Display ccache statistics after build
           echo "::group::ccache statistics after build"
-          ccache -s || true
+          CCACHE_DIR=${{ github.workspace }}/.ccache ccache -s || true
           echo "::endgroup::"
           
           if [ $retVal -ne 0 ]; then
@@ -440,6 +449,8 @@ jobs:
           #  Problem: not all compilers are always in the PATH.
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
           MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '14.0' || '' }}
+          PYOPENMS: "${{ startsWith(matrix.os, 'ubuntu') && matrix.compiler == 'g++' && 'ON' || 'OFF' }}"
+          NO_DEPENDENCIES: "${{ startsWith(matrix.os, 'ubuntu') && matrix.compiler == 'g++' && 'OFF' || 'ON' }}"
           CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }};${{ steps.conda-setup.outputs.cmake_prefix }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
@@ -451,18 +462,18 @@ jobs:
           ENABLE_CLASS_TESTING: "ON"
           ENABLE_DOCS: ${{ steps.set-vars.outputs.enable_docs }}
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
+          ENABLE_CWL: "${{ steps.set-vars.outputs.pkg_type != 'none' && 'ON' || 'OFF' }}"
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           WITH_PARQUET: "ON"
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
-          OPENMP: "ON"
+          MT_ENABLE_OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
-          COMPILE_PXDS: ${{ (startsWith(matrix.os, 'ubuntu') && github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop' && runner.arch == 'arm64') && 'ON' || 'OFF' }}
-          #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA).
-          CMAKE_CCACHE_EXE: "ccache"
+          CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
+          CMAKE_C_COMPILER_LAUNCHER: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
@@ -476,17 +487,11 @@ jobs:
           USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}
           USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
-          # It's literally only Ubuntu's package manager that forcibly bundles nlohmann_json w/ arrow. The rest we can control via a cmake option in contrib +
-          # Note that apache arrow's brew/apt packages are DIFFERENT. I believe Ubuntu's packages have Nlohmann_JSON bundled with them, while 
-          # brew doesn't. As such, this results in compatibility issues between OpenMS' Nlohmann_JSON and Ubuntu's system packages. 
+          # Note: USE_EXTERNAL_SQLITECPP and USE_EXTERNAL_SIMDE are set but not passed to CMake
+          # (not in capture-env.sh) because Ubuntu's packages don't provide CMake config files. 
     - name: Test
       shell: bash
       run: |
-          # On Linux we always build pyOpenMS
-          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-            export PYOPENMS=ON
-          fi
-
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"

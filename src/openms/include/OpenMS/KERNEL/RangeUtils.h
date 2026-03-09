@@ -13,6 +13,7 @@
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/METADATA/IonSource.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -192,7 +193,7 @@ public:
     inline bool operator()(const SpectrumType& s) const
     {
       // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
-      return reverse_ ^ (s.getInstrumentSettings().getScanMode() == mode_);
+      return reverse_ ^ (static_cast<Int>(s.getInstrumentSettings().getScanMode()) == mode_);
     }
 
 protected:
@@ -218,7 +219,7 @@ public:
       @param[in] reverse if @p reverse is true, operator() returns true if the spectrum has a different
       scan polarity
     */
-    HasScanPolarity(Int polarity, bool reverse = false) :
+    HasScanPolarity(IonSource::Polarity polarity, bool reverse = false) :
       polarity_(polarity),
       reverse_(reverse)
     {}
@@ -230,7 +231,7 @@ public:
     }
 
 protected:
-    Int polarity_;
+    IonSource::Polarity polarity_;
     bool reverse_;
   };
 

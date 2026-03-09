@@ -66,35 +66,60 @@ public:
      * similarity between library intensity and experimental ones.
      *
      * The delta_ratio_sum is calculated as follows:
-     
+
        @f[
        d = \sqrt{\frac{1}{N}  \sum_{i=0}^N |\frac{x_i}{\mu_x} - \frac{y_i}{\mu_y}|) }
        @f]
     */
+    [[deprecated("Use the std::vector& overload instead")]]
     OPENSWATHALGO_DLLAPI double NormalizedManhattanDist(double x[], double y[], int n);
+
+    /** @brief Calculate the normalized Manhattan distance between two vectors
+     *
+     * @param[in,out] x First intensity vector; normalized in-place via normalize_sum
+     * @param[in,out] y Second intensity vector; normalized in-place via normalize_sum
+     */
+    OPENSWATHALGO_DLLAPI double NormalizedManhattanDist(std::vector<double>& x, std::vector<double>& y);
 
     /** @brief Calculate the RMSD (root means square deviation)
      *
      * The RMSD is calculated as follows:
-     
+
        @f[
-       RMSD = \sqrt{\frac{1}{N}  \sum_{i=0}^N (x_i - y_i)^2 } 
+       RMSD = \sqrt{\frac{1}{N}  \sum_{i=0}^N (x_i - y_i)^2 }
        @f]
     */
+    [[deprecated("Use the std::vector& overload instead")]]
     OPENSWATHALGO_DLLAPI double RootMeanSquareDeviation(double x[], double y[], int n);
+
+    /** @brief Calculate the RMSD between two vectors
+     *
+     * @param[in] x First data vector
+     * @param[in] y Second data vector (must have same size as x)
+     */
+    OPENSWATHALGO_DLLAPI double RootMeanSquareDeviation(const std::vector<double>& x, const std::vector<double>& y);
 
     /** @brief Calculate the Spectral angle (acosine of the normalized dotproduct)
      *
      * The spectral angle is calculated as follows:
-     
+
        @f[
        \theta = acos \left( \frac{\sum_{i=0}^N (x_i * y_i))}{\sqrt{\sum_{i=0}^N (x_i * x_i) \sum_{i=0}^N (y_i * y_i)} }  \right)
        @f]
     */
+    [[deprecated("Use the std::vector& overload instead")]]
     OPENSWATHALGO_DLLAPI double SpectralAngle(double x[], double y[], int n);
+
+    /** @brief Calculate the Spectral angle between two vectors
+     *
+     * @param[in] x First intensity vector
+     * @param[in] y Second intensity vector (must have same size as x)
+     */
+    OPENSWATHALGO_DLLAPI double SpectralAngle(const std::vector<double>& x, const std::vector<double>& y);
 
     /// Calculate crosscorrelation on std::vector data - Deprecated!
     /// Legacy code, this is a 1:1 port of the function from mQuest
+    [[deprecated("Use normalizedCrossCorrelation instead")]]
     OPENSWATHALGO_DLLAPI XCorrArrayType calcxcorr_legacy_mquest_(std::vector<double>& data1,
                                                   std::vector<double>& data2, bool normalize);
 
@@ -118,7 +143,14 @@ public:
     OPENSWATHALGO_DLLAPI void standardize_data(std::vector<double>& data);
 
     /// Divide each element of x by the sum of the vector
+    [[deprecated("Use the std::vector& overload instead")]]
     OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
+
+    /** @brief Divide each element of x by the sum of the vector
+     *
+     * @param[in,out] x Vector to normalize in-place; unchanged if sum is zero
+     */
+    OPENSWATHALGO_DLLAPI void normalize_sum(std::vector<double>& x);
 
     // Compute rank of vector elements, append it to @p ranks and return the highest rank
     OPENSWATHALGO_DLLAPI unsigned int computeAndAppendRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);

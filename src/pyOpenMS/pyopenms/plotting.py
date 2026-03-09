@@ -4,6 +4,7 @@ The MSSpectrum plotting function are adapted from:
 Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
 Plot a single spectrum with plot_spectrum or two with mirror_plot_spectrum, using matplotlib.
 """
+from __future__ import annotations
 
 # Code adopted from:
 # Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
@@ -193,9 +194,7 @@ import itertools
 import logging
 
 
-# TODO switch to forward declarations via from __future__ import annotations
-# when py 3.7 is minimum. Then you can use types instead of strings
-def plot_chromatogram(c: "MSChromatogram"):
+def plot_chromatogram(c: MSChromatogram):
     """Plot chromatogram peaks.
 
     :param c: The chromatogram to be plotted.

@@ -18,6 +18,7 @@
 //Qt
 #include <QtCore/QDir>
 #include <QDesktopServices>
+#include <QUrl>
 #include <QMessageBox>
 #include <QSettings>
 

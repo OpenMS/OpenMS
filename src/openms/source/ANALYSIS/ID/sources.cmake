@@ -12,6 +12,7 @@ ConsensusIDAlgorithm.cpp
 ConsensusIDAlgorithmAverage.cpp
 ConsensusIDAlgorithmBest.cpp
 ConsensusIDAlgorithmIdentity.cpp
+CometModification.cpp
 ConsensusIDAlgorithmPEPIons.cpp
 ConsensusIDAlgorithmPEPMatrix.cpp
 ConsensusIDAlgorithmRanks.cpp
@@ -43,6 +44,7 @@ PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
 PScore.cpp
+Scores.cpp
 SimpleSearchEngineAlgorithm.cpp
 SiriusExportAlgorithm.cpp
 SiriusMSConverter.cpp

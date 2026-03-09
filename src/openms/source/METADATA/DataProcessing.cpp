@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
 
 using namespace std;
 
@@ -104,12 +107,33 @@ namespace OpenMS
   StringList DataProcessing::getAllNamesOfProcessingAction()
   {
     StringList names;
-    names.reserve(SIZE_OF_PROCESSINGACTION);
-    for (size_t i = 0; i < SIZE_OF_PROCESSINGACTION; ++i)
+    names.reserve(static_cast<size_t>(ProcessingAction::SIZE_OF_PROCESSINGACTION));
+    for (size_t i = 0; i < static_cast<size_t>(ProcessingAction::SIZE_OF_PROCESSINGACTION); ++i)
     {
       names.push_back(NamesOfProcessingAction[i]);
     }
     return names;
+  }
+
+  const std::string& DataProcessing::processingActionToString(ProcessingAction action)
+  {
+    if (action == ProcessingAction::SIZE_OF_PROCESSINGACTION)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_PROCESSINGACTION");
+    }
+    return NamesOfProcessingAction[static_cast<size_t>(action)];
+  }
+
+  DataProcessing::ProcessingAction DataProcessing::toProcessingAction(const std::string& name)
+  {
+    auto first = &NamesOfProcessingAction[0];
+    auto last = &NamesOfProcessingAction[static_cast<size_t>(ProcessingAction::SIZE_OF_PROCESSINGACTION)];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<ProcessingAction>(it - first);
   }
 
 }

@@ -21,6 +21,8 @@
 // TODO remove once we have store spectrum in handler
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 
@@ -336,7 +338,7 @@ protected:
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = "denovo";
-    search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     
     // if a parameter file is used the modifications need to be parsed from the novor output csv
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");

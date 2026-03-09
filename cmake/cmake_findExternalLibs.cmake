@@ -119,6 +119,15 @@ find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
+# libzip (ZIP64 archive support)
+# Uses our FindLibzip.cmake module which does a manual header+library search.
+# We intentionally avoid CONFIG mode because libzip <= 1.10 ships a CMake
+# targets file that references CLI tool binaries (zipcmp, zipmerge, ziptool)
+# and raises FATAL_ERROR if those aren't installed (e.g. Ubuntu without
+# libzip-tools).
+find_package(Libzip REQUIRED)
+
+#------------------------------------------------------------------------------
 # Find Eigen
 # creates Eigen3::Eigen3 package
 # CMake is garbage https://gitlab.kitware.com/cmake/cmake/-/issues/24581
@@ -162,10 +171,15 @@ endif()
 
 
 #------------------------------------------------------------------------------
+# libcurl (used for HTTP in OpenMS core; also needed by Apache Arrow 23+)
+find_package(CURL REQUIRED)
+
+#------------------------------------------------------------------------------
  # Apache Arrow and Parquet
  if (WITH_PARQUET)
-   find_package(Arrow CONFIG REQUIRED)
-   find_package(Parquet CONFIG REQUIRED)
+   # Arrow 23+ required for parquet file format compatibility
+   find_package(Arrow 23 CONFIG REQUIRED)
+   find_package(Parquet 23 CONFIG REQUIRED)
    
    # Determine Arrow target based on ARROW_USE_STATIC preference
    if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
@@ -179,6 +193,34 @@ endif()
    else()
      message(FATAL_ERROR "No suitable Arrow target found")
    endif()
+
+   # Determine Arrow Compute target (may be bundled into Arrow::arrow_* on some distros).
+   # We need compute kernels (e.g., "equal") for filter expression binding.
+   if(ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_static)
+     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
+   elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_shared)
+     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
+   elseif(TARGET Arrow::arrow_compute_static)
+     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
+   elseif(TARGET Arrow::arrow_compute_shared)
+     set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
+   else()
+     # Fallback: compute might be a plain library without a CMake target.
+     # Use platform-neutral search with optional hints.
+     find_library(OPENMS_ARROW_COMPUTE_LIB
+       NAMES arrow_compute
+       HINTS ${CMAKE_PREFIX_PATH} ${ARROW_HOME}
+       PATH_SUFFIXES lib lib64
+     )
+    if(OPENMS_ARROW_COMPUTE_LIB)
+      set(OPENMS_ARROW_COMPUTE_TARGET ${OPENMS_ARROW_COMPUTE_LIB})
+      message(STATUS "Using Arrow Compute library from find_library: ${OPENMS_ARROW_COMPUTE_LIB}")
+    else()
+      # Last resort: compute is part of the main Arrow target.
+      set(OPENMS_ARROW_COMPUTE_TARGET ${OPENMS_ARROW_TARGET})
+      message(STATUS "Using Arrow Compute from Arrow target: ${OPENMS_ARROW_TARGET} (no separate compute target/library found)")
+    endif()
+  endif()
    
    # Determine Parquet target based on ARROW_USE_STATIC preference
    if(ARROW_USE_STATIC AND TARGET Parquet::parquet_static)
@@ -194,7 +236,29 @@ endif()
    endif()
    
    message(STATUS "Using Arrow target: ${OPENMS_ARROW_TARGET}")
+   message(STATUS "Using Arrow Compute target: ${OPENMS_ARROW_COMPUTE_TARGET}")
    message(STATUS "Using Parquet target: ${OPENMS_PARQUET_TARGET}")
+
+   # Optional Arrow Dataset (for predicate pushdown)
+   find_package(ArrowDataset CONFIG QUIET)
+   if(ArrowDataset_FOUND)
+     if(ARROW_USE_STATIC AND TARGET ArrowDataset::arrow_dataset_static)
+       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_static)
+     elseif(NOT ARROW_USE_STATIC AND TARGET ArrowDataset::arrow_dataset_shared)
+       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_shared)
+     elseif(TARGET ArrowDataset::arrow_dataset_static)
+       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_static)
+     elseif(TARGET ArrowDataset::arrow_dataset_shared)
+       set(OPENMS_ARROW_DATASET_TARGET ArrowDataset::arrow_dataset_shared)
+     endif()
+
+   if(OPENMS_ARROW_DATASET_TARGET)
+     message(STATUS "Using Arrow Dataset target: ${OPENMS_ARROW_DATASET_TARGET}")
+     # Arrow Dataset (static) may pull in libxml2 symbols; link explicitly.
+     # This avoids missing xmlBufferFree at runtime when dataset pushdown is enabled.
+     find_package(LibXml2 REQUIRED)
+   endif()
+ endif()
  endif()
 
 #------------------------------------------------------------------------------
@@ -212,7 +276,7 @@ endif()
 SET(QT_MIN_VERSION "6.1.0")
 
 # find qt
-set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
+set(OpenMS_QT_COMPONENTS Core CACHE INTERNAL "QT components for core lib")
 find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt6Core_FOUND)

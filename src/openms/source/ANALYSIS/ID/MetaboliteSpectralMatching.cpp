@@ -11,6 +11,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>

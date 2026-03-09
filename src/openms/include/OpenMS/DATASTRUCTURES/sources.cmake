@@ -35,11 +35,13 @@ LPWrapper.h
 MassExplainer.h
 MatchedIterator.h
 Matrix.h
+MatrixEigen.h
 OSWData.h
 Param.h
 ParamValue.h
 QTCluster.h
 String.h
+StringConversions.h
 StringUtils.h
 StringUtilsSimple.h
 StringListUtils.h

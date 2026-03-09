@@ -27,7 +27,7 @@ namespace OpenMS
   {
 public:
     /// analyzer type
-    enum AnalyzerType
+    enum class AnalyzerType
     {
       ANALYZERNULL,                 ///< Unknown
       QUADRUPOLE,                   ///< Quadrupole
@@ -47,14 +47,14 @@ public:
       SIZE_OF_ANALYZERTYPE
     };
     /// Names of the analyzer types
-    static const std::string NamesOfAnalyzerType[SIZE_OF_ANALYZERTYPE];
+    static const std::string NamesOfAnalyzerType[static_cast<size_t>(AnalyzerType::SIZE_OF_ANALYZERTYPE)];
 
     /**
         @brief resolution method
 
         Which of the available standard measures is used to define whether two peaks are separate
     */
-    enum ResolutionMethod
+    enum class ResolutionMethod
     {
       RESMETHNULL,                  ///< Unknown
       FWHM,                         ///< Full width at half max
@@ -63,10 +63,10 @@ public:
       SIZE_OF_RESOLUTIONMETHOD
     };
     /// Names of resolution methods
-    static const std::string NamesOfResolutionMethod[SIZE_OF_RESOLUTIONMETHOD];
+    static const std::string NamesOfResolutionMethod[static_cast<size_t>(ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD)];
 
     /// Resolution type
-    enum ResolutionType
+    enum class ResolutionType
     {
       RESTYPENULL,              ///< Unknown
       CONSTANT,                 ///< Constant
@@ -74,10 +74,10 @@ public:
       SIZE_OF_RESOLUTIONTYPE
     };
     /// Names of resolution type
-    static const std::string NamesOfResolutionType[SIZE_OF_RESOLUTIONTYPE];
+    static const std::string NamesOfResolutionType[static_cast<size_t>(ResolutionType::SIZE_OF_RESOLUTIONTYPE)];
 
     /// direction of scanning
-    enum ScanDirection
+    enum class ScanDirection
     {
       SCANDIRNULL,              ///< Unknown
       UP,                       ///< Up
@@ -85,10 +85,10 @@ public:
       SIZE_OF_SCANDIRECTION
     };
     /// Names of direction of scanning
-    static const std::string NamesOfScanDirection[SIZE_OF_SCANDIRECTION];
+    static const std::string NamesOfScanDirection[static_cast<size_t>(ScanDirection::SIZE_OF_SCANDIRECTION)];
 
     ///Scan law
-    enum ScanLaw
+    enum class ScanLaw
     {
       SCANLAWNULL,              ///< Unknown
       EXPONENTIAL,              ///< Unknown
@@ -97,10 +97,10 @@ public:
       SIZE_OF_SCANLAW
     };
     /// Names of scan laws
-    static const std::string NamesOfScanLaw[SIZE_OF_SCANLAW];
+    static const std::string NamesOfScanLaw[static_cast<size_t>(ScanLaw::SIZE_OF_SCANLAW)];
 
     ///Reflectron state
-    enum ReflectronState
+    enum class ReflectronState
     {
       REFLSTATENULL,            ///< Unknown
       ON,                       ///< On
@@ -109,20 +109,157 @@ public:
       SIZE_OF_REFLECTRONSTATE
     };
     /// Names of reflectron states
-    static const std::string NamesOfReflectronState[SIZE_OF_REFLECTRONSTATE];
+    static const std::string NamesOfReflectronState[static_cast<size_t>(ReflectronState::SIZE_OF_REFLECTRONSTATE)];
 
-    /// returns all analyzer type names known to OpenMS
+    /**
+     @brief Returns all analyzer type names known to OpenMS
+
+     @return List of all analyzer type names
+    */
     static StringList getAllNamesOfAnalyzerType();
-    /// returns all resolution method names known to OpenMS
+
+    /**
+     @brief Returns all resolution method names known to OpenMS
+
+     @return List of all resolution method names
+    */
     static StringList getAllNamesOfResolutionMethod();
-    /// returns all resolution type names known to OpenMS
+
+    /**
+     @brief Returns all resolution type names known to OpenMS
+
+     @return List of all resolution type names
+    */
     static StringList getAllNamesOfResolutionType();
-    /// returns all scan direction names known to OpenMS
+
+    /**
+     @brief Returns all scan direction names known to OpenMS
+
+     @return List of all scan direction names
+    */
     static StringList getAllNamesOfScanDirection();
-    /// returns all scan law names known to OpenMS
+
+    /**
+     @brief Returns all scan law names known to OpenMS
+
+     @return List of all scan law names
+    */
     static StringList getAllNamesOfScanLaw();
-    /// returns all reflectron state names known to OpenMS
+
+    /**
+     @brief Returns all reflectron state names known to OpenMS
+
+     @return List of all reflectron state names
+    */
     static StringList getAllNamesOfReflectronState();
+
+    /**
+     @brief Convert an AnalyzerType enum to its string representation
+
+     @param type The analyzer type enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p type is SIZE_OF_ANALYZERTYPE
+    */
+    static const std::string& analyzerTypeToString(AnalyzerType type);
+
+    /**
+     @brief Convert a string to an AnalyzerType enum
+
+     @param name The string name to convert
+     @return The corresponding AnalyzerType enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfAnalyzerType[]
+    */
+    static AnalyzerType toAnalyzerType(const std::string& name);
+
+    /**
+     @brief Convert a ResolutionMethod enum to its string representation
+
+     @param method The resolution method enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p method is SIZE_OF_RESOLUTIONMETHOD
+    */
+    static const std::string& resolutionMethodToString(ResolutionMethod method);
+
+    /**
+     @brief Convert a string to a ResolutionMethod enum
+
+     @param name The string name to convert
+     @return The corresponding ResolutionMethod enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfResolutionMethod[]
+    */
+    static ResolutionMethod toResolutionMethod(const std::string& name);
+
+    /**
+     @brief Convert a ResolutionType enum to its string representation
+
+     @param type The resolution type enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p type is SIZE_OF_RESOLUTIONTYPE
+    */
+    static const std::string& resolutionTypeToString(ResolutionType type);
+
+    /**
+     @brief Convert a string to a ResolutionType enum
+
+     @param name The string name to convert
+     @return The corresponding ResolutionType enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfResolutionType[]
+    */
+    static ResolutionType toResolutionType(const std::string& name);
+
+    /**
+     @brief Convert a ScanDirection enum to its string representation
+
+     @param direction The scan direction enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p direction is SIZE_OF_SCANDIRECTION
+    */
+    static const std::string& scanDirectionToString(ScanDirection direction);
+
+    /**
+     @brief Convert a string to a ScanDirection enum
+
+     @param name The string name to convert
+     @return The corresponding ScanDirection enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfScanDirection[]
+    */
+    static ScanDirection toScanDirection(const std::string& name);
+
+    /**
+     @brief Convert a ScanLaw enum to its string representation
+
+     @param law The scan law enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p law is SIZE_OF_SCANLAW
+    */
+    static const std::string& scanLawToString(ScanLaw law);
+
+    /**
+     @brief Convert a string to a ScanLaw enum
+
+     @param name The string name to convert
+     @return The corresponding ScanLaw enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfScanLaw[]
+    */
+    static ScanLaw toScanLaw(const std::string& name);
+
+    /**
+     @brief Convert a ReflectronState enum to its string representation
+
+     @param state The reflectron state enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p state is SIZE_OF_REFLECTRONSTATE
+    */
+    static const std::string& reflectronStateToString(ReflectronState state);
+
+    /**
+     @brief Convert a string to a ReflectronState enum
+
+     @param name The string name to convert
+     @return The corresponding ReflectronState enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfReflectronState[]
+    */
+    static ReflectronState toReflectronState(const std::string& name);
 
     /// Constructor
     MassAnalyzer();

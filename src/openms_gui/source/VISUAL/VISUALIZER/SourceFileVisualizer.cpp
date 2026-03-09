@@ -46,12 +46,12 @@ namespace OpenMS
 
     if (!isEditable())
     {
-      fillComboBox_(checksum_type_, &temp_.NamesOfChecksumType[temp_.getChecksumType()], 1);
+      fillComboBox_(checksum_type_, &temp_.NamesOfChecksumType[static_cast<size_t>(temp_.getChecksumType())], 1);
     }
     else
     {
-      fillComboBox_(checksum_type_, temp_.NamesOfChecksumType, SourceFile::SIZE_OF_CHECKSUMTYPE);
-      checksum_type_->setCurrentIndex(temp_.getChecksumType());
+      fillComboBox_(checksum_type_, temp_.NamesOfChecksumType, static_cast<int>(SourceFile::ChecksumType::SIZE_OF_CHECKSUMTYPE));
+      checksum_type_->setCurrentIndex(static_cast<int>(temp_.getChecksumType()));
     }
   }
 

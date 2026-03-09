@@ -8,7 +8,10 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Helpers.h>
+
+#include <algorithm>
 
 using namespace std;
 
@@ -52,7 +55,7 @@ namespace OpenMS
 
     if (type_ != rhs.type_)
     {
-      type_ = UNKNOWN;                       // only keep if both are equal
+      type_ = SpectrumType::UNKNOWN;                       // only keep if both are equal
     }
     //native_id_ == rhs.native_id_ // keep
     comment_ += rhs.comment_;        // append
@@ -208,12 +211,33 @@ namespace OpenMS
   StringList SpectrumSettings::getAllNamesOfSpectrumType()
   {
     StringList names;
-    names.reserve(SIZE_OF_SPECTRUMTYPE);
-    for (size_t i = 0; i < SIZE_OF_SPECTRUMTYPE; ++i)
+    names.reserve(static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE); ++i)
     {
       names.push_back(NamesOfSpectrumType[i]);
     }
     return names;
+  }
+
+  const std::string& SpectrumSettings::spectrumTypeToString(SpectrumType type)
+  {
+    if (type == SpectrumType::SIZE_OF_SPECTRUMTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SPECTRUMTYPE");
+    }
+    return NamesOfSpectrumType[static_cast<size_t>(type)];
+  }
+
+  SpectrumSettings::SpectrumType SpectrumSettings::toSpectrumType(const std::string& name)
+  {
+    auto first = &NamesOfSpectrumType[0];
+    auto last = &NamesOfSpectrumType[static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE)];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<SpectrumType>(it - first);
   }
 
 }

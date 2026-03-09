@@ -88,7 +88,7 @@ protected:
       {
         tags.push_back("<font color=darkred>obsolete</font>");
       }
-      if (child_term.xref_type != ControlledVocabulary::CVTerm::NONE)
+      if (child_term.xref_type != ControlledVocabulary::CVTerm::XRefType::NONE)
       {
         tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(child_term.xref_type));
       }
@@ -270,7 +270,7 @@ protected:
             {
               tags.push_back("<font color=darkred>obsolete</font>");
             }
-            if (term.xref_type != ControlledVocabulary::CVTerm::NONE)
+            if (term.xref_type != ControlledVocabulary::CVTerm::XRefType::NONE)
             {
               tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type));
             }

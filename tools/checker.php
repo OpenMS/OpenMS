@@ -16,7 +16,6 @@ function printUsage() {
   print "Usage: checker.php <OpenMS src path> <OpenMS build path> [-u \"user name\"] [-t test] [options]\n";
   print "\n";
   print "This script works only if an OpenMS copy is used, where\n";
-  print "- the internal documentation was built (doc_internal),\n";
   print "- the XML documentation was built (doc_xml),\n";
   print "- all tests were executed.\n";
   print "\n";
@@ -261,7 +260,7 @@ if (in_array("doxygen_errors", $tests))
   if (!file_exists("$bin_path/doc/doxygen/doxygen-error.log"))
   {
     print "Error: For the 'doxygen_errors' test, the file '$bin_path/doc/doxygen/doxygen-error.log' is needed!\n";
-    print "       Please execute 'make doc_internal' first!'.\n";
+    print "       Please execute 'make doc' first!.\n";
     $abort = true;
   }
 }

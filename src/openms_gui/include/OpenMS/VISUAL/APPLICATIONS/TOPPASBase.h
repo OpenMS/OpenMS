@@ -21,7 +21,6 @@
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
-#include <QtNetwork/QNetworkReply>
 #include <QtWidgets/QSplashScreen>
 
 class QToolBar;
@@ -33,8 +32,6 @@ class QPushButton;
 class QWidget;
 class QTreeWidget;
 class QTreeWidgetItem;
-class QWebView;
-class QNetworkAccessManager;
 
 
 namespace OpenMS
@@ -96,8 +93,6 @@ public slots:
     void loadPipelineResourceFile();
     /// shows a file dialog for selecting the resource file to write to
     void savePipelineResourceFile();
-    /// opens the OpenMS Homepage to download example workflows
-    void openOnlinePipelineRepository();
     /// shows the preferences dialog
     void preferencesDialog();
     /// changes the current path according to the currently active window/layer
@@ -169,13 +164,6 @@ protected slots:
     /// Inserts the @p item in the middle of the current window
     void insertNewVertexInCenter_(QTreeWidgetItem* item);
 
-    /// triggered when user clicks a link - if it ends in .TOPPAS we're done
-    void downloadTOPPASfromHomepage_(const QUrl& url);
-    /// triggered when download of .toppas file is finished, so we can store & open it
-    void toppasFileDownloaded_(QNetworkReply* r);
-    /// debug...
-    void TOPPASreadyRead();
-
     /// user edited the workflow description
     void descriptionUpdated_();
 
@@ -197,13 +185,6 @@ protected:
 
     /// Main workspace
     EnhancedWorkspace* ws_;
-
-    /// OpenMS homepage workflow browser
-    QWebView* webview_;
-    /// download .toppas files from homepage
-    QNetworkAccessManager* network_manager_;
-    /// the content of the network request
-    QNetworkReply* network_reply_;
 
     ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
     EnhancedTabBar* tab_bar_;

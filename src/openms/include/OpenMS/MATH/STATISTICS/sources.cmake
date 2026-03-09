@@ -9,7 +9,10 @@ GaussFitter.h
 GumbelDistributionFitter.h
 GumbelMaxLikelihoodFitter.h
 Histogram.h
+KernelDensityEstimation.h
+MultipleTesting.h
 PosteriorErrorProbabilityModel.h
+RankData.h
 )
 
 ### add path to the filenames
