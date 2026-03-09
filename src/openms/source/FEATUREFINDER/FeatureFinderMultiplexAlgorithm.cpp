@@ -361,7 +361,7 @@ namespace OpenMS
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
 
-          chromatogram.push_back(ChromatogramPeak(rt_temp, static_cast<float>(intensity_temp)));
+          chromatogram.push_back(ChromatogramPeak(rt_temp, static_cast<ChromatogramPeak::IntensityType>(intensity_temp)));
         }
 
         chromatogram.sortByPosition();
@@ -473,7 +473,7 @@ namespace OpenMS
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
 
-          chromatogram.push_back(ChromatogramPeak(rt_temp, static_cast<float>(intensity_temp)));
+          chromatogram.push_back(ChromatogramPeak(rt_temp, static_cast<ChromatogramPeak::IntensityType>(intensity_temp)));
         }
 
         makePeakPositionUnique(chromatogram, IntensityAveragingMethod::MEDIAN);

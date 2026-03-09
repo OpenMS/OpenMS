@@ -13,6 +13,9 @@
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/Peak2D.h>
+#include <type_traits>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -20,6 +23,9 @@ using namespace OpenMS;
 using namespace std;
 
 START_TEST(ChromatogramPeak, "$Id$")
+
+static_assert(std::is_same_v<ChromatogramPeak::IntensityType, Peak1D::IntensityType>);
+static_assert(std::is_same_v<ChromatogramPeak::IntensityType, Peak2D::IntensityType>);
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

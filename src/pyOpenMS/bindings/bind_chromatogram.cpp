@@ -42,6 +42,9 @@ nb::ndarray<nb::numpy, T, nb::ndim<1>> as_numpy_array(nb::object obj) {
 }
 
 NB_MODULE(_pyopenms_chromatogram, m) {
+    static_assert(sizeof(OpenMS::ChromatogramPeak) == 16,
+                  "Unexpected ChromatogramPeak size (expected 16 bytes)");
+
     m.doc() = "pyOpenMS chromatogram bindings";
 
     // -----------------------------------------------------------------------
