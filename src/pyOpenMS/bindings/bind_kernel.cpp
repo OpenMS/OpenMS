@@ -1356,15 +1356,15 @@ Commonly used for storing ion mobility values or other per-peak float annotation
             return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
         }, "Returns a copy of the data as numpy array")
 
-        .def("get_data_mv", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
-            // Return a writable memory view (zero-copy)
+        .def("get_data_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
+            // Return a writable view (zero-copy)
             auto& self = nb::cast<OpenMS::DataArrays::FloatDataArray&>(self_obj);
             if (self.empty()) return std::nullopt;
             // Create view with self_obj as owner to keep the array alive and writable
             return nb::ndarray<nb::numpy, float, nb::ndim<1>>(
                 self.data(), {self.size()}, self_obj
             );
-        }, "Returns a view of the data as numpy array (fast but unsafe, None if empty)")
+        }, "Returns a writable view of the data as numpy array (fast but unsafe, None if empty)")
 
         .def("set_data", [](OpenMS::DataArrays::FloatDataArray& self, nb::object data_obj) {
             // Fast path: float32 numpy array — direct memcpy
@@ -1458,14 +1458,14 @@ Used for storing per-peak integer annotations.
             return nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>(data, {n}, owner);
         }, "Returns a copy of the data as numpy array")
 
-        .def("get_data_mv", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>> {
-            // Return a writable memory view (zero-copy)
+        .def("get_data_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>> {
+            // Return a writable view (zero-copy)
             auto& self = nb::cast<OpenMS::DataArrays::IntegerDataArray&>(self_obj);
             if (self.empty()) return std::nullopt;
             return nb::ndarray<nb::numpy, int32_t, nb::ndim<1>>(
                 self.data(), {self.size()}, self_obj
             );
-        }, "Returns a view of the data as numpy array (fast but unsafe, None if empty)")
+        }, "Returns a writable view of the data as numpy array (fast but unsafe, None if empty)")
 
         .def("set_data", [](OpenMS::DataArrays::IntegerDataArray& self, nb::object data_obj) {
             // Fast path: int32 numpy array — direct memcpy

@@ -324,8 +324,8 @@ Usage:
             return std::nullopt;
         }, "Returns drift time array if ion mobility data exists, else None")
 
-        .def("get_drift_time_array_mv", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
-            // Memory view version - returns view into float data array (zero-copy)
+        .def("get_drift_time_array_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
+            // Writable view version - returns view into float data array (zero-copy)
             auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
             if (!self.containsIMData()) return std::nullopt;
             auto& fda = self.getFloatDataArrays();
@@ -338,7 +338,7 @@ Usage:
                 }
             }
             return std::nullopt;
-        }, "Returns view of drift time array if ion mobility data exists, else None")
+        }, "Returns writable view of drift time array if ion mobility data exists, else None")
 
         .def("getFloatDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::FloatDataArray>& {
             return self.getFloatDataArrays();

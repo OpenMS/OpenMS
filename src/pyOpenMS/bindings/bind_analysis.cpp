@@ -2802,12 +2802,12 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
         .def("get_data", [](const OSBDA& self) {
             return self.data;
         }, "Access to a copy of the underlying data")
-        .def("get_data_mv", [](nb::object self_obj) -> nb::object {
+        .def("get_data_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OSBDA&>(self_obj);
             if (self.data.empty()) return nb::none();
             size_t shape[] = {self.data.size()};
             return nb::ndarray<nb::numpy, double>(self.data.data(), 1, shape, self_obj).cast();
-        }, "Access to the underlying data using a memory view (returns None if empty)")
+        }, "Access to the underlying data using a writable view (returns None if empty)")
         ;
 
 
@@ -2884,40 +2884,40 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             if (!arr) return std::vector<double>();
             return arr->data;
         }, "Get m/z array as list")
-        .def("get_mz_array_mv", [](nb::object self_obj) -> nb::object {
+        .def("get_mz_array_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OSSpec&>(self_obj);
             auto mz_arr = self.getMZArray();
             if (!mz_arr || mz_arr->data.empty()) return nb::none();
             auto& data = mz_arr->data;
             size_t shape[] = {data.size()};
             return nb::ndarray<nb::numpy, double>(data.data(), 1, shape, self_obj).cast();
-        }, "Get m/z array as writable memory view (returns None if empty)")
+        }, "Get m/z array as writable view (returns None if empty)")
         .def("get_intensity_array", [](const OSSpec& self) {
             auto arr = self.getIntensityArray();
             if (!arr) return std::vector<double>();
             return arr->data;
         }, "Get intensity array as list")
-        .def("get_intensity_array_mv", [](nb::object self_obj) -> nb::object {
+        .def("get_intensity_array_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OSSpec&>(self_obj);
             auto int_arr = self.getIntensityArray();
             if (!int_arr || int_arr->data.empty()) return nb::none();
             auto& data = int_arr->data;
             size_t shape[] = {data.size()};
             return nb::ndarray<nb::numpy, double>(data.data(), 1, shape, self_obj).cast();
-        }, "Get intensity array as writable memory view (returns None if empty)")
+        }, "Get intensity array as writable view (returns None if empty)")
         .def("get_drift_time_array", [](const OSSpec& self) -> nb::object {
             auto arr = self.getDriftTimeArray();
             if (!arr) return nb::none();
             return nb::cast(arr->data);
         }, "Get drift time array or None")
-        .def("get_drift_time_array_mv", [](nb::object self_obj) -> nb::object {
+        .def("get_drift_time_array_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OSSpec&>(self_obj);
             auto arr = self.getDriftTimeArray();
             if (!arr || arr->data.empty()) return nb::none();
             auto& data = arr->data;
             size_t shape[] = {data.size()};
             return nb::ndarray<nb::numpy, double>(data.data(), 1, shape, self_obj).cast();
-        }, "Get drift time array as writable memory view (returns None if empty)")
+        }, "Get drift time array as writable view (returns None if empty)")
         .def("get_data_arrays", [](OSSpec& self) {
             auto& arrays = self.getDataArrays();
             std::vector<std::shared_ptr<OSBDA>> result;
@@ -2967,22 +2967,22 @@ Compute the logOccupancyProb score, similar to the match_odds, a score based on 
             if (!arr) return std::vector<double>();
             return arr->data;
         }, "Get intensity array as list")
-        .def("get_time_array_mv", [](nb::object self_obj) -> nb::object {
+        .def("get_time_array_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OSChrom&>(self_obj);
             auto time_arr = self.getTimeArray();
             if (!time_arr || time_arr->data.empty()) return nb::none();
             auto& data = time_arr->data;
             size_t shape[] = {data.size()};
             return nb::ndarray<nb::numpy, double>(data.data(), 1, shape, self_obj).cast();
-        }, "Get time array as writable memory view (returns None if empty)")
-        .def("get_intensity_array_mv", [](nb::object self_obj) -> nb::object {
+        }, "Get time array as writable view (returns None if empty)")
+        .def("get_intensity_array_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OSChrom&>(self_obj);
             auto int_arr = self.getIntensityArray();
             if (!int_arr || int_arr->data.empty()) return nb::none();
             auto& data = int_arr->data;
             size_t shape[] = {data.size()};
             return nb::ndarray<nb::numpy, double>(data.data(), 1, shape, self_obj).cast();
-        }, "Get intensity array as writable memory view (returns None if empty)")
+        }, "Get intensity array as writable view (returns None if empty)")
         .def("get_data_arrays", [](OSChrom& self) {
             auto& arrays = self.getDataArrays();
             std::vector<std::shared_ptr<OSBDA_C>> result;

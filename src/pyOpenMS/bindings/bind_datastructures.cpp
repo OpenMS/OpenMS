@@ -647,7 +647,7 @@ A classical configuration would contain a list of settings e.g.
         .def("resize", [](OpenMS::Matrix<double>& self, size_t rows, size_t cols) { self.resize(rows, cols); }, "rows"_a, "cols"_a)
         .def("__len__", [](OpenMS::Matrix<double>& self) { return self.size(); })
 
-        .def("get_matrix_mv", [](nb::object self_obj) -> nb::object {
+        .def("get_matrix_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OpenMS::Matrix<double>&>(self_obj);
             if (self.rows() == 0 || self.cols() == 0) return nb::none();
             size_t shape[2] = {self.rows(), self.cols()};
