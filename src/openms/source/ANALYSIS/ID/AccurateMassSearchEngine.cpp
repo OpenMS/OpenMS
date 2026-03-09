@@ -20,7 +20,6 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
-#include <iterator>
 #include <numeric>
 
 namespace OpenMS
@@ -337,14 +336,13 @@ namespace OpenMS
     }
 
     // If a specific adduct is provided, narrow the range to just that adduct.
-    // This avoids iterating all adducts when use_feature_adducts is set.
-    if (observed_adduct != EmpiricalFormula())
+    if (!observed_adduct.isEmpty())
     {
       auto it = std::find_if(it_s, it_e, [&observed_adduct](const AdductInfo& a) {
         return a.getEmpiricalFormula() == observed_adduct;
       });
-      it_e = (it != it_e) ? std::next(it) : it_e;
-      it_s = it; // if not found, it_s == it_e (empty range) -> falls through to not-found handling
+      it_s = it;
+      if (it != it_e) { it_e = it + 1; }
     }
 
     std::pair<Size, Size> hit_idx;
