@@ -1,43 +1,43 @@
 """Verify zero-copy API naming conventions across all pyOpenMS types.
 
 Convention:
-  _mv    = typed zero-copy column view, returns ndarray<T> or None if empty
+  _view  = typed zero-copy column view, returns ndarray<T> or None if empty
   _struct = structured zero-copy record view, returns structured ndarray or empty array
 
-No public methods should use _view or _as_view suffixes.
+No public methods should use _as_view suffix.
 """
 import numpy as np
 import pyopenms
 
 
-def test_mv_returns_none_on_empty():
-    """All _mv methods return None when container is empty."""
+def test_view_returns_none_on_empty():
+    """All _view methods return None when container is empty."""
     # FloatDataArray
     fda = pyopenms.FloatDataArray()
-    assert fda.get_data_mv() is None
+    assert fda.get_data_view() is None
 
     # IntegerDataArray
     ida = pyopenms.IntegerDataArray()
-    assert ida.get_data_mv() is None
+    assert ida.get_data_view() is None
 
     # MSSpectrum drift time (no IM data)
     spec = pyopenms.MSSpectrum()
-    assert spec.get_drift_time_array_mv() is None
+    assert spec.get_drift_time_array_view() is None
 
     # MatrixDouble (empty)
     mat = pyopenms.MatrixDouble()
-    assert mat.get_matrix_mv() is None
+    assert mat.get_matrix_view() is None
 
 
-def test_mv_returns_typed_array():
-    """All _mv methods return typed ndarray (not structured, not raw bytes)."""
+def test_view_returns_typed_array():
+    """All _view methods return typed ndarray (not structured, not raw bytes)."""
     fda = pyopenms.FloatDataArray()
     fda.push_back(1.0)
     fda.push_back(2.0)
-    arr = fda.get_data_mv()
+    arr = fda.get_data_view()
     assert arr.dtype == np.float32
     assert arr.shape == (2,)
-    # Direct arithmetic works on _mv arrays
+    # Direct arithmetic works on _view arrays
     result = arr * 2.0
     assert np.isclose(result[0], 2.0)
 
@@ -76,22 +76,22 @@ def test_struct_returns_structured_array():
     assert 'intensity' in arr.dtype.names
 
 
-def test_no_public_view_or_as_view_methods():
-    """No public methods should use _view or _as_view suffix (they should be _ prefixed or removed)."""
+def test_no_public_as_view_methods():
+    """No public methods should use _as_view suffix (removed convention)."""
     for cls_name in ['MSSpectrum', 'MSChromatogram', 'Mobilogram', 'MatrixDouble']:
         cls = getattr(pyopenms, cls_name)
         public_methods = [m for m in dir(cls) if not m.startswith('_')]
-        view_methods = [m for m in public_methods if m.endswith('_view') or '_as_view' in m]
-        assert view_methods == [], \
-            f"{cls_name} has public _view/_as_view methods: {view_methods}. " \
-            f"These should be prefixed with _ (internal) or removed."
+        bad_methods = [m for m in public_methods if '_as_view' in m]
+        assert bad_methods == [], \
+            f"{cls_name} has public _as_view methods: {bad_methods}. " \
+            f"Use _view suffix instead."
 
 
-def test_mv_writeback():
-    """All _mv methods return writable views (modifications affect C++ object)."""
+def test_view_writeback():
+    """All _view methods return writable views (modifications affect C++ object)."""
     fda = pyopenms.FloatDataArray()
     fda.push_back(1.0)
-    arr = fda.get_data_mv()
+    arr = fda.get_data_view()
     arr[0] = 42.0
     assert fda[0] == 42.0
 

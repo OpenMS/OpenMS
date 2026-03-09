@@ -4707,7 +4707,7 @@ def testMatrixDouble():
             m.setValue(i, j, i * 10.0 + j) 
     print(m)
 
-    mv = m.get_matrix_mv()
+    mv = m.get_matrix_view()
     print(mv)
 
     mc = m.get_matrix()
@@ -4736,7 +4736,7 @@ def testMatrixDouble():
     assert sum(sum(matrix)) == 40940.0
     assert sum(sum(matrix)) == (N-1)*(N+2)*5
 
-    matrix_view = m.get_matrix_mv()
+    matrix_view = m.get_matrix_view()
     assert sum(sum(matrix_view)) == 40940.0
     assert sum(sum(matrix_view)) == (N-1)*(N+2)*5
 
@@ -4749,7 +4749,7 @@ def testMatrixDouble():
     assert m.getValue(1, 2) == 8.0
 
     print(m)
-    mat = m.get_matrix_mv()
+    mat = m.get_matrix_view()
     print(mat)
     assert mat[1, 2] == 8.0
 
@@ -4758,7 +4758,7 @@ def testMatrixDouble():
     assert mat[1, 2] == 8.0
 
     # Whatever we change here gets changed in the raw data as well
-    matrix_view = m.get_matrix_mv()
+    matrix_view = m.get_matrix_view()
     matrix_view[1, 6] = 11.0
     assert m.getValue(1, 6) == 11.0
     assert matrix_view[1, 6] == 11.0
@@ -4817,7 +4817,7 @@ def testMatrixDoubleColumnMajorOrdering():
         f"Data mismatch after round-trip:\nOriginal:\n{original}\nResult:\n{result}"
 
     # Test 3: Verify view indexing matches getValue for all elements
-    view = m.get_matrix_mv()
+    view = m.get_matrix_view()
     assert view.shape == (3, 4), f"View shape mismatch: {view.shape}"
     for i in range(3):
         for j in range(4):
@@ -4835,7 +4835,7 @@ def testMatrixDoubleColumnMajorOrdering():
         for j in range(5):
             m2.setValue(i, j, i * 100 + j)
 
-    view2 = m2.get_matrix_mv()
+    view2 = m2.get_matrix_view()
     assert view2.shape == (2, 5), f"Non-square view shape wrong: {view2.shape}"
 
     # Check corners and middle to ensure no transposition

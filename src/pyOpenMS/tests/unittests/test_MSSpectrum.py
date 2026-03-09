@@ -89,7 +89,7 @@ class TestMSSpectrum(unittest.TestCase):
         # Should return None when no IM data
         self.assertFalse(spec.containsIMData())
         self.assertIsNone(spec.get_drift_time_array())
-        self.assertIsNone(spec.get_drift_time_array_mv())
+        self.assertIsNone(spec.get_drift_time_array_view())
         self.assertIsNone(spec.get_drift_time_unit())
 
     def testMSSpectrumDriftTimeWithIM(self):
@@ -140,15 +140,15 @@ class TestMSSpectrum(unittest.TestCase):
         data_copy[0] = 100.0
         self.assertAlmostEqual(fda[0], 1.0, places=1)
 
-    def testFloatDataArrayGetDataMv(self):
-        """Test FloatDataArray get_data_mv method (memory view - fast, unsafe)"""
+    def testFloatDataArrayGetDataView(self):
+        """Test FloatDataArray get_data_view method (memory view - fast, unsafe)"""
         fda = pyopenms.FloatDataArray()
         fda.push_back(1.0)
         fda.push_back(2.0)
         fda.push_back(3.0)
 
         # Get a view (fast but unsafe)
-        data_view = fda.get_data_mv()
+        data_view = fda.get_data_view()
         self.assertEqual(len(data_view), 3)
         self.assertAlmostEqual(data_view[0], 1.0, places=1)
         self.assertAlmostEqual(data_view[1], 2.0, places=1)
@@ -166,8 +166,8 @@ class TestMSSpectrum(unittest.TestCase):
         data_copy = fda.get_data()
         self.assertEqual(len(data_copy), 0)
 
-        # get_data_mv returns None for empty
-        data_view = fda.get_data_mv()
+        # get_data_view returns None for empty
+        data_view = fda.get_data_view()
         self.assertIsNone(data_view)
 
     def testGetTypeWithQueryData(self):
