@@ -162,7 +162,7 @@ Usage:
             return nb::make_tuple((int)result.first, (int)result.second);
         }, "Returns (index, drift_time_unit) for ion mobility data")
 
-        .def("get_peaks_view", [](OpenMS::MSSpectrum& self) {
+        .def("_get_peaks_view", [](OpenMS::MSSpectrum& self) {
             // Cast to a raw byte pointer
             uint8_t* data_ptr = self.empty() ? nullptr : reinterpret_cast<uint8_t*>(self.data());
 

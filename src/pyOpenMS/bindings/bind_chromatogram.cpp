@@ -145,7 +145,7 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
     
     
     
-        .def("get_peaks_view", [](OpenMS::MSChromatogram& self) {
+        .def("_get_peaks_view", [](OpenMS::MSChromatogram& self) {
             uint8_t* data_ptr = self.empty() ? nullptr : reinterpret_cast<uint8_t*>(&self[0]);
             size_t shape[1] = { self.size() * sizeof(OpenMS::ChromatogramPeak) };
             return nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
