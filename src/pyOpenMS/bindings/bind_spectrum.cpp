@@ -320,35 +320,26 @@ Usage:
         }, "Returns intensity values as numpy array")
 
         .def("get_drift_time_array", [](const OpenMS::MSSpectrum& self) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
-            // Check if IM data exists
             if (!self.containsIMData()) return std::nullopt;
-            const auto& fda = self.getFloatDataArrays();
-            for (const auto& arr : fda) {
-                if (arr.getName() == "Ion Mobility" || arr.getMetaValue("name") == "Ion Mobility") {
-                    size_t n = arr.size();
-                    float* data = new float[n];
-                    std::copy(arr.begin(), arr.end(), data);
-                    nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
-                    return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
-                }
-            }
-            return std::nullopt;
+            auto [im_index, im_unit] = self.getIMData();
+            const auto& arr = self.getFloatDataArrays()[im_index];
+            size_t n = arr.size();
+            float* data = new float[n];
+            std::copy(arr.begin(), arr.end(), data);
+            nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
         }, "Returns drift time array if ion mobility data exists, else None")
 
         .def("get_drift_time_array_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
-            // Writable view version - returns view into float data array (zero-copy)
+            // Writable zero-copy view into the IM float data array
             auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
             if (!self.containsIMData()) return std::nullopt;
-            auto& fda = self.getFloatDataArrays();
-            for (auto& arr : fda) {
-                if (arr.getName() == "Ion Mobility" || arr.getMetaValue("name") == "Ion Mobility") {
-                    float* data_ptr = arr.empty() ? nullptr : arr.data();
-                    return nb::ndarray<nb::numpy, float, nb::ndim<1>>(
-                        data_ptr, {arr.size()}, self_obj
-                    );
-                }
-            }
-            return std::nullopt;
+            auto [im_index, im_unit] = self.getIMData();
+            auto& arr = self.getFloatDataArrays()[im_index];
+            float* data_ptr = arr.empty() ? nullptr : arr.data();
+            return nb::ndarray<nb::numpy, float, nb::ndim<1>>(
+                data_ptr, {arr.size()}, self_obj
+            );
         }, "Returns writable view of drift time array if ion mobility data exists, else None")
 
         .def("getFloatDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::FloatDataArray>& {
