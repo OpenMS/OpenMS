@@ -72,15 +72,15 @@ START_SECTION(void pickMobilogram(const RichPeakMobilogram& mobilogram, RichPeak
   PeakPickerMobilogram picker;
   Param picker_param = picker.getParameters();
   picker_param.setValue("method", "corrected");
-  picker_param.setValue("use_gauss", "false");
+  picker_param.setValue("use_gauss", "gauss");
   picker.setParameters(picker_param);
   picker.pickMobilogram(mobilogram, picked_mobilogram, smoothed_mobilogram);
 
-  TEST_REAL_SIMILAR(picked_mobilogram[0].getIntensity(), 58956.1);
-  TEST_REAL_SIMILAR(picked_mobilogram[0].getPos(), 0.978364);
-  TEST_REAL_SIMILAR(picked_mobilogram.getFloatDataArrays()[PeakPickerMobilogram::IDX_ABUNDANCE][0], 884145); // IntegratedIntensity
-  TEST_REAL_SIMILAR(picked_mobilogram.getFloatDataArrays()[PeakPickerMobilogram::IDX_LEFTBORDER][0], 0.948675); // leftWidth
-  TEST_REAL_SIMILAR(picked_mobilogram.getFloatDataArrays()[PeakPickerMobilogram::IDX_RIGHTBORDER][0], 0.997081); // rightWidth
+  TEST_REAL_SIMILAR(picked_mobilogram[0].getIntensity(), 48356.6);
+  TEST_REAL_SIMILAR(picked_mobilogram[0].getPos(), 0.978028437487793);
+  TEST_REAL_SIMILAR(picked_mobilogram.getFloatDataArrays()[PeakPickerMobilogram::IDX_ABUNDANCE][0], 889145);
+  TEST_REAL_SIMILAR(picked_mobilogram.getFloatDataArrays()[PeakPickerMobilogram::IDX_LEFTBORDER][0], 0.93735);
+  TEST_REAL_SIMILAR(picked_mobilogram.getFloatDataArrays()[PeakPickerMobilogram::IDX_RIGHTBORDER][0], 0.998118);
 }
 END_SECTION
 

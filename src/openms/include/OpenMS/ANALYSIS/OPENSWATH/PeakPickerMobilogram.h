@@ -165,7 +165,7 @@ namespace OpenMS
                                 size_t right_index);
 
         /**
-           @brief Helper function yo convert OpenMS FloatDataArray to a vector of doubles
+           @brief Helper function to convert OpenMS FloatDataArray to a vector of doubles
           
            @param[in] floatDataArray A const reference to a FloatDataArray object
            @return A vector of doubles containing the values from the FloatDataArray
@@ -173,10 +173,10 @@ namespace OpenMS
         static std::vector<double> extractFloatValues_(const OpenMS::DataArrays::FloatDataArray& floatDataArray);
 
         /**
-           @brief Helper function to convert OpenMS IntegerDataArray to a vector of std::size
+           @brief Helper function to convert OpenMS FloatDataArray to a vector of size_t
 
             @param[in] floatDataArray A const reference to an FloatDataArray object
-            @return A vector of std::size containing the values from the IntegerDataArray
+            @return A vector of size_t containing the values from the FloastDataArray
         */
         static std::vector<std::size_t> extractIntValues_(const OpenMS::DataArrays::FloatDataArray& floatDataArray);
 
@@ -207,7 +207,7 @@ namespace OpenMS
         /// Width of the Gaussian smoothing
         double gauss_width_;
         /// Whether to use Gaussian smoothing
-        bool use_gauss_;
+        String use_gauss_;
         /// Whether to resolve overlapping peaks
         bool remove_overlapping_;
 
