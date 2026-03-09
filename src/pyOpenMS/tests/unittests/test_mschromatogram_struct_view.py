@@ -12,14 +12,14 @@ def test_chromatogram_zero_copy_modification():
     arr = chrom.get_peaks_struct()
 
     # Value correctness
-    assert np.isclose(arr[0, 0], 1.0)   # RT
-    assert np.isclose(arr[1, 1], 20.0)  # intensity
+    assert np.isclose(arr['rt'][0], 1.0)   # RT
+    assert np.isclose(arr['intensity'][1], np.float32(20.0))  # intensity
 
     # PROVE ZERO-COPY
-    arr[0, 1] = 999.0
+    arr['intensity'][0] = np.float32(999.0)
 
     _, int_copy = chrom.get_peaks()
-    assert np.isclose(int_copy[0], 999.0), "Zero-copy modification failed!"
+    assert np.isclose(int_copy[0], np.float32(999.0)), "Zero-copy modification failed!"
 
 
 def test_chromatogram_memory_safety():
@@ -34,7 +34,7 @@ def test_chromatogram_memory_safety():
     gc.collect()
 
     # If lifetime policy is broken, this will segfault
-    assert np.isclose(arr[0, 1], 42.0), "Memory safety/lifetime sharing failed!"
+    assert np.isclose(arr['intensity'][0], np.float32(42.0)), "Memory safety/lifetime sharing failed!"
 
 
 def test_empty_chromatogram():
@@ -42,8 +42,11 @@ def test_empty_chromatogram():
     arr = chrom.get_peaks_struct()
 
     assert isinstance(arr, np.ndarray)
-    assert arr.shape == (0, 2)
-    assert arr.dtype == np.float64
+    assert arr.shape == (0,)
+    assert 'rt' in arr.dtype.names
+    assert 'intensity' in arr.dtype.names
+    assert arr.dtype['rt'] == np.float64
+    assert arr.dtype['intensity'] == np.float32
 
 
 def test_consistency_with_get_peaks():
@@ -56,8 +59,8 @@ def test_consistency_with_get_peaks():
     arr = chrom.get_peaks_struct()
     rt_copy, int_copy = chrom.get_peaks()
 
-    np.testing.assert_array_equal(arr[:, 0], rt_copy)
-    np.testing.assert_array_equal(arr[:, 1], int_copy)
+    np.testing.assert_array_equal(arr['rt'], rt_copy)
+    np.testing.assert_array_equal(arr['intensity'], int_copy)
 
 
 def test_chromatogram_intensity_type_is_float32():
