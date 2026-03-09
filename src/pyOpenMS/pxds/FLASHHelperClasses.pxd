@@ -63,6 +63,23 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
         UInt ms_level  # wrap-doc:MS level
 
 
+    cdef cppclass Tag "OpenMS::FLASHHelperClasses::Tag":
+        # wrap-doc:
+        #  Sequence tag for top-down proteomics.
+
+        # Constructors
+        Tag(String seq, double n_mass, double c_mass, libcpp_vector[double] & mzs, libcpp_vector[int]& scores, int scan) except + nogil
+        Tag(Tag &) except + nogil
+
+        # Methods
+        String getSequence() except + nogil  # wrap-doc:Get tag sequence
+        libcpp_vector[double] getMzs() except + nogil  # wrap-doc:Get m/z values
+        double getNtermMass() except + nogil  # wrap-doc:Get N-terminal mass
+        double getCtermMass() except + nogil  # wrap-doc:Get C-terminal mass
+        int getScore() except + nogil  # wrap-doc:Get total score
+        int getScore(int pos) except + nogil  # wrap-doc:Get score at position
+
+
     cdef cppclass PrecalAveragine "OpenMS::FLASHHelperClasses::PrecalculatedAveragine":
         # wrap-doc:
         #  Averagine patterns pre-calculated for speed up.

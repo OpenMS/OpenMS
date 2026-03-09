@@ -230,7 +230,7 @@ START_SECTION(static void writeIsobaricQuantification(std::ostream& os, std::vec
     String output = oss.str();
 
     // Header is always written, even when no spectra have isobaric quantities
-    TEST_EQUAL(output.hasPrefix("Scan\tPrecursorScan\tPrecursorMZ\t"), true)
+    TEST_EQUAL(output.hasPrefix("ScanNum\tPrecursorScanNum\tPrecursorFeatureIndex\tPrecursorMZ\t"), true)
   }
 
   // Test with MS2 spectra without isobaric quantities - should produce header only
@@ -244,7 +244,7 @@ START_SECTION(static void writeIsobaricQuantification(std::ostream& os, std::vec
     String output = oss.str();
 
     // Header is always written, even when channel_count == 0 (no isobaric quantities present)
-    TEST_EQUAL(output.hasPrefix("Scan\tPrecursorScan\tPrecursorMZ\t"), true)
+    TEST_EQUAL(output.hasPrefix("ScanNum\tPrecursorScanNum\tPrecursorFeatureIndex\tPrecursorMZ\t"), true)
   }
 }
 END_SECTION
