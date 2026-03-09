@@ -4713,8 +4713,6 @@ def testMatrixDouble():
     mc = m.get_matrix()
     print(mc)
 
-    mat = m.get_matrix_mv()
-
     N = 90
     m = pyopenms.MatrixDouble(N-1, N+2, 5.0)
 
