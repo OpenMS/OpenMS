@@ -1,6 +1,8 @@
 {
     "name": "OpenMS Dev Container",
-    "image": "ghcr.io/openms/contrib_manylinux_2_34:latest-amd64",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
