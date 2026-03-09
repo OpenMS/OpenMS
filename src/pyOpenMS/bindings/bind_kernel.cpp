@@ -1634,7 +1634,7 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
         }, "Get mobility and intensity arrays as numpy arrays")
 
         .def("get_peaks_view", [](OpenMS::Mobilogram& self) {
-            uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+            uint8_t* data_ptr = self.empty() ? nullptr : reinterpret_cast<uint8_t*>(&self[0]);
             size_t shape[1] = { self.size() * sizeof(OpenMS::MobilityPeak1D) };
             return nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
                 data_ptr,
@@ -1647,21 +1647,23 @@ Sorts the peaks according to ascending intensity. Meta data arrays will be sorte
         "Returns a raw byte view of the underlying MobilityPeak1D array (AoS layout).")
 
         .def("get_peaks_struct",
-            [](OpenMS::Mobilogram& self) {
-                uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+            [](OpenMS::Mobilogram& self) -> nb::object {
                 size_t n = self.size();
-
                 auto np = nb::module_::import_("numpy");
-                auto py_dtype = np.attr("dtype")(nb::dict(
-                    "names"_a = nb::make_tuple("mobility", "intensity"),
-                    "formats"_a = nb::make_tuple(
-                        np.attr("float64"),
-                        np.attr("float32")
-                    ),
-                    "offsets"_a = nb::make_tuple(0, 8),
-                    "itemsize"_a = 16
-                ));
 
+                // Build structured dtype: {mobility: float64 @ 0, intensity: float32 @ 8, itemsize: 16}
+                nb::dict dtype_dict;
+                dtype_dict["names"] = nb::make_tuple("mobility", "intensity");
+                dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
+                dtype_dict["offsets"] = nb::make_tuple(0, 8);
+                dtype_dict["itemsize"] = 16;
+                auto py_dtype = np.attr("dtype")(dtype_dict);
+
+                if (n == 0) {
+                    return np.attr("empty")(0, py_dtype);
+                }
+
+                uint8_t* data_ptr = reinterpret_cast<uint8_t*>(&self[0]);
                 size_t byte_shape[1] = { n * sizeof(OpenMS::MobilityPeak1D) };
                 auto raw = nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
                     data_ptr,
