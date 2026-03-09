@@ -327,7 +327,7 @@ public:
       {
         for (const Precursor::ActivationMethod am : p.getActivationMethods())
         {
-          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[am]))
+          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[static_cast<size_t>(am)]))
           {
             // found matching activation method
             if (reverse_) return false;

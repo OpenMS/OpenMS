@@ -11,7 +11,7 @@ from libcpp.map cimport map as libcpp_map
         cdef unsigned int n = self.inst.get().size()
         cdef unsigned int i = 0
 
-        cdef Residue py_result 
+        cdef Residue py_result
         while i < n:
 
             py_result = Residue.__new__(Residue)
@@ -24,4 +24,38 @@ from libcpp.map cimport map as libcpp_map
     def __len__(self):
         """Return the length of the amino acid sequence."""
         return self.inst.get().size()
+
+    def __str__(self):
+        """
+        Return a string representation of the AASequence object.
+        Delegates to __repr__ for consistency.
+        """
+        return self.__repr__()
+
+    def __repr__(self):
+        """
+        Return a string representation of the AASequence object.
+
+        Returns key properties in a readable format:
+        AASequence(sequence='PEPTM(Oxidation)IDE', length=9, mono_mass=1050.42, modified=True)
+        """
+        # Use Python methods to get values
+        seq_decoded = self.toString()  # Already returns a Python string
+        length = self.size()
+        mono_mass = self.getMonoWeight()
+        is_modified = self.isModified()
+
+        parts = []
+        if seq_decoded:
+            # Truncate very long sequences
+            if len(seq_decoded) > 50:
+                parts.append(f"sequence='{seq_decoded[:47]}...'")
+            else:
+                parts.append(f"sequence='{seq_decoded}'")
+        parts.append(f"length={length}")
+        parts.append(f"mono_mass={mono_mass:.4f}")
+        if is_modified:
+            parts.append("modified=True")
+
+        return f"AASequence({', '.join(parts)})"
 

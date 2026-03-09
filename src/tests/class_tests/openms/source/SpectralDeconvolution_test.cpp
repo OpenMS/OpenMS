@@ -105,7 +105,6 @@ fd_algo.calculateAveragine(false);
 
 START_SECTION(DeconvolvedSpectrum& getDeconvolvedSpectrum())
 {
-
   fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
 
   DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum();
@@ -118,7 +117,6 @@ END_SECTION
 
 START_SECTION((DeconvolvedSpectrum& performSpectrumDeconvolution(const MSSpectrum &spec, const std::vector< DeconvolvedSpectrum > &survey_scans, const int scan_number, const bool write_detail, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_FLASHIda)))
 {
-
   fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
   DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum();
   fd_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());

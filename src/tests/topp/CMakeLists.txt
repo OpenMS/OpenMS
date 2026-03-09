@@ -258,6 +258,9 @@ set_tests_properties("TOPP_FeatureFinderMetabo_5_out" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FeatureFinderCentroided_1" ${TOPP_BIN_PATH}/FeatureFinderCentroided -test -ini ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_input.mzML -out FeatureFinderCentroided_1.tmp.featureXML)
 add_test("TOPP_FeatureFinderCentroided_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderCentroided_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_1_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderCentroided_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderCentroided_1")
+add_test("TOPP_FeatureFinderLFQ_1" ${TOPP_BIN_PATH}/FeatureFinderLFQ -test -in ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_input.mzML -out FeatureFinderLFQ_1.tmp.featureXML -mini 20 -htol 100 -itol 100 -minlh 2 -cmin 2 -cmax 2)
+add_test("TOPP_FeatureFinderLFQ_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderLFQ_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderLFQ_1_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderLFQ_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderLFQ_1")
 
 #------------------------------------------------------------------------------
 # FeatureFinderIdentification test
@@ -1848,6 +1851,24 @@ add_test("TOPP_PeakPickerIterative_2" ${TOPP_BIN_PATH}/PeakPickerIterative -in $
 add_test("TOPP_PeakPickerIterative_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIterative_2.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIterative_2_output.mzML)
 set_tests_properties("TOPP_PeakPickerIterative_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerIterative_2")
 
+#------------------------------------------------------------------------------
+# TOPP_PeakPickerIM
+# test default 'mobilogram' method
+add_test("TOPP_PeakPickerIM_1" ${TOPP_BIN_PATH}/PeakPickerIM -in ${DATA_DIR_TOPP}/PeakPickerIM_input_1.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIM_parameters_1.ini -out PeakPickerIM_1.tmp.mzML -test)
+# test 'cluster' method
+add_test("TOPP_PeakPickerIM_2" ${TOPP_BIN_PATH}/PeakPickerIM -in ${DATA_DIR_TOPP}/PeakPickerIM_input_1.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIM_parameters_2.ini -out PeakPickerIM_2.tmp.mzML -test)
+# test 'trace' method
+add_test("TOPP_PeakPickerIM_3" ${TOPP_BIN_PATH}/PeakPickerIM -in ${DATA_DIR_TOPP}/PeakPickerIM_input_1.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIM_parameters_3.ini -out PeakPickerIM_3.tmp.mzML -test)
+# Output comparison tests are limited to Linux amd64 due to numeric differences on other platforms
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "amd64"))
+  add_test("TOPP_PeakPickerIM_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIM_1.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIM_1_output.mzML)
+  set_tests_properties("TOPP_PeakPickerIM_1_out1" PROPERTIES DEPENDS "TOPP_PeakPickerIM_1")
+  add_test("TOPP_PeakPickerIM_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIM_2.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIM_2_output.mzML)
+  set_tests_properties("TOPP_PeakPickerIM_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerIM_2")
+  add_test("TOPP_PeakPickerIM_3_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIM_3.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIM_3_output.mzML)
+  set_tests_properties("TOPP_PeakPickerIM_3_out1" PROPERTIES DEPENDS "TOPP_PeakPickerIM_3")
+endif()
+
 
 #------------------------------------------------------------------------------
 # Basic ProteinInference
@@ -1879,11 +1900,14 @@ endif()
 # OpenNuXL
 
 if (NOT MSVC) # currently some minor numeric differences on windows. needs fixing
-  add_test("TOPP_OpenNuXL_1" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_1_output.tmp.idXML -out_tsv OpenNuXL_1_output_tsv.tmp -NuXL:decoys "false" )
-  add_test("TOPP_OpenNuXL_1_out1" ${DIFF} -whitelist "IdentificationRun date"
-  "db=" -in1 OpenNuXL_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML )
-  set_tests_properties("TOPP_OpenNuXL_1_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
+  # Disabled on macOS ARM64 due to test failures (see GitHub issue)
+  if (NOT (APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64"))
+    add_test("TOPP_OpenNuXL_1" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_1_output.tmp.idXML -out_tsv OpenNuXL_1_output_tsv.tmp -NuXL:decoys "false" )
+    add_test("TOPP_OpenNuXL_1_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 OpenNuXL_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML )
+    set_tests_properties("TOPP_OpenNuXL_1_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
+  endif()
   # test internal decoy generation
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)

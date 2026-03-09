@@ -46,7 +46,6 @@ std::map<Size, Size> MQExporterHelper::makeFeatureUIDtoConsensusMapIndex_(const 
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Adding [" + String(it->first) + "," + String(it->second) +  "] failed. FeatureHandle exists twice in ConsensusMap!");
       }
-      f_to_ci[fh.getUniqueId()] = i;
     }
   }
   return f_to_ci;

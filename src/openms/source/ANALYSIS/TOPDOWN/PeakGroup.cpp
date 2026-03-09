@@ -53,7 +53,6 @@ namespace OpenMS
         i = p.isotopeIndex;
         i_cntr = 0;
         i_error = 0;
-
       }
       i_cntr ++;
       i_error += ppm ? getPPMError_(p) : getDaError_(p);
@@ -589,6 +588,87 @@ namespace OpenMS
     return _noisy_peaks;
   }
 
+  std::vector<FLASHHelperClasses::LogMzPeak> PeakGroup::getNoisyPeaks(const MSSpectrum& spec,
+                                                                       const double tol,
+                                                                       const FLASHHelperClasses::PrecalculatedAveragine& avg) const
+  {
+    // Const version of recruitAllPeaksInSpectrum for use in output functions
+    // Uses existing member values instead of modifying them
+    const double mul_tol = 0.8;
+    std::vector<LogMzPeak> noisy_peaks;
+
+    const double mono_mass = monoisotopic_mass_;
+    if (mono_mass < 0) { return noisy_peaks; }
+
+    if (max_abs_charge_ - min_abs_charge_ < max_abs_charge_ / 20)
+    {
+      return noisy_peaks;
+    }
+
+    int max_isotope = static_cast<int>(avg.getLastIndex(mono_mass));
+    int min_isotope = static_cast<int>(avg.getApexIndex(mono_mass) - avg.getLeftCountFromApex(mono_mass) + min_negative_isotope_index_);
+    min_isotope = std::max(min_negative_isotope_index_, min_isotope);
+
+    // Find max signal isotope from existing peaks (const access)
+    int max_signal_isotope = 0;
+    for (const auto& p : logMzpeaks_)
+    {
+      if (p.isotopeIndex >= 0)
+      {
+        max_signal_isotope = std::max(max_signal_isotope, p.isotopeIndex);
+      }
+    }
+
+    noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
+
+    for (int c = max_abs_charge_; c >= min_abs_charge_; c--)
+    {
+      if (c <= 0) { break; }
+      double cmz = mono_mass / c + FLASHHelperClasses::getChargeMass(is_positive_);
+      double left_mz = (mono_mass - (1 - min_negative_isotope_index_) * iso_da_distance_) / c + FLASHHelperClasses::getChargeMass(is_positive_);
+      Size index = spec.findNearest(left_mz * (1 - tol * mul_tol));
+      double iso_delta = iso_da_distance_ / c;
+
+      for (; index < spec.size(); index++)
+      {
+        float pint = spec[index].getIntensity();
+        if (pint <= 0) { continue; }
+        double pmz = spec[index].getMZ();
+        int iso_index = static_cast<int>(round((pmz - cmz) / iso_delta));
+        if (iso_index > max_isotope) { break; }
+        if (iso_index < min_isotope) { continue; }
+
+        // Only collect noisy peaks (those that don't match the isotope pattern tolerance)
+        if (!(abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol * mul_tol))
+        {
+          if (iso_index >= 0)
+          {
+            auto p = LogMzPeak(spec[index], is_positive_);
+            int noise_iso_index = static_cast<int>(floor((pmz - cmz) / iso_delta));
+            p.isotopeIndex = noise_iso_index;
+            p.abs_charge = c;
+            noisy_peaks.push_back(p);
+          }
+        }
+      }
+
+      if (index >= spec.size()) { break; }
+    }
+
+    // Filter noisy peaks to only include those within signal isotope range
+    std::vector<LogMzPeak> filtered_noisy_peaks;
+    filtered_noisy_peaks.reserve(noisy_peaks.size());
+    for (const auto& p : noisy_peaks)
+    {
+      if (p.isotopeIndex <= max_signal_isotope)
+      {
+        filtered_noisy_peaks.push_back(p);
+      }
+    }
+
+    return filtered_noisy_peaks;
+  }
+
   void PeakGroup::updateChargeFitScoreAndChargeIntensities_(bool is_low_charge)
   {
     if (max_abs_charge_ == min_abs_charge_)
@@ -648,6 +728,10 @@ namespace OpenMS
                                             int min_negative_isotope_index,
                                             double tol)
   {
+    // Compute Da tolerance from ppm tolerance using the first peak's uncharged mass.
+    // Assumption: all peaks in this group share similar mass, so the first peak is a
+    // representative for tolerance calculation. Division by 2.0 converts from full-width
+    // tolerance to half-width (radius) for the smoothing window.
     int da_tol = (int)(tol * logMzpeaks_[0].getUnchargedMass() / 2.0);
 
     min_isotope_index = 1e5;
@@ -661,6 +745,15 @@ namespace OpenMS
     intensities = std::vector<float>(max_isotope_index + 1 + da_tol - min_negative_isotope_index_, .0f);
     std::fill(intensities.begin(), intensities.end(), .0f);
 
+    // Gaussian smoothing denominator derivation:
+    // - Standard Gaussian: exp(-x²/(2σ²)), where FWHM = 2.355σ, so σ = FWHM/2.355
+    // - Here da_tol is treated as FWHM, giving σ = da_tol/2.355
+    // - The formula: denom = 2σ² / iso_da_distance_ = 2*(da_tol/2.355)² / iso_da_distance_
+    // - This scales the Gaussian width by isotope spacing, producing broader smoothing
+    //   that allows adjacent isotope peaks to blend together. This is intentional to
+    //   handle mass calibration errors and improve isotope pattern matching robustness.
+    // NOTE: This nonstandard scaling factor lacks formal validation. Consider adding
+    // unit tests demonstrating its impact on isotope deconvolution accuracy.
     double denom = 2.0 * std::pow(da_tol / 2.355, 2.0) / iso_da_distance_;
 
     for (const auto& peak : logMzpeaks_)
@@ -675,6 +768,10 @@ namespace OpenMS
       {
         int index = peak.isotopeIndex + margin - min_negative_isotope_index;
         if (index < 0 || index >= (int)intensities.size()) continue;
+        // Fallback when denom <= 0: can occur if da_tol is 0 (very small mass or tight tolerance)
+        // or iso_da_distance_ is 0/negative (degenerate isotope spacing). In such edge cases,
+        // skip Gaussian weighting and add raw intensity directly - safe because the smoothing
+        // window collapses to a single bin anyway.
         intensities[index] += denom > 0 ? float(peak.intensity * exp(-margin * margin / denom)) : peak.intensity;
       }
     }
@@ -693,6 +790,7 @@ namespace OpenMS
         {
           int index = peak.isotopeIndex + margin - min_negative_isotope_index;
           if (index < 0 || index >= (int)intensities.size()) continue;
+          // Same denom > 0 fallback as above for negative isotope peaks
           intensities[index] += denom > 0 ? float(peak.intensity * exp(-margin * margin / denom)) : peak.intensity;
         }
       }

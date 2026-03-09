@@ -115,7 +115,7 @@ namespace OpenMS
      *
      */
     bool loadSwathFiles(const StringList& file_list,
-                        boost::shared_ptr<ExperimentalSettings >& exp_meta,
+                        std::shared_ptr<ExperimentalSettings >& exp_meta,
                         std::vector< OpenSwath::SwathMap >& swath_maps,
                         const bool split_file,
                         const String& tmp,
@@ -142,7 +142,7 @@ namespace OpenMS
      * @param run_id Unique identifier which links the sqMass and OSW file
      */
     void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
-                            const boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                            const std::shared_ptr<ExperimentalSettings>& exp_meta,
                             const OpenSwath::LightTargetedExperiment& transition_exp,
                             const String& out_chrom,
                             const UInt64 run_id);
@@ -216,7 +216,7 @@ namespace OpenMS
                          const bool split_file,
                          const String& tmp,
                          const String& readoptions,
-                         boost::shared_ptr<ExperimentalSettings > & exp_meta,
+                         std::shared_ptr<ExperimentalSettings > & exp_meta,
                          std::vector< OpenSwath::SwathMap > & swath_maps,
                          Interfaces::IMSDataConsumer* plugin_consumer);
   }; // end TOPPOpenSwathBase

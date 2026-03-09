@@ -17,6 +17,7 @@ ExtendedIsotopeModel.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
 FeatureFinderIdentificationAlgorithm.cpp
+Biosaur2Algorithm.cpp
 FeatureFinderAlgorithmMetaboIdent.cpp
 FeatureFinderMultiplexAlgorithm.cpp
 FeatureFindingMetabo.cpp

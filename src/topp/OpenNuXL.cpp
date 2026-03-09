@@ -719,7 +719,7 @@ struct ImmoniumIonsInPeptide
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_OpenNuXL OpenNuXL 
+    @page TOPP_OpenNuXL OpenNuXL 
 
     @brief Annotate NA to peptide crosslinks in MS/MS spectra.
 

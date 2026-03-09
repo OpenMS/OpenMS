@@ -1360,7 +1360,6 @@ namespace OpenMS
         const double t_delta_mass = t_node_mass - pro_mass;
         const double delta_delta = t_delta_mass - cumulative_mod_mass + truncation_mass;
 
-        // 빠른 탈출: 범위 밖이면 continue / break
         if (delta_delta > max_mod_with_margin) continue;
         if (delta_delta < -max_mod_with_margin) break;
 

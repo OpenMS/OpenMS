@@ -43,7 +43,7 @@ namespace OpenMS
 
   void EnhancedTabBar::dropEvent(QDropEvent * e)
   {
-    int tab = tabAt_(e->pos());
+    int tab = tabAt_(e->position().toPoint());
     if (tab != -1)
     {
       emit dropOnTab(e->mimeData(), dynamic_cast<QWidget*>(e->source()), tabData(tab).toInt());

@@ -917,4 +917,15 @@ namespace OpenMS
     MetaInfoInterface::operator=(static_cast<MetaInfoInterface>(p));
   }
 
+  StringList ProteinIdentification::getAllNamesOfPeakMassType()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_PEAKMASSTYPE);
+    for (size_t i = 0; i < SIZE_OF_PEAKMASSTYPE; ++i)
+    {
+      names.push_back(NamesOfPeakMassType[i]);
+    }
+    return names;
+  }
+
 } // namespace OpenMS

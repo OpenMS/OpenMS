@@ -84,5 +84,38 @@ namespace OpenMS
     order_ = order;
   }
 
+  StringList IonSource::getAllNamesOfInletType()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_INLETTYPE);
+    for (size_t i = 0; i < SIZE_OF_INLETTYPE; ++i)
+    {
+      names.push_back(NamesOfInletType[i]);
+    }
+    return names;
+  }
+
+  StringList IonSource::getAllNamesOfIonizationMethod()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_IONIZATIONMETHOD);
+    for (size_t i = 0; i < SIZE_OF_IONIZATIONMETHOD; ++i)
+    {
+      names.push_back(NamesOfIonizationMethod[i]);
+    }
+    return names;
+  }
+
+  StringList IonSource::getAllNamesOfPolarity()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_POLARITY);
+    for (size_t i = 0; i < SIZE_OF_POLARITY; ++i)
+    {
+      names.push_back(NamesOfPolarity[i]);
+    }
+    return names;
+  }
+
 }
 

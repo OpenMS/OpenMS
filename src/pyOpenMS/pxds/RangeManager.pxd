@@ -133,3 +133,15 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
         double getMinMobility() except + nogil # wrap-doc:Returns the minimum mobility
         double getMaxMobility() except + nogil # wrap-doc:Returns the maximum mobility
         void clearRanges() except + nogil # wrap-doc:Resets all range dimensions as empty
+
+    cdef cppclass RangeManagerMobInt "OpenMS::RangeManager<RangeMobility, RangeIntensity>":
+        # wrap-ignore
+        # no-pxd-import
+        RangeManagerMobInt() except + nogil
+        RangeManagerMobInt(RangeManagerMobInt &) except + nogil
+
+        double getMinMobility() except + nogil # wrap-doc:Returns the minimum mobility
+        double getMaxMobility() except + nogil # wrap-doc:Returns the maximum mobility
+        double getMinIntensity() except + nogil # wrap-doc:Returns the minimum intensity
+        double getMaxIntensity() except + nogil # wrap-doc:Returns the maximum intensity
+        void clearRanges() except + nogil # wrap-doc:Resets all range dimensions as empty

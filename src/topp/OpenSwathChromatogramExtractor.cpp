@@ -217,7 +217,7 @@ protected:
 #pragma omp parallel for
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
-      boost::shared_ptr<PeakMap > exp(new PeakMap);
+      std::shared_ptr<PeakMap > exp(new PeakMap);
       // Find the transitions to extract and extract them
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;

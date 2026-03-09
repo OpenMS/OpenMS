@@ -13,7 +13,7 @@ function brew() {
 
   # Bash on macOS doesn't allow using empty arrays.  Therefore we put
   # the action name in the flags array so it always has at least one
-  # element.
+  # element.  This is also why we install bash below.
   local -a flags=("$action")
 
   if [ "$action" = "install" ]; then
@@ -47,8 +47,10 @@ brew install \
   cbc \
   cgl \
   clp \
-  qt \
-  apache-arrow
+  qtbase \
+  qtsvg \
+  apache-arrow \
+  bash
 
 # Install Eigen 3.4.0 from source (Homebrew's eigen is now 5.x which is incompatible)
 # Use a separate install prefix to avoid conflicts with Homebrew

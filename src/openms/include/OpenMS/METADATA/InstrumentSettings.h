@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/ScanWindow.h>
 #include <OpenMS/METADATA/IonSource.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -45,6 +46,9 @@ public:
 
     /// Names of scan modes
     static const std::string NamesOfScanMode[SIZE_OF_SCANMODE];
+
+    /// returns all scan mode names known to OpenMS
+    static StringList getAllNamesOfScanMode();
 
     /// Constructor
     InstrumentSettings();

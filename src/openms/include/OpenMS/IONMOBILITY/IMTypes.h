@@ -40,12 +40,18 @@ namespace OpenMS
   OPENMS_DLLAPI const std::string& toString(const DriftTimeUnit value);
 
   /// Different ways to represent ion mobility data in a spectrum
+  /// Note: 
+  /// 1. MIXED is only used for MSExperiment, not for MSSpectrum
+  /// 2. UNKNOWN should be used if the format is not yet determined. 
+  /// FileHandler or e.g. IM peak picker should ideally set the format a known value.
   enum class IMFormat
   {
     NONE,            ///< no ion mobility
     CONCATENATED,    ///< ion mobility frame is stacked in a single spectrum (i.e. has an IM float data array)
     MULTIPLE_SPECTRA,///< ion mobility is recorded as multiple spectra per frame (i.e. has one IM annotation per spectrum)
     MIXED,           ///< an MSExperiment contains both CONCATENATED and MULTIPLE_SPECTRA
+    CENTROIDED,      ///< ion mobility of peaks after centroiding in IM dimension. Ion mobility is annotated in a single float data array (i.e., each peak might have a different IM value in the data array); identical to CONCATENATED in terms of data layout.
+    UNKNOWN,         ///< ion mobility format not yet determined. 
     SIZE_OF_IMFORMAT
   };
   /// Names of IMFormat

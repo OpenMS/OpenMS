@@ -255,6 +255,36 @@ std::vector<double> FLASHDeconvAlgorithm::getTolerances() const
   return tols_;
 }
 
+void FLASHDeconvAlgorithm::appendDecoyPeakGroups_(DeconvolvedSpectrum& deconvolved_spectrum,
+                                                  const MSSpectrum& spec,
+                                                  int scan_number,
+                                                  const PeakGroup& precursor_pg)
+{
+#pragma omp parallel sections default(none) shared(spec, scan_number, precursor_pg, deconvolved_spectrum)
+  {
+#pragma omp section
+    sd_noise_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
+#pragma omp section
+    sd_signal_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
+  }
+  deconvolved_spectrum.sortByQscore();
+
+  deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_signal_decoy_.getDeconvolvedSpectrum().size()
+                               + sd_noise_decoy_.getDeconvolvedSpectrum().size());
+
+  for (const auto& pg : sd_signal_decoy_.getDeconvolvedSpectrum())
+  {
+    deconvolved_spectrum.push_back(pg);
+  }
+
+  for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
+  {
+    deconvolved_spectrum.push_back(pg);
+  }
+
+  deconvolved_spectrum.sort();
+}
+
 void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
 {
   startProgress(0, (SignedSize)map.size(), "running FLASHDeconv");
@@ -331,26 +361,9 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
 
       if (report_decoy_ && !deconvolved_spectrum.empty())
       {
-#pragma omp parallel sections default(none) shared(spec, scan_number, precursor_pg, deconvolved_spectrum)
-        {
-#pragma omp section
-          sd_noise_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
-#pragma omp section
-          sd_signal_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
-        }
-        deconvolved_spectrum.sortByQscore();
-
-        deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_signal_decoy_.getDeconvolvedSpectrum().size()
-                                     + sd_noise_decoy_.getDeconvolvedSpectrum().size());
-
-        for (const auto& pg : sd_signal_decoy_.getDeconvolvedSpectrum())
-            deconvolved_spectrum.push_back(pg);
-
-        for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-            deconvolved_spectrum.push_back(pg);
-
-        deconvolved_spectrum.sort();
+        appendDecoyPeakGroups_(deconvolved_spectrum, spec, scan_number, precursor_pg);
       }
+
       deconvolved_spectra.push_back(deconvolved_spectrum);
     }
     std::sort(deconvolved_spectra.begin(), deconvolved_spectra.end());
@@ -519,7 +532,6 @@ void FLASHDeconvAlgorithm::run(MSExperiment& map,
   quantifier.quantify(map, deconvolved_spectra, deconvolved_features);
 }
 
-// currently only MS2 precursors
 void FLASHDeconvAlgorithm::findPrecursorPeakGroupsFormIdaLog_(const MSExperiment& map, Size index, double start_mz, double end_mz)
 {
   if (precursor_map_for_ida_.empty()) return;
@@ -536,8 +548,11 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsFormIdaLog_(const MSExperiment
     cv = std::stod(filter_str.substr(pos + 3, end - pos));
   }
 
-  for (auto iter = precursor_map_for_ida_.lower_bound(scan_number); iter != precursor_map_for_ida_.begin()
-                                                                    && native_id_precursor_peak_group_map_.find(map[index].getNativeID()) == native_id_precursor_peak_group_map_.end(); iter--)
+  for (auto iter = precursor_map_for_ida_.lower_bound(scan_number);
+       iter != precursor_map_for_ida_.begin()
+       && native_id_precursor_peak_group_map_.find(map[index].getNativeID())
+          == native_id_precursor_peak_group_map_.end();
+       iter--)
   {
     if (iter->first > scan_number || iter == precursor_map_for_ida_.end())
     {
@@ -576,7 +591,7 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsFormIdaLog_(const MSExperiment
         Size index_copy (index);
         while(index_copy != 0 && getScanNumber(map, index_copy--) != ms1_scan_number);
 
-        auto filter_str2 = map[index_copy].getMetaValue("filter string").toString(); // this part is messy. Make a function to parse CV from map
+        auto filter_str2 = map[index_copy].getMetaValue("filter string").toString();
         Size pos2 = filter_str2.find("cv=");
         double cv_match = 1e5;
 
@@ -617,50 +632,6 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
       if (end == String::npos) end = filter_str.length() - 1;
       cv = std::stod(filter_str.substr(pos + 3, end - pos));
     }
-//
-//    // find all candidate scan numbers from ms_level - 1
-//    int num_precursor_window = ms_level == 2 ? precursor_MS1_window_ : 1;
-//    auto index_copy = index;
-//    while (index_copy > 0 && num_precursor_window > 0)
-//    {
-//      index_copy--;
-//      if (map[index_copy].getMSLevel() == ms_level - 1) { num_precursor_window--; }
-//    }
-//
-//    int b_scan_number = getScanNumber(map, index_copy);
-//    index_copy = index;
-//
-//    num_precursor_window = ms_level == 2 ? precursor_MS1_window_ : 0;
-//    while (index_copy < map.size() - 1 && num_precursor_window > 0)
-//    {
-//      index_copy++;
-//      if (map[index_copy].getMSLevel() == ms_level - 1) { num_precursor_window--; }
-//    }
-//
-//    //int a_scan_number = getScanNumber(map, index_copy);
-//    // then find deconvolved spectra within the scan numbers.
-//    auto biter = std::lower_bound(deconvolved_spectra.begin(), deconvolved_spectra.end(), DeconvolvedSpectrum(b_scan_number));
-//    //auto aiter = std::lower_bound(deconvolved_spectra.begin(), deconvolved_spectra.end(), DeconvolvedSpectrum(a_scan_number));
-//
-//    std::vector<DeconvolvedSpectrum> survey_scans;
-//
-//    // cv mismatches
-//    while (biter < deconvolved_spectra.end() && biter <= aiter)
-//    {
-//      if ((biter->getOriginalSpectrum().getMSLevel() == ms_level - 1) && (std::abs(biter->getCV() - cv) < 1e-5)) { survey_scans.push_back(*biter); }
-//      biter++;
-//    }
-//
-//    std::sort(survey_scans.begin(), survey_scans.end(), [scan_number](const DeconvolvedSpectrum& a, const DeconvolvedSpectrum& b) {
-//      int da = std::abs(a.getScanNumber() - scan_number);
-//      int db = std::abs(b.getScanNumber() - scan_number);
-//
-//      if (da != db) return da < db;
-//
-//      return a.getScanNumber() < b.getScanNumber();
-//    });
-
-
 
     DeconvolvedSpectrum precursor_deconvolved_spectrum;
     MSSpectrum precursor_raw_spec;
@@ -736,7 +707,6 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
 
 
     double max_snr = -1.0;
-    //auto o_spec = precursor_deconvolved_spectrum.getOriginalSpectrum();
     std::map<double, double> mass_to_intensity;
     mass_to_intensity[.0] = sum_intensity; // total intensity
 

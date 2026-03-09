@@ -55,7 +55,7 @@ public:
     Precursor& operator=(Precursor&&) & = default;
 
     /// Method of activation
-    enum ActivationMethod
+    enum class ActivationMethod
     {
       CID,                      ///< Collision-induced dissociation (MS:1000133) (also CAD; parent term, but unless otherwise stated often used as synonym for trap-type CID)
       PSD,                      ///< Post-source decay
@@ -70,7 +70,7 @@ public:
       PHD,                      ///< Photodissociation
       ETD,                      ///< Electron transfer dissociation
       ETciD,                    ///< Electron transfer and collision-induced dissociation (MS:1003182)
-      EThcD,                    ///< Electron transfer and higher-energy collision dissociation (MS:1002631) 
+      EThcD,                    ///< Electron transfer and higher-energy collision dissociation (MS:1002631)
       PQD,                      ///< Pulsed q dissociation (MS:1000599)
       TRAP,                     ///< trap-type collision-induced dissociation (MS:1002472)
       HCD,                      ///< beam-type collision-induced dissociation (MS:1000422)
@@ -79,8 +79,8 @@ public:
       SIZE_OF_ACTIVATIONMETHOD
     };
     /// Names of activation methods
-    static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
-    static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
+    static const std::string NamesOfActivationMethod[static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
+    static const std::string NamesOfActivationMethodShort[static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
 
     /// returns all activation method full names (e.g., "Collision-induced dissociation") known to OpenMS
     static StringList getAllNamesOfActivationMethods();

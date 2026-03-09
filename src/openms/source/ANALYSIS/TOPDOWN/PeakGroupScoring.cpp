@@ -35,7 +35,7 @@ namespace OpenMS
       }
 
       double score = weight_.back() + .5;
-      auto fv = toFeatureVector(pg);
+      auto fv = toFeatureVector_(pg);
 
       for (Size i = 0; i < weight_.size() - 1; i++)
       {
@@ -47,7 +47,7 @@ namespace OpenMS
     }
 
     /// convert PeakGroup into feature (attribute) vector
-    std::vector<double> PeakGroupScoring::toFeatureVector(const PeakGroup* pg)
+    std::vector<double> PeakGroupScoring::toFeatureVector_(const PeakGroup* pg)
     {
       std::vector<double> fvector(5, .0); // length of weights vector - 1, excluding the intercept weight.
       if (pg->empty())
@@ -70,7 +70,7 @@ namespace OpenMS
     void PeakGroupScoring::writeAttCsvForQscoreTrainingHeader(std::fstream& f)
     {
       PeakGroup pg;
-      Size att_count = toFeatureVector(&pg).size();
+      Size att_count = toFeatureVector_(&pg).size();
       for (Size i = 0; i < att_count; i++)
         f << "Att" << i << ",";
       f << "Class\n";
@@ -92,7 +92,7 @@ namespace OpenMS
       for (auto& pg : dspec)
       {
         bool target = pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target;
-        auto fv = toFeatureVector(&pg);
+        auto fv = toFeatureVector_(&pg);
 
         for (auto& item : fv)
         {

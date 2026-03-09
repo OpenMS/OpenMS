@@ -158,6 +158,8 @@ endmacro()
 macro(install_qt6_plugin_builddir _qt_plugin_name _qt_plugins_var _targetpath _component)
   get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
   if(EXISTS "${_qt_plugin_path}")
+    # Resolve symlinks to get the actual file
+    get_filename_component(_qt_plugin_path "${_qt_plugin_path}" REALPATH)
     get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
     get_filename_component(_qt_plugin_type "${_qt_plugin_path}" PATH)
     get_filename_component(_qt_plugin_type "${_qt_plugin_type}" NAME)

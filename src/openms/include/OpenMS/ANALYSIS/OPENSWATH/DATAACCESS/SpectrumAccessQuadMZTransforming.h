@@ -42,7 +42,7 @@ public:
         
     ~SpectrumAccessQuadMZTransforming() override;
 
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
+    std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
 
     OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 

@@ -1904,12 +1904,12 @@ START_SECTION((void get2DPeakDataIMPerSpectrum(CoordinateType min_rt, Coordinate
   s1.setRT(1.0);
   s1.setMSLevel(1);
   DataArrays::FloatDataArray im1;
-  im1.setName("Ion Mobility");
+  im1.setName(Constants::UserParam::ION_MOBILITY);
   im1.push_back(0.8f);  // IM value for first peak
   im1.push_back(1.2f);  // IM value for second peak
   im1.setMetaValue("unit", "millisecond");
   s1.getFloatDataArrays().push_back(im1);
-  
+
   MSSpectrum s2{
     {150.0, 1500.0},
     {250.0, 2500.0}
@@ -1917,19 +1917,19 @@ START_SECTION((void get2DPeakDataIMPerSpectrum(CoordinateType min_rt, Coordinate
   s2.setRT(2.0);
   s2.setMSLevel(1);
   DataArrays::FloatDataArray im2;
-  im2.setName("Ion Mobility");
+  im2.setName(Constants::UserParam::ION_MOBILITY);
   im2.push_back(1.5f);  // IM value for first peak
   im2.push_back(2.0f);  // IM value for second peak
   im2.setMetaValue("unit", "millisecond");
   s2.getFloatDataArrays().push_back(im2);
-  
+
   MSSpectrum s3{
     {175.0, 1750.0}
   };
   s3.setRT(3.0);
   s3.setMSLevel(2);
   DataArrays::FloatDataArray im3;
-  im3.setName("Ion Mobility");
+  im3.setName(Constants::UserParam::ION_MOBILITY);
   im3.push_back(1.8f);  // IM value for single peak
   im3.setMetaValue("unit", "millisecond");
   s3.getFloatDataArrays().push_back(im3);
@@ -2390,12 +2390,12 @@ START_SECTION((void get2DPeakDataIM(CoordinateType min_rt, CoordinateType max_rt
   s1.setRT(1.0);
   s1.setMSLevel(1);
   DataArrays::FloatDataArray im1;
-  im1.setName("Ion Mobility");
+  im1.setName(Constants::UserParam::ION_MOBILITY);
   im1.push_back(0.8f);
   im1.push_back(1.2f);
   im1.setMetaValue("unit", "millisecond");
   s1.getFloatDataArrays().push_back(im1);
-  
+
   MSSpectrum s2{
     {150.0, 1500.0},
     {250.0, 2500.0}
@@ -2403,15 +2403,15 @@ START_SECTION((void get2DPeakDataIM(CoordinateType min_rt, CoordinateType max_rt
   s2.setRT(2.0);
   s2.setMSLevel(1);
   DataArrays::FloatDataArray im2;
-  im2.setName("Ion Mobility");
+  im2.setName(Constants::UserParam::ION_MOBILITY);
   im2.push_back(1.5f);
   im2.push_back(2.0f);
   im2.setMetaValue("unit", "millisecond");
   s2.getFloatDataArrays().push_back(im2);
-  
+
   exp.addSpectrum(s1);
   exp.addSpectrum(s2);
-  
+
   // Test 1: Full range, MS level 1
   {
     std::vector<float> rt, mz, intensity, ion_mobility;
