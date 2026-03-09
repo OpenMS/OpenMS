@@ -164,7 +164,7 @@ Usage:
 
         .def("get_peaks_view", [](OpenMS::MSSpectrum& self) {
             // Cast to a raw byte pointer
-            uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+            uint8_t* data_ptr = self.empty() ? nullptr : reinterpret_cast<uint8_t*>(self.data());
 
             // Shape is total number of peaks * size of one peak (16 bytes)
             size_t shape[1] = { self.size() * sizeof(OpenMS::Peak1D) };
@@ -179,6 +179,30 @@ Usage:
         },
         nb::rv_policy::reference_internal,
         "Returns a raw byte view of the underlying Peak1D array (AoS layout).")
+
+        .def("get_peaks_struct",
+            [](OpenMS::MSSpectrum& self) -> nb::object {
+                size_t n = self.size();
+                auto np = nb::module_::import_("numpy");
+                nb::dict dtype_dict;
+                dtype_dict["names"] = nb::make_tuple("mz", "intensity");
+                dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
+                dtype_dict["offsets"] = nb::make_tuple(0, 8);
+                dtype_dict["itemsize"] = 16;
+                auto py_dtype = np.attr("dtype")(dtype_dict);
+                if (n == 0) {
+                    return np.attr("empty")(0, py_dtype);
+                }
+                uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+                size_t byte_shape[1] = { n * sizeof(OpenMS::Peak1D) };
+                auto raw = nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
+                    data_ptr, 1, byte_shape, nb::find(self)
+                );
+                return np.attr("frombuffer")(raw, py_dtype);
+            },
+            nb::rv_policy::reference_internal,
+            "Returns zero-copy structured array with fields 'mz' (float64) and 'intensity' (float32)."
+        )
 
         .def("get_peaks", [](const OpenMS::MSSpectrum& self) {
             // Return (mz_array, intensity_array) as numpy arrays
