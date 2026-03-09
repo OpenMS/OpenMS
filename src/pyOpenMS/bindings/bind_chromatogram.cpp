@@ -142,38 +142,47 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
     
     
     
+        .def("get_peaks_view", [](OpenMS::MSChromatogram& self) {
+            uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+            size_t shape[1] = { self.size() * sizeof(OpenMS::ChromatogramPeak) };
+            return nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
+                data_ptr,
+                1,
+                shape,
+                nb::handle()
+            );
+        },
+        nb::rv_policy::reference_internal,
+        "Returns a raw byte view of the underlying ChromatogramPeak array (AoS layout).")
+
         .def("get_peaks_struct",
-            [](OpenMS::MSChromatogram& self)
-                -> nb::ndarray<nb::numpy, double, nb::ndim<2>>
-            {
-                const size_t n = self.size();
+            [](OpenMS::MSChromatogram& self) {
+                uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+                size_t n = self.size();
 
-                if (n == 0)
-                {
-                    size_t shape[2] = { 0, 2 };
+                auto np = nb::module_::import_("numpy");
+                auto py_dtype = np.attr("dtype")(nb::dict(
+                    "names"_a = nb::make_tuple("rt", "intensity"),
+                    "formats"_a = nb::make_tuple(
+                        np.attr("float64"),
+                        np.attr("float32")
+                    ),
+                    "offsets"_a = nb::make_tuple(0, 8),
+                    "itemsize"_a = 16
+                ));
 
-                        return nb::ndarray<nb::numpy, double, nb::ndim<2>>(
-                            nullptr,
-                            2,
-                            shape,
-                            nb::handle()
-                        );
-                }
-
-                OpenMS::ChromatogramPeak* first = &self[0];
-                double* raw_ptr = reinterpret_cast<double*>(first);
-
-                size_t shape[2] = { n, 2 };
-
-                return nb::ndarray<nb::numpy, double, nb::ndim<2>>(
-                    raw_ptr,
-                    2,
-                    shape,
+                size_t byte_shape[1] = { n * sizeof(OpenMS::ChromatogramPeak) };
+                auto raw = nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
+                    data_ptr,
+                    1,
+                    byte_shape,
                     nb::find(self)
                 );
+
+                return np.attr("frombuffer")(raw, py_dtype);
             },
             nb::rv_policy::reference_internal,
-            "Returns zero-copy (n,2) float64 array: [RT, intensity]"
+            "Returns zero-copy structured array with fields 'rt' (float64) and 'intensity' (float32)."
         )
     
         .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj) {
