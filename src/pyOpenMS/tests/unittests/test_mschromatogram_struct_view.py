@@ -58,3 +58,63 @@ def test_consistency_with_get_peaks():
 
     np.testing.assert_array_equal(arr[:, 0], rt_copy)
     np.testing.assert_array_equal(arr[:, 1], int_copy)
+
+
+def test_chromatogram_intensity_type_is_float32():
+    """ChromatogramPeak intensity should be float32, consistent with Peak1D (issue #3379)."""
+    chrom = poms.MSChromatogram()
+    p = poms.ChromatogramPeak()
+    p.setRT(1.0)
+    p.setIntensity(100.0)
+    chrom.push_back(p)
+
+    rt, intensity = chrom.get_peaks()
+    assert rt.dtype == np.float64, f"RT should be float64, got {rt.dtype}"
+    assert intensity.dtype == np.float32, f"Intensity should be float32 (like Peak1D), got {intensity.dtype}"
+
+
+def test_chromatogram_struct_view_dtype():
+    """get_peaks_struct() should return {rt: float64, intensity: float32} matching Peak1D layout."""
+    chrom = poms.MSChromatogram()
+    for i in range(3):
+        p = poms.ChromatogramPeak()
+        p.setRT(float(i))
+        p.setIntensity(float(i * 100))
+        chrom.push_back(p)
+
+    arr = chrom.get_peaks_struct()
+    assert arr.dtype['rt'] == np.float64, f"RT dtype should be float64, got {arr.dtype['rt']}"
+    assert arr.dtype['intensity'] == np.float32, f"Intensity dtype should be float32, got {arr.dtype['intensity']}"
+    assert arr['rt'][0] == 0.0
+    assert arr['rt'][2] == 2.0
+    assert arr['intensity'][1] == np.float32(100.0)
+
+
+def test_peak_intensity_type_consistency():
+    """All peak types should produce float32 intensity in get_peaks()."""
+    # MSSpectrum (Peak1D)
+    spec = poms.MSSpectrum()
+    p1 = poms.Peak1D()
+    p1.setMZ(100.0)
+    p1.setIntensity(50.0)
+    spec.push_back(p1)
+    _, spec_int = spec.get_peaks()
+
+    # MSChromatogram (ChromatogramPeak)
+    chrom = poms.MSChromatogram()
+    cp = poms.ChromatogramPeak()
+    cp.setRT(1.0)
+    cp.setIntensity(50.0)
+    chrom.push_back(cp)
+    _, chrom_int = chrom.get_peaks()
+
+    # Mobilogram (MobilityPeak1D)
+    mob = poms.Mobilogram()
+    mp = poms.MobilityPeak1D()
+    mp.setMobility(0.5)
+    mp.setIntensity(50.0)
+    mob.push_back(mp)
+    _, mob_int = mob.get_peaks()
+
+    assert spec_int.dtype == chrom_int.dtype == mob_int.dtype == np.float32, \
+        f"All intensity dtypes should be float32: spec={spec_int.dtype}, chrom={chrom_int.dtype}, mob={mob_int.dtype}"
