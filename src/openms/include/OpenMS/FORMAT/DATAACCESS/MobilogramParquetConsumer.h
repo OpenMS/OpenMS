@@ -33,7 +33,10 @@ namespace OpenMS
       @param[in] filename Output parquet filename.
       @param[in] run_id Run identifier to store with each mobilogram.
       @param[in] source_file Source mzML filename to store with each mobilogram.
-      @param[in] transition_exp Optional transition experiment used to annotate mobilograms (nullable use-case)
+      @param[in] transition_exp Optional transition experiment used to annotate mobilograms. Note: the
+                                signature takes a const reference, so a caller that does not want any
+                                transition annotations must pass an empty `OpenSwath::LightTargetedExperiment`
+                                (i.e. one with no compounds/transitions). A null pointer is not accepted.
     */
     MobilogramParquetConsumer(const String& filename,
                              UInt64 run_id,

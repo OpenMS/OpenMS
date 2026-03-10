@@ -142,7 +142,9 @@ namespace OpenMS
       try
       {
         int64_t value = text.toInt64();
-        if (used_ids.insert(value).second)
+        // Reject negative parsed IDs: negative values are used as "unset" sentinels elsewhere
+        // and must not be preserved as real IDs in the output. Only accept non-negative parsed IDs.
+        if (value >= 0 && used_ids.insert(value).second)
         {
           if (value >= next_id)
           {
@@ -235,6 +237,14 @@ namespace OpenMS
 
       {
         std::lock_guard<std::mutex> lock(write_mutex_);
+
+        // Fail fast if the consumer has been finalized. Writes after finalize() are not allowed
+        // and would otherwise be silently dropped or reopen/truncate the file.
+        if (wrote_)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "MobilogramParquetConsumer cannot accept writes after finalize()");
+        }
 
         const int64_t next_binary_bytes = pending_binary_bytes_ +
           static_cast<int64_t>(encoded.mobility_encoded.size() + encoded.intensity_encoded.size());
