@@ -229,63 +229,69 @@ namespace OpenMS
       (void)feature_rt;
       (void)feature_id;
 #else
-      std::lock_guard<std::mutex> lock(write_mutex_);
-
+      // Do expensive encoding outside the writer mutex to avoid serializing
+      // the hot Numpress+zlib work when multiple threads share this consumer.
       EncodedMobilogram encoded = encodeMobilogram_(m);
-      const int64_t next_binary_bytes = pending_binary_bytes_ +
-        static_cast<int64_t>(encoded.mobility_encoded.size() + encoded.intensity_encoded.size());
-      if (pending_rows_ > 0 && next_binary_bytes > MAX_BUFFERED_BINARY_BYTES_)
+
       {
-        flushChunk_();
+        std::lock_guard<std::mutex> lock(write_mutex_);
+
+        const int64_t next_binary_bytes = pending_binary_bytes_ +
+          static_cast<int64_t>(encoded.mobility_encoded.size() + encoded.intensity_encoded.size());
+        if (pending_rows_ > 0 && next_binary_bytes > MAX_BUFFERED_BINARY_BYTES_)
+        {
+          flushChunk_();
+        }
+
+        // Store contextual information for each mobilogram row.
+        appendOrThrow_(run_id_builder_.Append(static_cast<int64_t>(run_id_)), "RUN_ID");
+        appendOptionalString_(source_file_builder_, source_file_, "SOURCE_FILE");
+
+        appendOptionalInt_(ms_level_builder_, ms_level >= 0, ms_level, "MS_LEVEL");
+        appendOptionalString_(mobilogram_type_builder_, mobilogram_type, "MOBILOGRAM_TYPE");
+        auto tr_it = transition_info_.find(transition_native_id);
+        if (tr_it != transition_info_.end())
+        {
+          const TransitionInfo& tr = tr_it->second;
+          const Int64 resolved_transition_id = transition_id >= 0 ? transition_id : tr.transition_id;
+          appendOptionalInt_(precursor_id_builder_, true, tr.precursor_id, "PRECURSOR_ID");
+          appendOptionalInt_(transition_id_builder_, true, resolved_transition_id, "TRANSITION_ID");
+          appendOptionalInt_(feature_id_builder_, feature_id >= 0, feature_id, "FEATURE_ID");
+          appendOptionalDouble_(feature_rt_builder_, feature_rt, "FEATURE_RT");
+          appendOptionalString_(modified_sequence_builder_, tr.modified_sequence, "MODIFIED_SEQUENCE");
+          appendOptionalInt_(precursor_charge_builder_, tr.precursor_charge > 0, tr.precursor_charge, "PRECURSOR_CHARGE");
+          appendOptionalInt_(product_charge_builder_, tr.product_charge > 0, tr.product_charge, "PRODUCT_CHARGE");
+          appendOptionalInt_(detecting_transition_builder_, true, tr.detecting_transition, "DETECTING_TRANSITION");
+          appendOptionalInt_(precursor_decoy_builder_, true, tr.precursor_decoy, "PRECURSOR_DECOY");
+          appendOptionalInt_(product_decoy_builder_, true, tr.product_decoy, "PRODUCT_DECOY");
+          appendOptionalInt_(transition_ordinal_builder_, tr.transition_ordinal >= 0, tr.transition_ordinal, "TRANSITION_ORDINAL");
+          appendOptionalString_(transition_type_builder_, tr.transition_type, "TRANSITION_TYPE");
+          appendOptionalString_(annotation_builder_, tr.annotation, "ANNOTATION");
+        }
+        else
+        {
+          appendOrThrow_(precursor_id_builder_.AppendNull(), "PRECURSOR_ID");
+          appendOptionalInt_(transition_id_builder_, transition_id >= 0, transition_id, "TRANSITION_ID");
+          appendOptionalInt_(feature_id_builder_, feature_id >= 0, feature_id, "FEATURE_ID");
+          appendOptionalDouble_(feature_rt_builder_, feature_rt, "FEATURE_RT");
+          appendOrThrow_(modified_sequence_builder_.AppendNull(), "MODIFIED_SEQUENCE");
+          appendOrThrow_(precursor_charge_builder_.AppendNull(), "PRECURSOR_CHARGE");
+          appendOrThrow_(product_charge_builder_.AppendNull(), "PRODUCT_CHARGE");
+          appendOrThrow_(detecting_transition_builder_.AppendNull(), "DETECTING_TRANSITION");
+          appendOrThrow_(precursor_decoy_builder_.AppendNull(), "PRECURSOR_DECOY");
+          appendOrThrow_(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
+          appendOrThrow_(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
+          appendOrThrow_(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
+          appendOrThrow_(annotation_builder_.AppendNull(), "ANNOTATION");
+        }
+
+        appendEncodedMobilogram_(encoded);
+        if (pending_binary_bytes_ >= MAX_BUFFERED_BINARY_BYTES_)
+        {
+          flushChunk_();
+        }
       }
 
-      // Store contextual information for each mobilogram row.
-      appendOrThrow_(run_id_builder_.Append(static_cast<int64_t>(run_id_)), "RUN_ID");
-      appendOptionalString_(source_file_builder_, source_file_, "SOURCE_FILE");
-
-      appendOptionalInt_(ms_level_builder_, ms_level >= 0, ms_level, "MS_LEVEL");
-      appendOptionalString_(mobilogram_type_builder_, mobilogram_type, "MOBILOGRAM_TYPE");
-      auto tr_it = transition_info_.find(transition_native_id);
-      if (tr_it != transition_info_.end())
-      {
-        const TransitionInfo& tr = tr_it->second;
-        const Int64 resolved_transition_id = transition_id >= 0 ? transition_id : tr.transition_id;
-        appendOptionalInt_(precursor_id_builder_, true, tr.precursor_id, "PRECURSOR_ID");
-        appendOptionalInt_(transition_id_builder_, true, resolved_transition_id, "TRANSITION_ID");
-        appendOptionalInt_(feature_id_builder_, feature_id >= 0, feature_id, "FEATURE_ID");
-        appendOptionalDouble_(feature_rt_builder_, feature_rt, "FEATURE_RT");
-        appendOptionalString_(modified_sequence_builder_, tr.modified_sequence, "MODIFIED_SEQUENCE");
-        appendOptionalInt_(precursor_charge_builder_, tr.precursor_charge > 0, tr.precursor_charge, "PRECURSOR_CHARGE");
-        appendOptionalInt_(product_charge_builder_, tr.product_charge > 0, tr.product_charge, "PRODUCT_CHARGE");
-        appendOptionalInt_(detecting_transition_builder_, true, tr.detecting_transition, "DETECTING_TRANSITION");
-        appendOptionalInt_(precursor_decoy_builder_, true, tr.precursor_decoy, "PRECURSOR_DECOY");
-        appendOptionalInt_(product_decoy_builder_, true, tr.product_decoy, "PRODUCT_DECOY");
-        appendOptionalInt_(transition_ordinal_builder_, tr.transition_ordinal >= 0, tr.transition_ordinal, "TRANSITION_ORDINAL");
-        appendOptionalString_(transition_type_builder_, tr.transition_type, "TRANSITION_TYPE");
-        appendOptionalString_(annotation_builder_, tr.annotation, "ANNOTATION");
-      }
-      else
-      {
-        appendOrThrow_(precursor_id_builder_.AppendNull(), "PRECURSOR_ID");
-        appendOptionalInt_(transition_id_builder_, transition_id >= 0, transition_id, "TRANSITION_ID");
-        appendOptionalInt_(feature_id_builder_, feature_id >= 0, feature_id, "FEATURE_ID");
-        appendOptionalDouble_(feature_rt_builder_, feature_rt, "FEATURE_RT");
-        appendOrThrow_(modified_sequence_builder_.AppendNull(), "MODIFIED_SEQUENCE");
-        appendOrThrow_(precursor_charge_builder_.AppendNull(), "PRECURSOR_CHARGE");
-        appendOrThrow_(product_charge_builder_.AppendNull(), "PRODUCT_CHARGE");
-        appendOrThrow_(detecting_transition_builder_.AppendNull(), "DETECTING_TRANSITION");
-        appendOrThrow_(precursor_decoy_builder_.AppendNull(), "PRECURSOR_DECOY");
-        appendOrThrow_(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
-        appendOrThrow_(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
-        appendOrThrow_(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
-        appendOrThrow_(annotation_builder_.AppendNull(), "ANNOTATION");
-      }
-
-      appendEncodedMobilogram_(encoded);
-      if (pending_binary_bytes_ >= MAX_BUFFERED_BINARY_BYTES_)
-      {
-        flushChunk_();
-      }
       m.clear();
 #endif
     }
