@@ -38,7 +38,7 @@ namespace OpenMS
 
   PeakIndex LayerData1DChrom::findClosestDataPoint(const RangeAllType& area) const
   {
-    ChromatogramPeak peak_lt {area.getMinRT(), area.getMinIntensity()}, peak_rb {area.getMaxRT(), area.getMaxIntensity()};
+    ChromatogramPeak peak_lt {area.getMinRT(), static_cast<ChromatogramPeak::IntensityType>(area.getMinIntensity())}, peak_rb {area.getMaxRT(), static_cast<ChromatogramPeak::IntensityType>(area.getMaxIntensity())};
     // reference to the current data
     const auto& chrom = getCurrentChrom();
     const Size index = getCurrentIndex();

@@ -123,6 +123,7 @@ TOPP tools:
       - Added sequence length stats and nucleic acid support for FASTA files (#8643)
     FileConverter:
       - Added MSP file format support (#8650)
+      - Added OpenSwath sqMass to XIC Parquet conversion support (#8829)
     IsobaricWorkflow:
       - Fixed mzTab export when processing multiple mzML/idXML pairs (#8519)
       - Handles MS2 spectra without corresponding MS3 in SPS-MS3 workflow (#8592)
@@ -234,6 +235,7 @@ Fixes:
   - Fix massdev_score denominator to count only observed transitions instead of total (#8831)
   - Fix OpenSwathWorkflow run_id mismatch between Parquet/mzML XIC files and OSW/sqMass output (#8833)
   - Fix OpenSwathWorkflow batch counting and loop bounds for empty compound sets (#8790)
+  - Fix OpenSwathWorkflow run_id type mismatch between FEATURE table RUN_ID (INTEGER) and RUN table ID (BLOB) in OSW-Sqlite output (#8869)
 
 Documentation:
   - Comprehensive documentation for Targeted Quantitation algorithms (#8588)
