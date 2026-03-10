@@ -51,6 +51,8 @@ namespace OpenMS
       @param[in] ms_level The MS level of the mobilogram (e.g. 1 for precursor, 2 for fragment)
       @param[in] transition_id The id of the corresponding transition in the transition experiment (nullable use-case)
       @param[in] transition_native_id The native id of the corresponding transition in the transition experiment (nullable use-case)
+      @param[in] feature_rt Optional retention time apex that the mobilogram corresponds to (nullable use-case)
+      @param[in] feature_id Optional feature id associated with the mobilogram (nullable use-case)
     */
     void consumeMobilogram(Mobilogram& m,
                  const String& mobilogram_type = "",
