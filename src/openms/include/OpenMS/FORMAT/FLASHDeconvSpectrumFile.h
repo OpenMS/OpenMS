@@ -101,7 +101,7 @@ namespace OpenMS
     */
     static void writeTopFD(const DeconvolvedSpectrum& dspec, std::ostream& os, const String& filename,
                            double qval_threshold = 1.0,
-                           uint min_ms_level = 1,
+                           unsigned int min_ms_level = 1,
                            bool randomize_precursor_mass = false,
                            bool randomize_fragment_mass = false);
 
