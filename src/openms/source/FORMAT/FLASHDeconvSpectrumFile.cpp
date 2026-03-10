@@ -446,7 +446,7 @@ namespace OpenMS
     {
       if (deconvolved_spectrum.empty()) continue;
       if (deconvolved_spectrum.isDecoy()) continue;
-      auto deconvolved_mzML = deconvolved_spectrum.toSpectrum(mzml_charge, 1, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1], false);
+      auto deconvolved_mzML = deconvolved_spectrum.toSpectrum(mzml_charge, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1], false);
       if (!deconvolved_mzML_file.empty())
       {
         if (deconvolved_mzML.empty())

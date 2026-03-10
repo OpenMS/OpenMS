@@ -54,10 +54,9 @@ namespace OpenMS
 
     /// Convert DeconvolvedSpectrum to MSSpectrum (e.g., used to store in mzML format).
     /// @param[in] to_charge the charge of each peak in mzml output.
-    /// @param[in] min_ms_level the minimum MS level. If the original spec had an MS level lower than @p min_ms_level the precursor information of the returned spectrum is set to this value.
     /// @param[in] tol the ppm tolerance
     /// @param[in] retain_undeconvolved if set, undeconvolved peaks in the original peaks are output (assuming their abs charge == 1 and m/zs are adjusted with the to_charge parameter)
-    MSSpectrum toSpectrum(int to_charge, UInt min_ms_level, double tol = 10.0, bool retain_undeconvolved = false);
+    MSSpectrum toSpectrum(int to_charge, double tol = 10.0, bool retain_undeconvolved = false);
 
     /// original spectrum getter
     const MSSpectrum& getOriginalSpectrum() const;
