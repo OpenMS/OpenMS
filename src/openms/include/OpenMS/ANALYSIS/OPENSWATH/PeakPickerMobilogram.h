@@ -176,7 +176,7 @@ namespace OpenMS
            @brief Helper function to convert OpenMS FloatDataArray to a vector of size_t
 
             @param[in] floatDataArray A const reference to an FloatDataArray object
-            @return A vector of size_t containing the values from the FloastDataArray
+            @return A vector of size_t containing the values from the FloatDataArray
         */
         static std::vector<std::size_t> extractIntValues_(const OpenMS::DataArrays::FloatDataArray& floatDataArray);
 
