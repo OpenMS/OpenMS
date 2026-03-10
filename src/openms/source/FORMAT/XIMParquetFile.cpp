@@ -282,13 +282,16 @@ namespace OpenMS
     /// Read optional Int64 value at row; returns false if null or absent.
     bool getOptionalInt_(const std::shared_ptr<arrow::Array>& array, int64_t row, Int64& value)
     {
-      if (!array || array->IsNull(row))
+      // Delegate to the type-checked helper which also validates integer column types.
+      try
       {
-        return false;
+        return getIntValueFromArray_(array, row, value);
       }
-      auto typed = std::static_pointer_cast<arrow::Int64Array>(array);
-      value = typed->Value(row);
-      return true;
+      catch (const Exception::BaseException&)
+      {
+        // Re-throw to preserve original error behaviour for unsupported types.
+        throw;
+      }
     }
 
     /// Read optional Double value at row; returns false if null or absent.
@@ -298,29 +301,59 @@ namespace OpenMS
       {
         return false;
       }
-      auto typed = std::static_pointer_cast<arrow::DoubleArray>(array);
-      value = typed->Value(row);
-      return true;
+      switch (array->type_id())
+      {
+        case arrow::Type::DOUBLE:
+          value = static_cast<arrow::DoubleArray*>(array.get())->Value(row);
+          return true;
+        case arrow::Type::FLOAT:
+          value = static_cast<double>(static_cast<arrow::FloatArray*>(array.get())->Value(row));
+          return true;
+        default:
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Unsupported floating-point column type", String(array->type()->ToString()));
+      }
     }
 
     /// Read optional String value at row; returns false if null or absent.
     bool getOptionalString_(const std::shared_ptr<arrow::Array>& array, int64_t row, String& value)
     {
-      if (!array || array->IsNull(row))
+      // Reuse the validated helper that supports STRING and LARGE_STRING
+      try
       {
-        return false;
+        return getStringValueFromArray_(array, row, value);
       }
-      auto typed = std::static_pointer_cast<arrow::StringArray>(array);
-      value = typed->GetString(row);
-      return true;
+      catch (const Exception::BaseException&)
+      {
+        throw;
+      }
     }
 
     /// Read a binary cell as a String view.
     String getBinaryView_(const std::shared_ptr<arrow::Array>& array, int64_t row)
     {
-      auto typed = std::static_pointer_cast<arrow::BinaryArray>(array);
-      const auto view = typed->GetView(row);
-      return String(view.data(), static_cast<Int>(view.size()));
+      if (!array || array->IsNull(row))
+      {
+        return String();
+      }
+      switch (array->type_id())
+      {
+        case arrow::Type::BINARY:
+        {
+          auto typed = static_cast<arrow::BinaryArray*>(array.get());
+          const auto view = typed->GetView(row);
+          return String(view.data(), static_cast<Int>(view.size()));
+        }
+        case arrow::Type::LARGE_BINARY:
+        {
+          auto typed = static_cast<arrow::LargeBinaryArray*>(array.get());
+          const auto view = typed->GetView(row);
+          return String(view.data(), static_cast<Int>(view.size()));
+        }
+        default:
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Unsupported binary column type", String(array->type()->ToString()));
+      }
     }
 
     /// Decode mobility/intensity arrays stored as compressed binary blobs.
