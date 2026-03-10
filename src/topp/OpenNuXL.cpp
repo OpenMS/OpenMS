@@ -4166,11 +4166,11 @@ static void scoreXLIons_(
 #ifdef OPENMS_WINDOWSPLATFORM      
     if (net_executable.empty())
     { // default on Windows: if no mono executable is set use the "native" .NET one
-      arguments << String("-i=" + in)
-                << String("--output_file=" + out)
-                << String("-f=2") // indexedMzML
-                << String("-e"); // ignore instrument errors
-      if (no_peak_picking)  { arguments << String("--noPeakPicking"); }
+      arguments.push_back("-i=" + in);
+      arguments.push_back("--output_file=" + out);
+      arguments.push_back("-f=2"); // indexedMzML
+      arguments.push_back("-e"); // ignore instrument errors
+      if (no_peak_picking)  { arguments.push_back("--noPeakPicking"); }
       std::vector<std::string> args;
       args.reserve(arguments.size());
       for (const auto& a : arguments) args.push_back(a);
