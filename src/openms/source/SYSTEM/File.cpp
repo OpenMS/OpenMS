@@ -371,8 +371,12 @@ namespace OpenMS
       {
         return false;
       }
-      // Otherwise, attempt to create the directory (and parents)
-      return std::filesystem::create_directories(s);
+      // Otherwise, attempt to create the directory (and parents).
+      // Note: create_directories may return false on macOS/libc++ for paths with
+      // trailing slashes even when it successfully creates the directories.
+      // So we check existence after the call instead of relying on the return value.
+      std::filesystem::create_directories(s);
+      return std::filesystem::exists(s, ec) && std::filesystem::is_directory(s, ec);
     }
     catch (const std::filesystem::filesystem_error& /*e*/)
     {

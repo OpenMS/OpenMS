@@ -198,7 +198,8 @@ END_SECTION
 
 START_SECTION(static bool removeDirRecursively(const String &dir_name))
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/";
-  TEST_TRUE(std::filesystem::create_directories(std::filesystem::path(static_cast<const std::string&>(dirname))));
+  std::filesystem::create_directories(std::filesystem::path(static_cast<const std::string&>(dirname)));
+  TEST_TRUE(std::filesystem::is_directory(std::filesystem::path(static_cast<const std::string&>(dirname))));
   TextFile tf;
   tf.store(dirname + "test.txt");
   TEST_EQUAL(File::removeDirRecursively(dirname), true)
@@ -235,7 +236,8 @@ START_SECTION(static String getUserDirectory())
   // set user directory to a path set by environmental variable and test that
   // it is correctly set (no changes on the file system occur)
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
-  TEST_EQUAL(std::filesystem::create_directories(std::filesystem::path(static_cast<const std::string&>(dirname))), true);
+  std::filesystem::create_directories(std::filesystem::path(static_cast<const std::string&>(dirname)));
+  TEST_TRUE(std::filesystem::is_directory(std::filesystem::path(static_cast<const std::string&>(dirname))));
 #ifdef OPENMS_WINDOWSPLATFORM
   _putenv_s("OPENMS_HOME_PATH", dirname.c_str());  
 #else
