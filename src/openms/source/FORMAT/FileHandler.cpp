@@ -53,6 +53,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -677,7 +678,7 @@ namespace OpenMS
 
   String FileHandler::computeFileHash(const String& filename)
   {
-    std::ifstream file(filename, std::ios::binary);
+    std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
     if (!file.is_open())
     {
       return "";

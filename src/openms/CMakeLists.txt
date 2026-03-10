@@ -59,7 +59,7 @@ set(OPENMS_DEP_LIBRARIES
   LibSVM::LibSVM
   XercesC::XercesC
   Qt6::Core
-  Qt6::Network
+  CURL::libcurl
 )
 
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
@@ -164,6 +164,11 @@ endif()
 # propagate Parquet support to the code (used to gate tools in ToolHandler, etc.)
 if (WITH_PARQUET)
     target_compile_definitions(OpenMS PUBLIC WITH_PARQUET=1)
+endif()
+
+## Enable test-only hooks in the OpenMS library when building tests
+if(BUILD_TESTING)
+  target_compile_definitions(OpenMS PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
 endif()
 
 

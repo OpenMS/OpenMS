@@ -15,6 +15,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
@@ -405,9 +406,19 @@ namespace OpenMS
       tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
       progresslogger.endProgress();
     }
+    else if (tr_type == FileTypes::OSWPQ)
+    {
+#ifdef WITH_PARQUET
+      progresslogger.startProgress(0, 1, "Load Parquet library");
+      TransitionParquetFile().convertParquetToTargetedExperiment(tr_file, transition_exp);
+      progresslogger.endProgress();
+#else
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#endif
+    }
     else
     {
-      OPENMS_LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
+      OPENMS_LOG_ERROR << "Provide valid TraML, TSV, PQP or OSWPQ transition file." << std::endl;
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Need to provide valid input file.");
     }
     return transition_exp;

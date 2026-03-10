@@ -12,6 +12,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <nlohmann/json.hpp>
 
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 
@@ -231,8 +232,8 @@ namespace OpenMS
 
     String full_path = File::find(filename_);
 
-    // Data files are UTF-8 encoded (verified). std::ifstream reads UTF-8 correctly.
-    std::ifstream file(full_path);
+    // Use std::filesystem::path to support non-ASCII paths on Windows (wide-string open)
+    std::ifstream file{std::filesystem::path{std::string(full_path)}};
     if (!file.is_open())
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, full_path);

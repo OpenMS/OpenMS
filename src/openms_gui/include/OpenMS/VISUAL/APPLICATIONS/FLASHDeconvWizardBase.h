@@ -16,7 +16,6 @@
 
 // QT
 #include <QtCore/QProcess>
-#include <QtNetwork/QNetworkReply>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
@@ -30,8 +29,6 @@ class QLabel;
 class QWidget;
 class QTreeWidget;
 class QTreeWidgetItem;
-class QWebView;
-class QNetworkAccessManager;
 
 namespace Ui
 {

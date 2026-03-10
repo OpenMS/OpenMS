@@ -37,6 +37,7 @@
     "libsvm",
     "qtsvg",
     "zlib",
+    "curl",
     "coin-or-cgl",
     "coin-or-clp",
     "coin-or-cbc",

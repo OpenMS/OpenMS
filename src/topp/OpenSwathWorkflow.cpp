@@ -22,6 +22,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
+#ifdef WITH_PARQUET
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
+#include <OpenMS/FORMAT/ParquetFile.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <filesystem>
+#endif
 #include <OpenMS/SYSTEM/File.h>
 
 // Kernel and implementations
@@ -51,6 +57,7 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <memory>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
 
@@ -134,6 +141,7 @@ The assay library (transition list) is provided through the @p -tr parameter and
   <ul>
     <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" (Recommended) </li>
     <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
+    <li> @ref OpenMS::TransitionParquetFile "OpenSWATH Parquet library (.oswpq)" </li>
     <li> @ref OpenMS::TraMLFile "TraML" </li>
     <li> SpectraST MRM transition lists </li>
     <li> Skyline transition lists </li>
@@ -162,8 +170,9 @@ Gaussian smoothing based on your estimated peak width. Adjusting the signal
 to noise threshold will make the peaks wider or smaller.
 
 <h3>Output: Feature list and chromatograms </h3>
-The output of the OpenSwathWorkflow is a feature list, either as FeatureXML
-or a @ref OpenMS::OSWFile "OpenSWATH SQLite file" (use @p -out_features) while the latter is more memory
+The output of the OpenSwathWorkflow is a feature list, either as FeatureXML,
+a @ref OpenMS::OSWFile "OpenSWATH SQLite file", or an OpenSWATH Parquet output
+(use @p -out_features) while the SQLite output is more memory
 friendly and can be directly used as input to other tools such as pyProphet (a Python
 re-implementation of mProphet) software tool, see Reiter et al (2011, Nature
 Methods).
@@ -221,10 +230,14 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
 
-    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp')");
-    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,pqp"));
+    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp','oswpq')");
+    StringList tr_formats = {"traML", "tsv", "pqp"};
+#ifdef WITH_PARQUET
+    tr_formats.push_back("oswpq");
+#endif
+    setValidFormats_("tr", tr_formats);
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,pqp"));
+    setValidStrings_("tr_type", tr_formats);
 
     registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false);
     registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
@@ -235,11 +248,15 @@ protected:
     registerStringOption_("enable_ipf", "<true|false>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
     setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
 
-    registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file) or .featureXML", false);
-    setValidFormats_("out_features", ListUtils::create<String>("osw,featureXML"));
+    registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file), .oswpq, or .featureXML", false);
+    std::vector<String> out_feature_formats = {"osw", "featureXML"};
+#ifdef WITH_PARQUET
+    out_feature_formats.push_back("oswpq");
+#endif
+    setValidFormats_("out_features", out_feature_formats);
 
     registerStringOption_("out_features_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("out_features_type", {"osw","featureXML"});
+    setValidStrings_("out_features_type", out_feature_formats);
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML), sqMass (SQLite format) or xic (Parquet)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass,xic"));
@@ -287,6 +304,8 @@ protected:
 
     registerFlag_("split_file_input", "The input files each contain one single SWATH (alternatively: all SWATH are in separate files)", true);
     registerFlag_("use_elution_model_score", "Turn on elution model score (EMG fit to peak)", true);
+
+    registerFlag_("append_oswpq", "If out_features is an oswpq archive, optionally append to the existing .oswpq archive instead of overwriting. This may be useful if you run separate instances of OpenSwathWorkflow for separate input files. (default: overwrite)", true);
 
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
     setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory,workingInMemory"));
@@ -557,6 +576,13 @@ protected:
       writeLogError_("Error: Could not determine input file type for '-out_features' !");
       return PARSE_ERROR;
     }
+#ifndef WITH_PARQUET
+    if (out_features_type == FileTypes::OSWPQ)
+    {
+      writeLogError_("Error: OpenMS was built without Parquet support, cannot write oswpq output.");
+      return PARSE_ERROR;
+    }
+#endif
 
     String out_qc = getStringOption_("out_qc");
 
@@ -862,6 +888,42 @@ protected:
           }
         }
       }
+      else if (tr_type == FileTypes::OSWPQ)
+      {
+#ifndef WITH_PARQUET
+        writeLogError_("Error: OpenMS was built without Parquet support, cannot use oswpq input with OSW output.");
+        return PARSE_ERROR;
+#else
+        // Convert parquet library to .PQP for OSW output
+        TransitionPQPFile().convertLightTargetedExperimentToPQP(out_features.c_str(), transition_exp);
+
+        auto precursor_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "PRECURSOR");
+        auto transition_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "TRANSITION");
+
+        for (auto & prec : transition_exp.getCompounds())
+        {
+          if (auto id = precursor_traml_to_pqp.find(prec.id); id != precursor_traml_to_pqp.end())
+          {
+            prec.id = id->second;
+          }
+        }
+
+        for (auto & tr : transition_exp.getTransitions())
+        {
+          auto pep = precursor_traml_to_pqp.find(tr.getPeptideRef());
+          if (pep != precursor_traml_to_pqp.end())
+          {
+            tr.peptide_ref = pep->second;
+          }
+
+          auto id = transition_traml_to_pqp.find(tr.transition_name);
+          if (id != transition_traml_to_pqp.end())
+          {
+            tr.transition_name = id->second;
+          }
+        }
+#endif
+      }
       else if (tr_type == FileTypes::TRAML)
       {
         if (out_features_type == FileTypes::OSW)
@@ -939,12 +1001,39 @@ protected:
 
     // Set up shared output objects that persist across files
     FeatureMap out_featureFile;  // accumulates features across all files
-    bool store_features = (out_features_type != FileTypes::FEATUREXML);
-    String osw_out_filename = store_features ? out_features : "";
+    const bool write_osw = (out_features_type == FileTypes::OSW);
+    const bool write_parquet = (out_features_type == FileTypes::OSWPQ);
+    String osw_out_filename = write_osw ? out_features : "";
     OpenSwathOSWWriter oswwriter(osw_out_filename, enable_uis_scoring);
 
+#ifdef WITH_PARQUET
+    String parquet_dir = out_features;
+    bool parquet_zip_output = false;
+    std::unique_ptr<File::TempDir> parquet_temp_dir;
+    OpenSwathOSWParquetWriter parquet_writer;
+    // Configure writer append behavior from CLI flag
+    parquet_writer.setPreserveExisting(getFlag_("append_oswpq"));
+    if (write_parquet)
+    {
+      parquet_zip_output = out_features.hasSuffix(".oswpq");
+      if (parquet_zip_output)
+      {
+        parquet_temp_dir = std::make_unique<File::TempDir>();
+        parquet_dir = parquet_temp_dir->getPath() + "/oswpq_output";
+        // Pre-create the directory so that OpenSwathOSWParquetWriter::write()
+        // detects it as an existing directory (File::isDirectory() returns true)
+        // and persists all run data there instead of redirecting to its own
+        // internal temp dir (which is destroyed after each call).
+        File::makeDir(parquet_dir);
+      }
+    }
+#endif
+
     // Write DB schema once (only for first file)
-    oswwriter.writeHeader();
+    if (write_osw)
+    {
+      oswwriter.writeHeader();
+    }
 
     const bool user_pasef = pasef;
 
@@ -1236,7 +1325,10 @@ protected:
 
     // Register the same run ID in OSW.
     // For OSW, use the first file in the run group as the representative filename
-    oswwriter.addRun(cur_run, current_run_files[0]);
+    if (write_osw)
+    {
+      oswwriter.addRun(cur_run, current_run_files[0]);
+    }
     // Also register run in chromatogram consumer if it is a SQL consumer
     MSDataSqlConsumer* sql_cons = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
     if (sql_cons != nullptr)
@@ -1252,12 +1344,15 @@ protected:
       sql_cons->setRunId(cur_run);
     }
 
+    FeatureMap run_featureFile;
+    FeatureMap& active_feature_map = write_parquet ? run_featureFile : out_featureFile;
+
     OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, mrm_mode, outer_loop_threads);
     wf.setLogType(log_type_);
 
     // perform extraction for this file's swath maps
     wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
-             out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer);
+             active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer);
 
     if (mobilogramConsumer != nullptr)
     {
@@ -1270,9 +1365,43 @@ protected:
 
     delete chromatogramConsumer;
 
+    if (write_parquet)
+    {
+#ifdef WITH_PARQUET
+      parquet_writer.write(parquet_dir, transition_exp, active_feature_map,
+                           cur_run, current_run_files[0], enable_uis_scoring);
+#endif
+    }
+
     OPENMS_LOG_INFO << std::endl;
     ++run_index;
     } // end for each run
+
+#ifdef WITH_PARQUET
+    if (write_parquet && parquet_zip_output)
+    {
+      // Stream files into the zip archive instead of unzipping/rezipping the
+      // whole directory. This uses ZipArchiveFile::addOrReplaceFromFile which
+      // streams from disk and avoids loading large parquet blobs into memory.
+      const std::filesystem::path dirpath = std::filesystem::u8path(std::string(parquet_dir));
+      const String output_zip_abs = File::absolutePath(out_features);
+      if (File::exists(output_zip_abs))
+      {
+        File::remove(output_zip_abs);
+      }
+
+      for (auto it = std::filesystem::recursive_directory_iterator(dirpath); it != std::filesystem::recursive_directory_iterator(); ++it)
+      {
+        if (it->is_directory()) continue;
+        const auto full = it->path();
+        std::string rel = std::filesystem::relative(full, dirpath).generic_string();
+        ZipArchiveFile::addOrReplaceFromFile(out_features, String(rel), String(full.string()));
+      }
+      // Write the embedded sidecar index that enables random-access reads
+      // directly from the archive without extracting (RAF pattern).
+      ZipArchiveFile::writeSidecarIndex(output_zip_abs);
+    }
+#endif
 
     if ( out_features_type == FileTypes::FEATUREXML )
     {
