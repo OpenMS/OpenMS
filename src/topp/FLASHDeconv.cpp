@@ -195,9 +195,9 @@ protected:
     double max_rt = getDoubleOption_("max_rt") * 60.0;
     int max_ms_level = getIntOption_("max_ms_level");
 
-    std::map<uint, int> per_ms_level_spec_count;
-    std::map<uint, int> per_ms_level_deconv_spec_count;
-    std::map<uint, int> per_ms_level_mass_count;
+    std::map<unsigned int, int> per_ms_level_spec_count;
+    std::map<unsigned int, int> per_ms_level_deconv_spec_count;
+    std::map<unsigned int, int> per_ms_level_mass_count;
     FLASHDeconvAlgorithm fd;
 
     // Reassemble parameters from CLI subsections back into format expected by FLASHDeconvAlgorithm.
@@ -265,14 +265,14 @@ protected:
     // collect statistics for information
     for (const auto& it : map)
     {
-      uint ms_level = it.getMSLevel();
+      unsigned int ms_level = it.getMSLevel();
       if (per_ms_level_spec_count.find(ms_level) == per_ms_level_spec_count.end()) per_ms_level_spec_count[ms_level] = 0;
       per_ms_level_spec_count[ms_level]++;
     }
 
     for (const auto& deconvolved_spectrum : deconvolved_spectra)
     {
-      uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+      unsigned int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       scan_rt_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum.getOriginalSpectrum().getRT();
 
       if (deconvolved_spectrum.empty()) continue;
@@ -336,7 +336,7 @@ protected:
 
       for (const auto& deconvolved_spectrum : deconvolved_spectra)
       {
-        uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+        unsigned int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
         if (ms_level > out_spec_file.size() || out_spec_file[ms_level - 1].empty()) continue;
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), fd.getDecoyAveragine(),
                                                         tols[ms_level - 1], write_detail, report_decoy, fd.getNoiseDecoyWeight());
@@ -417,7 +417,7 @@ protected:
 
       for (const auto& deconvolved_spectrum : deconvolved_spectra)
       {
-        uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+        unsigned int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
         if (ms_level > out_topfd_file.size() || out_topfd_file[ms_level - 1].empty()) continue;
 
         FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], in_file, 1,

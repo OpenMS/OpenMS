@@ -25,7 +25,7 @@ namespace OpenMS
                                                        const bool write_detail, const bool report_decoy, const double noise_decoy_weight)
   {
     if (!report_decoy && dspec.isDecoy()) return;
-    static std::vector<uint> indices {};
+    static std::vector<unsigned int> indices {};
     std::stringstream ss;
     if (dspec.empty())
     {
@@ -233,7 +233,7 @@ namespace OpenMS
     os << ss.str();
   }
 
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::ostream& os, const uint ms_level, const bool detail, const bool report_decoy)
+  void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::ostream& os, const unsigned int ms_level, const bool detail, const bool report_decoy)
   {
     if (detail)
     {
@@ -524,7 +524,7 @@ namespace OpenMS
     os << "####################### Parameters ######################\n";
   }
 
-  void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::ostream& os, const String& filename, double qval_threshold, uint min_ms_level,
+  void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::ostream& os, const String& filename, double qval_threshold, unsigned int min_ms_level,
                                            bool randomize_precursor_mass, bool randomize_fragment_mass)
   {
     std::stringstream ss;

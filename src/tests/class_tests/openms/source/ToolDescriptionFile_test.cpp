@@ -43,7 +43,7 @@ START_SECTION((void load(const String &filename, std::vector< Internal::ToolDesc
 {
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;
-  std::filesystem::path dir(std::string(ToolHandler::getExternalToolsPath()));
+  std::filesystem::path dir{std::string(ToolHandler::getExternalToolsPath())};
   for (const auto& entry : std::filesystem::directory_iterator(dir))
   {
     if (entry.path().extension() == ".ttd")

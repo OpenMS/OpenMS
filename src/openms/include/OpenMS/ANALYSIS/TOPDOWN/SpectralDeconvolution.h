@@ -207,7 +207,7 @@ namespace OpenMS
     double mz_bin_min_value_;
 
     /// current ms Level
-    uint ms_level_;
+    unsigned int ms_level_;
 
     /// isotope dalton distance
     double iso_da_distance_;

@@ -277,10 +277,10 @@ namespace OpenMS
      *
      * @param[in] findex The feature index to assign to this peak group.
      */
-    void setFeatureIndex(uint findex);
+    void setFeatureIndex(unsigned int findex);
 
     /// get index of this peak group
-    uint getIndex() const;
+    unsigned int getIndex() const;
     /**
      * @brief Get the feature index associated with this peak group.
      *
@@ -290,7 +290,7 @@ namespace OpenMS
      * @return The feature index. Returns 0 if no feature has been assigned
      *         (default initialization).
      */
-    uint getFeatureIndex() const;
+    unsigned int getFeatureIndex() const;
 
     /// iterators for the signal LogMz peaks in this PeakGroup
     std::vector<FLASHHelperClasses::LogMzPeak>::const_iterator begin() const noexcept;
@@ -383,9 +383,9 @@ namespace OpenMS
     /// charge range
     int min_abs_charge_ = 0, max_abs_charge_ = -1;
     /// peak group index
-    uint index_ = 0;
+    unsigned int index_ = 0;
     /// feature index in which this peak group is included. 0 if not included in any feature
-    uint findex_ = 0;
+    unsigned int findex_ = 0;
     /// scan number
     int scan_number_ = 0;
     /// is positive or not

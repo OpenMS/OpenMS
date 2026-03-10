@@ -127,13 +127,13 @@ namespace OpenMS
     void updateMSLevels_(MSExperiment& map);
 
     /// merge spectra
-    void mergeSpectra_(MSExperiment& map, uint ms_level);
+    void mergeSpectra_(MSExperiment& map, unsigned int ms_level);
 
     /// run spectral deconvolution
     void runSpectralDeconvolution_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
     /// find precursor scan number when peak group is not found
-    int findPrecursorScanNumber_(const MSExperiment& map, Size index, uint ms_level) const;
+    int findPrecursorScanNumber_(const MSExperiment& map, Size index, unsigned int ms_level) const;
 
     /// append decoy peak groups to deconvolved spectrum
     void appendDecoyPeakGroups_(DeconvolvedSpectrum& deconvolved_spectrum, const MSSpectrum& spec, int scan_number, const PeakGroup& precursor_pg);
@@ -148,13 +148,13 @@ namespace OpenMS
     void findPrecursorPeakGroupsFormIdaLog_(const MSExperiment& map, Size index, double start_mz, double end_mz);
 
     /// register the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
-    void findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level);
+    void findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, unsigned int ms_level);
 
     /// find scan number bounds for precursor search
-    std::pair<int, int> findScanNumberBounds_(const MSExperiment& map, Size index, uint ms_level) const;
+    std::pair<int, int> findScanNumberBounds_(const MSExperiment& map, Size index, unsigned int ms_level) const;
 
     /// collect survey scans within the given scan number bounds
-    std::vector<DeconvolvedSpectrum> collectSurveyScans_(const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int b_scan_number, int a_scan_number, uint ms_level) const;
+    std::vector<DeconvolvedSpectrum> collectSurveyScans_(const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int b_scan_number, int a_scan_number, unsigned int ms_level) const;
 
     /// get isolation window m/z range from precursors
     std::pair<double, double> getIsolationWindowMzRange_(const MSSpectrum& spec) const;
@@ -163,7 +163,7 @@ namespace OpenMS
     PeakGroup findBestPrecursorPeakGroup_(const std::vector<DeconvolvedSpectrum>& survey_scans, double start_mz, double end_mz) const;
 
     /// determine tolerance
-    void determineTolerance_(const MSExperiment& map, const Param& sd_param, const FLASHHelperClasses::PrecalculatedAveragine& avg, uint ms_level);
+    void determineTolerance_(const MSExperiment& map, const Param& sd_param, const FLASHHelperClasses::PrecalculatedAveragine& avg, unsigned int ms_level);
 
     /// get histogram
     static std::vector<int> getHistogram_(const std::vector<double>& data, double min_range, double max_range, double bin_size);

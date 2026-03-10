@@ -119,7 +119,7 @@ void FLASHDeconvAlgorithm::updateMSLevels_(MSExperiment& map)
     if (it.empty()) { continue; }
     if (it.getMSLevel() > max_ms_level_) { continue; }
 
-    uint ms_level = it.getMSLevel();
+    unsigned int ms_level = it.getMSLevel();
     current_max_ms_level_ = current_max_ms_level_ < ms_level ? ms_level : current_max_ms_level_;
     current_min_ms_level_ = current_min_ms_level_ > ms_level ? ms_level : current_min_ms_level_;
   }
@@ -156,15 +156,15 @@ void FLASHDeconvAlgorithm::filterLowPeaks_(MSExperiment& map)
   OPENMS_LOG_INFO << "Done" << std::endl;
 }
 
-void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
+void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, unsigned int ms_level)
 {
   SpectraMerger merger;
   merger.setLogType(CMD);
   Param sm_param = merger.getDefaults();
   sm_param.setValue("mz_binning_width", tols_[ms_level - 1] / 2.5);
   sm_param.setValue("mz_binning_width_unit", "ppm");
-  uint min_ms_level = param_.getValue("merging_min_ms_level");
-  uint max_ms_level = param_.getValue("merging_max_ms_level");
+  unsigned int min_ms_level = param_.getValue("merging_min_ms_level");
+  unsigned int max_ms_level = param_.getValue("merging_max_ms_level");
   if (merge_spec_ == 1 && ms_level >= min_ms_level && ms_level <= max_ms_level)
   {
     if (ms_level == 1)
@@ -254,7 +254,7 @@ std::vector<double> FLASHDeconvAlgorithm::getTolerances() const
   return tols_;
 }
 
-int FLASHDeconvAlgorithm::findPrecursorScanNumber_(const MSExperiment& map, Size index, uint ms_level) const
+int FLASHDeconvAlgorithm::findPrecursorScanNumber_(const MSExperiment& map, Size index, unsigned int ms_level) const
 {
   for (int p_index = (int)index - 1; p_index >= 0; p_index--)
   {
@@ -303,7 +303,7 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
     rt_scan_map[map[index].getRT()] = scan_number;
   }
 
-  for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
+  for (unsigned int ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
   {
     if (ms_level > 1) { findPrecursorPeakGroupsForMSnSpectra_(map, deconvolved_spectra, ms_level); }
 
@@ -379,7 +379,7 @@ std::vector<int> FLASHDeconvAlgorithm::getHistogram_(const std::vector<double>& 
   return bins;
 }
 
-void FLASHDeconvAlgorithm::determineTolerance_(const MSExperiment& map, const Param& sd_param, const FLASHHelperClasses::PrecalculatedAveragine& avg, const uint ms_level)
+void FLASHDeconvAlgorithm::determineTolerance_(const MSExperiment& map, const Param& sd_param, const FLASHHelperClasses::PrecalculatedAveragine& avg, const unsigned int ms_level)
 {
   OPENMS_LOG_INFO << "Determining tolerance for MS" << ms_level << " ... ";
   auto sd = SpectralDeconvolution();
@@ -397,7 +397,7 @@ void FLASHDeconvAlgorithm::determineTolerance_(const MSExperiment& map, const Pa
   std::vector<double> sampled_tols;
   for (const auto& spec : map)
   {
-    if (ms_level != (uint)spec.getMSLevel()) { continue; }
+    if (ms_level != (unsigned int)spec.getMSLevel()) { continue; }
     if (spec.empty()) { continue; }
     if (count++ % sample_rate != 0) continue;
     PeakGroup precursor_pg;
@@ -472,7 +472,7 @@ void FLASHDeconvAlgorithm::run(MSExperiment& map,
   const auto& avg = sd_.getAveragine();
 
   // determine tolerance in case tolerance input is negative
-  for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
+  for (unsigned int ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
   {
     if (tols_[ms_level - 1] > 0) continue;
     determineTolerance_(map, sd_param, avg, ms_level);
@@ -510,7 +510,7 @@ void FLASHDeconvAlgorithm::run(MSExperiment& map,
   quantifier.quantify(map, deconvolved_spectra, deconvolved_features);
 }
 
-std::pair<int, int> FLASHDeconvAlgorithm::findScanNumberBounds_(const MSExperiment& map, Size index, uint ms_level) const
+std::pair<int, int> FLASHDeconvAlgorithm::findScanNumberBounds_(const MSExperiment& map, Size index, unsigned int ms_level) const
 {
   // find beginning scan number
   int num_precursor_window = ms_level == 2 ? precursor_MS1_window_ : 1;
@@ -538,7 +538,7 @@ std::pair<int, int> FLASHDeconvAlgorithm::findScanNumberBounds_(const MSExperime
 std::vector<DeconvolvedSpectrum> FLASHDeconvAlgorithm::collectSurveyScans_(const std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
                                                                             int b_scan_number,
                                                                             int a_scan_number,
-                                                                            uint ms_level) const
+                                                                            unsigned int ms_level) const
 {
   std::vector<DeconvolvedSpectrum> survey_scans;
 
@@ -620,7 +620,7 @@ PeakGroup FLASHDeconvAlgorithm::findBestPrecursorPeakGroup_(const std::vector<De
 
 void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map,
                                                                  const std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
-                                                                 uint ms_level)
+                                                                 unsigned int ms_level)
 {
   for (Size index = 0; index < map.size(); index++)
   {
@@ -714,13 +714,13 @@ void FLASHDeconvAlgorithm::runFeatureFinding_(std::vector<DeconvolvedSpectrum>& 
   for (int ms_level = (int)current_min_ms_level_ + 1; ms_level <= (int)current_max_ms_level_; ms_level++)
   {
     updatePrecursorQScores_(deconvolved_spectra, ms_level);
-    std::map<uint, std::vector<Size>> feature_index_set;
+    std::map<unsigned int, std::vector<Size>> feature_index_set;
     for (Size i = 0; i < deconvolved_spectra.size(); i++)
     {
       const auto& dspec = deconvolved_spectra[i];
       if ((int)dspec.getOriginalSpectrum().getMSLevel() != ms_level) continue;
       if (dspec.getPrecursorPeakGroup().empty()) continue;
-      uint findex = dspec.getPrecursorPeakGroup().getFeatureIndex();
+      unsigned int findex = dspec.getPrecursorPeakGroup().getFeatureIndex();
       if (findex == 0) continue;
       feature_index_set[findex].push_back(i);
     }

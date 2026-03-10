@@ -26,7 +26,7 @@ namespace OpenMS
           "\n";
   }
 
-  void FLASHDeconvFeatureFile::writeTopFDFeatureHeader(std::ostream& os, uint ms_level)
+  void FLASHDeconvFeatureFile::writeTopFDFeatureHeader(std::ostream& os, unsigned int ms_level)
   {
     //  //File_name	Fraction_ID	Spectrum_ID	Scans	MS_one_ID	MS_one_scans	Fraction_feature_ID	Fraction_feature_intensity
     // Fraction_feature_score	Fraction_feature_min_time	Fraction_feature_max_time
@@ -102,13 +102,13 @@ namespace OpenMS
   }
 
   void FLASHDeconvFeatureFile::writeTopFDFeatures(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features,
-                                                  const std::map<int, double>& scan_rt_map, const String& file_name, std::ostream& os, uint ms_level)
+                                                  const std::map<int, double>& scan_rt_map, const String& file_name, std::ostream& os, unsigned int ms_level)
   {
     std::stringstream ss;
 
     if (ms_level == 1)
     {
-      uint max_feature_index = 0;
+      unsigned int max_feature_index = 0;
       for (const auto& mass_feature : mass_features)
       {
         if (mass_feature.ms_level != 1 || mass_feature.is_decoy) continue;

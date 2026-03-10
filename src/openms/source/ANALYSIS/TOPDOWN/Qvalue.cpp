@@ -31,20 +31,20 @@ namespace OpenMS
   double Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra) // per ms level + precursor update as well.
   {
     double noise_weight = 1;
-    std::map<uint, std::vector<double>> score_map_target; // target PeakGroupScoring vector per ms level
-    std::map<uint, std::vector<double>> score_signal_decoy_map; // signal decoy PeakGroupScoring vector per ms level
-    std::map<uint, std::vector<double>> score_noise_decoy_map; // noise decoy PeakGroupScoring vector per ms level
-    std::map<uint, std::map<double, double>> qscore_qvalue_map; // mapping from qscore to qvalue
+    std::map<unsigned int, std::vector<double>> score_map_target; // target PeakGroupScoring vector per ms level
+    std::map<unsigned int, std::vector<double>> score_signal_decoy_map; // signal decoy PeakGroupScoring vector per ms level
+    std::map<unsigned int, std::vector<double>> score_noise_decoy_map; // noise decoy PeakGroupScoring vector per ms level
+    std::map<unsigned int, std::map<double, double>> qscore_qvalue_map; // mapping from qscore to qvalue
 
     // to calculate qvalues per ms level, store Qscores per ms level
-    std::set<uint> used_feature_indices;
+    std::set<unsigned int> used_feature_indices;
 
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
       if (deconvolved_spectrum.empty())
         continue;
 
-      uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+      unsigned int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : deconvolved_spectrum)
       {
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
@@ -157,7 +157,7 @@ namespace OpenMS
     // refine qvalues to make them monotonic decreasing
     for (const auto& titem : score_map_target)
     {
-      uint ms_level = titem.first;
+      unsigned int ms_level = titem.first;
       auto& map_qvalue = qscore_qvalue_map[ms_level];
 
       double cummin = 1.0;

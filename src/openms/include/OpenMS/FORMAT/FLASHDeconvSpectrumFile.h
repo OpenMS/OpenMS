@@ -30,7 +30,7 @@ namespace OpenMS
             @param[out] report_decoy if set true, decoy and qvalue information will be written.
        */
     static void writeDeconvolvedMassesHeader(std::ostream& os,
-                                             uint ms_level,
+                                             unsigned int ms_level,
                                              bool detail,
                                              bool report_decoy);
     /**

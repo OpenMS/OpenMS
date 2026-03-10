@@ -119,7 +119,7 @@ namespace OpenMS
         int size = sizeof(path);
         if (GetModuleFileNameA(NULL, path, size))
 #elif  defined(__APPLE__)
-        uint size = sizeof(path);
+        uint32_t size = sizeof(path);
         if (_NSGetExecutablePath(path, &size) == 0)
 #else // LINUX
         // note: implementation as suggested by readlink man page

@@ -38,7 +38,7 @@ namespace OpenMS
   std::vector<FLASHHelperClasses::MassFeature> MassFeatureTrace::findFeaturesAndUpdateQscore2D(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
                                                                                                      int ms_level, bool is_decoy)
   {
-    static uint findex = 1;
+    static unsigned int findex = 1;
     MSExperiment map;
     std::map<int, MSSpectrum> index_spec_map;
     int min_abs_charge = INT_MAX;

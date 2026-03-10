@@ -976,7 +976,7 @@ namespace OpenMS
     return std::max(qscore_, qscore2D_);
   }
 
-  void PeakGroup::setFeatureIndex(uint findex)
+  void PeakGroup::setFeatureIndex(unsigned int findex)
   {
     findex_ = findex;
   }
@@ -1087,12 +1087,12 @@ namespace OpenMS
     index_ = i;
   }
 
-  uint PeakGroup::getIndex() const
+  unsigned int PeakGroup::getIndex() const
   {
     return index_;
   }
 
-  uint PeakGroup::getFeatureIndex() const
+  unsigned int PeakGroup::getFeatureIndex() const
   {
     return findex_;
   }

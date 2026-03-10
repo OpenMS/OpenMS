@@ -31,7 +31,7 @@ namespace OpenMS
     static void writeHeader(std::ostream& os, bool report_decoy = false);
 
     /// write header line for topFD feature file
-    static void writeTopFDFeatureHeader(std::ostream& os, uint ms_level);
+    static void writeTopFDFeatureHeader(std::ostream& os, unsigned int ms_level);
 
     /// write the features in regular file output
     static void writeFeatures(const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const String& file_name, std::ostream& os, bool report_decoy = false);
@@ -47,6 +47,6 @@ namespace OpenMS
      */
 
     static void writeTopFDFeatures(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features,
-                                   const std::map<int, double>& scan_rt_map, const String& file_name, std::ostream& os, uint ms_level);
+                                   const std::map<int, double>& scan_rt_map, const String& file_name, std::ostream& os, unsigned int ms_level);
   };
 } // namespace OpenMS
