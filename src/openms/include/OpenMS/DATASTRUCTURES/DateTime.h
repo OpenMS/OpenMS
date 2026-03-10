@@ -59,6 +59,7 @@ namespace OpenMS
 
     // Now
     static DateTime now();
+    static DateTime nowUTC();
 
     // State
     bool isValid() const;

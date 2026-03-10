@@ -349,7 +349,26 @@ namespace OpenMS
   DateTime DateTime::nowUTC()
   {
     DateTime d;
-    *d.dt_ = QDateTime::currentDateTimeUtc();
+    std::time_t t = std::time(nullptr);
+#if defined(_WIN32)
+    std::tm gt{};
+    gmtime_s(&gt, &t);
+    d.year_   = gt.tm_year + 1900;
+    d.month_  = gt.tm_mon + 1;
+    d.day_    = gt.tm_mday;
+    d.hour_   = gt.tm_hour;
+    d.minute_ = gt.tm_min;
+    d.second_ = gt.tm_sec;
+#else
+    std::tm* gt = std::gmtime(&t);
+    d.year_   = gt->tm_year + 1900;
+    d.month_  = gt->tm_mon + 1;
+    d.day_    = gt->tm_mday;
+    d.hour_   = gt->tm_hour;
+    d.minute_ = gt->tm_min;
+    d.second_ = gt->tm_sec;
+#endif
+    d.valid_ = true;
     return d;
   }
 

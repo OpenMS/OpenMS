@@ -12,8 +12,6 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
 
-#include <nlohmann/json_fwd.hpp> // forward decl for nlohmann::json
-
 namespace SQLite
 {
   class Database;
@@ -175,8 +173,8 @@ namespace OpenMS
         SQLite::Statement& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
 
-      /// Export the contents of a database table to JSON (nlohmann::json)
-      nlohmann::json exportTableToJSON_(const std::string& table, const std::string& order_by);
+      /// Export the contents of a database table to JSON
+      /// (implemented as a free function in the .cpp to avoid exposing nlohmann types in the header)
 
       /// The database connection (read)
       std::unique_ptr<SQLite::Database> db_;

@@ -1087,7 +1087,7 @@ namespace OpenMS
     index_ = i;
   }
 
-  size_t PeakGroup::getIndex() const
+  uint PeakGroup::getIndex() const
   {
     return index_;
   }

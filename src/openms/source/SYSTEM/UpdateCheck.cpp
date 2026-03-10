@@ -82,7 +82,7 @@ namespace OpenMS
     if (!File::exists(version_file_name) || !File::readable(version_file_name))
     {
       // create OpenMS folder for .ver files
-      std::filesystem::path config_dir(std::string(config_path));
+      std::filesystem::path config_dir{std::string(config_path)};
 
       if (!std::filesystem::exists(config_dir))
       {
@@ -90,7 +90,7 @@ namespace OpenMS
       }
 
       // touch file to create it and set initial modification time stamp
-      std::ofstream f(std::string(version_file_name));
+      std::ofstream f{std::string(version_file_name)};
       f.close();
       first_run = true;
     }
@@ -98,7 +98,7 @@ namespace OpenMS
     if (File::readable(version_file_name))
     {
       // Get file modification time using std::filesystem
-      std::filesystem::path version_file_path(std::string(version_file_name));
+      std::filesystem::path version_file_path{std::string(version_file_name)};
       auto last_modified = std::filesystem::last_write_time(version_file_path);
 
       // Convert to system time for comparison

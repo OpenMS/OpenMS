@@ -22,6 +22,40 @@ using namespace std;
 
 using ID = OpenMS::IdentificationData;
 
+namespace
+{
+  nlohmann::json exportTableToJSON_(SQLite::Database& db, const std::string& table, const std::string& order_by)
+  {
+    // code based on: https://stackoverflow.com/a/18067555
+    std::string sql = "SELECT * FROM " + table;
+    if (!order_by.empty())
+    {
+      sql += " ORDER BY " + order_by;
+    }
+
+    SQLite::Statement query(db, sql);
+
+    nlohmann::json array = nlohmann::json::array();
+    while (query.executeStep())
+    {
+      nlohmann::json record = nlohmann::json::object();
+      for (int i = 0; i < query.getColumnCount(); ++i)
+      {
+        const char* colname = query.getColumnName(i);
+        switch (query.getColumn(i).getType())
+        {
+          case SQLITE_INTEGER: record[colname] = static_cast<long long>(query.getColumn(i).getInt64()); break;
+          case SQLITE_FLOAT: record[colname] = query.getColumn(i).getDouble(); break;
+          case SQLITE_NULL: record[colname] = ""; break;
+          default: record[colname] = query.getColumn(i).getText(); break;
+        }
+      }
+      array.push_back(record);
+    }
+    return array;
+  }
+} // anonymous namespace
+
 namespace OpenMS::Internal
 {
   // initialize lookup table:
@@ -1098,40 +1132,6 @@ namespace OpenMS::Internal
   }
 
 
-  nlohmann::json OMSFileLoad::exportTableToJSON_(const std::string& table, const std::string& order_by)
-  {
-    // code based on: https://stackoverflow.com/a/18067555
-    String sql = "SELECT * FROM " + table;
-    if (!order_by.empty())
-    {
-      sql += " ORDER BY " + order_by;
-    }
-
-    SQLite::Statement query(*db_, sql);
-
-    nlohmann::json array = nlohmann::json::array();
-    while (query.executeStep())
-    {
-      nlohmann::json record = nlohmann::json::object();
-      for (int i = 0; i < query.getColumnCount(); ++i)
-      {
-        const char* colname = query.getColumnName(i);
-        // sqlite stores each cell based on the actual value, not the declared column type;
-        // thus, we could use query.getColumnDeclaredType(i), but it would incur conversion
-        switch (query.getColumn(i).getType())
-        {
-          case SQLITE_INTEGER: record[colname] = static_cast<long long>(query.getColumn(i).getInt64()); break;
-          case SQLITE_FLOAT: record[colname] = query.getColumn(i).getDouble(); break;
-          case SQLITE_NULL: record[colname] = ""; break;
-          default: record[colname] = query.getColumn(i).getText(); break; // treat TEXT/BLOB as string
-        }
-      }
-      array.push_back(record);
-    }
-    return array;
-  }
-
-
   void OMSFileLoad::exportToJSON(ostream& output)
   {
     // @TODO: this constructs the whole JSON file in memory - write directly to stream instead?
@@ -1156,7 +1156,7 @@ namespace OpenMS::Internal
       {
         order_by = pos->second;
       }
-      json_data[table] = exportTableToJSON_(table, order_by);
+      json_data[table] = exportTableToJSON_(*db_, table, order_by);
     }
 
     output << json_data.dump(2);

@@ -60,6 +60,8 @@
 
 using namespace std;
 
+namespace OpenMS
+{
   String allowedToString_(vector<FileTypes::Type> types)
   {
     String aStrings;

@@ -12,6 +12,7 @@
 #include <OpenMS/OpenMSConfig.h>
 
 #include <string>
+#include <string_view>
 #include <cstring>
 #include <vector>
 
@@ -66,6 +67,8 @@ public:
     OPENMS_DLLAPI String(String&&) = default;
     /// Constructor from std::string
     OPENMS_DLLAPI String(const std::string& s);
+    /// Constructor from std::string_view
+    String(std::string_view sv) : std::string(sv) {}
     /// Constructor from char*
     OPENMS_DLLAPI String(const char* s);
     /// Constructor from a char
