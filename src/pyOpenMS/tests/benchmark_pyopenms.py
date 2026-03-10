@@ -518,25 +518,25 @@ def bench_data_arrays(suite: BenchmarkSuite):
     suite.bench(f"FloatDataArray.get_data() [n={n}]", "Data Arrays",
                 lambda: fda.get_data(), iterations=100)
 
-    # --- FloatDataArray get_data_mv (zero-copy memory view) ---
-    if hasattr(fda, 'get_data_mv'):
-        suite.bench(f"FloatDataArray.get_data_mv() [n={n}]", "Data Arrays",
-                    lambda: fda.get_data_mv(), iterations=10_000)
+    # --- FloatDataArray get_data_view (zero-copy memory view) ---
+    if hasattr(fda, 'get_data_view'):
+        suite.bench(f"FloatDataArray.get_data_view() [n={n}]", "Data Arrays",
+                    lambda: fda.get_data_view(), iterations=10_000)
 
-        # Compare: get_data (copy) vs get_data_mv (zero-copy)
+        # Compare: get_data (copy) vs get_data_view (zero-copy)
         def use_get_data():
             arr = np.array(fda.get_data(), dtype=np.float32)
             return np.sum(arr)
 
-        def use_get_data_mv():
-            arr = fda.get_data_mv()
+        def use_get_data_view():
+            arr = fda.get_data_view()
             return np.sum(arr)
 
         suite.bench(f"FloatDataArray get_data+np.sum [n={n}]", "Data Arrays",
                     use_get_data, iterations=100)
 
-        suite.bench(f"FloatDataArray get_data_mv+np.sum [n={n}]", "Data Arrays",
-                    use_get_data_mv, iterations=100)
+        suite.bench(f"FloatDataArray get_data_view+np.sum [n={n}]", "Data Arrays",
+                    use_get_data_view, iterations=100)
 
     # --- FloatDataArray set_data ---
     data_np = rng.uniform(0, 100, n).astype(np.float32)
@@ -620,16 +620,16 @@ def bench_memory_views(suite: BenchmarkSuite):
     suite.bench(f"get_intensity_array() [n={n_peaks}]", "Memory Views",
                 lambda: spec.get_intensity_array(), iterations=1000)
 
-    # --- get_drift_time_array (copy) vs get_drift_time_array_mv (zero-copy view) ---
+    # --- get_drift_time_array (copy) vs get_drift_time_array_view (zero-copy view) ---
     if hasattr(spec, 'get_drift_time_array'):
         suite.bench(f"get_drift_time_array() copy [n={n_peaks}]", "Memory Views",
                     lambda: spec.get_drift_time_array(), iterations=1000)
 
-    if hasattr(spec, 'get_drift_time_array_mv'):
-        suite.bench(f"get_drift_time_array_mv() zero-copy [n={n_peaks}]", "Memory Views",
-                    lambda: spec.get_drift_time_array_mv(), iterations=10_000)
+    if hasattr(spec, 'get_drift_time_array_view'):
+        suite.bench(f"get_drift_time_array_view() zero-copy [n={n_peaks}]", "Memory Views",
+                    lambda: spec.get_drift_time_array_view(), iterations=10_000)
 
-    # --- FloatDataArray: get_data (copy) vs get_data_mv (zero-copy view) ---
+    # --- FloatDataArray: get_data (copy) vs get_data_view (zero-copy view) ---
     fda_large = pyopenms.FloatDataArray()
     large_data = rng.uniform(0, 100, n_peaks).astype(np.float32)
     fda_large.set_data(large_data)
@@ -637,9 +637,9 @@ def bench_memory_views(suite: BenchmarkSuite):
     suite.bench(f"FDA.get_data() copy [n={n_peaks}]", "Memory Views",
                 lambda: fda_large.get_data(), iterations=100)
 
-    if hasattr(fda_large, 'get_data_mv'):
-        suite.bench(f"FDA.get_data_mv() zero-copy [n={n_peaks}]", "Memory Views",
-                    lambda: fda_large.get_data_mv(), iterations=10_000)
+    if hasattr(fda_large, 'get_data_view'):
+        suite.bench(f"FDA.get_data_view() zero-copy [n={n_peaks}]", "Memory Views",
+                    lambda: fda_large.get_data_view(), iterations=10_000)
 
     # --- Numpy operations on zero-copy vs copy ---
     def copy_then_compute():
@@ -647,13 +647,13 @@ def bench_memory_views(suite: BenchmarkSuite):
         return float(np.mean(arr))
 
     def zerocopy_then_compute():
-        arr = fda_large.get_data_mv()
+        arr = fda_large.get_data_view()
         return float(np.mean(arr))
 
     suite.bench(f"copy + np.mean [n={n_peaks}]", "Memory Views",
                 copy_then_compute, iterations=50)
 
-    if hasattr(fda_large, 'get_data_mv'):
+    if hasattr(fda_large, 'get_data_view'):
         suite.bench(f"zero-copy + np.mean [n={n_peaks}]", "Memory Views",
                     zerocopy_then_compute, iterations=50)
 
@@ -668,14 +668,14 @@ def bench_memory_views(suite: BenchmarkSuite):
     }
     print(f"  [info] get_peaks array flags: {info}")
 
-    if hasattr(fda_large, 'get_data_mv'):
-        mv = fda_large.get_data_mv()
+    if hasattr(fda_large, 'get_data_view'):
+        mv = fda_large.get_data_view()
         mv_info = {
             "contiguous": bool(mv.flags['C_CONTIGUOUS']),
             "writable": bool(mv.flags['WRITEABLE']),
             "dtype": str(mv.dtype),
         }
-        print(f"  [info] get_data_mv array flags: {mv_info}")
+        print(f"  [info] get_data_view array flags: {mv_info}")
 
     # --- Round-trip: get_peaks -> modify numpy -> set_peaks ---
     def roundtrip():

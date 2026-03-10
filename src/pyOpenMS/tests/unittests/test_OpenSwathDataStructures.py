@@ -85,7 +85,7 @@ class TestOpenSwathDataStructures(unittest.TestCase):
 
         self.assertAlmostEqual(mz[0], 1)
 
-        mz_view = spectrum.get_mz_array_mv()
+        mz_view = spectrum.get_mz_array_view()
 
         self.assertAlmostEqual(mz_view[0], 1)
 
@@ -101,7 +101,7 @@ class TestOpenSwathDataStructures(unittest.TestCase):
 
         dataarr = spectrum.get_data_arrays()
         mz = dataarr[0].get_data()
-        mz_view = dataarr[0].get_data_mv()
+        mz_view = dataarr[0].get_data_view()
         self.assertAlmostEqual(mz[0], 200)
         self.assertAlmostEqual(mz_view[0], 200)
 
@@ -160,6 +160,31 @@ class TestOpenSwathDataStructures(unittest.TestCase):
 
         for i,e in zip(intensity, int_exp):
             self.assertAlmostEqual(i,e)
+
+    def test_osbinarydataarray_get_data_view_empty(self):
+        """get_data_view() should return empty array for empty OSBinaryDataArray."""
+        import numpy as np
+        bda = pyopenms.OSBinaryDataArray()
+        arr = bda.get_data_view()
+        self.assertIsInstance(arr, np.ndarray)
+        self.assertEqual(len(arr), 0)
+
+    def test_osspectrum_view_empty(self):
+        """All _view methods should return empty arrays for empty OSSpectrum."""
+        import numpy as np
+        spec = pyopenms.OSSpectrum()
+        for arr in [spec.get_mz_array_view(), spec.get_intensity_array_view(),
+                     spec.get_drift_time_array_view()]:
+            self.assertIsInstance(arr, np.ndarray)
+            self.assertEqual(len(arr), 0)
+
+    def test_oschromatogram_view_empty(self):
+        """All _view methods should return empty arrays for empty OSChromatogram."""
+        import numpy as np
+        chrom = pyopenms.OSChromatogram()
+        for arr in [chrom.get_time_array_view(), chrom.get_intensity_array_view()]:
+            self.assertIsInstance(arr, np.ndarray)
+            self.assertEqual(len(arr), 0)
 
 if __name__ == '__main__':
     unittest.main()
