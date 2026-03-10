@@ -101,7 +101,7 @@ In addition to the usual CMake options you can set for the OpenMS C++ toolkit, e
 | Target | Description |
 |--------|-------------|
 | `pyopenms` | Main target: builds complete pyOpenMS module (runs all sub-targets) |
-| `pyopenms_compile` | Compile all C++ nanobind extension modules (10 domain modules + main + arrow) |
+| `pyopenms_compile` | Compile all C++ nanobind extension modules (13 domain modules + main + arrow) |
 | `_pyopenms_kernel`, `_pyopenms_chemistry`, etc. | Individual domain module targets |
 | `pyopenms_copy_deps` | Copy OpenMS libraries to pyOpenMS build directory (when `NO_DEPENDENCIES=OFF`) |
 | `pyopenms_fix_deps` | Fix library dependencies on macOS (when `NO_DEPENDENCIES=OFF`) |
@@ -227,10 +227,10 @@ The build process compiles hand-maintained nanobind C++ binding files:
 
 ### Step 1: C++ Compilation and Linking
 
-- **Input:** Hand-maintained `bindings/bind_*.cpp` files (11 files across 10 domains + main)
+- **Input:** Hand-maintained `bindings/bind_*.cpp` files (14 files across 13 domains + main)
 - **Tools:** C++ compiler (gcc/clang/MSVC), linker, nanobind
 - **Output:** Domain-based shared modules: `_pyopenms.*.so` (Linux), `.dylib` (macOS), `.pyd` (Windows)
-  - 10 domain modules: `_pyopenms_kernel`, `_pyopenms_chemistry`, `_pyopenms_analysis`, etc.
+  - 13 domain modules: `_pyopenms_kernel`, `_pyopenms_chemistry`, `_pyopenms_analysis`, etc.
   - 1 main module: `_pyopenms`
   - 1 optional Arrow module: `_arrow_zerocopy` (when `WITH_PARQUET=ON`)
 - **What happens:** nanobind C++ code is compiled and linked against OpenMS, OpenSwathAlgo, and Python. All modules share types via `NB_DOMAIN "pyopenms"`.
@@ -252,7 +252,7 @@ The result is a native Python extension module that can be imported with `import
 
 ## Wrapping New Classes
 
-Bindings are hand-maintained in `bindings/bind_<domain>.cpp` files. See [README_WRAPPING_NEW_CLASSES](./README_WRAPPING_NEW_CLASSES) for detailed instructions.
+Bindings are hand-maintained in `bindings/bind_<domain>.cpp` files. See [README_WRAPPING_NEW_CLASSES](./README_WRAPPING_NEW_CLASSES.md) for detailed instructions.
 
 **Quick overview:**
 
@@ -339,7 +339,7 @@ Common methods to add for container-like classes:
 - `__repr__()`: Return `f"ClassName(key_prop={value}, ...)"` with important properties
 - `__str__()`: Delegate to `__repr__()` or return simpler output
 - `get_data()`: Return safe copy of data (for DataArray classes)
-- `get_data_mv()`: Return memory view (fast but unsafe, document lifetime)
+- `get_data_view()`: Return zero-copy writable view (None if empty, document lifetime). Deprecated alias: `get_data_mv()`
 
 ### Rebuilding After Addon Changes
 

@@ -10,8 +10,6 @@ Tests the feature export methods:
 """
 
 import pytest
-import os
-import tempfile
 
 # Skip entire module if pyarrow is not installed
 pytest.importorskip("pyarrow")
@@ -305,42 +303,30 @@ class TestFeatureDf:
 class TestFeatureParquet:
     """Tests for to_feature_parquet()."""
 
-    def test_write_read(self):
+    def test_write_read(self, tmp_path):
         import pyarrow.parquet as pq
         cmap = create_test_consensus_map()
-        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
-            path = f.name
-        try:
-            cmap.to_feature_parquet(path)
-            table = pq.read_table(path)
-            assert table.num_rows == 3
-            assert "sequence" in table.column_names
-        finally:
-            os.unlink(path)
+        path = str(tmp_path / "test.parquet")
+        cmap.to_feature_parquet(path)
+        table = pq.read_table(path)
+        assert table.num_rows == 3
+        assert "sequence" in table.column_names
 
-    def test_compression_snappy(self):
+    def test_compression_snappy(self, tmp_path):
         import pyarrow.parquet as pq
         cmap = create_test_consensus_map()
-        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
-            path = f.name
-        try:
-            cmap.to_feature_parquet(path, compression='snappy')
-            table = pq.read_table(path)
-            assert table.num_rows == 3
-        finally:
-            os.unlink(path)
+        path = str(tmp_path / "test.parquet")
+        cmap.to_feature_parquet(path, compression='snappy')
+        table = pq.read_table(path)
+        assert table.num_rows == 3
 
-    def test_compression_none(self):
+    def test_compression_none(self, tmp_path):
         import pyarrow.parquet as pq
         cmap = create_test_consensus_map()
-        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
-            path = f.name
-        try:
-            cmap.to_feature_parquet(path, compression='none')
-            table = pq.read_table(path)
-            assert table.num_rows == 3
-        finally:
-            os.unlink(path)
+        path = str(tmp_path / "test.parquet")
+        cmap.to_feature_parquet(path, compression='none')
+        table = pq.read_table(path)
+        assert table.num_rows == 3
 
 
 class TestFeatureQPX:

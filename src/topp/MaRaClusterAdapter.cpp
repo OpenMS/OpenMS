@@ -473,6 +473,63 @@ protected:
       PeakMap exp;
       fh.loadExperiment(FileHandler::stripExtension(consensus_out) + ".part1." + FileTypes::typeToName(in_type), exp, {in_type}, log_type_, true, true);
       exp.sortSpectra();
+
+      //-------------------------------------------------------------
+      // Annotate consensus spectra with original native IDs and file origins
+      //-------------------------------------------------------------
+
+      // Build scan_nr -> native_id maps for each input file
+      std::vector<std::map<Int, String>> file_scan_to_nativeid(in_list.size());
+      for (Size f_idx = 0; f_idx < in_list.size(); ++f_idx)
+      {
+        PeakMap input_exp;
+        FileHandler fh_in;
+        fh_in.loadExperiment(in_list[f_idx], input_exp, {fh_in.getType(in_list[f_idx])}, log_type_, false, false);
+        for (const auto& spec : input_exp)
+        {
+          file_scan_to_nativeid[f_idx][getScanNumber_(spec.getNativeID())] = spec.getNativeID();
+        }
+      }
+
+      // Build consensus_scan -> list of (file_origin, original_native_id)
+      // cluster index - 1 is equal to scan_number in consensus.mzML (see idXML annotation above)
+      std::map<Int, std::vector<std::pair<String, String>>> consensus_scan_to_refs;
+      for (const auto& entry : specid_to_clusterid_map)
+      {
+        Int consensus_scan = entry.second - 1;
+        const MaRaClusterResult& res = entry.first;
+        String native_id;
+        auto it = file_scan_to_nativeid[res.file_idx].find(res.scan_nr);
+        if (it != file_scan_to_nativeid[res.file_idx].end())
+        {
+          native_id = it->second;
+        }
+        else
+        {
+          native_id = "scan=" + String(res.scan_nr);
+        }
+        consensus_scan_to_refs[consensus_scan].emplace_back(in_list[res.file_idx], native_id);
+      }
+
+      // Annotate each consensus spectrum with source metadata
+      for (Size i = 0; i < exp.size(); ++i)
+      {
+        Int scan_nr = getScanNumber_(exp[i].getNativeID());
+        auto it = consensus_scan_to_refs.find(scan_nr);
+        if (it != consensus_scan_to_refs.end())
+        {
+          StringList native_ids, file_origins;
+          for (const auto& ref : it->second)
+          {
+            file_origins.push_back(ref.first);
+            native_ids.push_back(ref.second);
+          }
+          exp[i].setMetaValue("maracluster_original_native_ids", ListUtils::concatenate(native_ids, ","));
+          exp[i].setMetaValue("maracluster_original_file_origins", ListUtils::concatenate(file_origins, ","));
+          exp[i].setMetaValue("maracluster_cluster_size", static_cast<Int>(it->second.size()));
+        }
+      }
+
       fh.storeExperiment(consensus_out, exp, {FileTypes::MZML}, log_type_);
     }
 

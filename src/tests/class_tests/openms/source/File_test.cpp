@@ -337,21 +337,6 @@ START_SECTION(File::~TempDir())
 END_SECTION
 
 
-START_SECTION(File::download(std::string url, std::string filename))
-{
-  std::string url = R"(http://raw.githubusercontent.com/OpenMS/OpenMS/refs/heads/develop/README.md)";
-  std::string folder = File::getTempDirectory();
-  File::download(url, folder);
-  std::string output_file_path = folder + "/README.md";
-
-  TEST_EQUAL(File::exists(output_file_path), 1);
-  if (File::exists(output_file_path))
-  {
-    File::removeDir(QString(output_file_path.c_str()));
-  }
-}
-END_SECTION
-
 START_SECTION(static File::MatchingFileListsStatus validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename, bool ignore_extension))
 {
   // Test exact match

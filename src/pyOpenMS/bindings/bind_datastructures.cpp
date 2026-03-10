@@ -647,15 +647,15 @@ A classical configuration would contain a list of settings e.g.
         .def("resize", [](OpenMS::Matrix<double>& self, size_t rows, size_t cols) { self.resize(rows, cols); }, "rows"_a, "cols"_a)
         .def("__len__", [](OpenMS::Matrix<double>& self) { return self.size(); })
 
-        .def("get_matrix_as_view", [](nb::object self_obj) {
+        .def("get_matrix_view", [](nb::object self_obj) -> nb::object {
             auto& self = nb::cast<OpenMS::Matrix<double>&>(self_obj);
             size_t shape[2] = {self.rows(), self.cols()};
             int64_t strides[2] = {1, static_cast<int64_t>(self.rows())};
-
+            double* data_ptr = (self.rows() == 0 || self.cols() == 0) ? nullptr : self.data();
             return nb::ndarray<nb::numpy, double, nb::ndim<2>>(
-                self.data(), 2, shape, self_obj, strides
-            );
-        }, "Returns a zero-copy numpy view of the matrix data (F-contiguous). Modifications affect the C++ object.")
+                data_ptr, 2, shape, self_obj, strides
+            ).cast();
+        }, "Returns a zero-copy numpy view of the matrix data (F-contiguous). Modifications affect the C++ object. Returns empty array if empty.")
 
         .def("get_matrix", [](const OpenMS::Matrix<double>& self) {
             Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>

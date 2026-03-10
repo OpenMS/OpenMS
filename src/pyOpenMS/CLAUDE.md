@@ -2,7 +2,7 @@
 
 ## Architecture
 
-- **Bindings** (`bindings/`) — hand-maintained nanobind C++ binding files (10 domain modules + main)
+- **Bindings** (`bindings/`) — hand-maintained nanobind C++ binding files (13 domain modules + main)
 - **Type casters** (`bindings/type_casters/`) — custom nanobind type casters (C++ ↔ Python conversion)
 - **Addon system** (`pyopenms/addons/`) — pure Python methods injected into wrapped classes at import time
 - **DataFrame wrappers** in `pyopenms/_dataframes.py` add pandas methods (keeps pandas optional)

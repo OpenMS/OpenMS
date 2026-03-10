@@ -81,3 +81,4 @@ def get_df_columns(self, *args, **kwargs):
         DeprecationWarning, stacklevel=2
     )
     return self.df_columns(*args, **kwargs)
+    

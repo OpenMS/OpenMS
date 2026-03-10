@@ -1307,6 +1307,12 @@ add_test("TOPP_MSstatsConverter_3" ${TOPP_BIN_PATH}/MSstatsConverter -test -in $
 add_test("TOPP_MSstatsConverter_3_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MSstatsConverter_3_out.tmp.csv -in2 ${DATA_DIR_TOPP}/MSstatsConverter_3_out.csv )
 set_tests_properties("TOPP_MSstatsConverter_3_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_3")
 
+# MSstatsConverter subset test
+add_test("TOPP_MSstatsConverter_subset" ${TOPP_BIN_PATH}/MSstatsConverter -test -in ${DATA_DIR_TOPP}/MSstatsConverter_subset_in.consensusXML -in_design ${DATA_DIR_TOPP}/MSstatsConverter_subset_design.tsv -out ${TESTS_TEMP_DIR}/MSstatsConverter_subset_out.tmp.csv)
+
+add_test("TOPP_MSstatsConverter_subset_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MSstatsConverter_subset_out.tmp.csv -in2 ${DATA_DIR_TOPP}/MSstatsConverter_subset_out.csv)
+
+set_tests_properties("TOPP_MSstatsConverter_subset_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_subset")
 if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
   # MRM / SWATH tests (from OpenSWATH)
@@ -1470,6 +1476,30 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   # Use -sort flag because PQP roundtrip may return rows in different order
   add_test("TOPP_TargetedFileConverter_light_path_out1" ${DIFF} -sort -in1 TargetedFileConverter_light_path.tmp.tsv -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_light_path_output.tsv)
   set_tests_properties("TOPP_TargetedFileConverter_light_path_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_light_path")
+
+# Parquet library support (requires WITH_PARQUET and external zip/unzip)
+if (WITH_PARQUET)
+  add_test("TOPP_TargetedFileConverter_parquet_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.oswpq -out_type oswpq)
+  add_test("TOPP_TargetedFileConverter_parquet_roundtrip" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.oswpq -in_type oswpq -out ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.tsv -out_type tsv)
+  set_tests_properties("TOPP_TargetedFileConverter_parquet_roundtrip" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_parquet_prepare")
+
+  # Validate parquet roundtrip output by converting back to TSV and diffing
+  add_test("TOPP_TargetedFileConverter_parquet_roundtrip_out1" ${DIFF} -sort -in1 ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_parquet_roundtrip.tsv)
+  set_tests_properties("TOPP_TargetedFileConverter_parquet_roundtrip_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_parquet_roundtrip")
+
+  add_test("TOPP_OpenSwathAssayGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -in_type tsv -out ${TESTS_TEMP_DIR}/OpenSwathAssayGenerator_parquet_output.tmp.oswpq -out_type oswpq)
+  # Convert generated assay archive back to TSV and compare with reference
+  add_test("TOPP_OpenSwathAssayGenerator_parquet_to_tsv" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${TESTS_TEMP_DIR}/OpenSwathAssayGenerator_parquet_output.tmp.oswpq -in_type oswpq -out ${TESTS_TEMP_DIR}/OpenSwathAssayGenerator_parquet_output.tmp.tsv -out_type tsv)
+  add_test("TOPP_OpenSwathAssayGenerator_parquet_out1" ${DIFF} -sort -in1 ${TESTS_TEMP_DIR}/OpenSwathAssayGenerator_parquet_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_parquet_output.tsv)
+  set_tests_properties("TOPP_OpenSwathAssayGenerator_parquet_to_tsv" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_parquet")
+  set_tests_properties("TOPP_OpenSwathAssayGenerator_parquet_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_parquet_to_tsv")
+
+  add_test("TOPP_OpenSwathDecoyGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -in_type TraML -out ${TESTS_TEMP_DIR}/OpenSwathDecoyGenerator_parquet_output.tmp.oswpq -out_type oswpq -method pseudo-reverse -separate -switchKR false)
+  add_test("TOPP_OpenSwathDecoyGenerator_parquet_to_tsv" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${TESTS_TEMP_DIR}/OpenSwathDecoyGenerator_parquet_output.tmp.oswpq -in_type oswpq -out ${TESTS_TEMP_DIR}/OpenSwathDecoyGenerator_parquet_output.tmp.tsv -out_type tsv)
+  add_test("TOPP_OpenSwathDecoyGenerator_parquet_out1" ${DIFF} -sort -in1 ${TESTS_TEMP_DIR}/OpenSwathDecoyGenerator_parquet_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_parquet_output.tsv)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_parquet_to_tsv" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_parquet")
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_parquet_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_parquet_to_tsv")
+endif()
 
   # protein group conversion test PQP
   add_test("TOPP_TargetedFileConverter_test_12_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.TraML -out ${TESTS_TEMP_DIR}/TargetedFileConverter_12_output.tmp.pqp -out_type pqp)

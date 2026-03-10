@@ -68,7 +68,7 @@ OpenMS/
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
 **Required dependencies:**
-- XercesC, Boost (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, Qt6 (6.1.0+)
+- XercesC, Boost (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, libcurl, Qt6 (6.1.0+)
 
 **Optional:** HDF5 (`-DWITH_HDF5=ON`), Apache Arrow/Parquet (`-DWITH_PARQUET=ON`)
 
@@ -105,7 +105,7 @@ OpenMS/
 - **Minimum version**: 6.1.0
 - If Qt6 not found: `-DCMAKE_PREFIX_PATH='<path_to_Qt6_lib_parent>'`
 - WebEngineWidgets optional; if missing, JavaScript views disabled in TOPPView (warning only)
-- Required components: Core, Network; GUI components need Widgets, Svg, OpenGLWidgets
+- Required components: Core; GUI components need Gui, Widgets, Svg, OpenGLWidgets
 
 ### Boost from Homebrew Warning
 - Statically linked Boost from system installs (brew) NOT fully supported
