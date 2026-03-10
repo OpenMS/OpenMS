@@ -22,7 +22,6 @@
 
 #include <cstdlib>
 
-#include <QStringList>
 ///////////////////////////
 
 using namespace OpenMS;

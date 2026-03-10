@@ -97,7 +97,7 @@ namespace OpenMS
 #if defined(_WIN32)
     localtime_s(&lt, &t);
 #else
-    lt = *std::localtime(&t);
+    localtime_r(&t, &lt);
 #endif
     d.year_ = lt.tm_year + 1900;
     d.month_ = lt.tm_mon + 1;
@@ -157,6 +157,18 @@ namespace OpenMS
   bool Date::operator!=(const Date& rhs) const
   {
     return !(*this == rhs);
+  }
+
+  bool Date::operator<(const Date& rhs) const
+  {
+    if (year_ != rhs.year_) return year_ < rhs.year_;
+    if (month_ != rhs.month_) return month_ < rhs.month_;
+    return day_ < rhs.day_;
+  }
+
+  bool Date::isNull() const
+  {
+    return !valid_flag_;
   }
 
 } // namespace OpenMS

@@ -19,7 +19,7 @@ namespace OpenMS
     delay_in_seconds_(1.0)
   {
     // Connect the slot for monitoring file changes
-    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(s.toQString()); });
+    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(QString::fromStdString(s)); });
   }
 
   FileWatcher::~FileWatcher() = default;
@@ -71,7 +71,7 @@ namespace OpenMS
     //emit the final for the file corresponding to the timer name
     //cout << " - timer name: " << String(timer->objectName()) << endl;
     //cout << " - timer file: " << String(timers_[timer->objectName()]) << endl;
-    emit fileChanged(String(timers_[timer->objectName()]));
+    emit fileChanged(String(timers_[timer->objectName()].toStdString()));
     //erase the timer name from the list
     timers_.erase(timer->objectName());
   }

@@ -196,7 +196,7 @@ namespace OpenMS
 
     void FLASHDeconvTabWidget::updateOutputParamFromPerInputFile(const QString& input_file_name)
     {
-      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + FileHandler::stripExtension(File::basename(input_file_name));
+      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + FileHandler::stripExtension(File::basename(input_file_name.toStdString()));
 
       for (const auto& param : flashdeconv_param_outputs_)
       {

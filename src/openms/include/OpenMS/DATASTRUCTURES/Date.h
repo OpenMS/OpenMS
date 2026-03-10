@@ -69,9 +69,13 @@ namespace OpenMS
     /// Comparison
     bool operator==(const Date& rhs) const;
     bool operator!=(const Date& rhs) const;
+    bool operator<(const Date& rhs) const;
 
     /// Validity
     bool isValid() const;
+
+    /// Returns true if the date is undefined (00/00/0000)
+    bool isNull() const;
 
     /// Fills the arguments with month/day/year (0 if undefined)
     void get(UInt& month, UInt& day, UInt& year) const;

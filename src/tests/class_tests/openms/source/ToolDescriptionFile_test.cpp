@@ -14,8 +14,7 @@
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 ///////////////////////////
 
-#include <QStringList>
-#include <QDir>
+#include <filesystem>
 
 using namespace OpenMS;
 using namespace std;
@@ -44,15 +43,14 @@ START_SECTION((void load(const String &filename, std::vector< Internal::ToolDesc
 {
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;
-  QStringList list;
-  QDir dir( ToolHandler::getExternalToolsPath().toQString(), "*.ttd");
-  QStringList files = dir.entryList();
-  for (int i=0;i<files.size();++i)
+  std::filesystem::path dir(std::string(ToolHandler::getExternalToolsPath()));
+  for (const auto& entry : std::filesystem::directory_iterator(dir))
   {
-    files[i] = dir.absolutePath()+QDir::separator()+files[i];
-    f.load(files[i], tds);
-    //std::cerr << "load: " << String(files[i]) << "\n";
-    TEST_EQUAL(!tds.empty(), true)
+    if (entry.path().extension() == ".ttd")
+    {
+      f.load(entry.path().string(), tds);
+      TEST_EQUAL(!tds.empty(), true)
+    }
   }
   
 }

@@ -12,7 +12,6 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
-#include <QtCore/QDate>
 #include <iostream>
 #include <vector>
 

@@ -164,7 +164,7 @@ namespace OpenMS
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, &TOPPASBase::showURL);
     action->setShortcut(Qt::Key_F1);
-    action->setData(String("html/TOPPAS_tutorial.html").toQString());
+    action->setData(QString("html/TOPPAS_tutorial.html"));
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
