@@ -182,7 +182,7 @@ OpenMS Library:
       - pyOpenMS bindings included
     - OpenSwathWorkflow:
       - Added Parquet-based archive (.oswpq) to store spectral library information and multi-run feature scores. (#8813)
-      - Added support for reading/writing Parquet extracted ion chromatogram files (.xic) and extraced ion mobilogram files (.xim). (#8737, #8870)
+      - Added support for reading/writing Parquet extracted ion chromatogram files (.xic) and extraced ion mobilogram files (.xim). (#8737, #8871)
     - FeatureFindingMetabo: Added ion mobility support with local_im_range parameter for coeluting mass trace filtering (#8758)
     - IDMapper: Preserve upstream identification data processing metadata when annotating featureXML/consensusXML (#8852)
   Changes:
