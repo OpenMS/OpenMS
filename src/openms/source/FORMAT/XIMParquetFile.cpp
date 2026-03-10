@@ -280,6 +280,9 @@ namespace OpenMS
     }
 
     /// Read optional Int64 value at row; returns false if null or absent.
+    // Forward declarations for helpers defined later in this translation unit.
+    bool getIntValueFromArray_(const std::shared_ptr<arrow::Array>& array, int64_t row, Int64& value);
+    bool getStringValueFromArray_(const std::shared_ptr<arrow::Array>& array, int64_t row, String& value);
     bool getOptionalInt_(const std::shared_ptr<arrow::Array>& array, int64_t row, Int64& value)
     {
       // Delegate to the type-checked helper which also validates integer column types.
