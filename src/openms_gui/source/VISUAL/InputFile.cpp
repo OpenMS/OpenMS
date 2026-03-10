@@ -72,7 +72,7 @@ namespace OpenMS
   {
     ui_->line_edit->setText(filename);
     emit updatedFile(filename);
-    setCWD(File::path(filename).toQString());
+    setCWD(QString::fromStdString(static_cast<const std::string&>(File::path(String(filename.toStdString())))));
   }
 
   QString InputFile::getFilename() const

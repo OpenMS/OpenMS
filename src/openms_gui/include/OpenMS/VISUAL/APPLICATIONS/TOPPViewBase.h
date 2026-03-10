@@ -351,7 +351,7 @@ public slots:
 
     /// list of the recently opened files
     /// called when RecentFileMenu items is clicked
-    void openFile(const String& filename);
+    void openFile(const QString& filename);
 
     /// Enables/disables the data filters for the current layer
     void layerFilterVisibilityChange(bool) const;

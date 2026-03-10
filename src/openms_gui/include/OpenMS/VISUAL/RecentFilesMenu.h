@@ -37,7 +37,7 @@ namespace OpenMS
   
   signals:
     /// when a recent file action item from the getMenu() was clicked
-    void recentFileClicked(const String& filename);
+    void recentFileClicked(const QString& filename);
     
   public:
     /// C'tor

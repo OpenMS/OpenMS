@@ -181,7 +181,7 @@ namespace OpenMS
     const auto ms_levels = in.getMSLevels();
     p.setValue("block_method:ms_levels", IntList(ms_levels.begin(), ms_levels.end())); // merge all MS levels
     p.setValue("mz_binning_width", mz_binning_width);
-    p.setValue("mz_binning_width_unit", String(MZ_UNIT_NAMES[(int)mz_binning_width_unit]));
+    p.setValue("mz_binning_width_unit", String(std::string(MZ_UNIT_NAMES[(int)mz_binning_width_unit])));
     p.setValue("block_method:rt_block_size", INT_MAX);
     p.setValue("block_method:rt_max_length", 10e10);
 

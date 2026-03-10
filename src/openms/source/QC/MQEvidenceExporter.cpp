@@ -15,10 +15,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <QtCore/QDir>
 #include <cmath> // isnan
 #include <fstream>
 #include <vector>
+#include <filesystem>
 
 
 using namespace OpenMS;
@@ -32,8 +32,7 @@ MQEvidence::MQEvidence(const String& path)
   filename_ = path + "/evidence.txt";
   try
   {
-    QString evi_path = QString::fromStdString(path);
-    QDir().mkpath(evi_path);
+    std::filesystem::create_directories(std::filesystem::path(static_cast<const std::string&>(path)));
     file_ = std::fstream(filename_, std::fstream::out);
   }
   catch (...)

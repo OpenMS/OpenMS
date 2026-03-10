@@ -58,7 +58,6 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 set(OPENMS_DEP_LIBRARIES
   LibSVM::LibSVM
   XercesC::XercesC
-  Qt6::Core
   CURL::libcurl
 )
 
@@ -149,6 +148,9 @@ endif()
 if(WITH_PARQUET AND ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE)
   target_link_options(OpenMS PRIVATE "LINKER:--exclude-libs,libarrow_bundled_dependencies.a")
 endif()
+
+# Ensure Qt automoc is disabled for OpenMS core target
+set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
 
 if (MSVC)
   ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC

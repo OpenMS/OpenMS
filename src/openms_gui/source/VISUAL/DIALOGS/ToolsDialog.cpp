@@ -58,7 +58,7 @@ namespace OpenMS
     // Layer label
     auto layer_label = new QLabel("Selected Layer:");
     main_grid->addWidget(layer_label, 0, 0);
-    auto layer_label_name = new QLabel(layer_name.toQString());
+    auto layer_label_name = new QLabel(QString::fromStdString(static_cast<const std::string&>(layer_name)));
     main_grid->addWidget(layer_label_name, 0, 1);
 
     auto label = new QLabel("TOPP tool:");
@@ -217,7 +217,7 @@ namespace OpenMS
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
-        list << pair.first.toQString();
+        list << QString::fromStdString(static_cast<const std::string&>(pair.first));
       }
     }
     //TODO: Plugins get added to the list just like tools and can't be differentiated in the GUI
@@ -226,7 +226,7 @@ namespace OpenMS
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
-        list << String(name).toQString();
+        list << QString::fromStdString(static_cast<const std::string&>(String(name)));
       }
     }
 
@@ -253,7 +253,7 @@ namespace OpenMS
       arg_param_ = plugin_params_.copy(tool_name + ":");
     }
 
-    tool_desc_->setText(String(arg_param_.getSectionDescription(tool_name)).toQString());
+    tool_desc_->setText(QString::fromStdString(static_cast<const std::string&>(String(arg_param_.getSectionDescription(tool_name)))));
     vis_param_ = arg_param_.copy(tool_name + ":1:", true);
     vis_param_.remove("log");
     vis_param_.remove("no_progress");
@@ -350,7 +350,7 @@ namespace OpenMS
     Int pos = tools_combo_->findText(string);
     if (pos == -1)
     {
-      QMessageBox::critical(this, "Error", (String("Cannot apply '") + string + "' tool to this layer type. Aborting!").c_str());
+      QMessageBox::critical(this, "Error", QString("Cannot apply '%1' tool to this layer type. Aborting!").arg(string));
       arg_param_.clear();
       return;
     }
@@ -427,17 +427,17 @@ namespace OpenMS
     if (output_combo_->currentText() == "<select>")
       return "";
 
-    return output_combo_->currentText();
+    return String(output_combo_->currentText().toStdString());
   }
 
   String ToolsDialog::getInput()
   {
-    return input_combo_->currentText();
+    return String(input_combo_->currentText().toStdString());
   }
 
   String ToolsDialog::getTool()
   {
-    return tools_combo_->currentText();
+    return String(tools_combo_->currentText().toStdString());
   }
 
   String ToolsDialog::getExtension()

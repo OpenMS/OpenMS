@@ -10,9 +10,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <QtCore/QDir>
 #include <array>
 #include <unordered_set>
+#include <filesystem>
 
 using namespace std;
 
@@ -74,7 +74,8 @@ namespace OpenMS
               : pep_id.getMetaValue("file_origin").toString();
 
           // Extract the basename, used for output files when --numeric_filenames is not set
-          this->out_basename = QFileInfo(this->origin_fullname.toQString()).completeBaseName().toStdString();
+          std::filesystem::path p(static_cast<std::string>(origin_fullname));
+          this->out_basename = p.stem().string();
 
           // Drop the identification run identifier if we're not splitting by identification runs
           if (!split_ident_runs)

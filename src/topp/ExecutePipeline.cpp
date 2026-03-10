@@ -12,9 +12,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
-
-#include <QApplication>
-#include <QtCore/QDir>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 #include <iostream>
 
@@ -90,22 +88,19 @@ protected:
 
   ExitCodes main_(int argc, const char ** argv) override
   {
-    QString toppas_file = getStringOption_("in").toQString();
-    QString out_dir_name = getStringOption_("out_dir").toQString();
-    QString resource_file = getStringOption_("resource_file").toQString();
+    String toppas_file = getStringOption_("in");
+    String out_dir_name = getStringOption_("out_dir");
+    String resource_file = getStringOption_("resource_file");
     int num_jobs = getIntOption_("num_jobs");
 
-    QApplication a(argc, const_cast<char **>(argv), false);
+    QApplicationTOPP a(const_cast<int&>(argc), const_cast<char **>(argv));
 
-    //set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
-    QString new_tmp_dir = File::getUniqueName().toQString();
-    QDir qd(File::getTempDirectory().toQString());
-    qd.mkdir(new_tmp_dir);
-    qd.cd(new_tmp_dir);
-    QString tmp_path = qd.absolutePath();
+    // set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
+    String tmp_path = File::getTempDirectory() + "/" + File::getUniqueName();
+    File::makeDir(tmp_path);
 
-    TOPPASScene ts(nullptr, tmp_path, false);
-    if (! a.connect(&ts, &TOPPASScene::entirePipelineFinished, &a, &QApplication::quit))
+    TOPPASScene ts(nullptr, QString::fromStdString(tmp_path), false);
+    if (! a.connect(&ts, &TOPPASScene::entirePipelineFinished, &a, &QApplicationTOPP::quit))
     {
       return UNKNOWN_ERROR;
     }
@@ -116,23 +111,19 @@ protected:
     ts.load(toppas_file);
     ts.setAllowedThreads(num_jobs);
 
-    if (resource_file != "")
+    if (!resource_file.empty())
     {
       TOPPASResources resources;
-      resources.load(resource_file);
+      resources.load(QString::fromStdString(resource_file));
       ts.loadResources(resources);
     }
 
-    if (out_dir_name != "")
+    if (!out_dir_name.empty())
     {
-      if (QDir::isRelativePath(out_dir_name))
+      String abs = File::absolutePath(out_dir_name);
+      if (File::exists(abs) && File::isDirectory(abs))
       {
-        out_dir_name = QDir::currentPath() + QDir::separator() + out_dir_name;
-      }
-      out_dir_name = QDir::cleanPath(out_dir_name);
-      if (File::exists(out_dir_name) && File::isDirectory(out_dir_name))
-      {
-        ts.setOutDir(out_dir_name);
+        ts.setOutDir(QString::fromStdString(abs));
       }
       else
       {
@@ -142,14 +133,13 @@ protected:
     }
     else
     {
-      QFileInfo fi(ts.getSaveFileName().toQString());
-      out_dir_name = QDir::cleanPath(ts.getOutDir() + QDir::separator() + String(fi.baseName()).toQString() + QDir::separator());
-      cout << "No output directory specified. Using the user's home directory (" << out_dir_name.toStdString() << ")" << endl;
-      ts.setOutDir(out_dir_name);
-      QDir qd;
-      if (!(qd.exists(out_dir_name) || qd.mkdir(out_dir_name)) || !File::writable(out_dir_name + "test_file_in_the_current_directory"))
+      String base = File::basename(ts.getSaveFileName());
+      String out_dir = String(ts.getOutDir().toStdString()) + "/" + base + "/";
+      cout << "No output directory specified. Using the user's home directory (" << out_dir << ")" << endl;
+      ts.setOutDir(QString::fromStdString(out_dir));
+      if (!(File::exists(out_dir) || File::makeDir(out_dir)) || !File::writable(out_dir + "test_file_in_the_current_directory"))
       {
-        cerr << "You do not have permission to write to " << out_dir_name.toStdString() << endl;
+        cerr << "You do not have permission to write to " << out_dir << endl;
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }
@@ -160,9 +150,15 @@ protected:
     {
       // delete temporary files
       // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
-      if (String(tmp_path).substitute("\\", "/").hasPrefix(File::getTempDirectory().substitute("\\", "/") + "/"))
       {
-        File::removeDirRecursively(tmp_path);
+        String tmp_norm = tmp_path;
+        tmp_norm.substitute("\\", "/");
+        String temp_norm = File::getTempDirectory();
+        temp_norm.substitute("\\", "/");
+        if (tmp_norm.hasPrefix(temp_norm + "/"))
+        {
+          File::removeDirRecursively(tmp_path);
+        }
       }
 
       return EXECUTION_OK;

@@ -61,8 +61,8 @@ namespace OpenMS
 
     // update log
     append("==============================================================================");
-    append((DateTime::now().getTime() + " " + state_string + ": " + heading).toQString());
-    append(body.toQString());
+    append(QString::fromStdString(static_cast<const std::string&>(DateTime::now().getTime() + " " + state_string + ": " + heading)));
+    append(QString::fromStdString(static_cast<const std::string&>(body)));
 
     //show log tool window
     qobject_cast<QWidget*>(parent())->show();

@@ -32,9 +32,18 @@ namespace OpenMS
 
   ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)
   {
-    auto rs = ep_.run(exe, args, working_dir, verbose, error_msg);
-    
-    QMessageBox::critical(parent, "Error", error_msg.toQString());
+    const std::string exe_std = exe.toStdString();
+    std::vector<std::string> args_std;
+    args_std.reserve(static_cast<size_t>(args.size()));
+    for (const auto& a : args) args_std.emplace_back(a.toStdString());
+    const std::string wd_std = working_dir.toStdString();
+
+    auto rs = ep_.run(exe_std, args_std, wd_std, verbose, error_msg);
+
+    if (!error_msg.empty())
+    {
+      QMessageBox::critical(parent, "Error", QString::fromStdString(static_cast<const std::string&>(error_msg)));
+    }
 
     return rs;
   }
@@ -42,9 +51,18 @@ namespace OpenMS
   ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose)
   {
     String error_msg;
-    auto rs = ep_.run(exe, args, working_dir, verbose, error_msg);
+    const std::string exe_std = exe.toStdString();
+    std::vector<std::string> args_std;
+    args_std.reserve(static_cast<size_t>(args.size()));
+    for (const auto& a : args) args_std.emplace_back(a.toStdString());
+    const std::string wd_std = working_dir.toStdString();
 
-    if (!error_msg.empty()) QMessageBox::critical(parent, "Error", error_msg.toQString());
+    auto rs = ep_.run(exe_std, args_std, wd_std, verbose, error_msg);
+
+    if (!error_msg.empty())
+    {
+      QMessageBox::critical(parent, "Error", QString::fromStdString(static_cast<const std::string&>(error_msg)));
+    }
 
     return rs;
   }

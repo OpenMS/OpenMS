@@ -67,7 +67,8 @@ namespace OpenMS
 
   String Residue::getResidueTypeName(const Residue::ResidueType res_type)
   {
-    return names_of_residuetype[res_type];
+    const auto sv = names_of_residuetype[res_type];
+    return String(sv.data(), static_cast<String::SizeType>(sv.size()));
   }
 
   void Residue::setSynonyms(const set<String>& synonyms)

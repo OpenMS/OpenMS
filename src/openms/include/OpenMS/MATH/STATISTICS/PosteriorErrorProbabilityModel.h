@@ -26,7 +26,6 @@ namespace OpenMS
   class PeptideIdentification;
   class ProteinIdentification;
   class PeptideHit;
-  class PeptideIdentificationList;
   namespace Math
   {
 

@@ -55,7 +55,11 @@ SetCompressor /SOLID lzma
 !define APPNAME "OpenMS"
 !define PRODUCT_NAME "${APPNAME}"
 # For the icon used by MultiUser plugin, relative to INSTDIR
+!if "${WITH_GUI}" == "ON"
 !define PROGEXE "bin\TOPPView.exe"
+!else
+!define PROGEXE "bin\OpenMSInfo.exe"
+!endif
 # For our own additional regkeys
 !define REGKEY "SOFTWARE\$(^Name)"
 # For AdvUninstallLog (matches default of MultiUser)
@@ -251,12 +255,14 @@ Section "OpenMS Library" SEC_Lib
 
     !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 
+!if "${WITH_GUI}" == "ON"
     SetOutPath $INSTDIR\bin\plugins
     SetOverwrite on
 
     !insertmacro UNINSTALL.LOG_OPEN_INSTALL
     File /r "${OPENMSPLUGINDIR}\*.*"
     !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+!endif
 
     # share dir
     SetOutPath $INSTDIR\share\OpenMS
@@ -361,10 +367,12 @@ Function CreateShortcuts
     ## otherwise all files will be installed to the default install directory
     !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Documentation (html)" $INSTDIR\share\doc\html\index.html
 
+!if "${WITH_GUI}" == "ON"
     !insertmacro CREATE_SMGROUP_SHORTCUT TOPPView $INSTDIR\bin\TOPPView.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT TOPPAS $INSTDIR\bin\TOPPAS.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT SwathWizard $INSTDIR\bin\SwathWizard.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT INIFileEditor $INSTDIR\bin\INIFileEditor.exe
+!endif
     !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Homepage" "${URL}"
     !insertmacro CREATE_SMGROUP_SHORTCUT "TOPP command line" "$INSTDIR\bin\command.bat"
 
@@ -384,10 +392,12 @@ Section "-Create_StartMenu" SEC_StartMenuCreate
     ## otherwise all files will be installed to the default install directory
     !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Documentation (html)" $INSTDIR\share\doc\html\index.html
 
+!if "${WITH_GUI}" == "ON"
     !insertmacro CREATE_SMGROUP_SHORTCUT TOPPView $INSTDIR\bin\TOPPView.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT TOPPAS $INSTDIR\bin\TOPPAS.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT SwathWizard $INSTDIR\bin\SwathWizard.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT INIFileEditor $INSTDIR\bin\INIFileEditor.exe
+!endif
     !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Homepage" http://www.OpenMS.de/
     !insertmacro CREATE_SMGROUP_SHORTCUT "TOPP command line" "$INSTDIR\bin\command.bat"
 
@@ -465,6 +475,7 @@ Section "-PathInst" SEC_PathRegister
 
 SectionEnd
 
+!if "${WITH_GUI}" == "ON"
 SectionGroup "Register File Extensions" SEC_RegisterExt
     # no logging required, as we do not install files in this section
 
@@ -477,6 +488,7 @@ SectionGroup "Register File Extensions" SEC_RegisterExt
     SectionEnd
 
 SectionGroupEnd
+!endif
 
 ## This is done by NsisMultiUser plugin now
 Section -post SEC0008
@@ -700,7 +712,9 @@ Section "-Uninstall"
     ${EndIf}
 
     # remove extension-links to TOPPView
+!if "${WITH_GUI}" == "ON"
     !insertmacro OpenMSGUIExtensions UnRegisterExtensionSection
+!endif
     ${un.RefreshShellIcons}
 
     ## delete all installed files

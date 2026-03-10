@@ -10,11 +10,10 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <QtCore/QProcess>
-#include <QtCore/QDir>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
 
 #include <sstream>
+#include <filesystem>
 
 using namespace std;
 
@@ -28,7 +27,7 @@ namespace OpenMS
     {
       ss << "  Python not found at '" << python_executable << "'!\n"
          << "  Make sure Python is installed and this location is correct.\n";
-      if (QDir::isRelativePath(python_executable.toQString()))
+      if (std::filesystem::path(static_cast<std::string>(python_executable)).is_relative())
       {
         static String path;
         if (path.empty())
@@ -51,17 +50,15 @@ namespace OpenMS
       ss << "Python executable ('" << py_original << "') resolved to '" << python_executable << "'\n";
     }
 
-    QProcess qp;
-    qp.start(python_executable.toQString(), QStringList() << "--version", QIODevice::ReadOnly);
-    bool success = qp.waitForFinished();
+    ExternalProcess process;
+    String proc_error_msg;
+    std::vector<std::string> args = {"--version"};
+    ExternalProcess::RETURNSTATE result = process.run(static_cast<std::string>(python_executable), args, "", false, proc_error_msg);
+    
+    bool success = (result == ExternalProcess::RETURNSTATE::SUCCESS);
     if (!success)
     {
-      if (qp.error() == QProcess::Timedout)
-      {
-        ss << "  Python was found at '" << python_executable << "' but the process timed out (can happen on very busy systems).\n"
-           << "  Please free some resources or if you want to run the TOPP tool nevertheless set the TOPP tools 'force' flag in order to avoid this check.\n";
-      }
-      else if (qp.error() == QProcess::FailedToStart)
+      if (result == ExternalProcess::RETURNSTATE::FAILED_TO_START)
       {
         ss << "  Python found at '" << python_executable << "' but failed to run!\n"
            << "  Make sure you have the rights to execute this binary file.\n";
@@ -69,7 +66,7 @@ namespace OpenMS
       else
       {
         ss << "  Error executing '" << python_executable << "'!\n"
-           << "  Error description: '" << qp.errorString().toStdString() << "'.\n";
+           << "  Error description: '" << proc_error_msg << "'.\n";
       }
     }
 
@@ -79,22 +76,33 @@ namespace OpenMS
 
   bool PythonInfo::isPackageInstalled(const String& python_executable, const String& package_name)
   {
-    QProcess qp;
-    qp.start(python_executable.toQString(), QStringList() << "-c" << (String("import ") + package_name).c_str(), QIODevice::ReadOnly);
-    bool success = qp.waitForFinished();
-    return (success && qp.exitStatus() == QProcess::ExitStatus::NormalExit && qp.exitCode() == 0);
+    ExternalProcess process;
+    String error_msg;
+    std::vector<std::string> args = {"-c", static_cast<std::string>(String("import ") + package_name)};
+    ExternalProcess::RETURNSTATE result = process.run(static_cast<std::string>(python_executable), args, "", false, error_msg);
+    
+    return (result == ExternalProcess::RETURNSTATE::SUCCESS);
   }
 
   String PythonInfo::getVersion(const String& python_executable)
   {
     String v;
-    QProcess qp;
-    qp.start(python_executable.toQString(), QStringList() << "--version", QIODevice::ReadOnly);
-    bool success = qp.waitForFinished();
-    if (success && qp.exitStatus() == QProcess::ExitStatus::NormalExit && qp.exitCode() == 0)
+    ExternalProcess process;
+    String error_msg;
+    String output;
+    
+    // Set up callbacks to capture output
+    process.setCallbacks(
+      [&output](const String& stdout_line) { output += stdout_line; },
+      [&output](const String& stderr_line) { output += stderr_line; }
+    );
+    
+    std::vector<std::string> args = {"--version"};
+    ExternalProcess::RETURNSTATE result = process.run(static_cast<std::string>(python_executable), args, "", false, error_msg);
+    
+    if (result == ExternalProcess::RETURNSTATE::SUCCESS)
     {
-      v = qp.readAllStandardOutput().toStdString(); // some pythons report is on stdout
-      v += qp.readAllStandardError().toStdString();  // ... some on stderr
+      v = output;
       v.trim(); // remove '\n'
     }
     return v;

@@ -21,7 +21,9 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QStringList>
+#include <vector>
+#include <string>
+#include <cstdlib>
 
 #include <iostream>
 
@@ -413,18 +415,18 @@ protected:
       if (this->exe.empty())
       {
         // looks for MSFRAGGER_PATH in the environment
-        QString qmsfragger_path = getenv("MSFRAGGER_PATH");
-        if (qmsfragger_path.isEmpty())
+        const char* qmsfragger_path = std::getenv("MSFRAGGER_PATH");
+        if (!qmsfragger_path || std::string(qmsfragger_path).empty())
         {
           std::cerr << "No executable for MSFragger could be found (also not in MSFRAGGER_PATH)!";
           return ExitCodes::EXTERNAL_PROGRAM_NOTFOUND;
         }
-        this->exe = qmsfragger_path;
+        this->exe = String(qmsfragger_path);
       }
 
       // input, output, database name
       const String database = File::absolutePath(this->getStringOption_(TOPPMSFraggerAdapter::database)); // the working dir will be a TMP-dir, so we need absolute paths
-      input_file = (this->getStringOption_(TOPPMSFraggerAdapter::in)).toQString();
+      input_file = this->getStringOption_(TOPPMSFraggerAdapter::in);
       output_file = this->getStringOption_(TOPPMSFraggerAdapter::out);
       optional_output_file = this->getStringOption_(TOPPMSFraggerAdapter::opt_out);
 
@@ -841,11 +843,12 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    QStringList process_params; // the actual process is Java, not MSFragger
-    process_params << "-Xmx" + QString::number(this->getIntOption_(java_heapmemory)) + "m"
-        << "-jar" << this->exe.toQString()
-        << this->parameter_file_path.toQString()
-        << input_file;
+    std::vector<std::string> process_params; // the actual process is Java, not MSFragger
+    process_params.push_back(std::string("-Xmx") + std::to_string(this->getIntOption_(java_heapmemory)) + "m");
+    process_params.push_back("-jar");
+    process_params.push_back(this->exe);
+    process_params.push_back(this->parameter_file_path);
+    process_params.push_back(std::string(input_file.c_str()));
 
     if (this->debug_level_ >= TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE)
     {
@@ -858,7 +861,8 @@ protected:
       writeDebug_(command_line, TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
     }
 
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_exe.toQString(), process_params, working_directory.getPath().toQString());
+    std::vector<std::string> args = process_params;
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_exe, args, working_directory.getPath());
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
@@ -898,7 +902,7 @@ protected:
     }
     else
     { // rename the pepXML file to the opt_out
-      File::rename(pepxmlfile.toQString(), optional_output_file.toQString()); 
+      File::rename(pepxmlfile, optional_output_file);
     }
 
     // remove ".pepindex" database file
@@ -915,7 +919,7 @@ private:
   String exe;
 
   String parameter_file_path;
-  QString input_file;
+  String input_file;
   String output_file;
   String optional_output_file;
 

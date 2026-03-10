@@ -65,7 +65,7 @@ namespace OpenMS
         QComboBox * editor = new QComboBox(parent);
         QStringList list;
         list.append("");
-        list += restrictions_.toQString().split(",");
+        list += QString::fromStdString(restrictions_).split(",");
         editor->addItems(list);
         return editor;
       }
@@ -261,7 +261,7 @@ namespace OpenMS
       list_.clear();
       for (Int i = 0; i < count(); ++i)
       {
-        stringit = item(i)->text();
+        stringit = item(i)->text().toStdString();
         if (!stringit.empty())
         {
           stringit.trim();
@@ -277,7 +277,7 @@ namespace OpenMS
 
       for (UInt i = 0; i < list.size(); ++i)
       {
-        QListWidgetItem * item = new QListWidgetItem(list[i].toQString());
+        QListWidgetItem * item = new QListWidgetItem(QString::fromStdString(list[i]));
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 
         insertItem(i, item);

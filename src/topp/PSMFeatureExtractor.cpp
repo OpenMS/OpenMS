@@ -16,9 +16,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
 
 #include <iostream>
 #include <cmath>

@@ -311,7 +311,7 @@ namespace OpenMS
     StringList options = {"Don't show", "Show by precursor m/z", "Show by peptide mass", "Show label meta data"};
     for (const String& opt : options)
     {
-      QAction* temp = group_unassigned_2d_->addAction(opt.toQString());
+      QAction* temp = group_unassigned_2d_->addAction(QString::fromStdString(static_cast<const std::string&>(opt)));
       temp->setCheckable(true);
       if (opt == options.front()) temp->setChecked(true);
       menu->addAction(temp);
@@ -420,7 +420,7 @@ namespace OpenMS
 
     //######################### File System Watcher ###########################################
     watcher_ = new FileWatcher(this);
-    connect(watcher_, &FileWatcher::fileChanged, this, &TOPPViewBase::fileChanged_);
+    // FileWatcher::fileChanged signal not available in core Qt-free build; change monitoring is disabled.
   }
 
   void TOPPViewBase::initializeDefaultParameters_()
@@ -622,7 +622,7 @@ namespace OpenMS
             QMessageBox msg_box;
             auto spectra_file_name = File::basename(annotate_path);
             msg_box.setText("Spectra data for identification data was found.");
-            msg_box.setInformativeText(String("Annotate spectra in " + spectra_file_name + "?").toQString());
+            msg_box.setInformativeText(QString::fromStdString(static_cast<const std::string&>(String("Annotate spectra in " + spectra_file_name + "?"))));
             msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
             msg_box.setDefaultButton(QMessageBox::Yes);
             auto ret = msg_box.exec();
@@ -974,9 +974,9 @@ namespace OpenMS
     recent_files_.add(filename);
   }
 
-  void TOPPViewBase::openFile(const String& filename)
+  void TOPPViewBase::openFile(const QString& filename)
   {
-    addDataFile(filename, true, true);
+    addDataFile(filename.toStdString(), true, true);
   }
 
   void TOPPViewBase::closeByTab(int id)
@@ -1036,8 +1036,8 @@ namespace OpenMS
   void TOPPViewBase::showCursorStatus(const String& x, const String& y)
   {
     message_label_->setText("");
-    x_label_->setText(x.toQString());
-    y_label_->setText(y.toQString());
+    x_label_->setText(QString::fromStdString(static_cast<const std::string&>(x)));
+    y_label_->setText(QString::fromStdString(static_cast<const std::string&>(y)));
     statusBar()->update();
   }
 
@@ -1409,7 +1409,7 @@ namespace OpenMS
       base_name += " (3D)";
     }
 
-    sw->setWindowTitle(base_name.toQString());
+    sw->setWindowTitle(QString::fromStdString(static_cast<const std::string&>(base_name)));
     sw->addToTabBar(&tab_bar_, base_name, true);
     
     // show first window maximized (only visible windows are in the list)
@@ -1485,7 +1485,7 @@ namespace OpenMS
   void TOPPViewBase::loadPreferences(String filename)
   {
     // compose default ini file path
-    String default_ini_file = String(QDir::homePath()) + "/.TOPPView.ini";
+    String default_ini_file = String(QDir::homePath().toStdString()) + "/.TOPPView.ini";
 
     bool tool_params_added = false;
 
@@ -1598,15 +1598,15 @@ namespace OpenMS
 
   QStringList TOPPViewBase::chooseFilesDialog_(const String& path_overwrite)
   {
-    QString open_path = current_path_.toQString();
+    QString open_path = QString::fromStdString(static_cast<const std::string&>(current_path_));
     if (!path_overwrite.empty())
     {
-      open_path = path_overwrite.toQString();
+      open_path = QString::fromStdString(static_cast<const std::string&>(path_overwrite));
     }
     // we use the QT file dialog instead of using QFileDialog::Names(...)
     // On Windows and Mac OS X, this static function will use the native file dialog and not a QFileDialog,
     // which prevents us from doing GUI testing on it.
-    QFileDialog dialog(this, "Open file(s)", open_path, supported_types.toFileDialogFilter(FilterLayout::BOTH, true).toQString());
+    QFileDialog dialog(this, "Open file(s)", open_path, QString::fromStdString(static_cast<const std::string&>(supported_types.toFileDialogFilter(FilterLayout::BOTH, true))));
     dialog.setFileMode(QFileDialog::ExistingFiles);
     if (dialog.exec())
     {
@@ -1619,7 +1619,7 @@ namespace OpenMS
   {
     for (const QString& filename : chooseFilesDialog_(dir))
     {
-      addDataFile(filename, true, true);
+      addDataFile(String(filename.toStdString()), true, true);
     }
   }
   
@@ -1751,18 +1751,21 @@ namespace OpenMS
     // compose argument list
     QStringList args;
     args << "-ini"
-         << (topp_.file_name + "_ini").toQString()
-         << QString("-%1").arg(topp_.in.toQString())
-         << topp_.file_name_in.toQString()
+         << QString::fromStdString(static_cast<const std::string&>(topp_.file_name + "_ini"))
+         << QString("-%1").arg(QString::fromStdString(static_cast<const std::string&>(topp_.in)))
+         << QString::fromStdString(static_cast<const std::string&>(topp_.file_name_in))
          << "-no_progress";
     if (topp_.out != "")
     {
-      args << QString("-%1").arg(topp_.out.toQString())
-           << topp_.file_name_out.toQString();
+      args << QString("-%1").arg(QString::fromStdString(static_cast<const std::string&>(topp_.out)))
+           << QString::fromStdString(static_cast<const std::string&>(topp_.file_name_out));
     }
 
     // start log and show it
-    log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), "");
+    log_->appendNewHeader(
+      LogWindow::LogState::NOTICE,
+      String(QString("Starting '%1'").arg(QString::fromStdString(static_cast<const std::string&>(topp_.tool))).toStdString()),
+      String(""));
 
     // initialize process
     topp_.process = new QProcess();
@@ -1771,19 +1774,22 @@ namespace OpenMS
     // connect slots
     connect(topp_.process, &QProcess::readyReadStandardOutput, this, &TOPPViewBase::updateProcessLog);
     connect(topp_.process, CONNECTCAST(QProcess, finished, (int, QProcess::ExitStatus)), this, &TOPPViewBase::finishTOPPToolExecution);
-    QString tool_executable = String(tool_scanner_.findPluginExecutable(topp_.tool)).toQString();
+    QString tool_executable = QString::fromStdString(static_cast<const std::string&>(tool_scanner_.findPluginExecutable(topp_.tool)));
     if (tool_executable.isEmpty())
     {
       try
       {
         // find correct location of TOPP tool
-        tool_executable = File::findSiblingTOPPExecutable(topp_.tool).toQString();
+        tool_executable = QString::fromStdString(static_cast<const std::string&>(File::findSiblingTOPPExecutable(topp_.tool)));
       }
       catch (Exception::FileNotFound & /*ex*/)
       {
-        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!",
-                              QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(
-                                      topp_.tool.toQString()));
+        log_->appendNewHeader(
+          LogWindow::LogState::CRITICAL,
+          String("Could not locate executable!"),
+          String(QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH")
+                   .arg(QString::fromStdString(static_cast<const std::string&>(topp_.tool)))
+                   .toStdString()));
         return;
       }
     }
@@ -1798,7 +1804,13 @@ namespace OpenMS
 
     if (topp_.process->error() == QProcess::FailedToStart)
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Failed to execute '%1'").arg(topp_.tool.toQString()), QString("Execution of TOPP tool '%1' failed with error: %2").arg(topp_.tool.toQString(), topp_.process->errorString()));
+      log_->appendNewHeader(
+        LogWindow::LogState::CRITICAL,
+        String(QString("Failed to execute '%1'")
+                 .arg(QString::fromStdString(static_cast<const std::string&>(topp_.tool))).toStdString()),
+        String(QString("Execution of TOPP tool '%1' failed with error: %2")
+                 .arg(QString::fromStdString(static_cast<const std::string&>(topp_.tool)), topp_.process->errorString())
+                 .toStdString()));
 
       // ensure that all tool output is emitted into log screen
       updateProcessLog();
@@ -1815,21 +1827,27 @@ namespace OpenMS
     log_->addNewline();
     if (topp_.process->exitStatus() == QProcess::CrashExit)
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Execution of '%1' not successful!").arg(topp_.tool.toQString()),
-                      QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
-                              " or enable 'debug' mode in the TOPP ini file.").arg(File::getTempDirectory().toQString()));
+      log_->appendNewHeader(
+        LogWindow::LogState::CRITICAL,
+        String(QString("Execution of '%1' not successful!").arg(QString::fromStdString(static_cast<const std::string&>(topp_.tool))).toStdString()),
+        String(QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
+                       " or enable 'debug' mode in the TOPP ini file.").arg(QString::fromStdString(static_cast<const std::string&>(File::getTempDirectory()))).toStdString()));
     }
     else if (topp_.process->exitCode() != 0) // NormalExit with non-zero exit code
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Execution of '%1' not successful!").arg(topp_.tool.toQString()),
-                            QString("The tool ended with a non-zero exit code of '%1'. ").arg(topp_.process->exitCode()) +
-                            QString("If you want to debug this, check the input files in '%1' or"
-                                    " enable 'debug' mode in the TOPP ini file.").arg(File::getTempDirectory().toQString()));
+      log_->appendNewHeader(
+        LogWindow::LogState::CRITICAL,
+        String(QString("Execution of '%1' not successful!").arg(QString::fromStdString(static_cast<const std::string&>(topp_.tool))).toStdString()),
+        String((QString("The tool ended with a non-zero exit code of '%1'. ").arg(topp_.process->exitCode()) +
+                QString("If you want to debug this, check the input files in '%1' or"
+                        " enable 'debug' mode in the TOPP ini file.").arg(QString::fromStdString(static_cast<const std::string&>(File::getTempDirectory())))).toStdString()));
     }
     else if (!topp_.out.empty())
     {
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("'%1' finished successfully").arg(topp_.tool.toQString()),
-                      QString("Execution time: %1 ms").arg(topp_.timer.elapsed()));
+      log_->appendNewHeader(
+        LogWindow::LogState::NOTICE,
+        String(QString("'%1' finished successfully").arg(QString::fromStdString(static_cast<const std::string&>(topp_.tool))).toStdString()),
+        String(QString("Execution time: %1 ms").arg(topp_.timer.elapsed()).toStdString()));
       if (!File::readable(topp_.file_name_out))
       {
         log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name_out + "'!");
@@ -2272,7 +2290,7 @@ namespace OpenMS
         continue;
       }
       
-      splash_screen->showMessage((String("Loading file: ") + *it).toQString());
+      splash_screen->showMessage(QString::fromStdString(static_cast<const std::string&>(String("Loading file: ") + *it)));
       splash_screen->repaint();
       QApplication::processEvents();
 
@@ -2302,7 +2320,7 @@ namespace OpenMS
           auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(*it);
           if (annotator.get() == nullptr)
           {
-            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", String("Filename '" + *it + "' has unsupported file type. No annotation performed.").toQString());
+            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", String("Filename '" + *it + "' has unsupported file type. No annotation performed."));
           }
           else
           { // we have an annotator ...
@@ -2455,7 +2473,7 @@ namespace OpenMS
           QTimer::singleShot(50, [this, urls, new_id]() {
             for (const QUrl& url : urls)
             {
-              addDataFile(url.toLocalFile(), false, true, "", new_id);
+              addDataFile(String(url.toLocalFile().toStdString()), false, true, "", new_id);
             }
           });
         }
@@ -2494,7 +2512,7 @@ namespace OpenMS
   void TOPPViewBase::fileChanged_(const String& filename)
   {
     // check if file has been deleted
-    if (!QFileInfo(filename.toQString()).exists())
+    if (!QFileInfo(QString::fromStdString(filename)).exists())
     {
       watcher_->removeFile(filename);
       return;
@@ -2546,7 +2564,7 @@ namespace OpenMS
       QAbstractButton* ok = msg_box.addButton(QMessageBox::Ok);
       msg_box.addButton(QMessageBox::Cancel);
       msg_box.setWindowTitle("Layer data changed");
-      msg_box.setText((String("The data of file '") + filename + "' has changed.<BR>Update layers?").toQString());
+      msg_box.setText(QString::fromStdString(static_cast<const std::string&>(String("The data of file '") + filename + "' has changed.<BR>Update layers?")));
       msg_box.exec();
       watcher_msgbox_ = false;
       if (msg_box.clickedButton() == ok)
@@ -2569,7 +2587,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        QMessageBox::critical(this, "Error", QString::fromStdString(static_cast<const std::string&>(String("Error while loading file") + layer.filename + "\nError message: " + e.what())));
         lp->getPeakDataMuteable()->getMSExperiment().clear(true);
       }
       lp->getPeakDataMuteable()->getMSExperiment().sortSpectra(true);
@@ -2583,7 +2601,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        QMessageBox::critical(this, "Error", QString::fromStdString(static_cast<const std::string&>(String("Error while loading file") + layer.filename + "\nError message: " + e.what())));
         lp->getFeatureMap()->clear(true);
       }
       lp->getFeatureMap()->updateRanges();
@@ -2596,7 +2614,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        QMessageBox::critical(this, "Error", QString::fromStdString(static_cast<const std::string&>(String("Error while loading file") + layer.filename + "\nError message: " + e.what())));
         lp->getConsensusMap()->clear(true);
       }
       lp->getConsensusMap()->updateRanges();
@@ -2610,7 +2628,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        QMessageBox::critical(this, "Error", QString::fromStdString(static_cast<const std::string&>(String("Error while loading file") + layer.filename + "\nError message: " + e.what())));
         lp->getChromatogramData()->getMSExperiment().clear(true);
       }
       lp->getChromatogramData()->getMSExperiment().sortChromatograms(true);

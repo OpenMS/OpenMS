@@ -264,7 +264,7 @@ namespace OpenMS
       const LayerDataBase& layer = canvas()->getLayer(l);
       if (layer.modified)
       {
-        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.getName() +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);
+        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", QString::fromStdString(static_cast<const std::string&>(String("Do you want to save your changes to layer '") + layer.getName() + "'?")), QMessageBox::Ok | QMessageBox::Discard);
         if (result == QMessageBox::Ok)
         {
           canvas()->activateLayer(l);

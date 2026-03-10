@@ -94,7 +94,7 @@ namespace OpenMS
 
   String Plot2DGoToDialog::getFeatureNumber() const
   {
-    return ui_->feature_number_->text();
+    return String(ui_->feature_number_->text().toStdString());
   }
 
   bool Plot2DGoToDialog::showRange() const

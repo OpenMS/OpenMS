@@ -162,7 +162,7 @@ class TOPPBaseTest
       return parseRange_(text, low, high);
     }
 
-    TOPPBase::ExitCodes runExternalProcess(const QString& executable, const QStringList& arguments, const QString& workdir) const
+    TOPPBase::ExitCodes runExternalProcess(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir) const
     {
       return runExternalProcess_(executable, arguments, workdir);
     }
@@ -708,23 +708,23 @@ START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& 
 }
 END_SECTION
 
-START_SECTION(([EXTRA] TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const))
+START_SECTION(([EXTRA] TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir) const))
 {
 
 // we just need ANY commandline tool available on (hopefully) all boxes.
 // note that commands like "dir" or "type" are only known within cmd.exe and are not actual executables (unlike on Linux)
 #ifdef OPENMS_WINDOWSPLATFORM
-  const QString exe = "cmd";
-  const QStringList args = QStringList() << "/C" << "echo hi";
-  const QStringList args_broken = QStringList() << "/C" << "doesnotexist";
+  const std::string exe = "cmd";
+  const std::vector<std::string> args = {"/C", "echo", "hi"};
+  const std::vector<std::string> args_broken = {"/C", "doesnotexist"};
 #else
-  const QString exe = "ls";
-  const QStringList args("-l");
-  const QStringList args_broken = QStringList() << "-0";
-#endif // 
+  const std::string exe = "ls";
+  const std::vector<std::string> args = {"-l"};
+  const std::vector<std::string> args_broken = {"-0"};
+#endif //
 
   TOPPBaseTest topp;
-  auto result = topp.runExternalProcess("/path/does/not/exists.exe", QStringList(), "");
+  auto result = topp.runExternalProcess("/path/does/not/exists.exe", std::vector<std::string>(), "");
   TEST_EQUAL(result, TOPPBase::EXTERNAL_PROGRAM_NOTFOUND);
 
   result = topp.runExternalProcess(exe, args_broken, "");

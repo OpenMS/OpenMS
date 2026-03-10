@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/TableView.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Qt5Port.h>
+#include <QtCore/QSet>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QFile>
@@ -21,6 +21,15 @@
 #include <iostream>
 
 using namespace std;
+
+namespace {
+  inline QSet<QString> toQSet(const QStringList& list)
+  {
+    QSet<QString> set;
+    for (const auto& s : list) set.insert(s);
+    return set;
+  }
+}
 
 ///@improvement write the visibility-status of the columns in toppview.ini and read at start
 
@@ -87,7 +96,7 @@ namespace OpenMS
 
     if (!f.open(QIODevice::WriteOnly))
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(filename));
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(filename.toStdString()));
     }
     QTextStream ts(&f);
     QStringList str_list;
@@ -190,7 +199,7 @@ namespace OpenMS
     }
     if (!hset.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ")));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ").toStdString()));
     }
   }
 

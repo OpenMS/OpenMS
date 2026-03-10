@@ -12,7 +12,10 @@
 
 #include <sstream> 
 
-#include <QDir>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <filesystem>
 
 using namespace OpenMS;
 using namespace std;
@@ -120,7 +123,7 @@ protected:
   ExitCodes main_(int, const char **) override
   {
      // Assemble command line for SpectraST
-     QStringList arguments;
+     std::vector<std::string> arguments;
 
      // Executable
      String executable = getStringOption_(TOPPSpectraSTSearchAdapter::param_executable);
@@ -130,16 +133,16 @@ protected:
      }
 
      // Make Search Mode explicit
-     arguments << "-s";
+     arguments.push_back("-s");
 
      double precursor_mz_tolerance = getDoubleOption_(TOPPSpectraSTSearchAdapter::param_precursor_mz_tolerance);
-     arguments << QString::number(precursor_mz_tolerance).prepend("-sM");
+     arguments.push_back(static_cast<std::string>(String("-sM") + String(precursor_mz_tolerance)));
 
      // Set the parameter file if present
      String params_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_params_file);
      if (! params_file.empty())
      {
-         arguments << params_file.toQString().prepend("-sF");
+         arguments.push_back(static_cast<std::string>(String("-sF") + params_file));
      }
 
      // Add library file argument, terminate if the corresponding spidx is not present
@@ -147,10 +150,10 @@ protected:
      String index_file = FileHandler::stripExtension(library_file).append(".spidx");
      if (! File::exists(index_file))
      {
-         OPENMS_LOG_ERROR << "ERROR: Index file required by spectrast not found:\n" << index_file << endl;
+         OPENMS_LOG_ERROR << "ERROR: Index file required by spectrast not found:\n" << index_file << std::endl;
          return INPUT_FILE_NOT_FOUND;
      }
-     arguments << library_file.toQString().prepend("-sL");
+     arguments.push_back(static_cast<std::string>(String("-sL") + library_file));
 
      // Add Sequence Database file if exists
      String sequence_database_file  = getStringOption_(TOPPSpectraSTSearchAdapter::param_sequence_database_file);
@@ -161,33 +164,33 @@ protected:
          // Check empty or invalid sequence database type
          if (sequence_database_type.empty())
          {
-            OPENMS_LOG_ERROR << "ERROR: Sequence database type invalid or not provided" << endl;
+            OPENMS_LOG_ERROR << "ERROR: Sequence database type invalid or not provided" << std::endl;
             return MISSING_PARAMETERS;
          }
-         arguments << sequence_database_type.toQString().prepend("-sT");
-         arguments << sequence_database_file.toQString().prepend("-sD");
+         arguments.push_back(static_cast<std::string>(String("-sT") + sequence_database_type));
+         arguments.push_back(static_cast<std::string>(String("-sD") + sequence_database_file));
      }
 
      // Set the number of threads in SpectraST
      Int threads = getIntOption_("threads");
-     arguments << (threads > 1 ?  QString::number(threads).prepend("-sP") : "-sP!");
+     arguments.push_back(static_cast<std::string>(threads > 1 ? (String("-sP") + String(threads)) : String("-sP!")));
 
      // Set the search file
      String search_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_search_file);
      if (! search_file.empty())
      {
-         arguments << search_file.toQString().prepend("-sS");
+         arguments.push_back(static_cast<std::string>(String("-sS") + search_file));
      }
 
      // Flags
-     arguments << (getFlag_(TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass) ? "-sA" : "-sA!");
-     arguments << (getFlag_(TOPPSpectraSTSearchAdapter::param_use_all_charge_states) ? "-sz" : "-sz!");
+     arguments.push_back(getFlag_(TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass) ? std::string("-sA") : std::string("-sA!"));
+     arguments.push_back(getFlag_(TOPPSpectraSTSearchAdapter::param_use_all_charge_states) ? std::string("-sz") : std::string("-sz!"));
 
      // User mod file
      String user_mod_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_user_mod_file);
      if (! user_mod_file.empty())
      {
-        arguments << user_mod_file.toQString().prepend("-M");
+        arguments.push_back(static_cast<std::string>(String("-M") + user_mod_file));
      }
 
      // Input and output files, errors if lists are not equally long
@@ -195,12 +198,12 @@ protected:
      StringList output_files = getStringList_(TOPPSpectraSTSearchAdapter::param_output_files);
      if (spectra_files.size() != output_files.size())
      {
-        OPENMS_LOG_ERROR << "ERROR: Number of output files does not match number of input files." << endl;
+        OPENMS_LOG_ERROR << "ERROR: Number of output files does not match number of input files." << std::endl;
         return ILLEGAL_PARAMETERS;
      }
      if (spectra_files.empty())
      {
-         OPENMS_LOG_ERROR << "ERROR: At least one file containing spectra to be searched must be provided." << endl;
+         OPENMS_LOG_ERROR << "ERROR: At least one file containing spectra to be searched must be provided." << std::endl;
          return ILLEGAL_PARAMETERS;
      }
      String first_output_file = output_files[0];
@@ -217,7 +220,7 @@ protected:
      }
      if (outputFormat.empty())
      {
-         OPENMS_LOG_ERROR << "ERROR: Unrecognized output format from file: " << first_output_file << endl;
+         OPENMS_LOG_ERROR << "ERROR: Unrecognized output format from file: " << first_output_file << std::endl;
          return ILLEGAL_PARAMETERS;
      }
      // Output files must agree on format
@@ -227,14 +230,14 @@ protected:
          if (! output_file.hasSuffix(outputFormat))
          {
              OPENMS_LOG_ERROR << "ERROR: Output filename does not agree in format: "
-                       << output_file << " is not " << outputFormat << endl;
+                       << output_file << " is not " << outputFormat << std::endl;
              return ILLEGAL_PARAMETERS;
          }
      }
 
      String temp_dir = File::getTempDirectory();
-     arguments << outputFormat.toQString().prepend("-sE");
-     arguments << temp_dir.toQString().prepend("-sO");
+     arguments.push_back(static_cast<std::string>(String("-sE") + outputFormat));
+     arguments.push_back(static_cast<std::string>(String("-sO") + temp_dir));
 
      // Check whether input files agree in format
      String first_input_file = spectra_files[0];
@@ -254,47 +257,48 @@ protected:
      // Exit if the input file format is invalid
      if (inputFormat.empty())
      {
-         OPENMS_LOG_ERROR << "ERROR: Unrecognized input format from file: " << first_input_file << endl;
+         OPENMS_LOG_ERROR << "ERROR: Unrecognized input format from file: " << first_input_file << std::endl;
          return ILLEGAL_PARAMETERS;
      }
 
-     for (vector<String>::const_iterator it = spectra_files.begin(); it != spectra_files.end(); ++it)
+     for (std::vector<String>::const_iterator it = spectra_files.begin(); it != spectra_files.end(); ++it)
      {
       String input_file = *it;
       if (! input_file.hasSuffix(inputFormat))
       {
         OPENMS_LOG_ERROR << "ERROR: Input filename does not agree in format: "
-                       << input_file << " is not " << inputFormat << endl;
+                       << input_file << " is not " << inputFormat << std::endl;
         return ILLEGAL_PARAMETERS;
       }
-      arguments << input_file.toQString();
+      arguments.push_back(static_cast<std::string>(input_file));
      }
 
      // Writing the final SpectraST command to the DEBUG LOG
      std::stringstream ss;
      ss << "COMMAND: " << executable;
-     for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+     for (const auto& a : arguments)
      {
-         ss << " " << it->toStdString();
+         ss << " " << a;
      }
-     OPENMS_LOG_DEBUG << ss.str() << endl;
+     OPENMS_LOG_DEBUG << ss.str() << std::endl;
 
      // Run SpectraST
-     TOPPBase::ExitCodes exit_code = runExternalProcess_(executable.toQString(), arguments);
+     TOPPBase::ExitCodes exit_code = runExternalProcess_(executable, arguments);
      if (exit_code != EXECUTION_OK)
      {
        return exit_code;
      }
 
      // Copy the output files to the specified location
-     QDir temp_dir_qt = QDir(temp_dir.toQString());
+     std::filesystem::path temp_dir_path = static_cast<std::string>(temp_dir);
      for (size_t i = 0; i < spectra_files.size(); i++)
      {
         String spectra_file = spectra_files[i];
-        QString actual_path = temp_dir_qt.filePath(FileHandler::stripExtension(File::basename(spectra_file)).toQString().append(".").append(outputFormat.toQString()));
+        String out_name = FileHandler::stripExtension(File::basename(spectra_file)) + "." + outputFormat;
+        std::filesystem::path actual_path = temp_dir_path / static_cast<std::string>(out_name);
 
-        std::ifstream ifs(actual_path.toStdString().c_str(), std::ios::in | std::ios::binary);
-        std::ofstream ofs(output_files[i].c_str(), std::ios::out | std::ios::binary);
+        std::ifstream ifs(actual_path, std::ios::in | std::ios::binary);
+        std::ofstream ofs(static_cast<std::string>(output_files[i]), std::ios::out | std::ios::binary);
         ofs << ifs.rdbuf();
      }
 

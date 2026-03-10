@@ -116,7 +116,7 @@ namespace OpenMS
     // Temporary file path and arguments
     String path = File::getTemporaryFile();
     String working_dir = path.prefix(path.find_last_of('/'));
-    QStringList args{"-write_ini", path.toQString()};
+    QStringList args{"-write_ini", QString::fromStdString(static_cast<const std::string&>(path))};
     Param tool_param;
     String executable;
     // Return empty param if tool executable cannot be found
@@ -150,7 +150,12 @@ namespace OpenMS
     ExternalProcess proc(lam_out, lam_err);
     // Write tool ini to temporary file
     ++running_processes;
-    auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), true, ExternalProcess::IO_MODE::NO_IO);
+    const std::string executable_std = static_cast<const std::string&>(executable);
+    std::vector<std::string> args_std;
+    args_std.reserve(static_cast<size_t>(args.size()));
+    for (const auto& a : args) args_std.emplace_back(a.toStdString());
+    const std::string wd_std = static_cast<const std::string&>(working_dir);
+    auto return_state = proc.run(executable_std, args_std, wd_std, true, ExternalProcess::IO_MODE::NO_IO);
     --running_processes;
 
     // Return empty param if writing the ini file failed
@@ -215,7 +220,7 @@ namespace OpenMS
     {
       if (create)
       {
-        QDir path = QDir(plugin_path.toQString());
+        QDir path = QDir(QString::fromStdString(static_cast<const std::string&>(plugin_path)));
         QString dir = path.dirName();
         path.cdUp();
 

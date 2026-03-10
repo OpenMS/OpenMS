@@ -57,7 +57,6 @@ MSPFile.h
 MSPGenericFile.h
 MSstatsFile.h
 MascotGenericFile.h
-MascotRemoteQuery.h
 MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h

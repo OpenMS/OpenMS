@@ -36,7 +36,7 @@ namespace OpenMS
     {
       indices.push_back(1);
     }
-    uint& index = indices[dspec.getOriginalSpectrum().getMSLevel() - 1];
+    UInt& index = indices[dspec.getOriginalSpectrum().getMSLevel() - 1];
 
     std::stringstream precursor_ss;
     if (dspec.getOriginalSpectrum().getMSLevel() > 1)
@@ -446,7 +446,7 @@ namespace OpenMS
     {
       if (deconvolved_spectrum.empty()) continue;
       if (deconvolved_spectrum.isDecoy()) continue;
-      auto deconvolved_mzML = deconvolved_spectrum.toSpectrum(mzml_charge, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1], false);
+      auto deconvolved_mzML = deconvolved_spectrum.toSpectrum(mzml_charge, 1, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1], false);
       if (!deconvolved_mzML_file.empty())
       {
         if (deconvolved_mzML.empty())

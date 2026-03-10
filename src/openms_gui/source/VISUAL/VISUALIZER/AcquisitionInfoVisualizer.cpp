@@ -39,7 +39,7 @@ namespace OpenMS
 
   void AcquisitionInfoVisualizer::store()
   {
-    ptr_->setMethodOfCombination(acquisitioninfo_method_->text());
+    ptr_->setMethodOfCombination(String(acquisitioninfo_method_->text().toStdString()));
 
     temp_ = (*ptr_);
   }

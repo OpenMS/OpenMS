@@ -17,6 +17,11 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cstdlib>
+
+#ifdef OPENMS_WINDOWSPLATFORM
+#include <windows.h>
+#endif
 
 using namespace std;
 using namespace OpenMS;
@@ -207,10 +212,17 @@ void convertINI2HTML(const Param& p, ostream& os)
 bool generate(const ToolListType& tools, const String& prefix, const String& binary_directory)
 {
   // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
-  qputenv("COLUMNS", "110"); 
+#ifdef OPENMS_WINDOWSPLATFORM
+  _putenv_s("COLUMNS", "110");
   // Add Global environment variable to suppress stty errors
-  qputenv("TERM", "dumb");
-  qputenv("STTY", "/bin/true"); 
+  _putenv_s("TERM", "dumb");
+  _putenv_s("STTY", "/bin/true");
+#else
+  setenv("COLUMNS", "110", 1);
+  // Add Global environment variable to suppress stty errors
+  setenv("TERM", "dumb", 1);
+  setenv("STTY", "/bin/true", 1);
+#endif
   
   bool errors_occured = false;
   for (ToolListType::const_iterator it = tools.begin(); it != tools.end(); ++it)
@@ -243,14 +255,15 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
       ExternalProcess ep([&](const String& s) { f << s; }, 
                          [&](const String& s) { f << s; });
       String error_msg;
-      if (ep.run(command.toQString(), QStringList() << "--help", "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE)
+      std::vector<std::string> help_args = {"--help"};
+      if (ep.run(command, help_args, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE)
             != ExternalProcess::RETURNSTATE::SUCCESS)
       { // error while generation cli docu
         stringstream ss;
         ss << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
         ss << "Output was: \n";
         ep.setCallbacks([&](const String& s) { ss << s; }, [&](const String& s) { ss << s; });
-        ep.run(command.toQString(), QStringList() << "--help", "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE);
+        ep.run(command, help_args, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE);
         ss << "\nCommand line was: \n " << command << endl;
         f << ss.str();
         cerr << ss.str();
@@ -269,17 +282,19 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
         it->first != "TOPPAS")
     {
       String tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
-      const auto ini_command_args = QStringList() << "-write_ini" << tmp_file.toQString();
+      std::vector<std::string> ini_command_args = {"-write_ini", tmp_file};
       
       ExternalProcess ep([&](const String& s) { f << s; }, [&](const String& s) { f << s; });
       String error_msg;
-      if (ep.run(command.toQString(), ini_command_args, "", false, error_msg,
+      if (ep.run(command, ini_command_args, "", false, error_msg,
                  ExternalProcess::IO_MODE::READ_WRITE)
             != ExternalProcess::RETURNSTATE::SUCCESS
           || ! File::exists(tmp_file))
       { // error while generation cli docu
         std::cerr << "Errors occurred while writing ini file for " << it->first << "!" << std::endl;
-        std::cerr << "Command line was: \n " << command << ini_command_args.join(" ").toStdString() << std::endl;
+        std::cerr << "Command line was: \n " << command;
+        for (const auto& arg : ini_command_args) std::cerr << " " << arg;
+        std::cerr << std::endl;
         errors_occured = true;
         continue;
       }

@@ -117,7 +117,7 @@ namespace OpenMS
       QColor col = GUIHelpers::ColorBrewer::Distinct().values[(best_feature == &feature) 
                           ? GUIHelpers::ColorBrewer::Distinct::LightGreen
                           : GUIHelpers::ColorBrewer::Distinct::LightGrey];
-      Annotation1DVerticalLineItem* item = new Annotation1DVerticalLineItem(center, width, 150, false, col, ann.toQString());
+      Annotation1DVerticalLineItem* item = new Annotation1DVerticalLineItem(center, width, 150, false, col, QString::fromStdString(static_cast<const std::string&>(ann)));
       item->setSelected(false);
       auto text_size = item->getTextRect(); // this is in px units (Qt widget coordinates)
       // translate to axis units (our native 'data'):

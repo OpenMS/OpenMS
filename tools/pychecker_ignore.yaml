@@ -1012,7 +1012,6 @@ PyOpenMSChecker:
     # FORMAT: helpers, old or not supported file formats
     - OpenMS::SpecArrayFile
     - OpenMS::PersistentObject
-    - OpenMS::MascotRemoteQuery
     - OpenMS::CsvFile
     - OpenMS::ToolDescriptionFile
     - OpenMS::PTMXMLFile

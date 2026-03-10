@@ -17,7 +17,6 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
-#include <QString>
 
 #include <sstream>
 #include <iostream>
@@ -149,11 +148,6 @@ START_SECTION((DataValue(const std::string&)))
   TEST_EQUAL((String)d, "test string")
 END_SECTION
 
-START_SECTION((DataValue(const QString&)))
-  QString s = "test string";
-  DataValue d(s);
-  TEST_EQUAL((String)d, "test string")
-END_SECTION
 
 START_SECTION((DataValue(const String&)))
   String s = "test string";
@@ -739,24 +733,6 @@ START_SECTION((bool toBool() const))
   TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
 END_SECTION
 
-START_SECTION((QString toQString() const))
-  DataValue a;
-  TEST_EQUAL(a.toQString().toStdString(), "")
-  a = DataValue("hello");
-  TEST_EQUAL(a.toQString().toStdString(),"hello")
-  a = DataValue(5);
-  TEST_EQUAL(a.toQString().toStdString(), "5")
-  a = DataValue(47.11);
-  TEST_EQUAL(a.toQString().toStdString(), "47.109999999999999")
-  a = DataValue(-23456.78);
-  TEST_EQUAL(a.toQString().toStdString(), "-2.345678e04")
-  a = DataValue(ListUtils::create<String>("test string,string2,last string"));
-  TEST_EQUAL(a.toQString().toStdString(), "[test string, string2, last string]")
-  a =DataValue(ListUtils::create<Int>("1,2,3"));
-  TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
-  a = DataValue(ListUtils::create<double>("1.22,43.23232"));
-  TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.232320000000001]")
-END_SECTION
 
 START_SECTION(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
   DataValue a((Int)5), b((UInt)100), c((double)1.111), d((double)1.1), e("hello "), f(std::string("world")), g;
@@ -885,14 +861,6 @@ START_SECTION((DataValue& operator=(const String&)))
 }
 END_SECTION
 
-START_SECTION((DataValue& operator=(const QString&)))
-{
-  QString v = "value";
-  DataValue a("v");
-  a = v;
-  TEST_EQUAL((String)a, "value")
-}
-END_SECTION
 
 START_SECTION((DataValue& operator=(const StringList&)))
 {

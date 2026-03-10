@@ -53,8 +53,8 @@ namespace OpenMS
   void SpectrumSettingsVisualizer::store()
   {
     ptr_->setType((SpectrumSettings::SpectrumType)type_->currentIndex());
-    ptr_->setNativeID(native_id_->text());
-    ptr_->setComment(comment_->toPlainText());
+    ptr_->setNativeID(native_id_->text().toStdString());
+    ptr_->setComment(comment_->toPlainText().toStdString());
 
     temp_ = (*ptr_);
   }

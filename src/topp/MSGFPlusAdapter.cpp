@@ -25,8 +25,12 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QProcessEnvironment>
-#include <QLockFile>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <boost/interprocess/sync/file_lock.hpp>
+#include <chrono>
+#include <thread>
+#include <vector>
+#include <string>
 
 #include <algorithm>
 #include <fstream>
@@ -420,70 +424,86 @@ protected:
     id.setHigherScoreBetter(false);
   }
 
-  bool createLockedDBIndex(const String& db_name, const QString java_executable, const QString java_memory, const QString executable)
+  bool createLockedDBIndex(const String& db_name, const String& java_executable, const String& java_memory, const String& executable)
   {
     const String db_indexfile = FileHandler::stripExtension(db_name) + ".canno";
-    const QString lockfile = (db_name + ".lock").toQString();
-    QLockFile lock_db(lockfile);
+    const String lockfile = db_name + ".lock";
     OPENMS_LOG_DEBUG << "Checking for db index, using a lock file ..." << std::endl;
-    if (!lock_db.lock())
+
+    // ensure lockfile exists so file_lock can operate on it
+    { std::ofstream f(lockfile.c_str(), std::ios::app); }
+
+    bool locked = false;
+    try
     {
-      String msg;
-      switch (lock_db.error())
+      boost::interprocess::file_lock fl(lockfile.c_str());
+      // try to acquire the lock for up to 60 seconds
+      auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(60);
+      while (std::chrono::steady_clock::now() < deadline)
       {
-        case QLockFile::NoError:
-          msg = "The lock was acquired successfully.";
-          break;
-        case QLockFile::LockFailedError:
-          msg = "The lock could not be acquired because another process holds it.";
-          break;
-        case QLockFile::PermissionError: // if we cannot create the log, hopefully noone else can (who runs on different accounts anyways?)
-          // so we may dare to check for existance of the index (even though we are not locked right now)
-          msg = "The lock file could not be created, for lack of permissions in the parent directory.";
-          if (!File::exists(db_indexfile))
-          {
-            OPENMS_LOG_ERROR << msg << " Checking index anyway: No database index found! Please make the directory writable or pre-create an DB index." << std::endl;
-            return false;
-          }
+        if (fl.try_lock()) { locked = true; break; }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+
+      if (!locked)
+      {
+        String msg = "Timed out acquiring file lock";
+        OPENMS_LOG_ERROR << "An error occurred while trying to acquire a file lock: " << msg << " using the file '" << lockfile
+                         << "'.\nPlease check the previous error message and contact OpenMS support if you cannot solve the problem.";
+        // if we cannot lock, but the index exists already, we can proceed
+        if (File::exists(db_indexfile))
+        {
           OPENMS_LOG_DEBUG << msg << " Checking index anyway: found it!" << std::endl;
           return true;
-        case QLockFile::UnknownError:
-          msg = "Another error happened, for instance a full partition prevented writing out the lock file.";
-      };
-      OPENMS_LOG_ERROR << "An error occurred while trying to acquire a file lock: " << msg << " using the file '" << lockfile.toStdString()
-                       << "'.\nPlease check the previous error message and contact OpenMS support if you cannot solve the problem.";
-      return false;
-    }
-    // we have a lock: now check if we need to create a new index (which only one instance should do)
-    if (!File::exists(db_indexfile))
-    {
-      OPENMS_LOG_INFO << "\nNo database index found! Creating index while holding a lock ..." << std::endl;
-      QStringList process_params; // the actual process is Java, not MS-GF+!
-      // java -Xmx3500M -cp MSGFPlus.jar edu.ucsd.msjava.msdbsearch.BuildSA -d DatabaseFile
-      process_params << java_memory 
-                     << "-cp" << executable
-                     << "edu.ucsd.msjava.msdbsearch.BuildSA"
-                     << "-d" << db_name.toQString()
-                     << "-tda" << "0"; // do NOT add & index a reverse DB (i.e. '-tda=2'), since this DB may already contain FW+BW,
-                                       // and duplicating again will cause MSGF+ to error with 'too many redundant proteins'
-      
-      // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
-      // If no output file is produced, we can print the stderr below.
-      String proc_stdout, proc_stderr;
-
-      TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, proc_stdout, proc_stderr);
-      if (exit_code != EXECUTION_OK)
-      {
-        // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
-        //  but not print the output of the program.
-        OPENMS_LOG_ERROR << "The output of MSGF+'s Index Database Creation was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
+        }
+        OPENMS_LOG_ERROR << msg << " Checking index anyway: No database index found! Please make the directory writable or pre-create an DB index." << std::endl;
         return false;
       }
-      OPENMS_LOG_INFO << " ... done" << std::endl;
+
+      // we have a lock: now check if we need to create a new index (which only one instance should do)
+      if (!File::exists(db_indexfile))
+      {
+        OPENMS_LOG_INFO << "\nNo database index found! Creating index while holding a lock ..." << std::endl;
+
+        // collect all output since MSGF+ might return 'success' even though it did not like the command arguments
+        String proc_stdout, proc_stderr;
+
+        std::vector<std::string> args;
+        args.push_back(std::string(java_memory.c_str()));
+        args.emplace_back("-cp");
+        args.push_back(std::string(executable.c_str()));
+        args.emplace_back("edu.ucsd.msjava.msdbsearch.BuildSA");
+        args.emplace_back("-d");
+        args.push_back(std::string(db_name.c_str()));
+        args.emplace_back("-tda");
+        args.emplace_back("0"); // do NOT add & index a reverse DB
+
+        ExternalProcess ep(
+          [&](const String& s) { proc_stdout += s; },
+          [&](const String& s) { proc_stderr += s; }
+        );
+        auto state = ep.run(std::string(java_executable.c_str()), args, "", true);
+        if (state != ExternalProcess::RETURNSTATE::SUCCESS)
+        {
+          OPENMS_LOG_ERROR << "The output of MSGF+'s Index Database Creation was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << std::endl;
+          return false;
+        }
+        OPENMS_LOG_INFO << " ... done" << std::endl;
+      }
+      // release lock when 'fl' goes out of scope
+    }
+    catch (std::exception& e)
+    {
+      OPENMS_LOG_ERROR << "Another error happened with the lock file '" << lockfile << "': " << e.what() << std::endl;
+      if (!File::exists(db_indexfile))
+      {
+        OPENMS_LOG_ERROR << "Checking index anyway: No database index found! Please make the directory writable or pre-create an DB index." << std::endl;
+        return false;
+      }
+      OPENMS_LOG_DEBUG << "Checking index anyway: found it!" << std::endl;
+      return true;
     }
 
-    // free lock, since database index exists at this point
-    lock_db.unlock();
     OPENMS_LOG_DEBUG << "... releasing DB lock" << std::endl;
     return true;
   }
@@ -517,11 +537,11 @@ protected:
       writeLogWarn_("The installation of Java was not checked.");
     }
     
-    const QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
-    const QString executable = getStringOption_("executable").toQString();
+    const String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
+    const String executable = getStringOption_("executable");
     
     const String db_name = getDBFilename();
-    if (!createLockedDBIndex(db_name, java_executable.toQString(), java_memory, executable))
+    if (!createLockedDBIndex(db_name, java_executable, java_memory, executable))
     {
       OPENMS_LOG_ERROR << "Could not create/verify database index. Aborting ..." << std::endl;
       return ExitCodes::INTERNAL_ERROR;
@@ -568,38 +588,61 @@ protected:
     }
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
-    QStringList process_params; // the actual process is Java, not MS-GF+!
-    process_params << java_memory
-                   << "-jar" << executable
-                   << "-s" << in.toQString()
-                   << "-o" << mzid_temp.toQString()
-                   << "-d" << db_name.toQString()
-                   << "-t" << QString::number(precursor_mass_tol) + precursor_error_units.toQString()
-                   << "-ti" << getStringOption_("isotope_error_range").toQString()
-                   << "-m" << QString::number(fragment_method_code)
-                   << "-inst" << QString::number(instrument_code)
-                   << "-e" << QString::number(enzyme_code)
-                   << "-protocol" << QString::number(protocol_code)
-                   << "-ntt" << QString::number(tryptic_code)
-                   << "-minLength" << QString::number(getIntOption_("min_peptide_length"))
-                   << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
-                   << "-minNumPeaks" << QString::number(getIntOption_("min_peaks"))
-                   << "-minCharge" << QString::number(min_precursor_charge)
-                   << "-maxCharge" << QString::number(max_precursor_charge)
-                   << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))
-                   << "-n" << QString::number(getIntOption_("matches_per_spec"))
-                   << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
-                   << "-tasks" << QString::number(getIntOption_("tasks"))
-                   << "-thread" << QString::number(getIntOption_("threads"));
+    std::vector<std::string> process_args; // the actual process is Java, not MS-GF+!
+    process_args.push_back(std::string(java_memory.c_str()));
+    process_args.emplace_back("-jar");
+    process_args.push_back(std::string(executable.c_str()));
+    process_args.emplace_back("-s");
+    process_args.push_back(std::string(in.c_str()));
+    process_args.emplace_back("-o");
+    process_args.push_back(std::string(mzid_temp.c_str()));
+    process_args.emplace_back("-d");
+    process_args.push_back(std::string(db_name.c_str()));
+    process_args.emplace_back("-t");
+    process_args.push_back(std::string((String(precursor_mass_tol) + precursor_error_units).c_str()));
+    process_args.emplace_back("-ti");
+    process_args.push_back(std::string(getStringOption_("isotope_error_range").c_str()));
+    process_args.emplace_back("-m");
+    process_args.push_back(std::string(String(fragment_method_code).c_str()));
+    process_args.emplace_back("-inst");
+    process_args.push_back(std::string(String(instrument_code).c_str()));
+    process_args.emplace_back("-e");
+    process_args.push_back(std::string(String(enzyme_code).c_str()));
+    process_args.emplace_back("-protocol");
+    process_args.push_back(std::string(String(protocol_code).c_str()));
+    process_args.emplace_back("-ntt");
+    process_args.push_back(std::string(String(tryptic_code).c_str()));
+    process_args.emplace_back("-minLength");
+    process_args.push_back(std::string(String(getIntOption_("min_peptide_length")).c_str()));
+    process_args.emplace_back("-maxLength");
+    process_args.push_back(std::string(String(getIntOption_("max_peptide_length")).c_str()));
+    process_args.emplace_back("-minNumPeaks");
+    process_args.push_back(std::string(String(getIntOption_("min_peaks")).c_str()));
+    process_args.emplace_back("-minCharge");
+    process_args.push_back(std::string(String(min_precursor_charge).c_str()));
+    process_args.emplace_back("-maxCharge");
+    process_args.push_back(std::string(String(max_precursor_charge).c_str()));
+    process_args.emplace_back("-maxMissedCleavages");
+    process_args.push_back(std::string(String(getIntOption_("max_missed_cleavages")).c_str()));
+    process_args.emplace_back("-n");
+    process_args.push_back(std::string(String(getIntOption_("matches_per_spec")).c_str()));
+    process_args.emplace_back("-addFeatures");
+    process_args.push_back(std::string(String(int((getParam_().getValue("add_features") == "true"))).c_str()));
+    process_args.emplace_back("-tasks");
+    process_args.push_back(std::string(String(getIntOption_("tasks")).c_str()));
+    process_args.emplace_back("-thread");
+    process_args.push_back(std::string(String(getIntOption_("threads")).c_str()));
     String conf = getStringOption_("conf");
     if (!conf.empty())
     {
-      process_params << "-conf" << conf.toQString();
+      process_args.emplace_back("-conf");
+      process_args.push_back(std::string(conf.c_str()));
     }
 
     if (!mod_file.empty())
     {
-      process_params << "-mod" << mod_file.toQString();
+      process_args.emplace_back("-mod");
+      process_args.push_back(std::string(mod_file.c_str()));
     }
 
     //-------------------------------------------------------------
@@ -613,13 +656,15 @@ protected:
     // If no output file is produced, we can print the stderr below.
     String proc_stdout, proc_stderr; 
     
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, proc_stdout, proc_stderr);
-    if (exit_code != EXECUTION_OK)
+    ExternalProcess ep(
+      [&](const String& s){ proc_stdout += s; },
+      [&](const String& s){ proc_stderr += s; }
+    );
+    auto state = ep.run(std::string(java_executable.c_str()), process_args, "", true);
+    if (state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
-      // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
-      //  but not print the output of the program.
-      OPENMS_LOG_ERROR << "The output of MSGF+ was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
-      return exit_code;
+      OPENMS_LOG_ERROR << "The output of MSGF+ was:\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << std::endl;
+      return EXTERNAL_PROGRAM_ERROR;
     }
 
     //-------------------------------------------------------------
@@ -642,23 +687,31 @@ protected:
         // run TSV converter
         String tsv_out = tmp_dir.getPath() + "msgfplus_converted.tsv";
         int java_permgen = getIntOption_("java_permgen");
-        process_params.clear();
-        process_params << java_memory;
+        writeLogInfo_("Running MzIDToTSVConverter...");
+        std::vector<std::string> conv_args;
+        conv_args.push_back(std::string(java_memory.c_str()));
         if (java_permgen > 0)
         {
-          process_params << "-XX:MaxPermSize=" + QString::number(java_permgen) + "m";
+          conv_args.push_back(std::string(String("-XX:MaxPermSize=" + String(java_permgen) + "m").c_str()));
         }
-        process_params << "-cp" << executable << "edu.ucsd.msjava.ui.MzIDToTsv"
-                       << "-i" << mzid_temp.toQString()
-                       << "-o" << tsv_out.toQString()
-                       << "-showQValue" << "1"
-                       << "-showDecoy" << "1"
-                       << "-unroll" << "1";
-        writeLogInfo_("Running MzIDToTSVConverter...");
-        exit_code = runExternalProcess_(java_executable.toQString(), process_params);
-        if (exit_code != EXECUTION_OK)
+        conv_args.emplace_back("-cp");
+        conv_args.push_back(std::string(executable.c_str()));
+        conv_args.emplace_back("edu.ucsd.msjava.ui.MzIDToTsv");
+        conv_args.emplace_back("-i");
+        conv_args.push_back(std::string(mzid_temp.c_str()));
+        conv_args.emplace_back("-o");
+        conv_args.push_back(std::string(tsv_out.c_str()));
+        conv_args.emplace_back("-showQValue");
+        conv_args.emplace_back("1");
+        conv_args.emplace_back("-showDecoy");
+        conv_args.emplace_back("1");
+        conv_args.emplace_back("-unroll");
+        conv_args.emplace_back("1");
+        ExternalProcess ep_conv;
+        auto conv_state = ep_conv.run(std::string(java_executable.c_str()), conv_args, "", true);
+        if (conv_state != ExternalProcess::RETURNSTATE::SUCCESS)
         {
-          return exit_code;
+          return EXTERNAL_PROGRAM_ERROR;
         }
 
         // initialize map

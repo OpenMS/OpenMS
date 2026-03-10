@@ -13,9 +13,9 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
-#include <QtCore/QString>
-
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 using namespace std;
 
@@ -57,7 +57,9 @@ public:
       }
       else
       {
-        cout << '\r' << string(2 * current_recursion_depth, ' ') << QString::number(float(value - begin_) / float(end_ - begin_) * 100.0, 'f', 2).toStdString()  << " %               ";
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(2) << float(value - begin_) / float(end_ - begin_) * 100.0;
+        cout << '\r' << string(2 * current_recursion_depth, ' ') << oss.str() << " %               ";
         cout << flush;
       }
     }

@@ -37,11 +37,10 @@
 
 #include <boost/math/distributions/normal.hpp>
 
-#include <QtCore/QStringList>
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QFileInfo>
-#include <QtCore/QProcess>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <vector>
+#include <string>
+#include <cstdlib>
 
 #include <algorithm>
 #include <iostream>
@@ -459,7 +458,7 @@ public:
 class MetaProSIPReporting
 {
 public:
-  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0, const QString& executable = QString("R"))
+  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0, const String& executable = String("R"))
   {
     String filename = String("heatmap") + file_suffix + "." + file_extension;
     String script_filename = String("heatmap") + file_suffix + String(".R");
@@ -530,21 +529,33 @@ public:
     current_script.addLine("tmp<-dev.off()");
     current_script.store(tmp_path + "/" + script_filename);
 
-    QProcess p;
-    QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + tmp_path.toQString();
-    p.setEnvironment(env);
+    // set R_LIBS temporarily to tmp_path
+    const char* old_rlibs = std::getenv("R_LIBS");
+    String old_rlibs_str = old_rlibs ? String(old_rlibs) : String();
+#ifdef OPENMS_WINDOWSPLATFORM
+    _putenv_s("R_LIBS", tmp_path.c_str());
+#else
+    setenv("R_LIBS", tmp_path.c_str(), 1);
+#endif
 
-    QStringList qparam;
-    qparam << "--vanilla";
-    if (debug_level < 1)
-    {
-      qparam << "--quiet";
-    }
-    qparam << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-    p.start(executable, qparam);
-    p.waitForFinished(-1);
-    int status = p.exitCode();
+    std::vector<std::string> qparam;
+    qparam.emplace_back("--vanilla");
+    if (debug_level < 1) { qparam.emplace_back("--quiet"); }
+    qparam.emplace_back("--slave");
+    qparam.emplace_back(std::string(String("--file=" + (tmp_path + "/" + script_filename)).c_str()));
+
+    String proc_out, proc_err;
+    ExternalProcess ep(
+      [&](const String& s){ proc_out += s; },
+      [&](const String& s){ proc_err += s; }
+    );
+    auto run_state = ep.run(std::string(executable.c_str()), qparam, "", true);
+#ifdef OPENMS_WINDOWSPLATFORM
+    if (!old_rlibs_str.empty()) { _putenv_s("R_LIBS", old_rlibs_str.c_str()); } else { _putenv_s("R_LIBS", ""); }
+#else
+    if (!old_rlibs_str.empty()) { setenv("R_LIBS", old_rlibs_str.c_str(), 1); } else { unsetenv("R_LIBS"); }
+#endif
+    int status = run_state == ExternalProcess::RETURNSTATE::SUCCESS ? 0 : 1;
 
     // cleanup
     if (status != 0)
@@ -553,16 +564,16 @@ public:
     }
     else
     {
-      QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).copy(output_dir.toQString() + "/heatmap" + file_suffix.toQString() + "." + file_extension.toQString());
+      File::copy(tmp_path + "/" + filename, output_dir + "/heatmap" + file_suffix + "." + file_extension);
       if (debug_level < 1)
       {
-        QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-        QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).remove();
+        File::remove(tmp_path + "/" + script_filename);
+        File::remove(tmp_path + "/" + filename);
       }
     }
   }
 
-  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0, const QString& executable = QString("R"))
+  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0, const String& executable = String("R"))
   {
     String filename = String("spectrum_plot") + file_suffix + "." + file_extension;
     String script_filename = String("spectrum_plot") + file_suffix + String(".R");
@@ -613,16 +624,28 @@ public:
       current_script.addLine("tmp<-dev.off()");
       current_script.store(tmp_path + "/" + script_filename);
 
-      QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
+      // set R_LIBS temporarily to tmp_path
+      const char* old_rlibs = std::getenv("R_LIBS");
+      String old_rlibs_str = old_rlibs ? String(old_rlibs) : String();
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv_s("R_LIBS", tmp_path.c_str());
+#else
+      setenv("R_LIBS", tmp_path.c_str(), 1);
+#endif
 
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start(executable, qparam);
-      p.waitForFinished(-1);
-      int status = p.exitCode();
+      std::vector<std::string> qparam;
+      qparam.emplace_back("--vanilla");
+      qparam.emplace_back("--quiet");
+      qparam.emplace_back("--slave");
+      qparam.emplace_back(std::string(String("--file=" + (tmp_path + "/" + script_filename)).c_str()));
+      ExternalProcess ep2;
+      auto state2 = ep2.run(std::string(executable.c_str()), qparam, "", true);
+#ifdef OPENMS_WINDOWSPLATFORM
+      if (!old_rlibs_str.empty()) { _putenv_s("R_LIBS", old_rlibs_str.c_str()); } else { _putenv_s("R_LIBS", ""); }
+#else
+      if (!old_rlibs_str.empty()) { setenv("R_LIBS", old_rlibs_str.c_str(), 1); } else { unsetenv("R_LIBS"); }
+#endif
+      int status = state2 == ExternalProcess::RETURNSTATE::SUCCESS ? 0 : 1;
 
       if (status != 0)
       {
@@ -630,11 +653,11 @@ public:
       }
       else
       {
-        QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).copy(output_dir.toQString() + "/spectrum" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        File::copy(tmp_path + "/" + filename, output_dir + "/spectrum" + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension);
         if (debug_level < 1)
         {
-          QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).remove();
+          File::remove(tmp_path + "/" + script_filename);
+          File::remove(tmp_path + "/" + filename);
         }
       }
     }
@@ -758,10 +781,10 @@ public:
       current_script.addLine("<p> <img src=\"" + score_filename + R"(" alt="graphic"></p>)");
     }
     current_script.addLine("\n</body>\n</html>");
-    current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");
+    current_script.store(qc_output_directory + "/index" + file_suffix + ".html");
   }
 
-  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const QString& executable = QString("R"))
+  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const String& executable = String("R"))
   {
     String score_filename = String("score_plot") + file_suffix + file_extension;
     String script_filename = String("score_plot") + file_suffix + String(".R");
@@ -834,16 +857,28 @@ public:
       current_script.addLine("tmp<-dev.off()");
       current_script.store(tmp_path + "/" + script_filename);
 
-      QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
+      // set R_LIBS temporarily to tmp_path
+      const char* old_rlibs = std::getenv("R_LIBS");
+      String old_rlibs_str = old_rlibs ? String(old_rlibs) : String();
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv_s("R_LIBS", tmp_path.c_str());
+#else
+      setenv("R_LIBS", tmp_path.c_str(), 1);
+#endif
 
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start(executable, qparam);
-      p.waitForFinished(-1);
-      int status = p.exitCode();
+      std::vector<std::string> qparam;
+      qparam.emplace_back("--vanilla");
+      qparam.emplace_back("--quiet");
+      qparam.emplace_back("--slave");
+      qparam.emplace_back(std::string(String("--file=" + (tmp_path + "/" + script_filename)).c_str()));
+      ExternalProcess ep3;
+      auto state3 = ep3.run(std::string(executable.c_str()), qparam, "", true);
+#ifdef OPENMS_WINDOWSPLATFORM
+      if (!old_rlibs_str.empty()) { _putenv_s("R_LIBS", old_rlibs_str.c_str()); } else { _putenv_s("R_LIBS", ""); }
+#else
+      if (!old_rlibs_str.empty()) { setenv("R_LIBS", old_rlibs_str.c_str(), 1); } else { unsetenv("R_LIBS"); }
+#endif
+      int status = state3 == ExternalProcess::RETURNSTATE::SUCCESS ? 0 : 1;
 
       if (status != 0)
       {
@@ -851,11 +886,11 @@ public:
       }
       else
       {
-        QFile(QString(tmp_path.toQString() + "/" + score_filename.toQString())).copy(output_dir.toQString() + "/scores" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        File::copy(tmp_path + "/" + score_filename, output_dir + "/scores" + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension);
         if (debug_level < 1)
         {
-          QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "/" + score_filename.toQString())).remove();
+          File::remove(tmp_path + "/" + script_filename);
+          File::remove(tmp_path + "/" + score_filename);
         }
       }
     }
@@ -869,7 +904,7 @@ public:
                                   Size n_heatmap_bins,
                                   double score_plot_y_axis_min,
                                   bool report_natural_peptides,
-                                  const QString& executable = QString("R"))
+                                  const String& executable = String("R"))
   {
     vector<SIPPeptide> sip_peptides;
     for (vector<vector<SIPPeptide> >::const_iterator cit = sip_peptide_cluster.begin(); cit != sip_peptide_cluster.end(); ++cit)
@@ -2035,7 +2070,7 @@ class RIntegration
 {
 public:
   // Perform a simple check if R and all R dependencies are there
-  static bool checkRDependencies(const String& tmp_path, StringList package_names, const QString& executable = QString("R"))
+  static bool checkRDependencies(const String& tmp_path, StringList package_names, const String& executable = String("R"))
   {
     String random_name = String::random(8);
     String script_filename = tmp_path + String("/") + random_name + String(".R");
@@ -2047,18 +2082,29 @@ public:
 
     OPENMS_LOG_INFO << "Checking R...";
     {
-      QProcess p;
-      p.setProcessChannelMode(QProcess::MergedChannels);
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
+      // set R_LIBS temporarily to tmp_path
+      const char* old_rlibs = std::getenv("R_LIBS");
+      String old_rlibs_str = old_rlibs ? String(old_rlibs) : String();
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv_s("R_LIBS", tmp_path.c_str());
+#else
+      setenv("R_LIBS", tmp_path.c_str(), 1);
+#endif
 
-      QStringList checkRinPathQParam;
-      checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-      p.start(executable, checkRinPathQParam);
-      p.waitForFinished(-1);
+      std::vector<std::string> args1;
+      args1.emplace_back("--vanilla");
+      args1.emplace_back("--quiet");
+      args1.emplace_back("--slave");
+      args1.emplace_back(std::string(String("--file=" + script_filename).c_str()));
+      ExternalProcess ep1;
+      auto state1 = ep1.run(std::string(executable.c_str()), args1, "", true);
+#ifdef OPENMS_WINDOWSPLATFORM
+      if (!old_rlibs_str.empty()) { _putenv_s("R_LIBS", old_rlibs_str.c_str()); } else { _putenv_s("R_LIBS", ""); }
+#else
+      if (!old_rlibs_str.empty()) { setenv("R_LIBS", old_rlibs_str.c_str(), 1); } else { unsetenv("R_LIBS"); }
+#endif
 
-      if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
+      if (state1 != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         OPENMS_LOG_INFO << " failed" << std::endl;
         OPENMS_LOG_ERROR << "Can't execute R. Do you have R installed? Check if the path to R is in your system path variable." << std::endl;
@@ -2091,27 +2137,35 @@ public:
 
     current_script.store(script_filename);
 
-    QProcess p;
-    p.setProcessChannelMode(QProcess::MergedChannels);
-    QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + tmp_path.toQString();
-    p.setEnvironment(env);
+    // set R_LIBS temporarily to tmp_path
+    const char* old_rlibs = std::getenv("R_LIBS");
+    String old_rlibs_str = old_rlibs ? String(old_rlibs) : String();
+#ifdef OPENMS_WINDOWSPLATFORM
+    _putenv_s("R_LIBS", tmp_path.c_str());
+#else
+    setenv("R_LIBS", tmp_path.c_str(), 1);
+#endif
 
-    QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-    p.start(executable, qparam);
-    p.waitForFinished(-1);
-    int status = p.exitCode();
+    std::vector<std::string> qparam;
+    qparam.emplace_back("--vanilla");
+    qparam.emplace_back("--quiet");
+    qparam.emplace_back("--slave");
+    qparam.emplace_back(std::string(String("--file=" + script_filename).c_str()));
+    ExternalProcess ep;
+    auto state = ep.run(std::string(executable.c_str()), qparam, "", true);
+#ifdef OPENMS_WINDOWSPLATFORM
+    if (!old_rlibs_str.empty()) { _putenv_s("R_LIBS", old_rlibs_str.c_str()); } else { _putenv_s("R_LIBS", ""); }
+#else
+    if (!old_rlibs_str.empty()) { setenv("R_LIBS", old_rlibs_str.c_str(), 1); } else { unsetenv("R_LIBS"); }
+#endif
 
-    if (status != 0)
+    if (state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
       OPENMS_LOG_ERROR << "\nProblem finding all R dependencies. Check if R and following libraries are installed:" << std::endl;
       for (TextFile::ConstIterator line_it = current_script.begin(); line_it != current_script.end(); ++line_it)
       {
         OPENMS_LOG_ERROR << *line_it  << std::endl;
       }
-      QString s = p.readAllStandardOutput();
-      OPENMS_LOG_ERROR << s.toStdString() << std::endl;
       return false;
     }
     OPENMS_LOG_INFO << " success" << std::endl;
@@ -3052,16 +3106,12 @@ protected:
     // Do we want to create a qc report?
     if (!qc_output_directory.empty())
     {
-      QString executable = getStringOption_("r_executable").toQString();
+      String executable = getStringOption_("r_executable");
       // convert path to absolute path
-      QDir qc_dir(qc_output_directory.toQString());
-      qc_output_directory = String(qc_dir.absolutePath());
+      qc_output_directory = File::absolutePath(qc_output_directory);
 
       // trying to create qc_output_directory if not present
-      if (!qc_dir.exists())
-      {
-        qc_dir.mkpath(qc_output_directory.toQString());
-      }
+      File::makeDir(qc_output_directory);
       // check if R and dependencies are installed
       StringList package_names;
       package_names.push_back("gplots");
@@ -3268,7 +3318,10 @@ protected:
     vector<MapRateToScoreType> normalized_weight_maps;
     vector<MapRateToScoreType> correlation_maps;
 
-    String file_suffix = "_" + String(QFileInfo(in_mzml.toQString()).baseName()) + "_" + String::random(4);
+    String base = File::basename(in_mzml);
+    Size dot_pos = base.find_last_of('.');
+    if (dot_pos != String::npos) base = base.substr(0, dot_pos);
+    String file_suffix = "_" + base + "_" + String::random(4);
 
     vector<SIPPeptide> sip_peptides;
 
@@ -3725,7 +3778,7 @@ protected:
     // quality report
     if (!qc_output_directory.empty())
     {
-      QString executable = getStringOption_("r_executable").toQString();
+      std::string executable = getStringOption_("r_executable");
       // TODO plot merged is now passed as false
       MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, executable);
     }

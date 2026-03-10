@@ -97,7 +97,6 @@
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/QC/DBSuitability.h>
@@ -429,7 +428,6 @@ int main(int argc, char** argv)
   DOCME(ZhangSimilarityScore);
   DOCME(MorphologicalFilter);
   DOCME(MassDecompositionAlgorithm);
-  DOCME(MascotRemoteQuery);
   DOCME(MascotGenericFile);
   DOCME(Fitter1D);  
   DOCME(PeptideAndProteinQuant);

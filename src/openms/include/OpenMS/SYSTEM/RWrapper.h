@@ -10,9 +10,8 @@
 
 #include <OpenMS/config.h>
 
-#include <QtCore/QString>
-
-#include <QtCore/qcontainerfwd.h> // for QStringList
+#include <vector>
+#include <string>
 
 namespace OpenMS
 {
@@ -55,7 +54,7 @@ public:
       @param[in] verbose Print failure information?
       @return Success status
     */
-    static bool findR(const QString& executable = QString("Rscript"), bool verbose = true);
+    static bool findR(const std::string& executable = "Rscript", bool verbose = true);
 
 
     /**
@@ -78,7 +77,7 @@ public:
       @param[in] verbose Print status information; also passed internally to findR() and findScript().
       @return Success status
     */
-    static bool runScript(const String& script_file, const QStringList& cmd_args, const QString& executable = QString("Rscript"), bool find_R = false, bool verbose = true);
+    static bool runScript(const String& script_file, const std::vector<std::string>& cmd_args, const std::string& executable = "Rscript", bool find_R = false, bool verbose = true);
 
   };
 

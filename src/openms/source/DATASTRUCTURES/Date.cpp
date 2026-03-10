@@ -7,77 +7,151 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <QtCore/QDate>
-
-using namespace std;
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 
 namespace OpenMS
 {
-
-  Date::Date() :
-    date_(make_unique<QDate>())
+  Date::Date()
   {
+    clear();
   }
 
-  Date::Date(const Date& date) :
-    date_(date.date_ ? make_unique<QDate>(*date.date_) : make_unique<QDate>())
+  bool Date::isLeap_(int y)
   {
+    return ((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0);
   }
 
-  Date::Date(const QDate& date) :
-    date_(make_unique<QDate>(date))
+  bool Date::valid_(int y, int m, int d)
   {
+    if (y <= 0 || m < 1 || m > 12 || d < 1) return false;
+    static const int mdays[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    int dim = mdays[m - 1] + ((m == 2 && isLeap_(y)) ? 1 : 0);
+    return d <= dim;
   }
 
-  Date::Date(Date&& rhs) noexcept :
-    date_(rhs.date_ ? std::move(rhs.date_) : make_unique<QDate>())
+  void Date::set(const String& date)
   {
-  }
-
-  Date::~Date() = default;
-
-  Date& Date::operator=(const Date& source)
-  {
-    if (&source == this)
+    clear();
+    // dd.MM.yyyy
+    if (date.has('.'))
     {
-      return *this;
+      int d = 0, m = 0, y = 0;
+      char extra; // to catch any extra characters
+      int parsed = std::sscanf(date.c_str(), "%d.%d.%d%c", &d, &m, &y, &extra);
+      if (parsed == 3 && valid_(y, m, d))
+      {
+        day_ = d; month_ = m; year_ = y; valid_flag_ = true;
+        return;
+      }
+    }
+    // MM/dd/yyyy
+    else if (date.has('/'))
+    {
+      int d = 0, m = 0, y = 0;
+      char extra; // to catch any extra characters
+      int parsed = std::sscanf(date.c_str(), "%d/%d/%d%c", &m, &d, &y, &extra);
+      if (parsed == 3 && valid_(y, m, d))
+      {
+        day_ = d; month_ = m; year_ = y; valid_flag_ = true;
+        return;
+      }
+    }
+    // yyyy-MM-dd
+    else if (date.has('-'))
+    {
+      int d = 0, m = 0, y = 0;
+      char extra; // to catch any extra characters
+      int parsed = std::sscanf(date.c_str(), "%d-%d-%d%c", &y, &m, &d, &extra);
+      if (parsed == 3 && valid_(y, m, d))
+      {
+        day_ = d; month_ = m; year_ = y; valid_flag_ = true;
+        return;
+      }
     }
 
-    if (source.date_ == nullptr)
-    {
-      // Source is in a 'moved-from' state; create a default date
-      date_ = make_unique<QDate>();
-    }
-    else if (date_ == nullptr)
-    { // *this is in a 'moved-from' state; we need to create a date_ object first
-      date_ = make_unique<QDate>(*source.date_);
-    }
-    else
-    {
-      *date_ = *source.date_;
-    }
-
-    return *this;
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date, "Invalid date format (supported: dd.MM.yyyy, MM/dd/yyyy, yyyy-MM-dd)");
   }
 
-  Date& Date::operator=(Date&& source) & noexcept
+  void Date::set(UInt month, UInt day, UInt year)
   {
-    if (&source == this)
+    if (!valid_(static_cast<int>(year), static_cast<int>(month), static_cast<int>(day)))
     {
-      return *this;
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  String(year) + "-" + String(month) + "-" + String(day), "Invalid date");
     }
+    year_ = static_cast<int>(year);
+    month_ = static_cast<int>(month);
+    day_ = static_cast<int>(day);
+    valid_flag_ = true;
+  }
 
-    std::swap(date_, source.date_);
+  Date Date::today()
+  {
+    Date d;
+    std::time_t t = std::time(nullptr);
+    std::tm lt{};
+#if defined(_WIN32)
+    localtime_s(&lt, &t);
+#else
+    lt = *std::localtime(&t);
+#endif
+    d.year_ = lt.tm_year + 1900;
+    d.month_ = lt.tm_mon + 1;
+    d.day_ = lt.tm_mday;
+    d.valid_flag_ = true;
+    return d;
+  }
 
-    return *this;
+  String Date::get() const
+  {
+    if (!valid_flag_) return "0000-00-00";
+    std::ostringstream oss;
+    oss << std::setfill('0') << std::setw(4) << year_ << '-'
+        << std::setw(2) << month_ << '-'
+        << std::setw(2) << day_;
+    return String(oss.str());
+  }
+
+  void Date::get(UInt& month, UInt& day, UInt& year) const
+  {
+    month = static_cast<UInt>(valid_flag_ ? month_ : 0);
+    day   = static_cast<UInt>(valid_flag_ ? day_   : 0);
+    year  = static_cast<UInt>(valid_flag_ ? year_  : 0);
+  }
+
+  void Date::clear()
+  {
+    year_ = month_ = day_ = 0;
+    valid_flag_ = false;
+  }
+  int Date::year() const
+  {
+    return valid_flag_ ? year_ : 0;
+  }
+
+  int Date::month() const
+  {
+    return valid_flag_ ? month_ : 0;
+  }
+
+  int Date::day() const
+  {
+    return valid_flag_ ? day_ : 0;
+  }
+
+  bool Date::isValid() const
+  {
+    return valid_flag_;
   }
 
   bool Date::operator==(const Date& rhs) const
   {
-    return (*date_ == *rhs.date_);
+    if (!valid_flag_ && !rhs.valid_flag_) return true;
+    return year_ == rhs.year_ && month_ == rhs.month_ && day_ == rhs.day_ && valid_flag_ == rhs.valid_flag_;
   }
 
   bool Date::operator!=(const Date& rhs) const
@@ -85,93 +159,4 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  bool Date::operator<(const Date& rhs) const
-  {
-    return (*date_ < *rhs.date_);
-  }
-
-  void Date::set(const String& date)
-  {
-    clear();
-
-    //check for format (german/english)
-    if (date.has('.'))
-    {
-      *date_ = QDate::fromString(date.c_str(), "dd.MM.yyyy");
-    }
-    else if (date.has('/'))
-    {
-      *date_ = QDate::fromString(date.c_str(), "MM/dd/yyyy");
-    }
-    else if (date.has('-'))
-    {
-      *date_ = QDate::fromString(date.c_str(), "yyyy-MM-dd");
-    }
-
-    if (!date_->isValid())
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date, "Is no valid german, english or iso date");
-    }
-  }
-
-  void Date::set(UInt month, UInt day, UInt year)
-  {
-    if (!date_->setDate(year, month, day))
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(year) + "-" + String(month) + "-" + String(day), "Invalid date");
-    }
-  }
-
-  Date Date::today()
-  {
-    return Date(QDate::currentDate());
-  }
-
-  String Date::get() const
-  {
-    if (date_->isValid())
-    {
-      return date_->toString("yyyy-MM-dd");
-    }
-    return "0000-00-00";
-  }
-
-  void Date::get(UInt& month, UInt& day, UInt& year) const
-  {
-    day = date_->day();
-    month = date_->month();
-    year = date_->year();
-  }
-
-  void Date::clear()
-  {
-    *date_ = QDate();
-  }
-
-  bool Date::isValid() const
-  {
-    return date_->isValid();
-  }
-
-  bool Date::isNull() const
-  {
-    return date_->isNull();
-  }
-
-  int Date::year() const
-  {
-    return date_->year();
-  }
-
-  int Date::month() const
-  {
-    return date_->month();
-  }
-
-  int Date::day() const
-  {
-    return date_->day();
-  }
-
 } // namespace OpenMS
-

@@ -11,8 +11,6 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 
-#include <QtCore/QString>
-
 #include <sstream>
 
 using namespace std;
@@ -127,11 +125,6 @@ namespace OpenMS
     data_.str_ = new String(p);
   }
 
-  DataValue::DataValue(const QString& p) :
-    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
-  {
-    data_.str_ = new String(p);
-  }
 
   DataValue::DataValue(const String& p) :
     value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
@@ -354,13 +347,6 @@ namespace OpenMS
     return *this;
   }
 
-  DataValue& DataValue::operator=(const QString& arg)
-  {
-    clear_();
-    data_.str_ = new String(arg);
-    value_type_ = STRING_VALUE;
-    return *this;
-  }
 
   DataValue& DataValue::operator=(const StringList& arg)
   {
@@ -761,10 +747,6 @@ namespace OpenMS
     return ss.str();
   }
 
-  QString DataValue::toQString() const
-  {
-    return toString(true).toQString();
-  }
 
   bool DataValue::toBool() const
   {

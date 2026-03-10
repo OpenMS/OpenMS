@@ -35,8 +35,9 @@
 #include <fstream>
 #include <iomanip>
 
-#include <QStringList>
-#include <QRegularExpression>
+#include <regex>
+#include <vector>
+#include <algorithm>
 
 using namespace OpenMS;
 using namespace std;
@@ -297,10 +298,13 @@ protected:
     isotope_error["-1/0/1/2/3"] = 5;
 
     // comet_version is something like "# comet_version 2017.01 rev. 1"
-    QRegularExpression comet_version_regex("(\\d{4})\\.(\\d*)rev");
-    if (auto match = comet_version_regex.match(comet_version.toQString().remove(' ')); match.hasMatch())
+    std::regex comet_version_regex("(\\d{4})\\.(\\d*)rev");
+    std::string cv = comet_version;
+    cv.erase(std::remove(cv.begin(), cv.end(), ' '), cv.end());
+    std::smatch m;
+    if (std::regex_search(cv, m, comet_version_regex))
     {
-      const int comet_year = match.captured(1).toInt();
+      const int comet_year = std::stoi(m[1].str());
       if (comet_version.hasSubstring("2024.01 rev. 0"))
       {
         OPENMS_LOG_WARN << "Comet v2024.01.0 is known to have several bugs (see https://github.com/UWPR/Comet/issues/63). Please use a different version if possible." << std::endl;
@@ -608,7 +612,7 @@ protected:
 
     writeDebug_("Comet is writing the default parameter file...", 1);
     
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable, std::vector<std::string>{"-p"}, tmp_dir.getPath());
     if (exit_code != EXECUTION_OK)
     {
       return exit_code; // will do the right thing, since it's correctly mapping TOPPBase exit codes
@@ -685,14 +689,16 @@ protected:
     //-------------------------------------------------------------
     String paramP = "-P" + tmp_file;
     String paramN = "-N" + FileHandler::stripExtension(FileHandler::stripExtension(tmp_pepxml));
-    QStringList arguments;
-    arguments << paramP.toQString() << paramN.toQString() << input_file_with_index.toQString();
+    std::vector<std::string> args;
+    args.push_back(std::string(paramP.c_str()));
+    args.push_back(std::string(paramN.c_str()));
+    args.push_back(std::string(input_file_with_index.c_str()));
 
     //-------------------------------------------------------------
     // run comet
     //-------------------------------------------------------------
     // Comet execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(comet_executable.toQString(), arguments);
+    exit_code = runExternalProcess_(comet_executable, args);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

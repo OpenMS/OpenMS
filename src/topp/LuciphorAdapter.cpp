@@ -24,7 +24,9 @@
 #include <OpenMS/SYSTEM/JavaInfo.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 
-#include <QProcessEnvironment>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <vector>
+#include <string>
 
 #include <cstddef>
 #include <fstream>
@@ -548,28 +550,29 @@ protected:
     writeConfigurationFile_(conf_file, config_map);
 
     // memory for JVM
-    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
+    String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
     int java_permgen = getIntOption_("java_permgen");
 
-    QString executable = getStringOption_("executable").toQString();
+    String executable = getStringOption_("executable");
 
-    QStringList process_params; // the actual process is Java, not LuciPHOr2!
-    process_params << java_memory;
-    
+    std::vector<std::string> args; // the actual process is Java, not LuciPHOr2!
+    args.push_back(std::string(java_memory.c_str()));
     if (java_permgen > 0)
     {
-      process_params << "-XX:MaxPermSize=" + QString::number(java_permgen);
+      args.push_back(std::string(String("-XX:MaxPermSize=" + String(java_permgen)).c_str()));
     }
-
-    process_params << "-jar" << executable << conf_file.toQString();
+    args.emplace_back("-jar");
+    args.push_back(std::string(executable.c_str()));
+    args.push_back(std::string(conf_file.c_str()));
 
     //-------------------------------------------------------------
     // LuciPHOr2
     //-------------------------------------------------------------
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params);
-    if (exit_code != EXECUTION_OK)
+    ExternalProcess ep;
+    auto state = ep.run(std::string(java_executable.c_str()), args, "", true);
+    if (state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
-      return exit_code;
+      return EXTERNAL_PROGRAM_ERROR;
     }
 
     SpectrumLookup lookup;

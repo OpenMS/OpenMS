@@ -46,8 +46,8 @@ namespace OpenMS
     FLASHDeconvTabWidget::FLASHDeconvTabWidget(QWidget* parent) :
         QTabWidget(parent),
         ui(new Ui::FLASHDeconvTabWidget),
-        ep_([&](const String& out) { writeLog_(out.toQString()); },
-            [&](const String& out) { writeLog_(out.toQString()); })
+        ep_([&](const String& out) { writeLog_(QString::fromStdString(static_cast<const std::string&>(out))); },
+            [&](const String& out) { writeLog_(QString::fromStdString(static_cast<const std::string&>(out))); })
     {
       ui->setupUi(this);
 
@@ -104,17 +104,17 @@ namespace OpenMS
 
       for (const auto& mzML : in_mzMLs)
       {
-        updateOutputParamFromPerInputFile(mzML.toQString());
+        updateOutputParamFromPerInputFile(QString::fromStdString(static_cast<const std::string&>(mzML)));
         Param tmp_param = Param(fd_param);
         tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_);
 
         ParamXMLFile().store(tmp_ini, tmp_param);
 
         auto r = ep_.run(this,
-                         getFLASHDeconvExe().toQString(),
-                         QStringList() << "-ini" << tmp_ini.toQString()
-                                       << "-in" << mzML.toQString()
-                                       << "-out" << getCurrentOutDir_() + "/" + infileToFDoutput(mzML).toQString(),
+                         QString::fromStdString(static_cast<const std::string&>(getFLASHDeconvExe())),
+                         QStringList() << "-ini" << QString::fromStdString(static_cast<const std::string&>(tmp_ini))
+                                       << "-in" << QString::fromStdString(static_cast<const std::string&>(mzML))
+                                       << "-out" << getCurrentOutDir_() + "/" + QString::fromStdString(static_cast<const std::string&>(infileToFDoutput(mzML))),
                          "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS)
@@ -138,7 +138,8 @@ namespace OpenMS
       String tmp_file = File::getTemporaryFile();
       ParamXMLFile().store(tmp_file, tmp_param);
       QProcess qp;
-      qp.start(executable.toQString(), QStringList() << tmp_file.toQString());
+      qp.start(QString::fromStdString(static_cast<const std::string&>(executable)),
+               QStringList() << QString::fromStdString(static_cast<const std::string&>(tmp_file)));
       ui->tab_run->setEnabled(false); // grey out the Wizard until INIFileEditor returns...
       qp.waitForFinished(-1);
       ui->tab_run->setEnabled(true);
@@ -239,8 +240,8 @@ namespace OpenMS
           }
           else if (tag == "ida_log")
           {
-            String dir_path_only = File::path(input_file_name);
-            String file_name_only = FileHandler::stripExtension(File::basename(input_file_name));
+            String dir_path_only = File::path(String(input_file_name.toStdString()));
+            String file_name_only = FileHandler::stripExtension(File::basename(String(input_file_name.toStdString())));
             out_path = dir_path_only + '/' + "IDALog_" + file_name_only + ".log";
           }
           else if (tag == "out_spec1")
@@ -294,7 +295,11 @@ namespace OpenMS
     {
       // create a default INI of FLASHDeconv
       String tmp_file = File::getTemporaryFile();
-      if (ep_.run(this, getFLASHDeconvExe().toQString(), QStringList() << "-write_ini" << tmp_file.toQString(), "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
+      if (ep_.run(this,
+                  QString::fromStdString(static_cast<const std::string&>(getFLASHDeconvExe())),
+                  QStringList() << "-write_ini" << QString::fromStdString(static_cast<const std::string&>(tmp_file)),
+                  "",
+                  true) != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         exit(1);
       }
@@ -349,7 +354,7 @@ namespace OpenMS
 
     void FLASHDeconvTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
     {
-      writeLog_(text.toQString(), color, new_section);
+      writeLog_(QString::fromStdString(static_cast<const std::string&>(text)), color, new_section);
     }
 
     bool FLASHDeconvTabWidget::checkFDInputReady_()

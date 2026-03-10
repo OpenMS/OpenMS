@@ -69,7 +69,6 @@ MapNormalizer
 MapRTTransformer
 MapStatistics
 MaRaClusterAdapter
-MascotAdapterOnline
 MassCalculator
 MassTraceExtractor
 MetaboliteAdductDecharger
@@ -169,6 +168,9 @@ ImageCreator
 INIUpdater
 )
 
+# Following commit "remove from most TOPP tools", most TOPP tools no longer require Qt GUI.
+# Keep GUI linkage only for true GUI tools (ExecutePipeline, Resampler, ImageCreator, INIUpdater)
+# via TOPP_executables_with_GUIlib defined above. No additional gating needed here.
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
 foreach(i ${TOPP_executables} ${TOPP_executables_with_GUIlib})

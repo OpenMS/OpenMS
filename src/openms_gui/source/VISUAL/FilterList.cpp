@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 
 #include <QMenu>
+#include <QString>
 
 using namespace std;
 
@@ -62,7 +63,7 @@ namespace OpenMS::Internal
       for (Size i = 0; i < filters.size(); ++i)
       {
         QListWidgetItem* item = new QListWidgetItem(ui_->filter);
-        item->setText(filters[i].toString().toQString());
+        item->setText(QString::fromStdString(static_cast<const std::string&>(filters[i].toString())));
       }
       // update check box
       ui_->check->setChecked(filters.isActive());

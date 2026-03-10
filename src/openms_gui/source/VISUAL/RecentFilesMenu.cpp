@@ -59,8 +59,8 @@ namespace OpenMS
     unsigned count{ 0 };
     for (Param::ParamIterator it = filenames.begin(); it != filenames.end(); ++it)
     {
-      QString filename = String(it->value.toString()).toQString();
-      if (File::exists(filename))
+      QString filename = QString::fromStdString(static_cast<const std::string&>(String(it->value.toString())));
+      if (File::exists(OpenMS::String(filename.toStdString())))
       {
         rfiles.append(filename);
         ++count;
@@ -98,8 +98,8 @@ namespace OpenMS
     String tmp = File::absolutePath(filename);
 
     // remove the new file if already in the recent list and prepend it
-    recent_files_.removeAll(tmp.toQString());
-    recent_files_.prepend(tmp.toQString());
+    recent_files_.removeAll(QString::fromStdString(static_cast<const std::string&>(tmp)));
+    recent_files_.prepend(QString::fromStdString(static_cast<const std::string&>(tmp)));
 
     // remove those files exceeding the defined number
     while (recent_files_.size() > max_entries_)
@@ -116,8 +116,7 @@ namespace OpenMS
     {
       return;
     }
-    String filename = String(action->text());
-    emit recentFileClicked(filename);
+    emit recentFileClicked(action->text());
   }
 
   void RecentFilesMenu::sync_()

@@ -54,7 +54,8 @@ namespace OpenMS
 
   void OutputDirectory::showFileDialog()
   {
-    QString dir = File::exists(File::path(getDirectory())) ? File::path(getDirectory()).toQString() : "";
+    String dir_str = File::path(String(getDirectory().toStdString()));
+    QString dir = File::exists(dir_str) ? QString::fromStdString(static_cast<const std::string&>(dir_str)) : "";
     QString selected_dir = QFileDialog::getExistingDirectory(this, tr("Select output directory"), dir);
     if (!selected_dir.isEmpty())
     {
@@ -80,7 +81,7 @@ namespace OpenMS
       file_name += QDir::separator();
     }
     file_name += "test_file";
-    return File::writable(file_name);
+    return File::writable(OpenMS::String(file_name.toStdString()));
   }
 
 

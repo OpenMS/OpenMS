@@ -15,7 +15,6 @@
 #include <cstring>
 #include <vector>
 
-class QString;
 
 namespace OpenMS
 {
@@ -67,10 +66,6 @@ public:
     OPENMS_DLLAPI String(String&&) = default;
     /// Constructor from std::string
     OPENMS_DLLAPI String(const std::string& s);
-    /// Constructor from std::string_view
-    OPENMS_DLLAPI String(const std::string_view& sv);
-    /// Constructor from Qt QString
-    OPENMS_DLLAPI String(const QString& s);
     /// Constructor from char*
     OPENMS_DLLAPI String(const char* s);
     /// Constructor from a char
@@ -331,8 +326,6 @@ public:
     */
     OPENMS_DLLAPI double toDouble() const;
 
-    /// Conversion to Qt QString
-    OPENMS_DLLAPI QString toQString() const;
 
     //@}
 

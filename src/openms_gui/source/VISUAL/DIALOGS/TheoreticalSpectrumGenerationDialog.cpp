@@ -18,7 +18,7 @@
 
 // Qt includes
 #include <QtWidgets/QMessageBox>
-#include <qflags.h>
+#include <QtCore/qflags.h>
 
 #include <array>
 #include <utility>
@@ -108,7 +108,7 @@ namespace OpenMS
 
   const String TheoreticalSpectrumGenerationDialog::getSequence() const
   {
-    return ui_->seq_input->text();
+    return String(ui_->seq_input->text().toStdString());
   }
 
   Param TheoreticalSpectrumGenerationDialog::getParam_() const
@@ -318,7 +318,7 @@ namespace OpenMS
   void TheoreticalSpectrumGenerationDialog::seqTypeSwitch_()
   {
     // save current sequence type setting in member
-    String tmp = ui_->seq_type->currentText();
+    String tmp = String(ui_->seq_type->currentText().toStdString());
     if (tmp == "Peptide")
     {
       seq_type_ = SequenceType::PEPTIDE;

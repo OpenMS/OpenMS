@@ -271,20 +271,22 @@ if(NOT MSVC AND NOT APPLE)
 endif()
 
 #------------------------------------------------------------------------------
-# QT
+# Qt (optional for core). Only required when building WITH_GUI.
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "6.1.0")
+set(QT_MIN_VERSION "6.1.0")
 
-# find qt
-set(OpenMS_QT_COMPONENTS Core CACHE INTERNAL "QT components for core lib")
-find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+if (WITH_GUI)
+  # find Qt core components used by the GUI/tooling
+  set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core/GUI")
+  find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
-IF (NOT Qt6Core_FOUND)
-  message(STATUS "Qt6Core not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
-ELSE()
-  message(STATUS "Found Qt ${Qt6Core_VERSION}")
-ENDIF()
+  if (NOT Qt6Core_FOUND)
+    message(STATUS "Qt6Core not found!")
+    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
+  else()
+    message(STATUS "Found Qt ${Qt6Core_VERSION}")
+  endif()
+endif()
 
 
 #------------------------------------------------------------------------------
@@ -301,7 +303,7 @@ if (WITH_GUI)
   # --------------------------------------------------------------------------
   # Find additional Qt libs
   #---------------------------------------------------------------------------
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg OpenGLWidgets)
+  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg OpenGLWidgets Network)
 
   # On macOS the platform plugin of QT requires PrintSupport. We link
   # so it's packaged via the bundling/dependency tools/scripts

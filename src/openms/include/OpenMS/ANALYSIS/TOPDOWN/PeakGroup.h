@@ -258,7 +258,7 @@ namespace OpenMS
     int getMinNegativeIsotopeIndex() const;
 
     /// set index of this peak group
-    void setIndex(uint i);
+    void setIndex(size_t i);
 
     /**
      * @brief Set the two-dimensional quality score for this peak group.

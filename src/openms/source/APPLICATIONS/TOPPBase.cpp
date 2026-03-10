@@ -40,9 +40,15 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
-#include <QtCore/QDir>
-
 #include <iostream>
+#include <filesystem>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+
+#ifdef OPENMS_WINDOWSPLATFORM
+#include <Shlobj.h> // for SHGetFolderPath
+#endif
 
 // OpenMP support
 #ifdef _OPENMP
@@ -60,10 +66,58 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    // Helper function to get home directory cross-platform (same as in File.cpp)
+    String getHomePath()
+    {
+#ifdef OPENMS_WINDOWSPLATFORM
+      // Use SHGetFolderPath for Windows
+      char path[MAX_PATH];
+      if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path)))
+      {
+        return String(path);
+      }
+      // Fallback to environment variables
+      const char* homeDrive = getenv("HOMEDRIVE");
+      const char* homePath = getenv("HOMEPATH");
+      if (homeDrive && homePath)
+      {
+        return String(homeDrive) + String(homePath);
+      }
+      const char* userProfile = getenv("USERPROFILE");
+      if (userProfile)
+      {
+        return String(userProfile);
+      }
+      return String("C:\\");
+#else
+      // Unix-like systems (Linux, macOS)
+      const char* home = getenv("HOME");
+      if (home)
+      {
+        return String(home);
+      }
+      return String("/tmp");
+#endif
+    }
+
+    // Helper function to get current timestamp as string
+    String getCurrentTimeString()
+    {
+      auto now = std::chrono::system_clock::now();
+      auto time_t = std::chrono::system_clock::to_time_t(now);
+      auto tm = *std::localtime(&time_t);
+      
+      std::ostringstream oss;
+      oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+      return String(oss.str());
+    }
+  }
 
   using namespace Exception;
 
-  String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
+  String TOPPBase::topp_ini_file_ = getHomePath() + "/.TOPP.ini";
   const Citation TOPPBase::cite_openms
     = {"Pfeuffer, J., Bielow, C., Wein, S. et al.", "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
        "Nat Methods (2024)", "10.1038/s41592-024-02197-7"};
@@ -1638,21 +1692,21 @@ namespace OpenMS
   {
     OPENMS_LOG_INFO << text << endl;
     enableLogging_();
-    log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+    log_ << getCurrentTimeString() << ' ' << getIniLocation_() << ": " << text << endl;
   }
 
   void TOPPBase::writeLogWarn_(const String& text) const
   {
     OPENMS_LOG_WARN << text << endl;
     enableLogging_();
-    log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+    log_ << getCurrentTimeString() << ' ' << getIniLocation_() << ": " << text << endl;
   }
 
   void TOPPBase::writeLogError_(const String& text) const
   {
     OPENMS_LOG_ERROR << text << endl;
     enableLogging_();
-    log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+    log_ << getCurrentTimeString() << ' ' << getIniLocation_() << ": " << text << endl;
   }
 
   void TOPPBase::writeDebug_(const String& text, UInt min_level) const
@@ -1661,7 +1715,7 @@ namespace OpenMS
     {
       OPENMS_LOG_DEBUG << text << endl;
       enableLogging_();
-      log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+      log_ << getCurrentTimeString() << ' ' << getIniLocation_() << ": " << text << endl;
     }
   }
 
@@ -1670,24 +1724,24 @@ namespace OpenMS
     if (debug_level_ >= (Int)min_level)
     {
       OPENMS_LOG_DEBUG << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-                << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text << endl
+                << getCurrentTimeString() << ' ' << getIniLocation_() << " " << text << endl
                 << param
                 << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
       enableLogging_();
       log_ << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-           << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text << endl
+           << getCurrentTimeString() << ' ' << getIniLocation_() << " " << text << endl
            << param
            << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
     }
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir, const std::map<QString, QString>& env) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, const std::string& workdir, const std::map<std::string, std::string>& env) const
   {
     String proc_stdout, proc_stderr; // collect all output (might be useful if program crashes, see below)
     return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir, env);
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir, const std::map<QString, QString>& env) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const std::string& executable, const std::vector<std::string>& arguments, String& proc_stdout, String& proc_stderr, const std::string& workdir, const std::map<std::string, std::string>& env) const
   {
     proc_stdout.clear();
     proc_stderr.clear();
@@ -1870,7 +1924,7 @@ namespace OpenMS
     if (debug_level_ >= 1)
     {
       cout << "Writing to '" << log_destination << '\'' << "\n";
-      log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
+      log_ << getCurrentTimeString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
     }
   }
 
@@ -2385,10 +2439,10 @@ namespace OpenMS
   void TOPPBase::writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension)
   {
     //store ini-file content in ini_file_str
-    QString out_dir_str = String(param_cmdline_.getValue(write_type).toString()).toQString();
-    if (out_dir_str == "")
+    std::string out_dir_str = String(param_cmdline_.getValue(write_type).toString());
+    if (out_dir_str.empty())
     {
-      out_dir_str = QDir::currentPath();
+      out_dir_str = std::filesystem::current_path().string();
     }
     StringList type_list = ToolHandler::getTypes(tool_name_);
     if (type_list.empty())
@@ -2397,7 +2451,9 @@ namespace OpenMS
     for (Size i = 0; i < type_list.size(); ++i)
     {
       // check file is writable
-      QString write_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + fileExtension.c_str();
+      std::filesystem::path write_path = out_dir_str;
+      write_path /= static_cast<std::string>(tool_name_) + static_cast<std::string>(type_list[i]) + fileExtension;
+      String write_file = write_path.string();
       outputFileWritable_(write_file, write_type);
 
       // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
@@ -2438,7 +2494,7 @@ namespace OpenMS
       toolInfo.citations_   = citation_dois;
 
       // this will write the actual data to disk
-      writer.store(write_file.toStdString(), default_params, toolInfo);
+      writer.store(write_file, default_params, toolInfo);
     }
   }
 

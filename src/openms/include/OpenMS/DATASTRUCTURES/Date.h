@@ -12,115 +12,80 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <memory>
-
-// forward declaration
-class QDate;
+#include <cstdint>
 
 namespace OpenMS
 {
   /**
       @brief Date Class.
 
-      This class implements date handling.
+      This class implements date handling without Qt dependencies.
       Import and export to/from both string and integers is possible.
 
       @ingroup Datastructures
   */
   class OPENMS_DLLAPI Date
   {
-public:
-
-    /**
-        @brief Default constructor
-
-        Fills the object with an undefined date: 00/00/0000
-    */
+  public:
+    /// Default constructor (undefined date 00/00/0000)
     Date();
 
-    /// Copy constructor
-    Date(const Date& date);
-
-    /// Copy constructor from Qt base class
-    Date(const QDate& date);
-
-    /// Move constructor
-    Date(Date&&) noexcept;
-
-    /// Destructor
-    ~Date();
-
-    /// Assignment operator
-    Date& operator=(const Date& source);
-
-    /// Move assignment operator
-    Date& operator=(Date&&) & noexcept;
-
-    /// Equality operator
-    bool operator==(const Date& rhs) const;
-
-    /// Inequality operator
-    bool operator!=(const Date& rhs) const;
-
-    /// Less than operator
-    bool operator<(const Date& rhs) const;
+    /// Copy/move
+    Date(const Date&) = default;
+    Date(Date&&) = default;
+    Date& operator=(const Date&) = default;
+    Date& operator=(Date&&) & = default;
 
     /**
-        @brief sets data from a string
+      @brief sets data from a string
 
-        The following date formats are supported:
-        - mm/dd/yyyy
-        - dd.mm.yyyy
-        - yyyy-mm-dd
+      Supported formats:
+      - mm/dd/yyyy
+      - dd.mm.yyyy
+      - yyyy-mm-dd
 
-        @exception Exception::ParseError is thrown if the date is given in the wrong format
+      @throws Exception::ParseError if the date is invalid
     */
     void set(const String& date);
 
     /**
-        @brief sets data from three integers
+      @brief sets data from three integers
 
-        @exception Exception::ParseError is thrown if an invalid date is given
+      @throws Exception::ParseError if the date is invalid
     */
     void set(UInt month, UInt day, UInt year);
 
-    /// Returns the current date
+    /// Returns the current local date
     static Date today();
 
-    /**
-        @brief Returns a string representation of the date
-
-        Uses the iso/ansi date format: 'yyyy-mm-dd'
-    */
+    /// Returns ISO string 'yyyy-MM-dd' or '0000-00-00' if undefined
     String get() const;
 
-    /**
-        @brief Fills the arguments with the date
-
-        Give the numbers in the following order: month, day and year.
-    */
-    void get(UInt& month, UInt& day, UInt& year) const;
-
-    ///Sets the undefined date: 00/00/0000
-    void clear();
-
-    /// Returns if the date is valid
-    bool isValid() const;
-
-    /// Returns if the date is null
-    bool isNull() const;
-
-    /// Returns the year
+    /// Accessors (return 0 if undefined)
     int year() const;
-
-    /// Returns the month
     int month() const;
-
-    /// Returns the day
     int day() const;
 
-private:
-    std::unique_ptr<QDate> date_; ///< Internal QDate representation
-  };
-} // namespace OPENMS
+    /// Comparison
+    bool operator==(const Date& rhs) const;
+    bool operator!=(const Date& rhs) const;
 
+    /// Validity
+    bool isValid() const;
+
+    /// Fills the arguments with month/day/year (0 if undefined)
+    void get(UInt& month, UInt& day, UInt& year) const;
+
+    /// Sets the undefined date: 00/00/0000
+    void clear();
+
+  private:
+    static bool isLeap_(int y);
+    static bool valid_(int y, int m, int d);
+
+    int year_{0};
+    int month_{0};
+    int day_{0};
+    bool valid_flag_{false};
+  };
+} // namespace OpenMS

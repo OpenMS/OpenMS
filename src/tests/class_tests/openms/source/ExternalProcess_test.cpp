@@ -21,14 +21,14 @@ using namespace std;
 // we just need ANY commandline tool available on (hopefully) all boxes.
 // note that commands like "dir" or "type" are only known within cmd.exe and are not actual executables (unlike on Linux)
 #ifdef OPENMS_WINDOWSPLATFORM
-  const QString exe = "cmd";
-  const QStringList args = QStringList() << "/C" << "echo hi";
-  const QStringList args_broken = QStringList() << "/C" << "doesnotexist";
+  const std::string exe = "cmd";
+  const std::vector<std::string> args{"/C", "echo hi"};
+  const std::vector<std::string> args_broken{"/C", "doesnotexist"};
 #else
-  const QString exe = "ls";
-  const QStringList args("-l");
-  const QStringList args_broken = QStringList() << "-0";
-#endif // 
+  const std::string exe = "ls";
+  const std::vector<std::string> args{"-l"};
+  const std::vector<std::string> args_broken{"-0"};
+#endif //
 
 START_TEST(ExternalProcess, "$Id$")
 
@@ -50,7 +50,7 @@ START_SECTION(void setCallbacks(std::function<void(const String&)> callbackStdOu
   NOT_TESTABLE; // tested below
 END_SECTION
 
-START_SECTION(RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg))
+START_SECTION(RETURNSTATE run(const std::string& exe, const std::vector<std::string>& args, const std::string& working_dir, const bool verbose, String& error_msg))
 {
   String error_msg;
   { // without callbacks
@@ -102,7 +102,7 @@ START_SECTION(RETURNSTATE run(const QString& exe, const QStringList& args, const
 }
 END_SECTION
 
-START_SECTION(ExternalProcess::RETURNSTATE run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose = false))
+START_SECTION(ExternalProcess::RETURNSTATE run(const std::string& exe, const std::vector<std::string>& args, const std::string& working_dir, const bool verbose = false))
  NOT_TESTABLE // tested above..
 END_SECTION
 

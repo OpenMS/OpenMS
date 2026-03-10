@@ -45,7 +45,6 @@ MSPFile.cpp
 MSPGenericFile.cpp
 MSstatsFile.cpp
 MascotGenericFile.cpp
-MascotRemoteQuery.cpp
 MascotXMLFile.cpp
 MsInspectFile.cpp
 MzDataFile.cpp

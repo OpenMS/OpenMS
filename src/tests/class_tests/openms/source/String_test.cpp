@@ -22,8 +22,8 @@
 #include <iomanip>
 #include <random>
 #include <vector>
+#include <cassert>
 
-#include <QtCore/QString>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,17 +49,7 @@ START_SECTION(([EXTRA] ~String()))
   delete s_ptr;
 END_SECTION
 
-START_SECTION((String(const QString &s)))
-  QString qs("bla");
-  String s(qs);
-  TEST_EQUAL(s=="bla",true)
-END_SECTION
 
-START_SECTION((QString toQString() const))
-  QString qs("bla");
-  String s("bla");
-  TEST_EQUAL(s.toQString()==qs,true)
-END_SECTION
 
 START_SECTION((String(const char* s, SizeType length)))
   String s("abcdedfg",5);

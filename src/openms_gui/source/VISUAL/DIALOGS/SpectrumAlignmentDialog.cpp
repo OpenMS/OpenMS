@@ -38,12 +38,12 @@ namespace OpenMS
       const auto& layer = cc->getLayer(i);
       if (layer.flipped)
       {
-        ui_->layer_list_2->addItem(layer.getName().toQString());
+        ui_->layer_list_2->addItem(QString::fromStdString(static_cast<const std::string&>(layer.getName())));
         layer_indices_2_.push_back(i);
       }
       else
       {
-        ui_->layer_list_1->addItem(layer.getName().toQString());
+        ui_->layer_list_1->addItem(QString::fromStdString(static_cast<const std::string&>(layer.getName())));
         layer_indices_1_.push_back(i);
       }
     }

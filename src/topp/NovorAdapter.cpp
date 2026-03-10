@@ -28,7 +28,6 @@
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QFileInfo>
 
 #include <fstream>
 
@@ -175,11 +174,11 @@ protected:
     // determine the executable
     //-------------------------------------------------------------
     const String java_executable = getStringOption_("java_executable");
-    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
+    String java_memory = String("-Xmx") + String(getIntOption_("java_memory")) + "m";
 
-    QString executable = getStringOption_("executable").toQString();   
+    String executable = getStringOption_("executable");
 
-    if (executable.isEmpty())
+    if (executable.empty())
     {
       const char* novor_path_env = getenv("NOVOR_PATH");
       if (novor_path_env == nullptr || strlen(novor_path_env) == 0)
@@ -191,11 +190,10 @@ protected:
     }
 
     // Normalize file path
-    QFileInfo file_info(executable);
-    executable = file_info.canonicalFilePath();
+    executable = File::absolutePath(executable);
 
     writeLogInfo_("Executable is: " + executable);
-    const QString & path_to_executable = File::path(executable).toQString();
+    String path_to_executable = File::path(executable);
     
     //-------------------------------------------------------------
     // reading input
@@ -250,17 +248,21 @@ protected:
 
     String tmp_out = tmp_dir.getPath() + "tmp_out_novor.csv";
 
-    QStringList process_params;
-    process_params << java_memory
-                   << "-jar" << executable
-                   << "-f" 
-                   << "-o" << tmp_out.toQString()               
-                   << "-p" << tmp_param.toQString()
-                   << tmp_mgf.toQString();
+    std::vector<std::string> process_params;
+    process_params.push_back(java_memory);
+    process_params.push_back("-jar");
+    process_params.push_back(executable);
+    process_params.push_back("-f");
+    process_params.push_back("-o");
+    process_params.push_back(tmp_out);
+    process_params.push_back("-p");
+    process_params.push_back(tmp_param);
+    process_params.push_back(tmp_mgf);
 
 
     // print novor command line
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, path_to_executable);
+    std::vector<std::string> args = process_params;
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, args, path_to_executable);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
@@ -317,7 +319,7 @@ protected:
       ph.setMetaValue("pepMass(denovo)", sl[5].toDouble());
       ph.setMetaValue("err(data-denovo)", sl[6].toDouble());
       ph.setMetaValue("ppm(1e6*err/(mz*z))", sl[7].toDouble());
-      ph.setMetaValue("aaScore", sl[10].toQString());
+      ph.setMetaValue("aaScore", sl[10]);
 
       pi.getHits().push_back(std::move(ph));   
       peptide_ids.push_back(std::move(pi));

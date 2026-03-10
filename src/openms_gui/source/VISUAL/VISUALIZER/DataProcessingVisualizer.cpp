@@ -68,7 +68,7 @@ namespace OpenMS
     DateTime date;
     try
     {
-      date.set(completion_time_->text());
+      date.set(completion_time_->text().toStdString());
       ptr_->setCompletionTime(date);
     }
     catch (exception & /*e*/)

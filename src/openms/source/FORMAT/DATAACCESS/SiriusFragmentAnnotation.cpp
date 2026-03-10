@@ -10,8 +10,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
-#include <QtCore/QDir>
-#include <QtCore/QString>
+#include <filesystem>
 
 using namespace std;
 
@@ -267,9 +266,9 @@ namespace OpenMS
     std::vector<MSSpectrum> result;
     std::string subfolder = decoy ? "/decoys/" : "/spectra/";
     const std::string sirius_spectra_dir = path_to_sirius_workspace + subfolder;
-    QDir dir(QString::fromStdString(sirius_spectra_dir));
+    std::filesystem::path dir_path(sirius_spectra_dir);
 
-    if (dir.exists())
+    if (std::filesystem::exists(dir_path))
     {
       // TODO this probably can and should be extracted in one go.
       OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
@@ -301,7 +300,7 @@ namespace OpenMS
         msspectrum_to_fill.setName(concat_m_ids + suffix);
         String filename = rank_filename.at(i); // rank 1
         double score = rank_score.at(i); // rank 1
-        QFileInfo sirius_result_file(dir,filename.toQString());
+        std::filesystem::path sirius_result_file = dir_path / static_cast<std::string>(filename);
 
         if (use_exact_mass)
         {
@@ -325,7 +324,7 @@ namespace OpenMS
         }
 
         // read file and save in MSSpectrum
-        ifstream fragment_annotation_file(sirius_result_file.absoluteFilePath().toStdString());
+        ifstream fragment_annotation_file(sirius_result_file.string());
         if (fragment_annotation_file)
         {
           // Target schema

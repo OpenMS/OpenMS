@@ -32,8 +32,8 @@
 */
 
 //QT
-#include <QApplication>
-#include <QPainter>
+#include <QtWidgets/QApplication>
+#include <QtGui/QPainter>
 #include <QtWidgets/QSplashScreen>
 #include <QtCore/QDir>
 
@@ -154,7 +154,7 @@ int main(int argc, const char** argv)
     pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
     pt_ver.setPen(Qt::black);
     // draw version number dynamcially on top left corner
-    pt_ver.drawText(5, 5+15, VersionInfo::getVersion().toQString());
+    pt_ver.drawText(5, 5+15, QString::fromStdString(static_cast<const std::string&>(VersionInfo::getVersion())));
     QSplashScreen splash_screen(qpm);
     splash_screen.show();
     

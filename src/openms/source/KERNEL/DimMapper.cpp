@@ -10,7 +10,8 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtCore/QLocale>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -28,8 +29,11 @@ namespace OpenMS
 
   String DimBase::formattedValue(const ValueType value) const
   {
-    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
-    return String(this->getDimNameShort()) + ": " + QLocale::c().toString(value, 'f', valuePrecision());
+    std::ostringstream oss;
+    oss.setf(std::ios::fixed);
+    oss << std::setprecision(valuePrecision()) << value;
+    const auto sv = this->getDimNameShort();
+    return String(sv.data(), static_cast<String::SizeType>(sv.size())) + ": " + String(oss.str());
   }
 
   String DimBase::formattedValue(const ValueType value, const String& prefix) const

@@ -58,7 +58,6 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 
-#include <QtCore/QProcess>
 
 #include <algorithm>
 #include <iostream>

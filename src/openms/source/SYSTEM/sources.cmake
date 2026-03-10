@@ -15,6 +15,7 @@ RWrapper.cpp
 StopWatch.cpp
 SysInfo.cpp
 UpdateCheck.cpp
+SHA.cpp
 )
 
 ### add path to the filenames

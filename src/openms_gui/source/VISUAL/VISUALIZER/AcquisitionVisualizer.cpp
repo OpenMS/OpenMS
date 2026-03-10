@@ -36,12 +36,12 @@ namespace OpenMS
 
   void AcquisitionVisualizer::update_()
   {
-    acquisitionnumber_->setText(temp_.getIdentifier().toQString());
+    acquisitionnumber_->setText(QString::fromStdString(static_cast<const std::string&>(temp_.getIdentifier())));
   }
 
   void AcquisitionVisualizer::store()
   {
-    ptr_->setIdentifier(acquisitionnumber_->text());
+    ptr_->setIdentifier(acquisitionnumber_->text().toStdString());
 
     temp_ = (*ptr_);
   }

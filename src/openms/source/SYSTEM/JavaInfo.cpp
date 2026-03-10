@@ -10,33 +10,30 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
 
-#include <QtCore/QProcess>
-#include <QtCore/QDir>
+#include <filesystem>
 
 namespace OpenMS
 {
 
   bool JavaInfo::canRun(const String& java_executable, bool verbose_on_error)
   {
-    QProcess qp;
-    qp.start(java_executable.toQString(), QStringList() << "-version", QIODevice::ReadOnly);
-    bool success = qp.waitForFinished();
+    ExternalProcess process;
+    String error_msg;
+    std::vector<std::string> args = {"-version"};
+    ExternalProcess::RETURNSTATE result = process.run(static_cast<std::string>(java_executable), args, "", false, error_msg);
+    
+    bool success = (result == ExternalProcess::RETURNSTATE::SUCCESS);
     if (!success && verbose_on_error)
     {
         OPENMS_LOG_ERROR << "Java-Check:\n";
-        if (qp.error() == QProcess::Timedout)
-        {
-          OPENMS_LOG_ERROR
-            << "  Java was found at '" << java_executable << "' but the process timed out (can happen on very busy systems).\n"
-            << "  Please free some resources or if you want to run the TOPP tool nevertheless set the TOPP tools 'force' flag in order to avoid this check." << std::endl;
-        }
-        else if (qp.error() == QProcess::FailedToStart)
+        if (result == ExternalProcess::RETURNSTATE::FAILED_TO_START)
         {
           OPENMS_LOG_ERROR
             << "  Java not found at '" << java_executable << "'!\n"
             << "  Make sure Java is installed and this location is correct.\n";
-          if (QDir::isRelativePath(java_executable.toQString()))
+          if (std::filesystem::path(static_cast<std::string>(java_executable)).is_relative())
           {
             static String path;
             if (path.empty())
@@ -61,7 +58,7 @@ namespace OpenMS
         else
         {
           OPENMS_LOG_ERROR << "  Error executing '" << java_executable << "'!\n"
-                    << "  Error description: '" << qp.errorString().toStdString() << "'.\n";
+                    << "  Error description: '" << error_msg << "'.\n";
         }
     }
     return success;

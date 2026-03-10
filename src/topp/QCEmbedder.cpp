@@ -16,12 +16,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
-#include <QByteArray>
-#include <QFile>
-#include <QString>
-#include <QFileInfo>
-
-//~ #include <QIODevice>
+#include <OpenMS/FORMAT/Base64.h>
+#include <iterator>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -134,7 +130,7 @@ protected:
     //------------------------------------------------------------
     if (!target_file.empty())
     {
-      target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
+      target_run = File::basename(target_file);
     }
 
     QcMLFile qcmlfile;
@@ -159,13 +155,20 @@ protected:
       }
     }
 
-    QFile f(plot_file.c_str());
     String plot_b64;
-    if (f.open(QIODevice::ReadOnly))
+    if (!plot_file.empty())
     {
-      QByteArray ba = f.readAll();
-      f.close();
-      plot_b64 = String(ba.toBase64().toStdString());
+      std::ifstream f(plot_file.c_str(), std::ios::binary);
+      if (f)
+      {
+        std::string data((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        f.close();
+        std::vector<String> bin;
+        bin.emplace_back(String(data));
+        String encoded;
+        Base64::encodeStrings(bin, encoded, false, false);
+        plot_b64 = encoded;
+      }
     }
 
     QcMLFile::Attachment at;

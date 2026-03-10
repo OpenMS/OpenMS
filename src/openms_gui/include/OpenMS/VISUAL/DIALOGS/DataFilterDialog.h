@@ -14,7 +14,11 @@
 
 #include <OpenMS/PROCESSING/MISC/DataFilters.h>
 
+#if QT_VERSION >= 0x060000
+#include <QtWidgets/QDialog>
+#else
 #include <QDialog>
+#endif
 
 namespace Ui
 {

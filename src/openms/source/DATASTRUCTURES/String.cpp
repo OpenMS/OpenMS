@@ -30,20 +30,12 @@ namespace OpenMS
   {
   }
 
-  String::String(const std::string_view& sv) :
-    string(sv)
-  {
-  }
 
   String::String(const char* s) :
     string(s)
   {
   }
 
-  String::String(const QString& s) :
-    string(s.toStdString())
-  {
-  }
 
   String::String(const char* s, SizeType length) :
     string(s, length)
@@ -268,10 +260,6 @@ namespace OpenMS
     return StringUtils::split_quoted(*this, splitter, substrings, q, method);
   }
 
-  QString String::toQString() const
-  {
-    return StringUtils::toQString(*this);
-  }
 
   Int String::toInt() const
   {

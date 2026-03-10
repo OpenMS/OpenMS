@@ -48,8 +48,8 @@ namespace OpenMS
     SwathTabWidget::SwathTabWidget(QWidget* parent) :
         QTabWidget(parent),
         ui(new Ui::SwathTabWidget),
-        ep_([&](const String& out) {writeLog_(out.toQString());},
-            [&](const String& out) {writeLog_(out.toQString());})
+        ep_([&](const String& out) {writeLog_(QString::fromStdString(static_cast<const std::string&>(out)));},
+            [&](const String& out) {writeLog_(QString::fromStdString(static_cast<const std::string&>(out)));})
     {
       ui->setupUi(this);
 
@@ -67,14 +67,14 @@ namespace OpenMS
         
       // call once to update py_pyprophet canvas 
       // alternative: load latest data from .ini and set py_selector (will update py_pyprophet via above signal/slot)
-      py_pyprophet->validate(py_selector->getLastPython().toQString());
+      py_pyprophet->validate(QString::fromStdString(static_cast<const std::string&>(py_selector->getLastPython())));
 
       ui->input_tr->setFileFormatFilter("Transition sqLite file (*.pqp)");
       ui->input_iRT->setFileFormatFilter("Transition sqLite file (*.pqp)");
         
       // create a default INI of OpenSwathWorkflow
       String tmp_file = File::getTemporaryFile();
-      if (ep_.run(this, getOSWExe().toQString(), QStringList() << "-write_ini" << tmp_file.toQString(), "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
+      if (ep_.run(this, QString::fromStdString(static_cast<const std::string&>(getOSWExe())), QStringList() << "-write_ini" << QString::fromStdString(static_cast<const std::string&>(tmp_file)), "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         exit(1);
       }
@@ -159,12 +159,12 @@ namespace OpenMS
       writeLog_(QString("Running OpenSwathWorkflow (%1 files total): ").arg(in_mzMLs.size()), Qt::darkGreen, true);
       for (const auto& mzML : in_mzMLs)
       {
-        auto r = ep_.run(this, 
-                         getOSWExe().toQString(), 
-                         QStringList() << "-ini" << tmp_ini.toQString() 
-                                       << "-in" << mzML.toQString()
-                                       << "-out_osw" << getCurrentOutDir_() + "/" + infileToOSW(mzML).toQString()
-                                       << "-out_chrom" << getCurrentOutDir_() + "/" + infileToChrom(mzML).toQString(),
+        auto r = ep_.run(this,
+                         QString::fromStdString(static_cast<const std::string&>(getOSWExe())),
+                         QStringList() << "-ini" << QString::fromStdString(static_cast<const std::string&>(tmp_ini))
+                                       << "-in" << QString::fromStdString(static_cast<const std::string&>(mzML))
+                                       << "-out_osw" << getCurrentOutDir_() + "/" + QString::fromStdString(static_cast<const std::string&>(infileToOSW(mzML)))
+                                       << "-out_chrom" << getCurrentOutDir_() + "/" + QString::fromStdString(static_cast<const std::string&>(infileToChrom(mzML))),
                          "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS) break;
@@ -201,7 +201,7 @@ namespace OpenMS
       String tmp_file = File::getTemporaryFile();
       ParamXMLFile().store(tmp_file, tmp_param);
       QProcess qp;
-      qp.start(executable.toQString(), QStringList() << tmp_file.toQString());
+      qp.start(QString::fromStdString(static_cast<const std::string&>(executable)), QStringList() << QString::fromStdString(static_cast<const std::string&>(tmp_file)));
       ui->tab_run->setEnabled(false); // grey out the Wizard until INIFileEditor returns...
       qp.waitForFinished(-1);
       ui->tab_run->setEnabled(true);
@@ -224,7 +224,7 @@ namespace OpenMS
       tmp.setValue("tr", ui->input_tr->getFilename().toStdString());
       tmp.setValue("tr_irt", ui->input_iRT->getFilename().toStdString());
       // do not set 'in' because it allows for one file only, while we have more and need to iterate manually
-      String swath_windows = ui->input_swath_windows->getFilename();
+      String swath_windows = String(ui->input_swath_windows->getFilename().toStdString());
       if (!swath_windows.empty()) tmp.setValue("swath_windows_file", swath_windows);
       // do not set '-out_osw' because we might have multiple -in's and have to iterate manually
 
@@ -249,7 +249,7 @@ namespace OpenMS
     vector<pair<String, bool>> SwathTabWidget::getPyProphetInputFiles() const
     {
       vector<pair<String, bool>> files;
-      String dir = getCurrentOutDir_();
+      String dir = String(getCurrentOutDir_().toStdString());
       for (const auto& file : getMzMLInputFiles())
       {
         // predict output OSW filenames
@@ -306,7 +306,7 @@ namespace OpenMS
 
     void SwathTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
     {
-      writeLog_(text.toQString(), color, new_section);
+      writeLog_(QString::fromStdString(static_cast<const std::string&>(text)), color, new_section);
     }
     
     bool SwathTabWidget::checkOSWInputReady_()
@@ -365,7 +365,7 @@ namespace OpenMS
       for (auto& f : in)
       {
         auto s = (FileHandler::stripExtension(f.first) + "_pyProphet_out.osw");
-        out << s.toQString();
+        out << QString::fromStdString(static_cast<const std::string&>(s));
       }
       return out;
     }
@@ -395,18 +395,18 @@ namespace OpenMS
       {
         if (file.second == false)
         {
-          QMessageBox::warning(this, "Error", String("Required input file '" + file.first + "' not found. Please run OpenSwathWorkflow first to create it").toQString());
+          QMessageBox::warning(this, "Error", QString::fromStdString(static_cast<const std::string&>(String("Required input file '" + file.first + "' not found. Please run OpenSwathWorkflow first to create it"))));
           return;
         }
-        osws_orig << file.first.toQString();
-        osws_reduced << (FileHandler::stripExtension(file.first) + "_pyProphet.oswr").toQString();
-        tsvs << (FileHandler::swapExtension(file.first, FileTypes::TSV)).toQString();
+        osws_orig << QString::fromStdString(static_cast<const std::string&>(file.first));
+        osws_reduced << QString::fromStdString(static_cast<const std::string&>(FileHandler::stripExtension(file.first) + "_pyProphet.oswr"));
+        tsvs << QString::fromStdString(static_cast<const std::string&>(FileHandler::swapExtension(file.first, FileTypes::TSV)));
       }
       // check presence of template
       QString library = ui->input_tr->getFilename();
       if (library.isEmpty())
       {
-        QMessageBox::warning(this, "Error", String("The assay library is not specified. Please go to the 'database' tab and specify it.").toQString());
+        QMessageBox::warning(this, "Error", QString::fromStdString(static_cast<const std::string&>(String("The assay library is not specified. Please go to the 'database' tab and specify it."))));
         return;
       }
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -416,7 +416,7 @@ namespace OpenMS
 #endif
       if (!findPythonScript_(ui->py_selector->getLastPython(), pp)) // searches Script in Python installation
       {
-        QMessageBox::warning(this, "Error", String("Could not find 'pyprophet' in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.").toQString());
+        QMessageBox::warning(this, "Error", QString::fromStdString(static_cast<const std::string&>(String("Could not find 'pyprophet' in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details."))));
         return;
       }
       // list of calls to make: exe, args, [optional] list of args to append one-by-one in a loop
@@ -441,10 +441,10 @@ namespace OpenMS
       String feature_alignment_py = "feature_alignment.py";
       if (!findPythonScript_(ui->py_selector->getLastPython(), feature_alignment_py)) // searches Script in Python installation
       {
-        QMessageBox::warning(this, "Error", String("Could not find 'feature_alignment.py' from the msproteomicstool package in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.").toQString());
+        QMessageBox::warning(this, "Error", QString::fromStdString(static_cast<const std::string&>(String("Could not find 'feature_alignment.py' from the msproteomicstool package in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details."))));
         return;
       }
-      calls.emplace_back(ui->py_selector->getLastPython(), QStringList() << feature_alignment_py.toQString() << "--in" << tsvs
+      calls.emplace_back(ui->py_selector->getLastPython(), QStringList() << QString::fromStdString(static_cast<const std::string&>(feature_alignment_py)) << "--in" << tsvs
                                             << "--out" << "tric_aligned.tsv" << "--out_matrix" << "tric_aligned_matrix.tsv" 
                                             << "--method" << "LocalMST" << "--realign_method" << "lowess" << "--max_rt_diff" << "90" 
                                             << "--fdr_cutoff" << QString::number(ui->tric_FDR_threshold->value()) 
@@ -468,10 +468,10 @@ namespace OpenMS
         // this might just be one loop... depending on the call...
         for (size_t i_loop = 0; i_loop < call.getLoopCount(); ++i_loop)
         {
-          auto returnstate = ep_.run(this, call.exe.toQString(), call.getArgs(i_loop), getCurrentOutDir_(), true);
+          auto returnstate = ep_.run(this, QString::fromStdString(static_cast<const std::string&>(call.exe)), call.getArgs(i_loop), getCurrentOutDir_(), true);
           if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS)
           {
-            QMessageBox::warning(this, "Error", String("Running pyprophet/TRIC failed at step " + String(step) + "/" + String(calls.size()) + ". Please see log for details").toQString());
+            QMessageBox::warning(this, "Error", QString::fromStdString(static_cast<const std::string&>(String("Running pyprophet/TRIC failed at step " + String(step) + "/" + String(calls.size()) + ". Please see log for details"))));
             return;
           }
           if (progress.wasCanceled())
@@ -513,8 +513,8 @@ namespace OpenMS
         if (tbl.item(i, 0)->checkState() == Qt::CheckState::Checked)
         {
           ++selected_rows;
-          args << infileToChrom(raw_files[i]).toQString() << "!" << osw_files[i];
-          if (!File::exists(osw_files[i])) missing_osw_files << File::basename(osw_files[i]).toQString();
+          args << QString::fromStdString(static_cast<const std::string&>(infileToChrom(raw_files[i]))) << "!" << osw_files[i];
+          if (!File::exists(String(osw_files[i].toStdString()))) missing_osw_files << QString::fromStdString(static_cast<const std::string&>(File::basename(String(osw_files[i].toStdString()))));
         }
       }
       if (selected_rows == 0)
@@ -528,8 +528,8 @@ namespace OpenMS
         return;
       }
 
-      if (QMessageBox::question(this, "Confirm", (String("Confirm opening ") + selected_rows + " raw files in TOPPView").toQString(), 
-                                QMessageBox::StandardButton::Ok, QMessageBox::StandardButton::Cancel) 
+      if (QMessageBox::question(this, "Confirm", QString::fromStdString(static_cast<const std::string&>(String("Confirm opening ") + selected_rows + " raw files in TOPPView")),
+                                QMessageBox::StandardButton::Ok, QMessageBox::StandardButton::Cancel)
                              == QMessageBox::StandardButton::Ok)
       {
         // create on heap, to avoid QProcess being closed when application exits 
@@ -537,10 +537,10 @@ namespace OpenMS
         QProcess* qp = new QProcess;
         qp->setWorkingDirectory(getCurrentOutDir_());
         auto tv = File::findSiblingTOPPExecutable("TOPPView");
-        qp->start(tv.toQString(), args);
+        qp->start(QString::fromStdString(static_cast<const std::string&>(tv)), args);
         if (!qp->waitForStarted(2000))
         {
-          QMessageBox::warning(this, "Error", String("Could not open TOPPView executable from '" + tv + "'").toQString());
+          QMessageBox::warning(this, "Error", QString::fromStdString(static_cast<const std::string&>(String("Could not open TOPPView executable from '" + tv + "'"))));
           return;
         }
         // TOPPView is running now ... detached

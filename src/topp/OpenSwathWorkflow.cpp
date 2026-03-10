@@ -68,7 +68,6 @@ using namespace OpenMS;
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 
-#include <QDir>
 #include <unordered_map>
 
 //-------------------------------------------------------------
@@ -645,7 +644,9 @@ protected:
 
     // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
     // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
-    String tmp_dir = String(QDir(getStringOption_("tempDirectory").c_str()).absolutePath()).ensureLastChar('/');
+    std::filesystem::path tmp_dir_path = std::filesystem::absolute(getStringOption_("tempDirectory"));
+    String tmp_dir = tmp_dir_path.string();
+    tmp_dir.ensureLastChar('/');
 
     ///////////////////////////////////
     // Parameter validation

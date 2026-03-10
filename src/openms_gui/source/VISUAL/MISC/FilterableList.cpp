@@ -9,10 +9,19 @@
 #include <OpenMS/VISUAL/MISC/FilterableList.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Qt5Port.h>
+#include <QRegularExpression>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <ui_FilterableList.h>
+
+namespace {
+  inline QSet<QString> toQSetLocal(const QStringList& list)
+  {
+    QSet<QString> set;
+    for (const auto& s : list) set.insert(s);
+    return set;
+  }
+}
 
 using namespace std;
 
@@ -45,13 +54,13 @@ namespace OpenMS
 
     void FilterableList::setBlacklistItems(const QStringList& bl_items)
     {
-      blacklist_ = toQSet(bl_items);
+      blacklist_ = toQSetLocal(bl_items);
       updateInternalList_();
     }
 
     void FilterableList::addBlackListItems(const QStringList& items)
     {
-      blacklist_.unite(toQSet(items));
+      blacklist_.unite(toQSetLocal(items));
       updateInternalList_();
     }
 
@@ -61,11 +70,11 @@ namespace OpenMS
       {
         if (!blacklist_.contains(bl))
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + String(bl) + "' cannot be taken from blacklist. Does not belong to set!", bl.toStdString());
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + String(bl.toStdString()) + "' cannot be taken from blacklist. Does not belong to set!", bl.toStdString());
         }
       }
       // remove all items from blacklist
-      blacklist_.subtract(toQSet(outdated_blacklist_items));
+      blacklist_.subtract(toQSetLocal(outdated_blacklist_items));
       updateInternalList_();
     }
 

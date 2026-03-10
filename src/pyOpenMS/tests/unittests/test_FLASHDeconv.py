@@ -928,7 +928,7 @@ class TestDeconvolvedSpectrum(unittest.TestCase):
         spec.setRT(100.0)
         ds.setOriginalSpectrum(spec)
 
-        result = ds.toSpectrum(1, 10.0, False)
+        result = ds.toSpectrum(1, 1, 10.0, False)
         # MSSpectrum may be wrapped as _MSSpectrumDF, check for size method instead
         self.assertTrue(hasattr(result, 'size'))
 

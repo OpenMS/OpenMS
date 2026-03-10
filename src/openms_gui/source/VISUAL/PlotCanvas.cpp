@@ -305,14 +305,14 @@ namespace OpenMS
     }
 
     auto formats = layer.storeFullData()->getSupportedFileFormats(); // storeFullData() is cheap; we just want the formats...
-    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", proposed_name.toQString(), formats, true, formats.getTypes().front());
+    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", QString::fromStdString(static_cast<const std::string&>(proposed_name)), formats, true, formats.getTypes().front());
     if (file_name.isEmpty())
     {
       return;
     }
 
     auto visitor_data = visible ? layer.storeVisibleData(getVisibleArea().getAreaUnit(), layer.filters) : layer.storeFullData();
-    visitor_data->saveToFile(file_name, ProgressLogger::GUI);
+    visitor_data->saveToFile(OpenMS::String(file_name.toStdString()), ProgressLogger::GUI);
     modificationStatus_(getCurrentLayerIndex(), false);
   }
 
@@ -406,7 +406,7 @@ namespace OpenMS
     }
     else 
     {
-      new_layer->setName(QFileInfo(filename.toQString()).completeBaseName());
+      new_layer->setName(OpenMS::String(QFileInfo(QString::fromStdString(filename)).completeBaseName().toStdString()));
     }
   }
 
@@ -529,7 +529,7 @@ namespace OpenMS
     getLayer(i).setName(name);
     if (i == 0 && spectrum_widget_)
     {
-      spectrum_widget_->setWindowTitle(name.toQString());
+      spectrum_widget_->setWindowTitle(QString::fromStdString(name));
     }
   }
 

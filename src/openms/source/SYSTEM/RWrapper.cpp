@@ -11,13 +11,12 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <QtCore/QProcess>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
 
 namespace OpenMS
 {
 
-  bool RWrapper::runScript( const String& script_file, const QStringList& cmd_args, const QString& executable /*= "Rscript"*/, bool find_R /*= false */, bool verbose /*= true */)
+  bool RWrapper::runScript( const String& script_file, const std::vector<std::string>& cmd_args, const std::string& executable /*= "Rscript"*/, bool find_R /*= false */, bool verbose /*= true */)
   {
     if (find_R && !findR(executable, verbose))
     {
@@ -38,24 +37,21 @@ namespace OpenMS
     {
       OPENMS_LOG_INFO << "Running R script '" << fullscript << "' ...";
     }
-    QStringList args;
-    args << "--vanilla" << "--quiet" << fullscript.toQString();
-    args.append(cmd_args);
+    
+    std::vector<std::string> args = {"--vanilla", "--quiet", static_cast<std::string>(fullscript)};
+    // Add command arguments
+    args.insert(args.end(), cmd_args.begin(), cmd_args.end());
 
-    QProcess p;
-    p.start(executable, args);
-    p.waitForFinished(-1);
+    ExternalProcess process;
+    String error_msg;
+    ExternalProcess::RETURNSTATE result = process.run(executable, args, "", verbose, error_msg);
 
-    if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
+    if (result != ExternalProcess::RETURNSTATE::SUCCESS)
     {
       if (verbose)
       {
         OPENMS_LOG_INFO << " failed" << std::endl;
-        OPENMS_LOG_ERROR << "\n--- ERROR MESSAGES ---\n";
-        OPENMS_LOG_ERROR << QString(p.readAllStandardError()).toStdString();
-        OPENMS_LOG_ERROR << "\n--- OTHER MESSAGES ---\n";
-        OPENMS_LOG_ERROR << QString(p.readAllStandardOutput()).toStdString();
-        OPENMS_LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
+        OPENMS_LOG_ERROR << "\nScript failed. Error: " << error_msg << std::endl;
       }
       return false;
     }
@@ -66,29 +62,22 @@ namespace OpenMS
     return true;
   }
 
-  bool RWrapper::findR( const QString& executable /*= "Rscript"*/, bool verbose /*= true*/ )
+  bool RWrapper::findR( const std::string& executable /*= "Rscript"*/, bool verbose /*= true*/ )
   {
     if (verbose) OPENMS_LOG_INFO << "Finding R interpreter 'Rscript' ...";
 
-    QStringList args(QStringList() << "--vanilla" << "-e" << "sessionInfo()");
-    QProcess p;
-    p.setProcessChannelMode(QProcess::MergedChannels); // stdout receives all messages (stderr is empty)
-    p.start(executable, args);
-    p.waitForFinished(-1);
+    std::vector<std::string> args = {"--vanilla", "-e", "sessionInfo()"};
+    
+    ExternalProcess process;
+    String error_msg;
+    ExternalProcess::RETURNSTATE result = process.run(executable, args, "", false, error_msg);
 
-    if (p.error() == QProcess::FailedToStart)
+    if (result == ExternalProcess::RETURNSTATE::FAILED_TO_START)
     {
       if (verbose)
       {
         OPENMS_LOG_INFO << " failed" << std::endl;
-        String out = QString(p.readAllStandardOutput()).toStdString();
-        OPENMS_LOG_ERROR << "Error: Could not find or run '" << executable.toStdString() << "' executable (FailedToStart).\n";
-        if (!out.empty())
-        {
-          OPENMS_LOG_ERROR << "Output was:\n------>\n"
-                    << out
-                    << "\n<------\n";
-        }
+        OPENMS_LOG_ERROR << "Error: Could not find or run '" << executable << "' executable (FailedToStart).\n";
         OPENMS_LOG_ERROR << "Please install 'Rscript', make sure it's in PATH and is flagged as executable." << std::endl;
       }
 
@@ -102,15 +91,13 @@ namespace OpenMS
     {
       OPENMS_LOG_INFO << "Trying to invoke 'Rscript' ...";
     }
-    if (p.exitStatus() != QProcess::NormalExit || p.exitCode() != 0)
+    if (result != ExternalProcess::RETURNSTATE::SUCCESS)
     {
       if (verbose)
       {
         OPENMS_LOG_INFO << " failed" << std::endl;
-        OPENMS_LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args.join(" ").toStdString() << "')\n"
-                  << "Output was:\n------>\n"
-                  << QString(p.readAllStandardOutput()).toStdString()
-                  << "\n<------\n"
+        OPENMS_LOG_ERROR << "Error: 'Rscript' executable returned with error\n"
+                  << "Error: " << error_msg << "\n"
                   << "Make sure 'Rscript' is installed properly." << std::endl;
       }
       return false;

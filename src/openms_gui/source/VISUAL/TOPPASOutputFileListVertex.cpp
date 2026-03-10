@@ -101,12 +101,12 @@ namespace OpenMS
     {
       for (const QString& f : pkg[round][param_index_src].filenames.get())
       {
-        if (! dry_run && ! File::exists(f))
+        if (! dry_run && ! File::exists(OpenMS::String(f.toStdString())))
         {
-          OPENMS_LOG_ERROR << "The file '" << String(f) << "' does not exist!" << std::endl;
+          OPENMS_LOG_ERROR << "The file '" << OpenMS::String(f.toStdString()) << "' does not exist!" << std::endl;
           throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, f.toStdString());
         }
-        QString new_file = full_dir.toQString() + QDir::separator() + File::basename(f).toQString();
+        QString new_file = QString::fromStdString(static_cast<const std::string&>(full_dir)) + QDir::separator() + QString::fromStdString(static_cast<const std::string&>(File::basename(OpenMS::String(f.toStdString()))));
 
         // remove "_tmp<number>" if its a suffix
         QRegularExpression rx("_tmp\\d+$");
@@ -133,7 +133,7 @@ namespace OpenMS
               }
               else
               {
-                ft = FileHandler::getTypeByContent(f); // this will access the file physically
+                ft = FileHandler::getTypeByContent(OpenMS::String(f.toStdString())); // this will access the file physically
               }
               // do we know the extension already?
               if (ft == FileTypes::UNKNOWN)
@@ -147,7 +147,10 @@ namespace OpenMS
         }
 
         // replace old suffix by new suffix
-        FileHandler::swapExtension(new_file, ft);
+        {
+          OpenMS::String new_file_str = FileHandler::swapExtension(OpenMS::String(new_file.toStdString()), ft);
+          new_file = QString::fromStdString(static_cast<const std::string&>(new_file_str));
+        }
 
         // only scheduled for writing
         output_files_[round][param_index_me].filenames.push_back(QDir::toNativeSeparators(new_file));
@@ -168,11 +171,11 @@ namespace OpenMS
         round_counter_ = (int)round; // for global update, in case someone asks
         for (int i = 0; i < pkg[round][param_index_src].filenames.size(); ++i)
         {
-          String file_from = pkg[round][param_index_src].filenames[i];
-          String file_to = output_files_[round][param_index_me].filenames[i];
+          String file_from = OpenMS::String(pkg[round][param_index_src].filenames[i].toStdString());
+          String file_to = OpenMS::String(output_files_[round][param_index_me].filenames[i].toStdString());
           if (File::exists(file_to))
           {
-            if (! QFile::remove(file_to.toQString())) // todo: this goes wrong on first run .... why???
+            if (! QFile::remove(QString::fromStdString(static_cast<const std::string&>(file_to)))) // todo: this goes wrong on first run .... why???
             {
               String msg = "Error: Could not remove old output file '" + file_to + "' for node '"
                            + pkg[round][param_index_src].edge->getTargetVertex()->getName()

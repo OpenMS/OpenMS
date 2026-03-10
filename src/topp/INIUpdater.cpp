@@ -12,12 +12,11 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
-
-
-#include <QApplication>
-#include <QFileInfo>
-#include <QFile>
-#include <QDir>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <vector>
+#include <string>
+#include <cstdio>
 
 using namespace OpenMS;
 using namespace std;
@@ -158,14 +157,15 @@ protected:
       }
 
       // get defaults of new tool by calling it
-      QProcess pr;
-      QStringList arguments;
-      arguments << "-write_ini";
-      arguments << tmp_ini_file.toQString();
-      arguments << "-instance";
-      arguments << String(this_instance).toQString();
-      pr.start((path + "/" + new_tool).toQString(), arguments);
-      if (!pr.waitForFinished(-1))
+      ExternalProcess ep;
+      std::vector<std::string> arguments;
+      arguments.emplace_back("-write_ini");
+      arguments.emplace_back((std::string)tmp_ini_file);
+      arguments.emplace_back("-instance");
+      arguments.emplace_back((std::string)String(this_instance));
+      String error_msg;
+      auto state = ep.run((std::string)(path + "/" + new_tool), arguments, "", true, error_msg);
+      if (state != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         writeLogWarn_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
@@ -192,15 +192,23 @@ protected:
     paramFile.store(tmp_ini_file, p);
 
     // update internal structure (e.g. edges format changed from 1.8 to 1.9)
-    int argc = 1;
-    const char* c = "IniUpdater";
-    const char** argv = &c;
-
-    QApplication app(argc, const_cast<char**>(argv), false);
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
-    QDir d;
-    d.mkpath(tmp_dir.toQString());
-    TOPPASScene ts(nullptr, tmp_dir.toQString(), false);
+    File::makeDir(tmp_dir);
+
+    // Create (once) a minimal Qt application context for TOPPASScene (non-GUI mode)
+    // Keep it alive for the rest of the process lifetime to avoid teardown issues
+    static bool s_qapp_inited = false;
+    static int s_argc_qt = 1;
+    static char s_app_name[] = "INIUpdater";
+    static char* s_argv_qt[] = { s_app_name, nullptr };
+    static QApplicationTOPP* s_app_ptr = nullptr;
+    if (!s_qapp_inited)
+    {
+      s_app_ptr = new QApplicationTOPP(s_argc_qt, s_argv_qt);
+      s_qapp_inited = true;
+    }
+
+    TOPPASScene ts(nullptr, QString::fromStdString(tmp_dir), false);
     paramFile.store(tmp_ini_file, p);
     ts.load(tmp_ini_file);
     ts.store(tmp_ini_file);
@@ -209,9 +217,13 @@ protected:
     // STORE
     if (outfile.empty()) // create a backup
     {
-      QFileInfo fi(infile.toQString());
-      String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".toppas";
-      QFile::rename(infile.toQString(), new_name.toQString());
+      String dirpath = File::path(infile);
+      String base = File::basename(infile);
+      String new_name = dirpath + "/" + base + "_v" + version + ".toppas";
+      if (std::rename(infile.c_str(), new_name.c_str()) != 0)
+      {
+        writeLogWarn_("Backup rename failed from '" + infile + "' to '" + new_name + "'.");
+      }
       // write new file
       paramFile.store(infile, p);
     }
@@ -283,14 +295,15 @@ protected:
         break;
       }
       // get defaults of new tool by calling it
-      QProcess pr;
-      QStringList arguments;
-      arguments << "-write_ini";
-      arguments << tmp_ini_file.toQString();
-      arguments << "-instance";
-      arguments << String(this_instance).toQString();
-      pr.start((path + "/" + new_tool).toQString(), arguments);
-      if (!pr.waitForFinished(-1))
+      ExternalProcess ep;
+      std::vector<std::string> arguments;
+      arguments.emplace_back("-write_ini");
+      arguments.emplace_back((std::string)tmp_ini_file);
+      arguments.emplace_back("-instance");
+      arguments.emplace_back((std::string)String(this_instance));
+      String error_msg;
+      auto state = ep.run((std::string)(path + "/" + new_tool), arguments, "", true, error_msg);
+      if (state != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         writeLogWarn_("Update for file '" + infile + "' failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
@@ -317,9 +330,13 @@ protected:
     // STORE
     if (outfile.empty()) // create a backup
     {
-      QFileInfo fi(infile.toQString());
-      String backup_filename = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version_old + ".ini";
-      QFile::rename(infile.toQString(), backup_filename.toQString());
+      String dirpath = File::path(infile);
+      String base = File::basename(infile);
+      String backup_filename = dirpath + "/" + base + "_v" + version_old + ".ini";
+      if (std::rename(infile.c_str(), backup_filename.c_str()) != 0)
+      {
+        writeLogWarn_("Backup rename failed from '" + infile + "' to '" + backup_filename + "'.");
+      }
       std::cout << "Backup of input file created: " << backup_filename << std::endl;
       // write updated/new file
       paramFile.store(infile, p);

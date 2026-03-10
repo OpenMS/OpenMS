@@ -20,9 +20,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
-#include <QtCore/QDir>
-
 #include <algorithm>
+#include <filesystem>
 
 
 
@@ -96,16 +95,20 @@ namespace OpenMS::Math
       if (output_plots)
       {
         // create output directory (if not already present)
-        QDir dir(String(param_.getValue("out_plot").toString()).toQString());
-        if (!dir.cdUp())
+        std::filesystem::path plot_path(static_cast<std::string>(String(param_.getValue("out_plot").toString())));
+        std::filesystem::path parent_dir = plot_path.parent_path();
+        
+        if (!std::filesystem::exists(parent_dir))
         {
-          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
-          return false;
-        }
-        if (!dir.exists() && !dir.mkpath("."))
-        {
-          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
-          return false;
+          try
+          {
+            std::filesystem::create_directories(parent_dir);
+          }
+          catch (const std::filesystem::filesystem_error&)
+          {
+            OPENMS_LOG_ERROR << "Could not create output directory for plots '" << parent_dir.string() << "'." << std::endl;
+            return false;
+          }
         }
         //
         file = initPlots(x_scores);
@@ -286,16 +289,20 @@ namespace OpenMS::Math
       if (output_plots)
       {
         // create output directory (if not already present)
-        QDir dir(String(param_.getValue("out_plot").toString()).toQString());
-        if (!dir.cdUp())
+        std::filesystem::path plot_path(static_cast<std::string>(String(param_.getValue("out_plot").toString())));
+        std::filesystem::path parent_dir = plot_path.parent_path();
+        
+        if (!std::filesystem::exists(parent_dir))
         {
-          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
-          return false;
-        }
-        if (!dir.exists() && !dir.mkpath("."))
-        {
-          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
-          return false;
+          try
+          {
+            std::filesystem::create_directories(parent_dir);
+          }
+          catch (const std::filesystem::filesystem_error&)
+          {
+            OPENMS_LOG_ERROR << "Could not create output directory for plots '" << parent_dir.string() << "'." << std::endl;
+            return false;
+          }
         }
         //
         file = initPlots(x_scores);

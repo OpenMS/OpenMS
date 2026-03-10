@@ -28,7 +28,7 @@ namespace OpenMS
   TOPPASWidget::TOPPASWidget(const Param & /*preferences*/, QWidget * parent, const String & tmp_path) :
     QGraphicsView(parent),
     EnhancedTabBarWidgetInterface(),
-    scene_(new TOPPASScene(this, tmp_path.toQString()))
+    scene_(new TOPPASScene(this, QString::fromStdString(tmp_path)))
   {
     setAttribute(Qt::WA_DeleteOnClose);
     setAttribute(Qt::WA_AlwaysShowToolTips);
@@ -92,7 +92,7 @@ namespace OpenMS
 
     if (event->mimeData()->hasUrls())
     {
-      String filename = String(event->mimeData()->urls().front().toLocalFile());
+      String filename = String(event->mimeData()->urls().front().toLocalFile().toStdString());
       emit sendStatusMessage("loading drop file '" + filename + "' (press CRTL while dropping to insert into current window)", 0);
       // open pipeline in new window (or in current if CTRL is pressed)
       emit pipelineDroppedOnWidget(filename, event->modifiers() != Qt::ControlModifier);

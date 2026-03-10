@@ -223,20 +223,6 @@ set_tests_properties("TOPP_PercolatorAdapter_missing" PROPERTIES SKIP_RETURN_COD
 
 #------------------------------------------------------------------------------
 option(WITH_MASCOT_TEST "Runs the Mascot Online test (do not turn this on unless you know what you are doing)" OFF)
-if (WITH_MASCOT_TEST)
-  add_test("TOPP_MascotAdapterOnline_1" ${TOPP_BIN_PATH}/MascotAdapterOnline -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MascotAdapterOnline_1.ini -Mascot_parameters:database SwissProt -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out MascotAdapterOnline_1_out1.tmp.idXML)
-  add_test("TOPP_MascotAdapterOnline_1_out1" ${DIFF} -in1 MascotAdapterOnline_1_out1.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MascotAdapterOnline_1_out.idXML -whitelist "IdentificationRun date" "UserParam type=\"string\" name=\"SearchNumber\" value=" "db=\"SwissProt\" db_version=" "UserParam type=\"string\" name=\"MascotAdapterOnline:1:in\" value=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
-  set_tests_properties("TOPP_MascotAdapterOnline_1_out1" PROPERTIES DEPENDS "TOPP_MascotAdapterOnline_1")
-
-  # decoy search
-  add_test("TOPP_MascotAdapterOnline_2" ${TOPP_BIN_PATH}/MascotAdapterOnline -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MascotAdapterOnline_1.ini -debug 666 -Mascot_parameters:decoy -Mascot_parameters:database SwissProt -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out MascotAdapterOnline_2_out1.tmp.idXML)
-  add_test("TOPP_MascotAdapterOnline_2_out1" ${DIFF} -in1 MascotAdapterOnline_2_out1.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MascotAdapterOnline_2_out.idXML -whitelist "IdentificationRun date" "UserParam type=\"string\" name=\"SearchNumber\" value=" "db=\"SwissProt\" db_version=" "UserParam type=\"string\" name=\"MascotAdapterOnline:1:in\" value=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
-  set_tests_properties("TOPP_MascotAdapterOnline_2_out1" PROPERTIES DEPENDS "TOPP_MascotAdapterOnline_2")
-  
-  ## MS2 profile spectra are not allowed
-  add_test("TOPP_MascotAdapterOnline_PROFILE" ${TOPP_BIN_PATH}/MascotAdapterOnline -test -Mascot_parameters:database SwissProt -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -out MascotAdapterOnline_out.tmp.idXML)
-  set_tests_properties("TOPP_MascotAdapterOnline_PROFILE" PROPERTIES WILL_FAIL 1)
-endif()
 
 #------------------------------------------------------------------------------
 # MSFragger

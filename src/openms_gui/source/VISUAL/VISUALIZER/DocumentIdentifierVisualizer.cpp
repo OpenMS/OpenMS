@@ -42,7 +42,7 @@ namespace OpenMS
 
   void DocumentIdentifierVisualizer::store()
   {
-    ptr_->setIdentifier(identifier_->text());
+    ptr_->setIdentifier(identifier_->text().toStdString());
 
     temp_ = (*ptr_);
   }

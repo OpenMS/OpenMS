@@ -14,8 +14,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QFileInfo>
-#include <QtCore/QString>
+#include <filesystem>
 #include <iostream>
 
 using namespace std;
@@ -25,21 +24,20 @@ namespace OpenMS
     String findSpectraFile(const String &spec_file, const String &tsv_file, const bool require_spectra_files)
     {
       String result;
-      QFileInfo spectra_file_info(spec_file.toQString());
-      if (spectra_file_info.isRelative())
+      std::filesystem::path spectra_file_path(static_cast<std::string>(spec_file));
+      if (spectra_file_path.is_relative())
       {
         // file name is relative, so we need to figure out the correct folder
 
         // first check folder relative to folder of design file
         // to allow, for example, a design in ./design.tsv and spectra in ./spectra/a.mzML
         // where ./ is the same folder
-        QFileInfo design_file_info(tsv_file.toQString());
-        QString design_file_relative(design_file_info.absolutePath());
-        design_file_relative = design_file_relative + "/" + spec_file.toQString();
+        std::filesystem::path design_file_path(static_cast<std::string>(tsv_file));
+        String design_file_relative = (design_file_path.parent_path() / spectra_file_path).string();
 
         if (File::exists(design_file_relative))
         {
-          result = design_file_relative.toStdString();
+          result = design_file_relative;
         }
         else
         {

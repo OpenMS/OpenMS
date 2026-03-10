@@ -11,8 +11,7 @@
 #include <OpenMS/build_config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtCore/QSysInfo>
-#include <QtCore/QString>
+
 
 #ifdef _OPENMP
   #include "omp.h"
@@ -33,6 +32,10 @@ namespace OpenMS
       OpenMS_OS os_;
       String os_version_;
       OpenMS_Architecture arch_;
+
+    private:
+      /// @brief Get the OS version string using platform-specific APIs
+      static String getOSVersion();
 
     public:
       OpenMSOSInfo() :
@@ -90,10 +93,10 @@ namespace OpenMS
         #endif // else stays unknown
 
         // returns something meaningful for basically all important platforms
-        info.os_version_ = QSysInfo::productVersion();
+        info.os_version_ = getOSVersion();
 
-        // identify architecture
-        if (QSysInfo::WordSize == 32)
+        // identify architecture based on pointer size
+        if (sizeof(void*) == 4)
         {
           info.arch_ = OpenMS_Architecture::ARCH_32BIT;
         }

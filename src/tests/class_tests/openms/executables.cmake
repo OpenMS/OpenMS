@@ -132,6 +132,7 @@ set(system_executables_list
   PythonInfo_test
   StopWatch_test
   SysInfo_test
+  SHA_test
 )
 
 set(kernel_executables_list
@@ -208,7 +209,6 @@ set(format_executables_list
   MSPFile_test
   MSPGenericFile_test
   MascotGenericFile_test
-  MascotRemoteQuery_test
   MascotXMLFile_test
   #MSDataWritingConsumer_test
   MRMFeaturePickerFile_test
@@ -219,8 +219,8 @@ set(format_executables_list
   MzIdentMLValidator_test
   MzMLFile_test
   MzMLSpectrumDecoder_test
-  MzMLSqliteHandler_test
-  MzMLSqliteSwathHandler_test
+  # MzMLSqliteHandler_test (disabled: Qt dependency)
+  # MzMLSqliteSwathHandler_test (disabled: Qt dependency)
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
@@ -268,7 +268,7 @@ set(format_executables_list
   XMLFile_test
   XMLHandler_test
   XMLValidator_test
-  XQuestResultXMLFile_test
+  # XQuestResultXMLFile_test (disabled: Qt dependency)
   XTandemInfile_test
   XTandemXMLFile_test
   ZlibCompression_test
@@ -283,7 +283,7 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
-  SiriusFragmentAnnotation_test
+  # SiriusFragmentAnnotation_test (disabled: Qt dependency)
 )
 
 if(WITH_HDF5)
@@ -542,7 +542,7 @@ set(analysis_executables_list
   ModifiedPeptideGenerator_test
   NeedlemanWunsch_test
   NeighborSeq_test
-  PeptideIndexing_test
+  # PeptideIndexing_test (disabled: Qt dependency)
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test
   PeakGroup_test
@@ -579,7 +579,7 @@ set(applications_executables_list
   INIUpdater_test
   #MapAlignerBase_test
   SearchEngineBase_test
-  TOPPBase_test
+  # TOPPBase_test (disabled: Qt dependency)
   ToolHandler_test
   ParameterInformation_test
   ConsoleUtils_test

@@ -87,4 +87,3 @@ protected:
 
   // OPENMS_DLLAPI extern FileWatcher myFileWatcher_instance;
 }
-

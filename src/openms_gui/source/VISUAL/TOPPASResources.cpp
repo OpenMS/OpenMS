@@ -42,7 +42,7 @@ namespace OpenMS
   {
     Param load_param;
     ParamXMLFile paramFile;
-    paramFile.load(String(file_name), load_param);
+    paramFile.load(OpenMS::String(file_name.toStdString()), load_param);
 
     for (Param::ParamIterator it = load_param.begin(); it != load_param.end(); ++it)
     {
@@ -56,12 +56,12 @@ namespace OpenMS
         return;
       }
 
-      QString key = (substrings[0]).toQString();
+      QString key = QString::fromStdString(static_cast<const std::string&>(substrings[0]));
       StringList url_list = ListUtils::toStringList<std::string>(it->value);
       QList<TOPPASResource> resource_list;
       for (StringList::const_iterator it = url_list.begin(); it != url_list.end(); ++it)
       {
-        resource_list << TOPPASResource(QUrl(it->toQString()));
+        resource_list << TOPPASResource(QUrl(QString::fromStdString(static_cast<const std::string&>(*it))));
       }
 
       add(key, resource_list);
@@ -79,18 +79,18 @@ namespace OpenMS
 
     for (std::map<QString, QList<TOPPASResource> >::const_iterator it = map_.begin(); it != map_.end(); ++it)
     {
-      const String& key = String(it->first);
+      OpenMS::String key = OpenMS::String(it->first.toStdString());
       const QList<TOPPASResource>& resource_list = it->second;
       std::vector<std::string> url_list;
       for (const TOPPASResource &res : resource_list)
       {
-        url_list.push_back(String(res.getURL().toString().toStdString()));
+        url_list.push_back(res.getURL().toString().toStdString());
       }
       save_param.setValue(key + ":url_list", url_list);
     }
 
     ParamXMLFile paramFile;
-    paramFile.store(String(file_name), save_param);
+    paramFile.store(OpenMS::String(file_name.toStdString()), save_param);
   }
 
   const QList<TOPPASResource>& TOPPASResources::get(const QString& key) const

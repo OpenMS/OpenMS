@@ -95,9 +95,9 @@ namespace OpenMS
     for (const auto& [suffix, count] : suffices)
     {
       if (suffices.size() > 1)
-        text_l.push_back(String("." + suffix + "(" + String(count) + ")").toQString());
+        text_l.push_back(QString::fromStdString(static_cast<const std::string&>(String("." + suffix + "(" + String(count) + ")"))));
       else
-        text_l.push_back("." + suffix.toQString());
+        text_l.push_back("." + QString::fromStdString(static_cast<const std::string&>(suffix)));
     }
     return text_l;
   }
@@ -113,9 +113,9 @@ namespace OpenMS
     }
 #else
     // on Unix (Linux/Mac), constraint applies to the file name:
-    if (File::basename(filename).size() > max_filename_length)
+    if (File::basename(OpenMS::String(filename.toStdString())).size() > max_filename_length)
     {
-      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(filename), max_filename_length);
+      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(OpenMS::String(filename.toStdString())), max_filename_length);
     }
 #endif
   }

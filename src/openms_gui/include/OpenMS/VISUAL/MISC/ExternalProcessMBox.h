@@ -13,6 +13,11 @@
 
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
+// Qt includes needed for declarations in this header
+#include <QWidget>
+#include <QString>
+#include <QStringList>
+
 namespace OpenMS
 {
 

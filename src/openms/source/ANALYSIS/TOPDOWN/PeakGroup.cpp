@@ -1082,12 +1082,12 @@ namespace OpenMS
     return iso_da_distance_;
   }
 
-  void PeakGroup::setIndex(const uint i)
+  void PeakGroup::setIndex(const size_t i)
   {
     index_ = i;
   }
 
-  uint PeakGroup::getIndex() const
+  size_t PeakGroup::getIndex() const
   {
     return index_;
   }

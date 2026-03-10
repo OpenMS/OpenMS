@@ -44,7 +44,7 @@ using namespace std;
    <th ALIGN = "center"> potential successor tools </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapterOnline (or other ID engines) </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ID engines </td>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
   </tr>
   <tr>
@@ -76,7 +76,7 @@ Peptide or protein hits with scores at least as good as the given cut-off are re
 Whether scores should be higher or lower than the cut-off depends on the type/orientation of the score.
 
 The score that was most recently set by a processing step is considered for filtering.
-For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
+For example, it could be a Mascot score (if Mascot was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
 @ref TOPP_IDScoreSwitcher is useful to switch to a particular score before filtering.
 
 <b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):

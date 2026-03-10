@@ -13,191 +13,79 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <functional>
-#include <memory> // unique_ptr
 #include <string>
-
-// foward declarations
-class QDateTime;
 
 namespace OpenMS
 {
 
   /**
-      @brief DateTime Class.
+      @brief DateTime Class (Qt-free).
 
-      This class implements date handling.
+      This class implements date/time handling without Qt.
       Import and export to/from both string and integers is possible.
 
       @ingroup Datastructures
   */
   class OPENMS_DLLAPI DateTime
   {
-public:
-
-    /**
-        @brief Default constructor
-
-        Fills the object with an undefined date: 00/00/0000
-    */
+  public:
     DateTime();
-
-    /// Copy constructor
     DateTime(const DateTime& date);
-
-    /// Move constructor
     DateTime(DateTime&&) noexcept;
-
-    /// Assignment operator
     DateTime& operator=(const DateTime& source);
-
-    /// Move assignment operator
     DateTime& operator=(DateTime&&) & noexcept;
-
-    /// Destructor
     ~DateTime();
 
-    /// equal operator
     bool operator==(const DateTime& rhs) const;
-
-    /// not-equal operator
     bool operator!=(const DateTime& rhs) const;
-
-    /// less operator
     bool operator<(const DateTime& rhs) const;
 
-    /**
-        @brief sets date from a string
-
-        Reads both English, German and iso/ansi date formats: 'MM/dd/yyyy', 'dd.MM.yyyy' or 'yyyy-MM-dd'
-
-        @exception Exception::ParseError
-    */
+    // Date and time setters
     void setDate(const String& date);
-
-    /**
-        @brief sets time from a string
-
-        Reads time format: 'hh:mm:ss'
-
-        @exception Exception::ParseError
-    */
-    void setTime(const String& date);
-
-    /**
-        @brief sets data from three integers
-
-        Give the numbers in the following order: month, day and year.
-
-        @exception Exception::ParseError
-    */
+    void setTime(const String& time);
     void setDate(UInt month, UInt day, UInt year);
-
-    /**
-        @brief sets time from three integers
-
-        Give the numbers in the following order: hour, minute and second.
-
-        @exception Exception::ParseError
-    */
     void setTime(UInt hour, UInt minute, UInt second);
-
-    /**
-        @brief sets data from six integers
-
-        Give the numbers in the following order: month, day, year, hour, minute, second.
-
-        @exception Exception::ParseError
-    */
     void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second);
 
-    /**
-        @brief Fills the arguments with the date and the time
-
-        Give the numbers in the following order: month, day and year, hour minute, second.
-    */
+    // Getters
     void get(UInt& month, UInt& day, UInt& year, UInt& hour, UInt& minute, UInt& second) const;
-
-    /**
-        @brief Fills the arguments with the date
-
-        Give the numbers in the following order: month, day and year.
-    */
     void getDate(UInt& month, UInt& day, UInt& year) const;
-
-    /**
-        @brief Returns the date as string
-
-        The format of the string is yyyy-MM-dd
-    */
     String getDate() const;
-
-    /**
-        @brief Fills the arguments with the time
-
-        The arguments are all UInts and the order is hour minute second
-    */
     void getTime(UInt& hour, UInt& minute, UInt& second) const;
-
-    // add @param[in] s seconds to date time
-    DateTime& addSecs(int s);
-
-    /**
-        @brief Returns the time as string
-
-        The format of the string is hh:mm:ss
-    */
     String getTime() const;
 
-    /// Returns the current date and time
+    // Add seconds (can be negative)
+    DateTime& addSecs(int s);
+
+    // Now
     static DateTime now();
 
-    /// Returns the current date and time in UTC
-    static DateTime nowUTC();
-
-    /// Returns true if the date time is valid
+    // State
     bool isValid() const;
-
-    /// return true if the date and time is null
     bool isNull() const;
-
-    /// Sets the undefined date: 00/00/0000 00:00:00
     void clear();
 
-    /* @brief Returns a string representation of the DateTime object.
-       @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
-	  */
-	  String toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
+    // Formatting
+    String toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
+    static DateTime fromString(const std::string& date, const std::string& format = "yyyy-MM-ddThh:mm:ss");
+    String get() const; // "yyyy-MM-dd hh:mm:ss"
 
-    /* @brief Creates a DateTime object from string representation.
-       @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
-	  */
-      static DateTime fromString(const std::string& date, const std::string& format = "yyyy-MM-ddThh:mm:ss");
+    // Full set from combined string
+    void set(const String& date);
 
-      /**
-          @brief Returns a string representation of the date and time
+  private:
+    static bool validDate_(int y, int m, int d);
+    static bool validTime_(int hh, int mm, int ss);
+    static void parseDate_(const String& s, int& y, int& m, int& d);
+    static void parseTime_(const String& s, int& hh, int& mm, int& ss);
 
-          The format of the string will be yyyy-MM-dd hh:mm:ss
-      */
-      String get() const;
-
-      /**
-        @brief Sets date and time
-
-        The following formats are supported:
-        - MM/dd/yyyy hh:mm:ss
-        - dd.MM.yyyy hh:mm:ss
-        - yyyy-MM-dd hh:mm:ss
-        - yyyy-MM-ddThh:mm:ss (ISO 8601 format)
-        - yyyy-MM-ddZ (ISO 8601 format)
-        - yyyy-MM-dd+hh:mm (ISO 8601 format)
-
-        @exception Exception::ParseError
-      */
-      void set(const String& date);
-
-    private:
-      std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid costly #include
+    int year_{0};
+    int month_{0};
+    int day_{0};
+    int hour_{0};
+    int minute_{0};
+    int second_{0};
+    bool valid_{false};
   };
 
 } // namespace OpenMS
