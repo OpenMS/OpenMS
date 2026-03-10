@@ -21,12 +21,11 @@
 #include <sys/stat.h>
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
-#include <QtCore/QDir>
-#include <QtCore/QDateTime>
-#include <QtCore/QFileInfo>
-#include <QtCore/QSysInfo>
-
 #include <OpenMS/CONCEPT/VersionInfo.h>
+
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 
 using namespace std;
 
@@ -34,7 +33,7 @@ namespace OpenMS
 {
   void UpdateCheck::run(const String& tool_name, const String& version, int debug_level)
   {
-    String architecture = QSysInfo::WordSize == 32 ? "32" : "64";
+    String architecture = sizeof(void*) == 4 ? "32" : "64";
 
     // if the revision info is meaningful, show it as well
     String revision("UNKNOWN");
@@ -83,28 +82,35 @@ namespace OpenMS
     if (!File::exists(version_file_name) || !File::readable(version_file_name))
     {
       // create OpenMS folder for .ver files
-      QDir dir(config_path.toQString());
+      std::filesystem::path config_dir(std::string(config_path));
 
-      if (!dir.exists())
+      if (!std::filesystem::exists(config_dir))
       {
-        dir.mkpath(".");
+        std::filesystem::create_directories(config_dir);
       }
 
       // touch file to create it and set initial modification time stamp
-      QFile f;
-      f.setFileName(version_file_name.toQString());
-      f.open(QIODevice::WriteOnly);
+      std::ofstream f(std::string(version_file_name));
       f.close();
       first_run = true;
     }
 
     if (File::readable(version_file_name))
     {
-      QDateTime last_modified_dt = QFileInfo(version_file_name.toQString()).lastModified();
-      QDateTime current_dt = QDateTime::currentDateTime();
+      // Get file modification time using std::filesystem
+      std::filesystem::path version_file_path(std::string(version_file_name));
+      auto last_modified = std::filesystem::last_write_time(version_file_path);
 
-      // check if at least one day passed since last request
-      if (first_run || current_dt > last_modified_dt.addDays(1))
+      // Convert to system time for comparison
+      auto last_modified_sys = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+        last_modified - std::chrono::file_clock::now() + std::chrono::system_clock::now());
+      auto current_sys = std::chrono::system_clock::now();
+
+      // Check if at least one day (24 hours) passed since last request
+      auto time_diff = current_sys - last_modified_sys;
+      auto hours_diff = std::chrono::duration_cast<std::chrono::hours>(time_diff);
+
+      if (first_run || hours_diff.count() >= 24)
       {
         // update modification time stamp
         struct stat old_stat;
