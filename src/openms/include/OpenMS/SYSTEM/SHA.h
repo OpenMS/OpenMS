@@ -51,8 +51,7 @@ private:
   unsigned char block_[64];
 
   std::size_t block_byte_index_;
-  std::size_t bit_count_low;
-  std::size_t bit_count_high;
+  std::uint64_t total_bits_;
 };
 
 static_assert(sizeof(unsigned char) * 8 == 8, "OpenMS::SHA requires 8-bit unsigned char");

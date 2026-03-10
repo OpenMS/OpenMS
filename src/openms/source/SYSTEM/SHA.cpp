@@ -28,31 +28,13 @@ void SHA::reset()
   h_[4] = 0xC3D2E1F0u;
 
   block_byte_index_ = 0;
-  bit_count_low = 0;
-  bit_count_high = 0;
+  total_bits_ = 0;
 }
 
 void SHA::process_byte(unsigned char byte)
 {
   process_byte_impl(byte);
-
-  // size_t max value = 0xFFFFFFFF
-  // if (bit_count_low + 8 >= 0x100000000) { // would overflow
-  // if (bit_count_low >= 0x100000000-8) {
-  if (bit_count_low < 0xFFFFFFF8u) {
-    bit_count_low += 8;
-  } else {
-    bit_count_low = 0;
-
-    if (bit_count_high <= 0xFFFFFFFEu) {
-      ++bit_count_high;
-    } else {
-      // overflow beyond 2^64 - 1 bits — too many bytes
-      // match behavior of reference (throw), but avoid exceptions in OpenMS core
-      // We silently ignore further increments to avoid UB; digest will be incorrect.
-      // Consider guarding at call sites if needed.
-    }
-  }
+  total_bits_ += 8;
 }
 
 void SHA::process_byte_impl(unsigned char byte)
@@ -71,13 +53,7 @@ void SHA::process_bytes(void const* buffer, std::size_t byte_count)
   const auto* p = static_cast<const unsigned char*>(buffer);
 
   // update bit count
-  std::size_t new_low = bit_count_low + byte_count * 8;
-  if (new_low < bit_count_low) // overflow
-  {
-    ++bit_count_high;
-  }
-  bit_count_low = new_low;
-  bit_count_high += byte_count >> 29; // top 3 bits of byte_count * 8
+  total_bits_ += static_cast<std::uint64_t>(byte_count) * 8;
 
   // process in chunks filling the internal block
   while (byte_count > 0)
@@ -175,14 +151,14 @@ void SHA::get_digest(digest_type& digest)
 
   // append length of message (before pre-processing)
   // as a 64-bit big-endian integer
-  process_byte_impl(static_cast<unsigned char>((bit_count_high >> 24) & 0xFF));
-  process_byte_impl(static_cast<unsigned char>((bit_count_high >> 16) & 0xFF));
-  process_byte_impl(static_cast<unsigned char>((bit_count_high >> 8)  & 0xFF));
-  process_byte_impl(static_cast<unsigned char>((bit_count_high)       & 0xFF));
-  process_byte_impl(static_cast<unsigned char>((bit_count_low  >> 24) & 0xFF));
-  process_byte_impl(static_cast<unsigned char>((bit_count_low  >> 16) & 0xFF));
-  process_byte_impl(static_cast<unsigned char>((bit_count_low  >> 8 ) & 0xFF));
-  process_byte_impl(static_cast<unsigned char>((bit_count_low)        & 0xFF));
+  process_byte_impl(static_cast<unsigned char>((total_bits_ >> 56) & 0xFF));
+  process_byte_impl(static_cast<unsigned char>((total_bits_ >> 48) & 0xFF));
+  process_byte_impl(static_cast<unsigned char>((total_bits_ >> 40) & 0xFF));
+  process_byte_impl(static_cast<unsigned char>((total_bits_ >> 32) & 0xFF));
+  process_byte_impl(static_cast<unsigned char>((total_bits_ >> 24) & 0xFF));
+  process_byte_impl(static_cast<unsigned char>((total_bits_ >> 16) & 0xFF));
+  process_byte_impl(static_cast<unsigned char>((total_bits_ >> 8)  & 0xFF));
+  process_byte_impl(static_cast<unsigned char>((total_bits_)       & 0xFF));
 
   // process the final block (if needed)
   // If block_byte_index_ != 0 here, process_block() will be invoked by process_byte_impl above.
