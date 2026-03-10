@@ -1182,12 +1182,12 @@ namespace OpenMS
         if (!dropped.empty())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsupported filter columns after pruning: " + joinColumns_(dropped));
+                                        "Unsupported filter columns after pruning", joinColumns_(dropped));
         }
         if (pruned.conditions.empty())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Filter expression became empty after pruning unsupported columns: " + filter_context);
+                                        "Filter expression became empty after pruning unsupported columns", filter_context);
         }
         // Convert the parsed filter into an Arrow expression for pushdown.
         arrow::compute::Expression expr = buildFilterExpression_(pruned);
@@ -1238,12 +1238,12 @@ namespace OpenMS
       if (!dropped.empty())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Unsupported filter columns after pruning: " + joinColumns_(dropped));
+                                      "Unsupported filter columns after pruning", joinColumns_(dropped));
       }
       if (pruned.conditions.empty())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Filter expression became empty after pruning unsupported columns: " + filter_context);
+                                      "Filter expression became empty after pruning unsupported columns", filter_context);
       }
 
       // Execute the expression in memory when dataset pushdown is unavailable.
@@ -1717,7 +1717,8 @@ namespace OpenMS
       if (!has_precursor_discriminator)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "nest_transitions=true requires at least one precursor discriminator column: PRECURSOR_ID, MODIFIED_SEQUENCE, PRECURSOR_CHARGE, or PRECURSOR_DECOY");
+                                      "nest_transitions=true requires at least one precursor discriminator column",
+                                      "PRECURSOR_ID, MODIFIED_SEQUENCE, PRECURSOR_CHARGE, or PRECURSOR_DECOY");
       }
     }
 
