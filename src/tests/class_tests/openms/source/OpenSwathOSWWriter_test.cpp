@@ -12,8 +12,6 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <sqlite3.h>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -88,43 +86,26 @@ START_SECTION([EXTRA] RUN.ID is stored as INTEGER not BLOB (regression test for 
   }
 
   // --- Verify ---
+  // Use READWRITE to allow creating temp tables for verification queries
   {
-    SqliteConnector conn(temp_file, SqliteConnector::SqlOpenMode::READONLY);
-    sqlite3* db = conn.getDB();
+    SqliteConnector conn(temp_file);
 
-    // 1. Check typeof(RUN.ID) is 'integer'
-    {
-      sqlite3_stmt* stmt = nullptr;
-      SqliteConnector::prepareStatement(db, &stmt, "SELECT typeof(ID) FROM RUN LIMIT 1;");
-      sqlite3_step(stmt);
-      const char* type_str = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-      TEST_NOT_EQUAL(type_str, nullptr)
-      String type_value(type_str);
-      sqlite3_finalize(stmt);
-      TEST_EQUAL(type_value, "integer")
-    }
+    // 1. Check typeof(RUN.ID) is 'integer' (was 'blob' before the fix)
+    conn.executeStatement(
+      "CREATE TEMP TABLE _typeof_ok AS SELECT 1 FROM RUN WHERE typeof(ID) = 'integer';");
+    TEST_EQUAL(conn.countTableRows("_typeof_ok"), 1)
 
     // 2. Check that JOIN on FEATURE.RUN_ID = RUN.ID returns rows
-    {
-      sqlite3_stmt* stmt = nullptr;
-      SqliteConnector::prepareStatement(db, &stmt,
-        "SELECT COUNT(*) FROM RUN INNER JOIN FEATURE ON FEATURE.RUN_ID = RUN.ID;");
-      sqlite3_step(stmt);
-      int join_count = sqlite3_column_int(stmt, 0);
-      sqlite3_finalize(stmt);
-      TEST_EQUAL(join_count, 1)
-    }
+    conn.executeStatement(
+      "CREATE TEMP TABLE _join_result AS "
+      "SELECT RUN.ID FROM RUN INNER JOIN FEATURE ON FEATURE.RUN_ID = RUN.ID;");
+    TEST_EQUAL(conn.countTableRows("_join_result"), 1)
 
     // 3. Verify the stored RUN.ID value round-trips correctly
-    {
-      const UInt64 rid = large_run_id & ~(1ULL << 63);
-      sqlite3_stmt* stmt = nullptr;
-      SqliteConnector::prepareStatement(db, &stmt, "SELECT ID FROM RUN LIMIT 1;");
-      sqlite3_step(stmt);
-      int64_t stored_id = sqlite3_column_int64(stmt, 0);
-      sqlite3_finalize(stmt);
-      TEST_EQUAL(static_cast<UInt64>(stored_id), rid)
-    }
+    const UInt64 rid = large_run_id & ~(1ULL << 63);
+    conn.executeStatement(
+      "CREATE TEMP TABLE _id_match AS SELECT 1 FROM RUN WHERE ID = " + String(rid) + ";");
+    TEST_EQUAL(conn.countTableRows("_id_match"), 1)
   }
 
   File::remove(temp_file);
