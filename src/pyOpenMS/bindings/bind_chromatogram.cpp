@@ -25,23 +25,33 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 
-// Helper: ensure an object is a contiguous numpy array of type T.
+// Helper: ensure an object is a C-contiguous numpy array of type T.
 template <typename T>
-nb::ndarray<nb::numpy, T, nb::ndim<1>> as_numpy_array(nb::object obj) {
-    nb::ndarray<nb::numpy, T, nb::ndim<1>> arr;
+nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object obj) {
+    nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> arr;
     if (nb::try_cast(obj, arr)) return arr;
     auto np = nb::module_::import_("numpy");
     nb::object dtype;
     if constexpr (std::is_same_v<T, float>) dtype = np.attr("float32");
     else dtype = np.attr("float64");
-    nb::object np_arr = np.attr("asarray")(obj, dtype);
+    nb::object np_arr = np.attr("ascontiguousarray")(obj, dtype);
     if (!nb::try_cast(np_arr, arr)) {
-        throw std::runtime_error("Failed to convert input to numpy array");
+        throw std::runtime_error("Failed to convert input to contiguous numpy array");
     }
     return arr;
 }
 
 NB_MODULE(_pyopenms_chromatogram, m) {
+    // ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these)
+    static_assert(std::is_standard_layout_v<OpenMS::ChromatogramPeak>,
+                  "ChromatogramPeak must be standard-layout for zero-copy struct views (guarantees member order matches dtype)");
+    static_assert(sizeof(OpenMS::ChromatogramPeak) == 16,
+                  "ChromatogramPeak must be 16 bytes for zero-copy structured array access");
+    static_assert(std::is_same_v<OpenMS::ChromatogramPeak::CoordinateType, double>,
+                  "ChromatogramPeak::CoordinateType must be double (dtype assumes float64 for position)");
+    static_assert(std::is_same_v<OpenMS::ChromatogramPeak::IntensityType, float>,
+                  "ChromatogramPeak::IntensityType must be float (dtype assumes float32 for intensity)");
+
     m.doc() = "pyOpenMS chromatogram bindings";
 
     // -----------------------------------------------------------------------
@@ -83,8 +93,8 @@ rt, intensities = chromatogram.get_peaks()
         .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false)
         .def("sortByPosition", [](OpenMS::MSChromatogram& self) { return self.sortByPosition(); },
             R"doc(
-Lexicographically sorts the peaks by their intensity
-Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
+Lexicographically sorts the peaks by their position (RT).
+Sorts the peaks according to ascending RT. Meta data arrays will be sorted accordingly
 )doc")
         .def("isSorted", [](const OpenMS::MSChromatogram& self) { return self.isSorted(); }, "Checks if all peaks are sorted with respect to ascending RT")
         .def("findNearest", [](const OpenMS::MSChromatogram& self, double rt) { return self.findNearest(rt); }, "rt"_a,
@@ -124,68 +134,83 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
         }, "i"_a, "val"_a, "Sets peak at index i")
 
         .def("get_peaks", [](const OpenMS::MSChromatogram& self) {
-            // Single allocation + single capsule to reduce overhead for small arrays
             const size_t n = self.size();
-            const size_t total_bytes = 2 * n * sizeof(double);
-            char* buf = new char[total_bytes];
+            const size_t rt_bytes = n * sizeof(double);
+            const size_t int_bytes = n * sizeof(float);
+            char* buf = new char[rt_bytes + int_bytes];
             double* rt_data = reinterpret_cast<double*>(buf);
-            double* int_data = reinterpret_cast<double*>(buf + n * sizeof(double));
+            float* int_data = reinterpret_cast<float*>(buf + rt_bytes);
             for (size_t i = 0; i < n; ++i) {
                 rt_data[i] = self[i].getRT();
                 int_data[i] = self[i].getIntensity();
             }
             nb::capsule owner(buf, [](void* p) noexcept { delete[] static_cast<char*>(p); });
             auto rt_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(rt_data, {n}, owner);
-            auto int_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(int_data, {n}, owner);
+            auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, owner);
             return nb::make_tuple(rt_arr, int_arr);
         }, "Returns a tuple of (rt_array, intensity_array) as numpy arrays")
     
     
     
+        .def("_get_peaks_view", [](nb::object self_obj) {
+            auto& self = nb::cast<OpenMS::MSChromatogram&>(self_obj);
+            uint8_t* data_ptr = self.empty() ? nullptr : reinterpret_cast<uint8_t*>(&self[0]);
+            size_t shape[1] = { self.size() * sizeof(OpenMS::ChromatogramPeak) };
+            return nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
+                data_ptr,
+                1,
+                shape,
+                self_obj
+            );
+        },
+        nb::rv_policy::reference_internal,
+        "Returns a raw byte view of the underlying ChromatogramPeak array (AoS layout).")
+
         .def("get_peaks_struct",
-            [](OpenMS::MSChromatogram& self)
-                -> nb::ndarray<nb::numpy, double, nb::ndim<2>>
-            {
-                const size_t n = self.size();
+            [](nb::object self_obj) -> nb::object {
+                auto& self = nb::cast<OpenMS::MSChromatogram&>(self_obj);
+                size_t n = self.size();
+                auto np = nb::module_::import_("numpy");
 
-                if (n == 0)
-                {
-                    size_t shape[2] = { 0, 2 };
+                // Derive dtype from C++ layout (validated by static_asserts at module init)
+                constexpr size_t pos_offset = 0; // standard-layout: first member at offset 0
+                constexpr size_t int_offset = sizeof(OpenMS::ChromatogramPeak::PositionType);
+                nb::dict dtype_dict;
+                dtype_dict["names"] = nb::make_tuple("rt", "intensity");
+                dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
+                dtype_dict["offsets"] = nb::make_tuple(pos_offset, int_offset);
+                dtype_dict["itemsize"] = sizeof(OpenMS::ChromatogramPeak);
+                auto py_dtype = np.attr("dtype")(dtype_dict);
 
-                        return nb::ndarray<nb::numpy, double, nb::ndim<2>>(
-                            nullptr,
-                            2,
-                            shape,
-                            nb::handle()
-                        );
+                if (n == 0) {
+                    return np.attr("empty")(0, py_dtype);
                 }
 
-                OpenMS::ChromatogramPeak* first = &self[0];
-                double* raw_ptr = reinterpret_cast<double*>(first);
-
-                size_t shape[2] = { n, 2 };
-
-                return nb::ndarray<nb::numpy, double, nb::ndim<2>>(
-                    raw_ptr,
-                    2,
-                    shape,
-                    nb::find(self)
+                uint8_t* data_ptr = reinterpret_cast<uint8_t*>(&self[0]);
+                size_t byte_shape[1] = { n * sizeof(OpenMS::ChromatogramPeak) };
+                auto raw = nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
+                    data_ptr,
+                    1,
+                    byte_shape,
+                    self_obj
                 );
+
+                return np.attr("frombuffer")(raw, py_dtype);
             },
             nb::rv_policy::reference_internal,
-            "Returns zero-copy (n,2) float64 array: [RT, intensity]"
+            "Returns zero-copy structured array with fields 'rt' (float64) and 'intensity' (float32)."
         )
     
         .def("set_peaks", [](OpenMS::MSChromatogram& self, nb::object rt_obj, nb::object int_obj) {
             auto rt_arr = as_numpy_array<double>(rt_obj);
-            auto int_arr = as_numpy_array<double>(int_obj);
+            auto int_arr = as_numpy_array<float>(int_obj);
             const size_t n = rt_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
             self.resize(n);
             const double* rt_ptr = static_cast<const double*>(rt_arr.data());
-            const double* int_ptr = static_cast<const double*>(int_arr.data());
+            const float* int_ptr = static_cast<const float*>(int_arr.data());
             for (size_t i = 0; i < n; ++i) {
                 self[i].setRT(rt_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);
@@ -196,14 +221,14 @@ The chromatogram is sorted with respect to position. Meta data arrays will be so
                 throw std::runtime_error("set_peaks sequence must contain exactly 2 arrays (rt, intensity)");
             }
             auto rt_arr = as_numpy_array<double>(peaks_seq[0]);
-            auto int_arr = as_numpy_array<double>(peaks_seq[1]);
+            auto int_arr = as_numpy_array<float>(peaks_seq[1]);
             const size_t n = rt_arr.shape(0);
             if (int_arr.shape(0) != n) {
                 throw std::runtime_error("rt and intensity arrays must have same length");
             }
             self.resize(n);
             const double* rt_ptr = static_cast<const double*>(rt_arr.data());
-            const double* int_ptr = static_cast<const double*>(int_arr.data());
+            const float* int_ptr = static_cast<const float*>(int_arr.data());
             for (size_t i = 0; i < n; ++i) {
                 self[i].setRT(rt_ptr[i]);
                 self[i].setIntensity(int_ptr[i]);

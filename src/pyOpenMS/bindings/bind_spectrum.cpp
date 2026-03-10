@@ -28,24 +28,34 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 
-// Helper: ensure an object is a contiguous numpy array of type T.
+// Helper: ensure an object is a C-contiguous numpy array of type T.
 template <typename T>
-nb::ndarray<nb::numpy, T, nb::ndim<1>> as_numpy_array(nb::object obj) {
-    nb::ndarray<nb::numpy, T, nb::ndim<1>> arr;
+nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> as_numpy_array(nb::object obj) {
+    nb::ndarray<nb::numpy, T, nb::ndim<1>, nb::c_contig> arr;
     if (nb::try_cast(obj, arr)) return arr;
     auto np = nb::module_::import_("numpy");
     nb::object dtype;
     if constexpr (std::is_same_v<T, float>) dtype = np.attr("float32");
     else dtype = np.attr("float64");
-    nb::object np_arr = np.attr("asarray")(obj, dtype);
+    nb::object np_arr = np.attr("ascontiguousarray")(obj, dtype);
     if (!nb::try_cast(np_arr, arr)) {
-        throw std::runtime_error("Failed to convert input to numpy array");
+        throw std::runtime_error("Failed to convert input to contiguous numpy array");
     }
     return arr;
 }
 
 NB_MODULE(_pyopenms_spectrum, m) {
     m.doc() = "pyOpenMS spectrum bindings";
+
+    // ABI guards for zero-copy structured array access (get_peaks_struct dtype depends on these)
+    static_assert(std::is_standard_layout_v<OpenMS::Peak1D>,
+        "Peak1D must be standard-layout for zero-copy struct views (guarantees member order matches dtype)");
+    static_assert(sizeof(OpenMS::Peak1D) == 16,
+        "Peak1D must be 16 bytes for zero-copy structured array access");
+    static_assert(std::is_same_v<OpenMS::Peak1D::CoordinateType, double>,
+        "Peak1D::CoordinateType must be double (dtype assumes float64 for position)");
+    static_assert(std::is_same_v<OpenMS::Peak1D::IntensityType, float>,
+        "Peak1D::IntensityType must be float (dtype assumes float32 for intensity)");
 
     // -----------------------------------------------------------------------
     // MSSpectrum
@@ -162,9 +172,10 @@ Usage:
             return nb::make_tuple((int)result.first, (int)result.second);
         }, "Returns (index, drift_time_unit) for ion mobility data")
 
-        .def("get_peaks_view", [](OpenMS::MSSpectrum& self) {
+        .def("_get_peaks_view", [](nb::object self_obj) {
+            auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
             // Cast to a raw byte pointer
-            uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+            uint8_t* data_ptr = self.empty() ? nullptr : reinterpret_cast<uint8_t*>(self.data());
 
             // Shape is total number of peaks * size of one peak (16 bytes)
             size_t shape[1] = { self.size() * sizeof(OpenMS::Peak1D) };
@@ -174,11 +185,39 @@ Usage:
                 data_ptr,
                 1,
                 shape,
-                nb::handle()
+                self_obj
             );
         },
         nb::rv_policy::reference_internal,
         "Returns a raw byte view of the underlying Peak1D array (AoS layout).")
+
+        .def("get_peaks_struct",
+            [](nb::object self_obj) -> nb::object {
+                auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
+                size_t n = self.size();
+                auto np = nb::module_::import_("numpy");
+                nb::dict dtype_dict;
+                // Derive dtype from C++ layout (validated by static_asserts at module init)
+                constexpr size_t pos_offset = 0; // standard-layout: first member at offset 0
+                constexpr size_t int_offset = sizeof(OpenMS::Peak1D::PositionType);
+                dtype_dict["names"] = nb::make_tuple("mz", "intensity");
+                dtype_dict["formats"] = nb::make_tuple(np.attr("float64"), np.attr("float32"));
+                dtype_dict["offsets"] = nb::make_tuple(pos_offset, int_offset);
+                dtype_dict["itemsize"] = sizeof(OpenMS::Peak1D);
+                auto py_dtype = np.attr("dtype")(dtype_dict);
+                if (n == 0) {
+                    return np.attr("empty")(0, py_dtype);
+                }
+                uint8_t* data_ptr = reinterpret_cast<uint8_t*>(self.data());
+                size_t byte_shape[1] = { n * sizeof(OpenMS::Peak1D) };
+                auto raw = nb::ndarray<nb::numpy, uint8_t, nb::c_contig>(
+                    data_ptr, 1, byte_shape, self_obj
+                );
+                return np.attr("frombuffer")(raw, py_dtype);
+            },
+            nb::rv_policy::reference_internal,
+            "Returns zero-copy structured array with fields 'mz' (float64) and 'intensity' (float32)."
+        )
 
         .def("get_peaks", [](const OpenMS::MSSpectrum& self) {
             // Return (mz_array, intensity_array) as numpy arrays
@@ -282,36 +321,27 @@ Usage:
         }, "Returns intensity values as numpy array")
 
         .def("get_drift_time_array", [](const OpenMS::MSSpectrum& self) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
-            // Check if IM data exists
             if (!self.containsIMData()) return std::nullopt;
-            const auto& fda = self.getFloatDataArrays();
-            for (const auto& arr : fda) {
-                if (arr.getName() == "Ion Mobility" || arr.getMetaValue("name") == "Ion Mobility") {
-                    size_t n = arr.size();
-                    float* data = new float[n];
-                    std::copy(arr.begin(), arr.end(), data);
-                    nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
-                    return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
-                }
-            }
-            return std::nullopt;
+            auto [im_index, im_unit] = self.getIMData();
+            const auto& arr = self.getFloatDataArrays()[im_index];
+            size_t n = arr.size();
+            float* data = new float[n];
+            std::copy(arr.begin(), arr.end(), data);
+            nb::capsule owner(data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            return nb::ndarray<nb::numpy, float, nb::ndim<1>>(data, {n}, owner);
         }, "Returns drift time array if ion mobility data exists, else None")
 
-        .def("get_drift_time_array_mv", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
-            // Memory view version - returns view into float data array (zero-copy)
+        .def("get_drift_time_array_view", [](nb::object self_obj) -> std::optional<nb::ndarray<nb::numpy, float, nb::ndim<1>>> {
+            // Writable zero-copy view into the IM float data array
             auto& self = nb::cast<OpenMS::MSSpectrum&>(self_obj);
             if (!self.containsIMData()) return std::nullopt;
-            auto& fda = self.getFloatDataArrays();
-            for (auto& arr : fda) {
-                if (arr.getName() == "Ion Mobility" || arr.getMetaValue("name") == "Ion Mobility") {
-                    if (arr.empty()) return std::nullopt;
-                    return nb::ndarray<nb::numpy, float, nb::ndim<1>>(
-                        arr.data(), {arr.size()}, self_obj
-                    );
-                }
-            }
-            return std::nullopt;
-        }, "Returns view of drift time array if ion mobility data exists, else None")
+            auto [im_index, im_unit] = self.getIMData();
+            auto& arr = self.getFloatDataArrays()[im_index];
+            float* data_ptr = arr.empty() ? nullptr : arr.data();
+            return nb::ndarray<nb::numpy, float, nb::ndim<1>>(
+                data_ptr, {arr.size()}, self_obj
+            );
+        }, "Returns writable view of drift time array if ion mobility data exists, else None")
 
         .def("getFloatDataArrays", [](OpenMS::MSSpectrum& self) -> std::vector<OpenMS::DataArrays::FloatDataArray>& {
             return self.getFloatDataArrays();

@@ -82,20 +82,3 @@ def get_df_columns(self, *args, **kwargs):
     )
     return self.df_columns(*args, **kwargs)
     
-@addon("Mobilogram")
-def get_peaks_struct(self):
-    """
-    Returns a zero-copy numpy structured array of the mobilogram's peaks (AoS layout).
-    """
-    # Get the raw 1D byte array from C++
-    raw_view = self.get_peaks_struct_mv()
-
-    peak_dtype = np.dtype({
-        "names": ["mobility", "intensity"],
-        "formats": [np.float64, np.float32],
-        "offsets": [0, 8],
-        "itemsize": 16
-    })
-
-    # Cast the byte array directly into our structured array
-    return raw_view.view(peak_dtype)

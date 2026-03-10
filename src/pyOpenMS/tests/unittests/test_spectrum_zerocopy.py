@@ -38,3 +38,12 @@ def test_spectrum_memory_safety():
     # If nanobind's reference_internal policy failed, this next line will segfault (crash).
     # If it passes, the memory was safely kept alive by the view.
     assert np.isclose(peaks_array['mz'][0], 300.0), "Memory safety/lifetime sharing failed!"
+
+def test_spectrum_empty_struct():
+    """get_peaks_struct() on empty MSSpectrum should return empty structured array."""
+    spec = poms.MSSpectrum()
+    arr = spec.get_peaks_struct()
+    assert isinstance(arr, np.ndarray)
+    assert arr.shape == (0,)
+    assert arr.dtype['mz'] == np.float64
+    assert arr.dtype['intensity'] == np.float32

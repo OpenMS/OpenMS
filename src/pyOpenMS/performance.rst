@@ -53,16 +53,16 @@ Extract data from spectrum
   50 loops, best of 3: 6.19 msec per loop -- version 2.7.0
   2000 loops, best of 3: 111 usec per loop
 
-  'q = s.get_mz_array_mv(); assert numpy.sum(q) == rr'
+  'q = s.get_mz_array_view(); assert numpy.sum(q) == rr'
   10000 loops, best of 3: 32.6 usec per loop
 
-  'q = s.get_mz_array_mv(); res = q[0] + q[-1]'
+  'q = s.get_mz_array_view(); res = q[0] + q[-1]'
   200000 loops, best of 3: 994 nsec per loop
 
-  'arr = s.get_data_arrays(); assert numpy.sum(arr[0].get_data_mv()) == rr'
+  'arr = s.get_data_arrays(); assert numpy.sum(arr[0].get_data_view()) == rr'
   10000 loops, best of 3: 32.7 usec per loop
 
-  'arr = s.get_data_arrays(); tmp = arr[0].get_data_mv(); res = tmp[0] + tmp[-1]'
+  'arr = s.get_data_arrays(); tmp = arr[0].get_data_view(); res = tmp[0] + tmp[-1]'
   200000 loops, best of 3: 1.16 usec per loop
 
 

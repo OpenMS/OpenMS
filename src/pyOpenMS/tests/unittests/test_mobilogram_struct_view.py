@@ -42,6 +42,8 @@ def test_empty_mobilogram():
 
     assert isinstance(arr, np.ndarray)
     assert arr.size == 0
+    assert arr.dtype['mobility'] == np.float64
+    assert arr.dtype['intensity'] == np.float32
 
 
 def test_single_peak():
