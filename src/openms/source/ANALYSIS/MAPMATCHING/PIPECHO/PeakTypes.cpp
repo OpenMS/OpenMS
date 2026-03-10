@@ -8,6 +8,7 @@
 
 #include "PeakTypes.h"
 
+
 namespace OpenMS::PipEcho
 {
 
@@ -23,26 +24,25 @@ bool Acceptor::is_donor_compatible(const Donor& donor,
 }
 
 /******************************************************************************/
-std::optional<const Donor*> Acceptor::fetch_and_mark_best_donor()
+void Acceptor::push_back(const Score& score,
+                         std::shared_ptr<const Donor> donor,
+                         DonorType dtype)
 {
-  std::optional<scored_t> match;
-
-  auto check = [&](scored_t& scored) {
-    if (! match.has_value() || match->first.mbr_score < scored.first.mbr_score)
-    {
-      match = scored;
-    }
+  auto better = [&score](auto local) -> bool {
+    return ! local.has_value() || local->first.mbr_score < score.mbr_score;
   };
 
-  std::for_each(targets.begin(), targets.end(), check);
-  std::for_each(decoys.begin(), decoys.end(), check);
+  scored_t entry = std::make_pair(score, donor);
 
-  if (match.has_value())
+  switch (dtype)
   {
-    // FIXME: Set feature peak decoy flag!
-    return match->second;
-  }
-  else { return {}; }
-}
+    case DonorType::Target:
+      if (better(target)) target = entry;
+      break;
 
+    case DonorType::Decoy:
+      if (better(decoy)) decoy = entry;
+      break;
+  }
+}
 } // namespace OpenMS::PipEcho

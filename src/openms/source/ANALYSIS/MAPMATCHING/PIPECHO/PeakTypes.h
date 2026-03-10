@@ -10,7 +10,9 @@
 
 #include "OpenMS/KERNEL/Feature.h"
 #include "Score.h"
+#include "Util.h"
 #include "Window.h"
+#include "source/ANALYSIS/MAPMATCHING/PIPECHO/Util.h"
 
 #include <cstddef>
 
@@ -56,6 +58,28 @@ struct PeakCmp
 struct Donor : Peak
 {
   Donor(const Peak& peak): Peak(peak.map_index, peak.feature) {};
+
+  std::string ident() const
+  {
+    auto hit = Util::feature_hit(feature);
+
+    if (hit) { return hit->getSequence().toString(); }
+
+    std::string msg("donor feature missing peptide sequence");
+    throw(Exception::MissingInformation(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION, msg));
+  };
+};
+
+/******************************************************************************/
+/**
+ * Type to make it clear if a donor feature is considered a target or
+ * a decoy.
+ */
+enum class DonorType
+{
+  Target,
+  Decoy
 };
 
 /******************************************************************************/
@@ -66,13 +90,13 @@ struct Donor : Peak
 struct Acceptor : Peak
 {
   /// A scored donor.
-  using scored_t = std::pair<Score, const Donor*>;
+  using scored_t = std::pair<Score, std::shared_ptr<const Donor>>;
 
-  /// Targets.
-  std::vector<scored_t> targets;
+  /// The best scoring target donor.
+  std::optional<scored_t> target;
 
-  /// Decoys.
-  std::vector<scored_t> decoys;
+  /// The best scoring decoy donor;
+  std::optional<scored_t> decoy;
 
   /// Constructor.
   Acceptor(const Peak& peak): Peak(peak.map_index, peak.feature) {};
@@ -80,10 +104,8 @@ struct Acceptor : Peak
   /// Check if a Donor matches this Acceptor.
   bool is_donor_compatible(const Donor&, const Window&) const;
 
-  /// Return the donor with the highest score.  The feature for this
-  /// acceptor will be marked as either a decoy or target depending
-  /// on how the donor was selected.
-  std::optional<const Donor*> fetch_and_mark_best_donor();
+  /// Add a donor.
+  void push_back(const Score&, std::shared_ptr<const Donor>, DonorType);
 };
 
 } // namespace OpenMS::PipEcho

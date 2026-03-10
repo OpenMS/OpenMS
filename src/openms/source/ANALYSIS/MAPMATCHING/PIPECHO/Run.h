@@ -12,7 +12,7 @@
 #include "OpenMS/KERNEL/Feature.h"
 #include "PeakTypes.h"
 
-#include <string>
+#include <memory>
 
 namespace OpenMS::PipEcho
 {
@@ -22,12 +22,9 @@ class Run
 {
 public:
   /// Construct a new Run object.
-  Run(const std::string& file_name,
-      const double rt_window,
-      const double mz_window):
+  Run(const double rt_window, const double mz_window):
       donors({rt_window, mz_window}),
-      acceptors({rt_window, mz_window}),
-      file_name(file_name)
+      acceptors({rt_window, mz_window})
   {
   }
 
@@ -36,8 +33,14 @@ public:
   {
     Peak peak(map_index, feature);
 
-    if (is_donor_feature(feature)) { donors.insert(Donor(peak)); }
-    else { acceptors.insert(Acceptor(peak)); }
+    if (is_donor_feature(feature))
+    {
+      donors.insert(std::make_shared<Donor>(peak));
+    }
+    else
+    {
+      acceptors.insert(std::make_shared<Acceptor>(peak));
+    }
   }
 
   /// Release all storage.
@@ -50,10 +53,6 @@ public:
   // Allow direct access to the grid type.
   GridWithStorage<Donor> donors;
   GridWithStorage<Acceptor> acceptors;
-
-  // The name of the file for this spectrum.
-  // FIXME: Remove this if we don't end up using it.
-  const std::string file_name;
 
 private:
   bool is_donor_feature(const Feature&);

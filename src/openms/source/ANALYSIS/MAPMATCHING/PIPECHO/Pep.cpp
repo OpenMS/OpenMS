@@ -9,7 +9,9 @@
 #include "OpenMS/CONCEPT/LogStream.h"
 #include "OpenMS/ML/SVM/SimpleSVM.h"
 #include "Pep.h"
+#include "source/ANALYSIS/MAPMATCHING/PIPECHO/Util.h"
 
+#include <numeric>
 #include <ranges>
 
 namespace OpenMS::PipEcho
@@ -49,12 +51,15 @@ public:
    * @param get A function to call to get the score.
    */
   predictors_t(double cutoff,
-               std::function<double(const Pep::acceptor_t&)> get);
+               std::function<double(const Pep::acceptor_t&)> get,
+               std::function<bool(double, double)> cmp);
 
   /**
    * Train the model with the given data.
+   *
+   * Returns `true` if this method was able to train the SVM.
    */
-  void train(auto&& training);
+  bool train(const Pep::group_t& training);
 
   /**
    * Generate predictions for the given group and update the
@@ -65,8 +70,8 @@ public:
   bool predict(Pep::group_t& group);
 
 public:
-  std::size_t targets;
-  std::size_t decoys;
+  std::size_t targets = 0;
+  std::size_t decoys = 0;
 
 private:
   constexpr static const double LABEL_TARGET = 1.0;
@@ -78,7 +83,8 @@ private:
 private:
   double cutoff;
   std::function<double(const Pep::acceptor_t&)> getter;
-  std::size_t index;
+  std::function<bool(double, double)> cmp;
+  std::size_t index = 0;
 
   SimpleSVM svm;
   SimpleSVM::PredictorMap training_predictors;
@@ -87,57 +93,113 @@ private:
 };
 
 /******************************************************************************/
-Pep::Pep(const std::vector<Acceptor*> acceptors)
+Pep::Pep(const std::vector<std::shared_ptr<Acceptor>>& acceptors)
 {
-  auto push_acceptor_t
-    = [](Acceptor* acceptor, std::vector<Acceptor::scored_t>& src,
-         bool is_target, group_t& dest) -> void {
-    for (auto& scored : src)
+  auto push_acceptor
+    = [&](const Acceptor& acceptor, std::optional<Acceptor::scored_t>& scored,
+          DonorType dtype) -> void {
+    if (scored.has_value())
     {
-      dest.push_back(std::make_shared<acceptor_t>(acceptor, scored, is_target));
+      acceptors_.push_back(
+        std::make_shared<acceptor_t>(acceptor, *scored, dtype));
     }
   };
 
-  for (auto acceptor : acceptors)
+  for (const auto& acceptor : acceptors)
   {
-    push_acceptor_t(acceptor, acceptor->targets, true, this->acceptors);
-    push_acceptor_t(acceptor, acceptor->decoys, false, this->acceptors);
+    push_acceptor(*acceptor, acceptor->target, DonorType::Target);
+    push_acceptor(*acceptor, acceptor->decoy, DonorType::Decoy);
   }
 }
 
 /******************************************************************************/
-bool Pep::run()
+const Pep::group_t& Pep::run(double fdr_cutoff)
+{
+  bool pep_okay = internal_run();
+
+  if (! pep_okay)
+  {
+    OPENMS_LOG_WARN << "WARNING: unable to calculate ML PEP values, "
+                    << "falling back to MBR scores." << std::endl;
+  }
+
+  compute_qvalues(pep_okay);
+
+  const auto [first, last]
+    = std::ranges::remove_if(acceptors_, [&fdr_cutoff](const auto& a) {
+        return a->q_value > fdr_cutoff;
+      });
+
+  std::size_t before = acceptors_.size();
+  acceptors_.erase(first, last);
+
+  OPENMS_LOG_INFO << "PIP-ECHO: Filtering acceptors at FDR " << fdr_cutoff
+                  << " reduced acceptors from " << before << " to "
+                  << acceptors_.size() << std::endl;
+
+  // One last pass to update the `Feature` target/decoy status and q-value:
+  for (auto& acceptor : acceptors_)
+  {
+    // Only update the status for known decoys.  We don't really
+    // "know" if a target is real or not so just leave it alone.
+    if (! acceptor->is_target())
+    {
+      auto hit = Util::feature_hit(acceptor->acceptor.get().feature);
+
+      if (hit.has_value())
+      {
+        hit->setTargetDecoyType(PeptideHit::TargetDecoyType::DECOY);
+      }
+    }
+
+    // FIXME: Record the q-value.
+  }
+
+  return acceptors_;
+}
+
+/******************************************************************************/
+bool Pep::internal_run()
 {
   size_t decoy_count
-    = std::ranges::count_if(acceptors, std::not_fn(&acceptor_t::is_target));
+    = std::ranges::count_if(acceptors_, std::not_fn(&acceptor_t::is_target));
 
-  if (acceptors.size() > MIN_TOTAL_ACCEPTORS && decoy_count > MIN_DECOYS)
+  OPENMS_LOG_INFO << "PIP-ECHO: Computing PEP values via SVM with "
+                  << acceptors_.size() << " total acceptors, " << decoy_count
+                  << " of which are decoys." << std::endl;
+
+  if (acceptors_.size() < MIN_TOTAL_ACCEPTORS || decoy_count < MIN_DECOYS)
   {
-    std::vector<group_t> groups;
-    groups.reserve(CROSS_VALIDATION_GROUPS);
-    group_acceptors(groups);
+    return false;
+  }
 
-    // First round uses MBR score.
-    if (! round(groups, [](auto& a) { return a.score.mbr_score; }))
+  std::vector<group_t> groups;
+  groups.reserve(CROSS_VALIDATION_GROUPS);
+  group_acceptors(groups);
+
+  // First round uses MBR score in descending order.
+  if (! round(1, groups, &acceptor_t::mbr_score, std::ranges::greater {}))
+  {
+    return false;
+  }
+
+  // All other rounds use the PEP in ascending order.
+  for (std::size_t i {}; i < (TRAINING_ROUNDS - 1); ++i)
+  {
+    if (! round(i + 1, groups, &acceptor_t::pep_score, std::ranges::less {}))
     {
       return false;
     }
-
-    // All other rounds use the PEP.
-    for (std::size_t i {}; i < (TRAINING_ROUNDS - 1); ++i)
-    {
-      if (! round(groups, &acceptor_t::pep_score)) { return false; }
-    }
-
-    // FIXME: Filter and set FDR.
-
-    return true;
   }
 
-  return false;
-}
+  return true;
+};
 
 /******************************************************************************/
+/**
+ * Separate features into several groups in such a way as to ensure an
+ * equal distribution of high scoring targets.
+ */
 void Pep::group_acceptors(std::vector<group_t>& groups)
 {
   // This code would be so much nicer if we could use C++23.
@@ -155,23 +217,20 @@ void Pep::group_acceptors(std::vector<group_t>& groups)
     return view | vw::drop(size * i) | vw::take(size);
   };
 
-  // FIXME: Should we sort these by MBR score too?
-  auto decoys = rg::partition(acceptors, &acceptor_t::is_target);
+  auto decoys = rg::partition(acceptors_, &acceptor_t::is_target);
   std::size_t decoys_per_group = split(decoys);
 
   // Targets are a little different, we need them to be evenly
   // distributed by score so that each group has access to labeled
   // targets (those in the upper 25%).
-  auto target_pool = rg::subrange(acceptors.begin(), decoys.begin());
+  auto target_pool = rg::subrange(acceptors_.begin(), decoys.begin());
   std::size_t targets_per_group = split(target_pool);
-
-  rg::sort(target_pool, [](auto& a, auto& b) {
-    return a->score.mbr_score > b->score.mbr_score;
-  });
+  rg::sort(target_pool, std::greater {}, Util::dref_fn(&acceptor_t::mbr_score));
 
   std::vector<group_t> target_groups;
   target_groups.reserve(CROSS_VALIDATION_GROUPS);
 
+  // Prepare groups.
   for (std::size_t i = 0; i < CROSS_VALIDATION_GROUPS; ++i)
   {
     group_t group;
@@ -179,6 +238,9 @@ void Pep::group_acceptors(std::vector<group_t>& groups)
     target_groups.push_back(group);
   }
 
+  // Distribute target features into the temporary `target_groups`
+  // vector, which will then later be used to fill in the final
+  // `groups` vector.
   for (std::size_t i {}; auto& target : target_pool)
   {
     target_groups[i].push_back(target);
@@ -188,6 +250,7 @@ void Pep::group_acceptors(std::vector<group_t>& groups)
   // View to pull from each of the distributed target groups.
   auto targets = vw::join(target_groups);
 
+  // Now we can fill in the `groups` vectors.
   for (std::size_t i : vw::iota(std::size_t {}, CROSS_VALIDATION_GROUPS))
   {
     group_t group;
@@ -205,52 +268,139 @@ void Pep::group_acceptors(std::vector<group_t>& groups)
 }
 
 /******************************************************************************/
-bool Pep::round(std::vector<group_t>& groups,
-                std::function<double(const acceptor_t&)> getter)
+/// NOTE: It is undefined behavior to use a comparison function that
+/// doesn't conform to the *Compare* requirement (i.e. uses `>=` or
+/// `<=`).
+///
+/// https://cppreference.com/w/cpp/named_req/Compare.html
+bool Pep::round(size_t round_number,
+                std::vector<group_t>& groups,
+                std::function<double(const acceptor_t&)> getter,
+                std::function<bool(double, double)> cmp)
 {
+  OPENMS_LOG_INFO << "PIP-ECHO: Target/decoy train-predict round "
+                  << round_number << "/" << TRAINING_ROUNDS << std::endl;
+
+  group_t training; // All groups except the prediction group.
+  auto sizes = groups | std::views::transform(&group_t::size);
+  training.reserve(std::accumulate(sizes.begin(), sizes.end(), 0));
+
   for (std::size_t i : std::views::iota(std::size_t {}, groups.size()))
   {
-    group_t& group = groups[i];
+    training.clear();
 
-    // FIXME: Does the sort direction change between MBR and PEP?
-    // It seems like it would have to.
-    std::ranges::sort(group, [&getter](const auto& a, const auto& b) {
-      return getter(*a) > getter(*b);
-    });
+    for (std::size_t j : std::views::iota(std::size_t {}, groups.size()))
+    {
+      if (i != j)
+      {
+        training.insert(training.end(), groups[i].begin(), groups[i].end());
+      }
+    }
 
-    std::size_t cutoff_index = std::floor(group.size() * TRUE_POSITIVE_CUTOFF);
-    double cutoff = getter(*group[cutoff_index]);
+    std::ranges::sort(training, cmp, Util::dref_fn(getter));
 
-    // This group becomes the prediction set, and all other groups
-    // become the training data.
-    auto others
-      = std::views::iota(std::size_t {}, CROSS_VALIDATION_GROUPS)
-        | std::views::filter([&i](auto j) { return i != j; })
-        | std::views::transform([&groups](auto n) { return groups[n]; })
-        | std::views::join;
+    std::size_t cutoff_index
+      = std::floor(training.size() * TRUE_POSITIVE_CUTOFF);
+    double cutoff = std::invoke(getter, *training[cutoff_index]);
 
-    if (! train_predict(others, group, cutoff, getter)) { return false; }
+    OPENMS_LOG_INFO << "PIP-ECHO: Acceptor group " << i + 1 << "/"
+                    << groups.size() << " will be the prediction group with "
+                    << groups[i].size() << " acceptors"
+                    << " with the remaining " << training.size()
+                    << " acceptors in the training set"
+                    << " with selected cutoff value of " << cutoff << std::endl;
+
+    if (! train_predict(training, groups[i], cutoff, getter, cmp))
+    {
+      return false;
+    }
   }
 
   return true;
 }
 
 /******************************************************************************/
-bool Pep::train_predict(auto&& training,
+bool Pep::train_predict(const group_t& training,
                         group_t& predict,
                         double cutoff,
-                        std::function<double(const acceptor_t&)> get)
+                        std::function<double(const acceptor_t&)> get,
+                        std::function<bool(double, double)> cmp)
 {
-  predictors_t predictors(cutoff, get);
-  predictors.train(training);
+  predictors_t predictors(cutoff, get, cmp);
+  if (! predictors.train(training)) return false;
   return predictors.predict(predict);
 }
 
 /******************************************************************************/
+void Pep::compute_qvalues(bool pep_values_are_valid)
+{
+  // Sort ascending by PEP score, and then descending by MBR score.
+  std::ranges::sort(acceptors_, [&](auto a, auto b) {
+    if (! pep_values_are_valid || std::fabs(a->pep_score - b->pep_score) < 0.01)
+    {
+      return a->score.mbr_score > b->score.mbr_score;
+    }
+    else
+    {
+      return a->pep_score < b->pep_score;
+    }
+  });
+
+  double decoy_mbr_count {}, decoy_peptide_count {}, decoy_double_count {},
+    total_so_far {};
+
+  for (auto acceptor : acceptors_)
+  {
+    ++total_so_far;
+
+    bool is_peptide_decoy = false; // FIXME
+    bool is_mbr_decoy = ! acceptor->is_target();
+
+    if (is_peptide_decoy && ! is_mbr_decoy) { ++decoy_peptide_count; }
+    else if (! is_peptide_decoy && is_mbr_decoy) { ++decoy_mbr_count; }
+    else if (is_peptide_decoy && is_mbr_decoy) { ++decoy_double_count; }
+
+    double errors = std::fmax(0, decoy_peptide_count - decoy_double_count);
+    acceptor->q_value = (1 + decoy_mbr_count + errors) / total_so_far;
+  }
+
+  correct_qvalues();
+}
+
+/******************************************************************************/
+// Standard Q value correct.  Ensures that as you iterate over the
+// list of scored acceptors the Q value either increases or stays the
+// same.
+void Pep::correct_qvalues()
+{
+  if (acceptors_.size() < 2) return;
+  std::size_t i = acceptors_.size() - 2;
+
+  // If a Q value is greater than the one that comes after it we force
+  // it to be the same value as the one that comes after it.  This
+  // ensures that Q values increase or stay the same.
+  for (;;)
+  {
+    if (acceptors_[i]->q_value > acceptors_[i + 1]->q_value)
+    {
+      acceptors_[i]->q_value = acceptors_[i + 1]->q_value;
+    }
+
+    if (i == 0) { break; }
+    else
+    {
+      --i;
+    }
+  }
+}
+
+/******************************************************************************/
 predictors_t::predictors_t(double cutoff,
-                           std::function<double(const Pep::acceptor_t&)> get):
+                           std::function<double(const Pep::acceptor_t&)> get,
+                           std::function<bool(double, double)> cmp):
     cutoff(cutoff),
-    getter(get)
+    getter(get),
+    cmp(cmp)
 {
   Param svm_param = svm.getParameters();
 
@@ -265,21 +415,30 @@ predictors_t::predictors_t(double cutoff,
 }
 
 /******************************************************************************/
-void predictors_t::train(auto&& training)
+bool predictors_t::train(const Pep::group_t& training)
 {
   for (const Pep::acceptor_ptr_t& acceptor : training)
   {
     encode(*acceptor, training_predictors, true);
-    svm.setup(training_predictors, labels);
   }
+
+  // Need a certain number of labeled feature or this won't work.
+  if (targets <= 4 || decoys <= 4)
+  {
+    OPENMS_LOG_WARN << "WARNING: there are not enough targets (" << targets
+                    << ") or decoys (" << decoys << ") for proper training."
+                    << std::endl;
+
+    return false;
+  }
+
+  svm.setup(training_predictors, labels);
+  return true;
 }
 
 /******************************************************************************/
 bool predictors_t::predict(Pep::group_t& group)
 {
-  // Need a certain number of labeled feature or this won't work.
-  if (targets <= 4 || decoys <= 4) return false;
-
   for (const Pep::acceptor_ptr_t& acceptor : group)
   {
     encode(*acceptor, prediction_predictors, false);
@@ -288,7 +447,6 @@ bool predictors_t::predict(Pep::group_t& group)
   std::vector<SimpleSVM::Prediction> predictions;
   svm.predict(prediction_predictors, predictions);
 
-  // FIXME: Double check this!
   for (std::size_t i {}; i < predictions.size(); ++i)
   {
     auto item = predictions[i].probabilities.find(LABEL_TARGET);
@@ -298,18 +456,17 @@ bool predictors_t::predict(Pep::group_t& group)
       OPENMS_LOG_WARN
         << "WARNING: Predictions map does not contain expected labels: ";
 
-      auto view
-        = predictions[i].probabilities | std::views::transform([](auto pair) {
-            return pair.first;
-          }); // Missing C++23's `join_with` :(
-
-      for (auto key : view)
+      // Missing C++23's `join_with` :(
+      for (auto key : predictions[i].probabilities | std::views::keys)
         OPENMS_LOG_WARN << key << " ";
 
       OPENMS_LOG_WARN << std::endl;
       return false;
     }
-    else { group[i]->pep_score = 1 - item->second; }
+    else
+    {
+      group[i]->pep_score = 1 - item->second;
+    }
   }
 
   return true;
@@ -327,15 +484,20 @@ void predictors_t::encode(const Pep::acceptor_t& acceptor,
 
   if (create_labels)
   {
-    if (acceptor.is_target && getter(acceptor) >= cutoff)
+    switch (acceptor.donor_type)
     {
-      labels[index] = LABEL_TARGET;
-      ++targets;
-    }
-    else if (! acceptor.is_target)
-    {
-      labels[index] = LABEL_DECOY;
-      ++decoys;
+      case DonorType::Target:
+        if (std::invoke(cmp, std::invoke(getter, acceptor), cutoff))
+        {
+          labels[index] = LABEL_TARGET;
+          ++targets;
+        }
+        break;
+
+      case DonorType::Decoy:
+        labels[index] = LABEL_DECOY;
+        ++decoys;
+        break;
     }
 
     ++index;

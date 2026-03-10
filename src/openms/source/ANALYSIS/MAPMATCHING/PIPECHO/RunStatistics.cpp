@@ -24,6 +24,17 @@ namespace OpenMS::PipEcho
 {
 
 /******************************************************************************/
+/// Ensure the given value is within bounds (i.e. not NaN.)
+double bound(double d)
+{
+  if (std::isnan(d)) { return MIN_SCORE; }
+  else
+  {
+    return d;
+  }
+}
+
+/******************************************************************************/
 // NOTE: A lot of this code needs to collect statistics about
 // *identified* features, which we call donors.
 RunStatistics::RunStatistics(const Run& run):
@@ -106,9 +117,9 @@ Score RunStatistics::score(const Feature& donor, const Feature& acceptor) const
   // following call to `std::pow`.
   const static double measures = 3.0;
 
-  s.mbr_score
-    = 100.0
-      * std::pow(s.intensity * s.rt_diff_error * s.mass_error, 1.0 / measures);
+  s.mbr_score = bound(
+    100.0
+    * std::pow(s.intensity * s.rt_diff_error * s.mass_error, 1.0 / measures));
 
   return s;
 }
@@ -132,7 +143,7 @@ double RunStatistics::calc_score_using(const normal_t& dist, double value) const
 {
   if (! dist.has_value()) return MIN_SCORE;
   double diff = std::fabs(dist->mean() - value);
-  return 2 * boost::math::cdf(*dist, dist->mean() - diff);
+  return bound(2 * boost::math::cdf(*dist, dist->mean() - diff));
 }
 
 } // namespace OpenMS::PipEcho

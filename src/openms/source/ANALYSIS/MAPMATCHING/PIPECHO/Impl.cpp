@@ -11,10 +11,12 @@
 #include "OpenMS/CONCEPT/ProgressLogger.h"
 #include "OpenMS/KERNEL/FeatureMap.h"
 #include "PeakTypes.h"
+#include "Pep.h"
 #include "Score.h"
 #include "Util.h"
 
 #include <memory>
+#include <ranges>
 #include <set>
 
 namespace OpenMS::PipEcho
@@ -25,11 +27,26 @@ namespace OpenMS::PipEcho
  * Return a key that can be used to link features with the same
  * amino acid sequence and charge state.
  */
+std::string feature_sequence_key(const std::string& ident,
+                                 BaseFeature::ChargeType charge)
+{
+  return ident + "_" + std::to_string(charge);
+}
+
+/******************************************************************************/
+/**
+ * Return a key that can be used to link features with the same
+ * amino acid sequence and charge state.
+ */
 std::string feature_sequence_key(const Feature& feature)
 {
   auto hit = PipEcho::Util::feature_hit(feature);
 
-  if (hit) { return hit->getSequence().toString() + "_" + feature.getCharge(); }
+  if (hit)
+  {
+    return feature_sequence_key(hit->getSequence().toString(),
+                                feature.getCharge());
+  }
 
   std::string msg("donor feature missing peptide sequence");
   throw(Exception::MissingInformation(__FILE__, __LINE__,
@@ -55,8 +72,8 @@ Impl::Impl(const Param& params, const std::pair<double, double>& mz_range):
     mz_grid_center(0.5),
     rt_sec_max_window(params.getValue("distance_RT:max_difference"))
 {
-  OPENMS_LOG_INFO << "PIP-ECHO(" << mz_range.first << ", " << mz_range.second
-                  << ", " << mz_grid_center << ", "
+  OPENMS_LOG_INFO << "MBR via PIP-ECHO(" << mz_range.first << ", "
+                  << mz_range.second << ", " << mz_grid_center << ", "
                   << mz_max_diff.mz_diff(mz_range.second - mz_range.first)
                   << ", " << rt_sec_max_window << ")" << std::endl;
 }
@@ -108,7 +125,7 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
       if (target.has_value())
       {
         auto acceptor = target->second;
-        acceptor->targets.push_back(std::make_pair(target->first, &*donor));
+        acceptor->push_back(target->first, donor, DonorType::Target);
       }
 
       const auto random_donor = find_random_donor(donors, *donor, *window);
@@ -122,7 +139,7 @@ void Impl::link_donors_and_acceptors(const RunStatistics& stats,
         if (decoy.has_value())
         {
           auto acceptor = decoy->second;
-          acceptor->decoys.push_back(std::make_pair(decoy->first, &*donor));
+          acceptor->push_back(decoy->first, donor, DonorType::Decoy);
         }
       }
 
@@ -149,17 +166,17 @@ Impl::match_t Impl::find_acceptor_for(const RunStatistics& stats,
   const AcceptorMap::grid_index_t index
     = acceptors.grid.cellIndexAtClusterCenter(center);
 
-  return acceptors.nearby(
+  return acceptors.nearby<match_t>(
     index, window.grid_neighbors, match_t {},
-    [&](match_t best_match, Acceptor& acceptor) -> match_t {
-      if (acceptor.is_donor_compatible(donor, window))
+    [&](match_t best_match, AcceptorMap::value_type acceptor) -> match_t {
+      if (acceptor->is_donor_compatible(donor, window))
       {
-        Score score(stats.score(donor.feature, acceptor.feature));
+        Score score(stats.score(donor.feature, acceptor->feature));
 
         if (! best_match.has_value()
             || best_match->first.mbr_score < score.mbr_score)
         {
-          return std::make_pair(score, &acceptor);
+          return std::make_pair(score, acceptor);
         }
       }
 
@@ -168,9 +185,10 @@ Impl::match_t Impl::find_acceptor_for(const RunStatistics& stats,
 }
 
 /******************************************************************************/
-std::optional<const Donor*> Impl::find_random_donor(const DonorMap& donors,
-                                                    const Donor& start,
-                                                    const Window& window) const
+std::optional<std::shared_ptr<const Donor>>
+Impl::find_random_donor(const DonorMap& donors,
+                        const Donor& start,
+                        const Window& window) const
 {
   /// FIXME: Is this mass calculation good enough?
   const auto mass = [](const Donor& donor) -> double {
@@ -194,16 +212,17 @@ std::optional<const Donor*> Impl::find_random_donor(const DonorMap& donors,
   const double start_rt = start.feature.getRT();
   const std::string start_seq = base_seq(start);
 
-  std::vector<const Donor*> matching_donors;
+  std::vector<std::shared_ptr<const Donor>> matching_donors;
 
-  auto explore = [&](double distance, Donor& donor) -> double {
-    const double mass_diff = std::fabs(start_mass - mass(donor));
-    const double rt_diff = std::fabs(start_rt - donor.feature.getRT());
+  auto explore
+    = [&](double distance, std::shared_ptr<const Donor> donor) -> double {
+    const double mass_diff = std::fabs(start_mass - mass(*donor));
+    const double rt_diff = std::fabs(start_rt - donor->feature.getRT());
 
     if (rt_diff > rt_min_diff && mass_diff > mass_min_diff
-        && mass_diff < mass_max_diff && start_seq != base_seq(donor))
+        && mass_diff < mass_max_diff && start_seq != base_seq(*donor))
     {
-      matching_donors.push_back(&donor);
+      matching_donors.push_back(donor);
     }
 
     return std::max(distance, mass_diff);
@@ -219,7 +238,7 @@ std::optional<const Donor*> Impl::find_random_donor(const DonorMap& donors,
 
   do
   {
-    const double distance = donors.nearby(index, neighbors, 0, explore);
+    const double distance = donors.nearby<double>(index, neighbors, 0, explore);
 
     // Adjust search params for next round.
     if (distance < cur_max_mass_diff)
@@ -246,16 +265,15 @@ std::optional<const Donor*> Impl::find_random_donor(const DonorMap& donors,
 /******************************************************************************/
 void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
 {
-  using IdentVal = std::set<Peak, PeakCmp>;
-  using IdentMap = std::map<std::string, IdentVal>;
+  using ident_val_t = std::set<Peak, PeakCmp>;
+  using ident_map_t = std::map<std::string, ident_val_t>;
 
-  std::size_t acceptors_added {}, decoys_seen {};
-  IdentMap ident_map;
+  std::size_t acceptors_seen {}, decoys_seen {};
+  ident_map_t ident_map;
 
-  auto insert = [&](const Donor& donor, const Peak& peak) {
-    std::string key = feature_sequence_key(donor.feature);
+  auto insert = [&](const std::string key, const Peak& peak) {
     auto [place, inserted]
-      = ident_map.insert(std::make_pair(key, IdentVal {peak}));
+      = ident_map.insert(std::make_pair(key, ident_val_t {peak}));
     if (! inserted) place->second.insert(peak);
   };
 
@@ -264,32 +282,45 @@ void Impl::generate_consensus_map(RunMap& runs, ConsensusMap& consensus_map)
     // Place each donor into the identity map.
     for (auto& donor : run.second.donors.storage)
     {
-      insert(*donor, *donor);
+      std::string key = feature_sequence_key(donor->feature);
+      insert(key, *donor);
     }
-
-    // Now place the acceptors in there too.
-    for (auto& acceptor : run.second.acceptors.storage)
-    {
-      auto best = acceptor->fetch_and_mark_best_donor();
-      if (best.has_value())
-      {
-        ++acceptors_added;
-        insert(**best, *acceptor);
-      }
-
-      // FIXME:
-      //
-      // IF ACCEPTOR.IS_DECOY
-      // THEN ++decoys_seen
-      // END
-    }
-
-    // Don't need this anymore.
-    // run.second.clear(); FIXME: Ug, this results in a SIGSEV :(
   }
 
-  OPENMS_LOG_INFO << "PIP-ECHO: added " << acceptors_added
-                  << " acceptors to the consensus_map with " << decoys_seen
+  auto view = runs | std::views::transform([](auto& run) {
+                return run.second.acceptors.storage;
+              })
+              | std::views::join;
+
+  std::vector<std::shared_ptr<Acceptor>> all_acceptors;
+
+  //  FIXME
+  // all_acceptors.reserve(std::ranges::size(view));
+  // all_acceptors.insert(std::ranges::begin(view),
+  // std::ranges::end(view));
+
+  for (auto& acpt : view)
+  {
+    all_acceptors.push_back(acpt);
+  }
+
+  PipEcho::Pep pep(all_acceptors);
+  const PipEcho::Pep::group_t& acceptors = pep.run(0.01); // FIXME
+
+  // Put each acceptor into the correct feature bucket.
+  for (auto& acceptor : acceptors)
+  {
+    std::string key
+      = feature_sequence_key(acceptor->donor_ident, acceptor->donor_charge);
+
+    insert(key, acceptor->acceptor);
+
+    ++acceptors_seen;
+    if (! acceptor->is_target()) ++decoys_seen;
+  }
+
+  OPENMS_LOG_INFO << "PIP-ECHO: added " << acceptors_seen
+                  << " acceptors to the consensus map with " << decoys_seen
                   << " decoys seen" << std::endl;
 
   // We can now turn that IdentMap into a ConsensusMap.
@@ -340,8 +371,8 @@ Run& Impl::get_run_from_file_name(RunMap& runs, const std::string& file_name)
 
   if (run_it == runs.end())
   {
-    const auto [it, status] = runs.try_emplace(
-      file_name, file_name, rt_sec_max_window, mz_grid_center);
+    const auto [it, status]
+      = runs.try_emplace(file_name, rt_sec_max_window, mz_grid_center);
 
     assert(status);
     run_it = it;
@@ -368,7 +399,10 @@ std::optional<Window> Impl::next_window(const std::optional<Window>& prev)
     next.grid_neighbors++;
     return next;
   }
-  else { return {}; }
+  else
+  {
+    return {};
+  }
 }
 
 } // namespace OpenMS::PipEcho

@@ -9,7 +9,8 @@
 #pragma once
 
 #include "OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h"
-#include "PeakTypes.h"
+
+#include <memory>
 
 namespace OpenMS::PipEcho
 {
@@ -32,23 +33,27 @@ template<typename T>
 struct GridWithStorage
 {
   // Handy aliases.
-  using grid_t = HashGrid<T*>;
+  using value_type = std::shared_ptr<T>;
+  using grid_t = HashGrid<value_type>;
   using grid_center_t = grid_t::ClusterCenter;
   using grid_index_t = grid_t::CellIndex;
 
   // Access to the underlying storage.
-  std::vector<std::unique_ptr<T>> storage;
+  std::vector<value_type> storage;
   grid_t grid;
 
   /// Construct a new object given the grid center.
   GridWithStorage(const grid_center_t& center): grid(center) {};
 
   /// Insert a new object into the storage and grid.
-  void insert(const Peak&);
+  void insert(value_type);
 
   /// Explore cells near a starting point.
-  template<typename Result, typename BinaryOp>
-  Result nearby(const grid_index_t&, std::size_t, Result, BinaryOp) const;
+  template<typename Result>
+  Result nearby(const grid_index_t&,
+                std::size_t,
+                Result,
+                std::function<Result(Result, value_type)>) const;
 
   /// Remove all objects from the storage and grid.
   void clear()
@@ -60,28 +65,28 @@ struct GridWithStorage
 
 /******************************************************************************/
 template<typename T>
-void GridWithStorage<T>::insert(const Peak& peak)
+void GridWithStorage<T>::insert(value_type ptr)
 {
-  grid_center_t center(peak.feature.getRT(), peak.feature.getMZ());
-  auto acceptor = std::make_unique<T>(peak);
-  storage.push_back(std::move(acceptor));
-  grid.insert(std::make_pair(center, storage.back().get()));
+  grid_center_t center(ptr->feature.getRT(), ptr->feature.getMZ());
+  storage.push_back(ptr);
+  grid.insert(std::make_pair(center, ptr));
 }
 
 /******************************************************************************/
 template<typename T>
-template<typename Result, typename BinaryOp>
-Result GridWithStorage<T>::nearby(const grid_index_t& index,
-                                  std::size_t neighbors,
-                                  Result init,
-                                  BinaryOp op) const
+template<typename Result>
+Result
+GridWithStorage<T>::nearby(const grid_index_t& index,
+                           std::size_t neighbors,
+                           Result init,
+                           std::function<Result(Result, value_type)> op) const
 {
-  // Check the cell where we expect to find the starting peak.
+  // Check the cell where we expect to find the starting tval.
   if (auto cell = this->grid.grid_find(index); cell != this->grid.grid_end())
   {
-    for (auto& peak : cell->second)
+    for (auto& tval : cell->second)
     {
-      init = op(std::move(init), *peak.second);
+      init = op(std::move(init), tval.second);
     }
   }
 
@@ -99,9 +104,9 @@ Result GridWithStorage<T>::nearby(const grid_index_t& index,
 
       if (auto cell = this->grid.grid_find(addr); cell != this->grid.grid_end())
       {
-        for (auto& peak : cell->second)
+        for (auto& tval : cell->second)
         {
-          init = op(std::move(init), *peak.second);
+          init = op(std::move(init), tval.second);
         }
       }
     }

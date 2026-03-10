@@ -32,7 +32,7 @@ class Impl
 {
 public:
   /// Type used when searching for a matching donor.
-  using match_t = std::optional<std::pair<Score, Acceptor*>>;
+  using match_t = std::optional<std::pair<Score, std::shared_ptr<Acceptor>>>;
 
   /// Construct a new implementation object.
   Impl(const Param& params, const std::pair<double, double>& mz_range);
@@ -53,7 +53,7 @@ public:
                             const std::optional<double> = {});
 
   /// Find a random Donor that is dissimilar to a given Donor.
-  std::optional<const Donor*>
+  std::optional<std::shared_ptr<const Donor>>
   find_random_donor(const DonorMap&, const Donor&, const Window&) const;
 
   /// Fill in the final ConsensusMap.
