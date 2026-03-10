@@ -65,6 +65,7 @@ endforeach()
 
 target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(Libzip_test libzip::zip)
+target_link_libraries(ZipRandomAccessFile_test libzip::zip)
 target_link_libraries(LPWrapper_test CoinOR::CoinOR)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
@@ -110,6 +111,38 @@ if (WITH_PARQUET)
   ${OPENMS_PARQUET_TARGET}
   )
   target_compile_definitions(Libzip_test PRIVATE WITH_PARQUET)
+  target_link_libraries(ZipRandomAccessFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_compile_definitions(ZipRandomAccessFile_test PRIVATE WITH_PARQUET)
+
+  if (TARGET TransitionParquetFile_test)
+    target_link_libraries(TransitionParquetFile_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+  endif()
+  if (TARGET OpenSwathOSWParquetReader_test)
+    target_link_libraries(OpenSwathOSWParquetReader_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+  endif()
+  if (TARGET OpenSwathOSWParquetWriter_test)
+    target_link_libraries(OpenSwathOSWParquetWriter_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+    target_compile_definitions(OpenSwathOSWParquetWriter_test PRIVATE WITH_PARQUET)
+  endif()
+  if (TARGET OpenSwathOSWParquetRoundTrip_test)
+    target_link_libraries(OpenSwathOSWParquetRoundTrip_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+    target_compile_definitions(OpenSwathOSWParquetRoundTrip_test PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
