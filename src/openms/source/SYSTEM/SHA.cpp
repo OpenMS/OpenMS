@@ -8,6 +8,9 @@
 
 #include <OpenMS/SYSTEM/SHA.h>
 
+#include <algorithm>
+#include <cstring>
+
 namespace OpenMS
 {
 
@@ -65,10 +68,30 @@ void SHA::process_byte_impl(unsigned char byte)
 
 void SHA::process_bytes(void const* buffer, std::size_t byte_count)
 {
-  const unsigned char* b = static_cast<const unsigned char*>(buffer);
-  const unsigned char* e = b + byte_count;
-  for (; b != e; ++b) {
-    process_byte(*b);
+  const auto* p = static_cast<const unsigned char*>(buffer);
+
+  // update bit count
+  std::size_t new_low = bit_count_low + byte_count * 8;
+  if (new_low < bit_count_low) // overflow
+  {
+    ++bit_count_high;
+  }
+  bit_count_low = new_low;
+  bit_count_high += byte_count >> 29; // top 3 bits of byte_count * 8
+
+  // process in chunks filling the internal block
+  while (byte_count > 0)
+  {
+    std::size_t n = std::min(byte_count, std::size_t(64) - block_byte_index_);
+    std::memcpy(block_ + block_byte_index_, p, n);
+    block_byte_index_ += n;
+    p += n;
+    byte_count -= n;
+    if (block_byte_index_ == 64)
+    {
+      block_byte_index_ = 0;
+      process_block();
+    }
   }
 }
 

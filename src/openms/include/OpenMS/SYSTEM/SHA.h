@@ -39,7 +39,7 @@ public:
 private:
   static inline std::uint32_t left_rotate(std::uint32_t x, std::size_t n)
   {
-    return (x << n) ^ (x >> (32 - n));
+    return (x << n) | (x >> (32 - n));
   }
 
   void process_block();
