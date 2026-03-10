@@ -3,7 +3,6 @@ set(directory include/OpenMS/FORMAT)
 
 ### list all MOC filenames of the directory here
 set(sources_list
-MascotRemoteQuery.h
 )
 
 ### add path to the filenames
@@ -121,8 +120,10 @@ if (WITH_HDF5)
 endif()
 
 if (WITH_PARQUET)
+  list(APPEND sources_list_h ZipArchiveFile.h)
   list(APPEND sources_list_h MSExperimentArrowExport.h)
   list(APPEND sources_list_h ConsensusMapArrowExport.h)
+  list(APPEND sources_list_h ParquetFile.h)
   list(APPEND sources_list_h ParquetFilter.h)
   list(APPEND sources_list_h XICParquetFile.h)
   list(APPEND sources_list_h QPXFile.h)

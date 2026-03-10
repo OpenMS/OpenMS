@@ -171,11 +171,12 @@ endif()
 
 
 #------------------------------------------------------------------------------
+# libcurl (used for HTTP in OpenMS core; also needed by Apache Arrow 23+)
+find_package(CURL REQUIRED)
+
+#------------------------------------------------------------------------------
  # Apache Arrow and Parquet
  if (WITH_PARQUET)
-   # Workaround for Arrow 23+ CMake configuration issue where CURL dependency
-   # is not properly exported. See: https://github.com/apache/arrow/issues/48885
-   find_package(CURL QUIET)
    # Arrow 23+ required for parquet file format compatibility
    find_package(Arrow 23 CONFIG REQUIRED)
    find_package(Parquet 23 CONFIG REQUIRED)
@@ -275,7 +276,7 @@ endif()
 SET(QT_MIN_VERSION "6.1.0")
 
 # find qt
-set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
+set(OpenMS_QT_COMPONENTS Core CACHE INTERNAL "QT components for core lib")
 find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt6Core_FOUND)

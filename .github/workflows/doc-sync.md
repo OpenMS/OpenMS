@@ -15,7 +15,7 @@ tools:
   web-fetch:
 safe-outputs:
   create-pull-request:
-    base: develop
+    base-branch: develop
     title-prefix: "[doc-sync] "
     labels: [documentation, automated]
     draft: false
