@@ -99,10 +99,8 @@ namespace std
   {
     std::size_t operator()(const OpenMS::DateTime& dt) const noexcept
     {
-      // Hash the date/time components including milliseconds to match operator==
-      // (which compares the underlying QDateTime including milliseconds)
-      // Use toString with millisecond format and convert to std::string for hashing
-      std::string datetime_str = dt.toString("yyyy-MM-ddThh:mm:ss.zzz");
+      // Hash date/time components to match operator==
+      std::string datetime_str = dt.toString("yyyy-MM-ddThh:mm:ss");
       return OpenMS::fnv1a_hash_string(datetime_str);
     }
   };

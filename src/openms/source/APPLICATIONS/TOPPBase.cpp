@@ -47,7 +47,7 @@
 #include <sstream>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#include <Shlobj.h> // for SHGetFolderPath
+
 #endif
 
 // OpenMP support
@@ -68,40 +68,6 @@ namespace OpenMS
 {
   namespace
   {
-    // Helper function to get home directory cross-platform (same as in File.cpp)
-    String getHomePath()
-    {
-#ifdef OPENMS_WINDOWSPLATFORM
-      // Use SHGetFolderPath for Windows
-      char path[MAX_PATH];
-      if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path)))
-      {
-        return String(path);
-      }
-      // Fallback to environment variables
-      const char* homeDrive = getenv("HOMEDRIVE");
-      const char* homePath = getenv("HOMEPATH");
-      if (homeDrive && homePath)
-      {
-        return String(homeDrive) + String(homePath);
-      }
-      const char* userProfile = getenv("USERPROFILE");
-      if (userProfile)
-      {
-        return String(userProfile);
-      }
-      return String("C:\\");
-#else
-      // Unix-like systems (Linux, macOS)
-      const char* home = getenv("HOME");
-      if (home)
-      {
-        return String(home);
-      }
-      return String("/tmp");
-#endif
-    }
-
     // Helper function to get current timestamp as string
     String getCurrentTimeString()
     {
@@ -117,7 +83,7 @@ namespace OpenMS
 
   using namespace Exception;
 
-  String TOPPBase::topp_ini_file_ = getHomePath() + "/.TOPP.ini";
+  String TOPPBase::topp_ini_file_ = File::getOpenMSHomePath() + "/.TOPP.ini";
   const Citation TOPPBase::cite_openms
     = {"Pfeuffer, J., Bielow, C., Wein, S. et al.", "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
        "Nat Methods (2024)", "10.1038/s41592-024-02197-7"};

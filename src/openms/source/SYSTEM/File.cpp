@@ -30,6 +30,7 @@
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName() && GetComputerNameA()
 #include <Shlobj.h> // for SHGetFolderPath
+#include <io.h> // for _access_s
 #endif
 
 #ifdef OPENMS_HAS_UNISTD_H
@@ -420,46 +421,36 @@ namespace OpenMS
 
   bool File::readable(const String& file)
   {
-    std::error_code ec;
-    if (!std::filesystem::exists(static_cast<std::string>(file), ec))
-    {
-      return false;
-    }
-    
-    auto perms = std::filesystem::status(static_cast<std::string>(file), ec).permissions();
-    if (ec) return false;
-    
-    // Check if readable bit is set
-    return (perms & std::filesystem::perms::owner_read) != std::filesystem::perms::none ||
-           (perms & std::filesystem::perms::group_read) != std::filesystem::perms::none ||
-           (perms & std::filesystem::perms::others_read) != std::filesystem::perms::none;
+#ifdef OPENMS_WINDOWSPLATFORM
+    return _access_s(file.c_str(), 4) == 0; // 4 = read permission
+#else
+    return access(file.c_str(), R_OK) == 0;
+#endif
   }
 
   bool File::writable(const String& file)
   {
-    std::error_code ec;
-    if (std::filesystem::exists(static_cast<std::string>(file), ec))
+#ifdef OPENMS_WINDOWSPLATFORM
+    if (_access_s(file.c_str(), 0) == 0) // file exists
     {
-      // File exists, check permissions
-      auto perms = std::filesystem::status(static_cast<std::string>(file), ec).permissions();
-      if (ec) return false;
-      
-      return (perms & std::filesystem::perms::owner_write) != std::filesystem::perms::none ||
-             (perms & std::filesystem::perms::group_write) != std::filesystem::perms::none ||
-             (perms & std::filesystem::perms::others_write) != std::filesystem::perms::none;
+      return _access_s(file.c_str(), 2) == 0; // 2 = write permission
     }
-    else
+#else
+    if (access(file.c_str(), F_OK) == 0) // file exists
     {
-      // File doesn't exist, try to create it temporarily to test if we can write
-      std::ofstream test_file(static_cast<std::string>(file));
-      bool writable = test_file.good();
-      test_file.close();
-      if (writable)
-      {
-        std::filesystem::remove(static_cast<std::string>(file), ec);
-      }
-      return writable;
+      return access(file.c_str(), W_OK) == 0;
     }
+#endif
+    // File doesn't exist, try to create it temporarily to test if we can write
+    std::ofstream test_file(std::string(file));
+    bool is_writable = test_file.good();
+    test_file.close();
+    if (is_writable)
+    {
+      std::error_code ec;
+      std::filesystem::remove(std::string(file), ec);
+    }
+    return is_writable;
   }
 
   String File::find(const String& filename, StringList directories)
@@ -527,27 +518,30 @@ namespace OpenMS
 
       std::vector<std::filesystem::path> matching_files;
       
-      // Convert Qt-style pattern to regex (basic conversion)
+      // Convert glob pattern to regex: escape metacharacters, then convert * and ?
       std::string pattern_str = static_cast<std::string>(file_pattern);
-      
-      // Replace Qt wildcards with regex equivalents
-      std::string regex_pattern = pattern_str;
-      // Replace * with .*
-      size_t pos = 0;
-      while ((pos = regex_pattern.find('*', pos)) != std::string::npos)
+      std::string regex_pattern;
+      regex_pattern.reserve(pattern_str.size() * 2);
+      for (char c : pattern_str)
       {
-        regex_pattern.replace(pos, 1, ".*");
-        pos += 2;
+        switch (c)
+        {
+          case '*': regex_pattern += ".*"; break;
+          case '?': regex_pattern += '.'; break;
+          // Escape regex metacharacters
+          case '.': case '(': case ')': case '[': case ']':
+          case '{': case '}': case '+': case '^': case '$':
+          case '|': case '\\':
+            regex_pattern += '\\';
+            regex_pattern += c;
+            break;
+          default:
+            regex_pattern += c;
+            break;
+        }
       }
-      // Replace ? with .
-      pos = 0;
-      while ((pos = regex_pattern.find('?', pos)) != std::string::npos)
-      {
-        regex_pattern.replace(pos, 1, ".");
-        pos += 1;
-      }
-      
-      std::regex pattern_regex(regex_pattern, std::regex_constants::icase);
+
+      std::regex pattern_regex(regex_pattern);
       
       // Iterate through directory entries
       for (const auto& entry : std::filesystem::directory_iterator(dir_path))
