@@ -1317,9 +1317,14 @@ protected:
     String out_mobilogram_current = out_mobilogram;
     if (!out_mobilogram.empty() && run_groups.size() > 1)
     {
-      String base_name = out_mobilogram.substr(0, out_mobilogram.find_last_of('.'));
-      String extension = out_mobilogram.substr(out_mobilogram.find_last_of('.'));
-      out_mobilogram_current = file_basename + "_" + base_name + extension;
+      // Preserve parent directory when creating per-run filenames.
+      // Split path and filename first, then prepend the run prefix to the filename only.
+      String parent = File::path(out_mobilogram);
+      String filename = File::basename(out_mobilogram);
+      String stem = filename.substr(0, filename.find_last_of('.'));
+      String extension = filename.substr(filename.find_last_of('.'));
+      String fname_with_prefix = file_basename + "_" + stem + extension;
+      out_mobilogram_current = (parent == "." ? fname_with_prefix : parent + "/" + fname_with_prefix);
     }
     prepareMobilogramOutput(&mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, cur_run, current_run_files[0]);
 
