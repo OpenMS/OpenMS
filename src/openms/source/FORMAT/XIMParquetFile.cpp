@@ -28,6 +28,7 @@
 
 #include <cstring>
 #include <cctype>
+#include <cmath>
 #include <exception>
 #include <sstream>
 #include <unordered_map>
@@ -55,7 +56,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to create parquet reader", filename);
       }
-      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
+      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(*reader_result);
 
       std::shared_ptr<arrow::Table> table;
       auto read_status = reader->ReadTable(&table);
@@ -92,7 +93,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to create parquet reader", filename);
       }
-      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
+      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(*reader_result);
 
       std::shared_ptr<arrow::Schema> schema;
       auto status = reader->GetSchema(&schema);
@@ -144,7 +145,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to create parquet reader", filename);
       }
-      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
+      std::unique_ptr<parquet::arrow::FileReader> reader = std::move(*reader_result);
 
       std::shared_ptr<arrow::Schema> schema;
       auto schema_status = reader->GetSchema(&schema);
@@ -579,8 +580,18 @@ namespace OpenMS
 
         if (op == "IN")
         {
-          if (i < tokens.size() && tokens[i] == "[") ++i;
-          while (i < tokens.size() && tokens[i] != "]")
+          String close_token;
+          if (i < tokens.size() && (tokens[i] == "[" || tokens[i] == "("))
+          {
+            close_token = (tokens[i] == "[") ? "]" : ")";
+            ++i;
+          }
+          else
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "IN operator expects a bracketed value list", filter);
+          }
+          while (i < tokens.size() && tokens[i] != close_token)
           {
             if (tokens[i] != ",")
             {
@@ -593,7 +604,12 @@ namespace OpenMS
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "IN operator expects at least one value", filter);
           }
-          if (i < tokens.size() && tokens[i] == "]") ++i;
+          if (i >= tokens.size() || tokens[i] != close_token)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Unclosed IN list", filter);
+          }
+          ++i;
         }
         else
         {
@@ -1531,7 +1547,7 @@ namespace OpenMS
       if (run_id >= 0 && mobilogram.run_id != run_id) continue;
       if (!mobilogram_type.empty() && mobilogram.mobilogram_type != mobilogram_type) continue;
       if (feature_id >= 0 && (!mobilogram.has_feature_id || mobilogram.feature_id != feature_id)) continue;
-      if (feature_rt >= 0.0 && (!mobilogram.has_feature_rt || mobilogram.feature_rt != feature_rt)) continue;
+      if (feature_rt >= 0.0 && (!mobilogram.has_feature_rt || std::abs(mobilogram.feature_rt - feature_rt) > 1e-9)) continue;
 
       Int64 mobility_compression = 0;
       Int64 intensity_compression = 0;
