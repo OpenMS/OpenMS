@@ -1181,12 +1181,13 @@ namespace OpenMS
         normalizeAndPruneColumns_(pruned, dataset->schema(), dropped);
         if (!dropped.empty())
         {
-          OPENMS_LOG_WARN << "Dropping unsupported filter columns: "
-                          << joinColumns_(dropped) << '\n';
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Unsupported filter columns after pruning: " + joinColumns_(dropped));
         }
         if (pruned.conditions.empty())
         {
-          return readParquetTable_(filenames);
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Filter expression became empty after pruning unsupported columns: " + filter_context);
         }
         // Convert the parsed filter into an Arrow expression for pushdown.
         arrow::compute::Expression expr = buildFilterExpression_(pruned);
@@ -1236,12 +1237,13 @@ namespace OpenMS
       normalizeAndPruneColumns_(pruned, table->schema(), dropped);
       if (!dropped.empty())
       {
-        OPENMS_LOG_WARN << "Dropping unsupported filter columns: "
-                        << joinColumns_(dropped) << '\n';
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Unsupported filter columns after pruning: " + joinColumns_(dropped));
       }
       if (pruned.conditions.empty())
       {
-        return table;
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Filter expression became empty after pruning unsupported columns: " + filter_context);
       }
 
       // Execute the expression in memory when dataset pushdown is unavailable.
@@ -1694,6 +1696,29 @@ namespace OpenMS
     for (const auto& name : normalized_columns)
     {
       requested_set.insert(name);
+    }
+
+    if (nest_transitions)
+    {
+      // Ensure at least one precursor-level discriminator is requested when nesting transitions,
+      // otherwise all rows will collapse into a single precursor key.
+      static const std::unordered_set<String> precursor_discriminators = {
+        "PRECURSOR_ID", "MODIFIED_SEQUENCE", "PRECURSOR_CHARGE", "PRECURSOR_DECOY"
+      };
+      bool has_precursor_discriminator = false;
+      for (const auto& key : precursor_discriminators)
+      {
+        if (requested_set.find(key) != requested_set.end())
+        {
+          has_precursor_discriminator = true;
+          break;
+        }
+      }
+      if (!has_precursor_discriminator)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "nest_transitions=true requires at least one precursor discriminator column: PRECURSOR_ID, MODIFIED_SEQUENCE, PRECURSOR_CHARGE, or PRECURSOR_DECOY");
+      }
     }
 
     auto want = [&](const String& name) -> bool
