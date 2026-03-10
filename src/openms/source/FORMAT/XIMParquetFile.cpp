@@ -29,6 +29,7 @@
 #include <cstring>
 #include <cctype>
 #include <cmath>
+#include <limits>
 #include <exception>
 #include <sstream>
 #include <unordered_map>
@@ -345,13 +346,29 @@ namespace OpenMS
         {
           auto typed = static_cast<arrow::BinaryArray*>(array.get());
           const auto view = typed->GetView(row);
-          return String(view.data(), static_cast<Int>(view.size()));
+          {
+            const size_t vsize = view.size();
+            if (vsize > static_cast<size_t>(std::numeric_limits<Size>::max()))
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Binary data too large", String(vsize));
+            }
+            return String(view.data(), static_cast<Size>(vsize));
+          }
         }
         case arrow::Type::LARGE_BINARY:
         {
           auto typed = static_cast<arrow::LargeBinaryArray*>(array.get());
           const auto view = typed->GetView(row);
-          return String(view.data(), static_cast<Int>(view.size()));
+          {
+            const size_t vsize = view.size();
+            if (vsize > static_cast<size_t>(std::numeric_limits<Size>::max()))
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Binary data too large", String(vsize));
+            }
+            return String(view.data(), static_cast<Size>(vsize));
+          }
         }
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
