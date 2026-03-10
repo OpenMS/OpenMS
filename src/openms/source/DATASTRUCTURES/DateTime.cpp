@@ -247,13 +247,14 @@ namespace OpenMS
     minute_= ntm.tm_min;
     second_= ntm.tm_sec;
 #else
-    std::tm* ntm = std::localtime(&t);
-    year_  = ntm->tm_year + 1900;
-    month_ = ntm->tm_mon + 1;
-    day_   = ntm->tm_mday;
-    hour_  = ntm->tm_hour;
-    minute_= ntm->tm_min;
-    second_= ntm->tm_sec;
+    std::tm ntm{};
+    localtime_r(&t, &ntm);
+    year_  = ntm.tm_year + 1900;
+    month_ = ntm.tm_mon + 1;
+    day_   = ntm.tm_mday;
+    hour_  = ntm.tm_hour;
+    minute_= ntm.tm_min;
+    second_= ntm.tm_sec;
 #endif
     valid_ = true;
     return *this;
@@ -273,13 +274,14 @@ namespace OpenMS
     d.minute_ = lt.tm_min;
     d.second_ = lt.tm_sec;
 #else
-    std::tm* lt = std::localtime(&t);
-    d.year_   = lt->tm_year + 1900;
-    d.month_  = lt->tm_mon + 1;
-    d.day_    = lt->tm_mday;
-    d.hour_   = lt->tm_hour;
-    d.minute_ = lt->tm_min;
-    d.second_ = lt->tm_sec;
+    std::tm lt{};
+    localtime_r(&t, &lt);
+    d.year_   = lt.tm_year + 1900;
+    d.month_  = lt.tm_mon + 1;
+    d.day_    = lt.tm_mday;
+    d.hour_   = lt.tm_hour;
+    d.minute_ = lt.tm_min;
+    d.second_ = lt.tm_sec;
 #endif
     d.valid_ = true;
     return d;
@@ -360,13 +362,14 @@ namespace OpenMS
     d.minute_ = gt.tm_min;
     d.second_ = gt.tm_sec;
 #else
-    std::tm* gt = std::gmtime(&t);
-    d.year_   = gt->tm_year + 1900;
-    d.month_  = gt->tm_mon + 1;
-    d.day_    = gt->tm_mday;
-    d.hour_   = gt->tm_hour;
-    d.minute_ = gt->tm_min;
-    d.second_ = gt->tm_sec;
+    std::tm gt{};
+    gmtime_r(&t, &gt);
+    d.year_   = gt.tm_year + 1900;
+    d.month_  = gt.tm_mon + 1;
+    d.day_    = gt.tm_mday;
+    d.hour_   = gt.tm_hour;
+    d.minute_ = gt.tm_min;
+    d.second_ = gt.tm_sec;
 #endif
     d.valid_ = true;
     return d;

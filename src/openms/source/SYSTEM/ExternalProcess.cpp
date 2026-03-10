@@ -288,7 +288,10 @@ namespace OpenMS
 
       if (!working_dir.empty())
       {
-        chdir(working_dir.c_str());
+        if (chdir(working_dir.c_str()) != 0)
+        {
+          _exit(126);
+        }
       }
 
       // Set custom environment variables in the child process

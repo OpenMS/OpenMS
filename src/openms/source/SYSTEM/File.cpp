@@ -442,7 +442,7 @@ namespace OpenMS
     }
 #endif
     // File doesn't exist, try to create it temporarily to test if we can write
-    std::ofstream test_file(std::string(file));
+    std::ofstream test_file{std::string(file)};
     bool is_writable = test_file.good();
     test_file.close();
     if (is_writable)

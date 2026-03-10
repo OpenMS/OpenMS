@@ -94,6 +94,30 @@ START_SECTION((get_digest correctness on chunked input))
 }
 END_SECTION
 
+START_SECTION((padding path with block_byte_index > 56))
+{
+  // A 56-byte message fills the block up to byte 56. After appending the 0x80
+  // byte, block_byte_index becomes 57 which exceeds 56, forcing an extra
+  // padding block. This exercises the two-block padding path.
+  // SHA-1 of 56 bytes of 'a' = c2db330f6083854c99d4b5bfb6e8f29f201be699
+  const std::string msg(56, 'a');
+  SHA sha;
+  sha.process_bytes(msg.data(), msg.size());
+  SHA::digest_type dg = {0,0,0,0,0};
+  sha.get_digest(dg);
+  TEST_EQUAL(digest_to_hex(dg), "c2db330f6083854c99d4b5bfb6e8f29f201be699");
+
+  // Also test exactly 55 bytes (block_byte_index == 55 + 1 == 56, just fits)
+  // SHA-1 of 55 bytes of 'a' = c1c8bbdc22796e28c0e15163d20899b65621d65a
+  const std::string msg55(55, 'a');
+  SHA sha55;
+  sha55.process_bytes(msg55.data(), msg55.size());
+  SHA::digest_type dg55 = {0,0,0,0,0};
+  sha55.get_digest(dg55);
+  TEST_EQUAL(digest_to_hex(dg55), "c1c8bbdc22796e28c0e15163d20899b65621d65a");
+}
+END_SECTION
+
 START_SECTION((reset()))
 {
   SHA sha;

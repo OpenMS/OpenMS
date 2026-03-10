@@ -278,9 +278,9 @@ protected:
       while (std::regex_search(src, m, rx))
       {
         const std::string value = m[1].str();
-        // emulate QFileInfo::completeBaseName(): remove full suffix (everything after first '.')
+        // emulate QFileInfo::completeBaseName(): remove last suffix (everything after last '.')
         std::string base = std::string(File::basename(value).c_str());
-        const auto dot_pos = base.find('.');
+        const auto dot_pos = base.rfind('.');
         if (dot_pos != std::string::npos) base = base.substr(0, dot_pos);
         result.append(m.prefix().str());
         result.append(base);
