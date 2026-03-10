@@ -183,15 +183,29 @@ namespace OpenMS
     sqlite3_stmt* stmt = nullptr;
     SqliteConnector::prepareStatement(conn.getDB(), &stmt,
         "INSERT INTO RUN (ID, FILENAME) VALUES (?, ?);");
-    sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(rid));
-    sqlite3_bind_text(stmt, 2, input_filename.c_str(),
-        static_cast<int>(input_filename.size()), SQLITE_TRANSIENT);
-    const int rc = sqlite3_step(stmt);
+    int rc = sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(rid));
+    if (rc != SQLITE_OK)
+    {
+      sqlite3_finalize(stmt);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("sqlite3_bind_int64 failed: ") + sqlite3_errmsg(conn.getDB()));
+    }
+
+    rc = sqlite3_bind_text(stmt, 2, input_filename.c_str(),
+      static_cast<int>(input_filename.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK)
+    {
+      sqlite3_finalize(stmt);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("sqlite3_bind_text failed: ") + sqlite3_errmsg(conn.getDB()));
+    }
+
+    rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
     if (rc != SQLITE_DONE)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Failed to insert RUN entry");
+        String("sqlite3_step failed: ") + sqlite3_errmsg(conn.getDB()));
     }
     run_id_ = rid;
   }
