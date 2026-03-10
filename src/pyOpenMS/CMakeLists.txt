@@ -133,6 +133,9 @@ else()
   # Find or fetch nanobind
   if(NOT TARGET nanobind::nanobind)
     # Try find_package first (installed via pip or system package)
+    execute_process(
+      COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+      OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
     find_package(nanobind CONFIG QUIET)
     if(NOT nanobind_FOUND)
       include(FetchContent)
