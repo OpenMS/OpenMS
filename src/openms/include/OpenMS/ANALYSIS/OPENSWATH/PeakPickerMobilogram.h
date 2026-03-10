@@ -207,7 +207,7 @@ namespace OpenMS
         /// Width of the Gaussian smoothing
         double gauss_width_;
         /// Whether to use Gaussian smoothing
-        String use_gauss_;
+        String smoothing_;
         /// Whether to resolve overlapping peaks
         bool remove_overlapping_;
 

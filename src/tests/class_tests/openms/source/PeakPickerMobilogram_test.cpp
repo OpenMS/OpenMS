@@ -72,7 +72,7 @@ START_SECTION(void pickMobilogram(const RichPeakMobilogram& mobilogram, RichPeak
   PeakPickerMobilogram picker;
   Param picker_param = picker.getParameters();
   picker_param.setValue("method", "corrected");
-  picker_param.setValue("use_gauss", "gauss");
+  picker_param.setValue("smoothing", "gauss");
   picker.setParameters(picker_param);
   picker.pickMobilogram(mobilogram, picked_mobilogram, smoothed_mobilogram);
 

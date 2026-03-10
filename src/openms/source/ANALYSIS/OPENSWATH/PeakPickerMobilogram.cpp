@@ -24,9 +24,9 @@ namespace OpenMS
     {
         defaults_.setValue("sgolay_frame_length", 9, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
         defaults_.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
-        defaults_.setValue("gauss_width", 0.002, "Gaussian width in seconds, estimated peak size.");
-        defaults_.setValue("use_gauss", "sgolay","Smoothing method for mobilogram (sgolay or gauss).");        
-        defaults_.setValidStrings("use_gauss", {"sgolay","gauss"});
+        defaults_.setValue("gauss_width", 0.002, "Gaussian width in ion mobility units (1/k0).");
+        defaults_.setValue("smoothing", "sgolay","Smoothing method for mobilogram (sgolay or gauss).");        
+        defaults_.setValidStrings("smoothing", {"sgolay","gauss"});
 
         defaults_.setValue("peak_width", -1.0, "Force a certain minimal peak_width on the data (e.g. extend the peak at least by this amount on both sides) in seconds. -1 turns this feature off.");
         defaults_.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
@@ -86,11 +86,11 @@ namespace OpenMS
 
       // Smooth the mobilogram
       smoothed_mobilogram = mobilogram;
-      if (use_gauss_ == "sgolay")
+      if (smoothing_ == "sgolay")
       {
           sgolay_.filter(smoothed_mobilogram);
       }
-      else if(use_gauss_ == "gauss")
+      else if(smoothing_ == "gauss")
       {
           gauss_.filter(smoothed_mobilogram);
       }
@@ -435,7 +435,7 @@ namespace OpenMS
         signal_to_noise_ = (double)param_.getValue("signal_to_noise");
         sn_win_len_ = (double)param_.getValue("sn_win_len");
         sn_bin_count_ = (UInt)param_.getValue("sn_bin_count");
-        use_gauss_ = param_.getValue("use_gauss").toString();
+        smoothing_ = param_.getValue("smoothing").toString();
         write_sn_log_messages_ = (bool)param_.getValue("write_sn_log_messages").toBool();
         method_ = (String)param_.getValue("method").toString();
 
