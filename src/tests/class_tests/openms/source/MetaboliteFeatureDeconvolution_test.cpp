@@ -627,6 +627,88 @@ START_SECTION(([EXTRA] Multimer penalty suppresses dimer when penalty is extreme
 }
 END_SECTION
 
+START_SECTION(([EXTRA] ILP prevents contradictory multiplier assignments))
+{
+  // Regression test for ILP variant key bug: without mol_multiplier in the
+  // variant key, a feature can be assigned contradictory multipliers from
+  // different edges simultaneously.
+  //
+  // Setup: three features where the middle one (B) participates in two
+  // multimer edges with different multipliers:
+  //   Edge (A,B): A=monomer(mult=1), B=dimer(mult=2) of A
+  //   Edge (B,C): B=monomer(mult=1), C=dimer(mult=2) of B
+  //
+  // Feature B cannot be BOTH a dimer (mult=2) and a monomer (mult=1).
+  // The ILP must choose one interpretation, so at most one edge is active.
+  //
+  // Feature A: m/z = 100 + H  (M_A = 100)
+  // Feature B: m/z = 200 + H  (= 2*M_A, or M_B = 200)
+  // Feature C: m/z = 400 + H  (= 2*M_B)
+
+  double H_adduct = 1.00728;
+
+  FeatureMap fm;
+  Feature fA;
+  fA.setMZ(100.0 + H_adduct);
+  fA.setRT(100.0);
+  fA.setIntensity(1000.0f);
+  fA.setCharge(1);
+  fm.push_back(fA);
+
+  Feature fB;
+  fB.setMZ(200.0 + H_adduct);
+  fB.setRT(100.0);
+  fB.setIntensity(800.0f);
+  fB.setCharge(1);
+  fm.push_back(fB);
+
+  Feature fC;
+  fC.setMZ(400.0 + H_adduct);
+  fC.setRT(100.0);
+  fC.setIntensity(500.0f);
+  fC.setCharge(1);
+  fm.push_back(fC);
+
+  MetaboliteFeatureDeconvolution mfd;
+  Param p = mfd.getDefaults();
+  p.setValue("charge_min", 1);
+  p.setValue("charge_max", 1);
+  p.setValue("charge_span_max", 1);
+  p.setValue("max_multimer", 2);
+  p.setValue("potential_adducts", std::vector<std::string>{"H:+:1.0"});
+  p.setValue("mass_max_diff", 0.5);
+  p.setValue("retention_max_diff", 2.0);
+  p.setValue("retention_max_diff_local", 2.0);
+  mfd.setParameters(p);
+
+  FeatureMap fm_out;
+  ConsensusMap cm_out, cm_out2;
+  mfd.compute(fm, fm_out, cm_out, cm_out2);
+
+  // With correct ILP modeling, Feature B must be assigned a single multiplier.
+  // The ILP can activate at most one of the two edges, so no group of size 3
+  // should exist. A group of 3 indicates the bug: both edges active, B has
+  // contradictory multiplier assignments.
+  bool found_group_of_3 = false;
+  for (Size i = 0; i < cm_out.size(); ++i)
+  {
+    if (cm_out[i].size() >= 3)
+    {
+      found_group_of_3 = true;
+    }
+  }
+  TEST_EQUAL(found_group_of_3, false);
+
+  // Exactly one group of size 2 should exist (either A-B or B-C, not both)
+  Size groups_of_2 = 0;
+  for (Size i = 0; i < cm_out.size(); ++i)
+  {
+    if (cm_out[i].size() == 2) ++groups_of_2;
+  }
+  TEST_EQUAL(groups_of_2, 1);
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Negative mode multimer detection))
 {
   // Negative mode: [M-H]- (monomer) and [2M-H]- (dimer)
