@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # 
 # --------------------------------------------------------------------------
-# $Maintainer: $
-# $Authors: $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
 # This script generates an ApplicationsComponent.plist file containing

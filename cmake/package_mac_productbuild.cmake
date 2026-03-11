@@ -18,9 +18,9 @@
 set(CPACK_PACKAGING_INSTALL_PREFIX "/Applications/${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}")
 
 # Generate ApplicationsComponent.plist for CPack component
+# Variable APPLICATIONS_COMPONENT_PLIST is set by the included script and visible
+# to package_components.cmake since both are include()'d from the top-level CMakeLists.txt.
 include(${PROJECT_SOURCE_DIR}/cmake/generate_applications_component_plist.cmake)
-# Export the variable to parent scope so package_components.cmake can use it
-set(APPLICATIONS_COMPONENT_PLIST "${APPLICATIONS_COMPONENT_PLIST}" PARENT_SCOPE)
 set(CPACK_PRODUCTBUILD_IDENTIFIER "de.openms")
 set(CPACK_PRODUCTBUILD_RESOURCES_DIR ${PROJECT_SOURCE_DIR}/cmake/MacOSX)
 set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
