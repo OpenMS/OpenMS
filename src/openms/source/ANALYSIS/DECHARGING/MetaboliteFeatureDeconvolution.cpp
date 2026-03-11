@@ -322,7 +322,7 @@ namespace OpenMS
   MetaboliteFeatureDeconvolution::~MetaboliteFeatureDeconvolution() = default;
 
 
-  void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
+  void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q, const Int mol_multiplier)
   {
     StringList labels;
     Adduct adduct;
@@ -337,8 +337,12 @@ namespace OpenMS
     else // set DC_CHARGE_ADDUCTS meta value and set it to the formula from EmpiricalFormula, also set the adduct string in "adducts" meta value
     {
       fm_out[f_idx].setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, ef_.toString());
-      StringList dc_new_adducts = ListUtils::create<String>(adduct.toAdductString(ef_.toString(), new_q));
+      StringList dc_new_adducts = ListUtils::create<String>(Adduct::toAdductString(ef_.toString(), new_q, mol_multiplier));
       fm_out[f_idx].setMetaValue("adducts", dc_new_adducts);
+      if (mol_multiplier > 1)
+      {
+        fm_out[f_idx].setMetaValue("mol_multiplier", mol_multiplier);
+      }
     }
     fm_out[f_idx].setMetaValue("dc_charge_adduct_mass", ef_.getMonoWeight());
     fm_out[f_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, comp_side) ? 1 : 0));
@@ -864,10 +868,12 @@ namespace OpenMS
         // ... and check consistency
         //
         Compomer c = feature_relation[i].getCompomer();
+        Int mult0 = feature_relation[i].getMolMultiplier(0);
+        Int mult1 = feature_relation[i].getMolMultiplier(1);
         // - left
-        annotate_feature_(fm_out, default_adduct, c, f0_idx, Compomer::LEFT, new_q0, old_q0);
+        annotate_feature_(fm_out, default_adduct, c, f0_idx, Compomer::LEFT, new_q0, old_q0, mult0);
         // - right
-        annotate_feature_(fm_out, default_adduct, c, f1_idx, Compomer::RIGHT, new_q1, old_q1);
+        annotate_feature_(fm_out, default_adduct, c, f1_idx, Compomer::RIGHT, new_q1, old_q1, mult1);
 
 
         ConsensusFeature cf(fm_out[f0_idx]);
