@@ -62,18 +62,18 @@ END_SECTION
 // SpectralMatch getter/setter tests for CCS/IM
 /////////////////////////////////////////////////////////////
 
-START_SECTION(([SpectralMatch] double getObservedPrecursorDriftTime()))
+START_SECTION(([SpectralMatch] double getObservedPrecursorCCS()))
 {
   SpectralMatch sm;
-  TEST_REAL_SIMILAR(sm.getObservedPrecursorDriftTime(), 0.0)
+  TEST_REAL_SIMILAR(sm.getObservedPrecursorCCS(), 0.0)
 }
 END_SECTION
 
-START_SECTION(([SpectralMatch] void setObservedPrecursorDriftTime(const double&)))
+START_SECTION(([SpectralMatch] void setObservedPrecursorCCS(const double&)))
 {
   SpectralMatch sm;
-  sm.setObservedPrecursorDriftTime(1.234);
-  TEST_REAL_SIMILAR(sm.getObservedPrecursorDriftTime(), 1.234)
+  sm.setObservedPrecursorCCS(1.234);
+  TEST_REAL_SIMILAR(sm.getObservedPrecursorCCS(), 1.234)
 }
 END_SECTION
 
@@ -225,17 +225,17 @@ START_SECTION(([Integration] run() populates CCS and drift time in results))
   // Verify results contain our drift time and CCS in optional columns
   if (! rows.empty())
   {
-    bool found_dt = false;
+    bool found_ccs_obs = false;
     bool found_ccs = false;
     for (const auto& row : rows)
     {
       for (const auto& opt : row.opt_)
       {
-        if (opt.first == "opt_observed_drift_time" && ! found_dt) { found_dt = true; }
+        if (opt.first == "opt_observed_ccs" && ! found_ccs_obs) { found_ccs_obs = true; }
         if (opt.first == "opt_library_ccs" && ! found_ccs) { found_ccs = true; }
       }
     }
-    TEST_EQUAL(found_dt, true)
+    TEST_EQUAL(found_ccs_obs, true)
     TEST_EQUAL(found_ccs, true)
   }
 }
@@ -400,8 +400,8 @@ START_SECTION(([Integration] run() with real mzML and MSP files))
 
   const MzTabSmallMoleculeSectionRows& sm_rows = mztab_out.getSmallMoleculeSectionRows();
 
-  // Spectrum 1 (Caffeine): obs CCS 142.1, lib CCS 141.5. Error = 0.42% < 5%. Should MATCH.
-  // Spectrum 2 (L-Tryptophan): obs CCS 142.1, lib CCS 153.5. Error = 7.42% > 5%. Should NOT match.
+  // Spectrum 1 (Caffeine): obs CCS 142.1, lib CCS 141.2. Error = 0.64% < 5%. Should MATCH.
+  // Spectrum 2 (L-Tryptophan): obs CCS 170.0, lib CCS 156.78. Error = 8.43% > 5%. Should NOT match.
 
   bool caffeine_found = false;
   bool tryptophan_found = false;
@@ -410,13 +410,13 @@ START_SECTION(([Integration] run() with real mzML and MSP files))
     if (row.identifier.get().at(0).get().find("Caffeine") != String::npos)
     {
       caffeine_found = true;
-      bool found_dt = false;
+      bool found_ccs_obs = false;
       bool found_ccs = false;
       for (const auto& opt : row.opt_)
       {
-        if (opt.first == "opt_observed_drift_time")
+        if (opt.first == "opt_observed_ccs")
         {
-          found_dt = true;
+          found_ccs_obs = true;
           TEST_REAL_SIMILAR(opt.second.get().toDouble(), 142.1)
         }
         if (opt.first == "opt_library_ccs")
@@ -425,7 +425,7 @@ START_SECTION(([Integration] run() with real mzML and MSP files))
           TEST_REAL_SIMILAR(opt.second.get().toDouble(), 141.2)
         }
       }
-      TEST_EQUAL(found_dt, true)
+      TEST_EQUAL(found_ccs_obs, true)
       TEST_EQUAL(found_ccs, true)
     }
     if (row.identifier.get().at(0).get().find("L-Tryptophan") != String::npos) tryptophan_found = true;

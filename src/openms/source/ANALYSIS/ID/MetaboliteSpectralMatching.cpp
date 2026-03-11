@@ -38,7 +38,7 @@ SpectralMatch::SpectralMatch():
     inchi_string_(),
     smiles_string_(),
     precursor_adduct_(),
-    observed_precursor_drift_time_(0.0),
+    observed_precursor_ccs_(0.0),
     found_precursor_ccs_(0.0)
 {
 }
@@ -69,7 +69,7 @@ SpectralMatch& SpectralMatch::operator=(const SpectralMatch& rhs)
   inchi_string_ = rhs.inchi_string_;
   smiles_string_ = rhs.smiles_string_;
   precursor_adduct_ = rhs.precursor_adduct_;
-  observed_precursor_drift_time_ = rhs.observed_precursor_drift_time_;
+  observed_precursor_ccs_ = rhs.observed_precursor_ccs_;
   found_precursor_ccs_ = rhs.found_precursor_ccs_;
 
   return *this;
@@ -255,15 +255,15 @@ void SpectralMatch::setPrecursorAdduct(const String& padd)
 }
 
 
-double SpectralMatch::getObservedPrecursorDriftTime() const
+double SpectralMatch::getObservedPrecursorCCS() const
 {
-  return observed_precursor_drift_time_;
+  return observed_precursor_ccs_;
 }
 
 
-void SpectralMatch::setObservedPrecursorDriftTime(const double& pdt)
+void SpectralMatch::setObservedPrecursorCCS(const double& ccs)
 {
-  observed_precursor_drift_time_ = pdt;
+  observed_precursor_ccs_ = ccs;
 }
 
 
@@ -299,6 +299,7 @@ MetaboliteSpectralMatching::MetaboliteSpectralMatching(): DefaultParamHandler("M
   defaults_.setValue(
     "ccs_error_value", 0.0,
     "CCS tolerance in percent for filtering matches (0 = disabled). Matches with a relative CCS difference exceeding this value are rejected.");
+  defaults_.setMinFloat("ccs_error_value", 0.0);
 
   defaultsToParam_();
 
@@ -511,15 +512,6 @@ void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mz
       for (Size search_idx = start_idx; search_idx < end_idx; ++search_idx)
       {
         // do spectral matching
-        // Debug: list all available metadata keys
-        OPENMS_LOG_DEBUG << "Available metadata keys for spectrum " << search_idx << ":";
-        std::vector<String> keys;
-        spec_db[search_idx].getKeys(keys);
-        for (const auto& key : keys)
-        {
-          OPENMS_LOG_DEBUG << " " << key;
-        }
-        OPENMS_LOG_DEBUG << endl;
 
         String metabolite_name = "";
         if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME))
@@ -597,9 +589,9 @@ void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mz
           tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
           tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
 
-          // extract observed drift time from experimental spectrum
-          double obs_dt = msexp[spec_idx].getDriftTime();
-          tmp_match.setObservedPrecursorDriftTime(obs_dt);
+          // extract observed CCS from experimental spectrum (validated as CCS unit at line 501)
+          double obs_ccs = msexp[spec_idx].getDriftTime();
+          tmp_match.setObservedPrecursorCCS(obs_ccs);
 
           // extract library CCS if available
           if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_CCS))
@@ -609,10 +601,10 @@ void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mz
 
 
           // CCS tolerance filtering (skip if CCS data is missing or tolerance is disabled)
-          if (ccs_error_pct_ > 0.0 && tmp_match.getFoundPrecursorCCS() > 0.0 && tmp_match.getObservedPrecursorDriftTime() > 0.0)
+          if (ccs_error_pct_ > 0.0 && tmp_match.getFoundPrecursorCCS() > 0.0 && tmp_match.getObservedPrecursorCCS() > 0.0)
           {
             double rel_error
-              = std::abs(tmp_match.getObservedPrecursorDriftTime() - tmp_match.getFoundPrecursorCCS()) / tmp_match.getFoundPrecursorCCS() * 100.0;
+              = std::abs(tmp_match.getObservedPrecursorCCS() - tmp_match.getFoundPrecursorCCS()) / tmp_match.getFoundPrecursorCCS() * 100.0;
             if (rel_error > ccs_error_pct_) { continue; }
           }
           partial_results.push_back(tmp_match);
@@ -823,16 +815,16 @@ void MetaboliteSpectralMatching::exportMzTab_(const vector<SpectralMatch>& overa
     col1.second = addion;
     optionals.push_back(col1);
 
-    // set observed drift time
-    double dt_temp = current_id.getObservedPrecursorDriftTime();
-    if (dt_temp > 0.0)
+    // set observed CCS (stored in Å², validated at run-time to be CCS unit)
+    double ccs_obs_temp = current_id.getObservedPrecursorCCS();
+    if (ccs_obs_temp > 0.0)
     {
-      MzTabString dt_str;
-      dt_str.set(String(dt_temp));
-      MzTabOptionalColumnEntry col_dt;
-      col_dt.first = "opt_observed_drift_time";
-      col_dt.second = dt_str;
-      optionals.push_back(col_dt);
+      MzTabString ccs_obs_str;
+      ccs_obs_str.set(String(ccs_obs_temp));
+      MzTabOptionalColumnEntry col_ccs_obs;
+      col_ccs_obs.first = "opt_observed_ccs";
+      col_ccs_obs.second = ccs_obs_str;
+      optionals.push_back(col_ccs_obs);
     }
 
     // set library CCS

@@ -161,9 +161,6 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_EQUAL(s3[15].getIntensity(), 44)
 
   // Test CCS metadata parsing
-  const String ccs_filepath = OPENMS_GET_TEST_DATA_PATH("MSPGenericFile_ccs_test.msp");
-  // We need to create this file or use one that has CCS.
-  // For the sake of this test, I will assume I can create a temporary file with CCS.
   {
     MSExperiment ccs_exp;
     String ccs_tmp_content = "Name: ccs_test\n"
@@ -203,7 +200,7 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
         ofstream ofs(tmp_path.c_str());
         ofs << tmp_content;
       }
-      if (tc.should_fail) { TEST_EXCEPTION(Exception::ParseError, msp.load(tmp_path, exp)) }
+      if (tc.should_fail) { TEST_EXCEPTION(Exception::BaseException, msp.load(tmp_path, exp)) }
       else
       {
         msp.load(tmp_path, exp);

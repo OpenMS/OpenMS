@@ -154,7 +154,7 @@ void MSPGenericFile::load(const String& filename, MSExperiment& library)
         if (boost::regex_search(val_std, ccs_match, re_val_unit))
         {
           String num_part = ccs_match.str(1);
-          double d_val = atof(num_part.c_str());
+          double d_val = num_part.toDouble();
           String unit_part = ccs_match.str(2);
           unit_part.trim();
           if (unit_part.hasPrefix("[") && unit_part.hasSuffix("]")) unit_part = unit_part.substr(1, unit_part.size() - 2);

@@ -3320,10 +3320,12 @@ params.select_transition_group = False
     .def("setSMILESString", [](OpenMS::SpectralMatch& self, const OpenMS::String& p0) { return self.setSMILESString(p0); })
     .def("getPrecursorAdduct", [](const OpenMS::SpectralMatch& self) { return self.getPrecursorAdduct(); })
     .def("setPrecursorAdduct", [](OpenMS::SpectralMatch& self, const OpenMS::String& p0) { return self.setPrecursorAdduct(p0); })
-    .def("getObservedPrecursorDriftTime", [](const OpenMS::SpectralMatch& self) { return self.getObservedPrecursorDriftTime(); })
-    .def("setObservedPrecursorDriftTime", [](OpenMS::SpectralMatch& self, const double& p0) { return self.setObservedPrecursorDriftTime(p0); })
+    .def("getObservedPrecursorCCS", [](const OpenMS::SpectralMatch& self) { return self.getObservedPrecursorCCS(); })
+    .def("setObservedPrecursorCCS", [](OpenMS::SpectralMatch& self, const double& p0) { return self.setObservedPrecursorCCS(p0); })
     .def("getFoundPrecursorCCS", [](const OpenMS::SpectralMatch& self) { return self.getFoundPrecursorCCS(); })
-    .def("setFoundPrecursorCCS", [](OpenMS::SpectralMatch& self, const double& p0) { return self.setFoundPrecursorCCS(p0); });
+    .def("setFoundPrecursorCCS", [](OpenMS::SpectralMatch& self, const double& p0) { return self.setFoundPrecursorCCS(p0); })
+    .def("getObservedSpectrumNativeID", [](const OpenMS::SpectralMatch& self) { return self.getObservedSpectrumNativeID(); })
+    .def("setObservedSpectrumNativeID", [](OpenMS::SpectralMatch& self, const OpenMS::String& p0) { return self.setObservedSpectrumNativeID(p0); });
 
   // -----------------------------------------------------------------------
   // SwathWindowLoader
