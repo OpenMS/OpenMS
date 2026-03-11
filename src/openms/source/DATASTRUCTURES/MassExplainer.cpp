@@ -224,6 +224,8 @@ namespace OpenMS
     // These have net_charge=0, mass=0, and are needed for same-adduct multimer
     // detection (e.g., [M+H]+ paired with [2M+H]+). Gated by include_identity
     // to avoid changing behavior for non-multimer workflows.
+    // Note: placed before the neutral adduct loop intentionally so that identity
+    // compomers also get combined with neutral modifications (e.g., multimer + water loss).
     if (include_identity)
     {
       for (const auto& adduct : adduct_charged)
