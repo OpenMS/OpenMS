@@ -291,6 +291,21 @@ namespace OpenMS
     return tmp;
   }
 
+  double Compomer::getSideMass(const UInt side) const
+  {
+    if (side >= BOTH)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Compomer::getSideMass() only supports LEFT (0) or RIGHT (1), not: ", String(side));
+    }
+    double mass = 0.0;
+    for (const auto& [formula, adduct] : cmp_[side])
+    {
+      mass += adduct.getAmount() * adduct.getSingleMass();
+    }
+    return mass;
+  }
+
   /// Adds @p add_side to this compomer.
   void Compomer::add(const CompomerSide& add_side, UInt side)
   {
