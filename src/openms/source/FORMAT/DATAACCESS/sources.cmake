@@ -13,11 +13,8 @@ set(sources_list
   NoopMSDataConsumer.cpp
   SiriusFragmentAnnotation.cpp
   SwathFileConsumer.cpp
+  MSChromatogramParquetConsumer.cpp
 )
-
-if (WITH_PARQUET)
-  list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
-endif()
 
 ### add path to the filenames
 set(sources)
