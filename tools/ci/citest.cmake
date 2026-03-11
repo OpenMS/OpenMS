@@ -26,7 +26,7 @@ set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 
 # Limit output size for passed tests to avoid cluttering CDash (e.g. pyopenms verbose pytest output).
 # Failed tests still show full output.
-set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE 1024)
+set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE 51200)
 
 # Define patterns that should NOT be classified as warnings
 set(CTEST_CUSTOM_WARNING_EXCEPTION
