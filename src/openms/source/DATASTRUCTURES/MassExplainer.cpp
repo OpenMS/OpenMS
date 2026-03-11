@@ -244,7 +244,7 @@ namespace OpenMS
     Size size_of_explanations = explanations_.size();
     for (AdductsType::const_iterator it_neutral = adduct_neutral.begin(); it_neutral != adduct_neutral.end(); ++it_neutral)
     {
-      std::cout << "Adding neutral: " << *it_neutral << "\n";
+      OPENMS_LOG_DEBUG << "Adding neutral: " << *it_neutral << "\n";
       for (Int n = 1; n <= (SignedSize)max_neutrals_; ++n)
       {
         // neutral itself:
@@ -290,7 +290,7 @@ namespace OpenMS
     }
     #endif
 
-    std::cout << "MassExplainer table size: " << explanations_.size() << "\n";
+    OPENMS_LOG_DEBUG << "MassExplainer table size: " << explanations_.size() << "\n";
 
   }
 

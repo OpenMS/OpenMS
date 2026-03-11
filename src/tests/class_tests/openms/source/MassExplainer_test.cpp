@@ -165,6 +165,26 @@ START_SECTION((SignedSize queryMultimer(const Int net_charge, const double m1, c
   multimer_hits.clear();
   n_hits = me.queryMultimer(0, m1_val, m2_val, 1, 3, 0.1, -100000, multimer_hits);
   TEST_EQUAL(n_hits, 0);
+
+  // Test with non-zero net_charge: cross-charge cross-adduct scenario.
+  // Feature1 = [M+K]+ (q1=1, monomer), Feature2 = [2M+2H]2+ (q2=2, dimer)
+  // m1 = M + K_mass = 99.0 + 38.963158 = 137.963158
+  // m2 = 2*M + 2*H_mass = 198.0 + 2*1.00728 = 200.01456
+  // net_charge = q2 - q1 = 1
+  // observed = 2*137.963158 - 200.01456 = 75.91176
+  // Compomer K1_LEFT + H2_RIGHT has net_charge = -1+2 = +1
+  //   left_mass = K_mass, right_mass = 2*H_mass
+  //   expected = 2*K_mass - 1*(2*H_mass) = 77.926316 - 2.01456 = 75.91176
+  double m1_cross = M + K_mass;                        // 137.963158
+  double m2_cross = 2.0 * M + 2.0 * H_mass;           // 200.01456
+  multimer_hits.clear();
+  n_hits = me.queryMultimer(1, m1_cross, m2_cross, 1, 2, 0.1, -100000, multimer_hits);
+  TEST_EQUAL(n_hits > 0, true);
+
+  // Wrong net_charge should find no match for these masses
+  multimer_hits.clear();
+  n_hits = me.queryMultimer(-1, m1_cross, m2_cross, 1, 2, 0.1, -100000, multimer_hits);
+  TEST_EQUAL(n_hits, 0);
 }
 END_SECTION
 

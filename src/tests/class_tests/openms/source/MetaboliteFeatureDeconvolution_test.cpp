@@ -358,16 +358,19 @@ START_SECTION(([EXTRA] Multimer detection with max_multimer=2))
   ConsensusMap cm_out, cm_out2;
   mfd.compute(fm, fm_out, cm_out, cm_out2);
 
-  // Check that at least one consensus feature groups the two features
-  bool found_multimer_group = false;
+  // Check that exactly one consensus feature groups the two features
+  Size group_count = 0;
+  Size group_size = 0;
   for (Size i = 0; i < cm_out.size(); ++i)
   {
     if (cm_out[i].size() >= 2)
     {
-      found_multimer_group = true;
+      ++group_count;
+      group_size = cm_out[i].size();
     }
   }
-  TEST_EQUAL(found_multimer_group, true);
+  TEST_EQUAL(group_count, 1);
+  TEST_EQUAL(group_size, 2);
 
   // Check annotation: one feature should have mol_multiplier=2
   bool found_dimer_annotation = false;
@@ -450,13 +453,19 @@ START_SECTION(([EXTRA] Same-adduct multimer detection))
   ConsensusMap cm_out, cm_out2;
   mfd.compute(fm, fm_out, cm_out, cm_out2);
 
-  // The two features should be grouped
-  bool found_group = false;
+  // The two features should be grouped (exactly one group of size 2)
+  Size group_count = 0;
+  Size group_size = 0;
   for (Size i = 0; i < cm_out.size(); ++i)
   {
-    if (cm_out[i].size() >= 2) found_group = true;
+    if (cm_out[i].size() >= 2)
+    {
+      ++group_count;
+      group_size = cm_out[i].size();
+    }
   }
-  TEST_EQUAL(found_group, true);
+  TEST_EQUAL(group_count, 1);
+  TEST_EQUAL(group_size, 2);
 
   // The dimer feature should have mol_multiplier=2
   bool found_dimer = false;
@@ -516,6 +525,20 @@ START_SECTION(([EXTRA] Multimer annotation strings and trimer detection))
   FeatureMap fm_out;
   ConsensusMap cm_out, cm_out2;
   mfd.compute(fm, fm_out, cm_out, cm_out2);
+
+  // All three features should be in one group
+  Size group_count = 0;
+  Size group_size = 0;
+  for (Size i = 0; i < cm_out.size(); ++i)
+  {
+    if (cm_out[i].size() >= 2)
+    {
+      ++group_count;
+      group_size = cm_out[i].size();
+    }
+  }
+  TEST_EQUAL(group_count, 1);
+  TEST_EQUAL(group_size, 3);
 
   // Check annotation content
   bool found_dimer_annotation = false;
@@ -643,13 +666,19 @@ START_SECTION(([EXTRA] Negative mode multimer detection))
   ConsensusMap cm_out, cm_out2;
   mfd.compute(fm, fm_out, cm_out, cm_out2);
 
-  // The two features should be grouped as monomer/dimer
-  bool found_group = false;
+  // The two features should be grouped as monomer/dimer (one group of size 2)
+  Size group_count = 0;
+  Size group_size = 0;
   for (Size i = 0; i < cm_out.size(); ++i)
   {
-    if (cm_out[i].size() >= 2) found_group = true;
+    if (cm_out[i].size() >= 2)
+    {
+      ++group_count;
+      group_size = cm_out[i].size();
+    }
   }
-  TEST_EQUAL(found_group, true);
+  TEST_EQUAL(group_count, 1);
+  TEST_EQUAL(group_size, 2);
 
   // Dimer annotation should exist
   bool found_dimer = false;
@@ -710,13 +739,19 @@ START_SECTION(([EXTRA] Mixed-charge multimer detection))
   ConsensusMap cm_out, cm_out2;
   mfd.compute(fm, fm_out, cm_out, cm_out2);
 
-  // Features should be grouped
-  bool found_group = false;
+  // Features should be grouped (one group of size 2)
+  Size group_count = 0;
+  Size group_size = 0;
   for (Size i = 0; i < cm_out.size(); ++i)
   {
-    if (cm_out[i].size() >= 2) found_group = true;
+    if (cm_out[i].size() >= 2)
+    {
+      ++group_count;
+      group_size = cm_out[i].size();
+    }
   }
-  TEST_EQUAL(found_group, true);
+  TEST_EQUAL(group_count, 1);
+  TEST_EQUAL(group_size, 2);
 }
 END_SECTION
 

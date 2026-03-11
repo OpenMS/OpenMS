@@ -420,7 +420,6 @@ namespace OpenMS
 
     // holds query results for a mass difference
     MassExplainer::CompomerIterator md_s, md_e;
-    Compomer null_compomer(0, 0, -std::numeric_limits<double>::max());
     SignedSize hits(0);
 
     CoordinateType mz1, mz2, m1;
@@ -612,21 +611,12 @@ namespace OpenMS
                   overallHits += hits;
                   if (hits > 0)
                   {
-                    Compomer best_hit = null_compomer;
+                    Size edges_before = feature_relation.size();
                     for (; md_s != md_e; ++md_s)
                     {
-                      if (best_hit.getLogP() < md_s->getLogP()
-                          && fabs(f1.getRT() - f2.getRT() + md_s->getRTShift()) <= rt_diff_max_local)
-                      {
-                        int lc, rc;
-                        if (is_neg) { lc = -md_s->getPositiveCharges(); rc = -md_s->getNegativeCharges(); }
-                        else { lc = md_s->getNegativeCharges(); rc = md_s->getPositiveCharges(); }
-                        if ((abs(q1) >= abs(lc)) && (abs(q2) >= abs(rc)))
-                          best_hit = *md_s;
-                      }
                       processHit(*md_s, naive_mass_diff - md_s->getMass(), n1, n1, 0.0);
                     }
-                    if (best_hit == null_compomer) { ++no_cmp_hit; } else { ++cmp_hit; }
+                    if (feature_relation.size() == edges_before) { ++no_cmp_hit; } else { ++cmp_hit; }
                   }
                 }
                 else
