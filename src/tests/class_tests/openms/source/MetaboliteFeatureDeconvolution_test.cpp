@@ -411,6 +411,321 @@ START_SECTION(([EXTRA] Multimer detection with max_multimer=2))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] Same-adduct multimer detection))
+{
+  // Same-adduct multimer: [M+H]+ (monomer) and [2M+H]+ (dimer)
+  // This requires identity compomers (H+LEFT / H+RIGHT) in MassExplainer.
+  // With identity, the equation gives: 2*H - H = H, which matches.
+  double H_adduct = 1.00728;   // approximate proton mass
+  double M = 500.0;
+
+  FeatureMap fm;
+  Feature f1;
+  f1.setMZ(M + H_adduct);           // monomer [M+H]+
+  f1.setRT(100.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(1);
+  fm.push_back(f1);
+
+  Feature f2;
+  f2.setMZ(2.0 * M + H_adduct);     // dimer [2M+H]+
+  f2.setRT(100.0);
+  f2.setIntensity(500.0f);
+  f2.setCharge(1);
+  fm.push_back(f2);
+
+  MetaboliteFeatureDeconvolution mfd;
+  Param p = mfd.getDefaults();
+  p.setValue("charge_min", 1);
+  p.setValue("charge_max", 1);
+  p.setValue("charge_span_max", 1);
+  p.setValue("max_multimer", 2);
+  p.setValue("potential_adducts", std::vector<std::string>{"H:+:1.0"});
+  p.setValue("mass_max_diff", 0.5);
+  p.setValue("retention_max_diff", 2.0);
+  p.setValue("retention_max_diff_local", 2.0);
+  mfd.setParameters(p);
+
+  FeatureMap fm_out;
+  ConsensusMap cm_out, cm_out2;
+  mfd.compute(fm, fm_out, cm_out, cm_out2);
+
+  // The two features should be grouped
+  bool found_group = false;
+  for (Size i = 0; i < cm_out.size(); ++i)
+  {
+    if (cm_out[i].size() >= 2) found_group = true;
+  }
+  TEST_EQUAL(found_group, true);
+
+  // The dimer feature should have mol_multiplier=2
+  bool found_dimer = false;
+  for (Size i = 0; i < fm_out.size(); ++i)
+  {
+    if (fm_out[i].metaValueExists("mol_multiplier"))
+    {
+      TEST_EQUAL((Int)fm_out[i].getMetaValue("mol_multiplier"), 2);
+      found_dimer = true;
+    }
+  }
+  TEST_EQUAL(found_dimer, true);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Multimer annotation strings and trimer detection))
+{
+  // Test that annotation strings are correct and trimers (n=3) work.
+  // Three features: monomer, dimer, trimer — all with H+ adduct.
+  double H_adduct = 1.00728;
+  double M = 300.0;
+
+  FeatureMap fm;
+  Feature f1;
+  f1.setMZ(M + H_adduct);
+  f1.setRT(100.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(1);
+  fm.push_back(f1);
+
+  Feature f2;
+  f2.setMZ(2.0 * M + H_adduct);
+  f2.setRT(100.0);
+  f2.setIntensity(500.0f);
+  f2.setCharge(1);
+  fm.push_back(f2);
+
+  Feature f3;
+  f3.setMZ(3.0 * M + H_adduct);
+  f3.setRT(100.0);
+  f3.setIntensity(300.0f);
+  f3.setCharge(1);
+  fm.push_back(f3);
+
+  MetaboliteFeatureDeconvolution mfd;
+  Param p = mfd.getDefaults();
+  p.setValue("charge_min", 1);
+  p.setValue("charge_max", 1);
+  p.setValue("charge_span_max", 1);
+  p.setValue("max_multimer", 3);
+  p.setValue("potential_adducts", std::vector<std::string>{"H:+:1.0"});
+  p.setValue("mass_max_diff", 0.5);
+  p.setValue("retention_max_diff", 2.0);
+  p.setValue("retention_max_diff_local", 2.0);
+  mfd.setParameters(p);
+
+  FeatureMap fm_out;
+  ConsensusMap cm_out, cm_out2;
+  mfd.compute(fm, fm_out, cm_out, cm_out2);
+
+  // Check annotation content
+  bool found_dimer_annotation = false;
+  bool found_trimer_annotation = false;
+  for (Size i = 0; i < fm_out.size(); ++i)
+  {
+    if (fm_out[i].metaValueExists("mol_multiplier"))
+    {
+      Int mult = (Int)fm_out[i].getMetaValue("mol_multiplier");
+      if (mult == 2)
+      {
+        found_dimer_annotation = true;
+        // Verify the adducts string contains "2M"
+        if (fm_out[i].metaValueExists("adducts"))
+        {
+          StringList adducts = fm_out[i].getMetaValue("adducts");
+          TEST_EQUAL(adducts[0].hasSubstring("2M"), true);
+        }
+      }
+      if (mult == 3)
+      {
+        found_trimer_annotation = true;
+        // Verify the adducts string contains "3M"
+        if (fm_out[i].metaValueExists("adducts"))
+        {
+          StringList adducts = fm_out[i].getMetaValue("adducts");
+          TEST_EQUAL(adducts[0].hasSubstring("3M"), true);
+        }
+      }
+    }
+  }
+  TEST_EQUAL(found_dimer_annotation, true);
+  TEST_EQUAL(found_trimer_annotation, true);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Multimer penalty suppresses dimer when penalty is extreme))
+{
+  // Create features where multimer detection is possible.
+  // With extreme penalty (e.g., -100), the ILP should not select multimer edges.
+  double H_adduct = 1.00728;
+  double M = 500.0;
+
+  FeatureMap fm;
+  Feature f1;
+  f1.setMZ(M + H_adduct);
+  f1.setRT(100.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(1);
+  fm.push_back(f1);
+
+  Feature f2;
+  f2.setMZ(2.0 * M + H_adduct);
+  f2.setRT(100.0);
+  f2.setIntensity(500.0f);
+  f2.setCharge(1);
+  fm.push_back(f2);
+
+  // Extreme penalty: exp(-100) ~ 3.7e-44, effectively zero edge score
+  MetaboliteFeatureDeconvolution mfd;
+  Param p = mfd.getDefaults();
+  p.setValue("charge_min", 1);
+  p.setValue("charge_max", 1);
+  p.setValue("charge_span_max", 1);
+  p.setValue("max_multimer", 2);
+  p.setValue("multimer_log_penalty", -100.0);
+  p.setValue("potential_adducts", std::vector<std::string>{"H:+:1.0"});
+  p.setValue("mass_max_diff", 0.5);
+  p.setValue("retention_max_diff", 2.0);
+  p.setValue("retention_max_diff_local", 2.0);
+  mfd.setParameters(p);
+
+  FeatureMap fm_out;
+  ConsensusMap cm_out, cm_out2;
+  mfd.compute(fm, fm_out, cm_out, cm_out2);
+
+  // With extreme penalty, no grouping should occur
+  bool found_group = false;
+  for (Size i = 0; i < cm_out.size(); ++i)
+  {
+    if (cm_out[i].size() >= 2) found_group = true;
+  }
+  TEST_EQUAL(found_group, false);
+
+  // No mol_multiplier annotation should exist
+  bool found_multiplier = false;
+  for (Size i = 0; i < fm_out.size(); ++i)
+  {
+    if (fm_out[i].metaValueExists("mol_multiplier")) found_multiplier = true;
+  }
+  TEST_EQUAL(found_multiplier, false);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Negative mode multimer detection))
+{
+  // Negative mode: [M-H]- (monomer) and [2M-H]- (dimer)
+  // H-1 adduct has charge -1 and mass = -PROTON_MASS_U
+  double H_adduct = 1.00728;  // proton mass (will be subtracted in negative mode)
+  double M = 500.0;
+
+  FeatureMap fm;
+  Feature f1;
+  f1.setMZ(M - H_adduct);           // monomer [M-H]- (deprotonated)
+  f1.setRT(100.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(1);                   // FFM reports absolute charge
+  fm.push_back(f1);
+
+  Feature f2;
+  f2.setMZ(2.0 * M - H_adduct);     // dimer [2M-H]-
+  f2.setRT(100.0);
+  f2.setIntensity(500.0f);
+  f2.setCharge(1);
+  fm.push_back(f2);
+
+  MetaboliteFeatureDeconvolution mfd;
+  Param p = mfd.getDefaults();
+  p.setValue("charge_min", -1);
+  p.setValue("charge_max", -1);
+  p.setValue("charge_span_max", 1);
+  p.setValue("max_multimer", 2);
+  p.setValue("negative_mode", "true");
+  p.setValue("potential_adducts", std::vector<std::string>{"H-1:-:1.0"});
+  p.setValue("mass_max_diff", 0.5);
+  p.setValue("retention_max_diff", 2.0);
+  p.setValue("retention_max_diff_local", 2.0);
+  mfd.setParameters(p);
+
+  FeatureMap fm_out;
+  ConsensusMap cm_out, cm_out2;
+  mfd.compute(fm, fm_out, cm_out, cm_out2);
+
+  // The two features should be grouped as monomer/dimer
+  bool found_group = false;
+  for (Size i = 0; i < cm_out.size(); ++i)
+  {
+    if (cm_out[i].size() >= 2) found_group = true;
+  }
+  TEST_EQUAL(found_group, true);
+
+  // Dimer annotation should exist
+  bool found_dimer = false;
+  for (Size i = 0; i < fm_out.size(); ++i)
+  {
+    if (fm_out[i].metaValueExists("mol_multiplier"))
+    {
+      TEST_EQUAL((Int)fm_out[i].getMetaValue("mol_multiplier"), 2);
+      found_dimer = true;
+    }
+  }
+  TEST_EQUAL(found_dimer, true);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Mixed-charge multimer detection))
+{
+  // Mixed charge: [M+H]+ (charge 1) and [2M+2H]2+ (charge 2)
+  // Both use H+ adduct but at different charges.
+  // mz1 = M + H = 501.007, q1 = 1, m1 = 501.007
+  // mz2 = (2M + 2H) / 2 = M + H = 501.007, q2 = 2, m2 = 1002.014
+  // For n1=1, n2=2: observed = 2*501.007 - 1*1002.014 = 0.0
+  // H1L/H2R compomer: expected = 2*H - 1*(2*H) = 0. Match!
+  // H1L/H2R is a regular compomer (not identity), already in the table
+  // when charge_max >= 2.
+
+  double H_adduct = 1.00728;
+  double M = 500.0;
+
+  FeatureMap fm;
+  Feature f1;
+  f1.setMZ(M + H_adduct);                     // [M+H]+, charge 1
+  f1.setRT(100.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(1);
+  fm.push_back(f1);
+
+  Feature f2;
+  f2.setMZ((2.0 * M + 2.0 * H_adduct) / 2.0);  // [2M+2H]2+, charge 2
+  f2.setRT(100.0);
+  f2.setIntensity(500.0f);
+  f2.setCharge(2);
+  fm.push_back(f2);
+
+  MetaboliteFeatureDeconvolution mfd;
+  Param p = mfd.getDefaults();
+  p.setValue("charge_min", 1);
+  p.setValue("charge_max", 2);
+  p.setValue("charge_span_max", 2);
+  p.setValue("max_multimer", 2);
+  p.setValue("potential_adducts", std::vector<std::string>{"H:+:1.0"});
+  p.setValue("mass_max_diff", 0.5);
+  p.setValue("retention_max_diff", 2.0);
+  p.setValue("retention_max_diff_local", 2.0);
+  mfd.setParameters(p);
+
+  FeatureMap fm_out;
+  ConsensusMap cm_out, cm_out2;
+  mfd.compute(fm, fm_out, cm_out, cm_out2);
+
+  // Features should be grouped
+  bool found_group = false;
+  for (Size i = 0; i < cm_out.size(); ++i)
+  {
+    if (cm_out[i].size() >= 2) found_group = true;
+  }
+  TEST_EQUAL(found_group, true);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
