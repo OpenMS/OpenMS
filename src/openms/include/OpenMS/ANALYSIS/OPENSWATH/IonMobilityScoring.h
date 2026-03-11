@@ -193,7 +193,6 @@ namespace OpenMS
      * @param[out] intensity intensity computed intensity
      * @param[out] res outputted ion mobilogram
      * @param[in] eps minimum distance to allow for two seperate points
-      @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms to disk.
      */
     static void computeIonMobilogram(const SpectrumSequence& spectra,
                               const RangeMZ & mz_range,
@@ -201,8 +200,7 @@ namespace OpenMS
                               double & im,
                               double & intensity,
                               Mobilogram & res,
-                              double eps,
-                              MobilogramParquetConsumer* mobilogram_consumer = nullptr);
+                              double eps);
 
 
   private:

@@ -148,8 +148,7 @@ namespace OpenMS
                               double & im,
                               double & intensity,
                               Mobilogram & res,
-                              double eps,
-                              MobilogramParquetConsumer* mobilogram_consumer)
+                              double eps)
   {
 
     // rounding multiplier for the ion mobility value
@@ -163,7 +162,6 @@ namespace OpenMS
 
     for (const auto& spectrum : spectra)
     {
-      (void)mobilogram_consumer;
       OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
       OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
       OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
@@ -342,8 +340,7 @@ namespace OpenMS
     {
       for (Size k = 0; k < aligned_ms2_mobilograms.size() && k < transitions.size(); ++k)
       {
-        Mobilogram mcopy = aligned_ms2_mobilograms[k];
-        mobilogram_consumer->consumeMobilogram(mcopy,
+        mobilogram_consumer->consumeMobilogram(aligned_ms2_mobilograms[k],
                                                "ms1_contrast",
                                                2,
                                                -1,
@@ -352,8 +349,7 @@ namespace OpenMS
                                                feature_id);
       }
 
-      Mobilogram ms1_copy = aligned_ms1_mobilograms;
-      mobilogram_consumer->consumeMobilogram(ms1_copy,
+      mobilogram_consumer->consumeMobilogram(aligned_ms1_mobilograms,
                                              "ms1",
                                              1,
                                              -1,
@@ -441,8 +437,7 @@ namespace OpenMS
       double im_export(0.0), intensity_export(0.0);
       Mobilogram ms1_mobilogram;
       computeIonMobilogram(spectra, mz_range, im_range, im_export, intensity_export, ms1_mobilogram, eps);
-      Mobilogram mcopy = ms1_mobilogram;
-      mobilogram_consumer->consumeMobilogram(mcopy,
+      mobilogram_consumer->consumeMobilogram(ms1_mobilogram,
                                              "ms1",
                                              1,
                                              -1,
@@ -564,8 +559,7 @@ namespace OpenMS
     {
       for (Size k = 0; k < aligned_ms2_mobilograms.size() && k < transitions.size(); ++k)
       {
-        Mobilogram mcopy = aligned_ms2_mobilograms[k];
-        mobilogram_consumer->consumeMobilogram(mcopy,
+        mobilogram_consumer->consumeMobilogram(aligned_ms2_mobilograms[k],
                                                "ms2",
                                                2,
                                                -1,
@@ -742,8 +736,7 @@ namespace OpenMS
         {
           for (Size k = 0; k < aligned_mobilograms.size() && k < trgr_detect.getTransitions().size(); ++k)
           {
-            Mobilogram mcopy = aligned_mobilograms[k];
-            mobilogram_consumer->consumeMobilogram(mcopy,
+            mobilogram_consumer->consumeMobilogram(aligned_mobilograms[k],
                                                    "ms2",
                                                    2,
                                                    -1,
@@ -752,8 +745,7 @@ namespace OpenMS
                                                    feature_id);
           }
 
-          Mobilogram identification_copy = aligned_identification_mobilogram;
-          mobilogram_consumer->consumeMobilogram(identification_copy,
+          mobilogram_consumer->consumeMobilogram(aligned_identification_mobilogram,
                                                  "identification",
                                                  2,
                                                  -1,

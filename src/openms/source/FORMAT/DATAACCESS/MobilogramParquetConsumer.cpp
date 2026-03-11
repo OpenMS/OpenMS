@@ -9,12 +9,9 @@
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-
-#include <OpenMS/METADATA/ExperimentalSettings.h>
 
 #include <memory>
 #include <cmath>
@@ -188,7 +185,7 @@ namespace OpenMS
                                   UInt64 run_id,
                                   const String& source_file,
                                   const OpenSwath::LightTargetedExperiment& transition_exp) :
-      filename_(filename), run_id_(Internal::SqliteHelper::clearSignBit(run_id)), source_file_(source_file)
+      filename_(filename), run_id_(run_id & ~(1ULL << 63)), source_file_(source_file)
     {
 #ifndef WITH_PARQUET
       (void)transition_exp;
@@ -214,7 +211,7 @@ namespace OpenMS
 #endif
     }
 
-    void consumeMobilogram(Mobilogram& m,
+    void consumeMobilogram(const Mobilogram& m,
                            const String& mobilogram_type,
                            Int64 ms_level,
                            Int64 transition_id,
@@ -301,8 +298,6 @@ namespace OpenMS
           flushChunk_();
         }
       }
-
-      m.clear();
 #endif
     }
 
@@ -334,10 +329,6 @@ namespace OpenMS
         reserveOrThrow_(intensity_compression_builder_.Reserve(expectedMobilograms), "INTENSITY_COMPRESSION");
       }
 #endif
-    }
-
-    void setExperimentalSettings(const ExperimentalSettings&)
-    {
     }
 
     void finalize()
@@ -404,6 +395,11 @@ namespace OpenMS
 
     static constexpr int64_t PARQUET_ROW_GROUP_SIZE_ = 1024;
     static constexpr int64_t MAX_BUFFERED_BINARY_BYTES_ = 256LL * 1024LL * 1024LL;
+    // Compression codes matching the decoder in XIMParquetFile.cpp decodeBinary_():
+    //   5 = np-linear + zlib (used for mobility data)
+    //   6 = np-slof + zlib   (used for intensity data)
+    static constexpr int64_t COMPRESSION_NP_LINEAR_ZLIB_ = 5;
+    static constexpr int64_t COMPRESSION_NP_SLOF_ZLIB_   = 6;
 
     void buildTransitionMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
     {
@@ -553,34 +549,39 @@ namespace OpenMS
 
     std::shared_ptr<arrow::Table> buildTableFromBuilders_()
     {
-      if (!schema_)
-      {
-        schema_ = buildSchema_();
-      }
+      if (!schema_) schema_ = buildSchema_();
 
-      return arrow::Table::Make(schema_, {
-        finishArray_(run_id_builder_, "RUN_ID"),
-        finishArray_(source_file_builder_, "SOURCE_FILE"),
-        finishArray_(ms_level_builder_, "MS_LEVEL"),
-        finishArray_(mobilogram_type_builder_, "MOBILOGRAM_TYPE"),
-        finishArray_(precursor_id_builder_, "PRECURSOR_ID"),
-        finishArray_(transition_id_builder_, "TRANSITION_ID"),
-        finishArray_(feature_id_builder_, "FEATURE_ID"),
-        finishArray_(feature_rt_builder_, "FEATURE_RT"),
-        finishArray_(modified_sequence_builder_, "MODIFIED_SEQUENCE"),
-        finishArray_(precursor_charge_builder_, "PRECURSOR_CHARGE"),
-        finishArray_(product_charge_builder_, "PRODUCT_CHARGE"),
-        finishArray_(detecting_transition_builder_, "DETECTING_TRANSITION"),
-        finishArray_(precursor_decoy_builder_, "PRECURSOR_DECOY"),
-        finishArray_(product_decoy_builder_, "PRODUCT_DECOY"),
-        finishArray_(transition_ordinal_builder_, "TRANSITION_ORDINAL"),
-        finishArray_(transition_type_builder_, "TRANSITION_TYPE"),
-        finishArray_(annotation_builder_, "ANNOTATION"),
-        finishArray_(mobility_data_builder_, "MOBILITY_DATA"),
-        finishArray_(intensity_data_builder_, "INTENSITY_DATA"),
-        finishArray_(mobility_compression_builder_, "MOBILITY_COMPRESSION"),
-        finishArray_(intensity_compression_builder_, "INTENSITY_COMPRESSION")
-      });
+      // Array order MUST match field order in buildSchema_().
+      // Use schema field names as the error-message label for each finish call so that
+      // any count mismatch is caught immediately by the precondition below.
+      const auto& fields = schema_->fields();
+      int i = 0;
+      std::vector<std::shared_ptr<arrow::Array>> arrays = {
+        finishArray_(run_id_builder_,                fields.at(i++)->name().c_str()),
+        finishArray_(source_file_builder_,           fields.at(i++)->name().c_str()),
+        finishArray_(ms_level_builder_,              fields.at(i++)->name().c_str()),
+        finishArray_(mobilogram_type_builder_,       fields.at(i++)->name().c_str()),
+        finishArray_(precursor_id_builder_,          fields.at(i++)->name().c_str()),
+        finishArray_(transition_id_builder_,         fields.at(i++)->name().c_str()),
+        finishArray_(feature_id_builder_,            fields.at(i++)->name().c_str()),
+        finishArray_(feature_rt_builder_,            fields.at(i++)->name().c_str()),
+        finishArray_(modified_sequence_builder_,     fields.at(i++)->name().c_str()),
+        finishArray_(precursor_charge_builder_,      fields.at(i++)->name().c_str()),
+        finishArray_(product_charge_builder_,        fields.at(i++)->name().c_str()),
+        finishArray_(detecting_transition_builder_,  fields.at(i++)->name().c_str()),
+        finishArray_(precursor_decoy_builder_,       fields.at(i++)->name().c_str()),
+        finishArray_(product_decoy_builder_,         fields.at(i++)->name().c_str()),
+        finishArray_(transition_ordinal_builder_,    fields.at(i++)->name().c_str()),
+        finishArray_(transition_type_builder_,       fields.at(i++)->name().c_str()),
+        finishArray_(annotation_builder_,            fields.at(i++)->name().c_str()),
+        finishArray_(mobility_data_builder_,         fields.at(i++)->name().c_str()),
+        finishArray_(intensity_data_builder_,        fields.at(i++)->name().c_str()),
+        finishArray_(mobility_compression_builder_,  fields.at(i++)->name().c_str()),
+        finishArray_(intensity_compression_builder_, fields.at(i++)->name().c_str()),
+      };
+      OPENMS_PRECONDITION(i == schema_->num_fields(),
+                          "Column count mismatch: buildSchema_ and buildTableFromBuilders_ are out of sync");
+      return arrow::Table::Make(schema_, arrays);
     }
 
     void flushChunk_()
@@ -615,43 +616,32 @@ namespace OpenMS
         intensity.push_back(p.getIntensity());
       }
 
-      const bool use_lossy = true;
       EncodedMobilogram encoded;
-      encoded.mobility_compression = use_lossy ? 5 : 1;
-      encoded.intensity_compression = use_lossy ? 6 : 1;
+      encoded.mobility_compression = COMPRESSION_NP_LINEAR_ZLIB_;
+      encoded.intensity_compression = COMPRESSION_NP_SLOF_ZLIB_;
 
       if (mobility.empty())
       {
         return encoded;
       }
 
-      if (use_lossy)
-      {
-        MSNumpressCoder::NumpressConfig npcfg_m;
-        npcfg_m.estimate_fixed_point = true;
-        npcfg_m.numpressErrorTolerance = -1.0;
-        npcfg_m.setCompression("linear");
+      MSNumpressCoder::NumpressConfig npcfg_m;
+      npcfg_m.estimate_fixed_point = true;
+      npcfg_m.numpressErrorTolerance = -1.0;
+      npcfg_m.setCompression("linear");
 
-        MSNumpressCoder::NumpressConfig npcfg_i;
-        npcfg_i.estimate_fixed_point = true;
-        npcfg_i.numpressErrorTolerance = -1.0;
-        npcfg_i.setCompression("slof");
+      MSNumpressCoder::NumpressConfig npcfg_i;
+      npcfg_i.estimate_fixed_point = true;
+      npcfg_i.numpressErrorTolerance = -1.0;
+      npcfg_i.setCompression("slof");
 
-        String mob_uncomp;
-        MSNumpressCoder().encodeNPRaw(mobility, mob_uncomp, npcfg_m);
-        ZlibCompression::compressString(mob_uncomp, encoded.mobility_encoded);
+      String mob_uncomp;
+      MSNumpressCoder().encodeNPRaw(mobility, mob_uncomp, npcfg_m);
+      ZlibCompression::compressString(mob_uncomp, encoded.mobility_encoded);
 
-        String int_uncomp;
-        MSNumpressCoder().encodeNPRaw(intensity, int_uncomp, npcfg_i);
-        ZlibCompression::compressString(int_uncomp, encoded.intensity_encoded);
-      }
-      else
-      {
-        std::string mob_bytes(reinterpret_cast<const char*>(mobility.data()), mobility.size() * sizeof(double));
-        ZlibCompression::compressString(mob_bytes, encoded.mobility_encoded);
-        std::string int_bytes(reinterpret_cast<const char*>(intensity.data()), intensity.size() * sizeof(double));
-        ZlibCompression::compressString(int_bytes, encoded.intensity_encoded);
-      }
+      String int_uncomp;
+      MSNumpressCoder().encodeNPRaw(intensity, int_uncomp, npcfg_i);
+      ZlibCompression::compressString(int_uncomp, encoded.intensity_encoded);
 
       return encoded;
     }
@@ -710,7 +700,7 @@ namespace OpenMS
 
   MobilogramParquetConsumer::~MobilogramParquetConsumer() = default;
 
-  void MobilogramParquetConsumer::consumeMobilogram(Mobilogram& m,
+  void MobilogramParquetConsumer::consumeMobilogram(const Mobilogram& m,
                                                     const String& mobilogram_type,
                                                     Int64 ms_level,
                                                     Int64 transition_id,
@@ -729,11 +719,6 @@ namespace OpenMS
   void MobilogramParquetConsumer::setExpectedSize(Size expectedMobilograms)
   {
     impl_->setExpectedSize(expectedMobilograms);
-  }
-
-  void MobilogramParquetConsumer::setExperimentalSettings(const ExperimentalSettings& exp)
-  {
-    impl_->setExperimentalSettings(exp);
   }
 
 } // namespace OpenMS

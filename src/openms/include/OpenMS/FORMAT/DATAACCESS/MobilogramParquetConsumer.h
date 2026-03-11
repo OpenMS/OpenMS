@@ -18,9 +18,6 @@
 
 namespace OpenMS
 {
-  // Forward-declare ExperimentalSettings to avoid heavy includes in header
-  class ExperimentalSettings;
-
   class MobilogramParquetConsumerImpl;
 
   /// Writes Mobilograms (ion-mobility traces) to a Parquet file using a PyProphet-compatible-like schema.
@@ -49,15 +46,15 @@ namespace OpenMS
     /**
       @brief Consume a mobilogram and write it to the parquet file.
 
-      @param[in] m The mobilogram to consume
+      @param[in] m The mobilogram to consume (read-only; the caller retains ownership and the mobilogram is not modified)
       @param[in] mobilogram_type The type of the mobilogram (e.g. "precursor" or "fragment")
       @param[in] ms_level The MS level of the mobilogram (e.g. 1 for precursor, 2 for fragment)
-      @param[in] transition_id The id of the corresponding transition in the transition experiment (nullable use-case)
-      @param[in] transition_native_id The native id of the corresponding transition in the transition experiment (nullable use-case)
-      @param[in] feature_rt Optional retention time apex that the mobilogram corresponds to (nullable use-case)
-      @param[in] feature_id Optional feature id associated with the mobilogram (nullable use-case)
+      @param[in] transition_id The id of the corresponding transition in the transition experiment (nullable: -1 means not set)
+      @param[in] transition_native_id The native id of the corresponding transition in the transition experiment (nullable: empty string means not set)
+      @param[in] feature_rt Optional retention time apex that the mobilogram corresponds to (nullable: NaN means not set)
+      @param[in] feature_id Optional feature id associated with the mobilogram (nullable: -1 means not set)
     */
-    void consumeMobilogram(Mobilogram& m,
+    void consumeMobilogram(const Mobilogram& m,
                  const String& mobilogram_type = "",
                  Int64 ms_level = -1,
                  Int64 transition_id = -1,
@@ -69,16 +66,15 @@ namespace OpenMS
     void finalize();
 
     /**
-      @brief Reserve storage for expected number of mobilograms
+      @brief Reserve storage for expected number of mobilograms.
+
+      Must be called before any concurrent consumeMobilogram() calls (e.g. from
+      an OpenMP parallel loop). Calling it after concurrent writes have started
+      is undefined behaviour.
+
       @param[in] expectedMobilograms The expected number of mobilograms
     */
     void setExpectedSize(Size expectedMobilograms);
-
-    /**
-      @brief Set experimental settings (currently unused)
-      @param[in] exp The experimental settings to set
-    */
-    void setExperimentalSettings(const ExperimentalSettings& exp);
 
   private:
     std::unique_ptr<MobilogramParquetConsumerImpl> impl_;

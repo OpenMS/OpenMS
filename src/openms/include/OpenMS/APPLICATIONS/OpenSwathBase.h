@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <memory>
+
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
@@ -162,7 +164,7 @@ namespace OpenMS
      * @param[in] run_id Unique identifier which links the mobilogram and OSW file
      * @param[in] source_file Source file name for provenance
      */
-    void prepareMobilogramOutput(class MobilogramParquetConsumer ** mobilogramConsumer,
+    void prepareMobilogramOutput(std::unique_ptr<class MobilogramParquetConsumer>& mobilogramConsumer,
                   const std::shared_ptr<ExperimentalSettings>& exp_meta,
                   const OpenSwath::LightTargetedExperiment& transition_exp,
                   const String& out_mobilogram,

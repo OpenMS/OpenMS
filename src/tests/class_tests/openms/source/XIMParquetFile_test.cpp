@@ -117,6 +117,58 @@ START_SECTION(void load_invalid_path)
 }
 END_SECTION
 
+START_SECTION(void getColumns(std::vector<String>&) const)
+{
+#ifdef WITH_PARQUET
+  XIMParquetFile xim(OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim"));
+  std::vector<String> columns;
+  xim.getColumns(columns);
+
+  TEST_EQUAL(columns.empty(), false)
+  // Schema must contain at least the mandatory data columns
+  bool has_run_id = false;
+  bool has_mobility = false;
+  bool has_intensity = false;
+  for (const auto& col : columns)
+  {
+    if (col == "RUN_ID") has_run_id = true;
+    if (col == "MOBILITY_DATA") has_mobility = true;
+    if (col == "INTENSITY_DATA") has_intensity = true;
+  }
+  TEST_EQUAL(has_run_id, true)
+  TEST_EQUAL(has_mobility, true)
+  TEST_EQUAL(has_intensity, true)
+#endif
+}
+END_SECTION
+
+START_SECTION(void getAnalytes(std::vector<XIMAnalyte>&, const std::vector<String>&, bool) const)
+{
+#ifdef WITH_PARQUET
+  XIMParquetFile xim(OPENMS_GET_TEST_DATA_PATH("XIMParquetFile_23_input.xim"));
+
+  // Default: all analytes with nested transitions
+  std::vector<XIMAnalyte> analytes;
+  xim.getAnalytes(analytes);
+  TEST_EQUAL(analytes.empty(), false)
+
+  // Non-nested: each row has scalar transition fields
+  std::vector<XIMAnalyte> flat;
+  xim.getAnalytes(flat, {}, false);
+  TEST_EQUAL(flat.empty(), false)
+
+  // With a valid analyte column filter
+  std::vector<XIMAnalyte> filtered;
+  xim.getAnalytes(filtered, {"PRECURSOR_ID", "MODIFIED_SEQUENCE", "PRECURSOR_CHARGE"}, false);
+  TEST_EQUAL(filtered.empty(), false)
+
+  // Passing a non-analyte column (e.g. a signal column) must throw
+  std::vector<XIMAnalyte> bad;
+  TEST_EXCEPTION(Exception::InvalidValue, xim.getAnalytes(bad, {"RUN_ID"}, false))
+#endif
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

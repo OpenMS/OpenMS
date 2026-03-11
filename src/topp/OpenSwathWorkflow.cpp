@@ -1313,7 +1313,7 @@ protected:
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, cur_run, current_run_files[0]);
 
     // Prepare mobilogram output (per-run)
-    MobilogramParquetConsumer* mobilogramConsumer = nullptr;
+    std::unique_ptr<MobilogramParquetConsumer> mobilogramConsumer;
     String out_mobilogram_current = out_mobilogram;
     if (!out_mobilogram.empty() && run_groups.size() > 1)
     {
@@ -1326,7 +1326,7 @@ protected:
       String fname_with_prefix = file_basename + "_" + stem + extension;
       out_mobilogram_current = (parent == "." ? fname_with_prefix : parent + "/" + fname_with_prefix);
     }
-    prepareMobilogramOutput(&mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, cur_run, current_run_files[0]);
+    prepareMobilogramOutput(mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, cur_run, current_run_files[0]);
 
     // Register the same run ID in OSW.
     // For OSW, use the first file in the run group as the representative filename
@@ -1357,13 +1357,12 @@ protected:
 
     // perform extraction for this file's swath maps
     wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
-             active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer);
+             active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer.get());
 
-    if (mobilogramConsumer != nullptr)
+    if (mobilogramConsumer)
     {
       mobilogramConsumer->finalize();
-      delete mobilogramConsumer;
-      mobilogramConsumer = nullptr;
+      mobilogramConsumer.reset();
     }
 
     //// Write out data

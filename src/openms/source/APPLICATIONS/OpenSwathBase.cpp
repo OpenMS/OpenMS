@@ -298,7 +298,7 @@ namespace OpenMS
       else if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
 #ifndef WITH_PARQUET
-        (void*)&source_file; // to suppress unused variable warning
+        (void)source_file; // to suppress unused variable warning
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
         auto * chromConsumer = new MSChromatogramParquetConsumer(out_chrom, run_id, source_file, transition_exp);
@@ -341,7 +341,7 @@ namespace OpenMS
   }
 
 
-  void TOPPOpenSwathBase::prepareMobilogramOutput(MobilogramParquetConsumer ** mobilogramConsumer,
+  void TOPPOpenSwathBase::prepareMobilogramOutput(std::unique_ptr<MobilogramParquetConsumer>& mobilogramConsumer,
                                                   const std::shared_ptr<ExperimentalSettings>& /*exp_meta*/,
                                                   const OpenSwath::LightTargetedExperiment& transition_exp,
                                                   const String& out_mobilogram,
@@ -354,14 +354,13 @@ namespace OpenMS
       if (out_mob_type == FileTypes::MOBILPARQUET)
       {
 #ifndef WITH_PARQUET
-        (void)&source_file;
+        (void)source_file;
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
-        auto * mobConsumer = new MobilogramParquetConsumer(out_mobilogram, run_id, source_file, transition_exp);
+        mobilogramConsumer = std::make_unique<MobilogramParquetConsumer>(out_mobilogram, run_id, source_file, transition_exp);
         // estimate expected mobilograms from transitions
         Size expected = transition_exp.transitions.size();
-        mobConsumer->setExpectedSize(expected);
-        *mobilogramConsumer = mobConsumer;
+        mobilogramConsumer->setExpectedSize(expected);
 #endif
       }
       else
@@ -373,7 +372,7 @@ namespace OpenMS
     }
     else
     {
-      *mobilogramConsumer = nullptr;
+      mobilogramConsumer.reset();
     }
   }
 
