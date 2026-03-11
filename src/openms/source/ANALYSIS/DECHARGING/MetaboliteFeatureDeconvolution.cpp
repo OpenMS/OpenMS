@@ -414,7 +414,7 @@ namespace OpenMS
       large = abs(q_min);
     }
     MassExplainer me(potential_adducts_, small, large, q_span, thresh_logp, max_neutrals);
-    me.compute();
+    me.compute(/*include_identity=*/ max_multimer > 1);
     OPENMS_LOG_INFO << "done\n";
 
 
