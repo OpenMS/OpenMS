@@ -220,22 +220,35 @@ namespace OpenMS
     }
     explanations_.swap(valids_only);
 
-    // Add identity compomers (same adduct on both LEFT and RIGHT sides).
-    // These have net_charge=0, mass=0, and are needed for same-adduct multimer
-    // detection (e.g., [M+H]+ paired with [2M+H]+). Gated by include_identity
-    // to avoid changing behavior for non-multimer workflows.
-    // Note: placed before the neutral adduct loop intentionally so that identity
-    // compomers also get combined with neutral modifications (e.g., multimer + water loss).
+    // Add same-adduct compomers (same adduct type on both LEFT and RIGHT sides
+    // with potentially different amounts). These are needed for multimer detection:
+    //   Ai_LEFT / Aj_RIGHT covers pairs like [nM+iA]^(i*z) <-> [mM+jA]^(j*z).
+    // The original identity case (i==j, net_charge=0) handles same-charge multimers
+    // e.g. [M+H]+ <-> [2M+H]+. The i!=j cases handle charge-changing multimers
+    // e.g. [M+H]+ <-> [2M+2H]2+ (needs H1_LEFT / H2_RIGHT).
+    // Gated by include_identity to avoid changing behavior for non-multimer workflows.
+    // Placed before the neutral adduct loop so these also combine with neutral modifications.
     if (include_identity)
     {
       for (const auto& adduct : adduct_charged)
       {
-        Compomer cmpi;
-        cmpi.add(adduct, Compomer::LEFT);
-        cmpi.add(adduct, Compomer::RIGHT);
-        if (compomerValid_(cmpi))
+        Int max_amount = max_pq / std::abs(adduct.getCharge());
+        for (Int i = 1; i <= max_amount; ++i)
         {
-          explanations_.push_back(cmpi);
+          for (Int j = 1; j <= max_amount; ++j)
+          {
+            Compomer cmpi;
+            Adduct left_a(adduct);
+            left_a.setAmount(i);
+            Adduct right_a(adduct);
+            right_a.setAmount(j);
+            cmpi.add(left_a, Compomer::LEFT);
+            cmpi.add(right_a, Compomer::RIGHT);
+            if (compomerValid_(cmpi))
+            {
+              explanations_.push_back(cmpi);
+            }
+          }
         }
       }
     }

@@ -121,8 +121,10 @@ public:
       and stores them internally for later querying. This must be called after
       changing any parameters and before performing queries.
 
-      @param[in] include_identity If true, add identity compomers (same adduct on both LEFT
-                 and RIGHT sides) needed for same-adduct multimer detection. Default false
+      @param[in] include_identity If true, add same-adduct compomers (same adduct type on
+                 both LEFT and RIGHT sides with varying amounts) needed for multimer
+                 detection. Covers same-charge multimers (e.g. [M+H]+ <-> [2M+H]+) and
+                 charge-changing multimers (e.g. [M+H]+ <-> [2M+2H]2+). Default false
                  to preserve existing behavior.
     */
     void compute(bool include_identity = false);
