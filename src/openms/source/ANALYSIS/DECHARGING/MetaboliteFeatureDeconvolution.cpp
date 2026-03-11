@@ -584,10 +584,12 @@ namespace OpenMS
               ChargePair cp(i_RT, i_RT_window, q1, q2, cmp, mass_diff_residual, false);
               cp.setMolMultiplier(0, n_left);
               cp.setMolMultiplier(1, n_right);
-              // Apply multimer log penalty to edge score (used by ILP solver)
+              // Apply multimer penalty as multiplicative factor on edge score.
+              // ILP maximizes total score, so edge_score must remain positive.
+              // exp(log_penalty) converts log-space penalty to a [0,1] multiplier.
               if (penalty != 0.0)
               {
-                cp.setEdgeScore(cp.getEdgeScore() + penalty);
+                cp.setEdgeScore(cp.getEdgeScore() * exp(penalty));
               }
               feature_relation.push_back(cp);
             };
@@ -599,7 +601,10 @@ namespace OpenMS
               {
                 if (n1 == n2)
                 {
-                  // Same-multiplier: existing path, M cancels, binary search
+                  // Same-multiplier: M cancels identically regardless of multiplier value,
+                  // so only n1=n2=1 is meaningful (higher values produce duplicate edges).
+                  if (n1 > 1) continue;
+                  // Existing binary search path
                   double abs_mass_diff = tol_q1 + tol_q2;
                   hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
                   OPENMS_PRECONDITION(hits >= 0, "MetaboliteFeatureDeconvolution querying #hits got negative result!");

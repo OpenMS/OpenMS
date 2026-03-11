@@ -305,6 +305,112 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
 END_SECTION
 
+START_SECTION(([EXTRA] Multimer detection with max_multimer=2))
+{
+  // Cross-adduct multimer detection test.
+  // MassExplainer needs at least 2 charged adducts to produce valid net_charge=0
+  // compomers (e.g. Na+LEFT / H+RIGHT). These compomers are required for
+  // queryMultimer() to match feature pairs with different multipliers.
+  //
+  // Setup: M = 500.0 (neutral mass)
+  // Feature 1: monomer [M+Na]+  -> m/z ~ M + Na_adduct_mass ~ 522.989
+  // Feature 2: dimer   [2M+H]+  -> m/z ~ 2*M + H_adduct_mass ~ 1001.007
+  //
+  // The multimer equation: n2*m1 - n1*m2 = n2*left_mass - n1*right_mass
+  // With n1=1 (monomer), n2=2 (dimer):
+  //   2*(M+Na) - 1*(2M+H) = 2*Na - H  (M cancels exactly)
+  // This matches the Na+LEFT/H+RIGHT compomer.
+
+  // Approximate adduct masses (H+ ~ proton mass, Na+ ~ Na - electron)
+  double H_adduct = 1.00728;
+  double Na_adduct = 22.98922;
+  double M = 500.0;
+
+  FeatureMap fm;
+  Feature f1;
+  f1.setMZ(M + Na_adduct);   // monomer with Na+ adduct
+  f1.setRT(100.0);
+  f1.setIntensity(1000.0f);
+  f1.setCharge(1);
+  fm.push_back(f1);
+
+  Feature f2;
+  f2.setMZ(2.0 * M + H_adduct);  // dimer with H+ adduct
+  f2.setRT(100.0);
+  f2.setIntensity(500.0f);
+  f2.setCharge(1);
+  fm.push_back(f2);
+
+  // Run decharger with multimer detection enabled
+  MetaboliteFeatureDeconvolution mfd;
+  Param p = mfd.getDefaults();
+  p.setValue("charge_min", 1);
+  p.setValue("charge_max", 3);       // >= 2 needed for valid compomers
+  p.setValue("charge_span_max", 3);
+  p.setValue("max_multimer", 2);
+  p.setValue("potential_adducts", std::vector<std::string>{"H:+:0.7","Na:+:0.3"});
+  p.setValue("mass_max_diff", 0.5);  // generous tolerance for approximate masses
+  p.setValue("retention_max_diff", 2.0);
+  p.setValue("retention_max_diff_local", 2.0);
+  mfd.setParameters(p);
+
+  FeatureMap fm_out;
+  ConsensusMap cm_out, cm_out2;
+  mfd.compute(fm, fm_out, cm_out, cm_out2);
+
+  // Check that at least one consensus feature groups the two features
+  bool found_multimer_group = false;
+  for (Size i = 0; i < cm_out.size(); ++i)
+  {
+    if (cm_out[i].size() >= 2)
+    {
+      found_multimer_group = true;
+    }
+  }
+  TEST_EQUAL(found_multimer_group, true);
+
+  // Check annotation: one feature should have mol_multiplier=2
+  bool found_dimer_annotation = false;
+  for (Size i = 0; i < fm_out.size(); ++i)
+  {
+    if (fm_out[i].metaValueExists("mol_multiplier"))
+    {
+      TEST_EQUAL((Int)fm_out[i].getMetaValue("mol_multiplier"), 2);
+      found_dimer_annotation = true;
+    }
+  }
+  TEST_EQUAL(found_dimer_annotation, true);
+
+  // Regression: max_multimer=1 should NOT find multimer relationships
+  MetaboliteFeatureDeconvolution mfd2;
+  Param p2 = mfd2.getDefaults();
+  p2.setValue("charge_min", 1);
+  p2.setValue("charge_max", 3);
+  p2.setValue("charge_span_max", 3);
+  p2.setValue("max_multimer", 1);
+  p2.setValue("potential_adducts", std::vector<std::string>{"H:+:0.7","Na:+:0.3"});
+  p2.setValue("mass_max_diff", 0.5);
+  p2.setValue("retention_max_diff", 2.0);
+  p2.setValue("retention_max_diff_local", 2.0);
+  mfd2.setParameters(p2);
+
+  FeatureMap fm_out2;
+  ConsensusMap cm_out2_a, cm_out2_b;
+  mfd2.compute(fm, fm_out2, cm_out2_a, cm_out2_b);
+
+  // With max_multimer=1, cross-multiplier edges are never generated
+  bool found_group_no_multimer = false;
+  for (Size i = 0; i < cm_out2_a.size(); ++i)
+  {
+    if (cm_out2_a[i].size() >= 2)
+    {
+      found_group_no_multimer = true;
+    }
+  }
+  TEST_EQUAL(found_group_no_multimer, false);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
