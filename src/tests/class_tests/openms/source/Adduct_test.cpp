@@ -191,6 +191,26 @@ START_SECTION((void operator+=(const Adduct &rhs)))
 END_SECTION
 
 
+START_SECTION((static String toAdductString(const String& ion_string, const Int& charge, Int mol_multiplier)))
+{
+  // monomer (multiplier=1) — no prefix
+  String r1 = Adduct::toAdductString("H1", 1, 1);
+  TEST_EQUAL(r1, "[M+H]+");
+
+  // dimer
+  String r2 = Adduct::toAdductString("H1", 1, 2);
+  TEST_EQUAL(r2, "[2M+H]+");
+
+  // trimer with Na
+  String r3 = Adduct::toAdductString("Na1", 1, 3);
+  TEST_EQUAL(r3, "[3M+Na]+");
+
+  // dimer negative mode
+  String r4 = Adduct::toAdductString("H-1", -1, 2);
+  TEST_EQUAL(r4, "[2M-H]-");
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
