@@ -239,7 +239,7 @@ namespace OpenMS
          term = &cv.getTerm("MS:1003008");
         break;
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit cannot be converted into CV term.", toString(unit));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit cannot be converted into CV term.", driftTimeUnitToString(unit));
     }
     fda.setName(term->name);
   }
@@ -323,18 +323,23 @@ namespace OpenMS
       default:
         // invalid enum ...
         // There is no CV term which can be used to describe the FDA
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit is not a valid IM unit for float data arrays", toString(unit));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit is not a valid IM unit for float data arrays", driftTimeUnitToString(unit));
     }
   }
 
   bool IMDataConverter::getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit)
   {
     const auto& cv = ControlledVocabulary::getPSIMSCV();
-    if (fda.getName().hasPrefix(Constants::UserParam::ION_MOBILITY))
-    { // fallback for non-standard IM arrays (as created by Mobi-DIK, or "Ion Mobility Centroid" from PeakPickerIM)
+    if (fda.getName().hasPrefix(Constants::UserParam::ION_MOBILITY) ||
+        fda.getName().hasPrefix(Constants::UserParam::INVERSE_REDUCED_ION_MOBILITY))
+    { // fallback for non-standard IM arrays (as created by Mobi-DIK, "Ion Mobility Centroid" from PeakPickerIM, or "inverse reduced ion mobility" from MSConvert)
       if (fda.getName().hasSubstring("MS:1002815"))
       {
         unit = DriftTimeUnit::VSSC;
+      }
+      else if (fda.getName().hasSubstring("MS:1002954"))
+      {
+        unit = DriftTimeUnit::CCS;
       }
       else
       {
@@ -355,6 +360,10 @@ namespace OpenMS
         else if (cv_term.units.find("UO:0000028") != cv_term.units.end())
         { // UO:0000028 ! millisecond
           unit = DriftTimeUnit::MILLISECOND;
+        }
+        else if (cv_term.units.find("UO:0000324") != cv_term.units.end())
+        { // UO:0000324 ! square angstrom (CCS)
+          unit = DriftTimeUnit::CCS;
         }
         else
         { // fallback

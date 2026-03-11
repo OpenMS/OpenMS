@@ -20,6 +20,7 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/MATH/MathFunctions.h> // getPPM
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <numeric>
 #include <algorithm>
@@ -103,7 +104,8 @@ namespace OpenMS
     isotope_corr = 0;
     isotope_overlap = 0;
     // first compute a map of relative intensities from the feature, then compute the score
-    std::map<std::string, double> intensities;
+    std::unordered_map<std::string, double> intensities;
+    intensities.reserve(transitions.size());
     getFirstIsotopeRelativeIntensities_(transitions, mrmfeature, intensities);
     diaIsotopeScoresSub_(transitions, spectrum, intensities, im_range, isotope_corr, isotope_overlap);
   }
@@ -120,6 +122,7 @@ namespace OpenMS
     ppm_score = 0;
     ppm_score_weighted = 0;
     diff_ppm.clear();
+    size_t n_observed = 0;
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
       const TransitionType& transition = transitions[k];
@@ -135,6 +138,7 @@ namespace OpenMS
         continue;
       }
 
+      ++n_observed;
       double ppm = Math::getPPM(mz, transition.getProductMZ());
       diff_ppm.push_back(ppm);
       ppm_score += std::fabs(ppm);
@@ -144,8 +148,8 @@ namespace OpenMS
 #endif
     }
 
-    // FEATURE we should not punish so much when one transition is missing!
-    ppm_score /= transitions.size();
+    // Only average over transitions where signal was actually found
+    ppm_score = (n_observed > 0) ? ppm_score / n_observed : 0.0;
   }
 
   bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, const SpectrumSequence& spectrum,
@@ -272,18 +276,18 @@ namespace OpenMS
   /// computes a vector of relative intensities for each feature (output to intensities)
   void DIAScoring::getFirstIsotopeRelativeIntensities_(
     const std::vector<TransitionType>& transitions,
-    OpenSwath::IMRMFeature* mrmfeature, std::map<std::string, double>& intensities) const
+    OpenSwath::IMRMFeature* mrmfeature, std::unordered_map<std::string, double>& intensities) const
   {
     for (Size k = 0; k < transitions.size(); k++)
     {
       std::string native_id = transitions[k].getNativeID();
       double rel_intensity = mrmfeature->getFeature(native_id)->getIntensity() / mrmfeature->getIntensity();
-      intensities.insert(std::pair<std::string, double>(native_id, rel_intensity));
+      intensities.emplace(native_id, rel_intensity);
     }
   }
 
   void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, const SpectrumSequence& spectrum,
-                                        std::map<std::string, double>& intensities, //relative intensities
+                                        std::unordered_map<std::string, double>& intensities, //relative intensities
                                         const RangeMobility& im_range,
                                         double& isotope_corr,
                                         double& isotope_overlap) const
@@ -426,7 +430,7 @@ namespace OpenMS
 
     // score the pattern against a theoretical one
     OPENMS_POSTCONDITION(isotopes_int.size() == isotopes.intensity.size(), "Vectors for pearson correlation do not have the same size.");
-    double int_score = OpenSwath::cor_pearson(isotopes_int.begin(), isotopes_int.end(), isotopes.intensity.begin());
+    double int_score = OpenMS::Math::pearsonCorrelationCoefficient(isotopes_int.begin(), isotopes_int.end(), isotopes.intensity.begin(), isotopes.intensity.end());
     if (std::isnan(int_score))
     {
       int_score = 0;

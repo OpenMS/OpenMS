@@ -12,6 +12,7 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <memory>
 #include <vector>
 
 namespace OpenMS
@@ -21,7 +22,11 @@ namespace OpenMS
 
     @brief Database for enzymes that digest proteins (proteases)
 
-    The enzymes stored in this DB are defined in an XML file under share/CHEMISTRY/Enzymes.xml.
+    The enzymes stored in this DB are defined as built-in defaults. Additional
+    user-defined enzymes can be loaded from share/CHEMISTRY/Enzymes.xml if present.
+
+    Supports dependency injection via a provider-based constructor for testing
+    and custom enzyme sources.
   */
   class OPENMS_DLLAPI ProteaseDB: public DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>
   {
@@ -29,10 +34,14 @@ namespace OpenMS
     friend class DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>;
 
   protected:
-    /// constructor
+    /// default constructor: loads built-in enzymes and optional XML file
     ProteaseDB();
 
   public:
+    /// @brief Construct from custom data providers (for testing / dependency injection)
+    /// @param[in] providers Data providers supplying enzyme definitions
+    explicit ProteaseDB(std::vector<std::unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeProtein>>> providers);
+
     /// returns all the enzyme names available for XTandem
     void getAllXTandemNames(std::vector<String>& all_names) const;
 
@@ -49,5 +58,3 @@ namespace OpenMS
     void writeTSV(const String& filename);
   };
 }
-
-

@@ -13,6 +13,8 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 //TODO remove MzML after we get transform support for our handlers
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
@@ -49,7 +51,7 @@ namespace OpenMS
 #pragma omp critical (OPENMS_SwathFile_loadSplit)
 #endif
       {
-        std::cout << "Loading file " << i << " with name " << file_list[i] << " using readoptions " << readoptions << std::endl;
+        std::cout << "Loading file " << i << " with name " << file_list[i] << " using readoptions " << readoptions << '\n';
       }
 
       String tmp_fname = "openswath_tmpfile_" + String(i) + ".mzML";
@@ -90,7 +92,7 @@ namespace OpenMS
       }
       if (exp->getSpectra()[0].getPrecursors().empty())
       {
-        std::cout << "NOTE: File " << file_list[i] << "\n does not have any precursors - I will assume it is the MS1 scan." << std::endl;
+        std::cout << "NOTE: File " << file_list[i] << "\n does not have any precursors - I will assume it is the MS1 scan.\n";
         ms1 = true;
       }
       else
@@ -108,7 +110,7 @@ namespace OpenMS
 #pragma omp critical (OPENMS_SwathFile_loadSplit)
 #endif
       {
-        OPENMS_LOG_DEBUG << "Adding Swath file " << file_list[i] << " with " << swath_map.lower << " to " << swath_map.upper << std::endl;
+        OPENMS_LOG_DEBUG << "Adding Swath file " << file_list[i] << " with " << swath_map.lower << " to " << swath_map.upper << '\n';
         swath_maps[i] = swath_map;
         setProgress(progress++);
       }
@@ -124,7 +126,7 @@ namespace OpenMS
                                                        const String& readoptions,
                                                        Interfaces::IMSDataConsumer* plugin_consumer)
   {
-    std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << std::endl;
+    std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << '\n';
     String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
 
     startProgress(0, 1, "Loading metadata file " + file);
@@ -132,14 +134,14 @@ namespace OpenMS
     exp_meta = exp_stripped;
 
     // First pass through the file -> get the meta data
-    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes." << std::endl;
+    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes.\n";
     std::vector<int> swath_counter;
     int nr_ms1_spectra;
     std::vector<OpenSwath::SwathMap> known_window_boundaries;
 
     countScansInSwath_(exp_stripped->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
     std::cout << "Determined there to be " << swath_counter.size()
-              << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
+              << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
     endProgress();
 
     std::shared_ptr<FullSwathFileConsumer> dataConsumer;
@@ -180,7 +182,7 @@ namespace OpenMS
     MSDataChainingConsumer chaining_consumer(consumer_list);
     MzMLFile().transform(file, &chaining_consumer, false, true); // we do not need to reload metadata, it has already been loaded
 
-    OPENMS_LOG_DEBUG << "Finished parsing Swath file " << std::endl;
+    OPENMS_LOG_DEBUG << "Finished parsing Swath file \n";
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
     endProgress();
@@ -193,7 +195,7 @@ namespace OpenMS
     std::shared_ptr<ExperimentalSettings>& exp_meta,
     const String& readoptions)
   {
-    std::cout << "Loading mzXML file " << file << " using readoptions " << readoptions << std::endl;
+    std::cout << "Loading mzXML file " << file << " using readoptions " << readoptions << '\n';
     String tmp_fname = "openswath_tmpfile";
 
     startProgress(0, 1, "Loading metadata file " + file);
@@ -205,41 +207,40 @@ namespace OpenMS
     exp_meta = experiment_metadata;
 
     // First pass through the file -> get the meta data
-    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes." << std::endl;
+    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes.\n";
     std::vector<int> swath_counter;
     int nr_ms1_spectra;
     std::vector<OpenSwath::SwathMap> known_window_boundaries;
     countScansInSwath_(experiment_metadata->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
     std::cout << "Determined there to be " << swath_counter.size() <<
-      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
+      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
     endProgress();
 
-    FullSwathFileConsumer* dataConsumer;
+    std::unique_ptr<FullSwathFileConsumer> dataConsumer;
     startProgress(0, 1, "Loading data file " + file);
     if (readoptions == "normal")
     {
-      dataConsumer = new RegularSwathFileConsumer(known_window_boundaries);
-      MzXMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_unique<RegularSwathFileConsumer>(known_window_boundaries);
+      MzXMLFile().transform(file, dataConsumer.get());
     }
     else if (readoptions == "cache")
     {
-      dataConsumer = new CachedSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      MzXMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_unique<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      MzXMLFile().transform(file, dataConsumer.get());
     }
     else if (readoptions == "split")
     {
-      dataConsumer = new MzMLSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      MzXMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_unique<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      MzXMLFile().transform(file, dataConsumer.get());
     }
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Unknown or unsupported option " + readoptions);
     }
-    OPENMS_LOG_DEBUG << "Finished parsing Swath file " << std::endl;
+    OPENMS_LOG_DEBUG << "Finished parsing Swath file \n";
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
-    delete dataConsumer;
 
     endProgress();
     return swath_maps;
@@ -271,7 +272,7 @@ namespace OpenMS
     endProgress();
 
     std::cout << "Determined there to be " << swath_maps.size() <<
-      " SWATH windows and in total " << indices.size() << " MS1 spectra" << std::endl;
+      " SWATH windows and in total " << indices.size() << " MS1 spectra\n";
 
     return swath_maps;
   }
@@ -368,7 +369,7 @@ namespace OpenMS
 
             OPENMS_LOG_DEBUG << "Adding Swath centered at " << boundary.center
               << " m/z with an isolation window of " << boundary.lower << " to " << boundary.upper
-              << " m/z and IM start of " << boundary.imLower << " and IM end of " << boundary.imUpper << std::endl;
+              << " m/z and IM start of " << boundary.imLower << " and IM end of " << boundary.imUpper << '\n';
           }
         }
       }
@@ -376,6 +377,6 @@ namespace OpenMS
     nr_ms1_spectra = ms1_counter;
 
     std::cout << "Determined there to be " << swath_counter.size() <<
-      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
+      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
   }
 }

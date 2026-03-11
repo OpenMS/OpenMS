@@ -12,7 +12,10 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <QtCore/QDate>
+#include <memory>
+
+// forward declaration
+class QDate;
 
 namespace OpenMS
 {
@@ -24,8 +27,7 @@ namespace OpenMS
 
       @ingroup Datastructures
   */
-  class OPENMS_DLLAPI Date :
-    public QDate
+  class OPENMS_DLLAPI Date
   {
 public:
 
@@ -34,18 +36,34 @@ public:
 
         Fills the object with an undefined date: 00/00/0000
     */
-    Date() = default;
+    Date();
+
     /// Copy constructor
-    Date(const Date& date) = default;
+    Date(const Date& date);
+
     /// Copy constructor from Qt base class
     Date(const QDate& date);
+
     /// Move constructor
-    Date(Date&&) = default;
+    Date(Date&&) noexcept;
+
+    /// Destructor
+    ~Date();
 
     /// Assignment operator
-    Date& operator=(const Date& source) = default;
+    Date& operator=(const Date& source);
+
     /// Move assignment operator
-    Date& operator=(Date&&) & = default;
+    Date& operator=(Date&&) & noexcept;
+
+    /// Equality operator
+    bool operator==(const Date& rhs) const;
+
+    /// Inequality operator
+    bool operator!=(const Date& rhs) const;
+
+    /// Less than operator
+    bool operator<(const Date& rhs) const;
 
     /**
         @brief sets data from a string
@@ -86,7 +104,23 @@ public:
     ///Sets the undefined date: 00/00/0000
     void clear();
 
-protected:
+    /// Returns if the date is valid
+    bool isValid() const;
+
+    /// Returns if the date is null
+    bool isNull() const;
+
+    /// Returns the year
+    int year() const;
+
+    /// Returns the month
+    int month() const;
+
+    /// Returns the day
+    int day() const;
+
+private:
+    std::unique_ptr<QDate> date_; ///< Internal QDate representation
   };
 } // namespace OPENMS
 

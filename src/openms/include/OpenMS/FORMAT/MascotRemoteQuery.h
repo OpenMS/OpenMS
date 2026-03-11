@@ -9,12 +9,11 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <QtCore/QObject>
-#include <QtCore/QString>
-#include <QtCore/QTimer>
-#include <QtNetwork/QNetworkAccessManager>
-#include <QtNetwork/QNetworkReply>
 
+#include <string>
+#include <vector>
+
+typedef void CURL;
 
 namespace OpenMS
 {
@@ -28,18 +27,15 @@ namespace OpenMS
 
   */
   class MascotRemoteQuery :
-    public QObject,
     public DefaultParamHandler
   {
-    Q_OBJECT
-
 public:
 
     /** @name Constructors and destructors
     */
     //@{
     /// default constructor
-    OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = 0);
+    OPENMS_DLLAPI MascotRemoteQuery();
 
     /// assignment operator
     OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs) = delete;
@@ -55,10 +51,10 @@ public:
     OPENMS_DLLAPI void setQuerySpectra(const String& exp);
 
     /// returns the Mascot XML response which contains the identifications
-    OPENMS_DLLAPI const QByteArray& getMascotXMLResponse() const;
+    OPENMS_DLLAPI const std::string& getMascotXMLResponse() const;
 
     /// returns the Mascot XML response which contains the decoy identifications (note: setExportDecoys must be set to true, otherwise result will be empty)
-    OPENMS_DLLAPI const QByteArray& getMascotXMLDecoyResponse() const;
+    OPENMS_DLLAPI const std::string& getMascotXMLDecoyResponse() const;
 
     /// predicate which returns true if an error occurred during the query
     OPENMS_DLLAPI bool hasError() const;
@@ -72,85 +68,46 @@ public:
     /// request export of decoy summary and decoys (note: internal decoy search must be enabled in the MGF file passed to mascot)
     OPENMS_DLLAPI void setExportDecoys(const bool b);
 
+    /// Execute the full Mascot workflow synchronously (login -> query -> export results).
+    OPENMS_DLLAPI void run();
+
 protected:
 
     OPENMS_DLLAPI void updateMembers_() override;
 
-public slots:
-
-    OPENMS_DLLAPI void run();
-
-private slots:
-
-    /// slot connected to QTimer (timeout_)
-    OPENMS_DLLAPI void timedOut() const;
-
-    /// slot connected to the QNetworkAccessManager::finished signal
-    OPENMS_DLLAPI void readResponse(QNetworkReply* reply);
-
-    /// slot connected to signal downloadProgress
-    OPENMS_DLLAPI void downloadProgress(qint64 bytes_read, qint64 bytes_total);
-
-    /// slot connected to signal uploadProgress
-    OPENMS_DLLAPI void uploadProgress(qint64 bytes_read, qint64 bytes_total);
-
-    /// slot connected to signal gotRedirect
-    OPENMS_DLLAPI void followRedirect(QNetworkReply * reply);
-
-signals:
-
-    /// signal when class got a redirect
-    OPENMS_DLLAPI void gotRedirect(QNetworkReply * reply);
-
-    /// signal when class is done and results can be collected
-    OPENMS_DLLAPI void done();
-
 private:
 
     /// login to Mascot server
-    void login();
+    void login(CURL* curl);
 
     /// execute query (upload file)
-    void execQuery();
+    void execQuery(CURL* curl);
 
-    /// download result file
-    void getResults(const QString& results_path);
+    /// download result file and process response
+    std::string getResults(CURL* curl, const std::string& results_path);
 
-    /// finish a run and emit "done"
-    OPENMS_DLLAPI void endRun_();
+    /// perform an HTTP GET and return the response body
+    std::string httpGet(CURL* curl, const std::string& path);
 
-    /**
-      @brief Remove host name information from an url, e.g., "http://www.google.de/search" -> "search"
+    /// perform an HTTP POST with the given body and content type, return the response body
+    std::string httpPost(CURL* curl, const std::string& path, const std::string& body, const std::string& content_type);
 
-      @param[in] url The url that will be manipulated.
-    */
-    void removeHostName_(QString& url);
+    /// build full URL from a path
+    std::string buildUrl(const std::string& path) const;
 
-    /// helper function to build URL
-    QUrl buildUrl_(const std::string& path);
-
-    /// Write HTTP header to error stream (for debugging)
-    OPENMS_DLLAPI void logHeader_(const QNetworkRequest& header, const String& what);
-
-    /// Write HTTP header to error stream (for debugging)
-    OPENMS_DLLAPI void logHeader_(const QNetworkReply* header, const String& what);
-
+    /// Extract search identifier from .dat file path
     OPENMS_DLLAPI String getSearchIdentifierFromFilePath(const String& path) const;
 
-    /// parse new response header
-    OPENMS_DLLAPI void readResponseHeader(const QNetworkReply* reply);
-
-    QNetworkAccessManager* manager_;
+    /// Remove host name information from a url
+    std::string removeHostName(const std::string& url) const;
 
     // Input / Output data
     String query_spectra_;
-    QByteArray mascot_xml_;
-    QByteArray mascot_decoy_xml_;
+    std::string mascot_xml_;
+    std::string mascot_decoy_xml_;
 
     // Internal data structures
-    QString cookie_;
     String error_message_;
-    QTimer timeout_;
     String search_identifier_;
 
     /// Path on mascot server
@@ -158,16 +115,15 @@ private:
     /// Hostname of the mascot server
     String host_name_;
     /// Login required
-    bool requires_login_;
+    bool requires_login_ = false;
     /// Use SSL connection
-    bool use_ssl_;
+    bool use_ssl_ = false;
     /// boundary string that will be embedded into the HTTP requests
     String boundary_;
     /// Timeout after these many seconds
-    Int to_;
+    Int to_ = 1500;
 
     bool export_decoys_ = false;
   };
 
 }
-

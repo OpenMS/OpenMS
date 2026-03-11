@@ -8,6 +8,9 @@
 
 #include <OpenMS/METADATA/InstrumentSettings.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
 #include <utility>
 
 using namespace std;
@@ -18,9 +21,9 @@ namespace OpenMS
 
   InstrumentSettings::InstrumentSettings() :
     MetaInfoInterface(),
-    scan_mode_(UNKNOWN),
+    scan_mode_(ScanMode::UNKNOWN),
     zoom_scan_(false),
-    polarity_(IonSource::POLNULL),
+    polarity_(IonSource::Polarity::POLNULL),
     scan_windows_()
   {
   }
@@ -89,12 +92,33 @@ namespace OpenMS
   StringList InstrumentSettings::getAllNamesOfScanMode()
   {
     StringList names;
-    names.reserve(SIZE_OF_SCANMODE);
-    for (size_t i = 0; i < SIZE_OF_SCANMODE; ++i)
+    names.reserve(static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE));
+    for (size_t i = 0; i < static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE); ++i)
     {
       names.push_back(NamesOfScanMode[i]);
     }
     return names;
+  }
+
+  const std::string& InstrumentSettings::scanModeToString(ScanMode mode)
+  {
+    if (mode == ScanMode::SIZE_OF_SCANMODE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SCANMODE");
+    }
+    return NamesOfScanMode[static_cast<size_t>(mode)];
+  }
+
+  InstrumentSettings::ScanMode InstrumentSettings::toScanMode(const std::string& name)
+  {
+    auto first = &NamesOfScanMode[0];
+    auto last = &NamesOfScanMode[static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE)];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<ScanMode>(it - first);
   }
 
 }

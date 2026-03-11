@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationDataProvider.h>
 
 #include <set>
 #include <memory>  // unique_ptr
@@ -58,6 +59,19 @@ public:
 
     /// Check whether ModificationsDB was instantiated before
     static bool isInstantiated();
+
+    /**
+      @brief Construct from data providers (no file I/O performed by this constructor).
+
+      Use this constructor for dependency injection, e.g., with InMemoryDataProvider
+      for testing or custom providers for alternative data sources.
+
+      @param providers Vector of data providers; each will be called once to load modifications.
+    */
+    explicit ModificationsDB(std::vector<std::unique_ptr<ModificationDataProvider>> providers);
+
+    /// Destructor (public so non-singleton instances created via provider constructor can be destroyed)
+    virtual ~ModificationsDB();
 
     friend class CrossLinksDB;
     // for access to addNewModification_ (without checking presence)
@@ -240,22 +254,8 @@ public:
 
 private:
 
-    /** @name Constructors and Destructors
-
-        @param[in] unimod_file Path to the Unimod XML file
-        @param[in] psimod_file Path to the PSI-MOD OBO file
-        @param[in] xlmod_file Path to the XLMOD OBO file
-
-     */
-    //@{
-    explicit ModificationsDB(const OpenMS::String& unimod_file = "CHEMISTRY/unimod.xml", const OpenMS::String& custommod_file = "CHEMISTRY/custom_mods.xml", const OpenMS::String& psimod_file = "CHEMISTRY/PSI-MOD.obo", const OpenMS::String& xlmod_file = "CHEMISTRY/XLMOD.obo");
-
-    /// Copy constructor
+    /// Copy constructor (disabled)
     ModificationsDB(const ModificationsDB& residue_db);
-
-    /// Destructor
-    virtual ~ModificationsDB();
-    //@}
 
     /** @name Assignment
      */
@@ -271,14 +271,7 @@ private:
     */
     const ResidueModification* addNewModification_(const ResidueModification& new_mod);
 
-    /**
-       @brief Adds modifications from a given file in OBO format
-
-       @throw Exception::ParseError if the file cannot be parsed correctly
-    */
-    void readFromOBOFile(const String& filename);
-
-    /// Adds modifications from a given file in Unimod XML format
-    void readFromUnimodXMLFile(const String& filename);
+    /// Loads and indexes modifications from the given providers
+    void loadFromProviders_(std::vector<std::unique_ptr<ModificationDataProvider>>& providers);
   };
 }

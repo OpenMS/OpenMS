@@ -200,7 +200,7 @@ namespace OpenMS
               OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of N-Term " << OpenMS::String((*modifiable_nterm.begin())->getId()) <<
                                    " to last residue (" << temp_sequence[temp_sequence.size() - 1].getOneLetterCode() << ") of peptide " << temp_sequence.toUniModString() << 
                                    " , because it does not match viable N-Term residue specificity (" <<
-                                   OpenMS::String((*modifiable_nterm.begin())->getOrigin()) << ") in ModificationDB." << std::endl;
+                                   OpenMS::String((*modifiable_nterm.begin())->getOrigin()) << ") in ModificationDB.\n";
               skip_invalid_mod_seq = true;
             }
           }
@@ -216,7 +216,7 @@ namespace OpenMS
               OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of C-Term " << OpenMS::String((*modifiable_cterm.begin())->getId()) <<
                                    " to last residue (" << temp_sequence.toUnmodifiedString().back() << ") of peptide " << temp_sequence.toUniModString() << 
                                    " , because it does not match viable C-Term residue specificity (" <<
-                                   OpenMS::String((*modifiable_cterm.begin())->getOrigin()) << ") in ModificationDB." << std::endl;
+                                   OpenMS::String((*modifiable_cterm.begin())->getOrigin()) << ") in ModificationDB.\n";
               skip_invalid_mod_seq = true;
             }
           }
@@ -396,7 +396,7 @@ namespace OpenMS
       // Some permutations might be too complex, skip if threshold is reached
       if (alternative_peptide_sequences.size() > max_num_alternative_localizations)
       {
-        OPENMS_LOG_DEBUG << "[uis] Peptide skipped (too many permutations possible): " << peptide.id << std::endl;
+        OPENMS_LOG_DEBUG << "[uis] Peptide skipped (too many permutations possible): " << peptide.id << '\n';
         continue;
       }
 
@@ -641,14 +641,14 @@ namespace OpenMS
           trn.setNativeID(identifier);
           trn.setMetaValue("Peptidoforms", ListUtils::concatenate(isoforms, "|"));
 
-          OPENMS_LOG_DEBUG << "[uis] Transition " << trn.getNativeID() << std::endl;
+          OPENMS_LOG_DEBUG << "[uis] Transition " << trn.getNativeID() << '\n';
 
           // Append transition
           transitions.push_back(trn);
         }
         transition_index++;
       }
-      OPENMS_LOG_DEBUG << "[uis] Peptide " << peptide.id << std::endl;
+      OPENMS_LOG_DEBUG << "[uis] Peptide " << peptide.id << '\n';
     }
     endProgress();
   }
@@ -716,7 +716,7 @@ namespace OpenMS
           trn.setNativeID(identifier);
           trn.setMetaValue("Peptidoforms", ListUtils::concatenate(decoy_isoforms, "|"));
 
-          OPENMS_LOG_DEBUG << "[uis] Decoy transition " << trn.getNativeID() << std::endl;
+          OPENMS_LOG_DEBUG << "[uis] Decoy transition " << trn.getNativeID() << '\n';
 
           // Check if decoy transition is overlapping with target transition
           vector<string> target_isoforms_overlap = getMatchingPeptidoforms_(
@@ -724,7 +724,7 @@ namespace OpenMS
 
           if (!target_isoforms_overlap.empty())
           {
-            OPENMS_LOG_DEBUG << "[uis] Skipping overlapping decoy transition " << trn.getNativeID() << std::endl;
+            OPENMS_LOG_DEBUG << "[uis] Skipping overlapping decoy transition " << trn.getNativeID() << '\n';
             continue;
           }
           else
@@ -808,12 +808,12 @@ namespace OpenMS
         {
           OPENMS_LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString() 
             << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
-            << " " << tr.getMetaValue("annotation") << std::endl;
+            << " " << tr.getMetaValue("annotation") << '\n';
           continue;
         }
         else
         {
-          OPENMS_LOG_DEBUG << "[selected] " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
+          OPENMS_LOG_DEBUG << "[selected] " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << '\n';
         }
 
         // Set CV terms
@@ -859,7 +859,7 @@ namespace OpenMS
         {
           OPENMS_LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence 
             << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
-            << " " << tr.getMetaValue("annotation") << std::endl;
+            << " " << tr.getMetaValue("annotation") << '\n';
           continue;
         }
       }
@@ -869,7 +869,7 @@ namespace OpenMS
       {
         if (MRMAssay::isInSwath_(swathes, tr.getPrecursorMZ(), tr.getProductMZ()))
         {
-          OPENMS_LOG_DEBUG << "[swath] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
+          OPENMS_LOG_DEBUG << "[swath] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << '\n';
           continue;
         }
       }
@@ -877,7 +877,7 @@ namespace OpenMS
       // Check if product m/z is outside of m/z boundaries and if yes, skip
       if (tr.getProductMZ() < lower_mz_limit || tr.getProductMZ() > upper_mz_limit)
       {
-        OPENMS_LOG_DEBUG << "[mz_limit] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
+        OPENMS_LOG_DEBUG << "[mz_limit] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << '\n';
         continue;
       }
 
@@ -901,15 +901,9 @@ namespace OpenMS
     std::map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of peptides to transitions for easy access
-    for (Size i = 0; i < exp.getTransitions().size(); ++i)
+    for (const auto& tr : exp.getTransitions())
     {
-      ReactionMonitoringTransition tr = exp.getTransitions()[i];
-
-      if (TransitionsMap.find(tr.getPeptideRef()) == TransitionsMap.end())
-      {
-        TransitionsMap[tr.getPeptideRef()];
-      }
-
+      // operator[] creates empty vector if key doesn't exist, avoiding redundant find() calls
       TransitionsMap[tr.getPeptideRef()].push_back(tr);
     }
 
@@ -990,7 +984,7 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << std::endl;
+        OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << '\n';
       }
     }
 
@@ -1005,7 +999,7 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_DEBUG << "[protein] Skipping " << protein.id << std::endl;
+        OPENMS_LOG_DEBUG << "[protein] Skipping " << protein.id << '\n';
       }
     }
 
@@ -1087,15 +1081,9 @@ namespace OpenMS
     std::map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of compounds to transitions for easy access
-    for (Size i = 0; i < exp.getTransitions().size(); ++i)
+    for (const auto& tr : exp.getTransitions())
     {
-      ReactionMonitoringTransition tr = exp.getTransitions()[i];
-
-      if (TransitionsMap.find(tr.getCompoundRef()) == TransitionsMap.end())
-      {
-        TransitionsMap[tr.getCompoundRef()];
-      }
-
+      // operator[] creates empty vector if key doesn't exist, avoiding redundant find() calls
       TransitionsMap[tr.getCompoundRef()].push_back(tr);
     }
 
@@ -1168,7 +1156,7 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_DEBUG << "[compound] Skipping " << compound.id << " - not enough transitions."<< std::endl;
+        OPENMS_LOG_DEBUG << "[compound] Skipping " << compound.id << " - not enough transitions."<< '\n';
       }
     }
     exp.setTransitions(transitions);
@@ -1231,7 +1219,7 @@ namespace OpenMS
       // Check if decoy was filtered
       if (std::find(single_decoy_id.begin(), single_decoy_id.end(), it.id) != single_decoy_id.end())
       {
-        OPENMS_LOG_DEBUG << "The decoy " << it.id << " was filtered due to missing a respective target." << std::endl;
+        OPENMS_LOG_DEBUG << "The decoy " << it.id << " was filtered due to missing a respective target.\n";
       }
       else
       {
@@ -1247,7 +1235,7 @@ namespace OpenMS
       if (std::find(single_decoy_id.begin(), single_decoy_id.end(), it.getCompoundRef()) != single_decoy_id.end())
       {
         OPENMS_LOG_DEBUG << "The decoy " << it.getCompoundRef()
-                         << " was filtered due to missing a respective target." << std::endl;
+                         << " was filtered due to missing a respective target.\n";
       }
       else
       {
@@ -1353,7 +1341,7 @@ namespace OpenMS
         if (targetion.first == "unannotated")
         {
           OPENMS_LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString()
-            << " PrecursorMZ: " << tr->precursor_mz << " ProductMZ: " << tr->product_mz << std::endl;
+            << " PrecursorMZ: " << tr->precursor_mz << " ProductMZ: " << tr->product_mz << '\n';
           continue;
         }
 
@@ -1435,7 +1423,7 @@ namespace OpenMS
       {
         if (MRMAssay::isInSwath_(swathes, tr.precursor_mz, tr.product_mz))
         {
-          OPENMS_LOG_DEBUG << "[swath] Skipping PrecursorMZ: " << tr.precursor_mz << " ProductMZ: " << tr.product_mz << std::endl;
+          OPENMS_LOG_DEBUG << "[swath] Skipping PrecursorMZ: " << tr.precursor_mz << " ProductMZ: " << tr.product_mz << '\n';
           continue;
         }
       }
@@ -1443,7 +1431,7 @@ namespace OpenMS
       // Check if product m/z is outside of m/z boundaries and if yes, skip
       if (tr.product_mz < lower_mz_limit || tr.product_mz > upper_mz_limit)
       {
-        OPENMS_LOG_DEBUG << "[mz_limit] Skipping PrecursorMZ: " << tr.precursor_mz << " ProductMZ: " << tr.product_mz << std::endl;
+        OPENMS_LOG_DEBUG << "[mz_limit] Skipping PrecursorMZ: " << tr.precursor_mz << " ProductMZ: " << tr.product_mz << '\n';
         continue;
       }
 
@@ -1677,7 +1665,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException&)
       {
-        OPENMS_LOG_DEBUG << "[uis] Skipping compound (cannot parse sequence): " << compound.id << std::endl;
+        OPENMS_LOG_DEBUG << "[uis] Skipping compound (cannot parse sequence): " << compound.id << '\n';
         continue;
       }
 
@@ -1691,7 +1679,7 @@ namespace OpenMS
       // Some permutations might be too complex, skip if threshold is reached
       if (alternative_peptide_sequences.size() > max_num_alternative_localizations)
       {
-        OPENMS_LOG_DEBUG << "[uis] Peptide skipped (too many permutations possible): " << compound.id << std::endl;
+        OPENMS_LOG_DEBUG << "[uis] Peptide skipped (too many permutations possible): " << compound.id << '\n';
         continue;
       }
 

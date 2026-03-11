@@ -27,6 +27,7 @@
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <vector>
@@ -360,7 +361,7 @@ namespace OpenMS
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
 
-          chromatogram.push_back(ChromatogramPeak(rt_temp, intensity_temp));
+          chromatogram.push_back(ChromatogramPeak(rt_temp, static_cast<ChromatogramPeak::IntensityType>(intensity_temp)));
         }
 
         chromatogram.sortByPosition();
@@ -472,7 +473,7 @@ namespace OpenMS
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
 
-          chromatogram.push_back(ChromatogramPeak(rt_temp, intensity_temp));
+          chromatogram.push_back(ChromatogramPeak(rt_temp, static_cast<ChromatogramPeak::IntensityType>(intensity_temp)));
         }
 
         makePeakPositionUnique(chromatogram, IntensityAveragingMethod::MEDIAN);
@@ -932,7 +933,7 @@ namespace OpenMS
     {
       spectrum_type = exp[0].getType(true);
       // The following means that UNKNOWN will be handled as profile.
-      centroided_ = (spectrum_type == SpectrumSettings::CENTROID);
+      centroided_ = (spectrum_type == SpectrumSettings::SpectrumType::CENTROID);
     }
     else if (param_.getValue("algorithm:spectrum_type") == "centroid")
     {

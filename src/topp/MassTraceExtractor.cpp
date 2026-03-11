@@ -14,6 +14,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Constants.h>
 

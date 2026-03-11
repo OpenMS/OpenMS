@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
@@ -191,7 +193,7 @@ protected:
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
 
-    if (spectrum_type == SpectrumSettings::PROFILE)
+    if (spectrum_type == SpectrumSettings::SpectrumType::PROFILE)
     {
       if (!getFlag_("force"))
       {

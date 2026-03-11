@@ -6,7 +6,7 @@
   - OpenNuXL -- Annotate RNA/DNA-peptide cross-links in MS/MS spectra
   - PeakPickerIM -- Applies PeakPickerIM to an mzML file
   - PeptideDataBaseSearchFI -- Annotates bottom-up MS/MS spectra using PeptideDataBaseSearchFI
-  - QuantmsIOConverter -- Converts IdXML files to parquet format following quantms.io PSM specification
+  - QPXConverter -- Converts IdXML files to parquet format following QPX PSM specification
 
 
 - REMOVED:

@@ -18,14 +18,19 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
-#include <QtCore/QFileInfo>
 #include <QtCore/QDir>
-#include <QtNetwork/QHostInfo>
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
 
 #include <atomic>
+#include <cerrno>
+#include <filesystem>
+#include <fstream>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
+#include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName() && GetComputerNameA()
+#else
+#include <unistd.h> // for gethostname()
 #endif
 
 #ifdef OPENMS_HAS_UNISTD_H
@@ -37,22 +42,6 @@
 #endif
 
 
-#include <QtCore/QObject>
-#include <QtNetwork/QNetworkAccessManager>
-#include <QtNetwork/QNetworkRequest>
-#include <QtNetwork/QNetworkReply>
-#include <QtCore/QUrl>
-#include <QtCore/QDateTime>
-#include <QtCore/QFile>
-#include <QtCore/QDebug>
-
-#include <OpenMS/SYSTEM/NetworkGetRequest.h>
-#include <QtCore/QDir>
-#include <QtCore/QCoreApplication>
-#include <QtCore/QDateTime>
-#include <QtCore/QTimer>
-
-
 using namespace std;
 
 namespace OpenMS
@@ -62,7 +51,7 @@ namespace OpenMS
     : keep_dir_(keep_dir)
   {
     temp_dir_ = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
-    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'" << std::endl;
+    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
     QDir d;
     d.mkpath(temp_dir_.toQString());
   };
@@ -71,7 +60,7 @@ namespace OpenMS
   {
     if (keep_dir_)
     {
-      OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << std::endl;
+      OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << '\n';
       return;
     }
 
@@ -195,7 +184,7 @@ namespace OpenMS
     // check canonical path
     if (canonical_source_dir == canonical_target_dir)
     {
-      OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given." << std::endl;
+      OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given.\n";
       return false;
     }
 
@@ -229,7 +218,7 @@ namespace OpenMS
               case CopyOptions::CANCEL:
                 return false;
               case CopyOptions::SKIP:
-                OPENMS_LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl;
+                OPENMS_LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped.\n";
                 continue;
               case CopyOptions::OVERWRITE:
                 target_dir.remove(entry.fileName());
@@ -305,7 +294,7 @@ namespace OpenMS
     {
       if (!dir.remove(file_name))
       {
-        OPENMS_LOG_WARN << "Could not remove file " << String(file_name) << "!" << std::endl;
+        OPENMS_LOG_WARN << "Could not remove file " << String(file_name) << "!\n";
         fail = true;
       }
     }
@@ -483,7 +472,30 @@ namespace OpenMS
     pid = (String)getpid();
 #endif
     static std::atomic_int number = 0;
-    return now.getDate().remove('-') + "_" + now.getTime().remove(':') + "_" + (include_hostname ? String(QHostInfo::localHostName()) + "_" : "")  + pid + "_" + (++number);
+    String hostname_str;
+    if (include_hostname)
+    {
+      char hbuf[256] = {};
+#ifdef OPENMS_WINDOWSPLATFORM
+      DWORD sz = sizeof(hbuf);
+      if (!GetComputerNameA(hbuf, &sz))
+      {
+        OPENMS_LOG_WARN << "Warning: GetComputerNameA failed (error " << GetLastError() << ")" << std::endl;
+        hbuf[0] = '\0';
+      }
+#else
+      if (gethostname(hbuf, sizeof(hbuf)) != 0)
+      {
+        OPENMS_LOG_WARN << "Warning: gethostname failed (errno " << errno << ")" << std::endl;
+        hbuf[0] = '\0';
+      }
+#endif
+      if (hbuf[0] != '\0')
+      {
+        hostname_str = String(hbuf) + "_";
+      }
+    }
+    return now.getDate().remove('-') + "_" + now.getTime().remove(':') + "_" + hostname_str + pid + "_" + (++number);
   }
 
   String File::getOpenMSDataPath()
@@ -631,11 +643,11 @@ namespace OpenMS
     try
     {
       full_db_name = find(db_name, ListUtils::toStringList<std::string>(sys_p.getValue("id_db_dir")));
-      OPENMS_LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'" << std::endl;
+      OPENMS_LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'\n";
     }
     catch (Exception::FileNotFound& e)
     {
-      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.what() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
+      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.what() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!\n";
       throw;
     }
 
@@ -690,13 +702,13 @@ namespace OpenMS
       {
         if (!p.exists("version"))
         {
-          OPENMS_LOG_WARN << "Broken file '" << filename << "' discovered. The 'version' tag is missing." << std::endl;
+          OPENMS_LOG_WARN << "Broken file '" << filename << "' discovered. The 'version' tag is missing.\n";
         }
         else // old version
         {
-          OPENMS_LOG_WARN << "File '" << filename << "' is deprecated." << std::endl;
+          OPENMS_LOG_WARN << "File '" << filename << "' is deprecated.\n";
         }
-        OPENMS_LOG_WARN << "Updating missing/wrong entries in '" << filename << "' with defaults!" << std::endl;
+        OPENMS_LOG_WARN << "Updating missing/wrong entries in '" << filename << "' with defaults!\n";
         Param p_new = getSystemParameterDefaults_();
         p.setValue("version", VersionInfo::getVersion()); // update old version, such that p_new:version does not get overwritten during update()
         p_new.update(p);
@@ -906,64 +918,5 @@ namespace OpenMS
   }
 
   File::TemporaryFiles_ File::temporary_files_;
-
-  // construct a filename. Add number if already exists.
-  QString saveFileName_(const QUrl &url)
-  {
-    QString path = url.path();
-    QString basename = QFileInfo(path).fileName();
-
-    if (basename.isEmpty())
-        basename = "download";
-
-    if (QFile::exists(basename)) {
-        // already exists, don't overwrite
-        int i = 0;
-        basename += '.';
-        while (QFile::exists(basename + QString::number(i)))
-            ++i;
-
-        basename += QString::number(i);
-    }
-
-    return basename;
-  }
-
-// static
-void File::download(const std::string& url, const std::string& download_folder)
-{
-  // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
-  char const * argv2[] = { "dummyname", nullptr };
-  int argc = 1;
-  QCoreApplication event_loop(argc, const_cast<char**>(argv2));
-  NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
-  auto qURL = QUrl(QString::fromUtf8(url.c_str()));
-  query->setUrl(qURL);
-  QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
-  QTimer::singleShot(1000, query, SLOT(run()));          
-  QTimer::singleShot(600000, query, SLOT(timeOut())); // 10 minutes timeout
-  event_loop.exec();
-
-  if (!query->hasError())
-  {
-    QString folder = download_folder.empty() ? QString("./") : QString(download_folder.c_str());
-    QString filename = QString(folder) + "/" + saveFileName_(qURL); 
-    QFile file(filename);
-    file.open(QIODevice::ReadWrite);
-    file.write(query->getResponseBinary().data(), query->getResponseBinary().size());
-    file.close();
-    OPENMS_LOG_INFO << "Download of '" << url << "' successful." << endl;
-    OPENMS_LOG_INFO << "Stored as '" << filename.toStdString() << "'." << endl;
-  }
-  else
-  {
-    String error = "Download of '" + url + "' failed!. Error: " + String(query->getErrorString()) + '\n';
-    throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
-  }
-
-  delete query;
-  event_loop.quit();
-}
-
 
 } // namespace OpenMS

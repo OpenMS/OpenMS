@@ -19,6 +19,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/SYSTEM/File.h>
 

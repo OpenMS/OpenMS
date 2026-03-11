@@ -3,6 +3,7 @@ set(directory source/ANALYSIS/OPENSWATH)
 
 ### list all header files of the directory here
 set(sources_list
+  CalibrationWorkflow.cpp
   ChromatogramExtractor.cpp
   ChromatogramExtractorAlgorithm.cpp
   ConfidenceScoring.cpp
@@ -26,6 +27,8 @@ set(sources_list
   OpenSwathHelper.cpp
   OpenSwathScores.cpp
   OpenSwathScoring.cpp
+  OpenSwathOSWParquetReader.cpp
+  OpenSwathOSWParquetWriter.cpp
   OpenSwathOSWWriter.cpp
   OpenSwathWorkflow.cpp
   PeakIntegrator.cpp
@@ -37,6 +40,7 @@ set(sources_list
   SpectrumAddition.cpp
   TargetedSpectraExtractor.cpp
   TransitionTSVFile.cpp
+  TransitionParquetFile.cpp
   TransitionPQPFile.cpp
 )
 

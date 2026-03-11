@@ -383,6 +383,18 @@ public:
     */
     void clear(bool clear_meta_data);
 
+    /**
+      @brief Subset the chromatogram by selecting only indices in @p indices, in that order
+
+      @param[in] indices Indices to keep. The order is retained.
+      @return Reference to this MSChromatogram
+
+      @note The indices are NOT checked for validity!
+      @note DataArrays must have the same size as the chromatogram. If not, an exception is thrown.
+      @note This method is useful for filtering chromatograms while properly maintaining DataArrays.
+    */
+    MSChromatogram& select(const std::vector<Size>& indices);
+
     ///@}
 
     /**

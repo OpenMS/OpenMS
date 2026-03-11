@@ -291,27 +291,27 @@ namespace OpenMS
 
   Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
   {
-    Logger::LogStream * log = &OpenMS_Log_debug; // default
+    Logger::LogStream * log = &getGlobalLogDebug(); // default
 
     if (stream_name == "DEBUG")
     {
-      log = &OpenMS_Log_debug;
+      log = &getGlobalLogDebug();
     }
     else if (stream_name == "INFO")
     {
-      log = &OpenMS_Log_info;
+      log = &getGlobalLogInfo();
     }
     else if (stream_name == "WARNING")
     {
-      log = &OpenMS_Log_warn;
+      log = &getGlobalLogWarn();
     }
     else if (stream_name == "ERROR")
     {
-      log = &OpenMS_Log_error;
+      log = &getGlobalLogError();
     }
     else if (stream_name == "FATAL_ERROR")
     {
-      log = &OpenMS_Log_fatal;
+      log = &getGlobalLogFatal();
     }
     else
     {

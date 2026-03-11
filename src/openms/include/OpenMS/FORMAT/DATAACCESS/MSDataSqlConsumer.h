@@ -69,6 +69,11 @@ namespace OpenMS
       */
       void flush();
 
+      /// Add/insert a RUN entry into the sqMass file (ID and filename)
+      void addRun(const String& filename, const UInt64 run_id);
+      /// Change the current run id used for subsequent chromatogram/spectrum writes
+      void setRunId(const UInt64 run_id);
+
       /**
         @brief Write a spectrum to the output file
       */
@@ -94,6 +99,7 @@ namespace OpenMS
       std::vector<ChromatogramType> chromatograms_;
 
       MSExperiment peak_meta_;
+      bool wrote_any_run_ = false;
     };
 
 } //end namespace OpenMS

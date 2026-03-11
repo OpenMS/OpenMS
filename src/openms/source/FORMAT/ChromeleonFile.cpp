@@ -107,7 +107,7 @@ namespace OpenMS
       {
         chromatogram.push_back(ChromatogramPeak(
           removeCommasAndParseDouble(substrings[0]),
-          removeCommasAndParseDouble(substrings[2])));
+          static_cast<ChromatogramPeak::IntensityType>(removeCommasAndParseDouble(substrings[2]))));
       }
       else if (line.empty())
       {

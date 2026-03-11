@@ -11,74 +11,99 @@
 #include <cmath>
 #include <algorithm>
 #include <unordered_map>
+#include <Eigen/Core>
 
 namespace OpenSwath::Scoring
 {
-    void normalize_sum(double x[], unsigned int n)
-    { 
-      double sumx = std::accumulate(&x[0], &x[0] + n, 0.0);
-      if (sumx == 0.0)
-      { // avoid divide by zero below
-        return;
-      }                           
-      auto inverse_sum = 1 / sumx; // precompute inverse since division is expensive!
-      for (unsigned int i = 0; i < n; ++i)
+    namespace detail
+    {
+      // Internal helper to avoid deprecation warnings between our own functions
+      static void normalize_sum_impl(double* x, unsigned int n)
       {
-        x[i] *= inverse_sum;
+        Eigen::Map<Eigen::VectorXd> v(x, n);
+        double s = v.sum();
+        if (s != 0.0) { v /= s; }
       }
+    }
+
+    void normalize_sum(double x[], unsigned int n)
+    {
+      detail::normalize_sum_impl(x, n);
+    }
+
+    void normalize_sum(std::vector<double>& x)
+    {
+      detail::normalize_sum_impl(x.data(), static_cast<unsigned int>(x.size()));
     }
 
     double NormalizedManhattanDist(double x[], double y[], int n)
     {
       OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
 
-      double delta_ratio_sum = 0;
-      normalize_sum(x, n);
-      normalize_sum(y, n);
-      for (int i = 0; i < n; i++)
-      {
-        delta_ratio_sum += std::fabs(x[i] - y[i]);
-      }
-      return delta_ratio_sum / n;
+      detail::normalize_sum_impl(x, n);
+      detail::normalize_sum_impl(y, n);
+      Eigen::Map<Eigen::VectorXd> vx(x, n);
+      Eigen::Map<Eigen::VectorXd> vy(y, n);
+      return (vx - vy).cwiseAbs().sum() / n;
+    }
+
+    double NormalizedManhattanDist(std::vector<double>& x, std::vector<double>& y)
+    {
+      OPENSWATH_PRECONDITION(x.size() == y.size() && !x.empty(), "Both vectors need to have the same non-zero length");
+      detail::normalize_sum_impl(x.data(), static_cast<unsigned int>(x.size()));
+      detail::normalize_sum_impl(y.data(), static_cast<unsigned int>(y.size()));
+      Eigen::Map<Eigen::VectorXd> vx(x.data(), x.size());
+      Eigen::Map<Eigen::VectorXd> vy(y.data(), y.size());
+      return (vx - vy).cwiseAbs().sum() / x.size();
     }
 
     double RootMeanSquareDeviation(double x[], double y[], int n)
     {
       OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
 
-      double result = 0;
-      for (int i = 0; i < n; i++)
-      {
+      Eigen::Map<const Eigen::VectorXd> vx(x, n);
+      Eigen::Map<const Eigen::VectorXd> vy(y, n);
+      return std::sqrt((vx - vy).squaredNorm() / n);
+    }
 
-        result += (x[i] - y[i]) * (x[i] - y[i]);
-      }
-      return std::sqrt(result / n);
+    double RootMeanSquareDeviation(const std::vector<double>& x, const std::vector<double>& y)
+    {
+      OPENSWATH_PRECONDITION(x.size() == y.size() && !x.empty(), "Both vectors need to have the same non-zero length");
+      Eigen::Map<const Eigen::VectorXd> vx(x.data(), x.size());
+      Eigen::Map<const Eigen::VectorXd> vy(y.data(), y.size());
+      return std::sqrt((vx - vy).squaredNorm() / x.size());
     }
 
     double SpectralAngle(double x[], double y[], int n)
     {
       OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
 
-      double dotprod = 0;
-      double x_len = 0;
-      double y_len = 0;
-      for (int i = 0; i < n; i++)
-      {
-        dotprod += x[i] * y[i];
-        x_len += x[i] * x[i];
-        y_len += y[i] * y[i];
-      }
-      x_len = std::sqrt(x_len);
-      y_len = std::sqrt(y_len);
+      Eigen::Map<const Eigen::VectorXd> vx(x, n);
+      Eigen::Map<const Eigen::VectorXd> vy(y, n);
+      double x_len = vx.norm();
+      double y_len = vy.norm();
 
       // normalise, avoiding a divide by zero. See unit tests for what happens
       // when one of the vectors has a length of zero.
       double denominator = x_len * y_len;
-      double theta = (denominator == 0) ? 0.0 : dotprod / denominator;
+      double theta = (denominator == 0) ? 0.0 : vx.dot(vy) / denominator;
 
       // clip to range [-1, 1] to save acos blowing up
       theta = std::max(-1.0, std::min(1.0, theta));
 
+      return std::acos(theta);
+    }
+
+    double SpectralAngle(const std::vector<double>& x, const std::vector<double>& y)
+    {
+      OPENSWATH_PRECONDITION(x.size() == y.size() && !x.empty(), "Both vectors need to have the same non-zero length");
+      Eigen::Map<const Eigen::VectorXd> vx(x.data(), x.size());
+      Eigen::Map<const Eigen::VectorXd> vy(y.data(), y.size());
+      double x_len = vx.norm();
+      double y_len = vy.norm();
+      double denominator = x_len * y_len;
+      double theta = (denominator == 0) ? 0.0 : vx.dot(vy) / denominator;
+      theta = std::max(-1.0, std::min(1.0, theta));
       return std::acos(theta);
     }
 
@@ -103,17 +128,12 @@ namespace OpenSwath::Scoring
     {
       if (data.empty())
       {
-	      return;
+        return;
       }
 
-      // subtract the mean and divide by the standard deviation
-      double mean = std::accumulate(data.begin(), data.end(), 0.0) / (double) data.size();
-      double sqsum = 0;
-      for (std::vector<double>::iterator it = data.begin(); it != data.end(); ++it)
-      {
-        sqsum += (*it - mean) * (*it - mean);
-      }
-      double stdev = sqrt(sqsum / data.size()); // standard deviation
+      Eigen::Map<Eigen::VectorXd> v(data.data(), data.size());
+      double mean = v.mean();
+      double stdev = std::sqrt((v.array() - mean).square().mean());
 
       if (mean == 0 && stdev == 0)
       {
@@ -123,10 +143,7 @@ namespace OpenSwath::Scoring
       {
         stdev = 1; // all data is equal
       }
-      for (std::size_t i = 0; i < data.size(); i++)
-      {
-        data[i] = (data[i] - mean) / stdev;
-      }
+      v.array() = (v.array() - mean) / stdev;
     }
 
     XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
@@ -159,20 +176,18 @@ namespace OpenSwath::Scoring
 
       XCorrArrayType result;
       result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
-      int datasize = static_cast<int>(data1.size());
-      int i, j, delay;
+      const int datasize = static_cast<int>(data1.size());
+      const double* __restrict d1 = data1.data();
+      const double* __restrict d2 = data2.data();
 
-      for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag)
+      for (int delay = -maxdelay; delay <= maxdelay; delay += lag)
       {
         double sxy = 0;
-        for (i = 0; i < datasize; ++i)
+        const int start = std::max(0, -delay);
+        const int end = std::min(datasize, datasize - delay);
+        for (int i = start; i < end; ++i)
         {
-          j = i + delay;
-          if (j < 0 || j >= datasize)
-          {
-            continue;
-          }
-          sxy += (data1[i]) * (data2[j]);
+          sxy += d1[i] * d2[i + delay];
         }
         result.data.push_back(std::make_pair(delay, sxy));
       }

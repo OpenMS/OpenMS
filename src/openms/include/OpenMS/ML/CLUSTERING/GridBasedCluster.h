@@ -6,14 +6,13 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
+#pragma once
+
 #include <vector>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-
-#ifndef OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTER_H
-#define OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTER_H
 
 namespace OpenMS
 {
@@ -107,4 +106,3 @@ class OPENMS_DLLAPI GridBasedCluster
 
 }
 
-#endif /* OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTER_H */

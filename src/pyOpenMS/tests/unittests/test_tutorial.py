@@ -1,7 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8  -*-
-from __future__ import print_function
-
 import copy
 import os
 
@@ -56,12 +54,11 @@ def testEmpiricalFormulaTutorial():
     print(wm)
     print(wm.getElementalComposition())
 
-    # TODO: dicts are still using bytes!
     wm = water + methanol # only in pyOpenMS 2.4
     m = wm.getElementalComposition()
-    assert m[b"C"] == 1
-    assert m[b"H"] == 6
-    assert m[b"O"] == 2
+    assert m["C"] == 1
+    assert m["H"] == 6
+    assert m["O"] == 2
 
     wm = EmpiricalFormula("CH3OH") + EmpiricalFormula("H2O")
 
@@ -494,4 +491,3 @@ def testMSChromatogramLen():
     assert len(chromatogram2) == chromatogram2.size()
     
     print("All MSChromatogram len() tests passed!")
-

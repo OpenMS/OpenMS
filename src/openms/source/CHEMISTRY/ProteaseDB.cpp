@@ -8,14 +8,27 @@
 //
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/BuiltInProteaseDataProvider.h>
+#include <OpenMS/CHEMISTRY/EnzymeXMLDataProvider.h>
 #include <fstream>
 using namespace std;
 
 namespace OpenMS
 {
   ProteaseDB::ProteaseDB():
-    DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>("CHEMISTRY/Enzymes.xml")
+    DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>()
   {
+    // Create default providers: built-in enzymes + optional XML file for user overrides
+    vector<unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeProtein>>> providers;
+    providers.push_back(make_unique<BuiltInProteaseDataProvider>());
+    providers.push_back(make_unique<EnzymeXMLDataProvider<DigestionEnzymeProtein>>("CHEMISTRY/Enzymes.xml", /*optional=*/true));
+    loadFromProviders_(providers);
+  }
+
+  ProteaseDB::ProteaseDB(vector<unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeProtein>>> providers):
+    DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>()
+  {
+    loadFromProviders_(providers);
   }
 
   void ProteaseDB::getAllXTandemNames(vector<String>& all_names) const

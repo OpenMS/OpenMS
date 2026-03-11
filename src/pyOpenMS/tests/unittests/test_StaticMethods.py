@@ -140,27 +140,22 @@ class TestFileStaticMethods(unittest.TestCase):
         result = pyopenms.File.getTemporaryFile("")
         self.assertGreater(len(str(result)), 0)
 
-    @unittest.skip("File.stripExtension not exposed as static method")
-    def test_stripExtension(self):
-        """Test File.stripExtension static method."""
-        result = pyopenms.File.stripExtension("/path/to/file.mzML")
-        self.assertIn("file", str(result))
-        self.assertNotIn(".mzML", str(result))
-
-
 class TestBuildInfoStaticMethods(unittest.TestCase):
-    """Test static methods of the OpenMSBuildInfo class."""
+    """Test static methods of the OpenMSBuildInfo and OpenMSOSInfo classes."""
 
-    @unittest.skip("getOSInfo not exposed as static method")
     def test_getOSInfo(self):
-        """Test OpenMSBuildInfo.getOSInfo static method."""
-        os_info = pyopenms.OpenMSBuildInfo.getOSInfo()
+        """Test OpenMSOSInfo.getOSInfo static method."""
+        # Note: getOSInfo is in OpenMSOSInfo, not OpenMSBuildInfo
+        os_info = pyopenms.OpenMSOSInfo.getOSInfo()
         self.assertIsNotNone(os_info)
+        # Test that we can get OS info from the returned object
+        os_string = os_info.getOSAsString()
+        self.assertGreater(len(str(os_string)), 0)
 
-    @unittest.skip("getBinaryArchitecture not exposed as static method")
     def test_getBinaryArchitecture(self):
-        """Test OpenMSBuildInfo.getBinaryArchitecture static method."""
-        arch = pyopenms.OpenMSBuildInfo.getBinaryArchitecture()
+        """Test OpenMSOSInfo.getBinaryArchitecture static method."""
+        # Note: getBinaryArchitecture is in OpenMSOSInfo, not OpenMSBuildInfo
+        arch = pyopenms.OpenMSOSInfo.getBinaryArchitecture()
         self.assertGreater(len(str(arch)), 0)
 
     def test_isOpenMPEnabled(self):
@@ -220,14 +215,12 @@ class TestDateTimeStaticMethods(unittest.TestCase):
 class TestDeisotoperStaticMethods(unittest.TestCase):
     """Test static methods of the Deisotoper class."""
 
-    @unittest.skip("Causes segfault - needs investigation")
     def test_deisotopeAndSingleCharge(self):
         """Test Deisotoper.deisotopeAndSingleCharge static method."""
         spectrum = pyopenms.MSSpectrum()
-        # Add some peaks using helper
-        spectrum.push_back(make_peak1d(100.0, 1000.0))
-        spectrum.push_back(make_peak1d(101.003, 500.0))  # Isotope peak
-        spectrum.push_back(make_peak1d(200.0, 800.0))
+        # Add peaks that form an isotope pattern (doubly charged)
+        for mz, intensity in [(500.0, 1000.0), (500.5, 800.0), (501.0, 400.0), (501.5, 150.0)]:
+            spectrum.push_back(make_peak1d(mz, intensity))
 
         # Call the static method with all 15 required parameters
         pyopenms.Deisotoper.deisotopeAndSingleCharge(
@@ -237,37 +230,39 @@ class TestDeisotoperStaticMethods(unittest.TestCase):
             1,        # min_charge
             3,        # max_charge
             False,    # keep_only_deisotoped
-            3,        # min_isopeaks
+            2,        # min_isopeaks
             10,       # max_isopeaks
             True,     # make_single_charged
-            False,    # annotate_charge
+            True,     # annotate_charge
             False,    # annotate_iso_peak_count
-            False,    # use_decreasing_model
+            True,     # use_decreasing_model
             2,        # start_intensity_check
             False,    # add_up_intensity
-            True      # combine_mono_peak (added parameter)
+            False     # annotate_features
         )
-        # Just verify it runs without error
+        # Just verify it runs without error - deisotoping should reduce peak count
         self.assertIsNotNone(spectrum)
 
 
-@unittest.skip("IMTypes uses wrap-attach pattern, not @staticmethod")
 class TestIMTypesStaticMethods(unittest.TestCase):
     """Test static methods of IMTypes enums.
 
     Note: These methods use the wrap-attach pattern instead of @staticmethod,
-    as they are free functions in the OpenMS namespace, not true class static methods.
+    as they are free functions in the OpenMS namespace.
     """
 
     def test_toDriftTimeUnit(self):
         """Test IMTypes.toDriftTimeUnit static method."""
-        unit = pyopenms.IMTypes.toDriftTimeUnit("millisecond")
-        self.assertIsNotNone(unit)
+        # Use correct string value "ms" (not "millisecond")
+        unit = pyopenms.IMTypes.toDriftTimeUnit("ms")
+        # DriftTimeUnit enum is at module level, not nested under IMTypes
+        self.assertEqual(unit, pyopenms.DriftTimeUnit.MILLISECOND)
 
     def test_toIMFormat(self):
         """Test IMTypes.toIMFormat static method."""
         fmt = pyopenms.IMTypes.toIMFormat("concatenated")
-        self.assertIsNotNone(fmt)
+        # IMFormat enum is at module level, not nested under IMTypes
+        self.assertEqual(fmt, pyopenms.IMFormat.CONCATENATED)
 
 
 class TestTransformationModelStaticMethods(unittest.TestCase):
@@ -292,32 +287,20 @@ class TestTransformationModelStaticMethods(unittest.TestCase):
         self.assertIsNotNone(params)
 
 
-@unittest.skip("MZTrafoModel uses wrap-attach pattern, not @staticmethod")
 class TestMZTrafoModelStaticMethods(unittest.TestCase):
-    """Test static methods of MZTrafoModel class.
-
-    Note: These methods use the wrap-attach pattern instead of @staticmethod,
-    as they are free functions in the OpenMS namespace, not true class static methods.
-    """
-
-    def test_getModelTypes(self):
-        """Test MZTrafoModel.getModelTypes static method."""
-        result = []
-        pyopenms.MZTrafoModel.getModelTypes(result)
-        self.assertGreater(len(result), 0)
+    """Test static methods of MZTrafoModel class."""
 
     def test_nameToEnum(self):
         """Test MZTrafoModel.nameToEnum static method."""
         enum_val = pyopenms.MZTrafoModel.nameToEnum("linear")
-        self.assertIsNotNone(enum_val)
+        self.assertEqual(enum_val, pyopenms.MZTrafoModel.MODELTYPE.LINEAR)
 
     def test_enumToName(self):
         """Test MZTrafoModel.enumToName static method."""
-        name = pyopenms.MZTrafoModel.enumToName(pyopenms.MZTrafoModel_MODELTYPE.LINEAR)
-        self.assertEqual(str(name), "linear")
+        name = pyopenms.MZTrafoModel.enumToName(pyopenms.MZTrafoModel.MODELTYPE.LINEAR)
+        self.assertEqual(name, "linear")
 
 
-@unittest.skip("SpectrumHelper uses wrap-attach pattern, not @staticmethod")
 class TestSpectrumHelperStaticMethods(unittest.TestCase):
     """Test static methods of SpectrumHelper class.
 
@@ -326,30 +309,22 @@ class TestSpectrumHelperStaticMethods(unittest.TestCase):
     """
 
     def test_removePeaks_spectrum(self):
-        """Test SpectrumHelper.removePeaks for MSSpectrum."""
+        """Test SpectrumHelper.removePeaks for MSSpectrum.
+
+        Note: removePeaks(spectrum, min_pos, max_pos) KEEPS peaks in the range,
+        removing those outside.
+        """
         spectrum = pyopenms.MSSpectrum()
         spectrum.push_back(make_peak1d(100.0, 1000.0))
         spectrum.push_back(make_peak1d(200.0, 800.0))
         spectrum.push_back(make_peak1d(300.0, 600.0))
 
-        # Remove peaks between 150 and 250
+        # Keep only peaks between 150 and 250 (removes peaks outside)
         pyopenms.SpectrumHelper.removePeaks(spectrum, 150.0, 250.0)
 
-        # Should have 2 peaks left (100 and 300)
-        self.assertEqual(spectrum.size(), 2)
-
-    def test_removePeaks_chromatogram(self):
-        """Test SpectrumHelper.removePeaks for MSChromatogram."""
-        chrom = pyopenms.MSChromatogram()
-        chrom.push_back(pyopenms.ChromatogramPeak(10.0, 1000.0))
-        chrom.push_back(pyopenms.ChromatogramPeak(20.0, 800.0))
-        chrom.push_back(pyopenms.ChromatogramPeak(30.0, 600.0))
-
-        # Remove peaks between 15 and 25
-        pyopenms.SpectrumHelper.removePeaks(chrom, 15.0, 25.0)
-
-        # Should have 2 peaks left
-        self.assertEqual(chrom.size(), 2)
+        # Should have 1 peak left (200.0)
+        self.assertEqual(spectrum.size(), 1)
+        self.assertEqual(spectrum[0].getMZ(), 200.0)
 
     def test_subtractMinimumIntensity_spectrum(self):
         """Test SpectrumHelper.subtractMinimumIntensity for MSSpectrum."""
@@ -359,9 +334,9 @@ class TestSpectrumHelperStaticMethods(unittest.TestCase):
 
         pyopenms.SpectrumHelper.subtractMinimumIntensity(spectrum)
 
-        # Minimum (500) should be subtracted
-        # This is just a smoke test - verify it runs
-        self.assertIsNotNone(spectrum)
+        # Minimum (500) should be subtracted - verify first peak has reduced intensity
+        self.assertEqual(spectrum[0].getIntensity(), 500.0)
+        self.assertEqual(spectrum[1].getIntensity(), 0.0)
 
 
 class TestMRMRTNormalizerConstructors(unittest.TestCase):
@@ -529,8 +504,8 @@ class TestFileHandlerAdditionalStaticMethods(unittest.TestCase):
         """Test FileHandler.getType static method."""
         file_type = pyopenms.FileHandler.getType("test.mzML")
         self.assertIsNotNone(file_type)
-        # Should return an integer (enum value)
-        self.assertIsInstance(file_type, int)
+        # Should return the correct enum value
+        self.assertEqual(file_type, pyopenms.FileType.MZML)
 
     def test_getTypeByContent(self):
         """Test FileHandler.getTypeByContent static method with a real file."""
@@ -597,26 +572,30 @@ class TestMRMRTNormalizerAdditionalStaticMethods(unittest.TestCase):
 class TestTransformationDescriptionStaticMethods(unittest.TestCase):
     """Test TransformationDescription static methods."""
 
-    @unittest.skip("getModelTypes pxd declaration missing pass-by-reference - result list not populated")
     def test_getModelTypes(self):
         """Test TransformationDescription.getModelTypes static method."""
         result = []
         pyopenms.TransformationDescription.getModelTypes(result)
         self.assertIsInstance(result, list)
         self.assertGreater(len(result), 0)
+        # Should contain known model types like 'linear', 'b_spline', etc.
+        # StringList returns str
+        self.assertIn("linear", result)
 
 
 class TestFLASHDeconvStaticMethods(unittest.TestCase):
     """Test FLASHDeconv static methods."""
 
-    @unittest.skip("getScanNumber causes segfault with minimal test data - needs real spectrum data")
     def test_FLASHDeconvAlgorithm_getScanNumber(self):
         """Test FLASHDeconvAlgorithm.getScanNumber static method."""
         exp = pyopenms.MSExperiment()
         spectrum = pyopenms.MSSpectrum()
+        # Set native ID with scan number (required for getScanNumber)
+        spectrum.setNativeID("scan=42")
         exp.addSpectrum(spectrum)
         scan_num = pyopenms.FLASHDeconvAlgorithm.getScanNumber(exp, 0)
         self.assertIsInstance(scan_num, int)
+        self.assertEqual(scan_num, 42)
 
     def test_FLASHHelperClasses_getLogMz(self):
         """Test FLASHHelperClasses.getLogMz static method."""
@@ -655,6 +634,166 @@ class TestSpectrumMetaDataLookupStaticMethods(unittest.TestCase):
         except TypeError:
             # If signature differs, just verify the method exists
             self.assertTrue(hasattr(pyopenms.SpectrumMetaDataLookup, 'addMissingSpectrumReferences'))
+
+
+class TestPrecursorEnumStaticMethods(unittest.TestCase):
+    """Test Precursor enum-to-string static methods."""
+
+    def test_activationMethodToString(self):
+        """Test Precursor.activationMethodToString static method."""
+        result = pyopenms.Precursor.activationMethodToString(
+            pyopenms.Precursor.ActivationMethod.CID
+        )
+        self.assertIsNotNone(result)
+        self.assertIn("Collision-induced dissociation", result)
+
+    def test_activationMethodToShortString(self):
+        """Test Precursor.activationMethodToShortString static method."""
+        result = pyopenms.Precursor.activationMethodToShortString(
+            pyopenms.Precursor.ActivationMethod.CID
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "CID")
+
+    def test_toActivationMethod(self):
+        """Test Precursor.toActivationMethod static method."""
+        # Test with full name
+        result = pyopenms.Precursor.toActivationMethod("Collision-induced dissociation")
+        self.assertEqual(result, pyopenms.Precursor.ActivationMethod.CID)
+
+        # Test with short name
+        result = pyopenms.Precursor.toActivationMethod("CID")
+        self.assertEqual(result, pyopenms.Precursor.ActivationMethod.CID)
+
+    def test_activationMethod_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for method in [
+            pyopenms.Precursor.ActivationMethod.CID,
+            pyopenms.Precursor.ActivationMethod.HCD,
+            pyopenms.Precursor.ActivationMethod.ETD,
+        ]:
+            full_name = pyopenms.Precursor.activationMethodToString(method)
+            short_name = pyopenms.Precursor.activationMethodToShortString(method)
+            self.assertEqual(pyopenms.Precursor.toActivationMethod(full_name), method)
+            self.assertEqual(pyopenms.Precursor.toActivationMethod(short_name), method)
+
+
+class TestIonSourceEnumStaticMethods(unittest.TestCase):
+    """Test IonSource enum-to-string static methods."""
+
+    def test_inletTypeToString(self):
+        """Test IonSource.inletTypeToString static method."""
+        result = pyopenms.IonSource.inletTypeToString(
+            pyopenms.IonSource.InletType.DIRECT
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "Direct")
+
+    def test_toInletType(self):
+        """Test IonSource.toInletType static method."""
+        result = pyopenms.IonSource.toInletType("Direct")
+        self.assertEqual(result, pyopenms.IonSource.InletType.DIRECT)
+
+    def test_ionizationMethodToString(self):
+        """Test IonSource.ionizationMethodToString static method."""
+        result = pyopenms.IonSource.ionizationMethodToString(
+            pyopenms.IonSource.IonizationMethod.ESI
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "Electrospray ionisation")
+
+    def test_toIonizationMethod(self):
+        """Test IonSource.toIonizationMethod static method."""
+        result = pyopenms.IonSource.toIonizationMethod("Electrospray ionisation")
+        self.assertEqual(result, pyopenms.IonSource.IonizationMethod.ESI)
+
+    def test_polarityToString(self):
+        """Test IonSource.polarityToString static method."""
+        result = pyopenms.IonSource.polarityToString(
+            pyopenms.IonSource.Polarity.POSITIVE
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "positive")
+
+    def test_toPolarity(self):
+        """Test IonSource.toPolarity static method."""
+        result = pyopenms.IonSource.toPolarity("positive")
+        self.assertEqual(result, pyopenms.IonSource.Polarity.POSITIVE)
+
+    def test_inletType_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for inlet in [
+            pyopenms.IonSource.InletType.DIRECT,
+            pyopenms.IonSource.InletType.NANOSPRAY,
+        ]:
+            name = pyopenms.IonSource.inletTypeToString(inlet)
+            self.assertEqual(pyopenms.IonSource.toInletType(name), inlet)
+
+    def test_ionizationMethod_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for method in [
+            pyopenms.IonSource.IonizationMethod.ESI,
+            pyopenms.IonSource.IonizationMethod.MALDI,
+        ]:
+            name = pyopenms.IonSource.ionizationMethodToString(method)
+            self.assertEqual(pyopenms.IonSource.toIonizationMethod(name), method)
+
+    def test_polarity_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for polarity in [
+            pyopenms.IonSource.Polarity.POSITIVE,
+            pyopenms.IonSource.Polarity.NEGATIVE,
+        ]:
+            name = pyopenms.IonSource.polarityToString(polarity)
+            self.assertEqual(pyopenms.IonSource.toPolarity(name), polarity)
+
+
+class TestIonDetectorEnumStaticMethods(unittest.TestCase):
+    """Test IonDetector enum-to-string static methods."""
+
+    def test_typeToString(self):
+        """Test IonDetector.typeToString static method."""
+        result = pyopenms.IonDetector.typeToString(
+            pyopenms.IonDetector.Type.ELECTRONMULTIPLIER
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "Electron multiplier")
+
+    def test_toType(self):
+        """Test IonDetector.toType static method."""
+        result = pyopenms.IonDetector.toType("Electron multiplier")
+        self.assertEqual(result, pyopenms.IonDetector.Type.ELECTRONMULTIPLIER)
+
+    def test_acquisitionModeToString(self):
+        """Test IonDetector.acquisitionModeToString static method."""
+        result = pyopenms.IonDetector.acquisitionModeToString(
+            pyopenms.IonDetector.AcquisitionMode.ADC
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "Analog-digital converter")
+
+    def test_toAcquisitionMode(self):
+        """Test IonDetector.toAcquisitionMode static method."""
+        result = pyopenms.IonDetector.toAcquisitionMode("Analog-digital converter")
+        self.assertEqual(result, pyopenms.IonDetector.AcquisitionMode.ADC)
+
+    def test_type_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for detector_type in [
+            pyopenms.IonDetector.Type.ELECTRONMULTIPLIER,
+            pyopenms.IonDetector.Type.PHOTOMULTIPLIER,
+        ]:
+            name = pyopenms.IonDetector.typeToString(detector_type)
+            self.assertEqual(pyopenms.IonDetector.toType(name), detector_type)
+
+    def test_acquisitionMode_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for mode in [
+            pyopenms.IonDetector.AcquisitionMode.ADC,
+            pyopenms.IonDetector.AcquisitionMode.TDC,
+        ]:
+            name = pyopenms.IonDetector.acquisitionModeToString(mode)
+            self.assertEqual(pyopenms.IonDetector.toAcquisitionMode(name), mode)
 
 
 if __name__ == '__main__':

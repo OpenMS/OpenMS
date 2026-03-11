@@ -24,6 +24,7 @@
 #include <boost/range/adaptor/map.hpp>
 #include <memory>
 #include <boost/foreach.hpp>
+#include <unordered_map>
 
 #define run_identifier "unique_run_identifier"
 
@@ -140,6 +141,17 @@ namespace OpenMS
     scores_to_use.setValue("use_ms2_isotope_scores", "true", "Use MS2-level isotope scores (pearson & manhattan) across product transitions (based on ID if annotated or averagine)", {"advanced"});
     scores_to_use.setValidStrings("use_ms2_isotope_scores", {"true","false"});
     defaults_.insert("Scores:", scores_to_use);
+
+    // Parameters for m/z extraction windows (allow these to be passed in from OpenSwathWorkflow)
+    defaults_.setValue("mz_extraction_window", -1.0, "m/z extraction window (full width) to be used for matching/extraction. If -1, defaults in workflow will be used.", {"advanced"});
+    defaults_.setValue("mz_extraction_window_unit", "Th", "Unit for mz_extraction_window: 'Th' or 'ppm'", {"advanced"});
+    defaults_.setValidStrings("mz_extraction_window_unit", {"Th","ppm"});
+    defaults_.setValue("mz_extraction_window_ms1", -1.0, "m/z extraction window for MS1 (full width). If -1, defaults in workflow will be used.", {"advanced"});
+    defaults_.setValue("mz_extraction_window_ms1_unit", "Th", "Unit for mz_extraction_window_ms1: 'Th' or 'ppm'", {"advanced"});
+    defaults_.setValidStrings("mz_extraction_window_ms1_unit", {"Th","ppm"});
+    defaults_.setValue("irt_mz_extraction_window", -1.0, "m/z extraction window (full width) to be used specifically for iRT matching/extraction. If -1, defaults in workflow will be used.", {"advanced"});
+    defaults_.setValue("irt_mz_extraction_window_unit", "Th", "Unit for irt_mz_extraction_window: 'Th' or 'ppm'", {"advanced"});
+    defaults_.setValidStrings("irt_mz_extraction_window_unit", {"Th","ppm"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -583,6 +595,23 @@ namespace OpenMS
 
     auto& mrmfeatures = transition_group_detection.getFeaturesMuteable();
 
+    // Pre-compute group-invariant values (constant across all features)
+    const bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
+
+    std::vector<double> normalized_library_intensity;
+    transition_group_detection.getLibraryIntensity(normalized_library_intensity);
+    OpenSwath::Scoring::normalize_sum(normalized_library_intensity.data(), static_cast<unsigned int>(normalized_library_intensity.size()));
+
+    const auto& transitions = transition_group_detection.getTransitions();
+    std::vector<std::string> native_ids_detection(transitions.size());
+    std::transform(transitions.begin(), transitions.end(), native_ids_detection.begin(),
+                   [](const auto& tr) { return tr.getNativeID(); });
+
+    const auto& precursor_chroms = transition_group_detection.getPrecursorChromatograms();
+    std::vector<std::string> precursor_ids(precursor_chroms.size());
+    std::transform(precursor_chroms.begin(), precursor_chroms.end(), precursor_ids.begin(),
+                   [](const auto& ch) { return ch.getNativeID(); });
+
     // Go through all peak groups (found MRM features) and score them
     #ifdef _OPENMP
     int in_parallel = omp_in_parallel();
@@ -607,7 +636,6 @@ namespace OpenMS
                                          "Error: Transition group " + transition_group_detection.getTransitionGroupID() +
                                          " has no chromatograms.");
       }
-      bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
       double xx_lda_prescore;
       double precursor_mz(-1);
 
@@ -691,24 +719,6 @@ namespace OpenMS
         ///////////////////////////////////
         // Call the scoring for fragment ions
         ///////////////////////////////////
-
-        std::vector<double> normalized_library_intensity;
-        transition_group_detection.getLibraryIntensity(normalized_library_intensity);
-        OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
-
-        std::vector<std::string> native_ids_detection;
-        for (Size i = 0; i < transition_group_detection.size(); i++)
-        {
-          std::string native_id = transition_group_detection.getTransitions()[i].getNativeID();
-          native_ids_detection.push_back(native_id);
-        }
-
-        std::vector<std::string> precursor_ids;
-        for (Size i = 0; i < transition_group_detection.getPrecursorChromatograms().size(); i++)
-        {
-          std::string precursor_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
-          precursor_ids.push_back(precursor_id);
-        }
 
         ///////////////////////////////////
         // Library and chromatographic scores
@@ -1096,9 +1106,10 @@ namespace OpenMS
     double rt_min, rt_max, expected_rt;
     trafo.invert();
 
-    std::map<String, int> chromatogram_map;
+    std::unordered_map<String, int> chromatogram_map;
     Size nr_chromatograms = input->getNrChromatograms();
-    for (Size i = 0; i < input->getNrChromatograms(); i++)
+    chromatogram_map.reserve(nr_chromatograms);
+    for (Size i = 0; i < nr_chromatograms; i++)
     {
       chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
     }
@@ -1111,7 +1122,8 @@ namespace OpenMS
     {
       // get the current transition and try to find the corresponding chromatogram
       const TransitionType* transition = &transition_exp.getTransitions()[i];
-      if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
+      auto chrom_it = chromatogram_map.find(transition->getNativeID());
+      if (chrom_it == chromatogram_map.end())
       {
         OPENMS_LOG_DEBUG << "Error: Transition " + transition->getNativeID() + " from group " +
           transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
@@ -1127,7 +1139,7 @@ namespace OpenMS
       //-----------------------------------
       // Retrieve chromatogram and filter it by the desired RT
       //-----------------------------------
-      OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
+      OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chrom_it->second);
       MSChromatogram chromatogram;
 
       // Get the expected retention time, apply the RT-transformation
