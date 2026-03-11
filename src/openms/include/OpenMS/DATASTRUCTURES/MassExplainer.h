@@ -116,12 +116,16 @@ public:
 
     /**
       @brief Compute all possible mass differences and their explanations
-      
+
       This method generates all possible combinations of adducts from the adduct base
       and stores them internally for later querying. This must be called after
       changing any parameters and before performing queries.
+
+      @param[in] include_identity If true, add identity compomers (same adduct on both LEFT
+                 and RIGHT sides) needed for same-adduct multimer detection. Default false
+                 to preserve existing behavior.
     */
-    void compute();
+    void compute(bool include_identity = false);
 
 
     //@name Accessors

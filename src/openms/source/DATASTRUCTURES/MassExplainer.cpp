@@ -134,7 +134,7 @@ namespace OpenMS
 
 
   /// fill map with possible mass-differences along with their explanation
-  void MassExplainer::compute()
+  void MassExplainer::compute(bool include_identity)
   {
     // differentiate between neutral and charged adducts
     AdductsType adduct_neutral, adduct_charged;
@@ -218,6 +218,24 @@ namespace OpenMS
       }
     }
     explanations_.swap(valids_only);
+
+    // Add identity compomers (same adduct on both LEFT and RIGHT sides).
+    // These have net_charge=0, mass=0, and are needed for same-adduct multimer
+    // detection (e.g., [M+H]+ paired with [2M+H]+). Gated by include_identity
+    // to avoid changing behavior for non-multimer workflows.
+    if (include_identity)
+    {
+      for (const auto& adduct : adduct_charged)
+      {
+        Compomer cmpi;
+        cmpi.add(adduct, Compomer::LEFT);
+        cmpi.add(adduct, Compomer::RIGHT);
+        if (compomerValid_(cmpi))
+        {
+          explanations_.push_back(cmpi);
+        }
+      }
+    }
 
     // add neutral adducts
     Size size_of_explanations = explanations_.size();

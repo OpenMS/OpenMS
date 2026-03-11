@@ -168,6 +168,48 @@ START_SECTION((SignedSize queryMultimer(const Int net_charge, const double m1, c
 }
 END_SECTION
 
+START_SECTION((void compute(bool include_identity)))
+{
+  // Without identity compomers (default), no mass=0 net_charge=0 compomers exist
+  MassExplainer me_no_id;
+  me_no_id.compute();  // include_identity defaults to false
+
+  MassExplainer::CompomerIterator s, e;
+  // mass=0, net_charge=0 should have no hits without identity
+  SignedSize hits_no_id = me_no_id.query(0, 0.0, 0.5, -100000, s, e);
+  TEST_EQUAL(hits_no_id, 0);
+
+  // With identity compomers, should find compomers at mass=0, net_charge=0
+  MassExplainer me_id;
+  me_id.compute(true);  // include_identity = true
+
+  SignedSize hits_id = me_id.query(0, 0.0, 0.5, -100000, s, e);
+  TEST_EQUAL(hits_id > 0, true);
+
+  // Each identity compomer should have getSideMass(LEFT) == getSideMass(RIGHT)
+  for (auto it = s; it != e; ++it)
+  {
+    TEST_REAL_SIMILAR(it->getSideMass(Compomer::LEFT), it->getSideMass(Compomer::RIGHT));
+    TEST_EQUAL(it->getNetCharge(), 0);
+  }
+
+  // Same-adduct queryMultimer should now work
+  // H+ identity: expected = 2*H_mass - 1*H_mass = H_mass
+  // Use default adducts (H+, Na+, NH4+, K+)
+  std::vector<MassExplainer::CompomerIterator> multimer_hits;
+  // Query with approximate H+ mass (proton mass ~ 1.007)
+  double H_mass = 1.00728;
+  double m1 = 100.0 + H_mass;       // [M+H]+ with M=100
+  double m2 = 200.0 + H_mass;       // [2M+H]+ with M=100
+  SignedSize n_hits = me_id.queryMultimer(0, m1, m2, 1, 2, 0.1, -100000, multimer_hits);
+  TEST_EQUAL(n_hits > 0, true);
+
+  // Without identity, same query should fail
+  multimer_hits.clear();
+  n_hits = me_no_id.queryMultimer(0, m1, m2, 1, 2, 0.1, -100000, multimer_hits);
+  TEST_EQUAL(n_hits, 0);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
