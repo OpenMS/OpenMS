@@ -339,7 +339,7 @@ Common methods to add for container-like classes:
 - `__repr__()`: Return `f"ClassName(key_prop={value}, ...)"` with important properties
 - `__str__()`: Delegate to `__repr__()` or return simpler output
 - `get_data()`: Return safe copy of data (for DataArray classes)
-- `get_data_view()`: Return zero-copy writable view (None if empty, document lifetime). Deprecated alias: `get_data_mv()`
+- `get_data_view()`: Return zero-copy writable view (empty ndarray if empty, document lifetime). Deprecated alias: `get_data_mv()`
 
 ### Rebuilding After Addon Changes
 
