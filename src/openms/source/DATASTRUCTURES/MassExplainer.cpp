@@ -123,6 +123,7 @@ namespace OpenMS
     q_max_ = rhs.q_max_;
     max_span_ = rhs.max_span_;
     thresh_p_ = rhs.thresh_p_;
+    max_neutrals_ = rhs.max_neutrals_;
 
     return *this;
   }

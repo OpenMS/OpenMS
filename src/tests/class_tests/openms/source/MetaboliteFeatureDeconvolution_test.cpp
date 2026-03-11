@@ -528,22 +528,16 @@ START_SECTION(([EXTRA] Multimer annotation strings and trimer detection))
       if (mult == 2)
       {
         found_dimer_annotation = true;
-        // Verify the adducts string contains "2M"
-        if (fm_out[i].metaValueExists("adducts"))
-        {
-          StringList adducts = fm_out[i].getMetaValue("adducts");
-          TEST_EQUAL(adducts[0].hasSubstring("2M"), true);
-        }
+        TEST_EQUAL(fm_out[i].metaValueExists("adducts"), true);
+        StringList adducts = fm_out[i].getMetaValue("adducts");
+        TEST_EQUAL(adducts[0].hasSubstring("2M"), true);
       }
       if (mult == 3)
       {
         found_trimer_annotation = true;
-        // Verify the adducts string contains "3M"
-        if (fm_out[i].metaValueExists("adducts"))
-        {
-          StringList adducts = fm_out[i].getMetaValue("adducts");
-          TEST_EQUAL(adducts[0].hasSubstring("3M"), true);
-        }
+        TEST_EQUAL(fm_out[i].metaValueExists("adducts"), true);
+        StringList adducts = fm_out[i].getMetaValue("adducts");
+        TEST_EQUAL(adducts[0].hasSubstring("3M"), true);
       }
     }
   }
