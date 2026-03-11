@@ -166,8 +166,8 @@ if (WITH_PARQUET)
     target_compile_definitions(OpenMS PUBLIC WITH_PARQUET=1)
 endif()
 
-## Enable test-only hooks in the OpenMS library when building tests
-if(BUILD_TESTING)
+## Enable test-only hooks when class tests are being built.
+if(ENABLE_CLASS_TESTING) 
   target_compile_definitions(OpenMS PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
 endif()
 
