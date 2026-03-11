@@ -135,6 +135,39 @@ START_SECTION((SignedSize query(const Int net_charge, const float mass_to_explai
 }
 END_SECTION
 
+START_SECTION((SignedSize queryMultimer(const Int net_charge, const double m1, const double m2, const Int n1, const Int n2, const double tolerance, const float thresh_log_p, std::vector<CompomerIterator>& hits) const))
+{
+  // Use default MassExplainer (H+, Na+, NH4+, K+ adducts) which produces
+  // net_charge=0 compomers with adducts on both LEFT and RIGHT sides.
+  MassExplainer me;
+  me.compute();
+
+  // Simulate a monomer-dimer pair with matching adducts.
+  // Feature1 = [M+K]+ at some m/z (monomer, n1=1)
+  // Feature2 = [2M+H]+ at some m/z (dimer, n2=2)
+  // M = 99.0
+  // K mass ~ 38.963158, H mass ~ 1.00728
+  // m1 = mz1 * |q1| = M + K_mass = 99.0 + 38.963158 = 137.963158
+  // m2 = mz2 * |q2| = 2*M + H_mass = 2*99.0 + 1.00728 = 199.00728
+  // Cross-mult: n2*m1 - n1*m2 = 2*137.963158 - 1*199.00728 = 76.919036
+  // Expected from compomer (K1 left, H1 right): n2*K_mass - n1*H_mass = 2*38.963158 - 1*1.00728 = 76.919036
+  double K_mass = 38.963158;
+  double H_mass = 1.00728;
+  double M = 99.0;
+  double m1_val = M + K_mass;       // 137.963158
+  double m2_val = 2.0 * M + H_mass; // 199.00728
+
+  std::vector<MassExplainer::CompomerIterator> multimer_hits;
+  SignedSize n_hits = me.queryMultimer(0, m1_val, m2_val, 1, 2, 0.1, -100000, multimer_hits);
+  TEST_EQUAL(n_hits > 0, true);
+
+  // Wrong multiplier combo should find no match
+  multimer_hits.clear();
+  n_hits = me.queryMultimer(0, m1_val, m2_val, 1, 3, 0.1, -100000, multimer_hits);
+  TEST_EQUAL(n_hits, 0);
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

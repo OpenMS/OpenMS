@@ -12,7 +12,9 @@
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <cmath>
 #include <iostream>
+#include <limits>
 #include <utility>
 
 #undef DEBUG_FD
@@ -323,6 +325,49 @@ namespace OpenMS
     lastExplanation  = lower_bound(explanations_.begin(), explanations_.end(), cmp_high);
 
     return std::distance(firstExplanation, lastExplanation);
+  }
+
+  SignedSize MassExplainer::queryMultimer(const Int net_charge,
+                                          const double m1,
+                                          const double m2,
+                                          const Int n1,
+                                          const Int n2,
+                                          const double tolerance,
+                                          const float thresh_log_p,
+                                          std::vector<CompomerIterator>& hits) const
+  {
+    hits.clear();
+
+    // Find the net_charge group using binary search on the sorted explanations_
+    Compomer cmp_low(net_charge, -std::numeric_limits<double>::max(), 1);
+    auto group_begin = std::lower_bound(explanations_.begin(), explanations_.end(), cmp_low);
+
+    Compomer cmp_high(net_charge + 1, -std::numeric_limits<double>::max(), 1);
+    auto group_end = std::lower_bound(explanations_.begin(), explanations_.end(), cmp_high);
+
+    // The observed value: n2*m1 - n1*m2
+    double observed = static_cast<double>(n2) * m1 - static_cast<double>(n1) * m2;
+
+    // Linear scan within net_charge group
+    for (auto it = group_begin; it != group_end; ++it)
+    {
+      if (it->getLogP() < thresh_log_p)
+      {
+        continue;
+      }
+
+      // Compute expected: n2*left_mass - n1*right_mass
+      double left_mass = it->getSideMass(Compomer::LEFT);
+      double right_mass = it->getSideMass(Compomer::RIGHT);
+      double expected = static_cast<double>(n2) * left_mass - static_cast<double>(n1) * right_mass;
+
+      if (fabs(observed - expected) <= tolerance)
+      {
+        hits.push_back(it);
+      }
+    }
+
+    return static_cast<SignedSize>(hits.size());
   }
 
   ///check if the generated compomer is valid judged by its probability, charges etc
