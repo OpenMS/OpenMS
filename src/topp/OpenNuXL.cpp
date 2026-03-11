@@ -15,6 +15,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -86,8 +89,9 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QDir>
+#include <QtCore/QStringList>
 
 #include <map>
 #include <algorithm>
@@ -719,7 +723,7 @@ struct ImmoniumIonsInPeptide
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_OpenNuXL OpenNuXL 
+    @page TOPP_OpenNuXL OpenNuXL 
 
     @brief Annotate NA to peptide crosslinks in MS/MS spectra.
 
@@ -1063,9 +1067,9 @@ protected:
     return (plss_Morph < MIN_SHIFTED_IONS && plss_im_MIC < 0.03);
   }
 
-  map<String, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const String& in_mzml, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
+  unordered_map<String, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const String& in_mzml, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
   {
-    map<String, PrecursorPurity::PurityScores> purities;
+    unordered_map<String, PrecursorPurity::PurityScores> purities;
     PeakMap tmp_spectra;
     // Important: load both MS1 and MS2 for precursor purity annotation
     MzMLFile().load(in_mzml, tmp_spectra);
@@ -1097,9 +1101,9 @@ protected:
 
 
 /*  
-     @param N number of theoretical peaks
-     @param peak_in_spectrum number of experimental peaks
-     @param matched_size number of matched theoretical peaks
+     @param[in] N number of theoretical peaks
+     @param[in] peak_in_spectrum number of experimental peaks
+     @param[in] matched_size number of matched theoretical peaks
    
   static double matchOddsScore_(
     const Size& N,
@@ -1591,7 +1595,7 @@ protected:
     OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() == partial_loss_template_z1_y_ions.size(), "b- and y-ion arrays must have same size.");
     OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() > 0, "b- and y-ion arrays must not be empty.");
 
-    auto ambigious_match = [&](const double& mz, const double z, const String& name)->bool
+    auto ambiguous_match = [&](const double& mz, const double z, const String& name)->bool
     {
       auto it = fragment_adduct2block_if_masses_present.find(name); // get vector of blocked mass lists
       if (it != fragment_adduct2block_if_masses_present.end())
@@ -1612,7 +1616,7 @@ protected:
               break;
             }
           } 
-          if (mass_list_matches) { return true; } // mass list matched every peak -> ambigious explanation
+          if (mass_list_matches) { return true; } // mass list matched every peak -> ambiguous explanation
         }
       }
       return false;
@@ -1998,7 +2002,7 @@ protected:
           // TODO move out?
           auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
           bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
-          if (has_tag_that_matches_fragmentadduct && ambigious_match(theo_mz, z, fa.name)) continue;
+          if (has_tag_that_matches_fragmentadduct && ambiguous_match(theo_mz, z, fa.name)) continue;
 
           const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
           Size index = exp_spectrum.findNearest(theo_mz);
@@ -2527,10 +2531,10 @@ static void scoreXLIons_(
 
     if (!debug_file.empty())
     {
-      // output ambigious masses
+      // output ambiguous masses
       ofstream of;
       of.open(debug_file);
-      of << "Ambigious residues (+adduct) masses that exactly match to other masses." << endl;
+      of << "Ambiguous residues (+adduct) masses that exactly match to other masses." << endl;
       of << "Total\tResidue\tAdduct" << endl;
       for (auto& m : aa_plus_adduct_mass)
       {
@@ -2746,7 +2750,7 @@ static void scoreXLIons_(
       std::set<std::string> tags;
       tagger.getTag(spec, tags);
       spec.getStringDataArrays().push_back({});
-      for (std::string s : tags) // map tag to ambigious fragment adduct and store
+      for (std::string s : tags) // map tag to ambiguous fragment adduct and store
       {
         std::sort(s.begin(), s.end());          
         if (const auto it = tag2ADs.find(s); it != tag2ADs.end()) 
@@ -2958,7 +2962,7 @@ static void scoreXLIons_(
     const bool fragment_mass_tolerance_unit_ppm,
     const NuXLParameterParsing::NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts)
   {
-    // check for theoretically ambigious fragment shifts: AA tags of length 1-2 without adduct that match to two AA + adduct, one AA + adduct, just an adduct
+    // check for theoretically ambiguous fragment shifts: AA tags of length 1-2 without adduct that match to two AA + adduct, one AA + adduct, just an adduct
     map<String, set<String>> tag2ADs; // AA tags that match adduct names in mass
     unordered_map<String, unordered_set<String>> ADs2tag;
     getTagToAdduct(nucleotide_to_fragment_adducts, tag2ADs, ADs2tag, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
@@ -2970,7 +2974,14 @@ static void scoreXLIons_(
     // annotates in spec.getFloatDataArrays()[2] / name "nucleotide_mass_tags";
     map<double, size_t> adduct_mass_count;
     map<double, size_t> aa_plus_adduct_mass_count;
-    getAdductAndAAPlusAdductMassCountsFromSpectra(nucleotide_to_fragment_adducts, exp, adduct_mass_count, aa_plus_adduct_mass_count, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, getStringOption_("in") + ".ambigious_masses.csv");
+    // Output CSV to same directory as input file
+    String input_file = getStringOption_("in");
+    String dir = File::path(input_file);
+    String csv_file;
+    csv_file = dir;
+    csv_file.ensureLastChar('/');
+    csv_file += File::basename(input_file) + ".ambiguous_masses.csv";
+    getAdductAndAAPlusAdductMassCountsFromSpectra(nucleotide_to_fragment_adducts, exp, adduct_mass_count, aa_plus_adduct_mass_count, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, csv_file);
 
     if (debug_level_ > 0) { OPENMS_LOG_DEBUG << "Total counts per residue:" << endl; }
 
@@ -3057,7 +3068,7 @@ static void scoreXLIons_(
     bool annotate_charge,
     double window_size,
     size_t peakcount,
-    const std::map<String, PrecursorPurity::PurityScores>& purities)
+    const std::unordered_map<String, PrecursorPurity::PurityScores>& purities)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -3496,7 +3507,7 @@ static void scoreXLIons_(
     const Size max_variable_mods_per_peptide,
     const Size scan_index, 
     const MSSpectrum& spec,
-    const map<String, PrecursorPurity::PurityScores>& purities,
+    const unordered_map<String, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates,
     const vector<size_t>& matched_peaks
     /*,
@@ -3723,7 +3734,7 @@ static void scoreXLIons_(
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
-    const map<String, PrecursorPurity::PurityScores>& purities,
+    const unordered_map<String, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates,
     const vector<size_t>& matched_peaks
     /*,
@@ -4594,10 +4605,11 @@ static void scoreXLIons_(
       const double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
       const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
       s.setDriftTime(CCS);
+      s.setDriftTimeUnit(DriftTimeUnit::CCS);
     }
   }
 
-  void filterPeakInterference_(PeakMap& spectra, const map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
+  void filterPeakInterference_(PeakMap& spectra, const unordered_map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
   {
     double filtered_peaks_count{0};
     size_t filtered_spectra{0};
@@ -4654,18 +4666,17 @@ static void scoreXLIons_(
 
     String out_xl_idxml = getStringOption_("out_xls");
 
-    // create extra output directy of set
+    // create extra output directory if set
     String extra_output_directory = getStringOption_("output_folder");
     if (!extra_output_directory.empty())
     {
       // convert path to absolute path
-      QDir extra_dir(extra_output_directory.toQString());
-      extra_output_directory = String(extra_dir.absolutePath());
+      extra_output_directory = File::absolutePath(extra_output_directory);
 
-      // trying to create directory if not present
-      if (!extra_dir.exists())
+      // create directory if not present
+      if (!File::exists(extra_output_directory))
       {
-        extra_dir.mkpath(extra_output_directory.toQString());
+        File::makeDir(extra_output_directory);
       }
     }
 
@@ -5162,7 +5173,7 @@ static void scoreXLIons_(
     MzMLFile f;
     f.setLogType(log_type_);
 
-    map<String, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+    unordered_map<String, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 
     // define percolator feature set
     StringList data_dependent_features; // percolator features that only exist e.g., if MS1 spectra were present
@@ -5186,10 +5197,14 @@ static void scoreXLIons_(
       data_dependent_features << "IM";
     }
 
-    // convert 1/k0 to CCS
+    // convert 1/k0 to CCS (skip if already CCS from newer MSConvert)
     if (IM_unit == DriftTimeUnit::VSSC)
-    {      
+    {
       convertVSSCToCCS(spectra);
+    }
+    else if (IM_unit == DriftTimeUnit::CCS)
+    {
+      OPENMS_LOG_INFO << "Ion Mobility already in CCS format, no conversion needed." << std::endl;
     }
 
     // all data dependent features (IM available or not, precursor intensities from MS1 available etc.) are known. We can define percolator features.
@@ -5199,10 +5214,10 @@ static void scoreXLIons_(
     // only executed if we have a pre-search with enough calibrants
     if (ic.getCalibrationPoints().size() > 1)
     {
-      MZTrafoModel::MODELTYPE md = MZTrafoModel::LINEAR;
+      MZTrafoModel::MODELTYPE md = MZTrafoModel::MODELTYPE::LINEAR;
       bool use_RANSAC = true;
 
-      Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
+      Size RANSAC_initial_points = (md == MZTrafoModel::MODELTYPE::LINEAR) ? 2 : 3;
       Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
       MZTrafoModel::setRANSACParams(p);
 
@@ -5948,14 +5963,15 @@ static void scoreXLIons_(
     // reload spectra from disc with same settings as before (important to keep same spectrum indices)
     spectra.clear(true);
     f.load(in_mzml, spectra);
-    spectra.sortSpectra(true);    
+    spectra.sortSpectra(true);
     //auto [IM_format, IM_unit] = getMS2IMType(spectra);
 
-    // convert 1/k0 to CCS
+    // convert 1/k0 to CCS (skip if already CCS from newer MSConvert)
     if (IM_unit == DriftTimeUnit::VSSC)
-    {      
+    {
       convertVSSCToCCS(spectra);
     }
+    // Note: if IM_unit == DriftTimeUnit::CCS, data is already in correct format
 
     preprocessSpectra_(spectra, 
     //                   fragment_mass_tolerance, 
@@ -6025,14 +6041,14 @@ static void scoreXLIons_(
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
 
-    if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-        (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+    if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
+        (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
     {
-      if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+      if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
       {
-        return INPUT_FILE_EMPTY;       
+        return INPUT_FILE_EMPTY;
       }
-      else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+      else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
       {
         return UNEXPECTED_RESULT;
       }
@@ -6352,12 +6368,14 @@ static void scoreXLIons_(
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
-          QFile::copy(String(original_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+          File::copy(original_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
         }
       }
       else
       { // use output_folder
-        String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_");
+        String id_xml_out = extra_output_directory;
+        id_xml_out.ensureLastChar('/');
+        id_xml_out += File::basename(out_idxml).substitute(".idXML", "_");
 
         fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
           peptide_ids,
@@ -6367,12 +6385,12 @@ static void scoreXLIons_(
           xl_pi,
           XL_FDR,
           XL_peptidelevel_FDR,
-          b,
+          id_xml_out,
           decoy_factor);
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
-          QFile::copy(String(b + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+          File::copy(id_xml_out + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
         }
       }
 
@@ -6466,13 +6484,15 @@ static void scoreXLIons_(
             // copy XL results (with highest threshold=little filtering) to outut TODO: first copy would not be needed
             if (!out_xl_idxml.empty())
             {
-              QFile::copy(String(percolator_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+              File::copy(percolator_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
             }
           }
           else
           { // use output_folder
-            String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_perc_");
-            
+            String id_xml_out = extra_output_directory;
+            id_xml_out.ensureLastChar('/');
+            id_xml_out += File::basename(out_idxml).substitute(".idXML", "_perc_");
+
             fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
               peptide_ids,
               pep_pi, 
@@ -6481,14 +6501,14 @@ static void scoreXLIons_(
               xl_pi,
               XL_FDR,
               XL_peptidelevel_FDR,
-              b,
+              id_xml_out,
               decoy_factor);
 
 
             // copy XL results (with highest threshold=little filtering) to output TODO: first copy would not be needed if percolator succeeds
             if (!out_xl_idxml.empty())
             {
-              QFile::copy(String(b + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+              File::copy(id_xml_out + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
             }
           }
           OPENMS_LOG_INFO << "done." << endl;

@@ -20,21 +20,21 @@ namespace OpenMS
   namespace NuXLPresets
   {
     /**
-      @brief Get all available presets names from JSON file 
-      @param custom_presets_file Optional path to a custom presets file
+      @brief Get all available presets names from JSON file
+      @param[in] custom_presets_file Optional path to a custom presets file
       @return StringList containing all available preset names
     */
     OPENMS_DLLAPI StringList getAllPresetsNames(const String& custom_presets_file = "");
 
     /**
       @brief Get preset parameters for a given preset name
-      @param p The preset name
-      @param custom_presets_file Optional path to a custom presets file
-      @param nucleotides Output parameter for nucleotides
-      @param mapping Output parameter for mapping
-      @param modifications Output parameter for modifications
-      @param fragment_adducts Output parameter for fragment adducts
-      @param can_cross_link Output parameter for can_cross_link
+      @param[in] p The preset name
+      @param[in] custom_presets_file Optional path to a custom presets file
+      @param[out] nucleotides Output parameter for nucleotides
+      @param[out] mapping Output parameter for mapping
+      @param[out] modifications Output parameter for modifications
+      @param[out] fragment_adducts Output parameter for fragment adducts
+      @param[out] can_cross_link Output parameter for can_cross_link
     */
    OPENMS_DLLAPI void getPresets(const String& p, 
     const String& custom_presets_file,
@@ -46,12 +46,12 @@ namespace OpenMS
 
     /**
       @brief Get preset parameters for a given preset name (using default presets file)
-      @param p The preset name
-      @param nucleotides Output parameter for nucleotides
-      @param mapping Output parameter for mapping
-      @param modifications Output parameter for modifications
-      @param fragment_adducts Output parameter for fragment adducts
-      @param can_cross_link Output parameter for can_cross_link
+      @param[in] p The preset name
+      @param[out] nucleotides Output parameter for nucleotides
+      @param[out] mapping Output parameter for mapping
+      @param[out] modifications Output parameter for modifications
+      @param[out] fragment_adducts Output parameter for fragment adducts
+      @param[out] can_cross_link Output parameter for can_cross_link
     */
     OPENMS_DLLAPI void getPresets(const String& p, 
      StringList& nucleotides, 

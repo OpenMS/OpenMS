@@ -8,8 +8,10 @@
 #pragma once
 
 #include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 #include <cstddef> // for ptrdiff_t
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -97,28 +99,28 @@ public:
     /**
       @brief conversion operator to string
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator std::string() const;
 
     /**
       @brief conversion operator to string vector
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator std::vector<std::string>() const;
 
     /**
       @brief conversion operator to integer vector
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator std::vector<int>() const;
 
     /**
       @brief conversion operator to double vector
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator std::vector<double>() const;
 
@@ -127,7 +129,7 @@ public:
 
       Note: The implementation uses typedef double (as opposed to float, double, long double.)
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator long double() const;
 
@@ -136,7 +138,7 @@ public:
 
       Note: The implementation uses typedef double (as opposed to float, double, long double.)
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator double() const;
 
@@ -145,7 +147,7 @@ public:
 
       Note: The implementation uses typedef double (as opposed to float, double, long double.)
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator float() const;
 
@@ -154,7 +156,7 @@ public:
 
       Note: The implementation uses typedef ptrdiff_t.
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator short int() const;
 
@@ -163,7 +165,7 @@ public:
 
       Note: The implementation uses typedef ptrdiff_t.
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator unsigned short int() const;
 
@@ -172,7 +174,7 @@ public:
 
       Note: The implementation uses typedef ptrdiff_t.
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
 
     operator int() const;
@@ -182,7 +184,7 @@ public:
 
       Note: The implementation uses typedef ptrdiff_t.
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator unsigned int() const;
 
@@ -191,7 +193,7 @@ public:
 
       Note: The implementation uses typedef ptrdiff_t.
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator long int() const;
 
@@ -200,7 +202,7 @@ public:
 
       Note: The implementation uses typedef ptrdiff_t.
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator unsigned long int() const;
 
@@ -209,7 +211,7 @@ public:
 
       Note: The implementation uses typedef ptrdiff_t.
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator long long() const;
 
@@ -218,7 +220,7 @@ public:
 
       Note: The implementation uses typedef ptrdiff_t.
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     operator unsigned long long() const;
 
@@ -250,21 +252,21 @@ public:
     /**
       @brief Explicitly convert ParamValue to string vector
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     std::vector<std::string> toStringVector() const;
 
     /**
       @brief Explicitly convert ParamValue to IntList
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     std::vector<int> toIntVector() const;
 
     /**
       @brief Explicitly convert ParamValue to DoubleList
 
-      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+      @exception Exception::ConversionError is thrown if a cast from the wrong type is requested
     */
     std::vector<double> toDoubleVector() const;
     //@}
@@ -368,5 +370,75 @@ private:
     static std::string doubleToString(double value, bool full_precision = true);
 
   };
-}
+} // namespace OpenMS
+
+// std::hash specialization for ParamValue - must be in std namespace
+namespace std
+{
+  template<>
+  struct hash<OpenMS::ParamValue>
+  {
+    std::size_t operator()(const OpenMS::ParamValue& pv) const noexcept
+    {
+      using namespace OpenMS;
+      std::size_t seed = hash_int(static_cast<unsigned char>(pv.valueType()));
+
+      switch (pv.valueType())
+      {
+        case ParamValue::EMPTY_VALUE:
+          // No additional data to hash
+          break;
+        case ParamValue::STRING_VALUE:
+        {
+          std::string s = pv;
+          hash_combine(seed, fnv1a_hash_string(s));
+          break;
+        }
+        case ParamValue::INT_VALUE:
+        {
+          std::ptrdiff_t i = static_cast<long long>(pv);
+          hash_combine(seed, hash_int(i));
+          break;
+        }
+        case ParamValue::DOUBLE_VALUE:
+        {
+          double d = pv;
+          hash_combine(seed, hash_float(d));
+          break;
+        }
+        case ParamValue::STRING_LIST:
+        {
+          std::vector<std::string> sl = pv.toStringVector();
+          hash_combine(seed, hash_int(sl.size()));
+          for (const auto& s : sl)
+          {
+            hash_combine(seed, fnv1a_hash_string(s));
+          }
+          break;
+        }
+        case ParamValue::INT_LIST:
+        {
+          std::vector<int> il = pv.toIntVector();
+          hash_combine(seed, hash_int(il.size()));
+          for (int i : il)
+          {
+            hash_combine(seed, hash_int(i));
+          }
+          break;
+        }
+        case ParamValue::DOUBLE_LIST:
+        {
+          std::vector<double> dl = pv.toDoubleVector();
+          hash_combine(seed, hash_int(dl.size()));
+          for (double d : dl)
+          {
+            hash_combine(seed, hash_float(d));
+          }
+          break;
+        }
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -83,7 +83,7 @@ namespace OpenMS
       /**
        * @brief Appends the a SpectrumMatchesTopN to another one. Add the number of all matched peaks up. Same for number of scored candidates
        * The
-       * @param other The appended struct
+       * @param[in] other The appended struct
        * @return The struct after the attachment
        */
       SpectrumMatchesTopN& operator+=(const SpectrumMatchesTopN& other)
@@ -151,9 +151,9 @@ namespace OpenMS
      * e.g., for targeted testing. This function modifies the internal state and
      * must be used with care.
      *
-     * @param peptide AASequence of the peptide to add. The sequence may be modified
+     * @param[in,out] peptide AASequence of the peptide to add. The sequence may be modified
      *                internally (e.g., normalization/annotation steps).
-     * @param source_idx Index of the originating FASTA entry (or synthetic source)
+     * @param[in] source_idx Index of the originating FASTA entry (or synthetic source)
      *                   to maintain provenance in downstream processing.
      *
      * Preconditions:
@@ -174,7 +174,7 @@ namespace OpenMS
      * by their own mass. Next they are placed in buckets. The min-fragment mass is stored for each bucket, whereupon
      * the fragments are sorted within the buckets by their originating precursor mass.
      *
-     * @param fasta_entries
+     * @param[in] fasta_entries
      */
     void build(const std::vector<FASTAFile::FASTAEntry> & fasta_entries);
 
@@ -183,8 +183,8 @@ namespace OpenMS
 
 
     /** Return index range of all possible Peptides/Proteins, such that a vector can be created fitting that range (safe some memory)
-     * @param precursor_mass The mono-charged precursor mass (M+H)
-     * @param window Defines the lower and upper bound for the precusor mass. For closed search it only contains the tolerance. In case of open search
+     * @param[in] precursor_mass The mono-charged precursor mass (M+H)
+     * @param[in] window Defines the lower and upper bound for the precusor mass. For closed search it only contains the tolerance. In case of open search
      *                  it contains both tolerance and open-search-window
      * @return a pair of indexes defining all possible peptides which the current peak could hit
      */
@@ -205,9 +205,9 @@ namespace OpenMS
     };
 
     /**@brief Queries one peak
-     * @param peak The queried peak
-     * @param peptide_idx_range The range of precursors/peptides the peptide could potentially belongs to
-     * @param peak_charge The charge of the peak. Is used to calculate the mass from the mz
+     * @param[in] peak The queried peak
+     * @param[in] peptide_idx_range The range of precursors/peptides the peptide could potentially belongs to
+     * @param[in] peak_charge The charge of the peak. Is used to calculate the mass from the mz
      * @return a vector of Hits(matching peptide_idx_range and matching fragment_mz_) containing the idx of the hitted peptide and the mass of the hit
      */
     std::vector<Hit> query(const Peak1D& peak,
@@ -218,7 +218,7 @@ namespace OpenMS
      * @brief: queries one complete experimental spectra against the Database. Loops over all precursor charges
      * Starts at min_precursor_charge and iteratively goes to max_precursor_charge. We query all peaks multiple times with all the
      * different precursor charges and corresponding precursor masses
-     * @param spectrum experimental spectrum
+     * @param[in] spectrum experimental spectrum
      * @param[out] sms The n best Spectrum matches
      */
     void querySpectrum(const MSSpectrum& spectrum,
@@ -247,7 +247,7 @@ protected:
      * skips digestion. If set to true the Digestion enzyme can be set in the parameters.
      * Additionally introduces fixed and variable modifications for restrictive PSM search.
      *
-     * @param fasta_entries
+     * @param[in] fasta_entries
      */
     void generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
@@ -269,10 +269,10 @@ private:
      * @brief queries peaks for a given experimental spectrum with a set range of potential peptides, isotope error and precursor charge. Hits are transferred into a PSM list.
      * Technically an adapter between query(...) and openSearch(...)/searchDifferentPrecursorRanges(...)
      * @param[out] candidates The n best Spectrum matches
-     * @param spectrum The queried experimental spectrum
-     * @param candidates_range The range of precursors/peptides the peptide could potentially belong to
-     * @param isotope_error The applied isotope error
-     * @param precursor_charge The applied precursor charge
+     * @param[in] spectrum The queried experimental spectrum
+     * @param[in] candidates_range The range of precursors/peptides the peptide could potentially belong to
+     * @param[in] isotope_error The applied isotope error
+     * @param[in] precursor_charge The applied precursor charge
      */
     void queryPeaks(SpectrumMatchesTopN& candidates,
                    const MSSpectrum& spectrum,
@@ -282,10 +282,10 @@ private:
     /**
      * @brief If closed search loops over all isotope errors. For each iteration loop over all peaks with queryPeaks.
      * @brief If open search applies a precursor-mass window
-     * @param spectrum experimental query-spectrum
-     * @param precursor_mass The mass of the precursor (mz * charge)
+     * @param[in] spectrum experimental query-spectrum
+     * @param[in] precursor_mass The mass of the precursor (mz * charge)
      * @param[out] sms The Top m SpectrumMatches
-     * @param charge Applied charge
+     * @param[in] charge Applied charge
      */
     void searchDifferentPrecursorRanges(const MSSpectrum& spectrum,
                                         float precursor_mass,

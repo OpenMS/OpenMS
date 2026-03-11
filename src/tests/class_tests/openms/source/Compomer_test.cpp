@@ -13,6 +13,8 @@
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -408,6 +410,55 @@ START_SECTION((bool isSingleAdduct(Adduct &a, const UInt side) const))
 	TEST_EQUAL(c.isSingleAdduct(a2,Compomer::LEFT), false);
 	TEST_EQUAL(c.isSingleAdduct(a1,Compomer::RIGHT), false);
 	TEST_EQUAL(c.isSingleAdduct(a2,Compomer::RIGHT), false);
+END_SECTION
+
+START_SECTION([EXTRA] std::hash<Compomer>)
+{
+  // Test that equal Compomers produce equal hashes
+  Compomer c1(34, 45.32, 12.34);
+  Adduct a1(123, 3, 123.456, "S", -0.3453, 0);
+  Adduct b1(3, -2, 1.456, "H", -0.13, 0);
+  c1.setID(434);
+  c1.add(a1, Compomer::RIGHT);
+  c1.add(b1, Compomer::LEFT);
+
+  Compomer c2(c1); // Copy constructor
+  TEST_EQUAL(c1 == c2, true);
+  TEST_EQUAL(std::hash<Compomer>{}(c1), std::hash<Compomer>{}(c2));
+
+  // Test that different Compomers (typically) produce different hashes
+  Compomer c3(34, 45.32, 12.34);
+  c3.setID(435); // Different ID
+  c3.add(a1, Compomer::RIGHT);
+  c3.add(b1, Compomer::LEFT);
+  TEST_EQUAL(c1 == c3, false);
+  // Note: Different objects may have the same hash (collision), but it's unlikely
+  // We test that the hash function at least compiles and runs without error
+
+  // Test use in unordered_set
+  std::unordered_set<Compomer> compomer_set;
+  compomer_set.insert(c1);
+  compomer_set.insert(c2); // Same as c1, should not increase size
+  compomer_set.insert(c3);
+  TEST_EQUAL(compomer_set.size(), 2);
+  TEST_EQUAL(compomer_set.count(c1), 1);
+  TEST_EQUAL(compomer_set.count(c2), 1);
+  TEST_EQUAL(compomer_set.count(c3), 1);
+
+  // Test use in unordered_map
+  std::unordered_map<Compomer, int> compomer_map;
+  compomer_map[c1] = 1;
+  compomer_map[c3] = 3;
+  TEST_EQUAL(compomer_map.size(), 2);
+  TEST_EQUAL(compomer_map[c1], 1);
+  TEST_EQUAL(compomer_map[c2], 1); // c2 == c1, so should get same value
+  TEST_EQUAL(compomer_map[c3], 3);
+
+  // Test empty Compomer hash
+  Compomer empty1;
+  Compomer empty2;
+  TEST_EQUAL(std::hash<Compomer>{}(empty1), std::hash<Compomer>{}(empty2));
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

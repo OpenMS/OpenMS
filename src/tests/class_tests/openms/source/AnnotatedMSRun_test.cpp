@@ -10,6 +10,8 @@
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <unordered_set>
+#include <unordered_map>
 
 START_TEST(AnnotatedMSRun, "$Id$")
 
@@ -338,6 +340,128 @@ START_SECTION((Operator[] functionality))
   TEST_REAL_SIMILAR(const_spectrum.getRT(), 10.0)
   TEST_EQUAL(const_peptide_id.getHits().size(), 1)
   TEST_EQUAL(const_peptide_id.getHits()[0].getSequence().toString(), "PEPTIDER")
+END_SECTION
+
+START_SECTION((bool operator==(const AnnotatedMSRun& rhs) const))
+  // Create two identical AnnotatedMSRun objects
+  AnnotatedMSRun run1, run2;
+
+  // Set up MSExperiment
+  MSExperiment exp;
+  MSSpectrum spec;
+  spec.setRT(42.0);
+  spec.setMSLevel(2);
+  exp.addSpectrum(spec);
+
+  run1.setMSExperiment(exp);
+  run2.setMSExperiment(exp);
+
+  // Set up peptide identifications
+  PeptideIdentificationList pep_ids;
+  PeptideIdentification pep_id;
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  pep_id.insertHit(hit);
+  pep_ids.push_back(pep_id);
+
+  run1.setPeptideIdentifications(pep_ids);
+  run2.setPeptideIdentifications(pep_ids);
+
+  // Set up protein identifications
+  std::vector<ProteinIdentification> prot_ids;
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("TestProtein");
+  prot_ids.push_back(prot_id);
+
+  run1.setProteinIdentifications(prot_ids);
+  run2.setProteinIdentifications(prot_ids);
+
+  // Test equality
+  TEST_EQUAL(run1 == run2, true)
+  TEST_EQUAL(run1 != run2, false)
+
+  // Test inequality - modify run2
+  run2.getMSExperiment()[0].setRT(100.0);
+  TEST_EQUAL(run1 == run2, false)
+  TEST_EQUAL(run1 != run2, true)
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<AnnotatedMSRun>))
+  // Test 1: Equal objects have equal hashes
+  AnnotatedMSRun run1, run2;
+
+  // Set up MSExperiment
+  MSExperiment exp;
+  MSSpectrum spec;
+  spec.setRT(42.0);
+  spec.setMSLevel(2);
+  exp.addSpectrum(spec);
+
+  run1.setMSExperiment(exp);
+  run2.setMSExperiment(exp);
+
+  // Set up peptide identifications
+  PeptideIdentificationList pep_ids;
+  PeptideIdentification pep_id;
+  pep_id.setIdentifier("test_id");
+  pep_id.setScoreType("test_score");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  pep_id.insertHit(hit);
+  pep_ids.push_back(pep_id);
+
+  run1.setPeptideIdentifications(pep_ids);
+  run2.setPeptideIdentifications(pep_ids);
+
+  // Set up protein identifications
+  std::vector<ProteinIdentification> prot_ids;
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("TestProtein");
+  prot_id.setSearchEngine("TestEngine");
+  prot_ids.push_back(prot_id);
+
+  run1.setProteinIdentifications(prot_ids);
+  run2.setProteinIdentifications(prot_ids);
+
+  TEST_EQUAL(run1 == run2, true)
+  TEST_EQUAL(std::hash<AnnotatedMSRun>{}(run1), std::hash<AnnotatedMSRun>{}(run2))
+
+  // Test 2: Different objects have different hashes (likely, not guaranteed)
+  AnnotatedMSRun run3;
+  MSExperiment exp3;
+  MSSpectrum spec3;
+  spec3.setRT(100.0);  // Different RT
+  spec3.setMSLevel(1); // Different MS level
+  exp3.addSpectrum(spec3);
+  run3.setMSExperiment(exp3);
+
+  TEST_EQUAL(run1 == run3, false)
+  TEST_NOT_EQUAL(std::hash<AnnotatedMSRun>{}(run1), std::hash<AnnotatedMSRun>{}(run3))
+
+  // Test 3: Test use in unordered_set
+  std::unordered_set<AnnotatedMSRun> run_set;
+  run_set.insert(run1);
+  run_set.insert(run2);  // Should not increase size (equal to run1)
+  run_set.insert(run3);
+
+  TEST_EQUAL(run_set.size(), 2)
+  TEST_EQUAL(run_set.count(run1), 1)
+  TEST_EQUAL(run_set.count(run3), 1)
+
+  // Test 4: Test use in unordered_map
+  std::unordered_map<AnnotatedMSRun, std::string> run_map;
+  run_map[run1] = "first";
+  run_map[run3] = "third";
+
+  TEST_EQUAL(run_map.size(), 2)
+  TEST_EQUAL(run_map[run1], "first")
+  TEST_EQUAL(run_map[run2], "first")  // run2 == run1, so should get same value
+  TEST_EQUAL(run_map[run3], "third")
+
+  // Test 5: Empty AnnotatedMSRun has consistent hash
+  AnnotatedMSRun empty1, empty2;
+  TEST_EQUAL(empty1 == empty2, true)
+  TEST_EQUAL(std::hash<AnnotatedMSRun>{}(empty1), std::hash<AnnotatedMSRun>{}(empty2))
 END_SECTION
 
 END_TEST

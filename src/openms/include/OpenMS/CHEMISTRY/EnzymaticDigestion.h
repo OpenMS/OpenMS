@@ -96,10 +96,10 @@ namespace OpenMS
 
        By returning only references into the original string this is very fast.
 
-       @param sequence Sequence to digest
-       @param output Digestion products
-       @param min_length Minimal length of reported products
-       @param max_length Maximal length of reported products (0 = no restriction)
+       @param[in] sequence Sequence to digest
+       @param[out] output Digestion products
+       @param[in] min_length Minimal length of reported products
+       @param[in] max_length Maximal length of reported products (0 = no restriction)
        @return Number of discarded digestion products (which are not matching length restrictions)
        */
     Size digestUnmodified(const StringView& sequence, std::vector<StringView>& output, Size min_length = 1, Size max_length = 0) const;
@@ -111,10 +111,10 @@ namespace OpenMS
      version of this function it is independent of the original sequence. Can be used for matching products to
      determine e.g. missing ones. @todo could be set of pairs.
 
-     @param sequence Sequence to digest
-     @param output Digestion products as vector of pairs of start and end positions
-     @param min_length Minimal length of reported products
-     @param max_length Maximal length of reported products (0 = no restriction)
+     @param[in] sequence Sequence to digest
+     @param[out] output Digestion products as vector of pairs of start and end positions
+     @param[in] min_length Minimal length of reported products
+     @param[in] max_length Maximal length of reported products (0 = no restriction)
      @return Number of discarded digestion products (which are not matching length restrictions)
      */
     Size digestUnmodified(const StringView& sequence, std::vector<std::pair<Size, Size>>& output, Size min_length = 1, Size max_length = 0) const;
@@ -124,17 +124,17 @@ namespace OpenMS
 
     Checks if peptide is a valid digestion product of the enzyme, taking into account specificity and the MC flag provided here.
 
-    @param protein Protein sequence
-    @param pep_pos Starting index of potential peptide
-    @param pep_length Length of potential peptide
-    @param ignore_missed_cleavages Do not compare MC's of potential peptide to the maximum allowed MC's
+    @param[in] protein Protein sequence
+    @param[in] pep_pos Starting index of potential peptide
+    @param[in] pep_length Length of potential peptide
+    @param[in] ignore_missed_cleavages Do not compare MC's of potential peptide to the maximum allowed MC's
     @return True if peptide has correct n/c terminals (according to enzyme, specificity and missed cleavages)
     */
     bool isValidProduct(const String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages = true) const;
 
     /**
        @brief Counts the number of internal cleavage sites (missed cleavages) in a protein sequence.
-       @param sequence Sequence
+       @param[in] sequence Sequence
        @return Number of internal cleavage sites (= missed cleavages in the sequence)
     */
     Size countInternalCleavageSites(const String& sequence) const;
@@ -142,8 +142,8 @@ namespace OpenMS
     /**
        @brief Filter based on the number of missed cleavages.
 
-       @param sequence Unmodified (!) amino acid sequence to check.
-       @param filter A predicate that takes as parameter the number of missed cleavages in the sequence and returns true if the sequence should be filtered out.
+       @param[in] sequence Unmodified (!) amino acid sequence to check.
+       @param[in] filter A predicate that takes as parameter the number of missed cleavages in the sequence and returns true if the sequence should be filtered out.
        @return Whether the sequence should be filtered out.
      */
     bool filterByMissedCleavages(const String& sequence, const std::function<bool(const Int)>& filter) const;
@@ -172,9 +172,9 @@ namespace OpenMS
 
       Returned positions include @p start and any positions between start and end matching the regex.
 
-      @param sequence ...
-      @param start Start digestion after this point
-      @param end Past-the-end index into @p sequence
+      @param[in] sequence ...
+      @param[in] start Start digestion after this point
+      @param[in] end Past-the-end index into @p sequence
       @return Cleavage positions (this includes @p start, but not @p end)
      */
     std::vector<int> tokenize_(const String& sequence, int start = 0, int end = -1) const;
@@ -187,10 +187,10 @@ namespace OpenMS
       Fully-specific variants are skipped.
       Also generates semi-specific variants with missed cleavages.
 
-      @param cleavage_positions A (sorted!) vector of cleavage positions, as returned by tokenize_(). First and last cleavage should be sequence termini.
-      @param output A vector into which produced variants are emplaced.
-      @param min_length Minimal length of reported products
-      @param max_length Maximal length of reported products
+      @param[in] cleavage_positions A (sorted!) vector of cleavage positions, as returned by tokenize_(). First and last cleavage should be sequence termini.
+      @param[out] output A vector into which produced variants are emplaced.
+      @param[in] min_length Minimal length of reported products
+      @param[in] max_length Maximal length of reported products
 
       @return number of digestion products NOT matching the length restrictions.
       @throw Exception::InvalidValue if number of cleavage_positions is smaller than 2 (at least sequence termini are required).
@@ -212,9 +212,9 @@ namespace OpenMS
     /**
        @brief Counts the number of missed cleavages in a sequence fragment
 
-       @param cleavage_positions Positions of cleavage in protein as obtained from tokenize_()
-       @param seq_start Index into sequence
-       @param seq_end Past-the-end index into sequence
+       @param[in] cleavage_positions Positions of cleavage in protein as obtained from tokenize_()
+       @param[in] seq_start Index into sequence
+       @param[in] seq_end Past-the-end index into sequence
        @return number of missed cleavages of peptide
     */
     Size countMissedCleavages_(const std::vector<int>& cleavage_positions, Size seq_start, Size seq_end) const;

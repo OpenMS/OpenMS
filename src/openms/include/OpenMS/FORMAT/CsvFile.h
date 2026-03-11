@@ -34,10 +34,10 @@ public:
     /**
       @brief Constructor with filename
 
-      @param  filename The input file name.
-      @param  is character which separates the items.
-      @param  ie Whether or not every item is enclosed.
-      @param  first_n Only the given number of lines are read, starting from the beginning of the file.
+      @param[in] filename The input file name.
+      @param[in] is character which separates the items.
+      @param[in] ie Whether or not every item is enclosed.
+      @param[in] first_n Only the given number of lines are read, starting from the beginning of the file.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
@@ -46,10 +46,10 @@ public:
     /**
       @brief Loads data from a text file.
 
-      @param  filename The input file name.
-      @param  is character which separates the items.
-      @param  ie Whether or not every item is enclosed.
-      @param  first_n Only the given number of lines are read, starting from the beginning of the file.
+      @param[in] filename The input file name.
+      @param[in] is character which separates the items.
+      @param[in] ie Whether or not every item is enclosed.
+      @param[in] first_n Only the given number of lines are read, starting from the beginning of the file.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
@@ -58,14 +58,14 @@ public:
     /**
       @brief Stores the buffer's content into a file.
 
-      @param filename The output filename.
+      @param[in] filename The output filename.
     */
     void store(const String& filename);
 
     /**
       @brief Add a row to the buffer.
 
-      @param list StringList which will contain all items of the row to add
+      @param[in] list StringList which will contain all items of the row to add
     */
     void addRow(const StringList& list);
 
@@ -79,8 +79,8 @@ public:
     /**
       @brief writes all items from a row to list
 
-      @param row the row which will be read
-      @param list StringList which will contain all items of the row
+      @param[in] row the row which will be read
+      @param[out] list StringList which will contain all items of the row
 
       @exception Exception::InvalidIterator is thrown if the row is not existing
 

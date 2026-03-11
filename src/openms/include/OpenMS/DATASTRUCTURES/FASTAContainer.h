@@ -104,7 +104,7 @@ public:
   /** @brief Prefetch a new cache in the background, with up to @p suggested_size entries (or fewer upon reaching end-of-file)
 
      Call @p activateCache() afterwards to make the data available via @p chunkAt() or @p readAt().
-     @param suggested_size Number of FASTA entries to read from disk
+     @param[in] suggested_size Number of FASTA entries to read from disk
      @return true if new data is available; false if background data is empty
   */
   bool cacheChunk(int suggested_size)
@@ -146,9 +146,9 @@ public:
     earlier entries. Can be used before reaching the end of the file,
     since it will reset the file position after its done reading (if reading from disk is required), but
     must not be used for entries beyond the active chunk (unseen data).
-    
-    @param protein Return value
-    @param pos Absolute entry number in FASTA file
+
+    @param[out] protein Return value
+    @param[in] pos Absolute entry number in FASTA file
     @return true if reading was successful; false otherwise (e.g. EOF)
     @throw Exception::IndexOverflow if @p pos is beyond active chunk
     @note: not multi-threading safe (use chunkAt())!

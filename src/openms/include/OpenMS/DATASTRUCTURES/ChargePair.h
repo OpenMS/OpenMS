@@ -8,10 +8,12 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <functional>
 #include <iosfwd>
 #include <vector>
 
@@ -126,4 +128,27 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ChargePair& cons);
 
 } // namespace OpenMS
+
+// Hash function specialization for ChargePair
+// Note: Only hash fields used in operator== (feature0_index_, feature1_index_,
+// feature0_charge_, feature1_charge_, compomer_, mass_diff_, is_active_)
+// Do NOT hash score_ as it is not compared in operator==
+namespace std
+{
+  template<>
+  struct hash<OpenMS::ChargePair>
+  {
+    std::size_t operator()(const OpenMS::ChargePair& cp) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_int(cp.getElementIndex(0));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(cp.getElementIndex(1)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(cp.getCharge(0)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(cp.getCharge(1)));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::Compomer>{}(cp.getCompomer()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(cp.getMassDiff()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(cp.isActive())));
+      return seed;
+    }
+  };
+} // namespace std
 

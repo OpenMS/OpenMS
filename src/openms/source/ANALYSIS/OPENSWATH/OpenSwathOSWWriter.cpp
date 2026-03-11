@@ -14,10 +14,8 @@
 
 namespace OpenMS
 {
-  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool uis_scores) :
+  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, bool uis_scores) :
     output_filename_(output_filename),
-    input_filename_(input_filename),
-    run_id_(Internal::SqliteHelper::clearSignBit(run_id)),
     doWrite_(!output_filename.empty()),
     enable_uis_scoring_(uis_scores)
   {}
@@ -169,15 +167,52 @@ namespace OpenMS
 
     // Execute SQL create statement
     conn.executeStatement(create_sql);
+  }
 
-    // Insert run_id information
-    std::stringstream sql_run;
-    sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
-            << run_id_ << ", '"
-            << input_filename_ << "'); ";
 
-    // Execute SQL insert statement
-    conn.executeStatement(sql_run.str());
+  void OpenSwathOSWWriter::addRun(const UInt64 run_id, const String& input_filename)
+  {
+    if (!doWrite_) return;
+    SqliteConnector conn(output_filename_);
+    const UInt64 rid = Internal::SqliteHelper::clearSignBit(run_id);
+    // Bind RUN.ID explicitly as int64 so SQLite stores it with INTEGER storage
+    // class. executeBindStatement() unconditionally uses sqlite3_bind_blob for
+    // every parameter, which stores integers as BLOB and breaks
+    // "FEATURE.RUN_ID = RUN.ID" joins (FEATURE.RUN_ID is INTEGER because
+    // prepareLine() embeds it as a numeric literal in SQL text).
+    sqlite3_stmt* stmt = nullptr;
+    SqliteConnector::prepareStatement(conn.getDB(), &stmt,
+        "INSERT INTO RUN (ID, FILENAME) VALUES (?, ?);");
+    int rc = sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(rid));
+    if (rc != SQLITE_OK)
+    {
+      sqlite3_finalize(stmt);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("sqlite3_bind_int64 failed: ") + sqlite3_errmsg(conn.getDB()));
+    }
+
+    rc = sqlite3_bind_text(stmt, 2, input_filename.c_str(),
+      static_cast<int>(input_filename.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK)
+    {
+      sqlite3_finalize(stmt);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("sqlite3_bind_text failed: ") + sqlite3_errmsg(conn.getDB()));
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    if (rc != SQLITE_DONE)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("sqlite3_step failed: ") + sqlite3_errmsg(conn.getDB()));
+    }
+    run_id_ = rid;
+  }
+
+  void OpenSwathOSWWriter::setRunId(const UInt64 run_id)
+  {
+    run_id_ = Internal::SqliteHelper::clearSignBit(run_id);
   }
 
   String OpenSwathOSWWriter::getScore(const Feature& feature, const std::string& score_name) const

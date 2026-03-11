@@ -70,9 +70,9 @@
 			<UserParam type="floatList" name="masserror_ppm" value="[0.795655307308668, 0.601388001638662]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.998183460545928"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.998183460545929"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.997577947394571"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.108663236021716"/>
 			<UserParam type="float" name="var_library_sangle" value="0.181599083818331"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.108663236021716"/>
@@ -89,7 +89,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="4.45439541136954"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.985403120517731"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="-2.199485262999317e04"/>
-			<UserParam type="float" name="var_isotope_correlation_score" value="0.99809406217887"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.998094062178869"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score" value="0.698521654473665"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.666143770195331"/>
@@ -110,7 +110,7 @@
 			<intensity>195.654221</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>-1.72276e04</overallquality>
+			<overallquality>-1.722766e04</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_15004869347769368353_15157403601844400700">
@@ -177,7 +177,7 @@
 			<UserParam type="floatList" name="masserror_ppm" value="[0.284853767623738, -1.0, 3.835779412404737]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="1.699462225655311"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.430576988219353"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.801773648038466"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.801773648038465"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.827432023818302"/>
 			<UserParam type="float" name="var_library_corr" value="0.930678748454332"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.08019006258769"/>
@@ -198,13 +198,13 @@
 			<UserParam type="float" name="xx_lda_prelim_score" value="-2.155188622957457e04"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.972666510130199"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.0"/>
-			<UserParam type="float" name="var_massdev_score" value="1.373544393342825"/>
+			<UserParam type="float" name="var_massdev_score" value="2.060316590014238"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.18664964107839"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.515861970901435"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.697321892951907"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.722759608255197e04"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.722765661467399e04"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="501.0"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -286,7 +286,7 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.904813880838571"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.724571355831169"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.643242628379923"/>
-			<UserParam type="float" name="var_library_corr" value="-0.78414843390081"/>
+			<UserParam type="float" name="var_library_corr" value="-0.784148433900811"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.435668770903728"/>
 			<UserParam type="float" name="var_library_sangle" value="1.229005961850221"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.493251048154143"/>

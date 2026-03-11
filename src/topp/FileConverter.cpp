@@ -13,7 +13,15 @@
 // TODO add handler support for other accss
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include <OpenMS/FORMAT/SqMassFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 // TODO add handler support for other access
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -85,6 +93,7 @@ Some information about the supported input types:
 @ref OpenMS::MzXMLFile "mzXML"
 @ref OpenMS::MzDataFile "mzData"
 @ref OpenMS::MascotGenericFile "mgf"
+@ref OpenMS::MSPGenericFile "msp"
 @ref OpenMS::DTA2DFile "dta2d"
 @ref OpenMS::DTAFile "dta"
 @ref OpenMS::FeatureXMLFile "featureXML"
@@ -140,7 +149,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms", "sqMass"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
 
@@ -148,7 +157,7 @@ protected:
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "oms"};
+    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -173,7 +182,17 @@ protected:
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
     registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
     registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
+    
+  // OpenSwath / chromatogram options: allow passing a transition library to map extracted ion chromatograms to their matching metadata in the transition list
+  registerTOPPSubsection_("OpenSwathWorkflow", "Options for loading OpenSWATH transition libraries used for chromatogram metadata");
+  registerInputFile_("OpenSwathWorkflow:tr", "<file>", "", "Transition library (PQP, TSV, or TraML) providing precursor/transition metadata. Required when converting sqMass to CHROMPARQUET (.xic); XICs without associated metadata are not meaningful.", false, true);
+  setValidFormats_("OpenSwathWorkflow:tr", {"pqp", "tsv", "traml", "osw"});
+  registerStringOption_("OpenSwathWorkflow:tr_type", "<type>", "", "Type hint for the transition file (pqp, tsv, traml). If not provided, the type is inferred from the file extension.", false, true);
+  registerFlag_("OpenSwathWorkflow:legacy_traml_id", "When loading PQP libraries: use legacy TraML IDs (TRAML_ID) instead of numeric IDs.", true);
   }
+
+  // Note: subsection defaults are not overridden here; TransitionTSVFile parameters
+  // are available via the standard parameter mechanism when requested.
 
   ExitCodes main_(int, const char**) override
   {
@@ -473,7 +492,7 @@ protected:
       {
         for (auto & s : exp)
         {
-          s.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+          s.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
         }
       }
 
@@ -544,6 +563,13 @@ protected:
       MascotGenericFile f;
       f.setLogType(log_type_);
       f.store(out, exp, getFlag_("MGF_compact"));
+    }
+    else if (out_type == FileTypes::MSP)
+    {
+      //add data processing entry
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
+                                                 FORMAT_CONVERSION));
+      FileHandler().storeExperiment(out, exp, {FileTypes::MSP}, log_type_);
     }
     else if (out_type == FileTypes::FEATUREXML)
     {
@@ -676,6 +702,97 @@ protected:
 
       IBSpectraFile ibfile;
       ibfile.store(out, cm);
+    }
+    else if (out_type == FileTypes::CHROMPARQUET)
+    {
+      // Convert to OpenSWATH Parquet chromatogram file (.xic)
+      if (in_type == FileTypes::SQMASS)
+      {
+        // A transition library is required: XICs without precursor/transition
+        // metadata are not meaningful.
+        String tr_file = getStringOption_("OpenSwathWorkflow:tr");
+        if (tr_file.empty())
+        {
+          writeLogError_("Error: Converting sqMass to CHROMPARQUET (.xic) requires a transition library "
+                         "supplied via -OpenSwathWorkflow:tr. XICs without associated metadata are not meaningful.");
+          return ILLEGAL_PARAMETERS;
+        }
+
+        // Resolve the file type: honour the explicit type hint first, then
+        // fall back to extension/content detection.
+        FileHandler fh_local;
+        FileTypes::Type tr_type = FileTypes::UNKNOWN;
+        const String tr_type_hint = getStringOption_("OpenSwathWorkflow:tr_type");
+        if (!tr_type_hint.empty())
+        {
+          tr_type = FileTypes::nameToType(tr_type_hint);
+          if (tr_type == FileTypes::UNKNOWN)
+          {
+            writeLogError_(String("Error: Unsupported value for -OpenSwathWorkflow:tr_type: '") + tr_type_hint + "'.");
+            return ILLEGAL_PARAMETERS;
+          }
+        }
+        else
+        {
+          tr_type = fh_local.getType(tr_file);
+        }
+
+        OpenSwath::LightTargetedExperiment transition_exp;
+        try
+        {
+          if (tr_type == FileTypes::PQP || tr_type == FileTypes::OSW)
+          {
+            TransitionPQPFile pqp_reader;
+            bool legacy = getFlag_("OpenSwathWorkflow:legacy_traml_id");
+            pqp_reader.setLogType(log_type_);
+            pqp_reader.convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp, legacy);
+          }
+          else if (tr_file.hasSuffix(".oswpq") || tr_file.hasSuffix(".oswpq.zip"))
+          {
+            writeLogError_(String("Error: .oswpq libraries are not supported by this build of FileConverter. "
+                                  "Cannot convert without transition metadata (file: '") + tr_file + "').");
+            return ILLEGAL_PARAMETERS;
+          }
+          else if (tr_type == FileTypes::TSV)
+          {
+            TransitionTSVFile tsv_reader;
+            Param reader_parameters = getParam_().copy("OpenSwathWorkflow:", true);
+            tsv_reader.setLogType(log_type_);
+            tsv_reader.setParameters(reader_parameters);
+            tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+          }
+          else if (tr_type == FileTypes::TRAML)
+          {
+            TargetedExperiment targeted_exp;
+            FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
+            OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+          }
+          else
+          {
+            writeLogError_(String("Error: Unrecognized transition library type for '") + tr_file +
+                           "'. Cannot convert sqMass to CHROMPARQUET without valid transition metadata.");
+            return ILLEGAL_PARAMETERS;
+          }
+        }
+        catch (const Exception::BaseException& e)
+        {
+          writeLogError_(String("Error: Failed to load transition library '") + tr_file + "': " + e.what());
+          return ILLEGAL_PARAMETERS;
+        }
+
+        MSChromatogramParquetConsumer consumer(out, 0, in, transition_exp);
+        // Stream directly from the sqMass file (memory-efficient)
+        SqMassFile().transform(in, &consumer, /*skip_full_count=*/false, /*skip_first_pass=*/false);
+        consumer.finalize();
+      }
+      else
+      {
+        // For non-sqMass inputs, CHROMPARQUET output requires transition metadata.
+        // Only sqMass → CHROMPARQUET is currently supported.
+        writeLogError_("Error: CHROMPARQUET (.xic) output is only supported when converting from sqMass input. "
+                       "Supply an sqMass file via -in.");
+        return INCOMPATIBLE_INPUT_DATA;
+      }
     }
     else if (out_type == FileTypes::SQMASS)
     {

@@ -12,6 +12,11 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 
 using namespace std;
@@ -203,7 +208,7 @@ protected:
     OpenPepXLAlgorithm search_algorithm;
     Param this_param = getParam_();
     Param algo_param = search_algorithm.getParameters();
-    algo_param.update(this_param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
+    algo_param.update(this_param, false, false, false, false, getGlobalLogDebug()); // suppress param. update message
     search_algorithm.setParameters(algo_param);
     search_algorithm.setLogType(this->log_type_);
 
@@ -223,9 +228,9 @@ protected:
     // run algorithm
     OpenPepXLAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spectra, cfeatures, fasta_db, protein_ids, peptide_ids, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
 
-    if (exit_code != OpenPepXLAlgorithm::EXECUTION_OK)
+    if (exit_code != OpenPepXLAlgorithm::ExitCodes::EXECUTION_OK)
     {
-      if (exit_code == OpenPepXLAlgorithm::ILLEGAL_PARAMETERS)
+      if (exit_code == OpenPepXLAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
       {
         return ILLEGAL_PARAMETERS;
       }

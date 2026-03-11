@@ -23,8 +23,16 @@ endif()
 
 #TODO somehow add the same/compatible versions that were found by OpenMS? And what about static vs dynamic? E.g. if we link to static zlib in OpenMS(.dll) what (if at all) can/should the consumer link against?
 find_dependency(Qt6 @QT_MIN_VERSION@ COMPONENTS @OpenMS_QT_COMPONENTS@)
+find_dependency(CURL)
 find_dependency(XercesC)
-find_dependency(Eigen3 3.3.4)
+# Find Eigen
+# Try the version range first (CMake 3.19+ with compatible Eigen config)
+# Use find_package instead of find_dependency so QUIET failures don't abort
+find_package(Eigen3 3.4.0...<6 QUIET)
+if(NOT TARGET Eigen3::Eigen)
+    # Fall back to simple version check for older Eigen/CMake configurations
+    find_dependency(Eigen3 3.4.0 REQUIRED)
+endif()
 find_dependency(LIBSVM 2.91)
 
 # Rest are private linked libraries
@@ -57,6 +65,11 @@ set(OPENMS_SHARE_DIR "@PACKAGE_INSTALL_SHARE_DIR@")
 set(OPENMS_BIN_DIR "@PACKAGE_INSTALL_BIN_DIR@")
 set(OPENMS_DOC_DIR "@PACKAGE_INSTALL_DOC_DIR@")
 set(OPENMS_LIB_DIR "@PACKAGE_INSTALL_LIB_DIR@")
+
+# Feature flags from build configuration
+set(WITH_GUI @WITH_GUI@)
+set(WITH_HDF5 @WITH_HDF5@)
+set(WITH_PARQUET @WITH_PARQUET@)
 
 ## The targets file
 include("${OPENMS_CMAKE_DIR}/@_OPENMS_EXPORT_FILE@")

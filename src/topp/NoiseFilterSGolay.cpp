@@ -177,7 +177,7 @@ public:
       return INCOMPATIBLE_INPUT_DATA;
     }
     //check for peak type (profile data required)
-    if (!exp.empty() && exp[0].getType(true) == SpectrumSettings::CENTROID)
+    if (!exp.empty() && exp[0].getType(true) == SpectrumSettings::SpectrumType::CENTROID)
     {
       writeLogWarn_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }

@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAdductDefinition.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLPresets.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -16,6 +17,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <unordered_set>
 
 using namespace std;
 
@@ -501,6 +503,44 @@ START_SECTION((static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const
     ++it_expected;
     ++it_actual;
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<NuXLFragmentAdductDefinition>))
+{
+  // Test that equal definitions have equal hashes
+  NuXLFragmentAdductDefinition fad1(EmpiricalFormula("C4H4N2O2"), "U'", 112.027);
+  NuXLFragmentAdductDefinition fad2(EmpiricalFormula("C4H4N2O2"), "U'", 112.027);
+
+  std::hash<NuXLFragmentAdductDefinition> hasher;
+  TEST_EQUAL(hasher(fad1), hasher(fad2))
+
+  // Test that different formulas produce different hashes
+  NuXLFragmentAdductDefinition fad3(EmpiricalFormula("C4H2N2O1"), "U'-H2O", 94.016);
+  TEST_NOT_EQUAL(hasher(fad1), hasher(fad3))
+
+  // Test that different names produce different hashes (same formula)
+  NuXLFragmentAdductDefinition fad4(EmpiricalFormula("C4H4N2O2"), "different_name", 112.027);
+  TEST_NOT_EQUAL(hasher(fad1), hasher(fad4))
+
+  // Note: mass is not used in operator== so it should not affect the hash
+  NuXLFragmentAdductDefinition fad5(EmpiricalFormula("C4H4N2O2"), "U'", 999.999);
+  TEST_EQUAL(hasher(fad1), hasher(fad5))
+
+  // Test empty definitions
+  NuXLFragmentAdductDefinition fad_empty1;
+  NuXLFragmentAdductDefinition fad_empty2;
+  TEST_EQUAL(hasher(fad_empty1), hasher(fad_empty2))
+
+  // Test that definitions work in unordered_set
+  std::unordered_set<NuXLFragmentAdductDefinition> fad_set;
+  fad_set.insert(fad1);
+  fad_set.insert(fad2);  // Duplicate, should not increase size
+  fad_set.insert(fad3);  // Different definition
+  TEST_EQUAL(fad_set.size(), 2)
+  TEST_EQUAL(fad_set.count(fad1), 1)
+  TEST_EQUAL(fad_set.count(fad2), 1)  // Same as fad1
+  TEST_EQUAL(fad_set.count(fad3), 1)
 }
 END_SECTION
 

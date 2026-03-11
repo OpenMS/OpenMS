@@ -5,6 +5,8 @@ set(directory include/OpenMS/FORMAT/HANDLERS)
 set(sources_list_h
 AcqusHandler.h
 CachedMzMLHandler.h
+ConsensusXMLHandler.h
+FeatureXMLHandler.h
 FidHandler.h
 IndexedMzMLDecoder.h
 IndexedMzMLHandler.h

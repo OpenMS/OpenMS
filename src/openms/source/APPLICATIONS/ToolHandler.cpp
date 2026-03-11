@@ -48,6 +48,7 @@ namespace OpenMS
     tools_map["AssayGeneratorMetabo"] = Internal::ToolDescription("AssayGeneratorMetabo", cat_targeted);
     tools_map["AssayGeneratorMetaboSirius"] = Internal::ToolDescription("AssayGeneratorMetaboSirius", cat_targeted);
     tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", cat_signal_proc_smooth_normalize);
+    tools_map["FeatureFinderLFQ"] = Internal::ToolDescription("FeatureFinderLFQ", cat_quant);
     tools_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", cat_misc);
     tools_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", cat_targeted);
     tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", cat_ID_search);
@@ -148,6 +149,7 @@ namespace OpenMS
     tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", cat_targeted);
     tools_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", cat_targeted);
     tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", cat_centroiding);
+    tools_map["PeakPickerIM"] = Internal::ToolDescription("PeakPickerIM", cat_centroiding);
     tools_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", cat_centroiding);
     tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", cat_ID_proc);
     tools_map["PeptideDataBaseSearchFI"] = Internal::ToolDescription("PeptideDataBaseSearchFI", cat_ID_search);
@@ -158,7 +160,7 @@ namespace OpenMS
     tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
     tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
 #ifdef WITH_PARQUET
-    tools_map["QuantmsIOConverter"] = Internal::ToolDescription("QuantmsIOConverter", cat_file_converter);
+    tools_map["QPXConverter"] = Internal::ToolDescription("QPXConverter", cat_file_converter);
 #endif
     tools_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", cat_QC);
     tools_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", cat_QC);

@@ -58,7 +58,7 @@ fdr_algorithm.setParameters(algo_param);
 // run algorithm
 XFDRAlgorithm::ExitCodes exit_code = fdr_algorithm.run(peptide_ids, protein_id);
 
-TEST_EQUAL(exit_code, XFDRAlgorithm::EXECUTION_OK)
+TEST_EQUAL(exit_code, XFDRAlgorithm::ExitCodes::EXECUTION_OK)
 TEST_EQUAL(protein_ids.size(), 1)
 TEST_EQUAL(peptide_ids.size(), 310)
 

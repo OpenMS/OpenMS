@@ -16,6 +16,9 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
@@ -297,11 +300,11 @@ private:
 
   /**
    * @brief Apply RT filtering with block-aware modes
-   * @param exp The MSExperiment to filter; will be reloaded with actual data
-   * @param f The filehandler with filtering options
-   * @param rt_l Lower RT bound
-   * @param rt_u Upper RT bound
-   * @param rt_block_mode The RT cutting mode (RTBlockMode enum)
+   * @param[in] exp The MSExperiment to filter; will be reloaded with actual data
+   * @param[in] f The filehandler with filtering options
+   * @param[in] rt_l Lower RT bound
+   * @param[in] rt_u Upper RT bound
+   * @param[in] rt_block_mode The RT cutting mode (RTBlockMode enum)
    */
   void applyRTBlockFiltering(PeakMap& exp, FileHandler& f, double rt_l, double rt_u, RTBlockMode rt_block_mode)
   {
@@ -317,7 +320,6 @@ private:
 
     // Identify spectrum blocks
     std::vector<std::pair<Size, Size>> blocks; // start_idx, end_idx pairs
-    Size block_start = 0;
 
     auto first_spec = exp.RTBegin(rt_l);
     auto last_spec = exp.RTBegin(rt_u);
@@ -393,7 +395,7 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content", false);
     setValidStrings_("out_type", formats);
 
-    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
+    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract [s]", false);
     registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS], String("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_SHRINK] + "' only keeps complete blocks within the given RT range", false);
     setValidStrings_("rt_block_mode", StringList(RT_BLOCK_MODE_NAMES.begin(), RT_BLOCK_MODE_NAMES.end()));
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
@@ -435,11 +437,11 @@ protected:
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
 
     registerStringOption_("spectra:remove_mode", "<mode>", "", "Remove scans by scan mode", false);
-    setValidStrings_("spectra:remove_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
+    setValidStrings_("spectra:remove_mode", InstrumentSettings::NamesOfScanMode, (int)static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE));
 
     addEmptyLine_();
     registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method", false);
-    setValidStrings_("spectra:remove_activation", Precursor::NamesOfActivationMethod, (int)Precursor::SIZE_OF_ACTIVATIONMETHOD);
+    setValidStrings_("spectra:remove_activation", Precursor::NamesOfActivationMethod, (int)Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
 
     registerStringOption_("spectra:remove_collision_energy", "[min]:[max]", ":", "Remove MSn scans with a collision energy in the given interval", false);
     registerStringOption_("spectra:remove_isolation_window_width", "[min]:[max]", ":", "Remove MSn scans whose isolation window width is in the given interval", false);
@@ -447,15 +449,15 @@ protected:
     addEmptyLine_();
     registerFlag_("spectra:select_zoom", "Select zoom (enhanced resolution) scans");
     registerStringOption_("spectra:select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
-    setValidStrings_("spectra:select_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
+    setValidStrings_("spectra:select_mode", InstrumentSettings::NamesOfScanMode, (int)static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE));
     registerStringOption_("spectra:select_activation", "<activation>", "", "Retain MSn scans where any of its precursors features a certain activation method", false);
-    setValidStrings_("spectra:select_activation", Precursor::NamesOfActivationMethod, (int)Precursor::SIZE_OF_ACTIVATIONMETHOD);
+    setValidStrings_("spectra:select_activation", Precursor::NamesOfActivationMethod, (int)Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
     registerStringOption_("spectra:select_collision_energy", "[min]:[max]", ":", "Select MSn scans with a collision energy in the given interval", false);
     registerStringOption_("spectra:select_isolation_window_width", "[min]:[max]", ":", "Select MSn scans whose isolation window width is in the given interval", false);
 
     addEmptyLine_();
     registerStringOption_("spectra:select_polarity", "<polarity>", "", "Retain MSn scans with a certain scan polarity", false);
-    setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, (int)IonSource::SIZE_OF_POLARITY);
+    setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, static_cast<int>(IonSource::Polarity::SIZE_OF_POLARITY));
 
     registerTOPPSubsection_("spectra:blackorwhitelist", "Black or white listing of of MS2 spectra by spectral similarity");
     registerInputFile_("spectra:blackorwhitelist:file", "<file>", "",   "Input file containing MS2 spectra that should be retained or removed from the mzML file!\n"
@@ -886,11 +888,11 @@ protected:
       if (!remove_mode.empty())
       {
         writeDebug_("Removing mode: " + remove_mode, 3);
-        for (Size i = 0; i < InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+        for (Size i = 0; i < static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE); ++i)
         {
           if (InstrumentSettings::NamesOfScanMode[i] == remove_mode)
           {
-            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i));
+            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>(static_cast<Int>(i)));
           }
         }
       }
@@ -900,11 +902,11 @@ protected:
       if (!select_mode.empty())
       {
         writeDebug_("Selecting mode: " + select_mode, 3);
-        for (Size i = 0; i < InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+        for (Size i = 0; i < static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE); ++i)
         {
           if (InstrumentSettings::NamesOfScanMode[i] == select_mode)
           {
-            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true));
+            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>(static_cast<Int>(i), true));
           }
         }
       }
@@ -914,7 +916,7 @@ protected:
       if (!remove_activation.empty())
       {
         writeDebug_("Removing scans with activation mode: " + remove_activation, 3);
-        for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+        for (Size i = 0; i < static_cast<Size>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
         {
           if (Precursor::NamesOfActivationMethod[i] == remove_activation)
           {
@@ -928,7 +930,7 @@ protected:
       if (!select_activation.empty())
       {
         writeDebug_("Selecting scans with activation mode: " + select_activation, 3);
-        for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+        for (Size i = 0; i < static_cast<Size>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
         {
           if (Precursor::NamesOfActivationMethod[i] == select_activation)
           {
@@ -942,13 +944,8 @@ protected:
       if (!select_polarity.empty())
       {
         writeDebug_("Selecting polarity: " + select_polarity, 3);
-        for (Size i = 0; i < IonSource::SIZE_OF_POLARITY; ++i)
-        {
-          if (IonSource::NamesOfPolarity[i] == select_polarity)
-          {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>((IonSource::Polarity)i, true)), exp.end());
-          }
-        }
+        IonSource::Polarity pol = IonSource::toPolarity(select_polarity);
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>(pol, true)), exp.end());
       }
 
       //remove zoom scans (might be a lot of spectra)

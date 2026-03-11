@@ -13,10 +13,19 @@
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/Peak2D.h>
+#include <type_traits>
+#include <unordered_set>
+#include <unordered_map>
+
 using namespace OpenMS;
 using namespace std;
 
 START_TEST(ChromatogramPeak, "$Id$")
+
+static_assert(std::is_same_v<ChromatogramPeak::IntensityType, Peak1D::IntensityType>);
+static_assert(std::is_same_v<ChromatogramPeak::IntensityType, Peak2D::IntensityType>);
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -369,6 +378,48 @@ START_SECTION(([ChromatogramPeak::RTLess] bool operator()(CoordinateType left, C
   TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(left,right), true)
   TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(right,left), false)
   TEST_EQUAL(ChromatogramPeak::RTLess().operator ()(left,left), false)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<ChromatogramPeak>))
+{
+  // Test that equal peaks have equal hashes
+  ChromatogramPeak p1, p2;
+  p1.setRT(10.5);
+  p1.setIntensity(1000.0);
+  p2.setRT(10.5);
+  p2.setIntensity(1000.0);
+
+  std::hash<ChromatogramPeak> hasher;
+  TEST_EQUAL(hasher(p1), hasher(p2))
+
+  // Test that hash changes when values change
+  ChromatogramPeak p3;
+  p3.setRT(20.5);
+  p3.setIntensity(1000.0);
+  TEST_NOT_EQUAL(hasher(p1), hasher(p3))
+
+  // Test use in unordered_set
+  std::unordered_set<ChromatogramPeak> peak_set;
+  peak_set.insert(p1);
+  TEST_EQUAL(peak_set.size(), 1)
+  peak_set.insert(p2); // same as p1
+  TEST_EQUAL(peak_set.size(), 1) // should not increase
+  peak_set.insert(p3);
+  TEST_EQUAL(peak_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<ChromatogramPeak, int> peak_map;
+  peak_map[p1] = 42;
+  TEST_EQUAL(peak_map[p1], 42)
+  TEST_EQUAL(peak_map[p2], 42) // p2 == p1, should get same value
+  peak_map[p3] = 99;
+  TEST_EQUAL(peak_map[p3], 99)
+  TEST_EQUAL(peak_map.size(), 2)
 }
 END_SECTION
 

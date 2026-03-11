@@ -9,6 +9,9 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/FORMAT/TextFile.h>
@@ -23,8 +26,10 @@
 using namespace std;
 
 // TODO fix all the shadowed "String s"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 namespace OpenMS
 {
@@ -3332,4 +3337,6 @@ namespace OpenMS
 
 }
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif

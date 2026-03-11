@@ -57,7 +57,7 @@ public:
     /**
       @brief C'tor to create a new channel extractor for the given quantitation method.
 
-      @param quant_method IsobaricQuantitationMethod providing the necessary information which channels should be extracted.
+      @param[in] quant_method IsobaricQuantitationMethod providing the necessary information which channels should be extracted.
     */
     explicit IsobaricChannelExtractor(const IsobaricQuantitationMethod* const quant_method);
 
@@ -70,8 +70,8 @@ public:
     /**
       @brief Extracts the isobaric channels from the tandem MS data and stores intensity values in a consensus map.
 
-      @param ms_exp_data Raw data to search for isobaric quantitation channels.
-      @param consensus_map Output map containing the identified channels and the corresponding intensities.
+      @param[in] ms_exp_data Raw data to search for isobaric quantitation channels.
+      @param[in] consensus_map Output map containing the identified channels and the corresponding intensities.
     */
     void extractChannels(const PeakMap& ms_exp_data, ConsensusMap& consensus_map);
 
@@ -93,8 +93,8 @@ public:
     * Adds column headers with channel metadata to the consensus map.  
     * Only needed when using extractSingleSpec() instead of extractChannels().  
     * 
-    * @param consensus_map ConsensusMap to register channels in  
-    * @param filename Optional filename to associate with channels  
+    * @param[out] consensus_map ConsensusMap to register channels in  
+    * @param[in] filename Optional filename to associate with channels  
     */  
     void registerChannelsInOutputMap(ConsensusMap& consensus_map, const String& filename = "");
 
@@ -147,21 +147,21 @@ private:
       /**
         @brief C'tor taking the experiment that will be analyzed.
 
-        @param targetExp The experiment that will be analyzed.
+        @param[in] targetExp The experiment that will be analyzed.
       */
       PurityState_(const PeakMap& targetExp);
 
       /**
         @brief Searches the experiment for the next MS1 spectrum with a retention time bigger then @p rt.
 
-        @param rt The next follow up scan should have a retention bigger then this value.
+        @param[in] rt The next follow up scan should have a retention bigger then this value.
       */
       void advanceFollowUp(const double rt);
 
       /**
         @brief Check if the currently selected follow up scan has a retention time bigger then the given value.
 
-        @param rt The retention time to check.
+        @param[in] rt The retention time to check.
       */
       bool followUpValid(const double rt) const;
     };
@@ -205,7 +205,7 @@ private:
     /**
       @brief Checks if the given precursor fulfills all constraints for extractions.
 
-      @param precursor The precursor to test.
+      @param[in] precursor The precursor to test.
       @return $true$ if the precursor can be used for extraction, $false$ otherwise.
     */
     bool isValidPrecursor_(const Precursor& precursor) const;
@@ -213,7 +213,7 @@ private:
     /**
       @brief Checks whether the given ConsensusFeature contains a channel that is below the given intensity threshold.
 
-      @param cf The ConsensusFeature to check.
+      @param[in] cf The ConsensusFeature to check.
       @return $true$ if a low intensity reporter is contained, $false$ otherwise.
     */
     bool hasLowIntensityReporter_(const ConsensusFeature& cf) const;
@@ -221,8 +221,8 @@ private:
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and one to the precursor spectrum.
 
-      @param ms2_spec Iterator pointing to the MS2 spectrum.
-      @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
+      @param[in] ms2_spec Iterator pointing to the MS2 spectrum.
+      @param[in] precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
     double computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PurityState_& precursor) const;
@@ -230,8 +230,8 @@ private:
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and a reference to the potential precursor spectrum.
 
-      @param ms2_spec Iterator pointing to the MS2 spectrum.
-      @param precursor_spec Precursor spectrum of ms2_spec.
+      @param[in] ms2_spec Iterator pointing to the MS2 spectrum.
+      @param[in] precursor_spec Precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
     double computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const;
@@ -239,14 +239,14 @@ private:
     /**
       @brief Get the first (of potentially many) activation methods (HCD,CID,...) of this spectrum.
 
-      @param s The spectrum
+      @param[in] s The spectrum
       @return Entry from Precursor::NamesOfActivationMethod or empty string.
     */
     String getActivationMethod_(const PeakMap::SpectrumType& s) const
     {
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {
-        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[*(it->getActivationMethods().begin())];
+        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[static_cast<size_t>(*(it->getActivationMethods().begin()))];
       }
       return "";
     }

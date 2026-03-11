@@ -10,74 +10,47 @@
 
 #include <OpenMS/config.h>
 
-#include <QtCore/QObject>
-#include <QtCore/QString>
-#include <QtCore/QUrl>
-#include <QtNetwork/QNetworkReply>
+#include <string>
+#include <vector>
 
 namespace OpenMS
 {
-
-  class NetworkGetRequest :
-    public QObject
+  /// Synchronous HTTP GET request using libcurl.
+  class OPENMS_DLLAPI NetworkGetRequest
   {
-    Q_OBJECT
-
   public:
+    NetworkGetRequest();
+    ~NetworkGetRequest();
 
-    /** @name Constructors and destructors
-    */
-    //@{
-    /// default constructor
-    OPENMS_DLLAPI NetworkGetRequest(QObject* parent = nullptr);
+    /// set the URL to request
+    void setUrl(const std::string& url);
 
-    /// destructor
-    OPENMS_DLLAPI ~NetworkGetRequest() override;
-    //@}
+    /// set the timeout in seconds (0 = no timeout)
+    void setTimeout(int seconds);
 
-    // set request parameters
-    OPENMS_DLLAPI void setUrl(const QUrl& url);
+    /// execute the GET request (blocks until complete or timeout)
+    void run();
 
-    /// returns the response
-    OPENMS_DLLAPI QString getResponse() const;
+    /// returns the response as a string
+    std::string getResponse() const;
 
-    /// returns the response
-    OPENMS_DLLAPI const QByteArray& getResponseBinary() const;
+    /// returns the raw response bytes
+    const std::vector<char>& getResponseBinary() const;
 
     /// returns true if an error occurred during the query
-    OPENMS_DLLAPI bool hasError() const;
+    bool hasError() const;
 
-    /// returns the error message, if hasError can be used to check whether an error has occurred
-    OPENMS_DLLAPI QString getErrorString() const;
-
-  protected:
-
-    public slots:
-
-    OPENMS_DLLAPI void run();
-
-    OPENMS_DLLAPI void timeOut();
-
-    private slots:
-
-    OPENMS_DLLAPI void replyFinished(QNetworkReply*);
-
-  signals:
-
-    OPENMS_DLLAPI void done();
+    /// returns the error message
+    std::string getErrorString() const;
 
   private:
-    /// assignment operator
-    OPENMS_DLLAPI NetworkGetRequest& operator=(const NetworkGetRequest& rhs);
-    /// copy constructor
-    OPENMS_DLLAPI NetworkGetRequest(const NetworkGetRequest& rhs);
+    NetworkGetRequest(const NetworkGetRequest&) = delete;
+    NetworkGetRequest& operator=(const NetworkGetRequest&) = delete;
 
-    QByteArray response_bytes_;
-    QUrl url_;
-    QNetworkAccessManager* manager_;
-    QNetworkReply* reply_;
-    QNetworkReply::NetworkError error_;
-    QString error_string_;
+    std::vector<char> response_bytes_;
+    std::string url_;
+    int timeout_ = 0;
+    bool has_error_ = false;
+    std::string error_string_;
   };
 }
-

@@ -10,11 +10,14 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MathFunctions.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DPrefDialog.h>
@@ -939,12 +942,12 @@ namespace OpenMS
         {
           if (idx == current) { ms1_scans->addSeparator(); }
           ms1_scans->addAction(QString("RT: ") + QString::number(exp[idx].getRT()),
-                               [=]() { emit showSpectrumAsNew1D(idx); });
+                               [=, this]() { emit showSpectrumAsNew1D(idx); });
           if (idx == current) { ms1_scans->addSeparator(); }
 
           if (idx == current) { ms1_meta->addSeparator(); }
           ms1_meta->addAction(QString("RT: ") + QString::number(exp[idx].getRT()),
-                                [=]() { showMetaData(true, idx); });
+                                [=, this]() { showMetaData(true, idx); });
           if (idx == current) { ms1_meta->addSeparator(); }
         }
         // add surrounding fragment scans
@@ -985,7 +988,7 @@ namespace OpenMS
           context_menu->addAction(
             ("Switch to ion mobility view (MSLevel: " + String(it_closest_MS->getMSLevel()) + ";RT: " + String(it_closest_MS->getRT(), false) + ")")
               .c_str(),
-            [=]() { emit showCurrentPeaksAsIonMobility(*it_closest_MS); });
+            [=, this]() { emit showCurrentPeaksAsIonMobility(*it_closest_MS); });
         }
       } // end of hasRT
 
@@ -1545,9 +1548,9 @@ namespace OpenMS
         if (it->getMSLevel() > 1 && range.containsMZ(mz))
         {
           msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz),
-                               [=]() { emit showSpectrumAsNew1D(it - peak_data.begin()); });
+                               [=, this]() { emit showSpectrumAsNew1D(it - peak_data.begin()); });
           msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz),
-                              [=]() { showMetaData(true, it - peak_data.begin()); });
+                              [=, this]() { showMetaData(true, it - peak_data.begin()); });
 
           item_added = true;
         }

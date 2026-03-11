@@ -100,7 +100,7 @@ public:
         Sets element's name. @note Name represents
         a symbol of element/atom in a periodical table.
 
-        @param name A new name to be set for element.
+        @param[in] name A new name to be set for element.
       */
       void setName(const name_type & name)
       {
@@ -120,7 +120,7 @@ public:
       /**
         Sets element's sequence.
 
-        @param sequence A new sequence to be set for element.
+        @param[in] sequence A new sequence to be set for element.
       */
       void setSequence(const name_type & sequence)
       {
@@ -140,7 +140,7 @@ public:
       /**
         Gets mass of element's isotope @c index.
 
-        @param index Index of element's isotope.
+        @param[in] index Index of element's isotope.
         @return mass of element's isotope with a given index.
       */
       mass_type getMass(size_type index = 0) const
@@ -162,7 +162,7 @@ public:
         Gets ion mass of element. By default ion lacks 1 electron,
         but this can be changed by setting other @c electrons_number.
 
-        @param electrons_number Number of electrons lacking in ion.
+        @param[in] electrons_number Number of electrons lacking in ion.
       */
       mass_type getIonMass(int electrons_number = 1) const
       {
@@ -182,7 +182,7 @@ public:
       /**
         Sets element's isotope distribution.
 
-        @param isotopes A new isotope distribution to be set for element.
+        @param[in] isotopes A new isotope distribution to be set for element.
       */
       void setIsotopeDistribution(const IMSIsotopeDistribution & isotopes)
       {
@@ -192,7 +192,7 @@ public:
       /**
         Assignment operator.
 
-        @param element Element to be assigned to this one.
+        @param[in] element Element to be assigned to this one.
         @return Reference to this object.
       */
       IMSElement & operator=(const IMSElement & element);
@@ -232,8 +232,8 @@ private:
     /**
       Prints element to the stream @c os.
 
-      @param os Output stream to which element is printed out.
-      @param element Element to be printed out.
+      @param[in,out] os Output stream to which element is printed out.
+      @param[in] element Element to be printed out.
     */
     OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const IMSElement & element);
 

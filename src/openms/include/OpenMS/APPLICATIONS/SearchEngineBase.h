@@ -40,12 +40,12 @@ namespace OpenMS
 
       Must match TOPPBase' Ctor!
 
-      @param name Tool name.
-      @param description Short description of the tool (one line).
-      @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
+      @param[in] name Tool name.
+      @param[in] description Short description of the tool (one line).
+      @param[in] official If this is an official TOPP tool contained in the OpenMS/TOPP release.
              If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
-      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
-      @param toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
+      @param[in] citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
+      @param[in] toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
     */
     SearchEngineBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
@@ -58,7 +58,7 @@ namespace OpenMS
       If the file is an mzML file, the spectra annotation can be checked. If no MS2 or profile MS2 data is found, an exception is thrown.
       If the file is any other format, the overhead of reading in the file is too large and we just issue a general warning that centroided data should be used.
 
-      @param ms_level The MS level to check for their type (centroided/profile)
+      @param[in] ms_level The MS level to check for their type (centroided/profile)
 
       @return A filename (might be a relative or absolute path)
 
@@ -72,7 +72,7 @@ namespace OpenMS
     /**
       @brief Reads the '-database' argument from internal parameters (or from @p db) and tries to find the db in search directories (if it cannot be found immediately). If not found, an exception is thrown.
       
-      @param db [Optional] Instead of reading the '-database', you can provide a custom name here (might be required for special db formats, see OMSSA)
+      @param[in] db [Optional] Instead of reading the '-database', you can provide a custom name here (might be required for special db formats, see OMSSA)
       @return filename for DB (might be a relative or absolute path)
  
       @throws OpenMS::Exception::FileNotFound if database name could not be resolved
@@ -83,7 +83,7 @@ namespace OpenMS
     /**
       @brief Adds option to reassociate peptides with proteins (and annotate target/decoy information)
 
-      @param peptide_indexing_parameter peptide indexer settings. May be modified to enable search engine specific defaults (e.g., not-tryptic etc.). 
+      @param[in] peptide_indexing_parameter peptide indexer settings. May be modified to enable search engine specific defaults (e.g., not-tryptic etc.). 
     */
     virtual void registerPeptideIndexingParameter_(Param peptide_indexing_parameter);
 

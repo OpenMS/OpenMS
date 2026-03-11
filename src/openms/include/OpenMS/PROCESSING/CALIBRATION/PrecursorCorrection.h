@@ -42,7 +42,7 @@ class OPENMS_DLLAPI PrecursorCorrection
 
      /**
      @brief Extract precursors and associated information (precursor retention time and precursor scan index).
-     @param exp: Spectra with precursors
+     @param[in] exp: Spectra with precursors
      @param[out] precursors: vector of all precursors in @p exp (can be more than one per MSn spectrum)
      @param[out] precursors_rt: vector double of precursors retention time (same length as @p precursors)
      @param[out] precursor_scan_index: Indices into @p exp, which have a precursor
@@ -63,10 +63,10 @@ class OPENMS_DLLAPI PrecursorCorrection
      180.9	610.0001	    610	        -0.0001
      183.92	611.0035	    611.0033	  -0.0002
      
-     @param out_csv: constant String for csv output.
-     @param delta_mzs: delta m/z column values.
-     @param mzs: m/z column vector (uncorrectedMZ)
-     @param rts: retention time column vector 
+     @param[out] out_csv: constant String for csv output.
+     @param[in] delta_mzs: delta m/z column values.
+     @param[in] mzs: m/z column vector (uncorrectedMZ)
+     @param[in] rts: retention time column vector 
      
      */
      static void writeHist(const String& out_csv,
@@ -79,12 +79,12 @@ class OPENMS_DLLAPI PrecursorCorrection
      For each MS2 spectrum the corresponding MS1 spectrum is determined by using the rt information of the precursor.
      In the MS1, the peak closest to the uncorrected precursor m/z is selected and used as corrected precursor m/z.
 
-     @param exp: MSExperiment.
-     @param mz_tolerance: double tolerance used for precursor correction in mass range.
-     @param ppm: bool enables usage of ppm.
-     @param delta_mzs: vector double delta mass to charge.
-     @param mzs: vector double mass to charge.
-     @param rts: vector double retention time.
+     @param[in] exp: MSExperiment.
+     @param[in] mz_tolerance: double tolerance used for precursor correction in mass range.
+     @param[in] ppm: bool enables usage of ppm.
+     @param[in] delta_mzs: vector double delta mass to charge.
+     @param[in] mzs: vector double mass to charge.
+     @param[in] rts: vector double retention time.
      @return set of Size with corrected precursor information.
      */
      static std::set<Size> correctToNearestMS1Peak(MSExperiment & exp,
@@ -100,12 +100,12 @@ class OPENMS_DLLAPI PrecursorCorrection
      For each MS2 spectrum the corresponding MS1 spectrum is determined by using the rt information of the precursor.
      In the MS1, the peak with the highest intensity in a given mass range to the uncorrected precursor m/z is selected and used as corrected precursor m/z.
 
-     @param exp: MSExperiment.
-     @param mz_tolerance: double tolerance used for precursor correction in mass range.
-     @param ppm: bool enables usage of ppm.
-     @param delta_mzs: vector double delta mass to charge.
-     @param mzs: vector double mass to charge.
-     @param rts: vector double retention time.
+     @param[in] exp: MSExperiment.
+     @param[in] mz_tolerance: double tolerance used for precursor correction in mass range.
+     @param[in] ppm: bool enables usage of ppm.
+     @param[in] delta_mzs: vector double delta mass to charge.
+     @param[in] mzs: vector double mass to charge.
+     @param[in] rts: vector double retention time.
      @return set of Size with corrected precursor information.
      */
      static std::set<Size> correctToHighestIntensityMS1Peak(MSExperiment & exp,
@@ -125,16 +125,16 @@ class OPENMS_DLLAPI PrecursorCorrection
      keep_original will create a copy of the precursor and tandem spectrum for the new mono-isotopic mass trace and retain the original one.
      all_matching_features does this not for only the closest feature but all features in a question.
 
-     @param features: constant FeatureMap.
-     @param exp: MSExperiment.
-     @param rt_tolerance_s: double retention time tolerance in seconds.
-     @param mz_tolerance: double tolerance used for precursor correction in mass range.
-     @param ppm: bool enables usage of ppm.
-     @param believe_charge: bool only add features that match the precursor charge.
-     @param keep_original: bool this will create a copy of the precursor and tandem spectrum for the new mono-isotopic trace and retain the original one.
-     @param all_matching_features: bool correction is performed for all features in question not only the closest one.
-     @param max_trace: integer maximum isotopic peak offset from the monoisotopic peak to consider (e.g., 2 allows corrections from M+0, M+1, M+2).
-     @param debug_level: integer debug level.
+     @param[in] features: constant FeatureMap.
+     @param[in] exp: MSExperiment.
+     @param[in] rt_tolerance_s: double retention time tolerance in seconds.
+     @param[in] mz_tolerance: double tolerance used for precursor correction in mass range.
+     @param[in] ppm: bool enables usage of ppm.
+     @param[in] believe_charge: bool only add features that match the precursor charge.
+     @param[in] keep_original: bool this will create a copy of the precursor and tandem spectrum for the new mono-isotopic trace and retain the original one.
+     @param[in] all_matching_features: bool correction is performed for all features in question not only the closest one.
+     @param[in] max_trace: integer maximum isotopic peak offset from the monoisotopic peak to consider (e.g., 2 allows corrections from M+0, M+1, M+2).
+     @param[in] debug_level: integer debug level.
      @return set of Size with corrected precursor information.
 
 
@@ -157,10 +157,10 @@ class OPENMS_DLLAPI PrecursorCorrection
       Here the bounding box of the feature is extended by the retention time tolerance and
       afterwards the precursor location is validated.
 
-      @param feature: constant Feature.
-      @param rt: constant double retention time.
-      @param pc_mz: constant double precursor mass to charge.
-      @param rt_tolerance: constant double retention time tolerance in seconds.
+      @param[in] feature: constant Feature.
+      @param[in] rt: constant double retention time.
+      @param[in] pc_mz: constant double precursor mass to charge.
+      @param[in] rt_tolerance: constant double retention time tolerance in seconds.
       @return static boolean to check if the precursor is located in the bounding box of a features convex hull.
       */
       static bool overlaps_(const Feature& feature,
@@ -173,11 +173,11 @@ class OPENMS_DLLAPI PrecursorCorrection
       If the precursor mz is in one of the masstraces the feature is compatible.
       Dependent on 13C mass difference and charge.
 
-      @param feature: constant Feature.
-      @param pc_mz: double precursor mass to charge.
-      @param mz_tolerance: double mass to charge tolerance.
-      @param max_trace_number: Size maximum isotopic peak offset from the monoisotopic peak to consider.
-      @param debug_level: integer debug level.
+      @param[in] feature: constant Feature.
+      @param[in] pc_mz: double precursor mass to charge.
+      @param[in] mz_tolerance: double mass to charge tolerance.
+      @param[in] max_trace_number: Size maximum isotopic peak offset from the monoisotopic peak to consider.
+      @param[in] debug_level: integer debug level.
       @return static boolean if the precursor mass to charge is in one of the features masstraces.
       */
       static bool compatible_(const Feature& feature,

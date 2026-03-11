@@ -17,6 +17,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -54,7 +56,7 @@ namespace OpenMS
     defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states of a peptide. For peptides, abundances will be reported separately for each fraction and charge;\nfor proteins, abundances will be computed based only on the most prevalent charge observed of each peptide (over all fractions).\nBy default, abundances are summed over all charge states.");
     defaults_.setValidStrings("best_charge_and_fraction", true_false);
 
-    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that medians of all samples are equal");
+    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that medians of all samples are equal.");
     defaults_.setValidStrings("consensus:normalize", true_false);
 
     defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'N 0',"
@@ -113,7 +115,7 @@ namespace OpenMS
                                                 const size_t fraction,
                                                 const String& filename,
                                                 const PeptideHit& hit,
-                                                Int channel_or_label)
+                                                UInt channel_or_label)
   {
     // return if annotation for the feature is ambiguous or missing
     if (hit == PeptideHit()) { return; }
@@ -129,7 +131,7 @@ namespace OpenMS
       feature.getIntensity(); // new map element is initialized with 0
   }
 
-  bool PeptideAndProteinQuant::getBest_(const std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>>& peptide_abundances, std::tuple<size_t, String, size_t, Int>& best)
+  bool PeptideAndProteinQuant::getBest_(const std::map<Int, std::map<String, std::map<Int, std::map<UInt, double>>>>& peptide_abundances, std::tuple<size_t, String, size_t, UInt>& best)
   {
     size_t best_n_quant(0);
     double best_abundance(0);
@@ -146,7 +148,7 @@ namespace OpenMS
             const Int & fraction = fa.first;
             const String & filename = fna.first;
             const Int & charge = ca.first;
-            const Int & channel = cha.first;
+            const UInt & channel = cha.first;
 
             double current_abundance = cha.second;
 
@@ -174,7 +176,7 @@ namespace OpenMS
   }
 
   size_t PeptideAndProteinQuant::getSampleIDFromFilenameAndChannel_(const String& filename,
-                                                                 Int channel_or_label,
+                                                                 UInt channel_or_label,
                                                                  const ExperimentalDesign& ed) const
   {
     // Map filename and label to sample using experimental design
@@ -265,7 +267,7 @@ namespace OpenMS
 
         // determine which fraction, filename, charge state, and channel yields the maximum abundance
         // (break ties by total abundance)
-        std::tuple<size_t, String, size_t, Int> best_combination;
+        std::tuple<size_t, String, size_t, UInt> best_combination;
 
         // return false: only identified, not quantified
         if (!getBest_(pep_q.second.abundances, best_combination))
@@ -277,7 +279,7 @@ namespace OpenMS
         size_t best_fraction = std::get<0>(best_combination);
         String best_filename = std::get<1>(best_combination);
         size_t best_charge = std::get<2>(best_combination);
-        Int best_channel = std::get<3>(best_combination);
+        UInt best_channel = std::get<3>(best_combination);
         
         double abundance = pep_q.second.abundances[best_fraction][best_filename][best_charge][best_channel];
         size_t sample_id = getSampleIDFromFilenameAndChannel_(best_filename, best_channel, experimental_design_);
@@ -294,7 +296,7 @@ namespace OpenMS
               for (auto & cha : ca.second) // for all channels
               {
                 const String & filename = fna.first;
-                const Int & channel = cha.first;
+                const UInt & channel = cha.first;
                 const double & abundance = cha.second;
                 
                 // Map (filename, channel) to sample using ExperimentalDesign
@@ -398,7 +400,7 @@ namespace OpenMS
             for (auto & cha : ca.second) // for all channels
             {
               const String & filename = fna.first;
-              const Int & channel = cha.first;
+              const UInt & channel = cha.first;
               size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);
               cha.second *= scale_factors[sample_id];
             }
@@ -621,12 +623,25 @@ namespace OpenMS
    
     // map filename and label of experimental design to the full experimental design entry for faster lookup
     const auto& ms_section = ed.getMSFileSection();
-    std::unordered_map<String, ExperimentalDesign::MSFileSectionEntry> fileAndLabel2MSFileSectionEntry;
+    using FileAndLabel = std::pair<String, UInt>;
+    std::map<FileAndLabel, ExperimentalDesign::MSFileSectionEntry> file_and_label_to_msfile_entry;
     for (const auto& e : ms_section)
     {
-      String ed_filename = FileHandler::stripExtension(File::basename(e.path));
-      String ed_label = e.label;
-      fileAndLabel2MSFileSectionEntry[ed_filename + ed_label] = e;
+      const String ed_filename = FileHandler::stripExtension(File::basename(e.path));
+      const FileAndLabel key(ed_filename, e.label);
+      const auto [it, inserted] = file_and_label_to_msfile_entry.emplace(key, e);
+      if (!inserted &&
+          ((it->second.fraction != e.fraction) ||
+           (it->second.fraction_group != e.fraction_group) ||
+           (it->second.sample != e.sample)))
+      {
+        throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Ambiguous basename+label mapping in experimental design for '" + ed_filename +
+          "' and label '" + String(e.label) + "'.");
+      }
     }
 
     for (auto & c : consensus)
@@ -648,18 +663,22 @@ namespace OpenMS
         size_t row = f.getMapIndex();
         const auto& h = consensus.getColumnHeaders().at(row);
         const String c_fn = FileHandler::stripExtension(File::basename(h.filename)); // filename according to experimental design in consensus map
-        const size_t c_lab = h.getLabelAsUInt(consensus.getExperimentType());
+        const UInt c_lab = h.getLabelAsUInt(consensus.getExperimentType());
 
         // find entry in experimental design (ignore extension and folder) that corresponds to current column header entry
-        if (auto it = fileAndLabel2MSFileSectionEntry.find(c_fn + String(c_lab)); it != fileAndLabel2MSFileSectionEntry.end())
+        if (auto it = file_and_label_to_msfile_entry.find({c_fn, c_lab}); it != file_and_label_to_msfile_entry.end())
         {
           const size_t fraction = it->second.fraction;
           quantifyFeature_(f, fraction, c_fn, hit, c_lab); // updates "stats_.quant_features"
         }
         else
         {
-          OPENMS_LOG_FATAL_ERROR << "File+Label referenced in consensus header not found in experimental design.\n"  
-                                 << "File+Label:" << c_fn << "\t" << c_lab << std::endl;
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "File+Label referenced in consensus header not found in experimental design: " +
+            c_fn + "\t" + String(c_lab));
         }
       }
     }
@@ -1189,7 +1208,7 @@ namespace OpenMS
     ProteinData& pd = prot_it->second;
 
     // organize detailed abundances by (fraction, filename, channel) combinations
-    map<tuple<Int, String, Int>, DoubleList> channel_level_abundances_for_selected_peptides;
+    map<tuple<Int, String, UInt>, DoubleList> channel_level_abundances_for_selected_peptides;
     
     // collect detailed abundances from selected peptides
     for (const auto& pep : selected_peptides)    // for all selected peptides
@@ -1239,7 +1258,7 @@ namespace OpenMS
     {
       const auto& selected_peptide = detailed_ab.first;
       String filename = get<1>(selected_peptide);
-      Int channel = get<2>(selected_peptide);
+      UInt channel = get<2>(selected_peptide);
       
       DoubleList& all_abundances = detailed_ab.second;
       

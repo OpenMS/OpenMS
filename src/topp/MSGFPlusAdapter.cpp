@@ -16,6 +16,9 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
@@ -666,7 +669,7 @@ protected:
         ProteinIdentification::SearchParameters search_parameters;
         search_parameters.db = db_name;
         search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
-        search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+        search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
         search_parameters.fixed_modifications = fixed_mods;
         search_parameters.variable_modifications = variable_mods;
         search_parameters.precursor_mass_tolerance = precursor_mass_tol;
@@ -836,12 +839,16 @@ protected:
           switchScores_(pep);
         }
 
-        // add missing RTs to peptide IDs
+        // add missing RTs and FAIMS CVs to peptide IDs
         MSExperiment exp;
         MzMLFile mzml_file{};
-        mzml_file.getOptions().setMetadataOnly(true);
-    		mzml_file.load(in, exp); 
+        // Load spectrum metadata (not just file metadata) but skip peak data
+        mzml_file.getOptions().setMetadataOnly(false);
+        mzml_file.getOptions().setFillData(false);
+        mzml_file.load(in, exp);
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, exp);
+        // Annotate FAIMS compensation voltage if present
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, exp);
       }
 
       // use OpenMS meta value key

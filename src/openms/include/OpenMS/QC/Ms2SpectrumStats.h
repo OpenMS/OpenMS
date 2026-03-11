@@ -58,9 +58,9 @@ namespace OpenMS
     /**
       @brief Calculate the ScanEventNumber, find all unidentified MS2-Spectra and add them to unassigned PeptideIdentifications,
              write meta values "ScanEventNumber" and "identified" in PeptideIdentification.
-      @param exp Imported calibrated MzML file as MSExperiment
-      @param features Imported featureXML file after FDR as FeatureMap
-      @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
+      @param[in] exp Imported calibrated MzML file as MSExperiment
+      @param[in,out] features Imported featureXML file after FDR as FeatureMap
+      @param[in] map_to_spectrum Map to find index of spectrum given by meta value at PepID
       @return unassigned peptide identifications newly generated from unidentified MS2-Spectra
       @throws MissingInformation If exp is empty
       @throws InvalidParameter PeptideID is missing meta value 'spectrum_reference'

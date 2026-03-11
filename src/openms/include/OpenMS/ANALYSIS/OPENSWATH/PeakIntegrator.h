@@ -38,10 +38,49 @@ namespace OpenMS
     metrics are supported.
 
     The containers supported by the methods are MSChromatogram and MSSpectrum.
-    
+
+    @section PeakIntegrator_integration Integration Methods
+
+    | Method | Description | Use Case |
+    |--------|-------------|----------|
+    | `intensity_sum` | Simple sum of intensities | Fast, profile data |
+    | `trapezoid` | Trapezoidal rule | General purpose, accurate |
+    | `simpson` | Simpson's rule (unequally spaced) | High accuracy for smooth peaks |
+
+    @section PeakIntegrator_baseline Baseline Methods
+
+    | Method | Description |
+    |--------|-------------|
+    | `base_to_base` | Trapezoidal baseline between peak borders |
+    | `vertical_division_min` | Rectangular baseline at minimum border intensity |
+    | `vertical_division_max` | Rectangular baseline at maximum border intensity |
+
+    @section PeakIntegrator_metrics Peak Shape Metrics
+
+    The calculatePeakShapeMetrics() method computes:
+    - Width at 5%, 10%, 50% of peak height
+    - Tailing factor (USP definition): W0.05 / 2a
+    - Asymmetry factor: b/a at 10% height
+    - Slope of baseline
+    - Points across baseline and half-height
+
+    @section PeakIntegrator_emg EMG Peak Fitting
+
+    When enabled via the `fit_EMG` parameter, peaks are first fitted to an
+    Exponentially Modified Gaussian model using EmgGradientDescent. This is
+    particularly useful for:
+    - Saturated peaks (detector saturation)
+    - Cutoff peaks (incomplete acquisition)
+    - Tailing peaks
+
     @warning integratePeak() using Simpson's rule can result in negative areas despite
     strictly positive intensities in the input dataset. An example is given in
-    the class test (see area = -665788.77). 
+    the class test (see area = -665788.77).
+
+    @see EmgGradientDescent for EMG peak fitting
+    @see MRMTransitionGroupPicker for usage in MRM workflows
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI PeakIntegrator :
     public DefaultParamHandler

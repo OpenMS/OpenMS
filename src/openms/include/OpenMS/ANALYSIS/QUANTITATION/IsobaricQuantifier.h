@@ -29,7 +29,7 @@ public:
     /**
       @brief Constructor given an IsobaricQuantitationMethod (e.g., iTRAQ 4 plex).
 
-      @param quant_method The quantification method used for the data set to analyze.
+      @param[in] quant_method The quantification method used for the data set to analyze.
     */
     explicit IsobaricQuantifier(const IsobaricQuantitationMethod* const quant_method);
 
@@ -42,8 +42,8 @@ public:
     /**
       @brief Using the raw isobaric intensities we apply isotope correction, normalization (using median).
 
-      @param consensus_map_in Raw isobaric channel intensities from channel extraction.
-      @param consensus_map_out Corrected and normalized isobaric channel ratios for peptides.
+      @param[in] consensus_map_in Raw isobaric channel intensities from channel extraction.
+      @param[in] consensus_map_out Corrected and normalized isobaric channel ratios for peptides.
 
       @throws Exception::FailedAPICall is least-squares fit fails
       @throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)

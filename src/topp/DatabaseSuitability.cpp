@@ -12,6 +12,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/QC/DBSuitability.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>

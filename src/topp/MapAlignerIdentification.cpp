@@ -9,6 +9,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -533,6 +537,12 @@ private:
     {
       storeTransformationDescriptions_(transformations, trafo_files);
     }
+
+    // Transform optional spectra files
+    StringList in_spectra_files = getStringList_("in_spectra_files");
+    StringList out_spectra_files = getStringList_("out_spectra_files");
+    bool store_original_rt = getFlag_("store_original_rt");
+    transformSpectraFiles_(in_spectra_files, out_spectra_files, transformations, store_original_rt);
 
     return EXECUTION_OK;
   }

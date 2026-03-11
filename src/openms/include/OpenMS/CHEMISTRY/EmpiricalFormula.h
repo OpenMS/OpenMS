@@ -9,16 +9,20 @@
 #pragma once
 
 #include <iosfwd>
+#include <algorithm>
 #include <map>
 #include <set>
 #include <string>
+#include <functional>
+#include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 namespace OpenMS
 {
   class String;
-  class Element;
   class ElementDB;
   class IsotopeDistribution;
   class IsotopePatternGenerator;
@@ -102,7 +106,7 @@ public:
      /**
      @brief Create EmpiricalFormula object from a String
 
-     @param rhs Input string
+     @param[in] rhs Input string
 
      @throws Exception::ParseError if the formula cannot be parsed
    */
@@ -130,13 +134,13 @@ public:
     /**
       @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry
 
-      @param average_weight: Average weight to estimate an EmpiricalFormula for
-      @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
-      @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
-      @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
-      @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
-      @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
-      @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
+      @param[in] average_weight Average weight to estimate an EmpiricalFormula for
+      @param[in] C The approximate relative stoichiometry of Carbons to other elements in this molecule
+      @param[in] H The approximate relative stoichiometry of Hydrogens to other elements in this molecule
+      @param[in] N The approximate relative stoichiometry of Nitrogens to other elements in this molecule
+      @param[in] O The approximate relative stoichiometry of Oxygens to other elements in this molecule
+      @param[in] S The approximate relative stoichiometry of Sulfurs to other elements in this molecule
+      @param[in] P The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
 
       @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, 1 = negative hydrogens requested.
     */
@@ -145,13 +149,13 @@ public:
     /**
       @brief Fills this EmpiricalFormula with an approximate elemental composition for a given monoisotopic weight and approximate elemental stoichiometry
 
-      @param mono_weight: Monoisotopic weight to estimate an EmpiricalFormula for
-      @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
-      @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
-      @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
-      @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
-      @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
-      @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
+      @param[in] mono_weight Monoisotopic weight to estimate an EmpiricalFormula for
+      @param[in] C The approximate relative stoichiometry of Carbons to other elements in this molecule
+      @param[in] H The approximate relative stoichiometry of Hydrogens to other elements in this molecule
+      @param[in] N The approximate relative stoichiometry of Nitrogens to other elements in this molecule
+      @param[in] O The approximate relative stoichiometry of Oxygens to other elements in this molecule
+      @param[in] S The approximate relative stoichiometry of Sulfurs to other elements in this molecule
+      @param[in] P The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
 
       @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, 1 = negative hydrogens requested.
     */
@@ -161,13 +165,13 @@ public:
       @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight,
       exact number of sulfurs, and approximate elemental stoichiometry
 
-      @param average_weight: Average weight to estimate an EmpiricalFormula for
-      @param S: The exact number of Sulfurs in this molecule
-      @param C: The approximate relative stoichiometry of Carbons to other elements (excluding Sulfur) in this molecule
-      @param H: The approximate relative stoichiometry of Hydrogens to other elements (excluding Sulfur) in this molecule
-      @param N: The approximate relative stoichiometry of Nitrogens to other elements (excluding Sulfur) in this molecule
-      @param O: The approximate relative stoichiometry of Oxygens to other elements (excluding Sulfur) in this molecule
-      @param P: The approximate relative stoichiometry of Phosphoruses to other elements (excluding Sulfur) in this molecule
+      @param[in] average_weight Average weight to estimate an EmpiricalFormula for
+      @param[in] S The exact number of Sulfurs in this molecule
+      @param[in] C The approximate relative stoichiometry of Carbons to other elements (excluding Sulfur) in this molecule
+      @param[in] H The approximate relative stoichiometry of Hydrogens to other elements (excluding Sulfur) in this molecule
+      @param[in] N The approximate relative stoichiometry of Nitrogens to other elements (excluding Sulfur) in this molecule
+      @param[in] O The approximate relative stoichiometry of Oxygens to other elements (excluding Sulfur) in this molecule
+      @param[in] P The approximate relative stoichiometry of Phosphoruses to other elements (excluding Sulfur) in this molecule
 
       @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, false = negative hydrogens requested.
    */
@@ -179,7 +183,7 @@ public:
       The details of the calculation of the isotope distribution
       are described in the doc to the CoarseIsotopePatternGenerator class.
 
-      @param method: the method that will be used for the calculation of the IsotopeDistribution
+      @param[in] method the method that will be used for the calculation of the IsotopeDistribution
     */
     IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;
 
@@ -188,9 +192,9 @@ public:
       and conditioned on a set of isolated precursor isotopes.
 
       The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
-      @param precursor: the empirical formula of the precursor
-      @param precursor_isotopes: the precursor isotopes that were isolated
-      @param method: the method that will be used for the calculation of the IsotopeDistribution
+      @param[in] precursor the empirical formula of the precursor
+      @param[in] precursor_isotopes the precursor isotopes that were isolated
+      @param[in] method the method that will be used for the calculation of the IsotopeDistribution
       @return the conditional IsotopeDistribution of the fragment
     */
     IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor,
@@ -311,3 +315,54 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 } // namespace OpenMS
+
+// Hash function specialization for EmpiricalFormula
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::EmpiricalFormula.
+   *
+   * Computes a hash based on element symbols and their counts,
+   * plus the charge. The hash is consistent with operator==.
+   *
+   * Design decisions:
+   * - Uses element symbols (not pointers) to distinguish isotopes like (13)C vs C
+   * - Sorts elements by symbol for reproducible hash across runs
+   * - FNV-1a based combining for good distribution
+   *
+   * @note Hash is reproducible across process runs on the same platform.
+   */
+  template<>
+  struct hash<OpenMS::EmpiricalFormula>
+  {
+    std::size_t operator()(const OpenMS::EmpiricalFormula& ef) const noexcept
+    {
+      // Collect elements with symbols for deterministic ordering
+      // (map iteration order depends on pointer addresses which vary across runs)
+      // Use symbols instead of atomic numbers to distinguish isotopes like (13)C vs C
+      // Typical formulas have only 4-6 elements, so no need to reserve
+      std::vector<std::pair<std::string, OpenMS::SignedSize>> elements;
+      for (const auto& [element_ptr, count] : ef)
+      {
+        elements.emplace_back(element_ptr->getSymbol(), count);
+      }
+
+      // Sort by symbol for reproducible hash
+      std::sort(elements.begin(), elements.end());
+
+      // Hash in sorted order
+      std::size_t seed = 0;
+      for (const auto& [symbol, count] : elements)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(symbol));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(count));
+      }
+
+      // Hash the charge
+      OpenMS::hash_combine(seed, OpenMS::hash_int(ef.getCharge()));
+
+      return seed;
+    }
+  };
+} // namespace std

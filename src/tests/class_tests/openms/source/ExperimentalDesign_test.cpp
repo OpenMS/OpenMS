@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/SYSTEM/File.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -148,6 +149,34 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
     TEST_EQUAL(pl2s.size(), 24);
     for (const auto& i : pl2s) { TEST_EQUAL((i.second <=7), true)}
   } 
+}
+END_SECTION
+
+START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) should reject ambiguous basename mappings))
+{
+  ExperimentalDesign::MSFileSection fs;
+  ExperimentalDesign::MSFileSectionEntry r1;
+  r1.fraction_group = 1;
+  r1.fraction = 1;
+  r1.path = "/tmp/run_a/shared_name.mzML";
+  r1.label = 1;
+  r1.sample = 0;
+  r1.sample_name = "S1";
+  fs.push_back(r1);
+
+  ExperimentalDesign::MSFileSectionEntry r2 = r1;
+  r2.fraction_group = 2;
+  r2.path = "/tmp/run_b/shared_name.mzML";
+  r2.sample = 1;
+  r2.sample_name = "S2";
+  fs.push_back(r2);
+
+  ExperimentalDesign::SampleSection ss;
+  ss.addSample("S1");
+  ss.addSample("S2");
+
+  ExperimentalDesign design(fs, ss);
+  TEST_EXCEPTION(Exception::InvalidValue, design.getPathLabelToSampleMapping(true));
 }
 END_SECTION
 
@@ -445,6 +474,22 @@ START_SECTION((bool sameNrOfMSFilesPerFraction() const ))
 }
 END_SECTION
 
+START_SECTION((Size filterByBasenames(const set<String>&) keeps sample and file section synchronized))
+{
+  ExperimentalDesign design = ExperimentalDesignFile::load(
+    OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv"), false);
+
+  std::set<String> keep{
+    "JD_06232014_sample1-A.raw",
+    "JD_06232014_sample1_B.raw"
+  };
+  design.filterByBasenames(keep);
+
+  TEST_EQUAL(design.getMSFileSection().size(), 2);
+  TEST_EQUAL(design.getNumberOfSamples(), 2);
+}
+END_SECTION
+
 START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)))
 {
   ConsensusXMLFile cfile;
@@ -529,6 +574,54 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).sample, 1);
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).path, "raw_file1.mzML");
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).path, "raw_file2.mzML");    
+}
+END_SECTION
+
+START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c) keeps sample_name entries in SampleSection))
+{
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+
+  ConsensusMap::ColumnHeader h0;
+  h0.filename = "file_a.mzML";
+  h0.label = "label-free";
+  h0.setMetaValue("sample_name", "Sample_A");
+  cmap.getColumnHeaders()[0] = h0;
+
+  ConsensusMap::ColumnHeader h1;
+  h1.filename = "file_b.mzML";
+  h1.label = "label-free";
+  h1.setMetaValue("sample_name", "Sample_B");
+  cmap.getColumnHeaders()[1] = h1;
+
+  ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(design.getSampleSection().hasSample("Sample_A"), true);
+  TEST_EQUAL(design.getSampleSection().hasSample("Sample_B"), true);
+}
+END_SECTION
+
+START_SECTION((ProteomicsLFQ subset output keeps design fraction_group assignments across fractions))
+{
+  const String design_file = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_BSA_design_onetable_nonconsec.tsv");
+  const String subset_output = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML");
+  TEST_EQUAL(File::exists(design_file), true);
+  TEST_EQUAL(File::exists(subset_output), true);
+
+  ExperimentalDesign design = ExperimentalDesignFile::load(design_file, false);
+  const auto pl2fg = design.getPathLabelToFractionGroupMapping(true);
+
+  ConsensusMap cmap;
+  ConsensusXMLFile().load(subset_output, cmap);
+
+  for (const auto& [idx, col_header] : cmap.getColumnHeaders())
+  {
+    (void)idx;
+    TEST_EQUAL(col_header.metaValueExists("fraction_group"), true);
+    const unsigned observed_fg = static_cast<unsigned>(col_header.getMetaValue("fraction_group"));
+    const unsigned label = col_header.getLabelAsUInt(cmap.getExperimentType());
+    const unsigned expected_fg = pl2fg.at({File::basename(col_header.filename), label});
+    TEST_EQUAL(observed_fg, expected_fg);
+  }
 }
 END_SECTION
 

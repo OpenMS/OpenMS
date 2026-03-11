@@ -232,30 +232,51 @@ void MSstatsFile::storeLFQ(const String& filename,
   const bool has_fraction = design.isFractionated();
 
   //vector< BaseFeature> features{};
-  vector< String > spectra_paths{};
+  //vector< BaseFeature> features{};
+  vector< String > spectra_paths;
+  vector< String > raw_spectra_paths;
 
   //features.reserve(consensus_map.size());
 
   if (reannotate_filenames.empty())
   {
-    consensus_map.getPrimaryMSRunPath(spectra_paths);
+    consensus_map.getPrimaryMSRunPath(raw_spectra_paths);
   }
   else
   {
-    spectra_paths = reannotate_filenames;
+    raw_spectra_paths = reannotate_filenames;
   }
 
-  // Reduce spectra path to the basename of the files
-  for (Size i = 0; i < spectra_paths.size(); ++i)
+  // FileFilter leaves gaps in the map indices.
+  Size max_map_index = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
   {
-    spectra_paths[i] = File::basename(spectra_paths[i]);
+    max_map_index = std::max(max_map_index, (Size)kv.first);
   }
 
-  if (!checkUnorderedContent_(spectra_paths, design_filenames))
+  spectra_paths.assign(max_map_index + 1, "");
+  Size file_idx = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    if (file_idx < raw_spectra_paths.size())
+    {
+      spectra_paths[kv.first] = File::basename(raw_spectra_paths[file_idx++]);
+    }
+  }
+
+  // --- NEW FIX: Extract only the active paths that weren't removed by FileFilter ---
+  std::vector<String> active_spectra_paths;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    active_spectra_paths.push_back(spectra_paths[kv.first]);
+  }
+
+  // Check the active paths against the design instead of the raw spectra_paths
+  if (!isSubsetOf_(active_spectra_paths, design_filenames))
   {
     OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
     OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
-    for (auto const & s : spectra_paths)
+    for (auto const & s : active_spectra_paths)
     {
       OPENMS_LOG_FATAL_ERROR << s << endl;
     }
@@ -265,6 +286,10 @@ void MSstatsFile::storeLFQ(const String& filename,
       OPENMS_LOG_FATAL_ERROR << s << endl;
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
+  }
+  else if (active_spectra_paths.size() < design_filenames.size())
+  {
+    warnOnSubsetFiles_(active_spectra_paths, design_filenames);
   }
 
   // Extract information from the consensus features.
@@ -500,30 +525,50 @@ void MSstatsFile::storeISO(const String& filename,
   }
 
   vector< BaseFeature> features;
-  vector< String > spectra_paths;
-
   features.reserve(consensus_map.size());
+
+  vector< String > spectra_paths;
+  vector< String > raw_spectra_paths;
 
   if (reannotate_filenames.empty())
   {
-    consensus_map.getPrimaryMSRunPath(spectra_paths);
+    consensus_map.getPrimaryMSRunPath(raw_spectra_paths);
   }
   else
   {
-    spectra_paths = reannotate_filenames;
+    raw_spectra_paths = reannotate_filenames;
   }
 
-  // Reduce spectra path to the basename of the files
-  for (Size i = 0; i < spectra_paths.size(); ++i)
+  // FileFilter leaves gaps in the map indices.
+  Size max_map_index = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
   {
-    spectra_paths[i] = File::basename(spectra_paths[i]);
+    max_map_index = std::max(max_map_index, (Size)kv.first);
   }
 
-  if (!checkUnorderedContent_(spectra_paths, design_filenames))
+  spectra_paths.assign(max_map_index + 1, "");
+  Size file_idx = 0;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    if (file_idx < raw_spectra_paths.size())
+    {
+      spectra_paths[kv.first] = File::basename(raw_spectra_paths[file_idx++]);
+    }
+  }
+
+  // --- NEW FIX: Extract only the active paths that weren't removed by FileFilter ---
+  std::vector<String> active_spectra_paths;
+  for (const auto& kv : consensus_map.getColumnHeaders())
+  {
+    active_spectra_paths.push_back(spectra_paths[kv.first]);
+  }
+
+  // Check the active paths against the design instead of the raw spectra_paths
+  if (!isSubsetOf_(active_spectra_paths, design_filenames))
   {
     OPENMS_LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
     OPENMS_LOG_FATAL_ERROR << "Spectra files (consensus map): \n";
-    for (auto const & s : spectra_paths)
+    for (auto const & s : active_spectra_paths)
     {
       OPENMS_LOG_FATAL_ERROR << s << endl;
     }
@@ -533,6 +578,10 @@ void MSstatsFile::storeISO(const String& filename,
       OPENMS_LOG_FATAL_ERROR << s << endl;
     }
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design");
+  }
+  else if (active_spectra_paths.size() < design_filenames.size())
+  {
+    warnOnSubsetFiles_(active_spectra_paths, design_filenames);
   }
 
   // Extract information from the consensus features.
@@ -665,12 +714,13 @@ void MSstatsFile::storeISO(const String& filename,
   csv_out.store(filename);
 }
 
-bool MSstatsFile::checkUnorderedContent_(const std::vector<String> &first, const std::vector<String> &second)
+bool MSstatsFile::isSubsetOf_(const std::vector<String> &first, const std::vector<String> &second)
 {
   const std::set< String > lhs(first.begin(), first.end());
   const std::set< String > rhs(second.begin(), second.end());
-  return lhs == rhs
-         && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+
+  // Return true if lhs (consensus map files) is a subset of rhs (design files)
+  return std::includes(rhs.begin(), rhs.end(), lhs.begin(), lhs.end());
 }
 
 void MSstatsFile::assembleRunMap_(
@@ -743,6 +793,28 @@ bool MSstatsFile::isQuantifyable_(
       return false;
     }
   }
-  
+
   return true;
 }
+
+void MSstatsFile::warnOnSubsetFiles_(const std::vector<String>& spectra_paths, const std::vector<String>& design_filenames)
+  {
+    std::vector<String> missing_files;
+    std::set<String> design_set(design_filenames.begin(), design_filenames.end());
+    std::set<String> spectra_set(spectra_paths.begin(), spectra_paths.end());
+
+    std::set_difference(design_set.begin(), design_set.end(),
+                        spectra_set.begin(), spectra_set.end(),
+                        std::inserter(missing_files, missing_files.begin()));
+
+    OPENMS_LOG_WARN << "Warning: The consensus map contains " << spectra_paths.size()
+                    << " of " << design_filenames.size() << " files from the experimental design.\n"
+                    << "Missing files: ";
+
+    // Using OpenMS 'Size' type instead of 'size_t' to satisfy the portability guideline
+    for (Size i = 0; i < missing_files.size(); ++i)
+    {
+      OPENMS_LOG_WARN << missing_files[i] << (i < missing_files.size() - 1 ? ", " : "");
+    }
+    OPENMS_LOG_WARN << "\nProceeding with the available subset.\n";
+  }

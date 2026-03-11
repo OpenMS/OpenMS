@@ -120,7 +120,7 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
   TargetedExperiment transitions;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions);
 
-  boost::shared_ptr<PeakMap > exp(new PeakMap);
+  std::shared_ptr<PeakMap > exp(new PeakMap);
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), *exp);
   OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 
@@ -138,7 +138,7 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
   }
 
   TEST_EQUAL(chromatograms.size(), 3)
-  TEST_EQUAL(chromatograms[0].getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+  TEST_EQUAL(chromatograms[0].getChromatogramType(), ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
   TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), 618.31)
   TEST_EQUAL(chromatograms[0].getPrecursor().metaValueExists("peptide_sequence"), true)
 }

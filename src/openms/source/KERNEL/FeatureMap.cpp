@@ -46,7 +46,7 @@ namespace OpenMS
   }
 
   AnnotationStatistics::AnnotationStatistics() :
-    states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0) // initialize all with 0
+    states(static_cast<size_t>(BaseFeature::AnnotationState::SIZE_OF_ANNOTATIONSTATE), 0) // initialize all with 0
   {
   }
 
@@ -349,6 +349,30 @@ namespace OpenMS
   void FeatureMap::setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
   {
     protein_identifications_ = protein_identifications;
+  }
+
+  const ProteinIdentification* FeatureMap::findProteinIdentification(const String& identifier) const
+  {
+    for (const auto& prot_id : protein_identifications_)
+    {
+      if (prot_id.getIdentifier() == identifier)
+      {
+        return &prot_id;
+      }
+    }
+    return nullptr;
+  }
+
+  ProteinIdentification* FeatureMap::findProteinIdentification(const String& identifier)
+  {
+    for (auto& prot_id : protein_identifications_)
+    {
+      if (prot_id.getIdentifier() == identifier)
+      {
+        return &prot_id;
+      }
+    }
+    return nullptr;
   }
 
   const PeptideIdentificationList& FeatureMap::getUnassignedPeptideIdentifications() const

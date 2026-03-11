@@ -82,7 +82,7 @@ private:
       inline void count();
 
       /// calculates area with trapezoidal rule
-      /// @param x1,x2,y1,y2
+      /// @param[in] x1,x2,y1,y2
       inline double trapezoidal_area(double x1, double x2, double y1, double y2);
 
       /// predicate for sort()

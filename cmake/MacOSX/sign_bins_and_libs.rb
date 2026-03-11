@@ -61,7 +61,7 @@ def fixable(path)
 end
 
 def sign(path)
-    `#{$codesign_tool} --deep --force --options runtime -s "#{$signing_id}" "#{path}"`
+    `#{$codesign_tool} --deep --force --options runtime --timestamp -s "#{$signing_id}" "#{path}"`
 end
 
 ###############################################################################

@@ -63,8 +63,6 @@ namespace OpenMS::Internal
     // we don't have to worry about database consistency:
     db_->exec("PRAGMA synchronous = OFF");
     db_->exec("PRAGMA journal_mode = OFF");
-    db_->exec("PRAGMA foreign_keys = ON");
-    db_->exec("PRAGMA foreign_keys = ON");
   }
 
   OMSFileStore::~OMSFileStore() = default;

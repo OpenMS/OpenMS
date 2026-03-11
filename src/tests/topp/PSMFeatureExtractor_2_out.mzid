@@ -115,6 +115,16 @@
 			<userParam name="MSGFPlusAdapter:1:allow_nterm_protein_cleavage" unitName="xsd:string" value="true"/>
 			<userParam name="MSGFPlusAdapter:1:name" unitName="xsd:string" value="auto"/>
 			<userParam name="MSGFPlusAdapter:1:specificity" unitName="xsd:string" value="auto"/>
+			<userParam name="PeptideIndexer:decoy_string" unitName="xsd:string" value="_rev"/>
+			<userParam name="PeptideIndexer:decoy_string_position" unitName="xsd:string" value="suffix"/>
+			<userParam name="PeptideIndexer:enzyme" unitName="xsd:string" value="Trypsin/P"/>
+			<userParam name="PeptideIndexer:enzyme_specificity" unitName="xsd:string" value="full"/>
+			<userParam name="PeptideIndexer:aaa_max" unitName="xsd:integer" value="3"/>
+			<userParam name="PeptideIndexer:mismatches_max" unitName="xsd:integer" value="0"/>
+			<userParam name="PeptideIndexer:IL_equivalent" unitName="xsd:string" value="false"/>
+			<userParam name="PeptideIndexer:allow_nterm_protein_cleavage" unitName="xsd:string" value="true"/>
+			<userParam name="PeptideIndexer:unmatched_action" unitName="xsd:string" value="error"/>
+			<userParam name="PeptideIndexer:missing_decoy_action" unitName="xsd:string" value="warn"/>
 			<userParam name="extra_features" unitName="xsd:string" value="MS:1002049,MS:1002053,MS:1001331,MS:1001330"/>
 			<userParam name="EnzymeTermSpecificity" unitName="xsd:string" value="full"/>
 			<userParam name="SE:MS-GF+" unitName="xsd:string" value="Release (v2023.01.12)"/>

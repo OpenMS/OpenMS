@@ -16,6 +16,9 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h> // for "ParameterInformation"
 
+#include <type_traits>
+#include <iterator>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -620,6 +623,34 @@ START_SECTION(([Param::ParamIterator] const std::vector< TraceInfo>& getTrace() 
 	TEST_EQUAL(it.getTrace().size(),1);
 	TEST_EQUAL(it.getTrace()[0].name,"t");
 	TEST_EQUAL(it.getTrace()[0].opened,false);
+END_SECTION
+
+START_SECTION(([Param::ParamIterator] iterator type traits))
+	// Test that the iterator has the required type traits for C++ standard library compatibility
+	using iterator_type = Param::ParamIterator;
+	
+	// Check iterator_category
+	TEST_EQUAL((std::is_same<typename iterator_type::iterator_category, std::forward_iterator_tag>::value), true);
+	
+	// Check value_type
+	TEST_EQUAL((std::is_same<typename iterator_type::value_type, Param::ParamEntry>::value), true);
+	
+	// Check difference_type
+	TEST_EQUAL((std::is_same<typename iterator_type::difference_type, std::ptrdiff_t>::value), true);
+	
+	// Check pointer
+	TEST_EQUAL((std::is_same<typename iterator_type::pointer, const Param::ParamEntry*>::value), true);
+	
+	// Check reference
+	TEST_EQUAL((std::is_same<typename iterator_type::reference, const Param::ParamEntry&>::value), true);
+	
+	// Test that std::iterator_traits can extract our type definitions
+	using traits = std::iterator_traits<iterator_type>;
+	TEST_EQUAL((std::is_same<traits::iterator_category, std::forward_iterator_tag>::value), true);
+	TEST_EQUAL((std::is_same<traits::value_type, Param::ParamEntry>::value), true);
+	TEST_EQUAL((std::is_same<traits::difference_type, std::ptrdiff_t>::value), true);
+	TEST_EQUAL((std::is_same<traits::pointer, const Param::ParamEntry*>::value), true);
+	TEST_EQUAL((std::is_same<traits::reference, const Param::ParamEntry&>::value), true);
 END_SECTION
 
 ///////////////////////// Param ///////////////////////////////
@@ -1593,12 +1624,13 @@ END_SECTION
 
 // warnings for unknown parameters
 // keep outside the scope of a single test to avoid destruction, leaving
-// OpenMS_Log_warn in an undefined state
+// the log stream in an undefined state
 ostringstream os;
 // checkDefaults sends its warnings to OPENMS_LOG_WARN so we register our own
-// listener here to check the output
-OpenMS_Log_warn.remove(cout);
-OpenMS_Log_warn.insert(os);
+// listener here to check the output.
+// Configure the thread-local warn stream
+getThreadLocalLogWarn().remove(cout);
+getThreadLocalLogWarn().insert(os);
 
 START_SECTION((void checkDefaults(const std::string &name, const Param &defaults, const std::string& prefix="") const))
     Param p,d;

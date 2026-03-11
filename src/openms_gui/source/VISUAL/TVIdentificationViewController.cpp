@@ -978,7 +978,7 @@ namespace OpenMS
     spec_id_view_->ignore_update = true;
     RAIICleanup cleanup([&]() { spec_id_view_->ignore_update = false; });
 
-    ExperimentSharedPtrType new_exp_sptr = boost::make_shared<AnnotatedMSRun>();
+    ExperimentSharedPtrType new_exp_sptr = std::make_shared<AnnotatedMSRun>();
     new_exp_sptr->getMSExperiment().addSpectrum(theo_spectrum);
     LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     String layer_caption = aa_sequence.toString() + " (identification view)";

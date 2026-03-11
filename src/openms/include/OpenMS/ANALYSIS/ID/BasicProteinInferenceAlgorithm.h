@@ -81,12 +81,12 @@ namespace OpenMS
 
     /**
      * @brief Performs simple aggregation-based inference on one protein run.
-     * @param acc_to_protein_hitP_and_count Maps Accessions to a pair of ProteinHit pointers
+     * @param[in,out] acc_to_protein_hitP_and_count Maps Accessions to a pair of ProteinHit pointers
      *  and number of peptidoforms encountered
-     * @param best_pep Maps (un)modified peptide sequence to a map from charge (0 when unconsidered) to the
+     * @param[in,out] best_pep Maps (un)modified peptide sequence to a map from charge (0 when unconsidered) to the
      *  best PeptideHit pointer
-     * @param prot_run The current run to process
-     * @param pep_ids Peptides for the current run to process
+     * @param[in,out] prot_run The current run to process
+     * @param[in,out] pep_ids Peptides for the current run to process
      */
     void processRun_(
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
@@ -96,11 +96,11 @@ namespace OpenMS
 
     /**
      * @brief fills and updates the map of best peptide scores @p best_pep (by sequence or modified sequence, depending on algorithm settings)
-     * @param best_pep (mod.) sequence to charge to pointer of best PSM (PeptideHit*)
-     * @param pep_ids the spectra with PSMs
-     * @param overall_score_type the pre-determined type name to raise an error if mixed types occur
-     * @param higher_better if for this score type higher is better
-     * @param run_id only process peptides associated with this run_id (e.g. proteinID run getIdentifier())
+     * @param[in,out] best_pep (mod.) sequence to charge to pointer of best PSM (PeptideHit*)
+     * @param[in,out] pep_ids the spectra with PSMs
+     * @param[in] overall_score_type the pre-determined type name to raise an error if mixed types occur
+     * @param[in] higher_better if for this score type higher is better
+     * @param[in] run_id only process peptides associated with this run_id (e.g. proteinID run getIdentifier())
      */
     void aggregatePeptideScores_(
         SequenceToChargeToPSM& best_pep,
@@ -112,10 +112,10 @@ namespace OpenMS
     /**
      * @brief aggregates and updates protein scores based on aggregation settings and aggregated peptide level results in
      * prefilled @p best_pep
-     * @param acc_to_protein_hitP_and_count the results to fill
-     * @param best_pep best psm per peptide to read the score
-     * @param pep_scores if the score is a posterior error probability -> Auto-converts to posterior probability
-     * @param higher_better if for the score higher is better. Assume score is unconverted.
+     * @param[in,out] acc_to_protein_hitP_and_count the results to fill
+     * @param[in] best_pep best psm per peptide to read the score
+     * @param[in] pep_scores if the score is a posterior error probability -> Auto-converts to posterior probability
+     * @param[in] higher_better if for the score higher is better. Assume score is unconverted.
      */
     void updateProteinScores_(
         std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,

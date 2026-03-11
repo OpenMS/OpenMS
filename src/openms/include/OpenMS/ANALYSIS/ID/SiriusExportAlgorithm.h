@@ -36,10 +36,10 @@ namespace OpenMS
 
       Filter number of masstraces and perform feature mapping.
 
-      @param featureinfo Path to featureXML
-      @param spectra Input of MSExperiment with spectra information
-      @param feature_mapping_info Emtpy - stores FeatureMaps and KDTreeMaps internally 
-      @param feature_ms2_indices Empty FeatureToMs2Indices
+      @param[in] featureinfo Path to featureXML
+      @param[in] spectra Input of MSExperiment with spectra information
+      @param[out] feature_mapping_info Emtpy - stores FeatureMaps and KDTreeMaps internally 
+      @param[in] feature_ms2_indices Empty FeatureToMs2Indices
       */
       void preprocessing(const String& featureinfo,
                                const MSExperiment& spectra,
@@ -51,9 +51,9 @@ namespace OpenMS
 
       Prints the number of features and spectra used (OPENMS_LOG_INFO)
 
-      @param featureinfo Path to featureXML
-      @param feature_ms2_indices FeatureToMs2Indices with feature mapping
-      @param spectra Input of MSExperiment with spectra information
+      @param[in] featureinfo Path to featureXML
+      @param[in] feature_ms2_indices FeatureToMs2Indices with feature mapping
+      @param[in] spectra Input of MSExperiment with spectra information
       */
       void logFeatureSpectraNumber(const String& featureinfo,
                                    const FeatureMapping::FeatureToMs2Indices& feature_ms2_indices,
@@ -65,10 +65,10 @@ namespace OpenMS
       Runs SiriusExport with mzML and featureXML (optional) files as input.
       Generates a SIRIUS .ms file and compound info table (optional).
 
-      @param mzML_files List with paths to mzML files
-      @param featureXML_files List with paths to featureXML files
-      @param out_ms Output file name for SIRIUS .ms file
-      @param out_compoundinfo Output file name for tsv file with compound info
+      @param[in] mzML_files List with paths to mzML files
+      @param[in] featureXML_files List with paths to featureXML files
+      @param[out] out_ms Output file name for SIRIUS .ms file
+      @param[out] out_compoundinfo Output file name for tsv file with compound info
       */
       void run(const StringList& mzML_files,
                const StringList& featureXML_files,

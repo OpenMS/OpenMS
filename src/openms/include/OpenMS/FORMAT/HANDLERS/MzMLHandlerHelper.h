@@ -109,10 +109,10 @@ namespace OpenMS
       /**
         @brief Write the indexed mzML footer the appropriate compression term given the PeakFileOptions and the NumpressConfig
 
-        @param os The output stream
-        @param options The PeakFileOptions used for writing
-        @param spectra_offsets Binary offsets of &lt;spectrum&gt; tags
-        @param chromatograms_offsets Binary offsets of &lt;chromatogram&gt; tags
+        @param[out] os The output stream
+        @param[in] options The PeakFileOptions used for writing
+        @param[in] spectra_offsets Binary offsets of &lt;spectrum&gt; tags
+        @param[in] chromatograms_offsets Binary offsets of &lt;chromatogram&gt; tags
 
       */
       static void writeFooter_(std::ostream& os,
@@ -123,8 +123,8 @@ namespace OpenMS
       /**
         @brief Decode Base64 arrays and write into data_ array
 
-        @param data_ The input and output
-        @param skipXMLCheck whether to skip cleaning the Base64 arrays and remove whitespaces
+        @param[in,out] data_ The input and output
+        @param[in] skipXMLCheck whether to skip cleaning the Base64 arrays and remove whitespaces
       */
       static void decodeBase64Arrays(std::vector<BinaryData> & data_, const bool skipXMLCheck = false);
 
@@ -133,10 +133,10 @@ namespace OpenMS
 
         Given a specific array name, find it in the provided list and return its index and precision.
 
-        @param data_ The list of data arrays
-        @param precision_64 Whether the identified array has 64 bit precision
-        @param index The index of the identified array
-        @param index_name The name of the array to be identified
+        @param[in] data_ The list of data arrays
+        @param[in] precision_64 Whether the identified array has 64 bit precision
+        @param[in] index The index of the identified array
+        @param[in] index_name The name of the array to be identified
       */
       static void computeDataProperties_(const std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, const String& index_name);
 
@@ -147,11 +147,11 @@ namespace OpenMS
         data_, this will properly handle all terms describing precision,
         compression, name of the data and units.
 
-        @param data_ The list of data arrays, whose last entry will be changed
-        @param accession The CV accession
-        @param value The CV value
-        @param name The CV name
-        @param unit_accession The CV unit accession (if a unit tag is present)
+        @param[in,out] data_ The list of data arrays, whose last entry will be changed
+        @param[in] accession The CV accession
+        @param[in] value The CV value
+        @param[in] name The CV name
+        @param[in] unit_accession The CV unit accession (if a unit tag is present)
       */
       static bool handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
                                                const String& accession,

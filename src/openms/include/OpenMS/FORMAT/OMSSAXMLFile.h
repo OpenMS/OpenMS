@@ -45,11 +45,11 @@ public:
     /**
       @brief loads data from a OMSSAXML file
 
-      @param filename The file to be loaded
-      @param protein_identification Protein identifications belonging to the whole experiment
-      @param id_data The identifications with m/z and RT
-      @param load_proteins If this flag is set to false, the protein identifications are not loaded
-      @param load_empty_hits Many spectra will not return a hit. Report empty peptide identifications?
+      @param[in] filename The file to be loaded
+      @param[in] protein_identification Protein identifications belonging to the whole experiment
+      @param[in] id_data The identifications with m/z and RT
+      @param[in] load_proteins If this flag is set to false, the protein identifications are not loaded
+      @param[in] load_empty_hits Many spectra will not return a hit. Report empty peptide identifications?
 
       This class serves to read in a OMSSAXML file. The information can be
       retrieved via the load function.

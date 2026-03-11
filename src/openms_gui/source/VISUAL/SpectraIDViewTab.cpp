@@ -12,6 +12,9 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
@@ -510,7 +513,7 @@ namespace OpenMS
         fragment_window_->resizeRowsToContents();
         fragment_window_->show();
         fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
-        QApplication::setActiveWindow(fragment_window_);
+        fragment_window_->activateWindow();
       }
     } // PeakAnnotation cell clicked
 
@@ -1051,7 +1054,7 @@ namespace OpenMS
     table_widget_->setAtBottomRow(spectrum.getRT(), Clmn::RT, background_color);
 
     // scan mode
-    table_widget_->setAtBottomRow(QString::fromStdString(spectrum.getInstrumentSettings().NamesOfScanMode[spectrum.getInstrumentSettings().getScanMode()]), Clmn::SCANTYPE, background_color);
+    table_widget_->setAtBottomRow(QString::fromStdString(spectrum.getInstrumentSettings().NamesOfScanMode[static_cast<size_t>(spectrum.getInstrumentSettings().getScanMode())]), Clmn::SCANTYPE, background_color);
 
     // zoom scan
     table_widget_->setAtBottomRow(spectrum.getInstrumentSettings().getZoomScan() ? "yes" : "no", Clmn::ZOOM, background_color);

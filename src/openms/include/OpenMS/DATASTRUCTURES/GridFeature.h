@@ -41,9 +41,9 @@ private:
 public:
     /**
      * @brief Detailed constructor
-     * @param feature Reference to the contained feature
-     * @param map_index Index of the feature map or consensus map
-     * @param feature_index Index of the feature in the map
+     * @param[in] feature Reference to the contained feature
+     * @param[in] map_index Index of the feature map or consensus map
+     * @param[in] feature_index Index of the feature in the map
      */
     GridFeature(const BaseFeature& feature, Size map_index, Size feature_index);
 
