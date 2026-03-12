@@ -56,6 +56,7 @@ namespace OpenMS
   // Helper: get error string from handle
   static String getTimsError(tims_dataset* handle)
   {
+    if (!handle) return "unknown timsrust error (null handle)";
     char buf[512];
     tims_get_last_error(handle, buf, sizeof(buf));
     return String(buf);

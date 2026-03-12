@@ -490,6 +490,9 @@ protected:
         else if (mode == "frame") tims_config.export_mode = BrukerTimsFile::Config::FRAME;
         else tims_config.export_mode = BrukerTimsFile::Config::AUTO;
 
+        // Note: transform() currently loads the full dataset into memory before
+        // streaming to consumer. True constant-memory streaming is a future optimization.
+        OPENMS_LOG_WARN << "Warning: -process_lowmemory with Bruker .d input currently loads the full dataset into memory." << std::endl;
         tims_file.transform(in, &consumer, tims_config);
         return EXECUTION_OK;
       }
