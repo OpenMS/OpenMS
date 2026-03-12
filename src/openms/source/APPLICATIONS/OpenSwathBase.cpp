@@ -18,6 +18,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
@@ -297,7 +298,7 @@ namespace OpenMS
       else if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
 #ifndef WITH_PARQUET
-        (void*)&source_file; // to suppress unused variable warning
+        (void)source_file; // to suppress unused variable warning
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
         auto * chromConsumer = new MSChromatogramParquetConsumer(out_chrom, run_id, source_file, transition_exp);
@@ -336,6 +337,42 @@ namespace OpenMS
     else
     {
       *chromatogramConsumer = new NoopMSDataWritingConsumer("");
+    }
+  }
+
+
+  void TOPPOpenSwathBase::prepareMobilogramOutput(std::unique_ptr<MobilogramParquetConsumer>& mobilogramConsumer,
+                                                  const std::shared_ptr<ExperimentalSettings>& /*exp_meta*/,
+                                                  const OpenSwath::LightTargetedExperiment& transition_exp,
+                                                  const String& out_mobilogram,
+                                                  const UInt64 run_id,
+                                                  const String& source_file)
+  {
+    if (!out_mobilogram.empty())
+    {
+      const FileTypes::Type out_mob_type = FileHandler::getType(out_mobilogram);
+      if (out_mob_type == FileTypes::MOBILPARQUET)
+      {
+#ifndef WITH_PARQUET
+        (void)source_file;
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#else
+        mobilogramConsumer = std::make_unique<MobilogramParquetConsumer>(out_mobilogram, run_id, source_file, transition_exp);
+        // estimate expected mobilograms from transitions
+        Size expected = transition_exp.transitions.size();
+        mobilogramConsumer->setExpectedSize(expected);
+#endif
+      }
+      else
+      {
+        // Unknown mobilogram format: currently only MOBILPARQUET supported
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Unsupported mobilogram output type: " + FileTypes::typeToName(out_mob_type));
+      }
+    }
+    else
+    {
+      mobilogramConsumer.reset();
     }
   }
 

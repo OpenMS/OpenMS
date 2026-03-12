@@ -17,6 +17,7 @@ set(sources_list
 
 if (WITH_PARQUET)
   list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
+  list(APPEND sources_list MobilogramParquetConsumer.cpp)
 endif()
 
 ### add path to the filenames
