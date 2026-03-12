@@ -73,6 +73,24 @@ else()
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." ON)
 endif()
 
+if (ENABLE_TIMSRUST_TESTS AND WITH_TIMSRUST)
+  include(FetchContent)
+  set(TIMSRUST_TESTDATA_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/test-data-v1")
+  FetchContent_Declare(
+    timsrust_testdata_dda
+    URL "${TIMSRUST_TESTDATA_URL}/DDA_HeLa_50ng_5_6min.d.zip"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  FetchContent_Declare(
+    timsrust_testdata_dia
+    URL "${TIMSRUST_TESTDATA_URL}/DIA_HeLa_50ng_5_6min.d.zip"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  FetchContent_MakeAvailable(timsrust_testdata_dda timsrust_testdata_dia)
+  set(TIMSRUST_DDA_TEST_DATA "${timsrust_testdata_dda_SOURCE_DIR}" CACHE PATH "Path to DDA test .d directory")
+  set(TIMSRUST_DIA_TEST_DATA "${timsrust_testdata_dia_SOURCE_DIR}" CACHE PATH "Path to DIA test .d directory")
+endif()
+
 #------------------------------------------------------------------------------
 # Extend module path with our modules
 # (create an empty list if CMAKE_MODULE_PATH does not exist)
