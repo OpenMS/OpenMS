@@ -102,7 +102,7 @@ protected:
 
     void candidateEdges_(FeatureMap& fm_out, const Adduct& default_adduct, PairsType& feature_relation, std::map<Size, std::set<CmpInfo_>>& feature_adducts);
 
-    void annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt side, const Int new_q, const Int old_q);
+    void annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt side, const Int new_q, const Int old_q, const Int mol_multiplier = 1);
 
     /// A function mostly for debugging
     void printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation);

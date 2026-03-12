@@ -218,9 +218,9 @@ namespace OpenMS
       build.setObjective(index, pairs[i].getEdgeScore());
 
       // create feature variants set
-      String rota_l = String(pairs[i].getElementIndex(0)) + pairs[i].getCompomer().getAdductsAsString(0) + "_" + pairs[i].getCharge(0);
+      String rota_l = String(pairs[i].getElementIndex(0)) + pairs[i].getCompomer().getAdductsAsString(0) + "_" + pairs[i].getCharge(0) + "_m" + pairs[i].getMolMultiplier(0);
       updateFeatureVariant_(features[pairs[i].getElementIndex(0)], rota_l, index);
-      String rota_r = String(pairs[i].getElementIndex(1)) + pairs[i].getCompomer().getAdductsAsString(1) + "_" + pairs[i].getCharge(1);
+      String rota_r = String(pairs[i].getElementIndex(1)) + pairs[i].getCompomer().getAdductsAsString(1) + "_" + pairs[i].getCharge(1) + "_m" + pairs[i].getMolMultiplier(1);
       updateFeatureVariant_(features[pairs[i].getElementIndex(1)], rota_r, index);
     }
 

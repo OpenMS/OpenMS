@@ -116,12 +116,18 @@ public:
 
     /**
       @brief Compute all possible mass differences and their explanations
-      
+
       This method generates all possible combinations of adducts from the adduct base
       and stores them internally for later querying. This must be called after
       changing any parameters and before performing queries.
+
+      @param[in] include_identity If true, add same-adduct compomers (same adduct type on
+                 both LEFT and RIGHT sides with varying amounts) needed for multimer
+                 detection. Covers same-charge multimers (e.g. [M+H]+ <-> [2M+H]+) and
+                 charge-changing multimers (e.g. [M+H]+ <-> [2M+2H]2+). Default false
+                 to preserve existing behavior.
     */
-    void compute();
+    void compute(bool include_identity = false);
 
 
     //@name Accessors
@@ -175,6 +181,34 @@ public:
                      const float thresh_log_p,
                      std::vector<Compomer>::const_iterator& firstExplanation,
                      std::vector<Compomer>::const_iterator& lastExplanation) const;
+
+    /**
+      @brief Search for cross-multiplier explanations between two features
+
+      For two features with different molecular multipliers (n1, n2), finds compomers
+      where M cancels exactly: n2*(m1 - left_mass) = n1*(m2 - right_mass).
+
+      Uses linear scan within the net_charge group (binary search to find the group).
+
+      @param[in] net_charge Net charge difference (q2 - q1)
+      @param[in] m1 Charge-scaled mass of feature 1 (mz1 * |q1|)
+      @param[in] m2 Charge-scaled mass of feature 2 (mz2 * |q2|)
+      @param[in] n1 Molecular multiplier for feature 1
+      @param[in] n2 Molecular multiplier for feature 2 (must differ from n1)
+      @param[in] tolerance Absolute mass tolerance
+      @param[in] thresh_log_p Minimum log probability
+      @param[out] hits Vector of iterators to matching compomers
+      @return Number of matching compomers found
+    */
+    SignedSize queryMultimer(const Int net_charge,
+                             const double m1,
+                             const double m2,
+                             const Int n1,
+                             const Int n2,
+                             const double tolerance,
+                             const float thresh_log_p,
+                             std::vector<CompomerIterator>& hits) const;
+
 protected:
 
     /**
