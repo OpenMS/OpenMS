@@ -179,16 +179,28 @@ protected:
     
 #ifdef WITH_TIMSRUST
     registerTOPPSubsection_("timsrust", "Options for reading Bruker TimsTOF .d files (requires WITH_TIMSRUST)");
-    registerIntOption_("timsrust:smoothing_window", "<int>", 0, "Smoothing window bin count (0 = library default)", false, true);
+    registerIntOption_("timsrust:smoothing_window", "<int>", 0, "TOF-domain smoothing window in bins (0 = library default). "
+      "Applied during spectrum assembly in 'auto' and 'spectrum' export modes; has no effect in 'frame' mode.", false, true);
     setMinInt_("timsrust:smoothing_window", 0);
-    registerIntOption_("timsrust:centroiding_window", "<int>", 0, "Centroiding window bin count (0 = library default)", false, true);
+    registerIntOption_("timsrust:centroiding_window", "<int>", 0, "TOF-domain centroiding window in bins (0 = library default). "
+      "Applied during spectrum assembly in 'auto' and 'spectrum' export modes; has no effect in 'frame' mode.", false, true);
     setMinInt_("timsrust:centroiding_window", 0);
-    registerDoubleOption_("timsrust:calibration_tolerance", "<float>", 0.0, "m/z calibration tolerance (0 = library default)", false, true);
+    registerDoubleOption_("timsrust:calibration_tolerance", "<float>", 0.0, "m/z recalibration tolerance (0 = library default)", false, true);
     setMinFloat_("timsrust:calibration_tolerance", 0.0);
     registerStringOption_("timsrust:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
     setValidStrings_("timsrust:calibrate", {"true", "false"});
-    registerStringOption_("timsrust:export_mode", "<mode>", "auto", "Export mode: auto (detect DDA/DIA), spectrum (force spectrum-level), frame (raw 4D frames)", false, true);
+    registerStringOption_("timsrust:export_mode", "<mode>", "auto", "Export mode: 'auto' detects DDA/DIA acquisition type, "
+      "'spectrum' forces per-precursor MS2 spectra (DDA-style), 'frame' returns raw 4D frames without signal processing.", false, true);
     setValidStrings_("timsrust:export_mode", {"auto", "spectrum", "frame"});
+    registerDoubleOption_("timsrust:ms1_centroid_mz_ppm", "<float>", 0.0,
+      "MS1 frame IM-centroiding m/z tolerance in ppm. Collapses the ion mobility dimension "
+      "by aggregating neighboring peaks. Both this and ms1_centroid_im_pct must be > 0 to enable. "
+      "Suggested value: 5.0. Algorithm from Sage (Lazear 2023).", false, true);
+    setMinFloat_("timsrust:ms1_centroid_mz_ppm", 0.0);
+    registerDoubleOption_("timsrust:ms1_centroid_im_pct", "<float>", 0.0,
+      "MS1 frame IM-centroiding ion mobility tolerance in percent. Both this and ms1_centroid_mz_ppm "
+      "must be > 0 to enable. Suggested value: 3.0.", false, true);
+    setMinFloat_("timsrust:ms1_centroid_im_pct", 0.0);
 #endif
 
     registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
@@ -222,6 +234,8 @@ protected:
     if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
     else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
     else c.export_mode = BrukerTimsFile::Config::AUTO;
+    c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("timsrust:ms1_centroid_mz_ppm"));
+    c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("timsrust:ms1_centroid_im_pct"));
     return c;
   }
 #endif
@@ -480,31 +494,6 @@ protected:
 
         return EXECUTION_OK;
       }
-#ifdef WITH_TIMSRUST
-      else if (in_type == FileTypes::BRUKER_TDF && out_type == FileTypes::MZML)
-      {
-        PlainMSDataWritingConsumer consumer(out);
-        consumer.getOptions().setWriteIndex(write_scan_index);
-        if (lossy_compression)
-        {
-          consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
-          consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
-          consumer.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
-          consumer.getOptions().setCompression(true);
-        }
-        consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-
-        auto tims_config = getTimsConfig_();
-        BrukerTimsFile tims_file;
-        tims_file.setLogType(log_type_);
-
-        // Note: transform() currently loads the full dataset into memory before
-        // streaming to consumer. True constant-memory streaming is a future optimization.
-        OPENMS_LOG_WARN << "Warning: -process_lowmemory with Bruker .d input currently loads the full dataset into memory." << std::endl;
-        tims_file.transform(in, &consumer, tims_config);
-        return EXECUTION_OK;
-      }
-#endif
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
