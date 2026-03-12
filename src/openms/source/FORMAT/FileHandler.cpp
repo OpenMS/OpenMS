@@ -51,6 +51,10 @@
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 
+#ifdef WITH_TIMSRUST
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
+
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -894,8 +898,9 @@ namespace OpenMS
 #ifdef WITH_TIMSRUST
       case FileTypes::BRUKER_TDF:
       {
-        // TODO: BrukerTimsFile().load(filename, exp);
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        BrukerTimsFile f;
+        f.setLogType(log);
+        f.load(filename, exp);
       }
       break;
 #endif

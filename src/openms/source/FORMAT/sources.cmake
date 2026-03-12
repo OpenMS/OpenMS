@@ -123,6 +123,10 @@ if (WITH_PARQUET)
   list(APPEND sources_list ArrowSchemaRegistry.cpp)
 endif()
 
+if (WITH_TIMSRUST)
+  list(APPEND sources_list BrukerTimsFile.cpp)
+endif()
+
 ### add path to the filenames
 set(sources)
 foreach(i ${sources_list})
