@@ -98,6 +98,10 @@ if (WITH_PARQUET)
   endif()
 endif()
 
+if (WITH_TIMSRUST)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES timsrust_cpp_bridge::timsrust_cpp_bridge)
+endif()
+
 if (ENABLE_TDL)
 set(OPENMS_DEP_PRIVATE_LIBRARIES
     ${OPENMS_DEP_PRIVATE_LIBRARIES}
@@ -167,6 +171,15 @@ endif()
 
 # Use std::filesystem instead of boost::filesystem in boost::process (avoids linking boost_filesystem)
 target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
+
+if (WITH_TIMSRUST)
+    target_compile_definitions(OpenMS PUBLIC WITH_TIMSRUST=1)
+endif()
+
+## Enable test-only hooks when class tests are being built.
+if(ENABLE_CLASS_TESTING)
+  target_compile_definitions(OpenMS PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
+endif()
 
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation

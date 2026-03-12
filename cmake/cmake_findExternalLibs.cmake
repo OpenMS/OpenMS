@@ -274,6 +274,51 @@ find_package(CURL REQUIRED)
  endif()
 
 #------------------------------------------------------------------------------
+# timsrust_cpp_bridge (Bruker TimsTOF .d file reading)
+if (WITH_TIMSRUST)
+  include(FetchContent)
+  set(TIMSRUST_VERSION "0.1.0" CACHE STRING "timsrust_cpp_bridge version to fetch")
+
+  # Detect platform for archive selection
+  if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|ARM64")
+      set(_TIMSRUST_PLATFORM "linux-aarch64")
+    else()
+      set(_TIMSRUST_PLATFORM "linux-x86_64")
+    endif()
+  elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+      set(_TIMSRUST_PLATFORM "macos-arm64")
+    else()
+      message(WARNING "timsrust_cpp_bridge: no pre-built Intel macOS binaries; build from source or use arm64")
+      set(_TIMSRUST_PLATFORM "macos-arm64")  # fallback, may fail at link time
+    endif()
+  elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(_TIMSRUST_PLATFORM "windows-x86_64")
+  else()
+    message(FATAL_ERROR "Unsupported platform for timsrust_cpp_bridge: ${CMAKE_SYSTEM_NAME}")
+  endif()
+
+  set(_TIMSRUST_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/v${TIMSRUST_VERSION}/timsrust_cpp_bridge-${_TIMSRUST_PLATFORM}.tar.gz")
+
+  FetchContent_Declare(
+    timsrust_cpp_bridge
+    URL ${_TIMSRUST_URL}
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  # Use Populate (not MakeAvailable) since the archive is pre-built with no CMakeLists.txt
+  FetchContent_GetProperties(timsrust_cpp_bridge)
+  if(NOT timsrust_cpp_bridge_POPULATED)
+    FetchContent_Populate(timsrust_cpp_bridge)
+  endif()
+
+  # The extracted archive contains lib/cmake/ with config files
+  list(APPEND CMAKE_PREFIX_PATH "${timsrust_cpp_bridge_SOURCE_DIR}")
+  find_package(timsrust_cpp_bridge REQUIRED)
+  message(STATUS "Found timsrust_cpp_bridge: ${timsrust_cpp_bridge_SOURCE_DIR}")
+endif()
+
+#------------------------------------------------------------------------------
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
 
