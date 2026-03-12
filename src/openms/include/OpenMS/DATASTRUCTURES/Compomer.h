@@ -241,6 +241,15 @@ public:
     */
     StringList getLabels(const UInt side) const;
 
+    /**
+      @brief Get total adduct mass on a specific side
+
+      Computes sum of amount * singleMass for all adducts on the given side.
+
+      @param side Which side (LEFT or RIGHT)
+      @return Total adduct mass contribution on that side
+    */
+    double getSideMass(const UInt side) const;
 
     /**
       @brief Add a complete set of adducts to a specific side of the compomer
