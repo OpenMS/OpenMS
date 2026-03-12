@@ -174,8 +174,8 @@ namespace OpenMS
       // DIA: MS1 frames + MS2 frames * windows
       unsigned int win_count = 0;
       tims_swath_window* windows = nullptr;
-      tims_get_swath_windows(ds.ptr, &win_count, &windows);
-      if (windows) tims_free_swath_windows(ds.ptr, windows);
+      timsffi_status win_status = tims_get_swath_windows(ds.ptr, &win_count, &windows);
+      if (win_status == TIMSFFI_OK && windows) tims_free_swath_windows(ds.ptr, windows);
       expected = info.ms1.count + info.ms2.count * win_count;
     }
     else
@@ -272,7 +272,7 @@ namespace OpenMS
       prec.setIsolationWindowUpperOffset(ts.isolation_width / 2.0);
       // Store selected ion m/z as user param if different from isolation center
       if (std::abs(ts.precursor_mz - ts.isolation_mz) > 1e-6)
-        prec.setMetaValue("selected_ion_mz", ts.precursor_mz);
+        prec.setMetaValue("selected ion m/z", ts.precursor_mz);
 
       std::vector<Precursor> precursors;
       precursors.push_back(std::move(prec));

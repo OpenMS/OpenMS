@@ -210,6 +210,22 @@ protected:
   // Note: subsection defaults are not overridden here; TransitionTSVFile parameters
   // are available via the standard parameter mechanism when requested.
 
+#ifdef WITH_TIMSRUST
+  BrukerTimsFile::Config getTimsConfig_()
+  {
+    BrukerTimsFile::Config c;
+    c.smoothing_window = static_cast<uint32_t>(getIntOption_("timsrust:smoothing_window"));
+    c.centroiding_window = static_cast<uint32_t>(getIntOption_("timsrust:centroiding_window"));
+    c.calibration_tolerance = getDoubleOption_("timsrust:calibration_tolerance");
+    c.calibrate = (getStringOption_("timsrust:calibrate") == "true");
+    String mode = getStringOption_("timsrust:export_mode");
+    if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
+    else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
+    else c.export_mode = BrukerTimsFile::Config::AUTO;
+    return c;
+  }
+#endif
+
   ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
@@ -478,17 +494,9 @@ protected:
         }
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
 
+        auto tims_config = getTimsConfig_();
         BrukerTimsFile tims_file;
         tims_file.setLogType(log_type_);
-        BrukerTimsFile::Config tims_config;
-        tims_config.smoothing_window = static_cast<uint32_t>(getIntOption_("timsrust:smoothing_window"));
-        tims_config.centroiding_window = static_cast<uint32_t>(getIntOption_("timsrust:centroiding_window"));
-        tims_config.calibration_tolerance = getDoubleOption_("timsrust:calibration_tolerance");
-        tims_config.calibrate = (getStringOption_("timsrust:calibrate") == "true");
-        String mode = getStringOption_("timsrust:export_mode");
-        if (mode == "spectrum") tims_config.export_mode = BrukerTimsFile::Config::SPECTRUM;
-        else if (mode == "frame") tims_config.export_mode = BrukerTimsFile::Config::FRAME;
-        else tims_config.export_mode = BrukerTimsFile::Config::AUTO;
 
         // Note: transform() currently loads the full dataset into memory before
         // streaming to consumer. True constant-memory streaming is a future optimization.
@@ -506,18 +514,9 @@ protected:
 #ifdef WITH_TIMSRUST
     else if (in_type == FileTypes::BRUKER_TDF)
     {
+      auto tims_config = getTimsConfig_();
       BrukerTimsFile tims_file;
       tims_file.setLogType(log_type_);
-      BrukerTimsFile::Config tims_config;
-      tims_config.smoothing_window = static_cast<uint32_t>(getIntOption_("timsrust:smoothing_window"));
-      tims_config.centroiding_window = static_cast<uint32_t>(getIntOption_("timsrust:centroiding_window"));
-      tims_config.calibration_tolerance = getDoubleOption_("timsrust:calibration_tolerance");
-      tims_config.calibrate = (getStringOption_("timsrust:calibrate") == "true");
-      String mode = getStringOption_("timsrust:export_mode");
-      if (mode == "spectrum") tims_config.export_mode = BrukerTimsFile::Config::SPECTRUM;
-      else if (mode == "frame") tims_config.export_mode = BrukerTimsFile::Config::FRAME;
-      else tims_config.export_mode = BrukerTimsFile::Config::AUTO;
-
       tims_file.load(in, exp, tims_config);
     }
 #endif
