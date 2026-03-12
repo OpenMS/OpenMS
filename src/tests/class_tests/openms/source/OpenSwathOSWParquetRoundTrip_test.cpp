@@ -62,7 +62,12 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
   // Verify the RAF path works: ZipRandomAccessFile::Open should succeed directly on the archive
   {
     std::unique_ptr<File::TempDir> raf_tmp;
-    TEST_EQUAL(ZipRandomAccessFile::Open(out_archive, "library/precursors.parquet", raf_tmp).ok(), true)
+    auto ra_res = ZipRandomAccessFile::Open(out_archive, "library/precursors.parquet", raf_tmp);
+#if __has_include(<zip.h>)
+    TEST_EQUAL(ra_res.ok(), true)
+#else
+    TEST_EQUAL(ra_res.status().IsNotImplemented(), true)
+#endif
   }
 
   // Read back using TransitionParquetFile and verify the round-trip data
