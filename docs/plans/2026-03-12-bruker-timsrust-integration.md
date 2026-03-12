@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Review policy:** This plan includes mandatory review checkpoints marked with `REVIEW GATE`. At each gate, dispatch a `superpowers:code-reviewer` agent (or use `superpowers:requesting-code-review`) to validate the completed work against the spec before proceeding. Do NOT skip review gates.
+
 **Goal:** Add native Bruker TimsTOF `.d` file reading via timsrust_cpp_bridge, supporting DDA-PASEF, DIA-PASEF, and raw frame-level 4D access.
 
 **Architecture:** A new `BrukerTimsFile` class wraps the timsrust C ABI to load `.d` directories into `MSExperiment`. It's registered as `BRUKER_TDF` in `FileTypes`, dispatched by `FileHandler`, and exposed through `FileConverter` with timsrust-specific parameters. The entire integration is gated behind `WITH_TIMSRUST` (CMake, default ON).
@@ -290,6 +292,24 @@ Expected: Builds successfully (the BRUKER_TDF case is behind `#ifdef WITH_TIMSRU
 git add src/openms/source/FORMAT/FileHandler.cpp
 git commit -m "feat: add directory-aware BRUKER_TDF detection and dispatch in FileHandler"
 ```
+
+---
+
+### REVIEW GATE 1: Infrastructure Complete
+
+**Trigger:** After Tasks 1-3 are committed.
+
+**Review scope:** Dispatch `superpowers:code-reviewer` agent to verify:
+- [ ] CMake configuration succeeds with both `WITH_TIMSRUST=ON` (if library available) and `OFF`
+- [ ] `BRUKER_TDF` type is correctly registered (enum, TypeNameBinding, typeToMZML, test counts)
+- [ ] `FileHandler::getType()` correctly validates `.d` directories before `getTypeByContent()`
+- [ ] `FileHandler::loadExperiment()` dispatch is guarded by `#ifdef WITH_TIMSRUST`
+- [ ] Source file metadata handling (trailing slashes, hash skip) works for directory paths
+- [ ] All existing tests still pass: `ctest --test-dir OpenMS-build -R FileTypes_test`
+
+**Files to review:** `CMakeLists.txt`, `cmake/cmake_findExternalLibs.cmake`, `cmake/OpenMSConfig.cmake.in`, `src/openms/CMakeLists.txt`, `src/openms/include/OpenMS/FORMAT/FileTypes.h`, `src/openms/source/FORMAT/FileTypes.cpp`, `src/openms/source/FORMAT/FileHandler.cpp`, `src/tests/class_tests/openms/source/FileTypes_test.cpp`
+
+**Do NOT proceed to Chunk 2 until this review passes.**
 
 ---
 
@@ -588,6 +608,22 @@ git commit -m "feat: add BrukerTimsFile skeleton with RAII wrappers and FileHand
 
 ---
 
+### REVIEW GATE 2: Skeleton and RAII
+
+**Trigger:** After Task 4 is committed.
+
+**Review scope:** Dispatch `superpowers:code-reviewer` agent to verify:
+- [ ] `BrukerTimsFile.h` public API matches the spec (Config struct types, method signatures)
+- [ ] RAII wrappers (`TimsDatasetHandle`, `TimsConfigHandle`) are correct and leak-free
+- [ ] `openDataset()` helper correctly applies all config parameters
+- [ ] `#ifdef WITH_TIMSRUST` guards are consistent in header, source, and sources.cmake
+- [ ] FileHandler dispatch uses `BrukerTimsFile` (not the `NotImplemented` stub)
+- [ ] Builds cleanly with `WITH_TIMSRUST=OFF`
+
+**Files to review:** `src/openms/include/OpenMS/FORMAT/BrukerTimsFile.h`, `src/openms/source/FORMAT/BrukerTimsFile.cpp`, `src/openms/source/FORMAT/sources.cmake`, `src/openms/include/OpenMS/FORMAT/sources.cmake`, `src/openms/source/FORMAT/FileHandler.cpp`
+
+---
+
 ### Task 5: Frame-to-Spectrum Conversion (frameToSpectrum_)
 
 This is the core building block used by all three load paths (DDA MS1, DIA, and raw frames).
@@ -743,6 +779,21 @@ git commit -m "feat: implement frameToSpectrum_ core conversion with RAII and IM
 
 ---
 
+### REVIEW GATE 3: Core Conversion
+
+**Trigger:** After Task 5 is committed.
+
+**Review scope:** Dispatch `superpowers:code-reviewer` agent to verify:
+- [ ] `frameToSpectrum_` correctly uses batch `tims_convert_tof_to_mz_array` and `tims_convert_scan_to_im_array` APIs
+- [ ] Return values from bridge functions are checked; errors throw exceptions
+- [ ] IM FloatDataArray uses `IMDataConverter::setIMUnit(array, DriftTimeUnit::VSSC)` (not manual name setting)
+- [ ] Peak data types are correct (TOF→double m/z, uint32→double intensity, scan→float IM)
+- [ ] Test skeleton compiles and registers correctly in executables.cmake
+
+**Files to review:** `src/openms/source/FORMAT/BrukerTimsFile.cpp` (frameToSpectrum_ function), `src/tests/class_tests/openms/source/BrukerTimsFile_test.cpp`, `src/tests/class_tests/openms/executables.cmake`
+
+---
+
 ### Task 6: DDA Loading (loadDDA_)
 
 **Files:**
@@ -842,6 +893,22 @@ Expected: Compiles successfully.
 git add src/openms/source/FORMAT/BrukerTimsFile.cpp
 git commit -m "feat: implement DDA-PASEF loading (MS1 CONCATENATED + MS2 spectrum-level)"
 ```
+
+---
+
+### REVIEW GATE 4: DDA Path
+
+**Trigger:** After Task 6 is committed.
+
+**Review scope:** Dispatch `superpowers:code-reviewer` agent to verify:
+- [ ] MS1 frames use CONCATENATED format with per-peak IM FloatDataArray
+- [ ] MS2 spectra use scalar `driftTime` (not FloatDataArray)
+- [ ] Precursor metadata: `isolation_mz` used as Precursor m/z, `precursor_mz` stored as metavalue when different
+- [ ] float→double widening for spectrum-level `mz`/`intensity` arrays
+- [ ] RAII guards for `tims_frame*` arrays are correct (freed on all paths including exceptions)
+- [ ] `std::isnan` check on `precursor_intensity`
+
+**Files to review:** `src/openms/source/FORMAT/BrukerTimsFile.cpp` (loadDDA_ function)
 
 ---
 
@@ -985,6 +1052,25 @@ git commit -m "feat: implement DIA-PASEF loading with SWATH window splitting and
 
 ---
 
+### REVIEW GATE 5: DIA Path (Critical)
+
+**Trigger:** After Task 7 is committed. This is the most complex task — thorough review required.
+
+**Review scope:** Dispatch `superpowers:code-reviewer` agent to verify:
+- [ ] SWATH window splitting: peaks assigned to correct windows by IM bounds (`im_lower`/`im_upper`)
+- [ ] Each per-window spectrum has correct isolation window metadata (mz_lower, mz_upper, mz_center)
+- [ ] Per-peak IM arrays use `IMDataConverter::setIMUnit` with VSSC
+- [ ] Batch TOF→m/z and scan→IM conversions with error checking
+- [ ] RAII for all three allocated arrays (ms1_frames, ms2_frames, swath_windows)
+- [ ] Empty spectra (no peaks in window) are not added to experiment
+- [ ] MS1 frames from DIA path match DDA path (no duplication of logic ideally)
+
+**Cross-reference:** Verify the DIA output format matches what `OpenSwathWorkflow` expects — check `ChromatogramExtractorAlgorithm` and `IonMobilityScoring` expectations.
+
+**Files to review:** `src/openms/source/FORMAT/BrukerTimsFile.cpp` (loadDIA_ function)
+
+---
+
 ### Task 8: Raw Frame Export and load() Orchestration
 
 **Files:**
@@ -1063,6 +1149,25 @@ Run: `cmake --build OpenMS-build -j$(nproc)`
 git add src/openms/source/FORMAT/BrukerTimsFile.cpp
 git commit -m "feat: implement loadFrames_ and fix load() AUTO/SPECTRUM/FRAME dispatch"
 ```
+
+---
+
+### REVIEW GATE 6: Complete Reader
+
+**Trigger:** After Task 8 is committed. The full BrukerTimsFile reader is now functional.
+
+**Review scope:** Dispatch `superpowers:code-reviewer` agent for a comprehensive review of the entire reader:
+- [ ] `load()` dispatch: AUTO correctly detects DDA vs DIA via `isDIA_()` (computed once)
+- [ ] SPECTRUM mode forces DDA path even for DIA datasets
+- [ ] FRAME mode calls `loadFrames_` regardless of dataset type
+- [ ] `loadFrames_` iterates MS levels 1 and 2
+- [ ] `exp.sortSpectra(true)` called after loading (RT-interleaved)
+- [ ] Full read of `BrukerTimsFile.h` and `BrukerTimsFile.cpp` — check for consistency, missing error handling, memory safety
+- [ ] Verify against spec sections: "DDA Mapping", "DIA Mapping", "Raw Frame Export", "Export Mode Semantics", "Memory Management"
+
+**Files to review:** `src/openms/include/OpenMS/FORMAT/BrukerTimsFile.h`, `src/openms/source/FORMAT/BrukerTimsFile.cpp` (all functions)
+
+**Do NOT proceed to Chunk 3 until this review passes.**
 
 ---
 
@@ -1272,6 +1377,23 @@ git commit -m "feat: integrate BrukerTimsFile into FileConverter with timsrust p
 
 ---
 
+### REVIEW GATE 7: FileConverter Integration
+
+**Trigger:** After Task 10 is committed.
+
+**Review scope:** Dispatch `superpowers:code-reviewer` agent to verify:
+- [ ] `"d"` added to FileConverter input format list
+- [ ] timsrust parameters registered correctly (int for window sizes, double for tolerance, string toggle for calibrate)
+- [ ] Low-memory branch correctly extended: `BRUKER_TDF` + `MZML` output accepted
+- [ ] Normal processing branch: `BrukerTimsFile::Config` correctly populated from TOPP parameters
+- [ ] `#ifdef WITH_TIMSRUST` guards on all new code blocks
+- [ ] `#include <OpenMS/FORMAT/BrukerTimsFile.h>` guarded
+- [ ] No interaction with existing FileConverter functionality when `WITH_TIMSRUST=OFF`
+
+**Files to review:** `src/topp/FileConverter.cpp`
+
+---
+
 ### Task 11: Integration Test Infrastructure
 
 **Files:**
@@ -1398,6 +1520,24 @@ git add CMakeLists.txt \
   src/tests/class_tests/openms/source/BrukerTimsFile_test.cpp
 git commit -m "test: add integration test infrastructure for Bruker TimsTOF with real data"
 ```
+
+---
+
+### REVIEW GATE 8: Final Review
+
+**Trigger:** After Task 11 is committed. All implementation is complete.
+
+**Review scope:** Dispatch `superpowers:code-reviewer` agent for a final end-to-end review:
+- [ ] Full diff review: `git diff develop...HEAD` — every changed file against the spec
+- [ ] Build verification: `cmake -B OpenMS-build -DWITH_TIMSRUST=OFF && cmake --build OpenMS-build -j$(nproc)` succeeds
+- [ ] Existing test suite: `ctest --test-dir OpenMS-build -R "FileTypes_test|FileHandler_test"` passes
+- [ ] No regressions in FileConverter behavior for non-TimsTOF inputs
+- [ ] All `#ifdef WITH_TIMSRUST` guards are balanced and consistent
+- [ ] RAII wrappers have no leak paths
+- [ ] IM data representation matches spec for DDA (scalar drift time) and DIA (CONCATENATED per-peak)
+- [ ] Spec compliance: verify every section of `docs/specs/2026-03-12-bruker-timsrust-integration-design.md` is addressed
+
+**After this review passes, use `superpowers:finishing-a-development-branch` to decide on merge/PR.**
 
 ---
 
