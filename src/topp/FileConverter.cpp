@@ -33,6 +33,9 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
+#ifdef WITH_TIMSRUST
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
 
 
 using namespace OpenMS;
@@ -148,7 +151,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms", "sqMass"};
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "d", "tsv", "peplist", "kroenik", "edta", "oms", "sqMass"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
 
@@ -174,6 +177,20 @@ protected:
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
     
+#ifdef WITH_TIMSRUST
+    registerTOPPSubsection_("timsrust", "Options for reading Bruker TimsTOF .d files (requires WITH_TIMSRUST)");
+    registerIntOption_("timsrust:smoothing_window", "<int>", 0, "Smoothing window bin count (0 = library default)", false, true);
+    setMinInt_("timsrust:smoothing_window", 0);
+    registerIntOption_("timsrust:centroiding_window", "<int>", 0, "Centroiding window bin count (0 = library default)", false, true);
+    setMinInt_("timsrust:centroiding_window", 0);
+    registerDoubleOption_("timsrust:calibration_tolerance", "<float>", 0.0, "m/z calibration tolerance (0 = library default)", false, true);
+    setMinFloat_("timsrust:calibration_tolerance", 0.0);
+    registerStringOption_("timsrust:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
+    setValidStrings_("timsrust:calibrate", {"true", "false"});
+    registerStringOption_("timsrust:export_mode", "<mode>", "auto", "Export mode: auto (detect DDA/DIA), spectrum (force spectrum-level), frame (raw 4D frames)", false, true);
+    setValidStrings_("timsrust:export_mode", {"auto", "spectrum", "frame"});
+#endif
+
     registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
     registerInputFile_("RawToMzML:NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, {"is_executable"});
     registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, {"is_executable"});
@@ -447,12 +464,60 @@ protected:
 
         return EXECUTION_OK;
       }
+#ifdef WITH_TIMSRUST
+      else if (in_type == FileTypes::BRUKER_TDF && out_type == FileTypes::MZML)
+      {
+        PlainMSDataWritingConsumer consumer(out);
+        consumer.getOptions().setWriteIndex(write_scan_index);
+        if (lossy_compression)
+        {
+          consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+          consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+          consumer.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
+          consumer.getOptions().setCompression(true);
+        }
+        consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
+
+        BrukerTimsFile tims_file;
+        tims_file.setLogType(log_type_);
+        BrukerTimsFile::Config tims_config;
+        tims_config.smoothing_window = static_cast<uint32_t>(getIntOption_("timsrust:smoothing_window"));
+        tims_config.centroiding_window = static_cast<uint32_t>(getIntOption_("timsrust:centroiding_window"));
+        tims_config.calibration_tolerance = getDoubleOption_("timsrust:calibration_tolerance");
+        tims_config.calibrate = (getStringOption_("timsrust:calibrate") == "true");
+        String mode = getStringOption_("timsrust:export_mode");
+        if (mode == "spectrum") tims_config.export_mode = BrukerTimsFile::Config::SPECTRUM;
+        else if (mode == "frame") tims_config.export_mode = BrukerTimsFile::Config::FRAME;
+        else tims_config.export_mode = BrukerTimsFile::Config::AUTO;
+
+        tims_file.transform(in, &consumer, tims_config);
+        return EXECUTION_OK;
+      }
+#endif
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
       }
     }
+#ifdef WITH_TIMSRUST
+    else if (in_type == FileTypes::BRUKER_TDF)
+    {
+      BrukerTimsFile tims_file;
+      tims_file.setLogType(log_type_);
+      BrukerTimsFile::Config tims_config;
+      tims_config.smoothing_window = static_cast<uint32_t>(getIntOption_("timsrust:smoothing_window"));
+      tims_config.centroiding_window = static_cast<uint32_t>(getIntOption_("timsrust:centroiding_window"));
+      tims_config.calibration_tolerance = getDoubleOption_("timsrust:calibration_tolerance");
+      tims_config.calibrate = (getStringOption_("timsrust:calibrate") == "true");
+      String mode = getStringOption_("timsrust:export_mode");
+      if (mode == "spectrum") tims_config.export_mode = BrukerTimsFile::Config::SPECTRUM;
+      else if (mode == "frame") tims_config.export_mode = BrukerTimsFile::Config::FRAME;
+      else tims_config.export_mode = BrukerTimsFile::Config::AUTO;
+
+      tims_file.load(in, exp, tims_config);
+    }
+#endif
     else
     {
       fh.loadExperiment(in, exp, {in_type}, log_type_, true, true);
