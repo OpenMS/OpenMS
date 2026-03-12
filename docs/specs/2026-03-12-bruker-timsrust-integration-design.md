@@ -36,7 +36,7 @@ Add native support for reading Bruker TimsTOF `.d` files into OpenMS via the ope
 ├─────────────────────────────────────────────────┤
 │ BrukerTimsFile                                  │
 │  ├─ load(path, MSExperiment, config)            │
-│  ├─ transform(path, IMSDataConsumer*, config)   │
+│  ├─ transform(path, Interfaces::IMSDataConsumer*)│
 │  ├─ loadDDA()   ─┐                             │
 │  ├─ loadDIA()    ├─ internal mapping logic      │
 │  └─ loadFrames() ┘                             │
@@ -95,15 +95,15 @@ Add `TypeNameBinding` entry in the `type_with_annotation__` array:
 - Description: `"Bruker TDF"`
 - `FileProperties` flags: `PROVIDES_EXPERIMENT`, `READABLE`
 
-Add `typeToMZML` mapping for `BRUKER_TDF` → `"Bruker TDF file"`.
+Add `typeToMZML` mapping for `BRUKER_TDF` → `"Bruker TDF format"` (matching the PSI-MS term in `share/OpenMS/CV/psi-ms.obo`).
 
 ### FileHandler.cpp
 
-Detection logic — injected into `getType()` / `getTypeByFileName()` with directory-aware handling, since the existing flow is designed for files, not directories:
+Detection logic — the existing flow is file-oriented; directories need special handling:
 
-1. In `getTypeByFileName()`: if the path ends in `.d`, return `FileTypes::BRUKER_TDF` directly (the `TypeNameBinding` with name `"d"` handles this via `nameToType`)
-2. In `getType()`: before calling `getTypeByContent()` (which tries to open the path as a file and would fail for directories), check if the path is a directory containing `analysis.tdf` or `analysis.tdf_bin` and return `BRUKER_TDF`
-3. Fall through to existing logic for non-directory paths
+1. `getTypeByFileName()` already handles `.d` via the `TypeNameBinding` with extension `"d"` → returns `BRUKER_TDF` automatically
+2. In `getType()`: once `getTypeByFileName()` returns `BRUKER_TDF`, short-circuit before calling `getTypeByContent()` (which opens the path as a file and would fail for directories). Optionally validate that the directory contains `analysis.tdf` or `analysis.tdf_bin` to distinguish from other `.d` directories.
+3. In `loadExperiment()`: skip `computeFileHash()` for directory inputs (it opens the path as a file and returns empty string for directories). Handle `File::basename()` for paths with trailing slashes (returns empty string). Set source file metadata without hash.
 
 Dispatch: `loadExperiment()` delegates to `BrukerTimsFile::load()` when type is `BRUKER_TDF`.
 
@@ -134,7 +134,7 @@ public:
   void load(const String& path, MSExperiment& exp, const Config& config = {});
 
   /// Streaming: read .d and feed spectra to consumer
-  void transform(const String& path, IMSDataConsumer* consumer, const Config& config = {});
+  void transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config = {});
 };
 ```
 
@@ -145,7 +145,7 @@ public:
 2. For each frame: `tims_convert_tof_to_mz_array()` + `tims_convert_scan_to_im_array()`
 3. Build one `MSSpectrum` per frame in **CONCATENATED** format:
    - Peak data: m/z (from converted TOF, double precision) + intensity (uint32 → double)
-   - `FloatDataArray` named `"Ion Mobility"` with per-peak 1/K₀ values, CV term accession `MS:1002815` (inverse reduced ion mobility) set on the array. Both the name and CV term are required: `MSSpectrum::containsIMData()` checks CV term children of `MS:1002893`, not string names.
+   - IM `FloatDataArray` configured via `IMDataConverter::setIMUnit(array, DriftTimeUnit::VSSC)`, which sets the array name to `"raw inverse reduced ion mobility array"` with CV term `MS:1003008`. This is required: `MSSpectrum::containsIMData()` delegates to `IMDataConverter::getIMUnit()` which inspects array names, not CV accessions. Using the wrong name (e.g., `"Ion Mobility"`) would cause misclassification as MILLISECOND.
    - `DriftTimeUnit::VSSC`
    - RT from `tims_frame.rt_seconds`
    - MS level = 1
@@ -184,7 +184,7 @@ for scan_idx in 0..num_scans:
 3. For each frame: convert TOF→m/z and scan→IM
 4. Split peaks by SWATH window: assign each peak to the window whose IM bounds contain the peak's IM value
 5. One `MSSpectrum` per window per frame in **CONCATENATED** format:
-   - Per-peak IM in `FloatDataArray` named `"Ion Mobility"` with CV term `MS:1002815` (VSSC)
+   - Per-peak IM in `FloatDataArray` configured via `IMDataConverter::setIMUnit(..., DriftTimeUnit::VSSC)` (sets name `"raw inverse reduced ion mobility array"`, CV `MS:1003008`)
    - Isolation window metadata from `tims_swath_window` (mz_lower, mz_upper, mz_center)
    - RT from frame
    - MS level = 2
@@ -210,10 +210,14 @@ else → DDA path
 ### Streaming (`transform`)
 
 1. Open dataset, call `tims_file_info()` for counts
-2. `consumer->setExpectedSize(num_spectra, 0)`
-3. `consumer->setExperimentalSettings(...)` with instrument metadata
-4. Iterate frames/spectra in RT order, convert, call `consumer->consumeSpectrum()` for each
-5. Enables constant-memory mzML conversion via `PlainMSDataWritingConsumer`
+2. Compute expected spectrum count based on export mode:
+   - SPECTRUM/DDA: `tims_file_info().num_frames` (MS1) + `tims_num_spectra()` (MS2)
+   - DIA: `tims_file_info().num_frames` (MS1) + num_ms2_frames × num_swath_windows (MS2)
+   - FRAME: `tims_file_info().num_frames` (all levels)
+3. `consumer->setExpectedSize(computed_count, 0)`
+4. `consumer->setExperimentalSettings(...)` — note: `tims_file_info()` only provides counts and ranges (RT/m/z/IM/intensity), not instrument identity. Instrument metadata must be populated from what's available (RT range, m/z range, etc.); instrument name/model are not available from the bridge.
+5. Iterate frames/spectra in RT order, convert, call `consumer->consumeSpectrum()` for each
+6. Enables constant-memory mzML conversion via `PlainMSDataWritingConsumer`
 
 ### Export Mode Semantics
 
@@ -239,9 +243,9 @@ The implementation must use RAII wrappers (scope guards or `unique_ptr` with cus
 
 - All IM values in 1/K₀ (VSSC) units — matching TimsTOF native representation
 - `DriftTimeUnit::VSSC` set on all spectra
-- IM `FloatDataArray` entries must have both name `"Ion Mobility"` and CV term accession `MS:1002815`
+- IM `FloatDataArray` entries must be configured via `IMDataConverter::setIMUnit(array, DriftTimeUnit::VSSC)` — sets name `"raw inverse reduced ion mobility array"` with CV `MS:1003008`
 - Spectra sorted by RT after loading, interleaved across MS levels
-- `ExperimentalSettings` populated from `tims_file_info()` (frame count, peak stats, RT/m/z/IM ranges)
+- `ExperimentalSettings` populated from `tims_file_info()` where available (RT/m/z/IM ranges, peak counts). Instrument name/model not available from bridge — left empty.
 - Error handling: check `timsffi_status` return codes, throw `Exception::FileNotReadable` or `Exception::ParseError` with message from `tims_get_last_error()`
 
 ## FileConverter Integration
@@ -251,17 +255,23 @@ In `src/topp/FileConverter.cpp`, under `#ifdef WITH_TIMSRUST`:
 ### Additional Parameters
 
 ```
--timsrust_smoothing_window <int>         (default: 0 = library default; bin count)
--timsrust_centroiding_window <int>       (default: 0 = library default; bin count)
--timsrust_calibration_tolerance <float>  (default: 0 = library default; m/z tolerance)
--timsrust_calibrate <bool>               (default: false)
--timsrust_export_mode <string>           (auto|spectrum|frame, default: auto)
+-timsrust_smoothing_window <int>                    (default: 0 = library default; bin count)
+-timsrust_centroiding_window <int>                  (default: 0 = library default; bin count)
+-timsrust_calibration_tolerance <float>             (default: 0 = library default; m/z tolerance)
+-timsrust_calibrate <string: "true","false">        (default: "false"; modeled as string toggle per TOPP conventions)
+-timsrust_export_mode <string: "auto","spectrum","frame">  (default: "auto")
 ```
+
+Note: `timsrust_calibrate` uses a `"true"/"false"` string restriction rather than a raw bool, following the existing TOPP parameter pattern (see e.g., `force` parameter).
+
+### Input Format Registration
+
+Add `"d"` to FileConverter's input format list (currently at line ~152). This is required for TOPP parameter validation.
 
 ### Processing
 
 - When input type is `BRUKER_TDF`, build `BrukerTimsFile::Config` from parameters
-- Low-memory mode (`-process_lowmemory`): use `BrukerTimsFile::transform()` with writing consumer
+- Low-memory mode (`-process_lowmemory`): currently only allows mzML/mzXML input (throws `IllegalArgument` otherwise). Must extend the low-memory branch to accept `BRUKER_TDF` as input, routing to `BrukerTimsFile::transform()` with a writing consumer.
 - Normal mode: use `BrukerTimsFile::load()` then write
 
 ## Vendor DLL Independence
@@ -302,7 +312,8 @@ Download real HeLa datasets from `test-data-v1` release:
 | Modify | `CMakeLists.txt` — add `WITH_TIMSRUST` and `ENABLE_TIMSRUST_TESTS` options |
 | Modify | `cmake/cmake_findExternalLibs.cmake` — FetchContent + find_package |
 | Modify | `src/openms/include/OpenMS/config.h.in` — add `#cmakedefine WITH_TIMSRUST 1` |
-| Modify | `src/openms/CMakeLists.txt` — conditional linking |
+| Modify | `src/openms/CMakeLists.txt` — conditional linking + public compile definition |
+| Modify | `cmake/OpenMSConfig.cmake.in` — export `WITH_TIMSRUST` for downstream consumers |
 | Modify | `src/openms/include/OpenMS/FORMAT/FileTypes.h` — add `BRUKER_TDF` enum value |
 | Modify | `src/openms/source/FORMAT/FileTypes.cpp` — add `TypeNameBinding`, `typeToMZML` mapping |
 | Modify | `src/openms/source/FORMAT/FileHandler.cpp` — directory-aware detection + dispatch |
@@ -310,3 +321,4 @@ Download real HeLa datasets from `test-data-v1` release:
 | Modify | `src/openms/include/OpenMS/FORMAT/sources.cmake` — conditional `BrukerTimsFile.h` |
 | Modify | `src/topp/FileConverter.cpp` — timsrust parameters + BRUKER_TDF input |
 | Modify | `src/tests/class_tests/openms/executables.cmake` — add `BrukerTimsFile_test` |
+| Modify | `src/tests/class_tests/openms/source/FileTypes_test.cpp` — update type count |
