@@ -11,6 +11,8 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/SourceFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <timsrust_cpp_bridge.h>
 
@@ -51,6 +53,167 @@ namespace OpenMS
     TimsConfigHandle() = default;
     TimsConfigHandle(const TimsConfigHandle&) = delete;
     TimsConfigHandle& operator=(const TimsConfigHandle&) = delete;
+  };
+
+  // Helper: expand run-length-encoded scan offsets to per-peak IM values.
+  // Translated from Sage's PeakBuffer::expand_mobility_iter().
+  // T = float for frameToSpectrum_() / centroiding path,
+  // T = double for loadDIA_() SWATH splitting (preserves precision for window boundary comparisons).
+  template <typename T>
+  static void expandScanOffsets(const uint64_t* scan_offsets, uint32_t num_scans,
+                                const double* scan_im, uint32_t num_peaks,
+                                std::vector<T>& out_im)
+  {
+    out_im.resize(num_peaks);
+    for (uint32_t scan_idx = 0; scan_idx < num_scans; ++scan_idx)
+    {
+      uint64_t start = scan_offsets[scan_idx];
+      uint64_t end = scan_offsets[scan_idx + 1];
+      for (uint64_t p = start; p < end; ++p)
+      {
+        out_im[p] = static_cast<T>(scan_im[scan_idx]);
+      }
+    }
+  }
+
+  // IM-aware peak for centroiding. Adapted from Sage's ImsPeak.
+  struct ImsPeak
+  {
+    float mz;
+    float intensity;
+    float im;
+  };
+
+  static constexpr size_t MAX_CENTROID_PEAKS = 10000;
+
+  // Reusable buffer for IM-dimension centroiding of a single frame.
+  // Translated from Sage's PeakBuffer (Lazear 2023, doi:10.1021/acs.jproteome.3c00486).
+  // Buffers persist across frames within a single load() call for memory reuse.
+  struct FrameCentroider
+  {
+    std::vector<ImsPeak> peaks;
+    std::vector<size_t> order;       // indices sorted by descending intensity
+    std::vector<ImsPeak> agg_buff;   // centroided output
+
+    void clear()
+    {
+      peaks.clear();
+      order.clear();
+      agg_buff.clear();
+    }
+
+    // Load already-converted frame data into the buffer.
+    // mz_values: converted m/z (double, from tims_convert_tof_to_mz_array)
+    // intensities: raw uint32_t from tims_frame::intensities (cast to float internally)
+    // im_values: expanded per-peak IM (float, from expandScanOffsets)
+    void loadFrame(const double* mz_values, const uint32_t* intensities,
+                   const float* im_values, uint32_t count)
+    {
+      clear();
+      peaks.reserve(count);
+      for (uint32_t i = 0; i < count; ++i)
+      {
+        peaks.push_back({static_cast<float>(mz_values[i]),
+                         static_cast<float>(intensities[i]),
+                         im_values[i]});
+      }
+
+      // Sort by m/z for binary-search neighbor finding
+      std::sort(peaks.begin(), peaks.end(),
+                [](const ImsPeak& a, const ImsPeak& b) { return a.mz < b.mz; });
+
+      // Build intensity-descending index
+      order.resize(count);
+      std::iota(order.begin(), order.end(), size_t(0));
+      std::sort(order.begin(), order.end(),
+                [this](size_t a, size_t b)
+                {
+                  return peaks[b].intensity < peaks[a].intensity; // descending
+                });
+    }
+
+    // Centroid the loaded frame by collapsing the IM dimension.
+    // Iterates peaks in descending intensity order. For each apex peak, aggregates
+    // all unconsumed neighbors within m/z (ppm) and IM (percent) tolerances.
+    // Output is capped at MAX_CENTROID_PEAKS entries.
+    void centroid(float mz_ppm, float im_pct,
+                  std::vector<double>& out_mz,
+                  std::vector<double>& out_intensity,
+                  std::vector<float>& out_im)
+    {
+      agg_buff.clear();
+      agg_buff.reserve(std::min(peaks.size(), MAX_CENTROID_PEAKS + 1));
+
+      const float utol = mz_ppm / 1e6f;
+      const float im_tol_frac = im_pct / 100.0f;
+      size_t global_consumed = 0;
+
+      for (size_t idx : order)
+      {
+        if (peaks[idx].intensity <= 0.0f) continue;  // already consumed
+
+        if (agg_buff.size() > MAX_CENTROID_PEAKS)
+        {
+          if (peaks[idx].intensity > 200.0f)
+          {
+            OPENMS_LOG_DEBUG << "FrameCentroider: reached MAX_CENTROID_PEAKS at index "
+                             << idx << "/" << peaks.size()
+                             << " intensity=" << peaks[idx].intensity << std::endl;
+          }
+          break;
+        }
+
+        const float mz = peaks[idx].mz;
+        const float im = peaks[idx].im;
+        const float da_tol = mz * utol;
+        const float left_mz = mz - da_tol;
+        const float right_mz = mz + da_tol;
+
+        // Binary search for m/z neighbor range
+        auto it_start = std::lower_bound(peaks.begin(), peaks.end(), left_mz,
+                          [](const ImsPeak& p, float val) { return p.mz < val; });
+        auto it_end = std::upper_bound(peaks.begin(), peaks.end(), right_mz,
+                          [](float val, const ImsPeak& p) { return val < p.mz; });
+
+        const float abs_im_tol = im * im_tol_frac;
+        const float left_im = im - abs_im_tol;
+        const float right_im = im + abs_im_tol;
+
+        float curr_intensity = 0.0f;
+        size_t num_consumed = 0;
+
+        for (auto it = it_start; it != it_end; ++it)
+        {
+          if (it->intensity <= 0.0f) continue;  // already consumed by earlier apex
+          if (it->im >= left_im && it->im <= right_im)
+          {
+            curr_intensity += it->intensity;
+            it->intensity = -1.0f;  // mark consumed
+            ++num_consumed;
+          }
+        }
+
+        agg_buff.push_back({mz, curr_intensity, im});
+        global_consumed += num_consumed;
+
+        if (global_consumed == peaks.size()) break;  // all peaks assigned
+      }
+
+      // Sort output by m/z
+      std::sort(agg_buff.begin(), agg_buff.end(),
+                [](const ImsPeak& a, const ImsPeak& b) { return a.mz < b.mz; });
+
+      // Write to output vectors
+      out_mz.resize(agg_buff.size());
+      out_intensity.resize(agg_buff.size());
+      out_im.resize(agg_buff.size());
+      for (size_t i = 0; i < agg_buff.size(); ++i)
+      {
+        out_mz[i] = static_cast<double>(agg_buff[i].mz);
+        out_intensity[i] = static_cast<double>(agg_buff[i].intensity);
+        out_im[i] = agg_buff[i].im;
+      }
+    }
   };
 
   // Helper: get error string from handle
@@ -128,19 +291,27 @@ namespace OpenMS
 
     if (mode == Config::FRAME)
     {
-      loadFrames_(ds.ptr, exp);
+      loadFrames_(ds.ptr, exp, config);
     }
     else if (mode == Config::SPECTRUM || (mode == Config::AUTO && !is_dia))
     {
-      loadDDA_(ds.ptr, exp);  // DDA path (also used for SPECTRUM mode on DIA data)
+      loadDDA_(ds.ptr, exp, config);  // DDA path (also used for SPECTRUM mode on DIA data)
     }
     else // AUTO + DIA
     {
-      loadDIA_(ds.ptr, exp);
+      loadDIA_(ds.ptr, exp, config);
     }
+
+    // Populate source file metadata
+    SourceFile sf;
+    sf.setNameOfFile(File::basename(path));
+    sf.setPathToFile(File::path(path));
+    sf.setFileType("Bruker TDF");
+    exp.getSourceFiles().push_back(sf);
 
     // Sort by RT, interleaved across MS levels
     exp.sortSpectra(true);
+    exp.updateRanges();
   }
 
   void BrukerTimsFile::transform(const String& path, Interfaces::IMSDataConsumer* consumer)
@@ -192,11 +363,11 @@ namespace OpenMS
     OPENMS_LOG_INFO << "BrukerTimsFile::transform(): loading full dataset (streaming optimization pending)" << std::endl;
     MSExperiment exp;
     if (mode == Config::FRAME)
-      loadFrames_(ds.ptr, exp);
+      loadFrames_(ds.ptr, exp, config);
     else if (is_dia && mode != Config::SPECTRUM)
-      loadDIA_(ds.ptr, exp);
+      loadDIA_(ds.ptr, exp, config);
     else
-      loadDDA_(ds.ptr, exp);
+      loadDDA_(ds.ptr, exp, config);
 
     exp.sortSpectra(true);
     for (auto& spec : exp)
@@ -205,7 +376,7 @@ namespace OpenMS
     }
   }
 
-  void BrukerTimsFile::loadDDA_(void* handle, MSExperiment& exp)
+  void BrukerTimsFile::loadDDA_(void* handle, MSExperiment& exp, const Config& config)
   {
     tims_dataset* ds = static_cast<tims_dataset*>(handle);
 
@@ -221,17 +392,20 @@ namespace OpenMS
     auto ms1_guard = [&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); };
     struct Ms1Guard { decltype(ms1_guard)& f; ~Ms1Guard() { f(); } } ms1_g{ms1_guard};
 
-    exp.reserveSpaceSpectra(ms1_count + tims_num_spectra(ds));
+    unsigned int num_ms2 = tims_num_spectra(ds);
+    exp.reserveSpaceSpectra(ms1_count + num_ms2);
+
+    startProgress(0, ms1_count + num_ms2, "Loading DDA-PASEF data");
 
     for (unsigned int i = 0; i < ms1_count; ++i)
     {
       MSSpectrum spec;
       frameToSpectrum_(handle, &ms1_frames[i], spec);
       exp.addSpectrum(std::move(spec));
+      setProgress(i);
     }
 
     // --- MS2 spectra (one per precursor, scalar IM) ---
-    unsigned int num_ms2 = tims_num_spectra(ds);
     for (unsigned int i = 0; i < num_ms2; ++i)
     {
       tims_spectrum ts;
@@ -279,10 +453,12 @@ namespace OpenMS
       spec.setPrecursors(std::move(precursors));
 
       exp.addSpectrum(std::move(spec));
+      setProgress(ms1_count + i);
     }
+    endProgress();
   }
 
-  void BrukerTimsFile::loadDIA_(void* handle, MSExperiment& exp)
+  void BrukerTimsFile::loadDIA_(void* handle, MSExperiment& exp, const Config& config)
   {
     tims_dataset* ds = static_cast<tims_dataset*>(handle);
 
@@ -296,12 +472,15 @@ namespace OpenMS
     auto ms1_guard = [&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); };
     struct Ms1Guard { decltype(ms1_guard)& f; ~Ms1Guard() { f(); } } ms1_g{ms1_guard};
 
+    startProgress(0, ms1_count, "Loading DIA-PASEF MS1 frames");
     for (unsigned int i = 0; i < ms1_count; ++i)
     {
       MSSpectrum spec;
       frameToSpectrum_(handle, &ms1_frames[i], spec);
       exp.addSpectrum(std::move(spec));
+      setProgress(i);
     }
+    endProgress();
 
     // --- SWATH windows ---
     unsigned int win_count = 0;
@@ -323,8 +502,10 @@ namespace OpenMS
     auto ms2_guard = [&]() { if (ms2_frames) tims_free_frame_array(ds, ms2_frames, ms2_count); };
     struct Ms2Guard { decltype(ms2_guard)& f; ~Ms2Guard() { f(); } } ms2_g{ms2_guard};
 
+    startProgress(0, ms2_count, "Loading DIA-PASEF MS2 frames");
     for (unsigned int fi = 0; fi < ms2_count; ++fi)
     {
+      setProgress(fi);
       const tims_frame& frame = ms2_frames[fi];
       if (frame.num_peaks == 0) continue;
 
@@ -345,16 +526,8 @@ namespace OpenMS
           "", "Scan to IM conversion failed: " + getTimsError(ds));
 
       // Build per-peak IM from scan offsets
-      std::vector<double> im_values(frame.num_peaks);
-      for (uint32_t scan_idx = 0; scan_idx < frame.num_scans; ++scan_idx)
-      {
-        uint64_t start = frame.scan_offsets[scan_idx];
-        uint64_t end = frame.scan_offsets[scan_idx + 1];
-        for (uint64_t p = start; p < end; ++p)
-        {
-          im_values[p] = scan_im[scan_idx];
-        }
-      }
+      std::vector<double> im_values;
+      expandScanOffsets<double>(frame.scan_offsets, frame.num_scans, scan_im.data(), frame.num_peaks, im_values);
 
       // Split peaks by SWATH window IM bounds
       for (unsigned int wi = 0; wi < win_count; ++wi)
@@ -396,9 +569,10 @@ namespace OpenMS
         }
       }
     }
+    endProgress();
   }
 
-  void BrukerTimsFile::loadFrames_(void* handle, MSExperiment& exp)
+  void BrukerTimsFile::loadFrames_(void* handle, MSExperiment& exp, const Config& config)
   {
     tims_dataset* ds = static_cast<tims_dataset*>(handle);
 
@@ -409,17 +583,24 @@ namespace OpenMS
       tims_frame* frames = nullptr;
       timsffi_status status = tims_get_frames_by_level(ds, level, &count, &frames);
       if (status != TIMSFFI_OK)
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "", "Failed to read frames at level " + String(level) + ": " + getTimsError(ds));
+      {
+        // MS2 frame-level access may not be available (e.g., DDA datasets)
+        OPENMS_LOG_WARN << "Warning: failed to read frames at MS level " << (int)level
+                        << ": " << getTimsError(ds) << " (skipping)" << std::endl;
+        continue;
+      }
       auto guard = [&]() { if (frames) tims_free_frame_array(ds, frames, count); };
       struct Guard { decltype(guard)& f; ~Guard() { f(); } } g{guard};
 
+      startProgress(0, count, String("Loading MS") + String(level) + " frames");
       for (unsigned int i = 0; i < count; ++i)
       {
         MSSpectrum spec;
         frameToSpectrum_(handle, &frames[i], spec);
         exp.addSpectrum(std::move(spec));
+        setProgress(i);
       }
+      endProgress();
     }
   }
 
@@ -452,16 +633,8 @@ namespace OpenMS
         "", "Scan to IM conversion failed: " + getTimsError(ds));
 
     // Build per-peak IM values from scan offsets
-    std::vector<float> im_values(frame->num_peaks);
-    for (uint32_t scan_idx = 0; scan_idx < frame->num_scans; ++scan_idx)
-    {
-      uint64_t start = frame->scan_offsets[scan_idx];
-      uint64_t end = frame->scan_offsets[scan_idx + 1];
-      for (uint64_t p = start; p < end; ++p)
-      {
-        im_values[p] = static_cast<float>(scan_im[scan_idx]);
-      }
-    }
+    std::vector<float> im_values;
+    expandScanOffsets<float>(frame->scan_offsets, frame->num_scans, scan_im.data(), frame->num_peaks, im_values);
 
     // Fill spectrum peaks
     spec.reserve(frame->num_peaks);
