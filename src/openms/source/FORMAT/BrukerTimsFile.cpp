@@ -10,6 +10,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <timsrust_cpp_bridge.h>
 
@@ -121,9 +122,81 @@ namespace OpenMS
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
 
-  void BrukerTimsFile::loadDDA_(void* /*handle*/, MSExperiment& /*exp*/)
+  void BrukerTimsFile::loadDDA_(void* handle, MSExperiment& exp)
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    tims_dataset* ds = static_cast<tims_dataset*>(handle);
+
+    // --- MS1 frames (CONCATENATED format) ---
+    unsigned int ms1_count = 0;
+    tims_frame* ms1_frames = nullptr;
+    timsffi_status status = tims_get_frames_by_level(ds, 1, &ms1_count, &ms1_frames);
+    if (status != TIMSFFI_OK)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "", "Failed to read MS1 frames: " + getTimsError(ds));
+
+    // RAII guard for ms1_frames
+    auto ms1_guard = [&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); };
+    struct Ms1Guard { decltype(ms1_guard)& f; ~Ms1Guard() { f(); } } ms1_g{ms1_guard};
+
+    exp.reserveSpaceSpectra(ms1_count + tims_num_spectra(ds));
+
+    for (unsigned int i = 0; i < ms1_count; ++i)
+    {
+      MSSpectrum spec;
+      frameToSpectrum_(handle, &ms1_frames[i], spec);
+      exp.addSpectrum(std::move(spec));
+    }
+
+    // --- MS2 spectra (one per precursor, scalar IM) ---
+    unsigned int num_ms2 = tims_num_spectra(ds);
+    for (unsigned int i = 0; i < num_ms2; ++i)
+    {
+      tims_spectrum ts;
+      status = tims_get_spectrum(ds, i, &ts);
+      if (status != TIMSFFI_OK)
+      {
+        OPENMS_LOG_WARN << "Warning: failed to read MS2 spectrum " << i << ": " << getTimsError(ds) << std::endl;
+        continue;
+      }
+
+      MSSpectrum spec;
+      spec.setRT(ts.rt_seconds);
+      spec.setMSLevel(2);
+      spec.setDriftTime(ts.im);
+      spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+
+      // Copy peak data (float -> double widening)
+      spec.reserve(ts.num_peaks);
+      for (uint32_t p = 0; p < ts.num_peaks; ++p)
+      {
+        Peak1D peak;
+        peak.setMZ(static_cast<double>(ts.mz[p]));
+        peak.setIntensity(static_cast<double>(ts.intensity[p]));
+        spec.push_back(peak);
+      }
+
+      // Precursor metadata
+      // Note: isolation_mz is the quadrupole center; precursor_mz is the selected ion.
+      // mzML Precursor::setMZ is the isolation target, offsets are relative to it.
+      Precursor prec;
+      prec.setMZ(ts.isolation_mz);  // isolation window center
+      prec.setCharge(static_cast<int>(ts.charge));
+      if (!std::isnan(ts.precursor_intensity))
+        prec.setIntensity(static_cast<float>(ts.precursor_intensity));
+      prec.setDriftTime(ts.im);
+      prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+      prec.setIsolationWindowLowerOffset(ts.isolation_width / 2.0);
+      prec.setIsolationWindowUpperOffset(ts.isolation_width / 2.0);
+      // Store selected ion m/z as user param if different from isolation center
+      if (std::abs(ts.precursor_mz - ts.isolation_mz) > 1e-6)
+        prec.setMetaValue("selected_ion_mz", ts.precursor_mz);
+
+      std::vector<Precursor> precursors;
+      precursors.push_back(std::move(prec));
+      spec.setPrecursors(std::move(precursors));
+
+      exp.addSpectrum(std::move(spec));
+    }
   }
 
   void BrukerTimsFile::loadDIA_(void* /*handle*/, MSExperiment& /*exp*/)
