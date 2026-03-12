@@ -161,6 +161,25 @@ namespace OpenMS
   FileTypes::Type FileHandler::getType(const String& filename)
   {
     FileTypes::Type type = getTypeByFileName(filename);
+
+    // Directory-based formats: validate marker files before returning.
+    // Must happen before getTypeByContent() which would fail on directories.
+    if (type == FileTypes::BRUKER_TDF)
+    {
+      String path = filename;
+      // Strip trailing separator if present
+      while (path.hasSuffix("/") || path.hasSuffix("\\"))
+      {
+        path = path.prefix(path.size() - 1);
+      }
+      // Validate directory contains TDF marker files
+      if (File::exists(path + "/analysis.tdf") || File::exists(path + "/analysis.tdf_bin"))
+      {
+        return FileTypes::BRUKER_TDF;
+      }
+      return FileTypes::UNKNOWN; // .d suffix but not a TDF directory
+    }
+
     if (type == FileTypes::UNKNOWN)
     {
       type = getTypeByContent(filename);
@@ -865,13 +884,22 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::MSP: 
+      case FileTypes::MSP:
       {
         MSPGenericFile().load(filename, exp);
       }
       break;
 
-      default: 
+#ifdef WITH_TIMSRUST
+      case FileTypes::BRUKER_TDF:
+      {
+        // TODO: BrukerTimsFile().load(filename, exp);
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+      break;
+#endif
+
+      default:
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
       }
@@ -892,8 +920,12 @@ namespace OpenMS
         src_file = exp.getSourceFiles()[0];
       }
 
-      src_file.setNameOfFile(File::basename(filename));
-      String path_to_file = File::path(File::absolutePath(filename)); // convert to absolute path and strip file name
+      // Normalize directory paths: strip trailing slashes for basename and URI
+      String normalized_name = filename;
+      while (normalized_name.hasSuffix("/") || normalized_name.hasSuffix("\\"))
+        normalized_name = normalized_name.prefix(normalized_name.size() - 1);
+      src_file.setNameOfFile(File::basename(normalized_name));
+      String path_to_file = File::path(File::absolutePath(normalized_name)); // convert to absolute path and strip file name
 
       // make sure we end up with at most 3 forward slashes
       String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
@@ -902,7 +934,7 @@ namespace OpenMS
       // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
       src_file.setFileType(FileTypes::typeToMZML(type));
 
-      if (compute_hash)
+      if (compute_hash && type != FileTypes::BRUKER_TDF)
       {
         src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
       }
