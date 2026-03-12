@@ -137,9 +137,61 @@ namespace OpenMS
     exp.sortSpectra(true);
   }
 
-  void BrukerTimsFile::transform(const String& /*path*/, Interfaces::IMSDataConsumer* /*consumer*/, const Config& /*config*/)
+  void BrukerTimsFile::transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    TimsDatasetHandle ds;
+    TimsConfigHandle cfg;
+    openDataset(path, config, ds, cfg);
+
+    tims_file_info_t info;
+    timsffi_status status = tims_file_info(ds.ptr, &info);
+    if (status != TIMSFFI_OK)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "", "Failed to read file info: " + getTimsError(ds.ptr));
+
+    bool is_dia = isDIA_(ds.ptr);
+    Config::ExportMode mode = config.export_mode;
+
+    // Compute expected size
+    size_t expected = 0;
+    if (mode == Config::FRAME)
+    {
+      expected = info.num_frames;
+    }
+    else if (is_dia && mode != Config::SPECTRUM)
+    {
+      // DIA: MS1 frames + MS2 frames * windows
+      unsigned int win_count = 0;
+      tims_swath_window* windows = nullptr;
+      tims_get_swath_windows(ds.ptr, &win_count, &windows);
+      if (windows) tims_free_swath_windows(ds.ptr, windows);
+      expected = info.ms1.count + info.ms2.count * win_count;
+    }
+    else
+    {
+      expected = info.ms1.count + info.num_spectra_ms2;
+    }
+
+    consumer->setExpectedSize(expected, 0);
+    consumer->setExperimentalSettings(ExperimentalSettings());
+
+    // NOTE: This loads into a temporary experiment then feeds to consumer.
+    // Not truly constant-memory — a future optimization should iterate
+    // frame-by-frame and call consumer->consumeSpectrum() inline.
+    OPENMS_LOG_INFO << "BrukerTimsFile::transform(): loading full dataset (streaming optimization pending)" << std::endl;
+    MSExperiment exp;
+    if (mode == Config::FRAME)
+      loadFrames_(ds.ptr, exp);
+    else if (is_dia && mode != Config::SPECTRUM)
+      loadDIA_(ds.ptr, exp);
+    else
+      loadDDA_(ds.ptr, exp);
+
+    exp.sortSpectra(true);
+    for (auto& spec : exp)
+    {
+      consumer->consumeSpectrum(spec);
+    }
   }
 
   void BrukerTimsFile::loadDDA_(void* handle, MSExperiment& exp)
