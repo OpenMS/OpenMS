@@ -87,15 +87,15 @@ namespace OpenMS
 
       timsffi_status status = tims_open_with_config(path.c_str(), cfg.ptr, &ds.ptr);
       if (status != TIMSFFI_OK)
-        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
-          "timsrust error: " + getTimsError(ds.ptr));
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          path + " (timsrust: " + getTimsError(ds.ptr) + ")");
     }
     else
     {
       timsffi_status status = tims_open(path.c_str(), &ds.ptr);
       if (status != TIMSFFI_OK)
-        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
-          "timsrust error: " + getTimsError(ds.ptr));
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          path + " (timsrust: " + getTimsError(ds.ptr) + ")");
     }
   }
 
@@ -110,6 +110,11 @@ namespace OpenMS
       tims_free_swath_windows(ds, windows);
     }
     return (status == TIMSFFI_OK && count > 0);
+  }
+
+  void BrukerTimsFile::load(const String& path, MSExperiment& exp)
+  {
+    load(path, exp, Config());
   }
 
   void BrukerTimsFile::load(const String& path, MSExperiment& exp, const Config& config)
@@ -136,6 +141,11 @@ namespace OpenMS
 
     // Sort by RT, interleaved across MS levels
     exp.sortSpectra(true);
+  }
+
+  void BrukerTimsFile::transform(const String& path, Interfaces::IMSDataConsumer* consumer)
+  {
+    transform(path, consumer, Config());
   }
 
   void BrukerTimsFile::transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config)

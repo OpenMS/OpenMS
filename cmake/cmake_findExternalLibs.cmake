@@ -299,7 +299,7 @@ if (WITH_TIMSRUST)
     message(FATAL_ERROR "Unsupported platform for timsrust_cpp_bridge: ${CMAKE_SYSTEM_NAME}")
   endif()
 
-  set(_TIMSRUST_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/v${TIMSRUST_VERSION}/timsrust_cpp_bridge-${_TIMSRUST_PLATFORM}.tar.gz")
+  set(_TIMSRUST_URL "https://github.com/OpenMS/timsrust_cpp_bridge/releases/download/v${TIMSRUST_VERSION}/timsrust_cpp_bridge-v${TIMSRUST_VERSION}-${_TIMSRUST_PLATFORM}.tar.gz")
 
   FetchContent_Declare(
     timsrust_cpp_bridge

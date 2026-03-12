@@ -38,10 +38,14 @@ namespace OpenMS
     };
 
     /// Load entire .d directory into MSExperiment
-    void load(const String& path, MSExperiment& exp, const Config& config = {});
+    void load(const String& path, MSExperiment& exp);
+    /// @overload with explicit configuration
+    void load(const String& path, MSExperiment& exp, const Config& config);
 
     /// Streaming: read .d and feed spectra to consumer
-    void transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config = {});
+    void transform(const String& path, Interfaces::IMSDataConsumer* consumer);
+    /// @overload with explicit configuration
+    void transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config);
 
   private:
     /// Load DDA-PASEF data: MS1 frames (CONCATENATED) + MS2 spectra (scalar IM)
