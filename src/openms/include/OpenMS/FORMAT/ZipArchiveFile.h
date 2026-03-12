@@ -121,12 +121,6 @@ namespace OpenMS
     */
     static String extractEntryToTempFile(const String& archive_path, const String& entry_name, std::unique_ptr<File::TempDir>& temp_dir);
 
-  // Test helpers (used by unit tests to assert whether extraction was performed)
-#if defined(OPENMS_ENABLE_TESTING_HOOKS)
-  static void testResetExtractionCount();
-  static int testGetExtractionCount();
-#endif
-
   };
 
 } // namespace OpenMS

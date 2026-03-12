@@ -141,7 +141,6 @@ if (WITH_PARQUET)
       ${OPENMS_ARROW_TARGET}
       ${OPENMS_PARQUET_TARGET}
     )
-    target_compile_definitions(OpenSwathOSWParquetRoundTrip_test PRIVATE OPENMS_ENABLE_TESTING_HOOKS=1)
   endif()
 endif()
 
