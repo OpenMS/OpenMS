@@ -235,8 +235,14 @@ else()
     if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
       set_target_properties(${target_name} PROPERTIES
         INSTALL_RPATH "${PY_RPATH}"
-        BUILD_WITH_INSTALL_RPATH 1
       )
+      if(NOT NO_DEPENDENCIES)
+        # When dependencies are bundled alongside the modules, use the install
+        # RPATH at build time so $ORIGIN/ finds the co-located libraries.
+        set_target_properties(${target_name} PROPERTIES
+          BUILD_WITH_INSTALL_RPATH 1
+        )
+      endif()
       if(APPLE)
         set_target_properties(${target_name} PROPERTIES
           BUILD_WITH_INSTALL_NAME_DIR 1
