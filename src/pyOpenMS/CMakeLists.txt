@@ -235,7 +235,6 @@ else()
     if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
       set_target_properties(${target_name} PROPERTIES
         INSTALL_RPATH "${PY_RPATH}"
-        BUILD_WITH_INSTALL_RPATH 1
       )
       if(APPLE)
         set_target_properties(${target_name} PROPERTIES
