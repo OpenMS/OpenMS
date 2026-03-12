@@ -461,6 +461,30 @@ START_SECTION([EXTRA] std::hash<Compomer>)
 }
 END_SECTION
 
+START_SECTION((double getSideMass(UInt side) const))
+{
+  // empty compomer has zero mass on both sides
+  Compomer c;
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::LEFT), 0.0);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::RIGHT), 0.0);
+
+  // single adduct on right side
+  Adduct a1(1, 2, 10.5, "Na", -0.3, 0);
+  c.add(a1, Compomer::RIGHT);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::RIGHT), 2 * 10.5); // amount * singleMass
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::LEFT), 0.0);
+
+  // add adduct on left side
+  Adduct a2(1, 3, 1.008, "H", -0.1, 0);
+  c.add(a2, Compomer::LEFT);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::LEFT), 3 * 1.008);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::RIGHT), 2 * 10.5);
+
+  // invalid side throws
+  TEST_EXCEPTION(Exception::InvalidValue, c.getSideMass(Compomer::BOTH));
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

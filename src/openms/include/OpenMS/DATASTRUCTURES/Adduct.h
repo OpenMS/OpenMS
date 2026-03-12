@@ -69,6 +69,9 @@ public:
 
     // convert a ion string to adduct string with charge information (eg. ion_string = "Na1", charge = "1" --> "[M+Na]+")
     String toAdductString(const String& ion_string, const Int& charge);
+
+    /// Convert to adduct string with explicit multiplier (e.g., mol_multiplier=2 -> "[2M+H]+")
+    static String toAdductString(const String& ion_string, const Int& charge, Int mol_multiplier);
     //}
 
 private:
