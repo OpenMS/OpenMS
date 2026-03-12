@@ -160,20 +160,21 @@ namespace OpenMS
 
   FileTypes::Type FileHandler::getType(const String& filename)
   {
-    FileTypes::Type type = getTypeByFileName(filename);
+    // Strip trailing directory separators (important for directory-based formats
+    // like .d where shell tab-completion appends '/')
+    String normalized = filename;
+    while (normalized.hasSuffix("/") || normalized.hasSuffix("\\"))
+    {
+      normalized = normalized.prefix(normalized.size() - 1);
+    }
+
+    FileTypes::Type type = getTypeByFileName(normalized);
 
     // Directory-based formats: validate marker files before returning.
     // Must happen before getTypeByContent() which would fail on directories.
     if (type == FileTypes::BRUKER_TDF)
     {
-      String path = filename;
-      // Strip trailing separator if present
-      while (path.hasSuffix("/") || path.hasSuffix("\\"))
-      {
-        path = path.prefix(path.size() - 1);
-      }
-      // Validate directory contains TDF marker files
-      if (File::exists(path + "/analysis.tdf") || File::exists(path + "/analysis.tdf_bin"))
+      if (File::exists(normalized + "/analysis.tdf") || File::exists(normalized + "/analysis.tdf_bin"))
       {
         return FileTypes::BRUKER_TDF;
       }
@@ -182,7 +183,7 @@ namespace OpenMS
 
     if (type == FileTypes::UNKNOWN)
     {
-      type = getTypeByContent(filename);
+      type = getTypeByContent(normalized);
     }
     return type;
   }
