@@ -113,8 +113,28 @@ namespace OpenMS
 
   void BrukerTimsFile::load(const String& path, MSExperiment& exp, const Config& config)
   {
-    // Placeholder — will be replaced in Task 8 with full dispatch logic
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    TimsDatasetHandle ds;
+    TimsConfigHandle cfg;
+    openDataset(path, config, ds, cfg);
+
+    bool is_dia = isDIA_(ds.ptr);
+    Config::ExportMode mode = config.export_mode;
+
+    if (mode == Config::FRAME)
+    {
+      loadFrames_(ds.ptr, exp);
+    }
+    else if (mode == Config::SPECTRUM || (mode == Config::AUTO && !is_dia))
+    {
+      loadDDA_(ds.ptr, exp);  // DDA path (also used for SPECTRUM mode on DIA data)
+    }
+    else // AUTO + DIA
+    {
+      loadDIA_(ds.ptr, exp);
+    }
+
+    // Sort by RT, interleaved across MS levels
+    exp.sortSpectra(true);
   }
 
   void BrukerTimsFile::transform(const String& /*path*/, Interfaces::IMSDataConsumer* /*consumer*/, const Config& /*config*/)
@@ -315,9 +335,29 @@ namespace OpenMS
     }
   }
 
-  void BrukerTimsFile::loadFrames_(void* /*handle*/, MSExperiment& /*exp*/)
+  void BrukerTimsFile::loadFrames_(void* handle, MSExperiment& exp)
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    tims_dataset* ds = static_cast<tims_dataset*>(handle);
+
+    // Load all frames for each MS level
+    for (uint8_t level = 1; level <= 2; ++level)
+    {
+      unsigned int count = 0;
+      tims_frame* frames = nullptr;
+      timsffi_status status = tims_get_frames_by_level(ds, level, &count, &frames);
+      if (status != TIMSFFI_OK)
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "", "Failed to read frames at level " + String(level) + ": " + getTimsError(ds));
+      auto guard = [&]() { if (frames) tims_free_frame_array(ds, frames, count); };
+      struct Guard { decltype(guard)& f; ~Guard() { f(); } } g{guard};
+
+      for (unsigned int i = 0; i < count; ++i)
+      {
+        MSSpectrum spec;
+        frameToSpectrum_(handle, &frames[i], spec);
+        exp.addSpectrum(std::move(spec));
+      }
+    }
   }
 
   void BrukerTimsFile::frameToSpectrum_(void* handle, const void* frame_ptr, MSSpectrum& spec) const
