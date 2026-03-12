@@ -94,6 +94,8 @@ START_SECTION((static Type nameToType(const String& name)))
   TEST_EQUAL(FileTypes::TXT, FileTypes::nameToType("txt"));
   TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("parquet"));
   TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("pqt")); // Test alternate extension
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::BRUKER_TDF), "d");
+  TEST_EQUAL(FileTypes::BRUKER_TDF, FileTypes::nameToType("d"));
 
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("somethingunknown"));
 }
