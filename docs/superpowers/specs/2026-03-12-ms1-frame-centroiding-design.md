@@ -35,11 +35,13 @@ float ms1_centroid_mz_ppm = 0.0f;  ///< MS1 centroiding m/z tolerance in ppm (0 
 float ms1_centroid_im_pct = 0.0f;  ///< MS1 centroiding IM tolerance in percent (0 = disabled, suggested: 3.0)
 ```
 
-Centroiding is enabled when both values are > 0.
+Centroiding is enabled when both values are > 0. If only one is set, a warning is logged and centroiding is disabled (both must be specified together).
 
 ### 2. `FrameCentroider` Struct (private, in .cpp)
 
-A C++ translation of Sage's `PeakBuffer`, defined in the anonymous namespace of `BrukerTimsFile.cpp`:
+A C++ translation of Sage's `PeakBuffer`, defined in the anonymous namespace of `BrukerTimsFile.cpp`.
+
+**Visibility note**: `FrameCentroider` is an implementation detail — it is NOT exposed in the header. The private method `frameToSpectrum_()` does NOT take a `FrameCentroider*` parameter. Instead, centroiding is applied inside the `loadDDA_()/loadDIA_()/loadFrames_()` methods, which own the `FrameCentroider` instance and call it on the already-converted peak arrays before (or instead of) calling `frameToSpectrum_()`. See Section 4 for details.
 
 ```cpp
 struct ImsPeak
@@ -58,7 +60,7 @@ struct FrameCentroider
   std::vector<ImsPeak> agg_buff;   // centroided output
 
   void clear();
-  void loadFrame(const double* mz, const float* intensity, const float* im, uint32_t count);
+  void loadFrame(const double* mz, const uint32_t* intensity, const float* im, uint32_t count);
   void centroid(float mz_ppm, float im_pct,
                 std::vector<double>& out_mz, std::vector<double>& out_intensity,
                 std::vector<float>& out_im);
@@ -67,7 +69,7 @@ struct FrameCentroider
 
 **Algorithm** (translated from Sage's `fastcentroid_frame`):
 
-1. `loadFrame()`: Convert input arrays (already-converted m/z doubles, not raw TOF indices) into `ImsPeak` structs, sort by m/z, build `order` vector sorted by descending intensity
+1. `loadFrame()`: Accept already-converted m/z doubles (not raw TOF indices), raw `uint32_t` intensities (from `tims_frame::intensities` — cast to float internally), and float IM values. Convert into `ImsPeak` structs, sort by m/z, build `order` vector sorted by descending intensity
 2. `centroid()`: For each peak index in `order` (intensity-descending):
    - Skip if already consumed (`peaks[idx].intensity <= 0`)
    - If `agg_buff.size() > MAX_CENTROID_PEAKS`: log a debug message (`OPENMS_LOG_DEBUG`) if current intensity > 200, then break (note: `>` not `>=`, matching Sage — allows up to MAX+1 entries)
@@ -83,45 +85,55 @@ All buffers persist across frames within a single `load()` call for memory reuse
 
 ### 3. Scan-Offset Expansion Utility
 
-Extract the duplicated inline scan-offset expansion (currently in both `frameToSpectrum_()` and `loadDIA_()`) into a free function:
+Extract the duplicated inline scan-offset expansion (currently in both `frameToSpectrum_()` and `loadDIA_()`) into a templated free function:
 
 ```cpp
+template <typename T>
 static void expandScanOffsets(const uint64_t* scan_offsets, uint32_t num_scans,
                               const double* scan_im, uint32_t num_peaks,
-                              std::vector<float>& out_im);
+                              std::vector<T>& out_im);
 ```
 
-This iterates `scan_offsets` windows, assigning the corresponding `scan_im[scan_idx]` value to each peak in the range `[scan_offsets[scan_idx], scan_offsets[scan_idx+1])`.
+This iterates `scan_offsets` windows, assigning `static_cast<T>(scan_im[scan_idx])` to each peak in the range `[scan_offsets[scan_idx], scan_offsets[scan_idx+1])`.
+
+- `frameToSpectrum_()` and the centroiding path use `T = float` (sufficient precision for IM values stored in FloatDataArray)
+- `loadDIA_()` uses `T = double` to preserve precision for SWATH window boundary comparisons against `tims_swath_window` double fields
 
 ### 4. Integration into Frame Loading
 
-#### Updated private method signatures
+#### Updated private method signatures (header)
+
+`frameToSpectrum_()` keeps its current signature — no `FrameCentroider*` parameter, since that type is not visible in the header. Only the load methods gain `const Config&`:
 
 ```cpp
-void frameToSpectrum_(void* handle, const void* frame, MSSpectrum& spec,
-                      const Config& config, FrameCentroider* centroider) const;
+// frameToSpectrum_ signature UNCHANGED — no FrameCentroider* exposure in header
+void frameToSpectrum_(void* handle, const void* frame, MSSpectrum& spec) const;
+
+// load methods gain Config parameter
 void loadDDA_(void* handle, MSExperiment& exp, const Config& config);
 void loadDIA_(void* handle, MSExperiment& exp, const Config& config);
 void loadFrames_(void* handle, MSExperiment& exp, const Config& config);
 ```
 
-#### Flow in `frameToSpectrum_()`
+#### Centroiding flow in load methods
 
-1. Batch-convert TOF indices to m/z (existing)
-2. Batch-convert scan indices to IM (existing)
-3. Expand scan offsets to per-peak IM via `expandScanOffsets()` (refactored)
-4. **If** `centroider != nullptr` **and** `frame->ms_level == 1`:
-   - `centroider->loadFrame(mz, intensity, im, count)`
-   - `centroider->centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct, out_mz, out_intensity, out_im)`
-   - Use centroided output for MSSpectrum peaks and FloatDataArray
-5. **Else**: use raw converted data (existing behavior)
+When centroiding is enabled, the load methods handle it directly on MS1 frames instead of (or after) calling `frameToSpectrum_()`:
 
-#### Instantiation in load methods
+1. Create one `FrameCentroider` instance per load call (if `config.ms1_centroid_mz_ppm > 0 && config.ms1_centroid_im_pct > 0`)
+2. For each MS1 frame:
+   a. Batch-convert TOF indices to m/z (same as `frameToSpectrum_()`)
+   b. Batch-convert scan indices to IM, expand via `expandScanOffsets()`
+   c. `centroider.loadFrame(mz, frame->intensities, im, count)`
+   d. `centroider.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct, out_mz, out_intensity, out_im)`
+   e. Build MSSpectrum from centroided output; mark as centroid (`spec.getType() = SpectrumSettings::CENTROID`)
+   f. Set FloatDataArray with centroided per-peak IM values
+3. For MS1 frames when centroiding is disabled, and for all MS2 frames: call `frameToSpectrum_()` as before
 
-Each of `loadDDA_()`, `loadDIA_()`, `loadFrames_()`:
-- Check if centroiding is enabled (`config.ms1_centroid_mz_ppm > 0 && config.ms1_centroid_im_pct > 0`)
-- If so, create one `FrameCentroider` instance and pass pointer to `frameToSpectrum_()`
-- If not, pass `nullptr` (no centroiding)
+This keeps `FrameCentroider` entirely within the .cpp and avoids any header visibility issues. The TOF→m/z and scan→IM conversion code from `frameToSpectrum_()` is factored into the shared `expandScanOffsets()` helper to avoid duplication.
+
+#### Spectrum metadata
+
+Centroided MS1 spectra are marked with `SpectrumSettings::CENTROID` type so that mzML output carries the correct semantic annotation. Non-centroided spectra (disabled config or MS2) retain current behavior.
 
 #### Call site updates in `load()` and `transform()`
 
@@ -156,11 +168,13 @@ c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("timsrust:ms1_centro
 
 ### 6. `loadDIA_()` Refactoring
 
-The scan-offset expansion in `loadDIA_()` (for MS2 SWATH splitting) is replaced with a call to `expandScanOffsets()`. The existing `std::vector<double> im_values` is kept as-is in `loadDIA_()` (the SWATH window IM bounds from `tims_swath_window` are likely double, so double comparisons are appropriate). The `expandScanOffsets()` utility outputs `std::vector<float>` for `frameToSpectrum_()` use; `loadDIA_()` will use a separate overload or keep its own inline expansion with double output.
+The scan-offset expansion in `loadDIA_()` (for MS2 SWATH splitting) is replaced with a call to `expandScanOffsets<double>()`, preserving the existing `std::vector<double> im_values` for accurate SWATH window boundary comparisons.
 
-### 7. Relationship Between TOF and IM Centroiding
+### 7. MS1 Processing Path Clarification
 
-In AUTO/SPECTRUM modes, timsrust already applies TOF-domain smoothing and centroiding during spectrum assembly. The IM centroiding described here is a separate, complementary step that collapses the ion mobility dimension within each frame. In FRAME mode, no TOF processing is applied by timsrust, so the IM centroiding operates on fully raw data. Both scenarios are valid: the IM centroiding reduces per-frame peak count regardless of whether TOF centroiding was applied first.
+In the current OpenMS implementation, **MS1 frames are always loaded from raw frame data** in all export modes (AUTO, SPECTRUM, FRAME). The timsrust SpectrumReader (which applies TOF-domain smoothing/centroiding) is only used for MS2 spectra in the DDA/SPECTRUM path. MS1 frames are read via `tims_get_frames_by_level(ds, 1, ...)` and converted through `frameToSpectrum_()`.
+
+Therefore, the IM centroiding described here always operates on raw MS1 frame peaks (raw TOF indices converted to m/z, raw scan offsets expanded to IM) — there is no prior TOF centroiding applied to MS1 data. This is consistent across all export modes.
 
 ## Files Changed
 
@@ -180,17 +194,21 @@ In AUTO/SPECTRUM modes, timsrust already applies TOF-domain smoothing and centro
 
 ## Test Plan
 
-1. **Unit tests for `FrameCentroider`** (in `BrukerTimsFile_test.cpp`):
-   - Synthetic peak data with known expected centroid output (e.g., two clusters that should merge)
-   - Edge cases: empty frame, single peak, all peaks within tolerance (single centroid output)
-   - MAX_CENTROID_PEAKS limit: verify output is capped and remaining peaks are not lost silently
-   - Verify that already-consumed peaks are not double-counted in later iterations
+Since `FrameCentroider` lives in the anonymous namespace of the .cpp, direct unit testing is not possible from the external test file. Testing is done through the public `BrukerTimsFile` API (black-box), consistent with the existing test pattern.
 
-2. **Integration tests** (require `TIMSRUST_DDA_TEST_DATA` / `TIMSRUST_DIA_TEST_DATA`):
-   - Load with centroiding disabled: verify output matches current behavior
-   - Load with centroiding enabled (5.0 ppm, 3.0%): verify MS1 peak count is reduced
-   - Verify MS2 spectra are unaffected by centroiding config
-   - Verify centroided MS1 spectra still have valid FloatDataArray with per-peak IM
+1. **Integration tests** (require `TIMSRUST_DDA_TEST_DATA` / `TIMSRUST_DIA_TEST_DATA`):
+   - Load with centroiding disabled: verify output matches current behavior (regression guard)
+   - Load with centroiding enabled (5.0 ppm, 3.0%): verify MS1 peak count is strictly less than without centroiding
+   - Verify MS2 spectra are unaffected by centroiding config (same count and content)
+   - Verify centroided MS1 spectra still have valid FloatDataArray with per-peak IM values
+   - Verify centroided MS1 spectra are marked as `SpectrumSettings::CENTROID`
+
+2. **Partial config validation test**:
+   - Set only `ms1_centroid_mz_ppm > 0` with `ms1_centroid_im_pct = 0`: verify centroiding is NOT applied and a warning is logged
 
 3. **FileConverter smoke test**:
    - Verify new TOPP parameters are accepted and passed through to Config
+
+4. **Algorithm correctness** (tested indirectly via integration tests):
+   - The centroiding algorithm is a faithful translation of Sage's well-tested `fastcentroid_frame`. Output peak count reduction on real data serves as the correctness signal.
+   - Note: when MAX_CENTROID_PEAKS is exceeded, remaining low-intensity peaks are intentionally dropped (matching Sage's behavior). This is expected, not a data loss bug.
