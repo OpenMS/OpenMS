@@ -216,6 +216,20 @@ namespace OpenMS
     }
   };
 
+  // Helper: check if MS1 centroiding is enabled, warn on partial config
+  static bool isCentroidingEnabled(const BrukerTimsFile::Config& config)
+  {
+    bool has_mz = config.ms1_centroid_mz_ppm > 0.0f;
+    bool has_im = config.ms1_centroid_im_pct > 0.0f;
+    if (has_mz != has_im)
+    {
+      OPENMS_LOG_WARN << "Warning: ms1_centroid_mz_ppm and ms1_centroid_im_pct must both be > 0 "
+                      << "to enable MS1 centroiding. Centroiding disabled." << std::endl;
+      return false;
+    }
+    return has_mz && has_im;
+  }
+
   // Helper: get error string from handle
   static String getTimsError(tims_dataset* handle)
   {
@@ -223,6 +237,67 @@ namespace OpenMS
     char buf[512];
     tims_get_last_error(handle, buf, sizeof(buf));
     return String(buf);
+  }
+
+  // Centroid a single MS1 frame: convert TOF->mz, expand scan offsets, run centroider,
+  // build MSSpectrum with centroided peaks and IM FloatDataArray.
+  // Note: This duplicates the TOF-to-mz and scan-to-IM conversion from frameToSpectrum_()
+  // because centroiding needs the intermediate arrays before they are packed into MSSpectrum.
+  static void centroidMS1Frame_(tims_dataset* ds, const tims_frame& frame,
+                                MSSpectrum& spec, const BrukerTimsFile::Config& config,
+                                FrameCentroider& centroider)
+  {
+    spec.clear(true);
+    spec.setRT(frame.rt_seconds);
+    spec.setMSLevel(frame.ms_level);
+    spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+
+    if (frame.num_peaks == 0) return;
+
+    // Batch-convert TOF indices to m/z
+    std::vector<double> mz_values(frame.num_peaks);
+    timsffi_status mz_status = tims_convert_tof_to_mz_array(ds, frame.tof_indices, frame.num_peaks, mz_values.data());
+    if (mz_status != TIMSFFI_OK)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "", "TOF to m/z conversion failed: " + getTimsError(ds));
+
+    // Batch-convert scan indices to IM
+    std::vector<uint32_t> scan_indices(frame.num_scans);
+    std::iota(scan_indices.begin(), scan_indices.end(), 0u);
+    std::vector<double> scan_im(frame.num_scans);
+    timsffi_status im_status = tims_convert_scan_to_im_array(ds, scan_indices.data(), frame.num_scans, scan_im.data());
+    if (im_status != TIMSFFI_OK)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "", "Scan to IM conversion failed: " + getTimsError(ds));
+
+    // Expand scan offsets to per-peak IM
+    std::vector<float> im_values;
+    expandScanOffsets(frame.scan_offsets, frame.num_scans, scan_im.data(), frame.num_peaks, im_values);
+
+    // Run centroiding
+    centroider.loadFrame(mz_values.data(), frame.intensities, im_values.data(), frame.num_peaks);
+
+    std::vector<double> cent_mz, cent_intensity;
+    std::vector<float> cent_im;
+    centroider.centroid(config.ms1_centroid_mz_ppm, config.ms1_centroid_im_pct,
+                        cent_mz, cent_intensity, cent_im);
+
+    // Build MSSpectrum from centroided output
+    spec.reserve(cent_mz.size());
+    for (size_t i = 0; i < cent_mz.size(); ++i)
+    {
+      Peak1D peak;
+      peak.setMZ(cent_mz[i]);
+      peak.setIntensity(cent_intensity[i]);
+      spec.push_back(peak);
+    }
+
+    // Set IM float data array
+    DataArrays::FloatDataArray im_array;
+    im_array.assign(cent_im.begin(), cent_im.end());
+    IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+    spec.getFloatDataArrays().push_back(std::move(im_array));
   }
 
   // Helper: open dataset with optional config
@@ -397,10 +472,19 @@ namespace OpenMS
 
     startProgress(0, ms1_count + num_ms2, "Loading DDA-PASEF data");
 
+    bool do_centroid = isCentroidingEnabled(config);
+    FrameCentroider centroider;
     for (unsigned int i = 0; i < ms1_count; ++i)
     {
       MSSpectrum spec;
-      frameToSpectrum_(handle, &ms1_frames[i], spec);
+      if (do_centroid)
+      {
+        centroidMS1Frame_(ds, ms1_frames[i], spec, config, centroider);
+      }
+      else
+      {
+        frameToSpectrum_(handle, &ms1_frames[i], spec);
+      }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
     }
@@ -472,11 +556,20 @@ namespace OpenMS
     auto ms1_guard = [&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); };
     struct Ms1Guard { decltype(ms1_guard)& f; ~Ms1Guard() { f(); } } ms1_g{ms1_guard};
 
+    bool do_centroid = isCentroidingEnabled(config);
+    FrameCentroider centroider;
     startProgress(0, ms1_count, "Loading DIA-PASEF MS1 frames");
     for (unsigned int i = 0; i < ms1_count; ++i)
     {
       MSSpectrum spec;
-      frameToSpectrum_(handle, &ms1_frames[i], spec);
+      if (do_centroid)
+      {
+        centroidMS1Frame_(ds, ms1_frames[i], spec, config, centroider);
+      }
+      else
+      {
+        frameToSpectrum_(handle, &ms1_frames[i], spec);
+      }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
     }
@@ -592,11 +685,20 @@ namespace OpenMS
       auto guard = [&]() { if (frames) tims_free_frame_array(ds, frames, count); };
       struct Guard { decltype(guard)& f; ~Guard() { f(); } } g{guard};
 
+      bool do_centroid = (level == 1) && isCentroidingEnabled(config);
+      FrameCentroider centroider;
       startProgress(0, count, String("Loading MS") + String(level) + " frames");
       for (unsigned int i = 0; i < count; ++i)
       {
         MSSpectrum spec;
-        frameToSpectrum_(handle, &frames[i], spec);
+        if (do_centroid)
+        {
+          centroidMS1Frame_(ds, frames[i], spec, config, centroider);
+        }
+        else
+        {
+          frameToSpectrum_(handle, &frames[i], spec);
+        }
         exp.addSpectrum(std::move(spec));
         setProgress(i);
       }
