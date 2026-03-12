@@ -4,7 +4,7 @@ This document is displayed because you either opened an issue or you want to pro
 When interacting with other developers, users or anyone else from our community, please adhere to
 [our CODE OF CONDUCT](https://github.com/OpenMS/OpenMS/blob/develop/CODE_OF_CONDUCT.md)
 
-> **New to open source or the project?** Start with our [Contributor Onboarding Guide](https://openms.de/en/contribute/onboarding/) for a beginner-friendly introduction.
+> **New to open source or the project?** Start with our [Contributor Onboarding Guide](https://openms.de/contribute/) for a beginner-friendly introduction.
 
 # Reporting an Issue:
 
