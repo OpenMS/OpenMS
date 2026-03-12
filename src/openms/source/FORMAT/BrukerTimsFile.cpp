@@ -199,9 +199,120 @@ namespace OpenMS
     }
   }
 
-  void BrukerTimsFile::loadDIA_(void* /*handle*/, MSExperiment& /*exp*/)
+  void BrukerTimsFile::loadDIA_(void* handle, MSExperiment& exp)
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    tims_dataset* ds = static_cast<tims_dataset*>(handle);
+
+    // --- MS1 frames (same as DDA) ---
+    unsigned int ms1_count = 0;
+    tims_frame* ms1_frames = nullptr;
+    timsffi_status status = tims_get_frames_by_level(ds, 1, &ms1_count, &ms1_frames);
+    if (status != TIMSFFI_OK)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "", "Failed to read MS1 frames: " + getTimsError(ds));
+    auto ms1_guard = [&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); };
+    struct Ms1Guard { decltype(ms1_guard)& f; ~Ms1Guard() { f(); } } ms1_g{ms1_guard};
+
+    for (unsigned int i = 0; i < ms1_count; ++i)
+    {
+      MSSpectrum spec;
+      frameToSpectrum_(handle, &ms1_frames[i], spec);
+      exp.addSpectrum(std::move(spec));
+    }
+
+    // --- SWATH windows ---
+    unsigned int win_count = 0;
+    tims_swath_window* windows = nullptr;
+    status = tims_get_swath_windows(ds, &win_count, &windows);
+    if (status != TIMSFFI_OK)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "", "Failed to read SWATH windows: " + getTimsError(ds));
+    auto win_guard = [&]() { if (windows) tims_free_swath_windows(ds, windows); };
+    struct WinGuard { decltype(win_guard)& f; ~WinGuard() { f(); } } win_g{win_guard};
+
+    // --- MS2 frames (split by SWATH window) ---
+    unsigned int ms2_count = 0;
+    tims_frame* ms2_frames = nullptr;
+    status = tims_get_frames_by_level(ds, 2, &ms2_count, &ms2_frames);
+    if (status != TIMSFFI_OK)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "", "Failed to read MS2 frames: " + getTimsError(ds));
+    auto ms2_guard = [&]() { if (ms2_frames) tims_free_frame_array(ds, ms2_frames, ms2_count); };
+    struct Ms2Guard { decltype(ms2_guard)& f; ~Ms2Guard() { f(); } } ms2_g{ms2_guard};
+
+    for (unsigned int fi = 0; fi < ms2_count; ++fi)
+    {
+      const tims_frame& frame = ms2_frames[fi];
+      if (frame.num_peaks == 0) continue;
+
+      // Convert TOF -> m/z for entire frame
+      std::vector<double> mz_values(frame.num_peaks);
+      timsffi_status mz_status = tims_convert_tof_to_mz_array(ds, frame.tof_indices, frame.num_peaks, mz_values.data());
+      if (mz_status != TIMSFFI_OK)
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "", "TOF to m/z conversion failed: " + getTimsError(ds));
+
+      // Batch scan -> IM conversion
+      std::vector<uint32_t> scan_indices(frame.num_scans);
+      std::iota(scan_indices.begin(), scan_indices.end(), 0u);
+      std::vector<double> scan_im(frame.num_scans);
+      timsffi_status im_status = tims_convert_scan_to_im_array(ds, scan_indices.data(), frame.num_scans, scan_im.data());
+      if (im_status != TIMSFFI_OK)
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "", "Scan to IM conversion failed: " + getTimsError(ds));
+
+      // Build per-peak IM from scan offsets
+      std::vector<double> im_values(frame.num_peaks);
+      for (uint32_t scan_idx = 0; scan_idx < frame.num_scans; ++scan_idx)
+      {
+        uint64_t start = frame.scan_offsets[scan_idx];
+        uint64_t end = frame.scan_offsets[scan_idx + 1];
+        for (uint64_t p = start; p < end; ++p)
+        {
+          im_values[p] = scan_im[scan_idx];
+        }
+      }
+
+      // Split peaks by SWATH window IM bounds
+      for (unsigned int wi = 0; wi < win_count; ++wi)
+      {
+        if (windows[wi].is_ms1) continue;
+
+        MSSpectrum spec;
+        spec.setRT(frame.rt_seconds);
+        spec.setMSLevel(2);
+        spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+
+        // Set isolation window
+        Precursor prec;
+        prec.setMZ(windows[wi].mz_center);
+        prec.setIsolationWindowLowerOffset(windows[wi].mz_center - windows[wi].mz_lower);
+        prec.setIsolationWindowUpperOffset(windows[wi].mz_upper - windows[wi].mz_center);
+        spec.setPrecursors({prec});
+
+        DataArrays::FloatDataArray im_array;
+        IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+
+        for (uint32_t p = 0; p < frame.num_peaks; ++p)
+        {
+          // Check if peak falls within this window's IM bounds
+          if (im_values[p] >= windows[wi].im_lower && im_values[p] <= windows[wi].im_upper)
+          {
+            Peak1D peak;
+            peak.setMZ(mz_values[p]);
+            peak.setIntensity(static_cast<double>(frame.intensities[p]));
+            spec.push_back(peak);
+            im_array.push_back(static_cast<float>(im_values[p]));
+          }
+        }
+
+        if (!spec.empty())
+        {
+          spec.getFloatDataArrays().push_back(std::move(im_array));
+          exp.addSpectrum(std::move(spec));
+        }
+      }
+    }
   }
 
   void BrukerTimsFile::loadFrames_(void* /*handle*/, MSExperiment& /*exp*/)
