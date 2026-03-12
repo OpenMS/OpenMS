@@ -136,9 +136,62 @@ namespace OpenMS
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
 
-  void BrukerTimsFile::frameToSpectrum_(void* /*handle*/, const void* /*frame*/, MSSpectrum& /*spec*/) const
+  void BrukerTimsFile::frameToSpectrum_(void* handle, const void* frame_ptr, MSSpectrum& spec) const
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    tims_dataset* ds = static_cast<tims_dataset*>(handle);
+    const tims_frame* frame = static_cast<const tims_frame*>(frame_ptr);
+
+    spec.clear(true);
+    spec.setRT(frame->rt_seconds);
+    spec.setMSLevel(frame->ms_level);
+    spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+
+    if (frame->num_peaks == 0) return;
+
+    // Batch-convert TOF indices to m/z (check return value!)
+    std::vector<double> mz_values(frame->num_peaks);
+    timsffi_status mz_status = tims_convert_tof_to_mz_array(ds, frame->tof_indices, frame->num_peaks, mz_values.data());
+    if (mz_status != TIMSFFI_OK)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "", "TOF to m/z conversion failed: " + getTimsError(ds));
+
+    // Batch-convert scan indices to IM (use batch API for efficiency)
+    std::vector<uint32_t> scan_indices(frame->num_scans);
+    std::iota(scan_indices.begin(), scan_indices.end(), 0u);
+    std::vector<double> scan_im(frame->num_scans);
+    timsffi_status im_status = tims_convert_scan_to_im_array(ds, scan_indices.data(), frame->num_scans, scan_im.data());
+    if (im_status != TIMSFFI_OK)
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "", "Scan to IM conversion failed: " + getTimsError(ds));
+
+    // Build per-peak IM values from scan offsets
+    std::vector<float> im_values(frame->num_peaks);
+    for (uint32_t scan_idx = 0; scan_idx < frame->num_scans; ++scan_idx)
+    {
+      uint64_t start = frame->scan_offsets[scan_idx];
+      uint64_t end = frame->scan_offsets[scan_idx + 1];
+      for (uint64_t p = start; p < end; ++p)
+      {
+        im_values[p] = static_cast<float>(scan_im[scan_idx]);
+      }
+    }
+
+    // Fill spectrum peaks
+    spec.reserve(frame->num_peaks);
+    for (uint32_t i = 0; i < frame->num_peaks; ++i)
+    {
+      Peak1D peak;
+      peak.setMZ(mz_values[i]);
+      peak.setIntensity(static_cast<double>(frame->intensities[i]));
+      spec.push_back(peak);
+    }
+
+    // Set IM float data array with correct CV term
+    DataArrays::FloatDataArray im_array;
+    im_array.resize(frame->num_peaks);
+    std::copy(im_values.begin(), im_values.end(), im_array.begin());
+    IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+    spec.getFloatDataArrays().push_back(std::move(im_array));
   }
 
 } // namespace OpenMS
