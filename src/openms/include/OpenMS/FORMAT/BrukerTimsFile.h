@@ -69,7 +69,9 @@ namespace OpenMS
     /// @overload with explicit configuration
     void load(const String& path, MSExperiment& exp, const Config& config);
 
-    /// Streaming: read .d and feed spectra to consumer
+    /// Feed spectra from a .d directory to a consumer.
+    /// @note Currently loads the full dataset into memory before streaming to the consumer.
+    ///       A future optimization should iterate frame-by-frame for true constant-memory operation.
     void transform(const String& path, Interfaces::IMSDataConsumer* consumer);
     /// @overload with explicit configuration
     void transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config);
