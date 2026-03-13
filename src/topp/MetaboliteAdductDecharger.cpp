@@ -25,7 +25,7 @@ using namespace std;
 /**
 @page TOPP_MetaboliteAdductDecharger MetaboliteAdductDecharger
 
-@brief Decharges a feature map by clustering charge variants of metabolites to zero-charge entities.
+@brief Decharges a feature map by clustering charge variants of metabolites to zero-charge entities and optionally detects multimers.
 <CENTER>
     <table>
         <tr>
@@ -51,6 +51,10 @@ Via this mechanism it is also possible to use this tool to find pairs/triples/qu
 tag weight as an adduct). If mass tags induce an RT shift (e.g. deuterium labeled data) you can also specify this also in the adduct list.
 This will allow to tighten the RT search window, thus reducing false positive results.
 
+The tool can also detect multimers (dimers, trimers, etc.) via the 'max_multimer' parameter. For example, setting max_multimer=2 enables
+detection of charge-changing multimer relationships such as [M+H]+ and [2M+2H]2+, which are common in lipidomics. The default value of 1
+disables multimer detection for backward compatibility.
+
 This tool is derived from the method described in the following publication:
 
 Bielow C, Ruzek S, Huber CG, Reinert K. Optimal decharging and clustering of charge ladders generated in ESI-MS. J Proteome Res 2010; 9: 2688.<br>
@@ -70,7 +74,7 @@ class UTILMetaboliteAdductDecharger :
 {
 public:
   UTILMetaboliteAdductDecharger() :
-    TOPPBase("MetaboliteAdductDecharger", "Decharges and merges different feature charge variants of the same metabolite.")
+    TOPPBase("MetaboliteAdductDecharger", "Decharges and merges different feature charge variants of the same metabolite; optionally detects multimers.")
   {
   }
 
