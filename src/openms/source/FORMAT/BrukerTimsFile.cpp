@@ -517,20 +517,22 @@ namespace OpenMS
       }
 
       // Precursor metadata
-      // Note: isolation_mz is the quadrupole center; precursor_mz is the selected ion.
-      // mzML Precursor::setMZ is the isolation target, offsets are relative to it.
+      // Use selected-ion m/z (monoisotopic precursor) for Precursor::getMZ() so
+      // search engines use the correct mass for candidate lookup. The quadrupole
+      // isolation-window center goes into the isolation window offsets (relative
+      // to the selected ion m/z).
       Precursor prec;
-      prec.setMZ(ts.isolation_mz);  // isolation window center
+      prec.setMZ(ts.precursor_mz);  // selected ion m/z (monoisotopic)
       prec.setCharge(static_cast<int>(ts.charge));
       if (!std::isnan(ts.precursor_intensity))
         prec.setIntensity(static_cast<float>(ts.precursor_intensity));
       prec.setDriftTime(ts.im);
       prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-      prec.setIsolationWindowLowerOffset(ts.isolation_width / 2.0);
-      prec.setIsolationWindowUpperOffset(ts.isolation_width / 2.0);
-      // Store selected ion m/z as user param if different from isolation center
-      if (std::abs(ts.precursor_mz - ts.isolation_mz) > 1e-6)
-        prec.setMetaValue("selected ion m/z", ts.precursor_mz);
+      // Isolation window offsets relative to the selected ion m/z
+      double iso_offset_lower = ts.isolation_width / 2.0 + (ts.precursor_mz - ts.isolation_mz);
+      double iso_offset_upper = ts.isolation_width / 2.0 - (ts.precursor_mz - ts.isolation_mz);
+      prec.setIsolationWindowLowerOffset(std::max(0.0, iso_offset_lower));
+      prec.setIsolationWindowUpperOffset(std::max(0.0, iso_offset_upper));
 
       std::vector<Precursor> precursors;
       precursors.push_back(std::move(prec));
