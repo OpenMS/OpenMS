@@ -235,8 +235,14 @@ else()
     if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
       set_target_properties(${target_name} PROPERTIES
         INSTALL_RPATH "${PY_RPATH}"
-        BUILD_WITH_INSTALL_RPATH 1
       )
+      if(NOT NO_DEPENDENCIES)
+        # When dependencies are bundled alongside the modules, use the install
+        # RPATH at build time so $ORIGIN/ finds the co-located libraries.
+        set_target_properties(${target_name} PROPERTIES
+          BUILD_WITH_INSTALL_RPATH 1
+        )
+      endif()
       if(APPLE)
         set_target_properties(${target_name} PROPERTIES
           BUILD_WITH_INSTALL_NAME_DIR 1
@@ -500,11 +506,44 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   file(COPY ${PROJECT_SOURCE_DIR}/tests DESTINATION ${PYOPENMS_BUILD_DIR})
 
   enable_testing()
+
+  # Split pyopenms tests into separate CTest entries for better CDash reporting.
+  # Use -q (quiet) and --tb=short to avoid cluttering CDash with verbose passing output.
+  # Override pyproject.toml's addopts which uses -v (verbose).
+  set(_PYTEST_ARGS -m pytest -o addopts=-q\ --tb=short)
+
   add_test(
-    NAME pyopenms_tests
-    COMMAND ${Python_EXECUTABLE} -m pytest tests
+    NAME pyopenms_unittests
+    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS}
+      --ignore=tests/unittests/test_docstrings.py
+      --ignore=tests/unittests/test_docstring_format.py
+      tests/unittests
     WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
   )
+
+  add_test(
+    NAME pyopenms_docstring_tests
+    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS}
+      tests/unittests/test_docstrings.py
+      tests/unittests/test_docstring_format.py
+    WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+  )
+
+  add_test(
+    NAME pyopenms_integration_tests
+    COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS} tests/integration_tests
+    WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+  )
+
+  # Top-level test files (ProForma, modification discovery, matrix zerocopy, etc.)
+  file(GLOB _pyopenms_toplevel_tests "${PYOPENMS_BUILD_DIR}/tests/test_*.py")
+  if(_pyopenms_toplevel_tests)
+    add_test(
+      NAME pyopenms_feature_tests
+      COMMAND ${Python_EXECUTABLE} ${_PYTEST_ARGS} ${_pyopenms_toplevel_tests}
+      WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+    )
+  endif()
 endif()
 
 # --------------------------------------------------------------------------

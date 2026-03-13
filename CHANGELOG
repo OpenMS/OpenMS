@@ -111,6 +111,7 @@ PyOpenMS:
   - Param to_dict quality-of-life improvements: dict-like API for parameter access (#8631)
   - Fix: FileTypes wrapping updated with missing enum values and static methods (#8720)
   - XICParquetFile: Python bindings with multi-file support and filtering for reading XIC data from Parquet files (#8737, #8738)
+  - XIMParquetFile: Python bindings for reading extracted ion mobilogram data from Parquet files (#8894)
   - Zero-copy get_peaks_struct() accessor for MSChromatogram and Mobilogram (#8825, #8842)
   - Complete FileHandler wrapper: 14 new load/store methods for FeatureMap, ConsensusMap, identifications, and transformations (#8762)
 
@@ -183,6 +184,7 @@ OpenMS Library:
       - pyOpenMS bindings included
     - OpenSwathWorkflow:
       - Added Parquet-based archive (.oswpq) to store spectral library information and multi-run feature scores. (#8813)
+      - Added support for reading/writing Parquet extracted ion chromatogram files (.xic) and extracted ion mobilogram files (.xim). (#8737, #8871)
     - FeatureFindingMetabo: Added ion mobility support with local_im_range parameter for coeluting mass trace filtering (#8758)
     - IDMapper: Preserve upstream identification data processing metadata when annotating featureXML/consensusXML (#8852)
   Changes:

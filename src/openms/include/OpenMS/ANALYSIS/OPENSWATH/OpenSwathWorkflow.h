@@ -306,6 +306,7 @@ protected:
      * @param[in] ms1_isotopes Number of MS1 isotopes to extract (zero means only monoisotopic peak)
      * @param[in] load_into_memory Whether to cache the current SWATH map in memory
      * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      *
      * @note Speed and memory performance can be influenced by \p batchSize and
      * \p load_into_memory where larger batch sizes increase memory and
@@ -326,7 +327,8 @@ protected:
                int batchSize,
                int ms1_isotopes,
                bool load_into_memory,
-               const Param & mrm_mapping_param = Param());
+              const Param & mrm_mapping_param = Param(),
+              class MobilogramParquetConsumer * mobilogram_consumer = nullptr);
 
   protected:
 
@@ -387,9 +389,10 @@ protected:
      * @param[out] osw_writer OSW Writer object to store identified features in SQLite format
      * @param[in] nr_ms1_isotopes Consider this many MS1 isotopes for precursor chromatograms
      * @param[in] ms1only If true, will only score on MS1 level and ignore MS2 level
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      *
     */
-    void scoreAllChromatograms_(
+  void scoreAllChromatograms_(
         const std::vector<OpenMS::MSChromatogram>& ms2_chromatograms,
         const std::vector<OpenMS::MSChromatogram>& ms1_chromatograms,
         const std::vector<OpenSwath::SwathMap>& swath_maps,
@@ -400,7 +403,8 @@ protected:
         FeatureMap& output,
         OpenSwathOSWWriter& osw_writer,
         int nr_ms1_isotopes = 0,
-        bool ms1only = false) const;
+        bool ms1only = false,
+        class MobilogramParquetConsumer * mobilogram_consumer = nullptr) const;
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *

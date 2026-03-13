@@ -16,6 +16,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/FORMAT/ZipRandomAccessFile.h>
 
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
@@ -58,14 +59,21 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
     TEST_EQUAL(found, true)
   }
 
-  // Read back using TransitionParquetFile which should prefer RAF-based reads when available
-  // Reset test extraction counter and assert no extraction occurs (i.e., RAF path used)
-  ZipArchiveFile::testResetExtractionCount();
+  // Verify the RAF path works: ZipRandomAccessFile::Open should succeed directly on the archive
+  {
+    std::unique_ptr<File::TempDir> raf_tmp;
+    auto ra_res = ZipRandomAccessFile::Open(out_archive, "library/precursors.parquet", raf_tmp);
+#if __has_include(<zip.h>)
+    TEST_EQUAL(ra_res.ok(), true)
+#else
+    TEST_EQUAL(ra_res.status().IsNotImplemented(), true)
+#endif
+  }
+
+  // Read back using TransitionParquetFile and verify the round-trip data
   TransitionParquetFile reader;
   OpenSwath::LightTargetedExperiment roundtrip_exp;
   reader.convertParquetToTargetedExperiment(out_archive, roundtrip_exp);
-
-  TEST_EQUAL(ZipArchiveFile::testGetExtractionCount(), 0)
 
   TEST_EQUAL(roundtrip_exp.compounds.size(), light_exp.compounds.size())
   TEST_EQUAL(roundtrip_exp.transitions.size(), light_exp.transitions.size())

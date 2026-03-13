@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <memory>
+
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
@@ -148,6 +150,26 @@ namespace OpenMS
                             const String& out_chrom,
                             const UInt64 run_id,
                             const String& source_file);
+
+    /**
+     * @brief Prepare mobilogram output
+     *
+     * Sets up the mobilogram output, currently only supports Parquet via MobilogramParquetConsumer.
+     * If no output requested, returns a null consumer by allocating a nullptr.
+     *
+     * @param[out] mobilogramConsumer The consumer to process mobilograms
+     * @param[in] exp_meta meta data about experiment
+     * @param[in] transition_exp The spectral library
+     * @param[in] out_mobilogram The output file for the mobilograms
+     * @param[in] run_id Unique identifier which links the mobilogram and OSW file
+     * @param[in] source_file Source file name for provenance
+     */
+    void prepareMobilogramOutput(std::unique_ptr<class MobilogramParquetConsumer>& mobilogramConsumer,
+                  const std::shared_ptr<ExperimentalSettings>& exp_meta,
+                  const OpenSwath::LightTargetedExperiment& transition_exp,
+                  const String& out_mobilogram,
+                  const UInt64 run_id,
+                  const String& source_file);
 
     /**
      * @brief Loads transition list from TraML / TSV or PQP

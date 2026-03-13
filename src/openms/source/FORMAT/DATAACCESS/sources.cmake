@@ -14,8 +14,8 @@ set(sources_list
   SiriusFragmentAnnotation.cpp
   SwathFileConsumer.cpp
   MSChromatogramParquetConsumer.cpp
+  MobilogramParquetConsumer.cpp
 )
-
 ### add path to the filenames
 set(sources)
 foreach(i ${sources_list})
