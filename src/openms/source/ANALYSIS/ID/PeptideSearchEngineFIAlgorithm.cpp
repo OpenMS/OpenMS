@@ -19,6 +19,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
@@ -324,6 +325,13 @@ namespace OpenMS
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
+
+        // Annotate ion mobility if spectrum has a single drift time (DDA-PASEF)
+        if (IMTypes::determineIMFormat(spec) == IMFormat::MULTIPLE_SPECTRA)
+        {
+          pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
+        }
+
         Size charge = spec.getPrecursors()[0].getCharge();
 
         // create full peptide hit structure from annotated hits
@@ -465,6 +473,20 @@ if (!pi.getHits().empty())
 
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
+
+    // Annotate IM unit on ProteinIdentification if all PeptideIdentifications have IM
+    if (!peptide_ids.empty())
+    {
+      bool all_have_im = std::all_of(
+        peptide_ids.begin(), peptide_ids.end(),
+        [](const PeptideIdentification& pid) { return pid.metaValueExists(Constants::UserParam::IM); });
+
+      if (all_have_im)
+      {
+        protein_ids[0].setMetaValue(Constants::UserParam::IM,
+          exp[0].getDriftTimeUnitAsString());
+      }
+    }
   }
 
   // =====================================================================
