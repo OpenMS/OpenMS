@@ -2962,6 +2962,42 @@ if (WITH_TIMSRUST AND TIMSRUST_DDA_TEST_DATA)
     "-Search:modifications:variable" "Oxidation (M)" "Acetyl (Protein N-term)"
     -Search:decoys
     -threads 4)
+
+  # SageAdapter DDA test: generate decoys externally (SageAdapter sets generate_decoys=false),
+  # then search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
+  if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
+    add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
+      -in ${TIMSRUST_TEST_FASTA}
+      -out ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -decoy_string DECOY_
+      -decoy_string_position prefix)
+
+    add_test("TOPP_SageAdapter_DDA" ${TOPP_BIN_PATH}/SageAdapter -test
+      -in ${TIMSRUST_DDA_SYMLINK}
+      -database ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
+      -out ${TESTS_TEMP_DIR}/SageAdapter_DDA_out.tmp.idXML
+      -sage_executable "${SAGE_BINARY}"
+      -decoy_prefix DECOY_
+      -precursor_tol_left -20.0
+      -precursor_tol_right 20.0
+      -precursor_tol_unit ppm
+      -fragment_tol_left -20.0
+      -fragment_tol_right 20.0
+      -enzyme Trypsin/P
+      -missed_cleavages 2
+      "-variable_modifications" "Oxidation (M)" "Acetyl (Protein N-term)"
+      -chimera false
+      -predict_rt false
+      -deisotope false)
+    set_tests_properties("TOPP_SageAdapter_DDA" PROPERTIES DEPENDS "TOPP_DecoyDatabase_DDA")
+
+    add_test("TOPP_FalseDiscoveryRate_SageDDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+      -in ${TESTS_TEMP_DIR}/SageAdapter_DDA_out.tmp.idXML
+      -out ${TESTS_TEMP_DIR}/SageAdapter_DDA_fdr.tmp.idXML
+      -FDR:PSM 0.01
+      -protein false)
+    set_tests_properties("TOPP_FalseDiscoveryRate_SageDDA" PROPERTIES DEPENDS "TOPP_SageAdapter_DDA")
+  endif()
 endif()
 
 # FeatureFinderMetaboIdent:

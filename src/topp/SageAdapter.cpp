@@ -422,7 +422,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", { "mzML" } );
+    setValidFormats_("in", { "mzML", "d" } );
 
     registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
     setValidFormats_("out", { "idXML" } );
@@ -747,7 +747,13 @@ protected:
     // if "reindex" parameter is set to true: will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
+    // Check if any input is a Bruker .d folder (not mzML) — skip mzML-specific post-processing
+    bool has_non_mzml_input = std::any_of(input_files.begin(), input_files.end(),
+      [](const String& f) { return !f.hasSuffix(".mzML"); });
+
     map<String,unordered_map<int,String>> file2specnr2nativeid;
+    if (!has_non_mzml_input)
+    {
     for (const auto& mzml : input_files)
     {
       // TODO stream mzml?
@@ -782,6 +788,7 @@ protected:
         }
       }
     }
+    } // end if (!has_non_mzml_input)
 
     map<Size, String> idxToFile;
     StringList fnInRun;
@@ -814,7 +821,9 @@ protected:
       }
     }
 
-    // Annotate FAIMS compensation voltage if present in any input file
+    // Annotate FAIMS compensation voltage if present in any mzML input file
+    if (!has_non_mzml_input)
+    {
     // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
     std::map<Size, std::vector<Size>> file_to_peptide_indices;
     for (Size i = 0; i < peptide_identifications.size(); ++i)
@@ -874,6 +883,7 @@ protected:
         }
       }
     }
+    } // end if (!has_non_mzml_input)
 
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
     return EXECUTION_OK;
