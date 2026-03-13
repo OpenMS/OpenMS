@@ -2932,18 +2932,27 @@ if (WITH_TIMSRUST AND TIMSRUST_DDA_TEST_DATA)
   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test_data")
   file(CREATE_LINK "${TIMSRUST_DDA_TEST_DATA}" "${TIMSRUST_DDA_SYMLINK}" SYMBOLIC)
 
-  # Both engines use identical default parameters (10 ppm precursor/fragment,
-  # Carbamidomethyl (C) fixed, Oxidation (M) variable, 1 missed cleavage)
+  # Realistic TimsTOF DDA-PASEF tolerances: 10 ppm precursor, 20 ppm fragment.
+  # Other params use defaults: Carbamidomethyl (C) fixed, Oxidation (M) variable,
+  # Trypsin, 1 missed cleavage — identical between both engines.
   add_test("TOPP_SimpleSearchEngine_DDA" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
     -in ${TIMSRUST_DDA_SYMLINK}
     -database ${TIMSRUST_TEST_FASTA}
     -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_out.tmp.idXML
+    -Search:precursor:mass_tolerance 10
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
     -threads 4)
 
   add_test("TOPP_PeptideDataBaseSearchFI_DDA" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
     -in ${TIMSRUST_DDA_SYMLINK}
     -database ${TIMSRUST_TEST_FASTA}
     -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
+    -Search:precursor:mass_tolerance 10
+    -Search:precursor:mass_tolerance_unit ppm
+    -Search:fragment:mass_tolerance 20
+    -Search:fragment:mass_tolerance_unit ppm
     -threads 4)
 endif()
 
