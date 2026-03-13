@@ -2943,6 +2943,7 @@ if (WITH_TIMSRUST AND TIMSRUST_DDA_TEST_DATA)
     -Search:precursor:mass_tolerance_unit ppm
     -Search:fragment:mass_tolerance 20
     -Search:fragment:mass_tolerance_unit ppm
+    -Search:decoys
     -threads 4)
 
   add_test("TOPP_PeptideDataBaseSearchFI_DDA" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
@@ -2953,7 +2954,23 @@ if (WITH_TIMSRUST AND TIMSRUST_DDA_TEST_DATA)
     -Search:precursor:mass_tolerance_unit ppm
     -Search:fragment:mass_tolerance 20
     -Search:fragment:mass_tolerance_unit ppm
+    -Search:decoys
     -threads 4)
+
+  # FDR filtering: calculate q-values and filter at 1% PSM-level FDR
+  add_test("TOPP_FalseDiscoveryRate_SSE_DDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_fdr_out.tmp.idXML
+    -FDR:PSM 0.01
+    -protein false)
+  set_tests_properties("TOPP_FalseDiscoveryRate_SSE_DDA" PROPERTIES DEPENDS "TOPP_SimpleSearchEngine_DDA")
+
+  add_test("TOPP_FalseDiscoveryRate_FI_DDA" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test
+    -in ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_fdr_out.tmp.idXML
+    -FDR:PSM 0.01
+    -protein false)
+  set_tests_properties("TOPP_FalseDiscoveryRate_FI_DDA" PROPERTIES DEPENDS "TOPP_PeptideDataBaseSearchFI_DDA")
 endif()
 
 # FeatureFinderMetaboIdent:
