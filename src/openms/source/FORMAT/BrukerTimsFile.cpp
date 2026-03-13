@@ -11,6 +11,7 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -463,9 +464,7 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "", "Failed to read MS1 frames: " + getTimsError(ds));
 
-    // RAII guard for ms1_frames
-    auto ms1_guard = [&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); };
-    struct Ms1Guard { decltype(ms1_guard)& f; ~Ms1Guard() { f(); } } ms1_g{ms1_guard};
+    RAIICleanup ms1_guard([&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); });
 
     unsigned int num_ms2 = tims_num_spectra(ds);
     exp.reserveSpaceSpectra(ms1_count + num_ms2);
@@ -555,8 +554,7 @@ namespace OpenMS
     if (status != TIMSFFI_OK)
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "", "Failed to read MS1 frames: " + getTimsError(ds));
-    auto ms1_guard = [&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); };
-    struct Ms1Guard { decltype(ms1_guard)& f; ~Ms1Guard() { f(); } } ms1_g{ms1_guard};
+    RAIICleanup ms1_guard([&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); });
 
     bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
@@ -584,8 +582,7 @@ namespace OpenMS
     if (status != TIMSFFI_OK)
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "", "Failed to read SWATH windows: " + getTimsError(ds));
-    auto win_guard = [&]() { if (windows) tims_free_swath_windows(ds, windows); };
-    struct WinGuard { decltype(win_guard)& f; ~WinGuard() { f(); } } win_g{win_guard};
+    RAIICleanup win_guard([&]() { if (windows) tims_free_swath_windows(ds, windows); });
 
     // --- MS2 frames (split by SWATH window) ---
     unsigned int ms2_count = 0;
@@ -594,8 +591,7 @@ namespace OpenMS
     if (status != TIMSFFI_OK)
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "", "Failed to read MS2 frames: " + getTimsError(ds));
-    auto ms2_guard = [&]() { if (ms2_frames) tims_free_frame_array(ds, ms2_frames, ms2_count); };
-    struct Ms2Guard { decltype(ms2_guard)& f; ~Ms2Guard() { f(); } } ms2_g{ms2_guard};
+    RAIICleanup ms2_guard([&]() { if (ms2_frames) tims_free_frame_array(ds, ms2_frames, ms2_count); });
 
     startProgress(0, ms2_count, "Loading DIA-PASEF MS2 frames");
     for (unsigned int fi = 0; fi < ms2_count; ++fi)
@@ -684,8 +680,7 @@ namespace OpenMS
                         << ": " << getTimsError(ds) << " (skipping)" << std::endl;
         continue;
       }
-      auto guard = [&]() { if (frames) tims_free_frame_array(ds, frames, count); };
-      struct Guard { decltype(guard)& f; ~Guard() { f(); } } g{guard};
+      RAIICleanup frame_guard([&]() { if (frames) tims_free_frame_array(ds, frames, count); });
 
       bool do_centroid = (level == 1) && isCentroidingEnabled(config);
       FrameCentroider centroider;
