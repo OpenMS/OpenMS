@@ -7,7 +7,10 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -240,6 +243,88 @@ START_SECTION(DDA partial centroiding config test)
     if (spec.getMSLevel() == 1) raw_ms1_peaks += spec.size();
 
   TEST_EQUAL(partial_ms1_peaks, raw_ms1_peaks);
+}
+END_SECTION
+
+START_SECTION(DDA search engine IM annotation integration test)
+{
+  // Load real DDA-PASEF data
+  BrukerTimsFile f;
+  MSExperiment exp;
+  f.load(TIMSRUST_DDA_TEST_DATA, exp);
+
+  // Verify MS2 spectra have drift times (pre-condition for IM annotation)
+  Size ms2_count = 0;
+  Size ms2_with_im = 0;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() == 2)
+    {
+      ++ms2_count;
+      if (IMTypes::determineIMFormat(spec) == IMFormat::MULTIPLE_SPECTRA)
+      {
+        ++ms2_with_im;
+      }
+    }
+  }
+  TEST_TRUE(ms2_count > 0)
+  TEST_EQUAL(ms2_with_im, ms2_count) // all MS2 spectra should have drift time
+
+  // Run PeptideSearchEngineFIAlgorithm in-memory with a dummy FASTA.
+  // We use loose tolerances to maximize the chance of random matches.
+  // The key test: any PSMs produced must have IM annotation.
+  vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P00000", "Dummy1",
+     "MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEK"
+     "AVQVKVKALPDAQFEVVHSLAKWKRQQIAATGFHFIPKYFPFENRKELDKAQEH"
+     "FKQFRKDFLQKAFDNEQSSDPSVQQDIIRGMVTFVSYVDNSIAQTISIPEDLPD"},
+    {"P99999", "Dummy2",
+     "MNIFEMLRIDEGLRLKIYKDTEGYYTIGIGHLLTKSPSLNAAKSELDKAIGRNTNG"
+     "VITKDEAEKLFNQDVDAAVRGILRNAKLKPVYDSLDAVRRCALINMVFQMGETGV"
+     "AGFTNSLRMLQQKRWDEAAVNLAKSRWYNQTPNRAKRVITTFRTGTWDAYKNL"},
+  };
+
+  PeptideSearchEngineFIAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", vector<string>{"Oxidation (M)"});
+  p.setValue("decoys", "false");
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:max_size", 40);
+  p.setValue("peptide:missed_cleavages", 1);
+  algo.setParameters(p);
+
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  auto ec = algo.search(exp, fasta_db, prot_ids, pep_ids);
+
+  TEST_EQUAL(ec == PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(prot_ids.size(), 1)
+
+  // Verify IM annotation: every PSM must have IM meta value (all MS2 spectra have drift time)
+  for (const auto& pid : pep_ids)
+  {
+    TEST_EQUAL(pid.metaValueExists(Constants::UserParam::IM), true)
+    if (pid.metaValueExists(Constants::UserParam::IM))
+    {
+      double im_val = pid.getMetaValue(Constants::UserParam::IM);
+      TEST_TRUE(im_val > 0.0) // 1/K0 values are positive
+    }
+  }
+
+  // If we got any PSMs, verify IM unit on ProteinIdentification
+  if (!pep_ids.empty())
+  {
+    TEST_EQUAL(prot_ids[0].metaValueExists(Constants::UserParam::IM), true)
+    if (prot_ids[0].metaValueExists(Constants::UserParam::IM))
+    {
+      TEST_STRING_EQUAL(prot_ids[0].getMetaValue(Constants::UserParam::IM).toString(), "1/K0")
+    }
+  }
 }
 END_SECTION
 

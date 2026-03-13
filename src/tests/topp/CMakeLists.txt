@@ -2925,6 +2925,23 @@ add_test("TOPP_PeptideDataBaseSearchFI_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Pep
 set_tests_properties("TOPP_PeptideDataBaseSearchFI_2_out" PROPERTIES DEPENDS
 "TOPP_PeptideDataBaseSearchFI_2")
 
+# Bruker .d input integration tests (DDA-PASEF with IM annotation)
+if (WITH_TIMSRUST AND TIMSRUST_DDA_TEST_DATA)
+  # Create a symlink with .d suffix so FileHandler recognizes the format
+  set(TIMSRUST_DDA_SYMLINK "${CMAKE_BINARY_DIR}/test_data/DDA_HeLa.d")
+  file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test_data")
+  file(CREATE_LINK "${TIMSRUST_DDA_TEST_DATA}" "${TIMSRUST_DDA_SYMLINK}" SYMBOLIC)
+
+  add_test("TOPP_SimpleSearchEngine_DDA" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+    -in ${TIMSRUST_DDA_SYMLINK}
+    -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+    -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_out.tmp.idXML)
+
+  add_test("TOPP_PeptideDataBaseSearchFI_DDA" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+    -in ${TIMSRUST_DDA_SYMLINK}
+    -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+    -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML)
+endif()
 
 # FeatureFinderMetaboIdent:
 add_test("TOPP_FeatureFinderMetaboIdent_1" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_1_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
