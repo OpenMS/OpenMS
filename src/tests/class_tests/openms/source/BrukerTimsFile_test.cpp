@@ -277,19 +277,9 @@ START_SECTION(DDA search engine IM annotation integration test)
   FASTAFile().load(TIMSRUST_TEST_FASTA, fasta_db);
   TEST_TRUE(fasta_db.size() > 0)
 
+  // Use default parameters (identical between SSE and FI):
+  // 10 ppm precursor/fragment, Carbamidomethyl (C) fixed, Oxidation (M) variable
   PeptideSearchEngineFIAlgorithm algo;
-  Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 5.0);
-  p.setValue("precursor:mass_tolerance_unit", "ppm");
-  p.setValue("fragment:mass_tolerance", 20.0);
-  p.setValue("fragment:mass_tolerance_unit", "ppm");
-  p.setValue("modifications:fixed", vector<string>{"Carbamidomethyl (C)"});
-  p.setValue("modifications:variable", vector<string>{"Oxidation (M)"});
-  p.setValue("decoys", "false");
-  p.setValue("peptide:min_size", 7);
-  p.setValue("peptide:max_size", 40);
-  p.setValue("peptide:missed_cleavages", 1);
-  algo.setParameters(p);
 
   vector<ProteinIdentification> prot_ids;
   PeptideIdentificationList pep_ids;

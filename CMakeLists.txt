@@ -86,9 +86,15 @@ if (ENABLE_TIMSRUST_TESTS AND WITH_TIMSRUST)
     URL "${TIMSRUST_TESTDATA_URL}/DIA_HeLa_50ng_5_6min.d.zip"
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
-  FetchContent_MakeAvailable(timsrust_testdata_dda timsrust_testdata_dia)
+  FetchContent_Declare(
+    timsrust_testdata_fasta
+    URL "${TIMSRUST_TESTDATA_URL}/human_sp.fasta"
+    DOWNLOAD_NO_EXTRACT TRUE
+  )
+  FetchContent_MakeAvailable(timsrust_testdata_dda timsrust_testdata_dia timsrust_testdata_fasta)
   set(TIMSRUST_DDA_TEST_DATA "${timsrust_testdata_dda_SOURCE_DIR}" CACHE PATH "Path to DDA test .d directory")
   set(TIMSRUST_DIA_TEST_DATA "${timsrust_testdata_dia_SOURCE_DIR}" CACHE PATH "Path to DIA test .d directory")
+  set(TIMSRUST_TEST_FASTA "${timsrust_testdata_fasta_SOURCE_DIR}/human_sp.fasta" CACHE PATH "Path to human Swiss-Prot FASTA for search tests")
 endif()
 
 #------------------------------------------------------------------------------

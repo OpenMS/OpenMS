@@ -155,7 +155,7 @@ if (TARGET BrukerTimsFile_test AND TIMSRUST_DDA_TEST_DATA)
   target_compile_definitions(BrukerTimsFile_test PRIVATE
     TIMSRUST_DDA_TEST_DATA="${TIMSRUST_DDA_TEST_DATA}"
     TIMSRUST_DIA_TEST_DATA="${TIMSRUST_DIA_TEST_DATA}"
-    TIMSRUST_TEST_FASTA="${CMAKE_SOURCE_DIR}/src/tests/topp/SimpleSearchEngine_1.fasta")
+    TIMSRUST_TEST_FASTA="${TIMSRUST_TEST_FASTA}")
 endif()
 
 #------------------------------------------------------------------------------

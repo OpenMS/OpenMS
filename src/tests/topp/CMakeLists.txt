@@ -2932,32 +2932,19 @@ if (WITH_TIMSRUST AND TIMSRUST_DDA_TEST_DATA)
   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test_data")
   file(CREATE_LINK "${TIMSRUST_DDA_TEST_DATA}" "${TIMSRUST_DDA_SYMLINK}" SYMBOLIC)
 
-  # Both engines use identical search parameters for comparability
+  # Both engines use identical default parameters (10 ppm precursor/fragment,
+  # Carbamidomethyl (C) fixed, Oxidation (M) variable, 1 missed cleavage)
   add_test("TOPP_SimpleSearchEngine_DDA" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
     -in ${TIMSRUST_DDA_SYMLINK}
-    -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+    -database ${TIMSRUST_TEST_FASTA}
     -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_out.tmp.idXML
-    -Search:precursor:mass_tolerance 5
-    -Search:precursor:mass_tolerance_unit ppm
-    -Search:fragment:mass_tolerance 20
-    -Search:fragment:mass_tolerance_unit ppm
-    -Search:modifications:fixed "Carbamidomethyl (C)"
-    -Search:modifications:variable "Oxidation (M)"
-    -Search:peptide:missed_cleavages 1
-    -Search:peptide:min_size 7)
+    -threads 4)
 
   add_test("TOPP_PeptideDataBaseSearchFI_DDA" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
     -in ${TIMSRUST_DDA_SYMLINK}
-    -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+    -database ${TIMSRUST_TEST_FASTA}
     -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
-    -Search:precursor:mass_tolerance 5
-    -Search:precursor:mass_tolerance_unit ppm
-    -Search:fragment:mass_tolerance 20
-    -Search:fragment:mass_tolerance_unit ppm
-    -Search:modifications:fixed "Carbamidomethyl (C)"
-    -Search:modifications:variable "Oxidation (M)"
-    -Search:peptide:missed_cleavages 1
-    -Search:peptide:min_size 7)
+    -threads 4)
 endif()
 
 # FeatureFinderMetaboIdent:
