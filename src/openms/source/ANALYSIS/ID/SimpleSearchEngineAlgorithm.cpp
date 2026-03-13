@@ -465,7 +465,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     return multimap_mass_2_scan_index;
   }
 
-  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
+  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const String& in_spectra, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
   {
     boost::regex peptide_motif_regex(peptide_motif_);
 
@@ -484,7 +484,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");
@@ -714,7 +714,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     endProgress();
 
     // add meta data on spectra file
-    protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
+    protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
 
     // reindex peptides to proteins
     PeptideIndexing indexer;
