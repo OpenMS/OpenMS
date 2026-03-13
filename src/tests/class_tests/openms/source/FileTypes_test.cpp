@@ -130,7 +130,7 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
     std::vector<FileTypes::FileProperties> f;
     f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
-    TEST_EQUAL(g.getTypes().size(), 42);
+    TEST_EQUAL(g.getTypes().size(), 43);
     // Test that empty filter returns the full list
     TEST_EQUAL(FileTypeList::typesWithProperties({}).size(), 65);
     // Test that the full list is equal to the list of known file types

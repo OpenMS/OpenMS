@@ -35,6 +35,8 @@
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
@@ -1314,6 +1316,14 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::MZTAB:
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+          "Loading mzTab files directly into ProteinIdentification/PeptideIdentification is not supported. "
+          "Use MzTabFile::load() to obtain an MzTab object instead.");
+      }
+      break;
+
       default:
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for loading identifications");
     }   
@@ -1368,6 +1378,13 @@ namespace OpenMS
       XQuestResultXMLFile f;
       f.setLogType(log);
       f.store(filename, additional_proteins, additional_peptides);
+      }
+      break;
+
+      case FileTypes::MZTAB:
+      {
+        MzTabFile f;
+        f.store(filename, additional_proteins, additional_peptides, false);
       }
       break;
 
