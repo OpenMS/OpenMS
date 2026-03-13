@@ -270,23 +270,16 @@ START_SECTION(DDA search engine IM annotation integration test)
   TEST_TRUE(ms2_count > 0)
   TEST_EQUAL(ms2_with_im, ms2_count) // all MS2 spectra should have drift time
 
-  // Run PeptideSearchEngineFIAlgorithm in-memory with a dummy FASTA.
-  // We use loose tolerances to maximize the chance of random matches.
+  // Run PeptideSearchEngineFIAlgorithm in-memory with the same FASTA and
+  // parameters used by the TOPP-level DDA tests for SSE and FI.
   // The key test: any PSMs produced must have IM annotation.
-  vector<FASTAFile::FASTAEntry> fasta_db = {
-    {"P00000", "Dummy1",
-     "MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEK"
-     "AVQVKVKALPDAQFEVVHSLAKWKRQQIAATGFHFIPKYFPFENRKELDKAQEH"
-     "FKQFRKDFLQKAFDNEQSSDPSVQQDIIRGMVTFVSYVDNSIAQTISIPEDLPD"},
-    {"P99999", "Dummy2",
-     "MNIFEMLRIDEGLRLKIYKDTEGYYTIGIGHLLTKSPSLNAAKSELDKAIGRNTNG"
-     "VITKDEAEKLFNQDVDAAVRGILRNAKLKPVYDSLDAVRRCALINMVFQMGETGV"
-     "AGFTNSLRMLQQKRWDEAAVNLAKSRWYNQTPNRAKRVITTFRTGTWDAYKNL"},
-  };
+  vector<FASTAFile::FASTAEntry> fasta_db;
+  FASTAFile().load(TIMSRUST_TEST_FASTA, fasta_db);
+  TEST_TRUE(fasta_db.size() > 0)
 
   PeptideSearchEngineFIAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 20.0);
+  p.setValue("precursor:mass_tolerance", 5.0);
   p.setValue("precursor:mass_tolerance_unit", "ppm");
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
