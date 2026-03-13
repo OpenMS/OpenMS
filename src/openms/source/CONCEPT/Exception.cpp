@@ -262,8 +262,8 @@ namespace Exception
   {
   }
 
-  MissingFeature::MissingFeature(const char* file, int line, const char* function, const string& error_message) noexcept:
-      BaseException(file, line, function, "MissingFeature", error_message)
+  MissingDependency::MissingDependency(const char* file, int line, const char* function, const string& error_message) noexcept:
+      BaseException(file, line, function, "MissingDependency", error_message)
   {
   }
 

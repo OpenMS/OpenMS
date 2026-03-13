@@ -53,13 +53,13 @@ void MSPGenericFile::load(const String& filename, MSExperiment& library)
     else if (! File::readable(filename)) { throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename); }
     else { throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename); }
   }
-
-  std::string line;
+  const Size BUFSIZE {65536};
+  char line[BUFSIZE];
   library.clear(true);
   MSSpectrum spectrum;
   spectrum.setMetaValue("is_valid", 0); // to avoid adding invalid spectra to the library
 
-  boost::smatch m;
+  boost::cmatch m;
   boost::regex re_name("(?:^Name|^NAME): (.+)", boost::regex::no_mod_s);
   boost::regex re_retention_time("(?:^Retention Time|^RETENTIONTIME): (.+)", boost::regex::no_mod_s);
   boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
@@ -80,7 +80,7 @@ void MSPGenericFile::load(const String& filename, MSExperiment& library)
 
   while (! ifs.eof())
   {
-    std::getline(ifs, line);
+    ifs.getline(line, BUFSIZE);
     // Peaks
     if (boost::regex_search(line, m, re_points_line))
     {
@@ -89,10 +89,10 @@ void MSPGenericFile::load(const String& filename, MSExperiment& library)
       do
       {
         OPENMS_LOG_DEBUG << "{" << m[1] << "} {" << m[2] << "}; ";
-        const double position {String(m[1]).toDouble()};
-        const double intensity {String(m[2]).toDouble()};
+        const double position {std::stod(m[1])};
+        const double intensity {std::stod(m[2])};
         spectrum.push_back(Peak1D(position, intensity));
-      } while (boost::regex_search(m[0].second, line.cend(), m, re_point));
+      } while (boost::regex_search(m[0].second, m, re_point));
     }
     // Synon
     else if (boost::regex_search(line, m, re_synon))
@@ -114,13 +114,13 @@ void MSPGenericFile::load(const String& filename, MSExperiment& library)
     // Number of Peaks
     else if (boost::regex_search(line, m, re_num_peaks)) { spectrum.setMetaValue("Num Peaks", String(m[1])); }
     // Retention Time
-    else if (boost::regex_search(line, m, re_retention_time)) { spectrum.setRT(String(m[1]).toDouble()); }
+    else if (boost::regex_search(line, m, re_retention_time)) { spectrum.setRT(std::stod(m[1])); }
     // set Precursor MZ
     else if (boost::regex_search(line, m, re_precursor_mz))
     {
       std::vector<Precursor> precursors;
       Precursor p;
-      p.setMZ(String(m[1]).toDouble());
+      p.setMZ(std::stod(m[1]));
       precursors.push_back(p);
       spectrum.setPrecursors(precursors);
     }
@@ -260,7 +260,7 @@ void MSPGenericFile::addSpectrumToLibrary(MSSpectrum& spectrum, MSExperiment& li
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The current spectrum misses the Num Peaks information.");
     }
     const String& num_peaks {spectrum.getMetaValue("Num Peaks")};
-    if (spectrum.size() != (size_t)num_peaks.toInt64())
+    if (spectrum.size() != std::stoul(num_peaks))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, num_peaks,
                                   "The number of points parsed does not coincide with `Num Peaks`.");

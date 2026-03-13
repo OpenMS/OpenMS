@@ -159,16 +159,16 @@ namespace Exception
 
 
   /**
-    @brief Missing feature exception.
+    @brief Missing dependency exception.
 
-    This exception is thrown if a feature has been requested that OpenMS was not built with.
+    This exception is thrown if a feature has been requested that OpenMS was not built with (e.g., a missing optional library dependency).
 
     @ingroup Exceptions
   */
-  class OPENMS_DLLAPI MissingFeature : public BaseException
+  class OPENMS_DLLAPI MissingDependency : public BaseException
   {
   public:
-    MissingFeature(const char* file, int line, const char* function, const std::string& error_message) noexcept;
+    MissingDependency(const char* file, int line, const char* function, const std::string& error_message) noexcept;
   };
 
 
