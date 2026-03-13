@@ -277,13 +277,16 @@ START_SECTION(DDA search engine IM annotation integration test)
   FASTAFile().load(TIMSRUST_TEST_FASTA, fasta_db);
   TEST_TRUE(fasta_db.size() > 0)
 
-  // Realistic TimsTOF DDA-PASEF search parameters
+  // Typical timsTOF Pro DDA-PASEF search parameters
   PeptideSearchEngineFIAlgorithm algo;
   Param p = algo.getParameters();
-  p.setValue("precursor:mass_tolerance", 10.0);
+  p.setValue("precursor:mass_tolerance", 20.0);
   p.setValue("precursor:mass_tolerance_unit", "ppm");
   p.setValue("fragment:mass_tolerance", 20.0);
   p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("enzyme", "Trypsin/P");
+  p.setValue("peptide:missed_cleavages", 2);
+  p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)", "Acetyl (Protein N-term)"});
   algo.setParameters(p);
 
   vector<ProteinIdentification> prot_ids;
