@@ -1,4 +1,5 @@
 """XIMParquetFile addon methods for DataFrame support."""
+
 from . import addon
 
 
@@ -17,12 +18,19 @@ class _MobilogramQuery:
     def __repr__(self):
         return f"MobilogramQuery(conditions={len(self._filters)})"
 
+    @staticmethod
+    def _format_filter_value(value):
+        if isinstance(value, str):
+            escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+            return f'"{escaped}"'
+        return str(value)
+
     def _add_filter(self, column, value, op="="):
         if isinstance(value, (list, tuple)):
-            values_str = ",".join(str(v) for v in value)
+            values_str = ",".join(self._format_filter_value(v) for v in value)
             self._filters.append(f"{column} IN ({values_str})")
         else:
-            self._filters.append(f"{column}{op}{value}")
+            self._filters.append(f"{column}{op}{self._format_filter_value(value)}")
         return self
 
     def filter_precursor_id(self, value, op="="):
@@ -44,24 +52,18 @@ class _MobilogramQuery:
         return self._add_filter("product_charge", value, op)
 
     def filter_annotation(self, value, op="="):
-        if isinstance(value, str):
-            return self._add_filter("annotation", f'"{value}"', op)
         return self._add_filter("annotation", value, op)
 
     def filter_modified_sequence(self, value, op="="):
-        if isinstance(value, str):
-            return self._add_filter("modified_sequence", f'"{value}"', op)
         return self._add_filter("modified_sequence", value, op)
 
     def filter_transition_type(self, value, op="="):
-        if isinstance(value, str):
-            return self._add_filter("transition_type", f'"{value}"', op)
         return self._add_filter("transition_type", value, op)
 
     def to_dict(self, explode=False):
         """Return mobilogram data as dict."""
         filter_str = " AND ".join(self._filters) if self._filters else ""
-        return self._xim.get_data_dict(explode=explode, filter=filter_str)
+        return self._xim.get_data_dict(explode=explode, filter_expr=filter_str)
 
     def to_df(self, explode=True):
         """Return mobilogram data as a pandas DataFrame."""
@@ -79,8 +81,9 @@ class _MobilogramQuery:
 def __len__(self):
     """Return the number of files associated with this instance."""
     try:
-        return len(self.getFilenames())
-    except Exception:
+        filenames = self.getFilenames()
+        return len(filenames) if filenames is not None else 0
+    except AttributeError:
         return 0
 
 
@@ -98,9 +101,22 @@ def df_columns(self):
 
 
 @addon("XIMParquetFile")
-def get_data_dict(self, explode=False, precursor_id=-1, transition_id=-1,
-                  modified_sequence="", precursor_charge=-1, product_charge=-1,
-                  ms_level=-1, run_id=-1, mobilogram_type="", feature_id=-1, feature_rt=-1.0, filter=""):
+def get_data_dict(
+    self,
+    explode=False,
+    precursor_id=-1,
+    transition_id=-1,
+    modified_sequence="",
+    precursor_charge=-1,
+    product_charge=-1,
+    ms_level=-1,
+    run_id=-1,
+    mobilogram_type="",
+    feature_id=-1,
+    feature_rt=-1.0,
+    filter_expr="",
+    **kwargs,
+):
     """
     Return mobilogram data as a dict.
 
@@ -131,7 +147,7 @@ def get_data_dict(self, explode=False, precursor_id=-1, transition_id=-1,
         Optional feature id filter (-1 to ignore).
     feature_rt : float
         Optional feature RT filter (<0 to ignore).
-    filter : str
+    filter_expr : str
         Optional filter expression string.
 
     Returns
@@ -150,8 +166,8 @@ def get_data_dict(self, explode=False, precursor_id=-1, transition_id=-1,
         mobilogram_type=mobilogram_type,
         feature_id=feature_id,
         feature_rt=feature_rt,
-        filter=filter,
-        explode=explode
+        filter=filter_expr,
+        explode=explode,
     )
 
 
