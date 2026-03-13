@@ -2178,6 +2178,9 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
             for (const auto& c : mobilos) {
                 if (explode) {
                     if (c.mobility.empty()) continue;
+                    if (c.mobility.size() != c.intensity.size()) {
+                        throw std::runtime_error("XIMParquetFile: mobility/intensity length mismatch");
+                    }
                     for (size_t j = 0; j < c.mobility.size(); ++j) {
                         run_id_list.append(c.run_id);
                         source_file_list.append(nb::str(c.source_file.c_str()));
