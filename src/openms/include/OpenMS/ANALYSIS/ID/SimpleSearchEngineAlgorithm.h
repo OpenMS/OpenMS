@@ -113,6 +113,8 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
 
     bool decoys_;
 
+    double fdr_psm_;
+
     StringList annotate_psm_;
 
     Size peptide_min_size_;

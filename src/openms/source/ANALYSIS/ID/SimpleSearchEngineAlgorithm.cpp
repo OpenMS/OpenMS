@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
@@ -124,6 +125,11 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
+    defaults_.setValue("FDR:PSM", 0.01, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, disabled for 0).");
+    defaults_.setMinFloat("FDR:PSM", 0.0);
+    defaults_.setMaxFloat("FDR:PSM", 1.0);
+    defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
+
     defaultsToParam_();
   }
 
@@ -170,6 +176,7 @@ namespace OpenMS
 
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
+    fdr_psm_ = param_.getValue("FDR:PSM");
   }
 
   // static
@@ -743,11 +750,25 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       {
         return ExitCodes::UNKNOWN_ERROR;
       }
-    } 
+    }
+
+    // PSM-level FDR filtering (requires decoys)
+    if (fdr_psm_ > 0.0 && decoys_)
+    {
+      FalseDiscoveryRate fdr;
+      fdr.apply(peptide_ids);
+      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+    }
+    else if (fdr_psm_ > 0.0 && !decoys_)
+    {
+      OPENMS_LOG_WARN << "FDR:PSM is set but decoys are disabled. Skipping FDR filtering." << endl;
+    }
 
 #ifdef _OPENMP
     // free locks
-    for (size_t i = 0; i != annotated_hits_lock.size(); i++) 
+    for (size_t i = 0; i != annotated_hits_lock.size(); i++)
     {
       omp_destroy_lock(&(annotated_hits_lock[i]));
     }
