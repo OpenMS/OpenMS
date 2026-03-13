@@ -716,7 +716,7 @@ if (!pi.getHits().empty())
   // File-based search: thin I/O wrapper that delegates to in-memory search
   // =====================================================================
   PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(
-      const String& in_mzML, const String& in_db,
+      const String& in_spectra, const String& in_db,
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
@@ -727,7 +727,7 @@ if (!pi.getHits().empty())
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
     spectra.sortSpectra(true);
 
     // load FASTA
@@ -744,7 +744,7 @@ if (!pi.getHits().empty())
 
     // patch file-specific metadata
     protein_ids[0].getSearchParameters().db = in_db;
-    protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
+    protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -802,7 +802,7 @@ if (!pi.getHits().empty())
   // File-based searchWithModificationAnalysis: delegates to in-memory version
   // =====================================================================
   PeptideSearchEngineFIAlgorithm::SearchResult
-  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(const String& in_mzML,
+  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(const String& in_spectra,
                                                                   const String& in_db,
                                                                   const String& output_base_name) const
   {
@@ -813,7 +813,7 @@ if (!pi.getHits().empty())
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF});
     spectra.sortSpectra(true);
 
     // load FASTA
@@ -826,7 +826,7 @@ if (!pi.getHits().empty())
     if (result.exit_code == ExitCodes::EXECUTION_OK && !result.protein_ids.empty())
     {
       result.protein_ids[0].getSearchParameters().db = in_db;
-      result.protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
+      result.protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
     }
 
     return result;

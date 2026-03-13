@@ -77,7 +77,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * Populates protein and peptide identifications, including search meta data, PSM hits,
      * and search engine annotations. Parameters are taken from this instance (DefaultParamHandler).
      *
-     * @param[in] in_mzML Input path to the mzML file containing MS/MS spectra to search.
+     * @param[in] in_spectra Input path to the spectra file (mzML or Bruker .d) containing MS/MS spectra to search.
      * @param[in] in_db   Input path to the protein sequence database in FASTA format.
      * @param[out] prot_ids Output container receiving search meta data and protein-level information.
      * @param[out] pep_ids  Output container receiving spectrum-level peptide identifications (PSMs).
@@ -92,7 +92,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      *  - May signal invalid parameters via ILLEGAL_PARAMETERS exit code.
      *  - May propagate OpenMS exceptions (e.g., I/O or parse errors) from underlying components.
      */
-    ExitCodes search(const String& in_mzML,
+    ExitCodes search(const String& in_spectra,
       const String& in_db,
       std::vector<ProteinIdentification>& prot_ids,
       PeptideIdentificationList& pep_ids) const;
@@ -111,7 +111,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * - Generates PTM statistics with residue localization
      * - Writes TSV output files if output_base_name is provided
      *
-     * @param in_mzML Input path to the mzML file containing MS/MS spectra
+     * @param in_spectra Input path to the spectra file (mzML or Bruker .d) containing MS/MS spectra
      * @param in_db Input path to the protein sequence database in FASTA format
      * @param output_base_name Optional base name for output files (TSV tables)
      * @return SearchResult containing identifications and modification analysis
@@ -141,7 +141,7 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
      * }
      * @endcode
      */
-    SearchResult searchWithModificationAnalysis(const String& in_mzML,
+    SearchResult searchWithModificationAnalysis(const String& in_spectra,
                                                 const String& in_db,
                                                 const String& output_base_name = "") const;
 
