@@ -28,7 +28,7 @@ def _get_xim():
     import pyopenms as poms
 
     # Check if XIMParquetFile class exists (may be excluded when WITH_PARQUET=False)
-    if not hasattr(poms, 'XIMParquetFile'):
+    if not hasattr(poms, "XIMParquetFile"):
         pytest.skip("pyopenms built without parquet support")
 
     try:
@@ -91,9 +91,16 @@ def test_xim_to_df_summary_and_exploded():
 def test_xim_query_builder_summary_and_exploded():
     xim = _get_xim()
     analytes = xim.get_analyte_dict(columns=["PRECURSOR_ID"], nest_transitions=False)
-    precursor_id = analytes["precursor_id"][0]
-    df_summary = xim.query_mobilograms().filter_precursor_id(precursor_id).to_df(explode=False)
-    df_exploded = xim.query_mobilograms().filter_precursor_id(precursor_id).to_df(explode=True)
+    precursor_id = next(
+        (pid for pid in analytes["precursor_id"] if pid is not None), None
+    )
+    assert precursor_id is not None
+    df_summary = (
+        xim.query_mobilograms().filter_precursor_id(precursor_id).to_df(explode=False)
+    )
+    df_exploded = (
+        xim.query_mobilograms().filter_precursor_id(precursor_id).to_df(explode=True)
+    )
     assert len(df_summary) > 0
     assert len(df_exploded) >= len(df_summary)
     assert hasattr(df_summary.iloc[0]["mobility"], "__iter__")
@@ -105,6 +112,9 @@ def test_xim_query_builder_summary_and_exploded():
 def test_xim_query_builder():
     xim = _get_xim()
     analytes = xim.get_analyte_dict(columns=["PRECURSOR_ID"], nest_transitions=False)
-    precursor_id = analytes["precursor_id"][0]
+    precursor_id = next(
+        (pid for pid in analytes["precursor_id"] if pid is not None), None
+    )
+    assert precursor_id is not None
     df = xim.query_mobilograms().filter_precursor_id(precursor_id).to_df(explode=False)
     assert len(df) > 0
