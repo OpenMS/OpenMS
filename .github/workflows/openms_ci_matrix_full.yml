@@ -296,9 +296,11 @@ jobs:
                 cmake \
                 doxygen.portable \
                 eigen \
-                ghostscript \
                 graphviz \
                 ninja
+          # Fix Ghostscript: Install separately so a failure here doesn't break the whole step.
+          choco install -y --no-progress --ignore-package-exit-codes ghostscript || \
+            echo "WARNING: Ghostscript install failed (known flaky) - docs PDF generation may be unavailable"
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
