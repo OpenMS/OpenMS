@@ -18,6 +18,9 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <filesystem>
 #include <fstream>
@@ -309,6 +312,38 @@ TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
 TEST_EXCEPTION(Exception::InvalidFileType, fh.storeExperiment(filename, exp, {FileTypes::SIZE_OF_TYPE}))
 
 //other types cannot be tested, because the NEW_TMP_FILE template does not support file extensions...
+END_SECTION
+
+START_SECTION((void loadIdentifications(const String& filename, vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, ...) -- MZTAB throws ParseError))
+{
+  FileHandler fh;
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  // Loading mzTab into ProteinIdentification/PeptideIdentification is not supported;
+  // FileHandler must throw ParseError directing the user to MzTabFile::load().
+  TEST_EXCEPTION(Exception::ParseError,
+    fh.loadIdentifications(OPENMS_GET_TEST_DATA_PATH("MzTabFile_labelfree.mzTab"), proteins, peptides));
+}
+END_SECTION
+
+START_SECTION((void storeIdentifications(const String& filename, const vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides, ...) -- MZTAB round-trip))
+{
+  FileHandler fh;
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  // Load some IDs from a clean idXML to have real data
+  fh.loadIdentifications(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), proteins, peptides);
+  TEST_EQUAL(proteins.empty(), false);
+
+  // Store as mzTab
+  String out_file;
+  NEW_TMP_FILE_EXT(out_file, ".mzTab");
+  fh.storeIdentifications(out_file, proteins, peptides);
+
+  // File must exist and start with the mandatory mzTab MTD header
+  TEST_EQUAL(File::exists(out_file), true);
+  TEST_EQUAL(FileHandler::getTypeByFileName(out_file), FileTypes::MZTAB);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
