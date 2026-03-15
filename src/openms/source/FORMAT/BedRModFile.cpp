@@ -69,7 +69,9 @@ namespace OpenMS
     {
       try
       {
-        result = value.trim().toInt();
+        String tmp = value;
+        tmp.trim();
+        result = tmp.toInt();
       }
       catch (Exception::ConversionError&)
       {
@@ -88,13 +90,14 @@ namespace OpenMS
 
       String full_path = File::find(chebi_mapping_file);
       TextFile input(full_path, true, -1, true, "");
-      if (input.empty())
+      StringList lines(input.begin(), input.end());
+      if (lines.empty())
       {
         return mapping;
       }
 
       StringList header;
-      if (!input[0].split(',', header, true))
+      if (!lines[0].split(',', header, true))
       {
         return mapping;
       }
@@ -122,14 +125,14 @@ namespace OpenMS
         return mapping;
       }
 
-      for (Size row = 1; row < input.size(); ++row)
+      for (Size row = 1; row < lines.size(); ++row)
       {
-        if (input[row].trim().empty())
+        if (lines[row].trim().empty())
         {
           continue;
         }
         StringList values;
-        input[row].split(',', values, true);
+        lines[row].split(',', values, true);
         if ((mod_col >= values.size()) || (chebi_col >= values.size()))
         {
           continue;
@@ -212,7 +215,7 @@ namespace OpenMS
 
     for (const IdentificationData::ObservationMatch& match : id_data.getObservationMatches())
     {
-      if (match.identified_molecule_var.getMoleculeType() != IdentificationData::RNA)
+      if (match.identified_molecule_var.getMoleculeType() != IdentificationData::MoleculeType::RNA)
       {
         continue;
       }
