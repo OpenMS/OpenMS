@@ -19,6 +19,7 @@ set(sources_list_h
 AbsoluteQuantitationMethodFile.h
 AbsoluteQuantitationStandardsFile.h
 Base64.h
+BedRModFile.h
 Bzip2Ifstream.h
 Bzip2InputStream.h
 CachedMzML.h

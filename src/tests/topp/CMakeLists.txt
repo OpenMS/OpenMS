@@ -3304,12 +3304,14 @@ set_tests_properties("TOPP_ProteomicsLFQ_9_out_4" PROPERTIES DEPENDS "TOPP_Prote
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
-add_test("TOPP_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_11_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_12_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_13_out.tmp.oms -digest_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.oms -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
+add_test("TOPP_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_11_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_12_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_13_out.tmp.oms -bedrmod_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_14_out.tmp.bed -digest_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.oms -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
 add_test("TOPP_NucleicAcidSearchEngine_11_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_11_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 add_test("TOPP_NucleicAcidSearchEngine_12_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_12_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
+add_test("TOPP_NucleicAcidSearchEngine_14_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_14_out.tmp.bed -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_14_out.bed)
 # don't compare binary .oms (SQLite) output file (NucleicAcidSearchEngine_13_out.tmp.oms)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_11_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_14_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
 # use pre-digested sequence data:
 add_test("TOPP_NucleicAcidSearchEngine_2" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_21_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_22_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_23_out.tmp.oms -digest ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.oms)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_2" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
