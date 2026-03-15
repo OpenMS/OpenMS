@@ -22,7 +22,7 @@ namespace OpenMS
 
   namespace
   {
-    // Helper 1: Charge compatibility check (Simplified per maintainer review)
+    // Helper 1: Charge compatibility check
     bool isChargeCompatible(const ConsensusFeature& a, const ConsensusFeature& b, Int& effective_charge)
     {
       const Int& charge_1 = a.getCharge();
