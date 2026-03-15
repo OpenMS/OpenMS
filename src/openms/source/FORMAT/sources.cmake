@@ -6,6 +6,7 @@ set(sources_list
 AbsoluteQuantitationMethodFile.cpp
 AbsoluteQuantitationStandardsFile.cpp
 Base64.cpp
+BedRModFile.cpp
 Bzip2Ifstream.cpp
 Bzip2InputStream.cpp
 CachedMzML.cpp

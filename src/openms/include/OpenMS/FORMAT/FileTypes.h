@@ -58,6 +58,7 @@ namespace OpenMS
       XMASS,              ///< XMass Analysis file (fid)
       TSV,                ///< any TSV file, for example msInspect file or OpenSWATH transition file (see TransitionTSVFile)
       MZTAB,              ///< mzTab file (.mzTab)
+      BEDRMOD,            ///< bedRMod file (.bed)
       PEPLIST,            ///< specArray file (.peplist)
       HARDKLOER,          ///< hardkloer file (.hardkloer)
       KROENIK,            ///< kroenik file (.kroenik)

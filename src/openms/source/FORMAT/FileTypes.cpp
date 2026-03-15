@@ -71,6 +71,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XMASS, "fid", "XMass analysis file", {PROP::PROVIDES_EXPERIMENT, PROP::PROVIDES_SPECTRUM, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::TSV, "tsv", "tab-separated file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::MZTAB, "mzTab", "mzTab file", {}), //TODO add filehandler support for MZTAB
+    TypeNameBinding(FileTypes::BEDRMOD, "bed", "bedRMod file", {}), //TODO add filehandler support for BEDRMOD
     TypeNameBinding(FileTypes::PEPLIST, "peplist", "SpecArray file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::HARDKLOER, "hardkloer", "hardkloer file", {}),
     TypeNameBinding(FileTypes::KROENIK, "kroenik", "kroenik file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
