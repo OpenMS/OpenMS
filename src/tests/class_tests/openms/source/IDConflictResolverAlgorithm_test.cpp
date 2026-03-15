@@ -115,10 +115,12 @@ START_SECTION(resolveAllHitRankAggregation())
   //   ID2 (higher_score_better=true): SEQ_B score=0.8 (rank 0), SEQ_A score=0.7 (rank 1), SEQ_C score=0.2 (rank 2)
   //   ID3 (higher_score_better=true): SEQ_A score=0.6 (rank 0), SEQ_B score=0.4 (rank 1)
   //
+  // max_hits = 3, n_runs = 3
+  //
   // Rank sums (rank 0-based):
-  //   SEQ_A: 0 + 1 + 0 = 1  (found in 3/3 runs, penalty=0)  -> score = 1 - 1/(2*3) = 1 - 1/6 = 5/6 ≈ 0.833
-  //   SEQ_B: 1 + 0 + 1 = 2  (found in 3/3 runs, penalty=0)  -> score = 1 - 2/(2*3) = 1 - 2/6 = 4/6 ≈ 0.667
-  //   SEQ_C: 2 + 2 = 4  (found in 2/3 runs, penalty=1*2=2)  -> score = 1 - (4+2)/(2*3) = 1 - 1 = 0.0
+  //   SEQ_A: 0 + 1 + 0 = 1  (found in 3/3 runs, penalty=0)  -> score = 1 - 1/(3*3) = 8/9 ≈ 0.889
+  //   SEQ_B: 1 + 0 + 1 = 2  (found in 3/3 runs, penalty=0)  -> score = 1 - 2/(3*3) = 7/9 ≈ 0.778
+  //   SEQ_C: 2 + 2 = 4  (found in 2/3 runs, penalty=1*3=3)  -> score = 1 - (4+3)/(3*3) = 1 - 7/9 ≈ 0.222
   //
   // SEQ_A has the best aggregate score, so it should be selected.
   // Best original score for SEQ_A is 0.9 from ID1, so ID1 is kept.
