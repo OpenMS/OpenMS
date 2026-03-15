@@ -1,0 +1,14 @@
+#fileformat=bedRModv2
+#organism=9606
+#modification_type=RNA
+#modification_names=0:Um:N
+#assembly=GRCh38
+#annotation_source=gtrnadb
+#annotation_version=2.0
+#sequencing_platform=ddMS2
+#basecalling=NASE
+#bioinformatics_workflow=NA
+#experiment=NA
+#external_source=NA
+#chrom chromStart chromEnd name score strand thickStart thickEnd itemRgb coverage frequency
+dme-let-7-5p-methyl	20	21	0	201	+	20	21	0,0,0	394060576	100

@@ -29,6 +29,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/FORMAT/BedRModFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
 // digestion enzymes
@@ -163,6 +164,12 @@ protected:
 
     registerOutputFile_("lfq_out", "<file>", "", "Output file: targets for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
     setValidFormats_("lfq_out", vector<std::string>(1, "tsv"));
+
+    registerOutputFile_("bedrmod_out", "<file>", "", "Output file: bedRMod v2 (BED-style RNA modification track)", false);
+    setValidFormats_("bedrmod_out", {"bed"});
+
+    registerInputFile_("bedrmod_chebi_mapping", "<file>", "", "Optional CSV mapping file for bedRMod export ('mod'/'name' and 'chebi_id'/'chebi id' columns)", false, true);
+    setValidFormats_("bedrmod_chebi_mapping", {"csv"});
 
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
     setValidFormats_("theo_ms2_out", ListUtils::create<std::string>("mzML"));
@@ -896,6 +903,8 @@ protected:
     std::string id_out = getStringOption_("id_out");
     std::string db_out = getStringOption_("db_out");
     std::string lfq_out = getStringOption_("lfq_out");
+    std::string bedrmod_out = getStringOption_("bedrmod_out");
+    std::string bedrmod_chebi_mapping = getStringOption_("bedrmod_chebi_mapping");
     std::string theo_ms2_out = getStringOption_("theo_ms2_out");
     std::string exp_ms2_out = getStringOption_("exp_ms2_out");
     bool use_avg_mass = getFlag_("precursor:use_avg_mass");
@@ -1433,6 +1442,11 @@ protected:
     if (!lfq_out.empty())
     {
       generateLFQInput_(id_data, lfq_out);
+    }
+
+    if (!bedrmod_out.empty())
+    {
+      BedRModFile().store(bedrmod_out, id_data, bedrmod_chebi_mapping);
     }
 
     return EXECUTION_OK;

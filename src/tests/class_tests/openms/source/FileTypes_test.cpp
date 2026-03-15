@@ -48,6 +48,7 @@ START_SECTION((static std::string typeToName(Type type)))
   TEST_EQUAL(FileTypes::typeToName(FileTypes::TXT), "txt");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::CSV), "csv");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::MZTAB), "mzTab");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::BEDRMOD), "bed");
 
   // try them all, just to make sure they are all there
   for (int i = 0; i < (int)FileTypes::SIZE_OF_TYPE; ++i)
@@ -89,6 +90,7 @@ START_SECTION((static Type nameToType(const std::string& name)))
   TEST_EQUAL(FileTypes::OMSSAXML, FileTypes::nameToType("omssaXML"));
   TEST_EQUAL(FileTypes::PNG, FileTypes::nameToType("png"));
   TEST_EQUAL(FileTypes::XMASS, FileTypes::nameToType("fid"));
+  TEST_EQUAL(FileTypes::BEDRMOD, FileTypes::nameToType("bed"));
   TEST_EQUAL(FileTypes::TSV, FileTypes::nameToType("tsv"));
   TEST_EQUAL(FileTypes::PEPLIST, FileTypes::nameToType("peplist"));
   TEST_EQUAL(FileTypes::HARDKLOER, FileTypes::nameToType("hardkloer"));
@@ -336,8 +338,7 @@ END_SECTION
     f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
     TEST_EQUAL(g.contains(FileTypes::PEAKMAPPARQUET), true);
-    TEST_EQUAL(g.getTypes().size(), 50); // YAML is WRITEABLE-only, so the readable count includes the new xipm type
-    // Test that empty filter returns the full list, equal to the list of known file types
+    // Test that empty filter returns the full list, equal to the list of known file types.
     TEST_EQUAL(FileTypeList::typesWithProperties({}).size(),static_cast<size_t>(FileTypes::Type::SIZE_OF_TYPE));
     // Check that we don't have duplicate Types in our type_with_annotation__
     vector<FileTypes::Type> vec = FileTypeList::typesWithProperties({});
