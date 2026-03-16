@@ -85,6 +85,13 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[3].toString(), "[m1G][m7G][Gm]A");
   out.clear();
 
+  // RNase T1 should not cut after m22G:
+  rd.digest(NASequence::fromString("G[m2,2G]A"), out);
+  TEST_EQUAL(out.size(), 2);
+  TEST_STRING_EQUAL(out[0].toString(), "Gp");
+  TEST_STRING_EQUAL(out[1].toString(), "[m2,2G]A");
+  out.clear();
+
   rd.setMissedCleavages(2);
   rd.digest(NASequence::fromString("pAUGUCGCAG"), out);
   TEST_EQUAL(out.size(), 6);
@@ -195,6 +202,29 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
   TEST_EQUAL(match_it->start_pos, 0);
   ++match_it;
   TEST_EQUAL(match_it->start_pos, 4);
+
+  // cleavage behavior with m2,2G should match sequence-level digest:
+  IdentificationData id_data3;
+  rna.sequence = "G[m2,2G]A";
+  id_data3.registerParentSequence(rna);
+  rd.digest(id_data3);
+  TEST_EQUAL(id_data3.getIdentifiedOligos().size(), 2);
+}
+END_SECTION
+
+START_SECTION((std::vector<std::pair<Size, Size>> getFragmentPositions(const NASequence& rna, Size min_length = 0, Size max_length = 0) const))
+{
+  RNaseDigestion rd;
+  rd.setEnzyme("RNase_T1");
+
+  vector<pair<Size, Size>> pos =
+    rd.getFragmentPositions(NASequence::fromString("G[m2,2G]A"));
+  TEST_EQUAL(pos.size(), 2);
+  ABORT_IF(pos.size() < 2);
+  TEST_EQUAL(pos[0].first, 0);
+  TEST_EQUAL(pos[0].second, 1);
+  TEST_EQUAL(pos[1].first, 1);
+  TEST_EQUAL(pos[1].second, 2);
 }
 END_SECTION
 

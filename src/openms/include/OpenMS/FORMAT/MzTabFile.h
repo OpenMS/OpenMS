@@ -137,7 +137,10 @@ namespace OpenMS
       {
         size_t n_section_columns = 0;
         output.push_back(generateMzTabSectionRow_(row, optional_columns, meta, n_section_columns));
-        if (n_header_columns != n_section_columns)  throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header and content differs in columns. Please report this bug to the OpenMS developers.");
+        if (n_header_columns != n_section_columns)
+        {
+          throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header and content differs in columns. Please report this bug to the OpenMS developers.");
+        }
       }
     }
 

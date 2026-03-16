@@ -40,6 +40,14 @@ namespace OpenMS
     void digest(const NASequence& rna, std::vector<NASequence>& output,
                 Size min_length = 0, Size max_length = 0) const;
 
+      /**
+         @brief Returns the positions of digestion products in the RNA as pairs: (start, length)
+
+         This is useful when callers need to associate digested fragments with parent coordinates.
+      */
+      std::vector<std::pair<Size, Size>> getFragmentPositions(
+         const NASequence& rna, Size min_length = 0, Size max_length = 0) const;
+
     /**
        @brief Performs the enzymatic digestion of all RNA parent sequences in @p IdentificationData
 
@@ -57,7 +65,7 @@ namespace OpenMS
 
     /**
        @brief Returns the positions of digestion products in the RNA as pairs: (start, length)
-     */
+    */
     std::vector<std::pair<Size, Size>> getFragmentPositions_(
       const NASequence& rna, Size min_length, Size max_length)
       const;

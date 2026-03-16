@@ -15,6 +15,7 @@
 ///////////////////////////
 
 #include <string>
+#include <set>
 
 using namespace OpenMS;
 using namespace std;
@@ -89,6 +90,29 @@ START_SECTION(static void applyVariableModifications(const std::set<ConstRibonuc
 
   ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 7, ams, true);
   TEST_EQUAL(ams.size(), 3*3*3*2*2*2*2); // 3^3 combinations for U times 2^4 for A
+
+  // if a residue is already modified, it must not be changed again;
+  // this is relevant for NASE where pre-digest (cleavage-sensitive) mods
+  // consume part of the variable-mod budget.
+  ams.clear();
+  var_mods.clear();
+  var_mods.insert(db->getRibonucleotide("m3U"));
+  var_mods.insert(db->getRibonucleotide("s4U"));
+  sequence = NASequence::fromString("A[m2,2G]UA");
+
+  ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 0, ams, true);
+  TEST_EQUAL(ams.size(), 1);
+  TEST_STRING_EQUAL(ams[0].toString(), sequence.toString());
+
+  ams.clear();
+  ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 1, ams, true);
+  // original + two one-site U modifications at the unmodified U position
+  TEST_EQUAL(ams.size(), 3);
+  set<String> seqs;
+  for (const NASequence& s : ams) seqs.insert(s.toString());
+  TEST_EQUAL(seqs.count(sequence.toString()), 1);
+  TEST_EQUAL(seqs.count(NASequence::fromString("A[m2,2G][m3U]A").toString()), 1);
+  TEST_EQUAL(seqs.count(NASequence::fromString("A[m2,2G][s4U]A").toString()), 1);
 }
 END_SECTION
 
