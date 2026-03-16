@@ -188,7 +188,8 @@ protected:
     String out_quant_file = getStringOption_("out_quant");
 
     bool write_detail = getFlag_("write_detail");
-    int mzml_charge = getIntOption_("mzml_mass_charge");
+    // The charge state CV param (MS:1000041) for mzML expects a positive number 
+    int mzml_charge = abs(getIntOption_("mzml_mass_charge"));
     double min_mz = getDoubleOption_("min_mz");
     double max_mz = getDoubleOption_("max_mz");
     double min_rt = getDoubleOption_("min_rt") * 60.0;
