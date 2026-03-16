@@ -23,6 +23,9 @@
 #include <fstream>
 #include <OpenMS/ANALYSIS/DECHARGING/ChargeLadder.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #endif
 
 using namespace std;
@@ -66,12 +69,12 @@ namespace OpenMS
     // Comparator
     bool operator<(const CmpInfo_& other) const
     {
-      if (s_comp < other.s_comp) return true; else return false;
+      return s_comp < other.s_comp;
     }
 
     bool operator==(const CmpInfo_& other) const
     {
-      if (s_comp == other.s_comp) return true; else return false;
+      return s_comp == other.s_comp;
     }
 
   };

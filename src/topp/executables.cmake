@@ -156,7 +156,7 @@ endif(NOT DISABLE_OPENSWATH)
 if(WITH_PARQUET)
   set(TOPP_executables
     ${TOPP_executables}
-    QuantmsIOConverter
+    QPXConverter
   )
 endif(WITH_PARQUET)
 

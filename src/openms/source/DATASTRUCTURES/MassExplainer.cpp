@@ -12,7 +12,9 @@
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <cmath>
 #include <iostream>
+#include <limits>
 #include <utility>
 
 #undef DEBUG_FD
@@ -121,6 +123,7 @@ namespace OpenMS
     q_max_ = rhs.q_max_;
     max_span_ = rhs.max_span_;
     thresh_p_ = rhs.thresh_p_;
+    max_neutrals_ = rhs.max_neutrals_;
 
     return *this;
   }
@@ -132,7 +135,7 @@ namespace OpenMS
 
 
   /// fill map with possible mass-differences along with their explanation
-  void MassExplainer::compute()
+  void MassExplainer::compute(bool include_identity)
   {
     // differentiate between neutral and charged adducts
     AdductsType adduct_neutral, adduct_charged;
@@ -217,11 +220,44 @@ namespace OpenMS
     }
     explanations_.swap(valids_only);
 
+    // Add same-adduct compomers (same adduct type on both LEFT and RIGHT sides
+    // with potentially different amounts). These are needed for multimer detection:
+    //   Ai_LEFT / Aj_RIGHT covers pairs like [nM+iA]^(i*z) <-> [mM+jA]^(j*z).
+    // The original identity case (i==j, net_charge=0) handles same-charge multimers
+    // e.g. [M+H]+ <-> [2M+H]+. The i!=j cases handle charge-changing multimers
+    // e.g. [M+H]+ <-> [2M+2H]2+ (needs H1_LEFT / H2_RIGHT).
+    // Gated by include_identity to avoid changing behavior for non-multimer workflows.
+    // Placed before the neutral adduct loop so these also combine with neutral modifications.
+    if (include_identity)
+    {
+      for (const auto& adduct : adduct_charged)
+      {
+        Int max_amount = max_pq / std::abs(adduct.getCharge());
+        for (Int i = 1; i <= max_amount; ++i)
+        {
+          for (Int j = 1; j <= max_amount; ++j)
+          {
+            Compomer cmpi;
+            Adduct left_a(adduct);
+            left_a.setAmount(i);
+            Adduct right_a(adduct);
+            right_a.setAmount(j);
+            cmpi.add(left_a, Compomer::LEFT);
+            cmpi.add(right_a, Compomer::RIGHT);
+            if (compomerValid_(cmpi))
+            {
+              explanations_.push_back(cmpi);
+            }
+          }
+        }
+      }
+    }
+
     // add neutral adducts
     Size size_of_explanations = explanations_.size();
     for (AdductsType::const_iterator it_neutral = adduct_neutral.begin(); it_neutral != adduct_neutral.end(); ++it_neutral)
     {
-      std::cout << "Adding neutral: " << *it_neutral << "\n";
+      OPENMS_LOG_DEBUG << "Adding neutral: " << *it_neutral << "\n";
       for (Int n = 1; n <= (SignedSize)max_neutrals_; ++n)
       {
         // neutral itself:
@@ -267,7 +303,7 @@ namespace OpenMS
     }
     #endif
 
-    std::cout << "MassExplainer table size: " << explanations_.size() << "\n";
+    OPENMS_LOG_DEBUG << "MassExplainer table size: " << explanations_.size() << "\n";
 
   }
 
@@ -323,6 +359,49 @@ namespace OpenMS
     lastExplanation  = lower_bound(explanations_.begin(), explanations_.end(), cmp_high);
 
     return std::distance(firstExplanation, lastExplanation);
+  }
+
+  SignedSize MassExplainer::queryMultimer(const Int net_charge,
+                                          const double m1,
+                                          const double m2,
+                                          const Int n1,
+                                          const Int n2,
+                                          const double tolerance,
+                                          const float thresh_log_p,
+                                          std::vector<CompomerIterator>& hits) const
+  {
+    hits.clear();
+
+    // Find the net_charge group using binary search on the sorted explanations_
+    Compomer cmp_low(net_charge, -std::numeric_limits<double>::max(), 1);
+    auto group_begin = std::lower_bound(explanations_.begin(), explanations_.end(), cmp_low);
+
+    Compomer cmp_high(net_charge + 1, -std::numeric_limits<double>::max(), 1);
+    auto group_end = std::lower_bound(explanations_.begin(), explanations_.end(), cmp_high);
+
+    // The observed value: n2*m1 - n1*m2
+    double observed = static_cast<double>(n2) * m1 - static_cast<double>(n1) * m2;
+
+    // Linear scan within net_charge group
+    for (auto it = group_begin; it != group_end; ++it)
+    {
+      if (it->getLogP() < thresh_log_p)
+      {
+        continue;
+      }
+
+      // Compute expected: n2*left_mass - n1*right_mass
+      double left_mass = it->getSideMass(Compomer::LEFT);
+      double right_mass = it->getSideMass(Compomer::RIGHT);
+      double expected = static_cast<double>(n2) * left_mass - static_cast<double>(n1) * right_mass;
+
+      if (fabs(observed - expected) <= tolerance)
+      {
+        hits.push_back(it);
+      }
+    }
+
+    return static_cast<SignedSize>(hits.size());
   }
 
   ///check if the generated compomer is valid judged by its probability, charges etc

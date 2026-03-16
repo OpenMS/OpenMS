@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
@@ -19,9 +19,11 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <functional>
 #include <set>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -56,51 +58,14 @@ public:
     /// Hit type definition
     typedef ProteinHit HitType;
 
-    /// two way mapping from ms-run-path to protID|pepID-identifier
-    struct Mapping
-    {
-      std::map<String, StringList> identifier_to_msrunpath;
-      std::map<StringList, String> runpath_to_identifier;
+    /**
+      @brief Type alias for IdentifierMSRunMapper for backwards compatibility.
 
-      Mapping() = default;
+      See IdentifierMSRunMapper for the full documentation.
 
-      explicit Mapping(const std::vector<ProteinIdentification>& prot_ids)
-      {
-        create(prot_ids);
-      }
-
-      void create(const std::vector<ProteinIdentification>& prot_ids)
-      {
-        identifier_to_msrunpath.clear();
-        runpath_to_identifier.clear();
-        StringList filenames;
-        for (const ProteinIdentification& prot_id : prot_ids)
-        {
-          prot_id.getPrimaryMSRunPath(filenames);
-          if (filenames.empty())
-          {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated in ProteinIdentification.");
-          }
-          identifier_to_msrunpath[prot_id.getIdentifier()] = filenames;
-          const auto& it = runpath_to_identifier.find(filenames);
-          if (it != runpath_to_identifier.end())
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Multiple protein identifications with the same ms-run-path in Consensus/FeatureXML. Check input!\n",
-                                          ListUtils::concatenate(filenames, ","));
-          }
-          runpath_to_identifier[filenames] = prot_id.getIdentifier();
-        }
-      }
-
-      String getPrimaryMSRunPath(const PeptideIdentification& pepid) const
-      { 
-        // if a merge index n is annotated, we use the filename annotated at index n in the protein identification, otherwise the one at index 0        
-        size_t merge_index = pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX, 0);
-        const auto& filenames = identifier_to_msrunpath.at(pepid.getIdentifier());        
-        return (merge_index < filenames.size()) ?  filenames[merge_index] : ""; // return filename or empty string if missing
-      }
-    };
+      @see IdentifierMSRunMapper
+    */
+    using Mapping = IdentifierMSRunMapper;
 
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
@@ -182,45 +147,75 @@ public:
       void setIntegerDataArrays(const IntegerDataArrays& ida);
 
       /// Returns a mutable reference to the first integer meta data array with the given name
-      inline IntegerDataArray& getIntegerDataArrayByName(String name)
+      inline IntegerDataArray& getIntegerDataArrayByName(const String& name)
       {
-        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+        auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+        if (it == integer_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IntegerDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a mutable reference to the first string meta data array with the given name
-      inline StringDataArray& getStringDataArrayByName(String name)
+      inline StringDataArray& getStringDataArrayByName(const String& name)
       {
-        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+        auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
           [&name](const StringDataArray& da) { return da.getName() == name; } );
+        if (it == string_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("StringDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a mutable reference to the first float meta data array with the given name
-      inline FloatDataArray& getFloatDataArrayByName(String name)
+      inline FloatDataArray& getFloatDataArrayByName(const String& name)
       {
-        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+        auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
+        if (it == float_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("FloatDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a const reference to the first integer meta data array with the given name
-      inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
+      inline const IntegerDataArray& getIntegerDataArrayByName(const String& name) const
       {
-        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+        auto it = std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+        if (it == integer_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IntegerDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a const reference to the first string meta data array with the given name
-      inline const StringDataArray& getStringDataArrayByName(String name) const
+      inline const StringDataArray& getStringDataArrayByName(const String& name) const
       {
-        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+        auto it = std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
           [&name](const StringDataArray& da) { return da.getName() == name; } );
+        if (it == string_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("StringDataArray: ") + name);
+        }
+        return *it;
       }
 
       /// Returns a const reference to the first float meta data array with the given name
-      inline const FloatDataArray& getFloatDataArrayByName(String name) const
+      inline const FloatDataArray& getFloatDataArrayByName(const String& name) const
       {
-        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+        auto it = std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
+        if (it == float_data_arrays_.end())
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("FloatDataArray: ") + name);
+        }
+        return *it;
       }
 
     private:

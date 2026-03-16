@@ -1708,7 +1708,7 @@ namespace OpenMS::Internal
             chromatogram_.getPrecursor().getPossibleChargeStates().push_back(value.toInt());
           }
         }
-        else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581") //ion mobility drift time or FAIM compensation voltage
+        else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581" || accession == "MS:1002954") //ion mobility drift time, FAIMS CV, or CCS
         {
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) or of the spectrum itself.
@@ -1720,7 +1720,7 @@ namespace OpenMS::Internal
           // In most cases, there is a single precursor with a single drift
           // time.
           //
-          // Note that only milliseconds and VSSC are valid units
+          // Note that milliseconds, VSSC, FAIMS CV, and CCS are valid units
 
           auto unit = DriftTimeUnit::MILLISECOND;
           if (accession == "MS:1002476")
@@ -1729,11 +1729,15 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1002815")
           {
-            unit = DriftTimeUnit::VSSC;          
+            unit = DriftTimeUnit::VSSC;
           }
           else if (accession == "MS:1001581")
           {
-            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
+            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+          }
+          else if (accession == "MS:1002954")
+          {
+            unit = DriftTimeUnit::CCS;
           }
 
           if (in_spectrum_list_)
@@ -2126,7 +2130,7 @@ namespace OpenMS::Internal
           //No member => meta data
           spec_.setMetaValue("dwell time", termValue);
         }
-        else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581") //ion mobility drift time or FAIMS compensation voltage
+        else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581" || accession == "MS:1002954") //ion mobility drift time, FAIMS CV, or CCS
         {
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) or of the spectrum itself.
@@ -2150,6 +2154,10 @@ namespace OpenMS::Internal
           else if (accession == "MS:1001581")
           {
             unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+          }
+          else if (accession == "MS:1002954")
+          {
+            unit = DriftTimeUnit::CCS;
           }
 
           spec_.setDriftTime(value.toDouble());
@@ -3873,6 +3881,10 @@ namespace OpenMS::Internal
               os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
                   << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
               break;
+            case DriftTimeUnit::CCS:
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002954\" name=\"collisional cross sectional area\" value=\"" << precursor.getDriftTime()
+                  << "\" unitAccession=\"UO:0000324\" unitName=\"square angstrom\" unitCvRef=\"UO\" />\n";
+              break;
           }
         }
         //userParam: no extra object for it => no user parameters
@@ -4169,7 +4181,7 @@ namespace OpenMS::Internal
       }
       if (file_content.find(InstrumentSettings::ScanMode::TDF) != file_content.end())
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000790\" name=\"time-delayed fragmentation spectrum\" />\n";
       }
       if (file_content.find(InstrumentSettings::ScanMode::UNKNOWN) != file_content.end() || file_content.empty())
       {
@@ -5146,7 +5158,7 @@ namespace OpenMS::Internal
       }
       else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::TDF)
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000790\" name=\"time-delayed fragmentation spectrum\" />\n";
       }
       else   //FORCED
       {
@@ -5212,6 +5224,11 @@ namespace OpenMS::Internal
             {
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << spec.getDriftTime()
                  << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
+            }
+            else if (spec.getDriftTimeUnit() == DriftTimeUnit::CCS)
+            {
+              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002954\" name=\"collisional cross sectional area\" value=\"" << spec.getDriftTime()
+                 << "\" unitAccession=\"UO:0000324\" unitName=\"square angstrom\" unitCvRef=\"UO\" />\n";
             }
             else
             {

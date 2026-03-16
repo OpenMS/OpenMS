@@ -18,6 +18,10 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -814,27 +818,16 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      std::cout << "Checking mzML file for valid indices ... " << std::endl;
+      os << "Checking mzML file for valid indices ... " << std::endl;
       Internal::IndexedMzMLHandler ifile;
       ifile.openFile(in);
       if (ifile.getParsingSuccess())
       {
-        // Validate that we can access each single spectrum and chromatogram
-        for (int i = 0; i < (int)ifile.getNrSpectra(); i++)
-        {
-          OpenMS::Interfaces::SpectrumPtr p = ifile.getSpectrumById(i);
-        }
-        for (int i = 0; i < (int)ifile.getNrChromatograms(); i++)
-        {
-          OpenMS::Interfaces::ChromatogramPtr p = ifile.getChromatogramById(i);
-        }
-
-        std::cout << "Found a valid indexed mzML XML File with " << ifile.getNrSpectra() << " spectra and " << ifile.getNrChromatograms() << " chromatograms." << std::endl
-                  << std::endl;
+        os << "Found a valid indexed mzML XML File with " << ifile.getNrSpectra() << " spectra and " << ifile.getNrChromatograms() << " chromatograms.\n";
       }
       else
       {
-        std::cout << "Could not detect a valid index for the mzML file " << in << "\nEither the index is not present or is not correct." << std::endl;
+        os << "Could not detect a valid index for the mzML file " << in << "\nEither the index is not present or is not correct.\n";
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -855,31 +848,57 @@ protected:
       file.load(in, entries);
       std::cout << "\n\n" << mu.delta("loading FASTA") << std::endl;
 
-      std::map<char, int> aacids;// required for default construction of non-existing keys
-      size_t number_of_aacids = 0;
+      std::map<char, int> residue_counts; // required for default construction of non-existing keys
+      size_t number_of_residues = 0;
 
       Size dup_header(0);
       Size dup_seq(0);
 
-      typedef std::unordered_map<size_t, vector<ptrdiff_t> > SHashmap;
+      using SHashmap = std::unordered_map<size_t, vector<ptrdiff_t> >;
       SHashmap m_headers;
       SHashmap m_seqs;
 
-      // lambda to count ambiguous amino acids in frequency table
-      auto count_AAAs = [](const auto& aacids, std::string_view which) {
+      // Collect sequence lengths for statistics
+      std::vector<size_t> sequence_lengths;
+      sequence_lengths.reserve(entries.size());
+
+      // lambda to count residues matching given characters in frequency table
+      auto count_residues = [](const auto& residue_counts, std::string_view which) {
         size_t count = 0;
         for (char a : which)
         {
-          auto it = aacids.find(a);
-          if (it != aacids.end()) { count += it->second; }
+          auto it = residue_counts.find(a);
+          if (it != residue_counts.end()) { count += it->second; }
         }
         return count;
       };
 
-      size_t protein_has_ambiguous_aas = 0;
-      
-      const std::string_view& AAA_BXZJ = "BZXbzxJj"; // ambiguous amino acids
-      const std::string_view& AAA_BXZ = "BZXbzx"; // ambiguous amino acids
+      size_t seq_has_ambiguous = 0;
+
+      // Ambiguity codes for amino acids
+      const std::string_view AA_AMBIGUOUS_BXZJ = "BZXbzxJj"; // B=Asx, Z=Glx, X=unknown, J=Leu/Ile
+      const std::string_view AA_AMBIGUOUS_BXZ = "BZXbzx";
+
+      // IUPAC nucleotide codes (standard + ambiguity codes)
+      // Standard: A, C, G, T, U; Ambiguity: N (any), R, Y, S, W, K, M, B, D, H, V
+      const std::string_view NUCLEOTIDE_CHARS = "ACGTUNacgtunRYSWKMBDHVryswkmbdhv";
+      const std::string_view NA_AMBIGUOUS = "NRYSWKMBDHVnryswkmbdhv";
+
+      // Detect if sequences are nucleic acid (vs amino acid)
+      // If ANY character is not a valid nucleotide code, it's an amino acid sequence
+      bool is_nucleic_acid = true;
+      for (const auto& entry : entries)
+      {
+        for (char c : entry.sequence)
+        {
+          if (NUCLEOTIDE_CHARS.find(c) == std::string_view::npos)
+          {
+            is_nucleic_acid = false;
+            break;
+          }
+        }
+        if (!is_nucleic_acid) break;
+      }
 
       std::hash<string> s_hash;
       for (auto loopiter = entries.begin(); loopiter != entries.end(); ++loopiter)
@@ -892,7 +911,7 @@ protected:
             vector<ptrdiff_t>::const_iterator iter = find_if(it_id->second.begin(), it_id->second.end(), [&loopiter, &entries](const ptrdiff_t& idx) { return entries[idx].headerMatches(*loopiter); });
             if (iter != it_id->second.end())
             {
-              os << "Warning: Duplicate header, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " = #" << *iter << ", ID: " << entries[*iter].identifier << '\n';
+              OPENMS_LOG_WARN << "Warning: Duplicate header, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " = #" << *iter << ", ID: " << entries[*iter].identifier << '\n';
               ++dup_header;
             }
 
@@ -909,7 +928,8 @@ protected:
             vector<ptrdiff_t>::const_iterator iter = find_if(it_id->second.begin(), it_id->second.end(), [&loopiter, &entries](const ptrdiff_t& idx) { return entries[idx].sequenceMatches(*loopiter); });
             if (iter != it_id->second.end())
             {
-              os << "Warning: Duplicate sequence, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " == #" << *iter << ", ID: " << entries[*iter].identifier << '\n';
+              OPENMS_LOG_WARN << "Warning: Duplicate sequence, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier
+                              << " == #" << *iter << ", ID: " << entries[*iter].identifier << '\n';
               ++dup_seq;
             }
 
@@ -918,38 +938,89 @@ protected:
           m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
         }
 
-        const auto count_AAA_before = count_AAAs(aacids, AAA_BXZJ);
-        // count AAs
+        // Collect sequence length for statistics
+        sequence_lengths.push_back(loopiter->sequence.size());
+
+        // Count before to detect if this sequence has ambiguous residues
+        const auto count_ambig_before = is_nucleic_acid
+          ? count_residues(residue_counts, NA_AMBIGUOUS)
+          : count_residues(residue_counts, AA_AMBIGUOUS_BXZJ);
+
+        // count residues
         for (char a : loopiter->sequence)
         {
-          ++aacids[a];
-        }
-        // did this protein contain ambiguous amino acids?
-        if (count_AAA_before != count_AAAs(aacids, AAA_BXZJ))
-        {
-          ++protein_has_ambiguous_aas;
+          ++residue_counts[a];
         }
 
-        number_of_aacids += loopiter->sequence.size();
+        // did this sequence contain ambiguous residues?
+        const auto count_ambig_after = is_nucleic_acid
+          ? count_residues(residue_counts, NA_AMBIGUOUS)
+          : count_residues(residue_counts, AA_AMBIGUOUS_BXZJ);
+        if (count_ambig_before != count_ambig_after)
+        {
+          ++seq_has_ambiguous;
+        }
+
+        number_of_residues += loopiter->sequence.size();
       }
+
+      // Labels depend on sequence type
+      const char* residue_type = is_nucleic_acid ? "nucleotide" : "amino acid";
+      const char* residue_type_cap = is_nucleic_acid ? "Nucleotide" : "Amino acid";
 
       os << '\n';
       os << "Number of sequences   : " << entries.size() << '\n';
-      os << "Number of sequences with ambiguous amino acids: " << protein_has_ambiguous_aas << " ("
-         << Math::percentOf(protein_has_ambiguous_aas, entries.size(), 2) << "%)\n";
+
+      // Sequence length distribution statistics
+      if (!sequence_lengths.empty())
+      {
+        std::sort(sequence_lengths.begin(), sequence_lengths.end());
+        size_t len_min = sequence_lengths.front();
+        size_t len_max = sequence_lengths.back();
+        double len_median = Math::median(sequence_lengths.begin(), sequence_lengths.end(), true);
+        double len_q1 = static_cast<double>(len_min);
+        double len_q3 = static_cast<double>(len_max);
+        if (sequence_lengths.size() >= 3)
+        {
+          len_q1 = Math::quantile1st(sequence_lengths.begin(), sequence_lengths.end(), true);
+          len_q3 = Math::quantile3rd(sequence_lengths.begin(), sequence_lengths.end(), true);
+        }
+
+        os << "Sequence length distribution:\n";
+        os << "  Minimum : " << len_min << '\n';
+        os << "  25%ile  : " << len_q1 << '\n';
+        os << "  Median  : " << len_median << '\n';
+        os << "  75%ile  : " << len_q3 << '\n';
+        os << "  Maximum : " << len_max << '\n';
+      }
+
+      os << "Number of sequences with ambiguous " << residue_type << "s: " << seq_has_ambiguous << " ("
+         << Math::percentOf(seq_has_ambiguous, entries.size(), 2) << "%)\n";
       os << "# duplicated headers  : " << dup_header << " (" << Math::percentOf(dup_header, entries.size(), 2) << "%)\n";
       os << "# duplicated sequences: " << dup_seq << " (" << Math::percentOf(dup_seq, entries.size(), 2) << "%) [by exact string matching]\n";
-      os << "Total amino acids     : " << number_of_aacids << "\n\n";
-      os << "Amino acid counts: \n";
+      os << "Total " << residue_type << "s     : " << number_of_residues << "\n\n";
+      os << residue_type_cap << " counts:\n";
 
-      for (const auto& [AA, count] : aacids)
+      for (const auto& [residue, count] : residue_counts)
       {
-        os << "  " << AA << ":\t" << count << '\n';
+        os << "  " << residue << ":\t" << count << '\n';
       }
-      size_t amb = count_AAAs(aacids, AAA_BXZ);
-      size_t amb_J = count_AAAs(aacids, AAA_BXZJ);
-      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << Math::percentOf(amb  , number_of_aacids, 2) << "%)\n";
-      os << "                      (B/Z/X/J): " << amb_J << " (" << Math::percentOf(amb_J, number_of_aacids, 2) << "%)\n\n";
+
+      // Ambiguous residue counts
+      if (is_nucleic_acid)
+      {
+        size_t amb_N = residue_counts['N'] + residue_counts['n'];
+        size_t amb_all = count_residues(residue_counts, NA_AMBIGUOUS);
+        os << "Ambiguous nucleotides (N)      : " << amb_N << " (" << Math::percentOf(amb_N, number_of_residues, 2) << "%)\n";
+        os << "All IUPAC ambiguity codes      : " << amb_all << " (" << Math::percentOf(amb_all, number_of_residues, 2) << "%)\n\n";
+      }
+      else
+      {
+        size_t amb = count_residues(residue_counts, AA_AMBIGUOUS_BXZ);
+        size_t amb_J = count_residues(residue_counts, AA_AMBIGUOUS_BXZJ);
+        os << "Ambiguous amino acids (B/Z/X)  : " << amb << " (" << Math::percentOf(amb, number_of_residues, 2) << "%)\n";
+        os << "                      (B/Z/X/J): " << amb_J << " (" << Math::percentOf(amb_J, number_of_residues, 2) << "%)\n\n";
+      }
     }
     else if (in_type == FileTypes::FEATUREXML) //features
     {

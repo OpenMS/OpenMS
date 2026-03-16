@@ -35,11 +35,11 @@ public:
     /// Dimension
     enum {DIMENSION = 1};
     /// Intensity type
-    typedef double IntensityType;
+    using IntensityType = float;
     /// Position type
-    typedef DPosition<1> PositionType;
+    using PositionType = DPosition<1>;
     /// Coordinate type
-    typedef double CoordinateType;
+    using CoordinateType = double;
     //@}
 
     /**

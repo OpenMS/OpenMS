@@ -9,13 +9,13 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
-#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeDataProvider.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
 
 #include <set>
 #include <map>
+#include <memory>
 
 namespace OpenMS
 {
@@ -133,13 +133,7 @@ namespace OpenMS
 
     //@}
   protected:
-    DigestionEnzymeDB(const String& db_file = "")
-    {
-      if (!db_file.empty())
-      {
-        readEnzymesFromFile_(db_file);
-      }
-    }
+    DigestionEnzymeDB() = default;
 
     ///copy constructor
     DigestionEnzymeDB(const DigestionEnzymeDB& enzymes_db) = delete;
@@ -152,73 +146,37 @@ namespace OpenMS
     DigestionEnzymeDB& operator=(const DigestionEnzymeDB& enzymes_db) = delete;
     //@}
 
-    /// reads enzymes from the given file
-    void readEnzymesFromFile_(const String& filename)
-    {
-      String file = File::find(filename);
-
-      Param param;
-      ParamXMLFile().load(file, param);
-      if (param.empty()) return;
-
-      std::vector<String> split;
-      String(param.begin().getName()).split(':', split);
-      if (split[0] != "Enzymes")
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, split[0], "name 'Enzymes' expected");
-      }
-
-      try
-      {
-        std::map<String, String> values;
-        String previous_enzyme = split[1];
-        // this iterates over all the "ITEM" elements in the XML file:
-        for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
-        {
-          String(it.getName()).split(':', split);
-          if (split[0] != "Enzymes") break; // unexpected content in the XML file
-          if (split[1] != previous_enzyme)
-          {
-            // add enzyme and reset:
-            addEnzyme_(parseEnzyme_(values));
-            previous_enzyme = split[1];
-            values.clear();
-          }
-          values[it.getName()] = String(it->value.toString());
-        }
-        // add last enzyme
-        addEnzyme_(parseEnzyme_(values));
-      }
-      catch (Exception::BaseException& e)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, e.what(), "");
-      }
-    }
-
-    /// parses an enzyme, given the key/value pairs from an XML file
-    const DigestionEnzymeType* parseEnzyme_(std::map<String, String>& values) const
-    {
-      DigestionEnzymeType* enzy_ptr = new DigestionEnzymeType();
-
-      for (std::map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
-      {
-        const String& key = it->first;
-        const String& value = it->second;
-        if (!enzy_ptr->setValueFromFile(key, value))
-        {
-          OPENMS_LOG_ERROR << "Error while parsing enzymes file: unknown key '" << key << "' with value '" << value << "'" << std::endl;
-        }
-      }
-      return enzy_ptr;
-    }
-
-    /// add to internal data; also update indices for search by name and regex
+    /// add to internal data; also update indices for search by name and regex.
+    /// If an enzyme with the same name already exists, it is replaced.
     void addEnzyme_(const DigestionEnzymeType* enzyme)
     {
+      String name = enzyme->getName();
+
+      // if an enzyme with the same name exists, remove the old one first
+      auto existing = enzyme_names_.find(name);
+      if (existing != enzyme_names_.end())
+      {
+        const DigestionEnzymeType* old = existing->second;
+        const_enzymes_.erase(old);
+        // remove old name/synonym entries
+        String old_name = old->getName();
+        enzyme_names_.erase(old_name);
+        enzyme_names_.erase(old_name.toLower());
+        for (const auto& syn : old->getSynonyms())
+        {
+          enzyme_names_.erase(syn);
+        }
+        // remove old regex entry
+        if (!old->getRegEx().empty())
+        {
+          enzyme_regex_.erase(old->getRegEx());
+        }
+        delete old;
+      }
+
       // add to internal storage
       const_enzymes_.insert(enzyme);
       // add to internal indices (by name and its synonyms)
-      String name = enzyme->getName();
       enzyme_names_[name] = enzyme;
       enzyme_names_[name.toLower()] = enzyme;
       for (std::set<String>::const_iterator it = enzyme->getSynonyms().begin(); it != enzyme->getSynonyms().end(); ++it)
@@ -231,6 +189,21 @@ namespace OpenMS
         enzyme_regex_[enzyme->getRegEx()] = enzyme;
       }
       return;
+    }
+
+    /// Load enzymes from a list of data providers and add them to the database.
+    /// Each provider's loadEnzymes() is called in order; enzymes with duplicate names
+    /// from later providers replace earlier ones (allowing user overrides).
+    void loadFromProviders_(std::vector<std::unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeType>>>& providers)
+    {
+      for (auto& provider : providers)
+      {
+        auto enzymes = provider->loadEnzymes();
+        for (auto& enzyme : enzymes)
+        {
+          addEnzyme_(enzyme.release());
+        }
+      }
     }
 
     std::map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names

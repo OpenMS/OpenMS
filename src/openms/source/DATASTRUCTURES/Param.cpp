@@ -1237,8 +1237,8 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           continue;
         }
         // param 'type': do not override!
-        else if (suffix = ":type",
-                !(suffix.length() > it.getName().length()) &&
+        suffix = ":type";
+        if (!(suffix.length() > it.getName().length()) &&
                 it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
         {
           size_t first = it.getName().find(':');

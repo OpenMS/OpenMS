@@ -14,6 +14,7 @@
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
 #include <regex>
@@ -313,16 +314,23 @@ namespace OpenMS
       // sort intensity in MS2 spectrum to extract transitions
       transition_spectrum.sortByIntensity(true);
 
-      // filter out the precursors if they are in the ms2 spectrum;
+      // filter out ALL precursor peaks from the ms2 spectrum (properly handles DataArrays via select())
       if (exclude_ms2_precursor)
       {
-        for (auto spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
+        std::vector<Size> indices_to_keep;
+        indices_to_keep.reserve(transition_spectrum.size());
+        double precursor_mz = transition_spectrum.getPrecursors()[0].getMZ();
+        for (Size i = 0; i < transition_spectrum.size(); ++i)
         {
-          if (abs(transition_spectrum.getPrecursors()[0].getMZ() - spec_it->getMZ()) < 1e-3)
+          // Remove all peaks matching the precursor m/z (within tolerance)
+          if (std::abs(precursor_mz - transition_spectrum[i].getMZ()) >= 1e-3)
           {
-            transition_spectrum.erase(spec_it);
-            break;
+            indices_to_keep.push_back(i);
           }
+        }
+        if (indices_to_keep.size() != transition_spectrum.size())
+        {
+          transition_spectrum.select(indices_to_keep);
         }
       }
 
@@ -474,46 +482,43 @@ namespace OpenMS
         // sort intensity in MS2 spectrum to extract transitions
         transition_spectrum.sortByIntensity(true);
 
-        // have to remove ms2 precursor peak before min/max
+        // have to remove ALL ms2 precursor peaks before min/max (properly handles DataArrays via select())
         double exact_mass_precursor = 0.0;
-        for (auto spec_it = transition_spectrum.begin();
-             spec_it != transition_spectrum.end();
-             ++spec_it)
-        {
-          int spec_index = spec_it - transition_spectrum.begin();
 
-          OpenMS::DataArrays::StringDataArray explanation_array;
-          if (!transition_spectrum.getStringDataArrays().empty())
+        if (!transition_spectrum.getStringDataArrays().empty())
+        {
+          const OpenMS::DataArrays::StringDataArray& explanation_array = transition_spectrum.getStringDataArrays()[0];
+          if (explanation_array.getName() != "explanation")
           {
-            explanation_array = transition_spectrum.getStringDataArrays()[0];
-            if (explanation_array.getName() != "explanation")
-            {
-              OPENMS_LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
-            }
-            else
+            OPENMS_LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
+          }
+          else
+          {
+            std::vector<Size> indices_to_keep;
+            indices_to_keep.reserve(transition_spectrum.size());
+            for (Size spec_index = 0; spec_index < transition_spectrum.size(); ++spec_index)
             {
               // precursor in fragment annotation has the same sumformula as MS1 Precursor
               if (explanation_array[spec_index] == sumformula)
               {
-                // save exact mass
-                if (use_exact_mass)
+                // save exact mass (from first match)
+                if (use_exact_mass && exact_mass_precursor == 0.0)
                 {
-                  exact_mass_precursor = spec_it->getMZ();
+                  exact_mass_precursor = transition_spectrum[spec_index].getMZ();
                 }
-                // remove precursor ms2 entry
+                // skip this peak if we're excluding precursors
                 if (exclude_ms2_precursor)
                 {
-                  transition_spectrum.erase(transition_spectrum.begin() + spec_index);
-                  transition_spectrum.getStringDataArrays()[0]
-                      .erase(transition_spectrum.getStringDataArrays()[0].begin() + spec_index);
-                  if (decoy == 0) // second mass FloatDataArray only available for targets
-                  {
-                    transition_spectrum.getFloatDataArrays()[0]
-                      .erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
-                  }
-                  break; // break to not increment when erase es called.
+                  continue;  // Don't add to indices_to_keep
                 }
               }
+              indices_to_keep.push_back(spec_index);
+            }
+
+            // Remove all precursor peaks if any were found
+            if (exclude_ms2_precursor && indices_to_keep.size() != transition_spectrum.size())
+            {
+              transition_spectrum.select(indices_to_keep);
             }
           }
         }

@@ -1,0 +1,32 @@
+# ProForma proforma negative test cases
+# Extracted from HUPO-PSI/ProForma grammar/test.toml
+# Last synced: 2026-01-13
+# Upstream commit: 1859bf10 (2025-07-11)
+#
+# Total test cases: 22
+#
+# Format: One ProForma string per line
+# Lines starting with '#' are comments
+#
+<D>A[UNIMODIFY:+2]+<D>A
+A[+1]-
+[Acetyl]-[Phospho]^2?EM[Oxidation]EVTSESPEK
+PRT(EC[Carbamidomethyl]FRMS)[+19.0523]^2ISK
+P(RT(ESFRMS)[+19.0523]IS)[+19.0523]K
+MPGLVDSNPAPPESQEKKPLK(PCCACPETKKARDACIIEKGEEHCGHLIEAHKECMRALGFKI)[Oxidation]^2[half cystine][half cystine]
+ELVIS[Phospho|INFO:newly]discovered]K
+<[TMT6plex]>AA
+<[TMT6plex#g1]@A>AA
+<[TMT6plex#XL1]@A>AA
+<[TMT6plex#BRANCH]@A>AA
+{TMT6plex#g1}AA
+{TMT6plex#XL1}AA
+{TMT6plex#BRANCH}AA
+AA(?A(A)[+1])AA
+AA(A(?A))[+1]AA
+()[Dehydro]S
+S()[Dehydro]
+AA[+1#xl1]/2//AA[#XL1]
+(>Tryps)in)AANSIPYQVSLNS+(>Keratin)AKEQFERQTA
+(>Tryps(in)AANSIPYQVSLNS+(>Keratin)AKEQFERQTA
+(>Trin)AANSIP[+1#XL1]YQVSLNS//(>>Keratin)AKEQ[#XL1]FERQTA

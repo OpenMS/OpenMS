@@ -64,6 +64,8 @@ foreach(t ${Boost_dependent_tests})
 endforeach()
 
 target_link_libraries(Base64_test ZLIB::ZLIB)
+target_link_libraries(Libzip_test libzip::zip)
+target_link_libraries(ZipRandomAccessFile_test libzip::zip)
 target_link_libraries(LPWrapper_test CoinOR::CoinOR)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
@@ -76,16 +78,71 @@ if (WITH_HDF5)
 endif()
 
 if (WITH_PARQUET)
-  target_link_libraries(Arrow_test 
+  target_link_libraries(Arrow_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
   )
-  target_link_libraries(QuantmsIO_test 
+  target_link_libraries(MSExperimentArrowExport_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
   )
-endif()
+  target_link_libraries(ConsensusMapArrowExport_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_link_libraries(QPXFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_link_libraries(ProteinIdentificationArrowIO_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_link_libraries(FeatureMapArrowIO_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_link_libraries(ConsensusMapArrowIO_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_link_libraries(Libzip_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_compile_definitions(Libzip_test PRIVATE WITH_PARQUET)
+  target_link_libraries(ZipRandomAccessFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+  )
+  target_compile_definitions(ZipRandomAccessFile_test PRIVATE WITH_PARQUET)
 
+  if (TARGET TransitionParquetFile_test)
+    target_link_libraries(TransitionParquetFile_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+  endif()
+  if (TARGET OpenSwathOSWParquetReader_test)
+    target_link_libraries(OpenSwathOSWParquetReader_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+  endif()
+  if (TARGET OpenSwathOSWParquetWriter_test)
+    target_link_libraries(OpenSwathOSWParquetWriter_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+    target_compile_definitions(OpenSwathOSWParquetWriter_test PRIVATE WITH_PARQUET)
+  endif()
+  if (TARGET OpenSwathOSWParquetRoundTrip_test)
+    target_link_libraries(OpenSwathOSWParquetRoundTrip_test
+      ${OPENMS_ARROW_TARGET}
+      ${OPENMS_PARQUET_TARGET}
+    )
+  endif()
+endif()
 
 #------------------------------------------------------------------------------
 # restore old compiler flags

@@ -12,6 +12,8 @@
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {

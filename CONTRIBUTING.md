@@ -4,6 +4,8 @@ This document is displayed because you either opened an issue or you want to pro
 When interacting with other developers, users or anyone else from our community, please adhere to
 [our CODE OF CONDUCT](https://github.com/OpenMS/OpenMS/blob/develop/CODE_OF_CONDUCT.md)
 
+> **New to open source or the project?** Start with our [Contributor Onboarding Guide](https://openms.de/contribute/) for a beginner-friendly introduction.
+
 # Reporting an Issue:
 
 You most likely came here to:
@@ -40,3 +42,9 @@ A core developer will review your changes to the main development branch (develo
 Also consider getting in contact with the core developers early. They might provide additional guidance and valuable information on how your specific aim is achieved. This might give you a head start in, for example, developing novel tools or algorithms.
 
 Happy coding!
+
+---
+
+## Additional Resources
+
+For detailed coding conventions, architectural guidelines, and technical documentation, see the [OpenMS Developer Guide](https://openms.readthedocs.io/en/latest/contribute-to-openms/index.html).

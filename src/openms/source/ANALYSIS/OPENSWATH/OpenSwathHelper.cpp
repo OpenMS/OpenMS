@@ -270,7 +270,7 @@ namespace OpenMS
     // First pass: sample priority peptides
     if (!priority_candidates.empty())
     {
-      OPENMS_LOG_INFO << "Sampling " << priority_candidates.size() 
+      OPENMS_LOG_DEBUG << "Sampling " << priority_candidates.size() 
                       << " priority peptides from the input experiment" << std::endl;
       
       for (Size b = 0; b < bins; ++b)
@@ -297,7 +297,7 @@ namespace OpenMS
         }
       }
       
-      OPENMS_LOG_INFO << "Successfully sampled " << picked.size() 
+      OPENMS_LOG_DEBUG << "Successfully sampled " << picked.size() 
                       << " priority peptides" << std::endl;
     }
     
@@ -305,7 +305,7 @@ namespace OpenMS
     Size total_quota = bins * peptides_per_bin;
     if (picked.size() < total_quota && !candidates.empty())
     {
-      OPENMS_LOG_INFO << "Filling remaining quota (" << (total_quota - picked.size()) 
+      OPENMS_LOG_DEBUG << "Filling remaining quota (" << (total_quota - picked.size()) 
                       << " peptides) from regular candidates" << std::endl;
       
       for (Size b = 0; b < bins; ++b)

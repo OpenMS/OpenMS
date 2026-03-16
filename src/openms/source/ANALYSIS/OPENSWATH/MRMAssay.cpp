@@ -901,15 +901,9 @@ namespace OpenMS
     std::map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of peptides to transitions for easy access
-    for (Size i = 0; i < exp.getTransitions().size(); ++i)
+    for (const auto& tr : exp.getTransitions())
     {
-      ReactionMonitoringTransition tr = exp.getTransitions()[i];
-
-      if (TransitionsMap.find(tr.getPeptideRef()) == TransitionsMap.end())
-      {
-        TransitionsMap[tr.getPeptideRef()];
-      }
-
+      // operator[] creates empty vector if key doesn't exist, avoiding redundant find() calls
       TransitionsMap[tr.getPeptideRef()].push_back(tr);
     }
 
@@ -1087,15 +1081,9 @@ namespace OpenMS
     std::map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of compounds to transitions for easy access
-    for (Size i = 0; i < exp.getTransitions().size(); ++i)
+    for (const auto& tr : exp.getTransitions())
     {
-      ReactionMonitoringTransition tr = exp.getTransitions()[i];
-
-      if (TransitionsMap.find(tr.getCompoundRef()) == TransitionsMap.end())
-      {
-        TransitionsMap[tr.getCompoundRef()];
-      }
-
+      // operator[] creates empty vector if key doesn't exist, avoiding redundant find() calls
       TransitionsMap[tr.getCompoundRef()].push_back(tr);
     }
 

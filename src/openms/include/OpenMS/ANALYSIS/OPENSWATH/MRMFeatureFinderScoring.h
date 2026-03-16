@@ -38,6 +38,9 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
 
 namespace OpenMS
 {
+  // Forward declaration for optional mobilogram consumer
+  class MobilogramParquetConsumer;
+
 
   /**
   @brief The MRMFeatureFinder finds and scores peaks of transitions that co-elute.
@@ -155,13 +158,15 @@ public:
      * @param[out] output The output features with corresponding scores (the found
      *               features will be added to this FeatureMap).
      * @param[in] ms1only Whether to only do MS1 scoring and skip all MS2 scoring
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      *
     */
-    void scorePeakgroups(MRMTransitionGroupType& transition_group,
-                         const TransformationDescription & trafo,
-                         const std::vector<OpenSwath::SwathMap>& swath_maps,
-                         FeatureMap& output,
-                         bool ms1only = false) const;
+  void scorePeakgroups(MRMTransitionGroupType& transition_group,
+             const TransformationDescription & trafo,
+             const std::vector<OpenSwath::SwathMap>& swath_maps,
+             FeatureMap& output,
+             bool ms1only = false,
+             MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
 
     /** @brief Set the flag for strict mapping
     */
@@ -238,6 +243,7 @@ private:
      * @param[out] transition_group_detection Containing all detecting transitions
      * @param[in] scorer An instance of OpenSwathScoring
      * @param[in] feature_idx The index of the current feature
+     * @param[in] feature_id The id of the current feature
      * @param[in] native_ids_detection The native IDs of the detecting transitions
      * @param[in] det_intensity_ratio_score The intensity score of the detection transitions for normalization
      * @param[in] det_mi_ratio_score The MI score of the detection transitions for normalization
@@ -246,18 +252,21 @@ private:
      *                  data is available.
      * @param[out] drift_target The target drift value
      * @param[in] im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering). If scoring non-IMS data, this should be empty, otherwise a missing information exception is thrown when integrating spectra for scoring.
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
     OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
                                               MRMTransitionGroupType& transition_group_detection,
                                               OpenSwathScoring& scorer,
                                               const size_t feature_idx,
+                                              const Int64 feature_id,
                                               const std::vector<std::string> & native_ids_detection,
                                               const double det_intensity_ratio_score,
                                               const double det_mi_ratio_score,
                                               const std::vector<OpenSwath::SwathMap>& swath_maps,
                                               const double drift_target,
-                                              RangeMobility& im_range) const;
+                                              RangeMobility& im_range,
+                                              MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
 
     void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const;
 
@@ -290,7 +299,6 @@ private:
 
     double im_extra_drift_;
 
-    // members (unordered_map for O(1) lookup performance)
     std::unordered_map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;

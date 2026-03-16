@@ -15,6 +15,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -1064,9 +1067,9 @@ protected:
     return (plss_Morph < MIN_SHIFTED_IONS && plss_im_MIC < 0.03);
   }
 
-  map<String, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const String& in_mzml, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
+  unordered_map<String, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const String& in_mzml, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
   {
-    map<String, PrecursorPurity::PurityScores> purities;
+    unordered_map<String, PrecursorPurity::PurityScores> purities;
     PeakMap tmp_spectra;
     // Important: load both MS1 and MS2 for precursor purity annotation
     MzMLFile().load(in_mzml, tmp_spectra);
@@ -3065,7 +3068,7 @@ static void scoreXLIons_(
     bool annotate_charge,
     double window_size,
     size_t peakcount,
-    const std::map<String, PrecursorPurity::PurityScores>& purities)
+    const std::unordered_map<String, PrecursorPurity::PurityScores>& purities)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -3504,7 +3507,7 @@ static void scoreXLIons_(
     const Size max_variable_mods_per_peptide,
     const Size scan_index, 
     const MSSpectrum& spec,
-    const map<String, PrecursorPurity::PurityScores>& purities,
+    const unordered_map<String, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates,
     const vector<size_t>& matched_peaks
     /*,
@@ -3731,7 +3734,7 @@ static void scoreXLIons_(
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
-    const map<String, PrecursorPurity::PurityScores>& purities,
+    const unordered_map<String, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates,
     const vector<size_t>& matched_peaks
     /*,
@@ -4602,10 +4605,11 @@ static void scoreXLIons_(
       const double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
       const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
       s.setDriftTime(CCS);
+      s.setDriftTimeUnit(DriftTimeUnit::CCS);
     }
   }
 
-  void filterPeakInterference_(PeakMap& spectra, const map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
+  void filterPeakInterference_(PeakMap& spectra, const unordered_map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
   {
     double filtered_peaks_count{0};
     size_t filtered_spectra{0};
@@ -5169,7 +5173,7 @@ static void scoreXLIons_(
     MzMLFile f;
     f.setLogType(log_type_);
 
-    map<String, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+    unordered_map<String, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 
     // define percolator feature set
     StringList data_dependent_features; // percolator features that only exist e.g., if MS1 spectra were present
@@ -5193,10 +5197,14 @@ static void scoreXLIons_(
       data_dependent_features << "IM";
     }
 
-    // convert 1/k0 to CCS
+    // convert 1/k0 to CCS (skip if already CCS from newer MSConvert)
     if (IM_unit == DriftTimeUnit::VSSC)
-    {      
+    {
       convertVSSCToCCS(spectra);
+    }
+    else if (IM_unit == DriftTimeUnit::CCS)
+    {
+      OPENMS_LOG_INFO << "Ion Mobility already in CCS format, no conversion needed." << std::endl;
     }
 
     // all data dependent features (IM available or not, precursor intensities from MS1 available etc.) are known. We can define percolator features.
@@ -5955,14 +5963,15 @@ static void scoreXLIons_(
     // reload spectra from disc with same settings as before (important to keep same spectrum indices)
     spectra.clear(true);
     f.load(in_mzml, spectra);
-    spectra.sortSpectra(true);    
+    spectra.sortSpectra(true);
     //auto [IM_format, IM_unit] = getMS2IMType(spectra);
 
-    // convert 1/k0 to CCS
+    // convert 1/k0 to CCS (skip if already CCS from newer MSConvert)
     if (IM_unit == DriftTimeUnit::VSSC)
-    {      
+    {
       convertVSSCToCCS(spectra);
     }
+    // Note: if IM_unit == DriftTimeUnit::CCS, data is already in correct format
 
     preprocessSpectra_(spectra, 
     //                   fragment_mass_tolerance, 

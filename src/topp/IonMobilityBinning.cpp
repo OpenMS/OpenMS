@@ -9,6 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 

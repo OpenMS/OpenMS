@@ -17,6 +17,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -621,12 +623,25 @@ namespace OpenMS
    
     // map filename and label of experimental design to the full experimental design entry for faster lookup
     const auto& ms_section = ed.getMSFileSection();
-    std::unordered_map<String, ExperimentalDesign::MSFileSectionEntry> fileAndLabel2MSFileSectionEntry;
+    using FileAndLabel = std::pair<String, UInt>;
+    std::map<FileAndLabel, ExperimentalDesign::MSFileSectionEntry> file_and_label_to_msfile_entry;
     for (const auto& e : ms_section)
     {
-      String ed_filename = FileHandler::stripExtension(File::basename(e.path));
-      String ed_label = e.label;
-      fileAndLabel2MSFileSectionEntry[ed_filename + ed_label] = e;
+      const String ed_filename = FileHandler::stripExtension(File::basename(e.path));
+      const FileAndLabel key(ed_filename, e.label);
+      const auto [it, inserted] = file_and_label_to_msfile_entry.emplace(key, e);
+      if (!inserted &&
+          ((it->second.fraction != e.fraction) ||
+           (it->second.fraction_group != e.fraction_group) ||
+           (it->second.sample != e.sample)))
+      {
+        throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Ambiguous basename+label mapping in experimental design for '" + ed_filename +
+          "' and label '" + String(e.label) + "'.");
+      }
     }
 
     for (auto & c : consensus)
@@ -648,18 +663,22 @@ namespace OpenMS
         size_t row = f.getMapIndex();
         const auto& h = consensus.getColumnHeaders().at(row);
         const String c_fn = FileHandler::stripExtension(File::basename(h.filename)); // filename according to experimental design in consensus map
-        const size_t c_lab = h.getLabelAsUInt(consensus.getExperimentType());
+        const UInt c_lab = h.getLabelAsUInt(consensus.getExperimentType());
 
         // find entry in experimental design (ignore extension and folder) that corresponds to current column header entry
-        if (auto it = fileAndLabel2MSFileSectionEntry.find(c_fn + String(c_lab)); it != fileAndLabel2MSFileSectionEntry.end())
+        if (auto it = file_and_label_to_msfile_entry.find({c_fn, c_lab}); it != file_and_label_to_msfile_entry.end())
         {
           const size_t fraction = it->second.fraction;
           quantifyFeature_(f, fraction, c_fn, hit, c_lab); // updates "stats_.quant_features"
         }
         else
         {
-          OPENMS_LOG_FATAL_ERROR << "File+Label referenced in consensus header not found in experimental design.\n"  
-                                 << "File+Label:" << c_fn << "\t" << c_lab << std::endl;
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "File+Label referenced in consensus header not found in experimental design: " +
+            c_fn + "\t" + String(c_lab));
         }
       }
     }

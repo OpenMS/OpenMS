@@ -18,6 +18,7 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/MATH/MISC/SplineBisection.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
@@ -38,6 +39,7 @@ using namespace std;
 
 namespace OpenMS
 {
+
     double PeakPickerIM::computeOptimalSamplingRate(const vector<MSSpectrum>& spectra)
     {
       vector<double> mz_diffs;
@@ -234,6 +236,16 @@ namespace OpenMS
       }
       const auto [im_data_index, im_unit] = raw_spectrum.getIMData();
       const auto& ion_mobility_array = raw_spectrum.getFloatDataArrays()[im_data_index];
+
+      // Warn if CCS data with small tolerance (only once per PeakPickerIM instance)
+      if (im_unit == DriftTimeUnit::CCS && sum_tolerance_im_ < 1.0 && !ccs_warning_shown_)
+      {
+        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but sum_tolerance_im"
+                        << " = " << sum_tolerance_im_ << " appears to be set for 1/K0 data. "
+                        << "For CCS data, consider using larger values (e.g., 10-20 for clustering, 1.0 for summing)." << '\n';
+        ccs_warning_shown_ = true;
+      }
+
       // Vector of MSSpectra for each picked m/z peak (each spectrum is a mobilogram trace)
       vector<MSSpectrum> mobility_traces;
 
@@ -679,13 +691,13 @@ namespace OpenMS
     {
       // --- PickIMTraces parameters ---
       defaults_.setValue("pickIMTraces:sum_tolerance_mz",        1.0,   "Tolerance for summing adjacent m/z peaks (ppm)");
-      defaults_.setValue("pickIMTraces:sum_tolerance_im",        0.0006,"Tolerance for summing adjacent ion mobility peaks (1/k0)");
+      defaults_.setValue("pickIMTraces:sum_tolerance_im",        0.0006,"Tolerance for summing adjacent ion mobility peaks (in 1/K0 units). For CCS data, use larger values (e.g., 1.0).");
       defaults_.setValue("pickIMTraces:gauss_ppm_tolerance",     5.0,   "Gaussian smoothing m/z tolerance in ppm");
       defaults_.setValue("pickIMTraces:sgolay_frame_length",     5,     "Savitzky-Golay smoothing frame length");
       defaults_.setValue("pickIMTraces:sgolay_polynomial_order", 3,     "Savitzky-Golay smoothing polynomial order");
       // --- PickIMCluster parameters ---
       defaults_.setValue("pickIMCluster:ppm_tolerance_cluster", 50.0, "m/z tolerance in ppm for clustering");
-      defaults_.setValue("pickIMCluster:im_tolerance_cluster", 0.1, "Ion mobility tolerance in 1/k for clustering");
+      defaults_.setValue("pickIMCluster:im_tolerance_cluster", 0.1, "Ion mobility tolerance for clustering (in 1/K0 units). For CCS data, use larger values (e.g., 10-20).");
       // --- PickIMElutionProfiles parameters ---
       defaults_.setValue("pickIMElutionProfiles:ppm_tolerance_elution", 50.0, "Mass trace m/z tolerance in ppm");
 
@@ -988,6 +1000,14 @@ namespace OpenMS
       const auto [im_data_index, im_unit] = spectrum.getIMData();
       auto& im_data = spectrum.getFloatDataArrays()[im_data_index];
 
+      // Warn if CCS data with small tolerance (only once per PeakPickerIM instance)
+      if (im_unit == DriftTimeUnit::CCS && im_tolerance_cluster_ < 1.0 && !ccs_warning_shown_)
+      {
+        OPENMS_LOG_WARN << "Warning: Ion mobility data is in CCS units (square angstroms), but im_tolerance_cluster"
+                        << " = " << im_tolerance_cluster_ << " appears to be set for 1/K0 data. "
+                        << "For CCS data, consider using larger values (e.g., 10-20 for clustering, 1.0 for summing)." << '\n';
+        ccs_warning_shown_ = true;
+      }
 
       struct Point {
         double mz;
@@ -1176,6 +1196,11 @@ namespace OpenMS
       } // End main loop (for intensity_sorted_indices)
 
       // 9. Update spectrum (same logic as before)
+      // Clear DataArrays that won't be valid after averaging (StringDataArrays and IntegerDataArrays
+      // don't correspond to the new averaged peaks, so they must be cleared to maintain consistency)
+      spectrum.getStringDataArrays().clear();
+      spectrum.getIntegerDataArrays().clear();
+
       spectrum.resize(averaged_points.size());
       spectrum.shrink_to_fit();
       im_data.resize(averaged_points.size());
@@ -1264,6 +1289,11 @@ namespace OpenMS
       output_mt.clear();
 
       // copy mass traces centroids back to peaks
+      // Clear DataArrays that won't be valid after peak detection (StringDataArrays and IntegerDataArrays
+      // don't correspond to the new detected peaks, so they must be cleared to maintain consistency)
+      input.getStringDataArrays().clear();
+      input.getIntegerDataArrays().clear();
+
       input.resize(split_mtraces.size());
       input.shrink_to_fit();
 

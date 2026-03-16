@@ -17,6 +17,7 @@
 // Qt
 #include <QDesktopServices>
 #include <QMessageBox>
+#include <QUrl>
 #include <QSettings>
 
 using namespace std;

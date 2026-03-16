@@ -10,12 +10,15 @@ set(sources_list
   MSDataChainingConsumer.cpp
   MSDataStoringConsumer.cpp
   MSDataSqlConsumer.cpp
-  MSDataTransformingConsumer.cpp
-  MSDataWritingConsumer.cpp
   NoopMSDataConsumer.cpp
   SiriusFragmentAnnotation.cpp
   SwathFileConsumer.cpp
 )
+
+if (WITH_PARQUET)
+  list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
+  list(APPEND sources_list MobilogramParquetConsumer.cpp)
+endif()
 
 ### add path to the filenames
 set(sources)
@@ -28,4 +31,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT\\DATACCESS" FILES ${sources})
-

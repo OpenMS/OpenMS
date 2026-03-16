@@ -68,12 +68,12 @@ namespace OpenMS
     // Comparator
     bool operator<(const CmpInfo_& other) const
     {
-      if (s_comp < other.s_comp) return true; else return false;
+      return s_comp < other.s_comp;
     }
 
     bool operator==(const CmpInfo_& other) const
     {
-      if (s_comp == other.s_comp) return true; else return false;
+      return s_comp == other.s_comp;
     }
 
   };
@@ -106,6 +106,10 @@ namespace OpenMS
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
     defaults_.setValue("potential_adducts", std::vector<std::string>{"H:+:0.4","Na:+:0.25","NH4:+:0.25","K:+:0.1","H-2O-1:0:0.05"}, "Adducts used to explain mass differences in format: 'Elements:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. The optional RTShift param indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As fifth parameter you can add a label for every feature with this adduct. This also determines the map number in the consensus file. Adduct element losses are written in the form 'H-2'. All provided adducts need to have the same charge sign or be neutral! Mixing of adducts with different charge directions is only allowed as neutral complexes. For example, 'H-1Na:0:0.05' can be used to model Sodium gains (with balancing deprotonation) in negative mode.");
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
+
+    defaults_.setValue("max_multimer", 1, "Maximum molecular multiplier for multimer detection (e.g., 2 enables dimer [2M+...] detection, 3 enables trimers). Default 1 disables multimer detection.");
+    defaults_.setMinInt("max_multimer", 1);
+    defaults_.setValue("multimer_log_penalty", -2.0, "Log-probability penalty per multiplier step for cross-multiplier edges. Applied as (max(n1,n2)-1) * penalty. More negative values make the solver prefer monomer explanations more strongly.");
 
     defaults_.setValue("use_minority_bound", "true", "Prune the considered adduct transitions by transition probabilities.");
     defaults_.setValidStrings("use_minority_bound", {"true","false"});
@@ -318,7 +322,7 @@ namespace OpenMS
   MetaboliteFeatureDeconvolution::~MetaboliteFeatureDeconvolution() = default;
 
 
-  void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
+  void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q, const Int mol_multiplier)
   {
     StringList labels;
     Adduct adduct;
@@ -333,8 +337,12 @@ namespace OpenMS
     else // set DC_CHARGE_ADDUCTS meta value and set it to the formula from EmpiricalFormula, also set the adduct string in "adducts" meta value
     {
       fm_out[f_idx].setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, ef_.toString());
-      StringList dc_new_adducts = ListUtils::create<String>(adduct.toAdductString(ef_.toString(), new_q));
+      StringList dc_new_adducts = ListUtils::create<String>(Adduct::toAdductString(ef_.toString(), new_q, mol_multiplier));
       fm_out[f_idx].setMetaValue("adducts", dc_new_adducts);
+      if (mol_multiplier > 1)
+      {
+        fm_out[f_idx].setMetaValue("mol_multiplier", mol_multiplier);
+      }
     }
     fm_out[f_idx].setMetaValue("dc_charge_adduct_mass", ef_.getMonoWeight());
     fm_out[f_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, comp_side) ? 1 : 0));
@@ -359,6 +367,8 @@ namespace OpenMS
     Int q_max = param_.getValue("charge_max");
     Int q_span = param_.getValue("charge_span_max");
     Size max_neutrals = param_.getValue("max_neutrals");
+    Int max_multimer = param_.getValue("max_multimer");
+    double multimer_log_penalty = param_.getValue("multimer_log_penalty");
 
     double rt_diff_max = param_.getValue("retention_max_diff");
     double rt_diff_max_local = param_.getValue("retention_max_diff_local");
@@ -404,13 +414,12 @@ namespace OpenMS
       large = abs(q_min);
     }
     MassExplainer me(potential_adducts_, small, large, q_span, thresh_logp, max_neutrals);
-    me.compute();
+    me.compute(/*include_identity=*/ max_multimer > 1);
     OPENMS_LOG_INFO << "done\n";
 
 
     // holds query results for a mass difference
     MassExplainer::CompomerIterator md_s, md_e;
-    Compomer null_compomer(0, 0, -std::numeric_limits<double>::max());
     SignedSize hits(0);
 
     CoordinateType mz1, mz2, m1;
@@ -475,147 +484,175 @@ namespace OpenMS
             // Masses and tolerances are multiplied with their charges to nullify charge influence on mass shift.
             // Allows to remove compound mass M from both sides of compomer equation -> queried shift only due to different adducts.
             // Tolerance must increase when looking at M instead of m/z, as error margins increase as well by multiplication.
-            CoordinateType naive_mass_diff = mz2 * abs(q2) - m1;
+            CoordinateType m2 = mz2 * abs(q2);
+            CoordinateType naive_mass_diff = m2 - m1;
 
-            double abs_mass_diff;
+            // Compute per-feature tolerance contributions (split for cross-multiplier scaling)
+            double tol_q1, tol_q2;
             if (param_.getValue("unit") == "Da")
             {
-              abs_mass_diff = mz_diff_max * abs(q1) + mz_diff_max * abs(q2);
+              tol_q1 = mz_diff_max * abs(q1);
+              tol_q2 = mz_diff_max * abs(q2);
             }
             else if (param_.getValue("unit") == "ppm")
             {
-              // For the ppm case, we multiply the respective experimental feature mz by its allowed ppm error before multiplication by charge.
-              // We look at the tolerance window with a simplified way: Just use the feature mz, and assume a symmetric window around it.
-              // Instead of answering the more complex/asymmetrical question: "which experimental mz can for given tolerance cause observed mz".
-              // (In the complex case we might have to consider different queries for different tolerance windows.)
-              // The expected error of this simplification is negligible:
-              // Assuming Y > X (X > Y is analog), given causative experimental mz Y and observed mz X with
-              // X = Y*(1 - d)
-              // for allowed tolerance d, the expected Error E between experimental mz and maximal mz in the tolerance window based on experimental mz is:
-              // E = (mz_exp - (mz_obs + max tolerance))/mz_exp = (Y - X*(1 + d))/Y = 1 - X*(1 + d)/Y = 1 - Y*(1 - d)*(1 + d)/Y = 1 - 1 - d*d = - d*d
-              // As d should be ppm sized, the error is something around 10 to the power of minus 12.
-              abs_mass_diff = mz1 * mz_diff_max * 1e-6 * abs(q1)   +   mz2 * mz_diff_max * 1e-6 * abs(q2);
+              tol_q1 = mz1 * mz_diff_max * 1e-6 * abs(q1);
+              tol_q2 = mz2 * mz_diff_max * 1e-6 * abs(q2);
             }
             else
             {
               throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING! Invalid tolerance unit! " + param_.getValue("unit").toString()  + "\n");
             }
 
-            //abs charge "3" to abs charge "1" -> simply invert charge delta for negative case?
-            hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
-            OPENMS_PRECONDITION(hits >= 0, "MetaboliteFeatureDeconvolution querying #hits got negative result!");
-
-            overallHits += hits;
-            // choose most probable hit (TODO think of something clever here)
-            // for now, we take the one that has highest p in terms of the compomer structure
-            if (hits > 0)
+            // Lambda to process a single compomer hit and create a ChargePair edge
+            auto processHit = [&](const Compomer& hit_cmp, double mass_diff_residual, Int n_left, Int n_right, double penalty)
             {
-              Compomer best_hit = null_compomer;
-              for (; md_s != md_e; ++md_s)
+              // post-filter by local RT
+              if (fabs(f1.getRT() - f2.getRT() + hit_cmp.getRTShift()) > rt_diff_max_local)
+                return;
+
+              int left_charges, right_charges;
+              if (is_neg)
               {
-                // post-filter hits by local RT
-                if (fabs(f1.getRT() - f2.getRT() + md_s->getRTShift()) > rt_diff_max_local)
-                  continue;
-
-                //std::cout << md_s->getAdductsAsString() << " neg: " << md_s->getNegativeCharges() << " pos: " << md_s->getPositiveCharges() << " p: " << md_s->getLogP() << " \n";
-                int left_charges, right_charges;
-                if (is_neg)
-                {
-                  left_charges = -md_s->getPositiveCharges();
-                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos, neg charges)
-                }
-                else
-                {
-                  left_charges = md_s->getNegativeCharges();//for positive mode neutral switches still have to fulfill requirement that they have at most charge as each side
-                  right_charges = md_s->getPositiveCharges();
-                }
-
-                if ( // compomer fits charge assignment of left & right feature. doesn't consider charge sign switch over span!
-                  (abs(q1)  >= abs(left_charges)) && (abs(q2) >= abs(right_charges)))
-                {
-                  // compomer has better probability
-                  if (best_hit.getLogP() < md_s->getLogP())
-                    best_hit = *md_s;
-
-
-                  /** testing: we just add every explaining edge
-                      - a first estimate shows that 90% of hits are of |1|
-                      - the remaining 10% have |2|, so the additional overhead is minimal
-                  **/
-                  Compomer cmp = me.getCompomerById(md_s->getID());
-                  if (is_neg)
-                  {
-                    left_charges = -cmp.getPositiveCharges();
-                    right_charges = -cmp.getNegativeCharges();
-                  }
-                  else
-                  {
-                    left_charges = cmp.getNegativeCharges();
-                    right_charges = cmp.getPositiveCharges();
-                  }
-
-                  //this block should only be of interest if we have something multiply charges instead of protonation or deprotonation
-                  if (((q1 - left_charges) % default_adduct.getCharge() != 0) ||
-                      ((q2 - right_charges) % default_adduct.getCharge() != 0))
-                  {
-                    OPENMS_LOG_WARN << "Cannot add enough default adduct (" << default_adduct.getFormula() << ") to exactly fit feature charge! Next...)\n";
-                    continue;
-                  }
-
-                  int hc_left  = (q1 - left_charges) / default_adduct.getCharge();//this should always be positive! check!!
-                  int hc_right = (q2 - right_charges) / default_adduct.getCharge();//this should always be positive! check!!
-
-
-                  if (hc_left < 0 || hc_right < 0)
-                  {
-                    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING!!! implicit number of default adduct is negative!!! left:" + String(hc_left) + " right: " + String(hc_right) + "\n");
-                  }
-
-                  // intensity constraint:
-                  // no edge is drawn if low-prob feature has higher intensity
-                  if (!intensityFilterPassed_(q1, q2, cmp, f1, f2))
-                    continue;
-
-                  // get non-default adducts of this edge
-                  Compomer cmp_stripped(cmp.removeAdduct(default_adduct));
-
-                  // save new adduct candidate
-                  if (!cmp_stripped.getComponent()[Compomer::LEFT].empty())
-                  {
-                    String tmp = cmp_stripped.getAdductsAsString(Compomer::LEFT);
-                    CmpInfo_ cmp_left(tmp, feature_relation.size(), Compomer::LEFT);
-                    feature_adducts[i_RT].insert(cmp_left);
-                  }
-                  if (!cmp_stripped.getComponent()[Compomer::RIGHT].empty())
-                  {
-                    String tmp = cmp_stripped.getAdductsAsString(Compomer::RIGHT);
-                    CmpInfo_ cmp_right(tmp, feature_relation.size(), Compomer::RIGHT);
-                    feature_adducts[i_RT_window].insert(cmp_right);
-                  }
-
-                  // add implicit default adduct (H+ or H-) (if != 0)
-                  if (hc_left > 0)
-                  {
-                    cmp.add(default_adduct * hc_left, Compomer::LEFT);
-                  }
-                  if (hc_right > 0)
-                  {
-                    cmp.add(default_adduct * hc_right, Compomer::RIGHT);
-                  }
-
-                  ChargePair cp(i_RT, i_RT_window, q1, q2, cmp, naive_mass_diff - md_s->getMass(), false);
-                  feature_relation.push_back(cp);
-                }
-              } // ! hits loop
-
-              if (best_hit == null_compomer)
-              {
-                //std::cout << "MetaboliteFeatureDeconvolution.h:: could find no compomer complying with assumed q1 and q2 values!\n with q1: " << q1 << " q2: " << q2 << "\n";
-                ++no_cmp_hit;
+                left_charges = -hit_cmp.getPositiveCharges();
+                right_charges = -hit_cmp.getNegativeCharges();
               }
               else
               {
-                ++cmp_hit;
+                left_charges = hit_cmp.getNegativeCharges();
+                right_charges = hit_cmp.getPositiveCharges();
+              }
+
+              if (!((abs(q1) >= abs(left_charges)) && (abs(q2) >= abs(right_charges))))
+                return;
+
+              Compomer cmp = me.getCompomerById(hit_cmp.getID());
+              if (is_neg)
+              {
+                left_charges = -cmp.getPositiveCharges();
+                right_charges = -cmp.getNegativeCharges();
+              }
+              else
+              {
+                left_charges = cmp.getNegativeCharges();
+                right_charges = cmp.getPositiveCharges();
+              }
+
+              if (((q1 - left_charges) % default_adduct.getCharge() != 0) ||
+                  ((q2 - right_charges) % default_adduct.getCharge() != 0))
+              {
+                OPENMS_LOG_WARN << "Cannot add enough default adduct (" << default_adduct.getFormula() << ") to exactly fit feature charge! Next...)\n";
+                return;
+              }
+
+              int hc_left  = (q1 - left_charges) / default_adduct.getCharge();
+              int hc_right = (q2 - right_charges) / default_adduct.getCharge();
+
+              if (hc_left < 0 || hc_right < 0)
+              {
+                throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING!!! implicit number of default adduct is negative!!! left:" + String(hc_left) + " right: " + String(hc_right) + "\n");
+              }
+
+              if (!intensityFilterPassed_(q1, q2, cmp, f1, f2))
+                return;
+
+              Compomer cmp_stripped(cmp.removeAdduct(default_adduct));
+
+              if (!cmp_stripped.getComponent()[Compomer::LEFT].empty())
+              {
+                String tmp = cmp_stripped.getAdductsAsString(Compomer::LEFT);
+                CmpInfo_ cmp_left(tmp, feature_relation.size(), Compomer::LEFT);
+                feature_adducts[i_RT].insert(cmp_left);
+              }
+              if (!cmp_stripped.getComponent()[Compomer::RIGHT].empty())
+              {
+                String tmp = cmp_stripped.getAdductsAsString(Compomer::RIGHT);
+                CmpInfo_ cmp_right(tmp, feature_relation.size(), Compomer::RIGHT);
+                feature_adducts[i_RT_window].insert(cmp_right);
+              }
+
+              if (hc_left > 0)
+              {
+                cmp.add(default_adduct * hc_left, Compomer::LEFT);
+              }
+              if (hc_right > 0)
+              {
+                cmp.add(default_adduct * hc_right, Compomer::RIGHT);
+              }
+
+              ChargePair cp(i_RT, i_RT_window, q1, q2, cmp, mass_diff_residual, false);
+              cp.setMolMultiplier(0, n_left);
+              cp.setMolMultiplier(1, n_right);
+              // Apply multimer penalty as multiplicative factor on edge score.
+              // ILP maximizes total score, so edge_score must remain positive.
+              // exp(log_penalty) converts log-space penalty to a [0,1] multiplier.
+              if (penalty != 0.0)
+              {
+                cp.setEdgeScore(cp.getEdgeScore() * exp(penalty));
+              }
+              feature_relation.push_back(cp);
+            };
+
+            // Loop over multiplier combinations
+            for (Int n1 = 1; n1 <= max_multimer; ++n1)
+            {
+              for (Int n2 = n1; n2 <= max_multimer; ++n2)
+              {
+                if (n1 == n2)
+                {
+                  // Same-multiplier: M cancels identically regardless of multiplier value,
+                  // so only n1=n2=1 is meaningful (higher values produce duplicate edges).
+                  if (n1 > 1) continue;
+                  // Existing binary search path
+                  double abs_mass_diff = tol_q1 + tol_q2;
+                  hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
+                  OPENMS_PRECONDITION(hits >= 0, "MetaboliteFeatureDeconvolution querying #hits got negative result!");
+
+                  overallHits += hits;
+                  if (hits > 0)
+                  {
+                    Size edges_before = feature_relation.size();
+                    for (; md_s != md_e; ++md_s)
+                    {
+                      processHit(*md_s, naive_mass_diff - md_s->getMass(), n1, n1, 0.0);
+                    }
+                    if (feature_relation.size() == edges_before) { ++no_cmp_hit; } else { ++cmp_hit; }
+                  }
+                }
+                else
+                {
+                  // Cross-multiplier: exact algebraic match, linear scan
+                  double cross_tol = n2 * tol_q1 + n1 * tol_q2;
+                  double penalty = (std::max(n1, n2) - 1) * multimer_log_penalty;
+
+                  // Try (n1, n2): feature 0 = n1-mer, feature 1 = n2-mer
+                  std::vector<MassExplainer::CompomerIterator> multimer_hits;
+                  hits = me.queryMultimer(q2 - q1, m1, m2, n1, n2, cross_tol, thresh_logp, multimer_hits);
+                  overallHits += hits;
+                  for (const auto& hit_it : multimer_hits)
+                  {
+                    // Compute mass_diff residual for cross-multiplier:
+                    // M = (m1 - left_mass) / n1, residual = m2 - n2*M - right_mass
+                    double left_mass = hit_it->getSideMass(Compomer::LEFT);
+                    double right_mass = hit_it->getSideMass(Compomer::RIGHT);
+                    double M_est = (m1 - left_mass) / n1;
+                    double residual = m2 - n2 * M_est - right_mass;
+                    processHit(*hit_it, residual, n1, n2, penalty);
+                  }
+
+                  // Try (n2, n1): feature 0 = n2-mer, feature 1 = n1-mer
+                  multimer_hits.clear();
+                  hits = me.queryMultimer(q2 - q1, m1, m2, n2, n1, cross_tol, thresh_logp, multimer_hits);
+                  overallHits += hits;
+                  for (const auto& hit_it : multimer_hits)
+                  {
+                    double left_mass = hit_it->getSideMass(Compomer::LEFT);
+                    double right_mass = hit_it->getSideMass(Compomer::RIGHT);
+                    double M_est = (m1 - left_mass) / n2;
+                    double residual = m2 - n1 * M_est - right_mass;
+                    processHit(*hit_it, residual, n2, n1, penalty);
+                  }
+                }
               }
             }
 
@@ -826,10 +863,12 @@ namespace OpenMS
         // ... and check consistency
         //
         Compomer c = feature_relation[i].getCompomer();
+        Int mult0 = feature_relation[i].getMolMultiplier(0);
+        Int mult1 = feature_relation[i].getMolMultiplier(1);
         // - left
-        annotate_feature_(fm_out, default_adduct, c, f0_idx, Compomer::LEFT, new_q0, old_q0);
+        annotate_feature_(fm_out, default_adduct, c, f0_idx, Compomer::LEFT, new_q0, old_q0, mult0);
         // - right
-        annotate_feature_(fm_out, default_adduct, c, f1_idx, Compomer::RIGHT, new_q1, old_q1);
+        annotate_feature_(fm_out, default_adduct, c, f1_idx, Compomer::RIGHT, new_q1, old_q1, mult1);
 
 
         ConsensusFeature cf(fm_out[f0_idx]);

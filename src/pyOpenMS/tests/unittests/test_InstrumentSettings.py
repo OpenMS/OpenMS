@@ -69,9 +69,9 @@ class TestInstrumentSettings(unittest.TestCase):
         """Test getting all scan mode names."""
         names = pyopenms.InstrumentSettings.getAllNamesOfScanMode()
         self.assertGreater(len(names), 0)
-        # getAllNames returns bytes
-        self.assertIn(b"MS1Spectrum", names)
-        self.assertIn(b"MSnSpectrum", names)
+        # getAllNames returns str
+        self.assertIn("MS1Spectrum", names)
+        self.assertIn("MSnSpectrum", names)
 
     def test_toScanMode_invalid(self):
         """Test that invalid string raises exception."""

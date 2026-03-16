@@ -40,6 +40,8 @@ namespace OpenMS
    * Use this class to invoke the individual OpenSWATH scoring routines.
    *
   */
+  class MobilogramParquetConsumer;
+
   class OPENMS_DLLAPI OpenSwathScoring
   {
     typedef OpenSwath::LightCompound CompoundType;
@@ -188,18 +190,22 @@ namespace OpenMS
      * @param[in] mzerror_ppm m/z and mass error (in ppm) for all transitions
      * @param[in] drift_target target drift value
      * @param[in] range_im drift time lower and upper bounds
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to
      *
     */
-    void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
-                            const std::vector<TransitionType>& transitions,
-                            const std::vector<OpenSwath::SwathMap>& swath_maps,
-                            const OpenSwath::SpectrumAccessPtr& ms1_map,
-                            const OpenMS::DIAScoring& diascoring,
-                            const CompoundType& compound,
-                            OpenSwath_Scores& scores,
-                            std::vector<double>& mzerror_ppm,
-                            const double drift_target,
-                            const RangeMobility& range_im);
+  void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
+              const std::vector<TransitionType>& transitions,
+              const std::vector<OpenSwath::SwathMap>& swath_maps,
+              const OpenSwath::SpectrumAccessPtr& ms1_map,
+              const OpenMS::DIAScoring& diascoring,
+              const CompoundType& compound,
+              OpenSwath_Scores& scores,
+              std::vector<double>& mzerror_ppm,
+              const double drift_target,
+              const RangeMobility& range_im,
+              MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+              Int64 feature_id = -1);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
@@ -234,6 +240,8 @@ namespace OpenMS
      * @param[in] diascoring DIA Scoring object to use for scoring
      * @param[out] scores The object to store the result
      * @param[out] drift_target target drift value
+     * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
+     * @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to
      *
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -243,7 +251,9 @@ namespace OpenMS
                               RangeMobility& range_im,
                               const OpenMS::DIAScoring & diascoring,
                               OpenSwath_Scores & scores,
-                              const double drift_target);
+                              const double drift_target,
+                              MobilogramParquetConsumer* mobilogram_consumer = nullptr,
+                              Int64 feature_id = -1);
 
     /** @brief Computing the normalized library intensities from the transition objects
      *
@@ -278,7 +288,7 @@ namespace OpenMS
      * @return Vector of spectra to be used
      *
     */
-    SpectrumSequence fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
+    SpectrumSequence fetchSpectrumSwath(const std::vector<OpenSwath::SwathMap>& swath_maps, double RT, int nr_spectra_to_add, const RangeMobility& im_range);
 
 
    /** @brief Prepares a spectrum for DIA analysis (multiple map)

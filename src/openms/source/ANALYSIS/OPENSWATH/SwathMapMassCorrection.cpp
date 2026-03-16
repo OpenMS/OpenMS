@@ -72,7 +72,7 @@ namespace OpenMS
           m.imUpper >= transition_group.getTransitions()[0].precursor_im)
       {
         // if no other windows at this position just add it
-        if (used_maps.size() == 0)
+        if (used_maps.empty())
         {
           used_maps.push_back(m);
         }
@@ -103,6 +103,12 @@ namespace OpenMS
     defaults_.setMinFloat("mz_estimation_padding_factor", 1.0);
     defaults_.setValue("im_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated ion_mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion_mobility window, so if the estimated ion_mobility window is 0.03, then 0.009 will be added for a total estimated ion_mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.");
     defaults_.setMinFloat("im_estimation_padding_factor", 1.0);
+    defaults_.setValue("mz_estimation_percentile", 99.0, "Percentile for m/z window estimation (25.0-99.9)");
+    defaults_.setMinFloat("mz_estimation_percentile", 25.0);
+    defaults_.setMaxFloat("mz_estimation_percentile", 99.9);
+    defaults_.setValue("im_estimation_percentile", 99.0, "Percentile for ion mobility window estimation (25.0-99.9)");
+    defaults_.setMinFloat("im_estimation_percentile", 25.0);
+    defaults_.setMaxFloat("im_estimation_percentile", 99.9);
     defaults_.setValue("mz_correction_function", "none", "Type of normalization function for m/z calibration.");
     defaults_.setValidStrings("mz_correction_function", {"none","regression_delta_ppm","unweighted_regression","weighted_regression","quadratic_regression","weighted_quadratic_regression","weighted_quadratic_regression_delta_ppm","quadratic_regression_delta_ppm"});
     defaults_.setValue("im_correction_function", "linear", "Type of normalization function for IM calibration.");
@@ -123,6 +129,8 @@ namespace OpenMS
     im_extraction_window_ = (double)param_.getValue("im_extraction_window");
     mz_estimation_padding_factor_ = (double)param_.getValue("mz_estimation_padding_factor");
     im_estimation_padding_factor_ = (double)param_.getValue("im_estimation_padding_factor");
+    mz_estimation_percentile_ = (double)param_.getValue("mz_estimation_percentile");
+    im_estimation_percentile_ = (double)param_.getValue("im_estimation_percentile");
     mz_correction_function_ = param_.getValue("mz_correction_function").toString();
     im_correction_function_ = param_.getValue("im_correction_function").toString();
     debug_mz_file_ = param_.getValue("debug_mz_file").toString();
@@ -410,8 +418,8 @@ namespace OpenMS
     im_trafo.fitModel(model_type, model_params);
 
     // Estimate MS2 ion mobility window
-    // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
-    double fragment_im_window = im_trafo.estimateWindow(0.99, false, true, im_estimation_padding_factor);
+    // Use the configured quantile to determine window coverage, ignoring potential outliers
+    double fragment_im_window = im_trafo.estimateWindow(im_estimation_percentile_ / 100.0, false, true, im_estimation_padding_factor);
     setFragmentImWindow(fragment_im_window);
 
     if (!exp_im_ms1_all.empty())
@@ -427,8 +435,8 @@ namespace OpenMS
       // Copy the fitted model; don't mutate im_trafo's datapoints
       TransformationDescription im_trafo_inv = im_trafo;
       im_trafo_inv.setDataPoints(ms1_points);
-      // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
-      const double precursor_im_window = im_trafo_inv.estimateWindow(0.99, /*invert=*/false, /*full_window=*/true, im_estimation_padding_factor);
+      // Use the configured quantile to determine window coverage, ignoring potential outliers  
+      const double precursor_im_window = im_trafo_inv.estimateWindow(im_estimation_percentile_ / 100.0, /*invert=*/false, /*full_window=*/true, im_estimation_padding_factor);
       setPrecursorImWindow(precursor_im_window);
     }
 
@@ -598,8 +606,8 @@ namespace OpenMS
       if (delta_ppm.size() > N) ss << ", ...";
       OPENMS_LOG_DEBUG << ss.str() << '\n';
     }
-    // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
-    double fragment_mz_window = estimateWindow(delta_ppm, 0.99, true, mz_estimation_padding_factor);
+    // Use the configured quantile to determine window coverage, ignoring potential outliers
+    double fragment_mz_window = estimateWindow(delta_ppm, mz_estimation_percentile_ / 100.0, true, mz_estimation_padding_factor);
     setFragmentMzWindow(fragment_mz_window);
 
     // Estimate precursor window from MS1 residuals (full width, ppm)
@@ -616,8 +624,8 @@ namespace OpenMS
         if (delta_ppm_ms1.size() > N) ss << ", ...";
         OPENMS_LOG_DEBUG << ss.str() << '\n';
       }
-      // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
-      double precursor_mz_window = estimateWindow(delta_ppm_ms1, 0.99, true, mz_estimation_padding_factor);
+      // Use the configured quantile to determine window coverage, ignoring potential outliers  
+      double precursor_mz_window = estimateWindow(delta_ppm_ms1, mz_estimation_percentile_ / 100.0, true, mz_estimation_padding_factor);
       setPrecursorMzWindow(precursor_mz_window);
     }
 

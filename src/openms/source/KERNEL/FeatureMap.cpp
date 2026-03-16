@@ -351,6 +351,30 @@ namespace OpenMS
     protein_identifications_ = protein_identifications;
   }
 
+  const ProteinIdentification* FeatureMap::findProteinIdentification(const String& identifier) const
+  {
+    for (const auto& prot_id : protein_identifications_)
+    {
+      if (prot_id.getIdentifier() == identifier)
+      {
+        return &prot_id;
+      }
+    }
+    return nullptr;
+  }
+
+  ProteinIdentification* FeatureMap::findProteinIdentification(const String& identifier)
+  {
+    for (auto& prot_id : protein_identifications_)
+    {
+      if (prot_id.getIdentifier() == identifier)
+      {
+        return &prot_id;
+      }
+    }
+    return nullptr;
+  }
+
   const PeptideIdentificationList& FeatureMap::getUnassignedPeptideIdentifications() const
   {
     return unassigned_peptide_identifications_;

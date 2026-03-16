@@ -37,10 +37,6 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDesktopServices>
-#include <QNetworkAccessManager>
-#include <QNetworkProxy>
-#include <QNetworkProxyFactory>
-#include <QNetworkReply>
 #include <QSvgGenerator>
 #include <QTextStream>
 #include <QtCore/QDir>
@@ -263,9 +259,6 @@ namespace OpenMS
     connect((webview_->page()), SIGNAL(linkClicked(const QUrl &)), this, SLOT(downloadTOPPASfromHomepage_(const QUrl &)));
 */
 
-    network_manager_ = new QNetworkAccessManager(this);
-    connect(network_manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(toppasFileDownloaded_(QNetworkReply*)));
-
     // update the menu
     updateMenu(); 
 
@@ -299,134 +292,6 @@ namespace OpenMS
     //std::cerr << "changed to '" << String(desc_->toHtml()) << "'\n";
     activeSubWindow_()->getScene()->setChanged(true);
     activeSubWindow_()->getScene()->setDescription(desc_->toHtml());
-  }
-
-  void TOPPASBase::toppasFileDownloaded_(QNetworkReply* /* r */)
-  {
-/* QT5
-    r->deleteLater();
-    if (r->error() != QNetworkReply::NoError)
-    {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Download failed", "Error '" + r->errorString() + "' while downloading TOPPAS file: '" + r->url().toString() + "'");
-      return;
-    }
-
-    QByteArray data = r->readAll();
-
-    QString proposed_filename;
-    if (r->url().hasQueryItem("file"))
-    {
-      proposed_filename = r->url().queryItemValue("file");
-    }
-    else
-    {
-      proposed_filename = "Workflow.toppas";
-      OPENMS_LOG_WARN << "The URL format of downloads from the TOPPAS Online-Repository has changed. Please notify developers!";
-    }
-    QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
-
-    // check if the user clicked cancel, to avoid saving .toppas somewhere
-    if (String(filename).trim().empty())
-    {
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Download succeeded, but saving aborted by user!", "");
-      return;
-    }
-
-    if (!filename.endsWith(".toppas", Qt::CaseInsensitive))
-    {
-      filename += ".toppas";
-    }
-
-    QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Download succeeded. Cannot save the file. Try again with another filename and/or location!", "");
-      return;
-    }
-
-    QTextStream out(&file);
-    out << data;
-    file.close();
-
-    this->addTOPPASFile(filename);
-    log_->appendNewHeader(LogWindow::LogState::NOTICE, "File successfully saved to '" + filename + "'.", "");
-*/
-  }
-  
-  void TOPPASBase::TOPPASreadyRead()
-  {
-    QNetworkReply::NetworkError ne = network_reply_->error();
-    qint64 ba = network_reply_->bytesAvailable();
-    OPENMS_LOG_DEBUG << "Error code (QNetworkReply::NetworkError): " << ne << "  bytes available: " << ba << std::endl;
-    return;
-  }
-
-  void TOPPASBase::downloadTOPPASfromHomepage_(const QUrl& url)
-  {
-    if (url.toString().endsWith(QString(".toppas"), Qt::CaseInsensitive))
-    {
-      network_reply_ = network_manager_->get(QNetworkRequest(url));
-
-      // debug
-      connect(network_reply_, SIGNAL(readyRead()), this, SLOT(TOPPASreadyRead()));
-      connect(network_reply_, SIGNAL(error(QNetworkReply::NetworkError code)), this, SLOT(TOPPASreadyRead()));
-      connect(network_reply_, SIGNAL(finished()), this, SLOT(TOPPASreadyRead()));
-      connect(network_reply_, SIGNAL(metaDataChanged()), this, SLOT(TOPPASreadyRead()));
-      connect(network_reply_, SIGNAL(sslErrors(const QList<QSslError> & errors)), this, SLOT(TOPPASreadyRead()));
-      // .. end debug
-
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Downloading file '" + url.toString() + "'. You will be notified once the download finished.", "");
-      // webview_->close(); QT5 replace with QWebEngine
-    }
-    else
-    {
-      QMessageBox::warning(this, tr("Error"), tr("You can only click '.toppas' files on this page. No navigation is allowed!\n"));
-      /* 
-      replace with QT5 webengine
-      webview_->setFocus(); 
-      webview_->activateWindow();
-      */
-    }
-  }
-
-  void TOPPASBase::openOnlinePipelineRepository()
-  {
-/* QT5
-    QUrl url = QUrl("http://www.OpenMS.de/TOPPASWorkflows/");
-
-    static bool proxy_settings_checked = false;
-    if (!proxy_settings_checked) // do only once because may take several seconds on windows
-    {
-      QNetworkProxy proxy;
-      QUrl tmp_proxy_url(QString(getenv("http_proxy")));
-      QUrl tmp_PROXY_url(QString(getenv("HTTP_PROXY")));
-      QUrl proxy_url = tmp_proxy_url.isValid() ? tmp_proxy_url : tmp_PROXY_url;
-      if (proxy_url.isValid())
-      {
-        QString hostname = proxy_url.host();
-        int port = proxy_url.port();
-        QString username = proxy_url.userName();
-        QString password = proxy_url.password();
-        proxy = QNetworkProxy(QNetworkProxy::HttpProxy, hostname, port, username, password);
-      }
-      else
-      {
-        QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery(url);
-        if (!proxies.empty())
-        {
-          proxy = proxies.first();
-        }
-      }
-      QNetworkProxy::setApplicationProxy(proxy); //no effect if proxy == QNetworkProxy()
-      proxy_settings_checked = true;
-    }
-
-    // show something immediately, so the user does not stare at white screen while the URL is fetched
-    webview_->setHtml("loading content ... ");
-    webview_->show();
-    // ... load the page in background
-    webview_->load(url);
-*/
   }
 
   //static

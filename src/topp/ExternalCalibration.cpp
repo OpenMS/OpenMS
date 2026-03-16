@@ -11,6 +11,7 @@
 #include <OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <vector>

@@ -403,6 +403,89 @@ void MSChromatogram::clear(bool clear_meta_data)
   }
 }
 
+MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
+{
+  Size snew = indices.size();
+  ContainerType tmp;
+  tmp.reserve(indices.size());
+
+  const Size peaks_old = size();
+
+  for (Size i = 0; i < snew; ++i)
+  {
+    tmp.push_back(std::move(ContainerType::operator[](indices[i])));
+  }
+  ContainerType::swap(tmp);
+
+  std::vector<float> mda_tmp_float;
+  for (Size i = 0; i < float_data_arrays_.size(); ++i)
+  {
+    if (float_data_arrays_[i].empty())
+    {
+      continue;
+    }
+    if (float_data_arrays_[i].size() != peaks_old)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" +
+                                                                                String(float_data_arrays_[i].size()) + ") does not match chromatogram size (" + String(peaks_old) + ")");
+    }
+
+    mda_tmp_float.clear();
+    mda_tmp_float.reserve(float_data_arrays_[i].size());
+    for (Size j = 0; j < snew; ++j)
+    {
+      mda_tmp_float.push_back(std::move(float_data_arrays_[i][indices[j]]));
+    }
+    std::swap(float_data_arrays_[i], mda_tmp_float);
+  }
+
+  std::vector<String> mda_tmp_str;
+  for (Size i = 0; i < string_data_arrays_.size(); ++i)
+  {
+    if (string_data_arrays_[i].empty())
+    {
+      continue;
+    }
+    if (string_data_arrays_[i].size() != peaks_old)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
+                                                                                String(string_data_arrays_[i].size()) + ") does not match chromatogram size (" + String(peaks_old) + ")");
+    }
+
+    mda_tmp_str.clear();
+    mda_tmp_str.reserve(string_data_arrays_[i].size());
+    for (Size j = 0; j < snew; ++j)
+    {
+      mda_tmp_str.push_back(std::move(string_data_arrays_[i][indices[j]]));
+    }
+    std::swap(string_data_arrays_[i], mda_tmp_str);
+  }
+
+  std::vector<Int> mda_tmp_int;
+  for (Size i = 0; i < integer_data_arrays_.size(); ++i)
+  {
+    if (integer_data_arrays_[i].empty())
+    {
+      continue;
+    }
+    if (integer_data_arrays_[i].size() != peaks_old)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
+                                                                                String(integer_data_arrays_[i].size()) + ") does not match chromatogram size (" + String(peaks_old) + ")");
+    }
+
+    mda_tmp_int.clear();
+    mda_tmp_int.reserve(integer_data_arrays_[i].size());
+    for (Size j = 0; j < snew; ++j)
+    {
+      mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));
+    }
+    std::swap(integer_data_arrays_[i], mda_tmp_int);
+  }
+
+  return *this;
+}
+
 // This helper function is based on the cstd::set_union implementation. It is different in that it has a separate concept of "close enough to merge"
 // This is defined as having retention times of within 1/1000 seconds
 // Note: We assume that RTs are distinct in each of the two Chromatograms but may be the same between Chromatograms.

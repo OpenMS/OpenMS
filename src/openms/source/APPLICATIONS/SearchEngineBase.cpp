@@ -11,6 +11,8 @@
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 

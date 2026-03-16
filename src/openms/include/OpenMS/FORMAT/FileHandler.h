@@ -14,12 +14,9 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
 
-
+// Forward declarations instead of full includes — all these types appear only
+// as references/pointers in method signatures, so full definitions are not needed.
 namespace OpenMS
 {
   class PeakFileOptions;
@@ -28,6 +25,8 @@ namespace OpenMS
   class FeatureMap;
   class ConsensusMap;
   class TargetedExperiment;
+  class ProteinIdentification;
+  class PeptideIdentificationList;
 
   /**
     @brief Facilitates file handling by file type recognition.
@@ -367,7 +366,7 @@ public:
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids,
-               const ConsensusMap& consensus_map = ConsensusMap(),
+               const ConsensusMap& consensus_map,
                const String& contact_name = "",
                const String& contact_address = "",
                const String& description = "",

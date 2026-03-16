@@ -13,6 +13,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>

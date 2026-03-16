@@ -70,7 +70,7 @@ public:
      * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
-     * @param[in] ppm Whether mz windows in in ppm
+     * @param[in] ppm Whether mz windows in ppm
      * @param[in] filter Which filter to use (bartlett or tophat)
      *
      *
@@ -97,7 +97,7 @@ public:
      * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
-     * @param[in] ppm Whether mz windows in in ppm
+     * @param[in] ppm Whether mz windows in ppm
      * @param[in] im_extraction_window Extracts a window of this size in ion mobility
      * @param[in] filter Which filter to use (bartlett or tophat)
      *
@@ -401,6 +401,18 @@ private:
     }
   }
 
+  // Const-qualified template specialization for extract_id_.
+  // This specialization handles const LightTargetedExperiment parameters by forwarding
+  // to the non-const implementation (via const_cast) to avoid linker errors from
+  // duplicate template instantiations when both const and non-const versions are used.
+  template<>
+  inline String ChromatogramExtractor::extract_id_<const OpenSwath::LightTargetedExperiment>(const OpenSwath::LightTargetedExperiment& transition_exp_used,
+                                                                                               const String& id,
+                                                                                               int & prec_charge)
+  {
+    // forward to non-const implementation
+    return extract_id_<OpenSwath::LightTargetedExperiment>(const_cast<OpenSwath::LightTargetedExperiment&>(transition_exp_used), id, prec_charge);
+  }
 
   // Specialization for template (TargetedExperiment)
   template<>

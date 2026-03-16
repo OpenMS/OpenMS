@@ -37,7 +37,7 @@ namespace OpenMS
     labels_(),
     labels_list_(),
     samples_labels_(),
-    missed_cleavages_(),
+    max_nr_labelled_aas_(),
     label_delta_mass_()
   {
     // fill label master list
@@ -52,12 +52,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_delta_mass) :
+  MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int max_nr_labelled_aas, std::map<String,double> label_delta_mass) :
     DefaultParamHandler("labels"),
     labels_(std::move(labels)),
     labels_list_(),
     samples_labels_(),
-    missed_cleavages_(missed_cleavages),
+    max_nr_labelled_aas_(max_nr_labelled_aas),
     label_delta_mass_(std::move(label_delta_mass))
   {
     // fill label master list
@@ -78,6 +78,8 @@ namespace OpenMS
     boost::replace_all(temp_labels_string, "()", "no_label");
     boost::replace_all(temp_labels_string, "{}", "no_label");
     boost::split(temp_samples, temp_labels_string, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+
+    samples_labels_.reserve(temp_samples.size()); // Pre-allocate for performance
 
     for (String::size_type i = 0; i < temp_samples.size(); ++i)
     {
@@ -185,11 +187,11 @@ namespace OpenMS
       // SILAC
       // We assume the first sample to be unlabelled. Even if the "[]" for the first sample in the label string has not been specified.
 
-      for (unsigned ArgPerPeptide = 0; ArgPerPeptide <= (unsigned) missed_cleavages_ + 1; ArgPerPeptide++)
+      for (unsigned ArgPerPeptide = 0; ArgPerPeptide <= (unsigned) max_nr_labelled_aas_ + 1; ArgPerPeptide++)
       {
-        for (unsigned LysPerPeptide = 0; LysPerPeptide <= (unsigned) missed_cleavages_ + 1; LysPerPeptide++)
+        for (unsigned LysPerPeptide = 0; LysPerPeptide <= (unsigned) max_nr_labelled_aas_ + 1; LysPerPeptide++)
         {
-          if (ArgPerPeptide + LysPerPeptide <= (unsigned) missed_cleavages_ + 1)
+          if (ArgPerPeptide + LysPerPeptide <= (unsigned) max_nr_labelled_aas_ + 1)
           {
             MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
             delta_masses_temp.getDeltaMasses().emplace_back(0, "no_label");
@@ -259,7 +261,7 @@ namespace OpenMS
       // Unlike in classical SILAC where two labels with two different specificities are available, in Leu labelling
       // there is only one specificity Leu. Hence, [Lys8,Arg10] but [Leu3].
 
-      for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
+      for (unsigned mc = 0; mc <= (unsigned) max_nr_labelled_aas_; ++mc)
       {
         MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
 
@@ -287,7 +289,7 @@ namespace OpenMS
       // both have different specificities. But two labels [Dimethyl4,Dimethyl8] make no sense, since both have the same
       // specificity. With only one specificity in Dimethyl labelling available, each sample can have only one label.
 
-      for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
+      for (unsigned mc = 0; mc <= (unsigned) max_nr_labelled_aas_; ++mc)
       {
         MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
         for (unsigned i = 0; i < samples_labels_.size(); i++)
@@ -308,7 +310,7 @@ namespace OpenMS
     }
     else if (numeric)
     {
-      for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
+      for (unsigned mc = 0; mc <= (unsigned) max_nr_labelled_aas_; ++mc)
       {
         MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
         for (unsigned i = 0; i < samples_labels_.size(); i++)

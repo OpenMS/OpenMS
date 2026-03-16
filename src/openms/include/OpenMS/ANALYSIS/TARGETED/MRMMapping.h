@@ -13,6 +13,9 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+// Forward-declare LightTargetedExperiment from OpenSwath (openswathalgo)
+namespace OpenSwath { struct LightTargetedExperiment; }
+
 namespace OpenMS
 {
 
@@ -59,6 +62,17 @@ public:
     void mapExperiment(const OpenMS::PeakMap& input_chromatograms,
         const OpenMS::TargetedExperiment& targeted_exp,
         OpenMS::PeakMap& output) const;
+
+    /**
+      @brief Map chromatograms to assays using a LightTargetedExperiment.
+      
+      @param[in] input_chromatograms Input chromatograms to map.
+      @param[in] targeted_exp LightTargetedExperiment describing assays.
+      @param[out] output Output chromatograms with mapped annotations.
+    */
+    void mapExperiment(const OpenMS::PeakMap& input_chromatograms,
+      const OpenSwath::LightTargetedExperiment& targeted_exp,
+      OpenMS::PeakMap& output) const;
 
 protected:
 

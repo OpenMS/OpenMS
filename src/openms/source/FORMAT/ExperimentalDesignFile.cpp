@@ -227,6 +227,8 @@ namespace OpenMS
           int label = cells[fs_column_header_to_index["Label"]].toInt();
           int fraction = cells[fs_column_header_to_index["Fraction"]].toInt();
           int fraction_group = cells[fs_column_header_to_index["Fraction_Group"]].toInt();
+          parseErrorIf_(!has_sample && (label > 1), tsv_file,
+                        "Column 'Sample' is required for multiplexed one-table designs (Label > 1).");
 
           // read sample column
           Size sample = 1;
@@ -269,6 +271,7 @@ namespace OpenMS
           e.fraction = fraction;
           e.label = label;
           e.sample = sample;
+          e.sample_name = samplename;
 
           // Spectra files
           e.path = findSpectraFile(
@@ -462,4 +465,3 @@ namespace OpenMS
     }
 
 }
-

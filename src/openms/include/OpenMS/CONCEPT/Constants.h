@@ -250,6 +250,11 @@ namespace OpenMS
        */
       inline const std::string ION_MOBILITY = "Ion Mobility";
 
+      /** MetaValue key for inverse reduced ion mobility array (alternative name for 1/K0 from MSConvert).
+       * Uses the same CV term MS:1002815 as ION_MOBILITY.
+       */
+      inline const std::string INVERSE_REDUCED_ION_MOBILITY = "inverse reduced ion mobility";
+
       /** MetaValue key for centroided ion mobility data output by PeakPickerIM and MassTraceDetection.
        * PeakPickerIM outputs centroided peaks with this array name.
        * MassTraceDetection computes intensity-weighted ion mobility average of connected centroided peaks.

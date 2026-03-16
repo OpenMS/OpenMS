@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
@@ -88,7 +89,7 @@ private:
 
   // section "algorithm"
   String labels_;
-  unsigned missed_cleavages_;
+  unsigned max_nr_labelled_aas_;
   double mass_tolerance_;
   double mz_tolerance_;
   double rt_tolerance_;
@@ -123,8 +124,8 @@ private:
     if (section == "algorithm")
     {
       defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
-      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
-      defaults.setMinInt("missed_cleavages", 0);
+      defaults.setValue("max_nr_labelled_aas", 0, "Maximum number of labelled amino acids per peptide, minus one. The algorithm searches for peptides with up to (this value + 1) labelled amino acids. For SILAC with trypsin digestion, this parameter corresponds to the maximum number of missed cleavages.");
+      defaults.setMinInt("max_nr_labelled_aas", 0);
       defaults.setValue("mass_tolerance", 0.1, "Mass tolerance in Da for matching the mass shifts in the detected peptide multiplet to the theoretical mass shift pattern.", {"advanced"});
       defaults.setValue("mz_tolerance", 10, "m/z tolerance in ppm for checking if dummy feature vicinity was blacklisted.", {"advanced"});
       defaults.setValue("rt_tolerance", 5, "Retention time tolerance in seconds for checking if dummy feature vicinity was blacklisted.", {"advanced"});
@@ -162,7 +163,7 @@ private:
   void getParameters_algorithm_()
   {
     labels_ = getParam_().getValue("algorithm:labels").toString();
-    missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
+    max_nr_labelled_aas_ = getParam_().getValue("algorithm:max_nr_labelled_aas");
     mass_tolerance_ = getParam_().getValue("algorithm:mass_tolerance");
     mz_tolerance_ = getParam_().getValue("algorithm:mz_tolerance");
     rt_tolerance_ = getParam_().getValue("algorithm:rt_tolerance");
@@ -555,7 +556,7 @@ private:
 public:
   TOPPMultiplexResolver() :
     TOPPBase("MultiplexResolver", "Completes peptide multiplets and resolves conflicts within them."),
-    missed_cleavages_(0), mass_tolerance_(0.1)
+    max_nr_labelled_aas_(0), mass_tolerance_(0.1)
   {
   }
 
@@ -585,7 +586,7 @@ public:
     /**
      * generate patterns
      */
-    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(labels_, missed_cleavages_, label_mass_shift_);
+    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(labels_, max_nr_labelled_aas_, label_mass_shift_);
     #ifdef DEBUG
     generator.printSamplesLabelsList(std::cout);
     generator.printDeltaMassesList(std::cout);

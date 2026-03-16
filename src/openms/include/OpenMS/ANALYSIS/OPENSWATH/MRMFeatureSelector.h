@@ -102,7 +102,7 @@ public:
       bool   locality_weight         = false; ///< Weight compounds with a nearer Tr greater than compounds with a further Tr
       bool   select_transition_group = true; ///< Use components groups instead of components for retention time optimization
       Int    segment_window_length   = 8; ///< Number of components or component groups to include in the network
-      Int    segment_step_length     = 4; ///< Number of of components or component groups to shift the `segment_window_length` at each loop
+      Int    segment_step_length     = 4; ///< Number of components or component groups to shift the `segment_window_length` at each loop
       MRMFeatureSelector::VariableType variable_type = MRMFeatureSelector::VariableType::CONTINUOUS; ///< INTEGER or CONTINUOUS
       double optimal_threshold       = 0.5; ///< Value above which the transition group or transition is considered optimal (0 < x < 1)
       std::map<String, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores

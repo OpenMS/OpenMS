@@ -256,24 +256,26 @@ namespace OpenMS
     /**
        @brief Given a list of protein accessions, do any occur in the annotation(s) of this hit?
 
+       Template implementation that works with any set-like container (std::set, std::unordered_set, etc.)
+       that provides a count() method.
+
        @note This predicate also works for peptide evidence (class PeptideEvidence).
     */
-    template<class HitType>
-    struct HasMatchingAccessionUnordered {
+    template<class HitType, class SetType>
+    struct HasMatchingAccessionImpl {
       typedef HitType argument_type; // for use as a predicate
 
-      const std::unordered_set<String>& accessions;
+      const SetType& accessions;
 
-      HasMatchingAccessionUnordered(const std::unordered_set<String>& accessions_) : 
-        accessions(accessions_)
+      explicit HasMatchingAccessionImpl(const SetType& accessions_) : accessions(accessions_)
       {
       }
 
       bool operator()(const PeptideHit& hit) const
       {
-        for (const auto& it : hit.extractProteinAccessionsSet())
+        for (const auto& acc : hit.extractProteinAccessionsSet())
         {
-          if (accessions.count(it) > 0)
+          if (accessions.count(acc) > 0)
             return true;
         }
         return false;
@@ -281,50 +283,22 @@ namespace OpenMS
 
       bool operator()(const ProteinHit& hit) const
       {
-        return (accessions.count(hit.getAccession()) > 0);
+        return accessions.count(hit.getAccession()) > 0;
       }
 
       bool operator()(const PeptideEvidence& evidence) const
       {
-        return (accessions.count(evidence.getProteinAccession()) > 0);
+        return accessions.count(evidence.getProteinAccession()) > 0;
       }
     };
 
-    /**
-       @brief Given a list of protein accessions, do any occur in the annotation(s) of this hit?
-
-       @note This predicate also works for peptide evidence (class PeptideEvidence).
-    */
+    /// Convenience alias for HasMatchingAccessionImpl with std::unordered_set (O(1) lookup)
     template<class HitType>
-    struct HasMatchingAccession {
-      typedef HitType argument_type; // for use as a predicate
+    using HasMatchingAccessionUnordered = HasMatchingAccessionImpl<HitType, std::unordered_set<String>>;
 
-      const std::set<String>& accessions;
-
-      HasMatchingAccession(const std::set<String>& accessions_) : accessions(accessions_)
-      {
-      }
-
-      bool operator()(const PeptideHit& hit) const
-      {
-        for (const auto& it : hit.extractProteinAccessionsSet())
-        {
-          if (accessions.count(it) > 0)
-            return true;
-        }
-        return false;
-      }
-
-      bool operator()(const ProteinHit& hit) const
-      {
-        return (accessions.count(hit.getAccession()) > 0);
-      }
-
-      bool operator()(const PeptideEvidence& evidence) const
-      {
-        return (accessions.count(evidence.getProteinAccession()) > 0);
-      }
-    };
+    /// Convenience alias for HasMatchingAccessionImpl with std::set (O(log n) lookup)
+    template<class HitType>
+    using HasMatchingAccession = HasMatchingAccessionImpl<HitType, std::set<String>>;
 
     /**
        @brief Builds a map index of data that have a String index to find matches and return the objects
@@ -1062,7 +1036,7 @@ namespace OpenMS
     template<class IdentificationType>
     static void removeHitsMatchingProteins(std::vector<IdentificationType>& ids, const std::set<String> accessions)
     {
-      struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
+      HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
       for (auto& id_it : ids)
       {
         removeMatchingItems(id_it.getHits(), acc_filter);
@@ -1079,7 +1053,7 @@ namespace OpenMS
     template<IsPeptideOrProteinIdentification IdentificationType>
     static void keepHitsMatchingProteins(IdentificationType& id, const std::set<String>& accessions)
     {
-      struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
+      HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
       keepMatchingItems(id.getHits(), acc_filter);      
     }
 
