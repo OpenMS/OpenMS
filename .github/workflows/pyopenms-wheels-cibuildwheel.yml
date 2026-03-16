@@ -47,22 +47,23 @@ jobs:
       - name: Read Python versions and calculate package version
         id: set-versions
         run: |
-          # Output Python versions as JSON array for matrix (compact to single line)
-          echo "versions=$(jq -c . .github/workflows/python_versions.json)" >> $GITHUB_OUTPUT
+          # Output Python test versions as JSON array for matrix (compact to single line)
+          echo "versions=$(jq -c '.test' .github/workflows/python_versions.json)" >> $GITHUB_OUTPUT
           # Output as space-separated for display
-          echo "versions-array=$(jq -r '.[]' .github/workflows/python_versions.json | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "Build versions: $(jq -r '.build[]' .github/workflows/python_versions.json | tr '\n' ' ')"
+          echo "Test versions: $(jq -r '.test[]' .github/workflows/python_versions.json | tr '\n' ' ')"
 
           # Pre-calculate CIBW_BUILD for each platform
-          CIBW_LINUX_X64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_x86_64/' | tr '\n' ' ')
+          CIBW_LINUX_X64=$(jq -r '.build[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_x86_64/' | tr '\n' ' ')
           echo "cibw-build-linux-x64=$CIBW_LINUX_X64" >> $GITHUB_OUTPUT
-          
-          CIBW_LINUX_ARM64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_aarch64/' | tr '\n' ' ')
+
+          CIBW_LINUX_ARM64=$(jq -r '.build[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_aarch64/' | tr '\n' ' ')
           echo "cibw-build-linux-arm64=$CIBW_LINUX_ARM64" >> $GITHUB_OUTPUT
-          
-          CIBW_MACOS_ARM64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-macosx_arm64/' | tr '\n' ' ')
+
+          CIBW_MACOS_ARM64=$(jq -r '.build[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-macosx_arm64/' | tr '\n' ' ')
           echo "cibw-build-macos-arm64=$CIBW_MACOS_ARM64" >> $GITHUB_OUTPUT
-          
-          CIBW_WINDOWS_X64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-win_amd64/' | tr '\n' ' ')
+
+          CIBW_WINDOWS_X64=$(jq -r '.build[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-win_amd64/' | tr '\n' ' ')
           echo "cibw-build-windows-x64=$CIBW_WINDOWS_X64" >> $GITHUB_OUTPUT
 
           # Extract OpenMS version from CMakeLists.txt
@@ -472,11 +473,18 @@ jobs:
       - name: Test wheel
         shell: bash
         run: |
-          # Install the wheel matching this Python version
-          PYVER=$(echo "${{ matrix.python-version }}" | tr -d '.')
-          pip install wheelhouse/*cp${PYVER}*.whl
+          # Install the abi3 wheel (one wheel per platform, compatible with all Python versions)
+          pip install wheelhouse/*.whl
           python -c "import pyopenms; print('pyopenms version:', pyopenms.__version__)"
           python -c "import pyopenms; print(pyopenms.EmpiricalFormula('C6H12O6').getMonoWeight())"
+          python -c "from pyopenms._pyopenms import __doc__; print('_pyopenms module OK')"
+          python -c "
+          try:
+              from pyopenms._arrow_zerocopy import featuremap_features_to_arrow
+              print('_arrow_zerocopy module OK')
+          except ImportError:
+              print('_arrow_zerocopy not available (WITH_PARQUET off)')
+          "
 
   #----------------------------------------------------------------------------
   # Publish wheels
