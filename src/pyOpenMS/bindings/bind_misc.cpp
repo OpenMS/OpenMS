@@ -1840,25 +1840,30 @@ data annotated with IDs
 DefaultParamHandler
 )doc")
         .def(nb::init<>())
-        .def("quantifyPeptides", [](OpenMS::PeptideAndProteinQuant& self, const OpenMS::PeptideIdentificationList& peptides) { return self.quantifyPeptides(peptides); }, "peptides"_a, 
+        .def("readQuantData", [](OpenMS::PeptideAndProteinQuant& self, OpenMS::FeatureMap& features, const OpenMS::ExperimentalDesign& ed) { self.readQuantData(features, ed); }, "features"_a, "ed"_a,
+            "Read quantitative data from a feature map")
+        .def("readQuantData", [](OpenMS::PeptideAndProteinQuant& self, OpenMS::ConsensusMap& consensus, const OpenMS::ExperimentalDesign& ed) { self.readQuantData(consensus, ed); }, "consensus"_a, "ed"_a,
+            "Read quantitative data from a consensus map")
+        .def("quantifyPeptides", [](OpenMS::PeptideAndProteinQuant& self, const OpenMS::PeptideIdentificationList& peptides) { self.quantifyPeptides(peptides); },
+            "peptides"_a = OpenMS::PeptideIdentificationList(),
             R"doc(
-Read quantitative data from identification results (for quantification via spectral counting)
-Parameters should be set before using this method, as setting parameters will clear all results
+Compute peptide abundances.
+Quantitative data must first be read via readQuantData().
+Optional peptide-level protein inference information can be supplied via peptides.
 )doc")
-        .def("quantifyProteins", [](OpenMS::PeptideAndProteinQuant& self, const OpenMS::ProteinIdentification& proteins) { return self.quantifyProteins(proteins); }, "proteins"_a, 
+        .def("quantifyProteins", [](OpenMS::PeptideAndProteinQuant& self, const OpenMS::ProteinIdentification& proteins) { self.quantifyProteins(proteins); },
+            "proteins"_a = OpenMS::ProteinIdentification(),
             R"doc(
-Compute peptide abundances
-Based on quantitative data for individual charge states (in member `pep_quant_`), overall abundances for peptides are computed (and stored again in `pep_quant_`)
-Quantitative data must first be read via readQuantData()
-Optional (peptide-level) protein inference information (e.g. from Fido or ProteinProphet) can be supplied via `peptides`. In that case, peptide-to-protein associations - the basis for protein-level quantification - will also be read from `peptides`!
+Compute protein abundances.
+Peptide abundances must be computed first with quantifyPeptides().
+Optional protein inference information can be supplied via proteins.
 )doc")
-        .def("getStatistics", [](OpenMS::PeptideAndProteinQuant& self) -> const OpenMS::PeptideAndProteinQuant::Statistics & { return self.getStatistics(); }, nb::rv_policy::reference_internal, 
-            R"doc(
-Compute protein abundances
-Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. from Fido or ProteinProphet) can be supplied via `proteins`
-)doc")
-        .def("readQuantData", [](OpenMS::PeptideAndProteinQuant& self, OpenMS::FeatureMap& features, const OpenMS::ExperimentalDesign& ed) { self.readQuantData(features, ed); }, "features"_a, "ed"_a)
-        .def("readQuantData", [](OpenMS::PeptideAndProteinQuant& self, OpenMS::ConsensusMap& consensus, const OpenMS::ExperimentalDesign& ed) { self.readQuantData(consensus, ed); }, "consensus"_a, "ed"_a, "Read quantification data from ConsensusMap")
+        .def("getStatistics", [](OpenMS::PeptideAndProteinQuant& self) -> const OpenMS::PeptideAndProteinQuant::Statistics & { return self.getStatistics(); }, nb::rv_policy::reference_internal,
+            "Get summary statistics on quantification")
+        .def("getPeptideResults", [](OpenMS::PeptideAndProteinQuant& self) { return self.getPeptideResults(); },
+            "Get peptide abundance results as a dict mapping AASequence to PeptideData")
+        .def("getProteinResults", [](OpenMS::PeptideAndProteinQuant& self) { return self.getProteinResults(); },
+            "Get protein abundance results as a dict mapping protein accession (str) to ProteinData")
         ;
 
     // -----------------------------------------------------------------------
