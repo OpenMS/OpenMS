@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QtWidgets/QGraphicsItem>
+#include <QtCore/QPointer>
 
 namespace OpenMS
 {
@@ -139,9 +140,9 @@ protected:
     QPointF borderPoint_(bool atTargetVertex = true) const;
 
     /// Pointer to the source of this edge
-    TOPPASVertex * from_;
+    QPointer<TOPPASVertex> from_;
     /// Pointer to the target of this edge
-    TOPPASVertex * to_;
+    QPointer<TOPPASVertex> to_;
     /// Position of hovering end while edge is being created
     QPointF hover_pos_;
     /// The color
