@@ -1299,7 +1299,7 @@ def main():
     if should_run("massql"):
         bench_massql_df(suite, exp)
 
-    if should_run("type") or should_run("caster"):
+    if should_run("caster"):
         bench_type_casters(suite)
 
     if should_run("parquet"):

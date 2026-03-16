@@ -147,7 +147,7 @@ NO_DEPENDENCIES = "ON"
 #------------------------------------------------------------------------------
 
 [tool.cibuildwheel]
-# Build for Python 3.10-3.14 (usually overwritten by GitHub Actions)
+# Build cp312 abi3 wheel (compatible with 3.12+, usually overwritten by GitHub Actions)
 build = "cp312-*"
 # Skip 32-bit, musllinux, and PyPy builds
 skip = "*-win32 *-musllinux_* pp*"

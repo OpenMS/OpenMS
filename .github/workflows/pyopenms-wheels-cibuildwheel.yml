@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       python-versions: ${{ steps.set-versions.outputs.versions }}
-      python-versions-array: ${{ steps.set-versions.outputs.versions-array }}
+
       pyopenms-version: ${{ steps.set-versions.outputs.pyopenms-version }}
       is-nightly: ${{ steps.set-versions.outputs.is-nightly }}
       cibw-build-linux-x64: ${{ steps.set-versions.outputs.cibw-build-linux-x64 }}
