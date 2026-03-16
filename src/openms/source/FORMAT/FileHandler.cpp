@@ -901,6 +901,14 @@ namespace OpenMS
         BrukerTimsFile f;
         f.setLogType(log);
         f.load(filename, exp);
+        // Apply MS level filtering (BrukerTimsFile loads all levels)
+        if (options_.hasMSLevels())
+        {
+          exp.getSpectra().erase(
+            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+              [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
+            exp.getSpectra().end());
+        }
       }
       break;
 #endif

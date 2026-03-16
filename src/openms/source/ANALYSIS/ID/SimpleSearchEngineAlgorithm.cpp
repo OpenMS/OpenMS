@@ -759,6 +759,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       fdr.apply(peptide_ids);
       IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
       IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeEmptyIdentifications(peptide_ids);
       IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
     }
     else if (fdr_psm_ > 0.0 && !decoys_)

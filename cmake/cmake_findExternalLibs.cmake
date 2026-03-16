@@ -290,8 +290,8 @@ if (WITH_TIMSRUST)
     if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
       set(_TIMSRUST_PLATFORM "macos-arm64")
     else()
-      message(WARNING "timsrust_cpp_bridge: no pre-built Intel macOS binaries; build from source or use arm64")
-      set(_TIMSRUST_PLATFORM "macos-arm64")  # fallback, may fail at link time
+      message(FATAL_ERROR "timsrust_cpp_bridge: no pre-built Intel macOS binaries available. "
+        "Build from source or use an Apple Silicon (arm64) Mac.")
     endif()
   elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(_TIMSRUST_PLATFORM "windows-x86_64")

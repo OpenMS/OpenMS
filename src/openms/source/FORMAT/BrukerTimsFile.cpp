@@ -253,6 +253,7 @@ namespace OpenMS
     spec.setMSLevel(frame.ms_level);
     spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
     spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+    spec.setNativeID("frame=" + String(frame.index));
 
     if (frame.num_peaks == 0) return;
 
@@ -383,6 +384,8 @@ namespace OpenMS
     sf.setNameOfFile(File::basename(path));
     sf.setPathToFile(File::path(path));
     sf.setFileType("Bruker TDF");
+    sf.setNativeIDType("scan number only nativeID format");
+    sf.setNativeIDTypeAccession("MS:1000776");
     exp.getSourceFiles().push_back(sf);
 
     // Sort by RT, interleaved across MS levels
@@ -504,6 +507,7 @@ namespace OpenMS
       spec.setMSLevel(2);
       spec.setDriftTime(ts.im);
       spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+      spec.setNativeID("scan=" + String(ts.index));
 
       // Copy peak data (float -> double widening)
       spec.reserve(ts.num_peaks);
@@ -629,6 +633,7 @@ namespace OpenMS
         spec.setRT(frame.rt_seconds);
         spec.setMSLevel(2);
         spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+        spec.setNativeID("frame=" + String(frame.index) + " windowGroup=" + String(wi));
 
         // Set isolation window
         Precursor prec;
@@ -712,6 +717,7 @@ namespace OpenMS
     spec.setRT(frame->rt_seconds);
     spec.setMSLevel(frame->ms_level);
     spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    spec.setNativeID("frame=" + String(frame->index));
 
     if (frame->num_peaks == 0) return;
 
