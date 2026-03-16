@@ -187,6 +187,13 @@ namespace OpenMS
   }
 
 
+  vector<pair<Size, Size>> RNaseDigestion::getFragmentPositions(
+    const NASequence& rna, Size min_length, Size max_length) const
+  {
+    return getFragmentPositions_(rna, min_length, max_length);
+  }
+
+
   void RNaseDigestion::digest(IdentificationData& id_data, Size min_length,
                               Size max_length) const
   {
