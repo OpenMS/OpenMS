@@ -92,8 +92,16 @@ public:
   void pickIMCluster(MSSpectrum& spec) const;
 
   /**
-    @brief Pick ion mobility peaks using the Sage algorithm.
-    @param[in,out] input Spectrum containing ion mobility data in its FloatDataArrays
+   * @brief Converts an ion mobility frame to a single spectrum using the Sage algorithm.
+   *
+   * The algorithm sorts points by intensity and uses a greedy approach to form clusters.
+   * It uses absolute IM-distance tolerances (matching the units of the input data,
+   * e.g., 1/K0 or drift time) and m/z ppm tolerances.
+   *
+   * @param[in,out] input Spectrum containing ion mobility data in its FloatDataArrays
+   *
+   * @note The algorithm uses an absolute IM distance tolerance (not percentage).
+   *       The tolerance units correspond to the input IM data units.
    */
   void pickIMSage(MSSpectrum& input) const;
 

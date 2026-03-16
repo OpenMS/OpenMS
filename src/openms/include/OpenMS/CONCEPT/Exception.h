@@ -726,7 +726,7 @@ namespace Exception
   {
     .... // some code which potentially throws an exception
   }
-  catch (Exception::Exception e)
+  catch (const Exception::BaseException& e)
   {
     Log.error() << "caught exception: " << e << std::endl;
   }

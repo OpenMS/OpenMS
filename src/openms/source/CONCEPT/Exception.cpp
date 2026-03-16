@@ -93,41 +93,48 @@ namespace Exception
   Precondition::Precondition(const char* file, int line, const char* function, const string& condition) noexcept:
       BaseException(file, line, function, "Precondition failed", std::string(condition))
   {
+    // Precondition::Precondition redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   Postcondition::Postcondition(const char* file, int line, const char* function, const string& condition) noexcept:
       BaseException(file, line, function, "Postcondition failed", std::string(condition))
   {
+    // Postcondition::Postcondition redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   IndexUnderflow::IndexUnderflow(const char* file, int line, const char* function, SignedSize index, Size size) noexcept:
       BaseException(file, line, function, "IndexUnderflow", "the given index was too small: " + String(index) + " (size = " + String(size) + ")")
   {
+    // IndexUnderflow::IndexUnderflow redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   IndexOverflow::IndexOverflow(const char* file, int line, const char* function, SignedSize index, Size size) noexcept:
       BaseException(file, line, function, "IndexOverflow", "the given index was too large: " + String(index) + " (size = " + String(size) + ")")
   {
+    // IndexOverflow::IndexOverflow redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   NotSorted::NotSorted(const char* file, int line, const char* function, const std::string& message) noexcept:
       BaseException(file, line, function, "NotSorted", message)
   {
+    // NotSorted::NotSorted redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   FailedAPICall::FailedAPICall(const char* file, int line, const char* function, const std::string& message) noexcept:
       BaseException(file, line, function, "FailedAPICall", message)
   {
+    // FailedAPICall::FailedAPICall redundant—BaseException already sets handler
   }
 
   MissingFeature::MissingFeature(const char* file, int line, const char* function, const std::string& message) noexcept:
       BaseException(file, line, function, "MissingFeature", message)
   {
+    // MissingFeature::MissingFeature redundant—BaseException already sets handler
   }
 
   OutOfMemory::OutOfMemory(const char* file, int line, const char* function, Size size) noexcept:
@@ -139,36 +146,42 @@ namespace Exception
   SizeUnderflow::SizeUnderflow(const char* file, int line, const char* function, Size size) noexcept:
       BaseException(file, line, function, "SizeUnderflow", "the given size was too small: " + String(size))
   {
+    // SizeUnderflow::SizeUnderflow redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   InvalidSize::InvalidSize(const char* file, int line, const char* function, Size size, const std::string& message) noexcept:
       BaseException(file, line, function, "InvalidSize", "the given size was not expected: " + String(size) + " (" + message + ")")
   {
+    // InvalidSize::InvalidSize redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   IllegalPosition::IllegalPosition(const char* file, int line, const char* function, float x, float y, float z) noexcept:
       BaseException(file, line, function, "IllegalPosition:", "(" + String(x) + "," + String(y) + "," + String(z) + ")")
   {
+    // IllegalPosition::IllegalPosition redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   ParseError::ParseError(const char* file, int line, const char* function, const std::string& expression, const std::string& message) noexcept:
       BaseException(file, line, function, "Parse Error", message + " in: " + expression)
   {
+    // ParseError::ParseError redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   FileNotFound::FileNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept:
       BaseException(file, line, function, "FileNotFound", "the file '" + filename + "' could not be found")
   {
+    // FileNotFound::FileNotFound redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   ExternalExecutableNotFound::ExternalExecutableNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept:
       BaseException(file, line, function, "ExternalExecutableNotFound", "the executable '" + filename + "' could not be found")
   {
+    // ExternalExecutableNotFound::ExternalExecutableNotFound redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
@@ -176,12 +189,14 @@ namespace Exception
   FileNotReadable::FileNotReadable(const char* file, int line, const char* function, const std::string& filename) noexcept:
       BaseException(file, line, function, "FileNotReadable", "the file '" + filename + "' is not readable for the current user")
   {
+    // FileNotReadable::FileNotReadable redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   FileNotWritable::FileNotWritable(const char* file, int line, const char* function, const std::string& filename) noexcept:
       BaseException(file, line, function, "FileNotWritable", "the file '" + filename + "' is not writable for the current user")
   {
+    // FileNotWritable::FileNotWritable redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
@@ -193,42 +208,49 @@ namespace Exception
                     "the file '" + filename + "' is too long (" + String(filename.size()) + " chars) " + "and exceeds the allowed limit of "
                       + String(max_length) + "; " + "use shorter filenames and/or fewer subdirectories.")
   {
+    // FileNameTooLong::FileNameTooLong redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   IOException::IOException(const char* file, int line, const char* function, const std::string& filename) noexcept:
       BaseException(file, line, function, "IOException", "IO error for file '" + filename + "'")
   {
+    // IOException::IOException redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   SqlOperationFailed::SqlOperationFailed(const char* file, int line, const char* function, const std::string& description) noexcept:
       BaseException(file, line, function, "SqlOperationFailed", "an sql operation failed ('" + description + "')")
   {
+    // SqlOperationFailed::SqlOperationFailed redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   FileEmpty::FileEmpty(const char* file, int line, const char* function, const std::string& filename) noexcept:
       BaseException(file, line, function, "FileEmpty", "the file '" + filename + "' is empty")
   {
+    // FileEmpty::FileEmpty redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   ConversionError::ConversionError(const char* file, int line, const char* function, const std::string& error) noexcept:
       BaseException(file, line, function, "ConversionError", error)
   {
+    // ConversionError::ConversionError redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   InvalidValue::InvalidValue(const char* file, int line, const char* function, const std::string& message, const std::string& value) noexcept:
       BaseException(file, line, function, "InvalidValue", "the value '" + value + "' was used but is not valid; " + message)
   {
+    // InvalidValue::InvalidValue redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   InvalidParameter::InvalidParameter(const char* file, int line, const char* function, const std::string& message) noexcept:
       BaseException(file, line, function, "InvalidParameter", message)
   {
+    // InvalidParameter::InvalidParameter redundant—BaseException already sets handler
   }
 
   UnableToCreateFile::UnableToCreateFile(const char* file,
@@ -249,53 +271,63 @@ namespace Exception
                     "InvalidFileType",
                     "the file '" + filename + "' could not be created because the type specified was not valid. " + message)
   {
+    // InvalidFileType::InvalidFileType redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   IllegalArgument::IllegalArgument(const char* file, int line, const char* function, const string& error_message) noexcept:
       BaseException(file, line, function, "IllegalArgument", error_message)
   {
+    // IllegalArgument::IllegalArgument redundant—BaseException already sets handler
   }
 
   InternalToolError::InternalToolError(const char* file, int line, const char* function, const std::string& error_message) noexcept:
       BaseException(file, line, function, "InternalToolError", error_message)
   {
+    // InternalToolError::InternalToolError redundant—BaseException already sets handler
   }
 
   MissingInformation::MissingInformation(const char* file, int line, const char* function, const string& error_message) noexcept:
       BaseException(file, line, function, "MissingInformation", error_message)
   {
+    // MissingInformation::MissingInformation redundant—BaseException already sets handler
   }
 
   ElementNotFound::ElementNotFound(const char* file, int line, const char* function, const string& element) noexcept:
       BaseException(file, line, function, "ElementNotFound", "the element '" + element + "' could not be found")
   {
+    // ElementNotFound::ElementNotFound redundant—BaseException already sets handler
     GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   UnableToFit::UnableToFit(const char* file, int line, const char* function, const string& name, const string& message) noexcept:
       BaseException(file, line, function, name, message)
   {
+    // UnableToFit::UnableToFit redundant—BaseException already sets handler
   }
 
   UnableToCalibrate::UnableToCalibrate(const char* file, int line, const char* function, const string& name, const string& message) noexcept:
       BaseException(file, line, function, name, message)
   {
+    // UnableToCalibrate::UnableToCalibrate redundant—BaseException already sets handler
   }
 
   DepletedIDPool::DepletedIDPool(const char* file, int line, const char* function, const string& name, const string& message) noexcept:
       BaseException(file, line, function, name, message)
   {
+    // DepletedIDPool::DepletedIDPool redundant—BaseException already sets handler
   }
 
   InvalidRange::InvalidRange(const char* file, int line, const char* function) noexcept:
       BaseException(file, line, function, "InvalidRange", "the range of the operation was invalid")
   {
+    // InvalidRange::InvalidRange redundant—BaseException already sets handler
   }
 
   InvalidRange::InvalidRange(const char* file, int line, const char* function, const std::string& message) noexcept:
       BaseException(file, line, function, "InvalidRange", message)
   {
+    // InvalidRange::InvalidRange redundant—BaseException already sets handler
   }
 
   DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")

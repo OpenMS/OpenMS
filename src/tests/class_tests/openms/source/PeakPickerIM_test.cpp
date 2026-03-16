@@ -77,13 +77,13 @@ for (double mz = mz_min; mz <= mz_max + 1e-9; mz += mz_step)
   }
 }
 
-for (size_t i = 0; i < mzs.size(); ++i)
+for (OpenMS::Size i = 0; i < mzs.size(); ++i)
 {
   input.emplace_back(mzs[i], Intensities[i]);
 }
 input.getFloatDataArrays().resize(1);
 input.getFloatDataArrays()[0].setName(Constants::UserParam::ION_MOBILITY);
-for (size_t i = 0; i < IMs.size(); ++i)
+for (OpenMS::Size i = 0; i < IMs.size(); ++i)
 {
   input.getFloatDataArrays()[0].push_back(IMs[i]);
 }
@@ -127,7 +127,7 @@ START_SECTION(void pickIMSage(MSSpectrum& spectrum) const)
 
   double im1 = local_input.getFloatDataArrays()[0][0];
   double im2 = local_input.getFloatDataArrays()[0][1];
-  if (im1 > im2) std::swap(im1, im2);
+  if (im1 > im2) { std::swap(im1, im2); }
 
   TEST_REAL_SIMILAR(im1, 0.8)
   TEST_REAL_SIMILAR(im2, 1.0)
@@ -149,16 +149,23 @@ START_SECTION(void pickIMCluster(MSSpectrum& spectrum) const)
   TEST_TRUE(local_input.size() >= 2)
 
   // Find the two most intense peaks
-  std::vector<size_t> indices(local_input.size());
-  for (size_t i = 0; i < local_input.size(); ++i)
+  std::vector<OpenMS::Size> indices(local_input.size());
+  for (OpenMS::Size i = 0; i < local_input.size(); ++i)
+  {
     indices[i] = i;
+  }
 
-  std::sort(indices.begin(), indices.end(), [&](size_t a, size_t b) { return local_input[a].getIntensity() > local_input[b].getIntensity(); });
+  std::sort(indices.begin(), indices.end(),
+            [&](OpenMS::Size a, OpenMS::Size b) { return local_input[a].getIntensity() > local_input[b].getIntensity(); });
+
+  TEST_TRUE(local_input.getFloatDataArrays().size() > 0)
+  TEST_TRUE(local_input.getFloatDataArrays()[0].size() > indices[0])
+  TEST_TRUE(local_input.getFloatDataArrays()[0].size() > indices[1])
 
   double im1 = local_input.getFloatDataArrays()[0][indices[0]];
   double im2 = local_input.getFloatDataArrays()[0][indices[1]];
 
-  if (im1 > im2) std::swap(im1, im2);
+  if (im1 > im2) { std::swap(im1, im2); }
 
   TOLERANCE_ABSOLUTE(0.001)
   TEST_REAL_SIMILAR(im1, 0.8)
