@@ -522,8 +522,9 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     # TODO refactor this to only execute the relevant processing steps
     include(cmake/package_nsis.cmake)
   endif()
-  include(CPack)
+  include(CPackComponent)
   include(cmake/package_components.cmake)
+  include(CPack)
 endif()
 
 #------------------------------------------------------------------------------

@@ -32,6 +32,11 @@ cpack_add_component(doc
                 DESCRIPTION "Class and tool documentation. With tutorials."
                 INSTALL_TYPES recommended full
                 )
+cpack_add_component(Dependencies
+                DISPLAY_NAME "Runtime dependencies"
+                DESCRIPTION "Bundled non-system shared libraries required at runtime."
+                INSTALL_TYPES recommended full minimal
+                )
 cpack_add_component_group(thirdparty
                      DISPLAY_NAME "Thirdparty binaries"
                      DESCRIPTION "Binaries and files for thirdparty tools and engines."
