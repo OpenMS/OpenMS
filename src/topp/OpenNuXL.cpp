@@ -4903,12 +4903,9 @@ static void scoreXLIons_(
       }
 ////////// end percolator part
 
-      OPENMS_LOG_INFO << "Calculating FDR..." << endl;
+      OPENMS_LOG_INFO << "Calculating FDR and filtering at 1% PSM-FDR..." << endl;
       FalseDiscoveryRate fdr;
-      fdr.apply(pep_ids);
-      OPENMS_LOG_INFO << "Filtering ..." << endl;
-      IDFilter::filterHitsByScore(pep_ids, 0.01); // 1% PSM-FDR
-      IDFilter::removeEmptyIdentifications(pep_ids);
+      fdr.applyBasicAndFilter(pep_ids, 0.01);
       OPENMS_LOG_INFO << "Peptide PSMs at 1% FDR (no percolator): " << pep_ids.size() << endl;
  
       if (pep_ids.size() > 100)

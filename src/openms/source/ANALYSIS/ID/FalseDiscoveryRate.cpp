@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/LayerOrderedHeap.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -1898,6 +1899,161 @@ namespace OpenMS
 
     OPENMS_LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters.\n";
     return {false, "?", true};
+  }
+
+  // LOH-based FDR+filter
+  size_t FalseDiscoveryRate::computeFDRAndFilter_(ScoreToTgtDecLabelPairs& scores_labels,
+                                                   bool higher_score_better,
+                                                   double fdr_threshold,
+                                                   bool conservative)
+  {
+    if (scores_labels.empty()) return 0;
+
+    using Pair = ScoreToTgtDecLabelPair;
+
+    // find the last layer whose q-value is <= threshold, this avoids sorting non-passing layers
+    auto find_boundary_layer = [&](auto& loh) -> size_t
+    {
+      size_t num_layers = loh.numLayers();
+      if (num_layers == 0) return 0;
+
+      // count targets and decoys per layer
+      std::vector<double> layer_targets(num_layers, 0.0);
+      std::vector<double> layer_decoys(num_layers, 0.0);
+      for (size_t li = 0; li < num_layers; ++li)
+      {
+        const auto& lay = loh.layer(li);
+        for (size_t k = lay.begin; k < lay.end; ++k)
+        {
+          if (scores_labels[k].second > 0.0)
+            layer_targets[li] += 1.0;
+          else
+            layer_decoys[li] += 1.0;
+        }
+      }
+
+      // compute FDR at each layer boundary
+      std::vector<double> fdr_at_layer(num_layers, 1.0);
+      double c_targets = 0.0;
+      double c_decoys = 0.0;
+      for (size_t li = 0; li < num_layers; ++li)
+      {
+        c_targets += layer_targets[li];
+        c_decoys += layer_decoys[li];
+        if (conservative)
+          fdr_at_layer[li] = (c_targets > 0.0) ? (c_decoys + 1.0) / c_targets : 1.0;
+        else
+          fdr_at_layer[li] = (c_targets + c_decoys > 0.0) ? (c_decoys + 1.0) / (c_targets + c_decoys) : 1.0;
+      }
+
+      //compute q-values at layer boundaries
+      std::vector<double> qval_at_layer(num_layers, 1.0);
+      qval_at_layer[num_layers - 1] = fdr_at_layer[num_layers - 1];
+      for (int li = static_cast<int>(num_layers) - 2; li >= 0; --li)
+      {
+        qval_at_layer[li] = std::min(fdr_at_layer[li], qval_at_layer[li + 1]);
+      }
+
+      //find last layer whose q-value <= threshold.
+      size_t last_passing_layer = 0;
+      bool any_pass = false;
+      for (size_t li = 0; li < num_layers; ++li)
+      {
+        if (qval_at_layer[li] <= fdr_threshold)
+        {
+          last_passing_layer = li;
+          any_pass = true;
+        }
+      }
+
+      if (!any_pass) return 0;
+
+      // Add one extra layer as safety margin
+      size_t boundary = std::min(last_passing_layer + 2, num_layers);
+      return boundary;
+    };
+
+    size_t passing_layers;
+    if (higher_score_better)
+    {
+      LayerOrderedHeap<Pair, std::greater<Pair>> loh(scores_labels, std::greater<Pair>());
+      passing_layers = find_boundary_layer(loh);
+
+      if (passing_layers == 0) return 0;
+      return loh.layer(passing_layers - 1).end;
+    }
+    else
+    {
+      LayerOrderedHeap<Pair> loh(scores_labels);
+      passing_layers = find_boundary_layer(loh);
+      if (passing_layers == 0) return 0;
+      return loh.layer(passing_layers - 1).end;
+    }
+  }
+
+  void FalseDiscoveryRate::applyBasicAndFilter(PeptideIdentificationList& ids, double fdr_threshold)
+  {
+    if (ids.empty()) return;
+
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    const string& score_type = q_value ? "q-value" : "FDR";
+    bool higher_score_better = ids[0].isHigherScoreBetter();
+    bool use_all_hits = param_.getValue("use_all_hits").toBool();
+    bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
+    bool conservative = param_.getValue("conservative").toBool();
+
+    ScoreToTgtDecLabelPairs scores_labels;
+    IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits);
+
+    if (scores_labels.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "No scores could be extracted for FDR!");
+    }
+
+    // use LOH to find boundary via layer-level q-values (avoids full sort)
+    size_t pass_count = computeFDRAndFilter_(scores_labels, higher_score_better, fdr_threshold, conservative);
+
+    if (pass_count == 0)
+    {
+      // Nothing passes, remove all hits
+      for (auto& id : ids)
+      {
+        id.getHits().clear();
+      }
+      IDFilter::removeEmptyIdentifications(ids);
+      return;
+    }
+
+    // find the boundary score from the passing elements
+    double boundary_score;
+    if (higher_score_better)
+    {
+      boundary_score = std::min_element(scores_labels.begin(), scores_labels.begin() + pass_count,
+        [](const auto& a, const auto& b) { return a.first < b.first; })->first;
+    }
+    else
+    {
+      boundary_score = std::max_element(scores_labels.begin(), scores_labels.begin() + pass_count,
+        [](const auto& a, const auto& b) { return a.first < b.first; })->first;
+    }
+
+    // pre-filter PeptideHits by original score boundary.
+    IDFilter::filterHitsByScore(ids, boundary_score);
+    IDFilter::removeEmptyIdentifications(ids);
+
+    //compute FDR on the filtered set
+    scores_labels.clear();
+    IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits);
+    std::map<double, double> scores_to_FDR;
+    calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+
+    IDScoreGetterSetter::setScores_<PeptideIdentification>(
+      scores_to_FDR, ids.getData(), score_type, false, add_decoy_peptides);
+
+    //final filter by FDR threshold to remove any boundary edge cases
+    IDFilter::filterHitsByScore(ids, fdr_threshold);
+    IDFilter::removeEmptyIdentifications(ids);
   }
 
 } // namespace OpenMS

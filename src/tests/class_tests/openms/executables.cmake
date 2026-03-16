@@ -67,6 +67,7 @@ set(datastructures_executables_list
   HashGrid_test
   ListUtils_test
   ListUtilsIO_test
+  LayerOrderedHeap_test
   LPWrapper_test
   MassExplainer_test
   MatchedIterator_test
