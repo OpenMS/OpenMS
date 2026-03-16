@@ -37,7 +37,7 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         # Set up quantifier with include_all to get all results
         quant = pyopenms.PeptideAndProteinQuant()
         params = quant.getParameters()
-        params.setValue(b"top:include_all", b"true")
+        params.setValue("top:include_all", "true")
         quant.setParameters(params)
 
         # Process data
@@ -58,8 +58,8 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         peptide_by_seq = {k.toString(): v for k, v in peptide_results.items()}
 
         # Check specific peptide AAAAA
-        self.assertIn(b"AAAAA", peptide_by_seq)
-        aaaaa_data = peptide_by_seq[b"AAAAA"]
+        self.assertIn("AAAAA", peptide_by_seq)
+        aaaaa_data = peptide_by_seq["AAAAA"]
         self.assertIsNotNone(aaaaa_data)
         # From C++ test: pep_data.psm_count == 2
         self.assertEqual(aaaaa_data.psm_count, 2)
@@ -68,8 +68,8 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         self.assertEqual(len(accessions), 1)
 
         # Check specific peptide CCCCC
-        self.assertIn(b"CCCCC", peptide_by_seq)
-        ccccc_data = peptide_by_seq[b"CCCCC"]
+        self.assertIn("CCCCC", peptide_by_seq)
+        ccccc_data = peptide_by_seq["CCCCC"]
         self.assertEqual(ccccc_data.psm_count, 2)
 
     def test_get_protein_results_from_feature_map(self):
@@ -84,7 +84,7 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         # Set up quantifier
         quant = pyopenms.PeptideAndProteinQuant()
         params = quant.getParameters()
-        params.setValue(b"top:include_all", b"true")
+        params.setValue("top:include_all", "true")
         quant.setParameters(params)
 
         # Process data
@@ -103,15 +103,15 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         self.assertEqual(len(protein_results), 2)
 
         # Check specific protein Protein0
-        self.assertIn(b"Protein0", protein_results)
-        protein0_data = protein_results[b"Protein0"]
+        self.assertIn("Protein0", protein_results)
+        protein0_data = protein_results["Protein0"]
         self.assertIsNotNone(protein0_data)
         # From C++ test: prot_data.psm_count == 6
         self.assertEqual(protein0_data.psm_count, 6)
 
         # Check specific protein Protein1
-        self.assertIn(b"Protein1", protein_results)
-        protein1_data = protein_results[b"Protein1"]
+        self.assertIn("Protein1", protein_results)
+        protein1_data = protein_results["Protein1"]
         # From C++ test: prot_data.psm_count == 2
         self.assertEqual(protein1_data.psm_count, 2)
 
@@ -127,7 +127,7 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         # Set up quantifier
         quant = pyopenms.PeptideAndProteinQuant()
         params = quant.getParameters()
-        params.setValue(b"top:include_all", b"true")
+        params.setValue("top:include_all", "true")
         quant.setParameters(params)
 
         # Process data
@@ -146,8 +146,8 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         peptide_by_seq = {k.toString(): v for k, v in peptide_results.items()}
 
         # Check specific peptide AAAK
-        self.assertIn(b"AAAK", peptide_by_seq)
-        aaak_data = peptide_by_seq[b"AAAK"]
+        self.assertIn("AAAK", peptide_by_seq)
+        aaak_data = peptide_by_seq["AAAK"]
         self.assertEqual(aaak_data.psm_count, 1)
 
     def test_get_protein_results_from_consensus_map(self):
@@ -162,7 +162,7 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         # Set up quantifier
         quant = pyopenms.PeptideAndProteinQuant()
         params = quant.getParameters()
-        params.setValue(b"top:include_all", b"true")
+        params.setValue("top:include_all", "true")
         quant.setParameters(params)
 
         # Process data
@@ -179,8 +179,8 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         self.assertEqual(len(protein_results), 1)
 
         # Check specific protein
-        self.assertIn(b"Protein", protein_results)
-        protein_data = protein_results[b"Protein"]
+        self.assertIn("Protein", protein_results)
+        protein_data = protein_results["Protein"]
         # From C++ test: prot_data.psm_count == 4
         self.assertEqual(protein_data.psm_count, 4)
 
@@ -196,7 +196,7 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         # Set up quantifier
         quant = pyopenms.PeptideAndProteinQuant()
         params = quant.getParameters()
-        params.setValue(b"top:include_all", b"true")
+        params.setValue("top:include_all", "true")
         quant.setParameters(params)
 
         # Process data
@@ -230,7 +230,7 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         # Set up quantifier
         quant = pyopenms.PeptideAndProteinQuant()
         params = quant.getParameters()
-        params.setValue(b"top:include_all", b"true")
+        params.setValue("top:include_all", "true")
         quant.setParameters(params)
 
         # Process data
@@ -244,8 +244,8 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         peptide_by_seq = {k.toString(): v for k, v in peptide_results.items()}
 
         # Check GGGGG which maps to 2 proteins (from C++ test)
-        self.assertIn(b"GGGGG", peptide_by_seq)
-        ggggg_data = peptide_by_seq[b"GGGGG"]
+        self.assertIn("GGGGG", peptide_by_seq)
+        ggggg_data = peptide_by_seq["GGGGG"]
         accessions = ggggg_data.accessions
         self.assertEqual(len(accessions), 2)
 
@@ -261,7 +261,7 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         # Set up quantifier
         quant = pyopenms.PeptideAndProteinQuant()
         params = quant.getParameters()
-        params.setValue(b"top:include_all", b"true")
+        params.setValue("top:include_all", "true")
         quant.setParameters(params)
 
         # Process data
