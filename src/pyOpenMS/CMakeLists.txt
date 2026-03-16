@@ -11,7 +11,7 @@
 # Bindings are hand-maintained nanobind C++ sources in bindings/*.cpp.
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.26 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES CXX)
 
 # C++17 is required for nanobind
@@ -124,7 +124,7 @@ else()
     endif()
   endif()
 
-  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+  find_package(Python 3.12 REQUIRED COMPONENTS Interpreter Development.SABIModule NumPy)
   find_package(Eigen3 REQUIRED)
 
   # Propagate Python_EXECUTABLE to parent scope so the pyopenms_wheel target can use it
@@ -265,7 +265,8 @@ else()
     set(MODULE_NAME "_pyopenms_${domain}")
 
     nanobind_add_module(${MODULE_NAME}
-      NB_DOMAIN pyopenms  # Share types across modules
+      NB_DOMAIN pyopenms   # Share types across modules
+      STABLE_ABI           # Python Limited/Stable ABI (abi3)
       NOMINSIZE            # Use CMake's default -O3 instead of nanobind's -Os
       ${PYOPENMS_BINDINGS_DIR}/bind_${domain}.cpp
     )
@@ -275,6 +276,7 @@ else()
   # Main entry module
   nanobind_add_module(_pyopenms
     NB_DOMAIN pyopenms
+    STABLE_ABI
     NOMINSIZE
     ${PYOPENMS_BINDINGS_DIR}/main_module.cpp
   )
@@ -313,6 +315,7 @@ else()
     message(STATUS "pyOpenMS: Building _arrow_zerocopy module (WITH_PARQUET detected)")
     nanobind_add_module(_arrow_zerocopy
       NB_DOMAIN pyopenms
+      STABLE_ABI
       NOMINSIZE
       ${CMAKE_CURRENT_SOURCE_DIR}/bindings/arrow_zerocopy.cpp
     )
