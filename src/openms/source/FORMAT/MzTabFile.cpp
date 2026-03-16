@@ -2842,9 +2842,18 @@ namespace OpenMS
     s.push_back(row.sequence.toCellString());
     s.push_back(row.search_engine.toCellString());
 
-    for (map<Size, MzTabDouble>::const_iterator it = row.search_engine_score.begin(); it != row.search_engine_score.end(); ++it)
+    const Size n_search_engine_scores = meta.osm_search_engine_score.size();
+    for (Size score_index = 1; score_index <= n_search_engine_scores; ++score_index)
     {
-      s.push_back(it->second.toCellString());
+      const auto score_it = row.search_engine_score.find(score_index);
+      if (score_it != row.search_engine_score.end())
+      {
+        s.push_back(score_it->second.toCellString());
+      }
+      else
+      {
+        s.push_back(MzTabString("null").toCellString());
+      }
     }
 
     if (store_osm_reliability_)
