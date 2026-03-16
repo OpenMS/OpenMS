@@ -39,14 +39,18 @@ Your goal is to identify noteworthy recent code changes (from the last 7 days) t
 Run the following bash command to find non-documentation files that changed in the last 7 days:
 
 ```bash
-git log --since="7 days ago" --name-only --pretty=format: | sort -u | grep -v '^$' | grep -vE '^(doc/|\.github/|src/tests/|tools/)' | grep -E '\.(cpp|c|h|hpp|py|cmake)$|CMakeLists\.txt$|CHANGELOG_PARAMS$'
+git log --since="7 days ago" --name-only --pretty=format: \
+  | sort -u \
+  | grep -v '^$' \
+  | grep -vE '^(doc/|\.github/|src/tests/|tools/)' \
+  | grep -E '\.(cpp|c|h|hpp|py|cmake)$|CMakeLists\.txt$|CHANGELOG_PARAMS$'
 ```
 
 If there are no recent code changes, output a brief summary and stop — there is nothing to update.
 
 ### 2. Review the Current Changelog
 
-Read the top-level `CHANGELOG` file and focus on the current `under development` release section. Only update that active release section. Do not modify historical release entries.
+Read the top-level `CHANGELOG` file and focus on the current `under development` release section. In this repository, that is the first release block whose title line includes `(under development)`. If no such section exists, stop and report that the changelog format does not match expectations rather than editing historical release entries. Only update that active release section.
 
 ### 3. Identify Changelog-Worthy Changes
 
