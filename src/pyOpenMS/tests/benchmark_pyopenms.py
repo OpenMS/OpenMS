@@ -1074,6 +1074,59 @@ def bench_massql_df(suite: BenchmarkSuite, exp):
                 lambda: exp.get_massql_df(), iterations=3)
 
 
+def bench_type_casters(suite: BenchmarkSuite):
+    """Benchmark custom type caster round-trip performance (stable ABI sensitive)."""
+    import pyopenms
+    print("\n[TYPE CASTERS]")
+
+    # --- OpenMS::String <-> Python str ---
+    ef = pyopenms.EmpiricalFormula("C6H12O6")
+    suite.bench("String round-trip (1000x toString)", "Type Casters",
+                lambda: [ef.toString() for _ in range(1000)])
+
+    # --- DataValue variant round-trips ---
+    spec = pyopenms.MSSpectrum()
+    spec.setMetaValue("test_int", 42)
+    suite.bench("DataValue int round-trip (1000x)", "Type Casters",
+                lambda: [spec.getMetaValue("test_int") for _ in range(1000)])
+
+    spec.setMetaValue("test_float", 3.14159)
+    suite.bench("DataValue float round-trip (1000x)", "Type Casters",
+                lambda: [spec.getMetaValue("test_float") for _ in range(1000)])
+
+    spec.setMetaValue("test_str", "hello world")
+    suite.bench("DataValue string round-trip (1000x)", "Type Casters",
+                lambda: [spec.getMetaValue("test_str") for _ in range(1000)])
+
+    # --- DataValue list types (exercise PyList_SetItem paths) ---
+    spec.setMetaValue("test_sl", ["alpha", "beta", "gamma", "delta", "epsilon"])
+    suite.bench("DataValue StringList round-trip (500x)", "Type Casters",
+                lambda: [spec.getMetaValue("test_sl") for _ in range(500)])
+
+    spec.setMetaValue("test_il", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    suite.bench("DataValue IntList round-trip (500x)", "Type Casters",
+                lambda: [spec.getMetaValue("test_il") for _ in range(500)])
+
+    spec.setMetaValue("test_dl", [1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, 10.0])
+    suite.bench("DataValue DoubleList round-trip (500x)", "Type Casters",
+                lambda: [spec.getMetaValue("test_dl") for _ in range(500)])
+
+    # --- vector<String> conversion (openms_stl_caster.h) ---
+    suite.bench("getKeys() vector<String> conversion", "Type Casters",
+                lambda: spec.getKeys())
+
+    # --- bulk MetaValue read (exercises string + DataValue casters) ---
+    for i in range(20):
+        spec.setMetaValue(f"key_{i}", float(i))
+
+    def get_all_meta():
+        keys = spec.getKeys()
+        return {k: spec.getMetaValue(k) for k in keys}
+
+    suite.bench("20-key MetaValue bulk read", "Type Casters",
+                get_all_meta)
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -1198,6 +1251,9 @@ def main():
 
     if should_run("massql"):
         bench_massql_df(suite, exp)
+
+    if should_run("type") or should_run("caster"):
+        bench_type_casters(suite)
 
     # --- Summary ---
     suite.print_summary()
