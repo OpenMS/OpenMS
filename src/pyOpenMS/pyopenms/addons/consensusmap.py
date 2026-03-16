@@ -167,7 +167,27 @@ def to_df(self, columns=None):
 
 @addon("ConsensusMap")
 def to_arrow(self, columns=None):
-    """Returns an Apache Arrow Table with consensus feature meta data and intensities."""
+    """Returns an Apache Arrow Table with consensus feature meta data and intensities.
+
+    When built with WITH_PARQUET=ON, uses zero-copy C++ export via the Arrow C
+    Data Interface (much faster). The zero-copy path exports all consensus
+    features with handles and metavalues as nested struct columns. Falls back to
+    the to_df()-based path when the zero-copy module is not available.
+    """
+    # Try zero-copy C++ path first (available when built with WITH_PARQUET)
+    try:
+        from pyopenms._arrow_zerocopy import consensusmap_features_to_arrow
+        _use_zerocopy = True
+    except ImportError:
+        _use_zerocopy = False
+
+    if _use_zerocopy:
+        table = consensusmap_features_to_arrow(self)
+        if columns is not None:
+            available = [c for c in columns if c in table.column_names]
+            table = table.select(available)
+        return table
+
     try:
         import pyarrow as pa
     except ImportError:
