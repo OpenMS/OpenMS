@@ -61,7 +61,8 @@ namespace OpenMS
     int batchSize,
     int ms1_isotopes,
     bool load_into_memory,
-    const Param & mrm_mapping_param)
+    const Param & mrm_mapping_param,
+    MobilogramParquetConsumer * mobilogram_consumer)
   {
     bool ms1_only = (swath_maps.size() == 1 && swath_maps[0].ms1);
 
@@ -73,7 +74,7 @@ namespace OpenMS
 
       FeatureMap featureFile;
       scoreAllChromatograms_(filtered_chroms, std::vector<MSChromatogram>(), swath_maps, transition_exp,
-                            feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false);
+                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, mobilogram_consumer);
 
       std::vector<MSChromatogram> empty_ms1_chromatograms;
 
@@ -113,8 +114,8 @@ namespace OpenMS
 
       const OpenSwath::LightTargetedExperiment& transition_exp_used = transition_exp;
       scoreAllChromatograms_(std::vector<MSChromatogram>(), ms1_chromatograms, swath_maps, transition_exp_used,
-                            feature_finder_param, trafo,
-                            cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, true);
+                feature_finder_param, trafo,
+                cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, true, mobilogram_consumer);
 
       // write features to output if so desired
       std::vector< OpenMS::MSChromatogram > chromatograms;
@@ -383,7 +384,7 @@ namespace OpenMS
             std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
             tmp.back().sptr = current_swath_map_inner;
             scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
-                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false);
+              feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, mobilogram_consumer);
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
@@ -490,7 +491,8 @@ namespace OpenMS
     FeatureMap& output,
     OpenSwathOSWWriter & osw_writer,
     int nr_ms1_isotopes,
-    bool ms1only) const
+    bool ms1only,
+    MobilogramParquetConsumer* mobilogram_consumer) const
   {
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
@@ -731,7 +733,7 @@ namespace OpenMS
 
       try
       {
-        featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
+        featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only, mobilogram_consumer);
       }
       catch (const Exception::InvalidRange & e)
       {

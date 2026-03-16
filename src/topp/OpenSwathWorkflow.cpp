@@ -9,6 +9,7 @@
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -259,6 +260,9 @@ protected:
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML), sqMass (SQLite format) or xic (Parquet)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass,xic"));
+
+    registerOutputFile_("out_mobilogram", "<file>", "", "Also output extracted ion mobilograms in Parquet format", false, true);
+    setValidFormats_("out_mobilogram", ListUtils::create<String>("xim"));
 
     // additional QC data
     registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
@@ -612,17 +616,27 @@ protected:
     String swath_windows_file = getStringOption_("swath_windows_file");
 
     String out_chrom = getStringOption_("out_chrom");
+    String out_mobilogram = getStringOption_("out_mobilogram");
+#ifndef WITH_PARQUET
     if (!out_chrom.empty())
     {
       const FileTypes::Type out_chrom_type = FileHandler::getType(out_chrom);
-#ifndef WITH_PARQUET
       if (out_chrom_type == FileTypes::CHROMPARQUET)
       {
         writeLogError_("Error: OpenMS was built without Parquet support, cannot write chrom_parquet output.");
         return PARSE_ERROR;
       }
-#endif
     }
+    if (!out_mobilogram.empty())
+    {
+      const FileTypes::Type out_mob_type = FileHandler::getType(out_mobilogram);
+      if (out_mob_type == FileTypes::MOBILPARQUET)
+      {
+        writeLogError_("Error: OpenMS was built without Parquet support, cannot write mobilogram parquet output.");
+        return PARSE_ERROR;
+      }
+    }
+#endif
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
@@ -1282,10 +1296,12 @@ protected:
     // perform extraction on current file
     ///////////////////////////////////
 
+    // Create one run ID per input run and reuse it across all run-level outputs.
+    UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
+
     // Set up chromatogram output for this file
     // Either use chrom.mzML or sqliteDB (sqMass)
     Interfaces::IMSDataConsumer* chromatogramConsumer;
-    UInt64 run_id = OpenMS::UniqueIdGenerator::getUniqueId();
     String out_chrom_current = out_chrom;
     if (!out_chrom.empty() && run_groups.size() > 1)
     {
@@ -1294,26 +1310,43 @@ protected:
       String extension = out_chrom.substr(out_chrom.find_last_of('.'));
       out_chrom_current = file_basename + "_" + base_name + extension;
     }
-    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, run_id, current_run_files[0]);
+    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, cur_run, current_run_files[0]);
 
+    // Prepare mobilogram output (per-run)
+    std::unique_ptr<MobilogramParquetConsumer> mobilogramConsumer;
+    String out_mobilogram_current = out_mobilogram;
+    if (!out_mobilogram.empty() && run_groups.size() > 1)
+    {
+      // Preserve parent directory when creating per-run filenames.
+      // Split path and filename first, then prepend the run prefix to the filename only.
+      String parent = File::path(out_mobilogram);
+      String filename = File::basename(out_mobilogram);
+      String stem = filename.substr(0, filename.find_last_of('.'));
+      String extension = filename.substr(filename.find_last_of('.'));
+      String fname_with_prefix = file_basename + "_" + stem + extension;
+      out_mobilogram_current = (parent == "." ? fname_with_prefix : parent + "/" + fname_with_prefix);
+    }
+    prepareMobilogramOutput(mobilogramConsumer, exp_meta, transition_exp, out_mobilogram_current, cur_run, current_run_files[0]);
+
+    // Register the same run ID in OSW.
     // For OSW, use the first file in the run group as the representative filename
     if (write_osw)
     {
-      oswwriter.addRun(run_id, current_run_files[0]);
+      oswwriter.addRun(cur_run, current_run_files[0]);
     }
     // Also register run in chromatogram consumer if it is a SQL consumer
     MSDataSqlConsumer* sql_cons = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
     if (sql_cons != nullptr)
     {
-      sql_cons->addRun(current_run_files[0], run_id);
+      sql_cons->addRun(current_run_files[0], cur_run);
     }
 
     // set current run id in writer
-    oswwriter.setRunId(run_id);
+    oswwriter.setRunId(cur_run);
     // set current run id for sqMass writer as well (reuse previous cast)
     if (sql_cons != nullptr)
     {
-      sql_cons->setRunId(run_id);
+      sql_cons->setRunId(cur_run);
     }
 
     FeatureMap run_featureFile;
@@ -1324,7 +1357,13 @@ protected:
 
     // perform extraction for this file's swath maps
     wf.performExtraction(swath_maps, trafo_rtnorm, cp_current, cp_ms1_current, feature_finder_param_run, transition_exp,
-                         active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param);
+             active_feature_map, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param, mobilogramConsumer.get());
+
+    if (mobilogramConsumer)
+    {
+      mobilogramConsumer->finalize();
+      mobilogramConsumer.reset();
+    }
 
     //// Write out data
 
@@ -1334,7 +1373,7 @@ protected:
     {
 #ifdef WITH_PARQUET
       parquet_writer.write(parquet_dir, transition_exp, active_feature_map,
-                           run_id, current_run_files[0], enable_uis_scoring);
+                           cur_run, current_run_files[0], enable_uis_scoring);
 #endif
     }
 

@@ -140,9 +140,7 @@ arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> ZipRandomAccessFile:
 	}
 
 #if !defined(OPENMS_HAVE_LIBZIP)
-	// Fall back: extract to temp file and open as ReadableFile
-	const String path = ZipArchiveFile::extractEntryToTempFile(archive_path, entry_name, temp_dir);
-	return arrow::io::ReadableFile::Open(std::string(path));
+	return arrow::Status::NotImplemented("libzip not available, cannot open ZIP entry directly");
 #else
 	int err = 0;
 	zip_t* za = zip_open(archive_path.c_str(), ZIP_RDONLY, &err);

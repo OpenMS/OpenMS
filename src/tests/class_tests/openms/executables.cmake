@@ -293,7 +293,9 @@ endif()
 if(WITH_PARQUET)
   list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test QPXFile_test
     MSChromatogramParquetConsumer_test
+    MobilogramParquetConsumer_test
     XICParquetFile_test
+    XIMParquetFile_test
     OpenSwathOSWParquetRoundTrip_test
     ProteinIdentificationArrowIO_test
     FeatureMapArrowIO_test

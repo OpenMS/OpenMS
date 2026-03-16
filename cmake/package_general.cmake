@@ -89,12 +89,17 @@ endif()
 
 if(WIN32)
   # exclude dll's which are system dll's and should not be shipped (bloats installer and leads to incompatibilities)
-  set(PRE_EXCLUDE 
+  set(PRE_EXCLUDE
                   ## these two are direct systems deps of TOPPView etc. Exclude to save time
-                  "api-ms" "ext-ms" 
+                  "api-ms" "ext-ms"
                   ## "HvsiFileTrust" "PdmUtilities" are detected as a dependency by CMake which cannot be resolved (and would lead to errors), so ignore it
                   "hvsi" "pdmutilities"  ## make all lower case, since this is what CMake extracts from the targets and the regex is case sensitive
-                  ) ## TODO I have found that sometimes vcruntime140_1.dll cannot be resolved (but vcruntime140.dll is found). Maybe add it here too?
+                  ## MSVC runtime DLLs are handled separately by InstallRequiredSystemLibraries (in package_nsis.cmake).
+                  ## Exclude them here to avoid "Multiple conflicting paths" errors when the same DLL
+                  ## exists in multiple search directories (e.g. Conda env and contrib/bin). CMake 4.x
+                  ## treats such conflicts as fatal errors.
+                  "vcruntime" "msvcp" "concrt" "vccorlib" "ucrtbase"
+                  )
   ## exclude every Dll from c:\Windows\System32
   ## Note: CMake extracts Dll names and will have a list like
   ##-- Resolved runtime dependencies:

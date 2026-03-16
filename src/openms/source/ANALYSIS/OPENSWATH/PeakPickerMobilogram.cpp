@@ -306,16 +306,45 @@ namespace OpenMS
     {
       std::vector<double> result;
 
-      if (floatDataArray.empty()) {
+      // Debug: log incoming array size and first elements
+      try
+      {
+        OPENMS_LOG_DEBUG << "[DBG] PeakPickerMobilogram::extractFloatValues_ called. size=" << floatDataArray.size();
+        if (!floatDataArray.empty())
+        {
+          OPENMS_LOG_DEBUG << " first0=" << floatDataArray[0];
+          if (floatDataArray.size() > 1) OPENMS_LOG_DEBUG << " first1=" << floatDataArray[1];
+        }
+        OPENMS_LOG_DEBUG << std::endl;
+      }
+      catch (const std::exception& e)
+      {
+        OPENMS_LOG_DEBUG << "[DBG] Exception reading floatDataArray metadata: " << e.what() << std::endl;
+      }
+
+      if (floatDataArray.empty())
+      {
+        OPENMS_LOG_DEBUG << "[DBG] extractFloatValues_: input empty, returning empty vector" << std::endl;
         return result;
       }
 
-      result.reserve(floatDataArray.size()); 
+      result.reserve(floatDataArray.size());
 
-      for (size_t i = 0; i < floatDataArray.size(); ++i) {
-        result.push_back(static_cast<double>(floatDataArray[i])); 
+      for (size_t i = 0; i < floatDataArray.size(); ++i)
+      {
+        // defensive: wrap access in try to surface potential UB/access issues
+        try
+        {
+          result.push_back(static_cast<double>(floatDataArray[i]));
+        }
+        catch (const std::exception& e)
+        {
+          OPENMS_LOG_DEBUG << "[DBG] Exception while reading floatDataArray[" << i << "] : " << e.what() << std::endl;
+          throw;
+        }
       }
 
+      OPENMS_LOG_DEBUG << "[DBG] extractFloatValues_ returning vector of size=" << result.size() << std::endl;
       return result;
     }
 
@@ -338,23 +367,60 @@ namespace OpenMS
 
     PeakPickerMobilogram::PeakPositions PeakPickerMobilogram::filterTopPeak_(Mobilogram& picked_mobilogram, std::vector<Mobilogram>& mobilograms)
     {
+      OPENMS_LOG_DEBUG << "[DBG] filterTopPeak_(vector) picked_mobilogram.size=" << picked_mobilogram.size()
+                << " floatArrays=" << picked_mobilogram.getFloatDataArrays().size()
+                << " mobilograms.count=" << mobilograms.size() << std::endl;
+
+      if (picked_mobilogram.getFloatDataArrays().size() <= IDX_OF_RIGHTBORDER_IDX)
+      {
+        OPENMS_LOG_DEBUG << "[DBG] filterTopPeak_: picked_mobilogram missing float arrays (size=" << picked_mobilogram.getFloatDataArrays().size() << ")" << std::endl;
+        return PeakPositions{0,0,0};
+      }
+      if (mobilograms.empty())
+      {
+        OPENMS_LOG_DEBUG << "[DBG] filterTopPeak_: mobilograms vector empty, returning default" << std::endl;
+        return PeakPositions{0,0,0};
+      }
+
       const auto& apex_abundance_data = extractFloatValues_(picked_mobilogram.getFloatDataArrays()[IDX_ABUNDANCE]);
       const auto& leftwidth_data = extractIntValues_(picked_mobilogram.getFloatDataArrays()[IDX_OF_LEFTBORDER_IDX]);
       const auto& rightwidth_data = extractIntValues_(picked_mobilogram.getFloatDataArrays()[IDX_OF_RIGHTBORDER_IDX]);
+
+      OPENMS_LOG_DEBUG << "[DBG] apex_abundance_data.size=" << apex_abundance_data.size()
+                << " leftwidth.size=" << leftwidth_data.size()
+                << " rightwidth.size=" << rightwidth_data.size()
+                << " mobilogram0.size=" << mobilograms[0].size() << std::endl;
+
       PeakPositions peak_pos = findHighestPeak_(apex_abundance_data, leftwidth_data, rightwidth_data, mobilograms[0].size());
 
       OPENMS_LOG_DEBUG << "  -- filtering mobilograms for highest peak at positions " << "(" << peak_pos.left << " - " << peak_pos.right << ")" << std::endl;
 
-       filterPeakIntensities_(mobilograms, peak_pos.left, peak_pos.right);
+      filterPeakIntensities_(mobilograms, peak_pos.left, peak_pos.right);
 
-       return peak_pos;
+      return peak_pos;
     }
 
     PeakPickerMobilogram::PeakPositions PeakPickerMobilogram::filterTopPeak_(Mobilogram& picked_mobilogram, Mobilogram& mobilogram)
     {
+      OPENMS_LOG_DEBUG << "[DBG] filterTopPeak_(single) picked_mobilogram.size=" << picked_mobilogram.size()
+                << " floatArrays=" << picked_mobilogram.getFloatDataArrays().size()
+                << " mobilogram.size=" << mobilogram.size() << std::endl;
+
+      if (picked_mobilogram.getFloatDataArrays().size() <= IDX_OF_RIGHTBORDER_IDX)
+      {
+        OPENMS_LOG_DEBUG << "[DBG] filterTopPeak_(single): picked_mobilogram missing float arrays (size=" << picked_mobilogram.getFloatDataArrays().size() << ")" << std::endl;
+        return PeakPositions{0,0,0};
+      }
+
       const auto& apex_abundance_data = extractFloatValues_(picked_mobilogram.getFloatDataArrays()[IDX_ABUNDANCE]);
       const auto& leftwidth_data = extractIntValues_(picked_mobilogram.getFloatDataArrays()[IDX_OF_LEFTBORDER_IDX]);
       const auto& rightwidth_data = extractIntValues_(picked_mobilogram.getFloatDataArrays()[IDX_OF_RIGHTBORDER_IDX]);
+
+      OPENMS_LOG_DEBUG << "[DBG] apex_abundance_data.size=" << apex_abundance_data.size()
+                << " leftwidth.size=" << leftwidth_data.size()
+                << " rightwidth.size=" << rightwidth_data.size()
+                << " mobilogram.size=" << mobilogram.size() << std::endl;
+
       PeakPositions peak_pos = findHighestPeak_(apex_abundance_data, leftwidth_data, rightwidth_data, mobilogram.size());
 
       OPENMS_LOG_DEBUG << "  -- filtering mobilogram for highest peak at positions " << "(" << peak_pos.left << " - " << peak_pos.right << ")" << std::endl;
