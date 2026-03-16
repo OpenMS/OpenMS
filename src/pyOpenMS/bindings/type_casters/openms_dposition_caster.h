@@ -240,7 +240,7 @@ public:
                 Py_DECREF(list);
                 return handle();
             }
-            PyList_SET_ITEM(list, i, tuple);  // steals reference
+            PyList_SetItem(list, i, tuple);  // steals reference
         }
 
         return handle(list);
