@@ -359,8 +359,7 @@ namespace OpenMS
         auto result = inner_map.insert({spectrum_reference, pid});
         if (!result.second)
         {
-          OPENMS_LOG_WARN << "Duplicate spectrum reference detected: "
-                          << spectrum_reference << std::endl;
+          OPENMS_LOG_WARN << "Duplicate spectrum reference detected: "<< spectrum_reference << "\n";
         }
         has_spectrum_references = true;
       }
