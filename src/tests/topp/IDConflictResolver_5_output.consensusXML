@@ -20,13 +20,13 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="500.5" RT="1001.0" >
-		<PeptideHit score="0.8" sequence="PEPTIDEB" charge="2" aa_before="K" aa_after="R" protein_refs="PH_1">
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="500.5" RT="1000.0" >
+		<PeptideHit score="0.99" sequence="PEPTIDEB" charge="2" aa_before="K" aa_after="R" protein_refs="PH_1">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="5000000000000000001"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="500.5" RT="999.0" >
-		<PeptideHit score="0.6" sequence="PEPTIDEA" charge="2" aa_before="K" aa_after="R" protein_refs="PH_0">
+		<PeptideHit score="0.7" sequence="PEPTIDEA" charge="2" aa_before="K" aa_after="R" protein_refs="PH_0">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="5000000000000000001"/>
 	</UnassignedPeptideIdentification>
@@ -46,8 +46,8 @@
 				<element map="1" id="5000000000000000002" rt="1001.0" mz="500.0" it="3e05" charge="2"/>
 				<element map="2" id="5000000000000000003" rt="999.0" mz="500.0" it="2e05" charge="2"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="500.5" RT="1000.0" >
-				<PeptideHit score="0.9" sequence="PEPTIDEA" charge="2" aa_before="K" aa_after="R" protein_refs="PH_0">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="500.5" RT="1001.0" >
+				<PeptideHit score="0.8" sequence="PEPTIDEA" charge="2" aa_before="K" aa_after="R" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="string" name="feature_id" value="5000000000000000001"/>
 			</PeptideIdentification>
