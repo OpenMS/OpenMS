@@ -30,5 +30,5 @@
             }
         }
     },
-    "postCreateCommand": "yum install openssh-clients -y"
+    "postCreateCommand": "bash .devcontainer/post-create.sh"
 }

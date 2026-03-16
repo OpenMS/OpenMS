@@ -37,7 +37,7 @@ SET(CMAKE_SKIP_INSTALL_RPATH TRUE)
 set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
 
 ## TODO also install headers? make a dev package configuration?
-set(CPACK_COMPONENTS_ALL applications doc library share ${THIRDPARTY_COMPONENT_GROUP})
+set(CPACK_COMPONENTS_ALL applications doc library share Dependencies ${THIRDPARTY_COMPONENT_GROUP})
 
 ## TODO we only need to put dependencies on shared libs. But this depends on what is found and what is statically linked on build machine.
 ## We should probably use a full system-shared-libs-only machine for building. Then the deps should look similar to below.
@@ -48,7 +48,8 @@ set(CPACK_COMPONENTS_ALL applications doc library share ${THIRDPARTY_COMPONENT_G
 ## External libraries from Debian repositories should be listed here to avoid file conflicts
 ## Note: SQLiteCpp is statically linked, but SQLite3 is dynamically linked at runtime
 set(CPACK_DEBIAN_PACKAGE_DEPENDS 
-  "libqt6svg6 (>= 6.2.2), libc6 (>= 2.28), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0)")
+  "libqt6svg6 (>= 6.2.2), libc6 (>= 2.28), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0), libzip5"
+)
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "science")
