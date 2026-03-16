@@ -1151,8 +1151,7 @@ def bench_parquet_io(suite: BenchmarkSuite, exp):
             break
 
     if xim_path:
-        xim = pyopenms.XIMParquetFile()
-        xim.load(xim_path)
+        xim = pyopenms.XIMParquetFile(xim_path)
 
         suite.bench("XIMParquetFile.to_df()", "Parquet I/O",
                     lambda: xim.to_df())
