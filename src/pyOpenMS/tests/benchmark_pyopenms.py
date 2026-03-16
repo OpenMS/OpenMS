@@ -1127,6 +1127,53 @@ def bench_type_casters(suite: BenchmarkSuite):
                 get_all_meta)
 
 
+def bench_parquet_io(suite: BenchmarkSuite, exp):
+    """Benchmark Parquet/Arrow I/O paths (requires WITH_PARQUET build)."""
+    import pyopenms
+    print("\n[PARQUET I/O]")
+
+    if not hasattr(pyopenms, 'XIMParquetFile'):
+        print("  (skipped - WITH_PARQUET not enabled)")
+        return
+
+    import os
+
+    # Try to find the XIM test data file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(script_dir, "..", "..", "tests", "class_tests", "openms", "data",
+                     "XIMParquetFile_23_input.xim"),
+    ]
+    xim_path = None
+    for c in candidates:
+        if os.path.exists(c):
+            xim_path = os.path.abspath(c)
+            break
+
+    if xim_path:
+        xim = pyopenms.XIMParquetFile()
+        xim.load(xim_path)
+
+        suite.bench("XIMParquetFile.to_df()", "Parquet I/O",
+                    lambda: xim.to_df())
+
+        suite.bench("XIMParquetFile.to_arrow()", "Parquet I/O",
+                    lambda: xim.to_arrow())
+
+        suite.bench("XIMParquetFile.query_mobilograms().to_df()", "Parquet I/O",
+                    lambda: xim.query_mobilograms().to_df())
+    else:
+        print("  (skipped XIM benchmarks - test data not found)")
+
+    # Arrow zero-copy export from MSExperiment (uses existing exp fixture)
+    if hasattr(exp, 'to_arrow'):
+        suite.bench("MSExperiment.to_arrow(long)", "Parquet I/O",
+                    lambda: exp.to_arrow(format="long"))
+
+        suite.bench("MSExperiment.to_arrow(semi_wide)", "Parquet I/O",
+                    lambda: exp.to_arrow(format="semi_wide"))
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -1254,6 +1301,9 @@ def main():
 
     if should_run("type") or should_run("caster"):
         bench_type_casters(suite)
+
+    if should_run("parquet"):
+        bench_parquet_io(suite, exp)
 
     # --- Summary ---
     suite.print_summary()
