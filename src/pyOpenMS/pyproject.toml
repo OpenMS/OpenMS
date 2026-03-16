@@ -30,7 +30,7 @@ version = "3.6.0"
 description = "Python wrapper for C++ LC-MS library OpenMS"
 readme = "README.rst"
 license = {text = "BSD-3-Clause"}
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 authors = [
     {name = "The OpenMS team", email = "webmaster@openms.de"},
 ]
@@ -50,8 +50,6 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -150,7 +148,7 @@ NO_DEPENDENCIES = "ON"
 
 [tool.cibuildwheel]
 # Build for Python 3.10-3.14 (usually overwritten by GitHub Actions)
-build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
+build = "cp312-*"
 # Skip 32-bit, musllinux, and PyPy builds
 skip = "*-win32 *-musllinux_* pp*"
 
