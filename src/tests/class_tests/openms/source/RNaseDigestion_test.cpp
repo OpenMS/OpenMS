@@ -76,12 +76,13 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[2].toString(), "CAG");
   out.clear();
 
-  // RNase T1 should cut after G and m1G, but not after Gm:
-  rd.digest(NASequence::fromString("G[m1G][Gm]A"), out);
-  TEST_EQUAL(out.size(), 3);
+  // RNase T1 should cut after G, m2G and I, but not after m1G, m7G or Gm:
+  rd.digest(NASequence::fromString("GI[m2G][m1G][m7G][Gm]A"), out);
+  TEST_EQUAL(out.size(), 4);
   TEST_STRING_EQUAL(out[0].toString(), "Gp");
-  TEST_STRING_EQUAL(out[1].toString(), "[m1G]p");
-  TEST_STRING_EQUAL(out[2].toString(), "[Gm]A");
+  TEST_STRING_EQUAL(out[1].toString(), "Ip");
+  TEST_STRING_EQUAL(out[2].toString(), "[m2G]p");
+  TEST_STRING_EQUAL(out[3].toString(), "[m1G][m7G][Gm]A");
   out.clear();
 
   rd.setMissedCleavages(2);
