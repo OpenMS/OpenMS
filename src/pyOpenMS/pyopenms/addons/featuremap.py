@@ -150,7 +150,27 @@ def get_assigned_peptide_identifications(self):
 
 @addon("FeatureMap")
 def to_arrow(self, columns=None, meta_values=None, export_peptide_identifications=True):
-    """Returns an Apache Arrow Table with feature information."""
+    """Returns an Apache Arrow Table with feature information.
+
+    When built with WITH_PARQUET=ON, uses zero-copy C++ export via the Arrow C
+    Data Interface (much faster). The zero-copy path exports all features with
+    metavalues as a nested struct column. Falls back to the to_df()-based path
+    when the zero-copy module is not available.
+    """
+    # Try zero-copy C++ path first (available when built with WITH_PARQUET)
+    try:
+        from pyopenms._arrow_zerocopy import featuremap_features_to_arrow
+        _use_zerocopy = True
+    except ImportError:
+        _use_zerocopy = False
+
+    if _use_zerocopy:
+        table = featuremap_features_to_arrow(self)
+        if columns is not None:
+            available = [c for c in columns if c in table.column_names]
+            table = table.select(available)
+        return table
+
     import pyarrow as pa
     df = self.to_df(columns=columns, meta_values=meta_values,
                     export_peptide_identifications=export_peptide_identifications)
