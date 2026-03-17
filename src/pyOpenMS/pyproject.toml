@@ -125,6 +125,11 @@ include = [
     "stubs.patch",
 ]
 
+[tool.py-build-cmake.wheel]
+# Tag the wheel as abi3 (stable ABI) compatible with CPython 3.12+
+python_abi = "abi3"
+abi3_minimum_cpython_version = 312
+
 [tool.py-build-cmake.cmake]
 # CMake build configuration
 build_type = "Release"
