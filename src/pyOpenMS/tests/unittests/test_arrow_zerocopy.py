@@ -417,7 +417,7 @@ class TestConsensusMapToArrow:
         for col in t_no.column_names:
             assert col in t_yes.column_names
         extra = set(t_yes.column_names) - set(t_no.column_names)
-        assert extra == {'sequence'}
+        assert extra == {'sequence', 'score'}
 
     def test_column_filter(self, consensus_map_with_psms):
         table = consensus_map_with_psms.to_arrow(columns=['rt', 'mz'])
@@ -436,3 +436,60 @@ class TestConsensusMapToArrow:
         cm.push_back(cf)
         table = cm.to_arrow(export_peptide_identifications=True)
         assert table.column('sequence').to_pylist() == [None]
+
+    def test_score_column_when_requested(self, consensus_map_with_psms):
+        """ConsensusMap PSM join should include a score column."""
+        table = consensus_map_with_psms.to_arrow(export_peptide_identifications=True)
+        assert 'score' in table.column_names
+        scores = table.column('score').to_pylist()
+        assert all(s == pytest.approx(0.9) for s in scores)
+
+    def test_to_df_no_sequence_when_disabled(self, consensus_map_with_psms):
+        """to_df(export_peptide_identifications=False) should omit 'sequence'."""
+        df = consensus_map_with_psms.to_df(export_peptide_identifications=False)
+        assert 'sequence' not in df.columns
+
+
+# ---------------------------------------------------------------------------
+# Duplicate PSM deduplication tests
+# ---------------------------------------------------------------------------
+
+class TestDuplicatePSMDedup:
+    """Verify that only the first rank-0 PSM per feature is kept."""
+
+    def test_duplicate_psms_keeps_first(self):
+        """Feature with two PeptideIdentifications: only the first rank-0 hit is used."""
+        fm = FeatureMap()
+        f = Feature()
+        f.setRT(100.0)
+        f.setMZ(500.0)
+        f.setIntensity(1000.0)
+        f.setCharge(2)
+        f.setUniqueId(42)
+
+        # Two PeptideIdentifications, each with a rank-0 hit
+        pep_id1 = PeptideIdentification()
+        hit1 = PeptideHit()
+        hit1.setSequence(AASequence.fromString('PEPTIDER'))
+        hit1.setScore(0.95)
+        hit1.setRank(0)
+        pep_id1.setHits([hit1])
+
+        pep_id2 = PeptideIdentification()
+        hit2 = PeptideHit()
+        hit2.setSequence(AASequence.fromString('EDITPEP'))
+        hit2.setScore(0.80)
+        hit2.setRank(0)
+        pep_id2.setHits([hit2])
+
+        pil = PeptideIdentificationList()
+        pil.push_back(pep_id1)
+        pil.push_back(pep_id2)
+        f.setPeptideIdentifications(pil)
+        fm.push_back(f)
+
+        table = fm.to_arrow(export_peptide_identifications=True)
+        seqs = table.column('peptide_sequence').to_pylist()
+        # Only the first rank-0 hit should be kept
+        assert len(seqs) == 1
+        assert seqs[0] == 'PEPTIDER'

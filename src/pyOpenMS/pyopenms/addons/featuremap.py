@@ -156,12 +156,27 @@ def to_arrow(self, columns=None, meta_values=None, export_peptide_identification
     Data Interface (much faster). Falls back to the to_df()-based path when the
     zero-copy module is not available.
 
+    .. note::
+
+       The default for ``export_peptide_identifications`` is ``False`` (changed
+       from ``True`` in the ``to_df()`` path) because PSM joining adds overhead
+       and many Arrow consumers do not need it.
+
+    .. note::
+
+       When the zero-copy path is active, peptide sequences are in **ProForma**
+       notation (e.g. ``[Phospho]-PEPTIDER``) as produced by the C++ export.
+       The ``to_df()`` fallback uses ``AASequence.toString()`` (OpenMS format,
+       e.g. ``.(Phospho)PEPTIDER``). Unmodified peptides are identical in both.
+
     Parameters
     ----------
     columns : list, optional
         Columns to include. If None, includes all.
     meta_values : list or 'all', optional
         Meta values to include as flat columns (only on to_df fallback path).
+        Ignored on the zero-copy path, which always exports all meta values as
+        a nested ``metavalues`` struct column.
     export_peptide_identifications : bool
         If True, join the best-hit peptide sequence and score from PSMs onto
         the features table (adds ``peptide_sequence`` and ``peptide_score``
@@ -176,6 +191,12 @@ def to_arrow(self, columns=None, meta_values=None, export_peptide_identification
         _use_zerocopy = False
 
     if _use_zerocopy:
+        if meta_values is not None:
+            warnings.warn(
+                "meta_values parameter is ignored on the zero-copy Arrow path. "
+                "All meta values are exported as a nested 'metavalues' struct "
+                "column. Use the 'columns' parameter to select specific columns.",
+                stacklevel=2)
         table = featuremap_features_to_arrow(self)
 
         if export_peptide_identifications:

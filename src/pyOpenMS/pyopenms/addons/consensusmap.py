@@ -5,9 +5,12 @@ from . import addon
 
 
 @addon("ConsensusMap")
-def df_columns(self, columns='default'):
+def df_columns(self, columns='default', export_peptide_identifications=True):
     """Returns a list of column names that to_df() would produce."""
-    cols = ['sequence', 'charge', 'rt', 'mz', 'quality']
+    cols = []
+    if export_peptide_identifications:
+        cols.append('sequence')
+    cols.extend(['charge', 'rt', 'mz', 'quality'])
 
     labelfree = self.getExperimentType() == "label-free"
     filemeta = self.getColumnHeaders()
@@ -185,13 +188,21 @@ def to_arrow(self, columns=None, export_peptide_identifications=False):
     Data Interface (much faster). Falls back to the to_df()-based path when the
     zero-copy module is not available.
 
+    .. note::
+
+       When the zero-copy path is active, peptide sequences are in **ProForma**
+       notation (e.g. ``[Phospho]-PEPTIDER``) as produced by the C++ export.
+       The ``to_df()`` fallback uses ``AASequence.toString()`` (OpenMS format,
+       e.g. ``.(Phospho)PEPTIDER``). Unmodified peptides are identical in both.
+
     Parameters
     ----------
     columns : list, optional
         Columns to include. If None, includes all.
     export_peptide_identifications : bool
-        If True, join the best-hit peptide sequence from PSMs onto the features
-        table (adds a ``sequence`` column). Default False.
+        If True, join the best-hit peptide sequence and score from PSMs onto
+        the features table (adds ``sequence`` and ``score`` columns).
+        Default False.
     """
     # Try zero-copy C++ path first (available when built with WITH_PARQUET)
     try:
@@ -210,7 +221,7 @@ def to_arrow(self, columns=None, export_peptide_identifications=False):
             table = join_best_psm_columns(
                 table, psm_table,
                 join_key='consensus_feature_unique_id',
-                output_columns={'peptidoform': 'sequence'})
+                output_columns={'peptidoform': 'sequence', 'score': 'score'})
 
         if columns is not None:
             available = [c for c in columns if c in table.column_names]

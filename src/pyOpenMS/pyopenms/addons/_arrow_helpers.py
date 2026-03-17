@@ -32,12 +32,13 @@ def join_best_psm_columns(features_table, psm_table, join_key, output_columns):
     import pyarrow.compute as pc
 
     if psm_table.num_rows == 0:
-        # Append null columns
+        # Append null columns with correct types from the PSM schema
         n = features_table.num_rows
         for psm_col, out_name in output_columns.items():
             col_name = out_name or psm_col
+            col_type = psm_table.schema.field(psm_col).type
             features_table = features_table.append_column(
-                col_name, pa.nulls(n, type=pa.utf8()))
+                col_name, pa.nulls(n, type=col_type))
         return features_table
 
     # Keep only rank-0 (best) hits

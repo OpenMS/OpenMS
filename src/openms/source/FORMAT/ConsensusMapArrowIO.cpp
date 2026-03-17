@@ -1322,7 +1322,8 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
     return true;
   }
 
-  auto col_unique_id = getColumn_(tbl, "feature_id");
+  auto col_unique_id = getColumn_(tbl, "feature_id", /*required=*/false);
+  if (!col_unique_id) col_unique_id = getColumn_(tbl, "unique_id"); // backward compat
   auto col_rt = getColumn_(tbl, "rt");
   auto col_mz = getColumn_(tbl, "mz");
   auto col_intensity = getColumn_(tbl, "intensity");

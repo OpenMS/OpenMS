@@ -1255,8 +1255,9 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
     return true;
   }
 
-  // Get all columns
-  auto col_unique_id = getColumn_(tbl, "feature_id");
+  // Get all columns (with backward-compat fallbacks for renamed columns)
+  auto col_unique_id = getColumn_(tbl, "feature_id", /*required=*/false);
+  if (!col_unique_id) col_unique_id = getColumn_(tbl, "unique_id"); // backward compat
   auto col_parent_id = getColumn_(tbl, "parent_feature_id");
   auto col_depth = getColumn_(tbl, "depth");
   auto col_rt = getColumn_(tbl, "rt");
