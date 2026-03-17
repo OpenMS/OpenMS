@@ -374,6 +374,21 @@ set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_T
 message(STATUS "Package type is '${PACKAGE_TYPE}'")
 is_valid_package(${PACKAGE_TYPE})
 
+if(DEFINED OPENMS_LAST_PACKAGE_TYPE AND NOT "${OPENMS_LAST_PACKAGE_TYPE}" STREQUAL "${PACKAGE_TYPE}")
+  message(STATUS "PACKAGE_TYPE changed from '${OPENMS_LAST_PACKAGE_TYPE}' to '${PACKAGE_TYPE}'. Resetting cached packaging configuration.")
+  unset(CPACK_GENERATOR CACHE)
+  unset(CPACK_COMPONENTS_ALL CACHE)
+  unset(CPACK_COMPONENTS_ALL_GROUPS_IN_ONE_PACKAGE CACHE)
+  unset(CPACK_PACKAGE_FILE_NAME CACHE)
+  unset(CPACK_PACKAGE_INSTALL_DIRECTORY CACHE)
+  unset(CPACK_DEBIAN_PACKAGE_DEPENDS CACHE)
+  unset(CPACK_RPM_PACKAGE_REQUIRES CACHE)
+  file(REMOVE "${PROJECT_BINARY_DIR}/CPackConfig.cmake" "${PROJECT_BINARY_DIR}/CPackSourceConfig.cmake")
+elseif("${PACKAGE_TYPE}" STREQUAL "none")
+  file(REMOVE "${PROJECT_BINARY_DIR}/CPackConfig.cmake" "${PROJECT_BINARY_DIR}/CPackSourceConfig.cmake")
+endif()
+set(OPENMS_LAST_PACKAGE_TYPE "${PACKAGE_TYPE}" CACHE INTERNAL "Last configured package type" FORCE)
+
 ## macOS code signing and notarization configuration
 ## Required for code signing:
 ##   SIGNING_IDENTITY - Developer ID Application certificate identity (e.g., "Developer ID Application: Your Name (TEAMID)")
@@ -563,18 +578,23 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
 
   # packaging routines:
   include(cmake/package_general.cmake)
+  set(OPENMS_SELECTED_PACKAGE_INCLUDE "")
   if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. macOS dmg
     set(CPACK_GENERATOR "DragNDrop")
     include(cmake/package_dragndrop_dmg.cmake)
+    set(OPENMS_SELECTED_PACKAGE_INCLUDE "dmg")
   elseif("${PACKAGE_TYPE}" STREQUAL "pkg") # .. macOS pkg
     set(CPACK_GENERATOR "productbuild")
     include(cmake/package_mac_productbuild.cmake)
+    set(OPENMS_SELECTED_PACKAGE_INCLUDE "pkg")
   elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
     set(CPACK_GENERATOR "RPM")
     include(cmake/package_rpm.cmake)
+    set(OPENMS_SELECTED_PACKAGE_INCLUDE "rpm")
   elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. debs
     set(CPACK_GENERATOR "DEB")
     include(cmake/package_deb.cmake)
+    set(OPENMS_SELECTED_PACKAGE_INCLUDE "deb")
   elseif("${PACKAGE_TYPE}" STREQUAL "nsis") # .. Windows nsis
     # For now we use the old NSIS script AS IS
     # i.e. although CMake runs make install etc. NSIS
@@ -583,6 +603,7 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     # in the script. Unfortunately we have a lot of specific code in the script.
     set(CPACK_GENERATOR "NSIS")
     include(cmake/package_nsis.cmake)
+    set(OPENMS_SELECTED_PACKAGE_INCLUDE "nsis")
   elseif("${PACKAGE_TYPE}" STREQUAL "zip")
     if(NOT WIN32)
       message(FATAL_ERROR "The package type ZIP is only supported for windows.")
@@ -592,7 +613,17 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     # are met for the portable version. 
     # TODO refactor this to only execute the relevant processing steps
     include(cmake/package_nsis.cmake)
+    set(OPENMS_SELECTED_PACKAGE_INCLUDE "zip")
   endif()
+
+  if(NOT "${OPENMS_SELECTED_PACKAGE_INCLUDE}" STREQUAL "${PACKAGE_TYPE}")
+    message(FATAL_ERROR "Packaging include mismatch: PACKAGE_TYPE='${PACKAGE_TYPE}' but loaded package include for '${OPENMS_SELECTED_PACKAGE_INCLUDE}'. Delete CMake cache and reconfigure.")
+  endif()
+
+  if(NOT DEFINED CPACK_GENERATOR OR "${CPACK_GENERATOR}" STREQUAL "")
+    message(FATAL_ERROR "Packaging is enabled but CPACK_GENERATOR is unset. Delete CMake cache and reconfigure.")
+  endif()
+
   include(CPackComponent)
   include(cmake/package_components.cmake)
   include(CPack)
