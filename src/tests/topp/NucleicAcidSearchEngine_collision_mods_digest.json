@@ -1,0 +1,404 @@
+{
+    "AdductInfo": [
+        {
+            "charge": 1,
+            "formula": "Na1",
+            "id": 1,
+            "mol_multiplier": 1,
+            "name": "Na:+"
+        },
+        {
+            "charge": 1,
+            "formula": "K1",
+            "id": 2,
+            "mol_multiplier": 1,
+            "name": "K:+"
+        },
+        {
+            "charge": 2,
+            "formula": "Na2",
+            "id": 3,
+            "mol_multiplier": 1,
+            "name": "Na2:++"
+        },
+        {
+            "charge": 2,
+            "formula": "K2",
+            "id": 4,
+            "mol_multiplier": 1,
+            "name": "K2:++"
+        },
+        {
+            "charge": 2,
+            "formula": "K1Na1",
+            "id": 5,
+            "mol_multiplier": 1,
+            "name": "NaK:++"
+        },
+        {
+            "charge": 3,
+            "formula": "Na3",
+            "id": 6,
+            "mol_multiplier": 1,
+            "name": "Na3:+++"
+        },
+        {
+            "charge": 3,
+            "formula": "K3",
+            "id": 7,
+            "mol_multiplier": 1,
+            "name": "K3:+++"
+        },
+        {
+            "charge": 3,
+            "formula": "K2Na1",
+            "id": 8,
+            "mol_multiplier": 1,
+            "name": "NaK2:+++"
+        },
+        {
+            "charge": 3,
+            "formula": "K1Na2",
+            "id": 9,
+            "mol_multiplier": 1,
+            "name": "Na2K:+++"
+        }
+    ],
+    "CVTerm": [
+        {
+            "accession": "",
+            "cv_identifier_ref": "",
+            "id": 1,
+            "name": "hyperscore"
+        },
+        {
+            "accession": "MS:1002354",
+            "cv_identifier_ref": "MS",
+            "id": 2,
+            "name": "PSM-level q-value"
+        }
+    ],
+    "ID_DBSearchParam": [
+        {
+            "charges": "-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2",
+            "database": "src/tests/topp/NucleicAcidSearchEngine_collision_mods.fasta",
+            "database_version": "",
+            "digestion_enzyme": "RNase_T1",
+            "enzyme_term_specificity": "unknown",
+            "fixed_mods": "",
+            "fragment_mass_tolerance": 5,
+            "fragment_tolerance_ppm": 1,
+            "id": 1,
+            "mass_type_average": 0,
+            "max_length": 0,
+            "min_length": 1,
+            "missed_cleavages": 22,
+            "molecule_type_id": 3,
+            "precursor_mass_tolerance": 5,
+            "precursor_tolerance_ppm": 1,
+            "taxonomy": "",
+            "variable_mods": "m22G"
+        }
+    ],
+    "ID_IdentifiedMolecule": [
+        {
+            "id": 1,
+            "identifier": "A",
+            "molecule_type_id": 3
+        },
+        {
+            "id": 2,
+            "identifier": "Gp",
+            "molecule_type_id": 3
+        },
+        {
+            "id": 3,
+            "identifier": "AG",
+            "molecule_type_id": 3
+        },
+        {
+            "id": 4,
+            "identifier": "A[m2,2G]",
+            "molecule_type_id": 3
+        },
+        {
+            "id": 5,
+            "identifier": "GA",
+            "molecule_type_id": 3
+        },
+        {
+            "id": 6,
+            "identifier": "[m2,2G]A",
+            "molecule_type_id": 3
+        }
+    ],
+    "ID_IdentifiedMolecule_AppliedProcessingStep": [
+        {
+            "parent_id": 1,
+            "processing_step_id": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_id": ""
+        },
+        {
+            "parent_id": 2,
+            "processing_step_id": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_id": ""
+        },
+        {
+            "parent_id": 3,
+            "processing_step_id": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_id": ""
+        },
+        {
+            "parent_id": 4,
+            "processing_step_id": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_id": ""
+        },
+        {
+            "parent_id": 5,
+            "processing_step_id": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_id": ""
+        },
+        {
+            "parent_id": 6,
+            "processing_step_id": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_id": ""
+        }
+    ],
+    "ID_InputFile": [
+        {
+            "experimental_design_id": "",
+            "id": 1,
+            "name": "NucleicAcidSearchEngine_1.mzML",
+            "primary_files": ""
+        }
+    ],
+    "ID_MoleculeType": [
+        {
+            "id": 1,
+            "molecule_type": "PROTEIN"
+        },
+        {
+            "id": 2,
+            "molecule_type": "COMPOUND"
+        },
+        {
+            "id": 3,
+            "molecule_type": "RNA"
+        }
+    ],
+    "ID_ParentMatch": [
+        {
+            "end_pos": 1,
+            "left_neighbor": "G",
+            "molecule_id": 1,
+            "parent_id": 1,
+            "right_neighbor": "]",
+            "start_pos": 1
+        },
+        {
+            "end_pos": 1,
+            "left_neighbor": "G",
+            "molecule_id": 1,
+            "parent_id": 2,
+            "right_neighbor": "]",
+            "start_pos": 1
+        },
+        {
+            "end_pos": 1,
+            "left_neighbor": "G",
+            "molecule_id": 1,
+            "parent_id": 3,
+            "right_neighbor": "]",
+            "start_pos": 1
+        },
+        {
+            "end_pos": 0,
+            "left_neighbor": "[",
+            "molecule_id": 2,
+            "parent_id": 1,
+            "right_neighbor": "A",
+            "start_pos": 0
+        },
+        {
+            "end_pos": 0,
+            "left_neighbor": "[",
+            "molecule_id": 2,
+            "parent_id": 2,
+            "right_neighbor": "A",
+            "start_pos": 0
+        },
+        {
+            "end_pos": 0,
+            "left_neighbor": "[",
+            "molecule_id": 2,
+            "parent_id": 3,
+            "right_neighbor": "A",
+            "start_pos": 0
+        },
+        {
+            "end_pos": 1,
+            "left_neighbor": "[",
+            "molecule_id": 3,
+            "parent_id": 1,
+            "right_neighbor": "]",
+            "start_pos": 0
+        },
+        {
+            "end_pos": 1,
+            "left_neighbor": "[",
+            "molecule_id": 4,
+            "parent_id": 1,
+            "right_neighbor": "]",
+            "start_pos": 0
+        },
+        {
+            "end_pos": 1,
+            "left_neighbor": "[",
+            "molecule_id": 5,
+            "parent_id": 2,
+            "right_neighbor": "]",
+            "start_pos": 0
+        },
+        {
+            "end_pos": 1,
+            "left_neighbor": "[",
+            "molecule_id": 5,
+            "parent_id": 3,
+            "right_neighbor": "]",
+            "start_pos": 0
+        },
+        {
+            "end_pos": 1,
+            "left_neighbor": "[",
+            "molecule_id": 6,
+            "parent_id": 2,
+            "right_neighbor": "]",
+            "start_pos": 0
+        },
+        {
+            "end_pos": 1,
+            "left_neighbor": "[",
+            "molecule_id": 6,
+            "parent_id": 3,
+            "right_neighbor": "]",
+            "start_pos": 0
+        }
+    ],
+    "ID_ParentSequence": [
+        {
+            "accession": "DECOY_collision",
+            "coverage": 0,
+            "description": "",
+            "id": 1,
+            "is_decoy": 1,
+            "molecule_type_id": 3,
+            "sequence": "GA"
+        },
+        {
+            "accession": "target_collision",
+            "coverage": 0,
+            "description": "",
+            "id": 2,
+            "is_decoy": 0,
+            "molecule_type_id": 3,
+            "sequence": "GA"
+        },
+        {
+            "accession": "target_sensitive",
+            "coverage": 0,
+            "description": "",
+            "id": 3,
+            "is_decoy": 0,
+            "molecule_type_id": 3,
+            "sequence": "GA"
+        }
+    ],
+    "ID_ParentSequence_AppliedProcessingStep": [
+        {
+            "parent_id": 1,
+            "processing_step_id": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_id": ""
+        },
+        {
+            "parent_id": 2,
+            "processing_step_id": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_id": ""
+        },
+        {
+            "parent_id": 3,
+            "processing_step_id": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_id": ""
+        }
+    ],
+    "ID_ProcessingSoftware": [
+        {
+            "id": 1,
+            "name": "NucleicAcidSearchEngine",
+            "version": "test"
+        }
+    ],
+    "ID_ProcessingSoftware_AssignedScore": [
+        {
+            "score_type_id": 1,
+            "score_type_order": 1,
+            "software_id": 1
+        },
+        {
+            "score_type_id": 2,
+            "score_type_order": 2,
+            "software_id": 1
+        }
+    ],
+    "ID_ProcessingStep": [
+        {
+            "date_time": "2026-03-17 17:34:00",
+            "id": 1,
+            "search_param_id": 1,
+            "software_id": 1
+        }
+    ],
+    "ID_ProcessingStep_InputFile": [
+        {
+            "input_file_id": 1,
+            "processing_step_id": 1
+        }
+    ],
+    "ID_ScoreType": [
+        {
+            "cv_term_id": 1,
+            "higher_better": 1,
+            "id": 1
+        },
+        {
+            "cv_term_id": 2,
+            "higher_better": 0,
+            "id": 2
+        }
+    ],
+    "version": [
+        {
+            "OMSFile": 5,
+            "OpenMS": "3.6.0-pre-add-bedrmod-2026-03-16",
+            "build_date": "Mar 17 2026, 17:33:24",
+            "date": "2026-03-17 17:34:00"
+        }
+    ]
+}
