@@ -1,8 +1,8 @@
 """
 Tests for the _arrow_zerocopy nanobind module.
 
-These tests verify zero-copy Arrow export of spectra and chromatograms
-from MSExperiment using the Arrow C Data Interface.
+These tests verify zero-copy Arrow export of spectra, chromatograms,
+features, and consensus features using the Arrow C Data Interface.
 """
 
 import pytest
@@ -17,7 +17,11 @@ except ImportError:
     pytest.skip("_arrow_zerocopy not available (OpenMS built without WITH_PARQUET)",
                 allow_module_level=True)
 
-from pyopenms import MSExperiment, MSSpectrum, MSChromatogram, Precursor
+from pyopenms import (MSExperiment, MSSpectrum, MSChromatogram, Precursor,
+                      FeatureMap, Feature, ConsensusMap, ConsensusFeature,
+                      FeatureHandle, ColumnHeader, AASequence,
+                      PeptideIdentification, PeptideHit,
+                      PeptideIdentificationList)
 
 
 # ---------------------------------------------------------------------------
@@ -238,3 +242,197 @@ class TestToArrowAddonIntegration:
         assert 'chromatograms' in result
         assert isinstance(result['spectra'], pa.Table)
         assert isinstance(result['chromatograms'], pa.Table)
+
+
+# ---------------------------------------------------------------------------
+# Helper to build a FeatureMap with peptide identifications
+# ---------------------------------------------------------------------------
+
+def _make_feature_with_psm(rt, mz, intensity, charge, uid, sequence, score):
+    """Create a Feature with a best-hit PeptideIdentification."""
+    f = Feature()
+    f.setRT(rt)
+    f.setMZ(mz)
+    f.setIntensity(intensity)
+    f.setCharge(charge)
+    f.setUniqueId(uid)
+    pep_id = PeptideIdentification()
+    hit = PeptideHit()
+    hit.setSequence(AASequence.fromString(sequence))
+    hit.setScore(score)
+    pep_id.setHits([hit])
+    pil = PeptideIdentificationList()
+    pil.push_back(pep_id)
+    f.setPeptideIdentifications(pil)
+    return f
+
+
+# ---------------------------------------------------------------------------
+# FeatureMap.to_arrow() tests
+# ---------------------------------------------------------------------------
+
+class TestFeatureMapToArrow:
+
+    @pytest.fixture
+    def feature_map_with_psms(self):
+        fm = FeatureMap()
+        fm.push_back(_make_feature_with_psm(100.0, 500.0, 1000.0, 2, 42, 'PEPTIDER', 0.95))
+        fm.push_back(_make_feature_with_psm(200.0, 600.0, 2000.0, 3, 43, 'EDITPEP', 0.80))
+        return fm
+
+    @pytest.fixture
+    def empty_feature_map(self):
+        return FeatureMap()
+
+    def test_zero_copy_returns_table(self, feature_map_with_psms):
+        table = feature_map_with_psms.to_arrow()
+        assert isinstance(table, pa.Table)
+        assert table.num_rows == 2
+
+    def test_has_feature_id_column(self, feature_map_with_psms):
+        table = feature_map_with_psms.to_arrow()
+        assert 'feature_id' in table.column_names
+
+    def test_has_consistent_columns(self, feature_map_with_psms):
+        table = feature_map_with_psms.to_arrow()
+        for col in ['feature_id', 'rt', 'mz', 'intensity', 'charge',
+                     'rt_start', 'rt_end', 'mz_start', 'mz_end', 'metavalues']:
+            assert col in table.column_names, f"Missing column: {col}"
+
+    def test_no_psm_columns_by_default(self, feature_map_with_psms):
+        table = feature_map_with_psms.to_arrow()
+        assert 'peptide_sequence' not in table.column_names
+        assert 'peptide_score' not in table.column_names
+
+    def test_psm_columns_when_requested(self, feature_map_with_psms):
+        table = feature_map_with_psms.to_arrow(export_peptide_identifications=True)
+        assert 'peptide_sequence' in table.column_names
+        assert 'peptide_score' in table.column_names
+        seqs = table.column('peptide_sequence').to_pylist()
+        scores = table.column('peptide_score').to_pylist()
+        assert 'PEPTIDER' in seqs
+        assert 'EDITPEP' in seqs
+        assert scores[seqs.index('PEPTIDER')] == pytest.approx(0.95)
+        assert scores[seqs.index('EDITPEP')] == pytest.approx(0.80)
+
+    def test_psm_join_preserves_schema(self, feature_map_with_psms):
+        """Schema is the same with or without PSMs, except for the extra columns."""
+        t_no_psm = feature_map_with_psms.to_arrow()
+        t_psm = feature_map_with_psms.to_arrow(export_peptide_identifications=True)
+        # All original columns still present
+        for col in t_no_psm.column_names:
+            assert col in t_psm.column_names
+        # Only 2 extra columns
+        extra = set(t_psm.column_names) - set(t_no_psm.column_names)
+        assert extra == {'peptide_sequence', 'peptide_score'}
+
+    def test_column_filter(self, feature_map_with_psms):
+        table = feature_map_with_psms.to_arrow(columns=['rt', 'mz', 'intensity'])
+        assert set(table.column_names) == {'rt', 'mz', 'intensity'}
+
+    def test_column_filter_with_psm(self, feature_map_with_psms):
+        table = feature_map_with_psms.to_arrow(
+            export_peptide_identifications=True,
+            columns=['rt', 'peptide_sequence'])
+        assert set(table.column_names) == {'rt', 'peptide_sequence'}
+
+    def test_empty_feature_map(self, empty_feature_map):
+        table = empty_feature_map.to_arrow()
+        assert table.num_rows == 0
+
+    def test_empty_feature_map_with_psm_flag(self, empty_feature_map):
+        table = empty_feature_map.to_arrow(export_peptide_identifications=True)
+        assert table.num_rows == 0
+        assert 'peptide_sequence' in table.column_names
+
+    def test_feature_without_psm_gets_null(self, feature_map_with_psms):
+        """A feature with no PSM should get null for sequence/score."""
+        fm = FeatureMap()
+        f = Feature()
+        f.setRT(300.0)
+        f.setMZ(700.0)
+        f.setIntensity(500.0)
+        f.setUniqueId(99)
+        fm.push_back(f)
+        table = fm.to_arrow(export_peptide_identifications=True)
+        assert table.column('peptide_sequence').to_pylist() == [None]
+        assert table.column('peptide_score').to_pylist() == [None]
+
+
+# ---------------------------------------------------------------------------
+# ConsensusMap.to_arrow() tests
+# ---------------------------------------------------------------------------
+
+class TestConsensusMapToArrow:
+
+    @pytest.fixture
+    def consensus_map_with_psms(self):
+        cm = ConsensusMap()
+        for uid, rt, mz, seq in [(10, 100.0, 500.0, 'PEPTIDER'),
+                                  (20, 200.0, 600.0, 'EDITPEP')]:
+            cf = ConsensusFeature()
+            cf.setRT(rt)
+            cf.setMZ(mz)
+            cf.setIntensity(1000.0)
+            cf.setCharge(2)
+            cf.setUniqueId(uid)
+            pep_id = PeptideIdentification()
+            hit = PeptideHit()
+            hit.setSequence(AASequence.fromString(seq))
+            hit.setScore(0.9)
+            pep_id.setHits([hit])
+            pil = PeptideIdentificationList()
+            pil.push_back(pep_id)
+            cf.setPeptideIdentifications(pil)
+            cm.push_back(cf)
+        return cm
+
+    @pytest.fixture
+    def empty_consensus_map(self):
+        return ConsensusMap()
+
+    def test_zero_copy_returns_table(self, consensus_map_with_psms):
+        table = consensus_map_with_psms.to_arrow()
+        assert isinstance(table, pa.Table)
+        assert table.num_rows == 2
+
+    def test_has_feature_id_column(self, consensus_map_with_psms):
+        table = consensus_map_with_psms.to_arrow()
+        assert 'feature_id' in table.column_names
+
+    def test_no_sequence_by_default(self, consensus_map_with_psms):
+        table = consensus_map_with_psms.to_arrow()
+        assert 'sequence' not in table.column_names
+
+    def test_sequence_when_requested(self, consensus_map_with_psms):
+        table = consensus_map_with_psms.to_arrow(export_peptide_identifications=True)
+        assert 'sequence' in table.column_names
+        seqs = table.column('sequence').to_pylist()
+        assert 'PEPTIDER' in seqs
+        assert 'EDITPEP' in seqs
+
+    def test_schema_consistent(self, consensus_map_with_psms):
+        t_no = consensus_map_with_psms.to_arrow()
+        t_yes = consensus_map_with_psms.to_arrow(export_peptide_identifications=True)
+        for col in t_no.column_names:
+            assert col in t_yes.column_names
+        extra = set(t_yes.column_names) - set(t_no.column_names)
+        assert extra == {'sequence'}
+
+    def test_column_filter(self, consensus_map_with_psms):
+        table = consensus_map_with_psms.to_arrow(columns=['rt', 'mz'])
+        assert set(table.column_names) == {'rt', 'mz'}
+
+    def test_empty_consensus_map(self, empty_consensus_map):
+        table = empty_consensus_map.to_arrow()
+        assert table.num_rows == 0
+
+    def test_feature_without_psm_gets_null(self):
+        cm = ConsensusMap()
+        cf = ConsensusFeature()
+        cf.setRT(300.0)
+        cf.setMZ(700.0)
+        cf.setUniqueId(55)
+        cm.push_back(cf)
+        table = cm.to_arrow(export_peptide_identifications=True)
+        assert table.column('sequence').to_pylist() == [None]

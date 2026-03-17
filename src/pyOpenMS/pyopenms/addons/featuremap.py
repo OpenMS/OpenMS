@@ -179,36 +179,15 @@ def to_arrow(self, columns=None, meta_values=None, export_peptide_identification
         table = featuremap_features_to_arrow(self)
 
         if export_peptide_identifications:
-            import pyarrow as pa
-            import pyarrow.compute as pc
+            from ._arrow_helpers import join_best_psm_columns
             psm_table = featuremap_psms_to_arrow(self)
-            if psm_table.num_rows > 0:
-                # Keep only rank-0 (best) hits, one per feature
-                mask = pc.equal(psm_table.column('rank'), 0)
-                best = psm_table.filter(mask)
-                # Deduplicate: keep first PSM per feature
-                seen = set()
-                keep = []
-                fids = best.column('feature_unique_id').to_pylist()
-                for i, fid in enumerate(fids):
-                    if fid is not None and fid not in seen:
-                        seen.add(fid)
-                        keep.append(i)
-                best = best.take(keep)
-                # Build lookup: feature_id -> (sequence, score)
-                lookup = {}
-                for fid, seq, score in zip(
-                    best.column('feature_unique_id').to_pylist(),
-                    best.column('peptidoform').to_pylist(),
-                    best.column('score').to_pylist(),
-                ):
-                    lookup[fid] = (seq, score)
-                # Map onto features table
-                feature_ids = table.column('feature_id').to_pylist()
-                sequences = [lookup.get(fid, (None, None))[0] for fid in feature_ids]
-                scores = [lookup.get(fid, (None, None))[1] for fid in feature_ids]
-                table = table.append_column('peptide_sequence', pa.array(sequences, type=pa.utf8()))
-                table = table.append_column('peptide_score', pa.array(scores, type=pa.float64()))
+            table = join_best_psm_columns(
+                table, psm_table,
+                join_key='feature_unique_id',
+                output_columns={
+                    'peptidoform': 'peptide_sequence',
+                    'score': 'peptide_score',
+                })
 
         if columns is not None:
             available = [c for c in columns if c in table.column_names]

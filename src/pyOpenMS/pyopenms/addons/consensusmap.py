@@ -205,33 +205,12 @@ def to_arrow(self, columns=None, export_peptide_identifications=False):
         table = consensusmap_features_to_arrow(self)
 
         if export_peptide_identifications:
-            import pyarrow as pa
-            import pyarrow.compute as pc
+            from ._arrow_helpers import join_best_psm_columns
             psm_table = consensusmap_psms_to_arrow(self)
-            if psm_table.num_rows > 0:
-                # Keep only rank-0 (best) hits, one per feature
-                mask = pc.equal(psm_table.column('rank'), 0)
-                best = psm_table.filter(mask)
-                # Deduplicate: keep first PSM per consensus feature
-                seen = set()
-                keep = []
-                fids = best.column('consensus_feature_unique_id').to_pylist()
-                for i, fid in enumerate(fids):
-                    if fid is not None and fid not in seen:
-                        seen.add(fid)
-                        keep.append(i)
-                best = best.take(keep)
-                # Build lookup: feature_id -> sequence
-                lookup = {}
-                for fid, seq in zip(
-                    best.column('consensus_feature_unique_id').to_pylist(),
-                    best.column('peptidoform').to_pylist(),
-                ):
-                    lookup[fid] = seq
-                # Map onto features table
-                feature_ids = table.column('feature_id').to_pylist()
-                sequences = [lookup.get(fid) for fid in feature_ids]
-                table = table.append_column('sequence', pa.array(sequences, type=pa.utf8()))
+            table = join_best_psm_columns(
+                table, psm_table,
+                join_key='consensus_feature_unique_id',
+                output_columns={'peptidoform': 'sequence'})
 
         if columns is not None:
             available = [c for c in columns if c in table.column_names]
