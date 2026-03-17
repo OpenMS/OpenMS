@@ -88,7 +88,7 @@ START_SECTION(exportFeaturesToArrow - single feature with convex hulls and metav
   TEST_EQUAL(table->num_columns(), 17)
 
   // Verify scalar columns
-  auto col_unique_id = std::static_pointer_cast<arrow::Int64Array>(table->GetColumnByName("unique_id")->chunk(0));
+  auto col_unique_id = std::static_pointer_cast<arrow::Int64Array>(table->GetColumnByName("feature_id")->chunk(0));
   TEST_EQUAL(col_unique_id->Value(0), 12345)
 
   auto col_parent = table->GetColumnByName("parent_feature_id")->chunk(0);
@@ -189,7 +189,7 @@ START_SECTION(exportFeaturesToArrow - subordinate features)
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 4)
 
-  auto col_uid = std::static_pointer_cast<arrow::Int64Array>(table->GetColumnByName("unique_id")->chunk(0));
+  auto col_uid = std::static_pointer_cast<arrow::Int64Array>(table->GetColumnByName("feature_id")->chunk(0));
   auto col_parent = std::static_pointer_cast<arrow::Int64Array>(table->GetColumnByName("parent_feature_id")->chunk(0));
   auto col_depth = std::static_pointer_cast<arrow::Int32Array>(table->GetColumnByName("depth")->chunk(0));
 

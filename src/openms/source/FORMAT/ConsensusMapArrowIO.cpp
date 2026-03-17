@@ -1128,7 +1128,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportFeaturesToArrow(
   #undef FINISH_OR_RETURN
 
   auto schema = arrow::schema({
-    arrow::field("unique_id", arrow::int64()),
+    arrow::field("feature_id", arrow::int64()),
     arrow::field("rt", arrow::float64()),
     arrow::field("mz", arrow::float64()),
     arrow::field("intensity", arrow::float32()),
@@ -1322,7 +1322,7 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
     return true;
   }
 
-  auto col_unique_id = getColumn_(tbl, "unique_id");
+  auto col_unique_id = getColumn_(tbl, "feature_id");
   auto col_rt = getColumn_(tbl, "rt");
   auto col_mz = getColumn_(tbl, "mz");
   auto col_intensity = getColumn_(tbl, "intensity");

@@ -113,7 +113,7 @@ START_SECTION(exportFeaturesToArrow - single feature with handles and metavalues
   TEST_EQUAL(table->num_columns(), 9)
 
   // Verify scalar columns
-  auto col_unique_id = std::static_pointer_cast<arrow::Int64Array>(table->GetColumnByName("unique_id")->chunk(0));
+  auto col_unique_id = std::static_pointer_cast<arrow::Int64Array>(table->GetColumnByName("feature_id")->chunk(0));
   TEST_EQUAL(col_unique_id->Value(0), 12345)
 
   auto col_rt = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("rt")->chunk(0));

@@ -1034,7 +1034,7 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
 
   // Build schema (17 columns)
   auto schema = arrow::schema({
-    arrow::field("unique_id", arrow::int64(), /*nullable=*/false),
+    arrow::field("feature_id", arrow::int64(), /*nullable=*/false),
     arrow::field("parent_feature_id", arrow::int64(), /*nullable=*/true),
     arrow::field("depth", arrow::int32(), /*nullable=*/false),
     arrow::field("rt", arrow::float64(), /*nullable=*/false),
@@ -1256,7 +1256,7 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
   }
 
   // Get all columns
-  auto col_unique_id = getColumn_(tbl, "unique_id");
+  auto col_unique_id = getColumn_(tbl, "feature_id");
   auto col_parent_id = getColumn_(tbl, "parent_feature_id");
   auto col_depth = getColumn_(tbl, "depth");
   auto col_rt = getColumn_(tbl, "rt");
