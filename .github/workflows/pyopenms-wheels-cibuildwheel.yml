@@ -355,6 +355,8 @@ jobs:
 
       - name: Install sccache
         uses: mozilla-actions/sccache-action@v0.0.9
+        env:
+          SCCACHE_GHA_ENABLED: "true"
 
       - name: Build libcurl from source
         shell: bash
@@ -402,6 +404,11 @@ jobs:
           cmake --install . --component cmake
           cmake --install . --component share
 
+      - name: Show sccache stats
+        if: always()
+        shell: bash
+        run: sccache --show-stats
+
       - name: Set pyOpenMS version
         shell: bash
         run: |
@@ -432,9 +439,7 @@ jobs:
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT="${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
-            CMAKE_BUILD_PARALLEL_LEVEL=4
-            CMAKE_C_COMPILER_LAUNCHER=sccache
-            CMAKE_CXX_COMPILER_LAUNCHER=sccache
+            CMAKE_BUILD_PARALLEL_LEVEL=2
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
