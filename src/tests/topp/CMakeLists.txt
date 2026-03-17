@@ -893,6 +893,10 @@ set_tests_properties("TOPP_IDConflictResolver_3_out1" PROPERTIES DEPENDS "TOPP_I
 add_test("TOPP_IDConflictResolver_4" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_4_input.featureXML -resolve_between_features highest_intensity -out ${TESTS_TEMP_DIR}/IDConflictResolver_4.tmp.featureXML)
 add_test("TOPP_IDConflictResolver_4_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDConflictResolver_4.tmp.featureXML -in2 ${DATA_DIR_TOPP}/IDConflictResolver_4_output.featureXML)
 set_tests_properties("TOPP_IDConflictResolver_4_out" PROPERTIES DEPENDS "TOPP_IDConflictResolver_4")
+# Tests rank_aggregation resolve_method on consensusXML
+add_test("TOPP_IDConflictResolver_5" ${TOPP_BIN_PATH}/IDConflictResolver -test -resolve_method rank_aggregation -in ${DATA_DIR_TOPP}/IDConflictResolver_5_input.consensusXML -out ${TESTS_TEMP_DIR}/IDConflictResolver_5_output.tmp.consensusXML)
+add_test("TOPP_IDConflictResolver_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDConflictResolver_5_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IDConflictResolver_5_output.consensusXML)
+set_tests_properties("TOPP_IDConflictResolver_5_out1" PROPERTIES DEPENDS "TOPP_IDConflictResolver_5")
 
 #------------------------------------------------------------------------------
 # IDFileConverter tests
