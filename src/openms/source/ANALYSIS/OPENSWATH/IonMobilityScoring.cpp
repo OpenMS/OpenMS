@@ -209,7 +209,7 @@ namespace OpenMS
     res.reserve(res.size() + im_chrom.size());
     for (const auto& k : im_chrom)
     {
-      res.emplace_back(k.first / IM_IDX_MULT, k.second ); // add MobilityPeak1D(mobility, intensity)
+      res.emplace_back(k.first / IM_IDX_MULT, static_cast<MobilityPeak1D::IntensityType>(k.second)); // add MobilityPeak1D(mobility, intensity)
     }
   }
 
