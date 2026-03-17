@@ -256,8 +256,9 @@ namespace OpenMS
       }
       if (n >= 0)
       {
-        //Comment: throw?
-        std::cerr << "Error occurred at position n = " << n << ". Enable NUMPRESS_DEBUG to get more info." << std::endl;
+        OPENMS_LOG_WARN << "[MSNumpressCoder] Numpress encoding accuracy loss at position n = " << n
+                        << " (tolerance: " << config.numpressErrorTolerance << "). "
+                        << "Result discarded. Consider disabling numpressErrorTolerance or using a different compression.";
       }
       else
       {
@@ -269,15 +270,18 @@ namespace OpenMS
     }
     catch (int e)
     {
-      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "MSNumpress encoder threw integer exception: " + String(e));
     }
-    catch (char const * e)
+    catch (char const* e)
     {
-      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("MSNumpress encoder threw exception: ") + e);
     }
     catch (...)
     {
-      std::cerr << "Unknown exception while encoding " << dataSize << " doubles" << std::endl;
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Unknown exception while encoding " + String(dataSize) + " doubles with MSNumpress.");
     }
   }
 
