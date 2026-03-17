@@ -873,7 +873,7 @@ namespace OpenMS
 #endif
         MSSpectrum summed_trace;
         summed_trace.reserve(trace.size() + 1);
-        summed_trace.emplace_back(-1.0, -1.0);
+        summed_trace.emplace_back(-1.0, -1.0f);
         sumFrame_(trace, summed_trace, sum_tolerance_im_, false);
 #ifdef DEBUG_PICKER
         OPENMS_LOG_DEBUG << "Trace after sumFrame_ has " << summed_trace.size() << " peaks.\n";
