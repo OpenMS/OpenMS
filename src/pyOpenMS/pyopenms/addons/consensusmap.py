@@ -183,32 +183,60 @@ def to_arrow(self, columns=None, export_peptide_identifications=False):
 
     When built with WITH_PARQUET=ON, uses zero-copy C++ export via the Arrow C
     Data Interface (much faster). Falls back to the to_df()-based path when the
-    zero-copy module is not available or when ``export_peptide_identifications``
-    is True (sequence is inlined via the slower to_df path).
+    zero-copy module is not available.
 
     Parameters
     ----------
     columns : list, optional
         Columns to include. If None, includes all.
     export_peptide_identifications : bool
-        If True, inline the 'sequence' column from best peptide hit (uses
-        to_df path). Default False (zero-copy path, PSMs available separately
-        via ``consensusmap_psms_to_arrow()``).
+        If True, join the best-hit peptide sequence from PSMs onto the features
+        table (adds a ``sequence`` column). Default False.
     """
     # Try zero-copy C++ path first (available when built with WITH_PARQUET)
-    if not export_peptide_identifications:
-        try:
-            from pyopenms._arrow_zerocopy import consensusmap_features_to_arrow
-            _use_zerocopy = True
-        except ImportError:
-            _use_zerocopy = False
+    try:
+        from pyopenms._arrow_zerocopy import (
+            consensusmap_features_to_arrow, consensusmap_psms_to_arrow)
+        _use_zerocopy = True
+    except ImportError:
+        _use_zerocopy = False
 
-        if _use_zerocopy:
-            table = consensusmap_features_to_arrow(self)
-            if columns is not None:
-                available = [c for c in columns if c in table.column_names]
-                table = table.select(available)
-            return table
+    if _use_zerocopy:
+        table = consensusmap_features_to_arrow(self)
+
+        if export_peptide_identifications:
+            import pyarrow as pa
+            import pyarrow.compute as pc
+            psm_table = consensusmap_psms_to_arrow(self)
+            if psm_table.num_rows > 0:
+                # Keep only rank-0 (best) hits, one per feature
+                mask = pc.equal(psm_table.column('rank'), 0)
+                best = psm_table.filter(mask)
+                # Deduplicate: keep first PSM per consensus feature
+                seen = set()
+                keep = []
+                fids = best.column('consensus_feature_unique_id').to_pylist()
+                for i, fid in enumerate(fids):
+                    if fid is not None and fid not in seen:
+                        seen.add(fid)
+                        keep.append(i)
+                best = best.take(keep)
+                # Build lookup: feature_id -> sequence
+                lookup = {}
+                for fid, seq in zip(
+                    best.column('consensus_feature_unique_id').to_pylist(),
+                    best.column('peptidoform').to_pylist(),
+                ):
+                    lookup[fid] = seq
+                # Map onto features table
+                feature_ids = table.column('feature_id').to_pylist()
+                sequences = [lookup.get(fid) for fid in feature_ids]
+                table = table.append_column('sequence', pa.array(sequences, type=pa.utf8()))
+
+        if columns is not None:
+            available = [c for c in columns if c in table.column_names]
+            table = table.select(available)
+        return table
 
     try:
         import pyarrow as pa
