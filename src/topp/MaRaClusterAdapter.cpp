@@ -64,6 +64,13 @@ identification, which will be outputed as a merged idXML. Moreover the merged id
 cluster ids and file origin can be outputed without prior peptide identification searches. The assigned cluster ids in
 the respective idXML are equal to the scanindex of the produced clustered mzML.
 </p>
+<p>Each consensus spectrum in the output mzML is annotated with the following metadata values for traceability:
+<ul>
+  <li><b>maracluster_original_native_ids</b>: comma-separated list of native IDs of the original source spectra</li>
+  <li><b>maracluster_original_file_origins</b>: comma-separated list of source file paths for each contributing spectrum</li>
+  <li><b>maracluster_cluster_size</b>: the number of spectra merged into the consensus</li>
+</ul>
+</p>
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_MaRaClusterAdapter.cli
