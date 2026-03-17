@@ -149,40 +149,39 @@ def get_assigned_peptide_identifications(self):
 
 
 @addon("FeatureMap")
-def to_arrow(self, columns=None, meta_values=None, export_peptide_identifications=True):
+def to_arrow(self, columns=None, meta_values=None, export_peptide_identifications=False):
     """Returns an Apache Arrow Table with feature information.
 
     When built with WITH_PARQUET=ON, uses zero-copy C++ export via the Arrow C
-    Data Interface (much faster). The zero-copy path exports all features with
-    metavalues as a nested struct column and does not include peptide
-    identifications (they are available separately via
-    ``featuremap_psms_to_arrow``). The ``meta_values`` and
-    ``export_peptide_identifications`` parameters only take effect on the
-    fallback (to_df) path. Falls back to the to_df()-based path when the
-    zero-copy module is not available.
+    Data Interface (much faster). Falls back to the to_df()-based path when the
+    zero-copy module is not available or when ``export_peptide_identifications``
+    is True (peptide IDs are inlined via the slower to_df path).
+
+    Parameters
+    ----------
+    columns : list, optional
+        Columns to include. If None, includes all.
+    meta_values : list or 'all', optional
+        Meta values to include as flat columns (only on to_df fallback path).
+    export_peptide_identifications : bool
+        If True, inline peptide sequence/score columns (uses to_df path).
+        Default False (zero-copy path, PSMs available separately via
+        ``featuremap_psms_to_arrow()``).
     """
     # Try zero-copy C++ path first (available when built with WITH_PARQUET)
-    try:
-        from pyopenms._arrow_zerocopy import featuremap_features_to_arrow
-        _use_zerocopy = True
-    except ImportError:
-        _use_zerocopy = False
+    if not export_peptide_identifications:
+        try:
+            from pyopenms._arrow_zerocopy import featuremap_features_to_arrow
+            _use_zerocopy = True
+        except ImportError:
+            _use_zerocopy = False
 
-    if _use_zerocopy:
-        if meta_values is not None or not export_peptide_identifications:
-            import warnings
-            warnings.warn(
-                "Zero-copy Arrow export ignores 'meta_values' and "
-                "'export_peptide_identifications' parameters. All metavalues "
-                "are exported as a nested struct column; peptide identifications "
-                "are available via featuremap_psms_to_arrow().",
-                stacklevel=2,
-            )
-        table = featuremap_features_to_arrow(self)
-        if columns is not None:
-            available = [c for c in columns if c in table.column_names]
-            table = table.select(available)
-        return table
+        if _use_zerocopy:
+            table = featuremap_features_to_arrow(self)
+            if columns is not None:
+                available = [c for c in columns if c in table.column_names]
+                table = table.select(available)
+            return table
 
     import pyarrow as pa
     df = self.to_df(columns=columns, meta_values=meta_values,

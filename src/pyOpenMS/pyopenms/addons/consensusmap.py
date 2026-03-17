@@ -119,8 +119,16 @@ def get_metadata_df(self):
 
 
 @addon("ConsensusMap")
-def to_df(self, columns=None):
-    """Generates a pandas DataFrame with both consensus feature meta data and intensities."""
+def to_df(self, columns=None, export_peptide_identifications=True):
+    """Generates a pandas DataFrame with both consensus feature meta data and intensities.
+
+    Parameters
+    ----------
+    columns : list, optional
+        Columns to include. If None, includes all.
+    export_peptide_identifications : bool
+        If True (default), include the 'sequence' column from best peptide hit.
+    """
     try:
         import pandas as pd
     except ImportError:
@@ -128,10 +136,14 @@ def to_df(self, columns=None):
 
     if columns is None:
         df = pd.concat([self.get_metadata_df(), self.get_intensity_df()], axis=1)
+        if not export_peptide_identifications and 'sequence' in df.columns:
+            df = df.drop(columns=['sequence'])
         return df
 
     requested = set(columns)
     metadata_cols = {'sequence', 'charge', 'rt', 'mz', 'quality'}
+    if not export_peptide_identifications:
+        metadata_cols.discard('sequence')
 
     labelfree = self.getExperimentType() == "label-free"
     filemeta = self.getColumnHeaders()
@@ -166,33 +178,44 @@ def to_df(self, columns=None):
 
 
 @addon("ConsensusMap")
-def to_arrow(self, columns=None):
+def to_arrow(self, columns=None, export_peptide_identifications=False):
     """Returns an Apache Arrow Table with consensus feature meta data and intensities.
 
     When built with WITH_PARQUET=ON, uses zero-copy C++ export via the Arrow C
-    Data Interface (much faster). The zero-copy path exports all consensus
-    features with handles and metavalues as nested struct columns. Falls back to
-    the to_df()-based path when the zero-copy module is not available.
+    Data Interface (much faster). Falls back to the to_df()-based path when the
+    zero-copy module is not available or when ``export_peptide_identifications``
+    is True (sequence is inlined via the slower to_df path).
+
+    Parameters
+    ----------
+    columns : list, optional
+        Columns to include. If None, includes all.
+    export_peptide_identifications : bool
+        If True, inline the 'sequence' column from best peptide hit (uses
+        to_df path). Default False (zero-copy path, PSMs available separately
+        via ``consensusmap_psms_to_arrow()``).
     """
     # Try zero-copy C++ path first (available when built with WITH_PARQUET)
-    try:
-        from pyopenms._arrow_zerocopy import consensusmap_features_to_arrow
-        _use_zerocopy = True
-    except ImportError:
-        _use_zerocopy = False
+    if not export_peptide_identifications:
+        try:
+            from pyopenms._arrow_zerocopy import consensusmap_features_to_arrow
+            _use_zerocopy = True
+        except ImportError:
+            _use_zerocopy = False
 
-    if _use_zerocopy:
-        table = consensusmap_features_to_arrow(self)
-        if columns is not None:
-            available = [c for c in columns if c in table.column_names]
-            table = table.select(available)
-        return table
+        if _use_zerocopy:
+            table = consensusmap_features_to_arrow(self)
+            if columns is not None:
+                available = [c for c in columns if c in table.column_names]
+                table = table.select(available)
+            return table
 
     try:
         import pyarrow as pa
     except ImportError:
         raise ImportError("pyarrow is required for to_arrow(). Install with: pip install pyarrow")
-    df = self.to_df(columns=columns)
+    df = self.to_df(columns=columns,
+                    export_peptide_identifications=export_peptide_identifications)
     return pa.Table.from_pandas(df)
 
 
