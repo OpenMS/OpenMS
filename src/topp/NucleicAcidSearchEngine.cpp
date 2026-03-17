@@ -67,6 +67,7 @@
 #include <vector>
 #include <map>
 #include <regex>
+#include <random>
 #include <boost/regex.hpp>
 
 // multithreading
@@ -471,6 +472,123 @@ protected:
       }
     }
     return count;
+  }
+
+  UInt64 stableHash64_(const String& input) const
+  {
+    const UInt64 fnv_offset = 1469598103934665603ULL;
+    const UInt64 fnv_prime = 1099511628211ULL;
+    UInt64 hash = fnv_offset;
+    const std::string text = input;
+    for (unsigned char c : text)
+    {
+      hash ^= static_cast<UInt64>(c);
+      hash *= fnv_prime;
+    }
+    return hash;
+  }
+
+  NASequence reshuffleOligo_(const NASequence& original, UInt64 seed) const
+  {
+    if (original.size() < 2)
+    {
+      return original;
+    }
+
+    NASequence shuffled = original;
+    std::vector<const Ribonucleotide*> residues = shuffled.getSequence();
+    std::mt19937_64 rng(seed);
+    std::shuffle(residues.begin(), residues.end(), rng);
+    shuffled.setSequence(residues);
+    return shuffled;
+  }
+
+  NASequence reshuffleDecoyIfCollision_(const NASequence& original,
+                                        const set<NASequence>& target_oligos,
+                                        Size max_attempts,
+                                        bool& resolved,
+                                        Size& attempts_used) const
+  {
+    attempts_used = 0;
+    if (!target_oligos.count(original))
+    {
+      resolved = true;
+      return original;
+    }
+
+    UInt64 base_seed = stableHash64_(original.toString());
+    for (Size attempt = 1; attempt <= max_attempts; ++attempt)
+    {
+      attempts_used = attempt;
+      UInt64 attempt_seed = base_seed ^
+        (0x9e3779b97f4a7c15ULL + static_cast<UInt64>(attempt));
+      NASequence candidate = reshuffleOligo_(original, attempt_seed);
+      if (!target_oligos.count(candidate))
+      {
+        resolved = true;
+        return candidate;
+      }
+    }
+
+    resolved = false;
+    return original;
+  }
+
+  void registerDigestedOligo_(
+    IdentificationData& id_data,
+    IdentificationData::ParentSequenceRef parent_ref,
+    const NASequence& parent_variant,
+    const pair<Size, Size>& pos,
+    const NASequence& fragment,
+    set<NASequence>& target_oligos,
+    Size max_decoy_reshuffle_attempts,
+    Size& decoy_collisions,
+    Size& decoy_resolved,
+    Size& decoy_unresolved,
+    Size& decoy_max_attempts_reached) const
+  {
+    NASequence final_fragment = fragment;
+    if (parent_ref->is_decoy)
+    {
+      if (target_oligos.count(fragment))
+      {
+        ++decoy_collisions;
+        bool resolved = false;
+        Size attempts_used = 0;
+        final_fragment = reshuffleDecoyIfCollision_(
+          fragment, target_oligos, max_decoy_reshuffle_attempts, resolved,
+          attempts_used);
+        if ((max_decoy_reshuffle_attempts > 0) &&
+            (attempts_used >= max_decoy_reshuffle_attempts))
+        {
+          ++decoy_max_attempts_reached;
+        }
+        if (resolved)
+        {
+          ++decoy_resolved;
+        }
+        else
+        {
+          ++decoy_unresolved;
+        }
+      }
+    }
+    else
+    {
+      target_oligos.insert(fragment);
+    }
+
+    IdentificationData::IdentifiedOligo oligo(final_fragment);
+    Size end_pos = pos.first + pos.second; // past-the-end position!
+    IdentificationData::ParentMatch match(pos.first, end_pos - 1);
+    match.left_neighbor = ((pos.first > 0) ?
+                           parent_variant[pos.first - 1]->getCode() :
+                           IdentificationData::ParentMatch::LEFT_TERMINUS);
+    match.right_neighbor = ((end_pos < parent_variant.size()) ?
+                            parent_variant[end_pos]->getCode() :
+                            IdentificationData::ParentMatch::RIGHT_TERMINUS);
+    oligo.parent_matches[parent_ref].insert(match);
+    id_data.registerIdentifiedOligo(oligo);
   }
 
   // check for minimum and maximum size
@@ -1239,65 +1357,113 @@ protected:
       OPENMS_LOG_INFO << "Performing in-silico digestion..." << endl;
       IdentificationDataConverter::importSequences(
         id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
-      if (cleavage_sensitive_modifications.empty())
+      const Size max_decoy_reshuffle_attempts = 5;
+      Size decoy_collisions = 0;
+      Size decoy_resolved = 0;
+      Size decoy_unresolved = 0;
+      Size decoy_max_attempts_reached = 0;
+      set<NASequence> target_oligos;
+
+      vector<IdentificationData::ParentSequenceRef> target_parents, decoy_parents;
+      for (IdentificationData::ParentSequenceRef parent_ref =
+             id_data.getParentSequences().begin();
+           parent_ref != id_data.getParentSequences().end(); ++parent_ref)
       {
-        digestor.digest(id_data, min_oligo_length, max_oligo_length);
+        if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
+        {
+          continue;
+        }
+        if (parent_ref->is_decoy)
+        {
+          decoy_parents.push_back(parent_ref);
+        }
+        else
+        {
+          target_parents.push_back(parent_ref);
+        }
       }
-      else
+
+      auto digest_and_register_parent =
+        [&](IdentificationData::ParentSequenceRef parent_ref)
+      {
+        NASequence parent = NASequence::fromString(parent_ref->sequence);
+        vector<NASequence> parent_variants;
+        if (cleavage_sensitive_modifications.empty())
+        {
+          parent_variants.push_back(parent);
+        }
+        else
+        {
+          ModifiedNASequenceGenerator::applyFixedModifications(
+            fixed_modifications, parent);
+          parent_variants = generateCleavageSensitiveParentVariants_(
+            parent, cleavage_sensitive_modifications,
+            max_variable_mods_per_oligo);
+        }
+
+        for (const NASequence& parent_variant : parent_variants)
+        {
+          vector<pair<Size, Size>> positions = digestor.getFragmentPositions(
+            parent_variant, min_oligo_length, max_oligo_length);
+          vector<NASequence> fragments;
+          digestor.digest(parent_variant, fragments, min_oligo_length,
+                          max_oligo_length);
+
+          if (positions.size() != fragments.size())
+          {
+            throw Exception::Postcondition(
+              __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Mismatch between digestion fragment positions and fragment sequences");
+          }
+
+          for (Size index = 0; index < fragments.size(); ++index)
+          {
+            registerDigestedOligo_(
+              id_data, parent_ref, parent_variant, positions[index],
+              fragments[index], target_oligos, max_decoy_reshuffle_attempts,
+              decoy_collisions, decoy_resolved, decoy_unresolved,
+              decoy_max_attempts_reached);
+          }
+        }
+      };
+
+      if (!cleavage_sensitive_modifications.empty())
       {
         OPENMS_LOG_INFO
           << "Applying cleavage-sensitive variable modifications during digestion..."
           << endl;
+      }
 
-        for (IdentificationData::ParentSequenceRef parent_ref =
-               id_data.getParentSequences().begin();
-             parent_ref != id_data.getParentSequences().end(); ++parent_ref)
+      for (IdentificationData::ParentSequenceRef parent_ref : target_parents)
+      {
+        digest_and_register_parent(parent_ref);
+      }
+      for (IdentificationData::ParentSequenceRef parent_ref : decoy_parents)
+      {
+        digest_and_register_parent(parent_ref);
+      }
+
+      if (decoy_collisions > 0)
+      {
+        OPENMS_LOG_INFO << "Detected " << decoy_collisions
+                        << " decoy oligo collisions with target oligos after digestion; "
+                        << decoy_resolved << " resolved by reshuffling (max "
+                        << max_decoy_reshuffle_attempts << " attempts)."
+                        << endl;
+        if (decoy_max_attempts_reached > 0)
         {
-          if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
-          {
-            continue;
-          }
-
-          NASequence parent = NASequence::fromString(parent_ref->sequence);
-          ModifiedNASequenceGenerator::applyFixedModifications(
-            fixed_modifications, parent);
-
-          vector<NASequence> parent_variants =
-            generateCleavageSensitiveParentVariants_(
-              parent, cleavage_sensitive_modifications,
-              max_variable_mods_per_oligo);
-
-          for (const NASequence& parent_variant : parent_variants)
-          {
-            vector<pair<Size, Size>> positions = digestor.getFragmentPositions(
-              parent_variant, min_oligo_length, max_oligo_length);
-            vector<NASequence> fragments;
-            digestor.digest(parent_variant, fragments, min_oligo_length,
-                            max_oligo_length);
-
-            if (positions.size() != fragments.size())
-            {
-              throw Exception::Postcondition(
-                __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "Mismatch between digestion fragment positions and fragment sequences");
-            }
-
-            for (Size index = 0; index < fragments.size(); ++index)
-            {
-              const auto& pos = positions[index];
-              IdentificationData::IdentifiedOligo oligo(fragments[index]);
-              Size end_pos = pos.first + pos.second; // past-the-end position!
-              IdentificationData::ParentMatch match(pos.first, end_pos - 1);
-              match.left_neighbor = ((pos.first > 0) ?
-                                     parent_variant[pos.first - 1]->getCode() :
-                                     IdentificationData::ParentMatch::LEFT_TERMINUS);
-              match.right_neighbor = ((end_pos < parent_variant.size()) ?
-                                      parent_variant[end_pos]->getCode() :
-                                      IdentificationData::ParentMatch::RIGHT_TERMINUS);
-              oligo.parent_matches[parent_ref].insert(match);
-              id_data.registerIdentifiedOligo(oligo);
-            }
-          }
+          OPENMS_LOG_WARN
+            << "Reached the maximum number of decoy reshuffle attempts ("
+            << max_decoy_reshuffle_attempts << ") for "
+            << decoy_max_attempts_reached
+            << " colliding decoy oligo(s)." << endl;
+        }
+        if (decoy_unresolved > 0)
+        {
+          OPENMS_LOG_WARN << "Unable to resolve " << decoy_unresolved
+                          << " decoy oligo collision(s) after "
+                          << max_decoy_reshuffle_attempts
+                          << " reshuffle attempts." << endl;
         }
       }
 
