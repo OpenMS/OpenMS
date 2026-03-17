@@ -3493,6 +3493,33 @@ add_test("TOPP_NucleicAcidSearchEngine_22_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Nu
 set_tests_properties("TOPP_NucleicAcidSearchEngine_21_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_2")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_22_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_2")
 
+# regression: cleavage-sensitive variable mods during digestion + decoy
+# collisions resolved by reshuffling after digestion (if possible)
+add_test("TOPP_NucleicAcidSearchEngine_3" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine
+         -test
+         -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini
+         -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML
+         -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_collision_mods.fasta
+         -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_32_out.tmp.mzTab
+         -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_31_out.tmp.idXML
+         -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_33_out.tmp.oms
+         -digest_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_3_digest.tmp.oms
+         -fdr:decoy_pattern DECOY_
+         -oligo:enzyme RNase_T1
+         -oligo:min_size 1
+         -modifications:variable m22G
+         -modifications:variable_max_per_oligo 1)
+add_test("TOPP_NucleicAcidSearchEngine_3_json" ${TOPP_BIN_PATH}/JSONExporter
+         -test
+         -in ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_3_digest.tmp.oms
+         -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_3_digest.tmp.json)
+set_tests_properties("TOPP_NucleicAcidSearchEngine_3_json" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_3")
+add_test("TOPP_NucleicAcidSearchEngine_3_json_out" ${DIFF}
+         -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_3_digest.tmp.json
+         -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_collision_mods_digest.json
+         -whitelist "date_time" "\"date\":" "\"database\":")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_3_json_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_3_json")
+
 #------------------------------------------------------------------------------
 # RNAMassCalculator:
 add_test("TOPP_RNAMassCalculator_1" ${TOPP_BIN_PATH}/RNAMassCalculator -test -in_seq "AUCGGC" -charge -1 -2 -out ${TESTS_TEMP_DIR}/RNAMassCalculator.tmp.txt)
