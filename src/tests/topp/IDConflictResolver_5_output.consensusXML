@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/dev/openmsqt5/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_1234567890123456789" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2011-08-16T09:41:02">
+		<software name="FeatureLinker" version="1.8.0" />
+		<processingAction name="Feature grouping" />
+	</dataProcessing>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="IDConflictResolver" version="version_string" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2011-08-15T18:16:06" search_engine="SEQUEST" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="P00001" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="P00002" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="500.5" RT="1000.0" >
+		<PeptideHit score="0.99" sequence="PEPTIDEB" charge="2" aa_before="K" aa_after="R" protein_refs="PH_1">
+		</PeptideHit>
+		<UserParam type="string" name="feature_id" value="5000000000000000001"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="500.5" RT="999.0" >
+		<PeptideHit score="0.7" sequence="PEPTIDEA" charge="2" aa_before="K" aa_after="R" protein_refs="PH_0">
+		</PeptideHit>
+		<UserParam type="string" name="feature_id" value="5000000000000000001"/>
+	</UnassignedPeptideIdentification>
+	<mapList count="3">
+		<map id="0" name="replicate1.featureXML" unique_id="1111111111111111111" label="" size="1">
+		</map>
+		<map id="1" name="replicate2.featureXML" unique_id="2222222222222222222" label="" size="1">
+		</map>
+		<map id="2" name="replicate3.featureXML" unique_id="3333333333333333333" label="" size="1">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_5000000000000000001" quality="0.9" charge="2">
+			<centroid rt="1000.0" mz="500.0" it="5e05"/>
+			<groupedElementList>
+				<element map="0" id="5000000000000000001" rt="1000.0" mz="500.0" it="5e05" charge="2"/>
+				<element map="1" id="5000000000000000002" rt="1001.0" mz="500.0" it="3e05" charge="2"/>
+				<element map="2" id="5000000000000000003" rt="999.0" mz="500.0" it="2e05" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="500.5" RT="1001.0" >
+				<PeptideHit score="0.8" sequence="PEPTIDEA" charge="2" aa_before="K" aa_after="R" protein_refs="PH_0">
+				</PeptideHit>
+				<UserParam type="string" name="feature_id" value="5000000000000000001"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="5000000000000000001"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>
