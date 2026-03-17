@@ -122,14 +122,14 @@ START_SECTION(exportFeaturesToArrow - single feature with convex hulls and metav
   TEST_REAL_SIMILAR(col_width->Value(0), 1.5f)
 
   // Verify bounding box
-  auto col_rt_bb_min = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("rt_bb_min")->chunk(0));
-  auto col_rt_bb_max = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("rt_bb_max")->chunk(0));
-  auto col_mz_bb_min = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("mz_bb_min")->chunk(0));
-  auto col_mz_bb_max = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("mz_bb_max")->chunk(0));
-  TEST_REAL_SIMILAR(col_rt_bb_min->Value(0), 99.0)
-  TEST_REAL_SIMILAR(col_rt_bb_max->Value(0), 102.0)
-  TEST_REAL_SIMILAR(col_mz_bb_min->Value(0), 499.5)
-  TEST_REAL_SIMILAR(col_mz_bb_max->Value(0), 501.0)
+  auto col_rt_start = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("rt_start")->chunk(0));
+  auto col_rt_end = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("rt_end")->chunk(0));
+  auto col_mz_start = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("mz_start")->chunk(0));
+  auto col_mz_end = std::static_pointer_cast<arrow::DoubleArray>(table->GetColumnByName("mz_end")->chunk(0));
+  TEST_REAL_SIMILAR(col_rt_start->Value(0), 99.0)
+  TEST_REAL_SIMILAR(col_rt_end->Value(0), 102.0)
+  TEST_REAL_SIMILAR(col_mz_start->Value(0), 499.5)
+  TEST_REAL_SIMILAR(col_mz_end->Value(0), 501.0)
 
   // Verify convex hulls (list<struct{hull_index, points}>)
   auto col_hulls = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("convex_hulls")->chunk(0));
