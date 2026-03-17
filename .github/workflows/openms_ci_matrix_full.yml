@@ -43,14 +43,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2025
+          - os: windows-2025-vs2026
             # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
             compiler: cl.exe
-            # VS 2022: 14.30-14.39 (corresponds to MSVC v143)
+            # VS 2026: 14.44 (installed on the windows-2025-vs2026 runner image)
             # VS 2019: 14.20-14.29 (corresponds to MSVC v142)
-            compiler_ver: 14.44   # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
+            compiler_ver: 14.44   # Specific toolset version for VS 2026 -- must (roughly) match Qt6 compiler (see below)
 
           - os: macos-14
             # Since the appleclang version is dependent on the XCode versions that are installed
