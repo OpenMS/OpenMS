@@ -566,6 +566,26 @@ Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
         .def("__deepcopy__", [](const OpenMS::IDConflictResolverAlgorithm& self, nb::dict) { return OpenMS::IDConflictResolverAlgorithm(self); }, "memo"_a)
         .def_static("resolve", [](OpenMS::FeatureMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); }, "features"_a, "keep_matching"_a)
         .def_static("resolve", [](OpenMS::ConsensusMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); }, "features"_a, "keep_matching"_a)
+        .def_static("resolveAllHitRankAggregation", [](OpenMS::FeatureMap& features) { return OpenMS::IDConflictResolverAlgorithm::resolveAllHitRankAggregation(features); }, "features"_a,
+            R"doc(
+Resolves ambiguous annotations of features with peptide identifications using rank aggregation.
+For each feature, peptide hits across all identifications are aggregated by rank.
+Each unique sequence is assigned a rank in every identification in which it appears
+(rank 0 = best hit). Sequences absent from an identification receive a penalty rank
+equal to the maximum number of considered hits. The sequence with the best average
+rank score is selected as the winner.
+:param features: FeatureMap to work on (modified in-place)
+)doc")
+        .def_static("resolveAllHitRankAggregation", [](OpenMS::ConsensusMap& features) { return OpenMS::IDConflictResolverAlgorithm::resolveAllHitRankAggregation(features); }, "features"_a,
+            R"doc(
+Resolves ambiguous annotations of consensus features with peptide identifications using rank aggregation.
+For each consensus feature, peptide hits across all identifications are aggregated by rank.
+Each unique sequence is assigned a rank in every identification in which it appears
+(rank 0 = best hit). Sequences absent from an identification receive a penalty rank
+equal to the maximum number of considered hits. The sequence with the best average
+rank score is selected as the winner.
+:param features: ConsensusMap to work on (modified in-place)
+)doc")
         .def_static("resolveBetweenFeatures", [](OpenMS::FeatureMap& features) { return OpenMS::IDConflictResolverAlgorithm::resolveBetweenFeatures(features); }, "features"_a, 
             R"doc(
 Resolves ambiguous annotations of consensus features with peptide identifications\n
