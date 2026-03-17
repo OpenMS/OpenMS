@@ -154,8 +154,12 @@ def to_arrow(self, columns=None, meta_values=None, export_peptide_identification
 
     When built with WITH_PARQUET=ON, uses zero-copy C++ export via the Arrow C
     Data Interface (much faster). The zero-copy path exports all features with
-    metavalues as a nested struct column. Falls back to the to_df()-based path
-    when the zero-copy module is not available.
+    metavalues as a nested struct column and does not include peptide
+    identifications (they are available separately via
+    ``featuremap_psms_to_arrow``). The ``meta_values`` and
+    ``export_peptide_identifications`` parameters only take effect on the
+    fallback (to_df) path. Falls back to the to_df()-based path when the
+    zero-copy module is not available.
     """
     # Try zero-copy C++ path first (available when built with WITH_PARQUET)
     try:
@@ -165,6 +169,15 @@ def to_arrow(self, columns=None, meta_values=None, export_peptide_identification
         _use_zerocopy = False
 
     if _use_zerocopy:
+        if meta_values is not None or not export_peptide_identifications:
+            import warnings
+            warnings.warn(
+                "Zero-copy Arrow export ignores 'meta_values' and "
+                "'export_peptide_identifications' parameters. All metavalues "
+                "are exported as a nested struct column; peptide identifications "
+                "are available via featuremap_psms_to_arrow().",
+                stacklevel=2,
+            )
         table = featuremap_features_to_arrow(self)
         if columns is not None:
             available = [c for c in columns if c in table.column_names]
