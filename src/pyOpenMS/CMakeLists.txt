@@ -148,6 +148,22 @@ else()
     endif()
   endif()
 
+  # Patch nanobind's __forceinline → inline on MSVC to avoid O(n²) optimizer
+  # blowup that causes multi-hour compile times on large binding files.
+  # See https://github.com/wjakob/nanobind/discussions/791
+  if(MSVC AND nanobind_SOURCE_DIR)
+    set(_nb_defs_h "${nanobind_SOURCE_DIR}/include/nanobind/nb_defs.h")
+    if(EXISTS "${_nb_defs_h}")
+      file(READ "${_nb_defs_h}" _nb_defs)
+      string(FIND "${_nb_defs}" "__forceinline" _fi_pos)
+      if(NOT _fi_pos EQUAL -1)
+        string(REPLACE "__forceinline" "inline" _nb_defs "${_nb_defs}")
+        file(WRITE "${_nb_defs_h}" "${_nb_defs}")
+        message(STATUS "Patched nanobind nb_defs.h: __forceinline → inline (MSVC compile-time fix)")
+      endif()
+    endif()
+  endif()
+
   message(STATUS "Python found at ${Python_EXECUTABLE} with version ${Python_VERSION}")
   message(STATUS "Building pyOpenMS (nanobind) against OpenMS ${CF_OPENMS_PACKAGE_VERSION}")
   if(NO_DEPENDENCIES)
