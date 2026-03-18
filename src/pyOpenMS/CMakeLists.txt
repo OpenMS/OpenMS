@@ -150,9 +150,10 @@ else()
 
   # Patch nanobind's __forceinline → inline on MSVC to avoid O(n²) optimizer
   # blowup that causes multi-hour compile times on large binding files.
-  # See https://github.com/wjakob/nanobind/discussions/791
-  if(MSVC AND nanobind_SOURCE_DIR)
-    set(_nb_defs_h "${nanobind_SOURCE_DIR}/include/nanobind/nb_defs.h")
+  # NB_DIR is set by nanobind-config.cmake regardless of install method
+  # (FetchContent or pip). See https://github.com/wjakob/nanobind/discussions/791
+  if(MSVC AND DEFINED NB_DIR)
+    set(_nb_defs_h "${NB_DIR}/include/nanobind/nb_defs.h")
     if(EXISTS "${_nb_defs_h}")
       file(READ "${_nb_defs_h}" _nb_defs)
       string(FIND "${_nb_defs}" "__forceinline" _fi_pos)
