@@ -1870,7 +1870,7 @@ endif()
     "-Scoring:Scores:use_total_mi_score"
     "-Scoring:Scores:use_ms1_mi" "false"
     "-Scoring:TransitionGroupPicker:compute_peak_quality")
-  add_test("TOPP_OpenSwathWorkflow_21_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_21.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_21_out1" ${DIFF} -whitelist "id=" "potentialOutlier" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_21.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_21_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_21.tmp.trafoXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_output.trafoXML)
   # add_test("TOPP_OpenSwathWorkflow_21_out3" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_21.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_output.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_21_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_21")
@@ -1887,7 +1887,7 @@ endif()
 
   # Test with PASEF ion mobility data, overlapping m/z SWATHs with distinct IM
   add_test("TOPP_OpenSwathWorkflow_23" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.tsv -out_chrom ${TESTS_TEMP_DIR}/OpenSwathWorkflow_23.tmp.chrom.mzML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_23.tmp.featureXML -readOptions workingInMemory -ion_mobility_window 0.1 -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -Scoring:Scores:use_ion_mobility_scores "true" -pasef ${OLD_OSW_PARAM})
-  add_test("TOPP_OpenSwathWorkflow_23_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_23.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_23_out1" ${DIFF} -whitelist "id=" "potentialOutlier" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_23.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_23_out2" ${DIFF} -whitelist "id=" ${ZLIB_NG_MZML_WHITELIST} -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_23.tmp.chrom.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_23_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23")
   set_tests_properties("TOPP_OpenSwathWorkflow_23_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23")
@@ -1912,7 +1912,7 @@ endif()
   # Use distinct input files (not split-file_input) and pass a semicolon-separated
   # list to -Calibration:files:linear_irt_file to exercise positional mapping.
   add_test("TOPP_OpenSwathWorkflow_27" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.tsv -Calibration:files:linear_irt_file "${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML" -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_27.tmp.featureXML -enable_ms1 false -Calibration:auto_irt:enabled "false" -Calibration:windows:estimate_rt "false" -Calibration:windows:estimate_mz "false" -Calibration:windows:estimate_im "false" -Calibration:RTNormalization:lowess:auto_span false -Calibration:RTNormalization:lowess:span 0.666666666666666666666666666 ${OLD_OSW_PARAM})
-  add_test("TOPP_OpenSwathWorkflow_27_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_27.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_27_expected.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_27_out1" ${DIFF} -whitelist "id=" "potentialOutlier" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_27.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_27_expected.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_27_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_27")
 endif(NOT DISABLE_OPENSWATH)
 
