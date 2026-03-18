@@ -113,6 +113,18 @@ endif()
 # zlib
 # creates ZLIB::ZLIB target
 find_package(ZLIB REQUIRED)
+# Detect zlib-ng (drop-in compat mode). zlib-ng produces byte-different but
+# functionally equivalent compressed output, which causes FuzzyDiff-based
+# tests to fail when comparing mzML binary arrays.
+include(CheckSymbolExists)
+set(CMAKE_REQUIRED_INCLUDES ${ZLIB_INCLUDE_DIRS})
+check_symbol_exists(ZLIBNG_VERSION "zlib.h" _HAVE_ZLIB_NG)
+if(_HAVE_ZLIB_NG)
+  set(HAVE_ZLIB_NG TRUE CACHE BOOL "zlib-ng detected as system zlib" FORCE)
+  message(STATUS "Detected zlib-ng -- will relax compressed-data test comparisons")
+else()
+  set(HAVE_ZLIB_NG FALSE CACHE BOOL "zlib-ng detected as system zlib" FORCE)
+endif()
 
 #------------------------------------------------------------------------------
 # bzip2
