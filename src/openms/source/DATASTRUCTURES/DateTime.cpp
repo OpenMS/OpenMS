@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <cctype>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
@@ -131,6 +132,8 @@ namespace OpenMS
 
   String DateTime::toString(const std::string& format) const
   {
+    if (!fields_.valid) return String();
+
     char buf[64];
 
     if (format == "yyyy-MM-ddThh:mm:ss")
@@ -218,6 +221,15 @@ namespace OpenMS
             // with milliseconds
             if (sscanf(stripped.c_str(), "%d-%d-%dT%d:%d:%d.%d", &year, &month, &day, &hour, &minute, &second, &millisecond) == 7)
             {
+              // Normalize fractional seconds: e.g. ".4" -> 400, ".46" -> 460, ".468" -> 468
+              auto dot_pos = stripped.find('.');
+              if (dot_pos != String::npos)
+              {
+                int frac_digits = 0;
+                for (size_t i = dot_pos + 1; i < stripped.size() && std::isdigit(static_cast<unsigned char>(stripped[i])); ++i) ++frac_digits;
+                for (int i = frac_digits; i < 3; ++i) millisecond *= 10;
+                millisecond %= 1000;
+              }
               parsed = true;
             }
           }
@@ -227,6 +239,23 @@ namespace OpenMS
             {
               parsed = true;
             }
+          }
+        }
+        else if (date.has('.'))
+        {
+          // ISO 8601 with milliseconds, no timezone: yyyy-MM-ddThh:mm:ss.zzz
+          if (sscanf(date.c_str(), "%d-%d-%dT%d:%d:%d.%d", &year, &month, &day, &hour, &minute, &second, &millisecond) == 7)
+          {
+            // Normalize fractional seconds: e.g. ".4" -> 400, ".46" -> 460, ".468" -> 468
+            auto dot_pos = date.find('.');
+            if (dot_pos != String::npos)
+            {
+              int frac_digits = 0;
+              for (size_t i = dot_pos + 1; i < date.size() && std::isdigit(static_cast<unsigned char>(date[i])); ++i) ++frac_digits;
+              for (int i = frac_digits; i < 3; ++i) millisecond *= 10;
+              millisecond %= 1000;
+            }
+            parsed = true;
           }
         }
         else
@@ -548,6 +577,15 @@ namespace OpenMS
     {
       n = sscanf(date.c_str(), "%d-%d-%dT%d:%d:%d.%d", &year, &month, &day, &hour, &minute, &second, &millisecond);
       if (n != 7) return d;
+      // Normalize fractional seconds: e.g. ".4" -> 400, ".46" -> 460, ".468" -> 468
+      auto dot_pos = date.find('.');
+      if (dot_pos != std::string::npos)
+      {
+        int frac_digits = 0;
+        for (size_t i = dot_pos + 1; i < date.size() && std::isdigit(static_cast<unsigned char>(date[i])); ++i) ++frac_digits;
+        for (int i = frac_digits; i < 3; ++i) millisecond *= 10;
+        millisecond %= 1000;
+      }
     }
     else if (format == "yyyy-MM-dd hh:mm:ss")
     {

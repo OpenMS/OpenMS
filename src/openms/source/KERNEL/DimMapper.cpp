@@ -10,6 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <charconv>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -32,7 +33,8 @@ namespace OpenMS
     std::string formatWithGroupSeparators(double value, int precision)
     {
       char buf[128];
-      snprintf(buf, sizeof(buf), "%.*f", precision, value);
+      auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), value, std::chars_format::fixed, precision);
+      *ptr = '\0';
 
       std::string result(buf);
 
