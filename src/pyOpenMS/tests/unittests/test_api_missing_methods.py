@@ -1,10 +1,14 @@
 """
-Tests for missing methods on existing classes (Task 3).
+Tests for previously-missing methods on existing classes (Task 3).
 
 Verifies that methods present in the Cython 3.5 API
-are available in the nanobind build.
+are available in the nanobind build. Methods that were originally
+missing have since been added either as nanobind C++ bindings or as
+Python addons; this file tracks that all of them are now present.
 """
+import warnings
 import pytest
+import numpy as np
 import pyopenms
 
 
@@ -129,7 +133,7 @@ class TestSpectrumMetaDataLookupMethods:
 # === Tier 2: Medium gaps ===
 
 class TestMSExperimentMethods:
-    """MSExperiment/PeakMap missing get2DPeakData*, getSpectrum, get_df_columns."""
+    """MSExperiment/PeakMap: get2DPeakData*, get2DPeakDataIM, getSpectrum, get_df_columns now implemented."""
 
     def test_get_spectrum_by_index(self):
         """getSpectrum(index) should return spectrum by index."""
@@ -139,24 +143,62 @@ class TestMSExperimentMethods:
         s = exp.getSpectrum(0)
         assert s is not None
 
-    @pytest.mark.xfail(reason="get2DPeakData needs Python addon implementation")
-    def test_get_2d_peak_data(self):
+    def test_get_2d_peak_data_exists(self):
+        """get2DPeakData is bound in nanobind C++ (bind_experiment.cpp)."""
         exp = pyopenms.MSExperiment()
         assert hasattr(exp, 'get2DPeakData')
 
-    @pytest.mark.xfail(reason="get2DPeakDataIM needs Python addon implementation")
-    def test_get_2d_peak_data_im(self):
+    def test_get_2d_peak_data_returns_arrays(self):
+        """get2DPeakData returns a 3-tuple of numpy float32 arrays."""
+        exp = pyopenms.MSExperiment()
+        spec = pyopenms.MSSpectrum()
+        spec.setMSLevel(1)
+        spec.setRT(1.0)
+        mzs = np.array([100.0, 200.0, 300.0], dtype=np.float64)
+        ints = np.array([1000.0, 2000.0, 3000.0], dtype=np.float32)
+        spec.set_peaks([mzs, ints])
+        exp.addSpectrum(spec)
+
+        # Query: RT range 0–10 s, m/z range 50–400, MS level 1
+        rt_arr, mz_arr, int_arr = exp.get2DPeakData(0.0, 10.0, 50.0, 400.0, 1)
+        assert isinstance(rt_arr, np.ndarray)
+        assert isinstance(mz_arr, np.ndarray)
+        assert isinstance(int_arr, np.ndarray)
+        assert len(rt_arr) == 3
+        assert len(mz_arr) == 3
+        assert len(int_arr) == 3
+
+    def test_get_2d_peak_data_im_exists(self):
+        """get2DPeakDataIM is bound in nanobind C++ (bind_experiment.cpp)."""
         exp = pyopenms.MSExperiment()
         assert hasattr(exp, 'get2DPeakDataIM')
 
-    @pytest.mark.xfail(reason="get_df_columns deprecated, use df_columns instead")
+    def test_get_2d_peak_data_im_returns_four_arrays(self):
+        """get2DPeakDataIM returns a 4-tuple of numpy float32 arrays."""
+        exp = pyopenms.MSExperiment()
+        # Query: RT range 0–10 s, m/z range 50–400, MS level 1
+        # Without IM data the IM array should still be returned (empty)
+        result = exp.get2DPeakDataIM(0.0, 10.0, 50.0, 400.0, 1)
+        assert isinstance(result, tuple)
+        assert len(result) == 4
+        rt_arr, mz_arr, int_arr, im_arr = result
+        assert isinstance(rt_arr, np.ndarray)
+        assert isinstance(mz_arr, np.ndarray)
+        assert isinstance(int_arr, np.ndarray)
+        assert isinstance(im_arr, np.ndarray)
+
     def test_get_df_columns(self):
+        """get_df_columns() is a deprecated alias for df_columns(); still present."""
         exp = pyopenms.MSExperiment()
         assert hasattr(exp, 'get_df_columns')
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            cols = exp.get_df_columns()
+        assert isinstance(cols, list)
 
 
 class TestMSSpectrumMethods:
-    """MSSpectrum missing findHighestInWindow, select, intensityInRange, get_df_columns."""
+    """MSSpectrum: findHighestInWindow, select, intensityInRange, get_df_columns now implemented."""
 
     def test_find_highest_in_window(self):
         spec = pyopenms.MSSpectrum()
@@ -166,19 +208,28 @@ class TestMSSpectrumMethods:
         spec = pyopenms.MSSpectrum()
         assert hasattr(spec, 'select')
 
-    @pytest.mark.xfail(reason="intensityInRange does not exist in C++ MSSpectrum")
     def test_intensity_in_range(self):
+        """intensityInRange is implemented as a Python addon in msspectrum.py."""
         spec = pyopenms.MSSpectrum()
         assert hasattr(spec, 'intensityInRange')
+        mzs = np.array([100.0, 200.0, 300.0, 400.0], dtype=np.float64)
+        ints = np.array([10.0, 20.0, 30.0, 40.0], dtype=np.float32)
+        spec.set_peaks([mzs, ints])
+        total = spec.intensityInRange(150.0, 350.0)
+        assert total == pytest.approx(20.0 + 30.0)
 
-    @pytest.mark.xfail(reason="get_df_columns deprecated, use df_columns instead")
     def test_get_df_columns(self):
+        """get_df_columns() is a deprecated alias for df_columns(); still present."""
         spec = pyopenms.MSSpectrum()
         assert hasattr(spec, 'get_df_columns')
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            cols = spec.get_df_columns()
+        assert isinstance(cols, list)
 
 
 class TestMSChromatogramMethods:
-    """MSChromatogram missing clearRanges, get_df_columns, reserve, resize."""
+    """MSChromatogram: clearRanges, reserve, resize, get_df_columns now implemented."""
 
     def test_reserve(self):
         chrom = pyopenms.MSChromatogram()
@@ -192,10 +243,14 @@ class TestMSChromatogramMethods:
         chrom = pyopenms.MSChromatogram()
         assert hasattr(chrom, 'clearRanges')
 
-    @pytest.mark.xfail(reason="get_df_columns deprecated, use df_columns instead")
     def test_get_df_columns(self):
+        """get_df_columns() is a deprecated alias for df_columns(); still present."""
         chrom = pyopenms.MSChromatogram()
         assert hasattr(chrom, 'get_df_columns')
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            cols = chrom.get_df_columns()
+        assert isinstance(cols, list)
 
 
 class TestSetCVTerms:
@@ -331,16 +386,20 @@ class TestConsensusMapMethods:
 
 
 class TestFeatureMapMethods:
-    """FeatureMap missing clearRanges, get_df_columns."""
+    """FeatureMap: clearRanges and get_df_columns are now implemented."""
 
     def test_clear_ranges(self):
         fm = pyopenms.FeatureMap()
         assert hasattr(fm, 'clearRanges')
 
-    @pytest.mark.xfail(reason="get_df_columns deprecated, use df_columns instead")
     def test_get_df_columns(self):
+        """get_df_columns() is a deprecated alias for df_columns(); still present."""
         fm = pyopenms.FeatureMap()
         assert hasattr(fm, 'get_df_columns')
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            cols = fm.get_df_columns()
+        assert isinstance(cols, list)
 
 
 class TestMetaInfoInterfaceMethods:
