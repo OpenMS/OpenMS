@@ -34,7 +34,7 @@ namespace OpenMS
     {
       ss << "  Python not found at '" << python_executable << "'!\n"
          << "  Make sure Python is installed and this location is correct.\n";
-      if (std::filesystem::path(python_executable).is_relative())
+      if (std::filesystem::path(std::string(python_executable)).is_relative())
       {
         static String path;
         if (path.empty())
