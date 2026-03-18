@@ -37,7 +37,7 @@ namespace OpenMS
           OPENMS_LOG_ERROR
             << "  Java not found at '" << java_executable << "'!\n"
             << "  Make sure Java is installed and this location is correct.\n";
-          if (std::filesystem::path(java_executable).is_relative())
+          if (std::filesystem::path(std::string(java_executable)).is_relative())
           {
             static String path;
             if (path.empty())
