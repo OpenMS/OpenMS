@@ -3345,7 +3345,7 @@ set_tests_properties("TOPP_NucleicAcidSearchEngine_3_json" PROPERTIES DEPENDS "T
 add_test("TOPP_NucleicAcidSearchEngine_3_json_out" ${DIFF}
          -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_3_digest.tmp.json
          -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_collision_mods_digest.json
-         -whitelist "date_time" "\"date\":" "\"database\":")
+         -whitelist "date_time" "\"date\":" "\"database\":" "\"OpenMS\":" "\"build_date\":")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_3_json_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_3_json")
 
 #------------------------------------------------------------------------------
