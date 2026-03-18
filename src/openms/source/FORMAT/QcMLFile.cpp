@@ -1051,7 +1051,7 @@ namespace OpenMS
       //-------------------------------------------------------------
       // MS acquisition
       //------------------------------------------------------------
-      String base_name = std::filesystem::path(inputfile_raw).stem().string();
+      String base_name = std::filesystem::path(std::string(inputfile_raw)).stem().string();
 
       UInt min_mz = std::numeric_limits<UInt>::max();
       UInt max_mz = 0;
