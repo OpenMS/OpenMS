@@ -422,7 +422,7 @@ namespace OpenMS
     }
 
     static const std::regex non_alnum("[^a-zA-Z0-9]");
-    std::filesystem::path fileinfo(std::string(filename));
+    std::filesystem::path fileinfo{std::string(filename)};
     String filtered_filename = std::regex_replace(fileinfo.stem().string(), non_alnum, "");
 
 
