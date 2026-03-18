@@ -22,7 +22,9 @@ endif()
 #------------------------------------------------------------------------------
 
 #TODO somehow add the same/compatible versions that were found by OpenMS? And what about static vs dynamic? E.g. if we link to static zlib in OpenMS(.dll) what (if at all) can/should the consumer link against?
-find_dependency(Qt6 @QT_MIN_VERSION@ COMPONENTS @OpenMS_QT_COMPONENTS@)
+if (@WITH_GUI@)
+  find_dependency(Qt6 @QT_MIN_VERSION@ COMPONENTS @OpenMS_GUI_QT_COMPONENTS@)
+endif()
 find_dependency(CURL)
 find_dependency(XercesC)
 # Find Eigen

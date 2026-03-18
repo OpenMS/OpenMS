@@ -66,7 +66,7 @@ if(DEFINED OLD_CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP)
 endif()
 
 # Find Qt6 includes for KNIME packaging
-find_package(Qt6 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+find_package(Qt6 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS} REQUIRED)
 get_target_property(QT_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABLE QT_INSTALL_LIBS)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
@@ -352,7 +352,7 @@ if (APPLE) ## On APPLE use our script because the executables' install_names nee
   )
 elseif(WIN32)
   # on Win everything should be linked statically for distribution except Qt
-  foreach (KNIME_TOOLS_QT6_DEPENDENCY ${OpenMS_QT_COMPONENTS})
+  foreach (KNIME_TOOLS_QT6_DEPENDENCY ${OpenMS_GUI_QT_COMPONENTS})
     add_custom_command(
 		TARGET prepare_knime_payload_libs POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt6::${KNIME_TOOLS_QT6_DEPENDENCY}> ${PAYLOAD_LIB_PATH}

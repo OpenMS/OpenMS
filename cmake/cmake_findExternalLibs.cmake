@@ -287,18 +287,6 @@ endif()
 #------------------------------------------------------------------------------
 SET(QT_MIN_VERSION "6.1.0")
 
-# find qt
-set(OpenMS_QT_COMPONENTS Core CACHE INTERNAL "QT components for core lib")
-find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
-
-IF (NOT Qt6Core_FOUND)
-  message(STATUS "Qt6Core not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
-ELSE()
-  message(STATUS "Found Qt ${Qt6Core_VERSION}")
-ENDIF()
-
-
 #------------------------------------------------------------------------------
 # PTHREAD
 #------------------------------------------------------------------------------
@@ -311,9 +299,10 @@ find_package (Threads REQUIRED)
 
 if (WITH_GUI)
   # --------------------------------------------------------------------------
-  # Find additional Qt libs
+  # Find Qt libs (Core + GUI components)
+  # Qt is only required when building the GUI library (WITH_GUI=ON).
   #---------------------------------------------------------------------------
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg OpenGLWidgets)
+  set (TEMP_OpenMS_GUI_QT_COMPONENTS Core Gui Widgets Svg OpenGLWidgets)
 
   # On macOS the platform plugin of QT requires PrintSupport. We link
   # so it's packaged via the bundling/dependency tools/scripts
@@ -327,11 +316,13 @@ if (WITH_GUI)
     set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
   endif()
 
-  find_package(Qt6 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
+  find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
 
-  IF (NOT Qt6Widgets_FOUND OR NOT Qt6Gui_FOUND OR NOT Qt6Svg_FOUND)
-    message(STATUS "Qt6Widgets not found!")
+  IF (NOT Qt6Core_FOUND OR NOT Qt6Widgets_FOUND OR NOT Qt6Gui_FOUND OR NOT Qt6Svg_FOUND)
+    message(STATUS "Qt6Core/Widgets/Gui/Svg not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
+  ELSE()
+    message(STATUS "Found Qt ${Qt6Core_VERSION}")
   ENDIF()
   find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
 
