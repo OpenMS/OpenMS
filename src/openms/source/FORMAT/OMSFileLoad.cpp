@@ -1098,8 +1098,9 @@ namespace OpenMS::Internal
   }
 
 
-  nlohmann::ordered_json OMSFileLoad::exportTableToJSON_(const String& table, const String& order_by)
+  nlohmann::json OMSFileLoad::exportTableToJSON_(const String& table, const String& order_by)
   {
+    using json = nlohmann::json;
     // code based on: https://stackoverflow.com/a/18067555
     String sql = "SELECT * FROM " + table;
     if (!order_by.empty())
@@ -1109,10 +1110,10 @@ namespace OpenMS::Internal
 
     SQLite::Statement query(*db_, sql);
 
-    nlohmann::ordered_json array = nlohmann::ordered_json::array();
+    json array = json::array();
     while (query.executeStep())
     {
-      nlohmann::ordered_json record = nlohmann::ordered_json::object();
+      json record = json::object();
       for (int i = 0; i < query.getColumnCount(); ++i)
       {
         // @TODO: this will repeat field names for every row -
@@ -1139,9 +1140,10 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::exportToJSON(ostream& output)
   {
+    using json = nlohmann::json;
     // @TODO: this constructs the whole JSON file in memory - write directly to stream instead?
     // (more code, but would use less memory)
-    nlohmann::ordered_json json_data = nlohmann::ordered_json::object();
+    json json_data = json::object();
     // get names of all tables (except SQLite-internal ones) in the database:
     SQLite::Statement query(*db_, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
     while (query.executeStep())
@@ -1164,6 +1166,6 @@ namespace OpenMS::Internal
       json_data[table] = exportTableToJSON_(table, order_by);
     }
 
-    output << json_data.dump(2);
+    output << json_data.dump(4) << '\n';
   }
 }

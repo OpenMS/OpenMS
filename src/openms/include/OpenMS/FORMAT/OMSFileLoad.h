@@ -176,7 +176,7 @@ namespace OpenMS
         Key parent_id);
 
       /// Export the contents of a database table to JSON
-      nlohmann::ordered_json exportTableToJSON_(const String& table, const String& order_by);
+      nlohmann::json exportTableToJSON_(const String& table, const String& order_by);
 
       /// The database connection (read)
       std::unique_ptr<SQLite::Database> db_;
