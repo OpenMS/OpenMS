@@ -30,7 +30,6 @@
 #include <fstream>
 #include <regex>
 
-#include <QStringList>
 #include <chrono>
 #include <map>
 #include <vector>
@@ -540,7 +539,7 @@ protected:
     String sage_executable = getStringOption_("sage_executable");
     std::cout << sage_executable << " sage executable" << std::endl; 
     String proc_stdout, proc_stderr;
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable, {"--help"}, proc_stdout, proc_stderr, "");
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
@@ -582,44 +581,41 @@ protected:
 
     String annotation_check;    
 
-    QStringList arguments;
+    std::vector<String> arguments;
 
   if ( (getStringOption_("annotate_matches").compare("true")) == 0)
   {
-    arguments << config_file.toQString() 
-              << "-f" << fasta_file.toQString() 
-              << "-o" << output_folder.toQString() 
-              << "--annotate-matches"
-              << "--write-pin"; 
+    arguments.insert(arguments.end(), {config_file, "-f", fasta_file, "-o", output_folder, "--annotate-matches", "--write-pin"});
   }
   else
   {
-    arguments << config_file.toQString() 
-              << "-f" << fasta_file.toQString() 
-              << "-o" << output_folder.toQString() 
-              << "--write-pin"; 
+    arguments.insert(arguments.end(), {config_file, "-f", fasta_file, "-o", output_folder, "--write-pin"});
   }
 
-    if (batch >= 1) arguments << "--batch-size" << String(batch).toQString();
-    
-    for (auto s : input_files) arguments << s.toQString();
+    if (batch >= 1) { arguments.push_back("--batch-size"); arguments.push_back(String(batch)); }
 
-    OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;
-    
-    //std::chrono lines for testing/writing purposes only! 
+    for (const auto& s : input_files) arguments.push_back(s);
+
+    {
+      String args_str;
+      for (const auto& a : arguments) { args_str += " " + a; }
+      OPENMS_LOG_INFO << "Sage command line: " << sage_executable << args_str << std::endl;
+    }
+
+    //std::chrono lines for testing/writing purposes only!
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    
+
     // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
     // Only set if threads > 0; if threads == 0, let Rayon auto-detect (use all CPUs)
-    std::map<QString, QString> sage_env;
+    std::map<String, String> sage_env;
     if (threads > 0)
     {
-      sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
+      sage_env["RAYON_NUM_THREADS"] = String(threads);
     }
-    
+
     // Sage execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);
+    exit_code = runExternalProcess_(sage_executable, arguments, "", sage_env);
     
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     #ifdef CHRONOSET

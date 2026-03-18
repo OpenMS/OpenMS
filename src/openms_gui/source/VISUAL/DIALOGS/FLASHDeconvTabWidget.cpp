@@ -111,10 +111,10 @@ namespace OpenMS
         ParamXMLFile().store(tmp_ini, tmp_param);
 
         auto r = ep_.run(this,
-                         getFLASHDeconvExe().toQString(),
-                         QStringList() << "-ini" << tmp_ini.toQString()
-                                       << "-in" << mzML.toQString()
-                                       << "-out" << getCurrentOutDir_() + "/" + infileToFDoutput(mzML).toQString(),
+                         getFLASHDeconvExe(),
+                         {"-ini", tmp_ini,
+                          "-in", mzML,
+                          "-out", getCurrentOutDir_() + "/" + infileToFDoutput(mzML)},
                          "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS)
@@ -294,7 +294,7 @@ namespace OpenMS
     {
       // create a default INI of FLASHDeconv
       String tmp_file = File::getTemporaryFile();
-      if (ep_.run(this, getFLASHDeconvExe().toQString(), QStringList() << "-write_ini" << tmp_file.toQString(), "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
+      if (ep_.run(this, getFLASHDeconvExe(), {"-write_ini", tmp_file}, "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         exit(1);
       }
