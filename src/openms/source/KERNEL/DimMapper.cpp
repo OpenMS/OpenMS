@@ -10,7 +10,9 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtCore/QLocale>
+#include <cstdio>
+#include <cstring>
+#include <string>
 
 using namespace std;
 
@@ -24,12 +26,56 @@ namespace OpenMS
     DimMapper<1> d2(d);
     bool x = (d == dims);
     Area<2> area(nullptr);
+
+    /// Format a double with fixed precision and comma thousands separators (C locale style).
+    /// Mimics QLocale::c().toString(value, 'f', precision).
+    std::string formatWithGroupSeparators(double value, int precision)
+    {
+      char buf[128];
+      snprintf(buf, sizeof(buf), "%.*f", precision, value);
+
+      std::string result(buf);
+
+      // Find the decimal point (or end of string)
+      auto dot_pos = result.find('.');
+      std::string integer_part = result.substr(0, dot_pos);
+      std::string fractional_part;
+      if (dot_pos != std::string::npos)
+      {
+        fractional_part = result.substr(dot_pos);
+      }
+
+      // Handle negative sign
+      bool negative = (!integer_part.empty() && integer_part[0] == '-');
+      if (negative)
+      {
+        integer_part = integer_part.substr(1);
+      }
+
+      // Insert commas for thousands separators
+      int len = (int)integer_part.size();
+      if (len > 3)
+      {
+        std::string formatted;
+        int first_group = len % 3;
+        if (first_group == 0) first_group = 3;
+        formatted = integer_part.substr(0, first_group);
+        for (int i = first_group; i < len; i += 3)
+        {
+          formatted += ',';
+          formatted += integer_part.substr(i, 3);
+        }
+        integer_part = formatted;
+      }
+
+      return (negative ? "-" : "") + integer_part + fractional_part;
+    }
   }
 
   String DimBase::formattedValue(const ValueType value) const
   {
-    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
-    return String(this->getDimNameShort()) + ": " + QLocale::c().toString(value, 'f', valuePrecision());
+    // Format with group separators (commas) to better visualize large numbers
+    return String(this->getDimNameShort()) + ": " + formatWithGroupSeparators(value, valuePrecision());
   }
 
   String DimBase::formattedValue(const ValueType value, const String& prefix) const
