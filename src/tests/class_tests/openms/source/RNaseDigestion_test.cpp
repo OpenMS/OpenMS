@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
+#include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -225,6 +226,58 @@ START_SECTION((std::vector<std::pair<Size, Size>> getFragmentPositions(const NAS
   TEST_EQUAL(pos[0].second, 1);
   TEST_EQUAL(pos[1].first, 1);
   TEST_EQUAL(pos[1].second, 2);
+}
+END_SECTION
+
+START_SECTION((void digest(const NASequence& rna, std::vector<DigestionProduct>& output,
+                Size min_length = 0, Size max_length = 0) const))
+{
+  RNaseDigestion rd;
+  rd.setEnzyme("RNase_T1");
+
+  vector<RNaseDigestion::DigestionProduct> out;
+  rd.digest(NASequence::fromString("AGUC"), out);
+
+  TEST_EQUAL(out.size(), 2);
+  ABORT_IF(out.size() < 2);
+  TEST_STRING_EQUAL(out[0].fragment.toString(), "AGp");
+  TEST_EQUAL(out[0].position.first, 0);
+  TEST_EQUAL(out[0].position.second, 2);
+  TEST_STRING_EQUAL(out[1].fragment.toString(), "UC");
+  TEST_EQUAL(out[1].position.first, 2);
+  TEST_EQUAL(out[1].position.second, 2);
+}
+END_SECTION
+
+START_SECTION((void digestWithCleavageSensitiveMods(const NASequence& rna,
+                const CleavageSensitiveModGroups& cleavage_sensitive_mods,
+                Size max_sensitive_mods_per_fragment,
+                std::vector<DigestionProduct>& output,
+                Size min_length = 0,
+                Size max_length = 0) const))
+{
+  RNaseDigestion rd;
+  rd.setEnzyme("RNase_T1");
+
+  set<const Ribonucleotide*> variable_mods;
+  variable_mods.insert(RibonucleotideDB::getInstance()->getRibonucleotide("m2,2G"));
+  RNaseDigestion::CleavageSensitiveModGroups groups =
+    rd.inferCleavageSensitiveMods(variable_mods);
+
+  vector<RNaseDigestion::DigestionProduct> out;
+  rd.digestWithCleavageSensitiveMods(NASequence::fromString("GGA"), groups, 1,
+                                     out);
+
+  set<String> sequences;
+  for (const auto& product : out)
+  {
+    sequences.insert(product.fragment.toString());
+  }
+
+  TEST_EQUAL(sequences.count("Gp"), 1);
+  TEST_EQUAL(sequences.count("A"), 1);
+  TEST_EQUAL(sequences.count("[m2,2G]Gp"), 1);
+  TEST_EQUAL(sequences.count("[m2,2G]A"), 1);
 }
 END_SECTION
 
