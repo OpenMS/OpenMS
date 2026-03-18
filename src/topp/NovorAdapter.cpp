@@ -312,7 +312,7 @@ protected:
       ph.setMetaValue("pepMass(denovo)", sl[5].toDouble());
       ph.setMetaValue("err(data-denovo)", sl[6].toDouble());
       ph.setMetaValue("ppm(1e6*err/(mz*z))", sl[7].toDouble());
-      ph.setMetaValue("aaScore", sl[10].toQString());
+      ph.setMetaValue("aaScore", sl[10]);
 
       pi.getHits().push_back(std::move(ph));   
       peptide_ids.push_back(std::move(pi));
