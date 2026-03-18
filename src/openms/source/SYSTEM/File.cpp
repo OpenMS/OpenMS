@@ -318,6 +318,7 @@ namespace OpenMS
 
   String File::absolutePath(const String& file)
   {
+    if (file.empty()) return fs::current_path().string();
     return fs::absolute(to_path(file)).string();
   }
 
