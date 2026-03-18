@@ -89,7 +89,7 @@ def get_data_dict(self, columns=None, export_meta_values=True):
             im_index, drift_time_unit = self.getIMData()
             im_arrays = self.getFloatDataArrays()
             if want('ion_mobility'):
-                if 0 <= im_index < len(im_arrays):
+                if 0 <= im_index < len(im_arrays) and len(im_arrays[im_index]) == cnt:
                     data_dict['ion_mobility'] = np.asarray(
                         im_arrays[im_index].get_data(), dtype=np.float64
                     )

@@ -363,7 +363,10 @@ def to_feature_arrow(self, reference_file_name=None, columns=None,
             # Decoy status from metavalue (QPX schema uses int: 0=target, 1=decoy)
             if best_hit.metaValueExists('target_decoy'):
                 td_val = best_hit.getMetaValue('target_decoy')
-                is_decoy = 1 if td_val == 'decoy' else 0
+                if isinstance(td_val, bytes):
+                    is_decoy = 1 if td_val.startswith(b'decoy') else 0
+                else:
+                    is_decoy = 1 if str(td_val).startswith('decoy') else 0
             else:
                 is_decoy = None
             data['is_decoy'].append(is_decoy)
