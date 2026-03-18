@@ -67,6 +67,8 @@ TOPP tools:
     MetaProSIP:
       - Added detailed documentation of CSV output column formats (#4400)
         Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
+    NucleicAcidSearchEngine:
+      - Added advanced parameter `fdr:max_decoy_reshuffle_attempts` (default: 5) to configure deterministic decoy reshuffle attempts for target/decoy collision resolution during digestion.
 
 PyOpenMS:
   - BREAKING: Binding backend replaced from Autowrap/Cython to hand-maintained nanobind C++ bindings (#8699)

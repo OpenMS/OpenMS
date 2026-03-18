@@ -61,6 +61,7 @@
 
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -244,6 +245,8 @@ protected:
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
     registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
+    registerIntOption_("fdr:max_decoy_reshuffle_attempts", "<num>", 5, "Maximum number of deterministic reshuffle attempts to resolve a decoy oligo collision with target oligos during digestion (0 disables reshuffling)", false, true);
+    setMinInt_("fdr:max_decoy_reshuffle_attempts", 0);
   }
 
   // relevant information about an MS2 precursor ion
@@ -321,33 +324,52 @@ protected:
     vector<ConstRibonucleotidePtr> mods;
   };
 
-  set<ConstRibonucleotidePtr> inferCleavageSensitiveMods_(
+  // Some RNAses have specificity for unmodified (or only a subset of modifications on) bases at the cleavage site,
+  // so we need to keep track of which modifications are potentially cleavage-sensitive.
+  struct CleavageSensitiveModGroups
+  {
+    set<ConstRibonucleotidePtr> cuts_before_sensitive;
+    set<ConstRibonucleotidePtr> cuts_after_sensitive;
+
+    set<ConstRibonucleotidePtr> combined() const
+    {
+      set<ConstRibonucleotidePtr> all = cuts_before_sensitive;
+      all.insert(cuts_after_sensitive.begin(), cuts_after_sensitive.end());
+      return all;
+    }
+  };
+
+  // Determine which variable_modifications are potentially cleavage-sensitive based on the enzyme's cleavage regexes.
+  CleavageSensitiveModGroups inferCleavageSensitiveMods_(
     const set<ConstRibonucleotidePtr>& variable_modifications,
     const DigestionEnzyme* enzyme) const
   {
-    set<ConstRibonucleotidePtr> cleavage_sensitive;
+    CleavageSensitiveModGroups groups;
     const auto* rnase = dynamic_cast<const DigestionEnzymeRNA*>(enzyme);
     if (rnase == nullptr)
     {
-      return cleavage_sensitive;
+      return groups;
     }
 
-    vector<boost::regex> regexes;
     StringList cuts_after_patterns, cuts_before_patterns;
     rnase->getCutsAfterRegEx().split(',', cuts_after_patterns);
     rnase->getCutsBeforeRegEx().split(',', cuts_before_patterns);
-    regexes.reserve(cuts_after_patterns.size() + cuts_before_patterns.size());
+
+    vector<boost::regex> cuts_after_regexes, cuts_before_regexes;
+    cuts_after_regexes.reserve(cuts_after_patterns.size());
+    cuts_before_regexes.reserve(cuts_before_patterns.size());
     for (const String& pattern : cuts_after_patterns)
     {
-      regexes.emplace_back(pattern);
+      cuts_after_regexes.emplace_back(pattern);
     }
     for (const String& pattern : cuts_before_patterns)
     {
-      regexes.emplace_back(pattern);
+      cuts_before_regexes.emplace_back(pattern);
     }
 
     for (ConstRibonucleotidePtr mod : variable_modifications)
     {
+      // Only non-terminal mods can be cleavage-sensitive
       if (mod->getTermSpecificity() != Ribonucleotide::ANYWHERE)
       {
         continue;
@@ -355,105 +377,181 @@ protected:
 
       String origin_code(1, mod->getOrigin());
       const String& modified_code = mod->getCode();
-      for (const auto& pattern : regexes)
+
+      for (const auto& pattern : cuts_after_regexes)
       {
         bool origin_matches = boost::regex_search(origin_code, pattern);
         bool modified_matches = boost::regex_search(modified_code, pattern);
-        if (origin_matches != modified_matches)
+        if (origin_matches && !modified_matches)
         {
-          cleavage_sensitive.insert(mod);
+          groups.cuts_after_sensitive.insert(mod);
+          break;
+        }
+      }
+
+      for (const auto& pattern : cuts_before_regexes)
+      {
+        bool origin_matches = boost::regex_search(origin_code, pattern);
+        bool modified_matches = boost::regex_search(modified_code, pattern);
+        if (origin_matches && !modified_matches)
+        {
+          groups.cuts_before_sensitive.insert(mod);
           break;
         }
       }
     }
 
-    return cleavage_sensitive;
+    return groups;
   }
 
-  void generateCleavageSensitiveVariants_(
-    const vector<CleavageSensitiveSite>& sites, Size site_index,
-    Size selected_count, Size max_selected, const NASequence& current_parent,
-    vector<NASequence>& variants) const
+  ConstRibonucleotidePtr getEnzymeGain_(const String& gain_code,
+                                        bool five_prime) const
   {
-    if (site_index >= sites.size())
+    if (gain_code.empty())
     {
-      variants.push_back(current_parent);
-      return;
+      return nullptr;
     }
 
-    const auto& site = sites[site_index];
-
-    generateCleavageSensitiveVariants_(sites, site_index + 1, selected_count,
-                                       max_selected, current_parent, variants);
-
-    if (selected_count >= max_selected)
+    String resolved_code = gain_code;
+    if (resolved_code == "p")
     {
-      return;
+      resolved_code = five_prime ? "5'-p" : "3'-p";
+    }
+    else if (!five_prime && (resolved_code == "c"))
+    {
+      resolved_code = "3'-c";
+    }
+    else
+    {
+      resolved_code = '[' + resolved_code + ']';
     }
 
-    for (ConstRibonucleotidePtr mod : site.mods)
+    return RibonucleotideDB::getInstance()->getRibonucleotide(resolved_code);
+  }
+
+  void applyEnzymeTerminalGains_(NASequence& fragment,
+                                 const pair<Size, Size>& pos,
+                                 Size parent_size,
+                                 ConstRibonucleotidePtr five_prime_gain,
+                                 ConstRibonucleotidePtr three_prime_gain) const
+  {
+    if ((pos.first > 0) && (five_prime_gain != nullptr))
     {
-      NASequence modified_parent = current_parent;
-      modified_parent.set(site.position, mod);
-      generateCleavageSensitiveVariants_(sites, site_index + 1,
-                                         selected_count + 1, max_selected,
-                                         modified_parent, variants);
+      fragment.setFivePrimeMod(five_prime_gain);
+    }
+    if ((pos.first + pos.second < parent_size) &&
+        (three_prime_gain != nullptr))
+    {
+      fragment.setThreePrimeMod(three_prime_gain);
     }
   }
 
-  vector<NASequence> generateCleavageSensitiveParentVariants_(
-    const NASequence& parent, const set<ConstRibonucleotidePtr>& mods,
-    Size max_mods_per_oligo) const
+  // Starting from the regular digest fragments (base_positions), recursively
+  // generate additional fragments by blocking adjacent cleavage boundaries
+  // with cleavage-sensitive modifications.
+  //
+  // - cuts_before-sensitive mods are applied to the first residue of a
+  //   fragment to merge with the fragment on the left.
+  // - cuts_after-sensitive mods are applied to the last residue of a
+  //   fragment to merge with the fragment on the right.
+  //
+  // Expansion is bounded by max_mods_per_oligo and de-duplicated before
+  // handing fragments to the caller via consumer(...).
+  void expandCleavageSensitiveFragments_(
+    const NASequence& parent,
+    const vector<pair<Size, Size>>& base_positions,
+    const vector<vector<ConstRibonucleotidePtr>>& before_mods_by_pos,
+    const vector<vector<ConstRibonucleotidePtr>>& after_mods_by_pos,
+    const vector<Size>& cut_points,
+    Size min_oligo_length,
+    Size max_oligo_length,
+    Size max_mods_per_oligo,
+    ConstRibonucleotidePtr five_prime_gain,
+    ConstRibonucleotidePtr three_prime_gain,
+    const std::function<void(const NASequence&, const pair<Size, Size>&,
+                             const NASequence&)>& consumer) const
   {
-    if (mods.empty() || (max_mods_per_oligo == 0) || parent.empty())
+    set<String> emitted;
+
+    std::function<void(NASequence&, Size, Size, Size)> recurse =
+      [&](NASequence& current_parent, Size start, Size end, Size used_mods)
     {
-      return {parent};
-    }
-
-    map<Size, vector<ConstRibonucleotidePtr>> mods_by_position;
-    for (Size i = 0; i < parent.size(); ++i)
-    {
-      const auto& residue = parent[i];
-      if (residue->isModified())
+      const Size length = end - start;
+      // bounds checking + de-duplication 
+      if ((length >= min_oligo_length) &&
+          ((max_oligo_length == 0) || (length <= max_oligo_length)))
       {
-        continue;
-      }
-
-      const String& code = residue->getCode();
-      if (code.size() != 1)
-      {
-        continue;
-      }
-
-      for (ConstRibonucleotidePtr mod : mods)
-      {
-        if (mod->getTermSpecificity() != Ribonucleotide::ANYWHERE)
+        NASequence fragment = current_parent.getSubsequence(start, length);
+        applyEnzymeTerminalGains_(fragment, make_pair(start, length),
+                                  parent.size(), five_prime_gain,
+                                  three_prime_gain);
+        String key = String(start);
+        key += ":";
+        key += String(end);
+        key += ":";
+        key += fragment.toString();
+        if (emitted.insert(key).second)
         {
-          continue;
-        }
-        if (code[0] == mod->getOrigin())
-        {
-          mods_by_position[i].push_back(mod);
+          consumer(current_parent, make_pair(start, length), fragment);
         }
       }
-    }
 
-    if (mods_by_position.empty())
+      if (used_mods >= max_mods_per_oligo)
+      {
+        return;
+      }
+
+      if (start > 0)
+      {
+        auto cut_it = lower_bound(cut_points.begin(), cut_points.end(), start);
+        if (cut_it != cut_points.begin())
+        {
+          const Size left_cut = *(cut_it - 1);
+          if (left_cut < start)
+          {
+            ConstRibonucleotidePtr original = current_parent[start];
+            if (!original->isModified())
+            {
+              for (ConstRibonucleotidePtr mod : before_mods_by_pos[start])
+              {
+                current_parent.set(start, mod);
+                recurse(current_parent, left_cut, end, used_mods + 1);
+              }
+              current_parent.set(start, original);
+            }
+          }
+        }
+      }
+
+      if ((end > 0) && (end < parent.size()))
+      {
+        auto cut_it = upper_bound(cut_points.begin(), cut_points.end(), end);
+        if (cut_it != cut_points.end())
+        {
+          const Size right_cut = *cut_it;
+          if (right_cut > end)
+          {
+            const Size boundary_pos = end - 1;
+            ConstRibonucleotidePtr original = current_parent[boundary_pos];
+            if (!original->isModified())
+            {
+              for (ConstRibonucleotidePtr mod : after_mods_by_pos[boundary_pos])
+              {
+                current_parent.set(boundary_pos, mod);
+                recurse(current_parent, start, right_cut, used_mods + 1);
+              }
+              current_parent.set(boundary_pos, original);
+            }
+          }
+        }
+      }
+    };
+
+    for (const auto& pos : base_positions)
     {
-      return {parent};
+      NASequence current_parent = parent;
+      recurse(current_parent, pos.first, pos.first + pos.second, 0);
     }
-
-    vector<CleavageSensitiveSite> sites;
-    sites.reserve(mods_by_position.size());
-    for (const auto& site : mods_by_position)
-    {
-      sites.push_back({site.first, site.second});
-    }
-
-    vector<NASequence> variants;
-    generateCleavageSensitiveVariants_(sites, 0, 0, max_mods_per_oligo,
-                                       parent, variants);
-    return variants;
   }
 
   Size countCleavageSensitiveMods_(const NASequence& sequence,
@@ -532,6 +630,13 @@ protected:
     return original;
   }
 
+  // Register one digested fragment in IdentificationData and map it back to
+  // its parent coordinates/neighbors.
+  //
+  // For decoys, detect collisions with already seen target fragments and try
+  // deterministic reshuffling (up to max_decoy_reshuffle_attempts) before
+  // registration. Collision/reshuffle statistics are accumulated via the
+  // counter references.
   void registerDigestedOligo_(
     IdentificationData& id_data,
     IdentificationData::ParentSequenceRef parent_ref,
@@ -1234,6 +1339,7 @@ protected:
       getModifications_(search_param.fixed_mods);
     set<ConstRibonucleotidePtr> variable_modifications =
       getModifications_(search_param.variable_mods);
+    CleavageSensitiveModGroups cleavage_sensitive_groups;
     set<ConstRibonucleotidePtr> cleavage_sensitive_modifications;
     set<String> cleavage_sensitive_mod_codes;
     set<ConstRibonucleotidePtr> post_digest_variable_modifications =
@@ -1249,8 +1355,19 @@ protected:
     String enzyme_name = getStringOption_("oligo:enzyme");
     const DigestionEnzyme* configured_enzyme =
       RNaseDB::getInstance()->getEnzyme(enzyme_name);
-    cleavage_sensitive_modifications = inferCleavageSensitiveMods_(
+    ConstRibonucleotidePtr five_prime_gain = nullptr;
+    ConstRibonucleotidePtr three_prime_gain = nullptr;
+    if (const auto* configured_rnase =
+          dynamic_cast<const DigestionEnzymeRNA*>(configured_enzyme))
+    {
+      five_prime_gain =
+        getEnzymeGain_(configured_rnase->getFivePrimeGain(), true);
+      three_prime_gain =
+        getEnzymeGain_(configured_rnase->getThreePrimeGain(), false);
+    }
+    cleavage_sensitive_groups = inferCleavageSensitiveMods_(
       variable_modifications, configured_enzyme);
+    cleavage_sensitive_modifications = cleavage_sensitive_groups.combined();
     for (ConstRibonucleotidePtr mod : cleavage_sensitive_modifications)
     {
       cleavage_sensitive_mod_codes.insert(mod->getCode());
@@ -1264,7 +1381,11 @@ protected:
     {
       OPENMS_LOG_INFO
         << "Detected " << cleavage_sensitive_modifications.size()
-        << " cleavage-sensitive variable modification(s) from enzyme cleavage regexes."
+        << " cleavage-sensitive variable modification(s) from enzyme cleavage regexes "
+        << "(" << cleavage_sensitive_groups.cuts_before_sensitive.size()
+        << " cuts-before-sensitive, "
+        << cleavage_sensitive_groups.cuts_after_sensitive.size()
+        << " cuts-after-sensitive)."
         << endl;
     }
 
@@ -1346,6 +1467,8 @@ protected:
       // set minimum and maximum size of oligo after digestion
       Size min_oligo_length = getIntOption_("oligo:min_size");
       Size max_oligo_length = getIntOption_("oligo:max_size");
+      Size max_decoy_reshuffle_attempts =
+        static_cast<Size>(getIntOption_("fdr:max_decoy_reshuffle_attempts"));
 
       progresslogger.startProgress(0, 1, "loading database from FASTA file...");
       vector<FASTAFile::FASTAEntry> fasta_db;
@@ -1355,7 +1478,6 @@ protected:
       OPENMS_LOG_INFO << "Performing in-silico digestion..." << endl;
       IdentificationDataConverter::importSequences(
         id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
-      const Size max_decoy_reshuffle_attempts = 5;
       Size decoy_collisions = 0;
       Size decoy_resolved = 0;
       Size decoy_unresolved = 0;
@@ -1385,43 +1507,91 @@ protected:
         [&](IdentificationData::ParentSequenceRef parent_ref)
       {
         NASequence parent = NASequence::fromString(parent_ref->sequence);
-        vector<NASequence> parent_variants;
         if (cleavage_sensitive_modifications.empty())
         {
-          parent_variants.push_back(parent);
+          vector<pair<Size, Size>> positions = digestor.getFragmentPositions(
+            parent, min_oligo_length, max_oligo_length);
+          for (const auto& pos : positions)
+          {
+            NASequence fragment = parent.getSubsequence(pos.first,
+                                                        pos.second);
+            applyEnzymeTerminalGains_(fragment, pos, parent.size(),
+                                      five_prime_gain, three_prime_gain);
+            registerDigestedOligo_(
+              id_data, parent_ref, parent, pos, fragment, target_oligos,
+              max_decoy_reshuffle_attempts, decoy_collisions, decoy_resolved,
+              decoy_unresolved, decoy_max_attempts_reached);
+          }
         }
         else
         {
           ModifiedNASequenceGenerator::applyFixedModifications(
             fixed_modifications, parent);
-          parent_variants = generateCleavageSensitiveParentVariants_(
-            parent, cleavage_sensitive_modifications,
-            max_variable_mods_per_oligo);
-        }
 
-        for (const NASequence& parent_variant : parent_variants)
-        {
-          vector<pair<Size, Size>> positions = digestor.getFragmentPositions(
-            parent_variant, min_oligo_length, max_oligo_length);
-          vector<NASequence> fragments;
-          digestor.digest(parent_variant, fragments, min_oligo_length,
-                          max_oligo_length);
+          vector<pair<Size, Size>> base_positions = digestor.getFragmentPositions(
+            parent, 1, 0);
 
-          if (positions.size() != fragments.size())
+          vector<vector<ConstRibonucleotidePtr>> before_mods_by_pos(parent.size());
+          vector<vector<ConstRibonucleotidePtr>> after_mods_by_pos(parent.size());
+          for (Size i = 0; i < parent.size(); ++i)
           {
-            throw Exception::Postcondition(
-              __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Mismatch between digestion fragment positions and fragment sequences");
+            const auto& residue = parent[i];
+            if (residue->isModified())
+            {
+              continue;
+            }
+
+            const String& code = residue->getCode();
+            if (code.size() != 1)
+            {
+              continue;
+            }
+
+            for (ConstRibonucleotidePtr mod :
+                   cleavage_sensitive_groups.cuts_before_sensitive)
+            {
+              if ((mod->getTermSpecificity() == Ribonucleotide::ANYWHERE) &&
+                  (code[0] == mod->getOrigin()))
+              {
+                before_mods_by_pos[i].push_back(mod);
+              }
+            }
+            for (ConstRibonucleotidePtr mod :
+                   cleavage_sensitive_groups.cuts_after_sensitive)
+            {
+              if ((mod->getTermSpecificity() == Ribonucleotide::ANYWHERE) &&
+                  (code[0] == mod->getOrigin()))
+              {
+                after_mods_by_pos[i].push_back(mod);
+              }
+            }
           }
 
-          for (Size index = 0; index < fragments.size(); ++index)
+          RNaseDigestion digestor_nomissed = digestor;
+          digestor_nomissed.setMissedCleavages(0);
+          vector<pair<Size, Size>> cut_fragments =
+            digestor_nomissed.getFragmentPositions(parent, 1, 0);
+          set<Size> cut_points_set = {0, parent.size()};
+          for (const auto& pos : cut_fragments)
           {
-            registerDigestedOligo_(
-              id_data, parent_ref, parent_variant, positions[index],
-              fragments[index], target_oligos, max_decoy_reshuffle_attempts,
-              decoy_collisions, decoy_resolved, decoy_unresolved,
-              decoy_max_attempts_reached);
+            cut_points_set.insert(pos.first);
+            cut_points_set.insert(pos.first + pos.second);
           }
+          vector<Size> cut_points(cut_points_set.begin(), cut_points_set.end());
+
+          expandCleavageSensitiveFragments_(
+            parent, base_positions, before_mods_by_pos, after_mods_by_pos,
+            cut_points, min_oligo_length, max_oligo_length,
+            max_variable_mods_per_oligo, five_prime_gain, three_prime_gain,
+            [&](const NASequence& parent_variant, const pair<Size, Size>& pos,
+                const NASequence& fragment)
+            {
+              registerDigestedOligo_(
+                id_data, parent_ref, parent_variant, pos, fragment,
+                target_oligos, max_decoy_reshuffle_attempts, decoy_collisions,
+                decoy_resolved, decoy_unresolved,
+                decoy_max_attempts_reached);
+            });
         }
       };
 
@@ -1487,8 +1657,9 @@ protected:
 
       if (search_ref->digestion_enzyme)
       {
-        cleavage_sensitive_modifications = inferCleavageSensitiveMods_(
+        cleavage_sensitive_groups = inferCleavageSensitiveMods_(
           variable_modifications, search_ref->digestion_enzyme);
+        cleavage_sensitive_modifications = cleavage_sensitive_groups.combined();
         cleavage_sensitive_mod_codes.clear();
         for (ConstRibonucleotidePtr mod : cleavage_sensitive_modifications)
         {
