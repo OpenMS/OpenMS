@@ -12,7 +12,8 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QProcess>
-#include <QtCore/QDir>
+
+#include <filesystem>
 
 namespace OpenMS
 {
@@ -36,7 +37,7 @@ namespace OpenMS
           OPENMS_LOG_ERROR
             << "  Java not found at '" << java_executable << "'!\n"
             << "  Make sure Java is installed and this location is correct.\n";
-          if (QDir::isRelativePath(java_executable.toQString()))
+          if (std::filesystem::path(java_executable).is_relative())
           {
             static String path;
             if (path.empty())

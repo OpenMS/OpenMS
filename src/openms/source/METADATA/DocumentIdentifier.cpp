@@ -11,7 +11,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
-#include <QtCore/QDir>
+#include <filesystem>
 
 namespace OpenMS
 {
@@ -39,7 +39,7 @@ namespace OpenMS
   {
     // only change the path if we need to, otherwise low and upper case might be altered by Qt, making comparison in tests more tricky
     // i.e., a call to this will report unmatched strings
-    if (QDir::isRelativePath(file_name.toQString()))
+    if (std::filesystem::path(file_name).is_relative())
     {
       file_path_ = File::absolutePath(file_name);
     }

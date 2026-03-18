@@ -11,15 +11,14 @@
 #include <OpenMS/FORMAT/ToolDescriptionFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QStringList>
-#include <QtCore/QDir>
+#include <algorithm>
 
 namespace OpenMS
 {
   ToolListType ToolHandler::getTOPPToolList(const bool includeGenericWrapper)
   {
     ToolListType tools_map;
-    // Note: don't use special characters like slashes in category names (leads to subcategories in KNIME) 
+    // Note: don't use special characters like slashes in category names (leads to subcategories in KNIME)
     const auto cat_calibration = "Mass Correction and Calibration";
     const auto cat_centroiding = "Spectrum processing: Centroiding";
     const auto cat_crosslinking = "Cross-Linking";
@@ -193,7 +192,7 @@ namespace OpenMS
     tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev);
-    
+
     // STOP! insert your tool in alphabetical order for easier maintenance (tools requiring the GUI lib should be added below **in addition**)
 
     // ATTENTION: tools requiring the GUI lib
@@ -286,12 +285,12 @@ namespace OpenMS
 
   void ToolHandler::loadExternalToolConfig_()
   {
-    QStringList files = getExternalToolConfigFiles_();
-    for (int i = 0; i < files.size(); ++i)
+    StringList files = getExternalToolConfigFiles_();
+    for (size_t i = 0; i < files.size(); ++i)
     {
       ToolDescriptionFile tdf;
       std::vector<Internal::ToolDescription> tools;
-      tdf.load(String(files[i]), tools);
+      tdf.load(files[i], tools);
       // add every tool from file to list
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
@@ -311,12 +310,12 @@ namespace OpenMS
 
   void ToolHandler::loadInternalToolConfig_()
   {
-    QStringList files = getInternalToolConfigFiles_();
-    for (int i = 0; i < files.size(); ++i)
+    StringList files = getInternalToolConfigFiles_();
+    for (size_t i = 0; i < files.size(); ++i)
     {
       ToolDescriptionFile tdf;
       std::vector<Internal::ToolDescription> tools;
-      tdf.load(String(files[i]), tools);
+      tdf.load(files[i], tools);
       // add every tool from file to list
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
@@ -326,66 +325,56 @@ namespace OpenMS
     }
   }
 
-  QStringList ToolHandler::getExternalToolConfigFiles_()
+  StringList ToolHandler::getExternalToolConfigFiles_()
   {
-
-    QStringList paths;
+    StringList paths;
     // *.ttd default path
-    paths << getExternalToolsPath().toQString();
+    paths.push_back(getExternalToolsPath());
     // OS-specific path
 #ifdef OPENMS_WINDOWSPLATFORM
-    paths << (getExternalToolsPath() + "/WINDOWS").toQString();
+    paths.push_back(getExternalToolsPath() + "/WINDOWS");
 #else
-    paths << (getExternalToolsPath() + "/LINUX").toQString();
+    paths.push_back(getExternalToolsPath() + "/LINUX");
 #endif
     // additional environment
     if (getenv("OPENMS_TTD_PATH") != nullptr)
     {
-      paths << String(getenv("OPENMS_TTD_PATH")).toQString();
+      paths.push_back(String(getenv("OPENMS_TTD_PATH")));
     }
 
-    QStringList all_files;
-    for (int p = 0; p < paths.size(); ++p)
+    StringList all_files;
+    for (const auto& p : paths)
     {
-      QDir dir(paths[p], "*.ttd");
-      QStringList files = dir.entryList();
-      for (int i = 0; i < files.size(); ++i)
-      {
-        files[i] = dir.absolutePath() + QDir::separator() + files[i];
-      }
-      all_files << files;
+      StringList files;
+      File::fileList(p, "*.ttd", files, true);
+      all_files.insert(all_files.end(), files.begin(), files.end());
     }
-    //StringList list = ListUtils::create<String>(getExternalToolsPath() + "/" + "msconvert.ttd");
     return all_files;
   }
 
-  QStringList ToolHandler::getInternalToolConfigFiles_()
+  StringList ToolHandler::getInternalToolConfigFiles_()
   {
-    QStringList paths;
+    StringList paths;
     // *.ttd default path
-    paths << getInternalToolsPath().toQString();
+    paths.push_back(getInternalToolsPath());
     // OS-specific path
 #ifdef OPENMS_WINDOWSPLATFORM
-    paths << (getInternalToolsPath() + "/WINDOWS").toQString();
+    paths.push_back(getInternalToolsPath() + "/WINDOWS");
 #else
-    paths << (getInternalToolsPath() + "/LINUX").toQString();
+    paths.push_back(getInternalToolsPath() + "/LINUX");
 #endif
     // additional environment
     if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
     {
-      paths << String(getenv("OPENMS_TTD_INTERNAL_PATH")).toQString();
+      paths.push_back(String(getenv("OPENMS_TTD_INTERNAL_PATH")));
     }
 
-    QStringList all_files;
-    for (int p = 0; p < paths.size(); ++p)
+    StringList all_files;
+    for (const auto& p : paths)
     {
-      QDir dir(paths[p], "*.ttd");
-      QStringList files = dir.entryList();
-      for (int i = 0; i < files.size(); ++i)
-      {
-        files[i] = dir.absolutePath() + QDir::separator() + files[i];
-      }
-      all_files << files;
+      StringList files;
+      File::fileList(p, "*.ttd", files, true);
+      all_files.insert(all_files.end(), files.begin(), files.end());
     }
     return all_files;
   }

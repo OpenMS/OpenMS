@@ -15,7 +15,8 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
-#include <QtCore/QFileInfo>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <filesystem>
 
 // #include <type_traits> // for template arg detection
 #include <boost/type_traits.hpp>
@@ -930,8 +931,8 @@ namespace OpenMS::Internal
     void MzMLSqliteHandler::createTables()
     {
       // delete file if present
-      QFile file (filename_.toQString());
-      file.remove();
+      std::error_code ec;
+      std::filesystem::remove(OpenMS::to_path(filename_), ec);
 
       SqliteConnector conn(filename_);
 
