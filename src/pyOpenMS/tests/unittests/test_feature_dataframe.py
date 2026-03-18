@@ -217,7 +217,44 @@ class TestFeatureArrow:
         assert decoy[1] == 0
         assert decoy[2] == 1
 
-    def test_unique(self):
+    def test_is_decoy_startswith_handling(self):
+        """Regression test: decoy variants like 'decoy_rev' must be classified as decoy (is_decoy=1)."""
+        import pyopenms as oms
+
+        cmap = oms.ConsensusMap()
+        cmap.setExperimentType("label-free")
+
+        cf = oms.ConsensusFeature()
+        cf.setMZ(500.0)
+        cf.setRT(100.0)
+        cf.setCharge(2)
+        cf.setQuality(0.9)
+
+        pep_id = oms.PeptideIdentification()
+        pep_id.setRT(100.0)
+        pep_id.setMZ(500.0)
+        pep_id.setScoreType("Posterior Error Probability")
+
+        hit = oms.PeptideHit()
+        hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+        hit.setCharge(2)
+        hit.setScore(0.01)
+        # Use a decoy variant (not just exactly 'decoy')
+        hit.setMetaValue("target_decoy", "decoy_rev")
+
+        pep_id.setHits([hit])
+        pep_id_list = oms.PeptideIdentificationList()
+        pep_id_list.append(pep_id)
+        cf.setPeptideIdentifications(pep_id_list)
+
+        cmap.push_back(cf)
+
+        table = cmap.to_feature_arrow()
+        decoy = table.column("is_decoy").to_pylist()
+        # "decoy_rev" starts with "decoy" -> is_decoy should be 1
+        assert decoy[0] == 1
+
+
         cmap = create_test_consensus_map()
         table = cmap.to_feature_arrow()
         unique = table.column("unique").to_pylist()

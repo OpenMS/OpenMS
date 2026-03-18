@@ -225,6 +225,36 @@ class TestMSSpectrumColumnSelection:
         assert 'mz' in cols
         assert 'intensity' in cols
 
+    def test_to_df_ion_mobility_length_mismatch(self):
+        """Test to_df() falls back to NaN when IM array length differs from peak count.
+
+        Regression test for the bug where mismatched IM array length would produce
+        a column with a different row count than the rest of the DataFrame.
+        """
+        spec = pyopenms.MSSpectrum()
+        spec.setMSLevel(1)
+        spec.setRT(10.0)
+
+        # 5 peaks
+        mzs = np.array([100.0, 200.0, 300.0, 400.0, 500.0], dtype=np.float64)
+        ints = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+        spec.set_peaks([mzs, ints])
+
+        # IM array with only 3 entries (mismatched)
+        fda = pyopenms.FloatDataArray()
+        fda.setName('Ion Mobility')
+        for val in [0.1, 0.2, 0.3]:  # only 3 entries, not 5
+            fda.push_back(val)
+        spec.setFloatDataArrays([fda])
+        spec.setDriftTime(1.0)  # ensure containsIMData() returns True
+
+        df = spec.to_df(columns=['mz', 'intensity', 'ion_mobility'])
+
+        assert len(df) == 5  # should still have 5 rows
+        assert 'ion_mobility' in df.columns
+        # All IM values should be NaN due to length mismatch
+        assert np.all(np.isnan(df['ion_mobility']))
+
 
 class TestMSChromatogramColumnSelection:
     """Tests for MSChromatogram.to_df() column selection."""
