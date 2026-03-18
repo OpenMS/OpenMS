@@ -12,7 +12,8 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QProcess>
-#include <QtCore/QDir>
+
+#include <filesystem>
 
 #include <sstream>
 
@@ -28,7 +29,7 @@ namespace OpenMS
     {
       ss << "  Python not found at '" << python_executable << "'!\n"
          << "  Make sure Python is installed and this location is correct.\n";
-      if (QDir::isRelativePath(python_executable.toQString()))
+      if (std::filesystem::path(python_executable).is_relative())
       {
         static String path;
         if (path.empty())

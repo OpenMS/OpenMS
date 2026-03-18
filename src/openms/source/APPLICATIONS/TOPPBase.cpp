@@ -41,8 +41,9 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
-#include <QtCore/QDir>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
+#include <filesystem>
 #include <iostream>
 
 // OpenMP support
@@ -64,7 +65,7 @@ namespace OpenMS
 
   using namespace Exception;
 
-  String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
+  String TOPPBase::topp_ini_file_ = File::getOpenMSHomePath() + "/.TOPP.ini";
   const Citation TOPPBase::cite_openms
     = {"Pfeuffer, J., Bielow, C., Wein, S. et al.", "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
        "Nat Methods (2024)", "10.1038/s41592-024-02197-7"};
@@ -2386,10 +2387,10 @@ namespace OpenMS
   void TOPPBase::writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension)
   {
     //store ini-file content in ini_file_str
-    QString out_dir_str = String(param_cmdline_.getValue(write_type).toString()).toQString();
-    if (out_dir_str == "")
+    String out_dir_str = String(param_cmdline_.getValue(write_type).toString());
+    if (out_dir_str.empty())
     {
-      out_dir_str = QDir::currentPath();
+      out_dir_str = std::filesystem::current_path().string();
     }
     StringList type_list = ToolHandler::getTypes(tool_name_);
     if (type_list.empty())
@@ -2398,7 +2399,7 @@ namespace OpenMS
     for (Size i = 0; i < type_list.size(); ++i)
     {
       // check file is writable
-      QString write_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + fileExtension.c_str();
+      String write_file = out_dir_str + "/" + tool_name_ + type_list[i] + fileExtension.c_str();
       outputFileWritable_(write_file, write_type);
 
       // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)

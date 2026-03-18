@@ -18,7 +18,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
-#include <QtCore/QFileInfo>
+#include <filesystem>
 
 #include <fstream>
 #include <set>
@@ -1051,7 +1051,7 @@ namespace OpenMS
       //-------------------------------------------------------------
       // MS acquisition
       //------------------------------------------------------------
-      String base_name = QFileInfo(QString::fromStdString(inputfile_raw)).baseName();
+      String base_name = std::filesystem::path(inputfile_raw).stem().string();
 
       UInt min_mz = std::numeric_limits<UInt>::max();
       UInt max_mz = 0;

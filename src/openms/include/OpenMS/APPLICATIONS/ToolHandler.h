@@ -10,10 +10,9 @@
 
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <map>
-
-#include <QtCore/qcontainerfwd.h> // for QStringList
 
 
 namespace OpenMS
@@ -71,17 +70,16 @@ public:
 private:
 
     static Internal::ToolDescription getExternalTools_();
-    static QStringList getExternalToolConfigFiles_();
+    static StringList getExternalToolConfigFiles_();
     static void loadExternalToolConfig_();
     static Internal::ToolDescription tools_external_;
     static bool tools_external_loaded_;
 
     static std::vector<Internal::ToolDescription> getInternalTools_();
-    static QStringList getInternalToolConfigFiles_();
+    static StringList getInternalToolConfigFiles_();
     static void loadInternalToolConfig_();
     static std::vector<Internal::ToolDescription> tools_internal_;
     static bool tools_internal_loaded_;
   };
 
 } // namespace OpenMS
-
