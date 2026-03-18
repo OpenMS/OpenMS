@@ -107,7 +107,7 @@ namespace OpenMS
           bp::std_out > ap_out,
           bp::std_err > ap_err,
           bp::start_dir(start_dir_str),
-          bp::env = proc_env
+          proc_env
         );
 
         if (!child.valid())
@@ -207,7 +207,7 @@ namespace OpenMS
           bp::std_out > bp::null,
           bp::std_err > bp::null,
           bp::start_dir(start_dir_str),
-          bp::env = proc_env
+          proc_env
         );
 
         if (!child.valid())
