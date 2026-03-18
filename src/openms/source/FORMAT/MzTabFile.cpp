@@ -18,7 +18,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
-#include <QtCore/QString>
 
 #include <boost/regex.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -1046,7 +1045,7 @@ namespace OpenMS
         }
         else if (cells[i].hasPrefix("search_engine_score["))
         {
-          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i]);
           peptide_column_index_to_score_runs_pair[i] = pair;
         }
         else if (cells[i] == "reliability")
@@ -1414,7 +1413,7 @@ namespace OpenMS
         }
         else if (cells[i].hasPrefix("search_engine_score["))
         {
-          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i]);
           smallmolecule_column_index_to_score_runs_pair[i] = pair;
         }
         else if (cells[i] == "modifications")
