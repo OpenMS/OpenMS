@@ -247,14 +247,14 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
       ExternalProcess ep([&](const String& s) { f << s; }, 
                          [&](const String& s) { f << s; });
       String error_msg;
-      if (ep.run(command.toQString(), QStringList() << "--help", "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE)
+      if (ep.run(command, std::vector<String>{"--help"}, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE)
             != ExternalProcess::RETURNSTATE::SUCCESS)
       { // error while generation cli docu
         stringstream ss;
         ss << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
         ss << "Output was: \n";
         ep.setCallbacks([&](const String& s) { ss << s; }, [&](const String& s) { ss << s; });
-        ep.run(command.toQString(), QStringList() << "--help", "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE);
+        ep.run(command, std::vector<String>{"--help"}, "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE);
         ss << "\nCommand line was: \n " << command << endl;
         f << ss.str();
         cerr << ss.str();
@@ -273,17 +273,19 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
         it->first != "TOPPAS")
     {
       String tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
-      const auto ini_command_args = QStringList() << "-write_ini" << tmp_file.toQString();
-      
+      const std::vector<String> ini_command_args = {"-write_ini", tmp_file};
+
       ExternalProcess ep([&](const String& s) { f << s; }, [&](const String& s) { f << s; });
       String error_msg;
-      if (ep.run(command.toQString(), ini_command_args, "", false, error_msg,
+      if (ep.run(command, ini_command_args, "", false, error_msg,
                  ExternalProcess::IO_MODE::READ_WRITE)
             != ExternalProcess::RETURNSTATE::SUCCESS
           || ! File::exists(tmp_file))
       { // error while generation cli docu
         std::cerr << "Errors occurred while writing ini file for " << it->first << "!" << std::endl;
-        std::cerr << "Command line was: \n " << command << ini_command_args.join(" ").toStdString() << std::endl;
+        String args_str;
+        for (const auto& a : ini_command_args) args_str += " " + a;
+        std::cerr << "Command line was: \n " << command << args_str << std::endl;
         errors_occured = true;
         continue;
       }
