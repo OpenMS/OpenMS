@@ -40,11 +40,6 @@ namespace OpenMS
   {
   }
 
-  String::String(const QString& s) :
-    string(s.toStdString())
-  {
-  }
-
   String::String(const char* s, SizeType length) :
     string(s, length)
   {
@@ -266,11 +261,6 @@ namespace OpenMS
                             char q, QuotingMethod method) const
   {
     return StringUtils::split_quoted(*this, splitter, substrings, q, method);
-  }
-
-  QString String::toQString() const
-  {
-    return StringUtils::toQString(*this);
   }
 
   Int String::toInt() const
