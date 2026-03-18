@@ -172,7 +172,7 @@ namespace OpenMS
     setToolTip(files.join("\n"));
 
     // set current working dir when opening files to the last file
-    cwd_ = File::path(files.back()).toQString();
+    cwd_ = QString::fromStdString(File::path(files.back()));
   }
 
   void TOPPASInputFileListVertex::outEdgeHasChanged()

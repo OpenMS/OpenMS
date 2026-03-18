@@ -106,7 +106,7 @@ namespace OpenMS
           OPENMS_LOG_ERROR << "The file '" << String(f) << "' does not exist!" << std::endl;
           throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, f.toStdString());
         }
-        QString new_file = full_dir.toQString() + QDir::separator() + File::basename(f).toQString();
+        QString new_file = QString::fromStdString(full_dir) + QDir::separator() + QString::fromStdString(File::basename(f));
 
         // remove "_tmp<number>" if its a suffix
         QRegularExpression rx("_tmp\\d+$");
@@ -172,7 +172,7 @@ namespace OpenMS
           String file_to = output_files_[round][param_index_me].filenames[i];
           if (File::exists(file_to))
           {
-            if (! QFile::remove(file_to.toQString())) // todo: this goes wrong on first run .... why???
+            if (! QFile::remove(QString::fromStdString(file_to))) // todo: this goes wrong on first run .... why???
             {
               String msg = "Error: Could not remove old output file '" + file_to + "' for node '"
                            + pkg[round][param_index_src].edge->getTargetVertex()->getName()

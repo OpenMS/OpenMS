@@ -62,7 +62,7 @@ namespace OpenMS::Internal
       for (Size i = 0; i < filters.size(); ++i)
       {
         QListWidgetItem* item = new QListWidgetItem(ui_->filter);
-        item->setText(filters[i].toString().toQString());
+        item->setText(QString::fromStdString(filters[i].toString()));
       }
       // update check box
       ui_->check->setChecked(filters.isActive());

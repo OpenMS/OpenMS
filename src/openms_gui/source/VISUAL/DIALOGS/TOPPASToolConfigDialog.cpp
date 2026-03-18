@@ -42,7 +42,7 @@ namespace OpenMS
     QLabel* description = new QLabel;
     description->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     description->setWordWrap(true);
-    description->setText(tool_desc.toQString());
+    description->setText(QString::fromStdString(tool_desc));
     main_grid->addWidget(description, 0, 0, 1, 1);
 
     //Add advanced mode check box
@@ -76,7 +76,7 @@ namespace OpenMS
     editor_->load(*param_);
     editor_->setFocus(Qt::MouseFocusReason);
 
-    setWindowTitle(tool_name.toQString() + " " + tr("configuration"));
+    setWindowTitle(QString::fromStdString(tool_name) + " " + tr("configuration"));
   }
 
   TOPPASToolConfigDialog::~TOPPASToolConfigDialog() = default;
@@ -158,22 +158,22 @@ namespace OpenMS
     arg_param_.insert(tool_name_ + ":1:", *param_);
     try
     {
-      QString tmp_ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + tool_name_.toQString() + "_";
+      QString tmp_ini_file = QString::fromStdString(File::getTempDirectory()) + QDir::separator() + "TOPPAS_" + QString::fromStdString(tool_name_) + "_";
       if (!tool_type_.empty())
       {
-        tmp_ini_file += tool_type_.toQString() + "_";
+        tmp_ini_file += QString::fromStdString(tool_type_) + "_";
       }
-      tmp_ini_file += File::getUniqueName().toQString() + "_tmp.ini";
+      tmp_ini_file += QString::fromStdString(File::getUniqueName()) + "_tmp.ini";
       //store current parameters
       ParamXMLFile paramFile;
       paramFile.store(tmp_ini_file.toStdString(), arg_param_);
       //restore other parameters that might be missing
-      QString executable = File::findSiblingTOPPExecutable(tool_name_).toQString();
+      QString executable = QString::fromStdString(File::findSiblingTOPPExecutable(tool_name_));
       QStringList args;
       args << "-write_ini" << filename_ << "-ini" << tmp_ini_file;
       if (!tool_type_.empty())
       {
-        args << "-type" << tool_type_.toQString();
+        args << "-type" << QString::fromStdString(tool_type_);
       }
 
       if (QProcess::execute(executable, args) != 0)

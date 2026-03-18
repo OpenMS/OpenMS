@@ -19,7 +19,7 @@ namespace OpenMS
     delay_in_seconds_(1.0)
   {
     // Connect the slot for monitoring file changes
-    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(s.toQString()); });
+    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(QString::fromStdString(s)); });
   }
 
   FileWatcher::~FileWatcher() = default;

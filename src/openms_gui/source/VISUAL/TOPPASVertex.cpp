@@ -95,9 +95,9 @@ namespace OpenMS
     for (const auto& [suffix, count] : suffices)
     {
       if (suffices.size() > 1)
-        text_l.push_back(String("." + suffix + "(" + String(count) + ")").toQString());
+        text_l.push_back(QString::fromStdString(String("." + suffix + "(" + String(count) + ")")));
       else
-        text_l.push_back("." + suffix.toQString());
+        text_l.push_back("." + QString::fromStdString(suffix));
     }
     return text_l;
   }

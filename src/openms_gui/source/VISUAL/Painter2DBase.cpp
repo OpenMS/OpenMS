@@ -107,7 +107,7 @@ namespace OpenMS
         }
         if (id.getHits().size() > 1)
           sequence += "...";
-        painter->drawText(pos.x() + 10, pos.y() + 10, sequence.toQString());
+        painter->drawText(pos.x() + 10, pos.y() + 10, QString::fromStdString(sequence));
       }
     }
   }
@@ -573,7 +573,7 @@ namespace OpenMS
         QColor color;
         if (f.metaValueExists(5))
         {
-          color = QColor(f.getMetaValue(5).toQString());
+          color = QColor(QString::fromStdString(f.getMetaValue(5)));
         }
         else
         {
@@ -596,13 +596,13 @@ namespace OpenMS
             Size maxHits = (layer_->label == LayerDataBase::L_ID_ALL) ? f.getPeptideIdentifications()[0].getHits().size() : 1;
             for (Size j = 0; j < maxHits; ++j)
             {
-              painter->drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, f.getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
+              painter->drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, QString::fromStdString(f.getPeptideIdentifications()[0].getHits()[j].getSequence().toString()));
             }
           }
           else if (layer_->label == LayerDataBase::L_META_LABEL)
           {
             painter->setPen(Qt::darkBlue);
-            painter->drawText(pos.x() + 10, pos.y() + 10, f.getMetaValue(3).toQString());
+            painter->drawText(pos.x() + 10, pos.y() + 10, QString::fromStdString(f.getMetaValue(3)));
           }
         }
       }
@@ -667,7 +667,7 @@ namespace OpenMS
         QColor color;
         if (cf.metaValueExists(5))
         {
-          color = cf.getMetaValue(5).toQString();
+          color = QString::fromStdString(cf.getMetaValue(5));
         }
         else
         {

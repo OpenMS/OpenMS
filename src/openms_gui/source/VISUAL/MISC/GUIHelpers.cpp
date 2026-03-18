@@ -51,13 +51,13 @@ namespace OpenMS
                                                         const FileTypes::Type fallback_extension)
   {
     QString selected_filter;
-    QString file_name = QFileDialog::getSaveFileName(parent, caption, dir, supported_file_types.toFileDialogFilter(FilterLayout::ONE_BY_ONE, add_all_filter).toQString(), &selected_filter);
+    QString file_name = QFileDialog::getSaveFileName(parent, caption, dir, QString::fromStdString(supported_file_types.toFileDialogFilter(FilterLayout::ONE_BY_ONE, add_all_filter)), &selected_filter);
     if (file_name.isEmpty())
     {
       return file_name;
     }
     // check whether a file type suffix has been given, or fall back to @p fallback_extension (if 'all filter' was used)
-    file_name = FileHandler::swapExtension(file_name, supported_file_types.fromFileDialogFilter(selected_filter, fallback_extension)).toQString();
+    file_name = QString::fromStdString(FileHandler::swapExtension(file_name, supported_file_types.fromFileDialogFilter(selected_filter, fallback_extension)));
     return file_name;
   }
 
@@ -68,7 +68,7 @@ namespace OpenMS
     QString app_path;
 #if defined(__APPLE__)
     // check if we can find the TOPPView.app
-    app_path = (File::getExecutablePath() + "../../../TOPPView.app").toQString();
+    app_path = QString::fromStdString(File::getExecutablePath() + "../../../TOPPView.app");
 
     if (File::exists(app_path))
     {
@@ -83,11 +83,11 @@ namespace OpenMS
     }
     else
     { // we could not find the app, try it the Linux way
-      app_path = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
+      app_path = QString::fromStdString(File::findSiblingTOPPExecutable("TOPPView"));
     }
 #else
     // LINUX+WIN
-    app_path = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
+    app_path = QString::fromStdString(File::findSiblingTOPPExecutable("TOPPView"));
 #endif
 
     if (!QProcess::startDetached(app_path, args))
@@ -113,7 +113,7 @@ namespace OpenMS
       try
       {
         String local_url = File::findDoc(target);
-        url_target = QUrl::fromLocalFile(local_url.toQString());
+        url_target = QUrl::fromLocalFile(QString::fromStdString(local_url));
       }
       catch (Exception::FileNotFound&)
       {
@@ -249,7 +249,7 @@ namespace OpenMS
   QStringList GUIHelpers::convert(const StringList& in)
   {
     QStringList out;
-    for (const auto& s : in) out.push_back(s.toQString());
+    for (const auto& s : in) out.push_back(QString::fromStdString(s));
     return out;
   }
 

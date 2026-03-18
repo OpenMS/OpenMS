@@ -429,7 +429,7 @@ namespace OpenMS
     for (const QString& q_file_name : file_names)
     {
       bool type_mismatch = true;
-      const String& file_name = String(q_file_name);
+      const String& file_name = q_file_name.toStdString();
       String::SizeType extension_start_index = file_name.rfind(".");
       if (extension_start_index != String::npos)
       {
@@ -610,7 +610,7 @@ namespace OpenMS
       {
          QVector<TOPPASToolVertex::IOInfo> docks = target->getInputParameters();
          const TOPPASToolVertex::IOInfo& param = docks[this->target_in_param_]; 
-         return param.param_name.toQString();
+         return QString::fromStdString(param.param_name);
       }
     }
     return "";
@@ -626,7 +626,7 @@ namespace OpenMS
       const auto* source_tool = qobject_cast<const TOPPASToolVertex*>(source_vertex);
       if (source_tool && source_out_param_>=0)
       {
-        return source_tool->getOutputParameters()[this->source_out_param_].param_name.toQString();
+        return QString::fromStdString(source_tool->getOutputParameters()[this->source_out_param_].param_name);
       }
     }
     return "";

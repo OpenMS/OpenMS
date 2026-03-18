@@ -54,14 +54,14 @@ namespace OpenMS
 
   void TOPPASOutputVertex::openContainingFolder() const
   {
-    GUIHelpers::openFolder(getFullOutputDirectory().toQString());
+    GUIHelpers::openFolder(QString::fromStdString(getFullOutputDirectory()));
   }
 
   String TOPPASOutputVertex::getFullOutputDirectory() const
   {
     TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
     auto dir = String(ts->getOutDir()).substitute("\\", "/").ensureLastChar('/') + getOutputDir();
-    String clean_dir = QDir::cleanPath(dir.toQString());
+    String clean_dir = QDir::cleanPath(QString::fromStdString(dir));
     return clean_dir.substitute("\\", "/").ensureLastChar('/');
   }
 

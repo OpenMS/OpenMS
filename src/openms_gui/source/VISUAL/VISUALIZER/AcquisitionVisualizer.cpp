@@ -36,7 +36,7 @@ namespace OpenMS
 
   void AcquisitionVisualizer::update_()
   {
-    acquisitionnumber_->setText(temp_.getIdentifier().toQString());
+    acquisitionnumber_->setText(QString::fromStdString(temp_.getIdentifier()));
   }
 
   void AcquisitionVisualizer::store()

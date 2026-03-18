@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/MISC/FilterableList.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Qt5Port.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <ui_FilterableList.h>
@@ -45,13 +45,13 @@ namespace OpenMS
 
     void FilterableList::setBlacklistItems(const QStringList& bl_items)
     {
-      blacklist_ = toQSet(bl_items);
+      blacklist_ = QSet<QString>(bl_items.begin(), bl_items.end());
       updateInternalList_();
     }
 
     void FilterableList::addBlackListItems(const QStringList& items)
     {
-      blacklist_.unite(toQSet(items));
+      blacklist_.unite(QSet<QString>(items.begin(), items.end()));
       updateInternalList_();
     }
 
@@ -65,7 +65,7 @@ namespace OpenMS
         }
       }
       // remove all items from blacklist
-      blacklist_.subtract(toQSet(outdated_blacklist_items));
+      blacklist_.subtract(QSet<QString>(outdated_blacklist_items.begin(), outdated_blacklist_items.end()));
       updateInternalList_();
     }
 

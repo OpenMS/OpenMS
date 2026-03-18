@@ -45,7 +45,7 @@ START_SECTION((static bool canRun(String& python_executable, String& error_msg))
   if (PythonInfo::canRun(py, error_msg))
   { 
     TEST_EQUAL(File::exists(py), true)
-    TEST_EQUAL(QDir::isRelativePath(py.toQString()), false)
+    TEST_EQUAL(QDir::isRelativePath(QString::fromStdString(py)), false)
   }
 
 END_SECTION

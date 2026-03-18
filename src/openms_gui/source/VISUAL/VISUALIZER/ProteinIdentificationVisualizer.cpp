@@ -69,22 +69,22 @@ namespace OpenMS
     // id of the item in the tree
     tree_id_ = tree_item_id;
 
-    identification_date_->setText(temp_.getDateTime().get().toQString());
+    identification_date_->setText(QString::fromStdString(temp_.getDateTime().get()));
     identification_threshold_->setText(QString::number(temp_.getSignificanceThreshold()));
-    identifier_->setText(temp_.getIdentifier().toQString());
-    engine_->setText(temp_.getSearchEngine().toQString());
-    engine_version_->setText(temp_.getSearchEngineVersion().toQString());
-    score_type_->setText(temp_.getScoreType().toQString());
+    identifier_->setText(QString::fromStdString(temp_.getIdentifier()));
+    engine_->setText(QString::fromStdString(temp_.getSearchEngine()));
+    engine_version_->setText(QString::fromStdString(temp_.getSearchEngineVersion()));
+    score_type_->setText(QString::fromStdString(temp_.getScoreType()));
     higher_better_->setCurrentIndex(temp_.isHigherScoreBetter());
 
-    db_->setText(temp_.getSearchParameters().db.toQString());
-    db_version_->setText(temp_.getSearchParameters().db_version.toQString());
-    taxonomy_->setText(temp_.getSearchParameters().taxonomy.toQString());
-    charges_->setText(temp_.getSearchParameters().charges.toQString());
+    db_->setText(QString::fromStdString(temp_.getSearchParameters().db));
+    db_version_->setText(QString::fromStdString(temp_.getSearchParameters().db_version));
+    taxonomy_->setText(QString::fromStdString(temp_.getSearchParameters().taxonomy));
+    charges_->setText(QString::fromStdString(temp_.getSearchParameters().charges));
     missed_cleavages_->setText(QString::number(temp_.getSearchParameters().missed_cleavages));
     peak_tolerance_->setText(QString::number(temp_.getSearchParameters().fragment_mass_tolerance));
     precursor_tolerance_->setText(QString::number(temp_.getSearchParameters().precursor_mass_tolerance));
-    enzyme_->setText(temp_.getSearchParameters().digestion_enzyme.getName().toQString());
+    enzyme_->setText(QString::fromStdString(temp_.getSearchParameters().digestion_enzyme.getName()));
 
     if (!isEditable())
     {

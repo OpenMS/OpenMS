@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/TreeView.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Qt5Port.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QHeaderView>
@@ -59,7 +59,7 @@ namespace OpenMS
 
   void TreeView::hideColumns(const QStringList& header_names)
   {
-    auto hset = toQSet(header_names);
+    auto hset = QSet<QString>(header_names.begin(), header_names.end());
     // add actions which show/hide columns
     const auto& header = this->headerItem();
 

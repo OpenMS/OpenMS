@@ -56,7 +56,7 @@ namespace OpenMS
     file_name_(),
     tmp_path_(tmp_path),
     gui_(gui),
-    out_dir_(File::getUserDirectory().toQString()),
+    out_dir_(QString::fromStdString(File::getUserDirectory())),
     changed_(false),
     running_(false),
     error_occured_(false),
@@ -248,7 +248,7 @@ namespace OpenMS
           //ss << "test test";
           my_log << " ---------------------------------- " << std::endl; // this will cause a flush... removing this line might cause loss(!) of log content!
           my_log.flush(); // bug! this sometimes does not cause the content to be flushed to the stringstream; the cache seems to be inactive as well. also std::endl does not help
-          emit messageReady(String(ss.str()).toQString());
+          emit messageReady(QString::fromStdString(String(ss.str())));
           //std::cerr << ss.str();
         }
         remove_edge = true;
@@ -662,7 +662,7 @@ namespace OpenMS
       if (auto* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv); iflv)
       {
         // store file names relative to toppas file
-        QDir save_dir(File::path(file).toQString());
+        QDir save_dir(QString::fromStdString(File::path(file)));
         const QStringList& files_qt = iflv->getFileNames();
         std::vector<std::string> files;
         for (const QString &file_qt : files_qt)
@@ -850,10 +850,10 @@ namespace OpenMS
     }
     if (load_param.exists("info:description"))
     {
-      String text = String(load_param.getValue("info:description").toString()).toQString();
+      String text = QString::fromStdString(String(load_param.getValue("info:description").toString()));
       text.substitute("<![CDATA[", "");
       text.substitute("]]>", "");
-      description_text_ = text.trim().toQString();
+      description_text_ = QString::fromStdString(text.trim());
     }
 
     String current_type, current_id;
@@ -883,7 +883,7 @@ namespace OpenMS
             QString f = str_it->toQString();
             if (QDir::isRelativePath(f)) // prepend path of toppas file to relative path of the input files
             {
-              f = File::path(file).toQString() + "/" + f;
+              f = QString::fromStdString(File::path(file)) + "/" + f;
             }
             file_names_qt.push_back(QDir::cleanPath(f));
           }
@@ -896,7 +896,7 @@ namespace OpenMS
           // custom output folder
           if (vertices_param.exists(current_id + ":output_folder_name"))
           {
-            oflv->setOutputFolderName(String(vertices_param.getValue(current_id + ":output_folder_name").toString()).toQString());
+            oflv->setOutputFolderName(QString::fromStdString(String(vertices_param.getValue(current_id + ":output_folder_name").toString())));
           }
           
           connectOutputVertexSignals(oflv); // todo
@@ -909,7 +909,7 @@ namespace OpenMS
           // custom output folder
           if (vertices_param.exists(current_id + ":output_folder_name"))
           {
-            ofv->setOutputFolderName(String(vertices_param.getValue(current_id + ":output_folder_name").toString()).toQString());
+            ofv->setOutputFolderName(QString::fromStdString(String(vertices_param.getValue(current_id + ":output_folder_name").toString())));
           }
 
           connectOutputVertexSignals(ofv);
@@ -1061,7 +1061,7 @@ namespace OpenMS
               }
             }
             if (src_index == -1)
-              logTOPPOutput(String("Could not find output parameter called '" + source_out_param + "'. Check edge!").toQString());
+              logTOPPOutput(QString::fromStdString(String("Could not find output parameter called '" + source_out_param + "'. Check edge!")));
           }
 
           tv_src = qobject_cast<TOPPASToolVertex*>(tv_2);
@@ -1078,7 +1078,7 @@ namespace OpenMS
               }
             }
             if (tgt_index == -1)
-              logTOPPOutput(String("Could not find input parameter called '" + target_in_param + "'. Check edge!").toQString());
+              logTOPPOutput(QString::fromStdString(String("Could not find input parameter called '" + target_in_param + "'. Check edge!")));
           }
 
           edge->setSourceOutParam(src_index);
@@ -1088,7 +1088,7 @@ namespace OpenMS
     }
     if (pre_1_9_toppas) // just indices stored - no way we can check
     {
-      logTOPPOutput(String("Your TOPPAS file was build with an old version of TOPPAS and is susceptible to errors when used with new versions of OpenMS. Check every edge for correct input/output parameter names and store the workflow using the current version of TOPPAS (e.g using the \"Save as ...\" functionality) to make the workflow more robust to changes in future versions of TOPP tools!").toQString());
+      logTOPPOutput(QString::fromStdString(String("Your TOPPAS file was build with an old version of TOPPAS and is susceptible to errors when used with new versions of OpenMS. Check every edge for correct input/output parameter names and store the workflow using the current version of TOPPAS (e.g using the \"Save as ...\" functionality) to make the workflow more robust to changes in future versions of TOPP tools!")));
     }
 
 /*
@@ -1334,7 +1334,7 @@ namespace OpenMS
     }
     emit messageReady(out); // let TOPPAS know about it
 
-    writeToLogFile_(text.toQString());
+    writeToLogFile_(QString::fromStdString(text));
   }
 
   void TOPPASScene::logToolStarted()
@@ -1355,7 +1355,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(QString::fromStdString(text));
     }
   }
 
@@ -1377,7 +1377,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(QString::fromStdString(text));
     }
   }
 
@@ -1399,7 +1399,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(QString::fromStdString(text));
     }
   }
 
@@ -1421,7 +1421,7 @@ namespace OpenMS
         std::cout << '\n' << text << std::endl;
       }
 
-      writeToLogFile_(text.toQString());
+      writeToLogFile_(QString::fromStdString(text));
     }
   }
 
@@ -1434,7 +1434,7 @@ namespace OpenMS
       std::cout << std::endl << text << std::endl;
     }
 
-    writeToLogFile_(text.toQString());
+    writeToLogFile_(QString::fromStdString(text));
   }
 
   void TOPPASScene::topoSort(bool resort_all)
@@ -1589,7 +1589,7 @@ namespace OpenMS
     // Save changes
     if (gui_ && changed_)
     {
-      QString name = file_name_.empty() ? "Untitled" : File::basename(file_name_).toQString();
+      QString name = file_name_.empty() ? "Untitled" : QString::fromStdString(File::basename(file_name_));
       QMessageBox::StandardButton ret;
       ret = QMessageBox::warning(views().first(), "Save changes?", "'" + name + "' has been modified.\n\nDo you want to save your changes?", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
       if (ret == QMessageBox::Save)

@@ -55,12 +55,6 @@ START_SECTION((String(const QString &s)))
   TEST_EQUAL(s=="bla",true)
 END_SECTION
 
-START_SECTION((QString toQString() const))
-  QString qs("bla");
-  String s("bla");
-  TEST_EQUAL(s.toQString()==qs,true)
-END_SECTION
-
 START_SECTION((String(const char* s, SizeType length)))
   String s("abcdedfg",5);
   TEST_EQUAL(s,"abcde")

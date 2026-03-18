@@ -39,7 +39,7 @@ namespace OpenMS
 
     if (!error_msg.empty())
     {
-      QMessageBox::critical(parent, "Error", error_msg.toQString());
+      QMessageBox::critical(parent, "Error", QString::fromStdString(error_msg));
     }
 
     return rs;
@@ -51,7 +51,7 @@ namespace OpenMS
     auto rs = ep_.run(exe, args, working_dir, verbose, error_msg, ExternalProcess::IO_MODE::READ_WRITE, {},
                       []() { QCoreApplication::processEvents(); });
 
-    if (!error_msg.empty()) QMessageBox::critical(parent, "Error", error_msg.toQString());
+    if (!error_msg.empty()) QMessageBox::critical(parent, "Error", QString::fromStdString(error_msg));
 
     return rs;
   }

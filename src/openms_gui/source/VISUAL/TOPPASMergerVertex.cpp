@@ -90,7 +90,7 @@ namespace OpenMS
     if (!success)
     {
       std::cerr << "Could not retrieve input files from upstream nodes...\n";
-      emit mergeFailed((String("Merger #") + this->getTopoNr() + " failed. " + error_msg).toQString());
+      emit mergeFailed(QString::fromStdString(String("Merger #") + this->getTopoNr() + " failed. " + error_msg));
       return;
     }
 

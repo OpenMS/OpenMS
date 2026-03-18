@@ -104,7 +104,7 @@ namespace OpenMS
           String last_subfolder = QDir(src_dir).dirName();
           new_dir += last_subfolder.ensureLastChar('/');
         }
-        output_files_[round][param_index_me].filenames.push_back(new_dir.toQString());
+        output_files_[round][param_index_me].filenames.push_back(QString::fromStdString(new_dir));
         // find number of files in 'src_dir'
         QDir dir(src_dir);
         auto nr_of_files = dir.entryInfoList(QDir::Files).size();
@@ -113,7 +113,7 @@ namespace OpenMS
           String msg = "Output directory '" + e->getSourceOutParamName() + "' did not yield any files!";
           if (ts->isGUIMode()) 
           {
-            QMessageBox::warning(nullptr, tr("No files found"), msg.toQString(), QMessageBox::Ok);
+            QMessageBox::warning(nullptr, tr("No files found"), QString::fromStdString(msg), QMessageBox::Ok);
           }
           else
           {
@@ -154,13 +154,13 @@ namespace OpenMS
                 throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
               }
           }
-          const auto& src_files_to_copy = QDir(dir_from.toQString()).entryInfoList(QDir::Files);
+          const auto& src_files_to_copy = QDir(QString::fromStdString(dir_from)).entryInfoList(QDir::Files);
           for (const auto& src_file : src_files_to_copy)
           {
             String file_from = src_file.absoluteFilePath();
             String file_to = dir_to + '/' + src_file.fileName();
             if (File::exists(file_to) // someone may have deleted the file in the meantime, which is fine
-              && !QFile::remove(file_to.toQString())) // remove old file (would fail if file does not exist)
+              && !QFile::remove(QString::fromStdString(file_to))) // remove old file (would fail if file does not exist)
             {
               String msg = "Error: Could not remove old output file '" + file_to + "' for node '"
                            + pkg[round][param_index_src].edge->getTargetVertex()->getName()

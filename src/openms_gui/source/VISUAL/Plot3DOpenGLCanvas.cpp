@@ -29,8 +29,8 @@ namespace OpenMS
   {
     canvas_3d.rubber_band_.setParent(this);
 
-    x_label_ = (String(Peak2D::shortDimensionName(Peak2D::MZ)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::MZ)) + "]").toQString();
-    y_label_ = (String(Peak2D::shortDimensionName(Peak2D::RT)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::RT)) + "]").toQString();
+    x_label_ = QString::fromStdString(String(Peak2D::shortDimensionName(Peak2D::MZ)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::MZ)) + "]");
+    y_label_ = QString::fromStdString(String(Peak2D::shortDimensionName(Peak2D::RT)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::RT)) + "]");
 
     //Set focus policy and mouse tracking in order to get keyboard events
     setMouseTracking(true);
@@ -166,7 +166,7 @@ namespace OpenMS
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    QColor color(String(canvas_3d_.param_.getValue("background_color").toString()).toQString());
+    QColor color(QString::fromStdString(String(canvas_3d_.param_.getValue("background_color").toString())));
     qglClearColor_(color);
     calculateGridLines_();
 
@@ -472,7 +472,7 @@ namespace OpenMS
     GLuint list = glGenLists(1);
     glNewList(list, GL_COMPILE);
     glBegin(GL_QUADS);
-    QColor color(String(canvas_3d_.param_.getValue("background_color").toString()).toQString());
+    QColor color(QString::fromStdString(String(canvas_3d_.param_.getValue("background_color").toString())));
     qglColor_(color);
     glVertex3d(-corner_, -corner_ - 2.0, -near_ - 2 * corner_);
     glVertex3d(-corner_, -corner_ - 2.0, -far_ + 2 * corner_);

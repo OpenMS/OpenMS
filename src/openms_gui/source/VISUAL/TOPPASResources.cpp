@@ -56,7 +56,7 @@ namespace OpenMS
         return;
       }
 
-      QString key = (substrings[0]).toQString();
+      QString key = QString::fromStdString(substrings[0]);
       StringList url_list = ListUtils::toStringList<std::string>(it->value);
       QList<TOPPASResource> resource_list;
       for (StringList::const_iterator it = url_list.begin(); it != url_list.end(); ++it)

@@ -32,7 +32,7 @@ namespace OpenMS
       connect(ui_->line_edit, SIGNAL(editingFinished()), this, SLOT(validate_()));
 
       // load/update UI
-      ui_->line_edit->setText(last_known_python_exe_.toQString());
+      ui_->line_edit->setText(QString::fromStdString(last_known_python_exe_));
 
       // internally check
       validate_();
@@ -64,19 +64,19 @@ namespace OpenMS
       if (success)
       {
         last_known_python_exe_ = exe;
-        ui_->label->setText(PythonInfo::getVersion(exe).toQString());
+        ui_->label->setText(QString::fromStdString(PythonInfo::getVersion(exe)));
         currently_valid_ = true;
       }
       else
       {
-        QMessageBox::warning(nullptr, QString("Python not found"), error.toQString());
+        QMessageBox::warning(nullptr, QString("Python not found"), QString::fromStdString(error));
         // no need to currently_valid_=false, since we will revert to 'last_known_python_exe_'
       }
 
       // reset to last known
-      ui_->line_edit->setText(last_known_python_exe_.toQString());
+      ui_->line_edit->setText(QString::fromStdString(last_known_python_exe_));
 
-      emit valueChanged(last_known_python_exe_.toQString(), currently_valid_);
+      emit valueChanged(QString::fromStdString(last_known_python_exe_), currently_valid_);
     }
 
 
