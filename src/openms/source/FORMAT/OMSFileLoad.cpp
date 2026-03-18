@@ -1098,7 +1098,8 @@ namespace OpenMS::Internal
   }
 
 
-  nlohmann::json OMSFileLoad::exportTableToJSON_(const String& table, const String& order_by)
+  // file-local helper (was private method, moved here to avoid nlohmann include in header)
+  static nlohmann::json exportTableToJSON_(SQLite::Database& db, const String& table, const String& order_by)
   {
     using json = nlohmann::json;
     // code based on: https://stackoverflow.com/a/18067555
@@ -1108,7 +1109,7 @@ namespace OpenMS::Internal
       sql += " ORDER BY " + order_by;
     }
 
-    SQLite::Statement query(*db_, sql);
+    SQLite::Statement query(db, sql);
 
     json array = json::array();
     while (query.executeStep())
@@ -1163,7 +1164,7 @@ namespace OpenMS::Internal
       {
         order_by = pos->second;
       }
-      json_data[table] = exportTableToJSON_(table, order_by);
+      json_data[table] = exportTableToJSON_(*db_, table, order_by);
     }
 
     output << json_data.dump(4) << '\n';

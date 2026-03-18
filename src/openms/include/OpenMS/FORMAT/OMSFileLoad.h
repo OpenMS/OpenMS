@@ -12,8 +12,6 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
 
-#include <nlohmann/json.hpp> // for JSON export
-
 namespace SQLite
 {
   class Database;
@@ -174,9 +172,6 @@ namespace OpenMS
       void handleQueryPeakAnnotation_(
         SQLite::Statement& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
-
-      /// Export the contents of a database table to JSON
-      nlohmann::json exportTableToJSON_(const String& table, const String& order_by);
 
       /// The database connection (read)
       std::unique_ptr<SQLite::Database> db_;
