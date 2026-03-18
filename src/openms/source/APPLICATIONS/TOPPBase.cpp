@@ -43,6 +43,8 @@
 
 #include <OpenMS/SYSTEM/PathUtils.h>
 
+#include <QtCore/QDateTime> // still needed for logging timestamps; removed in PR 2 (DateTime)
+
 #include <filesystem>
 #include <iostream>
 
@@ -2440,7 +2442,7 @@ namespace OpenMS
       toolInfo.citations_   = citation_dois;
 
       // this will write the actual data to disk
-      writer.store(write_file.toStdString(), default_params, toolInfo);
+      writer.store(write_file, default_params, toolInfo);
     }
   }
 
