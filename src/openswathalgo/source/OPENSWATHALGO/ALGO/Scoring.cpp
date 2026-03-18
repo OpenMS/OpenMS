@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <Eigen/Core>
+#include <Eigen/Dense>
 
 namespace OpenSwath::Scoring
 {
@@ -182,12 +183,16 @@ namespace OpenSwath::Scoring
 
       for (int delay = -maxdelay; delay <= maxdelay; delay += lag)
       {
-        double sxy = 0;
         const int start = std::max(0, -delay);
         const int end = std::min(datasize, datasize - delay);
-        for (int i = start; i < end; ++i)
+        const int len = end - start;
+
+        double sxy = 0.0;
+        if (len > 0)
         {
-          sxy += d1[i] * d2[i + delay];
+          Eigen::Map<const Eigen::VectorXd> sub1(d1 + start, len);
+          Eigen::Map<const Eigen::VectorXd> sub2(d2 + start + delay, len);
+          sxy = sub1.dot(sub2);
         }
         result.data.push_back(std::make_pair(delay, sxy));
       }
@@ -198,64 +203,57 @@ namespace OpenSwath::Scoring
                                             std::vector<double>& data2, bool normalize)
     {
       OPENSWATH_PRECONDITION(!data1.empty() && data1.size() == data2.size(), "Both data vectors need to have the same length");
-      int maxdelay = static_cast<int>(data1.size());
+      int datasize = static_cast<int>(data1.size());
+      int maxdelay = datasize;
       int lag = 1;
 
-      double mean1 = std::accumulate(data1.begin(), data1.end(), 0.) / (double)data1.size();
-      double mean2 = std::accumulate(data2.begin(), data2.end(), 0.) / (double)data2.size();
-      double denominator = 1.0;
-      int datasize = static_cast<int>(data1.size());
-      int i, j, delay;
+      Eigen::Map<Eigen::VectorXd> map1(data1.data(), datasize);
+      Eigen::Map<Eigen::VectorXd> map2(data2.data(), datasize);
 
-      // Normalized cross-correlation = subtract the mean and divide by the standard deviation
+      double mean1 = map1.mean();
+      double mean2 = map2.mean();
+      double denominator = 1.0;
+
       if (normalize)
       {
-        double sqsum1 = 0;
-        double sqsum2 = 0;
-        for (std::vector<double>::iterator it = data1.begin(); it != data1.end(); ++it)
-        {
-          sqsum1 += (*it - mean1) * (*it - mean1);
-        }
-
-        for (std::vector<double>::iterator it = data2.begin(); it != data2.end(); ++it)
-        {
-          sqsum2 += (*it - mean2) * (*it - mean2);
-        }
-        // sigma_1 * sigma_2 * n
-        denominator = sqrt(sqsum1 * sqsum2);
+        double sqsum1 = (map1.array() - mean1).square().sum();
+        double sqsum2 = (map2.array() - mean2).square().sum();
+        denominator = std::sqrt(sqsum1 * sqsum2);
       }
-      //avoids division in the for loop
-      denominator = 1/denominator;
+
+      denominator = (denominator > 0) ? (1.0 / denominator) : 0.0;
+
       XCorrArrayType result;
-      result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
-      int cnt = 0;
-      for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag, cnt++)
+      result.data.reserve( (size_t)std::ceil((2*maxdelay + 1.0) / lag));
+
+      for (int delay = -maxdelay; delay <= maxdelay; delay += lag)
       {
-        double sxy = 0;
-        for (i = 0; i < datasize; i++)
+        double sxy = 0.0;
+        int start = std::max(0, -delay);
+        int end = std::min(datasize, datasize - delay);
+        int len = end - start;
+
+        if (len > 0)
         {
-          j = i + delay;
-          if (j < 0 || j >= datasize)
-          {
-            continue;
-          }
+          Eigen::Map<Eigen::VectorXd> sub1(data1.data() + start, len);
+          Eigen::Map<Eigen::VectorXd> sub2(data2.data() + start + delay, len);
+
           if (normalize)
           {
-            sxy += (data1[i] - mean1) * (data2[j] - mean2);
+            sxy = (sub1.array() - mean1).matrix().dot((sub2.array() - mean2).matrix());
           }
           else
           {
-            sxy += (data1[i]) * (data2[j]);
+            sxy = sub1.dot(sub2);
           }
         }
 
         if (denominator > 0)
         {
-          result.data.emplace_back(delay, sxy*denominator);
+          result.data.emplace_back(delay, sxy * denominator);
         }
         else
         {
-          // e.g. if all datapoints are zero
           result.data.emplace_back(delay, 0);
         }
       }
