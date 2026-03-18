@@ -169,7 +169,7 @@ can adjust the smoothing parameters for the peak picking, by adjusting
 Gaussian smoothing based on your estimated peak width. Adjusting the signal
 to noise threshold will make the peaks wider or smaller.
 
-<h3>Output: Feature list and chromatograms </h3>
+<h3>Output: Feature list, chromatograms, and ion mobilograms </h3>
 The output of the OpenSwathWorkflow is a feature list, either as FeatureXML,
 a @ref OpenMS::OSWFile "OpenSWATH SQLite file", or an OpenSWATH Parquet output
 (use @p -out_features) while the SQLite output is more memory
@@ -181,6 +181,12 @@ For downstream analysis (e.g. using pyProphet) the @ref OpenMS::OSWFile "OSWFile
 
 In addition, the extracted chromatograms can be written out using the
 @p -out_chrom parameter.
+
+When processing ion mobility (diaPASEF) data, the extracted ion mobilograms
+(XIMs) can optionally be saved to a Parquet file using the @p -out_mobilogram
+parameter. The output file must have the @p .xim extension and requires OpenMS
+to be built with Parquet support (@p WITH_PARQUET). The resulting file can be
+read back using the @ref OpenMS::XIMParquetFile "XIMParquetFile" class.
 
 <h4> Feature list output format </h4>
 
