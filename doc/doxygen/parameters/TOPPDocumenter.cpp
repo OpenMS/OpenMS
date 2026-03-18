@@ -14,6 +14,10 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
+#include <QtCore/QString>
+#include <QtCore/QStringList>
+#include <QtCore/QProcess> // for qputenv
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
