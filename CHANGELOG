@@ -115,6 +115,7 @@ PyOpenMS:
   - Zero-copy get_peaks_struct() accessor for MSChromatogram and Mobilogram (#8825, #8842)
   - Complete FileHandler wrapper: 14 new load/store methods for FeatureMap, ConsensusMap, identifications, and transformations (#8762)
   - PeptideAndProteinQuant: getPeptideResults() and getProteinResults() now exposed (#8543)
+  - IDConflictResolverAlgorithm: resolveAllHitRankAggregation() for FeatureMap and ConsensusMap now exposed (#8907)
   - BREAKING: Zero-copy _mv methods renamed to _view (e.g., get_data_mv() → get_data_view()); deprecated _mv aliases provided for backward compatibility (#8857)
 
 TOPP tools:
@@ -150,6 +151,8 @@ TOPP tools:
       - Consensus spectra now annotated with original native IDs, file origins, and cluster size (#8864)
     MetaboliteAdductDecharger:
       - Added multimer detection (dimers, trimers, etc.) with new max_multimer and multimer_log_penalty parameters; features annotated with [nM+adduct]+ style strings (#8888)
+    IDConflictResolver:
+      - Added rank aggregation resolve method (--resolve_method rank_aggregation) for consensus replicate identifications (#8907)
 
 OpenMS Library:
   Added:
@@ -223,6 +226,7 @@ OpenMS Library:
     - Use unordered_map in PrecursorPurity, PeptideProteinResolution, and PeptideIndexing for faster lookups (#8806, #8763)
     - OpenSwath scoring speedups: cap XCorr maxdelay, vectorize DIAScoring, hoist loop-invariant computations, pass SwathMap by const& (#8787, #8785)
     - BREAKING: ChromatogramPeak::IntensityType changed from double to float for consistency with Peak1D (#8857)
+    - AccurateMassSearchEngine: Performance improvement when use_feature_adducts is set and a specific adduct is observed; only that adduct is evaluated instead of the full list (fixes #5867) (#8635)
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
