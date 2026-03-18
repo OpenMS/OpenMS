@@ -2260,6 +2260,10 @@ set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_6_out1" PROPERTIES DEPENDS "
 add_test("TOPP_FeatureLinkerUnlabeledKD_7" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input3.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledKD_7_output.tmp.consensusXML -algorithm:link:charge_merging Any -algorithm:link:adduct_merging Identical)
  add_test("TOPP_FeatureLinkerUnlabeledKD_7_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledKD_7_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_7_output.consensusXML )
 set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_7_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_7")
+# regression test for #8927: charge_merging=Any with different non-zero charges must not segfault
+add_test("TOPP_FeatureLinkerUnlabeledKD_8" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_charge_any_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_charge_any_input2.featureXML -out ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledKD_8_output.tmp.consensusXML -algorithm:link:charge_merging Any)
+add_test("TOPP_FeatureLinkerUnlabeledKD_8_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureLinkerUnlabeledKD_8_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_8_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_8_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_8")
 
 
 
