@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -76,20 +76,17 @@ public:
           spec.setSourceFile(it->getSourceFile());
 
           // TODO implement others
-          if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+          if (it->getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
           {
-            spec.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+            spec.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
           }
-          if (it->getChromatogramType() == ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM)
+          if (it->getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_ION_MONITORING_CHROMATOGRAM)
           {
-            spec.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+            spec.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SIM);
           }
 
           // new spec contains one peak, with product m/z and intensity
-          typename ExperimentType::PeakType peak;
-          peak.setMZ(it->getMZ());
-          peak.setIntensity(pit->getIntensity());
-          spec.push_back(peak);
+          spec.emplace_back(it->getMZ(), pit->getIntensity());
           exp.addSpectrum(spec);
         }
       }
@@ -105,9 +102,9 @@ public:
       which can be stored much more efficiently than spectra based chromatograms.
       However, most other file formats do not support chromatograms.
 
-      @param exp the experiment to be converted.
-      @param remove_spectra if set to true, the chromatogram spectra are removed from the experiment.
-      @param force_conversion Convert even if ScanMode is not SRM or if there are no precursors (e.g. GC-MS data)
+      @param[in,out] exp the experiment to be converted.
+      @param[in] remove_spectra if set to true, the chromatogram spectra are removed from the experiment.
+      @param[in] force_conversion Convert even if ScanMode is not SRM or if there are no precursors (e.g. GC-MS data)
     */
     template <typename ExperimentType>
     void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false, bool force_conversion = false)
@@ -118,7 +115,7 @@ public:
       for (typename ExperimentType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
       {
         // TODO other types
-        if (it->getInstrumentSettings().getScanMode() == InstrumentSettings::SRM || force_conversion)
+        if (it->getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::SRM || force_conversion)
         {
           // exactly one precursor and one product ion
           if (it->getPrecursors().size() == 1 && it->size() == 1)
@@ -206,14 +203,14 @@ public:
           }
 
           chrom.setNativeID("chromatogram=" + it2->second.begin()->getNativeID());               // TODO native id?
-          chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+          chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
           exp.addChromatogram(chrom);
         }
       }
 
       if (remove_spectra)
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<SpectrumType>(InstrumentSettings::SRM)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<SpectrumType>(static_cast<Int>(InstrumentSettings::ScanMode::SRM))), exp.end());
       }
     }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,7 +16,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 
 /**
@@ -53,15 +53,15 @@ private:
     If the feature has no PepID's or the corresponding CF has no PepIDs,
     no row will be exported
 
-  @param f Feature to extract evidence data
-  @param cmap ConsensusMap to extract msms data if Feature has no valid PeptideIdentifications
-  @param c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
-  @param raw_file is specifying the raw_file the feature belongs to
-  @param UIDs UIDs of all PeptideIdentifications of the ConsensusMap
-  @param mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
+  @param[in] f Feature to extract evidence data
+  @param[in] cmap ConsensusMap to extract msms data if Feature has no valid PeptideIdentifications
+  @param[in] c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
+  @param[in] raw_file is specifying the raw_file the feature belongs to
+  @param[in] UIDs UIDs of all PeptideIdentifications of the ConsensusMap
+  @param[in] mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
          from PeptideIdenfitication::buildUIDfromAllPepIds
-  @param exp MS Experiment holds evidence data to extract
-  @param prot_map Mapping a protein_accession to its description(proteinname, genename...)
+  @param[in] exp MS Experiment holds evidence data to extract
+  @param[in] prot_map Mapping a protein_accession to its description(proteinname, genename...)
 */
 
   void exportRowFromFeature_(const OpenMS::Feature& f,
@@ -83,7 +83,7 @@ public:
 
     @throw Exception::FileNotWritable if msms.txt could not be created
 
-    @param path that is the path where msms.txt has to be stored
+    @param[in] path that is the path where msms.txt has to be stored
 
   */
   explicit MQMsms(const OpenMS::String& path);

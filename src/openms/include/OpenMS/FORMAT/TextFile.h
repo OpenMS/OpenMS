@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -44,23 +44,25 @@ public:
     /**
       @brief Constructor with filename
 
-      @param filename The input file name
-      @param trim_lines Whether or not the lines are trimmed when reading them from file
-      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read
-      @param skip_empty_lines Should empty lines be skipped? If used in conjunction with @p trim_lines, also lines with only whitespace will be skipped. Skipped lines do not count towards the total number of read lines.
-      @param comment_symbol Lines prefixed with this string are skipped. Comment lines do not count towards the total number of read lines.
+      @param[in] filename The input file name
+      @param[in] trim_lines Whether or not the lines are trimmed when reading them from file
+      @param[in] first_n If set, only @p first_n lines the lines from the beginning of the file are read
+      @param[in] skip_empty_lines Should empty lines be skipped? If used in conjunction with @p trim_lines, also lines with only whitespace will be skipped. Skipped lines do not count towards the total number of read lines.
+      @param[in] comment_symbol Lines prefixed with this string are skipped. Comment lines do not count towards the total number of read lines.
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
     TextFile(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false, const String& comment_symbol = "");
 
     /**
-      @brief Loads data from a text file.
+      @brief Loads data from a text file into the internal buffer.
 
-      @param filename The input file name
-      @param trim_lines Whether or not the lines are trimmed when reading them from file
-      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read
-      @param skip_empty_lines Should empty lines be skipped? If used in conjunction with @p trim_lines, also lines with only whitespace will be skipped. Skipped lines do not count towards the total number of read lines.
-      @param comment_symbol Lines prefixed with this string are skipped. Comment lines do not count towards the total number of read lines.
+      Retrieve the data using begin() and end().
+
+      @param[in] filename The input file name
+      @param[in] trim_lines Whether or not the lines are trimmed when reading them from file
+      @param[in] first_n If set, only @p first_n lines the lines from the beginning of the file are read
+      @param[in] skip_empty_lines Should empty lines be skipped? If used in conjunction with @p trim_lines, also lines with only whitespace will be skipped. Skipped lines do not count towards the total number of read lines.
+      @param[in] comment_symbol Lines prefixed with this string are skipped. Comment lines do not count towards the total number of read lines.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
@@ -68,6 +70,8 @@ public:
 
     /**
       @brief Writes the data to a file
+
+      @param[in] filename The output file name
 
       @note This function uses platform-dependent line breaks
 

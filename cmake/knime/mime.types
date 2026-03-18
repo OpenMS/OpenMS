@@ -32,7 +32,6 @@ application/x-fasta fasta fa
 application/x-edta EDTA
 application/x-psq psq
 application/x-exe exe
-application/x-mzquantml mzq
 application/x-qcml qcml
 application/x-mztab mzTab
 application/x-paramxml paramXML

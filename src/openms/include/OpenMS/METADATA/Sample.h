@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,23 +8,18 @@
 
 #pragma once
 
-#include <list>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
-  class SampleTreatment;
-
   /**
       @brief Meta information about the sample
 
       It contains basic descriptions like name, number (i.e. order number), mass,
       volume, concentration, state and a comment.
-
-      Additionally sample treatments like Digestion, Modification or Tagging can be added.
 
       A Sample can be composed of other samples.
 
@@ -35,9 +30,20 @@ namespace OpenMS
   {
 public:
     ///state of aggregation of the sample
-    enum SampleState {SAMPLENULL, SOLID, LIQUID, GAS, SOLUTION, EMULSION, SUSPENSION, SIZE_OF_SAMPLESTATE};
+    enum class SampleState {SAMPLENULL, SOLID, LIQUID, GAS, SOLUTION, EMULSION, SUSPENSION, SIZE_OF_SAMPLESTATE};
     /// Names of sample states
-    static const std::string NamesOfSampleState[SIZE_OF_SAMPLESTATE];
+    static const std::string NamesOfSampleState[static_cast<size_t>(SampleState::SIZE_OF_SAMPLESTATE)];
+
+    /// returns all sample state names known to OpenMS
+    static StringList getAllNamesOfSampleState();
+
+    /// convert a SampleState enum to String
+    /// @throws Exception::InvalidValue if @p state is SIZE_OF_SAMPLESTATE
+    static const std::string& sampleStateToString(SampleState state);
+
+    /// convert an entry in NamesOfSampleState[] to SampleState enum
+    /// @throws Exception::InvalidValue if @p name is not contained in NamesOfSampleState[]
+    static SampleState toSampleState(const std::string& name);
 
     /// Default constructor
     Sample();
@@ -103,40 +109,6 @@ public:
     /// sets the vector of subsamples that were combined to create this sample
     void setSubsamples(const std::vector<Sample> & subsamples);
 
-    /**
-        @brief adds a sample treatment before the given position (default is
-        the end of the list). Sample treatments are ordered in the order of
-        application to the sample. If before_position is smaller than 0, the
-        sample treatment is appended to the list.
-
-        @exception Exception::IndexOverflow is thrown if the position is invalid.
-    */
-    void addTreatment(const SampleTreatment & treatment, Int before_position = -1);
-
-    /**
-        @brief returns a mutable reference to the sample treatment at the given position
-
-        @exception Exception::IndexOverflow is thrown if the position is invalid.
-    */
-    SampleTreatment & getTreatment(UInt position);
-
-    /**
-        @brief returns a const reference to the sample treatment at the given position
-
-        @exception Exception::IndexOverflow is thrown if the position is invalid.
-    */
-    const SampleTreatment & getTreatment(UInt position) const;
-
-    /**
-        @brief removes the sample treatment at the given position
-
-        @exception Exception::IndexOverflow is thrown if the position is invalid.
-    */
-    void removeTreatment(UInt position);
-
-    /// returns the number of sample treatments
-    Int countTreatments() const;
-
 protected:
     String name_;
     String number_;
@@ -147,12 +119,6 @@ protected:
     double volume_;
     double concentration_;
     std::vector<Sample> subsamples_;
-
-    // note: default move constructor / assignment operator will work on this,
-    // since it will move the whole vector over to the new object who will then
-    // own the memory.
-    std::list<SampleTreatment *> treatments_;
-
   };
 } // namespace OpenMS
 

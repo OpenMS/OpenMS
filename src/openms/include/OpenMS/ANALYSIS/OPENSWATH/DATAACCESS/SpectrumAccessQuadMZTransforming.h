@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -29,11 +29,11 @@ namespace OpenMS
 public:
 
     /** @brief Constructor
-     * @param sptr The spectrum to work on
-     * @param a Regression parameter 0
-     * @param b Regression parameter 1
-     * @param c Regression parameter 2
-     * @param ppm Whether the transformation should be applied in ppm domain
+     * @param[in] sptr The spectrum to work on
+     * @param[in] a Regression parameter 0
+     * @param[in] b Regression parameter 1
+     * @param[in] c Regression parameter 2
+     * @param[in] ppm Whether the transformation should be applied in ppm domain
      *            (if false, it is applied directly in m/z domain)
      *
     */
@@ -42,7 +42,7 @@ public:
         
     ~SpectrumAccessQuadMZTransforming() override;
 
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
+    std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
 
     OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 

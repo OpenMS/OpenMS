@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -150,24 +150,24 @@ namespace OpenMS
 
       if (transition.isProductChargeStateSet())
       {
-        t.fragment_charge = transition.getProductChargeState();
+        t.fragment_charge = static_cast<int8_t>(transition.getProductChargeState());
       }
-      t.decoy = false;
+      t.setDecoy(false);
 
       // legacy
 #if 1
       const auto& cv_terms = transition.getCVTerms();
       if (cv_terms.find("decoy") != cv_terms.end() && cv_terms.at("decoy")[0].getValue().toString() == "1" )
       {
-        t.decoy = true;
+        t.setDecoy(true);
       }
       else if (cv_terms.find("MS:1002007") != cv_terms.end())    // target SRM transition
       {
-        t.decoy = false;
+        t.setDecoy(false);
       }
       else if (cv_terms.find("MS:1002008") != cv_terms.end())    // decoy SRM transition
       {
-        t.decoy = true;
+        t.setDecoy(true);
       }
       else if (cv_terms.find("MS:1002007") != cv_terms.end() && cv_terms.find("MS:1002008") != cv_terms.end())    // both == illegal
       {
@@ -180,16 +180,16 @@ namespace OpenMS
           transition.getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
       {
         // assume its target
-        t.decoy = false;
+        t.setDecoy(false);
       }
       else if (transition.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
       {
-        t.decoy = true;
+        t.setDecoy(true);
       }
 
-      t.detecting_transition = transition.isDetectingTransition();
-      t.identifying_transition = transition.isIdentifyingTransition();
-      t.quantifying_transition = transition.isQuantifyingTransition();
+      t.setDetectingTransition(transition.isDetectingTransition());
+      t.setIdentifyingTransition(transition.isIdentifyingTransition());
+      t.setQuantifyingTransition(transition.isQuantifyingTransition());
 
       transition_exp.transitions.push_back(t);
     }

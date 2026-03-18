@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -47,7 +47,7 @@ public:
         If there is an error occurred while reading data from InputSource,
         @c IOException is thrown.
 
-        @param fname The name of the input source.
+        @param[in] fname The name of the input source.
        */
       void load(const std::string & fname);
 
@@ -61,7 +61,7 @@ public:
       /**
         Parses the the given input source @c is .
 
-        @param is The InputSource
+        @param[in] is The InputSource
        */
       virtual void parse(InputSource & is) = 0;
 

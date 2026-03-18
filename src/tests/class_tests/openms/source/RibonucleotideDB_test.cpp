@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -33,18 +33,6 @@ START_SECTION(RibonucleotideDB* getInstance())
 END_SECTION
 
 START_SECTION(virtual ~RibonucleotideDB())
-  NOT_TESTABLE
-END_SECTION
-
-START_SECTION(void readFromJSON_(void const std::string& path))
-  // Reading from the JSON gets tested as part of the constructor above.
-  // We check the contents below in begin() and getRibonucleotide
-  NOT_TESTABLE
-END_SECTION
-
-START_SECTION(void readFromFile_(void const std::string& path))
-  // Reading from the TSV gets tested as part of the constructor above.
-  // We check the contents below in getRibonucleotide and getRibonucleotideAlternatives
   NOT_TESTABLE
 END_SECTION
 

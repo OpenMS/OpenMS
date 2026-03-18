@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
+#include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -20,12 +20,13 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <bitset>
 #include <vector>
@@ -111,27 +112,27 @@ namespace OpenMS
     typedef FeatureMap FeatureMapType;
 
     /// SharedPtr on feature map
-    typedef boost::shared_ptr<FeatureMap> FeatureMapSharedPtrType;
+    typedef std::shared_ptr<FeatureMap> FeatureMapSharedPtrType;
 
     /// consensus features
     typedef ConsensusMap ConsensusMapType;
 
     /// SharedPtr on consensus features
-    typedef boost::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
+    typedef std::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
 
     /// Main data type (experiment)
-    typedef PeakMap ExperimentType;
+    typedef AnnotatedMSRun ExperimentType;
 
     /// SharedPtr on MSExperiment
-    typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
+    typedef std::shared_ptr<ExperimentType> ExperimentSharedPtrType;
 
-    typedef boost::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
+    typedef std::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
 
     /// SharedPtr on On-Disc MSExperiment
-    typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
+    typedef std::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
 
     /// SharedPtr on OSWData
-    typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
+    typedef std::shared_ptr<OSWData> OSWDataSharedPtrType;
   };
 
   /**
@@ -268,7 +269,7 @@ namespace OpenMS
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
     /// Will return false otherwise.
-    virtual bool annotate(const std::vector<PeptideIdentification>& identifications,
+    virtual bool annotate(const PeptideIdentificationList& identifications,
                           const std::vector<ProteinIdentification>& protein_identifications);
 
 
@@ -365,9 +366,9 @@ namespace OpenMS
     /**
         @brief C'tor with params
         
-        @param supported_types Which identification data types are allowed to be opened by the user in annotate()
-        @param file_dialog_text The header text of the file dialog shown to the user
-        @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
+        @param[in] supported_types Which identification data types are allowed to be opened by the user in annotate()
+        @param[in] file_dialog_text The header text of the file dialog shown to the user
+        @param[in] gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
     LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
     

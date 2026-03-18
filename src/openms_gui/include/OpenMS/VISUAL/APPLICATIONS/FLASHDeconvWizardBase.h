@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,7 +16,6 @@
 
 // QT
 #include <QtCore/QProcess>
-#include <QtNetwork/QNetworkReply>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
@@ -30,8 +29,6 @@ class QLabel;
 class QWidget;
 class QTreeWidget;
 class QTreeWidgetItem;
-class QWebView;
-class QNetworkAccessManager;
 
 namespace Ui
 {

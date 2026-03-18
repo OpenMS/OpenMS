@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -154,7 +154,7 @@ namespace OpenMS
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
-      ion_names.setName("IonNames");
+      ion_names.setName(Constants::UserParam::IonNames);
     }
 
     std::vector< LossIndex > forward_losses;
@@ -251,8 +251,8 @@ namespace OpenMS
     {
       case Residue::AIon: intensity = a_intensity_; break;
       case Residue::BIon: intensity = b_intensity_; break;
-      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = c_intensity_; break;
-      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = x_intensity_; break;
+      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1, "peptide must have at least 2 residues for c-ion generation"); intensity = c_intensity_; break;
+      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1, "peptide must have at least 2 residues for x-ion generation"); intensity = x_intensity_; break;
       case Residue::YIon: intensity = y_intensity_; break;
       case Residue::ZIon: intensity = z_intensity_; break;
       default: break;
@@ -349,7 +349,7 @@ namespace OpenMS
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
-      ion_names.setName("IonNames");
+      ion_names.setName(Constants::UserParam::IonNames);
     }
 
     std::vector< LossIndex > forward_losses;
@@ -456,8 +456,8 @@ namespace OpenMS
     {
       case Residue::AIon: intensity = a_intensity_; break;
       case Residue::BIon: intensity = b_intensity_; break;
-      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = c_intensity_; break;
-      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = x_intensity_; break;
+      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1, "peptide must have at least 2 residues for c-ion generation"); intensity = c_intensity_; break;
+      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1, "peptide must have at least 2 residues for x-ion generation"); intensity = x_intensity_; break;
       case Residue::YIon: intensity = y_intensity_; break;
       case Residue::ZIon: intensity = z_intensity_; break;
       default: break;
@@ -848,7 +848,7 @@ namespace OpenMS
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
-      ion_names.setName("IonNames");
+      ion_names.setName(Constants::UserParam::IonNames);
     }
 
     std::vector< LossIndex > forward_losses;
@@ -1005,8 +1005,8 @@ namespace OpenMS
     {
       case Residue::AIon: intensity = a_intensity_; break;
       case Residue::BIon: intensity = b_intensity_; break;
-      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = c_intensity_; break;
-      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = x_intensity_; break;
+      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1, "peptide must have at least 2 residues for c-ion generation"); intensity = c_intensity_; break;
+      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1, "peptide must have at least 2 residues for x-ion generation"); intensity = x_intensity_; break;
       case Residue::YIon: intensity = y_intensity_; break;
       case Residue::ZIon: intensity = z_intensity_; break;
       default: break;

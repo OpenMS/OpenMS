@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
+#include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -108,7 +108,7 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
     // check for peak type (raw data required)
-    if (ms_exp[0].getType(true) == SpectrumSettings::CENTROID)
+    if (ms_exp[0].getType(true) == SpectrumSettings::SpectrumType::CENTROID)
     {
       writeLogWarn_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
     }

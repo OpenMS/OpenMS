@@ -7,6 +7,7 @@ AccurateMassSearch
 AssayGeneratorMetabo
 AssayGeneratorMetaboSirius
 BaselineFilter
+FeatureFinderLFQ
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CometAdapter
@@ -29,7 +30,6 @@ FeatureFinderCentroided
 FeatureFinderIdentification
 FeatureFinderMetabo
 FeatureFinderMetaboIdent
-FeatureFinderMRM
 FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
@@ -50,7 +50,6 @@ IDExtractor
 IDFileConverter
 IDFilter
 IDMapper
-IDMassAccuracy
 IDMerger
 IDPosteriorErrorProbability
 IDRipper
@@ -58,18 +57,18 @@ IDRTCalibration
 IDScoreSwitcher
 IDSplitter
 InternalCalibration
+IonMobilityBinning
 IsobaricAnalyzer
+IsobaricWorkflow
 JSONExporter
 LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
-MapAlignerSpectrum
 MapAlignerTreeGuided
 MapNormalizer
 MapRTTransformer
 MapStatistics
 MaRaClusterAdapter
-MascotAdapter
 MascotAdapterOnline
 MassCalculator
 MassTraceExtractor
@@ -90,8 +89,8 @@ NovorAdapter
 NucleicAcidSearchEngine
 OpenMSDatabasesInfo
 OpenMSInfo
+OpenNuXL
 OpenPepXL
-OpenPepXLLF
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
@@ -101,12 +100,13 @@ OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative
+PeakPickerIM
 PeptideIndexer
+PeptideDataBaseSearchFI
 PercolatorAdapter
 PhosphoScoring
 ProteinInference
 ProteinQuantifier
-ProteinResolver
 ProteomicsLFQ
 PSMFeatureExtractor
 QCCalculator
@@ -126,14 +126,8 @@ SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
 SiriusExport
-SpecLibCreator
-SpecLibSearcher
-SpectraFilterBernNorm
 SpectraFilterNLargest
 SpectraFilterNormalizer
-SpectraFilterParentPeakMower
-SpectraFilterScaler
-SpectraFilterSqrtMower
 SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger
@@ -143,7 +137,6 @@ TICCalculator
 TextExporter
 TriqlerConverter
 XFDR
-XTandemAdapter
 XMLValidator
 )
 
@@ -159,6 +152,13 @@ if(NOT DISABLE_OPENSWATH)
     MRMTransitionGroupPicker
   )
 endif(NOT DISABLE_OPENSWATH)
+
+if(WITH_PARQUET)
+  set(TOPP_executables
+    ${TOPP_executables}
+    QPXConverter
+  )
+endif(WITH_PARQUET)
 
 ## all targets requiring OpenMS_GUI
 set(TOPP_executables_with_GUIlib

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,26 +6,33 @@
 // $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/config.h> // for OPENMS_ASSERTIONS
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <limits>
+#include <unordered_set>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
   /// Constructor
   MSExperiment::MSExperiment() :
-    RangeManagerContainerType(),
     ExperimentalSettings(),
-    ms_levels_(),
-    total_size_(0)
+    spectrum_ranges_(),
+    chromatogram_ranges_(),
+    combined_ranges_()
   {}
 
   /// Copy constructor
@@ -38,16 +45,15 @@ namespace OpenMS
     {
       return *this;
     }
-    RangeManagerContainerType::operator=(source);
     ExperimentalSettings::operator=(source);
 
-    ms_levels_ = source.ms_levels_;
-    total_size_ = source.total_size_;
     chromatograms_ = source.chromatograms_;
     spectra_ = source.spectra_;
-
-    //no need to copy the alloc?!
-    //alloc_
+    
+    // Copy the range managers
+    spectrum_ranges_ = source.spectrum_ranges_;
+    chromatogram_ranges_ = source.chromatogram_ranges_;
+    combined_ranges_ = source.combined_ranges_;
 
     return *this;
   }
@@ -73,6 +79,443 @@ namespace OpenMS
   bool MSExperiment::operator!=(const MSExperiment & rhs) const
   {
     return !(operator==(rhs));
+  }
+
+  Size MSExperiment::size() const noexcept
+  {
+    return spectra_.size();
+  }
+
+  void MSExperiment::resize(Size n)
+  {
+    spectra_.resize(n);
+  }
+
+  bool MSExperiment::empty() const noexcept
+  {
+    return spectra_.empty();
+  }
+
+  void MSExperiment::reserve(Size n)
+  {
+    spectra_.reserve(n);
+  }
+
+  MSExperiment::SpectrumType& MSExperiment::operator[](Size n)
+  {
+    return spectra_[n];
+  }
+
+  const MSExperiment::SpectrumType& MSExperiment::operator[](Size n) const
+  {
+    return spectra_[n];
+  }
+
+  MSExperiment::Iterator MSExperiment::begin() noexcept
+  {
+    return spectra_.begin();
+  }
+
+  MSExperiment::ConstIterator MSExperiment::begin() const noexcept
+  {
+    return spectra_.cbegin();
+  }
+
+  MSExperiment::ConstIterator MSExperiment::cbegin() const noexcept
+  {
+    return spectra_.cbegin();
+  }
+
+  MSExperiment::Iterator MSExperiment::end()
+  {
+    return spectra_.end();
+  }
+
+  MSExperiment::ConstIterator MSExperiment::end() const noexcept
+  {
+    return spectra_.cend();
+  }
+
+  MSExperiment::ConstIterator MSExperiment::cend() const noexcept
+  {
+    return spectra_.cend();
+  }
+
+  void MSExperiment::get2DPeakDataPerSpectrum(
+    CoordinateType min_rt,
+    CoordinateType max_rt,
+    CoordinateType min_mz,
+    CoordinateType max_mz,
+    Size ms_level,
+    std::vector<float>& rt,
+    std::vector<std::vector<float>>& mz,
+    std::vector<std::vector<float>>& intensity) const
+  {
+    float t = -1.0;
+    for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+    {
+      if (it.getRT() != t)
+      {
+        t = (float)it.getRT();
+        rt.push_back(t);
+        mz.push_back(std::vector<float>());
+        intensity.push_back(std::vector<float>());
+      }
+      mz.back().push_back((float)it->getMZ());
+      intensity.back().push_back(it->getIntensity());
+    }
+  }
+
+  void MSExperiment::get2DPeakDataIMPerSpectrum(
+    CoordinateType min_rt,
+    CoordinateType max_rt,
+    CoordinateType min_mz,
+    CoordinateType max_mz,
+    Size ms_level,
+    std::vector<float>& rt,
+    std::vector<std::vector<float>>& mz,
+    std::vector<std::vector<float>>& intensity,
+    std::vector<std::vector<float>>& ion_mobility) const
+  {
+    DriftTimeUnit unit = DriftTimeUnit::NONE;
+    std::vector<float> im;
+    float t = -1.0;
+    for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+    {
+      if (it.getRT() != t)
+      {
+        t = (float)it.getRT();
+        rt.push_back(t);
+        std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
+        mz.push_back(std::vector<float>());
+        intensity.push_back(std::vector<float>());
+        ion_mobility.push_back(std::vector<float>());
+      }
+
+      if (unit != DriftTimeUnit::NONE)
+      {
+        const Size peak_index = it.getPeakIndex().peak;
+        ion_mobility.back().push_back(im[peak_index]);
+      }
+      else
+      {
+        ion_mobility.back().push_back(-1.0);
+      }
+      mz.back().push_back((float)it->getMZ());
+      intensity.back().push_back(it->getIntensity());
+    }
+  }
+
+  void MSExperiment::get2DPeakData(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      Size ms_level,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
+      std::vector<float>& intensity) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+      {
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
+      }
+    }
+
+  void MSExperiment::get2DPeakDataIM(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      Size ms_level,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
+      std::vector<float>& intensity,
+      std::vector<float>& ion_mobility) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+      {
+        DriftTimeUnit unit = DriftTimeUnit::NONE;
+        std::vector<float> im;
+        float t = -1.0;
+        if (it.getRT() != t)
+        {
+          t = (float)it.getRT();
+          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
+        }
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
+        if (unit != DriftTimeUnit::NONE)
+        {
+          const Size peak_index = it.getPeakIndex().peak;
+          ion_mobility.push_back(im[peak_index]);
+        }
+        else
+        {
+          ion_mobility.push_back(-1.0);
+        }
+      }
+    }
+
+  void MSExperiment::rasterizeRTMZ(
+    float* output,
+    Size rt_bins,
+    Size mz_bins,
+    CoordinateType min_rt,
+    CoordinateType max_rt,
+    CoordinateType min_mz,
+    CoordinateType max_mz,
+    UInt ms_level,
+    RasterAggregation aggregation) const
+  {
+    // Runtime checks that work in Release builds (OPENMS_PRECONDITION is disabled in Release)
+    if (output == nullptr)
+    {
+      throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    if (rt_bins == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Number of RT bins must be positive", String(rt_bins));
+    }
+    if (mz_bins == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Number of m/z bins must be positive", String(mz_bins));
+    }
+    if (min_rt >= max_rt)
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    if (min_mz >= max_mz)
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    const Size total_pixels = rt_bins * mz_bins;
+
+    // Zero-initialize the output buffer
+    std::fill(output, output + total_pixels, 0.0f);
+
+    // If experiment is empty, return early
+    if (spectra_.empty())
+    {
+      return;
+    }
+
+    // Precompute bin sizes for mapping coordinates to pixel indices
+    const double rt_range = max_rt - min_rt;
+    const double mz_range = max_mz - min_mz;
+    const double rt_scale = static_cast<double>(rt_bins) / rt_range;
+    const double mz_scale = static_cast<double>(mz_bins) / mz_range;
+
+    // Find spectra in RT range using binary search (leveraging sortedness)
+    auto rt_begin_it = RTBegin(min_rt);
+    auto rt_end_it = RTEnd(max_rt);
+    
+    // Create a view of spectra with matching MS level in RT range
+    std::vector<std::reference_wrapper<const MSSpectrum>> spectra_view;
+    spectra_view.reserve(std::distance(rt_begin_it, rt_end_it));
+    
+    for (auto it = rt_begin_it; it != rt_end_it; ++it)
+    {
+      if (it->getMSLevel() == ms_level)
+      {
+        spectra_view.push_back(std::cref(*it));
+      }
+    }
+
+    // Early exit if no matching spectra
+    if (spectra_view.empty())
+    {
+      return;
+    }
+
+    // Determine number of threads.
+    // Each thread needs a full-size output buffer (total_pixels * 4 bytes) and the
+    // merge phase iterates all buffers sequentially. Too many threads causes the
+    // merge cost (num_threads * total_pixels) to dominate. We approximate:
+    //   processing_time ~ num_spectra / num_threads
+    //   merge_time      ~ num_threads * total_pixels
+    // Optimal: num_threads ~ sqrt(num_spectra / total_pixels * C)
+    // In practice, cap at sqrt(num_spectra) and limit total buffer memory to ~4MB.
+    int num_threads = 1;
+    #ifdef _OPENMP
+    {
+      int max_threads = omp_get_max_threads();
+      int max_by_memory = std::max(1, static_cast<int>(4ULL * 1024 * 1024 / (total_pixels * sizeof(float))));
+      int max_by_sqrt = std::max(1, static_cast<int>(std::sqrt(static_cast<double>(spectra_view.size()))));
+      num_threads = std::min({max_threads, max_by_memory, max_by_sqrt});
+    }
+    #endif
+
+    // For single-threaded case, write directly to output (skip buffer allocation + merge)
+    if (num_threads <= 1)
+    {
+      for (Size spec_idx = 0; spec_idx < spectra_view.size(); ++spec_idx)
+      {
+        const MSSpectrum& spec = spectra_view[spec_idx].get();
+        const double rt = spec.getRT();
+        Int64 rt_bin = static_cast<Int64>((rt - min_rt) * rt_scale);
+        if (rt_bin < 0) continue;
+        if (rt_bin >= static_cast<Int64>(rt_bins)) rt_bin = static_cast<Int64>(rt_bins) - 1;
+
+        auto mz_begin_it = spec.MZBegin(min_mz);
+        auto mz_end_it = spec.MZEnd(max_mz);
+        const Size peak_start = static_cast<Size>(mz_begin_it - spec.begin());
+        const Size peak_end = static_cast<Size>(mz_end_it - spec.begin());
+        const Int64 mz_bins_minus_one = static_cast<Int64>(mz_bins) - 1;
+
+        if (aggregation == RasterAggregation::SUM)
+        {
+          for (Size peak_idx = peak_start; peak_idx < peak_end; ++peak_idx)
+          {
+            Int64 mz_bin = static_cast<Int64>((spec[peak_idx].getMZ() - min_mz) * mz_scale);
+            if (mz_bin >= 0)
+            {
+              if (mz_bin > mz_bins_minus_one) mz_bin = mz_bins_minus_one;
+              output[static_cast<Size>(mz_bin) * rt_bins + static_cast<Size>(rt_bin)] += spec[peak_idx].getIntensity();
+            }
+          }
+        }
+        else
+        {
+          for (Size peak_idx = peak_start; peak_idx < peak_end; ++peak_idx)
+          {
+            Int64 mz_bin = static_cast<Int64>((spec[peak_idx].getMZ() - min_mz) * mz_scale);
+            if (mz_bin >= 0)
+            {
+              if (mz_bin > mz_bins_minus_one) mz_bin = mz_bins_minus_one;
+              const Size pixel_idx = static_cast<Size>(mz_bin) * rt_bins + static_cast<Size>(rt_bin);
+              const float intensity = spec[peak_idx].getIntensity();
+              if (intensity > output[pixel_idx]) output[pixel_idx] = intensity;
+            }
+          }
+        }
+      }
+      return;
+    }
+
+    // Multi-threaded: allocate thread-local accumulation buffers to avoid contention
+    std::vector<std::vector<float>> thread_buffers(num_threads);
+    for (auto& buf : thread_buffers)
+    {
+      buf.resize(total_pixels, 0.0f);
+    }
+
+    // Process spectra in parallel using thread-local buffers
+    #pragma omp parallel for schedule(dynamic) num_threads(num_threads)
+    for (Int64 spec_idx = 0; spec_idx < static_cast<Int64>(spectra_view.size()); ++spec_idx)
+    {
+      int thread_id = 0;
+      #ifdef _OPENMP
+      thread_id = omp_get_thread_num();
+      #endif
+      
+      float* local_buffer = thread_buffers[thread_id].data();
+      const MSSpectrum& spec = spectra_view[spec_idx].get();
+      
+      // Compute RT bin for this spectrum
+      const double rt = spec.getRT();
+      Int64 rt_bin = static_cast<Int64>((rt - min_rt) * rt_scale);
+
+      // Clamp to valid range: values exactly at max_rt should go in last bin
+      if (rt_bin < 0)
+      {
+        continue;
+      }
+      if (rt_bin >= static_cast<Int64>(rt_bins))
+      {
+        rt_bin = static_cast<Int64>(rt_bins) - 1;
+      }
+
+      // Use binary search to find peaks in m/z range (leveraging sortedness of peaks)
+      auto mz_begin_it = spec.MZBegin(min_mz);
+      auto mz_end_it = spec.MZEnd(max_mz);
+
+      // Convert to index-based loop for consistent processing
+      const Size peak_start = static_cast<Size>(mz_begin_it - spec.begin());
+      const Size peak_end = static_cast<Size>(mz_end_it - spec.begin());
+
+      // Process peaks within m/z range
+      const Int64 mz_bins_minus_one = static_cast<Int64>(mz_bins) - 1;
+      if (aggregation == RasterAggregation::SUM)
+      {
+        // Note: No SIMD here - scatter-add can have multiple peaks mapping to same bin
+        for (Size peak_idx = peak_start; peak_idx < peak_end; ++peak_idx)
+        {
+          const double mz = spec[peak_idx].getMZ();
+          Int64 mz_bin = static_cast<Int64>((mz - min_mz) * mz_scale);
+
+          // Clamp to valid range: values exactly at max_mz should go in last bin
+          if (mz_bin >= 0)
+          {
+            if (mz_bin > mz_bins_minus_one)
+            {
+              mz_bin = mz_bins_minus_one;
+            }
+            const Size pixel_idx = static_cast<Size>(mz_bin) * rt_bins + static_cast<Size>(rt_bin);
+            local_buffer[pixel_idx] += spec[peak_idx].getIntensity();
+          }
+        }
+      }
+      else // MAX aggregation
+      {
+        for (Size peak_idx = peak_start; peak_idx < peak_end; ++peak_idx)
+        {
+          const double mz = spec[peak_idx].getMZ();
+          Int64 mz_bin = static_cast<Int64>((mz - min_mz) * mz_scale);
+
+          // Clamp to valid range: values exactly at max_mz should go in last bin
+          if (mz_bin >= 0)
+          {
+            if (mz_bin > mz_bins_minus_one)
+            {
+              mz_bin = mz_bins_minus_one;
+            }
+            const Size pixel_idx = static_cast<Size>(mz_bin) * rt_bins + static_cast<Size>(rt_bin);
+            const float intensity = spec[peak_idx].getIntensity();
+            if (intensity > local_buffer[pixel_idx])
+            {
+              local_buffer[pixel_idx] = intensity;
+            }
+          }
+        }
+      }
+    }
+
+    // Merge thread-local buffers into output
+    if (aggregation == RasterAggregation::SUM)
+    {
+      // Sum reduction: add all thread buffers (iterating per-buffer is cache-friendly)
+      for (int t = 0; t < num_threads; ++t)
+      {
+        const float* thread_buf = thread_buffers[t].data();
+        #pragma omp simd
+        for (Size i = 0; i < total_pixels; ++i)
+        {
+          output[i] += thread_buf[i];
+        }
+      }
+    }
+    else // MAX aggregation
+    {
+      // Max reduction: take maximum across all thread buffers
+      for (int t = 0; t < num_threads; ++t)
+      {
+        const float* thread_buf = thread_buffers[t].data();
+        for (Size i = 0; i < total_pixels; ++i)
+        {
+          if (thread_buf[i] > output[i])
+          {
+            output[i] = thread_buf[i];
+          }
+        }
+      }
+    }
   }
 
   void MSExperiment::reserveSpaceSpectra(Size s)
@@ -215,130 +658,110 @@ namespace OpenMS
 
   /**
   @name Range methods
-
-  @note The range values (min, max, etc.) are not updated automatically. Call updateRanges() to update the values!
   */
-  ///@{
-  // Docu in base class
-  void MSExperiment::updateRanges()
-  {
-    updateRanges(-1);
-  }
 
   /**
-  @brief Updates the m/z, intensity, retention time and MS level ranges of all spectra with a certain ms level
-
-  @param ms_level MS level to consider for m/z range, RT range and intensity range (all MS levels if negative)
+  @brief Updates the m/z, intensity, retention time, ion mobility ranges for all spectra and chromatograms
   */
-  void MSExperiment::updateRanges(Int ms_level)
+  void MSExperiment::updateRanges()
   {
-    // clear MS levels
-    ms_levels_.clear();
+    #ifdef OPENMS_ASSERTIONS
+      double rt_min = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMinRT();
+      double rt_max = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMaxRT();
+      double mz_min = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMinMZ();
+      double mz_max = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMaxMZ();
+      double int_min = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMinIntensity();
+      double int_max = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMaxIntensity();
+      double im_min = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMinMobility();
+      double im_max = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMaxMobility();
+    #endif
 
-    // reset mz/rt/int range
-    this->clearRanges();
-    // reset point count
-    total_size_ = 0;
+    // Reset all range managers
+    clearRanges();
 
-    // empty
+    // Empty experiment
     if (spectra_.empty() && chromatograms_.empty())
     {
       return;
     }
 
-    // update
+    // Update spectrum ranges
     for (Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
-    {
-      if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
-      {
-        //ms levels
-        if (std::find(ms_levels_.begin(), ms_levels_.end(), it->getMSLevel()) == ms_levels_.end())
-        {
-          ms_levels_.push_back(it->getMSLevel());
-        }
-
-        // calculate size
-        total_size_ += it->size();
-
-        // ranges
-        this->extendRT(it->getRT()); // RT
-        this->extendMobility(it->getDriftTime()); // IM
-        it->updateRanges();
-        this->extend(*it);           // m/z and intensity from spectrum's range
-      }
-      // for MS level = 1 we extend the range for all the MS2 precursors
-      if (ms_level == 1 && it->getMSLevel() == 2)
-      {
-        if (!it->getPrecursors().empty())
-        {
-          this->extendRT(it->getRT());
-          this->extendMZ(it->getPrecursors()[0].getMZ());
-        }
-      }
-
-    }
-    std::sort(ms_levels_.begin(), ms_levels_.end());
-
-    if (this->chromatograms_.empty())
-    {
-      return;
+    {      
+      // Update ranges for the spectrum itself
+      it->updateRanges();
+      
+      // Update spectrum range manager with this spectrum's ranges
+      // Add to both general ranges and MS level-specific ranges
+      spectrum_ranges_.extendUnsafe(*it);
+      spectrum_ranges_.extendRT(it->getRT()); // RT is not part of the range of an individual spectrum
+      
+      spectrum_ranges_.extendUnsafe(*it, it->getMSLevel());
+      spectrum_ranges_.extendRT(it->getRT(), it->getMSLevel()); // RT is not part of the range of an individual spectrum
+      
     }
 
-    // update intensity, m/z and RT according to chromatograms as well:
-    for (ChromatogramType& cp : chromatograms_)
+    // Update chromatogram ranges
+    if (!chromatograms_.empty())
     {
-      // update range of EACH chrom, if we need them individually later
-      cp.updateRanges();
-
-      // ignore TICs and ECs for the whole experiments range (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
-      if (cp.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
-        cp.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
+      for (ChromatogramType& cp : chromatograms_)
       {
-        continue;
+        // Update range of EACH chromatogram
+        cp.updateRanges();
+        
+        // Add RT and intensity ranges to the chromatogram manager
+        chromatogram_ranges_.extend(cp.getRange());
+        chromatogram_ranges_.extendMZ(cp.getMZ()); // MZ is not part of the range of an individual chromatogram
       }
-
-      total_size_ += cp.size();
-
-      // ranges
-      this->extendMZ(cp.getMZ());// MZ
-      this->extend(cp);// RT and intensity from chroms's range
     }
-  }
 
-  /// returns the minimal m/z value
-  MSExperiment::CoordinateType MSExperiment::getMinMZ() const
-  {
-    return RangeManagerType::getMinMZ();
-  }
+    // Update the combined range manager with both spectrum and chromatogram ranges
+    combined_ranges_.extendUnsafe(spectrum_ranges_);
+    combined_ranges_.extendUnsafe(chromatogram_ranges_);
 
-  /// returns the maximal m/z value
-  MSExperiment::CoordinateType MSExperiment::getMaxMZ() const
-  {
-    return RangeManagerType::getMaxMZ();
-  }
+    #ifdef OPENMS_ASSERTIONS
+      // check if updateRanges() was necessary to find places where it was not
+      double im_min_new = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMinMobility();
+      double im_max_new = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMaxMobility();
+      double int_min_new = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMinIntensity();
+      double int_max_new = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMaxIntensity();
+      double rt_min_new = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMinRT();
+      double rt_max_new = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMaxRT();
+      double mz_min_new = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMinMZ();
+      double mz_max_new = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMaxMZ();
 
-  /// returns the minimal retention time value
-  MSExperiment::CoordinateType MSExperiment::getMinRT() const
-  {
-    return RangeManagerType::getMinRT();
-  }
-
-  /// returns the maximal retention time value
-  MSExperiment::CoordinateType MSExperiment::getMaxRT() const
-  {
-    return RangeManagerType::getMaxRT();
+      if (im_min_new == im_min && im_max_new == im_max
+        && int_min_new == int_min && int_max_new == int_max
+        && mz_min_new == mz_min && mz_max_new == mz_max
+        && rt_min_new == rt_min && rt_max_new == rt_max
+      )
+      {
+        OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
+      }
+    #endif
   }
 
   /// returns the total number of peaks
   UInt64 MSExperiment::getSize() const
-  {
-    return total_size_;
+  {    
+    Size total_size{};
+    for (const auto& spec : spectra_) total_size += spec.size(); // sum up all peaks in all spectra
+    for (const auto& chrom : chromatograms_) total_size += chrom.size(); // sum up all peaks in all chromatograms
+    return total_size;
   }
 
-  /// returns an array of MS levels
-  const std::vector<UInt>& MSExperiment::getMSLevels() const
+  /// returns an array of MS levels (calculated on demand)
+  std::vector<UInt> MSExperiment::getMSLevels() const
   {
-    return ms_levels_;
+    std::unordered_set<UInt> level_set;
+    for (const auto& spec : spectra_)
+    {
+      level_set.insert(spec.getMSLevel());
+    }
+    
+    std::vector<UInt> ms_levels(level_set.begin(), level_set.end());
+    std::sort(ms_levels.begin(), ms_levels.end());
+    return ms_levels;
   }
 
   const String sqMassRunID = "sqMassRunID";
@@ -364,7 +787,7 @@ namespace OpenMS
   /**
   @brief Sorts the data points by retention time
 
-  @param sort_mz if @em true, spectra are sorted by m/z position as well
+  @param[in] sort_mz if @em true, spectra are sorted by m/z position as well
   */
   void MSExperiment::sortSpectra(bool sort_mz)
   {
@@ -383,7 +806,7 @@ namespace OpenMS
   /**
   @brief Sorts the data points of the chromatograms by m/z
 
-  @param sort_rt if @em true, chromatograms are sorted by rt position as well
+  @param[in] sort_rt if @em true, chromatograms are sorted by rt position as well
   */
   void MSExperiment::sortChromatograms(bool sort_rt)
   {
@@ -402,7 +825,7 @@ namespace OpenMS
   /**
   @brief Checks if all spectra are sorted with respect to ascending RT
 
-  @param check_mz if @em true, checks if all peaks are sorted with respect to ascending m/z
+  @param[in] check_mz if @em true, checks if all peaks are sorted with respect to ascending m/z
   */
   bool MSExperiment::isSorted(bool check_mz) const
   {
@@ -435,7 +858,7 @@ namespace OpenMS
   void MSExperiment::reset()
   {
     spectra_.clear();           //remove data
-    RangeManagerType::clearRanges();           //reset range manager
+    clearRanges(); // reset all ranges
     ExperimentalSettings::operator=(ExperimentalSettings());           //reset meta info
   }
 
@@ -571,30 +994,92 @@ namespace OpenMS
     return pc_spec - spectra_.cbegin(); 
   }
 
+  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator parent_iterator) const
+  {
+    // if we are already at or after the end -> there can be no product after it
+    if (parent_iterator == spectra_.end() 
+      || parent_iterator == spectra_.end() - 1)
+    {
+      return spectra_.end();
+    }
+
+    UInt parent_ms_level = parent_iterator->getMSLevel();
+    const auto& parent_native_id = parent_iterator->getNativeID();
+
+    auto it = parent_iterator; // such that we can reiterate later
+    it++; // start at the next spectrum
+
+    while (it != spectra_.end())
+    { 
+      if (it->getMSLevel() < parent_ms_level) return spectra_.end();
+
+      if ((it->getMSLevel() - parent_ms_level) == 1) 
+      { // it is a potential product spectrum (one level higher than parent)
+
+        // does it have precursors referencing the parents?
+        if (it->getPrecursors().empty()) 
+        {
+          ++it; // no precursors, so we can't check if it is a product of the parent
+          continue;
+        }      
+
+        // warn if there are multiple precursors (should not happen)
+        if (it->getPrecursors().size() > 1)
+        {
+            OPENMS_LOG_WARN << "Spectrum at index " << std::distance(spectra_.begin(), it)
+                      << " has multiple precursors. Only the first precursor will be considered."
+                      << std::endl;
+        }
+
+        // check if it has the parent a precursor
+        const auto precursor = it->getPrecursors()[0];
+        String ref = precursor.getMetaValue("spectrum_ref", "");  
+        if (!ref.empty() && ref == parent_native_id)
+        {
+          return it;
+        }     
+      }
+      ++it; 
+    } 
+
+    return spectra_.end();
+  }
+
+  // same as above but easier to wrap in python
+  int MSExperiment::getFirstProductSpectrum(int zero_based_index) const
+  {
+    if (zero_based_index < 0 
+      || zero_based_index >= static_cast<int>(spectra_.size()))
+    {
+      return -1;
+    }
+    
+    auto spec = spectra_.cbegin();
+    spec += zero_based_index;
+    auto pc_spec = getFirstProductSpectrum(spec);
+    if (pc_spec == spectra_.cend()) return -1;
+    return pc_spec - spectra_.cbegin();
+  }
+
   /// Swaps the content of this map with the content of @p from
   void MSExperiment::swap(MSExperiment & from)
   {
-    MSExperiment tmp;
+    // Swap range managers
+    std::swap(spectrum_ranges_, from.spectrum_ranges_);
+    std::swap(chromatogram_ranges_, from.chromatogram_ranges_);
+    std::swap(combined_ranges_, from.combined_ranges_);
 
-    //swap range information
-    tmp.RangeManagerType::operator=(*this);
-    this->RangeManagerType::operator=(from);
-    from.RangeManagerType::operator=(tmp);
-
-    //swap experimental settings
+    // Swap experimental settings
+    ExperimentalSettings tmp;
     tmp.ExperimentalSettings::operator=(*this);
     this->ExperimentalSettings::operator=(from);
     from.ExperimentalSettings::operator=(tmp);
 
-    // swap chromatograms
+    // Swap chromatograms
     std::swap(chromatograms_, from.chromatograms_);
 
-    //swap peaks
+    // Swap spectra
     spectra_.swap(from.getSpectra());
-
-    //swap remaining members
-    ms_levels_.swap(from.ms_levels_);
-    std::swap(total_size_, from.total_size_);
   }
 
   /// sets the spectrum list
@@ -629,6 +1114,55 @@ namespace OpenMS
   std::vector<MSSpectrum>& MSExperiment::getSpectra()
   {
     return spectra_;
+  }
+
+  /// Returns the closest(=nearest) spectrum in retention time to the given RT
+  MSExperiment::ConstIterator MSExperiment::getClosestSpectrumInRT(const double RT) const
+  {
+    auto above = RTBegin(RT);           // the spec above or equal to our RT
+    if (above == begin()) return above; // we hit the first element, or no spectra (begin==end)
+    if (above == end()) return --above; // queried beyond last spec, but we know there are spectra, so `--above` is safe
+    // we are between two spectra
+    auto diff_left = RT - (above - 1)->getRT();
+    auto diff_right = above->getRT() - RT;
+    if (diff_left < diff_right) --above;
+    return above;
+  }
+  MSExperiment::Iterator MSExperiment::getClosestSpectrumInRT(const double RT)
+  {
+    return begin() + std::distance(cbegin(), const_cast<const MSExperiment*>(this)->getClosestSpectrumInRT(RT));
+  }
+
+  /// Returns the closest(=nearest) spectrum in retention time to the given RT of a certain MS level
+  MSExperiment::ConstIterator MSExperiment::getClosestSpectrumInRT(const double RT, UInt ms_level) const
+  {
+    auto above = RTBegin(RT); // the spec above or equal to our RT
+    auto below = above; // for later
+    // search for the next available spec to the right with correct MS level
+    while (above != end() && above->getMSLevel() != ms_level)
+    {
+      ++above;
+    }
+    if (above == begin()) return above; // we hit the first element; or no spectra at all
+
+    // careful: below may be end() at this point, yet below!=begin()
+    if (below != begin()) --below; // we need to make one step left, so we are different from `above`
+    // we are not at end() (or begin()==end())
+    while (below != begin() && below->getMSLevel() != ms_level)
+    {
+      --below;
+    }
+    if (below->getMSLevel() != ms_level) return above; // below did not find anything valid; so it must be whatever `above` is (could be end())
+    if (above == end()) return below;                  // queried beyond last spec, but we know there are spectra, so it must be whatever `below` is (which we know is valid)
+    // we are between two spectra
+    auto diff_left = RT - below->getRT();
+    auto diff_right = above->getRT() - RT;
+    return (diff_left < diff_right ? below : above);
+  }
+
+  MSExperiment::Iterator MSExperiment::getClosestSpectrumInRT(const double RT, UInt ms_level)
+  {
+    return begin() + std::distance(cbegin(), const_cast<const MSExperiment*>(this)->getClosestSpectrumInRT(RT, ms_level));
   }
 
   /// sets the chromatogram list
@@ -724,55 +1258,42 @@ namespace OpenMS
   /**
   @brief Clears all data and meta data
 
-  @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+  @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
   */
   void MSExperiment::clear(bool clear_meta_data)
   {
     spectra_.clear();
+    chromatograms_.clear();
 
     if (clear_meta_data)
     {
-      clearRanges();
+      clearRanges(); // reset all ranges
       this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
-      chromatograms_.clear();
-      ms_levels_.clear();
-      total_size_ = 0;
     }
   }
 
   // static
   bool MSExperiment::containsScanOfLevel(size_t ms_level) const
   {
-    //test if no scans with MS-level 1 exist
-    for (const auto& spec : getSpectra())
-    {
-      if (spec.getMSLevel() == ms_level)
-      {
-        return true;
-      }
-    }
-    return false;
+    // Check if any spectrum with the specified MS level exists
+    return std::any_of(getSpectra().begin(), getSpectra().end(),
+                      [ms_level](const auto& spec) { return spec.getMSLevel() == ms_level; });
   }
 
   bool MSExperiment::hasZeroIntensities(size_t ms_level) const
   {
-    for (const auto& spec : getSpectra())
-    {
-      if (spec.getMSLevel() != ms_level)
-      {
-        continue;
-      }
-      for (const auto& p : spec)
-      {
-        if (p.getIntensity() == 0.0)
-        {
-          return true;
-        }
-      }
-    }
-    return false;
+    // Check if any spectrum of the specified MS level contains peaks with zero intensity
+    return std::any_of(getSpectra().begin(), getSpectra().end(),
+                      [ms_level](const auto& spec) {                        
+                        if (spec.getMSLevel() != ms_level) return false; // Skip spectra that don't match the requested MS level
+                        
+                        // Check if this spectrum has any zero intensity peaks
+                        return std::any_of(spec.begin(), spec.end(),
+                                          [](const auto& peak) { return peak.getIntensity() == 0.0; });
+                      });
   }
 
+  /*
   bool MSExperiment::hasPeptideIdentifications() const
   {
     for (const auto& spec : getSpectra())
@@ -784,6 +1305,7 @@ namespace OpenMS
     }
     return false;
   }
+   */
 
   bool MSExperiment::isIMFrame() const
   {
@@ -810,8 +1332,8 @@ namespace OpenMS
   /*
   @brief Append a spectrum including float data arrays to current MSExperiment
 
-  @param rt RT of new spectrum
-  @param metadata_names Names of float data arrays attached to this spectrum
+  @param[in] rt RT of new spectrum
+  @param[in] metadata_names Names of float data arrays attached to this spectrum
   @return Pointer to newly created spectrum
   */
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names)

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,9 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -32,6 +35,55 @@ using namespace std;
 
 @brief Merges several files. Multiple output formats supported, depending on the input format.
 
+<B>Supported input/output file type combinations:</B>
+
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> Input file type(s) </th>
+<th ALIGN = "center"> Output file type </th>
+<th ALIGN = "center"> Notes </th>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> featureXML </td>
+<td VALIGN="middle" ALIGN = "center"> featureXML </td>
+<td VALIGN="middle" ALIGN = "left"> Features from multiple files are merged by simple concatenation into a single output file. Peptide and protein identifications are appended; conflicting unique IDs are updated to maintain consistency </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> consensusXML </td>
+<td VALIGN="middle" ALIGN = "center"> consensusXML </td>
+<td VALIGN="middle" ALIGN = "left"> See append_method parameter (append_rows or append_cols) </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> traML </td>
+<td VALIGN="middle" ALIGN = "center"> traML </td>
+<td VALIGN="middle" ALIGN = "left"> Targeted experiment transitions are combined </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> fasta </td>
+<td VALIGN="middle" ALIGN = "center"> fasta </td>
+<td VALIGN="middle" ALIGN = "left"> Protein/peptide sequences are combined; warnings for duplicates </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> mzML, mzXML, mzData </td>
+<td VALIGN="middle" ALIGN = "center"> mzML </td>
+<td VALIGN="middle" ALIGN = "left"> Raw MS data formats merge to mzML </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> dta, dta2d </td>
+<td VALIGN="middle" ALIGN = "center"> mzML </td>
+<td VALIGN="middle" ALIGN = "left"> DTA formats merge to mzML; RT handling via raw:* parameters </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> mgf, fid </td>
+<td VALIGN="middle" ALIGN = "center"> mzML </td>
+<td VALIGN="middle" ALIGN = "left"> Other raw data formats merge to mzML </td>
+</tr>
+</table>
+</center>
+
+@note All input files for a single merge operation must be of the same type (or compatible raw data types that all output to mzML).
+
 <center>
 <table>
 <tr>
@@ -41,7 +93,7 @@ using namespace std;
 </tr>
 <tr>
 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing mergeable files </td>
-<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_XTandemAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_CometAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
 </tr>
 </table>
 </center>
@@ -121,7 +173,7 @@ protected:
     TransformationDescription trafo;
     if (first_file) // no transformation necessary
     {
-      rt_offset_ = map.getMaxRT() + rt_gap_;
+      rt_offset_ = map.getMaxRT() + rt_gap_; // overall range for all spectra
       trafo.fitModel("identity");
     }
     else // subsequent file -> apply transformation
@@ -170,7 +222,14 @@ protected:
     bool append_rows = false;
     bool append_cols = false;
     String append_method = getStringOption_("append_method");
-    append_method == "append_rows" ? append_rows = true : append_cols = true; 
+    if (append_method == "append_rows")
+    {
+      append_rows = true;
+    }
+    else
+    {
+      append_cols = true;
+    } 
    
     bool annotate_file_origin =  getFlag_("annotate_file_origin");
     rt_gap_ = getDoubleOption_("rt_concat:gap");

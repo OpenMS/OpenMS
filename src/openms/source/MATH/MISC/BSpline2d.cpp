@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,8 +8,9 @@
 
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 
-#include <BSpline/BSplineBase.cpp>
-#include <BSpline/BSpline.cpp>
+// Include BSpline headers (library is now linked via CMake)
+#include <BSpline/BSplineBase.h>
+#include <BSpline/BSpline.h>
 
 namespace OpenMS
 {

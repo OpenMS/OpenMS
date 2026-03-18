@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -56,8 +56,8 @@ START_SECTION(const String& getName() const override) {TEST_EQUAL(rtA.getName(),
   // Valid FeatureMap
   FeatureMap fmap;
   PeptideIdentification peptide_ID;
-  vector<PeptideIdentification> identifications;
-  vector<PeptideIdentification> unassignedIDs;
+  PeptideIdentificationList identifications;
+  PeptideIdentificationList unassignedIDs;
   Feature feature1, feature2;
   peptide_ID.setRT(0);
   identifications.push_back(peptide_ID);

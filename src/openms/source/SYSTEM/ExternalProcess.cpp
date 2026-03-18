@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -48,14 +48,25 @@ namespace OpenMS
   }
 
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, IO_MODE io_mode)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, IO_MODE io_mode, const std::map<QString, QString>& env)
   {
     String error_msg;
-    return run(exe, args, working_dir, verbose, error_msg, io_mode);
+    return run(exe, args, working_dir, verbose, error_msg, io_mode, env);
   }
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode, const std::map<QString, QString>& env)
   {
+    // pass environment variables to child process
+    QProcessEnvironment process_env = QProcessEnvironment::systemEnvironment();
+    
+    // Add custom environment variables
+    for (const auto& kv : env)
+    {
+      process_env.insert(kv.first, kv.second);
+    }
+    
+    qp_->setProcessEnvironment(process_env);
+
     error_msg.clear();
     if (!working_dir.isEmpty())
     {

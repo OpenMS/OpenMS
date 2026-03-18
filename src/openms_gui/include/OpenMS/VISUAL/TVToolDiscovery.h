@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -77,8 +77,8 @@ namespace OpenMS
 
     /**
      * @brief Sets the path that will be searched for Plugins
-     * @param path The new path to set
-     * @param create Attempt to create the directory if it does not already exist
+     * @param[in] path The new path to set
+     * @param[in] create Attempt to create the directory if it does not already exist
      * @returns False if setting/creating the path fails. True otherwise.
      */
     [[maybe_unused]] bool setPluginPath(const String& path, bool create=false);

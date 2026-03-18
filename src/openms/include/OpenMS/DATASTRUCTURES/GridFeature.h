@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,9 +41,9 @@ private:
 public:
     /**
      * @brief Detailed constructor
-     * @param feature Reference to the contained feature
-     * @param map_index Index of the feature map or consensus map
-     * @param feature_index Index of the feature in the map
+     * @param[in] feature Reference to the contained feature
+     * @param[in] map_index Index of the feature map or consensus map
+     * @param[in] feature_index Index of the feature in the map
      */
     GridFeature(const BaseFeature& feature, Size map_index, Size feature_index);
 

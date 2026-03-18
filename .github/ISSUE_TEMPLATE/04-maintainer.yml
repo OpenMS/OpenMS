@@ -1,0 +1,13 @@
+name: OpenMS Maintainer Report
+description: A way for OpenMS core team members to submit reports.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **NOTE:** This form is for OpenMS maintainers and core team members.  If you want to file a bug report or request help please use [another form](/OpenMS/OpenMS/issues/new) instead.
+  - type: textarea
+    id: report
+    attributes:
+      label: Report
+    validations:
+      required: true

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <vector>
 
 namespace OpenMS
@@ -144,16 +145,16 @@ public:
     /// Calculation and collection of QC data
     /**
       @brief Collects QC data in qualityParameters and qualityAttachments
-      @param prot_ids protein identifications from ID file
-      @param pep_ids peptide identifications
-      @param feature_map FeatureMap from feature file (featureXML)
-      @param consensus_map ConsensusMap from consensus file (consensusXML)
-      @param inputfile_raw mzML input file name
-      @param remove_duplicate_features removes duplicates in a set of merged features
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+      @param[in] prot_ids protein identifications from ID file
+      @param[in] pep_ids peptide identifications
+      @param[in] feature_map FeatureMap from feature file (featureXML)
+      @param[in] consensus_map ConsensusMap from consensus file (consensusXML)
+      @param[in] inputfile_raw mzML input file name
+      @param[in] remove_duplicate_features removes duplicates in a set of merged features
+      @param[in] exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
     */
     void collectQCData(std::vector<ProteinIdentification>& prot_ids,
-                       std::vector<PeptideIdentification>& pep_ids,
+                       PeptideIdentificationList& pep_ids,
                        const FeatureMap& feature_map,
                        const ConsensusMap& consensus_map,
                        const String& inputfile_raw,
@@ -162,7 +163,7 @@ public:
     ///Store the QCFile
     /**
       @brief Store the qcML file
-      @param filename qcML output file name
+      @param[out] filename qcML output file name
     */
     void store(const String& filename) const;
 

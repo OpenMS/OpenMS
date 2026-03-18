@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -135,6 +136,7 @@ namespace OpenMS
     Internal::MzMLHandler handler(map, "memory", getVersion(), *this);
     handler.setOptions(options_);
     parseBuffer_(buffer, &handler);
+    map.updateRanges();
   }
 
   void MzMLFile::load(const String& filename, PeakMap& map)
@@ -148,6 +150,7 @@ namespace OpenMS
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);
     safeParse_(filename, &handler);
+    map.updateRanges();
   }
 
   void MzMLFile::store(const String& filename, const PeakMap& map) const

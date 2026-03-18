@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -10,10 +10,10 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
+#include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
 ///////////////////////////
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -53,20 +53,20 @@ END_SECTION
 
 START_SECTION(static MODELTYPE nameToEnum(const std::string& name))
 //"linear", "linear_weighted", "quadratic", "quadratic_weighted", "size_of_modeltype"
-  TEST_EQUAL(MZTrafoModel::nameToEnum("linear"), MZTrafoModel::LINEAR)
-  TEST_EQUAL(MZTrafoModel::nameToEnum("linear_weighted"), MZTrafoModel::LINEAR_WEIGHTED)
-  TEST_EQUAL(MZTrafoModel::nameToEnum("quadratic"), MZTrafoModel::QUADRATIC)
-  TEST_EQUAL(MZTrafoModel::nameToEnum("quadratic_weighted"), MZTrafoModel::QUADRATIC_WEIGHTED)
-  TEST_EQUAL(MZTrafoModel::nameToEnum("size_of_modeltype"), MZTrafoModel::SIZE_OF_MODELTYPE)
-  TEST_EQUAL(MZTrafoModel::nameToEnum("something_different_______"), MZTrafoModel::SIZE_OF_MODELTYPE)
+  TEST_EQUAL(MZTrafoModel::nameToEnum("linear"), MZTrafoModel::MODELTYPE::LINEAR)
+  TEST_EQUAL(MZTrafoModel::nameToEnum("linear_weighted"), MZTrafoModel::MODELTYPE::LINEAR_WEIGHTED)
+  TEST_EQUAL(MZTrafoModel::nameToEnum("quadratic"), MZTrafoModel::MODELTYPE::QUADRATIC)
+  TEST_EQUAL(MZTrafoModel::nameToEnum("quadratic_weighted"), MZTrafoModel::MODELTYPE::QUADRATIC_WEIGHTED)
+  TEST_EQUAL(MZTrafoModel::nameToEnum("size_of_modeltype"), MZTrafoModel::MODELTYPE::SIZE_OF_MODELTYPE)
+  TEST_EQUAL(MZTrafoModel::nameToEnum("something_different_______"), MZTrafoModel::MODELTYPE::SIZE_OF_MODELTYPE)
 END_SECTION
 
 START_SECTION(static const std::string& enumToName(MODELTYPE mt))
-  TEST_EQUAL(MZTrafoModel::enumToName(MZTrafoModel::LINEAR), "linear")
-  TEST_EQUAL(MZTrafoModel::enumToName(MZTrafoModel::LINEAR_WEIGHTED), "linear_weighted")
-  TEST_EQUAL(MZTrafoModel::enumToName(MZTrafoModel::QUADRATIC), "quadratic")
-  TEST_EQUAL(MZTrafoModel::enumToName(MZTrafoModel::QUADRATIC_WEIGHTED), "quadratic_weighted")
-  TEST_EQUAL(MZTrafoModel::enumToName(MZTrafoModel::SIZE_OF_MODELTYPE), "size_of_modeltype")
+  TEST_EQUAL(MZTrafoModel::enumToName(MZTrafoModel::MODELTYPE::LINEAR), "linear")
+  TEST_EQUAL(MZTrafoModel::enumToName(MZTrafoModel::MODELTYPE::LINEAR_WEIGHTED), "linear_weighted")
+  TEST_EQUAL(MZTrafoModel::enumToName(MZTrafoModel::MODELTYPE::QUADRATIC), "quadratic")
+  TEST_EQUAL(MZTrafoModel::enumToName(MZTrafoModel::MODELTYPE::QUADRATIC_WEIGHTED), "quadratic_weighted")
+  TEST_EQUAL(MZTrafoModel::enumToName(MZTrafoModel::MODELTYPE::SIZE_OF_MODELTYPE), "size_of_modeltype")
 END_SECTION 
 
 START_SECTION(static void setRANSACParams(const Math::RANSACParam& p))
@@ -129,13 +129,13 @@ START_SECTION(static Size findNearest(const std::vector<MZTrafoModel>& tms, doub
   std::vector<MZTrafoModel> tms;
   MZTrafoModel m;
   // unsorted RT
-  m.train(cd, MZTrafoModel::LINEAR, false, 100.0, 104.0); // RT = 102
+  m.train(cd, MZTrafoModel::MODELTYPE::LINEAR, false, 100.0, 104.0); // RT = 102
   tms.push_back(m);
-  m.train(cd, MZTrafoModel::LINEAR, false, 110.0, 114.0); // RT = 112
+  m.train(cd, MZTrafoModel::MODELTYPE::LINEAR, false, 110.0, 114.0); // RT = 112
   tms.push_back(m);
-  m.train(cd, MZTrafoModel::LINEAR, false, 106.0, 108.0); // RT = 107
+  m.train(cd, MZTrafoModel::MODELTYPE::LINEAR, false, 106.0, 108.0); // RT = 107
   tms.push_back(m);
-  m.train(cd, MZTrafoModel::LINEAR, false, 126.0, 128.0); // RT = 127
+  m.train(cd, MZTrafoModel::MODELTYPE::LINEAR, false, 126.0, 128.0); // RT = 127
   tms.push_back(m);
   std::sort(tms.begin(), tms.end(), MZTrafoModel::RTLess());
   TEST_REAL_SIMILAR(tms[0].getRT(), 102.0)
@@ -153,7 +153,7 @@ END_SECTION
 START_SECTION(bool train(const CalibrationData& cd, MODELTYPE md, bool use_RANSAC, double rt_left = -std::numeric_limits<double>::max(), double rt_right = std::numeric_limits<double>::max()))
 
   MZTrafoModel m;
-  m.train(cd, MZTrafoModel::LINEAR, false);
+  m.train(cd, MZTrafoModel::MODELTYPE::LINEAR, false);
   std::cout << m.toString() << std::endl;
   TEST_REAL_SIMILAR(m.getRT(), 0.0);
 
@@ -167,7 +167,7 @@ START_SECTION(bool train(std::vector<double> error_mz, std::vector<double> theo_
   std::vector<double> weights;
   Math::RANSACParam p(3, 1000, 4.0, 1, false);
   MZTrafoModel::setRANSACParams(p);
-  m.train(error_mz, theo_mz, weights, MZTrafoModel::LINEAR, true);
+  m.train(error_mz, theo_mz, weights, MZTrafoModel::MODELTYPE::LINEAR, true);
   std::cout << m.toString() << std::endl;
   TEST_REAL_SIMILAR(m.predict(300.0 + Math::ppmToMass(10.0, 300.0)), 300.0);
 

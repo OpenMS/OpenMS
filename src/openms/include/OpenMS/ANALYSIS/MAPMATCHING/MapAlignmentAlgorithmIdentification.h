@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <cmath> // for "abs"
@@ -25,6 +26,12 @@
 
 namespace OpenMS
 {
+  /* Concept for FeatureMap or ConsensusMap*/
+  template <typename MapType>
+  concept IsFCMap = std::same_as<MapType, OpenMS::FeatureMap> || std::same_as<MapType, OpenMS::ConsensusMap>; 
+
+  class AnnotatedMSRun;
+
   /**
     @brief A map alignment algorithm based on peptide identifications from MS2 spectra.
 
@@ -55,7 +62,7 @@ public:
     ~MapAlignmentAlgorithmIdentification() override;
 
     // Set a reference for the alignment
-    template <typename DataType> void setReference(DataType& data)
+    template <typename DataType> void setReference(const DataType& data)
     {
       reference_.clear();
       if (data.empty()) return; // empty input resets the reference
@@ -74,16 +81,16 @@ public:
     }
 
     /**
-      @brief Align feature maps, consensus maps, peak maps, or peptide identifications.
+      @brief Align feature maps, consensus maps, or peptide identifications.
 
-      @param data Vector of input data (FeatureMap, ConsensusMap, PeakMap or @p vector<PeptideIdentification>) that should be aligned.
-      @param transformations Vector of RT transformations that will be computed.
-      @param reference_index Index in @p data of the reference to align to, if any
+      @param[in] data Vector of input data (FeatureMap, ConsensusMap, or @p PeptideIdentificationList) that should be aligned.
+      @param[in] transformations Vector of RT transformations that will be computed.
+      @param[in] reference_index Index in @p data of the reference to align to, if any
 
       @throw Exception::MissingInformation Not enough suitable RT data to perform alignment
     */
     template <typename DataType>
-    void align(std::vector<DataType>& data,
+    void align(const std::vector<DataType>& data,
                std::vector<TransformationDescription>& transformations,
                Int reference_index = -1)
     {
@@ -162,9 +169,9 @@ protected:
     /**
       @brief Compute the median retention time for each peptide sequence
 
-      @param rt_data Lists of RT values for diff. peptide sequences (input, will be sorted)
-      @param medians Median RT values for the peptide sequences (output)
-      @param sorted Are RT lists already sorted?
+      @param[in] rt_data Lists of RT values for diff. peptide sequences (input, will be sorted)
+      @param[out] medians Median RT values for the peptide sequences (output)
+      @param[in] sorted Are RT lists already sorted?
 
       @throw Exception::IllegalArgument if the input list is empty
     */
@@ -174,34 +181,24 @@ protected:
     /**
       @brief Collect retention time data from peptide IDs
 
-      @param peptides Input peptide IDs (lists of peptide hits will be sorted)
-      @param rt_data Lists of RT values for diff. peptide sequences (output)
+      @param[in] peptides Input peptide IDs (lists of peptide hits will be sorted)
+      @param[out] rt_data Lists of RT values for diff. peptide sequences (output)
 
       @return Are the RTs already sorted? (Here: false)
     */
-    bool getRetentionTimes_(std::vector<PeptideIdentification>& peptides,
+    bool getRetentionTimes_(const PeptideIdentificationList& peptides,
                             SeqToList& rt_data);
 
     /**
       @brief Collect retention time data from spectrum matches
 
-      @param id_data Input identification data
-      @param rt_data Lists of RT values for diff. spectrum matches (output)
+      @param[in] id_data Input identification data
+      @param[out] rt_data Lists of RT values for diff. spectrum matches (output)
 
       @return Are the RTs already sorted? (Here: false)
     */
     // "id_data" can't be "const" here or template resolution will fail
-    bool getRetentionTimes_(IdentificationData& id_data, SeqToList& rt_data);
-
-    /**
-      @brief Collect retention time data from peptide IDs annotated to spectra
-
-      @param experiment Input map for RT data
-      @param rt_data Lists of RT values for diff. peptide sequences (output)
-
-      @return Are the RTs already sorted? (Here: false)
-    */
-    bool getRetentionTimes_(PeakMap& experiment, SeqToList& rt_data);
+    bool getRetentionTimes_(const IdentificationData& id_data, SeqToList& rt_data);
 
     /**
       @brief Collect retention time data from peptide IDs contained in feature maps or consensus maps
@@ -212,13 +209,13 @@ protected:
       Depending on @p score_cutoff and min_score, only peptide IDs with minimum score X are used. Higher score better is
       determined from the first PeptideID encountered. Make sure they are the same. This param is useless with use_feature_rt yet.
 
-      @param features Input features for RT data
-      @param rt_data Lists of RT values for diff. peptide sequences (output)
+      @param[in] features Input features for RT data
+      @param[out] rt_data Lists of RT values for diff. peptide sequences (output)
 
       @return Are the RTs already sorted? (Here: true)
     */
-    template <typename MapType>
-    bool getRetentionTimes_(MapType& features, SeqToList& rt_data)
+
+    bool getRetentionTimes_(const IsFCMap auto& features, SeqToList& rt_data)
     {
       if (!score_cutoff_)
       {
@@ -236,8 +233,7 @@ protected:
         { return a <= b; };
       }
 
-      for (typename MapType::Iterator feat_it = features.begin();
-           feat_it != features.end(); ++feat_it)
+      for (auto feat_it = features.cbegin(); feat_it != features.cend(); ++feat_it)
       {
         if (use_feature_rt_)
         {
@@ -245,7 +241,7 @@ protected:
           String sequence;
           double rt_distance = std::numeric_limits<double>::max();
           bool any_hit = false;
-          for (std::vector<PeptideIdentification>::iterator pep_it =
+          for (PeptideIdentificationList::const_iterator pep_it =
                  feat_it->getPeptideIdentifications().begin(); pep_it !=
                  feat_it->getPeptideIdentifications().end(); ++pep_it)
           {
@@ -256,10 +252,10 @@ protected:
                                              feat_it->getRT());
               if (current_distance < rt_distance)
               {
-                pep_it->sort();
-                if (better_(pep_it->getHits()[0].getScore(), min_score_))
+                const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
+                if (best_hit && better_(best_hit->getScore(), min_score_))
                 {
-                  sequence = pep_it->getHits()[0].getSequence().toString();
+                  sequence = best_hit->getSequence().toString();
                   rt_distance = current_distance;
                 }
               }
@@ -297,9 +293,9 @@ protected:
     /**
       @brief Compute retention time transformations from RT data grouped by peptide sequence
 
-      @param rt_data Lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
-      @param transforms Resulting transformations, per dataset (output)
-      @param sorted Are RT lists already sorted?
+      @param[in] rt_data Lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
+      @param[out] transforms Resulting transformations, per dataset (output)
+      @param[in] sorted Are RT lists already sorted?
     */
     void computeTransformations_(std::vector<SeqToList>& rt_data,
                                  std::vector<TransformationDescription>&
@@ -310,7 +306,7 @@ protected:
 
       Currently only 'min_run_occur' is checked.
 
-      @param runs Number of runs (input files) to be aligned
+      @param[in] runs Number of runs (input files) to be aligned
     */
     void checkParameters_(const Size runs);
 
@@ -327,6 +323,16 @@ protected:
       @return Reference to the score type denoted by algorithm parameter "score_type"
      */
     IdentificationData::ScoreTypeRef handleIdDataScoreType_(const IdentificationData& id_data);
+
+    /**
+      @brief Get the best-scoring PeptideHit from a list of hits
+
+      @param[in] hits List of peptide hits
+      @param[in] is_higher_score_better Decides if higher score is better in deciding best scoring hit
+
+      @return Pointer to the best-scoring hit, or nullptr if the list is empty
+    */
+    const PeptideHit* getBestScoringHit(const std::vector<PeptideHit>& hits, const bool is_higher_score_better);
 
 private:
 

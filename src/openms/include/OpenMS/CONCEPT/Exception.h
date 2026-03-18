@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -166,8 +166,8 @@ namespace OpenMS
       of which should be set to the index that caused the failure and the
       smallest allowed value to simplify debugging.
 
-      @param	index the value of the index causing the problem
-      @param	size	smallest value allowed for index
+      @param[in]	index the value of the index causing the problem
+      @param[in]	size	smallest value allowed for index
 
       @ingroup Exceptions
     */
@@ -185,7 +185,7 @@ namespace OpenMS
       requested size.  This exception is thrown, if buffer sizes are
       insufficient.
 
-      @param	size the size causing the problem
+      @param[in]	size the size causing the problem
 
       @ingroup Exceptions
     */
@@ -202,8 +202,8 @@ namespace OpenMS
       allowed.  The constructor has two additional arguments, the values
       of which should be set to the index that caused the failure and the
       largest allowed value to simplify debugging.
-      @param	index the value of the index causing the problem
-      @param	size	largest value allowed for index
+      @param[in]	index the value of the index causing the problem
+      @param[in]	size	largest value allowed for index
 
       @ingroup Exceptions
     */
@@ -213,13 +213,30 @@ namespace OpenMS
       IndexOverflow(const char* file, int line, const char* function, SignedSize index = 0, Size size = 0) noexcept;
     };
 
+
+    /**
+      @brief Array not sorted exception
+
+      Throw this exception to indicate that an array/vector of elements
+      was expected to be sorted, but was found to be unsorted.
+
+      @param[in]	message What was unsorted?
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI NotSorted : public BaseException
+    {
+    public:
+      NotSorted(const char* file, int line, const char* function, const std::string& message) noexcept;
+    };
+
     /**
       @brief A call to an external library (other than OpenMS) went wrong.
 
       Throw this exception to indicate that an external library call came
       back unsuccessful.
 
-      @param	size the size causing the problem
+      @param[in]	size the size causing the problem
 
       @ingroup Exceptions
     */
@@ -250,14 +267,15 @@ namespace OpenMS
       Throw this exception to indicate that a size was unexpected.
       The constructor has an additional argument: the value of of the
       requested size.
-      @param	size the size causing the problem
+      @param[in]	size the size causing the problem
+      @param[in]	message context message explaining why the size is invalid
 
       @ingroup Exceptions
     */
     class OPENMS_DLLAPI InvalidSize : public BaseException
     {
     public:
-      InvalidSize(const char* file, int line, const char* function, Size size = 0) noexcept;
+      InvalidSize(const char* file, int line, const char* function, Size size, const std::string& message) noexcept;
     };
 
 
@@ -402,7 +420,7 @@ namespace OpenMS
 
       Throw this exception to indicate that an allocation failed.
       This exception is thrown in the OPENMS new handler.
-      @param	size	the number of bytes that should have been allocated
+      @param[in]	size	the number of bytes that should have been allocated
       @see GlobalException::newHandler
 
       @ingroup Exceptions
@@ -457,6 +475,19 @@ namespace OpenMS
     {
     public:
       FileNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept;
+    };
+
+    /**
+      @brief External executable (e.g. comet.exe) not found exception.
+
+      A given file could not be found. Usually used in Adapters for external tools.
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI ExternalExecutableNotFound : public BaseException
+    {
+    public:
+      ExternalExecutableNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
     /**

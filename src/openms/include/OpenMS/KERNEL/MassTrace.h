@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -155,6 +155,18 @@ public:
       return centroid_mz_;
     }
 
+    /// Returns true if this mass trace contains ion mobility data.
+    bool containsIMData() const
+    {
+      return has_centroid_im_;
+    }
+
+    /// Returns the centroid ion mobility.
+    double getCentroidIM() const
+    {
+      return centroid_im_;
+    }
+
     /// Returns the centroid RT.
     double getCentroidRT() const
     {
@@ -169,6 +181,12 @@ public:
     void setCentroidSD(const double & tmp_sd)
     {
       centroid_sd_ = tmp_sd;
+    }
+
+    void setCentroidIM(const double & im)
+    {
+      centroid_im_ = im;
+      has_centroid_im_ = true;
     }
 
     double getFWHM() const
@@ -228,8 +246,11 @@ public:
     /// Sum all non-negative (smoothed!) intensities in the mass trace
     double computeSmoothedPeakArea() const;
 
-    /// Sum intensities of all peaks in the mass trace
+    /// Compute area of peaks in the mass trace
     double computePeakArea() const;
+
+    /// Sum all peak intensities in the mass trace
+    double computeIntensitySum() const;
 
     /// Return the index of the mass trace's highest peak within the MassTrace container (based either on raw or smoothed intensities).
     Size findMaxByIntPeak(bool use_smoothed_ints = false) const;
@@ -290,7 +311,12 @@ public:
     ///@}
 
     /// Average FWHM of m/z peaks
+    /// 0 denotes no fwhm meta data computed
     double fwhm_mz_avg = 0;
+
+    /// Average FWHM of ion mobility peaks
+    /// 0 denotes no fwhm meta data computed
+    double fwhm_im_avg = 0;
 
 private:
 
@@ -307,6 +333,12 @@ private:
 
     /// Centroid m/z
     double centroid_mz_ = 0.0;
+
+    /// centroid ion mobility peak
+    double centroid_im_ = 0.0;
+
+    /// whether this mass trace has ion mobility data (set via setCentroidIM)
+    bool has_centroid_im_ = false;
 
     /// intensity-weighted STD
     double centroid_sd_ = 0.0;

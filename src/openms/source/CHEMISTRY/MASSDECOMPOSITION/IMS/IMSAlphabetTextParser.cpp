@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -18,7 +18,7 @@
     - lines containing only white space
     - lines starting with '#' (even after leading whitespace, but not after anything else)
 
-  @param is The input stream to be parsed.
+  @param[in] is The input stream to be parsed.
 */
 void OpenMS::ims::IMSAlphabetTextParser::parse(std::istream & is)
 {

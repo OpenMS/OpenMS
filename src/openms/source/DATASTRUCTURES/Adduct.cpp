@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -150,11 +150,22 @@ namespace OpenMS
   
   String Adduct::toAdductString(const String& ion_string, const Int& charge)
   {
+    return toAdductString(ion_string, charge, 1);
+  }
+
+  String Adduct::toAdductString(const String& ion_string, const Int& charge, Int mol_multiplier)
+  {
     EmpiricalFormula ef(ion_string);
     String charge_sign = charge >= 0 ? "+" : "-";
-    String s("[M");
+    String s("[");
 
-    //need elements sorted canonically (by string)
+    if (mol_multiplier > 1)
+    {
+      s += String(mol_multiplier);
+    }
+    s += "M";
+
+    // elements sorted canonically (by string)
     std::map<String, String> sorted_elem_map;
     for (const auto& element_count : ef)
     {

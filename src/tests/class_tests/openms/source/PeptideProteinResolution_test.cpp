@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -31,10 +31,10 @@ START_SECTION(PeptideProteinResolution())
 }
 END_SECTION
 
-START_SECTION(static void PeptideProteinResolution::run(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides))
+START_SECTION(static void PeptideProteinResolution::run(vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides))
 {
   vector<ProteinIdentification> prots;
-  vector<PeptideIdentification> peps;
+  PeptideIdentificationList peps;
   IdXMLFile idf;
   idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);  
   PeptideProteinResolution::run(prots, peps);

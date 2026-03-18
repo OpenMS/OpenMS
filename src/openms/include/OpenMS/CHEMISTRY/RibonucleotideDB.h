@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,7 +9,9 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+#include <OpenMS/CHEMISTRY/RibonucleotideDataProvider.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <map>
 #include <memory>
 #include <unordered_map>
 
@@ -41,6 +43,9 @@ namespace OpenMS
 
     /// assignment operator not available
     RibonucleotideDB& operator=(const RibonucleotideDB& other) = delete;
+
+    /// constructor that loads from the given data providers
+    explicit RibonucleotideDB(std::vector<std::unique_ptr<RibonucleotideDataProvider>> providers);
 
     /// Const iterator to beginning of database
     inline ConstIterator begin() const
@@ -80,15 +85,6 @@ namespace OpenMS
     /// default constructor
     RibonucleotideDB();
 
-    /// read (modified) nucleotides from input file
-    void readFromFile_(const std::string& path);
-
-    /// read from a newer version of Modomics that uses a JSON file
-    void readFromJSON_(const std::string& path);
-
-    /// create a (modified) nucleotide from an input row
-    const std::unique_ptr<Ribonucleotide>  parseRow_(const std::string& row, Size line_count);
-
     /// list of known (modified) nucleotides
     std::vector<std::unique_ptr<Ribonucleotide>> ribonucleotides_;
 
@@ -99,5 +95,9 @@ namespace OpenMS
     std::map<std::string, std::pair<ConstRibonucleotidePtr, ConstRibonucleotidePtr>> ambiguity_map_;
 
     Size max_code_length_;
+
+  private:
+    /// load ribonucleotides from the given data providers
+    void loadFromProviders_(std::vector<std::unique_ptr<RibonucleotideDataProvider>>& providers);
   };
 }

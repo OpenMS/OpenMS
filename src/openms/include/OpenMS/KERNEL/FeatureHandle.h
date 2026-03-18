@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,10 +9,12 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <functional>
 #include <iosfwd>
 #include <vector>
 
@@ -164,4 +166,27 @@ private:
   ///Print the contents of a FeatureHandle to a stream.
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const FeatureHandle& cons);
 } // namespace OpenMS
+
+// Hash function specialization for FeatureHandle
+namespace std
+{
+  template<>
+  struct hash<OpenMS::FeatureHandle>
+  {
+    std::size_t operator()(const OpenMS::FeatureHandle& fh) const noexcept
+    {
+      // Hash Peak2D base class components
+      std::size_t seed = OpenMS::hash_float(fh.getRT());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(fh.getMZ()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(fh.getIntensity()));
+      // Hash UniqueIdInterface component
+      OpenMS::hash_combine(seed, OpenMS::hash_int(fh.getUniqueId()));
+      // Hash FeatureHandle-specific members
+      OpenMS::hash_combine(seed, OpenMS::hash_int(fh.getMapIndex()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(fh.getCharge()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(fh.getWidth()));
+      return seed;
+    }
+  };
+} // namespace std
 

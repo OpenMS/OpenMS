@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,10 +8,11 @@
 
 #include <OpenMS/QC/MQExporterHelper.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -22,8 +23,7 @@ using namespace OpenMS;
 Size MQExporterHelper::proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& database,
                                        const String& protein_accession)
 {
-  auto it = database.find(protein_accession);
-  if (it == database.end())
+  if (auto it = database.find(protein_accession); it == database.end())
   {
     database.emplace(protein_accession, database.size() + 1);
     return database.size();
@@ -47,7 +47,6 @@ std::map<Size, Size> MQExporterHelper::makeFeatureUIDtoConsensusMapIndex_(const 
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Adding [" + String(it->first) + "," + String(it->second) +  "] failed. FeatureHandle exists twice in ConsensusMap!");
       }
-      f_to_ci[fh.getUniqueId()] = i;
     }
   }
   return f_to_ci;
@@ -60,13 +59,24 @@ bool MQExporterHelper::hasValidPepID_(
   const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
   const ProteinIdentification::Mapping& mp_f)
 {
-  const std::vector<PeptideIdentification>& pep_ids_f = f.getPeptideIdentifications();
+  const PeptideIdentificationList& pep_ids_f = f.getPeptideIdentifications();
   if (pep_ids_f.empty())
   {
     return false;
   }
   const PeptideIdentification& best_pep_id = pep_ids_f[0]; // PeptideIdentifications are sorted
-  String best_uid = PeptideIdentification::buildUIDFromPepID(best_pep_id, mp_f.identifier_to_msrunpath);
+
+  String best_uid;
+  try
+  {
+    best_uid = PeptideIdentification::buildUIDFromPepID(best_pep_id, mp_f);
+  }
+  catch (const Exception::MissingInformation&)
+  {
+    // Cannot build UID (missing spectrum reference or map index) - treat as invalid
+    return false;
+  }
+
   const auto range = UIDs.equal_range(best_uid);
   for (std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>::const_iterator it_pep = range.first;
        it_pep != range.second; ++it_pep)
@@ -81,7 +91,7 @@ bool MQExporterHelper::hasValidPepID_(
 
 bool MQExporterHelper::hasPeptideIdentifications_(const ConsensusFeature& cf)
 {
-  const std::vector<PeptideIdentification>& pep_ids_c = cf.getPeptideIdentifications();
+  const PeptideIdentificationList& pep_ids_c = cf.getPeptideIdentifications();
   if (!pep_ids_c.empty())
   {
     return !pep_ids_c[0].getHits().empty(); // checks if PeptideIdentification has at least one hit
@@ -181,18 +191,20 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   std::vector<String> protein_names_temp;
   for(const auto& prot_access : accessions)
   {
-    const auto& prot_mapper_it = prot_mapper.find(prot_access);
-    if(prot_mapper_it == prot_mapper.end())
+    if (const auto& prot_mapper_it = prot_mapper.find(prot_access); prot_mapper_it == prot_mapper.end())
     {
       continue;
     }
-    auto protein_description = prot_mapper_it->second;
-    auto gn = extractGeneName(protein_description);
-    if(!gn.empty())
+    else
     {
-      gene_names_temp.push_back(std::move(gn));
+      auto protein_description = prot_mapper_it->second;
+      auto gn = extractGeneName(protein_description);
+      if(!gn.empty())
+      {
+        gene_names_temp.push_back(std::move(gn));
+      }
+      protein_names_temp.push_back(std::move(protein_description));
     }
-    protein_names_temp.push_back(std::move(protein_description));
   }
   gene_names.str(ListUtils::concatenate(gene_names_temp, ';'));     //Gene Names
   protein_names.str(ListUtils::concatenate(protein_names_temp, ';'));  //Protein Names

@@ -1,9 +1,9 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -11,7 +11,7 @@
 // Avoid OpenMS includes here at all costs
 // When the included headers are changed, *all* tests have to be recompiled!
 // Use the ClassTest class if you need add high-level functionality.
-// Includes in the C-file are ok...
+// Includes in ClassTest.cpp are ok...
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
@@ -23,6 +23,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <type_traits>
+
+using XMLCh = char16_t; // Xerces-C++ uses char16_t for UTF-16 strings that we need to output in tests
 
 // Empty declaration to avoid problems in case the namespace is not
 // yet defined (e.g. TEST/ClassTest_test.cpp)
@@ -150,24 +153,24 @@ namespace OpenMS
       printWithPrefix(const std::string& text, const int marked = -1);
 
       /**
-         @brief Set up some classtest variables as obtained from the 'START_TEST' macro 
+         @brief Set up some classtest variables as obtained from the 'START_TEST' macro
                 and check that no additional arguments were passed to the test executable.
 
-         @param version A version string, obtained from 'START_TEST(FuzzyStringComparator, "<VERSION>")'
-         @param class_name The class under test (used for error messages etc), obtained from 'START_TEST(FuzzyStringComparator, "<VERSION>")'
-         @param argc The number of arguments to the main() function of the class test (must be 1; test will quit otherwise)
-         @param argv0 Name of the executable (for debug output)
+         @param[in] version A version string, obtained from 'START_TEST(FuzzyStringComparator, "<VERSION>")'
+         @param[in] class_name The class under test (used for error messages etc), obtained from 'START_TEST(FuzzyStringComparator, "<VERSION>")'
+         @param[in] argc The number of arguments to the main() function of the class test (must be 1; test will quit otherwise)
+         @param[in] argv0 Name of the executable (for debug output)
       */
       void OPENMS_DLLAPI mainInit(const char* version, const char* class_name, int argc, const char* argv0);
 
       /**
         @brief Test if two files are exactly equal (used in TEST_FILE_EQUAL macro)
-        
-        @param line The line where the macro was called (for reporting)
-        @param filename The temp file
-        @param templatename The ground truth file
-        @param filename_stringified The expression used as the first macro argument
-        @param templatename_stringified The expression used as the second macro argument
+
+        @param[in] line The line where the macro was called (for reporting)
+        @param[in] filename The temp file
+        @param[in] templatename The ground truth file
+        @param[in] filename_stringified The expression used as the first macro argument
+        @param[in] templatename_stringified The expression used as the second macro argument
       */
       void OPENMS_DLLAPI filesEqual(int line, const char* filename, const char* templatename, const char* filename_stringified, const char* templatename_stringified);
 
@@ -275,26 +278,32 @@ namespace OpenMS
       {
         ++test_count;
         test_line = line;
-        this_test = bool(expression_1 == T1(expression_2));
-        test = test && this_test;
+        this_test = bool(expression_1 == T1(expression_2)) ;
+        test &= this_test;
         {
           initialNewline();
-          if (this_test)
+          if (!this_test || verbose > 1)
           {
-            if (verbose > 1)
+            stdcout << ' ' << (this_test ? '+' : '-') << "  line " << line << " : TEST_EQUAL(" << expression_1_stringified << ','
+                    << expression_2_stringified << "): got '";
+
+            // we can't print wide chars directly using operator<< so we need to test for it
+            if constexpr (std::is_same_v<std::remove_cv_t<T1>, XMLCh*> || std::is_same_v<std::remove_cv_t<T2>, XMLCh*>)
             {
-              stdcout << " +  line " << line << ":  TEST_EQUAL("
-                        << expression_1_stringified << ','
-                        << expression_2_stringified << "): got '" << expression_1
-                        << "', expected '" << expression_2 << "'\n";
+              stdcout << (expression_1 == nullptr ? "(null)" : "(XMLCh*)") << "', expected '"
+                      << (expression_2 == nullptr ? "(null)" : "(XMLCh*)") << "'\n";
+            }
+            else if constexpr (std::is_enum_v<T1> && std::is_enum_v<T2>)
+            {
+              stdcout << static_cast<int>(expression_1) << "', expected '" << static_cast<int>(expression_2) << "'\n";
+            }
+            else
+            {
+              stdcout << expression_1 << "', expected '" << expression_2 << "'\n";
             }
           }
-          else
+          if (!this_test)
           {
-            stdcout << " -  line " << line << ":  TEST_EQUAL("
-                      << expression_1_stringified << ','
-                      << expression_2_stringified << "): got '" << expression_1
-                      << "', expected '" << expression_2 << "'\n";
             failed_lines_list.push_back(line);
           }
         }
@@ -305,7 +314,7 @@ namespace OpenMS
         ++test_count;
         test_line = line;
         this_test = expression_1;
-        test = test && this_test;
+        test &= this_test;
         {
           initialNewline();
           if (this_test)
@@ -328,7 +337,7 @@ namespace OpenMS
         ++test_count;
         test_line = line;
         this_test = !expression_1;
-        test = test && this_test;
+        test &= this_test;
         {
           initialNewline();
           if (this_test)
@@ -356,25 +365,21 @@ namespace OpenMS
         ++test_count;
         test_line = line;
         this_test = !(expression_1 == T1(expression_2));
-        test = test && this_test;
+        test &= this_test;
         {
           initialNewline();
-          if (this_test)
+          if (!this_test || verbose > 1)
           {
-            if (verbose > 1)
+            stdcout << ' ' << (this_test ? '+' : '-') << "  line " << line << " : TEST_NOT_EQUAL(" << expression_1_stringified << ','
+                    << expression_2_stringified << "): got '";
+            if constexpr (std::is_enum_v<T1> && std::is_enum_v<T2>)
             {
-              stdcout << " +  line " << line << ":  TEST_NOT_EQUAL("
-                        << expression_1_stringified << ','
-                        << expression_2_stringified << "): got '" << expression_1
-                        << "', forbidden is '" << expression_2 << "'\n";
+              stdcout << static_cast<int>(expression_1) << "', forbidden is '" << static_cast<int>(expression_2) << "'\n";
             }
+            else { stdcout << expression_1 << "', expected '" << expression_2 << "'\n"; }
           }
-          else
+          if (!this_test)
           {
-            stdcout << " -  line " << line << ":  TEST_NOT_EQUAL("
-                      << expression_1_stringified << ','
-                      << expression_2_stringified << "): got '" << expression_1
-                      << "', forbidden is '" << expression_2 << "'\n";
             failed_lines_list.push_back(line);
           }
         }
@@ -410,8 +415,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  The implementation is done in namespace #OpenMS::Internal::ClassTest.
 
- To create a test you can use the 'create_test.php' script in %OpenMS/tools/
- (other useful scripts in the same directory - have a look).
+ To create a test, follow the guidelines in @ref developer_faq (section "How to add a new class test").
+ Look at existing test files in src/tests/class_tests/ for examples.
 
  @ingroup Concept
 
@@ -558,8 +563,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @note This macro evaluates its arguments once or twice, depending on verbosity settings.
 
- @param a value/object to test
- @param b expected value
+ @param[in] a value/object to test
+ @param[in] b expected value
 
  @hideinitializer
  */
@@ -570,7 +575,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  This macro tests if its argument evaluates to 'true'.
  If possible use TEST_EQUAL(a, b) instead of TEST_TRUE(a==b), because the latter makes bug tracing harder.
 
- @param a value/object convertible to bool
+ @param[in] a value/object convertible to bool
  
  @hideinitializer
 */
@@ -581,7 +586,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  This macro tests if its argument evaluates to 'false'.
  If possible use TEST_NOT_EQUAL(a, b) instead of TEST_FALSE(a!=b), because the latter makes bug tracing harder.
 
- @param a value/object convertible to bool
+ @param[in] a value/object convertible to bool
 
  @hideinitializer
 */
@@ -594,8 +599,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
  The only difference between the two macros is that #TEST_NOT_EQUAL evaluates
  !((a) == (b)).
 
- @param a value/object to test
- @param b forbidden value
+ @param[in] a value/object to test
+ @param[in] b forbidden value
 
  @hideinitializer
  */
@@ -608,8 +613,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @note This macro evaluates its arguments once or twice, depending on verbosity settings.
 
- @param a value to test
- @param b expected value
+ @param[in] a value to test
+ @param[in] b expected value
 
  @hideinitializer
  */
@@ -631,7 +636,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_FILE_EQUAL(filename, templatename)                                           \
   {                                                                                       \
-    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);                                                                                    \
+    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);         \
   }
 
 /**	@brief Floating point similarity macro.
@@ -644,8 +649,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
  @note Both arguments are converted to @c double.  The actual comparison is done
  by isRealSimilar().
 
- @param a value to test
- @param b expected value
+ @param[in] a value to test
+ @param[in] b expected value
 
  @hideinitializer
  */
@@ -661,8 +666,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
  @note Both arguments are converted to @c std::string.  The actual comparison
  is done by testStringSimilar().
 
- @param a value to test
- @param b expected value
+ @param[in] a value to test
+ @param[in] b expected value
 
  @hideinitializer
  */
@@ -677,8 +682,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @note The actual comparison is done by isFileSimilar().
 
- @param a value to test
- @param b expected value
+ @param[in] a value to test
+ @param[in] b expected value
 
  @hideinitializer
  */
@@ -780,8 +785,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
  vector[-1]).  If no or a wrong exception occurred, false is returned,
  otherwise true.
 
- @param exception_type the exception-class
- @param command any general C++ or OpenMS-specific command
+ @param[in] exception_type the exception-class
+ @param[in] command any general C++ or OpenMS-specific command
 
  @hideinitializer
  */
@@ -863,7 +868,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
   However the test is executed only when the #OPENMS_PRECONDITION macros are active,
   i.e., when compiling in Debug mode.  (See Macros.h)
 
- @param command any general C++ or OpenMS-specific command
+ @param[in] command any general C++ or OpenMS-specific command
 
   @hideinitializer
  */
@@ -880,7 +885,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
   However the test is executed only when the #OPENMS_POSTCONDITION macros are active,
   i.e., when compiling in Debug mode.  (See Macros.h)
 
- @param command any general C++ or OpenMS-specific command
+ @param[in] command any general C++ or OpenMS-specific command
 
   @hideinitializer
  */
@@ -901,9 +906,9 @@ namespace TEST = OpenMS::Internal::ClassTest;
  If no, a wrong exception occurred or a wrong message is returned, false is
  returned, otherwise true.
 
- @param exception_type the exception-class
- @param command any general C++ or OpenMS-specific command
- @param message the message the exception should give
+ @param[in] exception_type the exception-class
+ @param[in] command any general C++ or OpenMS-specific command
+ @param[in] message the message the exception should give
 
  @hideinitializer
  */

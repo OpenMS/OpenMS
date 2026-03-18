@@ -1,11 +1,13 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
 //! [doxygen_snippet_MSExperiment]
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <iostream>
 
 using namespace OpenMS;
@@ -29,7 +31,7 @@ int main()
       peak.setMZ(mz + i);
       spectrum.push_back(peak);
     }
-    
+
     exp.addSpectrum(spectrum);
   }
 
@@ -39,7 +41,7 @@ int main()
     cout << it.getRT() << " - " << it->getMZ() << endl;
   }
 
-  // Iteration over all peaks in the experiment. 
+  // Iteration over all peaks in the experiment.
   // Output: RT, m/z, and intensity
   // Note that the retention time is stored in the spectrum (not in the peak object)
   for (auto s_it = exp.begin(); s_it != exp.end(); ++s_it)
@@ -50,17 +52,38 @@ int main()
     }
   }
 
-  // We could store the spectra to a mzML file with:
-  // FileHandler mzml;
-  // mzml.storeExperiment(filename, exp);
-  
-  // And load it with
-  // mzml.loadExperiment(filename, exp);
-  // If we wanted to load only the MS2 spectra we could speed up reading by setting:
-  // mzml.getOptions().addMSLevel(2);
-  // before executing: mzml.loadExperiment(filename, exp);
+  // updateRanges provides a fast way to update the ranges of all spectra and chromatograms in the experiment.
+  // Once updated, the data ranges for all dimensions (RT, m/z, int, IM) can be printed.
+  exp.updateRanges();
+  std::cout << "Data ranges:\n";
+  exp.spectrumRanges().printRange(std::cout);
+  std::cout << "\nGet maximum intensity on its own: " << exp.spectrumRanges().getMaxIntensity() << '\n';
+  std::cout << "Get minimum RT on its own: " << exp.spectrumRanges().getMinRT() << '\n';
+  std::cout << "Get maximum RT on its own: " << exp.spectrumRanges().getMaxRT() << '\n';
+  std::cout << "Get minimum m/z on its own: " << exp.spectrumRanges().getMinMZ() << '\n';
+  std::cout << "Get maximum m/z on its own: " << exp.spectrumRanges().getMaxMZ() << '\n';
 
+  // Printing the IM ranges is only possible if the spectra contain IM data (would throw an exception otherwise)  
+  if (!exp.spectrumRanges().RangeMobility::isEmpty())  
+  {  
+    std::cout << "Get minimum IM on its own: " << exp.spectrumRanges().getMinMobility() << '\n';  
+    std::cout << "Get maximum IM on its own: " << exp.spectrumRanges().getMaxMobility() << '\n';  
+  }  
+
+  // Store the spectra to a mzML file with:
+  FileHandler fh;
+  auto tmp_filename = File::getTemporaryFile();
+  fh.storeExperiment(tmp_filename, exp, {FileTypes::MZML});
+
+  // And load it with
+  fh.loadExperiment(tmp_filename, exp);
+  // If we wanted to load only the MS2 spectra we could speed up reading by setting:
+  fh.getOptions().setMSLevels({2});
+  // and then load from disk: 
+  fh.loadExperiment(tmp_filename, exp);
+
+  // note: the file in 'tmp_filename' will be automatically deleted
   return 0;
-} //end of main
+} // end of main
 
 //! [doxygen_snippet_MSExperiment]

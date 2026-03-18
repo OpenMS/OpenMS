@@ -1,31 +1,5 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
@@ -71,11 +45,6 @@ add_subdirectory(extern)
 #include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
-# At this point make a summary of where data and doc will be located:
-message(STATUS "Info: CF_OPENMS_DATA_PATH: ${CF_OPENMS_DATA_PATH}")
-message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
-
-#------------------------------------------------------------------------------
 # configure config.h
 #------------------------------------------------------------------------------
 include(${PROJECT_SOURCE_DIR}/configh.cmake)
@@ -86,9 +55,16 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Eigen3::Eigen Qt5::Core Qt5::Network)
+set(OPENMS_DEP_LIBRARIES
+  LibSVM::LibSVM
+  XercesC::XercesC
+  Qt6::Core
+  CURL::libcurl
+)
 
-## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
+## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
+## Note: Eigen3::Eigen is PRIVATE because Eigen types are not exposed in the public API
+## Note: Evergreen is PRIVATE because it's only used internally by BayesianProteinInferenceAlgorithm
 set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
@@ -97,23 +73,38 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::date_time
   Boost::iostreams
   Boost::regex
+  Eigen3::Eigen
+  Evergreen
   GTE
   Quadtree
   SIMDe
   SQLiteCpp
   ZLIB::ZLIB
+  libzip::zip
   nlohmann_json::nlohmann_json
-  tdl::tdl
+  IsoSpec
+  eol-bspline
   )
 
-## ----------
-## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
-## ----------
-#------------------------------------------------------------------------------
-# Install the QSQLite driver if we are not on linux so we can use oms files
-#if(WIN32 OR APPLE)
-#  install_qt5_plugin_builddir("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}" Dependencies)
-#endif()
+if (WITH_PARQUET)
+  # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
+       ${OPENMS_ARROW_TARGET}
+       ${OPENMS_ARROW_COMPUTE_TARGET}
+       ${OPENMS_PARQUET_TARGET})
+  if (OPENMS_ARROW_DATASET_TARGET)
+    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_DATASET_TARGET})
+    # Dataset pushdown needs libxml2 when Arrow Dataset is linked statically.
+    list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES LibXml2::LibXml2)
+  endif()
+endif()
+
+if (ENABLE_TDL)
+set(OPENMS_DEP_PRIVATE_LIBRARIES
+    ${OPENMS_DEP_PRIVATE_LIBRARIES}
+    tdl::tdl
+    )
+endif()
 
 # Xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
@@ -139,13 +130,25 @@ openms_add_library(TARGET_NAME  OpenMS
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
-                                    ${ISOSPEC_INCLUDE_DIRECTORY}
+                   PRIVATE_INCLUDES
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+if (OPENMS_ARROW_DATASET_TARGET)
+  target_compile_definitions(OpenMS PRIVATE WITH_ARROW_DATASET)
+endif()
+
+# When Arrow is statically linked, hide its bundled third-party symbols from
+# libOpenMS.so's dynamic symbol table to avoid conflicts with system libraries.
+# NOTE: We intentionally do NOT hide libarrow.a or libparquet.a symbols because
+# the OpenMS public API exposes arrow::Table etc., and downstream consumers
+# (including test executables) need to resolve those symbols from libOpenMS.so.
+if(WITH_PARQUET AND ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE)
+  target_link_options(OpenMS PRIVATE "LINKER:--exclude-libs,libarrow_bundled_dependencies.a")
+endif()
 
 if (MSVC)
   ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
@@ -153,6 +156,17 @@ if (MSVC)
   ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4189")
 endif()
+
+if (ENABLE_TDL)
+    target_compile_definitions(OpenMS PUBLIC ENABLE_TDL)
+endif()
+
+# propagate Parquet support to the code (used to gate tools in ToolHandler, etc.)
+if (WITH_PARQUET)
+    target_compile_definitions(OpenMS PUBLIC WITH_PARQUET=1)
+endif()
+
+
 
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
@@ -176,7 +190,7 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
 install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
 
 # Devs also need our custom find modules
-install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)
+install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_CMAKE_DIR}/Modules cmake)
 file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
 #------------------------------------------------------------------------------

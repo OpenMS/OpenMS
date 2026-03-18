@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -14,11 +14,14 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iterator>
+#include <unordered_set>
+#include <unordered_map>
 
 /////////////////////////////////////////////////////////////
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 using namespace OpenMS;
 
@@ -579,10 +582,66 @@ START_SECTION(([EXTRA] Test scalar division))
 }
 END_SECTION
 
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<DPosition<2>>))
+{
+  // Test that equal positions have equal hashes
+  DPosition<2> p1(1.5, 2.5);
+  DPosition<2> p2(1.5, 2.5);
+
+  std::hash<DPosition<2>> hasher;
+  TEST_EQUAL(hasher(p1), hasher(p2))
+
+  // Test that hash changes when values change
+  DPosition<2> p3(3.5, 2.5);
+  TEST_NOT_EQUAL(hasher(p1), hasher(p3))
+
+  // Test use in unordered_set
+  std::unordered_set<DPosition<2>> pos_set;
+  pos_set.insert(p1);
+  TEST_EQUAL(pos_set.size(), 1)
+  pos_set.insert(p2); // same as p1
+  TEST_EQUAL(pos_set.size(), 1) // should not increase
+  pos_set.insert(p3);
+  TEST_EQUAL(pos_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<DPosition<2>, int> pos_map;
+  pos_map[p1] = 42;
+  TEST_EQUAL(pos_map[p1], 42)
+  TEST_EQUAL(pos_map[p2], 42) // p2 == p1, should get same value
+  pos_map[p3] = 99;
+  TEST_EQUAL(pos_map[p3], 99)
+  TEST_EQUAL(pos_map.size(), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<DPosition<1>>))
+{
+  // Test DPosition<1> hash
+  DPosition<1> p1(1.5);
+  DPosition<1> p2(1.5);
+  DPosition<1> p3(2.5);
+
+  std::hash<DPosition<1>> hasher;
+  TEST_EQUAL(hasher(p1), hasher(p2))
+  TEST_NOT_EQUAL(hasher(p1), hasher(p3))
+
+  std::unordered_set<DPosition<1>> pos_set;
+  pos_set.insert(p1);
+  pos_set.insert(p2);
+  pos_set.insert(p3);
+  TEST_EQUAL(pos_set.size(), 2) // p1 and p2 are the same
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
 
-#pragma clang diagnostic pop
-
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif

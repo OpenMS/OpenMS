@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -44,7 +44,7 @@ public:
       individual copy on which it can operate.
 
     */
-    virtual boost::shared_ptr<ISpectrumAccess> lightClone() const = 0;
+    virtual std::shared_ptr<ISpectrumAccess> lightClone() const = 0;
 
     /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) = 0;
@@ -109,7 +109,7 @@ public:
 
       while (mz_it != mz_end)
       {
-        if ( (drift_start <= *im_it) & (drift_end >= *im_it) )
+        if ( (drift_start <= *im_it) && (drift_end >= *im_it) )
         {
           mz_arr_out->data.push_back( *mz_it );
           intens_arr_out->data.push_back( *int_it );
@@ -128,6 +128,6 @@ public:
 
    };
 
-  typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
+  typedef std::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 }
 

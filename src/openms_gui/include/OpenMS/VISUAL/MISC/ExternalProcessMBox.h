@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -43,11 +43,11 @@ namespace OpenMS
     /**
       @brief Runs a program by calling ExternalProcess::run and shows any error reported in @p error_msg as a MessageBox before this function returns
 
-      @param parent Optional parent widget, used to position QMesssageBoxes above the parent
-      @param exe The program to call (can contain spaces in path, no problem)
-      @param args A list of extra arguments (can be empty)
-      @param working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
-      @param verbose Report the call command and errors via the callbacks (default: false)
+      @param[in] parent Optional parent widget, used to position QMesssageBoxes above the parent
+      @param[in] exe The program to call (can contain spaces in path, no problem)
+      @param[in] args A list of extra arguments (can be empty)
+      @param[in,out] working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
+      @param[in] verbose Report the call command and errors via the callbacks (default: false)
       @param[out] error_msg Message to display to the user or log somewhere if something went wrong (if return != SUCCESS)
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */

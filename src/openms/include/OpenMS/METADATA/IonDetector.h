@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,9 @@
 #pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <functional>
 
 namespace OpenMS
 {
@@ -22,7 +25,7 @@ namespace OpenMS
   {
 public:
     /// Detector type
-    enum Type
+    enum class Type
     {
       TYPENULL,                                  ///< Unknown
       ELECTRONMULTIPLIER,                        ///< Electron multiplier
@@ -49,10 +52,10 @@ public:
       SIZE_OF_TYPE
     };
     /// Names of detector types
-    static const std::string NamesOfType[SIZE_OF_TYPE];
+    static const std::string NamesOfType[static_cast<size_t>(Type::SIZE_OF_TYPE)];
 
     /// Acquisition mode
-    enum AcquisitionMode
+    enum class AcquisitionMode
     {
       ACQMODENULL,             ///< Unknown
       PULSECOUNTING,           ///< Pulse counting
@@ -62,7 +65,57 @@ public:
       SIZE_OF_ACQUISITIONMODE
     };
     /// Names of acquisition modes
-    static const std::string NamesOfAcquisitionMode[SIZE_OF_ACQUISITIONMODE];
+    static const std::string NamesOfAcquisitionMode[static_cast<size_t>(AcquisitionMode::SIZE_OF_ACQUISITIONMODE)];
+
+    /**
+     @brief Returns all detector type names known to OpenMS
+
+     @return List of all detector type names
+    */
+    static StringList getAllNamesOfType();
+
+    /**
+     @brief Returns all acquisition mode names known to OpenMS
+
+     @return List of all acquisition mode names
+    */
+    static StringList getAllNamesOfAcquisitionMode();
+
+    /**
+     @brief Convert a Type enum to its string representation
+
+     @param type The detector type enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p type is SIZE_OF_TYPE
+    */
+    static const std::string& typeToString(Type type);
+
+    /**
+     @brief Convert a string to a Type enum
+
+     @param name The string name to convert
+     @return The corresponding Type enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfType[]
+    */
+    static Type toType(const std::string& name);
+
+    /**
+     @brief Convert an AcquisitionMode enum to its string representation
+
+     @param mode The acquisition mode enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p mode is SIZE_OF_ACQUISITIONMODE
+    */
+    static const std::string& acquisitionModeToString(AcquisitionMode mode);
+
+    /**
+     @brief Convert a string to an AcquisitionMode enum
+
+     @param name The string name to convert
+     @return The corresponding AcquisitionMode enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfAcquisitionMode[]
+    */
+    static AcquisitionMode toAcquisitionMode(const std::string& name);
 
     /// Constructor
     IonDetector();
@@ -126,4 +179,30 @@ protected:
 
   };
 } // namespace OpenMS
+
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::IonDetector.
+   *
+   * Hashes type, acquisition mode, resolution, ADC sampling frequency, and order.
+   * Note: MetaInfoInterface base class fields are not included in the hash as
+   * MetaInfoInterface does not yet have a hash implementation. This hash is
+   * consistent with operator== for objects that differ only in the IonDetector-specific
+   * fields.
+   */
+  template<>
+  struct hash<OpenMS::IonDetector>
+  {
+    std::size_t operator()(const OpenMS::IonDetector& d) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_int(static_cast<int>(d.getType()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(d.getAcquisitionMode())));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(d.getResolution()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(d.getADCSamplingFrequency()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(d.getOrder()));
+      return seed;
+    }
+  };
+} // namespace std
 

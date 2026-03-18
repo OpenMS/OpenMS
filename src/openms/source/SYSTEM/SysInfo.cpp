@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,9 +17,11 @@
 #ifdef OPENMS_WINDOWSPLATFORM
   #include "windows.h"
   #include "psapi.h"
+  #include <process.h>  // for _getpid()
 #elif __APPLE__
   #include <mach/mach.h>
   #include <mach/mach_init.h>
+  #include <unistd.h>   // for getpid()
 #else
   #define OMS_USELINUXMEMORYPLATFORM
   #include <cstdio>
@@ -161,6 +163,15 @@ namespace OpenMS
     }
     #endif
     return false;
+#endif
+  }
+
+  Int64 SysInfo::getProcessId()
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    return static_cast<Int64>(_getpid());
+#else
+    return static_cast<Int64>(getpid());
 #endif
   }
 

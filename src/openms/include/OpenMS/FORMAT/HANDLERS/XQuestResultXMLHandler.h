@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -33,13 +34,13 @@ namespace OpenMS
 
       /// Constructor for a read-only handler for internal identification structures
       XQuestResultXMLHandler(const String & filename,
-                             std::vector< PeptideIdentification > & pep_ids,
+                             PeptideIdentificationList & pep_ids,
                              std::vector< ProteinIdentification > & prot_ids
                              );
 
       /// Constructor for a write-only handler for internal identification structures
       XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
-                             const std::vector<PeptideIdentification>& pep_id,
+                             const PeptideIdentificationList& pep_id,
                              const String& filename,
                              const String& version
                            );
@@ -108,12 +109,12 @@ namespace OpenMS
       String cross_linker_name_;
 
       // Main data structures that are populated during loading the file
-      std::vector< PeptideIdentification >* pep_ids_;
+      PeptideIdentificationList* pep_ids_;
       std::vector< ProteinIdentification >* prot_ids_;
 
       // internal ID items for writing files
       const std::vector<ProteinIdentification>* cpro_id_;
-      const std::vector<PeptideIdentification>* cpep_id_;
+      const PeptideIdentificationList* cpep_id_;
 
       UInt n_hits_; ///< Total no. of hits found in the result XML file
 
@@ -155,8 +156,8 @@ namespace OpenMS
 
       /**
        * @brief Extracts the DateTime from datetime string from xQuest
-       * @param xquest_datetime_string The DateTime String to be processed
-       * @param date_time DateTime that reflects the value given in the `xquest_datetime_string`
+       * @param[in] xquest_datetime_string The DateTime String to be processed
+       * @param[in] date_time DateTime that reflects the value given in the `xquest_datetime_string`
        */
       inline void extractDateTime_(const String & xquest_datetime_string, DateTime & date_time) const;
 
@@ -164,21 +165,21 @@ namespace OpenMS
        * @brief Assigns all meta values stored in the peptide_id_attributes
        * member to an meta info interface
        *
-       * @param meta_info_interface Where the meta values from the peptide_id_attributes member should be assigned to
+       * @param[in] meta_info_interface Where the meta values from the peptide_id_attributes member should be assigned to
        */
       void addMetaValues_(MetaInfoInterface & meta_info_interface);
 
       /**
        * @brief Gets the link location of a xQuest xlinkPositionString.
-       * @param attributes XML attributes of Xerces.
-       * @param pair Pair to be populated with the xlinkposition in xQuest.
+       * @param[in] attributes XML attributes of Xerces.
+       * @param[out] pair Pair to be populated with the xlinkposition in xQuest.
        */
       void getLinkPosition_(const xercesc::Attributes & attributes, std::pair<SignedSize, SignedSize> & pair);
 
       /**
        * @brief Sets the peptide evidence for Alpha and Beta.
-       * @param prot_string Protein string of the xquest file the peptide evidence should be populated from.
-       * @param pep_hit For which peptide hit the peptide evidence should be set.
+       * @param[out] prot_string Protein string of the xquest file the peptide evidence should be populated from.
+       * @param[in] pep_hit For which peptide hit the peptide evidence should be set.
        */
       void setPeptideEvidence_(const String & prot_string, PeptideHit & pep_hit);
 

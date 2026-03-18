@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/SqMassFile.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -153,7 +154,7 @@ class TOPPOpenSwathMzMLFileCacher
       MapType exp;
       SqMassFile sqfile;
       sqfile.load(in, exp);
-      FileHandler().storeExperiment(out, exp, {FileTypes::MZML});
+      FileHandler().storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
       return EXECUTION_OK;
     }
     else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS && process_lowmemory)
@@ -186,7 +187,7 @@ class TOPPOpenSwathMzMLFileCacher
       sqfile.setConfig(config);
 
       MapType exp;
-      FileHandler().loadExperiment(in, exp, {FileTypes::MZML});
+      FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
       sqfile.store(out, exp);
       return EXECUTION_OK;
     }

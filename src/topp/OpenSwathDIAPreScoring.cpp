@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -19,6 +19,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -56,7 +57,7 @@ public:
 protected:
 
   typedef PeakMap MapType;
-  typedef boost::shared_ptr<PeakMap> MapTypePtr;
+  typedef std::shared_ptr<PeakMap> MapTypePtr;
 
   void registerOptionsAndFlags_() override
   {

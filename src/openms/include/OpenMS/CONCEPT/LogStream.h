@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -96,10 +96,22 @@ public:
       /**
         Create a new LogStreamBuf object and set the level to @p log_level
 
-        @param log_level The log level of the LogStreamBuf (default is unknown)
-        @param col If messages should be colored, provide a colorizer here
+        @param[in] log_level The log level of the LogStreamBuf (default is unknown)
+        @param[in] col If messages should be colored, provide a colorizer here
       */
       LogStreamBuf(const std::string& log_level = UNKNOWN_LOG_LEVEL, Colorizer* col = nullptr);
+
+      /**
+        Create a LogStreamBuf that copies the stream_list_ configuration from another LogStreamBuf.
+
+        This constructor is used for thread-local logging where each thread has its own
+        buffer and stream configuration (for thread safety), but starts with the same
+        initial configuration as the global LogStream instances.
+
+        @param[in] source_buf The LogStreamBuf whose stream_list_ should be copied
+        @param[in] col If messages should be colored, provide a colorizer here
+      */
+      LogStreamBuf(LogStreamBuf* source_buf, Colorizer* col = nullptr);
 
       /**
         Destruct the buffer and free all stored messages strings.
@@ -136,7 +148,7 @@ public:
       /**
         Set the level of the LogStream
 
-        @param level The new LogLevel
+        @param[in] level The new LogLevel
       */
       void setLevel(std::string level);
 
@@ -184,9 +196,13 @@ protected:
       /// Interpret the prefix format string and return the expanded prefix.
       std::string expandPrefix_(const std::string & prefix, time_t time) const;
 
+      /// Returns the stream list (owned or shared)
+      std::list<StreamStruct>& getStreamList_();
+      const std::list<StreamStruct>& getStreamList_() const;
+
       char * pbuf_ = nullptr;
       std::string             level_;
-      std::list<StreamStruct> stream_list_;
+      std::list<StreamStruct> stream_list_;  ///< Stream list for this buffer
       std::string             incomplete_line_;
       Colorizer* colorizer_ = nullptr; ///< optional Colorizer to color the output to stdout/stdcerr (if attached)
       /// @name Caching
@@ -219,7 +235,7 @@ protected:
         Adds the new line to the cache and removes an old one
         if necessary
 
-        @param line The Log message that should be added to the cache
+        @param[in] line The Log message that should be added to the cache
         @return An additional massage if a re-occurring message was removed
         from the cache
       */
@@ -300,9 +316,9 @@ public:
         If the argument <tt>stream</tt> is set to an output stream (e.g. <tt>cout</tt>)
         all output is send to that stream.
 
-        @param	buf
-        @param  delete_buf
-        @param	stream
+        @param[in]	buf
+        @param[in]  delete_buf
+        @param[in]	stream
       */
       LogStream(LogStreamBuf * buf = nullptr, bool delete_buf = true, std::ostream * stream = nullptr);
 
@@ -332,7 +348,7 @@ public:
       /**
         Set the level of the LogStream
 
-       @param level The new LogLevel
+       @param[in] level The new LogLevel
       */
       void setLevel(std::string level);
 
@@ -358,7 +374,7 @@ public:
         If <tt>min_level</tt> and <tt>max_level</tt> are equal, this function can be used
         to listen to a specified channel.
 
-        @param s a reference to the stream to be associated
+        @param[in] s a reference to the stream to be associated
       */
       void insert(std::ostream & s);
 
@@ -370,12 +386,15 @@ public:
         If the stream was not in the list of associated streams nothing will
         happen.
 
-        @param s the stream to be removed
+        @param[in] s the stream to be removed
       */
       void remove(std::ostream & s);
 
       /**
         Remove all streams associated to this LogStream, effectively silencing it.
+        
+        Flushes all buffers to ensure any pending log messages are written to their
+        respective streams before they are removed.
       */
       void removeAllStreams();
 
@@ -400,8 +419,8 @@ public:
         - <b>%s</b> time and date in short format (MM/DD, HH:MM)
         - <b>%%</b>	percent sign (escape sequence)
 
-        @param s The stream that will be prefixed.
-        @param prefix The prefix used for the stream.
+        @param[in] s The stream that will be prefixed.
+        @param[in] prefix The prefix used for the stream.
       */
       void setPrefix(const std::ostream & s, const std::string & prefix);
 
@@ -411,6 +430,14 @@ public:
 
       ///
       void flush();
+
+      /**
+        @brief Flush any incomplete line (text not terminated by newline) to all streams.
+
+        This is useful for thread-local logging where the buffer needs to be
+        flushed before streams are reconfigured globally.
+      */
+      void flushIncomplete();
       //@}
 private:
 
@@ -428,42 +455,202 @@ private:
 
     }; //LogStream
 
+    /**
+      @brief RAII guard that temporarily removes a stream from a LogStream and re-inserts it on scope exit.
+
+      This class provides exception-safe temporary removal of output streams from LogStream objects.
+      Use this when you need to temporarily suppress logging to a specific stream (e.g., cout)
+      during operations that may throw exceptions.
+
+      Example usage:
+      @code
+      LogSinkGuard guard(getGlobalLogInfo(), cout); // Removes cout, will re-insert on scope exit
+      some_operation_that_may_throw();
+      // cout is automatically re-inserted when guard goes out of scope
+      @endcode
+
+      @ingroup Concept
+    */
+    class OPENMS_DLLAPI LogSinkGuard
+    {
+    public:
+      /**
+        @brief Construct a guard that removes the stream and re-inserts it on destruction.
+
+        @param log_stream The LogStream to remove the stream from (and re-insert into on destruction)
+        @param stream The stream to temporarily remove (e.g., std::cout)
+      */
+      LogSinkGuard(LogStream& log_stream, std::ostream& stream)
+        : log_stream_(log_stream), stream_(stream)
+      {
+        log_stream_.remove(stream_);
+      }
+
+      /// Destructor re-inserts the stream
+      ~LogSinkGuard()
+      {
+        log_stream_.insert(stream_);
+      }
+
+      // Non-copyable and non-movable
+      LogSinkGuard(const LogSinkGuard&) = delete;
+      LogSinkGuard& operator=(const LogSinkGuard&) = delete;
+      LogSinkGuard(LogSinkGuard&&) = delete;
+      LogSinkGuard& operator=(LogSinkGuard&&) = delete;
+
+    private:
+      LogStream& log_stream_;
+      std::ostream& stream_;
+    };
+
   } // namespace Logger
 
-  /// Macro to be used if fatal error are reported (processing stops)
+  //
+  // Thread-Local Log Stream Accessors
+  //
+  // These functions return thread-local LogStream instances, eliminating data races
+  // in the logging system. Each thread gets its own buffers and state.
+  // See GitHub Issue #8596 for details on the race conditions this fixes.
+  //
+  // RESTRICTIONS (document these clearly):
+  // - Log configuration (via LogConfigHandler) should be done ONCE at program start,
+  //   BEFORE spawning threads. Thread-local streams copy config from globals on first access.
+  // - OpenMP thread pools reuse threads, so thread_local state persists across parallel regions.
+  // - Do not reconfigure logging while threads are actively logging.
+  //
+
+  /// @brief Get thread-local fatal error log stream
+  OPENMS_DLLAPI Logger::LogStream& getThreadLocalLogFatal();
+
+  /// @brief Get thread-local error log stream
+  OPENMS_DLLAPI Logger::LogStream& getThreadLocalLogError();
+
+  /// @brief Get thread-local warning log stream
+  OPENMS_DLLAPI Logger::LogStream& getThreadLocalLogWarn();
+
+  /// @brief Get thread-local info log stream
+  OPENMS_DLLAPI Logger::LogStream& getThreadLocalLogInfo();
+
+  /// @brief Get thread-local debug log stream
+  OPENMS_DLLAPI Logger::LogStream& getThreadLocalLogDebug();
+
+  //
+  // Logging Macros (thread-safe via thread-local streams)
+  //
+
+  /// Macro for fatal errors (processing stops) - includes file and line info
 #define OPENMS_LOG_FATAL_ERROR \
-  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_fatal << __FILE__ << "(" << __LINE__ << "): "
+  OpenMS::getThreadLocalLogFatal() << __FILE__ << "(" << __LINE__ << "): "
 
-  /// Macro to be used if non-fatal error are reported (processing continues)
+  /// Macro for non-fatal errors (processing continues)
 #define OPENMS_LOG_ERROR \
-  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_error
+  OpenMS::getThreadLocalLogError()
 
-  /// Macro if a warning, a piece of information which should be read by the user, should be logged
+  /// Macro for warnings
 #define OPENMS_LOG_WARN \
-  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_warn
+  OpenMS::getThreadLocalLogWarn()
 
-  /// Macro if a information, e.g. a status should be reported
+  /// Macro for information/status messages
 #define OPENMS_LOG_INFO \
-  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_info
+  OpenMS::getThreadLocalLogInfo()
 
-  /// Macro for general debugging information
+  /// Macro for debug information - includes file and line info
 #define OPENMS_LOG_DEBUG \
-  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_debug << [](){ constexpr const char* x = (past_last_slash(__FILE__)); return x; }() << "(" << __LINE__ << "): "
+  OpenMS::getThreadLocalLogDebug() << past_last_slash(__FILE__) << "(" << __LINE__ << "): "
 
-  /// Macro for general debugging information (without information on file)
+  /// Macro for debug information (without file info)
 #define OPENMS_LOG_DEBUG_NOFILE \
-  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_debug
+  OpenMS::getThreadLocalLogDebug()
 
-  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
-  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
-  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
-  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.
-  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
+  /**
+    @name Global LogStream accessor functions
+
+    These functions provide access to global LogStream instances for configuration purposes
+    (e.g., adding/removing output streams). For actual logging, use the OPENMS_LOG_* macros
+    which use thread-local streams to avoid data races.
+
+    @warning Direct logging to global streams is NOT thread-safe. Use OPENMS_LOG_* macros instead.
+  */
+  ///@{
+
+  /**
+    @brief Get the global fatal error log stream for configuration purposes.
+
+    Returns a reference to the global fatal error LogStream instance. Use this function
+    to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
+
+    @warning Do NOT use this for logging messages directly - it is not thread-safe.
+             Use the OPENMS_LOG_FATAL_ERROR macro instead.
+
+    @return Reference to the global fatal error log stream
+
+    @see OPENMS_LOG_FATAL_ERROR
+  */
+  OPENMS_DLLAPI Logger::LogStream& getGlobalLogFatal();
+
+  /**
+    @brief Get the global error log stream for configuration purposes.
+
+    Returns a reference to the global error LogStream instance. Use this function
+    to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
+
+    @warning Do NOT use this for logging messages directly - it is not thread-safe.
+             Use the OPENMS_LOG_ERROR macro instead.
+
+    @return Reference to the global error log stream
+
+    @see OPENMS_LOG_ERROR
+  */
+  OPENMS_DLLAPI Logger::LogStream& getGlobalLogError();
+
+  /**
+    @brief Get the global warning log stream for configuration purposes.
+
+    Returns a reference to the global warning LogStream instance. Use this function
+    to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
+
+    @warning Do NOT use this for logging messages directly - it is not thread-safe.
+             Use the OPENMS_LOG_WARN macro instead.
+
+    @return Reference to the global warning log stream
+
+    @see OPENMS_LOG_WARN
+  */
+  OPENMS_DLLAPI Logger::LogStream& getGlobalLogWarn();
+
+  /**
+    @brief Get the global info log stream for configuration purposes.
+
+    Returns a reference to the global info LogStream instance. Use this function
+    to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
+
+    @warning Do NOT use this for logging messages directly - it is not thread-safe.
+             Use the OPENMS_LOG_INFO macro instead.
+
+    @return Reference to the global info log stream
+
+    @see OPENMS_LOG_INFO
+  */
+  OPENMS_DLLAPI Logger::LogStream& getGlobalLogInfo();
+
+  /**
+    @brief Get the global debug log stream for configuration purposes.
+
+    Returns a reference to the global debug LogStream instance. Use this function
+    to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
+
+    @note The debug stream is disabled by default. It is enabled in TOPPBase when
+          running with --debug flag.
+
+    @warning Do NOT use this for logging messages directly - it is not thread-safe.
+             Use the OPENMS_LOG_DEBUG macro instead.
+
+    @return Reference to the global debug log stream
+
+    @see OPENMS_LOG_DEBUG
+  */
+  OPENMS_DLLAPI Logger::LogStream& getGlobalLogDebug();
+
+  ///@}
 
 } // namespace OpenMS

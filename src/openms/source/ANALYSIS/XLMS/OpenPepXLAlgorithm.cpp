@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,9 +20,9 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
 #include <iostream>
 
@@ -154,7 +154,7 @@ using namespace OpenMS;
     add_losses_ = param_.getValue("ions:neutral_losses").toString();
   }
 
-  OpenPepXLAlgorithm::ExitCodes OpenPepXLAlgorithm::run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra)
+  OpenPepXLAlgorithm::ExitCodes OpenPepXLAlgorithm::run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra)
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(this->getLogType());
@@ -198,7 +198,7 @@ using namespace OpenMS;
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry." << endl;
-      return INCOMPATIBLE_INPUT_DATA;
+      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
     }
 
     //check if spectra are sorted
@@ -207,7 +207,7 @@ using namespace OpenMS;
       if (!unprocessed_spectra[i].isSorted())
       {
         OPENMS_LOG_WARN << "Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!" << endl;
-        return INCOMPATIBLE_INPUT_DATA;
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
     }
 
@@ -220,7 +220,7 @@ using namespace OpenMS;
     unprocessed_spectra.clear(true);
 
     // Precursor Purity precalculation
-    map<String, PrecursorPurity::PurityScores> precursor_purities = PrecursorPurity::computePrecursorPurities(picked_spectra, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_);
+    unordered_map<String, PrecursorPurity::PurityScores> precursor_purities = PrecursorPurity::computePrecursorPurities(picked_spectra, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_);
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
@@ -246,7 +246,7 @@ using namespace OpenMS;
     idmapper.setParameters(p);
 
     progresslogger.startProgress(0, 1, "Map spectrum precursors to linked features...");
-    idmapper.annotate(cfeatures, vector<PeptideIdentification>(), vector<ProteinIdentification>(), true, true, spectra);
+    idmapper.annotate(cfeatures, PeptideIdentificationList(), vector<ProteinIdentification>(), true, true, spectra);
     progresslogger.endProgress();
 
     vector< double > spectrum_precursors;
@@ -299,7 +299,7 @@ using namespace OpenMS;
     search_params.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name_));
     search_params.fixed_modifications = fixedModNames_;
     search_params.variable_modifications = varModNames_;
-    search_params.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_params.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_params.missed_cleavages = missed_cleavages_;
     search_params.fragment_mass_tolerance = fragment_mass_tolerance_;
     search_params.fragment_mass_tolerance_ppm =  fragment_mass_tolerance_unit_ppm_;

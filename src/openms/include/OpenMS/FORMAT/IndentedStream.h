@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,8 +9,6 @@
 #include <OpenMS/APPLICATIONS/ConsoleUtils.h>
 
 #include <sstream>
-
-using namespace std;
 
 namespace OpenMS
 {
@@ -37,10 +35,10 @@ namespace OpenMS
   public:
     /**
       @brief C'tor
-      
-      @param stream Underlying stream to write to (its lifetime must exceed the one of this IndentedStream)
-      @param indentation Number of spaces in front of each new line written to @p stream
-      @param max_lines Shorten excessive single items to at most this many number of lines (replacing excess with '...')
+
+      @param[in,out] stream Underlying stream to write to (its lifetime must exceed the one of this IndentedStream)
+      @param[in] indentation Number of spaces in front of each new line written to @p stream
+      @param[in] max_lines Shorten excessive single items to at most this many number of lines (replacing excess with '...')
     */
     IndentedStream(std::ostream& stream, const UInt indentation, const UInt max_lines);
 

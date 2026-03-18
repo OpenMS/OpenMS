@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,9 +6,4 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-
-// class template  .. nothing to see or include here...
-#if 0
-#include <OpenMS/DATASTRUCTURES/FlagSet.h>
-#endif
-
+// FlagSet is header-only; this file is intentionally empty.

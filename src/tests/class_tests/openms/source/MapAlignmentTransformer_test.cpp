@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -201,10 +202,10 @@ START_SECTION((static void transformRetentionTimes(ConsensusMap& cmap, const Tra
 }
 END_SECTION
 
-START_SECTION((static void transformRetentionTimes(std::vector<PeptideIdentification>& pep_ids, const TransformationDescription& trafo, bool store_original_rt = false)))
+START_SECTION((static void transformRetentionTimes(PeptideIdentificationList& pep_ids, const TransformationDescription& trafo, bool store_original_rt = false)))
 {
   PeptideIdentification pi;
-  vector<PeptideIdentification> pis;
+  PeptideIdentificationList pis;
 
   pi.setRT(11.1);
   pis.push_back(pi);

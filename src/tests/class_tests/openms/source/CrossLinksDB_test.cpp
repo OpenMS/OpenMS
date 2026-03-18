@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -214,15 +214,6 @@ START_SECTION((Size findModificationIndex(const String& mod_name) const))
 }
 END_SECTION
 
-START_SECTION(void readFromOBOFile(const String& filename))
-	// implicitely tested above
-	NOT_TESTABLE
-END_SECTION
-
-START_SECTION(void readFromUnimodXMLFile(const String& filename))
-	// just provided for convenience at the moment
-	NOT_TESTABLE
-END_SECTION
 
 START_SECTION((void getAllSearchModifications(std::vector<String>& modifications)))
 {

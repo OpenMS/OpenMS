@@ -1,0 +1,12 @@
+# PEFF 1.0
+# DbName=ModTagDB
+# Prefix=mt
+# DbDescription=Test database for modification optional tags
+# Decoy=false
+# DbSource=https://example.com/modtagdb
+# DbVersion=1.0
+# NumberOfEntries=1
+# SequenceType=AA
+# //
+>mt:P00001 \PName=(ModTag Protein) \ModResUnimod=(5|UNIMOD:21|Phospho|invitro)
+SEQUENCE

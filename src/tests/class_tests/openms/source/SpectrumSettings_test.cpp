@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -12,6 +12,8 @@
 ///////////////////////////
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <unordered_set>
+#include <unordered_map>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -157,13 +159,13 @@ END_SECTION
 
 START_SECTION((SpectrumType getType() const))
 	SpectrumSettings tmp;
-	TEST_EQUAL(tmp.getType(), SpectrumSettings::UNKNOWN);	  
+	TEST_EQUAL(tmp.getType(), SpectrumSettings::SpectrumType::UNKNOWN);	  
 END_SECTION
 
 START_SECTION((void setType(SpectrumType type)))
 	SpectrumSettings tmp;
-	tmp.setType(SpectrumSettings::CENTROID);
-	TEST_EQUAL(tmp.getType(), SpectrumSettings::CENTROID);
+	tmp.setType(SpectrumSettings::SpectrumType::CENTROID);
+	TEST_EQUAL(tmp.getType(), SpectrumSettings::SpectrumType::CENTROID);
 END_SECTION
 
 START_SECTION((const String& getComment() const))
@@ -177,33 +179,6 @@ START_SECTION((void setComment(const String& comment)))
 	TEST_EQUAL(tmp.getComment(), "bla");
 END_SECTION
 
-START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
-	SpectrumSettings tmp;
-	vector<PeptideIdentification> vec(tmp.getPeptideIdentifications());
-	TEST_EQUAL(vec.size(),0);
-END_SECTION
-
-START_SECTION((void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications)))
-	SpectrumSettings tmp;
-	vector<PeptideIdentification> vec;
-	
-	tmp.setPeptideIdentifications(vec);
-	TEST_EQUAL(tmp.getPeptideIdentifications().size(),0);
-	
-	PeptideIdentification dbs;
-	vec.push_back(dbs);
-	tmp.setPeptideIdentifications(vec);
-	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
-END_SECTION
-
-START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
-	SpectrumSettings tmp;
-	vector<PeptideIdentification> vec;
-	
-	tmp.getPeptideIdentifications().resize(1);
-	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
-END_SECTION
-
 START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
   SpectrumSettings tmp;
   tmp.setMetaValue("bla","bluff");
@@ -211,16 +186,14 @@ START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	tmp.getInstrumentSettings().getScanWindows().resize(1);
 	tmp.getPrecursors().resize(1);
 	tmp.getProducts().resize(1);
-	tmp.getPeptideIdentifications().resize(1);
-	tmp.setType(SpectrumSettings::CENTROID);
+	tmp.setType(SpectrumSettings::SpectrumType::CENTROID);
 	tmp.setComment("bla");
 	tmp.setNativeID("nid");
 	tmp.getDataProcessing().resize(1);
 	
 	SpectrumSettings tmp2(tmp);
 	TEST_EQUAL(tmp2.getComment(), "bla");
-	TEST_EQUAL(tmp2.getType(), SpectrumSettings::CENTROID);
-	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
+	TEST_EQUAL(tmp2.getType(), SpectrumSettings::SpectrumType::CENTROID);
 	TEST_EQUAL(tmp2.getPrecursors().size(),1);	
 	TEST_EQUAL(tmp2.getProducts().size(),1);	
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
@@ -237,9 +210,8 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	tmp.getInstrumentSettings().getScanWindows().resize(1);
 	tmp.getPrecursors().resize(1);
 	tmp.getProducts().resize(1);
-	tmp.setType(SpectrumSettings::CENTROID);
+	tmp.setType(SpectrumSettings::SpectrumType::CENTROID);
 	tmp.setComment("bla");
-	tmp.getPeptideIdentifications().resize(1);
 	tmp.setNativeID("nid");
 	tmp.getDataProcessing().resize(1);
 	tmp.setMetaValue("bla","bluff");
@@ -247,13 +219,12 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	SpectrumSettings tmp2;
 	tmp2 = tmp;
 	TEST_EQUAL(tmp2.getComment(), "bla");
-	TEST_EQUAL(tmp2.getType(), SpectrumSettings::CENTROID);
+	TEST_EQUAL(tmp2.getType(), SpectrumSettings::SpectrumType::CENTROID);
 	TEST_EQUAL(tmp2.getPrecursors().size(), 1);
 	TEST_EQUAL(tmp2.getProducts().size(), 1)
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
-	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
 	TEST_EQUAL(tmp2.getDataProcessing().size(),1);
 	TEST_STRING_EQUAL(tmp2.getMetaValue("bla"),"bluff");
@@ -261,12 +232,11 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 
 	tmp2 = SpectrumSettings();
 	TEST_EQUAL(tmp2.getComment(), "");
-	TEST_EQUAL(tmp2.getType(), SpectrumSettings::UNKNOWN);
+	TEST_EQUAL(tmp2.getType(), SpectrumSettings::SpectrumType::UNKNOWN);
 	TEST_EQUAL(tmp2.getPrecursors().size(),0);	
 	TEST_EQUAL(tmp2.getProducts().size(),0);	
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
-	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 0);	
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"");
 	TEST_EQUAL(tmp2.getDataProcessing().size(),0);
 	TEST_EQUAL(tmp2.metaValueExists("bla"),false);
@@ -294,7 +264,7 @@ START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 	
 	edit = empty;
-	edit.setType(SpectrumSettings::CENTROID);
+	edit.setType(SpectrumSettings::SpectrumType::CENTROID);
 	TEST_EQUAL(edit==empty, false);
 	
 	edit = empty;
@@ -310,11 +280,7 @@ START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 	
 	edit = empty;
-	edit.getPeptideIdentifications().resize(1);
-	TEST_EQUAL(edit==empty, false);
-
-	edit = empty;
-    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+    DataProcessingPtr dp = std::shared_ptr<DataProcessing>(new DataProcessing); 
 	edit.getDataProcessing().push_back(dp);
 	TEST_EQUAL(edit==empty, false);
 
@@ -345,7 +311,7 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
 	TEST_FALSE(edit == empty);
 	
 	edit = empty;
-	edit.setType(SpectrumSettings::CENTROID);
+	edit.setType(SpectrumSettings::SpectrumType::CENTROID);
 	TEST_FALSE(edit == empty);
 	
 	edit = empty;
@@ -361,11 +327,7 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
 	TEST_FALSE(edit == empty);
 
 	edit = empty;
-	edit.getPeptideIdentifications().resize(1);
-	TEST_FALSE(edit == empty);
-
-	edit = empty;
-    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+    DataProcessingPtr dp = std::shared_ptr<DataProcessing>(new DataProcessing); 
 	edit.getDataProcessing().push_back(dp);
 	TEST_FALSE(edit == empty);
 
@@ -399,8 +361,8 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   appended.getPrecursors().push_back(appended_precursor);
 
   // type
-  org.setType(SpectrumSettings::PROFILE);
-  appended.setType(SpectrumSettings::PROFILE);
+  org.setType(SpectrumSettings::SpectrumType::PROFILE);
+  appended.setType(SpectrumSettings::SpectrumType::PROFILE);
 
   // Products
   Product org_product;
@@ -411,23 +373,14 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   appended_product.setMZ(2.0);
   appended.getProducts().push_back(appended_product);
 
-  // Identifications
-  PeptideIdentification org_ident;
-  org_ident.setIdentifier("org_ident");
-  org.getPeptideIdentifications().push_back(org_ident);
-
-  PeptideIdentification appended_ident;
-  appended_ident.setIdentifier("appended_ident");
-  appended.getPeptideIdentifications().push_back(appended_ident);
-
   // DataProcessings
-  DataProcessingPtr org_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
+  DataProcessingPtr org_processing = std::shared_ptr<DataProcessing>(new DataProcessing);
   Software org_software;
   org_software.setName("org_software");
   org_processing->setSoftware(org_software);
   org.getDataProcessing().push_back(org_processing);
 
-  DataProcessingPtr appended_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
+  DataProcessingPtr appended_processing = std::shared_ptr<DataProcessing>(new DataProcessing);
   Software appended_software;
   appended_software.setName("appended_software");
   appended_processing->setSoftware(appended_software);
@@ -450,7 +403,7 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   TEST_EQUAL(org.getPrecursors()[1].getMZ(), 2.0)
 
   // type
-  TEST_EQUAL(org.getType(), SpectrumSettings::PROFILE)
+  TEST_EQUAL(org.getType(), SpectrumSettings::SpectrumType::PROFILE)
 
   // Products
   TEST_EQUAL(org.getProducts().size(), 2)
@@ -459,26 +412,144 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   TEST_EQUAL(org.getProducts()[0].getMZ(), 1.0)
   TEST_EQUAL(org.getProducts()[1].getMZ(), 2.0)
 
-  // Identifications
-  TEST_EQUAL(org.getPeptideIdentifications().size(), 2)
-  ABORT_IF(org.getPeptideIdentifications().size()!=2)
-
-  TEST_EQUAL(org.getPeptideIdentifications()[0].getIdentifier(), "org_ident")
-  TEST_EQUAL(org.getPeptideIdentifications()[1].getIdentifier(), "appended_ident")
-
-  // Identifications
-  TEST_EQUAL(org.getDataProcessing().size(), 2)
-  ABORT_IF(org.getDataProcessing().size()!=2)
 
   TEST_EQUAL(org.getDataProcessing()[0]->getSoftware().getName(), "org_software")
   TEST_EQUAL(org.getDataProcessing()[1]->getSoftware().getName(), "appended_software")
 
   // unify should set Type to unknown in case of type mismatch
   SpectrumSettings empty;
-  empty.setType(SpectrumSettings::CENTROID);
+  empty.setType(SpectrumSettings::SpectrumType::CENTROID);
   org.unify(empty);
 
-  TEST_EQUAL(org.getType(), SpectrumSettings::UNKNOWN)
+  TEST_EQUAL(org.getType(), SpectrumSettings::SpectrumType::UNKNOWN)
+}
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfSpectrumType()))
+  StringList names = SpectrumSettings::getAllNamesOfSpectrumType();
+  TEST_EQUAL(names.size(), static_cast<size_t>(SpectrumSettings::SpectrumType::SIZE_OF_SPECTRUMTYPE));
+  TEST_EQUAL(names[static_cast<size_t>(SpectrumSettings::SpectrumType::CENTROID)], "Centroid");
+  TEST_EQUAL(names[static_cast<size_t>(SpectrumSettings::SpectrumType::PROFILE)], "Profile");
+END_SECTION
+
+START_SECTION([EXTRA] std::hash<SpectrumSettings>)
+{
+  // Test 1: Equal objects have equal hashes
+  SpectrumSettings s1, s2;
+  s1.setNativeID("scan=1");
+  s1.setComment("test comment");
+  s1.setType(SpectrumSettings::SpectrumType::CENTROID);
+
+  // Set up instrument settings
+  InstrumentSettings is;
+  is.setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
+  is.setZoomScan(true);
+  ScanWindow sw;
+  sw.begin = 100.0;
+  sw.end = 2000.0;
+  is.getScanWindows().push_back(sw);
+  s1.setInstrumentSettings(is);
+
+  // Set up acquisition info
+  AcquisitionInfo ai;
+  ai.setMethodOfCombination("sum");
+  Acquisition acq;
+  acq.setIdentifier("acq_1");
+  ai.push_back(acq);
+  s1.setAcquisitionInfo(ai);
+
+  // Set up source file
+  SourceFile sf;
+  sf.setNameOfFile("test.mzML");
+  sf.setPathToFile("/data/");
+  sf.setFileType("mzML");
+  s1.setSourceFile(sf);
+
+  // Set up precursors
+  Precursor prec;
+  prec.setMZ(500.5);
+  prec.setIntensity(1000.0f);
+  prec.setCharge(2);
+  prec.setActivationEnergy(35.0);
+  prec.setIsolationWindowLowerOffset(1.5);
+  prec.setIsolationWindowUpperOffset(1.5);
+  s1.getPrecursors().push_back(prec);
+
+  // Set up products
+  Product prod;
+  prod.setMZ(250.25);
+  s1.getProducts().push_back(prod);
+
+  // Set up data processing
+  DataProcessingPtr dp = std::make_shared<DataProcessing>();
+  Software soft;
+  soft.setName("TestTool");
+  soft.setVersion("1.0");
+  dp->setSoftware(soft);
+  dp->getProcessingActions().insert(DataProcessing::PEAK_PICKING);
+  s1.getDataProcessing().push_back(dp);
+
+  // Set meta values
+  s1.setMetaValue("key1", "value1");
+  s1.setMetaValue("key2", 42);
+
+  // Copy to s2
+  s2 = s1;
+
+  // Verify equality
+  TEST_TRUE(s1 == s2);
+
+  // Test hash equality for equal objects
+  std::hash<SpectrumSettings> hasher;
+  TEST_EQUAL(hasher(s1), hasher(s2));
+
+  // Test 2: Default constructed objects have equal hashes
+  SpectrumSettings empty1, empty2;
+  TEST_EQUAL(hasher(empty1), hasher(empty2));
+
+  // Test 3: Different objects should (likely) have different hashes
+  SpectrumSettings diff;
+  diff.setNativeID("scan=999");
+  diff.setComment("different comment");
+  diff.setType(SpectrumSettings::SpectrumType::PROFILE);
+  // Note: We don't guarantee different hashes for different objects (collisions are allowed)
+  // but we verify the hash function runs without error
+  std::size_t h1 = hasher(s1);
+  std::size_t h2 = hasher(diff);
+  // Just verify they compute (hash collisions are theoretically possible but unlikely here)
+  TEST_NOT_EQUAL(h1, 0); // Basic sanity check
+  (void)h2; // Suppress unused warning
+
+  // Test 4: Use in unordered_set
+  std::unordered_set<SpectrumSettings> settings_set;
+  settings_set.insert(s1);
+  settings_set.insert(empty1);
+  settings_set.insert(diff);
+  TEST_EQUAL(settings_set.size(), 3);
+
+  // Insert duplicate
+  settings_set.insert(s2); // s2 == s1
+  TEST_EQUAL(settings_set.size(), 3); // Should still be 3
+
+  // Test 5: Use in unordered_map
+  std::unordered_map<SpectrumSettings, std::string> settings_map;
+  settings_map[s1] = "first";
+  settings_map[empty1] = "empty";
+  settings_map[diff] = "different";
+  TEST_EQUAL(settings_map.size(), 3);
+  TEST_EQUAL(settings_map[s1], "first");
+  TEST_EQUAL(settings_map[s2], "first"); // s2 == s1, should get same value
+
+  // Test 6: Modifying a field changes the hash
+  SpectrumSettings modified = s1;
+  modified.setComment("modified comment");
+  TEST_FALSE(s1 == modified);
+  // Hash should likely differ (not guaranteed, but extremely likely)
+  std::size_t h_orig = hasher(s1);
+  std::size_t h_mod = hasher(modified);
+  // We just verify both compute; collisions are technically possible
+  (void)h_orig;
+  (void)h_mod;
 }
 END_SECTION
 

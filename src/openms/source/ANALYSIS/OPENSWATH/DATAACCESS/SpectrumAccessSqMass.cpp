@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -58,9 +58,9 @@ namespace OpenMS
     }
 
     /// Light clone operator (actual data will not get copied)
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessSqMass::lightClone() const
+    std::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessSqMass::lightClone() const
     {
-      return boost::shared_ptr<SpectrumAccessSqMass>(new SpectrumAccessSqMass(*this));
+      return std::shared_ptr<SpectrumAccessSqMass>(new SpectrumAccessSqMass(*this));
     }
 
     OpenSwath::SpectrumPtr SpectrumAccessSqMass::getSpectrumById(int id)

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,7 +13,7 @@
 namespace OpenMS
 {
 
-  bool SimpleOpenMSSpectraFactory::isExperimentCached(const boost::shared_ptr<PeakMap>& exp)
+  bool SimpleOpenMSSpectraFactory::isExperimentCached(const std::shared_ptr<PeakMap>& exp)
   {
     for (std::size_t i = 0; i < exp->getSpectra().size(); ++i)
     {
@@ -38,7 +38,7 @@ namespace OpenMS
     return false;
   }
 
-  OpenSwath::SpectrumAccessPtr SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(const boost::shared_ptr<PeakMap>& exp)
+  OpenSwath::SpectrumAccessPtr SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(const std::shared_ptr<PeakMap>& exp)
   {
     bool is_cached = SimpleOpenMSSpectraFactory::isExperimentCached(exp);
     if (is_cached)

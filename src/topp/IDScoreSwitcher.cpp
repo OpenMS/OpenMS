@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -71,7 +72,7 @@ protected:
     bool do_proteins_ = getFlag_("proteins"); // from full param of IDScoreSwitcherAlgorithm
 
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
 
     FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
 

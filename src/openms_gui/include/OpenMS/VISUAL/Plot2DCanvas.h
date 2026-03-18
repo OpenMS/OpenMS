@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -66,7 +66,7 @@ public:
     void mergeIntoLayer(Size i, const ConsensusMapSharedPtrType& map);
 
     /// Merges the peptide identifications in @p peptides into the peptide layer @p i
-    void mergeIntoLayer(Size i, std::vector<PeptideIdentification>& peptides);
+    void mergeIntoLayer(Size i, PeptideIdentificationList& peptides);
 
     /// recalculates the dot gradient of the active layer
     void recalculateCurrentLayerDotGradient();
@@ -81,6 +81,9 @@ signals:
     void showChromatogramsAsNew1D(std::vector<int, std::allocator<int> > indices);
     /// Requests to display all spectra in 3D plot
     void showCurrentPeaksAs3D();
+    /// Requests to display this spectrum (=frame) in ion mobility plot
+    void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
+
 
 public slots:
     // Docu in base class
@@ -106,8 +109,8 @@ protected:
     // Docu in base class
     bool finishAdding_() override;
 
-    /// Collects fragment ion scans in the indicated RT/mz area and adds them to the indicated action
-    bool collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta);
+    /// Collects fragment ion scans in the indicated RT/mz area and adds them to the menus
+    bool collectFragmentScansInArea_(const RangeType& range, QMenu* msn_scans, QMenu* msn_meta);
 
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
@@ -180,8 +183,8 @@ protected:
       Internally, this function makes use of the members 'canvas_coverage_min_' (giving the fraction (e.g. 20%) of area which should be covered by data)
       and 'pen_size_max_' (maximum allowed number of pixels per data point).
 
-      @param ratio_data2pixel The current ratio of # data points vs. # pixels of image
-      @param pen_size In/Out param: gives the initial pen size, and is increased (up to @p MAX_PEN_SIZE) to reach desired coverage given by 'canvas_coverage_min_'
+      @param[in] ratio_data2pixel The current ratio of # data points vs. # pixels of image
+      @param[in] pen_size In/Out param: gives the initial pen size, and is increased (up to @p MAX_PEN_SIZE) to reach desired coverage given by 'canvas_coverage_min_'
       @return The factor by which @p pen_size increased (gives a hint of how many data points should be merged to avoid overplotting)
     */
     double adaptPenScaling_(double ratio_data2pixel, double& pen_size) const;
@@ -205,8 +208,8 @@ protected:
       @brief Convert chart to widget coordinates
 
       Translates chart coordinates to widget coordinates.
-      @param x the chart coordinate x
-      @param y the chart coordinate y
+      @param[in] x the chart coordinate x
+      @param[in] y the chart coordinate y
       @return A point in widget coordinates
     */
     QPoint dataToWidget_(double x, double y) const

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,16 +8,20 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/FORMAT/CachedMzML.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 // TODO add handler support for other accss
 #include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include <OpenMS/FORMAT/SqMassFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 // TODO add handler support for other access
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -26,9 +30,6 @@
 // TODO: remove MZXML header after we get cached and Transform working
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/IONMOBILITY/IMTypes.h>
-#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -92,6 +93,7 @@ Some information about the supported input types:
 @ref OpenMS::MzXMLFile "mzXML"
 @ref OpenMS::MzDataFile "mzData"
 @ref OpenMS::MascotGenericFile "mgf"
+@ref OpenMS::MSPGenericFile "msp"
 @ref OpenMS::DTA2DFile "dta2d"
 @ref OpenMS::DTAFile "dta"
 @ref OpenMS::FeatureXMLFile "featureXML"
@@ -147,7 +149,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms", "sqMass"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
 
@@ -155,7 +157,7 @@ protected:
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "oms"};
+    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -166,22 +168,31 @@ protected:
     registerFlag_("force_TPP_compatibility", "[mzML output only] Make sure that TPP parsers can read the mzML and the precursor ion m/z in the file (otherwise it will be set to zero by the TPP).", true);
     registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
 
-    registerStringOption_("change_im_format", "<toggle>", "none", "[mzML output only] How to store ion mobility scans (none: no change in format; multiple_spectra: store each IM frame as multiple scans (one per drift time value); concatenated: store whole frame as single scan with IM values in a FloatDataArray", false, true);
-    setValidStrings_("change_im_format", NamesOfIMFormat, (int)IMFormat::SIZE_OF_IMFORMAT);
-
     registerStringOption_("write_scan_index", "<toggle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
-    registerInputFile_("NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, {"is_executable"});
-    registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, {"is_executable"});
-    setValidFormats_("ThermoRaw_executable", {"exe"});
-    registerFlag_("no_peak_picking", "Disables vendor peak picking for raw files.", true);
-    registerFlag_("no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
-    registerFlag_("include_noise", "Include noise data in mzML output.", true);
+    
+    registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
+    registerInputFile_("RawToMzML:NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, {"is_executable"});
+    registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, {"is_executable"});
+    setValidFormats_("RawToMzML:ThermoRaw_executable", {"exe"});
+    registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
+    registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
+    registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
+    
+  // OpenSwath / chromatogram options: allow passing a transition library to map extracted ion chromatograms to their matching metadata in the transition list
+  registerTOPPSubsection_("OpenSwathWorkflow", "Options for loading OpenSWATH transition libraries used for chromatogram metadata");
+  registerInputFile_("OpenSwathWorkflow:tr", "<file>", "", "Transition library (PQP, TSV, or TraML) providing precursor/transition metadata. Required when converting sqMass to CHROMPARQUET (.xic); XICs without associated metadata are not meaningful.", false, true);
+  setValidFormats_("OpenSwathWorkflow:tr", {"pqp", "tsv", "traml", "osw"});
+  registerStringOption_("OpenSwathWorkflow:tr_type", "<type>", "", "Type hint for the transition file (pqp, tsv, traml). If not provided, the type is inferred from the file extension.", false, true);
+  registerFlag_("OpenSwathWorkflow:legacy_traml_id", "When loading PQP libraries: use legacy TraML IDs (TRAML_ID) instead of numeric IDs.", true);
   }
+
+  // Note: subsection defaults are not overridden here; TransitionTSVFile parameters
+  // are available via the standard parameter mechanism when requested.
 
   ExitCodes main_(int, const char**) override
   {
@@ -192,15 +203,11 @@ protected:
     //input file names
     String in = getStringOption_("in");
     bool write_scan_index = getStringOption_("write_scan_index") == "true" ? true : false;
-    IMFormat change_im_format = toIMFormat(getStringOption_("change_im_format"));
     bool force_MaxQuant_compatibility = getFlag_("force_MaxQuant_compatibility");
     bool force_TPP_compatibility = getFlag_("force_TPP_compatibility");
     bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
-    bool no_peak_picking = getFlag_("no_peak_picking");
-    bool no_zlib_compression = getFlag_("no_zlib_compression");
-    bool include_noise = getFlag_("include_noise");
 
     // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
     MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
@@ -234,7 +241,7 @@ protected:
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
-      writeLogError_("Error: Could not determine output file type!");
+      writeLogError_("Error: Could not determine output file type! Please adjust the 'out_type' parameter of this tool.");
       return PARSE_ERROR;
     }
 
@@ -259,7 +266,7 @@ protected:
 
     if (in_type == FileTypes::CONSENSUSXML)
     {
-      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::CONSENSUSXML});
+      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::CONSENSUSXML}, log_type_);
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML) &&
@@ -278,25 +285,28 @@ protected:
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Only conversion to mzML supported at this point.");
       }
+      bool no_peak_picking = getFlag_("RawToMzML:no_peak_picking");
+      bool no_zlib_compression = getFlag_("RawToMzML:no_zlib_compression");
+      bool include_noise = getFlag_("RawToMzML:include_noise");
       writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
-      String net_executable = getStringOption_("NET_executable");
+      String net_executable = getStringOption_("RawToMzML:NET_executable");
       QStringList arguments;
 #ifdef OPENMS_WINDOWSPLATFORM
       if (net_executable.empty())
       { // default on Windows: if NO mono executable is set use the "native" .NET one
-        net_executable = getStringOption_("ThermoRaw_executable");
+        net_executable = getStringOption_("RawToMzML:ThermoRaw_executable");
       }
       else
       { // use e.g., mono
-        arguments << getStringOption_("ThermoRaw_executable").toQString();
+        arguments << getStringOption_("RawToMzML:ThermoRaw_executable").toQString();
       }
 #else
       // default on Mac, Linux: use mono
       net_executable = net_executable.empty() ? "mono" : net_executable;
-      arguments << getStringOption_("ThermoRaw_executable").toQString();
+      arguments << getStringOption_("RawToMzML:ThermoRaw_executable").toQString();
 #endif
-      arguments << ("-i=" + in).c_str()
-                << ("--output_file=" + out).c_str()
+      arguments << ("--input=" + in).c_str()
+                << ("--output=" + out).c_str()
                 << "-f=2" // indexedMzML
                 << "-e"; // ignore instrument errors
       if (no_peak_picking)
@@ -315,7 +325,7 @@ protected:
     }
     else if (in_type == FileTypes::EDTA)
     {
-      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::EDTA});
+      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::EDTA}, log_type_);
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML))
@@ -387,12 +397,6 @@ protected:
       // We can transform the complete experiment directly without first
       // loading the complete data into memory. PlainMSDataWritingConsumer will
       // write out mzML to disk as they are read from the input.
-
-      if (change_im_format != IMFormat::NONE)
-      {
-        std::cout << "Converting IM formats is currently not implemented for low-memory processing" << std::endl;
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-      }
 
       if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML) && out_type == FileTypes::MZML)
       {
@@ -488,41 +492,12 @@ protected:
       {
         for (auto & s : exp)
         {
-          s.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+          s.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
         }
       }
 
-      if (change_im_format != IMFormat::NONE)
-      {
-        IMFormat itype = IMTypes::determineIMFormat(exp);
-
-        if (itype == IMFormat::NONE)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested conversion to different ion mobility format, but no ion mobility data is present.");
-        }
-        else if (change_im_format == itype && itype == IMFormat::MULTIPLE_SPECTRA)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested conversion to 'multiple' ion mobility format, but data is already in this format.");
-        }
-        else if (change_im_format == itype && itype == IMFormat::CONCATENATED)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested conversion to 'single' ion mobility format, but data is already in this format.");
-        }
-
-        if (change_im_format == IMFormat::MULTIPLE_SPECTRA && itype == IMFormat::CONCATENATED)
-        {
-          exp = IMDataConverter::splitByIonMobility(std::move(exp));
-        }
-        else if (change_im_format == IMFormat::CONCATENATED && itype == IMFormat::MULTIPLE_SPECTRA)
-        {
-          exp = IMDataConverter::collapseFramesToSingle(exp);
-        }
-      }
       ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
-      mzmlFile.storeExperiment(out, exp, {FileTypes::MZML});
+      mzmlFile.storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
     }
     else if (out_type == FileTypes::MZDATA)
     {
@@ -536,7 +511,7 @@ protected:
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZDATA));
       ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
-      FileHandler().storeExperiment(out, exp, {FileTypes::MZDATA});
+      FileHandler().storeExperiment(out, exp, {FileTypes::MZDATA}, log_type_);
     }
     else if (out_type == FileTypes::MZXML)
     {
@@ -589,6 +564,13 @@ protected:
       f.setLogType(log_type_);
       f.store(out, exp, getFlag_("MGF_compact"));
     }
+    else if (out_type == FileTypes::MSP)
+    {
+      //add data processing entry
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
+                                                 FORMAT_CONVERSION));
+      FileHandler().storeExperiment(out, exp, {FileTypes::MSP}, log_type_);
+    }
     else if (out_type == FileTypes::FEATUREXML)
     {
       if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
@@ -609,7 +591,7 @@ protected:
       }
       else if (in_type == FileTypes::OMS)
       {
-        FileHandler().loadFeatures(in, fm, {FileTypes::OMS});
+        FileHandler().loadFeatures(in, fm, {FileTypes::OMS}, log_type_);
         IdentificationDataConverter::exportFeatureIDs(fm);
       }
       else // not loaded as feature map or consensus map
@@ -638,7 +620,7 @@ protected:
 
       addDataProcessing_(fm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      FileHandler().storeFeatures(out, fm, {FileTypes::FEATUREXML});
+      FileHandler().storeFeatures(out, fm, {FileTypes::FEATUREXML}, log_type_);
     }
     else if (out_type == FileTypes::CONSENSUSXML)
     {
@@ -670,7 +652,7 @@ protected:
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      FileHandler().storeConsensusFeatures(out, cm, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(out, cm, {FileTypes::CONSENSUSXML}, log_type_);
     }
     else if (out_type == FileTypes::EDTA)
     {
@@ -686,11 +668,11 @@ protected:
       }
       if (!fm.empty())
       {
-        FileHandler().storeFeatures(out, fm, {FileTypes::EDTA});
+        FileHandler().storeFeatures(out, fm, {FileTypes::EDTA}, log_type_);
       }
       else if (!cm.empty())
       {
-        FileHandler().storeConsensusFeatures(out, cm, {FileTypes::EDTA});
+        FileHandler().storeConsensusFeatures(out, cm, {FileTypes::EDTA}, log_type_);
       }
     }
     else if (out_type == FileTypes::CACHEDMZML)
@@ -721,21 +703,112 @@ protected:
       IBSpectraFile ibfile;
       ibfile.store(out, cm);
     }
+    else if (out_type == FileTypes::CHROMPARQUET)
+    {
+      // Convert to OpenSWATH Parquet chromatogram file (.xic)
+      if (in_type == FileTypes::SQMASS)
+      {
+        // A transition library is required: XICs without precursor/transition
+        // metadata are not meaningful.
+        String tr_file = getStringOption_("OpenSwathWorkflow:tr");
+        if (tr_file.empty())
+        {
+          writeLogError_("Error: Converting sqMass to CHROMPARQUET (.xic) requires a transition library "
+                         "supplied via -OpenSwathWorkflow:tr. XICs without associated metadata are not meaningful.");
+          return ILLEGAL_PARAMETERS;
+        }
+
+        // Resolve the file type: honour the explicit type hint first, then
+        // fall back to extension/content detection.
+        FileHandler fh_local;
+        FileTypes::Type tr_type = FileTypes::UNKNOWN;
+        const String tr_type_hint = getStringOption_("OpenSwathWorkflow:tr_type");
+        if (!tr_type_hint.empty())
+        {
+          tr_type = FileTypes::nameToType(tr_type_hint);
+          if (tr_type == FileTypes::UNKNOWN)
+          {
+            writeLogError_(String("Error: Unsupported value for -OpenSwathWorkflow:tr_type: '") + tr_type_hint + "'.");
+            return ILLEGAL_PARAMETERS;
+          }
+        }
+        else
+        {
+          tr_type = fh_local.getType(tr_file);
+        }
+
+        OpenSwath::LightTargetedExperiment transition_exp;
+        try
+        {
+          if (tr_type == FileTypes::PQP || tr_type == FileTypes::OSW)
+          {
+            TransitionPQPFile pqp_reader;
+            bool legacy = getFlag_("OpenSwathWorkflow:legacy_traml_id");
+            pqp_reader.setLogType(log_type_);
+            pqp_reader.convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp, legacy);
+          }
+          else if (tr_file.hasSuffix(".oswpq") || tr_file.hasSuffix(".oswpq.zip"))
+          {
+            writeLogError_(String("Error: .oswpq libraries are not supported by this build of FileConverter. "
+                                  "Cannot convert without transition metadata (file: '") + tr_file + "').");
+            return ILLEGAL_PARAMETERS;
+          }
+          else if (tr_type == FileTypes::TSV)
+          {
+            TransitionTSVFile tsv_reader;
+            Param reader_parameters = getParam_().copy("OpenSwathWorkflow:", true);
+            tsv_reader.setLogType(log_type_);
+            tsv_reader.setParameters(reader_parameters);
+            tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+          }
+          else if (tr_type == FileTypes::TRAML)
+          {
+            TargetedExperiment targeted_exp;
+            FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
+            OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+          }
+          else
+          {
+            writeLogError_(String("Error: Unrecognized transition library type for '") + tr_file +
+                           "'. Cannot convert sqMass to CHROMPARQUET without valid transition metadata.");
+            return ILLEGAL_PARAMETERS;
+          }
+        }
+        catch (const Exception::BaseException& e)
+        {
+          writeLogError_(String("Error: Failed to load transition library '") + tr_file + "': " + e.what());
+          return ILLEGAL_PARAMETERS;
+        }
+
+        MSChromatogramParquetConsumer consumer(out, 0, in, transition_exp);
+        // Stream directly from the sqMass file (memory-efficient)
+        SqMassFile().transform(in, &consumer, /*skip_full_count=*/false, /*skip_first_pass=*/false);
+        consumer.finalize();
+      }
+      else
+      {
+        // For non-sqMass inputs, CHROMPARQUET output requires transition metadata.
+        // Only sqMass → CHROMPARQUET is currently supported.
+        writeLogError_("Error: CHROMPARQUET (.xic) output is only supported when converting from sqMass input. "
+                       "Supply an sqMass file via -in.");
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
     else if (out_type == FileTypes::SQMASS)
     {
-      FileHandler().storeExperiment(out, exp, {FileTypes::SQMASS});
+      FileHandler().storeExperiment(out, exp, {FileTypes::SQMASS}, log_type_);
     }
     else if (out_type == FileTypes::OMS)
     {
       if (in_type == FileTypes::FEATUREXML)
       {
         IdentificationDataConverter::importFeatureIDs(fm);
-        FileHandler().storeFeatures(out, fm, {FileTypes::OMS});
+        FileHandler().storeFeatures(out, fm, {FileTypes::OMS}, log_type_);
       }
       else if (in_type == FileTypes::CONSENSUSXML)
       {
         IdentificationDataConverter::importConsensusIDs(cm);
-        FileHandler().storeConsensusFeatures(out, cm, {FileTypes::OMS});
+        FileHandler().storeConsensusFeatures(out, cm, {FileTypes::OMS}, log_type_);
       }
       else
       {

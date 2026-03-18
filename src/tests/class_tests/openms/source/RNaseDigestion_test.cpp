@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -135,6 +135,13 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   rd.digest(NASequence::fromString("CCCAUCCG"), out);
   TEST_EQUAL(out.size(), 1);
   TEST_STRING_EQUAL(out[0].toString(), "CCCAUCCG");
+
+  rd.setEnzyme("RNase_4c");
+  rd.setMissedCleavages(0);
+  rd.digest(NASequence::fromString("UCCGUACGG"), out);
+  TEST_EQUAL(out.size(), 2);
+  TEST_STRING_EQUAL(out[0].toString(), "UCCGUc");    
+  TEST_STRING_EQUAL(out[1].toString(), "ACGG");
 
   rd.setEnzyme("unspecific cleavage");
   rd.setMissedCleavages(0); // shouldn't matter for the result

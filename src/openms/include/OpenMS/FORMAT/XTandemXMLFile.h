@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
@@ -41,17 +42,17 @@ public:
     /**
       @brief loads data from an X! Tandem XML file
 
-      @param filename the file to be loaded
-      @param protein_identification protein identifications belonging to the whole experiment
-      @param id_data the identifications with m/z and RT
-      @param mod_def_set Fixed and variable modifications defined for the search. May be extended with additional (X! Tandem default) modifications if those are found in the file.
+      @param[in] filename the file to be loaded
+      @param[in] protein_identification protein identifications belonging to the whole experiment
+      @param[in] id_data the identifications with m/z and RT
+      @param[in] mod_def_set Fixed and variable modifications defined for the search. May be extended with additional (X! Tandem default) modifications if those are found in the file.
 
       This class serves to read in an X! Tandem XML file. The information can be
       retrieved via the load function.
 
       @ingroup FileIO
     */
-    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, ModificationDefinitionsSet& mod_def_set);
+    void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, ModificationDefinitionsSet& mod_def_set);
 
 
 protected:

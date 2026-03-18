@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 
 // OpenMS_GUI config
 
-#include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
+#include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -44,8 +44,8 @@ namespace OpenMS
 
     /// Save the internal data to a file. The @p filename's suffix determines the file format. It must be one of getSupportedFileFormats() or UNKNOWN.
     /// If the @p filename's suffix is unknown, the first item from getSupportedFileFormats() determines the storage format.
-    /// @param filename A relative or absolute path+filename. Its suffix determines the format.
-    /// @param lt Show a progress bar in the GUI?
+    /// @param[in] filename A relative or absolute path+filename. Its suffix determines the format.
+    /// @param[in] lt Show a progress bar in the GUI?
     /// @throw Exception::UnableToCreateFile if the extension of @p filename is neither in getSupportedFileFormats() nor UNKNOWN.
     virtual void saveToFile(const String& filename, const ProgressLogger::LogType lt) const = 0;
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,9 +31,9 @@ std::vector<FASTAFile::FASTAEntry> toFASTAVec(const QStringList& sl_prot, const 
 }
 
 
-std::vector<PeptideIdentification> toPepVec(const QStringList& sl_pep)
+PeptideIdentificationList toPepVec(const QStringList& sl_pep)
 {
-  std::vector<PeptideIdentification> pep_vec;
+  PeptideIdentificationList pep_vec;
   for (int i = 0; i < sl_pep.size(); ++i)
   {
     PeptideHit hit;
@@ -68,7 +68,7 @@ START_SECTION(virtual ~PeptideIndexing())
 END_SECTION
 
 
-START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)))
+START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)))
 {
   // regression test: https://github.com/OpenMS/OpenMS/issues/3447
   {
@@ -78,7 +78,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     indexer.setParameters(p);
     std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "AAAKEEEKTTTK");
     std::vector<ProteinIdentification> prot_ids;
-    std::vector<PeptideIdentification> pep_ids = toPepVec(QStringList() << "EEEK(Label:13C(6))");
+    PeptideIdentificationList pep_ids = toPepVec(QStringList() << "EEEK(Label:13C(6))");
     indexer.run(proteins, prot_ids, pep_ids);
     TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessionsSet().size(), 1); // one exact hit
     indexer.run(proteins, prot_ids, pep_ids);
@@ -92,7 +92,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   // easy case:
   std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "*MLT*EAXK"); // 1 X!!  ; extra * chars (should be ignored)
   std::vector<ProteinIdentification> prot_ids;
-  std::vector<PeptideIdentification> pep_ids = toPepVec(QStringList() << "MLTEAEK"); // requires 1 ambAA
+  PeptideIdentificationList pep_ids = toPepVec(QStringList() << "MLTEAEK"); // requires 1 ambAA
   p.setValue("aaa_max", 0);
   p.setValue("decoy_string", "DECOY_");
   pi.setParameters(p);
@@ -116,7 +116,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     p.setValue("aaa_max", i_aa);
     pi.setParameters(p);
     std::vector<FASTAFile::FASTAEntry> proteins_local = proteins;
-    std::vector<PeptideIdentification> pep_ids_local = pep_ids;
+    PeptideIdentificationList pep_ids_local = pep_ids;
     r = pi.run(proteins_local, prot_ids, pep_ids_local);
     for (Size i = 0; i < pep_ids.size(); ++i)
     {
@@ -139,7 +139,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     p.setValue("aaa_max", i_aa);
     pi.setParameters(p);
     std::vector<FASTAFile::FASTAEntry> proteins_local = proteins;
-    std::vector<PeptideIdentification> pep_ids_local = pep_ids;
+    PeptideIdentificationList pep_ids_local = pep_ids;
     pi.run(proteins_local, prot_ids, pep_ids_local);
     for (Size i = 0; i < pep_ids.size(); ++i)
     {
@@ -155,13 +155,13 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   proteins = toFASTAVec(QStringList());
   pep_ids = toPepVec(QStringList() << "SOME" << "PEPTIDES");
   r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(r, PeptideIndexing::DATABASE_EMPTY);
+  TEST_EQUAL(r, PeptideIndexing::ExitCodes::DATABASE_EMPTY);
 
   // empty idXML (peptides) --> FAIL
   proteins = toFASTAVec(QStringList("PROTEINSEQ"));
   pep_ids = toPepVec(QStringList());
   r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(r, PeptideIndexing::PEPTIDE_IDS_EMPTY);
+  TEST_EQUAL(r, PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY);
 
   // duplicate accession -- will not be detected and the peptide will have two protein hits.
   // However, extractProteinAccessionsSet() returns a set<>, i.e. only one hit.
@@ -199,7 +199,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
 
   // auto mode for decoy strings and position
   std::vector<ProteinIdentification> prot_ids_2;
-  std::vector<PeptideIdentification> pep_ids_2;
+  PeptideIdentificationList pep_ids_2;
 
   {
   // simple prefix
@@ -340,6 +340,64 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
       TEST_EQUAL(*r.begin(), "otherProtein"); // one hit!
     }
   }
+}
+END_SECTION
+
+START_SECTION((Test PeptideIndexer settings stored as metavalues in SearchParameters))
+{
+  // Test that PeptideIndexer settings are stored as metavalues in SearchParameters
+  PeptideIndexing pi;
+  Param p = pi.getParameters();
+  p.setValue("decoy_string", "DECOY_");
+  p.setValue("decoy_string_position", "prefix");
+  p.setValue("enzyme:name", "Trypsin");
+  p.setValue("enzyme:specificity", "full");
+  p.setValue("aaa_max", 2);
+  p.setValue("mismatches_max", 1);
+  p.setValue("IL_equivalent", "true");
+  p.setValue("allow_nterm_protein_cleavage", "false");
+  p.setValue("unmatched_action", "warn");
+  p.setValue("missing_decoy_action", "warn");
+  pi.setParameters(p);
+
+  std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "PEPTIDER" << "DECOY_SEQUENCE");
+
+  // Create a ProteinIdentification with an identifier that matches the PeptideIdentifications
+  std::vector<ProteinIdentification> prot_ids(1);
+  prot_ids[0].setIdentifier("test_run");
+
+  // Create PeptideIdentifications with matching identifier
+  PeptideIdentificationList pep_ids = toPepVec(QStringList() << "PEPTIDER");
+  for (auto& pep_id : pep_ids)
+  {
+    pep_id.setIdentifier("test_run");
+  }
+
+  PeptideIndexing::ExitCodes r = pi.run(proteins, prot_ids, pep_ids);
+  TEST_EQUAL(r, PeptideIndexing::ExitCodes::EXECUTION_OK);
+
+  // Check that metavalues are set correctly in SearchParameters
+  const ProteinIdentification::SearchParameters& search_params = prot_ids[0].getSearchParameters();
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:decoy_string"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:decoy_string"), "DECOY_");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:decoy_string_position"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:decoy_string_position"), "prefix");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:enzyme"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:enzyme"), "Trypsin");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:enzyme_specificity"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:enzyme_specificity"), "full");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:aaa_max"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:aaa_max"), 2);
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:mismatches_max"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:mismatches_max"), 1);
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:IL_equivalent"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:IL_equivalent"), "true");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:allow_nterm_protein_cleavage"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:allow_nterm_protein_cleavage"), "false");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:unmatched_action"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:unmatched_action"), "warn");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:missing_decoy_action"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:missing_decoy_action"), "warn");
 }
 END_SECTION
 

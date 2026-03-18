@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmIdentity.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -40,7 +41,7 @@ namespace OpenMS
     ConsensusIDAlgorithmRanks& operator=(const ConsensusIDAlgorithmRanks&);
 
     /// Assign peptide scores based on search ranks
-    void preprocess_(std::vector<PeptideIdentification>& ids) override;
+    void preprocess_(PeptideIdentificationList& ids) override;
 
     /// Aggregate peptide scores into one final score (by averaging ranks)
     double getAggregateScore_(std::vector<double>& scores,

@@ -309,7 +309,6 @@ MIM
 MIS
 MSD
 MSDB
-MSQUANTIFICATIONS
 Marr
 NCCA
 NIST
@@ -322,7 +321,6 @@ PMF
 POSECLUSTERINGAFFINESUPERIMPOSER
 POSECLUSTERINGSHIFTSUPERIMPOSER
 PRECURSORIONSELECTION
-PROTEINRESOLVER
 PSB
 PSM
 PSMs
@@ -332,7 +330,6 @@ QA
 QIT
 QTCLUSTERFINDER
 QTOF
-QUANTITATIVEEXPERIMENTALDESIGN
 RANGEUTILS
 RBF
 RGB
@@ -717,7 +714,6 @@ OSWPeptidePrecursor's
 OSWPeptidePrecursors
 OnDiskExperiment
 OpenBoxes
-OpenPepXLLF
 OpenSwathAlgoConfig
 OpenXQuest
 OutputFile
@@ -1737,7 +1733,6 @@ Phenylalanin
 PlotWidgets
 Precomputing
 Proc
-ProductModels
 ProteinAccession
 ProteinIDRun
 ProteinIdentifications
@@ -3295,7 +3290,7 @@ humanE
 humanF
 humanG
 iRprop
-includedoc
+include
 incrementing
 indexListOffset
 indexedmzML

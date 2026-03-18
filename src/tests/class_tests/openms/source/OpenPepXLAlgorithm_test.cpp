@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -39,7 +39,7 @@ START_SECTION(virtual ~OpenPepXLAlgorithm())
 }
 END_SECTION
 
-START_SECTION(ExitCodes run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra))
+START_SECTION(ExitCodes run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra))
 
 std::vector<FASTAFile::FASTAEntry> fasta_db;
 FASTAFile file;
@@ -61,7 +61,7 @@ cf.load(OPENMS_GET_TEST_DATA_PATH("OpenPepXL_input.consensusXML"), cfeatures);
 
 // initialize solution vectors
 vector<ProteinIdentification> protein_ids(1);
-vector<PeptideIdentification> peptide_ids;
+PeptideIdentificationList peptide_ids;
 
 OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra(0);
 vector< pair<Size, Size> > spectrum_pairs;
@@ -80,7 +80,7 @@ search_algorithm.setParameters(algo_param);
 // run algorithm
 OpenPepXLAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spectra, cfeatures, fasta_db, protein_ids, peptide_ids, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
 
-TEST_EQUAL(exit_code, OpenPepXLAlgorithm::EXECUTION_OK)
+TEST_EQUAL(exit_code, OpenPepXLAlgorithm::ExitCodes::EXECUTION_OK)
 TEST_EQUAL(protein_ids.size(), 1)
 TEST_EQUAL(peptide_ids.size(), 12)
 TEST_EQUAL(spectra.size(), 217)

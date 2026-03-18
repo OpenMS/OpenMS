@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <boost/date_time/posix_time/posix_time_types.hpp> //no i/o just types
 
@@ -76,16 +78,21 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp critical (OPENMS_UniqueIdGenerator_init_)
 #endif
-    { 
+    {
       // find a seed:
       // get something with high resolution (around microseconds) -- its hard to do better on Windows --
-      // which has absolute system time (there is higher resolution available for the time since program startup, but 
+      // which has absolute system time (there is higher resolution available for the time since program startup, but
       // we do not want this here since this seed usually gets initialized at the same program uptime).
       // Reason for high-res: in pipelines, instances of TOPP tools can get initialized almost simultaneously (i.e., resolution in seconds is not enough),
       // leading to identical random numbers (e.g. feature-IDs) in two or more distinct files.
       // C++11 note: C++ build-in alternative once C++11 can be presumed: 'std::chrono::high_resolution_clock'
       boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time() );
       seed_ = t.time_of_day().ticks();  // independent of implementation; as opposed to nanoseconds(), which need not be available on every platform
+
+      // Mix in process ID to ensure different seeds for parallel processes started at the same microsecond.
+      // This prevents duplicate UniqueIds when multiple TOPP tools run simultaneously in a pipeline.
+      seed_ ^= static_cast<UInt64>(SysInfo::getProcessId()) << 32;
+
       rng_ = new boost::mt19937_64 (seed_);
       dist_ = new boost::uniform_int<UInt64> (0, std::numeric_limits<UInt64>::max());
     }

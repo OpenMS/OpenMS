@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -59,10 +60,10 @@ namespace OpenMS
      * @brief  Fills the scores_labels vector from an ProteinIdentification @p id for picked protein FDR.
      *  I.e. it only takes the better of the two scores for each target-decoy pair (based on the accession after
      *  removal of the @p decoy_prefix.
-     * @param  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be filled.
-     * @param  id The hits to iterate over
-     * @param  decoy_string The decoy string to remove before comparing accesions for pairs.
-     * @param  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
+     * @param[out]  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be filled.
+     * @param[in]  id The hits to iterate over
+     * @param[in]  decoy_string The decoy string to remove before comparing accesions for pairs.
+     * @param[in]  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinScores_(
         std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
@@ -73,11 +74,11 @@ namespace OpenMS
     /**
      * @brief  Fills the scores_labels vector from a vector of ProteinGroups @p grps for picked protein group FDR.
      *  @todo describe more
-     * @param  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be used for lookup.
-     * @param  scores_labels Scores and target-decoy value for all groups that had at least one picked protein. Targets preferred.
-     * @param  grps The groups to iterate over
-     * @param  decoy_string The decoy string to remove before comparing accesions for pairs.
-     * @param  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
+     * @param[out]  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be used for lookup.
+     * @param[out]  scores_labels Scores and target-decoy value for all groups that had at least one picked protein. Targets preferred.
+     * @param[in]  grps The groups to iterate over
+     * @param[in]  decoy_string The decoy string to remove before comparing accesions for pairs.
+     * @param[in]  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinGroupScores_(
         const std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
@@ -91,7 +92,7 @@ namespace OpenMS
 
     static void fillPeptideScoreMap_(
       std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
-      std::vector<PeptideIdentification> const& ids);
+      PeptideIdentificationList const& ids);
 
     static void fillPeptideScoreMap_(
       std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
@@ -102,7 +103,7 @@ namespace OpenMS
     /**
     * \defgroup getScoresFunctions Get scores from ID structures for FDR
     * @brief  Fills the scores_labels vector from an ID data structure
-    * @param  scores_labels Pairs of scores and boolean target decoy labels to be filled. target = true.
+    * @param[out]  scores_labels Pairs of scores and boolean target decoy labels to be filled. target = true.
     *
     * Just use the one you need.
     * @{
@@ -120,7 +121,7 @@ namespace OpenMS
     template<class ...Args>
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
-        const std::vector<PeptideIdentification> &ids,
+        const PeptideIdentificationList &ids,
         Args &&... args)
     {
       for (const PeptideIdentification &id : ids)
@@ -248,9 +249,9 @@ namespace OpenMS
     /**
      * \defgroup setScoresFunctions Sets scores to FDRs/qVals in ID data structures to the closest in a given mapping
      * @brief  Sets FDRs/qVals from a scores_to_FDR map in the ID data structures
-     * @param  scores_to_FDR Maps original score to calculated FDR or q-Value
-     * @param  score_type e.g. FDR or q-Value
-     * @param  higher_better the new ordering, should usually be false for FDR/qval
+     * @param[in]  scores_to_FDR Maps original score to calculated FDR or q-Value
+     * @param[in]  score_type e.g. FDR or q-Value
+     * @param[in]  higher_better the new ordering, should usually be false for FDR/qval
      *
      * Just use the one you need.
      * @{
@@ -482,10 +483,10 @@ namespace OpenMS
     /**
      * @brief Used when keep_decoy_peptides or proteins is false
      * @tparam HitType ProteinHit or PeptideHit
-     * @param scores_to_FDR map from original score to FDR/qVal
-     * @param hit The hit (moved to @p new_hits if its a target hit)
-     * @param old_score_type to save it in metavalue
-     * @param new_hits where to move if target (i.e. target or target+decoy)
+     * @param[in] scores_to_FDR map from original score to FDR/qVal
+     * @param[in] hit The hit (moved to @p new_hits if its a target hit)
+     * @param[in] old_score_type to save it in metavalue
+     * @param[out] new_hits where to move if target (i.e. target or target+decoy)
      */
     template<typename HitType>
     static void setScoreAndMoveIfTarget_(const std::map<double, double> &scores_to_FDR,
@@ -522,11 +523,11 @@ namespace OpenMS
 
     /**
     * @brief Used when keep_decoy_peptides is false and charge states are considered
-    * @param scores_to_FDR map from original score to FDR/qVal
-    * @param hit the PeptideHit itself
-    * @param old_score_type to save it in metavalue
-    * @param new_hits where to move if target (i.e. target or target+decoy)
-    * @param charge If only peptides with charge X are currently considered
+    * @param[in] scores_to_FDR map from original score to FDR/qVal
+    * @param[out] hit the PeptideHit itself
+    * @param[in] old_score_type to save it in metavalue
+    * @param[out] new_hits where to move if target (i.e. target or target+decoy)
+    * @param[in] charge If only peptides with charge X are currently considered
     */
     static void setScoreAndMoveIfTarget_(const std::map<double, double> &scores_to_FDR,
                                   PeptideHit &hit,
@@ -553,13 +554,13 @@ namespace OpenMS
     /**
      * @brief Helper for applying set Scores on ConsensusMaps
      * @tparam Args optional additional arguments (charge, run ID)
-     * @param scores_to_FDR maps original scores to FDR
-     * @param cmap the ConsensusMap
-     * @param include_unassigned_peptides Also modify unassigned peptide IDs in @p cmap?
-     * @param score_type FDR or q-Value
-     * @param higher_better usually false
-     * @param keep_decoy read from Param object
-     * @param args optional additional arguments (int charge, string run ID)
+     * @param[in] scores_to_FDR maps original scores to FDR
+     * @param[in] cmap the ConsensusMap
+     * @param[in] include_unassigned_peptides Also modify unassigned peptide IDs in @p cmap?
+     * @param[in] score_type FDR or q-Value
+     * @param[in] higher_better usually false
+     * @param[in] keep_decoy read from Param object
+     * @param[in] args optional additional arguments (int charge, string run ID)
     */
     template<class ...Args>
     static void setPeptideScoresForMap_(const std::map<double, double>& scores_to_FDR,
@@ -580,7 +581,7 @@ namespace OpenMS
 
     /**
      * @brief To check the metavalues before we do anything
-     * @param id_or_hit Any Object with MetaInfoInterface. Specifically ID or Hit Type here.
+     * @param[in] id_or_hit Any Object with MetaInfoInterface. Specifically ID or Hit Type here.
      * @throws Exception::MissingInformation if target_decoy annotation does not exist
      */
     static void checkTDAnnotation_(const MetaInfoInterface &id_or_hit)
@@ -595,7 +596,7 @@ namespace OpenMS
     }
 
     static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
-                                         std::vector<PeptideIdentification>& ids,
+                                         PeptideIdentificationList& ids,
                                          std::string const& score_type,
                                          bool keep_decoys);
 

@@ -3,25 +3,33 @@ set(directory source/CHEMISTRY)
 
 ### list all filenames of the directory here
 set(sources_list
+AAIndex.cpp
 AASequence.cpp
 AdductInfo.cpp
+BuiltInProteaseDataProvider.cpp
 CrossLinksDB.cpp
 DecoyGenerator.cpp
+DigestionEnzyme.cpp
+DigestionEnzymeDB.cpp
+DigestionEnzymeProtein.cpp
+DigestionEnzymeRNA.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
 EnzymaticDigestion.cpp
-DigestionEnzyme.cpp
-DigestionEnzymeProtein.cpp
-DigestionEnzymeRNA.cpp
-DigestionEnzymeDB.cpp
+EnzymeXMLDataProvider.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
 ModifiedNASequenceGenerator.cpp
+MonosaccharideDB.cpp
 ModifiedPeptideGenerator.cpp
+ModomicsJSONDataProvider.cpp
+MzPAF.cpp
 NASequence.cpp
 NucleicAcidSpectrumGenerator.cpp
+OBODataProvider.cpp
+ProForma.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
 Residue.cpp
@@ -31,12 +39,14 @@ RNaseDB.cpp
 RNaseDigestion.cpp
 Ribonucleotide.cpp
 RibonucleotideDB.cpp
+RibonucleotideTSVDataProvider.cpp
+SequenceCoverage.cpp
 SpectrumAnnotator.cpp
 SimpleTSGXLMS.cpp
 Tagger.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
-WeightWrapper.cpp
+UnimodXMLDataProvider.cpp
 )
 
 ### add path to the filenames

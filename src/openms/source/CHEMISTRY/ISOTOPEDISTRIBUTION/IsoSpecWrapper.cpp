@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -22,18 +22,16 @@
 #define ISOSPEC_GOT_MMAN false
 #define ISOSPEC_BUILDING_OPENMS true
 
-// TODO Fix this weird way of including. Just make a library out of it,
-//  link to it and declare it PUBLIC such that it gets linked to dependents of OpenMS lib
-// But since it is PUBLIC, you should export the library also for installation (see evergreen thirdparty)
-#include "IsoSpec/allocator.cpp"
-#include "IsoSpec/dirtyAllocator.cpp"
-#include "IsoSpec/isoSpec++.cpp"
-#include "IsoSpec/isoMath.cpp"
-#include "IsoSpec/marginalTrek++.cpp"
-#include "IsoSpec/operators.cpp"
-#include "IsoSpec/element_tables.cpp"
-#include "IsoSpec/misc.cpp"
-#include "IsoSpec/fasta.cpp"
+// Include IsoSpec headers (library is now linked via CMake)
+#include "IsoSpec/allocator.h"
+#include "IsoSpec/dirtyAllocator.h"
+#include "IsoSpec/isoSpec++.h"
+#include "IsoSpec/isoMath.h"
+#include "IsoSpec/marginalTrek++.h"
+#include "IsoSpec/operators.h"
+#include "IsoSpec/element_tables.h"
+#include "IsoSpec/misc.h"
+#include "IsoSpec/fasta.h"
 
 using namespace std;
 using namespace IsoSpec;

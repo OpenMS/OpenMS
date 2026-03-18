@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -95,11 +95,11 @@ namespace OpenMS
       String filename = String(event->mimeData()->urls().front().toLocalFile());
       emit sendStatusMessage("loading drop file '" + filename + "' (press CRTL while dropping to insert into current window)", 0);
       // open pipeline in new window (or in current if CTRL is pressed)
-      emit pipelineDroppedOnWidget(filename, event->keyboardModifiers() != Qt::ControlModifier);
+      emit pipelineDroppedOnWidget(filename, event->modifiers() != Qt::ControlModifier);
     }
     else
     {
-      QPointF scene_pos = mapToScene(event->pos());
+      QPointF scene_pos = mapToScene(event->position().toPoint());
       emit toolDroppedOnWidget(scene_pos.x(), scene_pos.y());
     }
     event->acceptProposedAction();
@@ -175,7 +175,7 @@ namespace OpenMS
 
   }
 
-  void TOPPASWidget::enterEvent(QEvent * /*e*/)
+  void TOPPASWidget::enterEvent(QEnterEvent* /*e*/)
   {
 #ifndef Q_WS_MAC
     setFocus();

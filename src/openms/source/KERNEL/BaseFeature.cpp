@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -103,19 +103,19 @@ namespace OpenMS
     charge_ = charge;
   }
 
-  const vector<PeptideIdentification>& BaseFeature::getPeptideIdentifications()
+  const PeptideIdentificationList& BaseFeature::getPeptideIdentifications()
   const
   {
     return peptides_;
   }
 
-  vector<PeptideIdentification>& BaseFeature::getPeptideIdentifications()
+  PeptideIdentificationList& BaseFeature::getPeptideIdentifications()
   {
     return peptides_;
   }
 
   void BaseFeature::setPeptideIdentifications(
-    const vector<PeptideIdentification>& peptides)
+    const PeptideIdentificationList& peptides)
   {
     peptides_ = peptides;
   }
@@ -149,11 +149,11 @@ namespace OpenMS
     {
       if (peptides_.empty())
       {
-        return FEATURE_ID_NONE;
+        return AnnotationState::FEATURE_ID_NONE;
       }
       if (peptides_.size() == 1 && !peptides_[0].getHits().empty())
       {
-        return FEATURE_ID_SINGLE;
+        return AnnotationState::FEATURE_ID_SINGLE;
       }
       std::set<String> seqs;
       for (Size i = 0; i < peptides_.size(); ++i)
@@ -167,20 +167,20 @@ namespace OpenMS
       }
       if (seqs.size() == 1)
       {
-        return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+        return AnnotationState::FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
       }
       if (seqs.size() > 1)
       {
-        return FEATURE_ID_MULTIPLE_DIVERGENT; // multiple different annotations ... probably bad mapping
+        return AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT; // multiple different annotations ... probably bad mapping
       }
       /*else if (seqs.size()==0)*/
-      return FEATURE_ID_NONE;   // very rare case of empty hits
+      return AnnotationState::FEATURE_ID_NONE;   // very rare case of empty hits
     }
     else // consider IDs in new format
     {
       if (id_matches_.size() == 1)
       {
-        return FEATURE_ID_SINGLE;
+        return AnnotationState::FEATURE_ID_SINGLE;
       }
       // if there are multiple IDs, check if all are equal (to the first):
       auto it = id_matches_.begin();
@@ -189,10 +189,10 @@ namespace OpenMS
       {
         if ((*it)->identified_molecule_var != molecule)
         {
-          return FEATURE_ID_MULTIPLE_DIVERGENT;
+          return AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT;
         }
       }
-      return FEATURE_ID_MULTIPLE_SAME;
+      return AnnotationState::FEATURE_ID_MULTIPLE_SAME;
     }
   }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,6 +14,9 @@
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
@@ -26,8 +29,11 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #ifdef _OPENMP
@@ -83,7 +89,7 @@ secondary or non-probability main scores will be written as "search_scores" only
 Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
 
 The xquest.xml format is very specific to Protein-Protein Cross-Linking MS (XL-MS) applications and is only considered useful for compatibility
-of OpenPepXL / OpenPepXLLF with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
+of OpenPepXL with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
 
 Also supports generation of .mzML files with theoretical spectra from a .FASTA input.
 
@@ -134,7 +140,7 @@ public:
   }
 
 private:
-  bool add_ionmatches_(vector<PeptideIdentification>& peptide_identifications, String filename, double tolerance)
+  bool add_ionmatches_(PeptideIdentificationList& peptide_identifications, String filename, double tolerance)
   {
       TheoreticalSpectrumGenerator tg;
       Param tgp(tg.getDefaults());
@@ -157,7 +163,7 @@ private:
       bool ret = true;
       PeakMap expmap;
       SpectrumLookup lookup;
-      FileHandler().loadExperiment(filename, expmap);
+      FileHandler().loadExperiment(filename, expmap, {}, log_type_);
       lookup.readSpectra(expmap.getSpectra());
 
 #pragma omp parallel for
@@ -220,7 +226,7 @@ protected:
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.", false);
     registerStringOption_("score_type", "<choice>", PercolatorOutfile::score_type_names[0], "[Percolator only] Which of the Percolator scores to report as 'the' score for a peptide hit", false);
-    setValidStrings_("score_type", vector<String>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + int(PercolatorOutfile::SIZE_OF_SCORETYPE)));
+    setValidStrings_("score_type", vector<String>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + static_cast<int>(PercolatorOutfile::ScoreType::SIZE_OF_SCORETYPE)));
 
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
@@ -241,7 +247,7 @@ protected:
     // general variables and data
     //-------------------------------------------------------------
     FileHandler fh;
-    vector<PeptideIdentification> peptide_identifications;
+    PeptideIdentificationList peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
     SpectrumMetaDataLookup lookup;
     IdentificationData id_data;
@@ -308,7 +314,7 @@ protected:
       // Now get to work ...
       for (vector<String>::const_iterator in_files_it = in_files.begin(); in_files_it != in_files.end(); ++in_files_it)
       {
-        vector<PeptideIdentification> peptide_ids_seq;
+        PeptideIdentificationList peptide_ids_seq;
         ProteinIdentification protein_id_seq;
         vector<double> pvalues_seq;
         vector<String> in_file_vec;
@@ -426,14 +432,18 @@ protected:
       case FileTypes::MZIDENTML:
       {
         OPENMS_LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
-        FileHandler().loadIdentifications(in, protein_identifications,
+		FileHandler().loadIdentifications(in, protein_identifications,
                              peptide_identifications, {FileTypes::MZIDENTML});
 
         // get retention times from the mz data, if necessary:
         if (!mz_file.empty())
         {
-          SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
-            peptide_identifications, mz_file, false);
+		  // Add RTs if missing
+		  MSExperiment exp;    
+		  MzMLFile mzml_file{};
+          mzml_file.getOptions().setMetadataOnly(true);
+		  mzml_file.load(mz_file, exp); 
+          SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_identifications, exp);
 
           double add_ions = getDoubleOption_("add_ionmatch_annotation");
           if (add_ions > 0)
@@ -518,7 +528,7 @@ protected:
       case FileTypes::PSMS: // Percolator
       {
         String score_type = getStringOption_("score_type");
-        enum PercolatorOutfile::ScoreType perc_score =
+        PercolatorOutfile::ScoreType perc_score =
           PercolatorOutfile::getScoreType(score_type);
         if (!mz_file.empty())
         {

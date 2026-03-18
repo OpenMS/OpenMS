@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -113,12 +113,12 @@ START_TEST(IDMergerAlgorithm, "$Id$")
       pe9.getHits().push_back(ph5);
       pe9.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,564);
 
-      vector<PeptideIdentification> pes{pe1,pe2,pe3,pe4,pe5,pe6,pe7,pe8,pe9};
+      PeptideIdentificationList pes{pe1,pe2,pe3,pe4,pe5,pe6,pe7,pe8,pe9};
       vector<ProteinIdentification> prs{pr1,pr2,pr3,pr4};
       IDMergerAlgorithm ima("mymerge");
       ima.insertRuns(prs, pes);
       ProteinIdentification prres;
-      vector<PeptideIdentification> peres;
+      PeptideIdentificationList peres;
       ima.returnResultsAndClear(prres,peres);
 
       TEST_EQUAL(pes.size(), 9)
@@ -135,12 +135,12 @@ START_TEST(IDMergerAlgorithm, "$Id$")
     {
       IdXMLFile f;
       vector<ProteinIdentification> pr1;
-      vector<PeptideIdentification> pe1;
+      PeptideIdentificationList pe1;
       f.load(OPENMS_GET_TEST_DATA_PATH("newIDMergerTest1.idXML"),pr1,pe1);
       Size pe1size = pe1.size();
 
       vector<ProteinIdentification> pr2;
-      vector<PeptideIdentification> pe2;
+      PeptideIdentificationList pe2;
       f.load(OPENMS_GET_TEST_DATA_PATH("newIDMergerTest2.idXML"),pr2,pe2);
       Size pe2size = pe2.size();
 
@@ -151,7 +151,7 @@ START_TEST(IDMergerAlgorithm, "$Id$")
       TEST_EXCEPTION(Exception::MissingInformation, ima.insertRuns({ProteinIdentification{}}, {PeptideIdentification{}}))
 
       ProteinIdentification prres;
-      vector<PeptideIdentification> peres;
+      PeptideIdentificationList peres;
       ima.returnResultsAndClear(prres,peres);
 
       TEST_EQUAL(prres.getHits().size(),6)
@@ -171,11 +171,11 @@ START_TEST(IDMergerAlgorithm, "$Id$")
         {
           IdXMLFile f;
           vector<ProteinIdentification> pr1;
-          vector<PeptideIdentification> pe1;
+          PeptideIdentificationList pe1;
           f.load(OPENMS_GET_TEST_DATA_PATH("newIDMergerTest1.idXML"),pr1,pe1);
 
           vector<ProteinIdentification> pr2;
-          vector<PeptideIdentification> pe2;
+          PeptideIdentificationList pe2;
           f.load(OPENMS_GET_TEST_DATA_PATH("newIDMergerTest2.idXML"),pr2,pe2);
           // fail with different db filename
           pr2[0].getSearchParameters().db = "baz";
@@ -191,7 +191,7 @@ START_TEST(IDMergerAlgorithm, "$Id$")
           ima.insertRuns(std::move(pr2), std::move(pe2));
 
           ProteinIdentification prres;
-          vector<PeptideIdentification> peres;
+          PeptideIdentificationList peres;
           ima.returnResultsAndClear(prres,peres);
 
           TEST_EQUAL(prres.getHits().size(),6)

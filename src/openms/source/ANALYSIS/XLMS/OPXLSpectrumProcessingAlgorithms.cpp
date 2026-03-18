@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,11 +12,11 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 
 // preprocessing and filtering
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
+#include <OpenMS/PROCESSING/FILTERING/NLargest.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 
 #ifdef _OPENMP
 #include <omp.h>

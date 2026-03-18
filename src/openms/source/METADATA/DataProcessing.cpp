@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
 
 using namespace std;
 
@@ -34,7 +37,8 @@ namespace OpenMS
     "Conversion to mzML format",
     "Conversion to mzXML format",
     "Conversion to DTA format",
-    "Identification"
+    "Identification",
+    "Ion mobility binning"
   };
 
   DataProcessing::~DataProcessing() = default;
@@ -98,6 +102,38 @@ namespace OpenMS
   void DataProcessing::setProcessingActions(const set<DataProcessing::ProcessingAction>& processing_actions)
   {
     processing_actions_ = processing_actions;
+  }
+
+  StringList DataProcessing::getAllNamesOfProcessingAction()
+  {
+    StringList names;
+    names.reserve(static_cast<size_t>(ProcessingAction::SIZE_OF_PROCESSINGACTION));
+    for (size_t i = 0; i < static_cast<size_t>(ProcessingAction::SIZE_OF_PROCESSINGACTION); ++i)
+    {
+      names.push_back(NamesOfProcessingAction[i]);
+    }
+    return names;
+  }
+
+  const std::string& DataProcessing::processingActionToString(ProcessingAction action)
+  {
+    if (action == ProcessingAction::SIZE_OF_PROCESSINGACTION)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_PROCESSINGACTION");
+    }
+    return NamesOfProcessingAction[static_cast<size_t>(action)];
+  }
+
+  DataProcessing::ProcessingAction DataProcessing::toProcessingAction(const std::string& name)
+  {
+    auto first = &NamesOfProcessingAction[0];
+    auto last = &NamesOfProcessingAction[static_cast<size_t>(ProcessingAction::SIZE_OF_PROCESSINGACTION)];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<ProcessingAction>(it - first);
   }
 
 }

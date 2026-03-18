@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -150,6 +150,16 @@ namespace OpenMS
 
 
 
+  /**
+    @brief Dimension implementation for retention time values.
+    
+    This class implements the DimBase interface for the retention time dimension.
+    It provides methods to access RT values from various data structures and
+    convert between RT values and generic dimension values.
+
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimRT final : public DimBase
   {
   public:
@@ -260,6 +270,16 @@ namespace OpenMS
     }
   };
 
+  /**
+    @brief Dimension implementation for m/z values.
+    
+    This class implements the DimBase interface for the mass-to-charge ratio dimension.
+    It provides methods to access m/z values from various data structures and
+    convert between m/z values and generic dimension values.
+    
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimMZ final : public DimBase
   {
   public:
@@ -371,6 +391,16 @@ namespace OpenMS
     }
   };
 
+  /**
+    @brief Dimension implementation for intensity values.
+    
+    This class implements the DimBase interface for the intensity dimension.
+    It provides methods to access intensity values from various data structures and
+    convert between intensity values and generic dimension values.
+    
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimINT final : public DimBase
   {
   public:
@@ -488,6 +518,19 @@ namespace OpenMS
     }
   };
 
+  /**
+    @brief Dimension implementation for ion mobility values.
+    
+    This class implements the DimBase interface for the ion mobility dimension.
+    It provides methods to access ion mobility values from various data structures and
+    convert between ion mobility values and generic dimension values.
+    
+    Ion mobility dimensions support different units such as FAIMS compensation voltage,
+    linear ion mobility spectrometry, and trapped ion mobility spectrometry.
+    
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimIM final : public DimBase
   {
   public:
@@ -761,6 +804,15 @@ namespace OpenMS
       return *dims_[(int)d];
     }
 
+    bool hasUnit(DIM_UNIT unit) const
+    {
+      for (int i = 0; i < N_DIM; ++i)
+      {
+        if (dims_[i]->getUnit() == unit) return true;
+      }
+      return false;
+    }
+
   protected:
     /// a minimal factory
     static std::unique_ptr<const DimBase> create_(DIM_UNIT u)
@@ -834,7 +886,7 @@ namespace OpenMS
     /**
        @brief Set the area using unit data (RT, m/z, ...)
 
-       @param data Area in units
+       @param[in] data Area in units
     */
     const Area& setArea(const RangeAllType& data)
     {
@@ -847,7 +899,7 @@ namespace OpenMS
     /**
        @brief Set the area using axis data (X and Y)
 
-       @param data Area as displayed on the axis
+       @param[in] data Area as displayed on the axis
     */
     const Area& setArea(const AreaXYType& data)
     {
@@ -870,7 +922,7 @@ namespace OpenMS
     /**
       @brief Clone the current object, set the area of the clone using axis data (X and Y) and return the clone.
 
-      @param data New area as displayed on the axis
+      @param[in] data New area as displayed on the axis
     */
     Area cloneWith(const AreaXYType& data) const
     {
@@ -882,7 +934,7 @@ namespace OpenMS
     /**
       @brief Clone the current object, set the area of the clone using unit data (RT, m/z, ...) and return the clone.
 
-      @param data New area in units
+      @param[in] data New area in units
     */
     Area cloneWith(const RangeAllType& data) const
     {

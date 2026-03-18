@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -66,7 +66,7 @@ step.  This algorithm can be applied to features (featureXML) and peaks
 details and algorithm-specific parameters (set in the INI file) see "Detailed
 Description" in the @ref OpenMS::MapAlignmentAlgorithmPoseClustering "algorithm documentation".
 
-@see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
+@see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapRTTransformer
 
 This algorithm uses an affine transformation model.
 
@@ -160,8 +160,9 @@ protected:
         else if (in_type == FileTypes::MZML) // this is expensive!
         {
           PeakMap exp;
-          FileHandler().loadExperiment(in_files[i], exp, {FileTypes::MZML});
-          exp.updateRanges(1);
+
+          FileHandler().loadExperiment(in_files[i], exp, {FileTypes::MZML}, log_type_);
+          exp.updateRanges();
           s = exp.getSize();
         }
         if (s > max_count)
@@ -186,18 +187,22 @@ protected:
       FileHandler f_fxml_tmp; // for the reference, we never need CH or subordinates
       f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
       f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
-      f_fxml_tmp.loadFeatures(file, map_ref, {FileTypes::FEATUREXML});
+      f_fxml_tmp.loadFeatures(file, map_ref, {FileTypes::FEATUREXML}, log_type_);
       algorithm.setReference(map_ref);
     }
     else if (in_type == FileTypes::MZML)
     {
       PeakMap map_ref;
-      FileHandler().loadExperiment(file, map_ref);
+      FileHandler().loadExperiment(file, map_ref, {}, log_type_);
       algorithm.setReference(map_ref);
     }
 
     ProgressLogger plog;
     plog.setLogType(log_type_);
+
+    // Collect transformations for optional spectra files
+    // Pre-allocated for thread-safe access in OpenMP parallel loop
+    vector<TransformationDescription> transformations(in_files.size());
 
     plog.startProgress(0, in_files.size(), "Aligning input maps");
     Size progress(0); // thread-safe progress
@@ -239,13 +244,13 @@ protected:
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
-          f_fxml_tmp.storeFeatures(out_files[i], map, {FileTypes::FEATUREXML});
+          f_fxml_tmp.storeFeatures(out_files[i], map, {FileTypes::FEATUREXML}, log_type_);
         }
       }
       else if (in_type == FileTypes::MZML)
       {
         PeakMap map;
-        FileHandler().loadExperiment(in_files[i], map, {FileTypes::MZML});
+        FileHandler().loadExperiment(in_files[i], map, {FileTypes::MZML}, log_type_);
         if (i == static_cast<int>(reference_index))
         {
           trafo.fitModel("identity");
@@ -259,9 +264,12 @@ protected:
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
-          FileHandler().storeExperiment(out_files[i], map, {FileTypes::MZML});
+          FileHandler().storeExperiment(out_files[i], map, {FileTypes::MZML}, log_type_);
         }
       }
+
+      // Store transformation for this file
+      transformations[i] = trafo;
 
       if (!out_trafos.empty())
       {
@@ -277,6 +285,13 @@ protected:
     }
 
     plog.endProgress();
+    
+    // Transform optional spectra files
+    // Note: MapAlignerPoseClustering does not support store_original_rt flag
+    StringList in_spectra_files = getStringList_("in_spectra_files");
+    StringList out_spectra_files = getStringList_("out_spectra_files");
+    transformSpectraFiles_(in_spectra_files, out_spectra_files, transformations, false);
+    
     return EXECUTION_OK;
   }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -60,7 +60,7 @@ namespace OpenMS
         The order is defined in the @p ProcessingSoftware referenced by the processing step (if available).
         Scores not listed there are included at the end of the output.
 
-        @param primary_only Only return the primary score (ignoring any others)?
+        @param[in] primary_only Only return the primary score (ignoring any others)?
       */
       std::vector<std::pair<ScoreTypeRef, double>>
       getScoresInOrder(bool primary_only = false) const

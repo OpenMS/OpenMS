@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -63,9 +63,9 @@ public:
 
       has been done <i>before</i> calling this.  You have been warned!
 
-      @param map_model The model map (first input map)
-      @param map_scene The scene map (second input map)
-      @param transformation The output affine transformation (linear model transforming the scene map onto the model map)
+      @param[in] map_model The model map (first input map)
+      @param[in] map_scene The scene map (second input map)
+      @param[out] transformation The output affine transformation (linear model transforming the scene map onto the model map)
 
       @exception IllegalArgument is thrown if the input maps are invalid.
     */
@@ -73,18 +73,6 @@ public:
 
     /// Perform alignment on vector of 1D peaks
     virtual void run(const std::vector<Peak2D> & map_model, const std::vector<Peak2D> & map_scene, TransformationDescription & transformation);
-
-    /// Returns an instance of this class
-    static BaseSuperimposer * create()
-    {
-      return new PoseClusteringAffineSuperimposer();
-    }
-
-    /// Returns the name of this module
-    static const String getProductName()
-    {
-      return "poseclustering_affine";
-    }
 
   };
 } // namespace OpenMS

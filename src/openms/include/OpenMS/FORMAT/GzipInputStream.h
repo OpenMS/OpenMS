@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,13 +9,12 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/FORMAT/GzipIfstream.h>
 
 #include <xercesc/util/BinInputStream.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 
 namespace OpenMS
 {
+  class GzipIfstream;
   class String;
 
   /**
@@ -49,8 +48,8 @@ public:
       *
       * @note Implementation of the xerces-c input stream interface
       *
-      * @param to_fill is the buffer which is written to
-      * @param max_to_read is the size of the buffer
+      * @param[out] to_fill is the buffer which is written to
+      * @param[in] max_to_read is the size of the buffer
       *
       * @return returns the number of bytes which were actually read
       *
@@ -83,11 +82,6 @@ private:
   inline XMLFilePos GzipInputStream::curPos() const
   {
     return file_current_index_;
-  }
-
-  inline bool GzipInputStream::getIsOpen() const
-  {
-    return gzip_->isOpen();
   }
 
 } // namespace OpenMS

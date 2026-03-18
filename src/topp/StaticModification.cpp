@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,8 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 
 #include <vector>
@@ -155,7 +157,7 @@ protected:
 
     // load data
     std::vector<ProteinIdentification> prot_ids;
-    std::vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
     
     // apply mod to all PeptideHits

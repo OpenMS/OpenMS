@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,8 +10,10 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
+#include <functional>
 #include <string>
 
 #define OPENMS_CHEMISTRY_ELEMENT_NAME_DEFAULT "unknown"
@@ -141,4 +143,23 @@ protected:
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream &, const Element &);
 
 } // namespace OpenMS
+
+// Hash function specialization for Element
+namespace std
+{
+  template<>
+  struct hash<OpenMS::Element>
+  {
+    std::size_t operator()(const OpenMS::Element& e) const noexcept
+    {
+      std::size_t seed = OpenMS::fnv1a_hash_string(e.getName());
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(e.getSymbol()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(e.getAtomicNumber()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(e.getAverageWeight()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(e.getMonoWeight()));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::IsotopeDistribution>{}(e.getIsotopeDistribution()));
+      return seed;
+    }
+  };
+} // namespace std
 

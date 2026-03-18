@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,6 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -106,7 +105,7 @@ public:
 
       @param[out] data1 First data array (m/z)
       @param[out] data2 Second data array (Intensity)
-      @param ifs Input file stream (moved to the correct position)
+      @param[in] ifs Input file stream (moved to the correct position)
       @param[out] ms_level Output parameter to store the MS level of the spectrum (1, 2, 3 ...)
       @param[out] rt Output parameter to store the retention time of the spectrum
 
@@ -126,9 +125,9 @@ public:
     /**
       @brief Fast access to a spectrum
 
-      @param ifs Input file stream (moved to the correct position)
-      @param ms_level Output parameter to store the MS level of the spectrum (1, 2, 3 ...)
-      @param rt Output parameter to store the retention time of the spectrum
+      @param[in] ifs Input file stream (moved to the correct position)
+      @param[out] ms_level Output parameter to store the MS level of the spectrum (1, 2, 3 ...)
+      @param[out] rt Output parameter to store the retention time of the spectrum
 
       @throws Exception::ParseError is thrown if the spectrum cannot be read
     */
@@ -137,9 +136,9 @@ public:
     /**
       @brief Fast access to a chromatogram
 
-      @param data1 First data array (RT)
-      @param data2 Second data array (Intensity)
-      @param ifs Input file stream (moved to the correct position)
+      @param[in] data1 First data array (RT)
+      @param[in] data2 Second data array (Intensity)
+      @param[in] ifs Input file stream (moved to the correct position)
 
       @throws Exception::ParseError is thrown if the chromatogram size cannot be read
     */
@@ -154,7 +153,7 @@ public:
     /**
       @brief Fast access to a chromatogram
 
-      @param ifs Input file stream (moved to the correct position)
+      @param[in] ifs Input file stream (moved to the correct position)
 
       @throws Exception::ParseError is thrown if the chromatogram size cannot be read
     */
@@ -164,8 +163,8 @@ public:
     /**
       @brief Read a single spectrum directly into an OpenMS MSSpectrum (assuming file is already at the correct position)
 
-      @param spectrum Output spectrum
-      @param ifs Input file stream (moved to the correct position)
+      @param[out] spectrum Output spectrum
+      @param[in] ifs Input file stream (moved to the correct position)
 
       @throws Exception::ParseError is thrown if the chromatogram size cannot be read
     */
@@ -174,8 +173,8 @@ public:
     /**
       @brief Read a single chromatogram directly into an OpenMS MSChromatogram (assuming file is already at the correct position)
 
-      @param chromatogram Output chromatogram
-      @param ifs Input file stream (moved to the correct position)
+      @param[out] chromatogram Output chromatogram
+      @param[in] ifs Input file stream (moved to the correct position)
 
       @throws Exception::ParseError is thrown if the chromatogram size cannot be read
     */

@@ -1,33 +1,7 @@
 #!/usr/bin/ruby
 
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche $
@@ -51,6 +25,7 @@ $executableId="@executable_path/"
 $EXTRACTFW = false
 $auto_relative = true
 $nocopy = false
+$target_rpaths = nil
 
 ###############################################################################
 def debug(message)
@@ -117,9 +92,29 @@ def fixId(target, libname)
 end
 
 ###############################################################################
+def adjustRpaths(target, newpaths)
+  return if newpaths.nil?
+  # list existing rpaths
+  existing = %x[otool -l #{target} | grep -A2 LC_RPATH | grep path | sed -n "s/^.*path\\s*\\(.*\\)(offset.*\\$/\\1/p"].split(/\n/).map(&:strip)
+  existing.each do |rp|
+    next if rp.nil? or rp.empty?
+    debug "#{$install_name_tool} -delete_rpath #{rp} #{target}"
+    `#{$install_name_tool} -delete_rpath "#{rp}" "#{target}"`
+  end
+
+  # add only the requested rpaths
+  newpaths.each do |rp|
+    next if rp.nil? or rp.empty?
+    debug "#{$install_name_tool} -add_rpath #{rp} #{target}"
+    `#{$install_name_tool} -add_rpath "#{rp}" "#{target}"`
+  end
+end
+
+
+###############################################################################
 def handleDependencies(otool_out, targetPath, currentLib, rpaths)
   rpath = %x[otool -l #{currentLib} | grep -A2 LC_RPATH | grep path | sed -n "s/^.*path\\s*\\(.*\\)(offset.*\$/\\1/p"]
-  rpaths += rpath.split(/\n/)
+  rpaths += rpath.split(/\n/).map(&:strip)
 
   for index in 0 ... otool_out.size
     fix_lib=cleanOtoolEntry(otool_out[index])
@@ -287,6 +282,13 @@ def handleFramework(frameworkPath, targetPath, rpaths)
         # check the actual dependencies (lines 3++)
         handleDependencies(otool_out, targetPath, newFrameWorkPath, rpaths)
 
+        # adjust rpaths on the copied/handled framework if requested
+        begin
+          adjustRpaths(newFrameWorkPath, $target_rpaths)
+        rescue => e
+          debug "adjustRpaths failed for #{newFrameWorkPath}: #{e}"
+        end
+
         # mark as processed
         $handledLibraries.add(libname)
       else
@@ -308,6 +310,11 @@ def handleFramework(frameworkPath, targetPath, rpaths)
     end
     # the new path
     newFrameworkPath="#{targetPath}/#{libname}"
+    begin
+      adjustRpaths(newFrameworkPath, $target_rpaths)
+    rescue => e
+      debug "adjustRpaths failed for assumed framework path #{newFrameworkPath}: #{e}"
+    end
   end
 
   # update ids of dependencies
@@ -355,6 +362,13 @@ def handleDyLib(dylibPath, targetPath, rpaths)
      # check the actual dependencies (lines 3++)
      handleDependencies(otool_out, targetPath, newDyLibPath, rpaths)
 
+      # adjust rpaths on the copied/handled dylib if requested
+      begin
+        adjustRpaths(newDyLibPath, $target_rpaths)
+      rescue => e
+        debug "adjustRpaths failed for #{newDyLibPath}: #{e}"
+      end
+
      # mark as processed
      $handledLibraries.add(libname)
    else
@@ -373,6 +387,11 @@ def handleDyLib(dylibPath, targetPath, rpaths)
    $currentIndent-=1
 
    newDyLibPath="#{targetPath}/#{libname}"
+   begin
+     adjustRpaths(newDyLibPath, $target_rpaths)
+   rescue => e
+     debug "adjustRpaths failed for assumed path #{newDyLibPath}: #{e}"
+   end
    return newDyLibPath,libname
 
   end
@@ -385,7 +404,7 @@ def handleBinary(binaryPath)
   debug "Fixing binary #{binaryPath}"
 
   rpath = %x[otool -l #{binaryPath} | grep -A2 LC_RPATH | grep path | sed -n "s/^.*path\\s*\\(.*\\)(offset.*\$/\\1/p"]
-  rpaths = rpath.split(/\n/)
+  rpaths = rpath.split(/\n/).map(&:strip)
 
   # no copy, no id change; juts run otool
   otool_out=`otool -L #{binaryPath}`.strip.split(/\n/)
@@ -415,6 +434,7 @@ opts = GetoptLong.new(
   [ '--bin-path', '-b', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--plugin-path', '-p', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--path-prefix', '-e', GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--rpaths', '-r', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--extract-from-framework', '-f', GetoptLong::NO_ARGUMENT],
   [ '--no-auto-relative', '-n', GetoptLong::NO_ARGUMENT],
   [ '--no-copy', '-c', GetoptLong::NO_ARGUMENT]
@@ -439,6 +459,8 @@ usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STO
   use path-prefix as is, without adding the relative path between bin path and lib path.
 -c, --no-copy:
   do not copy dependencies, only fix up loading to relative paths
+ -r, --rpaths:
+  comma-separated list of rpaths to set on fixed/copied libraries. All existing rpaths will be removed and only these will be added.
 -v, --verbose:
   increase verbosity
 "
@@ -450,6 +472,12 @@ opts.each do |opt, arg|
     when '--install-name-tool'
       $install_name_tool = arg
       puts "Use #{install_name_tool} to fix binaries in #{bin}"
+    when '--rpaths'
+      if not arg.nil?
+        $target_rpaths = arg.split(',').map(&:strip)
+      else
+        $target_rpaths = []
+      end
     when '--lib-path'
       $lib_dir = Pathname.new(arg).realpath
     when '--bin-path'
@@ -523,7 +551,7 @@ if !$bin_dir.nil?
     if fixable(content, $bin_dir)
       if (content.end_with?(".dylib") or content.end_with?(".so"))
         debug "Handle dylib #{$bin_dir + content}"
-        handleDyLib($bin_dir + content, $bin_dir)
+        handleDyLib($bin_dir + content, $bin_dir, [])
       else
         debug "Handle binary #{$bin_dir + content}"
         handleBinary($bin_dir + content)

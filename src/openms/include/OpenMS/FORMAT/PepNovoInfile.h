@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -44,15 +44,15 @@ public:
 
     /** stores the experiment data in a PepNovo input file that can be used as input for PepNovo shell execution
 
-        @param filename the file which the input file is stored into
+        @param[out] filename the file which the input file is stored into
         @throw Exception::UnableToCreateFile is thrown if the given file could not be created
     */
     void store(const String & filename);
 
     /** @brief generates the PepNovo Infile for given fixed and variable modifications			 *
      *
-     * @param fixed_mods StringList of fixed modifications unique identifiers
-     * @param variable_mods StringList of variable modifications unique identifiers
+     * @param[in] fixed_mods StringList of fixed modifications unique identifiers
+     * @param[in] variable_mods StringList of variable modifications unique identifiers
      */
     void setModifications(const StringList & fixed_mods, const StringList & variable_mods);
 
@@ -72,8 +72,8 @@ private:
 
     /** retrieves the name of modification, and generates the corresponding line for the
         PepNovo infile.
-        @param modification the modification
-        @param variable should be set to true if it variable
+        @param[in] modification the modification
+        @param[in] variable should be set to true if it variable
    */
     String handlePTMs_(const String & modification, const bool variable);
   };

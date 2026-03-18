@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,11 +12,13 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <functional>
@@ -175,17 +177,14 @@ public:
     setValidFormats_("out", ListUtils::create<String>("csv"));
   }
 
-  MSChromatogram toChromatogram(const MSSpectrum& in)
+  MSChromatogram toChromatogram(const MSSpectrum& in) // for debugging
   {
     MSChromatogram out;
-    for (Size ic = 0; ic < in.size(); ++ic)
+    for (const auto& peak : in)
     {
-      ChromatogramPeak peak;
-      peak.setMZ(in[ic].getMZ());
-      peak.setIntensity(in[ic].getIntensity());
-      out.push_back(peak);
+      out.emplace_back(peak.getMZ(), peak.getIntensity());
     }
-    out.setChromatogramType(ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM);
+    out.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_ION_CURRENT_CHROMATOGRAM);
 
     return out;
   }
@@ -324,7 +323,7 @@ public:
           for (Size is = 0; is < tics.size(); ++is)
           {
             Peak1D peak;
-            peak.setMZ(tic[is].getMZ());
+            peak.setMZ(tic[is].getPos());
             peak.setIntensity(snt.getSignalToNoise(is));
             tics_sn.push_back(peak);
           }

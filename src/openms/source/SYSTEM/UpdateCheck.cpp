@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -22,14 +22,14 @@
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <QtCore/QDir>
-#include <QtCore/QCoreApplication>
 #include <QtCore/QDateTime>
-#include <QtCore/QTimer>
+#include <QtCore/QFileInfo>
+#include <QtCore/QSysInfo>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 using namespace std;
-  
+
 namespace OpenMS
 {
   void UpdateCheck::run(const String& tool_name, const String& version, int debug_level)
@@ -108,11 +108,20 @@ namespace OpenMS
       {
         // update modification time stamp
         struct stat old_stat;
-        struct utimbuf new_times;
-        stat(version_file_name.c_str(), &old_stat);
-        new_times.actime = old_stat.st_atime; // keep accession time unchanged 
-        new_times.modtime = time(nullptr);  // mod time to current time
-        utime(version_file_name.c_str(), &new_times);          
+        if (stat(version_file_name.c_str(), &old_stat) != 0)
+        {
+          OPENMS_LOG_WARN << "Warning: stat() failed for '" << version_file_name << "' (errno " << errno << ")" << std::endl;
+        }
+        else
+        {
+          struct utimbuf new_times;
+          new_times.actime = old_stat.st_atime; // keep accession time unchanged
+          new_times.modtime = time(nullptr);  // mod time to current time
+          if (utime(version_file_name.c_str(), &new_times) != 0)
+          {
+            OPENMS_LOG_WARN << "Warning: utime() failed for '" << version_file_name << "' (errno " << errno << ")" << std::endl;
+          }
+        }
 
         if (debug_level > 0)
         {
@@ -120,26 +129,20 @@ namespace OpenMS
           OPENMS_LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
           OPENMS_LOG_INFO << "setting the environmental variable OPENMS_DISABLE_UPDATE_CHECK to ON." << endl;
         }
-      
-        // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
-        char const * argv2[] = { "dummyname", nullptr };
-        int argc = 1;
-        QCoreApplication event_loop(argc, const_cast<char**>(argv2));
-        NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
-        query->setUrl(QUrl(QString("http://openms-update.cs.uni-tuebingen.de/check/") + tool_version_string.toQString()));
-        QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
-        QTimer::singleShot(1000, query, SLOT(run()));          
-        QTimer::singleShot(5000, query, SLOT(timeOut()));
-        event_loop.exec();
 
-        if (!query->hasError())
+        NetworkGetRequest query;
+        query.setUrl("http://openms-update.cs.uni-tuebingen.de/check/" + tool_version_string);
+        query.setTimeout(5);
+        query.run();
+
+        if (!query.hasError())
         {
           if (debug_level > 0)
           {
             OPENMS_LOG_INFO << "Connecting to REST server successful. " << endl;
           }
 
-          QString response = query->getResponse();
+          String response = query.getResponse();
           VersionInfo::VersionDetails server_version = VersionInfo::VersionDetails::create(response);
           if (server_version != VersionInfo::VersionDetails::EMPTY)
           {
@@ -154,14 +157,11 @@ namespace OpenMS
           if (debug_level > 0)
           {
             OPENMS_LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
-            OPENMS_LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
+            OPENMS_LOG_INFO << "Error: " << query.getErrorString() << endl;
           }
         }
-        delete query;
-        event_loop.quit();
       }
     }
   }
 
 }
-

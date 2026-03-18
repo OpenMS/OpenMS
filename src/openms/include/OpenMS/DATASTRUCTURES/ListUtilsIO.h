@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -22,8 +22,8 @@ namespace OpenMS
   /**
     @brief Output stream operator for std::vectors.
 
-    @param os The target stream.
-    @param v The vector to write to stream.
+    @param[in,out] os The target stream.
+    @param[in] v The vector to write to stream.
   */
   template <typename T>
   inline std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)

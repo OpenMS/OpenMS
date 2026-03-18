@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -16,6 +16,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 
 using namespace std;
@@ -217,11 +218,11 @@ protected:
 #pragma omp parallel for
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
-      boost::shared_ptr<PeakMap > exp(new PeakMap);
+      std::shared_ptr<PeakMap > exp(new PeakMap);
       // Find the transitions to extract and extract them
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;
-      FileHandler().loadExperiment(file_list[i], *exp, {FileTypes::MZML});
+      FileHandler().loadExperiment(file_list[i], *exp, {FileTypes::MZML}, log_type_);
       if (exp->empty())
       { 
         continue; // if empty, go on

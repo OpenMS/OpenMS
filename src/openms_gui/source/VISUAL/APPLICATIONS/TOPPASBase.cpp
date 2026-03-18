@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -37,12 +37,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDesktopServices>
-#include <QNetworkAccessManager>
-#include <QNetworkProxy>
-#include <QNetworkProxyFactory>
-#include <QNetworkReply>
 #include <QSvgGenerator>
-#include <QTextCodec>
 #include <QTextStream>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -51,7 +46,6 @@
 #include <QtCore/QSettings>
 #include <QtCore/QUrl>
 #include <QtWidgets/QCheckBox>
-#include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QInputDialog>
@@ -74,6 +68,7 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWhatsThis>
 #include <utility>
+#include <OpenMS/VISUAL/TOPPASOutputFolderVertex.h>
 
 
 using namespace std;
@@ -100,11 +95,11 @@ namespace OpenMS
 
     // center main window
     setGeometry(
-      (int)(0.1 * QApplication::desktop()->width()),
-      (int)(0.1 * QApplication::desktop()->height()),
-      (int)(0.8 * QApplication::desktop()->width()),
-      (int)(0.8 * QApplication::desktop()->height())
-      );
+      (int)(0.1 * QGuiApplication::primaryScreen()->geometry().width()),
+      (int)(0.1 * QGuiApplication::primaryScreen()->geometry().height()),
+      (int)(0.8 * QGuiApplication::primaryScreen()->geometry().width()),
+      (int)(0.8 * QGuiApplication::primaryScreen()->geometry().height())
+    );
 
     // create dummy widget (to be able to have a layout), Tab bar and workspace
     QWidget* dummy = new QWidget(this);
@@ -130,16 +125,16 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
-    file->addAction("&New", this, SLOT(newPipeline()), Qt::CTRL + Qt::Key_N);
-    file->addAction("&Open", this, SLOT(openFilesByDialog()), Qt::CTRL + Qt::Key_O);
-    file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL + Qt::Key_E);
-    file->addAction("&Include", this, SLOT(includePipeline()), Qt::CTRL + Qt::Key_I);
-    //file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL + Qt::Key_R);
-    file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL + Qt::Key_S);
-    file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL + Qt::SHIFT + Qt::Key_S);
-    file->addAction("E&xport as image", this, SLOT(exportAsImage()));
-    file->addAction("Refresh &parameters", this, SLOT(refreshParameters()), Qt::CTRL + Qt::SHIFT + Qt::Key_P);
-    file->addAction("&Close pipeline", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
+    file->addAction("&New", this, &TOPPASBase::newPipeline)->setShortcut(Qt::CTRL | Qt::Key_N);
+    file->addAction("&Open", this, &TOPPASBase::openFilesByDialog)->setShortcut(Qt::CTRL | Qt::Key_O);
+    file->addAction("Open &example file", this, &TOPPASBase::openExampleDialog)->setShortcut(Qt::CTRL | Qt::Key_E);
+    file->addAction("&Include", this, &TOPPASBase::includePipeline)->setShortcut(Qt::CTRL | Qt::Key_I);
+    //file->addAction("Online &Repository", this, &TOPPASBase::openOnlinePipelineRepository)->setShortcut(Qt::CTRL | Qt::Key_R);
+    file->addAction("&Save", this, &TOPPASBase::savePipeline)->setShortcut(Qt::CTRL | Qt::Key_S);
+    file->addAction("Save &As", this, &TOPPASBase::saveCurrentPipelineAs)->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
+    file->addAction("E&xport as image", this, &TOPPASBase::exportAsImage);
+    file->addAction("Refresh &parameters", this, &TOPPASBase::refreshParameters)->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_P);
+    file->addAction("&Close pipeline", this, &TOPPASBase::closeFile)->setShortcut(Qt::CTRL | Qt::Key_W);
 
     file->addSeparator();
     // Recent files
@@ -165,9 +160,10 @@ namespace OpenMS
     //Help menu
     QMenu* help = new QMenu("&Help", this);
     menuBar()->addMenu(help);
-    QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
+    QAction* action = help->addAction("OpenMS website", this, &TOPPASBase::showURL);
     action->setData("http://www.OpenMS.de");
-    action = help->addAction("TOPPAS tutorial", this, SLOT(showURL()), Qt::Key_F1);
+    action = help->addAction("TOPPAS tutorial", this, &TOPPASBase::showURL);
+    action->setShortcut(Qt::Key_F1);
     action->setData(String("html/TOPPAS_tutorial.html").toQString());
 
     help->addSeparator();
@@ -263,9 +259,6 @@ namespace OpenMS
     connect((webview_->page()), SIGNAL(linkClicked(const QUrl &)), this, SLOT(downloadTOPPASfromHomepage_(const QUrl &)));
 */
 
-    network_manager_ = new QNetworkAccessManager(this);
-    connect(network_manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(toppasFileDownloaded_(QNetworkReply*)));
-
     // update the menu
     updateMenu(); 
 
@@ -301,134 +294,6 @@ namespace OpenMS
     activeSubWindow_()->getScene()->setDescription(desc_->toHtml());
   }
 
-  void TOPPASBase::toppasFileDownloaded_(QNetworkReply* /* r */)
-  {
-/* QT5
-    r->deleteLater();
-    if (r->error() != QNetworkReply::NoError)
-    {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Download failed", "Error '" + r->errorString() + "' while downloading TOPPAS file: '" + r->url().toString() + "'");
-      return;
-    }
-
-    QByteArray data = r->readAll();
-
-    QString proposed_filename;
-    if (r->url().hasQueryItem("file"))
-    {
-      proposed_filename = r->url().queryItemValue("file");
-    }
-    else
-    {
-      proposed_filename = "Workflow.toppas";
-      OPENMS_LOG_WARN << "The URL format of downloads from the TOPPAS Online-Repository has changed. Please notify developers!";
-    }
-    QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
-
-    // check if the user clicked cancel, to avoid saving .toppas somewhere
-    if (String(filename).trim().empty())
-    {
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Download succeeded, but saving aborted by user!", "");
-      return;
-    }
-
-    if (!filename.endsWith(".toppas", Qt::CaseInsensitive))
-    {
-      filename += ".toppas";
-    }
-
-    QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Download succeeded. Cannot save the file. Try again with another filename and/or location!", "");
-      return;
-    }
-
-    QTextStream out(&file);
-    out << data;
-    file.close();
-
-    this->addTOPPASFile(filename);
-    log_->appendNewHeader(LogWindow::LogState::NOTICE, "File successfully saved to '" + filename + "'.", "");
-*/
-  }
-  
-  void TOPPASBase::TOPPASreadyRead()
-  {
-    QNetworkReply::NetworkError ne = network_reply_->error();
-    qint64 ba = network_reply_->bytesAvailable();
-    OPENMS_LOG_DEBUG << "Error code (QNetworkReply::NetworkError): " << ne << "  bytes available: " << ba << std::endl;
-    return;
-  }
-
-  void TOPPASBase::downloadTOPPASfromHomepage_(const QUrl& url)
-  {
-    if (url.toString().endsWith(QString(".toppas"), Qt::CaseInsensitive))
-    {
-      network_reply_ = network_manager_->get(QNetworkRequest(url));
-
-      // debug
-      connect(network_reply_, SIGNAL(readyRead()), this, SLOT(TOPPASreadyRead()));
-      connect(network_reply_, SIGNAL(error(QNetworkReply::NetworkError code)), this, SLOT(TOPPASreadyRead()));
-      connect(network_reply_, SIGNAL(finished()), this, SLOT(TOPPASreadyRead()));
-      connect(network_reply_, SIGNAL(metaDataChanged()), this, SLOT(TOPPASreadyRead()));
-      connect(network_reply_, SIGNAL(sslErrors(const QList<QSslError> & errors)), this, SLOT(TOPPASreadyRead()));
-      // .. end debug
-
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Downloading file '" + url.toString() + "'. You will be notified once the download finished.", "");
-      // webview_->close(); QT5 replace with QWebEngine
-    }
-    else
-    {
-      QMessageBox::warning(this, tr("Error"), tr("You can only click '.toppas' files on this page. No navigation is allowed!\n"));
-      /* 
-      replace with QT5 webengine
-      webview_->setFocus(); 
-      webview_->activateWindow();
-      */
-    }
-  }
-
-  void TOPPASBase::openOnlinePipelineRepository()
-  {
-/* QT5
-    QUrl url = QUrl("http://www.OpenMS.de/TOPPASWorkflows/");
-
-    static bool proxy_settings_checked = false;
-    if (!proxy_settings_checked) // do only once because may take several seconds on windows
-    {
-      QNetworkProxy proxy;
-      QUrl tmp_proxy_url(QString(getenv("http_proxy")));
-      QUrl tmp_PROXY_url(QString(getenv("HTTP_PROXY")));
-      QUrl proxy_url = tmp_proxy_url.isValid() ? tmp_proxy_url : tmp_PROXY_url;
-      if (proxy_url.isValid())
-      {
-        QString hostname = proxy_url.host();
-        int port = proxy_url.port();
-        QString username = proxy_url.userName();
-        QString password = proxy_url.password();
-        proxy = QNetworkProxy(QNetworkProxy::HttpProxy, hostname, port, username, password);
-      }
-      else
-      {
-        QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery(url);
-        if (!proxies.empty())
-        {
-          proxy = proxies.first();
-        }
-      }
-      QNetworkProxy::setApplicationProxy(proxy); //no effect if proxy == QNetworkProxy()
-      proxy_settings_checked = true;
-    }
-
-    // show something immediately, so the user does not stare at white screen while the URL is fetched
-    webview_->setHtml("loading content ... ");
-    webview_->show();
-    // ... load the page in background
-    webview_->load(url);
-*/
-  }
-
   //static
   TOPPASTreeView* TOPPASBase::createTOPPToolsTreeWidget(QWidget* parent_widget)
   {
@@ -439,21 +304,19 @@ namespace OpenMS
     header_labels.append(QString("TOPP tools"));
     tools_tree_view->setHeaderLabels(header_labels);
 
-    QTreeWidgetItem* item = new QTreeWidgetItem((QTreeWidget*)nullptr);
-    item->setText(0, "<Input files>");
-    tools_tree_view->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)nullptr);
-    item->setText(0, "<Output files>");
-    tools_tree_view->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)nullptr);
-    item->setText(0, "<Merger>");
-    tools_tree_view->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)nullptr);
-    item->setText(0, "<Collector>");
-    tools_tree_view->addTopLevelItem(item);
-    item = new QTreeWidgetItem((QTreeWidget*)nullptr);
-    item->setText(0, "<Splitter>");
-    tools_tree_view->addTopLevelItem(item);
+    auto add_list_item = [&tools_tree_view](const QString& node_name, const QString& tool_tip)
+      {
+      QTreeWidgetItem* item = new QTreeWidgetItem(tools_tree_view);
+      item->setText(0, node_name);
+      item->setToolTip(0, tool_tip);
+      tools_tree_view->addTopLevelItem(item);
+    };
+    add_list_item("<Input files>", "One or multiple input files, such as mzML or FASTA files from your local hard drive");
+    add_list_item("<Output files>", "Sink for one or more output files, which are produced by a TOPP tool and which you want to keep for later.");
+    add_list_item("<Output folder>", "Some TOPP tools write their output to a folder. Usually a fixed set of files, whose names cannot be set explicitly.");
+    add_list_item("<Merger>", "Concatenate files from multiple input edges to a list and forward that list.");
+    add_list_item("<Collector>", "Collect each single file from \na single input edge (for every time it runs)\nand then foward this list to the next tool (which is only invoked once)");
+    add_list_item("<Splitter>", "Opposite of a collector.");
 
     //Param category_param = param_.copy("tool_categories:", true);
 
@@ -477,24 +340,24 @@ namespace OpenMS
 
     std::map<QString, QTreeWidgetItem*> category_map;
 
-    foreach(const QString &category, category_list)
+    for (const QString &category : category_list)
     {
-      item = new QTreeWidgetItem((QTreeWidget*)nullptr);
+      auto item = new QTreeWidgetItem((QTreeWidget*)nullptr);
       item->setText(0, category);
       tools_tree_view->addTopLevelItem(item);
       category_map[category] = item;
     }
 
-    for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    for (const auto& tool : tools_list)
     {
-      item = new QTreeWidgetItem(category_map[it->second.category.toQString()]);
-      item->setText(0, it->first.toQString());
+      auto item = new QTreeWidgetItem(category_map[tool.second.category.toQString()]);
+      item->setText(0, tool.first.toQString());
       QTreeWidgetItem* parent_item = item;
-      StringList types = ToolHandler::getTypes(it->first);
-      for (StringList::iterator types_it = types.begin(); types_it != types.end(); ++types_it)
+      StringList types = ToolHandler::getTypes(tool.first);
+      for (const auto& type : types)
       {
         item = new QTreeWidgetItem(parent_item);
-        item->setText(0, types_it->toQString());
+        item->setText(0, type.toQString());
       }
     }
     tools_tree_view->resizeColumnToContents(0);
@@ -1208,8 +1071,15 @@ namespace OpenMS
     {
       tv = new TOPPASOutputFileListVertex();
       TOPPASOutputFileListVertex* oflv = dynamic_cast<TOPPASOutputFileListVertex*>(tv);
-      connect(oflv, SIGNAL(outputFileWritten(const String &)), this, SLOT(outputVertexFinished(const String &)));
-      scene->connectOutputVertexSignals(oflv);
+      connect(tv, SIGNAL(outputFileWritten(const String &)), this, SLOT(outputVertexFinished(const String &)));
+      scene->connectOutputVertexSignals((TOPPASOutputVertex*)oflv);
+    }
+    else if (tool_name == "<Output folder>")
+    {
+      tv = new TOPPASOutputFolderVertex();
+      TOPPASOutputFolderVertex* oflv = dynamic_cast<TOPPASOutputFolderVertex*>(tv);
+      connect(tv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
+      scene->connectOutputVertexSignals((TOPPASOutputVertex*)oflv);
     }
     else if (tool_name == "<Merger>")
     {
@@ -1493,21 +1363,14 @@ namespace OpenMS
         QMessageBox::Question,
         tr("Open files with overlay?"),
         tr("How do you want to open the output files?"),
-        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-      msgBox.setButtonText(QMessageBox::Yes, tr("&Single Tab - Overlay"));
-      msgBox.setButtonText(QMessageBox::No, tr("&Separate tabs"));
-      int ret = msgBox.exec();
-      if (ret == QMessageBox::Cancel) return; // Escape was pressed
-      if (ret == QMessageBox::Yes)
-      {
-        /*
-         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
-         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
-         */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
-#pragma GCC diagnostic pop
+        QMessageBox::Cancel);
+      QPushButton* overlayButton = msgBox.addButton(tr("&Single Tab - Overlay"), QMessageBox::YesRole);
+      msgBox.addButton(tr("&Separate tabs"), QMessageBox::NoRole);
+      msgBox.exec();
+      if (msgBox.clickedButton() == nullptr) return; // Escape was pressed
+      if (msgBox.clickedButton() == overlayButton)
+      { // put a '+' in between the files (TOPPView's command line will interpret this as overlay)
+        files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", Qt::SkipEmptyParts);
       }
     }
     

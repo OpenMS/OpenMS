@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -39,7 +39,7 @@ namespace OpenMS
 
       A warning is issued on the commandline if a feature does not have either 'FWHM' or 'model_FWHM' as metavalue.
 
-      @param features FeatureMap with features which have metavalue 'FWHM' or 'model_FWHM'
+      @param[in,out] features FeatureMap with features which have metavalue 'FWHM' or 'model_FWHM'
     **/
     void compute(FeatureMap& features);
 

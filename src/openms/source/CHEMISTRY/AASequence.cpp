@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -107,14 +107,25 @@ namespace OpenMS
     return m;
   }
 
-
-  AASequence::AASequence() :
-    n_term_mod_(nullptr),
-    c_term_mod_(nullptr)
+  AASequence::AASequence(const String& s)
   {
+    parseString_(s, *this, true);
   }
 
-  AASequence::~AASequence() = default;
+  AASequence::AASequence(const char* s)
+  {
+    parseString_(s, *this, true);
+  }
+
+  AASequence::AASequence(const String& s, bool permissive)
+  {
+    parseString_(s, *this, permissive);
+  }
+
+  AASequence::AASequence(const char* s, bool permissive)
+  {
+    parseString_(s, *this, permissive);
+  }
 
   const Residue& AASequence::getResidue(Size index) const
   {
@@ -452,14 +463,14 @@ namespace OpenMS
           return ef + Residue::getInternalToZIon();
         }
         default:
-          OPENMS_LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
+          OPENMS_LOG_ERROR << "AASequence::getFormula: unknown ResidueType\n";
       }
 
       return ef;
     }
     else
     {
-      OPENMS_LOG_ERROR << "AASequence::getFormula: Formula for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+      OPENMS_LOG_ERROR << "AASequence::getFormula: Formula for ResidueType " << type << " not defined for sequences of length 0.\n";
       return EmpiricalFormula("");
     }
   }
@@ -573,14 +584,14 @@ namespace OpenMS
           return mono_weight + Residue::getInternalToZIon().getMonoWeight();
         }
         default:
-          OPENMS_LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
+          OPENMS_LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType\n";
       }
 
       return mono_weight;
     }
     else
     {
-      OPENMS_LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+      OPENMS_LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0.\n";
       return 0.0;
     }
 }
@@ -1118,7 +1129,7 @@ namespace OpenMS
         }
       }
 
-      OPENMS_LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+      OPENMS_LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database\n";
     }
     else if (specificity == ResidueModification::ANYWHERE) // internal (not exclusively terminal) modification
     {
@@ -1203,7 +1214,7 @@ namespace OpenMS
       if (residue->getOneLetterCode() != "X") // don't warn for mass tags
       {
         OPENMS_LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
-            residue->getOneLetterCode() + "' - adding it to the database" << std::endl;
+            residue->getOneLetterCode() + "' - adding it to the database\n";
       }
     }
     else if (specificity == ResidueModification::C_TERM)
@@ -1246,7 +1257,7 @@ namespace OpenMS
         }
       }
 
-      OPENMS_LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+      OPENMS_LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database\n";
     }
 
     // -----------------------------------
@@ -1467,7 +1478,7 @@ namespace OpenMS
     }
     if (mod == nullptr)
     {
-      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
+      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
       mod = ResidueModification::createUnknownFromMassString(String(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
@@ -1607,7 +1618,7 @@ namespace OpenMS
     if (n_term_mod_ == nullptr)
     {
 
-      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
+      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
       n_term_mod_ = ResidueModification::createUnknownFromMassString(String(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
@@ -1637,7 +1648,7 @@ namespace OpenMS
     if (n_term_mod_ == nullptr)
     {
 
-      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
+      OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification.\n";
       n_term_mod_ = ResidueModification::createUnknownFromMassString(String(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,

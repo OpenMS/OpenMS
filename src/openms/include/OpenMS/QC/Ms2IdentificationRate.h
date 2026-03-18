@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 #include <OpenMS/QC/QCBase.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <string>
 #include <vector>
 
@@ -54,8 +55,8 @@ namespace OpenMS
      * Only checks the first (!) hit, all other hits are ignored
      * Is static so that it can be used with MapUtilities::applyFunctionOnPeptideIDs() without creating a new object for each ID
      *
-     * @param id             pepID to be checked
-     * @param all_targets    always returns true (if the hits aren't empty)
+     * @param[in] id             pepID to be checked
+     * @param[in] all_targets    always returns true (if the hits aren't empty)
      * @return               true/false
      * @throws               MissingInformation if target/decoy annotation is missing
      */
@@ -64,8 +65,8 @@ namespace OpenMS
     /*
      * @brief Calculates id-rate and writes the result into a IdentificationRateData object which is appended to rate_result_
      *
-     * @param ms2_spectra_count  number of found ms2 spectra
-     * @param pep_ids_count      number of found (target) peptide identifications
+     * @param[in] ms2_spectra_count  number of found ms2 spectra
+     * @param[in] pep_ids_count      number of found (target) peptide identifications
      */
     void writeResults_(Size pep_ids_count, Size ms2_spectra_count);
 
@@ -82,9 +83,9 @@ namespace OpenMS
      * stores results as a struct in a vector
      * Only pep-ids with target/decoy annotation as 'target' are counted, unless force_index flag is set (assumes all pep-ids are target peptides)
      *
-     * @param feature_map       Input FeatureMap with target/decoy annotation
-     * @param exp               MSExperiment for counting number of MS2 spectra
-     * @param assume_all_target Count all(!) PepIDs towards number of identified MS2 spectra (ignore target/decoy information if any)
+     * @param[in] feature_map       Input FeatureMap with target/decoy annotation
+     * @param[in] exp               MSExperiment for counting number of MS2 spectra
+     * @param[in] assume_all_target Count all(!) PepIDs towards number of identified MS2 spectra (ignore target/decoy information if any)
      * @exception               MissingInformation is thrown if the mzML is empty
      * @exception               MissingInformation is thrown if the experiment doesn't contain MS2 spectra
      * @exception               Precondition is thrown if there are more identifications than MS2 spectra
@@ -97,14 +98,14 @@ namespace OpenMS
      * stores results as a struct in a vector
      * Only pep-ids with target/decoy annotation as 'target' are counted, unless force_index flag is set (assumes all pep-ids are target peptides)
      *
-     * @param pep_ids           Input PeptideIdentifications with target/decoy annotation
-     * @param exp               MSExperiment for counting number of MS2 spectra
-     * @param assume_all_target Count all(!) PepIDs towards number of identified MS2 spectra (ignore target/decoy information if any)
+     * @param[in] pep_ids           Input PeptideIdentifications with target/decoy annotation
+     * @param[in] exp               MSExperiment for counting number of MS2 spectra
+     * @param[in] assume_all_target Count all(!) PepIDs towards number of identified MS2 spectra (ignore target/decoy information if any)
      * @exception               MissingInformation is thrown if the mzML is empty
      * @exception               MissingInformation is thrown if the experiment doesn't contain MS2 spectra
      * @exception               Precondition is thrown if there are more identifications than MS2 spectra
      */
-    void compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool assume_all_target = false);
+    void compute(const PeptideIdentificationList& pep_ids, const MSExperiment& exp, bool assume_all_target = false);
 
     /// returns the name of the metric
     const String& getName() const override;

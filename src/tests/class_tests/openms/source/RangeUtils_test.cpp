@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -112,13 +112,13 @@ START_SECTION(([EXTRA]~HasScanMode()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasScanMode<MSSpectrum> r(InstrumentSettings::SIM,false);
-	HasScanMode<MSSpectrum> r2(InstrumentSettings::MASSSPECTRUM,true);
+	HasScanMode<MSSpectrum> r(static_cast<Int>(InstrumentSettings::ScanMode::SIM),false);
+	HasScanMode<MSSpectrum> r2(static_cast<Int>(InstrumentSettings::ScanMode::MASSSPECTRUM),true);
 	MSSpectrum s;
-	s.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SIM);
 	TEST_EQUAL(r(s), true);
 	TEST_EQUAL(r2(s), true);
-	s.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), false);
 END_SECTION
@@ -260,8 +260,8 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 	std::vector<Precursor> pc;
 	Precursor p;
 	set <Precursor::ActivationMethod> sa1;
-	sa1.insert( Precursor::PSD ); //occurs
-	sa1.insert( Precursor::BIRD );//just a dummy
+	sa1.insert( Precursor::ActivationMethod::PSD ); //occurs
+	sa1.insert( Precursor::ActivationMethod::BIRD );//just a dummy
 
 	p.setActivationMethods(sa1);
 	pc.push_back(p);
@@ -272,7 +272,7 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 
 	// does not occur as activation method
 	set <Precursor::ActivationMethod> sa2;
-	sa2.insert( Precursor::BIRD );
+	sa2.insert( Precursor::ActivationMethod::BIRD );
 	p.setActivationMethods(sa2);
 	pc[0] = p;
 	spec.setPrecursors(pc);
@@ -283,7 +283,7 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 	// multiple precursors:
 	// adding another dummy
 	set <Precursor::ActivationMethod> sa3;
-	sa3.insert( Precursor::LCID );
+	sa3.insert( Precursor::ActivationMethod::LCID );
 	p.setActivationMethods(sa3);
 	pc.push_back(p);
 	spec.setPrecursors(pc);
@@ -293,7 +293,7 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 
 	// adding a matching precursor
 	set <Precursor::ActivationMethod> sa4;
-	sa4.insert( Precursor::PD );
+	sa4.insert( Precursor::ActivationMethod::PD );
 	p.setActivationMethods(sa4);
 	pc.push_back(p);
 	spec.setPrecursors(pc);
@@ -408,8 +408,8 @@ END_SECTION
 
 HasScanPolarity<MSSpectrum>* ptr51 = nullptr;
 HasScanPolarity<MSSpectrum>* nullPointer51 = nullptr;
-START_SECTION((HasScanPolarity(Int polarity,bool reverse = false)))
-  ptr51 = new HasScanPolarity<MSSpectrum>(0);
+START_SECTION((HasScanPolarity(IonSource::Polarity polarity,bool reverse = false)))
+  ptr51 = new HasScanPolarity<MSSpectrum>(IonSource::Polarity::POLNULL);
   TEST_NOT_EQUAL(ptr48, nullPointer51)
 END_SECTION
 
@@ -418,12 +418,12 @@ START_SECTION(([EXTRA]~HasScanPolarity()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-  HasScanPolarity<MSSpectrum> s(IonSource::POSITIVE);
-  HasScanPolarity<MSSpectrum> s2(IonSource::POSITIVE, true);
+  HasScanPolarity<MSSpectrum> s(IonSource::Polarity::POSITIVE);
+  HasScanPolarity<MSSpectrum> s2(IonSource::Polarity::POSITIVE, true);
   MSSpectrum spec;
   TEST_EQUAL(s(spec), false);
   TEST_EQUAL(s2(spec), true);
-  spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+  spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
   TEST_EQUAL(s(spec), true);
   TEST_EQUAL(s2(spec), false);
 END_SECTION

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -18,8 +18,10 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -1046,5 +1048,7 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 

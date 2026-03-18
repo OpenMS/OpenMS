@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -50,8 +50,8 @@ public:
     /**
       @brief Show the About-Dialog with License and Citation for all GUI tools
 
-      @param parent Parent widget (usually 'this')
-      @param toolname name of the tool (used as heading)
+      @param[in] parent Parent widget (usually 'this')
+      @param[in] toolname name of the tool (used as heading)
     */
     static void showAboutDialog(QWidget* parent, const QString& toolname);
 

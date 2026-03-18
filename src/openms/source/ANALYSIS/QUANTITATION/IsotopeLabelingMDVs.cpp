@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 //Standard library
@@ -21,7 +21,8 @@
 #include <numeric>
 //#include <unordered_map>
 #include <algorithm>
-#include <Eigen/Dense>
+#include <OpenMS/DATASTRUCTURES/MatrixEigen.h>
+#include <Eigen/LU>
 
 namespace OpenMS
 {
@@ -47,8 +48,8 @@ namespace OpenMS
     const DerivatizationAgent& correction_matrix_agent)
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
-    auto& em = correction_matrix.getEigenMatrix();
-    if (em.isIdentity() && !(em.size() == 0))
+    auto em = eigenView(correction_matrix);
+    if (em.isIdentity() && !(correction_matrix.empty()))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "IsotopeLabelingMDVs: The given isotope correction matrix is an identity matrix leading to no correction."
@@ -84,9 +85,9 @@ namespace OpenMS
     else
     {
       correction_matrix_eigen.resize(correction_matrix.rows(), correction_matrix.cols());
-      for (size_t i = 0; i < correction_matrix.rows(); ++i)
+      for (long int i = 0; i < correction_matrix.rows(); ++i)
       {
-        for (size_t j = 0; j < correction_matrix.cols(); ++j)
+        for (long int j = 0; j < correction_matrix.cols(); ++j)
         {
           correction_matrix_eigen(i,j) = correction_matrix(i,j);
         }
@@ -209,7 +210,7 @@ namespace OpenMS
     }
     
     if (normalized_feature.getSubordinates().size() != fragment_isotopomer_measured.size() || fragment_isotopomer_measured.empty()) {
-      OpenMS_Log_fatal << "Missing values for the Measured Isotopomer Fragment, Please make sure the Subordinates are accordingly updated." << std::endl;
+      OPENMS_LOG_FATAL_ERROR << "Missing values for the Measured Isotopomer Fragment, Please make sure the Subordinates are accordingly updated." << std::endl;
     }
     
     // Generate theoretical values with the exact same length as fragment_isotopomer_measured

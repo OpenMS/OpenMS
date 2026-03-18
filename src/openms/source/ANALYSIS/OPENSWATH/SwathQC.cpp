@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,9 +10,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
 #include <nlohmann/json.hpp>
 
@@ -71,11 +71,11 @@ namespace OpenSwath
       PeakPickerHiRes pp;
       auto t = spec.getType(true);
       MSSpectrum tmp;
-      if (t == MSSpectrum::SpectrumSettings::PROFILE) 
+      if (t == MSSpectrum::SpectrumSettings::SpectrumType::PROFILE) 
       {
         pp.pick(spec, tmp);
       }
-      else if (t == MSSpectrum::SpectrumSettings::CENTROID)
+      else if (t == MSSpectrum::SpectrumSettings::SpectrumType::CENTROID)
       {
         tmp = spec; // make a copy, since deisotopeAndSingleCharge() will modify 
       }

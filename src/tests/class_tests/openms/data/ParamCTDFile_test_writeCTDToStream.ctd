@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tool ctdVersion="1.7" version="2.6.0-pre-STL-ParamCTD-2021-06-02" name="AccurateMassSearch" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_AccurateMassSearch.html" category="Utilities" >
+<tool ctdVersion="1.8" version="2.6.0-pre-STL-ParamCTD-2021-06-02" name="AccurateMassSearch" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_AccurateMassSearch.html" category="Utilities" >
 <description><![CDATA[Match MS signals to molecules from a database by mass.]]></description>
 <manual><![CDATA[Match MS signals to molecules from a database by mass.]]></manual>
 <citations>
-  <citation doi="10.1038/nmeth.3959" url="" />
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
 </citations>
-<PARAMETERS version="1.7.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_7_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <ITEMLIST name="stringlist" type="string" description="StringList Description" required="false" advanced="false" >
     <LISTITEM value="a"/>
     <LISTITEM value="bb"/>
@@ -38,6 +38,7 @@
     <LISTITEM value="1.4"/>
   </ITEMLIST>
   <ITEM name="file_parameter" value="" type="input-file" description="This is a file parameter." required="false" advanced="false" supported_formats="*.mzML,*.mzXML" />
+  <ITEM name="outdir_parameter" value="" type="output-dir" description="This is a outdir parameter." required="false" advanced="false" />
   <ITEM name="advanced_parameter" value="" type="string" description="This is an advanced parameter." required="false" advanced="true" />
   <ITEM name="flag" value="false" type="bool" description="This is a flag i.e. in a command line input it does not need a value." required="false" advanced="false" />
   <ITEM name="noflagJustTrueFalse" value="true" type="string" description="This is not a flag but has a boolean meaning." required="false" advanced="false" restrictions="true,false" />

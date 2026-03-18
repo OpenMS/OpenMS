@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -15,9 +15,10 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
+#include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -88,7 +89,7 @@ private:
 
   // section "algorithm"
   String labels_;
-  unsigned missed_cleavages_;
+  unsigned max_nr_labelled_aas_;
   double mass_tolerance_;
   double mz_tolerance_;
   double rt_tolerance_;
@@ -123,8 +124,8 @@ private:
     if (section == "algorithm")
     {
       defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
-      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
-      defaults.setMinInt("missed_cleavages", 0);
+      defaults.setValue("max_nr_labelled_aas", 0, "Maximum number of labelled amino acids per peptide, minus one. The algorithm searches for peptides with up to (this value + 1) labelled amino acids. For SILAC with trypsin digestion, this parameter corresponds to the maximum number of missed cleavages.");
+      defaults.setMinInt("max_nr_labelled_aas", 0);
       defaults.setValue("mass_tolerance", 0.1, "Mass tolerance in Da for matching the mass shifts in the detected peptide multiplet to the theoretical mass shift pattern.", {"advanced"});
       defaults.setValue("mz_tolerance", 10, "m/z tolerance in ppm for checking if dummy feature vicinity was blacklisted.", {"advanced"});
       defaults.setValue("rt_tolerance", 5, "Retention time tolerance in seconds for checking if dummy feature vicinity was blacklisted.", {"advanced"});
@@ -162,7 +163,7 @@ private:
   void getParameters_algorithm_()
   {
     labels_ = getParam_().getValue("algorithm:labels").toString();
-    missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
+    max_nr_labelled_aas_ = getParam_().getValue("algorithm:max_nr_labelled_aas");
     mass_tolerance_ = getParam_().getValue("algorithm:mass_tolerance");
     mz_tolerance_ = getParam_().getValue("algorithm:mz_tolerance");
     rt_tolerance_ = getParam_().getValue("algorithm:rt_tolerance");
@@ -186,8 +187,8 @@ private:
    * @brief returns the relative delta mass between the first feature
    * and the feature with the map index idx
    *
-   * @param feature_handles    feature handles of a consensus feature
-   * @param idx    map index of interest
+   * @param[in] feature_handles    feature handles of a consensus feature
+   * @param[in] idx    map index of interest
    */
   double deltaMassFromMapIndex_(const ConsensusFeature::HandleSetType& feature_handles, unsigned idx)
   {
@@ -209,9 +210,9 @@ private:
    * @brief check whether the theoretical delta mass pattern
    * contains the label set of the detected pattern
    *
-   * @param pattern    theoretical pattern
-   * @param label_set    label set of the detected pettern
-   * @param index_label_set    index within the pattern at which the label sets were matched
+   * @param[in] pattern    theoretical pattern
+   * @param[in] label_set    label set of the detected pettern
+   * @param[in] index_label_set    index within the pattern at which the label sets were matched
    * 
    * @return mass shift in the theoretical pattern where both label sets match
    */
@@ -234,10 +235,10 @@ private:
    * @brief check wether all delta masses in the detected pattern
    * match up with a delta mass in the theoretical pattern
    *
-   * @param consensus    detected pattern
-   * @param pattern    theoretical pattern
-   * @param delta_mass_at_label_set    delta mass in the theoretical pattern at which the matching label set was found
-   * @param delta_mass_matched    Was this delta mass in the theoretical pattern matched?
+   * @param[in] consensus    detected pattern
+   * @param[in] pattern    theoretical pattern
+   * @param[in] delta_mass_at_label_set    delta mass in the theoretical pattern at which the matching label set was found
+   * @param[in] delta_mass_matched    Was this delta mass in the theoretical pattern matched?
    * 
    * @return All delta masses matching?
    */
@@ -287,11 +288,11 @@ private:
   /**
    * @brief find a theoretical delta mass pattern that matches the detected pattern
    *
-   * @param consensus    detected pattern
-   * @param label set    label set extracted from the detected pattern
-   * @param theoretical_patterns    list of theoretical delta mass patterns
-   * @param delta_mass_matched    Was this delta mass in the theoretical pattern matched?
-   * @param index_label_set    index within the pattern at which the label sets were matched
+   * @param[in] consensus    detected pattern
+   * @param[in] label set    label set extracted from the detected pattern
+   * @param[in] theoretical_patterns    list of theoretical delta mass patterns
+   * @param[in] delta_mass_matched    Was this delta mass in the theoretical pattern matched?
+   * @param[in] index_label_set    index within the pattern at which the label sets were matched
    * 
    * @return index of matching pattern
    */
@@ -322,10 +323,10 @@ private:
   /**
    * @brief find the m/z for the complete consensus
    *
-   * @param mz    m/z of the incomplete consensus
-   * @param charge    charge of the incomplete consensus
-   * @param pattern    matching theoretical delta mass pattern
-   * @param delta_mass_matched    Was this delta mass in the theoretical pattern matched?
+   * @param[in] mz    m/z of the incomplete consensus
+   * @param[in] charge    charge of the incomplete consensus
+   * @param[in] pattern    matching theoretical delta mass pattern
+   * @param[in] delta_mass_matched    Was this delta mass in the theoretical pattern matched?
    * 
    * @return m/z for the complete consensus
    */
@@ -352,9 +353,9 @@ private:
   /**
    * @brief check if this position is blacklisted
    * 
-   * @param RT
-   * @param mz
-   * @param charge
+   * @param[in] RT
+   * @param[in] mz
+   * @param[in] charge
    */
   bool isBlacklisted(double rt, double mz, size_t charge)
   {
@@ -388,10 +389,10 @@ private:
   /**
    * @brief complete consensus
    *
-   * @param consensus    (possibly) incomplete consensus
-   * @param pattern    matching theoretical delta mass pattern
-   * @param delta_mass_matched    Was this delta mass in the theoretical pattern matched?
-   * @param index_label_set    index within the pattern at which the label sets were matched
+   * @param[in] consensus    (possibly) incomplete consensus
+   * @param[in] pattern    matching theoretical delta mass pattern
+   * @param[in] delta_mass_matched    Was this delta mass in the theoretical pattern matched?
+   * @param[in] index_label_set    index within the pattern at which the label sets were matched
    * 
    * @return completed consensus
    */
@@ -405,7 +406,7 @@ private:
     
     if (pattern.size() != delta_mass_matched.size())
     {
-       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, delta_mass_matched.size());
+       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, delta_mass_matched.size(), "pattern size does not match delta_mass_matched size");
     }
     
     // new complete consensus feature
@@ -484,10 +485,10 @@ private:
    * (1) remove quant/ID conflicts
    * (2) fill in dummy features in order to complete multiplets
    *
-   * @param map_in    input consensus map
-   * @param map_out    consensus map without conflicts and complete multiplets
-   * @param map_conflicts    consensus map with conflicts
-   * @param generator    generator for the list of theoretical patterns
+   * @param[in] map_in    input consensus map
+   * @param[in] map_out    consensus map without conflicts and complete multiplets
+   * @param[in] map_conflicts    consensus map with conflicts
+   * @param[in] generator    generator for the list of theoretical patterns
    */
   void constructNewConsensusMap_(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts, MultiplexDeltaMassesGenerator generator)
   {
@@ -555,7 +556,7 @@ private:
 public:
   TOPPMultiplexResolver() :
     TOPPBase("MultiplexResolver", "Completes peptide multiplets and resolves conflicts within them."),
-    missed_cleavages_(0), mass_tolerance_(0.1)
+    max_nr_labelled_aas_(0), mass_tolerance_(0.1)
   {
   }
 
@@ -572,20 +573,20 @@ public:
      * load consensus map
      */
     ConsensusMap map_in;
-    FileHandler().loadConsensusFeatures(in_, map_in, {FileTypes::CONSENSUSXML});
+    FileHandler().loadConsensusFeatures(in_, map_in, {FileTypes::CONSENSUSXML}, log_type_);
 
     /**
      * load (optional) blacklist
      */
     if (!(in_blacklist_.empty()))
     {
-      FileHandler().loadExperiment(in_blacklist_, exp_blacklist_, {FileTypes::MZML});
+      FileHandler().loadExperiment(in_blacklist_, exp_blacklist_, {FileTypes::MZML}, log_type_);
     }
 
     /**
      * generate patterns
      */
-    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(labels_, missed_cleavages_, label_mass_shift_);
+    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(labels_, max_nr_labelled_aas_, label_mass_shift_);
     #ifdef DEBUG
     generator.printSamplesLabelsList(std::cout);
     generator.printDeltaMassesList(std::cout);
@@ -603,10 +604,10 @@ public:
     /**
      * store consensus maps
      */
-    FileHandler().storeConsensusFeatures(out_, map_out, {FileTypes::CONSENSUSXML});
+    FileHandler().storeConsensusFeatures(out_, map_out, {FileTypes::CONSENSUSXML}, log_type_);
     if (!out_conflicts_.empty())
     {
-      FileHandler().storeConsensusFeatures(out_conflicts_, map_conflicts, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(out_conflicts_, map_conflicts, {FileTypes::CONSENSUSXML}, log_type_);
     }
    
     return EXECUTION_OK;

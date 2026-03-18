@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -33,12 +33,14 @@ namespace OpenMS
 
   UInt64 QCBase::SpectraMap::at(const String& identifier) const
   {
-    const auto& it = nativeid_to_index_.find(identifier);
-    if (it == nativeid_to_index_.end())
+    if (const auto& it = nativeid_to_index_.find(identifier); it == nativeid_to_index_.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No spectrum with identifier '") + identifier + "' in MSExperiment!");
     }
-    return it->second;
+    else
+    {
+      return it->second;
+    }
   }
 
   void QCBase::SpectraMap::clear()

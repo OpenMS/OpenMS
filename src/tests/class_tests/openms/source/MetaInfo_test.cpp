@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -201,6 +201,22 @@ START_SECTION((bool operator!= (const MetaInfo& rhs) const))
 	TEST_EQUAL(i2!=i,false)
 END_SECTION
 
+START_SECTION((MetaInfo & operator+=(const MetaInfo& rhs)))
+  MetaInfo m_new, m_base;
+
+  m_base.setValue("label", String("old"));
+  m_base.setValue("exists_no_overwrite", 5.2);
+  
+  m_new.setValue("label", String("new")); // will be overwritten
+  m_new.setValue("icon", 4.3);            // will be added
+  
+  m_base += m_new;
+
+  TEST_EQUAL(m_base.getValue("label"), String("new"));
+  TEST_EQUAL(m_base.getValue("icon"), 4.3);
+  TEST_EQUAL(m_base.getValue("exists_no_overwrite"), 5.2);
+END_SECTION
+
 START_SECTION((void removeValue(UInt index)))
 	MetaInfo i,i2;
 
@@ -223,6 +239,100 @@ START_SECTION((void removeValue(const String& name)))
 
 	//try if removing a non-existing value works as well
 	i.removeValue("icon");
+END_SECTION
+
+START_SECTION((Size size() const))
+	MetaInfo mi_size;
+	TEST_EQUAL(mi_size.size(), 0)
+	mi_size.setValue("key1", 1);
+	TEST_EQUAL(mi_size.size(), 1)
+	mi_size.setValue("key2", 2);
+	TEST_EQUAL(mi_size.size(), 2)
+	mi_size.removeValue("key1");
+	TEST_EQUAL(mi_size.size(), 1)
+	mi_size.clear();
+	TEST_EQUAL(mi_size.size(), 0)
+END_SECTION
+
+START_SECTION((const_iterator begin() const))
+	MetaInfo mi_iter;
+	TEST_EQUAL(mi_iter.begin() == mi_iter.end(), true) // empty
+	mi_iter.setValue("test_key", 42);
+	TEST_EQUAL(mi_iter.begin() != mi_iter.end(), true)
+	TEST_EQUAL(mi_iter.begin()->second, DataValue(42))
+END_SECTION
+
+START_SECTION((const_iterator end() const))
+	NOT_TESTABLE // tested with begin()
+END_SECTION
+
+START_SECTION((const_iterator cbegin() const))
+	MetaInfo mi_citer;
+	mi_citer.setValue("key", String("value"));
+	auto it = mi_citer.cbegin();
+	TEST_EQUAL(it->second, DataValue(String("value")))
+END_SECTION
+
+START_SECTION((const_iterator cend() const))
+	NOT_TESTABLE // tested with cbegin()
+END_SECTION
+
+START_SECTION((iterator begin()))
+	MetaInfo mi_mut;
+	mi_mut.setValue("mutable_key", 100);
+	auto it = mi_mut.begin();
+	it->second = DataValue(200);
+	TEST_EQUAL(mi_mut.getValue("mutable_key"), DataValue(200))
+END_SECTION
+
+START_SECTION((iterator end()))
+	NOT_TESTABLE // tested with mutable begin()
+END_SECTION
+
+START_SECTION([EXTRA] Range-based for loop iteration)
+	MetaInfo mi_range;
+	mi_range.setValue("a", 1);
+	mi_range.setValue("b", 2);
+	mi_range.setValue("c", 3);
+
+	int count = 0;
+	for (const auto& kv : mi_range)
+	{
+		++count;
+		TEST_EQUAL(kv.second.valueType() == DataValue::INT_VALUE, true)
+	}
+	TEST_EQUAL(count, 3)
+END_SECTION
+
+START_SECTION([EXTRA] operator+= with empty MetaInfo)
+	MetaInfo m1, m2;
+	m1.setValue("key", 1);
+
+	// Adding empty to non-empty
+	m1 += m2;
+	TEST_EQUAL(m1.size(), 1)
+	TEST_EQUAL(m1.getValue("key"), DataValue(1))
+
+	// Adding non-empty to empty
+	MetaInfo m3;
+	m3 += m1;
+	TEST_EQUAL(m3.size(), 1)
+	TEST_EQUAL(m3.getValue("key"), DataValue(1))
+END_SECTION
+
+START_SECTION([EXTRA] operator+= with disjoint keys)
+	MetaInfo m1, m2;
+	m1.setValue("a", 1);
+	m1.setValue("c", 3);
+	m2.setValue("b", 2);
+	m2.setValue("d", 4);
+
+	m1 += m2;
+	TEST_EQUAL(m1.size(), 4)
+	TEST_EQUAL(m1.getValue("a"), DataValue(1))
+	TEST_EQUAL(m1.getValue("b"), DataValue(2))
+	TEST_EQUAL(m1.getValue("c"), DataValue(3))
+	TEST_EQUAL(m1.getValue("d"), DataValue(4))
 END_SECTION
 
 /////////////////////////////////////////////////////////////

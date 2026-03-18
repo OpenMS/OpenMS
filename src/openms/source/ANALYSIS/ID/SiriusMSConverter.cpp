@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,7 +9,7 @@
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -441,7 +441,7 @@ namespace OpenMS
     // determine type of spectral data (profile or centroided) - only checking first spectrum (could be ms2 spectrum)
     SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
 
-    if (spectrum_type == SpectrumSettings::PROFILE)
+    if (spectrum_type == SpectrumSettings::SpectrumType::PROFILE)
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra are needed. Please use PeakPicker to convert the spectra.");
     }

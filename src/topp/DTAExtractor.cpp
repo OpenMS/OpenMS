@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -66,7 +66,7 @@ protected:
     registerStringOption_("out", "<file>", "", "base name of DTA output files (RT, m/z and extension are appended)");
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range of precursor peaks to extract.\n"
                                                     "This option is ignored for MS level 1", false);
-    registerStringOption_("rt", "[min]:[max]", ":", "retention time range of spectra to extract", false);
+    registerStringOption_("rt", "[min]:[max]", ":", "retention time range of spectra to extract [s]", false);
     registerStringOption_("level", "i[,j]...", "1,2,3", "MS levels to extract", false);
   }
 

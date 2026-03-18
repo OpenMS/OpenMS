@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 
 using namespace OpenMS;
 
@@ -23,20 +23,20 @@ label_mass_shift.insert(std::make_pair("Lys8", 8.0141988132));
 
 // triple SILAC
 String labels = "[][Lys4,Arg6][Lys8,Arg10]";
-int missed_cleavages = 1;
+int max_nr_labelled_aas = 1;
 
 MultiplexDeltaMassesGenerator* nullPointer = nullptr;
 MultiplexDeltaMassesGenerator* ptr;
 
-START_SECTION(MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift))
-    MultiplexDeltaMassesGenerator list(labels, missed_cleavages, label_mass_shift);
+START_SECTION(MultiplexDeltaMassesGenerator(String labels, int max_nr_labelled_aas, std::map<String,double> label_mass_shift))
+    MultiplexDeltaMassesGenerator list(labels, max_nr_labelled_aas, label_mass_shift);
     TEST_EQUAL(list.getDeltaMassesList().size(), 5);
-    ptr = new MultiplexDeltaMassesGenerator(labels, missed_cleavages, label_mass_shift);
+    ptr = new MultiplexDeltaMassesGenerator(labels, max_nr_labelled_aas, label_mass_shift);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexDeltaMassesGenerator list(labels, missed_cleavages, label_mass_shift);
+MultiplexDeltaMassesGenerator list(labels, max_nr_labelled_aas, label_mass_shift);
 
 START_SECTION(std::vector<MultiplexDeltaMasses> getDeltaMassesList())
   std::vector<MultiplexDeltaMasses> masses = list.getDeltaMassesList();

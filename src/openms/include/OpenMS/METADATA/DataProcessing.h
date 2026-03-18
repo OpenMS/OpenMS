@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,9 +11,10 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/Software.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <set>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace OpenMS
 {
@@ -52,10 +53,22 @@ public:
       CONVERSION_MZXML,                       ///< Conversion to mzXML format
       CONVERSION_DTA,                 ///< Conversion to DTA format
       IDENTIFICATION,                 ///< Identification
+      ION_MOBILITY_BINNING,           ///< Ion mobility binning (merging of spectra with similar IM values)
       SIZE_OF_PROCESSINGACTION
     };
     /// Names of inlet types
     static const std::string NamesOfProcessingAction[SIZE_OF_PROCESSINGACTION];
+
+    /// returns all processing action names known to OpenMS
+    static StringList getAllNamesOfProcessingAction();
+
+    /// Convert a ProcessingAction enum to String
+    /// @throws Exception::InvalidValue if @p action is SIZE_OF_PROCESSINGACTION
+    static const std::string& processingActionToString(ProcessingAction action);
+
+    /// Convert a string to ProcessingAction enum
+    /// @throws Exception::InvalidValue if @p name is not contained in NamesOfProcessingAction[]
+    static ProcessingAction toProcessingAction(const std::string& name);
 
     /// Constructor
     DataProcessing() = default;
@@ -107,7 +120,7 @@ protected:
     DateTime completion_time_;
   };
 
-  typedef boost::shared_ptr<DataProcessing> DataProcessingPtr;
-  typedef boost::shared_ptr<const DataProcessing> ConstDataProcessingPtr;
+  typedef std::shared_ptr<DataProcessing> DataProcessingPtr;
+  typedef std::shared_ptr<const DataProcessing> ConstDataProcessingPtr;
 
 } // namespace OpenMS

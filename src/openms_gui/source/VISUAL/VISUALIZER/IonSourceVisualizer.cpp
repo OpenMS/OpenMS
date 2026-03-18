@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -39,19 +39,19 @@ namespace OpenMS
   {
     if (!isEditable())
     {
-      fillComboBox_(inlet_type_, &temp_.NamesOfInletType[temp_.getInletType()], 1);
-      fillComboBox_(ionization_method_, &temp_.NamesOfIonizationMethod[temp_.getIonizationMethod()], 1);
-      fillComboBox_(polarity_, &temp_.NamesOfPolarity[temp_.getPolarity()], 1);
+      fillComboBox_(inlet_type_, &temp_.NamesOfInletType[static_cast<size_t>(temp_.getInletType())], 1);
+      fillComboBox_(ionization_method_, &temp_.NamesOfIonizationMethod[static_cast<size_t>(temp_.getIonizationMethod())], 1);
+      fillComboBox_(polarity_, &temp_.NamesOfPolarity[static_cast<size_t>(temp_.getPolarity())], 1);
     }
     else
     {
-      fillComboBox_(inlet_type_, temp_.NamesOfInletType, IonSource::SIZE_OF_INLETTYPE);
-      fillComboBox_(ionization_method_, temp_.NamesOfIonizationMethod, IonSource::SIZE_OF_IONIZATIONMETHOD);
-      fillComboBox_(polarity_, temp_.NamesOfPolarity, IonSource::SIZE_OF_POLARITY);
+      fillComboBox_(inlet_type_, temp_.NamesOfInletType, static_cast<int>(IonSource::InletType::SIZE_OF_INLETTYPE));
+      fillComboBox_(ionization_method_, temp_.NamesOfIonizationMethod, static_cast<int>(IonSource::IonizationMethod::SIZE_OF_IONIZATIONMETHOD));
+      fillComboBox_(polarity_, temp_.NamesOfPolarity, static_cast<int>(IonSource::Polarity::SIZE_OF_POLARITY));
 
-      inlet_type_->setCurrentIndex(temp_.getInletType());
-      ionization_method_->setCurrentIndex(temp_.getIonizationMethod());
-      polarity_->setCurrentIndex(temp_.getPolarity());
+      inlet_type_->setCurrentIndex(static_cast<int>(temp_.getInletType()));
+      ionization_method_->setCurrentIndex(static_cast<int>(temp_.getIonizationMethod()));
+      polarity_->setCurrentIndex(static_cast<int>(temp_.getPolarity()));
     }
 
     order_->setText(String(temp_.getOrder()).c_str());

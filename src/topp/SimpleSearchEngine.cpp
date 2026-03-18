@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -66,7 +68,7 @@ class SimpleSearchEngine :
     SimpleSearchEngine() :
       TOPPBase("SimpleSearchEngine",
         "Annotates MS/MS spectra using SimpleSearchEngine.",
-        false)
+        true)
     {
     }
 
@@ -98,7 +100,7 @@ class SimpleSearchEngine :
       progresslogger.setLogType(log_type_);
 
       vector<ProteinIdentification> protein_ids;
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
 
       SimpleSearchEngineAlgorithm sse;
       sse.setParameters(getParam_().copy("Search:", true));

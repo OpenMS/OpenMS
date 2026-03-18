@@ -3,6 +3,7 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH)
 
 ### list all header files of the directory here
 set(sources_list_h
+  CalibrationWorkflow.h
   ChromatogramExtractor.h
   ChromatogramExtractorAlgorithm.h
   ConfidenceScoring.h
@@ -26,18 +27,20 @@ set(sources_list_h
   OpenSwathHelper.h
   OpenSwathScores.h
   OpenSwathScoring.h
-  OpenSwathTSVWriter.h
+  OpenSwathOSWParquetReader.h
+  OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
   OpenSwathWorkflow.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
-  SONARScoring.h
+  PeakPickerMobilogram.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   SwathQC.h
   SpectrumAddition.h
   TargetedSpectraExtractor.h
   TransitionTSVFile.h
+  TransitionParquetFile.h
   TransitionPQPFile.h
 )
 

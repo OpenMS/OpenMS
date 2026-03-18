@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -108,15 +108,15 @@ namespace OpenMS
     /**
       * @brief Constructor
       *
-      * @param stop_condition The total probability (if use_total_prob == true) or
+      * @param[in] stop_condition The total probability (if use_total_prob == true) or
       *        threshold (if use_total_prob is false) (see class docu)
       *
-      * @param use_total_prob Whether the stop_condition should be interpreted as a
+      * @param[in] use_total_prob Whether the stop_condition should be interpreted as a
       *        probability threshold (only configurations with intensity above this
       *        threshold will be returned) or as a total probability that the distribution
       *        should cover.
       *
-      * @param absolute Whether threshold is absolute or relative (ignored if use_total_prob is true, see class docu)
+      * @param[in] absolute Whether threshold is absolute or relative (ignored if use_total_prob is true, see class docu)
       *
       **/
     FineIsotopePatternGenerator(double stop_condition, bool use_total_prob = true, bool absolute = false) :
@@ -126,17 +126,22 @@ namespace OpenMS
     {}
 
     /**
-      * @brief Creates an isotope distribution from an empirical sum formula
-      *
-      * Iterates through all elements, convolves them according to the number
-      * of atoms from that element and sums up the result.
-      *
-      * @note The constructed isotope distribution is sorted by m/z which slows
-      * down processing, consider using IsoSpec (IsoSpecWrapper /
-      * IsoSpecGeneratorWrapper) directly for increased performance.
-      *
-      **/
-    IsotopeDistribution run(const EmpiricalFormula&) const override;
+     * @brief Creates an isotope distribution from an empirical sum formula
+     *
+     * Iterates through all elements, convolves them according to the number
+     * of atoms from that element and sums up the result.
+     *
+     * If the EmpiricalFormula has a charge 'q' != 0, then 'q' hydrogen atoms are added
+     * to the formula to match the result of EmpiricalFormula::getMonoWeight().
+     * Set `ef.charge = 0` to avoid this behavior.
+     *  
+     * @note The constructed isotope distribution is sorted by m/z which slows
+     * down processing, consider using IsoSpec (IsoSpecWrapper /
+     * IsoSpecGeneratorWrapper) directly for increased performance.
+     *
+     * @throw Exception::Precondition if the formula has a negative charge
+     **/
+    IsotopeDistribution run(const EmpiricalFormula& ef) const override;
 
     /// Set probability stop condition (lower values generate fewer results)
     void setThreshold(double stop_condition)

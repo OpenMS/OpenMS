@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iosfwd>
@@ -32,11 +33,11 @@ namespace OpenMS
     ///@{
 
     /// Intensity type
-    typedef float IntensityType;
+    using IntensityType = float;
     /// Coordinate type (of the position)
-    typedef double CoordinateType;
+    using CoordinateType = double;
     /// Position type
-    typedef DPosition<2> PositionType;
+    using PositionType = DPosition<2>;
     ///@}
 
     /// @name Dimension descriptions
@@ -193,10 +194,7 @@ namespace OpenMS
     /// Equality operator
     bool operator==(const MobilityPeak2D & rhs) const
     {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
-#pragma clang diagnostic pop
+      return std::tie(intensity_, position_) == std::tie(rhs.intensity_, rhs.position_);
     }
 
     /// Equality operator
@@ -320,3 +318,19 @@ protected:
   /// Print the contents to a stream.
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const MobilityPeak2D & point);
 } // namespace OpenMS
+
+// Hash function specialization for MobilityPeak2D
+namespace std
+{
+  template<>
+  struct hash<OpenMS::MobilityPeak2D>
+  {
+    std::size_t operator()(const OpenMS::MobilityPeak2D& p) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(p.getMobility());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getMZ()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIntensity()));
+      return seed;
+    }
+  };
+} // namespace std

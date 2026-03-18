@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,9 +13,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <QtCore/QFileInfo>
 
@@ -1035,7 +1036,7 @@ namespace OpenMS
   }
 
   void QcMLFile::collectQCData(vector<ProteinIdentification>& prot_ids,
-                               vector<PeptideIdentification>& pep_ids,
+                               PeptideIdentificationList& pep_ids,
                                const FeatureMap& feature_map,
                                const ConsensusMap& consensus_map,
                                const String& inputfile_raw, 
@@ -1266,7 +1267,7 @@ namespace OpenMS
       {
         for (Size t = 0; t < chroms.size(); ++t)
         {
-          if (chroms[t].getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
+          if (chroms[t].getChromatogramType() == ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM)
           {
             for (Size i = 0; i < chroms[t].size(); ++i)
             {
@@ -1500,7 +1501,6 @@ namespace OpenMS
 
         UInt spectrum_count = 0;
         Size peptide_hit_count = 0;
-        UInt runs_count = 0;
         Size protein_hit_count = 0;
         set<String> peptides;
         set<String> proteins;
@@ -1531,7 +1531,6 @@ namespace OpenMS
 
         for (Size i = 0; i < prot_ids.size(); ++i)
         {
-          ++runs_count;
           protein_hit_count += prot_ids[i].getHits().size();
           const vector<ProteinHit>& temp_hits = prot_ids[i].getHits();
           for (Size j = 0; j < temp_hits.size(); ++j)

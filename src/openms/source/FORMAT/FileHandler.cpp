@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,6 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/DTA2DFile.h>
@@ -21,7 +28,6 @@
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
@@ -45,13 +51,100 @@
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QCryptographicHash>
+#include <cstdint>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 
 using namespace std;
 
 namespace OpenMS
 {
+
+  namespace // SHA-1 implementation per RFC 3174
+  {
+    inline uint32_t sha1_left_rotate(uint32_t x, uint32_t n)
+    {
+      return (x << n) | (x >> (32 - n));
+    }
+
+    struct SHA1
+    {
+      uint32_t h[5] = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
+      uint64_t total_bytes = 0;
+      uint8_t block[64] = {};
+      size_t block_len = 0;
+
+      void process_block()
+      {
+        uint32_t w[80];
+        for (int i = 0; i < 16; ++i)
+        {
+          w[i] = (uint32_t(block[i * 4]) << 24) | (uint32_t(block[i * 4 + 1]) << 16) |
+                 (uint32_t(block[i * 4 + 2]) << 8) | uint32_t(block[i * 4 + 3]);
+        }
+        for (int i = 16; i < 80; ++i)
+        {
+          w[i] = sha1_left_rotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+        }
+
+        uint32_t a = h[0], b = h[1], c = h[2], d = h[3], e = h[4];
+        for (int i = 0; i < 80; ++i)
+        {
+          uint32_t f, k;
+          if (i < 20)      { f = (b & c) | (~b & d);           k = 0x5A827999; }
+          else if (i < 40) { f = b ^ c ^ d;                    k = 0x6ED9EBA1; }
+          else if (i < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC; }
+          else              { f = b ^ c ^ d;                    k = 0xCA62C1D6; }
+          uint32_t temp = sha1_left_rotate(a, 5) + f + e + k + w[i];
+          e = d; d = c; c = sha1_left_rotate(b, 30); b = a; a = temp;
+        }
+        h[0] += a; h[1] += b; h[2] += c; h[3] += d; h[4] += e;
+      }
+
+      void update(const void* data, size_t len)
+      {
+        auto* p = static_cast<const uint8_t*>(data);
+        total_bytes += len;
+        while (len > 0)
+        {
+          size_t n = std::min(len, size_t(64) - block_len);
+          std::memcpy(block + block_len, p, n);
+          block_len += n;
+          p += n;
+          len -= n;
+          if (block_len == 64)
+          {
+            process_block();
+            block_len = 0;
+          }
+        }
+      }
+
+      void finalize(uint32_t digest[5])
+      {
+        uint64_t total_bits = total_bytes * 8;
+        uint8_t pad = 0x80;
+        update(&pad, 1);
+        pad = 0;
+        while (block_len != 56)
+        {
+          update(&pad, 1);
+        }
+        uint8_t len_be[8];
+        for (int i = 7; i >= 0; --i)
+        {
+          len_be[i] = uint8_t(total_bits);
+          total_bits >>= 8;
+        }
+        update(len_be, 8);
+        std::memcpy(digest, h, sizeof(h));
+      }
+    };
+  } // anonymous namespace
+
   String allowedToString_(vector<FileTypes::Type> types)
   {
     String aStrings;
@@ -317,11 +410,6 @@ namespace OpenMS
     if (all_simple.hasSubstring("<MzIdentML"))
     {
       return FileTypes::MZIDENTML;
-    }
-    //mzq (all lines)
-    if (all_simple.hasSubstring("<qcML"))
-    {
-      return FileTypes::MZQUANTML;
     }
     //subject to change!
     if (all_simple.hasSubstring("<MzQualityMLType"))
@@ -590,14 +678,26 @@ namespace OpenMS
 
   String FileHandler::computeFileHash(const String& filename)
   {
-    QCryptographicHash crypto(QCryptographicHash::Sha1);
-    QFile file(filename.toQString());
-    file.open(QFile::ReadOnly);
-    while (!file.atEnd())
+    std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
+    if (!file.is_open())
     {
-      crypto.addData(file.read(8192));
+      return "";
     }
-    return String((QString)crypto.result().toHex());
+    SHA1 sha;
+    char buffer[8192];
+    while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0)
+    {
+      sha.update(buffer, static_cast<std::size_t>(file.gcount()));
+    }
+    uint32_t digest[5];
+    sha.finalize(digest);
+
+    std::ostringstream result;
+    for (int i = 0; i < 5; ++i)
+    {
+      result << std::hex << std::setfill('0') << std::setw(8) << digest[i];
+    }
+    return result.str();
   }
 
   void FileHandler::loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
@@ -605,7 +705,7 @@ namespace OpenMS
     // determine file type
     FileTypes::Type type = getType(filename);
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {    
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -641,7 +741,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -678,7 +778,7 @@ namespace OpenMS
     // determine file type
     FileTypes::Type type = getType(filename);
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -804,7 +904,7 @@ namespace OpenMS
 
       if (compute_hash)
       {
-        src_file.setChecksum(computeFileHash(filename), SourceFile::SHA1);
+        src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
       }
 
       exp.getSourceFiles().clear();
@@ -820,7 +920,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -926,7 +1026,7 @@ namespace OpenMS
   {
     // determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -988,7 +1088,7 @@ namespace OpenMS
     }
 
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1054,7 +1154,7 @@ namespace OpenMS
     //determine file type
     FileTypes::Type type = getType(filename);
 
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1103,7 +1203,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1142,12 +1242,12 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     
     //determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1219,7 +1319,7 @@ namespace OpenMS
     }   
   }
 
-  void FileHandler::storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1227,7 +1327,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1282,7 +1382,7 @@ namespace OpenMS
   {
     //determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1315,7 +1415,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1339,72 +1439,11 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
-  {
-    //determine file type
-    FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
-    {
-      if (!FileTypeList(allowed_types).contains(type))
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for loading quantifications, Allowed types are: " + allowedToString_(allowed_types));
-      }
-    }
-    switch (type)
-    {
-      case FileTypes::MZQUANTML:
-      {
-        MzQuantMLFile f;
-        f.setLogType(log);
-        f.load(filename, map);
-      }
-      break;
-      
-      default:
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,"type: " + FileTypes::typeToName(type) + " is not supported for loading quantifications");
-      }
-    }
-  }
-
-  void FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
-  {
-    auto type = getTypeByFileName(filename);
-    if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
-    { // filename is unspecific, but allowed_types is unambiguous (i.e. they do not contradict)
-      type = allowed_types[0];
-    }
-    // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
-    {
-      if (!FileTypeList(allowed_types).contains(type))
-      {
-        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for storing quantifications. Allowed types are: " + allowedToString_(allowed_types));
-      }
-    }
-    
-    switch (type)
-    {
-      case FileTypes::MZQUANTML:
-      {
-        MzQuantMLFile f;
-        f.setLogType(log);
-        f.store(filename, map);
-      }
-      break;
-
-      default:
-      {
-        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing quantifications");
-      }
-    }
-  }
-
   void FileHandler::loadTransformations(const String& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types)
   {
     //determine file type
     FileTypes::Type type = getType(filename);
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1434,7 +1473,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {
@@ -1462,7 +1501,7 @@ namespace OpenMS
                const MSExperiment& exp,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
-               std::vector<PeptideIdentification>& pep_ids,
+               PeptideIdentificationList& pep_ids,
                const ConsensusMap& consensus_map,
                const String& contact_name,
                const String& contact_address,
@@ -1478,7 +1517,7 @@ namespace OpenMS
       type = allowed_types[0];
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (!allowed_types.empty())
     {
       if (!FileTypeList(allowed_types).contains(type))
       {

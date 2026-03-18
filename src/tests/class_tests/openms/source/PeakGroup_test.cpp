@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,14 +9,15 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <unordered_set>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+typedef FLASHHelperClasses::LogMzPeak LogMzPeak;
 LogMzPeak fillPeak(double mz, float it, int cs, int iso_idx)
 {
   Peak1D p;
@@ -63,7 +64,7 @@ sample_pg.push_back(tmp_peak2);
 
 LogMzPeak tmp_peak3 = fillPeak(1127.0168377586081, 7506.6767578125, 2, 3);
 sample_pg.push_back(tmp_peak3);
-sample_pg.updateMonoMassAndIsotopeIntensities();
+sample_pg.updateMonoMassAndIsotopeIntensities(1e-5);
 
 /// detailed constructor test
 START_SECTION((PeakGroup(const int min_abs_charge, const int max_abs_charge, const bool is_positive)))
@@ -219,7 +220,7 @@ END_SECTION
 
 START_SECTION((void setQscore(const float qscore)))
 {
-  sample_pg.Qscore(0.1);
+  sample_pg.setQscore(0.1);
   double temp_score = sample_pg.getQscore();
   TEST_REAL_SIMILAR(temp_score, 0.1);
 }
@@ -313,7 +314,7 @@ END_SECTION
 PeakGroup sample_pg2(sample_pg);
 LogMzPeak tmp_peak4 = fillPeak(1127.5185151766082, 2504.3433, 2, 4);
 sample_pg2.push_back(tmp_peak4);
-sample_pg2.updateMonoMassAndIsotopeIntensities();
+sample_pg2.updateMonoMassAndIsotopeIntensities(1e-5);
 START_SECTION((void updateMonom assAndIsotopeIntensities()))
 {
   double temp_mass = sample_pg2.getMonoMass();
@@ -350,10 +351,40 @@ START_SECTION((bool operator==(const PeakGroup &a) const))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] std::hash<PeakGroup>))
+{
+  std::hash<PeakGroup> hasher;
+
+  // Test that equal PeakGroups have equal hashes
+  PeakGroup pg_copy(sample_pg);
+  TEST_EQUAL(hasher(sample_pg), hasher(pg_copy));
+
+  // Test that the hash is consistent (same object hashes the same)
+  std::size_t hash1 = hasher(sample_pg);
+  std::size_t hash2 = hasher(sample_pg);
+  TEST_EQUAL(hash1, hash2);
+
+  // Test that different PeakGroups have different hashes (with high probability)
+  // sample_pg2 has different mass/intensity than sample_pg
+  std::size_t hash_pg1 = hasher(sample_pg);
+  std::size_t hash_pg2 = hasher(sample_pg2);
+  TEST_NOT_EQUAL(hash_pg1, hash_pg2);
+
+  // Test usability in unordered_set
+  std::unordered_set<PeakGroup> pg_set;
+  pg_set.insert(sample_pg);
+  pg_set.insert(sample_pg2);
+  TEST_EQUAL(pg_set.size(), 2);
+
+  // Inserting equal element should not change size
+  pg_set.insert(pg_copy);
+  TEST_EQUAL(pg_set.size(), 2);
+}
+END_SECTION
 
 /// TODOs
 /// - updateIsotopeCosineAndQscore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
-/// - isTargeted, getTargetDummyType, setTargetDummyType, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
+/// - isTargeted, getTargetDecoyType, setTargetDecoyType, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
 
 
 /////////////////////////////////////////////////////////////

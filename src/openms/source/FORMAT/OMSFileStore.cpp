@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -63,8 +63,6 @@ namespace OpenMS::Internal
     // we don't have to worry about database consistency:
     db_->exec("PRAGMA synchronous = OFF");
     db_->exec("PRAGMA journal_mode = OFF");
-    db_->exec("PRAGMA foreign_keys = ON");
-    db_->exec("PRAGMA foreign_keys = ON");
   }
 
   OMSFileStore::~OMSFileStore() = default;

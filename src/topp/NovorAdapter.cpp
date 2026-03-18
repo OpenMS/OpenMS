@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -21,6 +21,8 @@
 // TODO remove once we have store spectrum in handler
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 
@@ -286,7 +288,7 @@ protected:
     }
     CsvFile csv(tmp_out, ',');
         
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     for (Size i = 0; i != csv.rowCount(); ++i)
     {
       StringList sl;
@@ -336,7 +338,7 @@ protected:
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = "denovo";
-    search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     
     // if a parameter file is used the modifications need to be parsed from the novor output csv
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");

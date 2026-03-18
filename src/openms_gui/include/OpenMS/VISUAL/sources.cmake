@@ -12,6 +12,7 @@ DIATreeTab.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
+FileWatcher.h
 FilterList.h
 GUIProgressLoggerImpl.h
 HistogramWidget.h
@@ -56,7 +57,9 @@ TableView.h
 TOPPASEdge.h
 TOPPASInputFileListVertex.h
 TOPPASMergerVertex.h
+TOPPASOutputVertex.h
 TOPPASOutputFileListVertex.h
+TOPPASOutputFolderVertex.h
 TOPPASResource.h
 TOPPASResources.h
 TOPPASScene.h

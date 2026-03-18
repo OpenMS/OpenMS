@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,23 +24,23 @@ namespace OpenMS
   PercolatorOutfile::PercolatorOutfile() = default;
 
 
-  enum PercolatorOutfile::ScoreType PercolatorOutfile::getScoreType(
+  PercolatorOutfile::ScoreType PercolatorOutfile::getScoreType(
     String score_type_name)
   {
     score_type_name.toLower();
     if ((score_type_name == "q-value") || (score_type_name == "qvalue") ||
         (score_type_name == "q value"))
     {
-      return QVALUE;
+      return ScoreType::QVALUE;
     }
     if ((score_type_name == "pep") ||
         (score_type_name == "posterior error probability"))
     {
-      return POSTERRPROB;
+      return ScoreType::POSTERRPROB;
     }
     if (score_type_name == "score")
     {
-      return SCORE;
+      return ScoreType::SCORE;
     }
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "Not a valid Percolator score type",
@@ -169,9 +169,9 @@ namespace OpenMS
 
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins,
-                               vector<PeptideIdentification>& peptides,
+                               PeptideIdentificationList& peptides,
                                SpectrumMetaDataLookup& lookup,
-                               enum ScoreType output_score)
+                               ScoreType output_score)
   {
     SpectrumMetaDataLookup::MetaDataFlags lookup_flags =
       (SpectrumMetaDataLookup::MDF_RT |
@@ -257,22 +257,22 @@ namespace OpenMS
       hit.setMetaValue("Percolator_PEP", posterrprob);
       switch (output_score)
       {
-        case SCORE:
+        case ScoreType::SCORE:
           hit.setScore(score);
           peptide.setScoreType("Percolator_score");
           peptide.setHigherScoreBetter(true);
           break;
-        case QVALUE:
+        case ScoreType::QVALUE:
           hit.setScore(qvalue);
           peptide.setScoreType("q-value");
           peptide.setHigherScoreBetter(false);
           break;
-        case POSTERRPROB:
+        case ScoreType::POSTERRPROB:
           hit.setScore(posterrprob);
           peptide.setScoreType("Posterior Error Probability");
           peptide.setHigherScoreBetter(false);
           break;
-        case SIZE_OF_SCORETYPE:
+        case ScoreType::SIZE_OF_SCORETYPE:
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");
       }
 

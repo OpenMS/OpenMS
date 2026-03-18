@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,13 +8,15 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <vector>
+#include <functional>
 #include <map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -77,6 +79,9 @@ public:
     /// accessor for the outer points
     const PointArrayType& getHullPoints() const;
 
+    /// @brief Accessor for the internal map representation (RT -> m/z bounding box)
+    const HullPointType& getMapPoints() const { return map_points_; }
+
     /// accessor for the outer(!) points (no checking is performed if this is actually a convex hull)
     void setHullPoints(const PointArrayType& points);
 
@@ -135,5 +140,38 @@ protected:
     mutable PointArrayType outer_points_;
 
   };
-} // namespace OPENMS
+} // namespace OpenMS
+
+// Hash function specialization for ConvexHull2D
+namespace std
+{
+  template<>
+  struct hash<OpenMS::ConvexHull2D>
+  {
+    std::size_t operator()(const OpenMS::ConvexHull2D& hull) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash map_points_ (map of RT -> m/z bounding box)
+      // std::map iteration order is deterministic (sorted by key)
+      const auto& map_points = hull.getMapPoints();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(map_points.size()));
+      for (const auto& entry : map_points)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(entry.first));
+        OpenMS::hash_combine(seed, std::hash<OpenMS::DBoundingBox<1>>{}(entry.second));
+      }
+
+      // Hash outer_points_ (vector of DPosition<2>)
+      const auto& outer_points = hull.getHullPoints();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(outer_points.size()));
+      for (const auto& point : outer_points)
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::DPosition<2>>{}(point));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

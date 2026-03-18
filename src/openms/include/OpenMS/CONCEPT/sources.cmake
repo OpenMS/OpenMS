@@ -9,10 +9,9 @@ CommonEnums.h
 Constants.h
 EnumHelpers.h
 Exception.h
-Factory.h
-FactoryBase.h
 FuzzyStringComparator.h
 GlobalExceptionHandler.h
+HashUtils.h
 Helpers.h
 Init.h
 LogConfigHandler.h
@@ -21,11 +20,10 @@ Macros.h
 MacrosTest.h
 PrecisionWrapper.h
 ProgressLogger.h
+Qt5Port.h
 RAIICleanup.h
-SingletonRegistry.h
 StreamHandler.h
 Types.h
-TypeAsString.h
 UniqueIdGenerator.h
 UniqueIdIndexer.h
 UniqueIdInterface.h

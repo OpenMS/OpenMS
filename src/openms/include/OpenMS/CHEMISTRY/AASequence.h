@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,12 +11,14 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 #include <iosfwd>
 #include <map>
+#include <functional>
 
 namespace OpenMS
 {
@@ -82,7 +84,7 @@ namespace OpenMS
 
       @ingroup Chemistry
   */
-  class OPENMS_DLLAPI AASequence
+  class OPENMS_DLLAPI AASequence final
   {
 public:
 
@@ -92,7 +94,7 @@ public:
 
         AASequence constant iterator
     */
-    class OPENMS_DLLAPI ConstIterator
+    class OPENMS_DLLAPI ConstIterator final
     {
     public:
       // TODO Iterator constructor for ConstIterator
@@ -129,7 +131,7 @@ public:
       }
 
       /// destructor
-      virtual ~ConstIterator() = default;
+      ~ConstIterator() = default;
 
       //@}
 
@@ -210,7 +212,7 @@ protected:
 
         Mutable iterator for AASequence
     */
-    class OPENMS_DLLAPI Iterator
+    class OPENMS_DLLAPI Iterator final
     {
 public:
 
@@ -239,7 +241,7 @@ public:
       Iterator(const Iterator& rhs) = default;
 
       /// destructor
-      virtual ~Iterator() = default;
+      ~Iterator() = default;
 
       //@}
 
@@ -334,23 +336,23 @@ protected:
     //@{
 
     /// Default constructor
-    AASequence();
+    AASequence() = default;
 
     /// Copy constructor
     AASequence(const AASequence&) = default;
 
     /// Move constructor
-    AASequence(AASequence&&) noexcept = default;
+    AASequence(AASequence&&) = default;
 
     /// Destructor
-    virtual ~AASequence();
+    ~AASequence() = default;
     //@}
 
     /// Assignment operator
     AASequence& operator=(const AASequence&) = default;
 
     /// Move assignment operator
-    AASequence& operator=(AASequence&&) = default; // TODO: add noexcept (gcc 4.8 bug)
+    AASequence& operator=(AASequence&&) = default;
 
     /// check if sequence is empty
     bool empty() const;
@@ -397,9 +399,9 @@ protected:
 
         will be produced, depending on whether relative or absolute masses are used.
 
-        @param integer_mass Whether to use integer masses in brackets (default is true, if false, accurate masses will be written)
-        @param mass_delta Whether to write absolute masses M[147] or relative mass deltas M[+16] (default is false)
-        @param fixed_modifications Optional list of fixed modifications that should not be added to the output (they are considered to be present in all cases)
+        @param[in] integer_mass Whether to use integer masses in brackets (default is true, if false, accurate masses will be written)
+        @param[in] mass_delta Whether to write absolute masses M[147] or relative mass deltas M[+16] (default is false)
+        @param[in] fixed_modifications Optional list of fixed modifications that should not be added to the output (they are considered to be present in all cases)
 
         @note Using integer masses may mean that there could be multiple modifications mapping to the same mass
     */
@@ -578,8 +580,8 @@ protected:
     /**
       @brief create AASequence object by parsing an OpenMS string
 
-      @param s Input string
-      @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+      @param[in] s Input string
+      @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
@@ -589,21 +591,39 @@ protected:
     /**
       @brief create AASequence object by parsing a C string (character array)
 
-      @param s Input string
-      @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+      @param[in] s Input string
+      @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
     static AASequence fromString(const char* s,
                                  bool permissive = true);
 
+    /// @brief constructor from String
+    /// @param[in] s A String representing the amino acid sequence
+    explicit AASequence(const String& s);
+
+    /// @brief constructor from C string
+    /// @param[in] s A C-style string representing the amino acid sequence
+    explicit AASequence(const char* s);
+
+    /// @brief constructor from String
+    /// @param[in] s A String representing the amino acid sequence
+    /// @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+    explicit AASequence(const String& s, bool permissive);
+
+    /// @brief constructor from C string
+    /// @param[in] s A C-style string representing the amino acid sequence
+    /// @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+    explicit AASequence(const char* s, bool permissive);
+
   protected:
 
     std::vector<const Residue*> peptide_;
 
-    const ResidueModification* n_term_mod_;
+    const ResidueModification* n_term_mod_ = nullptr;
 
-    const ResidueModification* c_term_mod_;
+    const ResidueModification* c_term_mod_ = nullptr;
 
     /**
       @brief Parses modifications in round brackets (an identifier)
@@ -611,10 +631,10 @@ protected:
       If dot notation is used it resolves cterm ambiguity based on the presence
       of the dot.
 
-      @param str_it Current position in the string to be parsed
-      @param str Full input string
-      @param aas Current AASequence object (will be modified with the correct residue added)
-      @param specificity Whether the current modification should be interpreted as N- or C-terminal
+      @param[in] str_it Current position in the string to be parsed
+      @param[in] str Full input string
+      @param[in,out] aas Current AASequence object (will be modified with the correct residue added)
+      @param[in] specificity Whether the current modification should be interpreted as N- or C-terminal
 
       @return Position at which to continue parsing
     */
@@ -629,10 +649,10 @@ protected:
       If dot notation is used it resolves cterm ambiguity based on the presence
       of the dot.
 
-      @param str_it Current position in the string to be parsed
-      @param str Full input string
-      @param aas Current AASequence object (will be modified with the correct residue added)
-      @param specificity Whether the current modification should be interpreted as N- or C-terminal
+      @param[in] str_it Current position in the string to be parsed
+      @param[in] str Full input string
+      @param[in,out] aas Current AASequence object (will be modified with the correct residue added)
+      @param[in] specificity Whether the current modification should be interpreted as N- or C-terminal
 
       @return Position at which to continue parsing
     */
@@ -650,5 +670,73 @@ protected:
   OPENMS_DLLAPI std::istream& operator>>(std::istream& os, const AASequence& peptide);
 
 } // namespace OpenMS
+
+// Hash function specialization for AASequence
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::AASequence.
+   *
+   * Computes a hash based on the amino acid sequence (one-letter codes),
+   * modifications on each residue, and terminal modifications.
+   *
+   * Design decisions:
+   * - Uses one-letter codes instead of pointers for portability
+   * - Includes modification IDs for modified residues
+   * - Includes terminal modifications
+   * - Hash is consistent with operator==
+   *
+   * @note Hash is reproducible across process runs for equal sequences.
+   */
+  template<>
+  struct hash<OpenMS::AASequence>
+  {
+    std::size_t operator()(const OpenMS::AASequence& seq) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash each residue
+      for (const auto& residue : seq)
+      {
+        // Hash one-letter code (single character, fast)
+        const OpenMS::String& olc = residue.getOneLetterCode();
+        if (!olc.empty())
+        {
+          OpenMS::hash_combine(seed, OpenMS::hash_char(olc[0]));
+        }
+
+        // Hash modification if present
+        const OpenMS::ResidueModification* mod = residue.getModification();
+        if (mod != nullptr)
+        {
+          // Use full ID for portability (e.g., "Oxidation (M)")
+          // String inherits from std::string, no copy needed
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod->getFullId()));
+        }
+      }
+
+      // Hash N-terminal modification if present
+      const OpenMS::ResidueModification* n_mod = seq.getNTerminalModification();
+      if (n_mod != nullptr)
+      {
+        // Use a different seed offset for N-term to distinguish from C-term
+        std::size_t n_hash = OpenMS::fnv1a_hash_string(n_mod->getFullId());
+        OpenMS::hash_combine(seed, n_hash ^ 0x4e5445524dULL); // "NTERM" in hex-like
+      }
+
+      // Hash C-terminal modification if present
+      const OpenMS::ResidueModification* c_mod = seq.getCTerminalModification();
+      if (c_mod != nullptr)
+      {
+        // Use a different seed offset for C-term
+        std::size_t c_hash = OpenMS::fnv1a_hash_string(c_mod->getFullId());
+        OpenMS::hash_combine(seed, c_hash ^ 0x435445524dULL); // "CTERM" in hex-like
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 
 

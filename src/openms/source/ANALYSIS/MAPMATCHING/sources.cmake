@@ -20,7 +20,6 @@ MapAlignmentAlgorithmIdentification.cpp
 MapAlignmentAlgorithmKD.cpp
 MapAlignmentAlgorithmPoseClustering.cpp
 MapAlignmentAlgorithmTreeGuided.cpp
-MapAlignmentAlgorithmSpectrumAlignment.cpp
 MapAlignmentEvaluationAlgorithm.cpp
 MapAlignmentEvaluationAlgorithmPrecision.cpp
 MapAlignmentEvaluationAlgorithmRecall.cpp
@@ -28,7 +27,6 @@ MapAlignmentTransformer.cpp
 PoseClusteringAffineSuperimposer.cpp
 PoseClusteringShiftSuperimposer.cpp
 QTClusterFinder.cpp
-SimplePairFinder.cpp
 StablePairFinder.cpp
 TransformationDescription.cpp
 TransformationModel.cpp

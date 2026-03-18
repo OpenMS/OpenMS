@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 namespace OpenMS
@@ -25,7 +26,7 @@ namespace OpenMS
     /// Import from legacy peptide/protein identifications
     static void importIDs(IdentificationData& id_data,
                           const std::vector<ProteinIdentification>& proteins,
-                          const std::vector<PeptideIdentification>& peptides);
+                          const PeptideIdentificationList& peptides);
 
     /*!
       @brief Export to legacy peptide/protein identifications
@@ -34,7 +35,7 @@ namespace OpenMS
     */
     static void exportIDs(const IdentificationData& id_data,
                           std::vector<ProteinIdentification>& proteins,
-                          std::vector<PeptideIdentification>& peptides,
+                          PeptideIdentificationList& peptides,
                           bool export_ids_wo_scores = false);
 
     /// Export to mzTab format
@@ -54,32 +55,32 @@ namespace OpenMS
     /*!
       @brief Convert IDs from legacy peptide/protein identifications in a feature map
 
-      @param features Feature map containing IDs in legacy format
-      @param clear_original Clear original IDs after conversion?
+      @param[in,out] features Feature map containing IDs in legacy format
+      @param[in] clear_original Clear original IDs after conversion?
     */
     static void importFeatureIDs(FeatureMap& features, bool clear_original = true);
 
     /*!
       @brief Convert IDs in a feature map to legacy peptide/protein identifications
 
-      @param features Feature map containing IDs in new format
-      @param clear_original Clear original IDs after conversion?
+      @param[in,out] features Feature map containing IDs in new format
+      @param[in] clear_original Clear original IDs after conversion?
     */
     static void exportFeatureIDs(FeatureMap& features, bool clear_original = true);
 
     /*!
       @brief Convert IDs from legacy peptide/protein identifications in a consensus map
 
-      @param consensus Consensus map containing IDs in legacy format
-      @param clear_original Clear original IDs after conversion?
+      @param[in,out] consensus Consensus map containing IDs in legacy format
+      @param[in] clear_original Clear original IDs after conversion?
     */
     static void importConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
 
     /*!
       @brief Convert IDs in a consensus map to legacy peptide/protein identifications
 
-      @param consensus Consensus map containing IDs in new format
-      @param clear_original Clear original IDs after conversion?
+      @param[in,out] consensus Consensus map containing IDs in new format
+      @param[in] clear_original Clear original IDs after conversion?
     */
     static void exportConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
 
@@ -281,7 +282,7 @@ namespace OpenMS
       ProteinIdentification& protein);
 
     static void handleFeatureImport_(Feature& feature, const IntList& indexes,
-                                     std::vector<PeptideIdentification>& peptides,
+                                     PeptideIdentificationList& peptides,
                                      Size& id_counter, bool clear_original);
 
     static void handleFeatureExport_(Feature& feature, const IntList& indexes,

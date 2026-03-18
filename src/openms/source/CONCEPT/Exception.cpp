@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -122,6 +122,12 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
+    NotSorted::NotSorted(const char* file, int line, const char* function, const std::string& message) noexcept:
+      BaseException(file, line, function, "NotSorted", message)
+    {
+      GlobalExceptionHandler::getInstance().setMessage(what());
+    }
+
     FailedAPICall::FailedAPICall(const char* file, int line, const char* function, const std::string& message) noexcept :
       BaseException(file, line, function, "FailedAPICall", message)
     {
@@ -139,8 +145,8 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
-    InvalidSize::InvalidSize(const char* file, int line, const char* function, Size size) noexcept :
-      BaseException(file, line, function, "InvalidSize", "the given size was not expected: " + String(size))
+    InvalidSize::InvalidSize(const char* file, int line, const char* function, Size size, const std::string& message) noexcept :
+      BaseException(file, line, function, "InvalidSize", "the given size was not expected: " + String(size) + " (" + message + ")")
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
@@ -162,6 +168,13 @@ namespace OpenMS
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
+
+    ExternalExecutableNotFound::ExternalExecutableNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept:
+        BaseException(file, line, function, "ExternalExecutableNotFound", "the executable '" + filename + "' could not be found")
+    {
+      GlobalExceptionHandler::getInstance().setMessage(what());
+    }
+    
 
     FileNotReadable::FileNotReadable(const char* file, int line, const char* function, const std::string& filename) noexcept :
       BaseException(file, line, function, "FileNotReadable", "the file '" + filename + "' is not readable for the current user")

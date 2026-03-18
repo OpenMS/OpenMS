@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -40,9 +40,9 @@ public:
     using AreaXYType = PlotCanvas::AreaXYType;
 
     ///Constructor
-    /// @param parent Parent widget
-    /// @param x_name Name of the x_axis dimension
-    /// @param y_name Name of the y_axis dimension
+    /// @param[in] parent Parent widget
+    /// @param[in] x_name Name of the x_axis dimension
+    /// @param[in] y_name Name of the y_axis dimension
     Plot2DGoToDialog(QWidget* parent, std::string_view x_name, std::string_view y_name);
     ///Destructor
     ~Plot2DGoToDialog() override;

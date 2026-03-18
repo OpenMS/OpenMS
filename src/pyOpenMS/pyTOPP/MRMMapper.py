@@ -24,9 +24,9 @@ def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance
                 if mapped_already:
                     this_peptide = targeted.getPeptideByRef(transition.getPeptideRef() ).sequence
                     other_peptide = chrom.getPrecursor().getMetaValue("peptide_sequence")
-                    print "Found mapping of", chrom.getPrecursor().getMZ(), "/", chrom.getProduct().getMZ(), "to", transition.getPrecursorMZ(), "/",transition.getProductMZ()
-                    print "Of peptide", this_peptide
-                    print "But the chromatogram is already mapped to", other_peptide
+                    print("Found mapping of", chrom.getPrecursor().getMZ(), "/", chrom.getProduct().getMZ(), "to", transition.getPrecursorMZ(), "/", transition.getProductMZ())
+                    print("Of peptide", this_peptide)
+                    print("But the chromatogram is already mapped to", other_peptide)
                     if not allow_double_mappings: raise Exception("Cannot map twice")
                 mapped_already = True
                 precursor = chrom.getPrecursor();
@@ -36,13 +36,13 @@ def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance
                 chrom.setNativeID(transition.getNativeID())
         if not mapped_already:
             notmapped += 1
-            print "Did not find a mapping for chromatogram", chrom.getNativeID()
+            print("Did not find a mapping for chromatogram", chrom.getNativeID())
             if not allow_unmapped: raise Exception("No mapping")
         else:
             output.addChromatogram(chrom)
 
     if notmapped > 0:
-        print "Could not find mapping for", notmapped, "chromatogram(s)"
+        print("Could not find mapping for", notmapped, "chromatogram(s)")
 
 
     dp = pyopenms.DataProcessing()

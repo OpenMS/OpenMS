@@ -1,9 +1,9 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Xiao Liang $
-// $Authors: Marc Sturm, Chris Bielow$
+// $Authors: Marc Sturm, Chris Bielow, Jeremi Maciejewski $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
@@ -115,14 +115,89 @@ namespace OpenMS
     return positions;
   }
 
-  bool EnzymaticDigestion::isValidProduct(const String& sequence, int pos, int length, bool ignore_missed_cleavages) const
+  Size EnzymaticDigestion::semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length, Size max_length) const
   {
-    return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
+    // Too few cleavage sites - should be at least sequence start and end
+    if (cleavage_positions.size() < 2)
+    {
+      String value(cleavage_positions.begin(), cleavage_positions.end());
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("Too few cleavage positions - at least sequence start and end positions are required."), value);
+    }
+
+    // cleavage_positions has to be sorted
+    if (! is_sorted(cleavage_positions.begin(), cleavage_positions.end()))
+    {
+      String value(cleavage_positions.begin(), cleavage_positions.end());
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("Vector of cleavage positions (cleavage_positions) is not sorted, but it should be."));
+    }
+
+    int mc = missed_cleavages_;
+    Size wrong = 0;
+
+    // For every position, add an "extension" of it until next cleavage, in both directions.
+    // This is done by iterating through sequence from both ends at the same time.
+    // Warning: cleavage_positions array has to be sorted.
+    // Warning: this assumes first and last cleavages to be sequence termini.
+
+    const int first_c = cleavage_positions.front(); // First cleavage
+    const int last_c = cleavage_positions.back(); // Last cleavage
+    const int lgth = last_c - first_c;
+
+    // Lambda checking min & max conditions and adding to output
+    auto variant = [&output, &wrong, min_length, max_length](Size x, Size y)
+    {
+      if (min_length <= y - x &&
+          max_length >= y - x)
+      {
+        output.emplace_back(x, y);
+      } else ++wrong;
+    };
+
+    auto fwd = cleavage_positions.cbegin();
+    auto bwd = cleavage_positions.crbegin(); // Reverse iterator!
+    ++fwd; ++bwd;
+    // Iterate from both sides of sequence (by calculating shift from start/end)
+    for (int shift = 1;shift < lgth;++shift)
+    {
+      // Forward position is not a cleavage site
+      if (first_c+shift != *fwd)
+      {
+        // For every cleavage site ahead try to add variant extented until it.
+        for (int i=0;
+            i < (mc + 1); // 1 cleavage is always included
+            ++i)
+        {
+          variant(first_c + shift, *(fwd+i)); // Extend until current cleavage
+          if (*(fwd+i) == last_c) break; // This was the last cleavage
+        }
+      } else ++fwd; // Prepare for encountering next cleavage site
+
+      // Backwards position
+      if (last_c - shift != *bwd)
+      {
+        for (int i=0;
+            i < (mc + 1);
+            ++i)
+        {
+          variant(*(bwd+i), last_c - shift); // Reverse iterator!
+          if (*(bwd+i) == first_c) break;
+        }
+      } else ++bwd;
+    }
+
+    return wrong;
   }
 
   Size EnzymaticDigestion::countInternalCleavageSites(const String& sequence) const
   {
     return tokenize_(sequence).size() - 1;
+  }
+
+  bool EnzymaticDigestion::isValidProduct(const String& sequence, int pos, int length, bool ignore_missed_cleavages) const
+  {
+    return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
   }
 
   bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, const std::function<bool(Int)>& filter) const

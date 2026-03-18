@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -258,7 +258,7 @@ START_SECTION((bool operator==(const BaseFeature &rhs) const))
   p2.getPosition()[0] = 5;
   TEST_TRUE(p1 == p2)
 
-  vector<PeptideIdentification> peptides(1);
+  PeptideIdentificationList peptides(1);
   p1.setPeptideIdentifications(peptides);
   TEST_EQUAL(p1 == p2, false);
   p2.setPeptideIdentifications(peptides);
@@ -281,7 +281,7 @@ START_SECTION((bool operator!=(const BaseFeature& rhs) const))
   p2.getPosition()[0] = 5;
   TEST_EQUAL(p1 != p2, false)
 
-  vector<PeptideIdentification> peptides(1);
+  PeptideIdentificationList peptides(1);
   p1.setPeptideIdentifications(peptides);
   TEST_FALSE(p1 == p2);
   p2.setPeptideIdentifications(peptides);
@@ -355,15 +355,15 @@ START_SECTION(([BaseFeature::QualityLess] bool operator()(const QualityType& lef
 END_SECTION
 
 
-START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
+START_SECTION((const PeptideIdentificationList& getPeptideIdentifications() const))
   BaseFeature tmp;
-  vector<PeptideIdentification> vec(tmp.getPeptideIdentifications());
+  PeptideIdentificationList vec(tmp.getPeptideIdentifications());
   TEST_EQUAL(vec.size(), 0);
 END_SECTION
 
-START_SECTION((void setPeptideIdentifications(const std::vector<PeptideIdentification>& peptides)))
+START_SECTION((void setPeptideIdentifications(const PeptideIdentificationList& peptides)))
   BaseFeature tmp;
-  vector<PeptideIdentification> vec;
+  PeptideIdentificationList vec;
 
   tmp.setPeptideIdentifications(vec);
   TEST_EQUAL(tmp.getPeptideIdentifications().size(), 0);
@@ -374,7 +374,7 @@ START_SECTION((void setPeptideIdentifications(const std::vector<PeptideIdentific
   TEST_EQUAL(tmp.getPeptideIdentifications().size(), 1);
 END_SECTION
 
-START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
+START_SECTION((PeptideIdentificationList& getPeptideIdentifications()))
   BaseFeature tmp;
 
   tmp.getPeptideIdentifications().resize(1);
@@ -383,32 +383,32 @@ END_SECTION
 
 START_SECTION((AnnotationState getAnnotationState() const))
   BaseFeature tmp;
-  vector<PeptideIdentification> vec;
-  vector<PeptideIdentification>& ids = tmp.getPeptideIdentifications();
+  PeptideIdentificationList vec;
+  PeptideIdentificationList& ids = tmp.getPeptideIdentifications();
 
-  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_NONE);
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::AnnotationState::FEATURE_ID_NONE);
   ids.resize(1);
-  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_NONE);
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::AnnotationState::FEATURE_ID_NONE);
 
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("ABCDE"));
   ids[0].setHits(std::vector<PeptideHit>(1, hit));
-  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_SINGLE);
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::AnnotationState::FEATURE_ID_SINGLE);
 
   ids.resize(2);
   ids[1].setHits(std::vector<PeptideHit>(1, hit)); // same as first hit
   //tmp.setPeptideIdentifications(ids);
-  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_SAME);
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_SAME);
 
   hit.setSequence(AASequence::fromString("KRGH"));
   ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
-  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT);
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT);
 END_SECTION
 
 START_SECTION((sortPeptideIdentifications()))
     BaseFeature tmp;
-    vector<PeptideIdentification> vec;
-    vector<PeptideIdentification>& ids = tmp.getPeptideIdentifications();
+    PeptideIdentificationList vec;
+    PeptideIdentificationList& ids = tmp.getPeptideIdentifications();
 
     ids.resize(3);
 

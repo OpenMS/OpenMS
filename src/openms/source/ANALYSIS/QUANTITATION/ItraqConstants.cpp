@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -177,17 +177,20 @@ namespace OpenMS
     channel_names[2].setMatrix<Int, 6, 1>(CHANNELS_TMT_SIXPLEX);
 
     map.clear();
-    for (Size i = 0; i < channel_names[itraq_type].rows(); ++i)
+    for (long int i = 0; i < channel_names[itraq_type].rows(); ++i)
     {
       ChannelInfo info;
       info.description = "";
       info.name = channel_names[itraq_type](i, 0);
       info.id = (Int)i;
-      if (reporter_mass_exact.find(info.name) == reporter_mass_exact.end())
+      if (const auto it = reporter_mass_exact.find(info.name); it == reporter_mass_exact.end())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unexpected reporter name during initialization.", String(info.name));
       }
-      info.center = reporter_mass_exact[info.name];
+      else
+      {
+        info.center = it->second;
+      }
       info.active = false;
       map[info.name] = info;
     }

@@ -59,7 +59,7 @@
 				<userParam name="parameter: rt_norm" type="xsd:string" value=""/>
 				<userParam name="parameter: swath_windows_file" type="xsd:string" value="strep_win.txt"/>
 				<userParam name="parameter: sort_swath_maps" type="xsd:string" value="true"/>
-				<userParam name="parameter: use_ms1_traces" type="xsd:string" value="true"/>
+				<userParam name="parameter: enable_ms1" type="xsd:string" value="true"/>
 				<userParam name="parameter: enable_uis_scoring" type="xsd:string" value="false"/>
 				<userParam name="parameter: out_features" type="xsd:string" value=""/>
 				<userParam name="parameter: out_tsv" type="xsd:string" value="/localscratch/hroest.4041515.0/output.tsv"/>

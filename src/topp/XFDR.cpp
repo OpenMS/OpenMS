@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,6 +11,9 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>
 
 #include <cassert>
@@ -41,8 +44,7 @@ output in the idXML and mzIdentML formats.
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXL </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXLLF </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
         </tr>
     </table>
 </center>
@@ -112,13 +114,13 @@ protected:
     XFDRAlgorithm fdr_algorithm;
     Param this_param = getParam_().copy("", true);
     Param algo_param = fdr_algorithm.getParameters();
-    algo_param.update(this_param, false, OpenMS_Log_debug); // suppress param. update message
+    algo_param.update(this_param, false, getGlobalLogDebug()); // suppress param. update message
     fdr_algorithm.setParameters(algo_param);
     fdr_algorithm.setLogType(this->log_type_);
 
     // TODO use this code? or just run the function?
     XFDRAlgorithm::ExitCodes class_arg_validation_code = fdr_algorithm.validateClassArguments();
-    if (class_arg_validation_code == XFDRAlgorithm::ILLEGAL_PARAMETERS)
+    if (class_arg_validation_code == XFDRAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
     {
       logFatal("Invalid input parameters!");
       return ILLEGAL_PARAMETERS;
@@ -126,7 +128,7 @@ protected:
 
     writeLogInfo_("Reading input file...");
 
-    std::vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     ProteinIdentification protein_id;
     // Input File loading, initializes all_pep_ids_ vector
     ExitCodes load_result = loadInputFile_(peptide_ids, protein_id);
@@ -189,7 +191,7 @@ private:
   * Loads the input file.
   * @return 0 if the loading of the input was successful, error code otherwise
   */
-  ExitCodes loadInputFile_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
+  ExitCodes loadInputFile_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
     std::vector<ProteinIdentification> protein_ids;
     FileHandler().loadIdentifications(arg_in_, protein_ids, peptide_ids, {FileTypes::MZIDENTML, FileTypes::IDXML, FileTypes::XQUESTXML});

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <map>
 
 namespace OpenMS
@@ -108,4 +109,41 @@ protected:
   };
 
 } // namespace OpenMS
+
+// Hash function specialization for CVTermList
+namespace std
+{
+  /**
+   * @brief Hash function for CVTermList.
+   *
+   * Hashes based on the MetaInfoInterface base class and all CV terms.
+   * Iterates through the map of accession -> vector<CVTerm>.
+   *
+   * @note std::map iteration order is deterministic (sorted by key), so
+   *       equal CVTermList objects will produce identical hash values without
+   *       explicit sorting.
+   */
+  template<>
+  struct hash<OpenMS::CVTermList>
+  {
+    std::size_t operator()(const OpenMS::CVTermList& list) const noexcept
+    {
+      // Start with MetaInfoInterface base class hash
+      std::size_t seed = std::hash<OpenMS::MetaInfoInterface>{}(list);
+
+      // Hash all CV terms
+      for (const auto& entry : list.getCVTerms())
+      {
+        // Hash the accession string
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(entry.first));
+        // Hash each CV term in the vector
+        for (const auto& term : entry.second)
+        {
+          OpenMS::hash_combine(seed, std::hash<OpenMS::CVTerm>{}(term));
+        }
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

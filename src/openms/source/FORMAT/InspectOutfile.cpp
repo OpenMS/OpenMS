@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,12 +14,14 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <QtCore/QRegExp>
-
+#include <OpenMS/SYSTEM/File.h>
 #include <fstream>
+#include <regex>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunreachable-code"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wunreachable-code"
+#endif
 
 using namespace std;
 
@@ -49,7 +51,7 @@ namespace OpenMS
     return true;
   }
 
-  vector<Size> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications,
+  vector<Size> InspectOutfile::load(const String& result_filename, PeptideIdentificationList& peptide_identifications,
                                     ProteinIdentification& protein_identification, const double p_value_threshold, const String& database_filename)
   {
     // check whether the p_value is correct
@@ -61,7 +63,18 @@ namespace OpenMS
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      if (!File::exists(result_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
+      else if (!File::readable(result_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
     }
 
     String
@@ -100,7 +113,7 @@ namespace OpenMS
     }
     else
     {
-      protein_identification.getSearchEngine() + "_" + datetime.getDate();
+      identifier = protein_identification.getSearchEngine() + "_" + datetime.getDate();
     }
     // to get the precursor retention time and mz values later, save the filename and the numbers of the scans
     vector<pair<String, vector<pair<Size, Size> > > > files_and_peptide_identification_with_scan_number;
@@ -267,7 +280,7 @@ namespace OpenMS
     }
 
     if (!peptide_identifications.empty())
-      peptide_identifications.back().assignRanks();
+      peptide_identifications.back().sort();
 
     // search the sequence of the proteins
     if (!protein_identification.getHits().empty() && !database_filename.empty())
@@ -305,7 +318,18 @@ namespace OpenMS
     ifstream database(database_filename.c_str());
     if (!database)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      if (!File::exists(database_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      }
+      else if (!File::readable(database_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      }
     }
 
     vector<Size> not_found;
@@ -536,7 +560,7 @@ namespace OpenMS
   void
   InspectOutfile::getPrecursorRTandMZ(
     const vector<pair<String, vector<pair<Size, Size> > > >& files_and_peptide_identification_with_scan_number,
-    vector<PeptideIdentification>& ids)
+    PeptideIdentificationList& ids)
   {
     PeakMap experiment;
     String type;
@@ -578,7 +602,18 @@ namespace OpenMS
     ifstream database(database_filename.c_str());
     if (!database)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      if (!File::exists(database_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      }
+      else if (!File::readable(database_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
+      }
     }
 
     ifstream index(index_filename.c_str(), ios::in | ios::binary);
@@ -586,7 +621,18 @@ namespace OpenMS
     {
       database.close();
       database.clear();
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index_filename);
+      if (!File::exists(index_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index_filename);
+      }
+      else if (!File::readable(index_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index_filename);
+      }
     }
 
     // determine the length of the index file
@@ -737,7 +783,18 @@ namespace OpenMS
     ifstream source_database(source_database_filename.c_str());
     if (!source_database)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source_database_filename);
+      if (!File::exists(source_database_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source_database_filename);
+      }
+      else if (!File::readable(source_database_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source_database_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source_database_filename);
+      }
     }
 
     // get the labels
@@ -983,7 +1040,18 @@ namespace OpenMS
     ifstream source_database(source_database_filename.c_str());
     if (!source_database)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source_database_filename);
+      if (!File::exists(source_database_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source_database_filename);
+      }
+      else if (!File::readable(source_database_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source_database_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source_database_filename);
+      }
     }
 
     String line;
@@ -1035,7 +1103,18 @@ namespace OpenMS
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      if (!File::exists(result_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
+      else if (!File::readable(result_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
     }
 
     String line;
@@ -1094,11 +1173,6 @@ namespace OpenMS
         continue;
       }
 
-      // check whether the line has enough columns
-      if (substrings.size() != number_of_columns)
-      {
-        continue;
-      }
       // take only those peptides whose p-value is less or equal the given threshold
       if (substrings[p_value_column].toFloat() > p_value_threshold)
       {
@@ -1126,13 +1200,14 @@ namespace OpenMS
     protein_identification.setSearchEngine("InsPecT");
     protein_identification.setSearchEngineVersion("unknown");
     // searching for something like this: InsPecT version 20060907, InsPecT version 20100331
-    QString response(cmd_output.toQString());
-    QRegExp rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
-    if (rx.indexIn(response) == -1)
+    std::smatch match;
+    std::string response(cmd_output);
+    static const std::regex rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
+    if (!std::regex_search(response, match, rx))
     {
       return false;
     }
-    protein_identification.setSearchEngineVersion(String(rx.cap(2)));
+    protein_identification.setSearchEngineVersion(match[2].str());
     return true;
   }
 
@@ -1218,5 +1293,7 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 

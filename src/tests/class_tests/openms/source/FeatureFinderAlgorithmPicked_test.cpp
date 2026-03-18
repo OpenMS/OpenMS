@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,11 +11,11 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 ///////////////////////////
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 START_TEST(FeatureFinderAlgorithmPicked, "$Id$")
@@ -31,7 +31,6 @@ typedef FeatureFinderAlgorithmPicked FFPP;
 
 FFPP* ptr = nullptr;
 FFPP* nullPointer = nullptr;
-FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithmPicked()))
   ptr = new FFPP;
@@ -42,37 +41,23 @@ START_SECTION((~FeatureFinderAlgorithmPicked()))
   delete ptr;
 END_SECTION
 
-START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
-  FeatureFinderAlgorithm* ptr2 = FFPP::create();
-  TEST_NOT_EQUAL(ptr2,ffA_nullPointer)
-  delete ptr2;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-  TEST_EQUAL(FFPP::getProductName(),"centroided")
-END_SECTION
-
 START_SECTION((virtual void run()))
   //input and output
   PeakMap input;
-  MzDataFile mzdata_file;
-  mzdata_file.getOptions().addMSLevel(1);
-  mzdata_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzData"),input);
-  input.updateRanges(1);
+  MzMLFile mzml_file;
+  mzml_file.getOptions().addMSLevel(1);
+  mzml_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzML"),input);
+  input.updateRanges();
   FeatureMap output;
 
   //parameters
   Param param;
   ParamXMLFile paramFile;
   paramFile.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"), param);
-  param = param.copy("FeatureFinder:1:algorithm:",true);
-  //Dummy featurefinder
-  FeatureFinder ff;
+  param = param.copy("FeatureFinder:1:algorithm:", true);
 
   FFPP ffpp;
-  ffpp.setParameters(param);
-  ffpp.setData(input, output, ff);
-  ffpp.run();
+  ffpp.run(input, output, param, FeatureMap());
 
   TEST_EQUAL(output.size(), 8);
 

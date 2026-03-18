@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -12,9 +12,6 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/Sample.h>
-#include <OpenMS/METADATA/Digestion.h>
-#include <OpenMS/METADATA/Modification.h>
-#include <OpenMS/METADATA/Tagging.h>
 #include <sstream>
 
 ///////////////////////////
@@ -64,7 +61,7 @@ END_SECTION
 
 START_SECTION((SampleState getState() const))
 	Sample s;
-	TEST_EQUAL(s.getState(),Sample::SAMPLENULL)
+	TEST_EQUAL(s.getState(),Sample::SampleState::SAMPLENULL)
 END_SECTION
 
 START_SECTION((double getMass() const ))
@@ -108,8 +105,8 @@ END_SECTION
 
 START_SECTION((void setState(SampleState state)))
 	Sample s;
-	s.setState(Sample::LIQUID);
-	TEST_EQUAL(s.getState(),Sample::LIQUID)
+	s.setState(Sample::SampleState::LIQUID);
+	TEST_EQUAL(s.getState(),Sample::SampleState::LIQUID)
 END_SECTION
 
 START_SECTION((void setMass(double mass)))
@@ -156,102 +153,6 @@ START_SECTION((void setSubsamples(const std::vector<Sample>& subsamples)))
 	TEST_EQUAL(s.getSubsamples()[1].getName(),"3")
 END_SECTION
 
-//treatments
-
-START_SECTION((Int countTreatments() const))
-	Sample s;
-	TEST_EQUAL(s.countTreatments(),0)
-	Digestion d;
-	s.addTreatment(d);
-	TEST_EQUAL(s.countTreatments(),1)
-END_SECTION
-
-START_SECTION((const SampleTreatment& getTreatment(UInt position) const))
-	Sample s;
-	TEST_EXCEPTION(Exception::IndexOverflow, s.getTreatment(0))
-END_SECTION
-
-START_SECTION((void addTreatment(const SampleTreatment& treatment, Int before_position=-1)))
-	Sample s;
-	Digestion d;
-	Modification m,m2,m3;
-	Tagging t;
-
-	//different treatments
-	d.setEnzyme("D");
-	m.setReagentName("m");
-	t.setMassShift(5.0);
-	s.addTreatment(d);
-	s.addTreatment(m);
-	s.addTreatment(t);
-	TEST_EQUAL(s.countTreatments(),3)
-	TEST_EQUAL(s.getTreatment(0).getType(),"Digestion")
-	TEST_EQUAL(s.getTreatment(1).getType(),"Modification")
-	TEST_EQUAL(s.getTreatment(2).getType(),"Tagging")
-
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(1))).getReagentName(),"m")
-	TEST_REAL_SIMILAR((dynamic_cast<const Tagging&>(s.getTreatment(2))).getMassShift(),5.0)
-END_SECTION
-
-START_SECTION((SampleTreatment& getTreatment(UInt position)))
-	Sample s;
-	Digestion d;
-	s.addTreatment(d);
-	(dynamic_cast<Digestion&>(s.getTreatment(0))).setEnzyme("bluff");
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"bluff")
-END_SECTION
-
-START_SECTION((void removeTreatment(UInt position)))
-	Sample s;
-	Digestion d;
-	Modification m,m2,m3;
-	Tagging t;
-
-	//different treatments
-	d.setEnzyme("D");
-	m.setReagentName("m");
-	t.setMassShift(5.0);
-	s.addTreatment(d);
-	s.addTreatment(m);
-	s.addTreatment(t);
-
-	//removeTreatment
-	m2.setReagentName("m2");
-	m3.setReagentName("m3");
-	s.addTreatment(m2,0);
-	s.addTreatment(m3,3);
-	TEST_EQUAL(s.countTreatments(),5)
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(0))).getReagentName(),"m2")
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(1))).getEnzyme(),"D")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(2))).getReagentName(),"m")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(3))).getReagentName(),"m3")
-	TEST_REAL_SIMILAR((dynamic_cast<const Tagging&>(s.getTreatment(4))).getMassShift(),5.0)
-
-	s.removeTreatment(4);
-	TEST_EQUAL(s.countTreatments(),4)
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(0))).getReagentName(),"m2")
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(1))).getEnzyme(),"D")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(2))).getReagentName(),"m")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(3))).getReagentName(),"m3")
-
-	s.removeTreatment(2);
-	TEST_EQUAL(s.countTreatments(),3)
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(0))).getReagentName(),"m2")
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(1))).getEnzyme(),"D")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(2))).getReagentName(),"m3")
-
-	s.removeTreatment(2);
-	TEST_EQUAL(s.countTreatments(),2)
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(0))).getReagentName(),"m2")
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(1))).getEnzyme(),"D")
-
-	//exceptions: index overflow
-	TEST_EXCEPTION(Exception::IndexOverflow,s.removeTreatment(2))
-	TEST_EXCEPTION(Exception::IndexOverflow,s.getTreatment(2))
-	TEST_EXCEPTION(Exception::IndexOverflow,s.addTreatment(m,3))
-END_SECTION
-
 //copy ctr
 START_SECTION((Sample(const Sample& source)))
 	Sample s;
@@ -261,7 +162,7 @@ START_SECTION((Sample(const Sample& source)))
 	s.setName("TTEST");
 	s.setNumber("Sample4711");
 	s.setComment("Sample Description");
-	s.setState(Sample::LIQUID);
+	s.setState(Sample::SampleState::LIQUID);
 	s.setMass(4711.2);
 	s.setVolume(4711.3);
 	s.setConcentration(4711.4);
@@ -274,11 +175,6 @@ START_SECTION((Sample(const Sample& source)))
 	ss.setName("2");
 	s.getSubsamples().push_back(ss);
 
-	//treatments
-	Digestion d;
-	d.setEnzyme("D");
-	s.addTreatment(d);
-
 	//-----------------
 	//Copy construction
 	//-----------------
@@ -288,7 +184,7 @@ START_SECTION((Sample(const Sample& source)))
 	TEST_EQUAL(s2.getName(),"TTEST")
 	TEST_EQUAL(s2.getNumber(),"Sample4711")
 	TEST_EQUAL(s2.getComment(),"Sample Description")
-	TEST_EQUAL(s2.getState(),Sample::LIQUID)
+	TEST_EQUAL(s2.getState(),Sample::SampleState::LIQUID)
 	TEST_REAL_SIMILAR(s2.getMass(),4711.2)
 	TEST_REAL_SIMILAR(s2.getVolume(),4711.3)
 	TEST_REAL_SIMILAR(s2.getConcentration(),4711.4)
@@ -299,9 +195,6 @@ START_SECTION((Sample(const Sample& source)))
 
 	//subsamples
 	TEST_EQUAL(s.getSubsamples()[0].getName(),"2")
-
-	//treatments
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
 END_SECTION
 
 //assignment operator
@@ -313,7 +206,7 @@ START_SECTION((Sample& operator= (const Sample& source)))
 	s.setOrganism("TTEST2");
 	s.setNumber("Sample4711");
 	s.setComment("Sample Description");
-	s.setState(Sample::LIQUID);
+	s.setState(Sample::SampleState::LIQUID);
 	s.setMass(4711.2);
 	s.setVolume(4711.3);
 	s.setConcentration(4711.4);
@@ -326,11 +219,6 @@ START_SECTION((Sample& operator= (const Sample& source)))
 	ss.setName("2");
 	s.getSubsamples().push_back(ss);
 
-	//treatments
-	Digestion d;
-	d.setEnzyme("D");
-	s.addTreatment(d);
-
 	//-----------------
 	//Copy construction
 	//-----------------
@@ -342,7 +230,7 @@ START_SECTION((Sample& operator= (const Sample& source)))
 	TEST_EQUAL(s2.getNumber(),"Sample4711")
 	TEST_EQUAL(s2.getComment(),"Sample Description")
 	TEST_EQUAL(s2.getOrganism(),"TTEST2")
-	TEST_EQUAL(s2.getState(),Sample::LIQUID)
+	TEST_EQUAL(s2.getState(),Sample::SampleState::LIQUID)
 	TEST_REAL_SIMILAR(s2.getMass(),4711.2)
 	TEST_REAL_SIMILAR(s2.getVolume(),4711.3)
 	TEST_REAL_SIMILAR(s2.getConcentration(),4711.4)
@@ -352,9 +240,6 @@ START_SECTION((Sample& operator= (const Sample& source)))
 
 	//subsamples
 	TEST_EQUAL(s.getSubsamples()[0].getName(),"2")
-
-	//treatments
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
 END_SECTION
 
 START_SECTION((bool operator== (const Sample& rhs) const))
@@ -383,7 +268,7 @@ START_SECTION((bool operator== (const Sample& rhs) const))
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
 
-	edit.setState(Sample::LIQUID);
+	edit.setState(Sample::SampleState::LIQUID);
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
@@ -412,11 +297,13 @@ START_SECTION((bool operator== (const Sample& rhs) const))
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
+END_SECTION
 
-	edit.addTreatment(Modification());
-	TEST_EQUAL(edit==empty,false)
-	edit = empty;
-	TEST_EQUAL(edit==empty,true)
+START_SECTION((static StringList getAllNamesOfSampleState()))
+  StringList names = Sample::getAllNamesOfSampleState();
+  TEST_EQUAL(names.size(), static_cast<size_t>(Sample::SampleState::SIZE_OF_SAMPLESTATE));
+  TEST_EQUAL(names[static_cast<size_t>(Sample::SampleState::LIQUID)], "liquid");
+  TEST_EQUAL(names[static_cast<size_t>(Sample::SampleState::SOLID)], "solid");
 END_SECTION
 
 /////////////////////////////////////////////////////////////

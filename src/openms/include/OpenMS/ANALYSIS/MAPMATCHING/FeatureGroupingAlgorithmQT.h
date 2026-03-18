@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -52,19 +52,7 @@ public:
     */
     void group(const std::vector<ConsensusMap>& maps, 
                        ConsensusMap& out) override;
-
-    /// Creates a new instance of this class (for Factory)
-    static FeatureGroupingAlgorithm* create()
-    {
-      return new FeatureGroupingAlgorithmQT();
-    }
-
-    /// Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "unlabeled_qt";
-    }
-
+                       
 private:
 
     /// Copy constructor intentionally not implemented -> private

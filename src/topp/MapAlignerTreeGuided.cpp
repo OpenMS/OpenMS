@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,8 +9,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h> // to print newick tree on cml
+#include <OpenMS/ML/CLUSTERING/ClusterAnalyzer.h> // to print newick tree on cml
 
 
 using namespace OpenMS;
@@ -60,7 +61,7 @@ maps for hierarchical clustering. Tree based, the alignment of each cluster pair
 @ref OpenMS::MapAlignmentAlgorithmIdentification. For more details and algorithm-specific parameters (set in the INI file)
 see "Detailed Description" in the @ref OpenMS::MapAlignmentAlgorithmTreeGuided "algorithm documentation".
 
-@see @ref TOPP_MapAlignerIdentification @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
+@see @ref TOPP_MapAlignerIdentification @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapRTTransformer
 
 Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version. This behavior is generally desired since (some) modifications can cause retention time shifts.
 
@@ -228,6 +229,12 @@ private:
 
     // store transformations
     storeTransformationDescriptions_(transformations, out_trafos);
+
+    // Transform optional spectra files
+    // Note: MapAlignerTreeGuided does not support store_original_rt flag
+    StringList in_spectra_files = getStringList_("in_spectra_files");
+    StringList out_spectra_files = getStringList_("out_spectra_files");
+    transformSpectraFiles_(in_spectra_files, out_spectra_files, transformations, false);
 
     return EXECUTION_OK;
   }

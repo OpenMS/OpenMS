@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -54,10 +54,10 @@ namespace OpenMS
     /**
        @brief Generates spectra in multiple charge states for an oligonucleotide sequence
 
-       @param spectra Output spectra
-       @param oligo Target oligonucleotide sequence
-       @param charges Set of charge states to generate
-       @param base_charge Minimum charge for peaks in each spectrum
+       @param[out] spectra Output spectra
+       @param[out] oligo Target oligonucleotide sequence
+       @param[in] charges Set of charge states to generate
+       @param[in] base_charge Minimum charge for peaks in each spectrum
 
        One spectrum per element in @p charges is generated in @p spectra.
 

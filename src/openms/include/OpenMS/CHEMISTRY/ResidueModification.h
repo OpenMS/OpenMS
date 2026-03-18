@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,9 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
+#include <functional>
 #include <set>
 
 namespace OpenMS
@@ -326,11 +328,11 @@ public:
     /// Creates a new modification from a mass and adds it to ModificationsDB.
     /// If not terminal, needs a Residue to be put on.
 
-    /// @param mod The mass to put between the brackets (might contain +/- at the front)
-    /// @param mass Basically, the same as mod, just as double (since usually both representations are present when calling this function and to avoid overhead??)
-    /// @param delta_mass Is the given mass a delta mass (i.e. does @p mod contain a = or -)?
-    /// @param specificity To which site can this mod be applied?
-    /// @param residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
+    /// @param[in] mod The mass to put between the brackets (might contain +/- at the front)
+    /// @param[in] mass Basically, the same as mod, just as double (since usually both representations are present when calling this function and to avoid overhead??)
+    /// @param[in] delta_mass Is the given mass a delta mass (i.e. does @p mod contain a = or -)?
+    /// @param[in] specificity To which site can this mod be applied?
+    /// @param[in] residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
     /// @return a new or existing mod; registered to ModDB in both cases, so the pointer is non-owning (FullId is e.g. M[+1234.1] and FullName [+1234.1]. Id and Name are empty as defined for a "user-defined" mod.
     static const ResidueModification* createUnknownFromMassString(const String& mod,
                                                                   const double mass,
@@ -347,10 +349,10 @@ public:
 
     If base and addons is empty, a null_ptr is returned.
 
-    @param base An already present mod, can be a nullptr
-    @param addons A set of mods to add on top of the mod. 
-    @param allow_unknown_masses If any input (incl. base) is already an unknown mass, nothing is done
-    @param residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
+    @param[in] base An already present mod, can be a nullptr
+    @param[in] addons A set of mods to add on top of the mod. 
+    @param[in] allow_unknown_masses If any input (incl. base) is already an unknown mass, nothing is done
+    @param[in] residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
     @return A (new custom) mod, which is registered in ModificationsDB if needed.
     @throws Exception::Precondition if term spec or origins to not match between all given mods
     **/
@@ -418,4 +420,83 @@ protected:
 
     std::vector<double> neutral_loss_average_masses_;
   };
-}
+} // namespace OpenMS
+
+// Hash function specialization for ResidueModification
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::ResidueModification.
+   *
+   * Computes a hash based on all fields used in operator==:
+   * id, full_id, psi_mod_accession, unimod_record_id, full_name, name,
+   * term_spec, origin, classification, masses (average, mono, diff_average, diff_mono),
+   * formula, diff_formula, synonyms, and neutral loss data.
+   *
+   * @note Hash is consistent with operator== - equal objects produce equal hashes.
+   */
+  template<>
+  struct hash<OpenMS::ResidueModification>
+  {
+    std::size_t operator()(const OpenMS::ResidueModification& mod) const noexcept
+    {
+      // Hash string fields
+      std::size_t seed = OpenMS::fnv1a_hash_string(mod.getId());
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod.getFullId()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod.getPSIMODAccession()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(mod.getUniModRecordId()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod.getFullName()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod.getName()));
+
+      // Hash enum fields (as integers)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(mod.getTermSpecificity())));
+      OpenMS::hash_combine(seed, OpenMS::hash_char(mod.getOrigin()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(mod.getSourceClassification())));
+
+      // Hash mass fields
+      OpenMS::hash_combine(seed, OpenMS::hash_float(mod.getAverageMass()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(mod.getMonoMass()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(mod.getDiffAverageMass()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(mod.getDiffMonoMass()));
+
+      // Hash formula fields
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod.getFormula()));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(mod.getDiffFormula()));
+
+      // Hash synonyms (set<String>)
+      const auto& synonyms = mod.getSynonyms();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(synonyms.size()));
+      for (const auto& syn : synonyms)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(syn));
+      }
+
+      // Hash neutral loss diff formulas (vector<EmpiricalFormula>)
+      const auto& nl_formulas = mod.getNeutralLossDiffFormulas();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(nl_formulas.size()));
+      for (const auto& nlf : nl_formulas)
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(nlf));
+      }
+
+      // Hash neutral loss mono masses (vector<double>)
+      const auto& nl_mono = mod.getNeutralLossMonoMasses();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(nl_mono.size()));
+      for (double mass : nl_mono)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(mass));
+      }
+
+      // Hash neutral loss average masses (vector<double>)
+      const auto& nl_avg = mod.getNeutralLossAverageMasses();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(nl_avg.size()));
+      for (double mass : nl_avg)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(mass));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std

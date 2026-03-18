@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -57,8 +57,8 @@ namespace OpenMS
     /**
         @brief Computes the AScore and returns all computed phospho-sites. The saved sequences contain only phospho information. All other modifications are dropped due to simplicity.
 
-        @param	hit a PeptideHit
-        @param real_spectrum spectrum mapped to hit
+        @param[in] hit a PeptideHit
+        @param[in,out] real_spectrum spectrum mapped to hit
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
@@ -124,7 +124,7 @@ namespace OpenMS
     void computeSiteDeterminingIons_(const std::vector<PeakSpectrum>& th_spectra, const ProbablePhosphoSites& candidates, std::vector<PeakSpectrum>& site_determining_ions) const;
 
     /// return all phospho sites
-    std::vector<Size> getSites_(const AASequence& without_phospho) const;
+    std::vector<Size> getSites_(const String& unmodified_sequence) const;
 
     /// calculate all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
     std::vector<std::vector<Size>> computePermutations_(const std::vector<Size>& sites, Int n_phosphorylation_events) const;

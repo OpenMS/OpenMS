@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,12 +11,12 @@
 // define to get timings for connected components
 //#define INFERENCE_BENCH
 
-#include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h> //included in BPI
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 #include <unordered_map>
@@ -59,8 +59,10 @@ namespace OpenMS
   public:
 
     // boost has a weird extra semicolon in their strong typedef
+    #ifdef __clang__
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wextra-semi"
+    #endif
 
     /// placeholder for peptides with the same parent proteins or protein groups
     BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster);
@@ -82,7 +84,9 @@ namespace OpenMS
     /// in which charge state a PSM was observed
     BOOST_STRONG_TYPEDEF(int, Charge);
 
+    #ifdef __clang__
     #pragma clang diagnostic pop
+    #endif
 
     //typedefs
     //TODO rename ProteinGroup type since it collides with the actual OpenMS ProteinGroup
@@ -338,7 +342,7 @@ namespace OpenMS
 
     /// Constructors
     IDBoostGraph(ProteinIdentification& proteins,
-                std::vector<PeptideIdentification>& idedSpectra,
+                PeptideIdentificationList& idedSpectra,
                 Size use_top_psms,
                 bool use_run_info,
                 bool best_psms_annotated,
@@ -376,12 +380,12 @@ namespace OpenMS
     /// This has no effect on the graph itself.
     /// @pre Graph must contain ProteinGroup nodes (e.g. with clusterIndistProteinsAndPeptides).
     /// Otherwise it does nothing and you should use calculateAndAnnotateIndistProteins instead.
-    /// @param addSingletons if you want to annotate groups with just one protein entry
+    /// @param[in] addSingletons if you want to annotate groups with just one protein entry
     void annotateIndistProteins(bool addSingletons = true);
 
     /// Annotate indistinguishable proteins by adding the groups to the underlying
     /// ProteinIdentification::ProteinGroups object. This has no effect on the graph itself.
-    /// @param addSingletons if you want to annotate groups with just one protein entry
+    /// @param[in] addSingletons if you want to annotate groups with just one protein entry
     void calculateAndAnnotateIndistProteins(bool addSingletons = true);
 
     /// Splits the initialized graph into connected components and clears it.
@@ -391,7 +395,7 @@ namespace OpenMS
     /// Removes all edges from a peptide (and its PSMs) to its parent protein groups (and its proteins)
     /// except for the best protein group.
     /// @pre Graph must contain PeptideCluster nodes (e.g. with clusterIndistProteinsAndPeptides).
-    /// @param removeAssociationsInData Also removes the corresponding PeptideEvidences in the underlying
+    /// @param[in] removeAssociationsInData Also removes the corresponding PeptideEvidences in the underlying
     ///     ID data structure. Only deactivate if you know what you are doing.
     void resolveGraphPeptideCentric(bool removeAssociationsInData = true);
 
@@ -401,7 +405,7 @@ namespace OpenMS
     Size getNrConnectedComponents();
 
     /// @brief Returns a specific connected component of the graph as a graph itself
-    /// @param cc the index of the component
+    /// @param[in] cc the index of the component
     /// @return the component as graph
     const Graph& getComponent(Size cc);
 
@@ -413,29 +417,29 @@ namespace OpenMS
     //void buildExtendedGraph(bool use_all_psms, std::pair<int,int> chargeRange, unsigned int nrReplicates);
 
     /// @brief Prints a graph (component or if not split, the full graph) in graphviz (i.e. dot) format
-    /// @param out an ostream to print to
-    /// @param fg the graph to print
+    /// @param[in] out an ostream to print to
+    /// @param[in] fg the graph to print
     static void printGraph(std::ostream& out, const Graph& fg);
 
     /// @brief Searches for all upstream nodes from a (set of) start nodes that are lower
     ///    or equal than a given level. The ordering is the same as in the IDPointer variant typedef.
-    /// @param q a queue of start nodes
-    /// @param graph the graph to look in (q has to be part of it)
-    /// @param lvl the level to start reporting from
-    /// @param stop_at_first do you want to stop at the first node <= lvl or also report its
+    /// @param[in] q a queue of start nodes
+    /// @param[in] graph the graph to look in (q has to be part of it)
+    /// @param[in] lvl the level to start reporting from
+    /// @param[in] stop_at_first do you want to stop at the first node <= lvl or also report its
     ///    upstream "predecessors"
-    /// @param result vector of reported nodes
+    /// @param[in] result vector of reported nodes
     void getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, const Graph& graph, int lvl,
                                       bool stop_at_first, std::vector<vertex_t>& result);
 
     /// @brief Searches for all downstream nodes from a (set of) start nodes that are higher
     ///    or equal than a given level. The ordering is the same as in the IDPointer variant typedef.
-    /// @param q a queue of start nodes
-    /// @param graph the graph to look in (q has to be part of it)
-    /// @param lvl the level to start reporting from
-    /// @param stop_at_first do you want to stop at the first node >= lvl or also report its
+    /// @param[in] q a queue of start nodes
+    /// @param[in] graph the graph to look in (q has to be part of it)
+    /// @param[in] lvl the level to start reporting from
+    /// @param[in] stop_at_first do you want to stop at the first node >= lvl or also report its
     ///    upstream "predecessors"
-    /// @param result vector of reported nodes
+    /// @param[in] result vector of reported nodes
     void getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, const Graph& graph, int lvl,
                                         bool stop_at_first, std::vector<vertex_t>& result);
 
@@ -519,15 +523,15 @@ namespace OpenMS
 
     /// Initialize and store the graph
     /// IMPORTANT: Once the graph is built, editing members like (protein/peptide)_hits_ will invalidate it!
-    /// @param proteins ProteinIdentification object storing IDs and groups
-    /// @param idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
-    /// @param use_top_psms Nr of top PSMs used per spectrum (<= 0 means all)
-    /// @param best_psms_annotated Are the PSMs annotated with the "best_per_peptide" meta value. Otherwise all are
+    /// @param[in] proteins ProteinIdentification object storing IDs and groups
+    /// @param[in] idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
+    /// @param[in] use_top_psms Nr of top PSMs used per spectrum (<= 0 means all)
+    /// @param[in] best_psms_annotated Are the PSMs annotated with the "best_per_peptide" meta value. Otherwise all are
     ///  taken into account.
     /// @todo we could include building the graph in important "main" functions like inferPosteriors
     /// to make the methods safer, but it is also nice to be able to reuse the graph
     void buildGraph_(ProteinIdentification& proteins,
-                    std::vector<PeptideIdentification>& idedSpectra,
+                    PeptideIdentificationList& idedSpectra,
                     Size use_top_psms,
                     bool best_psms_annotated = false);
 
@@ -567,7 +571,7 @@ namespace OpenMS
                                const ExperimentalDesign& ed);
 
     void buildGraphWithRunInfo_(ProteinIdentification& proteins,
-                               std::vector<PeptideIdentification>& idedSpectra,
+                               PeptideIdentificationList& idedSpectra,
                                Size use_top_psms,
                                const ExperimentalDesign& ed);
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -44,13 +44,13 @@ public:
     /**
         @brief Constructor
 
-        @param parent Qt parent widget
-        @param param The param we are editing
-        @param default_dir The default directory for loading and storing INI files
-        @param tool_name The name of the TOPP tool (used to invoke it on the commandline)
-        @param tool_type The type of the tool ('-type' parameter of TOPP tool on the commandline). Leave empty if no type exists.
-        @param tool_desc The tool description
-        @param hidden_entries List of entries that are used already in edges etc and should not be shown
+        @param[in] parent Qt parent widget
+        @param[in] param The param we are editing
+        @param[in] default_dir The default directory for loading and storing INI files
+        @param[in] tool_name The name of the TOPP tool (used to invoke it on the commandline)
+        @param[in] tool_type The type of the tool ('-type' parameter of TOPP tool on the commandline). Leave empty if no type exists.
+        @param[in] tool_desc The tool description
+        @param[in] hidden_entries List of entries that are used already in edges etc and should not be shown
     */
     TOPPASToolConfigDialog(QWidget * parent, Param & param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries);
     ///Destructor

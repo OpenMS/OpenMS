@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -137,7 +137,7 @@ START_SECTION(bool isChildOf(const String& child, const String& parent) const)
 END_SECTION
 
 START_SECTION((const Map<String, CVTerm>& getTerms() const))
-  std::map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
+  const auto& terms = cv.getTerms();
 	TEST_EQUAL(terms.size(), 6)
 	TEST_EQUAL(terms.find("OpenMS:1") != terms.end(), true)
 	TEST_EQUAL(terms.find("OpenMS:2") != terms.end(), true)
@@ -172,16 +172,16 @@ END_SECTION
 
 START_SECTION(([ControlledVocabulary::CVTerm] static String getXRefTypeName(XRefType type)))
 {
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_STRING), "xsd:string")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_INTEGER), "xsd:integer")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_DECIMAL), "xsd:decimal")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER), "xsd:negativeInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER), "xsd:positiveInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER), "xsd:nonNegativeInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER), "xsd:nonPositiveInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_BOOLEAN), "xsd:boolean")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_DATE), "xsd:date")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_ANYURI), "xsd:anyURI")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_STRING), "xsd:string")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER), "xsd:integer")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL), "xsd:decimal")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER), "xsd:negativeInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER), "xsd:positiveInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER), "xsd:nonNegativeInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER), "xsd:nonPositiveInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN), "xsd:boolean")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_DATE), "xsd:date")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI), "xsd:anyURI")
 }
 END_SECTION
 
@@ -227,7 +227,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm(const CVTerm &rhs)))
   a.description = "test_description";
   a.synonyms = ListUtils::create<String>("test,synonyms");
   a.unparsed = ListUtils::create<String>("test,unparsed");
-  a.xref_type = ControlledVocabulary::CVTerm::XSD_DECIMAL;
+  a.xref_type = ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL;
   a.xref_binary = ListUtils::create<String>("test,xref_binary");
   a.units.insert("units");
 
@@ -259,7 +259,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm& operator=(const CVTerm &rh
   a.description = "test_description";
   a.synonyms = ListUtils::create<String>("test,synonyms");
   a.unparsed = ListUtils::create<String>("test,unparsed");
-  a.xref_type = ControlledVocabulary::CVTerm::XSD_DECIMAL;
+  a.xref_type = ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL;
   a.xref_binary = ListUtils::create<String>("test,xref_binary");
   a.units.insert("units");
 

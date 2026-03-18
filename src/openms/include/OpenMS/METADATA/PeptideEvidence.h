@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,7 +9,10 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <functional>
 
 namespace OpenMS
 {
@@ -47,7 +50,7 @@ public:
     PeptideEvidence(PeptideEvidence&&) noexcept = default;
 
     /// Destructor
-    ~PeptideEvidence() {}
+    ~PeptideEvidence() = default;
     //@}
 
     /// Assignment operator
@@ -109,5 +112,23 @@ protected:
     char aa_after_;
   };
 
+} // namespace OpenMS
+
+// Hash function specialization for PeptideEvidence
+namespace std
+{
+  template<>
+  struct hash<OpenMS::PeptideEvidence>
+  {
+    std::size_t operator()(const OpenMS::PeptideEvidence& pe) const noexcept
+    {
+      std::size_t seed = OpenMS::fnv1a_hash_string(pe.getProteinAccession());
+      OpenMS::hash_combine(seed, OpenMS::hash_int(pe.getStart()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(pe.getEnd()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(pe.getAABefore())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(pe.getAAAfter())));
+      return seed;
+    }
+  };
 }
 

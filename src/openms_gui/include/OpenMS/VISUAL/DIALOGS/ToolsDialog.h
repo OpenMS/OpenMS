@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -49,13 +49,13 @@ public:
     /**
       @brief Constructor
 
-      @param parent Qt parent widget
-      @param params Containing all TOPP tool/util params
-      @param ini_file The file name of the temporary INI file created by this dialog
-      @param default_dir The default directory for loading and storing INI files
-      @param layer_type The type of data (determines the applicable tools)
-      @param layer_name The name of the selected layer
-      @param tool_scanner Pointer to the tool scanner for access to the plugins and to rerun the plugins detection
+      @param[in] parent Qt parent widget
+      @param[in] params Containing all TOPP tool/util params
+      @param[in] ini_file The file name of the temporary INI file created by this dialog
+      @param[in] default_dir The default directory for loading and storing INI files
+      @param[in] layer_type The type of data (determines the applicable tools)
+      @param[in] layer_name The name of the selected layer
+      @param[in] tool_scanner Pointer to the tool scanner for access to the plugins and to rerun the plugins detection
     */
     ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerDataBase::DataType layer_type, const String& layer_name, TVToolDiscovery* tool_scanner);
     ///Destructor
@@ -67,6 +67,9 @@ public:
     String getInput();
     /// to get the currently selected tool-name
     String getTool();
+    /// get the default extension for the output file
+    String getExtension();
+
 
 private:
     /// ParamEditor for reading ini-files

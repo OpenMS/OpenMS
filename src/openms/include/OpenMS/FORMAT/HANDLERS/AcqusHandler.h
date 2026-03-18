@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,7 +31,7 @@ public:
 
         Open acqus File as stream and import params.
 
-        @param filename to acqus File.
+        @param[in] filename to acqus File.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened.
         @exception Exception::ConversionError is thrown if error conversion from String to calibration param.

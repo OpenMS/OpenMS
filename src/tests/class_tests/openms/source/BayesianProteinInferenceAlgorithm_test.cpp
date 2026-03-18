@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -19,7 +19,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BayesianProteinInferenceAlgorithm on Protein Peptide ID)
     {
       vector<ProteinIdentification> prots;
-      vector<PeptideIdentification> peps;
+      PeptideIdentificationList peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       BayesianProteinInferenceAlgorithm bpia;
@@ -32,7 +32,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BayesianProteinInferenceAlgorithm test)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("BayesianProteinInference_test.idXML"),prots,peps);
           BayesianProteinInferenceAlgorithm bpia;
@@ -50,7 +50,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BayesianProteinInferenceAlgorithm test2)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("BayesianProteinInference_test.idXML"),prots,peps);
           BayesianProteinInferenceAlgorithm bpia;
@@ -71,7 +71,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BayesianProteinInferenceAlgorithm test2 filter)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("BayesianProteinInference_test.idXML"),prots,peps);
           BayesianProteinInferenceAlgorithm bpia;
@@ -95,7 +95,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BayesianProteinInferenceAlgorithm test2 regularize)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("BayesianProteinInference_test.idXML"),prots,peps);
           BayesianProteinInferenceAlgorithm bpia;
@@ -118,7 +118,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BayesianProteinInferenceAlgorithm test2 regularize max-product)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("BayesianProteinInference_test.idXML"),prots,peps);
           BayesianProteinInferenceAlgorithm bpia;
@@ -141,7 +141,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BayesianProteinInferenceAlgorithm test2 max-product)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("BayesianProteinInference_test.idXML"),prots,peps);
           BayesianProteinInferenceAlgorithm bpia;
@@ -164,7 +164,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BayesianProteinInferenceAlgorithm test2 super-easy)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("BayesianProteinInference_2_test.idXML"),prots,peps);
           BayesianProteinInferenceAlgorithm bpia;
@@ -194,7 +194,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BayesianProteinInferenceAlgorithm test2 mini-loop)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("BayesianProteinInference_3_test.idXML"),prots,peps);
           BayesianProteinInferenceAlgorithm bpia;

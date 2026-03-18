@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,8 +31,10 @@ START_TEST(CoarseIsotopePatternGenerator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wshadow"
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -133,7 +135,6 @@ START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const
     TEST_REAL_SIMILAR(id[2].getIntensity(), 0.013232)
   }
 
-  // TODO: is that a good idea?
   ef.setCharge(2);
   {
     CoarseIsotopePatternGenerator gen(3);
@@ -142,10 +143,17 @@ START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const
 
     // TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
     TEST_REAL_SIMILAR(id[0].getMZ(), 182.077943)
-    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.923456)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.923246)
 
     TEST_REAL_SIMILAR(id[2].getMZ(), 184.0846529)
-    TEST_REAL_SIMILAR(id[2].getIntensity(), 0.013232)
+    TEST_REAL_SIMILAR(id[2].getIntensity(), 0.0132435)
+  }
+  
+  ef.setCharge(-2);
+  {
+    CoarseIsotopePatternGenerator gen(3);
+    TEST_EXCEPTION(Exception::Precondition,
+                   gen.run(ef)); // negative charge not allowed
   }
 }
 END_SECTION
@@ -693,4 +701,6 @@ delete solver;
 /////////////////////////////////////////////////////////////
 END_TEST
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif

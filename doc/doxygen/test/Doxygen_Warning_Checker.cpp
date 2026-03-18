@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
   std::cout << "Skipped over " << line_count - error_count << " lines with unavoidable warnings";
   if (error_count)
   {
-    std::cerr << "\n\nFound " << error_count << " Doxygen warnings. See above. Please fix them.\n";
+    std::cerr << "\n\nFound " << error_count << " Doxygen errors. See above. Please fix them.\n";
     return 1;
   }
   

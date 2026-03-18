@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -13,6 +13,8 @@
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -408,6 +410,79 @@ START_SECTION((bool isSingleAdduct(Adduct &a, const UInt side) const))
 	TEST_EQUAL(c.isSingleAdduct(a2,Compomer::LEFT), false);
 	TEST_EQUAL(c.isSingleAdduct(a1,Compomer::RIGHT), false);
 	TEST_EQUAL(c.isSingleAdduct(a2,Compomer::RIGHT), false);
+END_SECTION
+
+START_SECTION([EXTRA] std::hash<Compomer>)
+{
+  // Test that equal Compomers produce equal hashes
+  Compomer c1(34, 45.32, 12.34);
+  Adduct a1(123, 3, 123.456, "S", -0.3453, 0);
+  Adduct b1(3, -2, 1.456, "H", -0.13, 0);
+  c1.setID(434);
+  c1.add(a1, Compomer::RIGHT);
+  c1.add(b1, Compomer::LEFT);
+
+  Compomer c2(c1); // Copy constructor
+  TEST_EQUAL(c1 == c2, true);
+  TEST_EQUAL(std::hash<Compomer>{}(c1), std::hash<Compomer>{}(c2));
+
+  // Test that different Compomers (typically) produce different hashes
+  Compomer c3(34, 45.32, 12.34);
+  c3.setID(435); // Different ID
+  c3.add(a1, Compomer::RIGHT);
+  c3.add(b1, Compomer::LEFT);
+  TEST_EQUAL(c1 == c3, false);
+  // Note: Different objects may have the same hash (collision), but it's unlikely
+  // We test that the hash function at least compiles and runs without error
+
+  // Test use in unordered_set
+  std::unordered_set<Compomer> compomer_set;
+  compomer_set.insert(c1);
+  compomer_set.insert(c2); // Same as c1, should not increase size
+  compomer_set.insert(c3);
+  TEST_EQUAL(compomer_set.size(), 2);
+  TEST_EQUAL(compomer_set.count(c1), 1);
+  TEST_EQUAL(compomer_set.count(c2), 1);
+  TEST_EQUAL(compomer_set.count(c3), 1);
+
+  // Test use in unordered_map
+  std::unordered_map<Compomer, int> compomer_map;
+  compomer_map[c1] = 1;
+  compomer_map[c3] = 3;
+  TEST_EQUAL(compomer_map.size(), 2);
+  TEST_EQUAL(compomer_map[c1], 1);
+  TEST_EQUAL(compomer_map[c2], 1); // c2 == c1, so should get same value
+  TEST_EQUAL(compomer_map[c3], 3);
+
+  // Test empty Compomer hash
+  Compomer empty1;
+  Compomer empty2;
+  TEST_EQUAL(std::hash<Compomer>{}(empty1), std::hash<Compomer>{}(empty2));
+}
+END_SECTION
+
+START_SECTION((double getSideMass(UInt side) const))
+{
+  // empty compomer has zero mass on both sides
+  Compomer c;
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::LEFT), 0.0);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::RIGHT), 0.0);
+
+  // single adduct on right side
+  Adduct a1(1, 2, 10.5, "Na", -0.3, 0);
+  c.add(a1, Compomer::RIGHT);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::RIGHT), 2 * 10.5); // amount * singleMass
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::LEFT), 0.0);
+
+  // add adduct on left side
+  Adduct a2(1, 3, 1.008, "H", -0.1, 0);
+  c.add(a2, Compomer::LEFT);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::LEFT), 3 * 1.008);
+  TEST_REAL_SIMILAR(c.getSideMass(Compomer::RIGHT), 2 * 10.5);
+
+  // invalid side throws
+  TEST_EXCEPTION(Exception::InvalidValue, c.getSideMass(Compomer::BOTH));
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

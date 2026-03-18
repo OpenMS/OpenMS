@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -8,6 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
@@ -194,8 +195,8 @@ protected:
     std::vector<std::pair<double, double> > pairs;
     for (Size i = 0; i < file_list.size(); ++i)
     {
-      boost::shared_ptr<MapType> swath_map (new MapType()); // the map with the extracted ion chromatograms
-      boost::shared_ptr<MapType> xic_map (new MapType());
+      std::shared_ptr<MapType> swath_map (new MapType()); // the map with the extracted ion chromatograms
+      std::shared_ptr<MapType> xic_map (new MapType());
       FeatureMap featureFile;
       std::cout << "RT Normalization working on " << file_list[i] << std::endl;
       FileHandler().loadExperiment(file_list[i], *xic_map.get(), {FileTypes::MZML}, log_type_);

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -27,14 +27,10 @@ namespace OpenMS
   class OPENMS_DLLAPI File
   {
 public:
-
-    friend class TOPPBase;
-
     /**
       @brief Class representing a temporary directory
     
     */
-
     class OPENMS_DLLAPI TempDir
     {
     public:
@@ -86,10 +82,10 @@ public:
        If the target already exists (and is not identical to the source),
        this function will fail unless @p overwrite_existing is true.
        
-       @param from Source filename
-       @param to Target filename
-       @param overwrite_existing Delete already existing target, before renaming
-       @param verbose Print message to OPENMS_LOG_ERROR if something goes wrong.
+       @param[in] from Source filename
+       @param[in] to Target filename
+       @param[in] overwrite_existing Delete already existing target, before renaming
+       @param[in] verbose Print message to OPENMS_LOG_ERROR if something goes wrong.
        @return True on success
     */
     static bool rename(const String& from, const String& to, bool overwrite_existing = true, bool verbose = true);
@@ -105,13 +101,16 @@ public:
        SKIP: Skip the file in the target directory if it already exists.
        CANCEL: Cancel the copy process if file already exists in target directory - return false.
 
-       @param from_dir Source directory
-       @param to_dir Target directory
-       @param option Specify the copy option (OVERWRITE, SKIP, CANCEL)
+       @param[in] from_dir Source directory
+       @param[in] to_dir Target directory
+       @param[in] option Specify the copy option (OVERWRITE, SKIP, CANCEL)
        @return True on success
     */
     enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
     static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
+
+    /// Copy a file (if it exists). Returns true if successful.
+    static bool copy(const String& from, const String& to);
 
     /**
       @brief Removes a file (if it exists).
@@ -125,6 +124,10 @@ public:
 
     /// Removes the directory and all subdirectories (absolute path).
     static bool removeDir(const QString& dir_name);
+
+    /// Creates a directory (absolute path or relative to the current working dir), even if subdirectories do not exist. Returns true if successful.
+    /// If the path already exists when this function is called, it will return true.
+    static bool makeDir(const String& dir_name);
 
     /// Replaces the relative path in the argument with the absolute path.
     static String absolutePath(const String& file);
@@ -180,7 +183,7 @@ public:
       this call fails, try the web documentation
       (http://www.openms.de/current_doxygen/) instead.
      
-      @param filename The doc file name to find.
+      @param[in] filename The doc file name to find.
       @return The full path to the requested file.
 
       @exception FileNotFound is thrown, if the file is not found
@@ -190,7 +193,7 @@ public:
     /**
       @brief Returns a string, consisting of date, time, hostname, process id, and a incrementing number. This can be used for temporary files.
 
-      @param include_hostname add hostname into result - potentially a long string
+      @param[in] include_hostname add hostname into result - potentially a long string
       @return a unique name
     */
     static String getUniqueName(bool include_hostname = true);
@@ -257,7 +260,7 @@ public:
     /**
       @brief Searches for an executable with the given name.
 
-      @param toolName The executable to search for.
+      @param[in] toolName The executable to search for.
       @exception FileNotFound is thrown, if the tool executable was not found.
     */
     static String findSiblingTOPPExecutable(const String& toolName);
@@ -275,41 +278,38 @@ public:
       Thus you can just call this function to get a file which can be used and gets automatically
       destroyed if needed.
 
-      @param alternative_file If this string is not empty, no action is taken and it is used as return value
+      @param[in] alternative_file If this string is not empty, no action is taken and it is used as return value
       @return Full path to a temporary file
     */
     static String getTemporaryFile(const String& alternative_file = "");
+
+
+    enum class MatchingFileListsStatus 
+    {
+        MATCH = 0,           // Everything matches perfectly
+        ORDER_MISMATCH = 1,  // Same set of files but in wrong order
+        SET_MISMATCH = 2     // Different sets of files (including size mismatch)
+    };
 
     /**
       @brief Helper function to test if filenames provided in two StringLists match.
 
       Passing several InputFilesLists is error-prone as users may provide files in a different order.
-      To check for common mistakes this helper function checks:
-      - if both file lists have the same length (returns false otherwise)
-      - if the content is the same and provided in exactly the same order (returns false otherwise)
+      This helper function performs validation and returns one of three states:
+      - MATCH (0): Files match perfectly (considering basename/extension settings)
+      - ORDER_MISMATCH (1): Same set of files but in different order
+      - SET_MISMATCH (2): Different sets of files (including different counts)
 
-      Note: Because workflow systems may assign file names randomly a non-strict comparison mode is enabled by default.      
-      Instead of the strict comparison (which returns false if there is a single mismatch), the non-strict comparison mode 
-      only returns false if the unique set of filenames match but some positions differ, i.e., only the order has been mixed up.
-
-      @param sl1 First StringList with filenames
-      @param sl2 Second StringList with filenames
-      @param basename If set to true, only basenames are compared
-      @param ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
-      @param strict If set to true, no mismatches (respecting basename and ignore_extension parameter) are allowed. 
-                    If set to false, only the order is compared if both share the same filenames.
-      @return False, if both StringLists are different (respecting the parameters)
+      @param[in] sl1 First StringList with filenames
+      @param[in] sl2 Second StringList with filenames
+      @param[in] basename If set to true, only basenames are compared
+      @param[in] ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
+      @return MatchingFileListsStatus indicating the validation result
     */
-    static bool validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename = true, bool ignore_extension = true, bool strict = false);
-
-    /**
-      @brief Download file from given URL into a download folder. Returns when done.
-      
-      If a file with same filename already exists, continues download and appends '.\#number' to basename.
-      
-      @throw FileNotFound exception if download failed. 
-    */
-    static void download(const std::string& url, const std::string& download_folder);
+    static MatchingFileListsStatus validateMatchingFileNames(const StringList& sl1, 
+                                                       const StringList& sl2, 
+                                                       bool basename = true, 
+                                                       bool ignore_extension = true);
 
 private:
 

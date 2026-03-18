@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 
@@ -34,8 +35,6 @@ namespace OpenMS
     One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in
     PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
     hits are connected via a string identifier. We use the search engine and the date as identifier.
-
-    @note This format will eventually be replaced by the HUPO-PSI (mzIdentML and mzQuantML)) AnalysisXML formats!
 
     @ingroup FileIO
   */
@@ -61,7 +60,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
+    void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids);
 
     /**
         @brief Loads the identifications of an idXML file
@@ -72,7 +71,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, String& document_id);
+    void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, String& document_id);
 
     /**
         @brief Stores the data in an idXML file
@@ -82,7 +81,7 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id = "");
+    void store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const String& document_id = "");
 
 
 protected:
@@ -131,7 +130,7 @@ protected:
     /// Pointer to fill in protein identifications
     std::vector<ProteinIdentification>* prot_ids_;
     /// Pointer to fill in peptide identifications
-    std::vector<PeptideIdentification>* pep_ids_;
+    PeptideIdentificationList* pep_ids_;
     /// Pointer to last read object with MetaInfoInterface
     MetaInfoInterface* last_meta_;
     /// Search parameters map (key is the "id")

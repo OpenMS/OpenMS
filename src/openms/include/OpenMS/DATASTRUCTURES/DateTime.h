@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,17 +9,19 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <functional>
 #include <memory> // unique_ptr
 #include <string>
 
 // foward declarations
-class QDateTime; 
+class QDateTime;
 
 namespace OpenMS
 {
-  class String;
 
   /**
       @brief DateTime Class.
@@ -137,7 +139,7 @@ public:
     */
     void getTime(UInt& hour, UInt& minute, UInt& second) const;
 
-    // add @param s seconds to date time
+    // add @param[in] s seconds to date time
     DateTime& addSecs(int s);
 
     /**
@@ -150,6 +152,9 @@ public:
     /// Returns the current date and time
     static DateTime now();
 
+    /// Returns the current date and time in UTC
+    static DateTime nowUTC();
+
     /// Returns true if the date time is valid
     bool isValid() const;
 
@@ -160,12 +165,12 @@ public:
     void clear();
 
     /* @brief Returns a string representation of the DateTime object.
-       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
+       @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
 	  String toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
 
     /* @brief Creates a DateTime object from string representation.
-       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
+       @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
       static DateTime fromString(const std::string& date, const std::string& format = "yyyy-MM-ddThh:mm:ss");
 
@@ -195,4 +200,21 @@ public:
       std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid costly #include
   };
 
-} // namespace OPENMS
+} // namespace OpenMS
+
+// Hash function specialization for DateTime
+namespace std
+{
+  template<>
+  struct hash<OpenMS::DateTime>
+  {
+    std::size_t operator()(const OpenMS::DateTime& dt) const noexcept
+    {
+      // Hash the date/time components including milliseconds to match operator==
+      // (which compares the underlying QDateTime including milliseconds)
+      // Use toString with millisecond format and convert to std::string for hashing
+      std::string datetime_str = dt.toString("yyyy-MM-ddThh:mm:ss.zzz");
+      return OpenMS::fnv1a_hash_string(datetime_str);
+    }
+  };
+} // namespace std

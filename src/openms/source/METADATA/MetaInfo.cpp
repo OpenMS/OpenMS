@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -25,6 +25,56 @@ namespace OpenMS
   bool MetaInfo::operator!=(const MetaInfo& rhs) const
   {
     return !(operator==(rhs));
+  }
+
+  MetaInfo& MetaInfo::operator+=(const MetaInfo& rhs)
+  {
+    if (rhs.index_to_value_.empty()) return *this;
+    if (index_to_value_.empty())
+    {
+      index_to_value_ = rhs.index_to_value_;
+      return *this;
+    }
+
+    // Two-way merge into vector, then construct flat_map from sorted range
+    using pair_type = MapType::value_type;
+    std::vector<pair_type> merged;
+    merged.reserve(index_to_value_.size() + rhs.index_to_value_.size());
+
+    auto it_this = index_to_value_.begin();
+    auto end_this = index_to_value_.end();
+    auto it_rhs = rhs.index_to_value_.begin();
+    auto end_rhs = rhs.index_to_value_.end();
+
+    // Merge with deduplication: rhs values overwrite
+    while (it_this != end_this && it_rhs != end_rhs)
+    {
+      if (it_this->first < it_rhs->first)
+      {
+        merged.push_back(*it_this++);
+      }
+      else if (it_rhs->first < it_this->first)
+      {
+        merged.push_back(*it_rhs++);
+      }
+      else
+      {
+        // Equal keys: rhs value overwrites
+        merged.push_back(*it_rhs++);
+        ++it_this;
+      }
+    }
+    // Append remaining elements efficiently
+    merged.insert(merged.end(), it_this, end_this);
+    merged.insert(merged.end(), it_rhs, end_rhs);
+
+    // Construct flat_map from sorted range using move semantics
+    index_to_value_ = MapType(
+      boost::container::ordered_unique_range,
+      std::make_move_iterator(merged.begin()),
+      std::make_move_iterator(merged.end())
+    );
+    return *this;
   }
 
   const DataValue& MetaInfo::getValue(const String& name, const DataValue& default_value) const
