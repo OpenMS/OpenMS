@@ -18,6 +18,7 @@
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
+#include <QFile>
 #include <QMessageBox>
 #include <QProcess>
 #include <QProgressDialog>
@@ -163,8 +164,8 @@ namespace OpenMS
                          getOSWExe(),
                          {"-ini", tmp_ini,
                           "-in", mzML,
-                          "-out_osw", getCurrentOutDir_() + "/" + infileToOSW(mzML),
-                          "-out_chrom", getCurrentOutDir_() + "/" + infileToChrom(mzML)},
+                          "-out_osw", String(getCurrentOutDir_().toStdString()) + "/" + infileToOSW(mzML),
+                          "-out_chrom", String(getCurrentOutDir_().toStdString()) + "/" + infileToChrom(mzML)},
                          "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS) break;
@@ -464,8 +465,8 @@ namespace OpenMS
       // first - copy all original osw files, since augmenting them once with model information will lead to crashes when doing a second run on them
       for (int i = 0; i < osws_orig.size(); ++i)
       {
-        QFile::remove(osws[i]); // copy() will not overwrite existing files :/
-        QFile::copy(osws_orig[i], osws[i]);
+        QFile::remove(osws[i].toQString()); // copy() will not overwrite existing files :/
+        QFile::copy(osws_orig[i].toQString(), osws[i].toQString());
       }
 
       int step = 0;
@@ -510,7 +511,7 @@ namespace OpenMS
         QMessageBox::information(this, "Error", "No files are selected from the list above! Make sure to select mzML files in the 'LC-MS files' tab first.");
         return;
       }
-      if (size_t(tbl.rowCount()) != raw_files.size() || tbl.rowCount() != osw_files.count())
+      if (size_t(tbl.rowCount()) != raw_files.size() || size_t(tbl.rowCount()) != osw_files.size())
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Something went wrong in populating the input file window");
       }
@@ -519,7 +520,7 @@ namespace OpenMS
         if (tbl.item(i, 0)->checkState() == Qt::CheckState::Checked)
         {
           ++selected_rows;
-          args << infileToChrom(raw_files[i]).toQString() << "!" << osw_files[i];
+          args << infileToChrom(raw_files[i]).toQString() << "!" << osw_files[i].toQString();
           if (!File::exists(osw_files[i])) missing_osw_files << File::basename(osw_files[i]).toQString();
         }
       }
