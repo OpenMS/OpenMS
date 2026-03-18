@@ -70,7 +70,7 @@ namespace OpenMS
         integer_part = formatted;
       }
 
-      return (negative ? "-" : "") + integer_part + fractional_part;
+      return std::string(negative ? "-" : "") + integer_part + fractional_part;
     }
   }
 
