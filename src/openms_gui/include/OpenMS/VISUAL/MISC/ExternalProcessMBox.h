@@ -15,6 +15,8 @@
 
 #include <vector>
 
+class QWidget;
+
 namespace OpenMS
 {
 
