@@ -77,7 +77,7 @@ namespace OpenMS
   String DimBase::formattedValue(const ValueType value) const
   {
     // Format with group separators (commas) to better visualize large numbers
-    return String(this->getDimNameShort()) + ": " + formatWithGroupSeparators(value, valuePrecision());
+    return String(this->getDimNameShort()) + ": " + String(formatWithGroupSeparators(value, valuePrecision()));
   }
 
   String DimBase::formattedValue(const ValueType value, const String& prefix) const
