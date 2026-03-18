@@ -14,6 +14,8 @@
 
 #include <boost/regex.hpp>
 
+#include <set>
+
 namespace OpenMS
 {
   /**
@@ -26,6 +28,29 @@ namespace OpenMS
   class OPENMS_DLLAPI RNaseDigestion: public EnzymaticDigestion
   {
   public:
+      using ConstRibonucleotidePtr = const Ribonucleotide*;
+
+      /// Detailed digestion product including sequence and parent coordinates
+      struct DigestionProduct
+      {
+         NASequence fragment;
+         std::pair<Size, Size> position;
+      };
+
+      /// Cleavage-sensitive modification groups split by cleavage direction
+      struct CleavageSensitiveModGroups
+      {
+         std::set<ConstRibonucleotidePtr> cuts_before_sensitive;
+         std::set<ConstRibonucleotidePtr> cuts_after_sensitive;
+
+         std::set<ConstRibonucleotidePtr> combined() const
+         {
+            std::set<ConstRibonucleotidePtr> all = cuts_before_sensitive;
+            all.insert(cuts_after_sensitive.begin(), cuts_after_sensitive.end());
+            return all;
+         }
+      };
+
     /// Sets the enzyme for the digestion
     void setEnzyme(const DigestionEnzyme* enzyme) override;
 
@@ -40,13 +65,47 @@ namespace OpenMS
     void digest(const NASequence& rna, std::vector<NASequence>& output,
                 Size min_length = 0, Size max_length = 0) const;
 
-      /**
-         @brief Returns the positions of digestion products in the RNA as pairs: (start, length)
+    /**
+       @brief Performs the enzymatic digestion of a RNA and returns fragments with parent coordinates
 
-         This is useful when callers need to associate digested fragments with parent coordinates.
-      */
-      std::vector<std::pair<Size, Size>> getFragmentPositions(
-         const NASequence& rna, Size min_length = 0, Size max_length = 0) const;
+       Only fragments of appropriate length (between @p min_length and @p max_length) are returned.
+       Enzyme-specific terminal gains are applied to the reported fragment sequences.
+    */
+    void digest(const NASequence& rna, std::vector<DigestionProduct>& output,
+                Size min_length = 0, Size max_length = 0) const;
+
+    /**
+       @brief Returns the positions of digestion products in the RNA as pairs: (start, length)
+
+       This is useful when callers need to associate digested fragments with parent coordinates.
+    */
+    std::vector<std::pair<Size, Size>> getFragmentPositions(
+      const NASequence& rna, Size min_length = 0, Size max_length = 0) const;
+
+    /**
+       @brief Infer which variable modifications can block cleavage for the configured enzyme
+
+       A modification is classified as cleavage-sensitive if its origin residue matches the
+       enzyme cleavage regex at a boundary position, but the modified residue code no longer matches.
+    */
+    CleavageSensitiveModGroups inferCleavageSensitiveMods(
+      const std::set<ConstRibonucleotidePtr>& variable_modifications) const;
+
+    /**
+       @brief Digest RNA while allowing cleavage-sensitive modifications to block adjacent cuts
+
+       Starting from the regular digest fragments, additional fragments are generated recursively by
+       applying cleavage-sensitive modifications at fragment boundaries. The number of such applied
+       modifications is limited by @p max_sensitive_mods_per_fragment. Enzyme terminal gains are
+       applied to all returned fragment sequences.
+    */
+    void digestWithCleavageSensitiveMods(
+      const NASequence& rna,
+      const CleavageSensitiveModGroups& cleavage_sensitive_mods,
+      Size max_sensitive_mods_per_fragment,
+      std::vector<DigestionProduct>& output,
+      Size min_length = 0,
+      Size max_length = 0) const;
 
     /**
        @brief Performs the enzymatic digestion of all RNA parent sequences in @p IdentificationData
@@ -69,6 +128,11 @@ namespace OpenMS
     std::vector<std::pair<Size, Size>> getFragmentPositions_(
       const NASequence& rna, Size min_length, Size max_length)
       const;
+
+      /// Apply enzyme-specific 5'/3' terminal gains to a fragment based on its parent coordinates
+      void applyTerminalGains_(NASequence& fragment,
+                         const std::pair<Size, Size>& pos,
+                         Size parent_size) const;
   };
 
 } // namespace OpenMS
