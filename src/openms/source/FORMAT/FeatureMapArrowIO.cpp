@@ -511,7 +511,7 @@ namespace // anonymous
       OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to open file: " << filename << std::endl;
       return false;
     }
-    auto outfile = *result;
+    const auto& outfile = *result;
 
     // Configure Parquet writer
     auto builder = parquet::WriterProperties::Builder();
@@ -589,7 +589,7 @@ namespace // anonymous
       OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to open file: " << filename << std::endl;
       return nullptr;
     }
-    auto infile = *infile_result;
+    const auto& infile = *infile_result;
 
     auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
     if (!reader_result.ok())
@@ -1247,7 +1247,7 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
     OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to combine chunks" << std::endl;
     return false;
   }
-  auto tbl = *combined_result;
+  const auto& tbl = *combined_result;
 
   int64_t num_rows = tbl->num_rows();
   if (num_rows == 0)
@@ -1403,7 +1403,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to combine chunks in importPSMsFromArrow" << std::endl;
     return false;
   }
-  auto tbl = *combined_result;
+  const auto& tbl = *combined_result;
   int64_t num_rows = tbl->num_rows();
 
   // Build feature lookup: unique_id -> Feature* (recursively includes subordinates)

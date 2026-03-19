@@ -1376,7 +1376,7 @@ namespace OpenMS::Internal
         const MSChromatogram& chrom = chroms[k];
         insert_chrom_sql << "INSERT INTO CHROMATOGRAM (ID, RUN_ID, NATIVE_ID) VALUES (" << chrom_id_ << "," << run_id_ << ",'" << chrom.getNativeID() << "'); ";
 
-        OpenMS::Precursor prec = chrom.getPrecursor();
+        const OpenMS::Precursor& prec = chrom.getPrecursor();
         // see src/openms/include/OpenMS/METADATA/Precursor.h for activation modes
         int activation_method = -1;
         if (!prec.getActivationMethods().empty() )
@@ -1407,7 +1407,7 @@ namespace OpenMS::Internal
             "," << activation_method << "); ";
         }
 
-        OpenMS::Product prod = chrom.getProduct();
+        const OpenMS::Product& prod = chrom.getProduct();
         insert_product_sql << "INSERT INTO PRODUCT (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " << 
           "ISOLATION_LOWER, ISOLATION_UPPER) VALUES (" << 
           chrom_id_ << "," << 0 << "," << prod.getMZ() << 

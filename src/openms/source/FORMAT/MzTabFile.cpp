@@ -672,25 +672,25 @@ namespace OpenMS
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "protein")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_protein[n] = s;
       }
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "peptide")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_peptide[n] = s;
       }
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "psm")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_psm[n] = s;
       }
       else if (meta_key.hasPrefix("colunit") && meta_key_fields[1] == "small_molecule")
       {
         Int n = meta_key_fields[0].substitute("colunit[", "").substitute("]","").trim().toInt();
-        String s = cells[2];
+        const String& s = cells[2];
         mz_tab_metadata.colunit_small_molecule[n] = s;
       }
     }

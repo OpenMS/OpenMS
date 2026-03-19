@@ -1263,7 +1263,7 @@ namespace OpenMS
       at.colTypes.emplace_back("MS:1000894_[sec]");
       at.colTypes.emplace_back("MS:1000285");
       Size below_10k = 0;
-      std::vector<OpenMS::Chromatogram> chroms = exp.getChromatograms();
+      const std::vector<OpenMS::Chromatogram>& chroms = exp.getChromatograms();
       if (!chroms.empty()) //real TIC from the mzML
       {
         for (Size t = 0; t < chroms.size(); ++t)
@@ -1687,7 +1687,7 @@ namespace OpenMS
             }
             for (const Residue& z : tmp.getSequence())
             {
-              Residue res = z;
+              const Residue& res = z;
               String temp;
               if (res.isModified() && res.getModificationName() != "Carbamidomethyl")
               {
@@ -1948,7 +1948,7 @@ namespace OpenMS
           for (ConsensusFeature::const_iterator cfit = CF.begin(); cfit != CF.end(); ++cfit)
           {
             std::vector<String> row;
-            FeatureHandle FH = *cfit;
+            const FeatureHandle& FH = *cfit;
             row.emplace_back(CF.getMetaValue("spectrum_native_id"));
             row.emplace_back(CF.getRT()); row.emplace_back(CF.getMZ());
             row.emplace_back(CF.getIntensity());

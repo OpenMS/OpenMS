@@ -221,7 +221,7 @@ namespace OpenMS
       auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
       if (ra_res.ok())
       {
-        auto raf = ra_res.ValueOrDie();
+        const auto& raf = ra_res.ValueOrDie();
         return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
       }
       // Fallback to extract

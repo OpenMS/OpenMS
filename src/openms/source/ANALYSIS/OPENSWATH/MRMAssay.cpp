@@ -603,7 +603,7 @@ namespace OpenMS
     { 
       setProgress(progress++);
 
-      TargetedExperiment::Peptide peptide = exp.getPeptideByRef(pep_it.first);
+      const TargetedExperiment::Peptide& peptide = exp.getPeptideByRef(pep_it.first);
       int precursor_charge = 1;
       if (peptide.hasCharge()) 
       {
@@ -768,7 +768,7 @@ namespace OpenMS
     {
       String peptide_ref = pep_it->first;
 
-      TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
+      const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
 
       int precursor_charge = 1;
@@ -1182,7 +1182,7 @@ namespace OpenMS
         String potential_target = current_decoy;
         potential_target.erase(potential_target.find(decoy_suffix), decoy_suffix.size());
         descriptions_decoys.emplace_back(potential_target);
-        reference_decoys.emplace_back(std::make_pair(current_decoy, potential_target));
+        reference_decoys.emplace_back(current_decoy, potential_target);
       }
       else
       {

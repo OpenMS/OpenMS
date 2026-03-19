@@ -18,14 +18,14 @@ namespace OpenMS
 NuXLMarkerIonExtractor::MarkerIonsType NuXLMarkerIonExtractor::extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance)
 {
   MarkerIonsType marker_ions;
-  marker_ions["A"].push_back(make_pair(136.06231, 0.0));
-  marker_ions["A"].push_back(make_pair(330.06033, 0.0));
-  marker_ions["C"].push_back(make_pair(112.05108, 0.0));
-  marker_ions["C"].push_back(make_pair(306.04910, 0.0));
-  marker_ions["G"].push_back(make_pair(152.05723, 0.0));
-  marker_ions["G"].push_back(make_pair(346.05525, 0.0));
-  marker_ions["U"].push_back(make_pair(113.03509, 0.0));
-  marker_ions["U"].push_back(make_pair(307.03311, 0.0));
+  marker_ions["A"].emplace_back(136.06231, 0.0);
+  marker_ions["A"].emplace_back(330.06033, 0.0);
+  marker_ions["C"].emplace_back(112.05108, 0.0);
+  marker_ions["C"].emplace_back(306.04910, 0.0);
+  marker_ions["G"].emplace_back(152.05723, 0.0);
+  marker_ions["G"].emplace_back(346.05525, 0.0);
+  marker_ions["U"].emplace_back(113.03509, 0.0);
+  marker_ions["U"].emplace_back(307.03311, 0.0);
 
   PeakSpectrum spec(s);
   Normalizer normalizer;

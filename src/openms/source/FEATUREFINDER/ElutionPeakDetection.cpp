@@ -49,7 +49,7 @@ namespace OpenMS
   {
     // compute RMSE
     double squared_sum(0.0);
-    std::vector<double> smooth_ints(tr.getSmoothedIntensities());
+    const std::vector<double>& smooth_ints(tr.getSmoothedIntensities());
 
     for (Size i = 0; i < smooth_ints.size(); ++i)
     {

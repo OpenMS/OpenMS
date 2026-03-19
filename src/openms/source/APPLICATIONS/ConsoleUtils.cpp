@@ -179,7 +179,7 @@ namespace OpenMS
     if (input.back() == '\n')
     { // last char input was a linebreak (which would put the cursor at column 0 in the next line)
       // --> but we want indentation!
-      result.push_back(String(indentation, ' '));
+      result.emplace_back(indentation, ' ');
     }
 
     if (result.size() > max_lines) // remove lines from end if we get too many (but leave the last one)...

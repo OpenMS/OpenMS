@@ -1025,7 +1025,7 @@ namespace OpenMS
     StringList defaults;
 
     if (p.type == ParameterInformation::STRING)
-      defaults.push_back(String(p.default_value.toString()));
+      defaults.emplace_back(p.default_value.toString());
     else
       defaults = ListUtils::toStringList<std::string>(p.default_value);
 
@@ -1413,7 +1413,7 @@ namespace OpenMS
     // check if all input files are readable
     if (p.type == ParameterInformation::INPUT_FILE_LIST)
     {
-      for (String t : param_value)
+      for (const String& t : param_value)
       {
         if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(t, param_name);
 
@@ -2597,7 +2597,7 @@ namespace OpenMS
           // which is the LAST occurrence on the command line.
           if (cmd_params.exists(pos->second->name))
           {
-            ParamValue existing_value = cmd_params.getValue(pos->second->name);
+            const ParamValue& existing_value = cmd_params.getValue(pos->second->name);
             writeLogWarn_(String("Warning: Duplicate parameter '") + arg + "' given. Using last occurrence with value '" + String(existing_value.toString()) + "' (ignoring '" + String(value.toString()) + "').");
           }
           else
