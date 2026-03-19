@@ -319,6 +319,11 @@ namespace OpenMS
   String File::absolutePath(const String& file)
   {
     if (file.empty()) return fs::current_path().generic_string();
+#ifdef OPENMS_WINDOWSPLATFORM
+    // On Windows, paths starting with '/' are treated as absolute by Qt
+    // but fs::absolute() prepends the current drive letter. Preserve Qt behavior.
+    if (file[0] == '/') return file;
+#endif
     return fs::absolute(to_path(file)).generic_string();
   }
 
