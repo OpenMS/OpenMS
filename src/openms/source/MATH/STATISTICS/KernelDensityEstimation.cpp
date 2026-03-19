@@ -240,7 +240,7 @@ namespace OpenMS
 
       // M = 2^ceil(log2(max(gridsize, n, 512)))
       std::size_t target = std::max<std::size_t>(gridsize, std::max<std::size_t>(n, 512));
-      std::size_t M = std::__bit_ceil(target);
+      std::size_t M = std::bit_ceil(target);
 
       // compute a,b
       double a = 0.0, b = 0.0;
