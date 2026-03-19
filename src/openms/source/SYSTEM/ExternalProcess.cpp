@@ -23,6 +23,10 @@
 #include <chrono>
 #include <utility>
 
+#ifndef _WIN32
+#include <sys/wait.h> // for WIFSIGNALED
+#endif
+
 namespace bp = boost::process;
 
 namespace OpenMS
@@ -181,11 +185,12 @@ namespace OpenMS
 #ifdef _WIN32
         // On Windows, abnormal termination often results in specific exit codes
         // like 0xC0000005 (access violation), etc.
-        if (exit_code < 0 || static_cast<unsigned int>(exit_code) > 0x80000000u)
+        bool crashed = (exit_code < 0 || static_cast<unsigned int>(exit_code) > 0x80000000u);
 #else
-        // On POSIX, signals cause exit_code to encode the signal (boost::process sets native_exit_code)
-        if (child.native_exit_code() != 0 && exit_code != child.native_exit_code())
+        // On POSIX, use waitpid status macros on the native exit code
+        bool crashed = WIFSIGNALED(child.native_exit_code());
 #endif
+        if (crashed)
         {
           error_msg = "Process '" + exe + "' crashed hard (segfault-like). Please check the log.";
           if (verbose)
