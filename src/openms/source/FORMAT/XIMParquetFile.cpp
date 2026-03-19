@@ -49,7 +49,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to open parquet file", filename);
       }
-      std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+      const std::shared_ptr<arrow::io::ReadableFile>& infile = *infile_result;
 
       auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
       if (!reader_result.ok())
@@ -86,7 +86,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to open parquet file", filename);
       }
-      std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+      const std::shared_ptr<arrow::io::ReadableFile>& infile = *infile_result;
 
       auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
       if (!reader_result.ok())
@@ -138,7 +138,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Failed to open parquet file", filename);
       }
-      std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+      const std::shared_ptr<arrow::io::ReadableFile>& infile = *infile_result;
 
       auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
       if (!reader_result.ok())
@@ -529,7 +529,7 @@ namespace OpenMS
             tokens.push_back(current);
             current.clear();
           }
-          tokens.emplace_back(String(c));
+          tokens.emplace_back(c);
           continue;
         }
 
@@ -1224,7 +1224,7 @@ namespace OpenMS
       paths.reserve(filenames.size());
       for (const auto& filename : filenames)
       {
-        paths.emplace_back(std::string(filename));
+        paths.emplace_back(filename);
       }
       auto factory_result = arrow::dataset::FileSystemDatasetFactory::Make(
         filesystem, paths, format, options);
@@ -1324,7 +1324,7 @@ namespace OpenMS
                         << bound_result.status().ToString() << '\n';
         return applyManualFilter_(table, pruned, filter_context);
       }
-      arrow::compute::Expression bound_expr = *bound_result;
+      const arrow::compute::Expression& bound_expr = *bound_result;
 
       arrow::TableBatchReader reader(*table);
       std::vector<std::shared_ptr<arrow::RecordBatch>> batches;

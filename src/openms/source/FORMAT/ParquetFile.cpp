@@ -58,7 +58,7 @@ namespace OpenMS
     {
       throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
-    auto outfile = outfile_result.ValueOrDie();
+    const auto& outfile = outfile_result.ValueOrDie();
     // Use a larger default row_group_size than 1024 to improve compression and reduce metadata overhead.
     // Default is configurable by callers via the row_group_size parameter.
     auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, static_cast<int>(row_group_size));
@@ -77,7 +77,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Failed to open parquet file", filename);
     }
-    std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+    const std::shared_ptr<arrow::io::ReadableFile>& infile = *infile_result;
 
     auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
     if (!reader_result.ok())

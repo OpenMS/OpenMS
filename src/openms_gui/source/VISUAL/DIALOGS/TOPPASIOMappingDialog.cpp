@@ -124,7 +124,7 @@ namespace OpenMS
         ui_->source_type_label->setVisible(false);
       }
       ui_->source_combo->addItem("<select>");
-      for (TOPPASToolVertex::IOInfo info : source_output_files)
+      for (const TOPPASToolVertex::IOInfo& info : source_output_files)
       {
         if (info.type == TOPPASToolVertex::IOInfo::IOT_DIR) continue;
         String item_name;
@@ -177,7 +177,7 @@ namespace OpenMS
         ui_->target_type_label->setVisible(false);
       }
       ui_->target_combo->addItem("<select>");
-      for (TOPPASToolVertex::IOInfo info : target_input_files)
+      for (const TOPPASToolVertex::IOInfo& info : target_input_files)
       {
         // check if parameter occupied by another edge already
         bool occupied = false;

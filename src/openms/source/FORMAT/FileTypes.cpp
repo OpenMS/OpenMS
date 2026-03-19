@@ -155,7 +155,7 @@ namespace OpenMS
       good_types.erase(std::remove_if(good_types.begin(), good_types.end(),[i](auto j) { return (std::find(j.features.begin(),j.features.end(),i) == j.features.end()); }), good_types.end());
     }
     
-    for (auto t : good_types)
+    for (const auto& t : good_types)
     {
       compatible.push_back(t.type);
     }

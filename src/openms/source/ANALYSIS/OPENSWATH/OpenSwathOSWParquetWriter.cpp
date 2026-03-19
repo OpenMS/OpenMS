@@ -877,7 +877,7 @@ namespace OpenMS
 
         for (Size i = 0; i < id_target_transition_names.size(); ++i)
         {
-          const String transition_name = id_target_transition_names[i];
+          const String& transition_name = id_target_transition_names[i];
           auto it = transition_to_id.find(transition_name);
           if (it == transition_to_id.end()) continue;
 
@@ -992,7 +992,7 @@ namespace OpenMS
 
         for (Size i = 0; i < id_decoy_transition_names.size(); ++i)
         {
-          const String transition_name = id_decoy_transition_names[i];
+          const String& transition_name = id_decoy_transition_names[i];
           auto it = transition_to_id.find(transition_name);
           if (it == transition_to_id.end()) continue;
 

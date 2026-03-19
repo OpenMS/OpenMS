@@ -602,7 +602,7 @@ namespace OpenMS
 
           float current_int = spec_it->getIntensity();
           double current_mz = spec_it->getMZ();
-          String current_explanation = explanation_array[peak_index];
+          const String& current_explanation = explanation_array[peak_index];
 
           // write row for each transition
           // current int has to be higher than transition threshold and should not be smaller than threshold noise

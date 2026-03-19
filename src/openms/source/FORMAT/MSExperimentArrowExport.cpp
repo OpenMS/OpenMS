@@ -1055,7 +1055,7 @@ bool MSExperimentArrowExport::exportSpectraToArrowCDataInterface(
                      << batch_result.status().ToString() << std::endl;
     return false;
   }
-  auto batch = batch_result.ValueOrDie();
+  const auto& batch = batch_result.ValueOrDie();
 
   // Export schema
   auto schema_status = arrow::ExportSchema(*batch->schema(), out_schema);
@@ -1106,7 +1106,7 @@ bool MSExperimentArrowExport::exportChromatogramsToArrowCDataInterface(
                      << batch_result.status().ToString() << std::endl;
     return false;
   }
-  auto batch = batch_result.ValueOrDie();
+  const auto& batch = batch_result.ValueOrDie();
 
   // Export schema
   auto schema_status = arrow::ExportSchema(*batch->schema(), out_schema);
@@ -1173,7 +1173,7 @@ bool writeTableToParquet(
                      << filename << " - " << file_result.status().ToString() << std::endl;
     return false;
   }
-  auto outfile = file_result.ValueOrDie();
+  const auto& outfile = file_result.ValueOrDie();
 
   // Configure Parquet writer properties
   auto builder = parquet::WriterProperties::Builder();

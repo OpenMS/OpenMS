@@ -22,7 +22,7 @@ void ChromatogramProcessor::pickExperiment(
 {
   OPENMS_LOG_INFO << "ChromatogramProcessor::pickExperiment() called with " << chromatograms.size() << " chromatograms." << std::endl;
   MRMFeatureFinderScoring featureFinder;
-  Param ffparam(feature_finder_param);
+  const Param& ffparam(feature_finder_param);
   featureFinder.setParameters(ffparam);
 
   // Prepare the data with the chromatograms
