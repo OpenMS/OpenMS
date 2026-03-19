@@ -149,12 +149,6 @@ START_SECTION((DataValue(const std::string&)))
   TEST_EQUAL((String)d, "test string")
 END_SECTION
 
-START_SECTION((DataValue(const QString&)))
-  QString s = "test string";
-  DataValue d(s);
-  TEST_EQUAL((String)d, "test string")
-END_SECTION
-
 START_SECTION((DataValue(const String&)))
   String s = "test string";
   DataValue d(s);
@@ -860,15 +854,6 @@ END_SECTION
 START_SECTION((DataValue& operator=(const String&)))
 {
   String v = "value";
-  DataValue a("v");
-  a = v;
-  TEST_EQUAL((String)a, "value")
-}
-END_SECTION
-
-START_SECTION((DataValue& operator=(const QString&)))
-{
-  QString v = "value";
   DataValue a("v");
   a = v;
   TEST_EQUAL((String)a, "value")

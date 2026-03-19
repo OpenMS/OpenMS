@@ -11,6 +11,9 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QString>
+#include <QStringList>
+
+#include <vector>
 
 namespace OpenMS
 {
@@ -24,5 +27,17 @@ namespace OpenMS
   inline QString toQString(const std::string& s)
   {
     return QString::fromStdString(s);
+  }
+
+  /// Convert QStringList to std::vector<String> (replaces StringListUtils::fromQStringList)
+  inline std::vector<String> fromQStringList(const QStringList& rhs)
+  {
+    std::vector<String> sl;
+    sl.reserve(rhs.size());
+    for (const auto& item : rhs)
+    {
+      sl.push_back(item.toStdString());
+    }
+    return sl;
   }
 } // namespace OpenMS

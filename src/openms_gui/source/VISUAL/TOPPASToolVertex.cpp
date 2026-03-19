@@ -558,7 +558,7 @@ namespace OpenMS
         {
           if (param_tmp.getValue(param_name).valueType() == ParamValue::STRING_LIST)
           {
-            param_tmp.setValue(param_name, ListUtils::create<std::string>(StringListUtils::fromQStringList(file_list)));
+            param_tmp.setValue(param_name, ListUtils::create<std::string>(fromQStringList(file_list)));
           }
           else
           {
@@ -566,7 +566,7 @@ namespace OpenMS
             {
               throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
             }
-            param_tmp.setValue(param_name, String(file_list[0]));
+            param_tmp.setValue(param_name, String(file_list[0].toStdString()));
           }
         }
       }
@@ -602,7 +602,7 @@ namespace OpenMS
         {
           if (param_tmp.getValue(param_name).valueType() == ParamValue::STRING_LIST)
           {
-            param_tmp.setValue(param_name, ListUtils::create<std::string>(StringListUtils::fromQStringList(output_files)));
+            param_tmp.setValue(param_name, ListUtils::create<std::string>(fromQStringList(output_files)));
           }
           else
           {
