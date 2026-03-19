@@ -1107,13 +1107,13 @@ namespace OpenMS
       if (current_tool->parent() != nullptr && current_tool->parent()->parent() != nullptr)
       {
         // selected item is a type
-        tool_type = String(current_tool->text(0));
-        tool_name = String(current_tool->parent()->text(0));
+        tool_type = String(current_tool->text(0).toStdString());
+        tool_name = String(current_tool->parent()->text(0).toStdString());
       }
       else
       {
         // normal tool which does not have type selected
-        tool_name = String(current_tool->text(0));
+        tool_name = String(current_tool->text(0).toStdString());
         tool_type = "";
       }
 
