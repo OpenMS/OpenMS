@@ -12,10 +12,20 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <boost/version.hpp>
+
+// Boost.Process v1 compatibility shims removed in Boost 1.88; use v1/ prefix for 1.88+
+#if BOOST_VERSION >= 108800
+#include <boost/process/v1/child.hpp>
+#include <boost/process/v1/args.hpp>
+#include <boost/process/v1/io.hpp>
+#include <boost/process/v1/search_path.hpp>
+#else
 #include <boost/process/child.hpp>
 #include <boost/process/args.hpp>
 #include <boost/process/io.hpp>
 #include <boost/process/search_path.hpp>
+#endif
 
 #include <string>
 
