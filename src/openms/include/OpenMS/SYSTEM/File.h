@@ -119,10 +119,10 @@ public:
     */
     static bool remove(const String& file);
 
-    /// Removes the subdirectories of the specified directory (absolute path). Returns true if successful.
+    /// Removes a directory and all its contents recursively (absolute path). Returns true if successful.
     static bool removeDirRecursively(const String& dir_name);
 
-    /// Removes the directory and all subdirectories (absolute path).
+    /// Removes an empty directory. Returns false if the directory is not empty or cannot be removed.
     static bool removeDir(const String& dir_name);
 
     /// Creates a directory (absolute path or relative to the current working dir), even if subdirectories do not exist. Returns true if successful.

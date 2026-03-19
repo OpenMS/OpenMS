@@ -345,10 +345,7 @@ namespace OpenMS
 #ifdef OPENMS_WINDOWSPLATFORM
     return _access_s(file.c_str(), 4) == 0; // 4 = read permission
 #else
-    auto st = fs::status(p, ec);
-    if (ec) return false;
-    auto perms = st.permissions();
-    return (perms & (fs::perms::owner_read | fs::perms::group_read | fs::perms::others_read)) != fs::perms::none;
+    return access(file.c_str(), R_OK) == 0;
 #endif
   }
 
@@ -362,10 +359,7 @@ namespace OpenMS
 #ifdef OPENMS_WINDOWSPLATFORM
       return _access_s(file.c_str(), 2) == 0; // 2 = write permission
 #else
-      auto st = fs::status(p, ec);
-      if (ec) return false;
-      auto perms = st.permissions();
-      return (perms & (fs::perms::owner_write | fs::perms::group_write | fs::perms::others_write)) != fs::perms::none;
+      return access(file.c_str(), W_OK) == 0;
 #endif
     }
     else

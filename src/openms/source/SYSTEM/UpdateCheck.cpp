@@ -8,7 +8,6 @@
 
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/BuildInfo.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
