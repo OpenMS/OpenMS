@@ -43,7 +43,7 @@ namespace OpenMS
   {
     Param load_param;
     ParamXMLFile paramFile;
-    paramFile.load(String(file_name), load_param);
+    paramFile.load(String(file_name.toStdString()), load_param);
 
     for (Param::ParamIterator it = load_param.begin(); it != load_param.end(); ++it)
     {
@@ -91,7 +91,7 @@ namespace OpenMS
     }
 
     ParamXMLFile paramFile;
-    paramFile.store(String(file_name), save_param);
+    paramFile.store(String(file_name.toStdString()), save_param);
   }
 
   const QList<TOPPASResource>& TOPPASResources::get(const QString& key) const

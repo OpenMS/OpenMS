@@ -3054,7 +3054,7 @@ protected:
       QString executable = QString::fromStdString(getStringOption_("r_executable"));
       // convert path to absolute path
       QDir qc_dir(QString::fromStdString(qc_output_directory));
-      qc_output_directory = String(qc_dir.absolutePath());
+      qc_output_directory = String(qc_dir.absolutePath().toStdString());
 
       // trying to create qc_output_directory if not present
       if (!qc_dir.exists())
@@ -3267,7 +3267,7 @@ protected:
     vector<MapRateToScoreType> normalized_weight_maps;
     vector<MapRateToScoreType> correlation_maps;
 
-    String file_suffix = "_" + String(QFileInfo(QString::fromStdString(in_mzml)).baseName()) + "_" + String::random(4);
+    String file_suffix = "_" + String(QFileInfo(QString::fromStdString(in_mzml)).baseName().toStdString()) + "_" + String::random(4);
 
     vector<SIPPeptide> sip_peptides;
 

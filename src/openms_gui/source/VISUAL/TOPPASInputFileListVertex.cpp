@@ -93,7 +93,7 @@ namespace OpenMS
     std::set<std::string> unique_names;
     for (const QString& file : fl)
     {
-      if (!File::exists(file))
+      if (!File::exists(file.toStdString()))
       {
         return false;
       }
@@ -116,7 +116,7 @@ namespace OpenMS
     for (int i = 0; i < fl.size(); ++i) // collect unique directories
     {
       QFileInfo fi(fl[i]);
-      directories.insert(String(QFileInfo(fi.canonicalFilePath()).path()));
+      directories.insert(String(QFileInfo(fi.canonicalFilePath()).path().toStdString()));
     }
 
     // open them
@@ -173,7 +173,7 @@ namespace OpenMS
     setToolTip(files.join("\n"));
 
     // set current working dir when opening files to the last file
-    cwd_ = toQString(File::path(files.back()));
+    cwd_ = toQString(File::path(files.back().toStdString()));
   }
 
   void TOPPASInputFileListVertex::outEdgeHasChanged()

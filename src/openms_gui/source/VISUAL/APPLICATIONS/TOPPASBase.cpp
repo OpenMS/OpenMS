@@ -250,7 +250,7 @@ namespace OpenMS
     QDir qd(toQString(File::getTempDirectory()));
     qd.mkdir(new_tmp_dir);
     qd.cd(new_tmp_dir);
-    tmp_path_ = qd.absolutePath();
+    tmp_path_ = qd.absolutePath().toStdString();
 
 /* 
      QT5 replace with QWebEngine
@@ -384,20 +384,20 @@ namespace OpenMS
                                                      + "TOPPAS" + QDir::separator(),
                                                      tr("TOPPAS pipelines (*.toppas)"));
 
-    addTOPPASFile(file_name);
+    addTOPPASFile(file_name.toStdString());
   }
 
   void TOPPASBase::openFilesByDialog()
   {
     QString file_name = QFileDialog::getOpenFileName(this, tr("Open workflow"), toQString(current_path_), tr("TOPPAS pipelines (*.toppas)"));
 
-    addTOPPASFile(file_name);
+    addTOPPASFile(file_name.toStdString());
   }
 
   void TOPPASBase::includePipeline()
   {
     QString file_name = QFileDialog::getOpenFileName(this, tr("Include workflow"), toQString(current_path_), tr("TOPPAS pipelines (*.toppas)"));
-    addTOPPASFile(file_name, false);
+    addTOPPASFile(file_name.toStdString(), false);
   }
 
   void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
@@ -510,7 +510,7 @@ namespace OpenMS
       {
         file_name += ".toppas";
       }
-      if (!w->getScene()->store(file_name))
+      if (!w->getScene()->store(file_name.toStdString()))
       {
         QMessageBox::warning(this, tr("Error"),
                              tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
@@ -523,7 +523,7 @@ namespace OpenMS
       // update tab title
       if (savedFileName != "")
       {
-        tab_bar_->setTabText(toQString(File::basename(savedFileName)));
+        tab_bar_->setTabText(toQString(File::basename(savedFileName.toStdString())));
       }
     }
   }
@@ -534,7 +534,7 @@ namespace OpenMS
     QString file_name = TOPPASBase::savePipelineAs(w, toQString(current_path_));
     if (file_name != "")
     {
-      tab_bar_->setTabText(toQString(File::basename(file_name)));
+      tab_bar_->setTabText(toQString(File::basename(file_name.toStdString())));
     }
   }
 
@@ -553,12 +553,12 @@ namespace OpenMS
       {
         file_name += ".toppas";
       }
-      if (!w->getScene()->store(file_name))
+      if (!w->getScene()->store(file_name.toStdString()))
       {
         QMessageBox::warning(nullptr, tr("Error"),
                              tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
       }
-      QString caption = toQString(File::basename(file_name));
+      QString caption = toQString(File::basename(file_name.toStdString()));
       w->setWindowTitle(caption);
     }
     return file_name;
@@ -860,7 +860,7 @@ namespace OpenMS
   void TOPPASBase::loadPreferences(String filename)
   {
     //compose default ini file path
-    String default_ini_file = String(QDir::homePath()) + "/.TOPPAS.ini";
+    String default_ini_file = String(QDir::homePath().toStdString()) + "/.TOPPAS.ini";
 
     if (filename.empty())
     {
@@ -1061,7 +1061,7 @@ namespace OpenMS
 
     TOPPASScene* scene = activeSubWindow_()->getScene();
     QTreeWidgetItem* current_tool = item ? item : tools_tree_view_->currentItem();
-    String tool_name = String(current_tool->text(0));
+    String tool_name = String(current_tool->text(0).toStdString());
     TOPPASVertex* tv = nullptr;
 
     if (tool_name == "<Input files>")
@@ -1299,7 +1299,7 @@ namespace OpenMS
     QString file_name = TOPPASBase::refreshPipelineParameters(w, toQString(current_path_));
     if (file_name != "")
     {
-      tab_bar_->setTabText(toQString(File::basename(file_name)));
+      tab_bar_->setTabText(toQString(File::basename(file_name.toStdString())));
     }
   }
 
@@ -1384,7 +1384,7 @@ namespace OpenMS
 
   void TOPPASBase::openToppasFile(const QString& filename)
   {
-    addTOPPASFile(String(filename));
+    addTOPPASFile(filename.toStdString());
   }
 
 } //namespace OpenMS

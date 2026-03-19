@@ -87,7 +87,7 @@ namespace OpenMS
 
     if (!f.open(QIODevice::WriteOnly))
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(filename));
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(filename.toStdString()));
     }
     QTextStream ts(&f);
     QStringList str_list;

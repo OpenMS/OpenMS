@@ -71,7 +71,7 @@ namespace OpenMS
     // check if we can find the TOPPView.app
     app_path = toQString(File::getExecutablePath() + "../../../TOPPView.app");
 
-    if (File::exists(app_path))
+    if (File::exists(app_path.toStdString()))
     {
       // we found the app
       QStringList app_args;

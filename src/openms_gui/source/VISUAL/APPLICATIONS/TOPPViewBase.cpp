@@ -1486,7 +1486,7 @@ namespace OpenMS
   void TOPPViewBase::loadPreferences(String filename)
   {
     // compose default ini file path
-    String default_ini_file = String(QDir::homePath()) + "/.TOPPView.ini";
+    String default_ini_file = String(QDir::homePath().toStdString()) + "/.TOPPView.ini";
 
     bool tool_params_added = false;
 

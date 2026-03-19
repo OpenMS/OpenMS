@@ -407,7 +407,7 @@ namespace OpenMS
     }
     else 
     {
-      new_layer->setName(QFileInfo(toQString(filename)).completeBaseName());
+      new_layer->setName(QFileInfo(toQString(filename)).completeBaseName().toStdString());
     }
   }
 

@@ -61,8 +61,8 @@ namespace OpenMS
   String TOPPASOutputVertex::getFullOutputDirectory() const
   {
     TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-    auto dir = String(ts->getOutDir()).substitute("\\", "/").ensureLastChar('/') + getOutputDir();
-    String clean_dir = QDir::cleanPath(toQString(dir));
+    auto dir = String(ts->getOutDir().toStdString()).substitute("\\", "/").ensureLastChar('/') + getOutputDir();
+    String clean_dir = QDir::cleanPath(toQString(dir)).toStdString();
     return clean_dir.substitute("\\", "/").ensureLastChar('/');
   }
 
@@ -79,10 +79,10 @@ namespace OpenMS
       }
       const TOPPASVertex* tv = e->getSourceVertex();
       // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-      dir += get3CharsNumber_(topo_nr_) + "-" + tv->getName() + "-" + e->getSourceOutParamName().remove(':');
+      dir += get3CharsNumber_(topo_nr_) + "-" + tv->getName() + "-" + e->getSourceOutParamName().remove(':').toStdString();
     }
     else { 
-      dir += output_folder_name_;
+      dir += output_folder_name_.toStdString();
     }
     dir.ensureLastChar('/');
     return dir;

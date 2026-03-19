@@ -195,7 +195,7 @@ protected:
     QDirIterator it(QString::fromStdString(sirius_project_directory), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
     while (it.hasNext())
     {
-      subdirs.emplace_back(it.next());
+      subdirs.emplace_back(it.next().toStdString());
     }  
     OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
     if (subdirs.empty())

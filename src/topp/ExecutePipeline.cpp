@@ -131,7 +131,7 @@ protected:
         out_dir_name = QDir::currentPath() + QDir::separator() + out_dir_name;
       }
       out_dir_name = QDir::cleanPath(out_dir_name);
-      if (File::exists(out_dir_name) && File::isDirectory(out_dir_name))
+      if (File::exists(out_dir_name.toStdString()) && File::isDirectory(out_dir_name.toStdString()))
       {
         ts.setOutDir(out_dir_name);
       }
@@ -144,11 +144,11 @@ protected:
     else
     {
       QFileInfo fi(toQString(ts.getSaveFileName()));
-      out_dir_name = QDir::cleanPath(ts.getOutDir() + QDir::separator() + toQString(String(fi.baseName())) + QDir::separator());
+      out_dir_name = QDir::cleanPath(ts.getOutDir() + QDir::separator() + toQString(String(fi.baseName().toStdString())) + QDir::separator());
       cout << "No output directory specified. Using the user's home directory (" << out_dir_name.toStdString() << ")" << endl;
       ts.setOutDir(out_dir_name);
       QDir qd;
-      if (!(qd.exists(out_dir_name) || qd.mkdir(out_dir_name)) || !File::writable(out_dir_name + "test_file_in_the_current_directory"))
+      if (!(qd.exists(out_dir_name) || qd.mkdir(out_dir_name)) || !File::writable((out_dir_name + "test_file_in_the_current_directory").toStdString()))
       {
         cerr << "You do not have permission to write to " << out_dir_name.toStdString() << endl;
         return CANNOT_WRITE_OUTPUT_FILE;

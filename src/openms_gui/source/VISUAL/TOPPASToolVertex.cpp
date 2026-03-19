@@ -113,9 +113,9 @@ namespace OpenMS
     // allow for update using old parameters
     if (old_ini_file != "")
     {
-      if (!File::exists(old_ini_file))
+      if (!File::exists(old_ini_file.toStdString()))
       {
-        String msg = String("Could not open old INI file '") + old_ini_file + "'! File does not exist!";
+        String msg = String("Could not open old INI file '") + old_ini_file.toStdString() + "'! File does not exist!";
         if (getScene_() && getScene_()->isGUIMode())
         {
           QMessageBox::critical(nullptr, "Error", msg.c_str());
@@ -135,9 +135,9 @@ namespace OpenMS
     p.start(program, arguments);
     if (!p.waitForFinished(-1) || p.exitStatus() != 0 || p.exitCode() != 0)
     {
-      String msg = String("Error! Call to '") + program + "' '" + String(arguments.join("' '")) +
+      String msg = String("Error! Call to '") + program.toStdString() + "' '" + String(arguments.join("' '").toStdString()) +
           " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
-          "\noutput:\n" + String(QString(p.readAll())) +
+          "\noutput:\n" + String(QString(p.readAll()).toStdString()) +
           "\n";
       if (getScene_() && getScene_()->isGUIMode())
       {
@@ -150,9 +150,9 @@ namespace OpenMS
       tool_ready_ = false;
       return false;
     }
-    if (!File::exists(ini_file))
+    if (!File::exists(ini_file.toStdString()))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
-      String msg = String("Could not open '") + ini_file + "'! It does not exist!";
+      String msg = String("Could not open '") + ini_file.toStdString() + "'! It does not exist!";
       if (getScene_() && getScene_()->isGUIMode())
       {
         QMessageBox::critical(nullptr, "Error", msg.c_str());
@@ -166,7 +166,7 @@ namespace OpenMS
     }
 
     Param tmp_param;
-    ParamXMLFile().load(String(ini_file).c_str(), tmp_param);
+    ParamXMLFile().load(ini_file.toStdString(), tmp_param);
     // remember the parameters of this tool
     param_ = tmp_param.copy(name_ + ":1:", true); // get first instance (we never use more -- this is a legacy layer in paramXML)
     param_.setValue("no_progress", "true"); // by default, we do not want each tool to report loading/status statistics (would clutter the log window)
@@ -646,7 +646,7 @@ namespace OpenMS
       connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
 
       // enqueue process
-      String msg_enqueue = String("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + String(args.join("\" \"")) + "\"\n";
+      String msg_enqueue = String("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + String(args.join("\" \"").toStdString()) + "\"\n";
       if (round == 0)
       {
         // active if TOPPAS is run with --debug; will print to console
@@ -751,13 +751,13 @@ namespace OpenMS
 
     for (const QString& file : files)
     {
-      if (File::isDirectory(file)) continue; // skip output directories
+      if (File::isDirectory(file.toStdString())) continue; // skip output directories
 
-      String new_prefix = FileHandler::stripExtension(file);
-      String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file)); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
+      String new_prefix = FileHandler::stripExtension(file.toStdString());
+      String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file.toStdString())); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
       if (file.endsWith(toQString(new_suffix), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
       {
-        new_suffix = String(file).suffix(new_suffix.size());
+        new_suffix = String(file.toStdString()).suffix(new_suffix.size());
       }
       NameComponent nc(new_prefix, new_suffix);
       name_old_to_new[file] = nc;
@@ -782,14 +782,14 @@ namespace OpenMS
         for (int fi = 0; fi < it->second.filenames.size(); ++fi)
         {
           // skip output directories
-          if (File::isDirectory(it->second.filenames[fi]))
+          if (File::isDirectory(it->second.filenames[fi].toStdString()))
           { 
             continue;
           }
 
           // rename file and update record
-          String old_filename = QDir::toNativeSeparators(it->second.filenames[fi]);
-          String new_filename = QDir::toNativeSeparators(toQString(name_old_to_new[it->second.filenames[fi]].toString()));
+          String old_filename = QDir::toNativeSeparators(it->second.filenames[fi]).toStdString();
+          String new_filename = QDir::toNativeSeparators(toQString(name_old_to_new[it->second.filenames[fi]].toString())).toStdString();
           if (QFileInfo(toQString(old_filename)).canonicalFilePath() == QFileInfo(toQString(new_filename)).canonicalFilePath())
           { // source and target are identical -- no action required
             continue;
@@ -1099,7 +1099,7 @@ namespace OpenMS
           continue;
         }
         //std::cout << "PATH: " << p << "\n";
-        String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
+        String tmp = String(p.toStdString()).suffix(String(QString(QDir::separator()).toStdString())[0]);
         //std::cout << "INTER: " << tmp << "\n";
         if (tmp.size() <= 2 || tmp.has(':'))
         {
@@ -1194,7 +1194,7 @@ namespace OpenMS
       workflow_dir = "Untitled_workflow";
     }
     String dir = workflow_dir +
-                 String(QDir::separator()) +
+                 String(QDir::separator().toLatin1()) +
                  get3CharsNumber_(topo_nr_) + "_" + getName();
     if (!getType().empty())
     {
@@ -1216,12 +1216,12 @@ namespace OpenMS
     QStringList files = this->getFileNames();
     for (const QString &file : files)
     {
-      QString sdir = toQString(File::path(file));
-      if (!File::exists(sdir))
+      QString sdir = toQString(File::path(file.toStdString()));
+      if (!File::exists(sdir.toStdString()))
       {
         if (!dir.mkpath(sdir))
         {
-          OPENMS_LOG_ERROR << "TOPPAS: Could not create path " << String(sdir) << std::endl;
+          OPENMS_LOG_ERROR << "TOPPAS: Could not create path " << String(sdir.toStdString()) << std::endl;
         }
       }
     }
@@ -1249,9 +1249,9 @@ namespace OpenMS
     if (reset_all_files)
     {
       QString remove_dir = toQString(getFullOutputDirectory());
-      if (File::exists(remove_dir))
+      if (File::exists(remove_dir.toStdString()))
       {
-        File::removeDirRecursively(remove_dir);
+        File::removeDirRecursively(remove_dir.toStdString());
       }
     }
 

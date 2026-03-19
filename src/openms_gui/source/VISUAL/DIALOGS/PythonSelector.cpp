@@ -58,7 +58,7 @@ namespace OpenMS
 
     void PythonSelector::validate_()
     {
-      String exe = ui_->line_edit->text();
+      String exe = ui_->line_edit->text().toStdString();
       
       String error;
       bool success = PythonInfo::canRun(exe, error);

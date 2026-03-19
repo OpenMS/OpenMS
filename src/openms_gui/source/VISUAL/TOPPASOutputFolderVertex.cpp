@@ -93,16 +93,16 @@ namespace OpenMS
     {
       for (const QString &src_dir : pkg[round][param_index_src].filenames.get())
       {
-        if (!dry_run && !File::isDirectory(src_dir))
+        if (!dry_run && !File::isDirectory(src_dir.toStdString()))
         {
-          OPENMS_LOG_ERROR << "The directory '" << String(src_dir) << "' does not exist!" << std::endl;
+          OPENMS_LOG_ERROR << "The directory '" << String(src_dir.toStdString()) << "' does not exist!" << std::endl;
           throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, src_dir.toStdString());
         }
         String new_dir = full_dir;
         // if its only one round, do not create a subfolder
         if (round_total_ > 1)
         { // the previous TOPP tool node should have placed all files in a subfolder for each round. Use that name
-          String last_subfolder = QDir(src_dir).dirName();
+          String last_subfolder = QDir(src_dir).dirName().toStdString();
           new_dir += last_subfolder.ensureLastChar('/');
         }
         output_files_[round][param_index_me].filenames.push_back(toQString(new_dir));
@@ -111,7 +111,7 @@ namespace OpenMS
         auto nr_of_files = dir.entryInfoList(QDir::Files).size();
         if (!dry_run && nr_of_files == 0)
         { 
-          String msg = "Output directory '" + e->getSourceOutParamName() + "' did not yield any files!";
+          String msg = ("Output directory '" + e->getSourceOutParamName() + "' did not yield any files!").toStdString();
           if (ts->isGUIMode()) 
           {
             QMessageBox::warning(nullptr, tr("No files found"), toQString(msg), QMessageBox::Ok);
@@ -138,8 +138,8 @@ namespace OpenMS
         round_counter_ = (int)round; // for global update, in case someone asks
         for (int i = 0; i < pkg[round][param_index_src].filenames.size(); ++i)
         {
-          String dir_from = pkg[round][param_index_src].filenames[i];
-          String dir_to   = output_files_[round][param_index_me].filenames[i];
+          String dir_from = pkg[round][param_index_src].filenames[i].toStdString();
+          String dir_to   = output_files_[round][param_index_me].filenames[i].toStdString();
           // create the output directory (if it does not exist)
           if (!File::makeDir(dir_to))
           {
@@ -158,8 +158,8 @@ namespace OpenMS
           const auto& src_files_to_copy = QDir(toQString(dir_from)).entryInfoList(QDir::Files);
           for (const auto& src_file : src_files_to_copy)
           {
-            String file_from = src_file.absoluteFilePath();
-            String file_to = dir_to + '/' + src_file.fileName();
+            String file_from = src_file.absoluteFilePath().toStdString();
+            String file_to = dir_to + '/' + src_file.fileName().toStdString();
             if (File::exists(file_to) // someone may have deleted the file in the meantime, which is fine
               && !QFile::remove(toQString(file_to))) // remove old file (would fail if file does not exist)
             {

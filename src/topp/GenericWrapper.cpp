@@ -160,7 +160,7 @@ protected:
       {
         for (Size i = 0; i < val.size(); ++i)
         {
-          val[i] = QDir::toNativeSeparators(QString::fromStdString(val[i]));
+          val[i] = QDir::toNativeSeparators(QString::fromStdString(val[i])).toStdString();
         }
       }
       return "\"" + ListUtils::concatenate(val, "\" \"") + "\"";
@@ -168,7 +168,7 @@ protected:
     if (p.tags.count("input file") || p.tags.count("output file"))
     {
       // ensure that file names are formated according to system spec
-      return QDir::toNativeSeparators(QString::fromStdString(String(p.value.toString())));
+      return QDir::toNativeSeparators(QString::fromStdString(String(p.value.toString()))).toStdString();
     }
     else
     {
@@ -488,11 +488,11 @@ protected:
     if (!builder.waitForFinished(-1) || builder.exitStatus() != 0 || builder.exitCode() != 0)
     {
       OPENMS_LOG_ERROR << ("External tool returned with exit code (" + String(builder.exitCode()) + "), exit status (" + String(builder.exitStatus()) + ") or timed out. Aborting ...\n");
-      OPENMS_LOG_ERROR << ("External tool output:\n" + String(QString(builder.readAll())));
+      OPENMS_LOG_ERROR << ("External tool output:\n" + String(QString(builder.readAll()).toStdString()));
       return wrapExit(EXTERNAL_PROGRAM_ERROR);
     }
 
-    OPENMS_LOG_INFO << ("External tool output:\n" + String(QString(builder.readAll())));
+    OPENMS_LOG_INFO << ("External tool output:\n" + String(QString(builder.readAll()).toStdString()));
 
 
     // post processing (file moving via 'file_post' command)

@@ -192,7 +192,7 @@ namespace OpenMS
       if (!files.isEmpty())
       {
         ui_->input_file_list->addItems(files);
-        setCWD(toQString(File::path(files.back()))); // emit the signal
+        setCWD(toQString(File::path(files.back().toStdString()))); // emit the signal
       }
     }
 
