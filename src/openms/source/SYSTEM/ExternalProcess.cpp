@@ -205,7 +205,8 @@ namespace OpenMS
         bool crashed = (exit_code < 0 || static_cast<unsigned int>(exit_code) > 0x80000000u);
 #else
         // On POSIX, use waitpid status macros on the native exit code
-        bool crashed = WIFSIGNALED(child.native_exit_code());
+        auto native_code = child.native_exit_code();
+        bool crashed = WIFSIGNALED(native_code);
 #endif
         if (crashed)
         {
@@ -273,7 +274,7 @@ namespace OpenMS
         }
       }
     }
-    catch (const boost::process::process_error& /*e*/)
+    catch (const bp::process_error& /*e*/)
     {
       error_msg = "Process '" + exe + "' failed to start. Does it exist? Is it executable?";
       if (verbose)
