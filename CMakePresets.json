@@ -16,15 +16,14 @@
 				"CMAKE_COLOR_DIAGNOSTICS": "ON",
 				"CMAKE_POLICY_VERSION_MINIMUM": "3.5",
 				"CMAKE_TOOLCHAIN_FILE": "vcpkg/scripts/buildsystems/vcpkg.cmake",
-				"VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake/triplets"
+				"VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets"
 			}
 		},
 		{
 			"name": "ci",
 			"hidden": true,
+			"inherits":"base",
 			"generator": "Ninja",
-			"binaryDir": "${sourceDir}/build/ci",
-			"installDir": "${sourceDir}/install/ci",
 			"architecture": {
 				"value": "x64",
 				"strategy": "external"
@@ -66,7 +65,7 @@
 			"cacheVariables": {
 				"VCPKG_HOST_TRIPLET": "linux64-release",
 				"VCPKG_TARGET_TRIPLET": "linux64-release",
-				"WITH_GUI": "OFF",
+				"WITH_GUI": "OFF"
 
 			}
 		},
