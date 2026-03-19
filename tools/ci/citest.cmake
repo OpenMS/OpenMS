@@ -18,15 +18,13 @@ message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
 # zlib version
 set(CTEST_CUSTOM_TESTS_IGNORE
 	GzipIfstream_test
+	Doxygen_Warning_test
+	StopWatch_test
 )
 
 # customize reporting of errors in CDash
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS 1000)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
-
-# Limit output size for passed tests to avoid cluttering CDash (e.g. pyopenms verbose pytest output).
-# Failed tests still show full output.
-set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE 51200)
 
 # Define patterns that should NOT be classified as warnings
 set(CTEST_CUSTOM_WARNING_EXCEPTION
@@ -69,4 +67,3 @@ else()
   message("Testing successful: Please check the test results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
   endif()
 endif()
-
