@@ -14,7 +14,6 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/Product.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>

@@ -14,11 +14,7 @@
 #include <OpenMS/OpenMSConfig.h>
 
 #include <functional>
-#include <memory> // unique_ptr
 #include <string>
-
-// foward declarations
-class QDateTime;
 
 namespace OpenMS
 {
@@ -43,19 +39,19 @@ public:
     DateTime();
 
     /// Copy constructor
-    DateTime(const DateTime& date);
+    DateTime(const DateTime& date) = default;
 
     /// Move constructor
-    DateTime(DateTime&&) noexcept;
+    DateTime(DateTime&&) noexcept = default;
 
     /// Assignment operator
-    DateTime& operator=(const DateTime& source);
+    DateTime& operator=(const DateTime& source) = default;
 
     /// Move assignment operator
-    DateTime& operator=(DateTime&&) & noexcept;
+    DateTime& operator=(DateTime&&) & noexcept = default;
 
     /// Destructor
-    ~DateTime();
+    ~DateTime() = default;
 
     /// equal operator
     bool operator==(const DateTime& rhs) const;
@@ -197,7 +193,11 @@ public:
       void set(const String& date);
 
     private:
-      std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid costly #include
+      struct Fields {
+        int year = 0, month = 0, day = 0;
+        int hour = 0, minute = 0, second = 0, millisecond = 0;
+        bool valid = false;
+      } fields_;
   };
 
 } // namespace OpenMS
@@ -211,8 +211,6 @@ namespace std
     std::size_t operator()(const OpenMS::DateTime& dt) const noexcept
     {
       // Hash the date/time components including milliseconds to match operator==
-      // (which compares the underlying QDateTime including milliseconds)
-      // Use toString with millisecond format and convert to std::string for hashing
       std::string datetime_str = dt.toString("yyyy-MM-ddThh:mm:ss.zzz");
       return OpenMS::fnv1a_hash_string(datetime_str);
     }

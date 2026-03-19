@@ -10,7 +10,8 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtCore/QLocale>
+#include <charconv>
+#include <cmath>
 
 using namespace std;
 
@@ -24,12 +25,60 @@ namespace OpenMS
     DimMapper<1> d2(d);
     bool x = (d == dims);
     Area<2> area(nullptr);
+
+    /// Format a double with fixed precision and comma group separators (matching QLocale::c().toString(value, 'f', precision))
+    std::string formatWithGroupSeparators(double value, int precision)
+    {
+      // Match QLocale::c().toString behavior for special floating-point values
+      if (std::isnan(value))
+        return "nan";
+      if (std::isinf(value))
+        return value < 0 ? "-inf" : "inf";
+
+      char buf[512]; // large enough for any fixed-format double (DBL_MAX ~ 309 digits + precision)
+      auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), value, std::chars_format::fixed, precision);
+      if (ec != std::errc{})
+        return std::to_string(value); // fallback (should not happen with 512-byte buffer)
+      *ptr = '\0';
+
+      std::string result(buf);
+
+      // Locate decimal point
+      auto dot_pos = result.find('.');
+      std::string integer_part = result.substr(0, dot_pos);
+      std::string fractional_part;
+      if (dot_pos != std::string::npos)
+        fractional_part = result.substr(dot_pos);
+
+      // Handle negative sign
+      bool negative = (!integer_part.empty() && integer_part[0] == '-');
+      if (negative)
+        integer_part = integer_part.substr(1);
+
+      // Insert comma group separators every 3 digits (C locale convention)
+      int len = static_cast<int>(integer_part.size());
+      if (len > 3)
+      {
+        std::string formatted;
+        int first_group = len % 3;
+        if (first_group == 0)
+          first_group = 3;
+        formatted = integer_part.substr(0, first_group);
+        for (int i = first_group; i < len; i += 3)
+        {
+          formatted += ',';
+          formatted += integer_part.substr(i, 3);
+        }
+        integer_part = formatted;
+      }
+
+      return std::string(negative ? "-" : "") + integer_part + fractional_part;
+    }
   }
 
   String DimBase::formattedValue(const ValueType value) const
   {
-    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
-    return String(this->getDimNameShort()) + ": " + QLocale::c().toString(value, 'f', valuePrecision());
+    return String(this->getDimNameShort()) + ": " + String(formatWithGroupSeparators(value, valuePrecision()));
   }
 
   String DimBase::formattedValue(const ValueType value, const String& prefix) const
