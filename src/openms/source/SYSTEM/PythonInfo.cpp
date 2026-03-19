@@ -31,7 +31,11 @@
 #include <filesystem>
 #include <sstream>
 
+#if BOOST_VERSION >= 108800
+namespace bp = boost::process::v1;
+#else
 namespace bp = boost::process;
+#endif
 
 using namespace std;
 
