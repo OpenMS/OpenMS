@@ -287,7 +287,7 @@ namespace OpenMS
   bool File::removeDir(const String& dir_name)
   {
     std::error_code ec;
-    fs::remove_all(to_path(dir_name), ec);
+    fs::remove(to_path(dir_name), ec); // non-recursive: fails on non-empty directories
     if (ec)
     {
       std::cerr << "Could not remove directory " << dir_name << ": " << ec.message() << std::endl;
