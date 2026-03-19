@@ -52,7 +52,7 @@ namespace OpenMS
     }
     else
     {
-      qobject_cast<PlotWidget*>(lsd->parent())->showMetaDistribution(String(text), hist);
+      qobject_cast<PlotWidget*>(lsd->parent())->showMetaDistribution(String(text.toStdString()), hist);
     }
   }
 
