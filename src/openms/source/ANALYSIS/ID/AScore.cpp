@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
