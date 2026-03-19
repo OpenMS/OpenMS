@@ -908,7 +908,7 @@ namespace OpenMS
     }
 
     table_widget_->setHeaders(headers);
-    String s = headers.join(';');
+    String s = headers.join(';').toStdString();
     table_widget_->hideColumns(QStringList() << "accessions"
                                              << "dissociation"
                                              << "scan type"
