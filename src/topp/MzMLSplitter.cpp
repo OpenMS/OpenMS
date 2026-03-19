@@ -10,8 +10,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <QFile>
+#include <QString>
 #include <iomanip>
 #include <sstream>
 
@@ -96,7 +96,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      QFile mzml_file(toQString(in));
+      QFile mzml_file(QString::fromStdString(in));
       // use float here to avoid too many decimals in output below:
       float total_size = mzml_file.size();
       String unit = getStringOption_("unit");

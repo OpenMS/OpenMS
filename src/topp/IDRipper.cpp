@@ -13,8 +13,8 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <QDir>
+#include <QString>
 
 using std::map;
 using std::pair;
@@ -100,7 +100,7 @@ protected:
     bool numeric_filenames = getFlag_("numeric_filenames");
     bool split_ident_runs = getFlag_("split_ident_runs");
 
-    String output_directory = QFileInfo(toQString(out_dir)).absoluteFilePath().toStdString();
+    String output_directory = QFileInfo(QString::fromStdString(out_dir)).absoluteFilePath().toStdString();
 
     //-------------------------------------------------------------
     // calculations
@@ -131,24 +131,24 @@ protected:
       const IDRipper::RipFileIdentifier& rfi = it->first;
       const IDRipper::RipFileContent& rfc = it->second;
 
-      QString output = toQString(output_directory);
+      QString output = QString::fromStdString(output_directory);
 
       String out_fname;
       if (numeric_filenames)
       {
         String s_ident_run_idx = split_ident_runs ? '_' + String(rfi.ident_run_idx) : "";
         String s_file_origin_idx = '_' + String(rfi.file_origin_idx);
-        out_fname = QFileInfo(toQString(file_name)).completeBaseName().toStdString() + s_ident_run_idx + s_file_origin_idx + ".idXML";
+        out_fname = QFileInfo(QString::fromStdString(file_name)).completeBaseName().toStdString() + s_ident_run_idx + s_file_origin_idx + ".idXML";
       }
       else
       {
-        out_fname = QFileInfo(toQString(rfi.out_basename)).completeBaseName().toStdString() + ".idXML";
+        out_fname = QFileInfo(QString::fromStdString(rfi.out_basename)).completeBaseName().toStdString() + ".idXML";
       }
 
-      String out = QDir::toNativeSeparators(output.append(QString("/")).append(toQString(out_fname))).toStdString();
+      String out = QDir::toNativeSeparators(output.append(QString("/")).append(QString::fromStdString(out_fname))).toStdString();
       OPENMS_LOG_INFO << "Storing file: '" << out << "'." << std::endl;
 
-      QDir dir(toQString(output_directory));
+      QDir dir(QString::fromStdString(output_directory));
       FileHandler().storeIdentifications(out, rfc.prot_idents, rfc.pep_idents, {FileTypes::IDXML});
     }
     return EXECUTION_OK;
