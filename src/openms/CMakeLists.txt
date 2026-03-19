@@ -166,7 +166,8 @@ if (WITH_PARQUET)
     target_compile_definitions(OpenMS PUBLIC WITH_PARQUET=1)
 endif()
 
-
+# Use std::filesystem instead of boost::filesystem in boost::process (avoids linking boost_filesystem)
+target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
 
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation

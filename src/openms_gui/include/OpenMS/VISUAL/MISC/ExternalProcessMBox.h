@@ -13,6 +13,10 @@
 
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
+#include <vector>
+
+class QWidget;
+
 namespace OpenMS
 {
 
@@ -51,12 +55,12 @@ namespace OpenMS
       @param[out] error_msg Message to display to the user or log somewhere if something went wrong (if return != SUCCESS)
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */
-    ExternalProcess::RETURNSTATE run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg);
+    ExternalProcess::RETURNSTATE run(QWidget* parent, const String& exe, const std::vector<String>& args, const String& working_dir, const bool verbose, String& error_msg);
 
     /**
       @brief Same as other overload, just without a returned error message
     */
-    ExternalProcess::RETURNSTATE run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose);
+    ExternalProcess::RETURNSTATE run(QWidget* parent, const String& exe, const std::vector<String>& args, const String& working_dir, const bool verbose);
 
 
   private:

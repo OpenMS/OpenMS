@@ -1685,13 +1685,13 @@ namespace OpenMS
     }
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir, const std::map<QString, QString>& env) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const String& executable, const std::vector<String>& arguments, const String& workdir, const std::map<String, String>& env) const
   {
     String proc_stdout, proc_stderr; // collect all output (might be useful if program crashes, see below)
     return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir, env);
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir, const std::map<QString, QString>& env) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const String& executable, const std::vector<String>& arguments, String& proc_stdout, String& proc_stderr, const String& workdir, const std::map<String, String>& env) const
   {
     proc_stdout.clear();
     proc_stderr.clear();

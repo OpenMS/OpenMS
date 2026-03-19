@@ -30,7 +30,6 @@
 #include <fstream>
 #include <regex>
 
-#include <QStringList>
 #include <chrono>
 #include <map>
 #include <vector>
@@ -410,9 +409,13 @@ protected:
       std::regex version_regex("Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)");
 
       std::sregex_iterator it(multi_line_input.begin(), multi_line_input.end(), version_regex);
-      std::smatch match = *it;
-      std::cout << "Found Sage version string: " << match.str() << std::endl;      
-          
+      std::sregex_iterator end;
+      if (it == end)
+      {
+        throw std::runtime_error("Could not parse Sage version from output: " + multi_line_input.substr(0, 200));
+      }
+      std::cout << "Found Sage version string: " << it->str() << std::endl;
+
       return make_tuple(it->str(1), it->str(2), it->str(3)); // major, minor, patch
   }
 
@@ -540,13 +543,22 @@ protected:
     String sage_executable = getStringOption_("sage_executable");
     std::cout << sage_executable << " sage executable" << std::endl; 
     String proc_stdout, proc_stderr;
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable, {"--help"}, proc_stdout, proc_stderr, "");
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
     }
 
-    auto major_minor_patch = getVersionNumber_(proc_stdout);
+    std::tuple<std::string, std::string, std::string> major_minor_patch;
+    try
+    {
+      major_minor_patch = getVersionNumber_(proc_stdout);
+    }
+    catch (const std::runtime_error& e)
+    {
+      OPENMS_LOG_ERROR << "Could not determine Sage version: " << e.what() << "\nSage output was:\n" << proc_stdout << std::endl;
+      return EXTERNAL_PROGRAM_NOTFOUND;
+    }
     String sage_version = std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch);
     
     //-------------------------------------------------------------
@@ -582,44 +594,41 @@ protected:
 
     String annotation_check;    
 
-    QStringList arguments;
+    std::vector<String> arguments;
 
   if ( (getStringOption_("annotate_matches").compare("true")) == 0)
   {
-    arguments << config_file.toQString() 
-              << "-f" << fasta_file.toQString() 
-              << "-o" << output_folder.toQString() 
-              << "--annotate-matches"
-              << "--write-pin"; 
+    arguments.insert(arguments.end(), {config_file, "-f", fasta_file, "-o", output_folder, "--annotate-matches", "--write-pin"});
   }
   else
   {
-    arguments << config_file.toQString() 
-              << "-f" << fasta_file.toQString() 
-              << "-o" << output_folder.toQString() 
-              << "--write-pin"; 
+    arguments.insert(arguments.end(), {config_file, "-f", fasta_file, "-o", output_folder, "--write-pin"});
   }
 
-    if (batch >= 1) arguments << "--batch-size" << String(batch).toQString();
-    
-    for (auto s : input_files) arguments << s.toQString();
+    if (batch >= 1) { arguments.push_back("--batch-size"); arguments.push_back(String(batch)); }
 
-    OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;
-    
-    //std::chrono lines for testing/writing purposes only! 
+    for (const auto& s : input_files) arguments.push_back(s);
+
+    {
+      String args_str;
+      for (const auto& a : arguments) { args_str += " " + a; }
+      OPENMS_LOG_INFO << "Sage command line: " << sage_executable << args_str << std::endl;
+    }
+
+    //std::chrono lines for testing/writing purposes only!
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    
+
     // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
     // Only set if threads > 0; if threads == 0, let Rayon auto-detect (use all CPUs)
-    std::map<QString, QString> sage_env;
+    std::map<String, String> sage_env;
     if (threads > 0)
     {
-      sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
+      sage_env["RAYON_NUM_THREADS"] = String(threads);
     }
-    
+
     // Sage execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);
+    exit_code = runExternalProcess_(sage_executable, arguments, "", sage_env);
     
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     #ifdef CHRONOSET

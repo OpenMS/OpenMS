@@ -9,6 +9,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <QMessageBox>
+#include <QCoreApplication>
 #include <utility>
 
 namespace OpenMS
@@ -30,19 +31,25 @@ namespace OpenMS
     ep_.setCallbacks(std::move(callbackStdOut), std::move(callbackStdErr));
   }
 
-  ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)
+  ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const String& exe, const std::vector<String>& args, const String& working_dir, const bool verbose, String& error_msg)
   {
-    auto rs = ep_.run(exe, args, working_dir, verbose, error_msg);
-    
-    QMessageBox::critical(parent, "Error", error_msg.toQString());
+    // Pass idle_callback that pumps the GUI event loop to prevent freezing
+    auto rs = ep_.run(exe, args, working_dir, verbose, error_msg, ExternalProcess::IO_MODE::READ_WRITE, {},
+                      []() { QCoreApplication::processEvents(); });
+
+    if (!error_msg.empty())
+    {
+      QMessageBox::critical(parent, "Error", error_msg.toQString());
+    }
 
     return rs;
   }
 
-  ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose)
+  ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const String& exe, const std::vector<String>& args, const String& working_dir, const bool verbose)
   {
     String error_msg;
-    auto rs = ep_.run(exe, args, working_dir, verbose, error_msg);
+    auto rs = ep_.run(exe, args, working_dir, verbose, error_msg, ExternalProcess::IO_MODE::READ_WRITE, {},
+                      []() { QCoreApplication::processEvents(); });
 
     if (!error_msg.empty()) QMessageBox::critical(parent, "Error", error_msg.toQString());
 
