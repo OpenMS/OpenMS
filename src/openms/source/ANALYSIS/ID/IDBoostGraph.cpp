@@ -793,7 +793,7 @@ namespace OpenMS
     // Cluster proteins
     for (; ui != ui_end; ++ui)
     {
-      IDBoostGraph::IDPointer curr_idObj = fg[*ui];
+      const IDBoostGraph::IDPointer& curr_idObj = fg[*ui];
       //TODO introduce an enum for the types to make it more clear.
       // Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
       if (curr_idObj.which() == 0) //protein: find indist. ones

@@ -261,7 +261,7 @@ namespace OpenMS
      
       if (first_sep + 1 < next_sep) // non-empty string
       { 
-        out.push_back(String(first_sep, next_sep - first_sep));
+        out.emplace_back(first_sep, next_sep - first_sep);
       }
       first_sep = next_sep + 1; // move to substring
     }

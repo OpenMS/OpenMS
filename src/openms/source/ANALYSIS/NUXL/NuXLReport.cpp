@@ -407,7 +407,7 @@ Output format:
       peptide_seq2XLFDR[peptide_sequence_string] = peptide_XL_level_qvalue;
 
       // loop over all target proteins the peptide maps to
-      const std::set<std::string> proteins = peptide2proteins.at(peptide_sequence_string);
+      const std::set<std::string>& proteins = peptide2proteins.at(peptide_sequence_string);
       const bool is_unique = proteins.size() == 1;
 
       for (const auto& acc : proteins)
@@ -813,7 +813,7 @@ Output format:
       }
 
       // determine peptides/regions not yet printed (e.g., no site localization exists for those)
-      set<string> all_peptides = protein2peptides.at(accession);
+      const set<string>& all_peptides = protein2peptides.at(accession);
 
       set<string> remaining_peptides;
       std::set_difference(all_peptides.begin(), all_peptides.end(), 

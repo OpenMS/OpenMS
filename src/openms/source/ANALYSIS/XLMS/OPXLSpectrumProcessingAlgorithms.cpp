@@ -262,7 +262,7 @@ namespace OpenMS
         if (e >= n_e - 1)
         {
           // add match
-          alignment.emplace_back(std::make_pair(t, e));
+          alignment.emplace_back(t, e);
           // add ppm error
           double ppm_error = (exp_spectrum[e].getMZ() - theo_mz) / theo_mz * 1e6;
           ppm_error_array.emplace_back(ppm_error);
@@ -314,7 +314,7 @@ namespace OpenMS
         while (e < n_e - 1);
 
         // search in tolerance window for an experimental peak closer to theoretical one
-        alignment.emplace_back(std::make_pair(t, closest_exp_peak));
+        alignment.emplace_back(t, closest_exp_peak);
 
         // add ppm error for this match
         double ppm_error = (exp_spectrum[closest_exp_peak].getMZ() - theo_mz) / theo_mz * 1e6;
@@ -407,7 +407,7 @@ namespace OpenMS
         if (e >= n_e - 1)
         {
           // add match
-          alignment.emplace_back(std::make_pair(t, e));
+          alignment.emplace_back(t, e);
           return;
         }
 
@@ -454,7 +454,7 @@ namespace OpenMS
         while (e < n_e - 1);
 
         // search in tolerance window for an experimental peak closer to theoretical one
-        alignment.emplace_back(std::make_pair(t, closest_exp_peak));
+        alignment.emplace_back(t, closest_exp_peak);
         e = closest_exp_peak + 1;  // advance experimental peak to 1-after the best match
         ++t; // advance theoretical peak
       }

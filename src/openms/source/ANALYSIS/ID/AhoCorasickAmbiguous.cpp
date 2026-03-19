@@ -74,7 +74,7 @@ namespace OpenMS
     // remember a needle ends here
     if (vec_index2needles_.size() <= cn()) // make sure there is enough space
     { // increase to next power of 2
-      vec_index2needles_.resize(std::bit_ceil(cn() + 1)); // +1 since bit_ceil(x)^2 == x iff x is a power of 2 (i.e. no resize takes place)
+      vec_index2needles_.resize(std::__bit_ceil(cn() + 1)); // +1 since bit_ceil(x)^2 == x iff x is a power of 2 (i.e. no resize takes place)
     }
     vec_index2needles_[cn()].push_back(needle_count_);
     ++needle_count_;
@@ -285,7 +285,7 @@ namespace OpenMS
   {
     if (vec_index2children_naive_.size() <= index())
     { // doubling is not enough
-      vec_index2children_naive_.resize(std::bit_ceil(index() + 1));  // +1 since bit_ceil(x)^2 == x iff x is a power of 2 (i.e. no resize takes place)
+      vec_index2children_naive_.resize(std::__bit_ceil(index() + 1));  // +1 since bit_ceil(x)^2 == x iff x is a power of 2 (i.e. no resize takes place)
     }
     Index ch = findChildNaive_(index, label);
     if (ch.isInvalid())

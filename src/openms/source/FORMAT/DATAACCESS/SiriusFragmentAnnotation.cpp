@@ -222,8 +222,8 @@ namespace OpenMS
         candidates.getRow(i, sl);
         String adduct = sl[columnname_to_columnindex.at("adduct")];
         adduct.erase(std::remove_if(adduct.begin(), adduct.end(), ::isspace), adduct.end());
-        rank_filename.emplace(std::make_pair(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
-                              String(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".tsv")));
+        rank_filename.emplace(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
+                              String(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".tsv"));
       }
     }
     fcandidates.close();
@@ -253,8 +253,8 @@ namespace OpenMS
       {
         StringList sl;
         candidates.getRow(i, sl);
-        rank_score.emplace(std::make_pair(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
-                                             sl[columnname_to_columnindex.at("explainedIntensity")].toDouble()));
+        rank_score.emplace(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
+                                             sl[columnname_to_columnindex.at("explainedIntensity")].toDouble());
       }
     }
     fcandidates.close();

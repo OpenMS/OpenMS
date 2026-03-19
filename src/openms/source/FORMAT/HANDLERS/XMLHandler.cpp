@@ -459,7 +459,7 @@ namespace OpenMS::Internal
   
           if (zero_mask != 0)
           { // Found a zero character
-              auto byte_pos_zero = std::countr_zero(zero_mask); // count trailing zeros to find the first zero character
+              auto byte_pos_zero = std::__countr_zero(zero_mask); // count trailing zeros to find the first zero character
               auto char_pos_zero = byte_pos_zero / 2;           // each UTF-16 character is 2 bytes, so divide by 2 to get character position
               return processed_chars + char_pos_zero;
           }

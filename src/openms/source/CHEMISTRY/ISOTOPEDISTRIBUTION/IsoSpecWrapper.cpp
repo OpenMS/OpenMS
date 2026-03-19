@@ -208,7 +208,7 @@ namespace OpenMS
     ITG->reset();
 
     while (ITG->advanceToNextConfiguration())
-        distribution.emplace_back(Peak1D(ITG->mass(), ITG->prob()));
+        distribution.emplace_back(ITG->mass(), ITG->prob());
 
     IsotopeDistribution ID;
 
@@ -260,7 +260,7 @@ namespace OpenMS
     {
         double p = ILG->prob();
         acc_prob += p;
-        distribution.emplace_back(Peak1D(ILG->mass(), p));
+        distribution.emplace_back(ILG->mass(), p);
     }
 
     if (do_p_trim)
@@ -268,7 +268,7 @@ namespace OpenMS
         // the p_trim: extract the rest of the last layer, and perform quickselect
 
         while (ILG->advanceToNextConfigurationWithinLayer())
-            distribution.emplace_back(Peak1D(ILG->mass(), ILG->prob()));
+            distribution.emplace_back(ILG->mass(), ILG->prob());
 
         size_t start = 0;
         size_t end = distribution.size();

@@ -301,7 +301,7 @@ namespace OpenMS
     {
       double im(0), intensity(0);
       Mobilogram res;
-      const TransitionType transition = transitions[k];
+      const TransitionType& transition = transitions[k];
       // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(transition.getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
 
@@ -415,7 +415,7 @@ namespace OpenMS
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty")
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
 
-    for (auto s:spectra){
+    for (const auto& s:spectra){
       if (s->getDriftTimeArray() == nullptr)
       {
         OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!\n";
@@ -468,7 +468,7 @@ namespace OpenMS
                                          Int64 feature_id)
   {
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty");
-    for (auto s:spectra)
+    for (const auto& s:spectra)
     {
       if (s->getDriftTimeArray() == nullptr)
       {
@@ -494,7 +494,7 @@ namespace OpenMS
     std::vector< Mobilogram > ms2_mobilograms;
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
-      const TransitionType transition = transitions[k];
+      const TransitionType& transition = transitions[k];
       Mobilogram res;
       double im(0), intensity(0);
 
@@ -653,7 +653,7 @@ namespace OpenMS
       // }
 
       OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty");
-      for (auto s:spectra)
+      for (const auto& s:spectra)
       {
         if (s->getDriftTimeArray() == nullptr)
         {

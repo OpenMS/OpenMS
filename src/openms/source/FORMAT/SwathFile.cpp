@@ -329,7 +329,7 @@ namespace OpenMS
             throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Found SWATH scan (MS level 2 scan) without a precursor. Cannot determine SWATH window.");
           }
-          const std::vector<Precursor> prec = s.getPrecursors();
+          const std::vector<Precursor>& prec = s.getPrecursors();
 
           // set ion mobility if exists, otherwise will take default value of -1
           double imLower, imUpper;
