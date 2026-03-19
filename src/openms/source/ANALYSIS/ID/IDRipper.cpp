@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <filesystem>
@@ -74,7 +75,7 @@ namespace OpenMS
               : pep_id.getMetaValue("file_origin").toString();
 
           // Extract the basename, used for output files when --numeric_filenames is not set
-          this->out_basename = std::filesystem::path(std::string(this->origin_fullname)).stem().string();
+          this->out_basename = to_path(this->origin_fullname).stem().string();
 
           // Drop the identification run identifier if we're not splitting by identification runs
           if (!split_ident_runs)

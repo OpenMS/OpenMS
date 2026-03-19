@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -1051,7 +1052,7 @@ namespace OpenMS
       //-------------------------------------------------------------
       // MS acquisition
       //------------------------------------------------------------
-      String base_name = std::filesystem::path(std::string(inputfile_raw)).stem().string();
+      String base_name = to_path(inputfile_raw).stem().string();
 
       UInt min_mz = std::numeric_limits<UInt>::max();
       UInt max_mz = 0;

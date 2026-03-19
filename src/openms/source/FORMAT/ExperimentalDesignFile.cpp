@@ -26,7 +26,7 @@ namespace OpenMS
     {
       String result;
       namespace fs = std::filesystem;
-      if (fs::path(std::string(spec_file)).is_relative())
+      if (to_path(spec_file).is_relative())
       {
         // file name is relative, so we need to figure out the correct folder
 

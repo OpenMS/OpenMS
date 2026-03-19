@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
 #include <QtCore/QProcess>
 
@@ -37,7 +38,7 @@ namespace OpenMS
           OPENMS_LOG_ERROR
             << "  Java not found at '" << java_executable << "'!\n"
             << "  Make sure Java is installed and this location is correct.\n";
-          if (std::filesystem::path(std::string(java_executable)).is_relative())
+          if (to_path(java_executable).is_relative())
           {
             static String path;
             if (path.empty())

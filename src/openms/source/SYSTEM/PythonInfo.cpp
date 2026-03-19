@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
 #include <QtCore/QProcess>
 
@@ -29,7 +30,7 @@ namespace OpenMS
     {
       ss << "  Python not found at '" << python_executable << "'!\n"
          << "  Make sure Python is installed and this location is correct.\n";
-      if (std::filesystem::path(std::string(python_executable)).is_relative())
+      if (to_path(python_executable).is_relative())
       {
         static String path;
         if (path.empty())
