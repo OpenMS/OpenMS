@@ -28,6 +28,7 @@
 #endif
 
 #include <string>
+#include <thread>
 
 #if BOOST_VERSION >= 108800
 namespace bp = boost::process::v1;
@@ -81,6 +82,20 @@ namespace OpenMS
         bp::std_err > pipe_err
       );
 
+      // Drain both pipes concurrently to prevent deadlock
+      // (child may block if pipe buffer fills before we read)
+      std::string stdout_content, stderr_content;
+      std::thread reader_out([&pipe_out, &stdout_content]() {
+        std::string line;
+        while (std::getline(pipe_out, line)) { stdout_content += line + "\n"; }
+      });
+      std::thread reader_err([&pipe_err, &stderr_content]() {
+        std::string line;
+        while (std::getline(pipe_err, line)) { stderr_content += line + "\n"; }
+      });
+      reader_out.join();
+      reader_err.join();
+
       child.wait();
 
       int exit_code = child.exit_code();
@@ -89,17 +104,8 @@ namespace OpenMS
         if (verbose)
         {
           OPENMS_LOG_INFO << " failed" << std::endl;
-          OPENMS_LOG_ERROR << "\n--- ERROR MESSAGES ---\n";
-          std::string line;
-          while (std::getline(pipe_err, line))
-          {
-            OPENMS_LOG_ERROR << line << "\n";
-          }
-          OPENMS_LOG_ERROR << "\n--- OTHER MESSAGES ---\n";
-          while (std::getline(pipe_out, line))
-          {
-            OPENMS_LOG_ERROR << line << "\n";
-          }
+          OPENMS_LOG_ERROR << "\n--- ERROR MESSAGES ---\n" << stderr_content;
+          OPENMS_LOG_ERROR << "\n--- OTHER MESSAGES ---\n" << stdout_content;
           OPENMS_LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
         }
         return false;
@@ -135,8 +141,15 @@ namespace OpenMS
         bp::search_path(static_cast<std::string>(executable)),
         bp::args(args),
         bp::std_out > pipe_out,
-        bp::std_err > bp::null // merge-like: just discard stderr
+        bp::std_err > bp::null // discard stderr
       );
+
+      // Drain pipe before wait to prevent deadlock
+      std::string stdout_content;
+      {
+        std::string line;
+        while (std::getline(pipe_out, line)) { stdout_content += line + "\n"; }
+      }
 
       child.wait();
 
@@ -153,13 +166,8 @@ namespace OpenMS
             args_str += a;
           }
           OPENMS_LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args_str << "')\n";
-          std::string line;
-          OPENMS_LOG_ERROR << "Output was:\n------>\n";
-          while (std::getline(pipe_out, line))
-          {
-            OPENMS_LOG_ERROR << line << "\n";
-          }
-          OPENMS_LOG_ERROR << "\n<------\n"
+          OPENMS_LOG_ERROR << "Output was:\n------>\n" << stdout_content
+                    << "\n<------\n"
                     << "Make sure 'Rscript' is installed properly." << std::endl;
         }
         return false;

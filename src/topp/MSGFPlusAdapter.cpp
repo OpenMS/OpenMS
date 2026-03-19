@@ -470,6 +470,13 @@ protected:
           lock_db.unlock();
           return false;
         }
+        // Verify index was actually created (BuildSA may return success without producing output)
+        if (!File::exists(db_indexfile))
+        {
+          OPENMS_LOG_ERROR << "MSGF+ BuildSA reported success but index file '" << db_indexfile << "' was not created.\nSTDOUT:\n" << proc_stdout << "\nSTDERR:\n" << proc_stderr << endl;
+          lock_db.unlock();
+          return false;
+        }
         OPENMS_LOG_INFO << " ... done" << std::endl;
       }
 

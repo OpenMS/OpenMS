@@ -992,7 +992,7 @@ protected:
       }
       if (!pout_decoy_proteins.empty())
       {
-        File::copy(pout_target_file_proteins, pout_decoy_proteins);
+        File::copy(pout_decoy_file_proteins, pout_decoy_proteins);
       }
     }
 

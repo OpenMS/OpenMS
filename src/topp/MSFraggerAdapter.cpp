@@ -406,7 +406,7 @@ protected:
         return ExitCodes::EXTERNAL_PROGRAM_NOTFOUND;
       }
 
-      // executable
+      // executable — resolve to absolute path since working dir changes to TMP
       this->exe = this->getStringOption_(TOPPMSFraggerAdapter::executable);
 
       if (this->exe.empty())
@@ -420,11 +420,12 @@ protected:
         }
         this->exe = msfragger_path_env;
       }
+      this->exe = File::absolutePath(this->exe);
 
-      // input, output, database name
-      const String database = File::absolutePath(this->getStringOption_(TOPPMSFraggerAdapter::database)); // the working dir will be a TMP-dir, so we need absolute paths
-      input_file = this->getStringOption_(TOPPMSFraggerAdapter::in);
-      output_file = this->getStringOption_(TOPPMSFraggerAdapter::out);
+      // input, output, database name — the working dir will be a TMP-dir, so we need absolute paths
+      const String database = File::absolutePath(this->getStringOption_(TOPPMSFraggerAdapter::database));
+      input_file = File::absolutePath(this->getStringOption_(TOPPMSFraggerAdapter::in));
+      output_file = File::absolutePath(this->getStringOption_(TOPPMSFraggerAdapter::out));
       optional_output_file = this->getStringOption_(TOPPMSFraggerAdapter::opt_out);
 
       // tolerance

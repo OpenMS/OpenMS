@@ -191,9 +191,15 @@ protected:
     }
 
     // Normalize file path
+    try
     {
       auto canon = std::filesystem::canonical(std::filesystem::path(static_cast<std::string>(executable)));
       executable = canon.string();
+    }
+    catch (const std::filesystem::filesystem_error&)
+    {
+      writeLogError_("FATAL: Executable of Novor not found at '" + executable + "'. Please provide a valid path via '-executable' or NOVOR_PATH env variable!");
+      return MISSING_PARAMETERS;
     }
 
     writeLogInfo_("Executable is: " + executable);

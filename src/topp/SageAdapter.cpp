@@ -409,9 +409,13 @@ protected:
       std::regex version_regex("Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)");
 
       std::sregex_iterator it(multi_line_input.begin(), multi_line_input.end(), version_regex);
-      std::smatch match = *it;
-      std::cout << "Found Sage version string: " << match.str() << std::endl;      
-          
+      std::sregex_iterator end;
+      if (it == end)
+      {
+        throw std::runtime_error("Could not parse Sage version from output: " + multi_line_input.substr(0, 200));
+      }
+      std::cout << "Found Sage version string: " << it->str() << std::endl;
+
       return make_tuple(it->str(1), it->str(2), it->str(3)); // major, minor, patch
   }
 
@@ -545,7 +549,16 @@ protected:
       return exit_code;
     }
 
-    auto major_minor_patch = getVersionNumber_(proc_stdout);
+    std::tuple<std::string, std::string, std::string> major_minor_patch;
+    try
+    {
+      major_minor_patch = getVersionNumber_(proc_stdout);
+    }
+    catch (const std::runtime_error& e)
+    {
+      OPENMS_LOG_ERROR << "Could not determine Sage version: " << e.what() << "\nSage output was:\n" << proc_stdout << std::endl;
+      return EXTERNAL_PROGRAM_NOTFOUND;
+    }
     String sage_version = std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch);
     
     //-------------------------------------------------------------

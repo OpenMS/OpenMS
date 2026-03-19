@@ -292,8 +292,23 @@ protected:
         String spectra_file = spectra_files[i];
         std::filesystem::path actual_path = temp_dir_path / (static_cast<std::string>(FileHandler::stripExtension(File::basename(spectra_file))) + "." + static_cast<std::string>(outputFormat));
 
+        if (!std::filesystem::exists(actual_path))
+        {
+          OPENMS_LOG_ERROR << "Expected output file '" << actual_path.string() << "' was not created by SpectraST for input '" << spectra_file << "'." << std::endl;
+          return INPUT_FILE_NOT_FOUND;
+        }
         std::ifstream ifs(actual_path.string().c_str(), std::ios::in | std::ios::binary);
+        if (!ifs.is_open())
+        {
+          OPENMS_LOG_ERROR << "Could not open SpectraST output file '" << actual_path.string() << "' for reading." << std::endl;
+          return INPUT_FILE_NOT_FOUND;
+        }
         std::ofstream ofs(output_files[i].c_str(), std::ios::out | std::ios::binary);
+        if (!ofs.is_open())
+        {
+          OPENMS_LOG_ERROR << "Could not open output file '" << output_files[i] << "' for writing." << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
         ofs << ifs.rdbuf();
      }
 
