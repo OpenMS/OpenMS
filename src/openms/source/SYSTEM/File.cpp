@@ -233,7 +233,7 @@ namespace OpenMS
 
       if (entry.is_directory())
       {
-        if (!copyDirRecursively(entry.path().string(), target_file.string(), option))
+        if (!copyDirRecursively(entry.path().generic_string(), target_file.generic_string(), option))
         {
           return false;
         }
@@ -318,8 +318,8 @@ namespace OpenMS
 
   String File::absolutePath(const String& file)
   {
-    if (file.empty()) return fs::current_path().string();
-    return fs::absolute(to_path(file)).string();
+    if (file.empty()) return fs::current_path().generic_string();
+    return fs::absolute(to_path(file)).generic_string();
   }
 
   String File::basename(const String& file)
@@ -417,7 +417,7 @@ namespace OpenMS
 
       if (exists(loc))
       {
-        return to_path(loc).lexically_normal().string();
+        return to_path(loc).lexically_normal().generic_string();
       }
     }
 
@@ -441,7 +441,7 @@ namespace OpenMS
 #else
       if (fnmatch(file_pattern.c_str(), fname.c_str(), 0) != 0) continue;
 #endif
-      output.push_back(full_path ? entry.path().string() : fname);
+      output.push_back(full_path ? entry.path().generic_string() : fname);
     }
     std::sort(output.begin(), output.end());
     return !output.empty();
@@ -614,7 +614,7 @@ namespace OpenMS
     }
     else
     {
-      dir = fs::temp_directory_path().string();
+      dir = fs::temp_directory_path().generic_string();
     }
     return dir;
   }

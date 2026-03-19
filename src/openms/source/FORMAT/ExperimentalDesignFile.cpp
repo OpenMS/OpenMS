@@ -33,7 +33,7 @@ namespace OpenMS
         // first check folder relative to folder of design file
         // to allow, for example, a design in ./design.tsv and spectra in ./spectra/a.mzML
         // where ./ is the same folder
-        String design_file_dir = fs::absolute(to_path(tsv_file)).parent_path().string();
+        String design_file_dir = fs::absolute(to_path(tsv_file)).parent_path().generic_string();
         String design_file_relative = design_file_dir + "/" + spec_file;
 
         if (File::exists(design_file_relative))

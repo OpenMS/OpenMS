@@ -2392,7 +2392,7 @@ namespace OpenMS
     String out_dir_str = String(param_cmdline_.getValue(write_type).toString());
     if (out_dir_str.empty())
     {
-      out_dir_str = std::filesystem::current_path().string();
+      out_dir_str = std::filesystem::current_path().generic_string();
     }
     StringList type_list = ToolHandler::getTypes(tool_name_);
     if (type_list.empty())

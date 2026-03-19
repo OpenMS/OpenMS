@@ -106,9 +106,9 @@ namespace OpenMS::Math
           OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << plot_path.filename().string() << "'." << std::endl;
           return false;
         }
-        if (!fs::exists(parent_dir) && !File::makeDir(parent_dir.string()))
+        if (!fs::exists(parent_dir) && !File::makeDir(parent_dir.generic_string()))
         {
-          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << parent_dir.string() << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << parent_dir.generic_string() << "'." << std::endl;
           return false;
         }
         //
@@ -298,9 +298,9 @@ namespace OpenMS::Math
           OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << plot_path.filename().string() << "'." << std::endl;
           return false;
         }
-        if (!fs::exists(parent_dir) && !File::makeDir(parent_dir.string()))
+        if (!fs::exists(parent_dir) && !File::makeDir(parent_dir.generic_string()))
         {
-          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << parent_dir.string() << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << parent_dir.generic_string() << "'." << std::endl;
           return false;
         }
         //
