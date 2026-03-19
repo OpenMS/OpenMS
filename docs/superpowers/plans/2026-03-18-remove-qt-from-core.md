@@ -19,12 +19,12 @@
 - Modify: `src/openms/source/FORMAT/OMSFileLoad.cpp:15-18,31-42,1104-1173`
 - Test: `src/tests/class_tests/openms/source/OMSFile_test.cpp`
 
-- [ ] **Step 1: Run existing OMSFile tests to establish baseline**
+- [x] **Step 1: Run existing OMSFile tests to establish baseline**
 
 Run: `ctest --test-dir OpenMS-build -R OMSFile -V`
 Expected: All pass
 
-- [ ] **Step 2: Replace QJson includes and types in OMSFileLoad.h**
+- [x] **Step 2: Replace QJson includes and types in OMSFileLoad.h**
 
 In `src/openms/include/OpenMS/FORMAT/OMSFileLoad.h`:
 
@@ -66,7 +66,7 @@ std::map<String, String> export_order_by_;
 
 Remove any remaining `#include <QtCore/QString>` or `class QString;` forward declarations in this header.
 
-- [ ] **Step 3: Replace QJson usage in OMSFileLoad.cpp**
+- [x] **Step 3: Replace QJson usage in OMSFileLoad.cpp**
 
 In `src/openms/source/FORMAT/OMSFileLoad.cpp`:
 
@@ -90,12 +90,12 @@ Rewrite `exportToJSON()` (lines 1143-1173): Replace `QJsonDocument(obj).toJson()
 
 Replace all `.toQString()` calls in this file with direct `String`/`std::string` usage.
 
-- [ ] **Step 4: Build and run tests**
+- [x] **Step 4: Build and run tests**
 
 Run: `cmake --build OpenMS-build --target OpenMS -j$(nproc) && ctest --test-dir OpenMS-build -R OMSFile -V`
 Expected: All pass
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/openms/include/OpenMS/FORMAT/OMSFileLoad.h src/openms/source/FORMAT/OMSFileLoad.cpp
