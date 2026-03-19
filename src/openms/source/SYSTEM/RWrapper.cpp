@@ -85,15 +85,16 @@ namespace OpenMS
       // Drain both pipes concurrently to prevent deadlock
       // (child may block if pipe buffer fills before we read)
       std::string stdout_content, stderr_content;
-      std::thread reader_out([&pipe_out, &stdout_content]() {
+      auto drain_out = [&pipe_out, &stdout_content]() {
         std::string line;
         while (std::getline(pipe_out, line)) { stdout_content += line + "\n"; }
-      });
-      std::thread reader_err([&pipe_err, &stderr_content]() {
+      };
+      auto drain_err = [&pipe_err, &stderr_content]() {
         std::string line;
         while (std::getline(pipe_err, line)) { stderr_content += line + "\n"; }
-      });
-      reader_out.join();
+      };
+      std::thread reader_err(drain_err); // start stderr reader first
+      drain_out();                        // read stdout on this thread
       reader_err.join();
 
       child.wait();
@@ -136,20 +137,29 @@ namespace OpenMS
 
     try
     {
+      // Use both pipes to match Qt MergedChannels behavior (stderr merged into output)
       bp::ipstream pipe_out;
+      bp::ipstream pipe_err;
       bp::child child(
         bp::search_path(static_cast<std::string>(executable)),
         bp::args(args),
         bp::std_out > pipe_out,
-        bp::std_err > bp::null // discard stderr
+        bp::std_err > pipe_err
       );
 
-      // Drain pipe before wait to prevent deadlock
-      std::string stdout_content;
+      // Drain both pipes before wait to prevent deadlock
+      std::string stdout_content, stderr_content;
+      std::thread reader_err([&pipe_err, &stderr_content]() {
+        std::string line;
+        while (std::getline(pipe_err, line)) { stderr_content += line + "\n"; }
+      });
       {
         std::string line;
         while (std::getline(pipe_out, line)) { stdout_content += line + "\n"; }
       }
+      reader_err.join();
+      // Merge like Qt MergedChannels
+      std::string merged_content = stdout_content + stderr_content;
 
       child.wait();
 
@@ -166,7 +176,7 @@ namespace OpenMS
             args_str += a;
           }
           OPENMS_LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args_str << "')\n";
-          OPENMS_LOG_ERROR << "Output was:\n------>\n" << stdout_content
+          OPENMS_LOG_ERROR << "Output was:\n------>\n" << merged_content
                     << "\n<------\n"
                     << "Make sure 'Rscript' is installed properly." << std::endl;
         }
