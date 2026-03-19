@@ -326,7 +326,7 @@ namespace OpenMS
         }
 
         // read file and save in MSSpectrum
-        ifstream fragment_annotation_file(sirius_result_file.string());
+        ifstream fragment_annotation_file(sirius_result_file);
         if (fragment_annotation_file)
         {
           // Target schema
