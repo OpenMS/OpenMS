@@ -933,6 +933,10 @@ namespace OpenMS::Internal
       // delete file if present
       std::error_code ec;
       std::filesystem::remove(OpenMS::to_path(filename_), ec);
+      if (ec)
+      {
+        OPENMS_LOG_WARN << "Warning: could not remove existing file '" << filename_ << "': " << ec.message() << std::endl;
+      }
 
       SqliteConnector conn(filename_);
 
