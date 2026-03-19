@@ -222,6 +222,7 @@ OpenMS Library:
     - MetaInfo: Iterator support and merge optimizations (#8621)
     - BREAKING: QuantmsIO renamed to QPXFile; PSM Parquet export rewritten using QPX pattern (#8756)
     - Vectorized dotprodScoring and manhattanScoring in StatsHelpers using Eigen (#8848)
+    - Vectorized cross-correlation in OpenSwath Scoring using Eigen (#8849)
     - Data provider pattern extracted for ModificationsDB, RibonucleotideDB, ProteaseDB, and RNaseDB (#8775, #8779)
     - Use unordered_map in PrecursorPurity, PeptideProteinResolution, and PeptideIndexing for faster lookups (#8806, #8763)
     - OpenSwath scoring speedups: cap XCorr maxdelay, vectorize DIAScoring, hoist loop-invariant computations, pass SwathMap by const& (#8787, #8785)
@@ -250,6 +251,7 @@ Fixes:
   - Fix OpenSwathWorkflow run_id mismatch between Parquet/mzML XIC files and OSW/sqMass output (#8833)
   - Fix OpenSwathWorkflow batch counting and loop bounds for empty compound sets (#8790)
   - Fix OpenSwathWorkflow run_id type mismatch between FEATURE table RUN_ID (INTEGER) and RUN table ID (BLOB) in OSW-Sqlite output (#8869)
+  - Fix IDMapper duplicate spectrum reference insertion when the same spectrum is mapped multiple times (#8905)
 
 Documentation:
   - Comprehensive documentation for Targeted Quantitation algorithms (#8588)
@@ -280,6 +282,7 @@ Build System:
   - CMake 4.x compatibility: exclude MSVC runtime DLLs from runtime dependency resolution (#8880)
   - Fix pyOpenMS dev build RPATH: BUILD_WITH_INSTALL_RPATH now conditional on NO_DEPENDENCIES to prevent libOpenMS.so not found (#8892)
   - Correctly locate a locally installed nanobind in CMake (#8874)
+  - Fix pyOpenMS MSVC compile-time error caused by nanobind __forceinline expansion in heavily templated code (#8933)
 
 
 ------------------------------------------------------------------------------------------
