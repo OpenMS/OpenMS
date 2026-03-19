@@ -17,6 +17,8 @@
             
 #include <fstream>
 
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
+
 #include <QDir>
 
 using namespace OpenMS;
@@ -45,7 +47,7 @@ START_SECTION((static bool canRun(String& python_executable, String& error_msg))
   if (PythonInfo::canRun(py, error_msg))
   { 
     TEST_EQUAL(File::exists(py), true)
-    TEST_EQUAL(QDir::isRelativePath(py.toQString()), false)
+    TEST_EQUAL(QDir::isRelativePath(toQString(py)), false)
   }
 
 END_SECTION

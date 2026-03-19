@@ -8,6 +8,7 @@
 
 #include <OpenMS/VISUAL/ListEditor.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 
 // for DIALOG
@@ -65,7 +66,7 @@ namespace OpenMS
         QComboBox * editor = new QComboBox(parent);
         QStringList list;
         list.append("");
-        list += restrictions_.toQString().split(",");
+        list += toQString(restrictions_).split(",");
         editor->addItems(list);
         return editor;
       }
@@ -277,7 +278,7 @@ namespace OpenMS
 
       for (UInt i = 0; i < list.size(); ++i)
       {
-        QListWidgetItem * item = new QListWidgetItem(list[i].toQString());
+        QListWidgetItem * item = new QListWidgetItem(toQString(list[i]));
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 
         insertItem(i, item);

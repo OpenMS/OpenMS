@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 
 // Qt
@@ -28,7 +29,7 @@ namespace OpenMS
   TOPPASWidget::TOPPASWidget(const Param & /*preferences*/, QWidget * parent, const String & tmp_path) :
     QGraphicsView(parent),
     EnhancedTabBarWidgetInterface(),
-    scene_(new TOPPASScene(this, tmp_path.toQString()))
+    scene_(new TOPPASScene(this, toQString(tmp_path)))
   {
     setAttribute(Qt::WA_DeleteOnClose);
     setAttribute(Qt::WA_AlwaysShowToolTips);

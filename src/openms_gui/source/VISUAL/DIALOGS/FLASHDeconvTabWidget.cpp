@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/FLASHDeconvTabWidget.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <OpenMS/VISUAL/DIALOGS/WizardHelper.h>
 #include <ui_FLASHDeconvTabWidget.h>
 
@@ -46,8 +47,8 @@ namespace OpenMS
     FLASHDeconvTabWidget::FLASHDeconvTabWidget(QWidget* parent) :
         QTabWidget(parent),
         ui(new Ui::FLASHDeconvTabWidget),
-        ep_([&](const String& out) { writeLog_(out.toQString()); },
-            [&](const String& out) { writeLog_(out.toQString()); })
+        ep_([&](const String& out) { writeLog_(toQString(out)); },
+            [&](const String& out) { writeLog_(toQString(out)); })
     {
       ui->setupUi(this);
 
@@ -104,7 +105,7 @@ namespace OpenMS
 
       for (const auto& mzML : in_mzMLs)
       {
-        updateOutputParamFromPerInputFile(mzML.toQString());
+        updateOutputParamFromPerInputFile(toQString(mzML));
         Param tmp_param = Param(fd_param);
         tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_);
 
@@ -138,7 +139,7 @@ namespace OpenMS
       String tmp_file = File::getTemporaryFile();
       ParamXMLFile().store(tmp_file, tmp_param);
       QProcess qp;
-      qp.start(executable.toQString(), QStringList() << tmp_file.toQString());
+      qp.start(toQString(executable), QStringList() << toQString(tmp_file));
       ui->tab_run->setEnabled(false); // grey out the Wizard until INIFileEditor returns...
       qp.waitForFinished(-1);
       ui->tab_run->setEnabled(true);
@@ -349,7 +350,7 @@ namespace OpenMS
 
     void FLASHDeconvTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
     {
-      writeLog_(text.toQString(), color, new_section);
+      writeLog_(toQString(text), color, new_section);
     }
 
     bool FLASHDeconvTabWidget::checkFDInputReady_()

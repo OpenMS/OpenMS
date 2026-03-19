@@ -24,6 +24,7 @@
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 // QT
 #include <QPaintEvent>
@@ -305,7 +306,7 @@ namespace OpenMS
     }
 
     auto formats = layer.storeFullData()->getSupportedFileFormats(); // storeFullData() is cheap; we just want the formats...
-    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", proposed_name.toQString(), formats, true, formats.getTypes().front());
+    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", toQString(proposed_name), formats, true, formats.getTypes().front());
     if (file_name.isEmpty())
     {
       return;
@@ -406,7 +407,7 @@ namespace OpenMS
     }
     else 
     {
-      new_layer->setName(QFileInfo(filename.toQString()).completeBaseName());
+      new_layer->setName(QFileInfo(toQString(filename)).completeBaseName());
     }
   }
 
@@ -529,7 +530,7 @@ namespace OpenMS
     getLayer(i).setName(name);
     if (i == 0 && spectrum_widget_)
     {
-      spectrum_widget_->setWindowTitle(name.toQString());
+      spectrum_widget_->setWindowTitle(toQString(name));
     }
   }
 

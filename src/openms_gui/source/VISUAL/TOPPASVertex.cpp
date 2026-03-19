@@ -16,6 +16,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QSvgRenderer>
 #include <QtCore/QFileInfo>
@@ -95,9 +96,9 @@ namespace OpenMS
     for (const auto& [suffix, count] : suffices)
     {
       if (suffices.size() > 1)
-        text_l.push_back(String("." + suffix + "(" + String(count) + ")").toQString());
+        text_l.push_back(toQString(String("." + suffix + "(" + String(count) + ")")));
       else
-        text_l.push_back("." + suffix.toQString());
+        text_l.push_back("." + toQString(suffix));
     }
     return text_l;
   }

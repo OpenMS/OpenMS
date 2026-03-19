@@ -17,6 +17,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -215,7 +216,7 @@ namespace OpenMS
     {
       if (create)
       {
-        QDir path = QDir(plugin_path.toQString());
+        QDir path = QDir(toQString(plugin_path));
         QString dir = path.dirName();
         path.cdUp();
 

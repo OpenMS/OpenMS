@@ -27,6 +27,7 @@
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/make_shared.hpp>
@@ -261,7 +262,7 @@ namespace OpenMS
         auto ditem = new Annotation1DCaret<Peak1D>(points,
                                                    QString(),
                                                    cols[i],
-                                                   String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
+                                                   toQString(String(getCurrentLayer().param.getValue("peak_color").toString())));
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         getCurrentLayer().getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
@@ -282,7 +283,7 @@ namespace OpenMS
       text += "</body></html>";
       if (first_dit!=nullptr)
       {
-        first_dit->setRichText(text.toQString());
+        first_dit->setRichText(toQString(text));
       }
     }
   }
@@ -447,7 +448,7 @@ namespace OpenMS
 
             }
             box_text = R"(<font size="5" style="background-color:white;"><pre>)" + box_text + "</pre></font> ";
-            widget_1D->canvas()->setTextBox(box_text.toQString());
+            widget_1D->canvas()->setTextBox(toQString(box_text));
           }
           else if (ph.getPeakAnnotations().empty()) // only write the sequence
           {
@@ -456,7 +457,7 @@ namespace OpenMS
             {
               seq = ph.getMetaValue("label"); // e.g. for RNA sequences
             }
-            widget_1D->canvas()->setTextBox(seq.toQString());
+            widget_1D->canvas()->setTextBox(toQString(seq));
           }
           else if (widget_1D->canvas()->isIonLadderVisible())
           {
@@ -470,7 +471,7 @@ namespace OpenMS
                 ph.getPeakAnnotations(),
                 top_ions,
                 bottom_ions);
-              widget_1D->canvas()->setTextBox(diagram.toQString());
+              widget_1D->canvas()->setTextBox(toQString(diagram));
             }
             else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
             {
@@ -482,7 +483,7 @@ namespace OpenMS
                 static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
                 String diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
                                                           top_ions, bottom_ions);
-                widget_1D->canvas()->setTextBox(diagram.toQString());
+                widget_1D->canvas()->setTextBox(toQString(diagram));
               }
               catch (Exception::ParseError&) // label doesn't contain have a valid seq.
               {
@@ -1050,7 +1051,7 @@ namespace OpenMS
           for (Size j = aa_sequence.size() - 1; j >= aa_sequence.size() - ion_number; --j)
           {
             const Residue& r = aa_sequence.getResidue(j);
-            aa_ss.append(r.getOneLetterCode().toQString());
+            aa_ss.append(toQString(r.getOneLetterCode()));
             if (r.isModified())
             {
               aa_ss.append("*");
@@ -1068,7 +1069,7 @@ namespace OpenMS
           s.append("\n");
           // extract peptide ion sequence
           AASequence aa_subsequence = aa_sequence.getSubsequence(0, ion_number);
-          QString aa_ss = aa_subsequence.toString().toQString();
+          QString aa_ss = toQString(aa_subsequence.toString());
           // shorten modifications "(MODNAME)" to "*"
           aa_ss.replace(QRegularExpression("[(].*[)]"), "*");
           // append to label
@@ -1209,7 +1210,7 @@ namespace OpenMS
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding annotation item based on fragment annotations: " << label << endl;
 #endif
-      QStringList lines = label.toQString().split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts);
+      QStringList lines = toQString(label).split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts);
       if (lines.size() > 1)
       {
         label = String(lines[0]);
@@ -1260,7 +1261,7 @@ namespace OpenMS
 
       auto item = new Annotation1DPeakItem<Peak1D>(
         position,
-        label.toQString(),
+        toQString(label),
         color);
 
       // set peak color

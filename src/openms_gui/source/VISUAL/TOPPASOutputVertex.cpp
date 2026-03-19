@@ -13,6 +13,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <QtCore/QDir>
 
 namespace OpenMS
@@ -54,14 +55,14 @@ namespace OpenMS
 
   void TOPPASOutputVertex::openContainingFolder() const
   {
-    GUIHelpers::openFolder(getFullOutputDirectory().toQString());
+    GUIHelpers::openFolder(toQString(getFullOutputDirectory()));
   }
 
   String TOPPASOutputVertex::getFullOutputDirectory() const
   {
     TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
     auto dir = String(ts->getOutDir()).substitute("\\", "/").ensureLastChar('/') + getOutputDir();
-    String clean_dir = QDir::cleanPath(dir.toQString());
+    String clean_dir = QDir::cleanPath(toQString(dir));
     return clean_dir.substitute("\\", "/").ensureLastChar('/');
   }
 

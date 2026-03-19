@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/LayerListView.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
@@ -70,15 +71,15 @@ namespace OpenMS
 
       // add item
       QListWidgetItem* item = new QListWidgetItem(this);
-      QString name = layer.getDecoratedName().toQString();
+      QString name = toQString(layer.getDecoratedName());
 
       item->setText(name);
-      item->setToolTip(layer.filename.toQString());
+      item->setToolTip(toQString(layer.filename));
 
       if (is_1d_view)
       {
         QPixmap icon(7, 7);
-        icon.fill(QColor(String(layer.param.getValue("peak_color").toString()).toQString()));
+        icon.fill(QColor(toQString(String(layer.param.getValue("peak_color").toString()))));
         item->setIcon(icon);
       }
       else
@@ -144,7 +145,7 @@ namespace OpenMS
     QMenu* context_menu = new QMenu(this);
     
     context_menu->addAction("Rename", [&]() {
-      QString name = QInputDialog::getText(this, "Rename layer", "Name:", QLineEdit::Normal, spectrum_widget_->canvas()->getLayerName(layer_idx).toQString());
+      QString name = QInputDialog::getText(this, "Rename layer", "Name:", QLineEdit::Normal, toQString(spectrum_widget_->canvas()->getLayerName(layer_idx)));
       if (name != "")
       {
         spectrum_widget_->canvas()->setLayerName(layer_idx, name);

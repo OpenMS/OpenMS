@@ -19,6 +19,7 @@
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <OpenMS/VISUAL/SequenceVisualizer.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/TableView.h>
@@ -310,7 +311,7 @@ namespace OpenMS
           {
             const vector<PeptideEvidence>& evidences = pep_hit.getPeptideEvidences();
             const AASequence& aaseq = pep_hit.getSequence();
-            const auto qstrseq = aaseq.toString().toQString();
+            const auto qstrseq = toQString(aaseq.toString());
 
             for (const auto & evidence : evidences)
             {
@@ -318,7 +319,7 @@ namespace OpenMS
               QJsonObject pep_data_obj;
               int pep_start = evidence.getStart();
               int pep_end = evidence.getEnd();
-              if (id_accession.toQString() == current_accession)
+              if (toQString(id_accession) == current_accession)
               {
                 // contains key-value of modName and vector of indices
                 QJsonObject mod_data;
@@ -329,16 +330,16 @@ namespace OpenMS
                   {
                     const String& mod_name = aaseq[i].getModificationName();
 
-                    if (!mod_data.contains(mod_name.toQString()))
+                    if (!mod_data.contains(toQString(mod_name)))
                     {
-                      mod_data[mod_name.toQString()] = QJsonArray{i + pep_start}; // add pep_start to get the correct location in the whole sequence
+                      mod_data[toQString(mod_name)] = QJsonArray{i + pep_start}; // add pep_start to get the correct location in the whole sequence
                     }
                     else
                     {
-                      QJsonArray values = mod_data.value(mod_name.toQString()).toArray();
+                      QJsonArray values = mod_data.value(toQString(mod_name)).toArray();
                       // add pep_start to get the correct location in the whole sequence
-                      values.push_back(i + pep_start); 
-                      mod_data[mod_name.toQString()] = values;
+                      values.push_back(i + pep_start);
+                      mod_data[toQString(mod_name)] = values;
                     }
                   }
                 }
@@ -499,7 +500,7 @@ namespace OpenMS
           item->setData(Qt::DisplayRole, pa.mz);
           fragment_window_->setItem(fragment_window_->rowCount() - 1, 0, item);
           item = fragment_window_->itemPrototype()->clone();
-          item->setData(Qt::DisplayRole, pa.annotation.toQString());
+          item->setData(Qt::DisplayRole, toQString(pa.annotation));
           fragment_window_->setItem(fragment_window_->rowCount() - 1, 1, item);
           item = fragment_window_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, pa.intensity);
@@ -627,10 +628,10 @@ namespace OpenMS
         // add new row at the end of the table
         protein_table_widget_->insertRow(protein_table_widget_->rowCount());
 
-        protein_table_widget_->setAtBottomRow(protein.getAccession().toQString(), ProteinClmn::ACCESSION, bg_color, Qt::blue);
-        protein_table_widget_->setAtBottomRow(protein.getSequence().toQString(), ProteinClmn::FULL_PROTEIN_SEQUENCE, bg_color);
+        protein_table_widget_->setAtBottomRow(toQString(protein.getAccession()), ProteinClmn::ACCESSION, bg_color, Qt::blue);
+        protein_table_widget_->setAtBottomRow(toQString(protein.getSequence()), ProteinClmn::FULL_PROTEIN_SEQUENCE, bg_color);
         protein_table_widget_->setAtBottomRow("show", ProteinClmn::SEQUENCE, bg_color, Qt::blue);
-        protein_table_widget_->setAtBottomRow(protein.getDescription().toQString(), ProteinClmn::DESCRIPTION, bg_color);
+        protein_table_widget_->setAtBottomRow(toQString(protein.getDescription()), ProteinClmn::DESCRIPTION, bg_color);
         protein_table_widget_->setAtBottomRow(protein.getScore(), ProteinClmn::SCORE, bg_color);
         protein_table_widget_->setAtBottomRow(protein.getCoverage(), ProteinClmn::COVERAGE, bg_color);
         protein_table_widget_->setAtBottomRow(total_pepids, ProteinClmn::NR_PSM, bg_color);
@@ -733,7 +734,7 @@ namespace OpenMS
     // add common meta columns (not indexed anymore, but we don't need them to be)
     for (const auto& ck : common_keys)
     {
-      headers << ck.toQString();
+      headers << toQString(ck);
     }
 
     table_widget_->blockSignals(true); // to be safe, that clear does not trigger anything.
@@ -807,7 +808,7 @@ namespace OpenMS
           {
             seq = ph.getMetaValue("label");
           }
-          table_widget_->setAtBottomRow(seq.toQString(), Clmn::SEQUENCE, bg_color);
+          table_widget_->setAtBottomRow(toQString(seq), Clmn::SEQUENCE, bg_color);
 
        // accession, start and end in protein (note that one peptide might match twice into same protein)
         const vector<PeptideEvidence>& pevids = ph.getPeptideEvidences();
@@ -823,9 +824,9 @@ namespace OpenMS
         String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
         String starts = ListUtils::concatenate(vector<String>(protein_starts.begin(), protein_starts.end()), ", ");
         String ends = ListUtils::concatenate(vector<String>(protein_ends.begin(), protein_ends.end()), ", ");
-        table_widget_->setAtBottomRow(accessions.toQString(), Clmn::ACCESSIONS, bg_color);
-        table_widget_->setAtBottomRow(starts.toQString(), Clmn::START, bg_color);
-        table_widget_->setAtBottomRow(ends.toQString(), Clmn::END, bg_color);
+        table_widget_->setAtBottomRow(toQString(accessions), Clmn::ACCESSIONS, bg_color);
+        table_widget_->setAtBottomRow(toQString(starts), Clmn::START, bg_color);
+        table_widget_->setAtBottomRow(toQString(ends), Clmn::END, bg_color);
         table_widget_->setAtBottomRow((int) i, Clmn::ID_NR, bg_color); // spectrum index
         table_widget_->setAtBottomRow((int)(ph_idx), Clmn::PEPHIT_NR, bg_color);
         
@@ -871,10 +872,10 @@ namespace OpenMS
               QString annotation;
               for (const PeptideHit::PeakAnnotation& pa : ph.getPeakAnnotations())
               {
-                annotation += String(pa.mz).toQString() + "|" +
-                  String(pa.intensity).toQString() + "|" +
-                  String(pa.charge).toQString() + "|" +
-                  pa.annotation.toQString() + ";";
+                annotation += toQString(String(pa.mz)) + "|" +
+                  toQString(String(pa.intensity)) + "|" +
+                  toQString(String(pa.charge)) + "|" +
+                  toQString(pa.annotation) + ";";
               }
               QTableWidgetItem* item = table_widget_->setAtBottomRow("show", current_col, bg_color, Qt::blue);
               item->setData(Qt::UserRole, annotation);
@@ -889,7 +890,7 @@ namespace OpenMS
               }
               else
               {
-                table_widget_->setAtBottomRow(dv.toQString(), current_col, bg_color);
+                table_widget_->setAtBottomRow(toQString(dv), current_col, bg_color);
               }
               
               ++current_col;
@@ -1068,7 +1069,7 @@ namespace OpenMS
       table_widget_->setAtBottomRow(first_precursor.getMZ(), Clmn::PRECURSOR_MZ, background_color, Qt::blue);
 
       // set activation method
-      table_widget_->setAtBottomRow(ListUtils::concatenate(first_precursor.getActivationMethodsAsString(), ",").toQString(), Clmn::DISSOCIATION, background_color);
+      table_widget_->setAtBottomRow(toQString(ListUtils::concatenate(first_precursor.getActivationMethodsAsString(), ",")), Clmn::DISSOCIATION, background_color);
 
       // set precursor intensity
       table_widget_->setAtBottomRow(first_precursor.getIntensity(), Clmn::PREC_INT, background_color);

@@ -12,6 +12,7 @@
 
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QFileDialog>
@@ -54,7 +55,7 @@ namespace OpenMS
 
   void OutputDirectory::showFileDialog()
   {
-    QString dir = File::exists(File::path(getDirectory())) ? File::path(getDirectory()).toQString() : "";
+    QString dir = File::exists(File::path(getDirectory())) ? toQString(File::path(getDirectory())) : "";
     QString selected_dir = QFileDialog::getExistingDirectory(this, tr("Select output directory"), dir);
     if (!selected_dir.isEmpty())
     {

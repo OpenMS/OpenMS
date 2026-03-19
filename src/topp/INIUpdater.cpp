@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 
 #include <QApplication>
@@ -161,10 +162,10 @@ protected:
       QProcess pr;
       QStringList arguments;
       arguments << "-write_ini";
-      arguments << tmp_ini_file.toQString();
+      arguments << toQString(tmp_ini_file);
       arguments << "-instance";
-      arguments << String(this_instance).toQString();
-      pr.start((path + "/" + new_tool).toQString(), arguments);
+      arguments << toQString(String(this_instance));
+      pr.start(toQString(path + "/" + new_tool), arguments);
       if (!pr.waitForFinished(-1))
       {
         writeLogWarn_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
@@ -199,8 +200,8 @@ protected:
     QApplication app(argc, const_cast<char**>(argv), false);
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
-    d.mkpath(tmp_dir.toQString());
-    TOPPASScene ts(nullptr, tmp_dir.toQString(), false);
+    d.mkpath(toQString(tmp_dir));
+    TOPPASScene ts(nullptr, toQString(tmp_dir), false);
     paramFile.store(tmp_ini_file, p);
     ts.load(tmp_ini_file);
     ts.store(tmp_ini_file);
@@ -209,9 +210,9 @@ protected:
     // STORE
     if (outfile.empty()) // create a backup
     {
-      QFileInfo fi(infile.toQString());
+      QFileInfo fi(toQString(infile));
       String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".toppas";
-      QFile::rename(infile.toQString(), new_name.toQString());
+      QFile::rename(toQString(infile), toQString(new_name));
       // write new file
       paramFile.store(infile, p);
     }
@@ -286,10 +287,10 @@ protected:
       QProcess pr;
       QStringList arguments;
       arguments << "-write_ini";
-      arguments << tmp_ini_file.toQString();
+      arguments << toQString(tmp_ini_file);
       arguments << "-instance";
-      arguments << String(this_instance).toQString();
-      pr.start((path + "/" + new_tool).toQString(), arguments);
+      arguments << toQString(String(this_instance));
+      pr.start(toQString(path + "/" + new_tool), arguments);
       if (!pr.waitForFinished(-1))
       {
         writeLogWarn_("Update for file '" + infile + "' failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
@@ -317,9 +318,9 @@ protected:
     // STORE
     if (outfile.empty()) // create a backup
     {
-      QFileInfo fi(infile.toQString());
+      QFileInfo fi(toQString(infile));
       String backup_filename = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version_old + ".ini";
-      QFile::rename(infile.toQString(), backup_filename.toQString());
+      QFile::rename(toQString(infile), toQString(backup_filename));
       std::cout << "Backup of input file created: " << backup_filename << std::endl;
       // write updated/new file
       paramFile.store(infile, p);

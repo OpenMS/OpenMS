@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/PeptideIdentificationVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 //QT
 #include <QtWidgets/QLineEdit>
@@ -53,9 +54,9 @@ namespace OpenMS
     // id of the item in the tree
     tree_id_ = tree_item_id;
 
-    identifier_->setText(temp_.getIdentifier().toQString());
+    identifier_->setText(toQString(temp_.getIdentifier()));
     identification_threshold_->setText(QString::number(temp_.getSignificanceThreshold()));
-    score_type_->setText(temp_.getScoreType().toQString());
+    score_type_->setText(toQString(temp_.getScoreType()));
     higher_better_->setCurrentIndex(temp_.isHigherScoreBetter());
   }
 

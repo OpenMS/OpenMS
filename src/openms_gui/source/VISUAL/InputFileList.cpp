@@ -11,6 +11,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QtWidgets/QFileDialog>
 #include <QApplication>
@@ -191,7 +192,7 @@ namespace OpenMS
       if (!files.isEmpty())
       {
         ui_->input_file_list->addItems(files);
-        setCWD(File::path(files.back()).toQString()); // emit the signal
+        setCWD(toQString(File::path(files.back()))); // emit the signal
       }
     }
 

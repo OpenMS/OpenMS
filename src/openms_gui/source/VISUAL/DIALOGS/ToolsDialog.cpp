@@ -11,6 +11,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -58,7 +59,7 @@ namespace OpenMS
     // Layer label
     auto layer_label = new QLabel("Selected Layer:");
     main_grid->addWidget(layer_label, 0, 0);
-    auto layer_label_name = new QLabel(layer_name.toQString());
+    auto layer_label_name = new QLabel(toQString(layer_name));
     main_grid->addWidget(layer_label_name, 0, 1);
 
     auto label = new QLabel("TOPP tool:");
@@ -217,7 +218,7 @@ namespace OpenMS
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
-        list << pair.first.toQString();
+        list << toQString(pair.first);
       }
     }
     //TODO: Plugins get added to the list just like tools and can't be differentiated in the GUI
@@ -226,7 +227,7 @@ namespace OpenMS
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
-        list << String(name).toQString();
+        list << toQString(String(name));
       }
     }
 
@@ -253,7 +254,7 @@ namespace OpenMS
       arg_param_ = plugin_params_.copy(tool_name + ":");
     }
 
-    tool_desc_->setText(String(arg_param_.getSectionDescription(tool_name)).toQString());
+    tool_desc_->setText(toQString(String(arg_param_.getSectionDescription(tool_name))));
     vis_param_ = arg_param_.copy(tool_name + ":1:", true);
     vis_param_.remove("log");
     vis_param_.remove("no_progress");

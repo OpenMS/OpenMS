@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/FileWatcher.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <QtCore/QTimer>
 
 using namespace std;
@@ -19,7 +20,7 @@ namespace OpenMS
     delay_in_seconds_(1.0)
   {
     // Connect the slot for monitoring file changes
-    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(s.toQString()); });
+    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(toQString(s)); });
   }
 
   FileWatcher::~FileWatcher() = default;

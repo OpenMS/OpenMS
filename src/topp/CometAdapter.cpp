@@ -29,6 +29,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <OpenMS/ANALYSIS/ID/CometModification.h>
 
@@ -297,7 +298,7 @@ protected:
 
     // comet_version is something like "# comet_version 2017.01 rev. 1"
     QRegularExpression comet_version_regex("(\\d{4})\\.(\\d*)rev");
-    if (auto match = comet_version_regex.match(comet_version.toQString().remove(' ')); match.hasMatch())
+    if (auto match = comet_version_regex.match(toQString(comet_version).remove(' ')); match.hasMatch())
     {
       const int comet_year = match.captured(1).toInt();
       if (comet_version.hasSubstring("2024.01 rev. 0"))

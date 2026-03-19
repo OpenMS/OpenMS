@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 
 #include <QtGui/QImage>
@@ -390,7 +391,7 @@ protected:
     if (show_precursors)
     {
       markMS2Locations_(exp, image, getFlag_("transpose"),
-                        getStringOption_("precursor_color").toQString(),
+                        toQString(getStringOption_("precursor_color")),
                         Size(getIntOption_("precursor_size")));
     }
 
@@ -401,7 +402,7 @@ protected:
       markFeatureLocations_(feature_map, exp, image, getFlag_("transpose"), feature_color);
     }
 
-    if (image.save(out.toQString(), format.c_str())) return EXECUTION_OK;
+    if (image.save(toQString(out), format.c_str())) return EXECUTION_OK;
     else return CANNOT_WRITE_OUTPUT_FILE;
   }
 

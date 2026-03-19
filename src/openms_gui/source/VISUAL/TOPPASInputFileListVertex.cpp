@@ -15,6 +15,7 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -121,7 +122,7 @@ namespace OpenMS
     // open them
     for (std::set<String>::const_iterator it = directories.begin(); it != directories.end(); ++it)
     {
-      QString path = QDir::toNativeSeparators(it->toQString());
+      QString path = QDir::toNativeSeparators(toQString(*it));
       GUIHelpers::openFolder(path);
     }
   }
@@ -172,7 +173,7 @@ namespace OpenMS
     setToolTip(files.join("\n"));
 
     // set current working dir when opening files to the last file
-    cwd_ = File::path(files.back()).toQString();
+    cwd_ = toQString(File::path(files.back()));
   }
 
   void TOPPASInputFileListVertex::outEdgeHasChanged()

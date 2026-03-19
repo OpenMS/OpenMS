@@ -12,6 +12,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QApplication>
 #include <QtCore/QDir>
@@ -90,16 +91,16 @@ protected:
 
   ExitCodes main_(int argc, const char ** argv) override
   {
-    QString toppas_file = getStringOption_("in").toQString();
-    QString out_dir_name = getStringOption_("out_dir").toQString();
-    QString resource_file = getStringOption_("resource_file").toQString();
+    QString toppas_file = toQString(getStringOption_("in"));
+    QString out_dir_name = toQString(getStringOption_("out_dir"));
+    QString resource_file = toQString(getStringOption_("resource_file"));
     int num_jobs = getIntOption_("num_jobs");
 
     QApplication a(argc, const_cast<char **>(argv), false);
 
     //set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
-    QString new_tmp_dir = File::getUniqueName().toQString();
-    QDir qd(File::getTempDirectory().toQString());
+    QString new_tmp_dir = toQString(File::getUniqueName());
+    QDir qd(toQString(File::getTempDirectory()));
     qd.mkdir(new_tmp_dir);
     qd.cd(new_tmp_dir);
     QString tmp_path = qd.absolutePath();
@@ -142,8 +143,8 @@ protected:
     }
     else
     {
-      QFileInfo fi(ts.getSaveFileName().toQString());
-      out_dir_name = QDir::cleanPath(ts.getOutDir() + QDir::separator() + String(fi.baseName()).toQString() + QDir::separator());
+      QFileInfo fi(toQString(ts.getSaveFileName()));
+      out_dir_name = QDir::cleanPath(ts.getOutDir() + QDir::separator() + toQString(String(fi.baseName())) + QDir::separator());
       cout << "No output directory specified. Using the user's home directory (" << out_dir_name.toStdString() << ")" << endl;
       ts.setOutDir(out_dir_name);
       QDir qd;

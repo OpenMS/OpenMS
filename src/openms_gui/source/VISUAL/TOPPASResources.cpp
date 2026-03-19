@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/TOPPASResources.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <iostream>
 #include <map>
@@ -56,12 +57,12 @@ namespace OpenMS
         return;
       }
 
-      QString key = (substrings[0]).toQString();
+      QString key = toQString((substrings[0]));
       StringList url_list = ListUtils::toStringList<std::string>(it->value);
       QList<TOPPASResource> resource_list;
       for (StringList::const_iterator it = url_list.begin(); it != url_list.end(); ++it)
       {
-        resource_list << TOPPASResource(QUrl(it->toQString()));
+        resource_list << TOPPASResource(QUrl(toQString(*it)));
       }
 
       add(key, resource_list);

@@ -23,6 +23,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <QtCore/QDir>
 #include <QtCore/QDirIterator>
 #include <QtCore/QString>
@@ -192,7 +193,7 @@ protected:
     // Get all subdirectories within the SIRIUS project directory
     //-------------------------------------------------------------
     std::vector<String> subdirs;
-    QDirIterator it(sirius_project_directory.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+    QDirIterator it(toQString(sirius_project_directory), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
     while (it.hasNext())
     {
       subdirs.emplace_back(it.next());
