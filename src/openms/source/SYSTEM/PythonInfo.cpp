@@ -62,7 +62,7 @@ namespace OpenMS
       bp::ipstream pipe_out;
       bp::ipstream pipe_err;
       bp::child child(
-        static_cast<std::string>(python_executable),
+        bp::search_path(static_cast<std::string>(python_executable)),
         bp::args({"--version"}),
         bp::std_out > pipe_out,
         bp::std_err > pipe_err
@@ -96,7 +96,7 @@ namespace OpenMS
     try
     {
       bp::child child(
-        static_cast<std::string>(python_executable),
+        bp::search_path(static_cast<std::string>(python_executable)),
         bp::args({"-c", "import " + static_cast<std::string>(package_name)}),
         bp::std_out > bp::null,
         bp::std_err > bp::null
@@ -125,7 +125,7 @@ namespace OpenMS
       bp::ipstream pipe_out;
       bp::ipstream pipe_err;
       bp::child child(
-        static_cast<std::string>(python_executable),
+        bp::search_path(static_cast<std::string>(python_executable)),
         bp::args({"--version"}),
         bp::std_out > pipe_out,
         bp::std_err > pipe_err

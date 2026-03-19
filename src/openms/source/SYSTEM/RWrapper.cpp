@@ -61,7 +61,7 @@ namespace OpenMS
       bp::ipstream pipe_out;
       bp::ipstream pipe_err;
       bp::child child(
-        static_cast<std::string>(executable),
+        bp::search_path(static_cast<std::string>(executable)),
         bp::args(args),
         bp::std_out > pipe_out,
         bp::std_err > pipe_err
@@ -118,7 +118,7 @@ namespace OpenMS
     {
       bp::ipstream pipe_out;
       bp::child child(
-        static_cast<std::string>(executable),
+        bp::search_path(static_cast<std::string>(executable)),
         bp::args(args),
         bp::std_out > pipe_out,
         bp::std_err > bp::null // merge-like: just discard stderr
