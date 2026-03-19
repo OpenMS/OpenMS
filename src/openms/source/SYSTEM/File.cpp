@@ -287,7 +287,7 @@ namespace OpenMS
   bool File::removeDir(const String& dir_name)
   {
     std::error_code ec;
-    fs::remove(to_path(dir_name), ec); // non-recursive: fails on non-empty directories
+    fs::remove_all(to_path(dir_name), ec); // recursive, matching original Qt behavior
     if (ec)
     {
       std::cerr << "Could not remove directory " << dir_name << ": " << ec.message() << std::endl;
@@ -644,7 +644,7 @@ namespace OpenMS
 #else
       const char* home = getenv("HOME");
 #endif
-      dir = home ? String(home) : String(".");
+      dir = home ? String(home).substitute('\\', '/') : String(".");
     }
     dir.ensureLastChar('/');
     return dir;
@@ -683,7 +683,7 @@ namespace OpenMS
 #else
       const char* home = getenv("HOME");
 #endif
-      home_path = home ? String(home) : String(".");
+      home_path = home ? String(home).substitute('\\', '/') : String(".");
     }
     return home_path;
   }

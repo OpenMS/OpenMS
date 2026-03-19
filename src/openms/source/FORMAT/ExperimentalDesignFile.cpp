@@ -26,7 +26,13 @@ namespace OpenMS
     {
       String result;
       namespace fs = std::filesystem;
-      if (to_path(spec_file).is_relative())
+      // On Windows, std::filesystem treats "/data/foo" as relative (no drive letter),
+      // but Qt treated it as absolute. Check for '/' prefix to match Qt behavior.
+      bool is_relative = to_path(spec_file).is_relative();
+#ifdef OPENMS_WINDOWSPLATFORM
+      if (!spec_file.empty() && spec_file[0] == '/') is_relative = false;
+#endif
+      if (is_relative)
       {
         // file name is relative, so we need to figure out the correct folder
 
