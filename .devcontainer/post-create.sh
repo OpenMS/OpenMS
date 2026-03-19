@@ -8,39 +8,16 @@ yum install -y --setopt=install_weak_deps=False \
   dpkg \
   dpkg-dev
 
-is_pkg_available() {
-  local pkg="$1"
-  yum -q list available "$pkg" >/dev/null 2>&1 || yum -q list installed "$pkg" >/dev/null 2>&1
-}
+if ! rpm -q apache-arrow-release >/dev/null 2>&1
+then
+  yum install -y https://packages.apache.org/artifactory/arrow/almalinux/9/apache-arrow-release-latest.rpm
+fi
 
-install_first_available() {
-  local group_name="$1"
-  shift
-  local pkg
+# EPEL Arrow/Parquet devel packages conflict with Apache Arrow 23 package layout.
+# Remove them first so Arrow 23 installation can proceed cleanly.
+yum remove -y libarrow-devel parquet-libs-devel libparquet-devel 2>/dev/null || true
 
-  for pkg in "$@"
-  do
-    if is_pkg_available "$pkg"
-    then
-      yum install -y --setopt=install_weak_deps=False "$pkg"
-      return 0
-    fi
-  done
-
-  echo "Skipping ${group_name}: no matching package available (${*})."
-  return 0
-}
-
-install_first_available "Arrow devel" \
-  arrow-devel \
-  libarrow-devel
-
-install_first_available "Arrow compute devel" \
-  arrow-compute-devel \
-  libarrow-compute-devel \
-  libarrow-devel
-
-install_first_available "Parquet devel" \
-  parquet-devel \
-  libparquet-devel \
-  parquet-libs-devel
+yum install -y --setopt=install_weak_deps=False --allowerasing \
+  arrow-devel-23* \
+  arrow-compute-devel-23* \
+  parquet-devel-23*
