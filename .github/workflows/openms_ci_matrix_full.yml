@@ -151,7 +151,7 @@ jobs:
           if [[ "${{ matrix.compiler }}" == "xcode" ]]; then
             ls -la /Applications/Xcode*
             sudo xcode-select -s '/Applications/Xcode_${{ matrix.compiler_ver }}.app/Contents/Developer'
-            echo "cxx_compiler=clang++" >> $GITHUB_OUTPUT
+            echo "cxx_compiler=$(xcrun -f clang++)" >> $GITHUB_OUTPUT
           elif [[ "${{ matrix.compiler }}" == "clang++" ]]; then
             echo "cxx_compiler=$(brew --prefix llvm@${{ matrix.compiler_ver }})/bin/clang++" >> $GITHUB_OUTPUT
           else
