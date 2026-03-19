@@ -80,6 +80,14 @@ namespace OpenMS
       std_args.push_back(static_cast<std::string>(a));
     }
 
+    // Resolve executable via PATH search (bp::child with a plain string does not search PATH)
+    std::string exe_str = static_cast<std::string>(exe);
+    auto resolved = bp::search_path(exe_str);
+    if (!resolved.empty())
+    {
+      exe_str = resolved.string();
+    }
+
     // Build environment: inherit current + add custom vars
     auto proc_env = boost::this_process::environment();
     for (const auto& kv : env)
@@ -102,7 +110,7 @@ namespace OpenMS
         std::string start_dir_str = working_dir.empty() ? "." : static_cast<std::string>(working_dir);
 
         bp::child child(
-          static_cast<std::string>(exe),
+          exe_str,
           bp::args(std_args),
           bp::std_out > ap_out,
           bp::std_err > ap_err,
@@ -202,7 +210,7 @@ namespace OpenMS
         std::string start_dir_str = working_dir.empty() ? "." : static_cast<std::string>(working_dir);
 
         bp::child child(
-          static_cast<std::string>(exe),
+          exe_str,
           bp::args(std_args),
           bp::std_out > bp::null,
           bp::std_err > bp::null,
