@@ -218,6 +218,7 @@ protected:
       if (!QFile::rename(toQString(infile), toQString(new_name)))
       {
         OPENMS_LOG_ERROR << "Could not create backup '" << new_name << "' from '" << infile << "'. Aborting update to prevent data loss." << std::endl;
+        failed_.push_back(infile);
         return;
       }
       // write new file

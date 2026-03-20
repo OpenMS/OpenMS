@@ -48,6 +48,7 @@ namespace OpenMS
 
   void ContactPersonVisualizer::store()
   {
+    ptr_->setFirstName(fromQString(firstname_->text()));
     ptr_->setLastName(fromQString(lastname_->text()));
     ptr_->setInstitution(fromQString(institution_->text()));
     ptr_->setEmail(fromQString(email_->text()));
