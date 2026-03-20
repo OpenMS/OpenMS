@@ -69,17 +69,35 @@ These files already link `OpenMS_GUI` and have the include path available.
 
 ### 4. TOPP Tool Migration (`src/topp/`)
 
-12 files that call `.toQString()` or use `String(qstr)`:
+11 files that call `.toQString()` or use `String(qstr)`:
 
 **Link openms_gui (can use `Qt5Port.h`):** `ExecutePipeline.cpp`, `ImageCreator.cpp`, `INIUpdater.cpp`
 
-**Link only OpenMS (inline conversions directly):** `MetaProSIP.cpp`, `GenericWrapper.cpp`, `IDRipper.cpp`, `MzMLSplitter.cpp`, `CometAdapter.cpp`, `MaRaClusterAdapter.cpp`, `OpenSwathFileSplitter.cpp`, `AssayGeneratorMetaboSirius.cpp`, `OpenSwathWorkflow.cpp`
+**Link only OpenMS (inline conversions directly):** `MetaProSIP.cpp`, `GenericWrapper.cpp`, `IDRipper.cpp`, `MzMLSplitter.cpp`, `CometAdapter.cpp`, `MaRaClusterAdapter.cpp`, `OpenSwathFileSplitter.cpp`, `AssayGeneratorMetaboSirius.cpp`
 
 For tools that don't link openms_gui, inline the conversions:
 - `str.toQString()` → `QString::fromStdString(str)`
 - `String(some_qstring)` → `some_qstring.toStdString()` (assigns to `std::string`/`String`)
 
-### 5. Test Changes (`src/tests/`)
+### 5. CMake: Explicit Qt Linking for TOPP Tools and Tests
+
+Removing `Qt6::Core` from libOpenMS's PUBLIC dependencies means TOPP tools and tests that directly `#include` Qt headers (QDir, QFile, QByteArray, QString, etc.) will lose their transitive Qt dependency and fail to compile.
+
+**Fix:** Add `Qt6::Core` as an explicit link dependency to each affected target individually in `src/topp/CMakeLists.txt` and the relevant test CMakeLists.
+
+**Affected TOPP tools (link only OpenMS, use Qt directly):**
+- `QCEmbedder`, `QCExporter`, `QCExtractor`, `QCImporter`, `QCMerger`, `QCShrinker` — QByteArray, QFile, QFileInfo, QString
+- `MapStatistics` — QtCore/QString
+- `FeatureFinderMultiplex` — QDir
+- `LuciphorAdapter` — QProcessEnvironment
+- `OpenSwathWorkflow` — QDir
+- Plus the 8 tools from Section 4 that use Qt beyond String interop: `MetaProSIP`, `GenericWrapper`, `IDRipper`, `MzMLSplitter`, `CometAdapter`, `MaRaClusterAdapter`, `OpenSwathFileSplitter`, `AssayGeneratorMetaboSirius`
+
+**Affected tests (link only OpenMS, use Qt directly):**
+- `MzMLSqliteSwathHandler_test` (QFile), `PeptideIndexing_test` (QStringList), `StringListUtils_test` (QStringList), `FIAMSScheduler_test` (QDir), `SqMassFile_test` (QFile), `OPXLHelper_test` (QStringList), `DataValue_test` (QString), `SiriusFragmentAnnotation_test` (QDir, QString), `XQuestResultXMLFile_test` (QStringList)
+- Plus the 3 tests from Section 6 that use String/Qt interop: `MzMLSqliteHandler_test`, `PythonInfo_test`, `ToolDescriptionFile_test`
+
+### 6. Test Changes (`src/tests/`)
 
 - **`String_test.cpp`** — Remove test cases for `String(const QString&)` and `toQString()`. All other tests untouched.
 - **`MzMLSqliteHandler_test.cpp`**, **`PythonInfo_test.cpp`**, **`ToolDescriptionFile_test.cpp`** — Inline conversions directly (`QString::fromStdString()` / `.toStdString()`) since these tests don't link openms_gui.
@@ -99,5 +117,7 @@ For tools that don't link openms_gui, inline the conversions:
 | Core lib | 4 | Remove Qt API + dependency |
 | Compat layer (Qt5Port.h) | 1 | Add free functions |
 | GUI lib | ~60 | Mechanical migration (free functions) |
-| TOPP tools | 12 | Mechanical migration (inline conversions or free functions) |
+| TOPP tools | 11 | Mechanical migration (inline conversions or free functions) |
+| CMake (TOPP) | ~18 | Add explicit `Qt6::Core` link dependency |
+| CMake (tests) | ~12 | Add explicit `Qt6::Core` link dependency |
 | Tests | 4 | Remove Qt tests + inline conversions |
