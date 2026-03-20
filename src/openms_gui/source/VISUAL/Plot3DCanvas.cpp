@@ -18,6 +18,7 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QResizeEvent>
 #include <QtWidgets/QComboBox>
@@ -184,7 +185,7 @@ namespace OpenMS
     MultiGradientSelector * gradient = dlg.findChild<MultiGradientSelector *>("gradient");
     QSpinBox * width  = dlg.findChild<QSpinBox *>("width");
 
-    bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
+    bg_color->setColor(QColor(toQString(String(param_.getValue("background_color").toString()))));
     shade->setCurrentIndex(layer.param.getValue("dot:shade_mode"));
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
     width->setValue(UInt(layer.param.getValue("dot:line_width")));
@@ -225,7 +226,7 @@ namespace OpenMS
     {
       layer_name += " (invisible)";
     }
-    context_menu->addAction(layer_name.toQString())->setEnabled(false);
+    context_menu->addAction(toQString(layer_name))->setEnabled(false);
     context_menu->addSeparator();
     context_menu->addAction("Layer meta data");
 

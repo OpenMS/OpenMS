@@ -16,6 +16,7 @@
 #include <OpenMS/VISUAL/DIALOGS/ListFilterDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QComboBox>
@@ -97,7 +98,7 @@ namespace OpenMS
         QString dir = "";        // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
         if (File::isDirectory(value) || File::writable(value))
         {
-          dir = File::absolutePath(value).toQString();
+          dir = toQString(File::absolutePath(value));
         }
         fileName_ = QFileDialog::getSaveFileName(editor, tr("Output File"), dir);
         return editor;
@@ -106,7 +107,7 @@ namespace OpenMS
       {
         QLineEdit* editor = new QLineEdit(parent);
         QString dir = ""; // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
-        if (File::isDirectory(value) || File::writable(value)) { dir = File::absolutePath(value).toQString(); }
+        if (File::isDirectory(value) || File::writable(value)) { dir = toQString(File::absolutePath(value)); }
         dirName_ = QFileDialog::getExistingDirectory(editor, tr("Output Directory"), dir);
         return editor;
       }
@@ -116,7 +117,7 @@ namespace OpenMS
         QString dir = "";        // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
         if (File::isDirectory(value) || File::exists(value))
         {
-          dir = File::absolutePath(value).toQString();
+          dir = toQString(File::absolutePath(value));
         }
         fileName_ = QFileDialog::getOpenFileName(editor, tr("Input File"), dir);
         return editor;
@@ -235,7 +236,7 @@ namespace OpenMS
         }
         else if (qobject_cast<ListFilterDialog*>(editor))  // for StringLists with restrictions
         {
-          static_cast<ListFilterDialog*>(editor)->setItems(restrictions.toQString().split(','));
+          static_cast<ListFilterDialog*>(editor)->setItems(toQString(restrictions).split(','));
           static_cast<ListFilterDialog*>(editor)->setPrechosenItems(GUIHelpers::convert(rlist));
         }
       }
@@ -286,7 +287,7 @@ namespace OpenMS
       }
       else if (qobject_cast<ListEditor*>(editor))
       {
-        new_value = QString("[%1]").arg(ListUtils::concatenate(static_cast<ListEditor *>(editor)->getList(), ",\n").toQString());
+        new_value = QString("[%1]").arg(toQString(ListUtils::concatenate(static_cast<ListEditor *>(editor)->getList(), ",\n")));
       }
       else if (qobject_cast<ListFilterDialog*>(editor))
       {
@@ -488,11 +489,11 @@ namespace OpenMS
         {
           item = new QTreeWidgetItem(parent);
           //name
-          item->setText(0, String(par.name).toQString());
+          item->setText(0, toQString(String(par.name)));
           item->setForeground(0, Qt::darkGray);  // color of nodes with children
 
           //description
-          item->setData(1, Qt::UserRole, String(par.description).toQString());
+          item->setData(1, Qt::UserRole, toQString(String(par.description)));
           //role
           item->setData(0, Qt::UserRole, NODE);
           //flags
@@ -545,7 +546,7 @@ namespace OpenMS
         item->setData(0, Qt::UserRole, NORMAL_ITEM);
       }
       // name
-      item->setText(0, String(it->name).toQString());
+      item->setText(0, toQString(String(it->name)));
       // value
       if (it->value.valueType() == ParamValue::STRING_LIST)
       {
@@ -561,7 +562,7 @@ namespace OpenMS
       }
       else
       {
-        item->setText(1, String(it->value.toString()).toQString());
+        item->setText(1, toQString(String(it->value.toString())));
       }
       // type
       switch (it->value.valueType())
@@ -643,9 +644,9 @@ namespace OpenMS
             drest += String("max: ") + it->max_int;
             irest += it->max_int;
           }
-          item->setText(3, drest.toQString());
+          item->setText(3, toQString(drest));
         }
-        item->setData(2, Qt::UserRole, irest.toQString());
+        item->setData(2, Qt::UserRole, toQString(irest));
       }
       break;
 
@@ -670,9 +671,9 @@ namespace OpenMS
             drest += String("max: ") + it->max_float;
             irest += it->max_float;
           }
-          item->setText(3, drest.toQString());
+          item->setText(3, toQString(drest));
         }
-        item->setData(2, Qt::UserRole, irest.toQString());
+        item->setData(2, Qt::UserRole, toQString(irest));
       }
       break;
 
@@ -687,9 +688,9 @@ namespace OpenMS
           {
             r_text = irest.prefix(251) + "...";
           }
-          item->setText(3, r_text.toQString());
+          item->setText(3, toQString(r_text));
         }
-        item->setData(2, Qt::UserRole, irest.toQString());
+        item->setData(2, Qt::UserRole, toQString(irest));
       }
       break;
 
@@ -698,7 +699,7 @@ namespace OpenMS
       }
 
       //description
-      item->setData(1, Qt::UserRole, String(it->description).toQString());
+      item->setData(1, Qt::UserRole, toQString(String(it->description)));
       //flags
       if (param_ != nullptr)
       {

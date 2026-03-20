@@ -17,6 +17,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QPainter>
 #include <QPainterPath>
@@ -610,7 +611,7 @@ namespace OpenMS
       {
          QVector<TOPPASToolVertex::IOInfo> docks = target->getInputParameters();
          const TOPPASToolVertex::IOInfo& param = docks[this->target_in_param_]; 
-         return param.param_name.toQString();
+         return toQString(param.param_name);
       }
     }
     return "";
@@ -626,7 +627,7 @@ namespace OpenMS
       const auto* source_tool = qobject_cast<const TOPPASToolVertex*>(source_vertex);
       if (source_tool && source_out_param_>=0)
       {
-        return source_tool->getOutputParameters()[this->source_out_param_].param_name.toQString();
+        return toQString(source_tool->getOutputParameters()[this->source_out_param_].param_name);
       }
     }
     return "";

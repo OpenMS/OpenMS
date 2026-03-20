@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 //QT
 #include <QtWidgets/QLineEdit>
 #include <QValidator>
@@ -69,22 +70,22 @@ namespace OpenMS
     // id of the item in the tree
     tree_id_ = tree_item_id;
 
-    identification_date_->setText(temp_.getDateTime().get().toQString());
+    identification_date_->setText(toQString(temp_.getDateTime().get()));
     identification_threshold_->setText(QString::number(temp_.getSignificanceThreshold()));
-    identifier_->setText(temp_.getIdentifier().toQString());
-    engine_->setText(temp_.getSearchEngine().toQString());
-    engine_version_->setText(temp_.getSearchEngineVersion().toQString());
-    score_type_->setText(temp_.getScoreType().toQString());
+    identifier_->setText(toQString(temp_.getIdentifier()));
+    engine_->setText(toQString(temp_.getSearchEngine()));
+    engine_version_->setText(toQString(temp_.getSearchEngineVersion()));
+    score_type_->setText(toQString(temp_.getScoreType()));
     higher_better_->setCurrentIndex(temp_.isHigherScoreBetter());
 
-    db_->setText(temp_.getSearchParameters().db.toQString());
-    db_version_->setText(temp_.getSearchParameters().db_version.toQString());
-    taxonomy_->setText(temp_.getSearchParameters().taxonomy.toQString());
-    charges_->setText(temp_.getSearchParameters().charges.toQString());
+    db_->setText(toQString(temp_.getSearchParameters().db));
+    db_version_->setText(toQString(temp_.getSearchParameters().db_version));
+    taxonomy_->setText(toQString(temp_.getSearchParameters().taxonomy));
+    charges_->setText(toQString(temp_.getSearchParameters().charges));
     missed_cleavages_->setText(QString::number(temp_.getSearchParameters().missed_cleavages));
     peak_tolerance_->setText(QString::number(temp_.getSearchParameters().fragment_mass_tolerance));
     precursor_tolerance_->setText(QString::number(temp_.getSearchParameters().precursor_mass_tolerance));
-    enzyme_->setText(temp_.getSearchParameters().digestion_enzyme.getName().toQString());
+    enzyme_->setText(toQString(temp_.getSearchParameters().digestion_enzyme.getName()));
 
     if (!isEditable())
     {

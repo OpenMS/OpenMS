@@ -100,15 +100,15 @@ namespace OpenMS
   bool TOPPASToolVertex::initParam_(const QString& old_ini_file)
   {
     // this is the only exception for writing directly to the tmpDir, instead of a subdir of tmpDir, as scene()->getTempDir() might not be available yet
-    QString ini_file = File::getTemporaryFile().toQString();
-    QString program = File::findSiblingTOPPExecutable(name_).toQString();
+    QString ini_file = toQString(File::getTemporaryFile());
+    QString program = toQString(File::findSiblingTOPPExecutable(name_));
     QStringList arguments;
     arguments << "-write_ini" << ini_file;
 
     if (!type_.empty())
     {
       arguments << "-type";
-      arguments << type_.toQString();
+      arguments << toQString(type_);
     }
     // allow for update using old parameters
     if (old_ini_file != "")
@@ -166,7 +166,7 @@ namespace OpenMS
     }
 
     Param tmp_param;
-    ParamXMLFile().load(String(ini_file).c_str(), tmp_param);
+    ParamXMLFile().load(fromQString(ini_file).c_str(), tmp_param);
     // remember the parameters of this tool
     param_ = tmp_param.copy(name_ + ":1:", true); // get first instance (we never use more -- this is a legacy layer in paramXML)
     param_.setValue("no_progress", "true"); // by default, we do not want each tool to report loading/status statistics (would clutter the log window)
@@ -182,7 +182,7 @@ namespace OpenMS
       QFile q_old_ini(old_ini_file);
       changed = q_ini.size() != q_old_ini.size();
     }
-    setToolTip(String(param_.getSectionDescription(name_)).toQString());
+    setToolTip(toQString(String(param_.getSectionDescription(name_))));
 
     return changed;
   }
@@ -334,7 +334,7 @@ namespace OpenMS
   {
     TOPPASVertex::paint(painter, option, widget, false);
 
-    QString draw_str = (type_.empty() ? name_ : name_ + " (" + type_ + ")").toQString();
+    QString draw_str = toQString(type_.empty() ? name_ : name_ + " (" + type_ + ")");
     for (int i = 0; i < 10; ++i)
     {
       QString prev_str = draw_str;
@@ -466,12 +466,12 @@ namespace OpenMS
 
     QString ini_file = ts->getTempDir()
                        + QDir::separator()
-                       + getOutputDir().toQString()
+                       + toQString(getOutputDir())
                        + QDir::separator()
-                       + name_.toQString();
+                       + toQString(name_);
     if (!type_.empty())
     {
-      ini_file += "_" + type_.toQString();
+      ini_file += "_" + toQString(type_);
     }
     // do not write the ini yet - we might need to alter it
 
@@ -481,14 +481,14 @@ namespace OpenMS
     if (!success)
     {
       OPENMS_LOG_ERROR << "Could not retrieve input files from upstream nodes...\n";
-      emit toolFailed(-1, error_msg.toQString());
+      emit toolFailed(-1, toQString(error_msg));
       return;
     }
 
     // all inputs are ready --> GO!
     if (!updateCurrentOutputFileNames(pkg, error_msg)) // based on input, we prepare output names
     {
-      emit toolFailed(-1, error_msg.toQString());
+      emit toolFailed(-1, toQString(error_msg));
       return;
     }
 
@@ -503,7 +503,7 @@ namespace OpenMS
     QStringList shared_args;
     if (!type_.empty())
     {
-      shared_args << "-type" << type_.toQString();
+      shared_args << "-type" << toQString(type_);
     }
     // get *all* input|output file parameters (regardless if edge exists)
     QVector<IOInfo> in_params = getInputParameters(), out_params = getOutputParameters();
@@ -552,7 +552,7 @@ namespace OpenMS
 
         if (!store_to_ini)
         {
-          args << "-" + param_name.toQString() << file_list;
+          args << "-" + toQString(param_name) << file_list;
         }
         else
         {
@@ -596,7 +596,7 @@ namespace OpenMS
         
         if (!store_to_ini)
         {
-          args << "-" + param_name.toQString() << output_files;
+          args << "-" + toQString(param_name) << output_files;
         }
         else
         {
@@ -654,11 +654,11 @@ namespace OpenMS
         // show sys-call in logWindow of TOPPAS (or console for non-gui)
         if ((int) param_tmp.getValue("debug") > 0)
         {
-          ts->logTOPPOutput(msg_enqueue.toQString());
+          ts->logTOPPOutput(toQString(msg_enqueue));
         }
       }
       toolScheduledSlot();
-      ts->enqueueProcess(TOPPASScene::TOPPProcess(p, File::findSiblingTOPPExecutable(name_).toQString(), args, this));
+      ts->enqueueProcess(TOPPASScene::TOPPProcess(p, toQString(File::findSiblingTOPPExecutable(name_)), args, this));
     }
 
     // run pending processes
@@ -755,9 +755,9 @@ namespace OpenMS
 
       String new_prefix = FileHandler::stripExtension(file);
       String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file)); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
-      if (file.endsWith(new_suffix.toQString(), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
+      if (file.endsWith(toQString(new_suffix), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
       {
-        new_suffix = String(file).suffix(new_suffix.size());
+        new_suffix = fromQString(file).suffix(new_suffix.size());
       }
       NameComponent nc(new_prefix, new_suffix);
       name_old_to_new[file] = nc;
@@ -788,13 +788,13 @@ namespace OpenMS
           }
 
           // rename file and update record
-          String old_filename = QDir::toNativeSeparators(it->second.filenames[fi]);
-          String new_filename = QDir::toNativeSeparators(name_old_to_new[it->second.filenames[fi]].toString().toQString());
-          if (QFileInfo(old_filename.toQString()).canonicalFilePath() == QFileInfo(new_filename.toQString()).canonicalFilePath())
+          String old_filename = fromQString(QDir::toNativeSeparators(it->second.filenames[fi]));
+          String new_filename = fromQString(QDir::toNativeSeparators(toQString(name_old_to_new[it->second.filenames[fi]].toString())));
+          if (QFileInfo(toQString(old_filename)).canonicalFilePath() == QFileInfo(toQString(new_filename)).canonicalFilePath())
           { // source and target are identical -- no action required
             continue;
           }
-          QFile file(old_filename.toQString());
+          QFile file(toQString(old_filename));
           if (File::exists(new_filename))
           { // rename only works if the target file does not exist: delete it first
             bool success = File::remove(new_filename);
@@ -804,13 +804,13 @@ namespace OpenMS
               throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_filename);
             }
           }
-          bool success = file.rename(new_filename.toQString());
+          bool success = file.rename(toQString(new_filename));
           if (!success)
           {
-            OPENMS_LOG_ERROR << "Could not rename '" << String(it->second.filenames[fi]) << "' to '" << new_filename << "'\n";
+            OPENMS_LOG_ERROR << "Could not rename '" << fromQString(it->second.filenames[fi]) << "' to '" << new_filename << "'\n";
             throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_filename);
           }
-          it->second.filenames.set(new_filename.toQString(), fi);
+          it->second.filenames.set(toQString(new_filename), fi);
         }
       }
     }
@@ -901,7 +901,7 @@ namespace OpenMS
       // try to find the type (only by looking at the suffix); not doing it manually, since it could be .mzXML.gz
       for (QString& filename : filenames)
       {
-        filename = FileHandler::stripExtension(filename).toQString();
+        filename = toQString(FileHandler::stripExtension(filename));
       }
       per_round_basenames.push_back(filenames);
       //std::cerr << "  output filenames (round " << i  <<"): " << per_round_basenames.back().join(", ") << std::endl;
@@ -989,9 +989,9 @@ namespace OpenMS
       // create common path of output files
       QString path = ts->getTempDir()
                      + QDir::separator()
-                     + getOutputDir().toQString() // includes TopoNr
+                     + toQString(getOutputDir()) // includes TopoNr
                      + QDir::separator()
-                     + out_params[param_index].param_name.remove(':').toQString().left(50) // max 50 chars per subdir
+                     + toQString(out_params[param_index].param_name.remove(':')).left(50) // max 50 chars per subdir
                      + QDir::separator();
 
       VertexRoundPackage vrp;
@@ -1039,9 +1039,9 @@ namespace OpenMS
             fn += "_to_" + fn_last + "_mrgd";
             OPENMS_LOG_DEBUG << "  List: ..." << "_to_" + fn_last.toStdString() + "_mrgd" << "\n";
           }
-          if (!fn.endsWith(file_suffix.toQString()))
+          if (!fn.endsWith(toQString(file_suffix)))
           {
-            fn += file_suffix.toQString();
+            fn += toQString(file_suffix);
             OPENMS_LOG_DEBUG << "  Suffix-add: " << file_suffix << "\n";
           }
           fn = QDir::toNativeSeparators(fn);
@@ -1099,13 +1099,13 @@ namespace OpenMS
           continue;
         }
         //std::cout << "PATH: " << p << "\n";
-        String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
+        String tmp = fromQString(p).suffix(fromQString(QString(QDir::separator()))[0]);
         //std::cout << "INTER: " << tmp << "\n";
         if (tmp.size() <= 2 || tmp.has(':'))
         {
           continue; // too small to be reliable; might even be 'c:'
         }
-        filenames[i][0] = tmp.toQString();
+        filenames[i][0] = toQString(tmp);
         //std::cout << "  -->: " << filenames[i][0] << "\n";
       }
       return; // we do not want the next special case on top of this...
@@ -1175,14 +1175,14 @@ namespace OpenMS
 
   void TOPPASToolVertex::openContainingFolder() const
   {
-    QString path = getFullOutputDirectory().toQString();
+    QString path = toQString(getFullOutputDirectory());
     GUIHelpers::openFolder(path);
   }
 
   String TOPPASToolVertex::getFullOutputDirectory() const
   {
     TOPPASScene* ts = getScene_();
-    return QDir::toNativeSeparators(ts->getTempDir() + QDir::separator() + getOutputDir().toQString());
+    return fromQString(QDir::toNativeSeparators(ts->getTempDir() + QDir::separator() + toQString(getOutputDir())));
   }
 
   String TOPPASToolVertex::getOutputDir() const
@@ -1194,7 +1194,7 @@ namespace OpenMS
       workflow_dir = "Untitled_workflow";
     }
     String dir = workflow_dir +
-                 String(QDir::separator()) +
+                 fromQString(QString(QDir::separator())) +
                  get3CharsNumber_(topo_nr_) + "_" + getName();
     if (!getType().empty())
     {
@@ -1207,7 +1207,7 @@ namespace OpenMS
   void TOPPASToolVertex::createDirs()
   {
     QDir dir;
-    if (!dir.mkpath(getFullOutputDirectory().toQString()))
+    if (!dir.mkpath(toQString(getFullOutputDirectory())))
     {
       OPENMS_LOG_ERROR << "TOPPAS: Could not create path " << getFullOutputDirectory() << std::endl;
     }
@@ -1216,12 +1216,12 @@ namespace OpenMS
     QStringList files = this->getFileNames();
     for (const QString &file : files)
     {
-      QString sdir = File::path(file).toQString();
+      QString sdir = toQString(File::path(file));
       if (!File::exists(sdir))
       {
         if (!dir.mkpath(sdir))
         {
-          OPENMS_LOG_ERROR << "TOPPAS: Could not create path " << String(sdir) << std::endl;
+          OPENMS_LOG_ERROR << "TOPPAS: Could not create path " << fromQString(sdir) << std::endl;
         }
       }
     }
@@ -1248,7 +1248,7 @@ namespace OpenMS
 
     if (reset_all_files)
     {
-      QString remove_dir = getFullOutputDirectory().toQString();
+      QString remove_dir = toQString(getFullOutputDirectory());
       if (File::exists(remove_dir))
       {
         File::removeDirRecursively(remove_dir);
@@ -1263,12 +1263,12 @@ namespace OpenMS
   bool TOPPASToolVertex::refreshParameters()
   {
     TOPPASScene* ts = getScene_();
-    QString old_ini_file = ts->getTempDir() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
+    QString old_ini_file = ts->getTempDir() + QDir::separator() + "TOPPAS_" + toQString(name_) + "_";
     if (!type_.empty())
     {
-      old_ini_file += type_.toQString() + "_";
+      old_ini_file += toQString(type_) + "_";
     }
-    old_ini_file += File::getUniqueName().toQString() + "_tmp_OLD.ini";
+    old_ini_file += toQString(File::getUniqueName()) + "_tmp_OLD.ini";
     writeParam_(param_, old_ini_file);
 
     bool changed = initParam_(old_ini_file);

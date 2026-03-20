@@ -8,6 +8,7 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/AcquisitionVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QLineEdit>
@@ -36,7 +37,7 @@ namespace OpenMS
 
   void AcquisitionVisualizer::update_()
   {
-    acquisitionnumber_->setText(temp_.getIdentifier().toQString());
+    acquisitionnumber_->setText(toQString(temp_.getIdentifier()));
   }
 
   void AcquisitionVisualizer::store()

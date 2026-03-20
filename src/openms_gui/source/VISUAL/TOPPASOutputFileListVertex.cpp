@@ -16,6 +16,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtCore>
 #include <QtCore/QFile>
@@ -103,10 +104,10 @@ namespace OpenMS
       {
         if (! dry_run && ! File::exists(f))
         {
-          OPENMS_LOG_ERROR << "The file '" << String(f) << "' does not exist!" << std::endl;
+          OPENMS_LOG_ERROR << "The file '" << fromQString(f) << "' does not exist!" << std::endl;
           throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, f.toStdString());
         }
-        QString new_file = full_dir.toQString() + QDir::separator() + File::basename(f).toQString();
+        QString new_file = toQString(full_dir) + QDir::separator() + toQString(File::basename(f));
 
         // remove "_tmp<number>" if its a suffix
         QRegularExpression rx("_tmp\\d+$");
@@ -172,7 +173,7 @@ namespace OpenMS
           String file_to = output_files_[round][param_index_me].filenames[i];
           if (File::exists(file_to))
           {
-            if (! QFile::remove(file_to.toQString())) // todo: this goes wrong on first run .... why???
+            if (! QFile::remove(toQString(file_to))) // todo: this goes wrong on first run .... why???
             {
               String msg = "Error: Could not remove old output file '" + file_to + "' for node '"
                            + pkg[round][param_index_src].edge->getTargetVertex()->getName()
