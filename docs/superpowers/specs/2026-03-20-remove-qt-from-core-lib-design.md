@@ -85,7 +85,11 @@ Removing `Qt6::Core` from libOpenMS's PUBLIC dependencies means TOPP tools and t
 
 **Fix:** Add `Qt6::Core` as an explicit link dependency to each affected target individually in `src/topp/CMakeLists.txt` and the relevant test CMakeLists.
 
-**Affected TOPP tools (link only OpenMS, use Qt directly):**
+**Stale Qt includes (remove the include, no Qt link needed):**
+- TOPP: `PSMFeatureExtractor.cpp` (QFile, QDir, QProcess — unused), `NucleicAcidSearchEngine.cpp` (QProcess — unused)
+- Tests: `MzMLSqliteSwathHandler_test` (QFile), `StringListUtils_test` (QStringList), `SqMassFile_test` (QFile), `OPXLHelper_test` (QStringList), `DataValue_test` (QString), `SiriusFragmentAnnotation_test` (QDir, QString), `XQuestResultXMLFile_test` (QStringList) — all unused
+
+**Affected TOPP tools (link only OpenMS, actively use Qt — need explicit `Qt6::Core`):**
 - `QCEmbedder`, `QCExporter`, `QCExtractor`, `QCImporter`, `QCMerger`, `QCShrinker` — QByteArray, QFile, QFileInfo, QString
 - `MapStatistics` — QtCore/QString
 - `FeatureFinderMultiplex` — QDir
@@ -93,8 +97,8 @@ Removing `Qt6::Core` from libOpenMS's PUBLIC dependencies means TOPP tools and t
 - `OpenSwathWorkflow` — QDir
 - Plus the 8 tools from Section 4 that use Qt beyond String interop: `MetaProSIP`, `GenericWrapper`, `IDRipper`, `MzMLSplitter`, `CometAdapter`, `MaRaClusterAdapter`, `OpenSwathFileSplitter`, `AssayGeneratorMetaboSirius`
 
-**Affected tests (link only OpenMS, use Qt directly):**
-- `MzMLSqliteSwathHandler_test` (QFile), `PeptideIndexing_test` (QStringList), `StringListUtils_test` (QStringList), `FIAMSScheduler_test` (QDir), `SqMassFile_test` (QFile), `OPXLHelper_test` (QStringList), `DataValue_test` (QString), `SiriusFragmentAnnotation_test` (QDir, QString), `XQuestResultXMLFile_test` (QStringList)
+**Affected tests (link only OpenMS, actively use Qt — need explicit `Qt6::Core`):**
+- `PeptideIndexing_test` (QStringList), `FIAMSScheduler_test` (QDir)
 - Plus the 3 tests from Section 6 that use String/Qt interop: `MzMLSqliteHandler_test`, `PythonInfo_test`, `ToolDescriptionFile_test`
 
 ### 6. Test Changes (`src/tests/`)
@@ -118,6 +122,7 @@ Removing `Qt6::Core` from libOpenMS's PUBLIC dependencies means TOPP tools and t
 | Compat layer (Qt5Port.h) | 1 | Add free functions |
 | GUI lib | ~60 | Mechanical migration (free functions) |
 | TOPP tools | 11 | Mechanical migration (inline conversions or free functions) |
+| Stale Qt includes | ~11 | Remove unused Qt includes |
 | CMake (TOPP) | ~18 | Add explicit `Qt6::Core` link dependency |
-| CMake (tests) | ~12 | Add explicit `Qt6::Core` link dependency |
+| CMake (tests) | ~5 | Add explicit `Qt6::Core` link dependency |
 | Tests | 4 | Remove Qt tests + inline conversions |
