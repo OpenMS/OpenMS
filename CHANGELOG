@@ -33,6 +33,11 @@ Dependencies:
   - Eigen minimum version updated from 3.3.4 to 3.4.0 (#8366)
   - Qt6::Network replaced with libcurl for all HTTP operations in the core library (#8841)
   - minizip-ng replaced with libzip for ZIP64 archive support (#8808)
+  - Qt6 usage reduced in core library (incremental steps toward making Qt optional):
+    - QDateTime/QDate/QSysInfo/QLocale replaced with std::chrono and platform APIs in Date, DateTime, BuildInfo (#8937)
+    - QDir/QFile/QFileInfo replaced with std::filesystem in File, PathUtils, ExperimentalDesignFile, and others; ToolHandler now returns StringList instead of QStringList (#8938)
+    - QProcess/QObject replaced with boost::process in ExternalProcess, PythonInfo, JavaInfo, RWrapper; public APIs now use String/vector<String> instead of QString/QStringList (#8939)
+    - QJsonDocument/QJsonObject replaced with nlohmann/json in OMSFileLoad (#8936)
   - boost-process added as a header-only dependency for cross-platform subprocess management (#8939)
 
 TOPP tools:
