@@ -25,8 +25,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include <QString>
-
 #include <filesystem>
 
 #ifdef WITH_PARQUET
@@ -397,7 +395,7 @@ namespace OpenMS
       File::makeDir(library_tmp_dir);
       File::makeDir(library_dir);
       TransitionParquetFile().convertLightTargetedExperimentToParquet(library_tmp_dir, assay_library);
-      File::copyDirRecursively(String(library_tmp_dir + "/library").toQString(), library_dir.toQString());
+      File::copyDirRecursively(library_tmp_dir + "/library", library_dir);
       File::removeDirRecursively(library_tmp_dir);
     }
 

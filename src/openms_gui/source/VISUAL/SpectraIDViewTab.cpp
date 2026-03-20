@@ -889,7 +889,7 @@ namespace OpenMS
               }
               else
               {
-                table_widget_->setAtBottomRow(dv.toQString(), current_col, bg_color);
+                table_widget_->setAtBottomRow(String(dv).toQString(), current_col, bg_color);
               }
               
               ++current_col;
