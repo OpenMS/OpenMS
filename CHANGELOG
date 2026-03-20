@@ -24,6 +24,9 @@ General:
   - Modernized TransformationDescription to use std::unique_ptr for memory safety
   - Fix undefined behavior in ProteinIdentification get*DataArrayByName by throwing ElementNotFound when the name is missing
   - Removed leftover traces of removed doc_internal target (#2256)
+  - BREAKING: QDateTime/QDate/QSysInfo/QLocale replaced with std::chrono and platform APIs in DateTime, Date, BuildInfo, DimMapper, and TOPPBase; QDate constructor removed from Date class (#8937)
+  - BREAKING: QDir/QFile/QFileInfo replaced with std::filesystem in the core library; copyDirRecursively/removeDir signatures changed from QString& to String&; ToolHandler returns StringList instead of QStringList; new PathUtils.h added with UTF-8-safe to_path() helper (#8938)
+  - BREAKING: QProcess/QObject replaced with boost::process in ExternalProcess, PythonInfo, JavaInfo, and RWrapper; ExternalProcess no longer inherits from QObject; ExternalProcess::run(), TOPPBase::runExternalProcess_(), RWrapper::findR()/runScript(), and ExternalProcessMBox::run() now use String/vector<String> instead of QString/QStringList (#8939)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -35,6 +38,7 @@ Dependencies:
     - QDir/QFile/QFileInfo replaced with std::filesystem in File, PathUtils, ExperimentalDesignFile, and others; ToolHandler now returns StringList instead of QStringList (#8938)
     - QProcess/QObject replaced with boost::process in ExternalProcess, PythonInfo, JavaInfo, RWrapper; public APIs now use String/vector<String> instead of QString/QStringList (#8939)
     - QJsonDocument/QJsonObject replaced with nlohmann/json in OMSFileLoad (#8936)
+  - boost-process added as a header-only dependency for cross-platform subprocess management (#8939)
 
 TOPP tools:
   Changes:
