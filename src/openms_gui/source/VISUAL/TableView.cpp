@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/TableView.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Qt5Port.h>
+#include <QSet>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QFile>
@@ -19,6 +19,11 @@
 #include <QTextStream>
 
 #include <iostream>
+
+namespace {
+  template <typename T, template<typename> typename C>
+  QSet<T> toQSet(const C<T>& container) { return QSet<T>(container.begin(), container.end()); }
+}
 
 using namespace std;
 

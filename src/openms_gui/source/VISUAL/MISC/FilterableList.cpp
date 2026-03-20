@@ -9,7 +9,13 @@
 #include <OpenMS/VISUAL/MISC/FilterableList.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Qt5Port.h>
+#include <QSet>
+
+namespace {
+  /// Helper: convert a Qt container to QSet (replaces removed Qt5Port.h)
+  template <typename T, template<typename> typename C>
+  QSet<T> toQSet(const C<T>& container) { return QSet<T>(container.begin(), container.end()); }
+}
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <ui_FilterableList.h>
