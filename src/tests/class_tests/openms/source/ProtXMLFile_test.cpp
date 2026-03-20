@@ -112,6 +112,66 @@ START_SECTION(void store(const String &filename, const ProteinIdentification &pr
 }
 END_SECTION
 
+// Test that probability=0 (subsumable) proteins are filtered out during parsing
+// while preserving normal protein groups and indistinguishable proteins.
+// Regression test for GitHub issue #6038.
+START_SECTION([EXTRA] probability zero protein filtering)
+{
+  ProtXMLFile f;
+  ProteinIdentification proteins;
+  PeptideIdentification peptides;
+  String prot_file = OPENMS_GET_TEST_DATA_PATH("ProtXMLFile_input_3.protXML");
+  f.load(prot_file, proteins, peptides);
+
+  // 3 protein_groups in input, all should still exist
+  TEST_EQUAL(proteins.getProteinGroups().size(), 3);
+
+  // Group 1: leader only (subsumable protein was filtered)
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions.size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions[0], "LEADER_PROT");
+  TEST_REAL_SIMILAR(proteins.getProteinGroups()[0].probability, 0.9998);
+
+  // Group 2: protein + indistinguishable sibling (unaffected)
+  TEST_EQUAL(proteins.getProteinGroups()[1].accessions.size(), 2);
+  TEST_EQUAL(proteins.getProteinGroups()[1].accessions[0], "PROT_A");
+  TEST_EQUAL(proteins.getProteinGroups()[1].accessions[1], "PROT_B");
+
+  // Group 3: single protein (unaffected)
+  TEST_EQUAL(proteins.getProteinGroups()[2].accessions.size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[2].accessions[0], "SINGLE_PROT");
+
+  // 3 indistinguishable groups (NOT 4 -- the subsumable protein should not create one)
+  TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 3);
+
+  // Indist group 1: leader only
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions.size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions[0], "LEADER_PROT");
+
+  // Indist group 2: PROT_A + PROT_B
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[1].accessions.size(), 2);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[1].accessions[0], "PROT_A");
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[1].accessions[1], "PROT_B");
+
+  // Indist group 3: single
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[2].accessions.size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[2].accessions[0], "SINGLE_PROT");
+
+  // 4 protein hits (LEADER_PROT, PROT_A, PROT_B, SINGLE_PROT -- no SUBSUMABLE_PROT)
+  TEST_EQUAL(proteins.getHits().size(), 4);
+  TEST_EQUAL(proteins.getHits()[0].getAccession(), "LEADER_PROT");
+  TEST_REAL_SIMILAR(proteins.getHits()[0].getScore(), 0.9998);
+  TEST_EQUAL(proteins.getHits()[1].getAccession(), "PROT_A");
+  TEST_REAL_SIMILAR(proteins.getHits()[1].getScore(), 0.9000);
+  TEST_EQUAL(proteins.getHits()[2].getAccession(), "PROT_B");
+  TEST_REAL_SIMILAR(proteins.getHits()[2].getScore(), 0.9000); // inherited from leader
+  TEST_EQUAL(proteins.getHits()[3].getAccession(), "SINGLE_PROT");
+  TEST_REAL_SIMILAR(proteins.getHits()[3].getScore(), 0.8000);
+
+  // 4 peptide hits (2 from leader, 1 from group 2, 1 from group 3 -- NOT the subsumable's peptide)
+  TEST_EQUAL(peptides.getHits().size(), 4);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

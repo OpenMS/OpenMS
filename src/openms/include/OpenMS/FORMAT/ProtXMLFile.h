@@ -33,6 +33,16 @@ namespace OpenMS
     probability and coverage) receives these attributes. All indistinguishable
     proteins of the same group only have an accession and score of -1.
 
+    @note ProteinProphet assigns probability=0 to "unneeded" (subsumable) proteins
+    whose peptides are fully explained by higher-probability proteins in the same
+    protein_group. These are distinct from truly indistinguishable proteins (which
+    share 100% of their peptides and are represented as \<indistinguishable_protein\>
+    elements in the protXML). During parsing, probability=0 \<protein\> elements are
+    filtered out entirely: no ProteinHit, group entry, or peptide evidence is created
+    for them. This prevents downstream tools like ProteinQuantifier from treating
+    subsumable proteins as separate indistinguishable groups, which would incorrectly
+    cause shared peptides to be discarded during quantification (see GitHub #6038).
+
     @todo Document which metavalues of Protein/PeptideHit are filled when reading ProtXML (Chris)
     @todo Writing of protXML is currently not supported
 
@@ -109,7 +119,9 @@ protected:
     PeptideHit * pep_hit_;
     /// protein group
     ProteinGroup protein_group_;
-
+    /// true when inside a \<protein\> element with probability=0 (subsumable/"unneeded" protein);
+    /// all child elements (peptides, indistinguishable_protein) are skipped during parsing
+    bool skip_protein_;
 
     //@}
   };

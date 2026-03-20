@@ -20,7 +20,8 @@ namespace OpenMS
 
   ProtXMLFile::ProtXMLFile() :
     XMLHandler("", "1.2"),
-    XMLFile("/SCHEMAS/protXML_v6.xsd", "6.0")
+    XMLFile("/SCHEMAS/protXML_v6.xsd", "6.0"),
+    skip_protein_(false)
   {
   }
 
@@ -55,6 +56,7 @@ namespace OpenMS
     pep_id_ = nullptr;
     pep_hit_ = nullptr;
     protein_group_ = ProteinGroup();
+    skip_protein_ = false;
   }
 
   void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
@@ -104,12 +106,34 @@ namespace OpenMS
       // internal group structure
       protein_group_ = ProteinGroup();
       protein_group_.probability = attributeAsDouble_(attributes, "probability");
+      skip_protein_ = false;
     }
     else if (tag == "protein")
     {
-      // usually there will be just one <protein> per <protein_group>, but more
+      // Usually there will be just one <protein> per <protein_group>, but more
       // are possible; each <protein> is distinguishable from the other, we
-      // nevertheless group them
+      // nevertheless group them.
+      //
+      // ProteinProphet assigns probability=0 to "unneeded" (subsumable) proteins
+      // whose peptides are a subset of a higher-probability protein in the same
+      // group. These are NOT truly indistinguishable (they don't share 100% of
+      // their peptides). We filter them out to prevent ProteinQuantifier from
+      // creating spurious indistinguishable groups that would cause shared
+      // peptides to be discarded. See GitHub issue #6038.
+
+      double probability = attributeAsDouble_(attributes, "probability");
+      // ProteinProphet writes exactly "0.0000" for subsumable proteins.
+      // IEEE 754 parsing of this string yields exactly 0.0, so exact comparison is safe.
+      if (probability == 0.0)
+      {
+        skip_protein_ = true;
+        OPENMS_LOG_INFO << "Skipping subsumable protein '"
+                        << attributeAsString_(attributes, "protein_name")
+                        << "' (probability=0) in protein_group "
+                        << protein_group_.probability << "\n";
+        return;
+      }
+      skip_protein_ = false;
 
       String protein_name = attributeAsString_(attributes, "protein_name");
       // open new "indistinguishable" group:
@@ -126,11 +150,13 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "Required attribute 'percent_coverage' missing\n";
       }
-      prot_id_->getHits().back().setScore(attributeAsDouble_(attributes, "probability"));
+      prot_id_->getHits().back().setScore(probability);
 
     }
     else if (tag == "indistinguishable_protein")
     {
+      if (skip_protein_) return; // child of a filtered probability=0 protein
+
       String protein_name = attributeAsString_(attributes, "protein_name");
       // current last protein is from the same "indistinguishable" group:
       double score = prot_id_->getHits().back().getScore();
@@ -142,6 +168,8 @@ namespace OpenMS
     }
     else if (tag == "peptide")
     {
+      if (skip_protein_) return; // peptide under a filtered probability=0 protein
+
       // If a peptide is degenerate it will show in multiple groups, but have different statistics (e.g. 'nsp_adjusted_probability')
       // We thus treat each instance as a separate peptide
       // todo/improvement: link them by a group in PeptideIdentification?!
@@ -172,6 +200,8 @@ namespace OpenMS
     }
     else if (tag == "mod_aminoacid_mass")
     {
+      if (skip_protein_) return; // mod under a filtered probability=0 protein
+
       // relates to the last seen peptide (we hope)
       Size position = attributeAsInt_(attributes, "position");
       double mass = attributeAsDouble_(attributes, "mass");
@@ -227,8 +257,13 @@ namespace OpenMS
     {
       prot_id_->insertProteinGroup(protein_group_);
     }
+    else if (tag == "protein")
+    {
+      skip_protein_ = false; // defensive reset when leaving any <protein> element
+    }
     else if (tag == "peptide")
     {
+      if (skip_protein_) return; // peptide under a filtered probability=0 protein
       pep_id_->insertHit(*pep_hit_);
       delete pep_hit_;
     }
