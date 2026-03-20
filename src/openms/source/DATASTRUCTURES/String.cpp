@@ -14,6 +14,8 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <QString>
+
 using namespace std;
 
 namespace OpenMS
@@ -32,6 +34,11 @@ namespace OpenMS
 
   String::String(const std::string_view& sv) :
     string(sv)
+  {
+  }
+
+  String::String(const QString& s) :
+    string(s.toStdString())
   {
   }
 
@@ -293,6 +300,11 @@ namespace OpenMS
   double String::toDouble() const
   {
     return StringUtils::toDouble(*this);
+  }
+
+  QString String::toQString() const
+  {
+    return QString::fromStdString(*this);
   }
 
   String& String::toUpper()

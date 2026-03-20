@@ -15,12 +15,7 @@
 #include <cstring>
 #include <vector>
 
-// Qt interop: provide String(const QString&) constructor when Qt is available.
-// This keeps the core library Qt-free while allowing seamless conversion in GUI code.
-#if __has_include(<QString>)
-#include <QString>
-#define OPENMS_HAS_QSTRING
-#endif
+class QString;
 
 namespace OpenMS
 {
@@ -74,10 +69,8 @@ public:
     OPENMS_DLLAPI String(const std::string& s);
     /// Constructor from std::string_view
     OPENMS_DLLAPI String(const std::string_view& sv);
-#ifdef OPENMS_HAS_QSTRING
-    /// Constructor from Qt QString (available when Qt headers are present)
-    inline String(const QString& s) : std::string(s.toStdString()) {}
-#endif
+    /// Constructor from Qt QString
+    OPENMS_DLLAPI String(const QString& s);
     /// Constructor from char*
     OPENMS_DLLAPI String(const char* s);
     /// Constructor from a char
@@ -338,10 +331,8 @@ public:
     */
     OPENMS_DLLAPI double toDouble() const;
 
-#ifdef OPENMS_HAS_QSTRING
-    /// Conversion to Qt QString (available when Qt headers are present)
-    inline QString toQString() const { return QString::fromStdString(*this); }
-#endif
+    /// Conversion to Qt QString
+    OPENMS_DLLAPI QString toQString() const;
 
     //@}
 
