@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MzIdentML id="12345" version="1.3.0" xmlns="http://psidev.info/psi/pi/mzIdentML/1.3"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.3 https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML1.3.0.xsd"
+           creationDate="2022-05-02T12:24:29">
+    <cvList>
+        <cv fullName="PSI-MS" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" id="PSI-MS"/>
+        <cv fullName="XLMOD" uri="https://raw.githubusercontent.com/HUPO-PSI/xlmod-CV/main/XLMOD.obo" id="XLMOD"/>
+        <cv fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo" id="UNIMOD"/>
+        <cv fullName="UNIT-ONTOLOGY"
+            uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo"
+            id="UO"/>
+    </cvList>
+    <cvParam cvRef="PSI-MS" accession="MS:1003385" name="mzIdentML crosslinking extension document version"
+             value="1.0.0"/>
+    <AnalysisSoftwareList>
+        <AnalysisSoftware id="xi_id" name="xi">
+            <SoftwareName>
+                <cvParam cvRef="PSI-MS" accession="MS:1002544" name="xi"/>
+            </SoftwareName>
+        </AnalysisSoftware>
+        <AnalysisSoftware version="2.2.beta" id="xiFDR_id" name="XiFDR">
+            <SoftwareName>
+                <cvParam cvRef="PSI-MS" accession="MS:1002543" name="xiFDR"/>
+            </SoftwareName>
+        </AnalysisSoftware>
+    </AnalysisSoftwareList>
+    <Provider id="PROVIDER">
+        <ContactRole contact_ref="PERSON_DOC_OWNER">
+            <Role>
+                <cvParam cvRef="PSI-MS" accession="MS:1001271" name="researcher"/>
+            </Role>
+        </ContactRole>
+    </Provider>
+    <AuditCollection>
+        <Person lastName="Fischer" firstName="Lutz" id="PERSON_DOC_OWNER">
+            <cvParam cvRef="PSI-MS" accession="MS:1000587" name="contact address" value="TIB Gebäude 17,
+Etage 4, Raum 474
+Gustav-Meyer-Allee 25
+13355 Berlin"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1000589" name="contact email"
+                     value="lutz.fischer@tu-berlin.de"/>
+            <Affiliation organization_ref="ORG_DOC_OWNER"/>
+        </Person>
+        <Organization id="ORG_DOC_OWNER" name="TU Berlin">
+            <cvParam cvRef="PSI-MS" accession="MS:1000586" name="contact name" value="TU Berlin"/>
+        </Organization>
+    </AuditCollection>
+    <SequenceCollection>
+        <DBSequence length="429" searchDatabase_ref="SDB_16441_1534" accession="P15640" id="dbseq_P15640_target"
+                    name="PUR2_ECOLI Phosphoribosylamine--glycine ligase OS=Escherichia coli (strain K12) OX=83333 GN=purD PE=1 SV=2">
+            <Seq>
+                MKVLVIGNGGREHALAWKAAQSPLVETVFVAPGNAGTALEPALQNVAIGVTDIPALLDFAQNEKIDLTIVGPEAPLVKGVVDTFRAAGLKIFGPTAGAAQLEGSKAFTKDFLARHKIPTAEYQNFTEVEPALAYLREKGAPIVIKADGLAAGKGVIVAMTLEEAEAAVHDMLAGNAFGDAGHRIVIEEFLDGEEASFIVMVDGEHVLPMATSQDHKRVGDKDTGPNTGGMGAYSPAPVVTDDVHQRTMERIIWPTVKGMAAEGNTYTGFLYAGLMIDKQGNPKVIEFNCRFGDPETQPIMLRMKSDLVELCLAACESKLDEKTSEWDERASLGVVMAAGGYPGDYRTGDVIHGLPLEEVAGGKVFHAGTKLADDEQVVTNGGRVLCVTALGHTVAEAQKRAYALMTDIHWDDCFCRKDIGWRAIEREQN
+            </Seq>
+            <cvParam cvRef="PSI-MS" accession="MS:1001088" name="protein description"
+                     value="PUR2_ECOLI Phosphoribosylamine--glycine ligase OS=Escherichia coli (strain K12) OX=83333 GN=purD PE=1 SV=2"/>
+        </DBSequence>
+        <DBSequence length="585" searchDatabase_ref="SDB_16441_1534" accession="P02768-A" id="dbseq_P02768-A_target"
+                    name="ALBU_HUMAN Serum albumin active OS=Homo sapiens GN=ALB PE=1 SV=2">
+            <Seq>
+                DAHKSEVAHRFKDLGEENFKALVLIAFAQYLQQCPFEDHVKLVNEVTEFAKTCVADESAENCDKSLHTLFGDKLCTVATLRETYGEMADCCAKQEPERNECFLQHKDDNPNLPRLVRPEVDVMCTAFHDNEETFLKKYLYEIARRHPYFYAPELLFFAKRYKAAFTECCQAADKAACLLPKLDELRDEGKASSAKQRLKCASLQKFGERAFKAWAVARLSQRFPKAEFAEVSKLVTDLTKVHTECCHGDLLECADDRADLAKYICENQDSISSKLKECCEKPLLEKSHCIAEVENDEMPADLPSLAADFVESKDVCKNYAEAKDVFLGMFLYEYARRHPDYSVVLLLRLAKTYETTLEKCCAAADPHECYAKVFDEFKPLVEEPQNLIKQNCELFEQLGEYKFQNALLVRYTKKVPQVSTPTLVEVSRNLGKVGSKCCKHPEAKRMPCAEDYLSVVLNQLCVLHEKTPVSDRVTKCCTESLVNRRPCFSALEVDETYVPKEFNAETFTFHADICTLSEKERQIKKQTALVELVKHKPKATKEQLKAVMDDFAAFVEKCCKADDKETCFAEEGKKLVAASQAALGL
+            </Seq>
+            <cvParam cvRef="PSI-MS" accession="MS:1001088" name="protein description"
+                     value="ALBU_HUMAN Serum albumin active OS=Homo sapiens GN=ALB PE=1 SV=2"/>
+        </DBSequence>
+        <Peptide id="p1">
+            <PeptideSequence>AYALMTDIHWDDCFCR</PeptideSequence>
+            <Modification location="5" residues="M" monoisotopicMassDelta="15.99491">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref" value="ox"/>
+                <cvParam cvRef="UNIMOD" accession="UNIMOD:35" name="Oxidation"/>
+            </Modification>
+            <Modification location="13" residues="C" monoisotopicMassDelta="57.02147">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref" value="cm"/>
+                <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+            </Modification>
+            <Modification location="15" residues="C" monoisotopicMassDelta="57.02147">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref" value="cm"/>
+                <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+            </Modification>
+        </Peptide>
+        <Peptide id="p2">
+            <PeptideSequence>VHTECCHGDLLECADDR</PeptideSequence>
+            <Modification location="5" residues="C" monoisotopicMassDelta="57.02147">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref" value="cm"/>
+                <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+            </Modification>
+            <Modification location="6" residues="C" monoisotopicMassDelta="57.02147">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref" value="cm"/>
+                <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+            </Modification>
+            <Modification location="13" residues="C" monoisotopicMassDelta="57.02147">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref" value="cm"/>
+                <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+            </Modification>
+        </Peptide>
+        <PeptideEvidence dBSequence_ref="dbseq_P15640_target"
+                         peptide_ref="p1"
+                         start="401" end="416" isDecoy="false"
+                         id="pepevid_p1"/>
+        <PeptideEvidence dBSequence_ref="dbseq_P02768-A_target"
+                         peptide_ref="p2"
+                         start="241" end="257" isDecoy="false"
+                         id="pepevid_p2"/>
+    </SequenceCollection>
+    <AnalysisCollection>
+        <SpectrumIdentification spectrumIdentificationProtocol_ref="SearchProtocol_1_16441"
+                                spectrumIdentificationList_ref="SII_LIST_1_1_16441_recal_E151023_06_Lumos_CS_AB_IN_190_HCD_HSA_SDA_2.mgf"
+                                id="SpecIdent__16441_recal_E151023_06_Lumos_CS_AB_IN_190_HCD_HSA_SDA_2.mgf">
+            <InputSpectra
+                    spectraData_ref="SD_16441_recal_E151023_06_Lumos_CS_AB_IN_190_HCD_HSA_SDA_2.mgf"/>
+            <SearchDatabaseRef searchDatabase_ref="SDB_16441_1534"/>
+        </SpectrumIdentification>
+    </AnalysisCollection>
+    <AnalysisProtocolCollection>
+        <SpectrumIdentificationProtocol analysisSoftware_ref="xiFDR_id" id="SearchProtocol_1_16441">
+            <SearchType>
+                <cvParam cvRef="PSI-MS" accession="MS:1001083" name="ms-ms search"/>
+            </SearchType>
+            <AdditionalSearchParams>
+                <cvParam cvRef="PSI-MS" accession="MS:1001211" name="parent mass type mono"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1001256" name="fragment mass type mono"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1002494" name="crosslinking search"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1003330" name="noncovalently associated peptides search"/>
+
+                <!-- are these meant to be changed to children of MS:1002307 (fragmentation ion type)  -->
+                <cvParam cvRef="PSI-MS" accession="MS:1001118" name="param: b ion"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1001262" name="param: y ion"/>
+
+                <!-- these are the current non-deprecated ways of encoding losses?  -->
+                <cvParam name="neutral loss" cvRef="PSI-MS" accession="MS:1000336" value="H2O"/>
+                <cvParam name="neutral loss" cvRef="PSI-MS" accession="MS:1000336" value="NH3"/>
+
+            </AdditionalSearchParams>
+            <ModificationParams>
+                <SearchModification fixedMod="false" massDelta="15.99491" residues="M">
+                    <cvParam cvRef="PSI-MS" accession="MS:1003392" name="search modification id"
+                             value="ox"/>
+                    <cvParam cvRef="UNIMOD" accession="UNIMOD:35" name="Oxidation"/>
+                </SearchModification>
+                <SearchModification fixedMod="false" massDelta="57.021465" residues="C">
+                    <cvParam cvRef="PSI-MS" accession="MS:1003392" name="search modification id"
+                             value="cm"/>
+                    <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+                </SearchModification>
+            </ModificationParams>
+            <Enzymes independent="false">
+                <Enzyme nTermGain="H" cTermGain="OH" semiSpecific="false" missedCleavages="3" id="Trypsin_0">
+                    <EnzymeName>
+                        <cvParam cvRef="PSI-MS" accession="MS:1001251" name="Trypsin"/>
+                    </EnzymeName>
+                </Enzyme>
+            </Enzymes>
+            <FragmentTolerance>
+                <cvParam cvRef="PSI-MS" accession="MS:1001412" name="search tolerance plus value" value="20.0"
+                         unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1001413" name="search tolerance minus value" value="20.0"
+                         unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO"/>
+            </FragmentTolerance>
+            <ParentTolerance>
+                <cvParam cvRef="PSI-MS" accession="MS:1001412" name="search tolerance plus value" value="3.0"
+                         unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1001413" name="search tolerance minus value" value="3.0"
+                         unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO"/>
+            </ParentTolerance>
+            <Threshold>
+                <cvParam cvRef="PSI-MS" accession="MS:1001494" name="no threshold"/>
+            </Threshold>
+        </SpectrumIdentificationProtocol>
+    </AnalysisProtocolCollection>
+    <DataCollection>
+        <Inputs>
+            <SearchDatabase location="HSA_first200_Ecoli.fasta" id="SDB_16441_1534">
+                <FileFormat>
+                    <cvParam cvRef="PSI-MS" accession="MS:1001348" name="FASTA format"/>
+                </FileFormat>
+                <DatabaseName>
+                    <userParam name="HSA_first200_Ecoli.fasta"/>
+                </DatabaseName>
+            </SearchDatabase>
+            <SpectraData location="recal_E151023_06_Lumos_CS_AB_IN_190_HCD_HSA_SDA_2.mgf"
+                         id="SD_16441_recal_E151023_06_Lumos_CS_AB_IN_190_HCD_HSA_SDA_2.mgf">
+                <FileFormat>
+                    <cvParam cvRef="PSI-MS" accession="MS:1001062" name="Mascot MGF format"/>
+                </FileFormat>
+                <SpectrumIDFormat>
+                    <cvParam cvRef="PSI-MS" accession="MS:1000774" name="multiple peak list nativeID format"/>
+                </SpectrumIDFormat>
+            </SpectraData>
+        </Inputs>
+        <AnalysisData>
+            <SpectrumIdentificationList id="SII_LIST_1_1_16441_recal_E151023_06_Lumos_CS_AB_IN_190_HCD_HSA_SDA_2.mgf">
+                <SpectrumIdentificationResult spectrumID="index=4630"
+                                              spectraData_ref="SD_16441_recal_E151023_06_Lumos_CS_AB_IN_190_HCD_HSA_SDA_2.mgf"
+                                              id="SIR_1">
+                    <SpectrumIdentificationItem chargeState="3" experimentalMassToCharge="1392.897440641436"
+                                                calculatedMassToCharge="1392.567094980103"
+                                                peptide_ref="p1"
+                                                rank="1" passThreshold="true" id="SII_1_1">
+                        <PeptideEvidenceRef
+                                peptideEvidence_ref="pepevid_p1"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003331"
+                                 name="noncovalently associated peptides spectrum identification item"
+                                 value="1"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002545" name="xi:score"
+                                 value="13.456698034492756"/>
+                    </SpectrumIdentificationItem>
+                    <SpectrumIdentificationItem chargeState="3" experimentalMassToCharge="1392.897440641436"
+                                                calculatedMassToCharge="1392.567094980103"
+                                                peptide_ref="p2"
+                                                rank="1" passThreshold="true" id="SII_1_2">
+                        <PeptideEvidenceRef
+                                peptideEvidence_ref="pepevid_p2"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003331"
+                                 name="noncovalently associated peptides spectrum identification item"
+                                 value="1"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002545" name="xi:score"
+                                 value="13.456698034492756"/>
+                    </SpectrumIdentificationItem>
+                    <cvParam cvRef="PSI-MS" accession="MS:1000797" name="peak list scans" value="13773"/>
+                </SpectrumIdentificationResult>
+            </SpectrumIdentificationList>
+            <ProteinDetectionList id="PDL_1">
+                <ProteinAmbiguityGroup id="PAG_0">
+                    <ProteinDetectionHypothesis dBSequence_ref="dbseq_P15640_target" passThreshold="false"
+                                                id="PAG_0_PDH_0">
+                        <PeptideHypothesis
+                                peptideEvidence_ref="pepevid_p1">
+                            <SpectrumIdentificationItemRef
+                                    spectrumIdentificationItem_ref="SII_1_1"/>
+                        </PeptideHypothesis>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002403" name="group representative"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1001593"
+                                 name="group member with undefined relationship OR ortholog protein"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002676" name="protein-pair-level global FDR"
+                                 value="10.b:null:0.0:true"/>
+                    </ProteinDetectionHypothesis>
+                    <cvParam cvRef="PSI-MS" accession="MS:1002415" name="protein group passes threshold"
+                             value="true"/>
+                </ProteinAmbiguityGroup>
+                <ProteinAmbiguityGroup id="PAG_1">
+                    <ProteinDetectionHypothesis dBSequence_ref="dbseq_P02768-A_target" passThreshold="false"
+                                                id="PAG_1_PDH_0">
+                        <PeptideHypothesis
+                                peptideEvidence_ref="pepevid_p2">
+                            <SpectrumIdentificationItemRef
+                                    spectrumIdentificationItem_ref="SII_1_2"/>
+                        </PeptideHypothesis>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002403" name="group representative"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1001593"
+                                 name="group member with undefined relationship OR ortholog protein"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002676" name="protein-pair-level global FDR"
+                                 value="10.a:null:0.0:true"/>
+                    </ProteinDetectionHypothesis>
+                    <cvParam cvRef="PSI-MS" accession="MS:1002415" name="protein group passes threshold"
+                             value="true"/>
+                </ProteinAmbiguityGroup>
+                <cvParam cvRef="PSI-MS" accession="MS:1002404" name="count of identified proteins" value="2"/>
+            </ProteinDetectionList>
+        </AnalysisData>
+    </DataCollection>
+</MzIdentML>

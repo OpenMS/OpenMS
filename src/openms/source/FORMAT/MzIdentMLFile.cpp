@@ -21,7 +21,7 @@ namespace OpenMS
 {
 
   MzIdentMLFile::MzIdentMLFile() :
-    XMLFile("/SCHEMAS/mzIdentML1.1.0.xsd", "1.1.0")
+    XMLFile("/SCHEMAS/mzIdentML1.3.0.xsd", "1.3.0")
   {
   }
 

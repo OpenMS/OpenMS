@@ -21,6 +21,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 
 namespace OpenMS
 {
@@ -362,6 +363,9 @@ private:
       AASequence actual_peptide_;
       Int current_mod_location_;
       ProteinHit actual_protein_;
+
+      /// cached CV child terms for "MS:1001143"
+      std::set<String> peptide_result_details_;
 
     };
   } // namespace Internal

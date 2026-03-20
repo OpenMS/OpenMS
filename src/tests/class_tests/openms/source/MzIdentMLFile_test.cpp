@@ -499,6 +499,50 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] mzIdentML 1.3 crosslinking scores_and_thresholds))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_crosslinking.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 noncovalent association))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_noncov_assoc.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 EDC crosslinking))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_xlink_edc.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 multiple spectra per identification))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_multi_spectra.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

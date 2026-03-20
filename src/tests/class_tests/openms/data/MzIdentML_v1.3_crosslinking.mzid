@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MzIdentML id="12345" version="1.3.0" xmlns="http://psidev.info/psi/pi/mzIdentML/1.3"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.3 http://www.psidev.info/files/mzIdentML1.3.0.xsd"
+           creationDate="2023-02-02T11:55:34">
+    <cvList>
+        <cv fullName="PSI-MS" version="4.0.0"
+            uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" id="PSI-MS"/>
+        <cv fullName="XLMOD" uri="resource:///XLMOD.obo" id="XLMOD"/>
+        <cv fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo" id="UNIMOD"/>
+        <cv fullName="UNIT-ONTOLOGY"
+            uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo" id="UO"/>
+    </cvList>
+    <cvParam cvRef="PSI-MS" accession="MS:1003385" name="mzIdentML crosslinking extension document version"
+             value="1.0.0"/>
+    <AnalysisSoftwareList>
+        <AnalysisSoftware id="xi_id" name="xi">
+            <SoftwareName>
+                <cvParam cvRef="PSI-MS" accession="MS:1002544" name="xi"/>
+            </SoftwareName>
+        </AnalysisSoftware>
+        <AnalysisSoftware version="2.2.beta6" id="xiFDR_id" name="XiFDR">
+            <SoftwareName>
+                <cvParam cvRef="PSI-MS" accession="MS:1002543" name="xiFDR"/>
+            </SoftwareName>
+        </AnalysisSoftware>
+    </AnalysisSoftwareList>
+    <Provider id="PROVIDER">
+        <ContactRole contact_ref="PERSON_DOC_OWNER">
+            <Role>
+                <cvParam cvRef="PSI-MS" accession="MS:1001271" name="researcher"/>
+            </Role>
+        </ContactRole>
+    </Provider>
+    <AuditCollection>
+        <Person lastName="Fischer" firstName="Lutz" id="PERSON_DOC_OWNER">
+            <cvParam cvRef="PSI-MS" accession="MS:1000587" name="contact address" value="TIB Gebäude 17,
+Etage 4, Raum 474
+Gustav-Meyer-Allee 25
+13355 Berlin"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1000589" name="contact email" value="lutz.fischer@tu-berlin.de"/>
+            <Affiliation organization_ref="ORG_DOC_OWNER"/>
+        </Person>
+        <Organization id="ORG_DOC_OWNER" name="TU Berlin">
+            <cvParam cvRef="PSI-MS" accession="MS:1000586" name="contact name" value="TU Berlin"/>
+        </Organization>
+    </AuditCollection>
+    <SequenceCollection>
+        <DBSequence length="1338" searchDatabase_ref="SDB_17022_2120" accession="ggFANCI" id="dbseq_ggFANCI_target"
+                    name=" ggFANCI">
+            <Seq>MAQRILQLAAEGSPERLQEALQGLTEGELGDMVTRQALRGRETAALLKGIFKGSPCSQQSGVLRRLQVYKHCVSLVESGDLHVGKVSEIIGLLMLEARQLPGHALAELATLFVEVIKRGSLSNGKSLELFSTVLTALSNSKESLAYGKGELNGEEFKKQLINTLCSSKWDPQCVIHLANMFRDIPLSGEELQFVVEKVLRMFSKLDLQEIPPLVYQLLLLSAKGSKKTVLEGIISFFNQLDKRQKEEQRVPQSADLEVATVPLDQLRHVEGTVILHIVSAINLDQDIGEELIKHLKTEQQKDPGKALCPFSVSLLLSTAVKHRLQEQIFDFLKTSITRSCKDLQILQASKFLQDLCPQQYDVTAVILEVVKNSAFGWDHVTQGLVDLGFSLMESYEPKKSFGGKAAETNLGLSKMPAQQACKLGASILLETFKVHEPIRSDILEQVLNRVLTKAASPVSHFIDLLSNIVVSAPLVLQNSSSRVTETFDNLSFLPIDTVQGLLRAVQPLLKVSMSVRDSLILVLQKAIFSRQLDARKAAVAGFLLLLRNFKILGSLTSSQCSQAIGATQVQADVHACYNSAANEAFCLEILGSLRRCLSQQADVRLMLYEGFYDVLRRNSQLASSIMETLLSQIKQYYLPQQDLLPPLKLEGCIMAQGDQIFLQEPLAHLLCCIQHCLAWYKSTVHLCKGAEDEEEEEDVGFEQNFEEMLESVTRRMIKSELEDFELDKSADFSPSSGVGVKNNIYAIQVMGICEVLIEYNFKIGNFSKNKFEDVLGLFTCYNKLSEILKEKAGKNKSTLGNRIARSFLSMGFVSTLLTALFRDNAQSHEESLAVLRSSTEFMRYAVSVALQKVQQLEEMGQTDGPDGQNPEKMFQNLCKITRVLLWRYTSIPTAVEESGKKKGKSISLLCLEGLLRIFNTMQQLYAARIPQFLQALDITDGDAEEADINVTEKAAFQIRQFQRSLVNQLSSAEDDFNSKETQLLITILSTLSKLLDPGSQQFLQFLTWTVKICKENALEDLSCCKGLLTLLFSLHVLYKSPVSLLRELAQDIHACLGDIDQDVEIESRSHFAIVNVKTAAPTVCLLVLGQADKVLEEVDWLIKRLTILGSDTSEDSTQASNQTQALEKGVILQLGTLLTVFHELVQTALPAGSCVDSLLRSLSKTYAILTSLIKHYIQACRSTSNTVPGRLEKLVKLSGSHLTPQCYSFITYVQNIHSESLSFAEEKKKKKKEDETAVVSTVMAKVLRDTKPIPNLIFAIEQYEKFLIHLSKKSKVNLMQYMKLSTSRDFRINASMLDSVLQEQNTEDAENEPDNNQSGTAEQPDENQEPQKKRRRKK</Seq>
+            <cvParam cvRef="PSI-MS" accession="MS:1001088" name="protein description" value=" ggFANCI"/>
+        </DBSequence>
+        <DBSequence length="1439" searchDatabase_ref="SDB_17022_2120" accession="ggFANCD2" id="dbseq_ggFANCD2_target"
+                    name=" ggFANCD2">
+            <Seq>MVSKRKLSKIDAAEESSKTDLQSRCPETKRSRISDKRAPSQGGLENEGVFEELLRTSGIILKVGEGQNEIAVDQTAFQKKLRVALEKHPSYPGVVNEFISGLESHIKDRSQFKNCLLPCTPARTEGSRTLVHSYCESLIKLLLGIKILQPAVVTLLLEKIPEFFFDVVGTFGTNFPRLIVNQFKWLDGLLDSQDLVKKLMQMLSVSPVPIQHDIITSLPEILEDSQQNEVARELSCLLKQGRRLTVPILDALSRLDLDAELLAKVRQSAMTIVPSVKLEDLPVVIKFILHNVKAADAVEVISDLRKSLDLSSCVLPLQLLGSQRKLKSQAQASSSMSQVTTSQNCVKLLFDVIKLAVRFQKDVSEAWIKAIENSTSVSDHKVLDLIVLLLIHSTNSKNRKQTEKVLRSKIRLGCMPEQLMQNAFQNHSMVIKDFFPSILSLAQTFLHSAHPAVVSFGSCMYKQAFAVFDSYCQQEVVCALVTHVCSGNETELDISLDVLTDLVILHPSLLLRYATFVKTILDSMQKLNPCQIRKLFYILSTLAFSQRQEGSYIQDDMHMVIRKWLSSSVPNHKQMGIIGAVTMMGSVALKRNEADGGLLERPELSIECDGQLSTLLDLVGFCCEQTPEVLALYYDELANLIEKQKGNLDLQLLDKFGKSLVEDFPNDFVVDLSPTVDGSFLFPVKSLYNLDEDETQGAIAINLLPLVSQSEPGRVADEMSNSRKRVVSPICLSPCFRLLRLYTGEQNNGSLEEIDALLGCPLYLTDLEVEGKLDSLSKQEREFLCSLLFYALNWFREVVNAFCQQQDAEMKGKVLTRLQNITELQNVLGKCLAATPGYVPPPATFDSEAPEGVPSINAGGPVRKKNGKKRKSDSSKACSAERTQADESSDGNQPDTELSELEKSAAEKETGNPLAQLQSYRPYFRELDLEVFSVLHCGLLTKSILDTEMHTEASEVVQLGPAELCFLLDDMCWKLEHVLTPGSTRRVPFLKERGNKDVGFSHLCQRSPKEVAVCVVKLLKPLCNHMENMHNYFQTVIPNQGVVDESGLNIQEYQLMSSCYHQLLLAFRLLFAWSGFSQHENSNLLRSALQVLADRLKPGETEFLPLEELISESFQYLLNFQASIPSFQCAFILTQVLMAISEKPMTGWKREKMASLAKQFLCQSWMKPGGDREKGSHFNSALHTLLCVYLEHTDNILKAIEEISSVGVPELINSAKDGCSSTYPTLSRQTFPVFFRVMMAQLESSVKSIPAGKPSDSGEVQLEKLLKWNIAVRNFHILINLVKVFDSRPVLSICLKYGRLFVEAFLKLAMPLLDHSFKKHRDDVQSLLKTLQLSTRQLHHMCGHSKIHQDLGLTNHVPLLKKSLEQFVYRVKAMLAFNHCQEAFWVGVLKNRDLQGEEILSQASAAPEEDSAEGSEEDTEDSAAEEPDGTDSDSGGAGR</Seq>
+            <cvParam cvRef="PSI-MS" accession="MS:1001088" name="protein description" value=" ggFANCD2"/>
+        </DBSequence>
+        <Peptide id="16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p1">
+            <PeptideSequence>GAEDEEEEEDVGFEQNFEEMLESVTR</PeptideSequence>
+            <Modification location="9" monoisotopicMassDelta="0.0">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref"
+                         value="SDA_crosslink_acceptor"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor" value="1"/>
+            </Modification>
+        </Peptide>
+        <Peptide id="16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p0">
+            <PeptideSequence>ISDKRAPSQGGLENEGVFEELLR</PeptideSequence>
+            <Modification location="4" monoisotopicMassDelta="82.04186">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref"
+                         value="SDA_crosslink_donor"/>
+                <cvParam accession="UNIMOD:2000" name="Xlink:SDA" cvRef="UNIMOD"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1002509" name="crosslink donor" value="1"/>
+            </Modification>
+        </Peptide>
+        <Peptide id="16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p1">
+            <PeptideSequence>SCKDLQILQASK</PeptideSequence>
+            <Modification location="2" residues="C" monoisotopicMassDelta="57.02147">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref" value="cm"/>
+                <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+            </Modification>
+            <Modification location="1" monoisotopicMassDelta="0.0">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref"
+                         value="SDA_crosslink_acceptor"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor" value="2"/>
+            </Modification>
+        </Peptide>
+        <Peptide id="16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p0">
+            <PeptideSequence>TAAPTVCLLVLGQADKVLEEVDWLIKR</PeptideSequence>
+            <Modification location="7" residues="C" monoisotopicMassDelta="57.02147">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref" value="cm"/>
+                <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+            </Modification>
+            <Modification location="18" monoisotopicMassDelta="82.04186">
+                <cvParam cvRef="PSI-MS" accession="MS:1003393" name="search modification id ref"
+                         value="SDA_crosslink_donor"/>
+                <cvParam accession="UNIMOD:2000" name="Xlink:SDA" cvRef="UNIMOD"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1002509" name="crosslink donor" value="2"/>
+            </Modification>
+        </Peptide>
+        <PeptideEvidence dBSequence_ref="dbseq_ggFANCI_target"
+                         peptide_ref="16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p1"
+                         start="689" end="714" isDecoy="false"
+                         id="pepevid_pep_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_protggFANCI_target_689_pepkey_1_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p0_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p1"/>
+        <PeptideEvidence dBSequence_ref="dbseq_ggFANCD2_target"
+                         peptide_ref="16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p0"
+                         start="33" end="55" isDecoy="false"
+                         id="pepevid_pep_16734061838_ISDKRAPSQGGLENEGVFEELLR_protggFANCD2_target_33_pepkey_0_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p0_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p1"/>
+        <PeptideEvidence dBSequence_ref="dbseq_ggFANCI_target"
+                         peptide_ref="16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p1"
+                         start="339" end="350" isDecoy="false"
+                         id="pepevid_pep_16734057553_SCcmKDLQILQASK_protggFANCI_target_339_pepkey_1_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p0_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p1"/>
+        <PeptideEvidence dBSequence_ref="dbseq_ggFANCI_target"
+                         peptide_ref="16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p0"
+                         start="1078" end="1104" isDecoy="false"
+                         id="pepevid_pep_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_protggFANCI_target_1078_pepkey_0_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p0_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p1"/>
+    </SequenceCollection>
+    <AnalysisCollection>
+        <SpectrumIdentification spectrumIdentificationProtocol_ref="SearchProtocol_1_17022"
+                                spectrumIdentificationList_ref="SII_LIST_1_1" id="SpecIdent_1">
+            <InputSpectra spectraData_ref="SD_17022_recal_B210619_02_Lumos_ZC_CO_190_D2I_SDA-WT1.mgf"/>
+            <InputSpectra spectraData_ref="SD_17022_recal_B210619_04_Lumos_ZC_CO_190_D2I_SDA-WT3.mgf"/>
+            <SearchDatabaseRef searchDatabase_ref="SDB_17022_2120"/>
+        </SpectrumIdentification>
+    </AnalysisCollection>
+    <AnalysisProtocolCollection>
+        <SpectrumIdentificationProtocol analysisSoftware_ref="xiFDR_id" id="SearchProtocol_1_17022">
+            <SearchType>
+                <cvParam cvRef="PSI-MS" accession="MS:1001083" name="ms-ms search"/>
+            </SearchType>
+            <AdditionalSearchParams>
+                <cvParam cvRef="PSI-MS" accession="MS:1001211" name="parent mass type mono"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1002494" name="crosslinking search"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1001256" name="fragment mass type mono"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1002490" name="peptide-level scoring"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1002496" name="group PSMs by sequence"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1003343"
+                         name="FDR applied separately to self crosslinks and protein heteromeric crosslinks"/>
+                <cvParam accession="MS:1001118" name="param: b ion" cvRef="PSI-MS"/>
+                <cvParam accession="MS:1001262" name="param: y ion" cvRef="PSI-MS"/>
+            </AdditionalSearchParams>
+            <ModificationParams>
+
+                <SearchModification fixedMod="false" massDelta="100.05243" residues="K S T Y">
+                    <cvParam cvRef="PSI-MS" accession="MS:1003392"
+                             name="search modification id" value="SDA_monolink_W"/>
+                    <cvParam accession="UNIMOD:2000" cvRef="UNIMOD" name="Xlink:SDA"/>
+                    <cvParam accession="MS:1003347" name="UNIMOD derivative code"
+                             value="W" cvRef="PSI-MS"/>
+                </SearchModification>
+
+                <SearchModification fixedMod="false" massDelta="100.05243" residues=".">
+                    <SpecificityRules>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002057"
+                                 name="modification specificity protein N-term"/>
+                    </SpecificityRules>
+                    <cvParam cvRef="PSI-MS" accession="MS:1003392"
+                             name="search modification id" value="SDA_monolink_W_n_term"/>
+                    <cvParam accession="UNIMOD:2000" cvRef="UNIMOD" name="Xlink:SDA"/>
+                    <cvParam accession="MS:1003347" name="UNIMOD derivative code"
+                             value="W" cvRef="PSI-MS"/>
+                </SearchModification>
+
+                <SearchModification fixedMod="false" massDelta="82.041865" residues="K S T Y">
+                    <cvParam cvRef="PSI-MS" accession="MS:1003392"
+                             name="search modification id" value="SDA_crosslink_donor"/>
+                    <cvParam accession="UNIMOD:2000" name="Xlink:DSSO" cvRef="UNIMOD"/>
+                    <cvParam cvRef="PSI-MS" accession="MS:1002509" name="crosslink donor"
+                             value="2"/>
+                    <cvParam accession="MS:1003390" name="crosslinker cleavage characteristics" value="S:82.041865:O"
+                             cvRef="PSI-MS"/>
+                </SearchModification>
+
+                <SearchModification fixedMod="false" massDelta="82.041865" residues=".">
+                    <SpecificityRules>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002057"
+                                 name="modification specificity protein N-term"/>
+                    </SpecificityRules>
+                    <cvParam cvRef="PSI-MS" accession="MS:1003392"
+                             name="search modification id" value="SDA_crosslink_donor_n_term"/>
+                    <cvParam accession="UNIMOD:1842" name="Xlink:DSSO" cvRef="UNIMOD"/>
+                    <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink donor"
+                             value="2"/>
+                    <cvParam accession="MS:1003390" name="crosslinker cleavage characteristics" value="S:82.041865:O"
+                             cvRef="PSI-MS"/>
+                </SearchModification>
+
+                <SearchModification fixedMod="false" massDelta="0.0" residues=".">
+                    <cvParam cvRef="PSI-MS" accession="MS:1003392"
+                             name="search modification id" value="SDA_crosslink_acceptor"/>
+                    <cvParam accession="UNIMOD:2000" name="Xlink:SDA" cvRef="UNIMOD"/>
+                    <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor"
+                             value="2"/>
+                    <cvParam accession="MS:1003390" name="crosslinker cleavage characteristics"
+                             value="O:0:S" cvRef="PSI-MS"/>
+                </SearchModification>
+
+                <SearchModification fixedMod="false" massDelta="0.0" residues=".">
+                    <SpecificityRules>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002057"
+                                 name="modification specificity protein N-term"/>
+                    </SpecificityRules>
+                    <cvParam cvRef="PSI-MS" accession="MS:1003392"
+                             name="search modification id"
+                             value="SDA_crosslink_acceptor_n_term"/>
+                    <cvParam accession="UNIMOD:2000" name="Xlink:SDA" cvRef="UNIMOD"/>
+                    <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor"
+                             value="2"/>
+                    <cvParam accession="MS:1003390" name="crosslinker cleavage characteristics"
+                             value="O:0:S" cvRef="PSI-MS"/>
+                </SearchModification>
+
+                <SearchModification fixedMod="false" massDelta="15.99491" residues="M">
+                    <cvParam cvRef="PSI-MS" accession="MS:1003392" name="search modification id"
+                             value="ox"/>
+                    <cvParam cvRef="UNIMOD" accession="UNIMOD:35" name="Oxidation"/>
+                </SearchModification>
+
+                <SearchModification fixedMod="false" massDelta="57.021465" residues="C">
+                    <cvParam cvRef="PSI-MS" accession="MS:1003392" name="search modification id"
+                             value="cm"/>
+                    <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+                </SearchModification>
+
+            </ModificationParams>
+            <Enzymes independent="false">
+                <Enzyme nTermGain="H" cTermGain="OH" semiSpecific="false" missedCleavages="2" id="Trypsin_0">
+                    <EnzymeName>
+                        <cvParam cvRef="PSI-MS" accession="MS:1001251" name="Trypsin"/>
+                    </EnzymeName>
+                </Enzyme>
+            </Enzymes>
+            <FragmentTolerance>
+                <cvParam cvRef="PSI-MS" accession="MS:1001412" name="search tolerance plus value" value="5.0"
+                         unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1001413" name="search tolerance minus value" value="5.0"
+                         unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO"/>
+            </FragmentTolerance>
+            <ParentTolerance>
+                <cvParam cvRef="PSI-MS" accession="MS:1001412" name="search tolerance plus value" value="3.0"
+                         unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1001413" name="search tolerance minus value" value="3.0"
+                         unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO"/>
+            </ParentTolerance>
+            <Threshold>
+                <cvParam cvRef="PSI-MS" accession="MS:1003337" name="crosslinked PSM-level global FDR" value="0.05"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1003338" name="peptide-pair sequence-level global FDR"
+                         value="0.05"/>
+            </Threshold>
+        </SpectrumIdentificationProtocol>
+        <ProteinDetectionProtocol analysisSoftware_ref="xiFDR_id" id="pdp1">
+            <Threshold>
+                <cvParam cvRef="PSI-MS" accession="MS:1002677" name="residue-pair-level global FDR" value="0.05"/>
+                <cvParam cvRef="PSI-MS" accession="MS:1002676" name="protein-pair-level global FDR" value="0.05"/>
+            </Threshold>
+        </ProteinDetectionProtocol>
+    </AnalysisProtocolCollection>
+    <DataCollection>
+        <Inputs>
+            <SearchDatabase location="D2I_WT.fasta" id="SDB_17022_2120">
+                <FileFormat>
+                    <cvParam cvRef="PSI-MS" accession="MS:1001348" name="FASTA format"/>
+                </FileFormat>
+                <DatabaseName>
+                    <userParam name="D2I_WT.fasta"/>
+                </DatabaseName>
+            </SearchDatabase>
+            <SpectraData location="recal_B210619_02_Lumos_ZC_CO_190_D2I_SDA-WT1.mgf"
+                         id="SD_17022_recal_B210619_02_Lumos_ZC_CO_190_D2I_SDA-WT1.mgf">
+                <FileFormat>
+                    <cvParam cvRef="PSI-MS" accession="MS:1001062" name="Mascot MGF format"/>
+                </FileFormat>
+                <SpectrumIDFormat>
+                    <cvParam cvRef="PSI-MS" accession="MS:1000774" name="multiple peak list nativeID format"/>
+                </SpectrumIDFormat>
+            </SpectraData>
+            <SpectraData location="recal_B210619_04_Lumos_ZC_CO_190_D2I_SDA-WT3.mgf"
+                         id="SD_17022_recal_B210619_04_Lumos_ZC_CO_190_D2I_SDA-WT3.mgf">
+                <FileFormat>
+                    <cvParam cvRef="PSI-MS" accession="MS:1001062" name="Mascot MGF format"/>
+                </FileFormat>
+                <SpectrumIDFormat>
+                    <cvParam cvRef="PSI-MS" accession="MS:1000774" name="multiple peak list nativeID format"/>
+                </SpectrumIDFormat>
+            </SpectraData>
+        </Inputs>
+        <AnalysisData>
+            <SpectrumIdentificationList id="SII_LIST_1_1">
+                <SpectrumIdentificationResult spectrumID="index=26630"
+                                              spectraData_ref="SD_17022_recal_B210619_02_Lumos_ZC_CO_190_D2I_SDA-WT1.mgf"
+                                              id="SIR_1">
+                    <SpectrumIdentificationItem chargeState="5" experimentalMassToCharge="1135.3259479607323"
+                                                calculatedMassToCharge="1135.3254335427703"
+                                                peptide_ref="16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p1"
+                                                rank="1" passThreshold="false" id="SII_1_1">
+                        <PeptideEvidenceRef
+                                peptideEvidence_ref="pepevid_pep_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_protggFANCI_target_689_pepkey_1_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p0_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p1"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002511" name="crosslink spectrum identification item"
+                                 value="1"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002545" name="xi:score" value="25.929927957127177"/>
+
+                        <!-- crosslinked PSM level global FDR -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1003337" name="crosslinked PSM-level global FDR"
+                                 value="0.06"/>
+
+                        <!-- peptide pair global FDR -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1002520"
+                                 value="GAEDEEEEEDVGFEQNFEEMLESVTR-ISDKRAPSQGGLENEGVFEELLR" name="peptide group ID"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003338" name="peptide-pair sequence-level global FDR"
+                                 value="0.06"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003339" name="peptide-pair passes threshold"
+                                 value="false"/>
+
+                        <!-- residue pair ref value="1.b" -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1003344" value="11.b" name="residue-pair ref"/>
+
+                    </SpectrumIdentificationItem>
+                    <SpectrumIdentificationItem chargeState="5" experimentalMassToCharge="1135.3259479607323"
+                                                calculatedMassToCharge="1135.3254335427703"
+                                                peptide_ref="16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p0"
+                                                rank="1" passThreshold="false" id="SII_1_2">
+                        <PeptideEvidenceRef
+                                peptideEvidence_ref="pepevid_pep_16734061838_ISDKRAPSQGGLENEGVFEELLR_protggFANCD2_target_33_pepkey_0_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p0_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p1"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002511" name="crosslink spectrum identification item"
+                                 value="1"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002545" name="xi:score" value="25.929927957127177"/>
+
+                        <!-- crosslinked PSM level global FDR -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1003337" name="crosslinked PSM-level global FDR"
+                                 value="0.06"/>
+
+                        <!-- peptide pair global FDR -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1002520"
+                                 value="GAEDEEEEEDVGFEQNFEEMLESVTR-ISDKRAPSQGGLENEGVFEELLR" name="peptide group ID"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003338" name="peptide-pair sequence-level global FDR"
+                                 value="0.06"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003339" name="peptide-pair passes threshold"
+                                 value="false"/>
+
+                        <!-- residue pair ref value="11.a" -->
+                        <cvParam cvRef="PSI-MS" accession="MS:XXXXXXX" value="11.a" name="Residue-pair ref"/>
+
+                    </SpectrumIdentificationItem>
+                    <cvParam cvRef="PSI-MS" accession="MS:1000797" name="peak list scans" value="40560"/>
+                </SpectrumIdentificationResult>
+                <SpectrumIdentificationResult spectrumID="index=23414"
+                                              spectraData_ref="SD_17022_recal_B210619_04_Lumos_ZC_CO_190_D2I_SDA-WT3.mgf"
+                                              id="SIR_2">
+                    <SpectrumIdentificationItem chargeState="6" experimentalMassToCharge="752.7466713415814"
+                                                calculatedMassToCharge="752.41371619677"
+                                                peptide_ref="16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p1"
+                                                rank="1" passThreshold="true" id="SII_2_1">
+                        <PeptideEvidenceRef
+                                peptideEvidence_ref="pepevid_pep_16734057553_SCcmKDLQILQASK_protggFANCI_target_339_pepkey_1_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p0_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p1"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002511" name="crosslink spectrum identification item"
+                                 value="2"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002545" name="xi:score" value="21.55734182309742"/>
+
+                        <!-- crosslinked PSM level global FDR -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1003337" name="crosslinked PSM-level global FDR"
+                                 value="0.03"/>
+
+                        <!-- peptide pair global FDR -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1002520" value="SCKDLQILQASK-TAAPTVCLLVLGQADKVLEEVDWLIKR"
+                                 name="peptide group ID"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003338" name="peptide-pair sequence-level global FDR"
+                                 value="0.03"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003339" name="peptide-pair passes threshold"
+                                 value="true"/>
+
+                        <!-- residue pair ref value="22.b" -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1003344" value="22.b" name="Residue-pair ref"/>
+                    </SpectrumIdentificationItem>
+                    <SpectrumIdentificationItem chargeState="6" experimentalMassToCharge="752.7466713415814"
+                                                calculatedMassToCharge="752.41371619677"
+                                                peptide_ref="16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p0"
+                                                rank="1" passThreshold="true" id="SII_2_2">
+                        <PeptideEvidenceRef
+                                peptideEvidence_ref="pepevid_pep_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_protggFANCI_target_1078_pepkey_0_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p0_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p1"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002511" name="crosslink spectrum identification item"
+                                 value="2"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002545" name="xi:score" value="21.55734182309742"/>
+
+                        <!-- crosslinked PSM level global FDR -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1003337" name="crosslinked PSM-level global FDR"
+                                 value="0.03"/>
+
+                        <!-- peptide pair global FDR -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1002520" value="SCKDLQILQASK-TAAPTVCLLVLGQADKVLEEVDWLIKR"
+                                 name="peptide group ID"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003338" name="peptide-pair sequence-level global FDR"
+                                 value="0.03"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003339" name="peptide-pair passes threshold"
+                                 value="true"/>
+
+                        <!-- residue pair ref value="22.a" -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1003344" value="22.a" name="Residue-pair ref"/>
+                    </SpectrumIdentificationItem>
+                    <cvParam cvRef="PSI-MS" accession="MS:1000797" name="peak list scans" value="38065"/>
+                </SpectrumIdentificationResult>
+            </SpectrumIdentificationList>
+            <ProteinDetectionList id="PDL_1">
+                <ProteinAmbiguityGroup id="PAG_0">
+                    <ProteinDetectionHypothesis dBSequence_ref="dbseq_ggFANCI_target" passThreshold="true"
+                                                id="PAG_0_PDH_0">
+                        <PeptideHypothesis
+                                peptideEvidence_ref="pepevid_pep_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_protggFANCI_target_689_pepkey_1_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p0_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p1">
+                            <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_1_1"/>
+                        </PeptideHypothesis>
+                        <PeptideHypothesis
+                                peptideEvidence_ref="pepevid_pep_16734057553_SCcmKDLQILQASK_protggFANCI_target_339_pepkey_1_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p0_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p1">
+                            <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_2_1"/>
+                        </PeptideHypothesis>
+                        <PeptideHypothesis
+                                peptideEvidence_ref="pepevid_pep_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_protggFANCI_target_1078_pepkey_0_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p0_16734068348_TAAPTVCcmLLVLGQADKVLEEVDWLIKR_16734057553_SCcmKDLQILQASK_18_1_p1">
+                            <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_2_2"/>
+                        </PeptideHypothesis>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002403" name="group representative"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1001593"
+                                 name="group member with undefined relationship OR ortholog protein"/>
+
+                        <!-- forms a protein heteromeric PPI with its partner 10.a in PAG_1_PDH_0 -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1002676" name="protein-pair-level global FDR"
+                                 value="10.b:null:0.059:false"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003341"
+                                 name="protein-protein interaction passes threshold" value="10:false"/>
+
+                        <!-- forms a self PPI with its partner 20.b in PAG_0_PDH_0 -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1002676" name="protein-pair-level global FDR"
+                                 value="20.a:null:0.030:true"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002676" name="protein-pair-level global FDR"
+                                 value="20.b:null:0.030:true"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003341"
+                                 name="protein-protein interaction passes threshold" value="20:true"/>
+
+                        <!-- forms a protein heteromeric crosslink with its partner 11.a in PAG_1_PDH_0 -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1002677" name="residue-pair-level global FDR"
+                                 value="11.b:697:0.06:false"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003340" name="residue-pair passes threshold"
+                                 value="11:false"/>
+
+                        <!-- forms a self crosslink with its partner 22.b in PAG_0_PDH_0 -->
+                        <cvParam cvRef="PSI-MS" accession="MS:1002677" name="residue-pair-level global FDR"
+                                 value="22.a:1095:0.01:true"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002677" name="residue-pair-level global FDR"
+                                 value="22.b:339:0.01:true"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003340" name="residue-pair passes threshold"
+                                 value="22:true"/>
+                    </ProteinDetectionHypothesis>
+                    <cvParam cvRef="PSI-MS" accession="MS:1002415" name="protein group passes threshold" value="true"/>
+                </ProteinAmbiguityGroup>
+                <ProteinAmbiguityGroup id="PAG_1">
+                    <ProteinDetectionHypothesis dBSequence_ref="dbseq_ggFANCD2_target" passThreshold="true"
+                                                id="PAG_1_PDH_0">
+                        <PeptideHypothesis
+                                peptideEvidence_ref="pepevid_pep_16734061838_ISDKRAPSQGGLENEGVFEELLR_protggFANCD2_target_33_pepkey_0_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p0_16734061838_ISDKRAPSQGGLENEGVFEELLR_16734063165_GAEDEEEEEDVGFEQNFEEMLESVTR_4_9_p1">
+                            <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_1_2"/>
+                        </PeptideHypothesis>
+                        <cvParam cvRef="PSI-MS" accession="MS:1002403" name="group representative"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1001593"
+                                 name="group member with undefined relationship OR ortholog protein"/>
+
+                        <cvParam cvRef="PSI-MS" accession="MS:1002676" name="protein-pair-level global FDR"
+                                 value="10.a:null:059:false"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003341"
+                                 name="protein-protein interaction passes threshold" value="10:false"/>
+
+                        <cvParam cvRef="PSI-MS" accession="MS:1002677" name="residue-pair-level global FDR"
+                                 value="11.a:36:0.06:false"/>
+                        <cvParam cvRef="PSI-MS" accession="MS:1003340" name="residue-pair passes threshold"
+                                 value="11:false"/>
+
+                    </ProteinDetectionHypothesis>
+                    <cvParam cvRef="PSI-MS" accession="MS:1002415" name="protein group passes threshold" value="true"/>
+                </ProteinAmbiguityGroup>
+                <cvParam cvRef="PSI-MS" accession="MS:1002404" name="count of identified proteins" value="2"/>
+            </ProteinDetectionList>
+        </AnalysisData>
+    </DataCollection>
+</MzIdentML>
