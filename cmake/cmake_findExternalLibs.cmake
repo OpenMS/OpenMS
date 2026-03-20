@@ -287,14 +287,14 @@ endif()
 #------------------------------------------------------------------------------
 SET(QT_MIN_VERSION "6.1.0")
 
-# Qt6::Core is needed by TOPP tools and GUI, but NOT by libOpenMS itself
-find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Core REQUIRED)
+# Qt6::Core is needed by TOPP tools and GUI, but NOT by libOpenMS itself.
+# When building without GUI (e.g., pyOpenMS wheels), Qt is optional.
+find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Core QUIET)
 
-IF (NOT Qt6Core_FOUND)
-  message(STATUS "Qt6Core not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
-ELSE()
+IF (Qt6Core_FOUND)
   message(STATUS "Found Qt ${Qt6Core_VERSION}")
+ELSE()
+  message(STATUS "Qt6Core not found — TOPP tools and GUI will not be available")
 ENDIF()
 
 
