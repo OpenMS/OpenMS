@@ -24,8 +24,8 @@ std::vector<FASTAFile::FASTAEntry> toFASTAVec(const QStringList& sl_prot, const 
   std::vector<FASTAFile::FASTAEntry> proteins;
   for (int i = 0; i < sl_prot.size(); ++i)
   {
-    String id = i < identifier.size() ? identifier[i] : String(i); // use identifier if given; or create automatically
-    proteins.push_back(FASTAFile::FASTAEntry(id, "", sl_prot[int(i)]));
+    String id = i < identifier.size() ? String(identifier[i].toStdString()) : String(i); // use identifier if given; or create automatically
+    proteins.push_back(FASTAFile::FASTAEntry(id, "", sl_prot[int(i)].toStdString()));
   }
   return proteins;
 }
@@ -37,7 +37,7 @@ PeptideIdentificationList toPepVec(const QStringList& sl_pep)
   for (int i = 0; i < sl_pep.size(); ++i)
   {
     PeptideHit hit;
-    hit.setSequence(AASequence::fromString(sl_pep[int(i)]));
+    hit.setSequence(AASequence::fromString(sl_pep[int(i)].toStdString()));
     std::vector<PeptideHit> hits;
     hits.push_back(hit);
     PeptideIdentification pi;

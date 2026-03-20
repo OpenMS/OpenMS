@@ -73,6 +73,13 @@ target_link_libraries(BilinearInterpolation_test Eigen3::Eigen)
 target_link_libraries(MatrixEigen_test Eigen3::Eigen)
 target_link_libraries(MRMScoring_test Eigen3::Eigen)
 
+# Qt6::Core for tests that directly use Qt headers
+foreach(_qt_test FIAMSScheduler_test MzMLSqliteHandler_test PeptideIndexing_test PythonInfo_test ToolDescriptionFile_test)
+  if(TARGET ${_qt_test})
+    target_link_libraries(${_qt_test} Qt6::Core)
+  endif()
+endforeach()
+
 if (WITH_HDF5)
   target_link_libraries(HDF5_test HDF5::HDF5)
 endif()

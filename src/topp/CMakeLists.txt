@@ -70,6 +70,19 @@ target_link_libraries(NucleicAcidSearchEngine Boost::regex)
 target_link_libraries(IsobaricWorkflow Eigen3::Eigen)
 target_link_libraries(MetaProSIP Eigen3::Eigen)
 
+# Qt6::Core for tools that directly use Qt headers
+target_link_libraries(AssayGeneratorMetaboSirius Qt6::Core)
+target_link_libraries(CometAdapter Qt6::Core)
+target_link_libraries(GenericWrapper Qt6::Core)
+target_link_libraries(IDRipper Qt6::Core)
+target_link_libraries(MetaProSIP Qt6::Core)
+target_link_libraries(MzMLSplitter Qt6::Core)
+target_link_libraries(OpenSwathFileSplitter Qt6::Core)
+target_link_libraries(OpenSwathWorkflow Qt6::Core)
+target_link_libraries(QCEmbedder Qt6::Core)
+target_link_libraries(QCExtractor Qt6::Core)
+target_link_libraries(QCShrinker Qt6::Core)
+
 # collection target
 add_custom_target(TOPP)
 add_dependencies(TOPP ${TOPP_executables})
