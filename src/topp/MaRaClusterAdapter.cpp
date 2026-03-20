@@ -25,7 +25,6 @@
 #include <set>
 #include <map>
 
-#include <QtCore/QProcess>
 #include <boost/algorithm/clamp.hpp>
 #include <typeinfo>
 
