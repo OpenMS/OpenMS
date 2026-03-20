@@ -72,7 +72,7 @@ namespace OpenMS
     //emit the final for the file corresponding to the timer name
     //cout << " - timer name: " << String(timer->objectName()) << endl;
     //cout << " - timer file: " << String(timers_[timer->objectName()]) << endl;
-    emit fileChanged(String(timers_[timer->objectName()]));
+    emit fileChanged(String(timers_[timer->objectName()].toStdString()));
     //erase the timer name from the list
     timers_.erase(timer->objectName());
   }

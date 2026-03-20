@@ -195,7 +195,7 @@ namespace OpenMS
     }
     if (!hset.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ")));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ").toStdString()));
     }
   }
 
