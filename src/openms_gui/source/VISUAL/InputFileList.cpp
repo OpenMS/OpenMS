@@ -11,7 +11,6 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QtWidgets/QFileDialog>
 #include <QApplication>
@@ -141,7 +140,7 @@ namespace OpenMS
       StringList files;
       for (int i = 0; i < nr_files; ++i)
       {
-        files.push_back(ui_->input_file_list->item(i)->text().toStdString());
+        files.push_back(ui_->input_file_list->item(i)->text());
       }
       return files;
     }
@@ -192,7 +191,7 @@ namespace OpenMS
       if (!files.isEmpty())
       {
         ui_->input_file_list->addItems(files);
-        setCWD(toQString(File::path(files.back().toStdString()))); // emit the signal
+        setCWD(File::path(files.back()).toQString()); // emit the signal
       }
     }
 

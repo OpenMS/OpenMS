@@ -11,7 +11,6 @@
 #include <ui_InputFile.h>
 
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QFileDialog>
@@ -73,7 +72,7 @@ namespace OpenMS
   {
     ui_->line_edit->setText(filename);
     emit updatedFile(filename);
-    setCWD(toQString(File::path(filename.toStdString())));
+    setCWD(File::path(filename).toQString());
   }
 
   QString InputFile::getFilename() const

@@ -8,7 +8,6 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <QMessageBox>
 #include <QCoreApplication>
 #include <utility>
@@ -40,7 +39,7 @@ namespace OpenMS
 
     if (!error_msg.empty())
     {
-      QMessageBox::critical(parent, "Error", toQString(error_msg));
+      QMessageBox::critical(parent, "Error", error_msg.toQString());
     }
 
     return rs;
@@ -52,7 +51,7 @@ namespace OpenMS
     auto rs = ep_.run(exe, args, working_dir, verbose, error_msg, ExternalProcess::IO_MODE::READ_WRITE, {},
                       []() { QCoreApplication::processEvents(); });
 
-    if (!error_msg.empty()) QMessageBox::critical(parent, "Error", toQString(error_msg));
+    if (!error_msg.empty()) QMessageBox::critical(parent, "Error", error_msg.toQString());
 
     return rs;
   }

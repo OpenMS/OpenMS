@@ -8,7 +8,6 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/AcquisitionVisualizer.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 //QT
 #include <QtWidgets/QLineEdit>
@@ -37,12 +36,12 @@ namespace OpenMS
 
   void AcquisitionVisualizer::update_()
   {
-    acquisitionnumber_->setText(toQString(temp_.getIdentifier()));
+    acquisitionnumber_->setText(temp_.getIdentifier().toQString());
   }
 
   void AcquisitionVisualizer::store()
   {
-    ptr_->setIdentifier(acquisitionnumber_->text().toStdString());
+    ptr_->setIdentifier(acquisitionnumber_->text());
 
     temp_ = (*ptr_);
   }

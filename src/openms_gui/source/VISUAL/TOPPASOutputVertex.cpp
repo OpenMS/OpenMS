@@ -13,7 +13,6 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <QtCore/QDir>
 
 namespace OpenMS
@@ -55,14 +54,14 @@ namespace OpenMS
 
   void TOPPASOutputVertex::openContainingFolder() const
   {
-    GUIHelpers::openFolder(toQString(getFullOutputDirectory()));
+    GUIHelpers::openFolder(getFullOutputDirectory().toQString());
   }
 
   String TOPPASOutputVertex::getFullOutputDirectory() const
   {
     TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-    auto dir = String(ts->getOutDir().toStdString()).substitute("\\", "/").ensureLastChar('/') + getOutputDir();
-    String clean_dir = QDir::cleanPath(toQString(dir)).toStdString();
+    auto dir = String(ts->getOutDir()).substitute("\\", "/").ensureLastChar('/') + getOutputDir();
+    String clean_dir = QDir::cleanPath(dir.toQString());
     return clean_dir.substitute("\\", "/").ensureLastChar('/');
   }
 
@@ -79,10 +78,10 @@ namespace OpenMS
       }
       const TOPPASVertex* tv = e->getSourceVertex();
       // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-      dir += get3CharsNumber_(topo_nr_) + "-" + tv->getName() + "-" + String(e->getSourceOutParamName().remove(':').toStdString());
+      dir += get3CharsNumber_(topo_nr_) + "-" + tv->getName() + "-" + e->getSourceOutParamName().remove(':');
     }
     else { 
-      dir += output_folder_name_.toStdString();
+      dir += output_folder_name_;
     }
     dir.ensureLastChar('/');
     return dir;

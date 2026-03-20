@@ -11,7 +11,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QAction>
 
@@ -60,8 +59,8 @@ namespace OpenMS
     unsigned count{ 0 };
     for (Param::ParamIterator it = filenames.begin(); it != filenames.end(); ++it)
     {
-      QString filename = toQString(String(it->value.toString()));
-      if (File::exists(filename.toStdString()))
+      QString filename = String(it->value.toString()).toQString();
+      if (File::exists(filename))
       {
         rfiles.append(filename);
         ++count;
@@ -99,8 +98,8 @@ namespace OpenMS
     String tmp = File::absolutePath(filename);
 
     // remove the new file if already in the recent list and prepend it
-    recent_files_.removeAll(toQString(tmp));
-    recent_files_.prepend(toQString(tmp));
+    recent_files_.removeAll(tmp.toQString());
+    recent_files_.prepend(tmp.toQString());
 
     // remove those files exceeding the defined number
     while (recent_files_.size() > max_entries_)
@@ -117,7 +116,7 @@ namespace OpenMS
     {
       return;
     }
-    String filename = String(action->text().toStdString());
+    String filename = String(action->text());
     emit recentFileClicked(filename);
   }
 

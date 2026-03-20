@@ -11,7 +11,6 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/MATH/MathFunctions.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
@@ -108,7 +107,7 @@ namespace OpenMS
         }
         if (id.getHits().size() > 1)
           sequence += "...";
-        painter->drawText(pos.x() + 10, pos.y() + 10, toQString(sequence));
+        painter->drawText(pos.x() + 10, pos.y() + 10, sequence.toQString());
       }
     }
   }
@@ -574,7 +573,7 @@ namespace OpenMS
         QColor color;
         if (f.metaValueExists(5))
         {
-          color = QColor(toQString(f.getMetaValue(5).toString()));
+          color = QColor(f.getMetaValue(5).toQString());
         }
         else
         {
@@ -597,13 +596,13 @@ namespace OpenMS
             Size maxHits = (layer_->label == LayerDataBase::L_ID_ALL) ? f.getPeptideIdentifications()[0].getHits().size() : 1;
             for (Size j = 0; j < maxHits; ++j)
             {
-              painter->drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, toQString(f.getPeptideIdentifications()[0].getHits()[j].getSequence().toString()));
+              painter->drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, f.getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
             }
           }
           else if (layer_->label == LayerDataBase::L_META_LABEL)
           {
             painter->setPen(Qt::darkBlue);
-            painter->drawText(pos.x() + 10, pos.y() + 10, toQString(f.getMetaValue(3).toString()));
+            painter->drawText(pos.x() + 10, pos.y() + 10, f.getMetaValue(3).toQString());
           }
         }
       }
@@ -668,7 +667,7 @@ namespace OpenMS
         QColor color;
         if (cf.metaValueExists(5))
         {
-          color = toQString(cf.getMetaValue(5).toString());
+          color = cf.getMetaValue(5).toQString();
         }
         else
         {

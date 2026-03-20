@@ -23,8 +23,6 @@
 #include <random>
 #include <vector>
 
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
-
 #include <QtCore/QString>
 
 using namespace OpenMS;
@@ -57,10 +55,10 @@ START_SECTION((String(const QString &s)))
   TEST_EQUAL(s=="bla",true)
 END_SECTION
 
-START_SECTION(([EXTRA] free function toQString()))
+START_SECTION((QString toQString() const))
   QString qs("bla");
   String s("bla");
-  TEST_EQUAL(toQString(s)==qs,true)
+  TEST_EQUAL(s.toQString()==qs,true)
 END_SECTION
 
 START_SECTION((String(const char* s, SizeType length)))

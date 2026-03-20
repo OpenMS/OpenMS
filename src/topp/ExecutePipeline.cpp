@@ -12,7 +12,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QApplication>
 #include <QtCore/QDir>
@@ -91,16 +90,16 @@ protected:
 
   ExitCodes main_(int argc, const char ** argv) override
   {
-    QString toppas_file = toQString(getStringOption_("in"));
-    QString out_dir_name = toQString(getStringOption_("out_dir"));
-    QString resource_file = toQString(getStringOption_("resource_file"));
+    QString toppas_file = getStringOption_("in").toQString();
+    QString out_dir_name = getStringOption_("out_dir").toQString();
+    QString resource_file = getStringOption_("resource_file").toQString();
     int num_jobs = getIntOption_("num_jobs");
 
     QApplication a(argc, const_cast<char **>(argv), false);
 
     //set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
-    QString new_tmp_dir = toQString(File::getUniqueName());
-    QDir qd(toQString(File::getTempDirectory()));
+    QString new_tmp_dir = File::getUniqueName().toQString();
+    QDir qd(File::getTempDirectory().toQString());
     qd.mkdir(new_tmp_dir);
     qd.cd(new_tmp_dir);
     QString tmp_path = qd.absolutePath();
@@ -131,7 +130,7 @@ protected:
         out_dir_name = QDir::currentPath() + QDir::separator() + out_dir_name;
       }
       out_dir_name = QDir::cleanPath(out_dir_name);
-      if (File::exists(out_dir_name.toStdString()) && File::isDirectory(out_dir_name.toStdString()))
+      if (File::exists(out_dir_name) && File::isDirectory(out_dir_name))
       {
         ts.setOutDir(out_dir_name);
       }
@@ -143,12 +142,12 @@ protected:
     }
     else
     {
-      QFileInfo fi(toQString(ts.getSaveFileName()));
-      out_dir_name = QDir::cleanPath(ts.getOutDir() + QDir::separator() + toQString(String(fi.baseName().toStdString())) + QDir::separator());
+      QFileInfo fi(ts.getSaveFileName().toQString());
+      out_dir_name = QDir::cleanPath(ts.getOutDir() + QDir::separator() + String(fi.baseName()).toQString() + QDir::separator());
       cout << "No output directory specified. Using the user's home directory (" << out_dir_name.toStdString() << ")" << endl;
       ts.setOutDir(out_dir_name);
       QDir qd;
-      if (!(qd.exists(out_dir_name) || qd.mkdir(out_dir_name)) || !File::writable((out_dir_name + "test_file_in_the_current_directory").toStdString()))
+      if (!(qd.exists(out_dir_name) || qd.mkdir(out_dir_name)) || !File::writable(out_dir_name + "test_file_in_the_current_directory"))
       {
         cerr << "You do not have permission to write to " << out_dir_name.toStdString() << endl;
         return CANNOT_WRITE_OUTPUT_FILE;

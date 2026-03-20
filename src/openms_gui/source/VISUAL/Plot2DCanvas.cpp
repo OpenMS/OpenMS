@@ -26,7 +26,6 @@
 #include <OpenMS/VISUAL/LayerDataFeature.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
@@ -439,7 +438,7 @@ namespace OpenMS
     {
       QPainter painter;
       painter.begin(this);
-      painter.fillRect(0, 0, this->width(), this->height(), QColor(toQString(String(param_.getValue("background_color").toString()))));
+      painter.fillRect(0, 0, this->width(), this->height(), QColor(String(param_.getValue("background_color").toString()).toQString()));
       painter.end();
       e->accept();
       return;
@@ -474,7 +473,7 @@ namespace OpenMS
       // recalculate snap factor
       recalculateSnapFactor_();
 
-      buffer_.fill(QColor(toQString(String(param_.getValue("background_color").toString()))).rgb());
+      buffer_.fill(QColor(String(param_.getValue("background_color").toString()).toQString()).rgb());
       painter.begin(&buffer_);
       QElapsedTimer layer_timer;
 
@@ -575,15 +574,15 @@ namespace OpenMS
 
     const auto xy_point = getCurrentLayer().peakIndexToXY(peak, unit_mapper_);
     QStringList lines;
-    lines << toQString(unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()));
-    lines << toQString(unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()));
+    lines << unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()).toQString();
+    lines << unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()).toQString();
     if (unit_mapper_.getDim(DIM::X).getUnit() != DIM_UNIT::INT && unit_mapper_.getDim(DIM::Y).getUnit() != DIM_UNIT::INT)
     { // if intensity is not mapped to X or Y, add it
       // Note: it may be cleaner to hoist this function into the derived classes of Painter2D, 
       //       if the logic here depends on the actual Layer type (currently, 'INT' should work fine for all).
       DimMapper<2> int_mapper({DIM_UNIT::INT, DIM_UNIT::INT});
       const auto int_point = getCurrentLayer().peakIndexToXY(peak, int_mapper);
-      lines << toQString(int_mapper.getDim(DIM::X).formattedValue(int_point.getX()));
+      lines << int_mapper.getDim(DIM::X).formattedValue(int_point.getX()).toQString();
     }
     drawText_(painter, lines);
   }
@@ -618,11 +617,11 @@ namespace OpenMS
       QString result;
       if (ratio)
       {
-        result = toQString(dim.formattedValue(end_pos / start_pos, " ratio "));
+        result = dim.formattedValue(end_pos / start_pos, " ratio ").toQString();
       }
       else
       {
-        result = toQString(dim.formattedValue(end_pos - start_pos, " delta "));
+        result = dim.formattedValue(end_pos - start_pos, " delta ").toQString();
         if (dim.getUnit() == DIM_UNIT::MZ)
         {
           auto ppm = Math::getPPM(end_pos, start_pos);
@@ -714,7 +713,7 @@ namespace OpenMS
               int precision(2);
               if ((double)dv < 10) precision = 5;
               // ... and add 1k separators, e.g. '540,321.99'
-              status += QLocale::c().toString((double)dv, 'f', precision).toStdString();
+              status += QLocale::c().toString((double)dv, 'f', precision);
             }
             else
             {
@@ -860,7 +859,7 @@ namespace OpenMS
     {
       layer_name += " (invisible)";
     }
-    context_menu->addAction(toQString(layer_name))->setEnabled(false);
+    context_menu->addAction(layer_name.toQString())->setEnabled(false);
     context_menu->addSeparator();
 
     context_menu->addAction("Layer meta data", [&]() { showMetaData(true); });
@@ -1125,10 +1124,10 @@ namespace OpenMS
         for (auto mit = map_precursor_to_chrom_idx.cbegin(); mit != map_precursor_to_chrom_idx.cend(); ++mit)
         {
           // Show the peptide sequence if available, otherwise show the m/z and charge only
-          QString precursor_string = QString("Precursor m/z: (")  + toQString(String(mit->first.getCharge())) + ") " + QString::number(mit->first.getMZ());
+          QString precursor_string = QString("Precursor m/z: (")  + String(mit->first.getCharge()).toQString() + ") " + QString::number(mit->first.getMZ());
           if (mit->first.metaValueExists("peptide_sequence"))
           {
-            precursor_string = QString::number(mit->first.getMZ()) + " : " + toQString(String(mit->first.getMetaValue("peptide_sequence"))) + " (" + QString::number(mit->first.getCharge()) + "+)";
+            precursor_string = QString::number(mit->first.getMZ()) + " : " + String(mit->first.getMetaValue("peptide_sequence")).toQString() + " (" + QString::number(mit->first.getCharge()) + "+)";
           }
           QMenu * msn_precursor = msn_chromatogram->addMenu(precursor_string);  // new entry for every precursor
 
@@ -1274,9 +1273,9 @@ namespace OpenMS
     QComboBox * feature_icon = dlg.findChild<QComboBox *>("feature_icon");
     QSpinBox * feature_icon_size = dlg.findChild<QSpinBox *>("feature_icon_size");
 
-    bg_color->setColor(QColor(toQString(String(param_.getValue("background_color").toString()))));
+    bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
-    feature_icon->setCurrentIndex(feature_icon->findText(toQString(String(layer.param.getValue("dot:feature_icon").toString()))));
+    feature_icon->setCurrentIndex(feature_icon->findText(String(layer.param.getValue("dot:feature_icon").toString()).toQString()));
     feature_icon_size->setValue((int)layer.param.getValue("dot:feature_icon_size"));
 
     if (dlg.exec())

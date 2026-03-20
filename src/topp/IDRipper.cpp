@@ -14,7 +14,6 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
-#include <QString>
 
 using std::map;
 using std::pair;
@@ -100,7 +99,7 @@ protected:
     bool numeric_filenames = getFlag_("numeric_filenames");
     bool split_ident_runs = getFlag_("split_ident_runs");
 
-    String output_directory = QFileInfo(QString::fromStdString(out_dir)).absoluteFilePath().toStdString();
+    String output_directory = QFileInfo(out_dir.toQString()).absoluteFilePath().toStdString();
 
     //-------------------------------------------------------------
     // calculations
@@ -131,24 +130,24 @@ protected:
       const IDRipper::RipFileIdentifier& rfi = it->first;
       const IDRipper::RipFileContent& rfc = it->second;
 
-      QString output = QString::fromStdString(output_directory);
+      QString output = output_directory.toQString();
 
       String out_fname;
       if (numeric_filenames)
       {
         String s_ident_run_idx = split_ident_runs ? '_' + String(rfi.ident_run_idx) : "";
         String s_file_origin_idx = '_' + String(rfi.file_origin_idx);
-        out_fname = QFileInfo(QString::fromStdString(file_name)).completeBaseName().toStdString() + s_ident_run_idx + s_file_origin_idx + ".idXML";
+        out_fname = QFileInfo(file_name.toQString()).completeBaseName().toStdString() + s_ident_run_idx + s_file_origin_idx + ".idXML";
       }
       else
       {
-        out_fname = QFileInfo(QString::fromStdString(rfi.out_basename)).completeBaseName().toStdString() + ".idXML";
+        out_fname = QFileInfo(rfi.out_basename.toQString()).completeBaseName().toStdString() + ".idXML";
       }
 
-      String out = QDir::toNativeSeparators(output.append(QString("/")).append(QString::fromStdString(out_fname))).toStdString();
+      String out = QDir::toNativeSeparators(output.append(QString("/")).append(out_fname.toQString())).toStdString();
       OPENMS_LOG_INFO << "Storing file: '" << out << "'." << std::endl;
 
-      QDir dir(QString::fromStdString(output_directory));
+      QDir dir(output_directory.toQString());
       FileHandler().storeIdentifications(out, rfc.prot_idents, rfc.pep_idents, {FileTypes::IDXML});
     }
     return EXECUTION_OK;

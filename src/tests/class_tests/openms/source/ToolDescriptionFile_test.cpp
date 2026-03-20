@@ -14,8 +14,6 @@
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 ///////////////////////////
 
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
-
 #include <QStringList>
 #include <QDir>
 
@@ -47,7 +45,7 @@ START_SECTION((void load(const String &filename, std::vector< Internal::ToolDesc
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;
   QStringList list;
-  QDir dir( toQString(ToolHandler::getExternalToolsPath()), "*.ttd");
+  QDir dir( ToolHandler::getExternalToolsPath().toQString(), "*.ttd");
   QStringList files = dir.entryList();
   for (int i=0;i<files.size();++i)
   {

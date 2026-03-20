@@ -254,7 +254,7 @@ namespace OpenMS
 
         if (fabs(tmp_a.mz - pa->getPeakPosition().getMZ()) < 1e-6)
         {
-          if (String(pa->getText().toStdString()).hasPrefix(tmp_a.annotation))
+          if (String(pa->getText()).hasPrefix(tmp_a.annotation))
           {
             to_remove.push_back(tmp_a);
           }

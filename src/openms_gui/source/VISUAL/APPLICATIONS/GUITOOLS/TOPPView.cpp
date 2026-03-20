@@ -33,7 +33,6 @@
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 //STL
 #include <iostream>
@@ -167,7 +166,7 @@ int main(int argc, const char** argv)
     pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
     pt_ver.setPen(Qt::black);
     // draw version number dynamcially on top left corner
-    pt_ver.drawText(5, 5 + 15, toQString(VersionInfo::getVersion()));
+    pt_ver.drawText(5, 5 + 15, VersionInfo::getVersion().toQString());
     QSplashScreen splash_screen(qpm);
     splash_screen.show();
     

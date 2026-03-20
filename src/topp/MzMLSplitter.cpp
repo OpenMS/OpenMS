@@ -11,7 +11,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QFile>
-#include <QString>
 #include <iomanip>
 #include <sstream>
 
@@ -96,7 +95,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      QFile mzml_file(QString::fromStdString(in));
+      QFile mzml_file(in.toQString());
       // use float here to avoid too many decimals in output below:
       float total_size = mzml_file.size();
       String unit = getStringOption_("unit");

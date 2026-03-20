@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/FileWatcher.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <QtCore/QTimer>
 
 using namespace std;
@@ -20,7 +19,7 @@ namespace OpenMS
     delay_in_seconds_(1.0)
   {
     // Connect the slot for monitoring file changes
-    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(toQString(s)); });
+    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(s.toQString()); });
   }
 
   FileWatcher::~FileWatcher() = default;
@@ -72,7 +71,7 @@ namespace OpenMS
     //emit the final for the file corresponding to the timer name
     //cout << " - timer name: " << String(timer->objectName()) << endl;
     //cout << " - timer file: " << String(timers_[timer->objectName()]) << endl;
-    emit fileChanged(String(timers_[timer->objectName()].toStdString()));
+    emit fileChanged(String(timers_[timer->objectName()]));
     //erase the timer name from the list
     timers_.erase(timer->objectName());
   }

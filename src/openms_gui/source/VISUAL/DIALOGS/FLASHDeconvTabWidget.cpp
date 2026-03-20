@@ -10,7 +10,6 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/FLASHDeconvTabWidget.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 #include <OpenMS/VISUAL/DIALOGS/WizardHelper.h>
 #include <ui_FLASHDeconvTabWidget.h>
 
@@ -47,8 +46,8 @@ namespace OpenMS
     FLASHDeconvTabWidget::FLASHDeconvTabWidget(QWidget* parent) :
         QTabWidget(parent),
         ui(new Ui::FLASHDeconvTabWidget),
-        ep_([&](const String& out) { writeLog_(toQString(out)); },
-            [&](const String& out) { writeLog_(toQString(out)); })
+        ep_([&](const String& out) { writeLog_(out.toQString()); },
+            [&](const String& out) { writeLog_(out.toQString()); })
     {
       ui->setupUi(this);
 
@@ -105,7 +104,7 @@ namespace OpenMS
 
       for (const auto& mzML : in_mzMLs)
       {
-        updateOutputParamFromPerInputFile(toQString(mzML));
+        updateOutputParamFromPerInputFile(mzML.toQString());
         Param tmp_param = Param(fd_param);
         tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_);
 
@@ -139,7 +138,7 @@ namespace OpenMS
       String tmp_file = File::getTemporaryFile();
       ParamXMLFile().store(tmp_file, tmp_param);
       QProcess qp;
-      qp.start(toQString(executable), QStringList() << toQString(tmp_file));
+      qp.start(executable.toQString(), QStringList() << tmp_file.toQString());
       ui->tab_run->setEnabled(false); // grey out the Wizard until INIFileEditor returns...
       qp.waitForFinished(-1);
       ui->tab_run->setEnabled(true);
@@ -196,7 +195,7 @@ namespace OpenMS
 
     void FLASHDeconvTabWidget::updateOutputParamFromPerInputFile(const QString& input_file_name)
     {
-      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + FileHandler::stripExtension(File::basename(input_file_name.toStdString()));
+      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + FileHandler::stripExtension(File::basename(input_file_name));
 
       for (const auto& param : flashdeconv_param_outputs_)
       {
@@ -240,8 +239,8 @@ namespace OpenMS
           }
           else if (tag == "ida_log")
           {
-            String dir_path_only = File::path(input_file_name.toStdString());
-            String file_name_only = FileHandler::stripExtension(File::basename(input_file_name.toStdString()));
+            String dir_path_only = File::path(input_file_name);
+            String file_name_only = FileHandler::stripExtension(File::basename(input_file_name));
             out_path = dir_path_only + '/' + "IDALog_" + file_name_only + ".log";
           }
           else if (tag == "out_spec1")
@@ -350,7 +349,7 @@ namespace OpenMS
 
     void FLASHDeconvTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
     {
-      writeLog_(toQString(text), color, new_section);
+      writeLog_(text.toQString(), color, new_section);
     }
 
     bool FLASHDeconvTabWidget::checkFDInputReady_()

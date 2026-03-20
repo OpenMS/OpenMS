@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/TableView.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <QSet>
+#include <OpenMS/CONCEPT/Qt5Port.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QFile>
@@ -19,11 +19,6 @@
 #include <QTextStream>
 
 #include <iostream>
-
-namespace {
-  template <typename T, template<typename> typename C>
-  QSet<T> toQSet(const C<T>& container) { return QSet<T>(container.begin(), container.end()); }
-}
 
 using namespace std;
 
@@ -92,7 +87,7 @@ namespace OpenMS
 
     if (!f.open(QIODevice::WriteOnly))
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(filename.toStdString()));
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(filename));
     }
     QTextStream ts(&f);
     QStringList str_list;
@@ -195,7 +190,7 @@ namespace OpenMS
     }
     if (!hset.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ").toStdString()));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ")));
     }
   }
 

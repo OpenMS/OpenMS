@@ -12,7 +12,6 @@
 
 
 #include <OpenMS/VISUAL/Plot1DWidget.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 // QT includes
 #include <QtWidgets/QButtonGroup>
@@ -39,12 +38,12 @@ namespace OpenMS
       const auto& layer = cc->getLayer(i);
       if (layer.flipped)
       {
-        ui_->layer_list_2->addItem(toQString(layer.getName()));
+        ui_->layer_list_2->addItem(layer.getName().toQString());
         layer_indices_2_.push_back(i);
       }
       else
       {
-        ui_->layer_list_1->addItem(toQString(layer.getName()));
+        ui_->layer_list_1->addItem(layer.getName().toQString());
         layer_indices_1_.push_back(i);
       }
     }

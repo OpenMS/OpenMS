@@ -9,13 +9,7 @@
 #include <OpenMS/VISUAL/MISC/FilterableList.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <QSet>
-
-namespace {
-  /// Helper: convert a Qt container to QSet (replaces removed Qt5Port.h)
-  template <typename T, template<typename> typename C>
-  QSet<T> toQSet(const C<T>& container) { return QSet<T>(container.begin(), container.end()); }
-}
+#include <OpenMS/CONCEPT/Qt5Port.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <ui_FilterableList.h>
@@ -67,7 +61,7 @@ namespace OpenMS
       {
         if (!blacklist_.contains(bl))
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + String(bl.toStdString()) + "' cannot be taken from blacklist. Does not belong to set!", bl.toStdString());
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + String(bl) + "' cannot be taken from blacklist. Does not belong to set!", bl.toStdString());
         }
       }
       // remove all items from blacklist

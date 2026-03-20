@@ -107,7 +107,7 @@ protected:
     //------------------------------------------------------------
     if (!target_file.empty())
     {
-      target_run = QFileInfo(QString::fromStdString(target_file)).baseName().toStdString();
+      target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
     }
 
     //~ !getFlag_("tables")

@@ -282,7 +282,7 @@ public:
       {
         peak_anno.append("\n").append(lines[1]);
       }
-      fa.annotation = peak_anno.toStdString();
+      fa.annotation = peak_anno;
 
       return fa;
     }

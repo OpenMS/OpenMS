@@ -108,7 +108,7 @@ namespace OpenMS
 
   const String TheoreticalSpectrumGenerationDialog::getSequence() const
   {
-    return ui_->seq_input->text().toStdString();
+    return ui_->seq_input->text();
   }
 
   Param TheoreticalSpectrumGenerationDialog::getParam_() const
@@ -318,7 +318,7 @@ namespace OpenMS
   void TheoreticalSpectrumGenerationDialog::seqTypeSwitch_()
   {
     // save current sequence type setting in member
-    String tmp = ui_->seq_type->currentText().toStdString();
+    String tmp = ui_->seq_type->currentText();
     if (tmp == "Peptide")
     {
       seq_type_ = SequenceType::PEPTIDE;

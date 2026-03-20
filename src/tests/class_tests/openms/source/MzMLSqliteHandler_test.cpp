@@ -16,8 +16,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
-
 #include <QFile>
 
 using namespace OpenMS;
@@ -319,7 +317,7 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
     NEW_TMP_FILE(tmp_filename);
 
     // delete file if present
-    QFile file (toQString(String(tmp_filename)));
+    QFile file (String(tmp_filename).toQString());
     file.remove();
 
     auto chroms = exp_orig.getChromatograms();
@@ -444,7 +442,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
   NEW_TMP_FILE(tmp_filename);
 
   // delete file if present
-  QFile file (toQString(String(tmp_filename)));
+  QFile file (String(tmp_filename).toQString());
   file.remove();
 
   {
@@ -517,7 +515,7 @@ START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
   NEW_TMP_FILE(tmp_filename);
 
   // delete file if present
-  QFile file (toQString(String(tmp_filename)));
+  QFile file (String(tmp_filename).toQString());
   file.remove();
 
   {
@@ -566,7 +564,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
   NEW_TMP_FILE(tmp_filename);
 
   // delete file if present
-  QFile file (toQString(String(tmp_filename)));
+  QFile file (String(tmp_filename).toQString());
   file.remove();
 
   {

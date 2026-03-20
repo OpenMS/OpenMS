@@ -16,8 +16,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/SYSTEM/File.h>
+
 #include <QtCore/QProcess>
-#include <QString>
 #include <QFileInfo>
 #include <QDir>
 #include <QRegularExpression>
@@ -160,7 +160,7 @@ protected:
       {
         for (Size i = 0; i < val.size(); ++i)
         {
-          val[i] = QDir::toNativeSeparators(QString::fromStdString(val[i])).toStdString();
+          val[i] = QDir::toNativeSeparators(val[i].toQString());
         }
       }
       return "\"" + ListUtils::concatenate(val, "\" \"") + "\"";
@@ -168,7 +168,7 @@ protected:
     if (p.tags.count("input file") || p.tags.count("output file"))
     {
       // ensure that file names are formated according to system spec
-      return QDir::toNativeSeparators(QString::fromStdString(String(p.value.toString()))).toStdString();
+      return QDir::toNativeSeparators(String(p.value.toString()).toQString());
     }
     else
     {
@@ -251,15 +251,15 @@ protected:
     {
       QRegularExpression rx(R"(%DIR\[(.*)\])");
       rx.setPatternOptions(QRegularExpression::InvertedGreedinessOption);
-      QString t_tmp = QString::fromStdString(fragment);
+      QString t_tmp = fragment.toQString();
       //std::cout << "fragment is:" << fragment << std::endl;
-      for (const QRegularExpressionMatch& match : rx.globalMatch(QString::fromStdString(fragment)))
+      for (const QRegularExpressionMatch& match : rx.globalMatch(fragment.toQString())) 
       {
         String value = match.captured(1);   // param name (hopefully)
         // replace in fragment:
-        QFileInfo qfi(QString::fromStdString(value));
+        QFileInfo qfi(value.toQString());
         //std::cout << "match @ " << pos << " " << value << " --> " << qfi.canonicalPath() << "\n";
-        t_tmp.replace(QString::fromStdString(String("%DIR[" + value + "]")), qfi.canonicalPath());
+        t_tmp.replace(String("%DIR[" + value + "]").toQString(), qfi.canonicalPath());
       }
       fragment = t_tmp;
       //std::cout << "NEW fragment is:" << fragment << std::endl;
@@ -270,15 +270,15 @@ protected:
       QRegularExpression rx(R"(%BASENAME\[(.*)\])");
       rx.setPatternOptions(QRegularExpression::InvertedGreedinessOption);
       int count = 0;
-      QString t_tmp = QString::fromStdString(fragment);
-      for (const QRegularExpressionMatch& match : rx.globalMatch(QString::fromStdString(fragment)))
+      QString t_tmp = fragment.toQString();
+      for (const QRegularExpressionMatch& match : rx.globalMatch(fragment.toQString())) 
       {
         //std::cout << "match @ " << pos << "\n";
         String value = match.captured(1); // param name (hopefully)
         // replace in fragment:
-        QFileInfo qfi(QString::fromStdString(value));
+        QFileInfo qfi(value.toQString());
         //std::cout << "match @ " << pos << " " << value << " --> " << qfi.completeBaseName() << "\n";
-        t_tmp.replace(QString::fromStdString(String("%BASENAME[" + value + "]")), qfi.completeBaseName());
+        t_tmp.replace(String("%BASENAME[" + value + "]").toQString(), qfi.completeBaseName());
         ++count;
       }
       // update expected count of valid '%'
@@ -443,7 +443,7 @@ protected:
       }
       // create the temp file  tmp_location target_file
       writeDebug_(String("Copying '") + target_file + "' to '" + tmp_location + "'", 1);
-      bool move_ok = QFile::copy(QString::fromStdString(target_file), QString::fromStdString(tmp_location));
+      bool move_ok = QFile::copy(target_file.toQString(), tmp_location.toQString());
       if (!move_ok)
       {
         OPENMS_LOG_ERROR << "Copying the target file '" + tmp_location + "' from '" + target_file + "' failed! Aborting ...";
@@ -477,22 +477,22 @@ protected:
 
     writeDebug_("call command: " + call, 1);
 
-    builder.setWorkingDirectory(QString::fromStdString(tde_.working_directory));
+    builder.setWorkingDirectory(tde_.working_directory.toQString());
     // TODO: start() with single argument is deprecated in Qt 5.15. Can probably be replaced with
     // QStringList commandArgs = QString::fromStdString(command_args).split(" ");
     // QString program = commandArgs.takeFirst();
     // builder.start(program, commandArgs);
 
-    builder.start(QString::fromStdString(call));
+    builder.start(call.toQString());
 
     if (!builder.waitForFinished(-1) || builder.exitStatus() != 0 || builder.exitCode() != 0)
     {
       OPENMS_LOG_ERROR << ("External tool returned with exit code (" + String(builder.exitCode()) + "), exit status (" + String(builder.exitStatus()) + ") or timed out. Aborting ...\n");
-      OPENMS_LOG_ERROR << ("External tool output:\n" + String(QString(builder.readAll()).toStdString()));
+      OPENMS_LOG_ERROR << ("External tool output:\n" + String(QString(builder.readAll())));
       return wrapExit(EXTERNAL_PROGRAM_ERROR);
     }
 
-    OPENMS_LOG_INFO << ("External tool output:\n" + String(QString(builder.readAll()).toStdString()));
+    OPENMS_LOG_INFO << ("External tool output:\n" + String(QString(builder.readAll())));
 
 
     // post processing (file moving via 'file_post' command)
@@ -537,7 +537,7 @@ protected:
                   << "in the TTD and request the output file directly. Aborting ..." << std::endl;
         return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
       }
-      bool move_ok = QFile::rename(QString::fromStdString(source_file), QString::fromStdString(target_file));
+      bool move_ok = QFile::rename(source_file.toQString(), target_file.toQString());
       if (!move_ok)
       {
         OPENMS_LOG_ERROR << "Moving the target file '" + target_file + "' from '" + source_file + "' failed!\n"

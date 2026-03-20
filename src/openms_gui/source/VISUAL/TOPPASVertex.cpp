@@ -16,7 +16,6 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QSvgRenderer>
 #include <QtCore/QFileInfo>
@@ -96,9 +95,9 @@ namespace OpenMS
     for (const auto& [suffix, count] : suffices)
     {
       if (suffices.size() > 1)
-        text_l.push_back(toQString(String("." + suffix + "(" + String(count) + ")")));
+        text_l.push_back(String("." + suffix + "(" + String(count) + ")").toQString());
       else
-        text_l.push_back("." + toQString(suffix));
+        text_l.push_back("." + suffix.toQString());
     }
     return text_l;
   }
@@ -114,9 +113,9 @@ namespace OpenMS
     }
 #else
     // on Unix (Linux/Mac), constraint applies to the file name:
-    if (File::basename(filename.toStdString()).size() > max_filename_length)
+    if (File::basename(filename).size() > max_filename_length)
     {
-      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(filename.toStdString()), max_filename_length);
+      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(filename), max_filename_length);
     }
 #endif
   }

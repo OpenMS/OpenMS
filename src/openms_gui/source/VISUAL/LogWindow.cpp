@@ -10,7 +10,6 @@
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QContextMenuEvent>
 #include <QMenu>
@@ -62,8 +61,8 @@ namespace OpenMS
 
     // update log
     append("==============================================================================");
-    append(toQString((DateTime::now().getTime() + " " + state_string + ": " + heading)));
-    append(toQString(body));
+    append((DateTime::now().getTime() + " " + state_string + ": " + heading).toQString());
+    append(body.toQString());
 
     //show log tool window
     qobject_cast<QWidget*>(parent())->show();

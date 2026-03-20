@@ -15,7 +15,6 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-#include <OpenMS/VISUAL/MISC/QtHelpers.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -93,7 +92,7 @@ namespace OpenMS
     std::set<std::string> unique_names;
     for (const QString& file : fl)
     {
-      if (!File::exists(file.toStdString()))
+      if (!File::exists(file))
       {
         return false;
       }
@@ -116,13 +115,13 @@ namespace OpenMS
     for (int i = 0; i < fl.size(); ++i) // collect unique directories
     {
       QFileInfo fi(fl[i]);
-      directories.insert(String(QFileInfo(fi.canonicalFilePath()).path().toStdString()));
+      directories.insert(String(QFileInfo(fi.canonicalFilePath()).path()));
     }
 
     // open them
     for (std::set<String>::const_iterator it = directories.begin(); it != directories.end(); ++it)
     {
-      QString path = QDir::toNativeSeparators(toQString(*it));
+      QString path = QDir::toNativeSeparators(it->toQString());
       GUIHelpers::openFolder(path);
     }
   }
@@ -173,7 +172,7 @@ namespace OpenMS
     setToolTip(files.join("\n"));
 
     // set current working dir when opening files to the last file
-    cwd_ = toQString(File::path(files.back().toStdString()));
+    cwd_ = File::path(files.back()).toQString();
   }
 
   void TOPPASInputFileListVertex::outEdgeHasChanged()
