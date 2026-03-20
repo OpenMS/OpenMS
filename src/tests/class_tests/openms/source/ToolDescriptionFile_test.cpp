@@ -45,7 +45,7 @@ START_SECTION((void load(const String &filename, std::vector< Internal::ToolDesc
 {
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;
-  std::filesystem::path dir_path(ToolHandler::getExternalToolsPath());
+  std::filesystem::path dir_path(std::string(ToolHandler::getExternalToolsPath()));
   std::vector<std::string> files;
   for (const auto& entry : std::filesystem::directory_iterator(dir_path))
   {
