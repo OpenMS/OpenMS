@@ -226,7 +226,7 @@ namespace OpenMS
       tmp.setValue("tr", ui->input_tr->getFilename().toStdString());
       tmp.setValue("tr_irt", ui->input_iRT->getFilename().toStdString());
       // do not set 'in' because it allows for one file only, while we have more and need to iterate manually
-      String swath_windows = ui->input_swath_windows->getFilename();
+      String swath_windows = fromQString(ui->input_swath_windows->getFilename());
       if (!swath_windows.empty()) tmp.setValue("swath_windows_file", swath_windows);
       // do not set '-out_osw' because we might have multiple -in's and have to iterate manually
 
@@ -251,7 +251,7 @@ namespace OpenMS
     vector<pair<String, bool>> SwathTabWidget::getPyProphetInputFiles() const
     {
       vector<pair<String, bool>> files;
-      String dir = getCurrentOutDir_();
+      String dir = fromQString(getCurrentOutDir_());
       for (const auto& file : getMzMLInputFiles())
       {
         // predict output OSW filenames
@@ -476,7 +476,7 @@ namespace OpenMS
         // this might just be one loop... depending on the call...
         for (size_t i_loop = 0; i_loop < call.getLoopCount(); ++i_loop)
         {
-          auto returnstate = ep_.run(this, call.exe, call.getArgs(i_loop), getCurrentOutDir_(), true);
+          auto returnstate = ep_.run(this, call.exe, call.getArgs(i_loop), fromQString(getCurrentOutDir_()), true);
           if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS)
           {
             QMessageBox::warning(this, "Error", toQString(String("Running pyprophet/TRIC failed at step " + String(step) + "/" + String(calls.size()) + ". Please see log for details")));

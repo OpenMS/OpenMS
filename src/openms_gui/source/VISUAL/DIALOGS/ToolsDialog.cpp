@@ -351,7 +351,7 @@ namespace OpenMS
     Int pos = tools_combo_->findText(string);
     if (pos == -1)
     {
-      QMessageBox::critical(this, "Error", (String("Cannot apply '") + string + "' tool to this layer type. Aborting!").c_str());
+      QMessageBox::critical(this, "Error", (String("Cannot apply '") + fromQString(string) + "' tool to this layer type. Aborting!").c_str());
       arg_param_.clear();
       return;
     }
@@ -428,17 +428,17 @@ namespace OpenMS
     if (output_combo_->currentText() == "<select>")
       return "";
 
-    return output_combo_->currentText();
+    return fromQString(output_combo_->currentText());
   }
 
   String ToolsDialog::getInput()
   {
-    return input_combo_->currentText();
+    return fromQString(input_combo_->currentText());
   }
 
   String ToolsDialog::getTool()
   {
-    return tools_combo_->currentText();
+    return fromQString(tools_combo_->currentText());
   }
 
   String ToolsDialog::getExtension()

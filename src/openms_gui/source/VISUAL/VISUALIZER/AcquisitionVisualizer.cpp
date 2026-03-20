@@ -42,7 +42,7 @@ namespace OpenMS
 
   void AcquisitionVisualizer::store()
   {
-    ptr_->setIdentifier(acquisitionnumber_->text());
+    ptr_->setIdentifier(fromQString(acquisitionnumber_->text()));
 
     temp_ = (*ptr_);
   }

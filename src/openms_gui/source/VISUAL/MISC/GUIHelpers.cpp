@@ -58,7 +58,7 @@ namespace OpenMS
       return file_name;
     }
     // check whether a file type suffix has been given, or fall back to @p fallback_extension (if 'all filter' was used)
-    file_name = toQString(FileHandler::swapExtension(file_name, supported_file_types.fromFileDialogFilter(selected_filter, fallback_extension)));
+    file_name = toQString(FileHandler::swapExtension(fromQString(file_name), supported_file_types.fromFileDialogFilter(fromQString(selected_filter), fallback_extension)));
     return file_name;
   }
 
@@ -113,7 +113,7 @@ namespace OpenMS
       // we expect all unqualified urls to be file urls
       try
       {
-        String local_url = File::findDoc(target);
+        String local_url = File::findDoc(fromQString(target));
         url_target = QUrl::fromLocalFile(toQString(local_url));
       }
       catch (Exception::FileNotFound&)
@@ -243,7 +243,7 @@ namespace OpenMS
   StringList GUIHelpers::convert(const QStringList& in)
   {
     StringList out;
-    for (const auto& s : in) out.push_back(s);
+    for (const auto& s : in) out.push_back(fromQString(s));
     return out;
   }
 

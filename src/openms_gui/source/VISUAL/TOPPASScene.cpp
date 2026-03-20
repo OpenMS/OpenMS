@@ -641,7 +641,7 @@ namespace OpenMS
     save_param.setValue("info:version", VersionInfo::getVersion());
     save_param.setValue("info:num_vertices", vertices_.size());
     save_param.setValue("info:num_edges", edges_.size());
-    save_param.setValue("info:description", String("<![CDATA[") + String(this->description_text_) + String("]]>"));
+    save_param.setValue("info:description", String("<![CDATA[") + fromQString(this->description_text_) + String("]]>"));
 
     // lambda function to store common parameters of all vertices
     auto save_common_params =
@@ -851,7 +851,7 @@ namespace OpenMS
     }
     if (load_param.exists("info:description"))
     {
-      String text = toQString(String(load_param.getValue("info:description").toString()));
+      String text = String(load_param.getValue("info:description").toString());
       text.substitute("<![CDATA[", "");
       text.substitute("]]>", "");
       description_text_ = toQString(text.trim());
@@ -1311,7 +1311,7 @@ namespace OpenMS
     QFile logfile(out_dir_ + QDir::separator() + "TOPPAS.log");
     if (!logfile.open(QIODevice::Append | QIODevice::Text))
     {
-      std::cerr << "Could not write to logfile '" << String(logfile.fileName()) << "'" << std::endl;
+      std::cerr << "Could not write to logfile '" << fromQString(logfile.fileName()) << "'" << std::endl;
       return;
     }
 
@@ -1327,7 +1327,7 @@ namespace OpenMS
     {
       //return;
     }
-    String text = String(out);
+    String text = fromQString(out);
 
     if (!gui_)
     {

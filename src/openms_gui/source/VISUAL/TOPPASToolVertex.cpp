@@ -113,9 +113,9 @@ namespace OpenMS
     // allow for update using old parameters
     if (old_ini_file != "")
     {
-      if (!File::exists(old_ini_file))
+      if (!File::exists(fromQString(old_ini_file)))
       {
-        String msg = String("Could not open old INI file '") + old_ini_file + "'! File does not exist!";
+        String msg = String("Could not open old INI file '") + fromQString(old_ini_file) + "'! File does not exist!";
         if (getScene_() && getScene_()->isGUIMode())
         {
           QMessageBox::critical(nullptr, "Error", msg.c_str());
@@ -135,9 +135,9 @@ namespace OpenMS
     p.start(program, arguments);
     if (!p.waitForFinished(-1) || p.exitStatus() != 0 || p.exitCode() != 0)
     {
-      String msg = String("Error! Call to '") + program + "' '" + String(arguments.join("' '")) +
+      String msg = String("Error! Call to '") + fromQString(program) + "' '" + fromQString(arguments.join("' '")) +
           " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
-          "\noutput:\n" + String(QString(p.readAll())) +
+          "\noutput:\n" + fromQString(QString(p.readAll())) +
           "\n";
       if (getScene_() && getScene_()->isGUIMode())
       {
@@ -150,9 +150,9 @@ namespace OpenMS
       tool_ready_ = false;
       return false;
     }
-    if (!File::exists(ini_file))
+    if (!File::exists(fromQString(ini_file)))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
-      String msg = String("Could not open '") + ini_file + "'! It does not exist!";
+      String msg = String("Could not open '") + fromQString(ini_file) + "'! It does not exist!";
       if (getScene_() && getScene_()->isGUIMode())
       {
         QMessageBox::critical(nullptr, "Error", msg.c_str());
@@ -240,7 +240,7 @@ namespace OpenMS
     // edit_param no longer contains tool description, take it from the node tooltip
     QWidget* parent_widget = qobject_cast<QWidget*>(scene()->parent());
     String default_dir;
-    TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_, toolTip(), hidden_entries);
+    TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_, fromQString(toolTip()), hidden_entries);
     if (dialog.exec())
     {
       // take new values
@@ -566,7 +566,7 @@ namespace OpenMS
             {
               throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
             }
-            param_tmp.setValue(param_name, String(file_list[0]));
+            param_tmp.setValue(param_name, fromQString(file_list[0]));
           }
         }
       }
@@ -610,7 +610,7 @@ namespace OpenMS
             {
               throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
             }
-            param_tmp.setValue(param_name, String(output_files[0]));
+            param_tmp.setValue(param_name, fromQString(output_files[0]));
           }
         }
       }
@@ -646,7 +646,7 @@ namespace OpenMS
       connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
 
       // enqueue process
-      String msg_enqueue = String("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + String(args.join("\" \"")) + "\"\n";
+      String msg_enqueue = String("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + fromQString(args.join("\" \"")) + "\"\n";
       if (round == 0)
       {
         // active if TOPPAS is run with --debug; will print to console
@@ -751,24 +751,26 @@ namespace OpenMS
 
     for (const QString& file : files)
     {
-      if (File::isDirectory(file)) continue; // skip output directories
+      String sfile = fromQString(file);
+      if (File::isDirectory(sfile)) continue; // skip output directories
 
-      String new_prefix = FileHandler::stripExtension(file);
-      String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file)); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
+      String new_prefix = FileHandler::stripExtension(sfile);
+      String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(sfile)); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
       if (file.endsWith(toQString(new_suffix), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
       {
-        new_suffix = fromQString(file).suffix(new_suffix.size());
+        new_suffix = sfile.suffix(new_suffix.size());
       }
       NameComponent nc(new_prefix, new_suffix);
-      name_old_to_new[file] = nc;
+      name_old_to_new[sfile] = nc;
       ++name_new_count[nc.toString()];
     }
-    // for all names which occur more than once, introduce a counter  
+    // for all names which occur more than once, introduce a counter
     for (const QString& file : files)
     {
-      if (name_new_count[name_old_to_new[file].toString()] > 1) // candidate for counter
+      String sfile = fromQString(file);
+      if (name_new_count[name_old_to_new[sfile].toString()] > 1) // candidate for counter
       {
-        name_old_to_new[file].counter = ++name_new_idx[name_old_to_new[file].toString()]; // start at index 1
+        name_old_to_new[sfile].counter = ++name_new_idx[name_old_to_new[sfile].toString()]; // start at index 1
       }
     }
 
@@ -782,14 +784,14 @@ namespace OpenMS
         for (int fi = 0; fi < it->second.filenames.size(); ++fi)
         {
           // skip output directories
-          if (File::isDirectory(it->second.filenames[fi]))
+          if (File::isDirectory(fromQString(it->second.filenames[fi])))
           { 
             continue;
           }
 
           // rename file and update record
           String old_filename = fromQString(QDir::toNativeSeparators(it->second.filenames[fi]));
-          String new_filename = fromQString(QDir::toNativeSeparators(toQString(name_old_to_new[it->second.filenames[fi]].toString())));
+          String new_filename = fromQString(QDir::toNativeSeparators(toQString(name_old_to_new[fromQString(it->second.filenames[fi])].toString())));
           if (QFileInfo(toQString(old_filename)).canonicalFilePath() == QFileInfo(toQString(new_filename)).canonicalFilePath())
           { // source and target are identical -- no action required
             continue;
@@ -901,7 +903,7 @@ namespace OpenMS
       // try to find the type (only by looking at the suffix); not doing it manually, since it could be .mzXML.gz
       for (QString& filename : filenames)
       {
-        filename = toQString(FileHandler::stripExtension(filename));
+        filename = toQString(FileHandler::stripExtension(fromQString(filename)));
       }
       per_round_basenames.push_back(filenames);
       //std::cerr << "  output filenames (round " << i  <<"): " << per_round_basenames.back().join(", ") << std::endl;
@@ -1216,8 +1218,8 @@ namespace OpenMS
     QStringList files = this->getFileNames();
     for (const QString &file : files)
     {
-      QString sdir = toQString(File::path(file));
-      if (!File::exists(sdir))
+      QString sdir = toQString(File::path(fromQString(file)));
+      if (!File::exists(fromQString(sdir)))
       {
         if (!dir.mkpath(sdir))
         {
@@ -1248,7 +1250,7 @@ namespace OpenMS
 
     if (reset_all_files)
     {
-      QString remove_dir = toQString(getFullOutputDirectory());
+      String remove_dir = getFullOutputDirectory();
       if (File::exists(remove_dir))
       {
         File::removeDirRecursively(remove_dir);
@@ -1290,7 +1292,7 @@ namespace OpenMS
     save_param.remove(name_ + ":1:toppas_dummy");
     save_param.setSectionDescription(name_ + ":1", "Instance '1' section for '" + name_ + "'");
     ParamXMLFile paramFile;
-    paramFile.store(ini_file, save_param);
+    paramFile.store(fromQString(ini_file), save_param);
   }
 
   void TOPPASToolVertex::toggleBreakpoint()

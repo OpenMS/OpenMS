@@ -313,7 +313,7 @@ namespace OpenMS
     }
 
     auto visitor_data = visible ? layer.storeVisibleData(getVisibleArea().getAreaUnit(), layer.filters) : layer.storeFullData();
-    visitor_data->saveToFile(file_name, ProgressLogger::GUI);
+    visitor_data->saveToFile(fromQString(file_name), ProgressLogger::GUI);
     modificationStatus_(getCurrentLayerIndex(), false);
   }
 
@@ -407,7 +407,7 @@ namespace OpenMS
     }
     else 
     {
-      new_layer->setName(QFileInfo(toQString(filename)).completeBaseName());
+      new_layer->setName(fromQString(QFileInfo(toQString(filename)).completeBaseName()));
     }
   }
 

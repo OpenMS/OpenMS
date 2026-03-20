@@ -714,7 +714,7 @@ namespace OpenMS
               int precision(2);
               if ((double)dv < 10) precision = 5;
               // ... and add 1k separators, e.g. '540,321.99'
-              status += QLocale::c().toString((double)dv, 'f', precision);
+              status += fromQString(QLocale::c().toString((double)dv, 'f', precision));
             }
             else
             {

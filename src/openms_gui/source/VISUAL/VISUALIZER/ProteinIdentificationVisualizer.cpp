@@ -112,17 +112,17 @@ namespace OpenMS
 
   void ProteinIdentificationVisualizer::store()
   {
-    ptr_->setSearchEngine(engine_->text());
-    ptr_->setSearchEngineVersion(engine_version_->text());
-    ptr_->setIdentifier(identifier_->text());
+    ptr_->setSearchEngine(fromQString(engine_->text()));
+    ptr_->setSearchEngineVersion(fromQString(engine_version_->text()));
+    ptr_->setIdentifier(fromQString(identifier_->text()));
     ptr_->setSignificanceThreshold(identification_threshold_->text().toFloat());
-    ptr_->setScoreType(score_type_->text());
+    ptr_->setScoreType(fromQString(score_type_->text()));
     ptr_->setHigherScoreBetter(higher_better_->currentIndex());
     //date
     DateTime date;
     try
     {
-      date.set(identification_date_->text());
+      date.set(fromQString(identification_date_->text()));
       ptr_->setDateTime(date);
     }
     catch (exception & /*e*/)
@@ -136,14 +136,14 @@ namespace OpenMS
 
     //search parameters
     ProteinIdentification::SearchParameters tmp = ptr_->getSearchParameters();
-    tmp.db = db_->text();
-    tmp.db_version = db_version_->text();
-    tmp.taxonomy = taxonomy_->text();
-    tmp.charges = charges_->text();
+    tmp.db = fromQString(db_->text());
+    tmp.db_version = fromQString(db_version_->text());
+    tmp.taxonomy = fromQString(taxonomy_->text());
+    tmp.charges = fromQString(charges_->text());
     tmp.missed_cleavages = missed_cleavages_->text().toInt();
     tmp.fragment_mass_tolerance = peak_tolerance_->text().toFloat();
     tmp.precursor_mass_tolerance = precursor_tolerance_->text().toFloat();
-    tmp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_->text()));
+    tmp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(fromQString(enzyme_->text())));
     tmp.mass_type = (ProteinIdentification::PeakMassType)(mass_type_->currentIndex());
     ptr_->setSearchParameters(tmp);
 

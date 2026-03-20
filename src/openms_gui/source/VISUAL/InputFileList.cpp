@@ -141,7 +141,7 @@ namespace OpenMS
       StringList files;
       for (int i = 0; i < nr_files; ++i)
       {
-        files.push_back(ui_->input_file_list->item(i)->text());
+        files.push_back(fromQString(ui_->input_file_list->item(i)->text()));
       }
       return files;
     }
@@ -192,7 +192,7 @@ namespace OpenMS
       if (!files.isEmpty())
       {
         ui_->input_file_list->addItems(files);
-        setCWD(toQString(File::path(files.back()))); // emit the signal
+        setCWD(toQString(File::path(fromQString(files.back())))); // emit the signal
       }
     }
 

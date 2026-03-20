@@ -244,10 +244,10 @@ namespace OpenMS
       {
         if (++i == cols.size())
         { // at this point, this is the 4th entry.. which we don't show any more...
-          text += String("<b><span style=\"color:") + cols[i].name() + "\">..." + Size(distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
+          text += String("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">..." + Size(distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
           break;
         }
-        text += String("<b><span style=\"color:") + cols[i].name() + "\">" + ith->first + "</span></b><br>\n";
+        text += String("<b><span style=\"color:") + fromQString(cols[i].name()) + "\">" + ith->first + "</span></b><br>\n";
         // carets for isotope profile
         EmpiricalFormula ef(ith->first);
         IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(3)); // three isotopes at most
@@ -1213,7 +1213,7 @@ namespace OpenMS
       QStringList lines = toQString(label).split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts);
       if (lines.size() > 1)
       {
-        label = String(lines[0]);
+        label = fromQString(lines[0]);
       }
 
       // write out positive and negative charges with the correct sign at the end of the annotation string
@@ -1256,7 +1256,7 @@ namespace OpenMS
 
       if (lines.size() > 1)
       {
-        label.append("\n").append(String(lines[1]));
+        label.append("\n").append(fromQString(lines[1]));
       }
 
       auto item = new Annotation1DPeakItem<Peak1D>(

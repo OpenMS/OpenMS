@@ -93,7 +93,7 @@ namespace OpenMS
     std::set<std::string> unique_names;
     for (const QString& file : fl)
     {
-      if (!File::exists(file))
+      if (!File::exists(fromQString(file)))
       {
         return false;
       }
@@ -173,7 +173,7 @@ namespace OpenMS
     setToolTip(files.join("\n"));
 
     // set current working dir when opening files to the last file
-    cwd_ = toQString(File::path(files.back()));
+    cwd_ = toQString(File::path(fromQString(files.back())));
   }
 
   void TOPPASInputFileListVertex::outEdgeHasChanged()

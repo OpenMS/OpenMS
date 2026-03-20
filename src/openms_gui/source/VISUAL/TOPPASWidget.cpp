@@ -93,7 +93,7 @@ namespace OpenMS
 
     if (event->mimeData()->hasUrls())
     {
-      String filename = String(event->mimeData()->urls().front().toLocalFile());
+      String filename = fromQString(event->mimeData()->urls().front().toLocalFile());
       emit sendStatusMessage("loading drop file '" + filename + "' (press CRTL while dropping to insert into current window)", 0);
       // open pipeline in new window (or in current if CTRL is pressed)
       emit pipelineDroppedOnWidget(filename, event->modifiers() != Qt::ControlModifier);

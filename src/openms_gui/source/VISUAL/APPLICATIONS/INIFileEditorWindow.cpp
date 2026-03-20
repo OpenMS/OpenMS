@@ -164,15 +164,15 @@ namespace OpenMS
     //update window title
     if (update)
     {
-      setWindowTitle(toQString((File::basename(filename_) + " * - INIFileEditor")));
+      setWindowTitle(toQString((File::basename(fromQString(filename_)) + " * - INIFileEditor")));
     }
     else
     {
-      setWindowTitle(toQString((File::basename(filename_) + " - INIFileEditor")));
+      setWindowTitle(toQString((File::basename(fromQString(filename_)) + " - INIFileEditor")));
     }
 
     //update last path as well
-    current_path_ = File::path(filename_);
+    current_path_ = File::path(fromQString(filename_));
   }
 
 }

@@ -219,8 +219,8 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid accession found!", 
-              String(full_accession));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid accession found!",
+              fromQString(full_accession));
         }
       }
     }
@@ -908,7 +908,7 @@ namespace OpenMS
     }
 
     table_widget_->setHeaders(headers);
-    String s = headers.join(';');
+    String s = fromQString(headers.join(';'));
     table_widget_->hideColumns(QStringList() << "accessions"
                                              << "dissociation"
                                              << "scan type"
@@ -991,7 +991,7 @@ namespace OpenMS
     {
       return;
     }      
-    FileHandler().storeIdentifications(filename, prot_id, all_pep_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
+    FileHandler().storeIdentifications(fromQString(filename), prot_id, all_pep_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
   }
 
   void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* /*item*/)

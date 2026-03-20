@@ -179,10 +179,10 @@ namespace OpenMS
     else if (field == "Meta data")
     {
       filter_.field = DataFilters::META_DATA;
-      filter_.meta_name = meta_name_field;
+      filter_.meta_name = fromQString(meta_name_field);
       if (not_numerical)       // entered value is not numerical, store it in value_string (as String)
       {
-        filter_.value_string = String(value);
+        filter_.value_string = fromQString(value);
         filter_.value_is_numerical = false;
       }
       else       // value is numerical, store it in value (as double)

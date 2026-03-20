@@ -250,7 +250,7 @@ namespace OpenMS
     QDir qd(toQString(File::getTempDirectory()));
     qd.mkdir(new_tmp_dir);
     qd.cd(new_tmp_dir);
-    tmp_path_ = qd.absolutePath();
+    tmp_path_ = fromQString(qd.absolutePath());
 
 /* 
      QT5 replace with QWebEngine
@@ -384,20 +384,20 @@ namespace OpenMS
                                                      + "TOPPAS" + QDir::separator(),
                                                      tr("TOPPAS pipelines (*.toppas)"));
 
-    addTOPPASFile(file_name);
+    addTOPPASFile(fromQString(file_name));
   }
 
   void TOPPASBase::openFilesByDialog()
   {
     QString file_name = QFileDialog::getOpenFileName(this, tr("Open workflow"), toQString(current_path_), tr("TOPPAS pipelines (*.toppas)"));
 
-    addTOPPASFile(file_name);
+    addTOPPASFile(fromQString(file_name));
   }
 
   void TOPPASBase::includePipeline()
   {
     QString file_name = QFileDialog::getOpenFileName(this, tr("Include workflow"), toQString(current_path_), tr("TOPPAS pipelines (*.toppas)"));
-    addTOPPASFile(file_name, false);
+    addTOPPASFile(fromQString(file_name), false);
   }
 
   void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
@@ -510,7 +510,7 @@ namespace OpenMS
       {
         file_name += ".toppas";
       }
-      if (!w->getScene()->store(file_name))
+      if (!w->getScene()->store(fromQString(file_name)))
       {
         QMessageBox::warning(this, tr("Error"),
                              tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
@@ -523,7 +523,7 @@ namespace OpenMS
       // update tab title
       if (savedFileName != "")
       {
-        tab_bar_->setTabText(toQString(File::basename(savedFileName)));
+        tab_bar_->setTabText(toQString(File::basename(fromQString(savedFileName))));
       }
     }
   }
@@ -534,7 +534,7 @@ namespace OpenMS
     QString file_name = TOPPASBase::savePipelineAs(w, toQString(current_path_));
     if (file_name != "")
     {
-      tab_bar_->setTabText(toQString(File::basename(file_name)));
+      tab_bar_->setTabText(toQString(File::basename(fromQString(file_name))));
     }
   }
 
@@ -553,12 +553,12 @@ namespace OpenMS
       {
         file_name += ".toppas";
       }
-      if (!w->getScene()->store(file_name))
+      if (!w->getScene()->store(fromQString(file_name)))
       {
         QMessageBox::warning(nullptr, tr("Error"),
                              tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
       }
-      QString caption = toQString(File::basename(file_name));
+      QString caption = toQString(File::basename(fromQString(file_name)));
       w->setWindowTitle(caption);
     }
     return file_name;
@@ -1061,7 +1061,7 @@ namespace OpenMS
 
     TOPPASScene* scene = activeSubWindow_()->getScene();
     QTreeWidgetItem* current_tool = item ? item : tools_tree_view_->currentItem();
-    String tool_name = String(current_tool->text(0));
+    String tool_name = fromQString(current_tool->text(0));
     TOPPASVertex* tv = nullptr;
 
     if (tool_name == "<Input files>")
@@ -1107,13 +1107,13 @@ namespace OpenMS
       if (current_tool->parent() != nullptr && current_tool->parent()->parent() != nullptr)
       {
         // selected item is a type
-        tool_type = String(current_tool->text(0));
-        tool_name = String(current_tool->parent()->text(0));
+        tool_type = fromQString(current_tool->text(0));
+        tool_name = fromQString(current_tool->parent()->text(0));
       }
       else
       {
         // normal tool which does not have type selected
-        tool_name = String(current_tool->text(0));
+        tool_name = fromQString(current_tool->text(0));
         tool_type = "";
       }
 
@@ -1299,7 +1299,7 @@ namespace OpenMS
     QString file_name = TOPPASBase::refreshPipelineParameters(w, toQString(current_path_));
     if (file_name != "")
     {
-      tab_bar_->setTabText(toQString(File::basename(file_name)));
+      tab_bar_->setTabText(toQString(File::basename(fromQString(file_name))));
     }
   }
 

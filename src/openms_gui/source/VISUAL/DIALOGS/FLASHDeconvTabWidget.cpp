@@ -196,7 +196,7 @@ namespace OpenMS
 
     void FLASHDeconvTabWidget::updateOutputParamFromPerInputFile(const QString& input_file_name)
     {
-      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + FileHandler::stripExtension(File::basename(input_file_name));
+      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + FileHandler::stripExtension(File::basename(fromQString(input_file_name)));
 
       for (const auto& param : flashdeconv_param_outputs_)
       {
@@ -240,8 +240,8 @@ namespace OpenMS
           }
           else if (tag == "ida_log")
           {
-            String dir_path_only = File::path(input_file_name);
-            String file_name_only = FileHandler::stripExtension(File::basename(input_file_name));
+            String dir_path_only = File::path(fromQString(input_file_name));
+            String file_name_only = FileHandler::stripExtension(File::basename(fromQString(input_file_name)));
             out_path = dir_path_only + '/' + "IDALog_" + file_name_only + ".log";
           }
           else if (tag == "out_spec1")

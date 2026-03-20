@@ -69,7 +69,7 @@ namespace OpenMS
 
   String TOPPASEdge::toString()
   {
-    String s = String("Edge: ") + getSourceOutParamName() + " target-in: " + getTargetInParamName() + "\n";
+    String s = String("Edge: ") + fromQString(getSourceOutParamName()) + " target-in: " + fromQString(getTargetInParamName()) + "\n";
     return s;
   }
   TOPPASEdge& TOPPASEdge::operator=(const TOPPASEdge& rhs)
@@ -430,7 +430,7 @@ namespace OpenMS
     for (const QString& q_file_name : file_names)
     {
       bool type_mismatch = true;
-      const String& file_name = String(q_file_name);
+      const String file_name = fromQString(q_file_name);
       String::SizeType extension_start_index = file_name.rfind(".");
       if (extension_start_index != String::npos)
       {

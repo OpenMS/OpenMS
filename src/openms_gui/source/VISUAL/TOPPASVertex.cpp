@@ -114,9 +114,9 @@ namespace OpenMS
     }
 #else
     // on Unix (Linux/Mac), constraint applies to the file name:
-    if (File::basename(filename).size() > max_filename_length)
+    if (File::basename(fromQString(filename)).size() > max_filename_length)
     {
-      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(filename), max_filename_length);
+      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(fromQString(filename)), max_filename_length);
     }
 #endif
   }

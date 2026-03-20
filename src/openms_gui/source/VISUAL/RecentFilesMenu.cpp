@@ -61,7 +61,7 @@ namespace OpenMS
     for (Param::ParamIterator it = filenames.begin(); it != filenames.end(); ++it)
     {
       QString filename = toQString(String(it->value.toString()));
-      if (File::exists(filename))
+      if (File::exists(fromQString(filename)))
       {
         rfiles.append(filename);
         ++count;
@@ -117,7 +117,7 @@ namespace OpenMS
     {
       return;
     }
-    String filename = String(action->text());
+    String filename = fromQString(action->text());
     emit recentFileClicked(filename);
   }
 

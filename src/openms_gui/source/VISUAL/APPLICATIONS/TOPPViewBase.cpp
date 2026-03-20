@@ -1620,10 +1620,10 @@ namespace OpenMS
   {
     for (const QString& filename : chooseFilesDialog_(dir))
     {
-      addDataFile(filename, true, true);
+      addDataFile(fromQString(filename), true, true);
     }
   }
-  
+
   void TOPPViewBase::showTOPPDialog()
   {
     QAction* action = qobject_cast<QAction*>(sender());
@@ -1763,7 +1763,7 @@ namespace OpenMS
     }
 
     // start log and show it
-    log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("Starting '%1'").arg(toQString(topp_.tool)), "");
+    log_->appendNewHeader(LogWindow::LogState::NOTICE, fromQString(QString("Starting '%1'").arg(toQString(topp_.tool))), "");
 
     // initialize process
     topp_.process = new QProcess();
@@ -1783,8 +1783,8 @@ namespace OpenMS
       catch (Exception::FileNotFound & /*ex*/)
       {
         log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!",
-                              QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(
-                                      toQString(topp_.tool)));
+                              fromQString(QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(
+                                      toQString(topp_.tool))));
         return;
       }
     }
@@ -1799,7 +1799,7 @@ namespace OpenMS
 
     if (topp_.process->error() == QProcess::FailedToStart)
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Failed to execute '%1'").arg(toQString(topp_.tool)), QString("Execution of TOPP tool '%1' failed with error: %2").arg(toQString(topp_.tool), topp_.process->errorString()));
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, fromQString(QString("Failed to execute '%1'").arg(toQString(topp_.tool))), fromQString(QString("Execution of TOPP tool '%1' failed with error: %2").arg(toQString(topp_.tool), topp_.process->errorString())));
 
       // ensure that all tool output is emitted into log screen
       updateProcessLog();
@@ -1816,21 +1816,21 @@ namespace OpenMS
     log_->addNewline();
     if (topp_.process->exitStatus() == QProcess::CrashExit)
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Execution of '%1' not successful!").arg(toQString(topp_.tool)),
-                      QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
-                              " or enable 'debug' mode in the TOPP ini file.").arg(toQString(File::getTempDirectory())));
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, fromQString(QString("Execution of '%1' not successful!").arg(toQString(topp_.tool))),
+                      fromQString(QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
+                              " or enable 'debug' mode in the TOPP ini file.").arg(toQString(File::getTempDirectory()))));
     }
     else if (topp_.process->exitCode() != 0) // NormalExit with non-zero exit code
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Execution of '%1' not successful!").arg(toQString(topp_.tool)),
-                            QString("The tool ended with a non-zero exit code of '%1'. ").arg(topp_.process->exitCode()) +
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, fromQString(QString("Execution of '%1' not successful!").arg(toQString(topp_.tool))),
+                            fromQString(QString("The tool ended with a non-zero exit code of '%1'. ").arg(topp_.process->exitCode()) +
                             QString("If you want to debug this, check the input files in '%1' or"
-                                    " enable 'debug' mode in the TOPP ini file.").arg(toQString(File::getTempDirectory())));
+                                    " enable 'debug' mode in the TOPP ini file.").arg(toQString(File::getTempDirectory()))));
     }
     else if (!topp_.out.empty())
     {
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("'%1' finished successfully").arg(toQString(topp_.tool)),
-                      QString("Execution time: %1 ms").arg(topp_.timer.elapsed()));
+      log_->appendNewHeader(LogWindow::LogState::NOTICE, fromQString(QString("'%1' finished successfully").arg(toQString(topp_.tool))),
+                      fromQString(QString("Execution time: %1 ms").arg(topp_.timer.elapsed())));
       if (!File::readable(topp_.file_name_out))
       {
         log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name_out + "'!");
@@ -2303,7 +2303,7 @@ namespace OpenMS
           auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(*it);
           if (annotator.get() == nullptr)
           {
-            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", toQString(String("Filename '" + *it + "' has unsupported file type. No annotation performed.")));
+            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", String("Filename '" + *it + "' has unsupported file type. No annotation performed."));
           }
           else
           { // we have an annotator ...
@@ -2456,7 +2456,7 @@ namespace OpenMS
           QTimer::singleShot(50, [this, urls, new_id]() {
             for (const QUrl& url : urls)
             {
-              addDataFile(url.toLocalFile(), false, true, "", new_id);
+              addDataFile(fromQString(url.toLocalFile()), false, true, "", new_id);
             }
           });
         }

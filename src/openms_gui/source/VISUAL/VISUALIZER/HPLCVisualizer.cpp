@@ -8,6 +8,7 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/HPLCVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QLineEdit>
@@ -48,12 +49,12 @@ namespace OpenMS
 
   void HPLCVisualizer::store()
   {
-    ptr_->setInstrument(hplcinstrument_->text());
-    ptr_->setColumn(hplccolumn_->text());
+    ptr_->setInstrument(fromQString(hplcinstrument_->text()));
+    ptr_->setColumn(fromQString(hplccolumn_->text()));
     ptr_->setTemperature(hplctemperature_->text().toInt());
     ptr_->setPressure(hplcpressure_->text().toInt());
     ptr_->setFlux(hplcflux_->text().toInt());
-    ptr_->setComment(hplccomment_->toPlainText());
+    ptr_->setComment(fromQString(hplccomment_->toPlainText()));
     temp_ = (*ptr_);
   }
 
