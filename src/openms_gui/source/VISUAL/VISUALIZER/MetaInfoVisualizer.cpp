@@ -179,9 +179,9 @@ namespace OpenMS
 
   void MetaInfoVisualizer::add_()
   {
-    String name(newkey_->text());
-    String description(newdescription_->text());
-    String value(newvalue_->text());
+    String name(newkey_->text().toStdString());
+    String description(newdescription_->text().toStdString());
+    String value(newvalue_->text().toStdString());
 
 
     if (name.trim().length() == 0)    //Must have a name
@@ -230,7 +230,7 @@ namespace OpenMS
     for (iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); ++iter2)
     {
       UInt index = (*iter2).first;
-      String value(((*iter2).second)->text());
+      String value(((*iter2).second)->text().toStdString());
       temp_.setMetaValue(index, value);
     }
     //copy temporary stored data into metainfo object

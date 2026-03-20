@@ -48,8 +48,8 @@ namespace OpenMS
 
   void HPLCVisualizer::store()
   {
-    ptr_->setInstrument(hplcinstrument_->text());
-    ptr_->setColumn(hplccolumn_->text());
+    ptr_->setInstrument(hplcinstrument_->text().toStdString());
+    ptr_->setColumn(hplccolumn_->text().toStdString());
     ptr_->setTemperature(hplctemperature_->text().toInt());
     ptr_->setPressure(hplcpressure_->text().toInt());
     ptr_->setFlux(hplcflux_->text().toInt());

@@ -74,9 +74,9 @@ namespace OpenMS
 
   void PeptideIdentificationVisualizer::store()
   {
-    ptr_->setIdentifier(identifier_->text());
+    ptr_->setIdentifier(identifier_->text().toStdString());
     ptr_->setSignificanceThreshold(identification_threshold_->text().toFloat());
-    ptr_->setScoreType(score_type_->text());
+    ptr_->setScoreType(score_type_->text().toStdString());
     ptr_->setHigherScoreBetter(higher_better_->currentIndex());
 
     temp_ = (*ptr_);

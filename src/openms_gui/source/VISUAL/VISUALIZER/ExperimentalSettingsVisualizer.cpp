@@ -48,7 +48,7 @@ namespace OpenMS
     DateTime date;
     try
     {
-      date.set(datetime_->text());
+      date.set(datetime_->text().toStdString());
       ptr_->setDateTime(date);
     }
     catch (exception & /*e*/)
@@ -61,7 +61,7 @@ namespace OpenMS
     }
 
     ptr_->setComment(comment_->toPlainText());
-    ptr_->setFractionIdentifier(fraction_identifier_->text());
+    ptr_->setFractionIdentifier(fraction_identifier_->text().toStdString());
 
     temp_ = (*ptr_);
   }
