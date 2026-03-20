@@ -158,7 +158,7 @@ int main(int argc, const char** argv)
     }
 
     TOPPViewBase tb(mode, verbosity);
-    a.connect(&a, &QApplicationTOPP::fileOpen, &tb, &TOPPViewBase::openFile);
+    a.connect(&a, &QApplicationTOPP::fileOpen, &tb, [&tb](const QString& file) { tb.openFile(fromQString(file)); });
     tb.show();
 
     // Create the splashscreen that is displayed while the application loads (version is drawn dynamically)
