@@ -58,7 +58,6 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 set(OPENMS_DEP_LIBRARIES
   LibSVM::LibSVM
   XercesC::XercesC
-  Qt6::Core
   CURL::libcurl
 )
 

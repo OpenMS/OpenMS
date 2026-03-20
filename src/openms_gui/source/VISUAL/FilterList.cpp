@@ -10,6 +10,7 @@
 #include <ui_FilterList.h>
 
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QMenu>
 
@@ -62,7 +63,7 @@ namespace OpenMS::Internal
       for (Size i = 0; i < filters.size(); ++i)
       {
         QListWidgetItem* item = new QListWidgetItem(ui_->filter);
-        item->setText(filters[i].toString().toQString());
+        item->setText(toQString(filters[i].toString()));
       }
       // update check box
       ui_->check->setChecked(filters.isActive());

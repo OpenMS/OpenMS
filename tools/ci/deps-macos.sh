@@ -68,7 +68,6 @@ brew install \
   cbc \
   cgl \
   clp \
-  qtbase \
   apache-arrow \
   libzip \
   zstd \
@@ -77,7 +76,7 @@ brew install \
 
 # GUI dependencies (can be skipped for non-GUI builds):
 if [ "$SKIP_GUI_DEPS" = false ]; then
-  brew install qtsvg
+  brew install qtbase qtsvg
 fi
 
 # Optional documentation dependencies:

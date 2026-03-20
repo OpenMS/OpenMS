@@ -15,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 // Qt includes
 #include <QtWidgets/QMessageBox>
@@ -108,7 +109,7 @@ namespace OpenMS
 
   const String TheoreticalSpectrumGenerationDialog::getSequence() const
   {
-    return ui_->seq_input->text();
+    return fromQString(ui_->seq_input->text());
   }
 
   Param TheoreticalSpectrumGenerationDialog::getParam_() const
@@ -318,7 +319,7 @@ namespace OpenMS
   void TheoreticalSpectrumGenerationDialog::seqTypeSwitch_()
   {
     // save current sequence type setting in member
-    String tmp = ui_->seq_type->currentText();
+    String tmp = fromQString(ui_->seq_type->currentText());
     if (tmp == "Peptide")
     {
       seq_type_ = SequenceType::PEPTIDE;

@@ -15,8 +15,6 @@
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 
-#include <QtGui/QImage>
-
 using namespace OpenMS;
 using namespace std;
 

@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <QDesktopServices>
 #include <QGuiApplication>
 #include <QMessageBox>
@@ -51,13 +52,13 @@ namespace OpenMS
                                                         const FileTypes::Type fallback_extension)
   {
     QString selected_filter;
-    QString file_name = QFileDialog::getSaveFileName(parent, caption, dir, supported_file_types.toFileDialogFilter(FilterLayout::ONE_BY_ONE, add_all_filter).toQString(), &selected_filter);
+    QString file_name = QFileDialog::getSaveFileName(parent, caption, dir, toQString(supported_file_types.toFileDialogFilter(FilterLayout::ONE_BY_ONE, add_all_filter)), &selected_filter);
     if (file_name.isEmpty())
     {
       return file_name;
     }
     // check whether a file type suffix has been given, or fall back to @p fallback_extension (if 'all filter' was used)
-    file_name = FileHandler::swapExtension(file_name, supported_file_types.fromFileDialogFilter(selected_filter, fallback_extension)).toQString();
+    file_name = toQString(FileHandler::swapExtension(fromQString(file_name), supported_file_types.fromFileDialogFilter(fromQString(selected_filter), fallback_extension)));
     return file_name;
   }
 
@@ -68,9 +69,9 @@ namespace OpenMS
     QString app_path;
 #if defined(__APPLE__)
     // check if we can find the TOPPView.app
-    app_path = (File::getExecutablePath() + "../../../TOPPView.app").toQString();
+    app_path = toQString(File::getExecutablePath() + "../../../TOPPView.app");
 
-    if (File::exists(app_path))
+    if (File::exists(fromQString(app_path)))
     {
       // we found the app
       QStringList app_args;
@@ -83,11 +84,11 @@ namespace OpenMS
     }
     else
     { // we could not find the app, try it the Linux way
-      app_path = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
+      app_path = toQString(File::findSiblingTOPPExecutable("TOPPView"));
     }
 #else
     // LINUX+WIN
-    app_path = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
+    app_path = toQString(File::findSiblingTOPPExecutable("TOPPView"));
 #endif
 
     if (!QProcess::startDetached(app_path, args))
@@ -112,8 +113,8 @@ namespace OpenMS
       // we expect all unqualified urls to be file urls
       try
       {
-        String local_url = File::findDoc(target);
-        url_target = QUrl::fromLocalFile(local_url.toQString());
+        String local_url = File::findDoc(fromQString(target));
+        url_target = QUrl::fromLocalFile(toQString(local_url));
       }
       catch (Exception::FileNotFound&)
       {
@@ -242,14 +243,14 @@ namespace OpenMS
   StringList GUIHelpers::convert(const QStringList& in)
   {
     StringList out;
-    for (const auto& s : in) out.push_back(s);
+    for (const auto& s : in) out.push_back(fromQString(s));
     return out;
   }
 
   QStringList GUIHelpers::convert(const StringList& in)
   {
     QStringList out;
-    for (const auto& s : in) out.push_back(s.toQString());
+    for (const auto& s : in) out.push_back(toQString(s));
     return out;
   }
 
