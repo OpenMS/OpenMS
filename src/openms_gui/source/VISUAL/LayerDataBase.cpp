@@ -171,7 +171,7 @@ namespace OpenMS
                                                  toQString(current_path),
                                                  toQString(supported_types_.toFileDialogFilter(FilterLayout::BOTH, true)));
 
-    bool success = annotateWithFilename(layer, log, fname);
+    bool success = annotateWithFilename(layer, log, fname.toStdString());
 
     return success;
   }
@@ -186,7 +186,7 @@ namespace OpenMS
 
     if (!supported_types_.contains(type))
     {
-      log.appendNewHeader(LogWindow::LogState::NOTICE, "Error", toQString(String("Filename '" + fname + "' has unsupported file type. No annotation performed.")));
+      log.appendNewHeader(LogWindow::LogState::NOTICE, "Error", String("Filename '" + fname + "' has unsupported file type. No annotation performed."));
       return false;
     }
 
