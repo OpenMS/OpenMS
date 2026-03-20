@@ -20,7 +20,9 @@ No Q_OBJECT, signals/slots, or Qt metaobject system usage exists in the core lib
 
 ## Approach
 
-Minimal surgical removal: remove Qt from the core lib's public API and provide free-function replacements in `openms_gui`'s existing `Qt5Port.h` compatibility header.
+Minimal surgical removal: remove Qt from the core lib's public API and provide replacements for callers:
+- **GUI lib callers** (`openms_gui`): use free functions in the existing `Qt5Port.h` compatibility header
+- **Non-GUI callers** (TOPP tools, tests): inline the conversions directly (`QString::fromStdString(str)` / `qstr.toStdString()`) since they cannot include headers from `openms_gui`
 
 ## Changes
 
@@ -37,7 +39,7 @@ Minimal surgical removal: remove Qt from the core lib's public API and provide f
 - `toQString()` method implementation (lines 305-308)
 
 **`TOPPBase.cpp`** — Remove:
-- `#include <QtCore/QDateTime>` (line 46, stale/unused)
+- `#include <QtCore/QDateTime>` (line 46, stale/unused — the source comment says "still needed" but no QDateTime symbols are used in the file)
 
 **`CMakeLists.txt`** — Remove:
 - `Qt6::Core` from `OPENMS_DEP_LIBRARIES` (line 61)
@@ -58,39 +60,37 @@ This header already includes `<OpenMS/DATASTRUCTURES/String.h>` and `<QStringLis
 
 ### 3. GUI Library Migration (`src/openms_gui/`)
 
-~40 source files that call `.toQString()` or use `String(qstr)` implicit conversion:
-- Replace `str.toQString()` with `toQString(str)`
-- Replace `String(some_qstring)` with `fromQString(some_qstring)`
+~60 source files that call `.toQString()` or use `String(qstr)` implicit conversion:
+- Replace `str.toQString()` with `toQString(str)` (free function from `Qt5Port.h`)
+- Replace `String(some_qstring)` with `fromQString(some_qstring)` (free function from `Qt5Port.h`)
 - Add `#include <OpenMS/VISUAL/MISC/Qt5Port.h>` where not already included
+
+These files already link `OpenMS_GUI` and have the include path available.
 
 ### 4. TOPP Tool Migration (`src/topp/`)
 
-11 files that call `.toQString()` or use `String(qstr)`:
-- `MetaProSIP.cpp` (~30 calls)
-- `GenericWrapper.cpp` (~15 calls)
-- `INIUpdater.cpp` (~10 calls)
-- `ExecutePipeline.cpp` (~7 calls)
-- `IDRipper.cpp`
-- `ImageCreator.cpp`
-- `MzMLSplitter.cpp`
-- `CometAdapter.cpp`
-- `MaRaClusterAdapter.cpp`
-- `OpenSwathFileSplitter.cpp`
-- `AssayGeneratorMetaboSirius.cpp`
+12 files that call `.toQString()` or use `String(qstr)`:
 
-Same migration pattern: add `#include <OpenMS/VISUAL/MISC/Qt5Port.h>`, replace member calls with free functions.
+**Link openms_gui (can use `Qt5Port.h`):** `ExecutePipeline.cpp`, `ImageCreator.cpp`, `INIUpdater.cpp`
+
+**Link only OpenMS (inline conversions directly):** `MetaProSIP.cpp`, `GenericWrapper.cpp`, `IDRipper.cpp`, `MzMLSplitter.cpp`, `CometAdapter.cpp`, `MaRaClusterAdapter.cpp`, `OpenSwathFileSplitter.cpp`, `AssayGeneratorMetaboSirius.cpp`, `OpenSwathWorkflow.cpp`
+
+For tools that don't link openms_gui, inline the conversions:
+- `str.toQString()` → `QString::fromStdString(str)`
+- `String(some_qstring)` → `some_qstring.toStdString()` (assigns to `std::string`/`String`)
 
 ### 5. Test Changes (`src/tests/`)
 
 - **`String_test.cpp`** — Remove test cases for `String(const QString&)` and `toQString()`. All other tests untouched.
-- **`MzMLSqliteHandler_test.cpp`**, **`PythonInfo_test.cpp`**, **`ToolDescriptionFile_test.cpp`** — Replace `.toQString()` calls with `toQString()` free function via `Qt5Port.h`.
+- **`MzMLSqliteHandler_test.cpp`**, **`PythonInfo_test.cpp`**, **`ToolDescriptionFile_test.cpp`** — Inline conversions directly (`QString::fromStdString()` / `.toStdString()`) since these tests don't link openms_gui.
 
 ## Result
 
 - `libOpenMS` has zero Qt headers, zero Qt symbols, zero Qt link dependency
 - pyOpenMS builds without Qt
-- GUI code and TOPP tools continue working via `toQString()`/`fromQString()` free functions in `Qt5Port.h`
-- Breaking change for downstream C++ code that uses `String(qstr)` or `str.toQString()` — must switch to `Qt5Port.h` free functions
+- GUI code continues working via `toQString()`/`fromQString()` free functions in `Qt5Port.h`
+- TOPP tools and tests use inlined conversions (`QString::fromStdString()` / `.toStdString()`)
+- Breaking change for downstream C++ code that uses `String(qstr)` or `str.toQString()` — must switch to direct Qt string conversions or `Qt5Port.h` free functions. Document in CHANGELOG.
 
 ## File Impact Summary
 
@@ -98,6 +98,6 @@ Same migration pattern: add `#include <OpenMS/VISUAL/MISC/Qt5Port.h>`, replace m
 |------|-------|-------------|
 | Core lib | 4 | Remove Qt API + dependency |
 | Compat layer (Qt5Port.h) | 1 | Add free functions |
-| GUI lib | ~40 | Mechanical migration |
-| TOPP tools | 11 | Mechanical migration |
-| Tests | 4 | Remove Qt tests + migrate callers |
+| GUI lib | ~60 | Mechanical migration (free functions) |
+| TOPP tools | 12 | Mechanical migration (inline conversions or free functions) |
+| Tests | 4 | Remove Qt tests + inline conversions |
