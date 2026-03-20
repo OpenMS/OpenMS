@@ -60,7 +60,7 @@ namespace OpenMS
       }
     }
 
-    ptr_->setComment(comment_->toPlainText());
+    ptr_->setComment(comment_->toPlainText().toStdString());
     ptr_->setFractionIdentifier(fraction_identifier_->text().toStdString());
 
     temp_ = (*ptr_);

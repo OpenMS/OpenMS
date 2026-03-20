@@ -59,7 +59,7 @@ namespace OpenMS
     ptr_->setName(name_->text().toStdString());
     ptr_->setVendor(vendor_->text().toStdString());
     ptr_->setModel(model_->text().toStdString());
-    ptr_->setCustomizations(customizations_->toPlainText());
+    ptr_->setCustomizations(customizations_->toPlainText().toStdString());
     ptr_->setIonOptics((Instrument::IonOpticsType)ion_optics_->currentIndex());
 
     temp_ = (*ptr_);

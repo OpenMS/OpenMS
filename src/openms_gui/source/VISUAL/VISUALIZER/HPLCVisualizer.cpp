@@ -53,7 +53,7 @@ namespace OpenMS
     ptr_->setTemperature(hplctemperature_->text().toInt());
     ptr_->setPressure(hplcpressure_->text().toInt());
     ptr_->setFlux(hplcflux_->text().toInt());
-    ptr_->setComment(hplccomment_->toPlainText());
+    ptr_->setComment(hplccomment_->toPlainText().toStdString());
     temp_ = (*ptr_);
   }
 

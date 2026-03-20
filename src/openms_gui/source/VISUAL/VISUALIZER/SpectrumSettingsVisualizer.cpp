@@ -54,7 +54,7 @@ namespace OpenMS
   {
     ptr_->setType((SpectrumSettings::SpectrumType)type_->currentIndex());
     ptr_->setNativeID(native_id_->text().toStdString());
-    ptr_->setComment(comment_->toPlainText());
+    ptr_->setComment(comment_->toPlainText().toStdString());
 
     temp_ = (*ptr_);
   }

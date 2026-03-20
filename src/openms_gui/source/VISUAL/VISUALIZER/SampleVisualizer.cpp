@@ -67,7 +67,7 @@ namespace OpenMS
     ptr_->setName(samplename_->text().toStdString());
     ptr_->setNumber(samplenumber_->text().toStdString());
     ptr_->setOrganism(sampleorganism_->text().toStdString());
-    ptr_->setComment(samplecomment_->toPlainText());
+    ptr_->setComment(samplecomment_->toPlainText().toStdString());
     ptr_->setState((Sample::SampleState)samplestate_->currentIndex());
     ptr_->setMass(samplemass_->text().toFloat());
     ptr_->setVolume(samplevolume_->text().toFloat());
