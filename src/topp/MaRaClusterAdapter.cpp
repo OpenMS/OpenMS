@@ -64,6 +64,13 @@ identification, which will be outputed as a merged idXML. Moreover the merged id
 cluster ids and file origin can be outputed without prior peptide identification searches. The assigned cluster ids in
 the respective idXML are equal to the scanindex of the produced clustered mzML.
 </p>
+<p>Each consensus spectrum in the output mzML is annotated with the following metadata values for traceability:
+<ul>
+  <li><b>maracluster_original_native_ids</b>: comma-separated list of native IDs of the original source spectra</li>
+  <li><b>maracluster_original_file_origins</b>: comma-separated list of source file paths for each contributing spectrum</li>
+  <li><b>maracluster_cluster_size</b>: the number of spectra merged into the consensus</li>
+</ul>
+</p>
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_MaRaClusterAdapter.cli
@@ -313,27 +320,27 @@ protected:
     }
     os.close();
 
-    QStringList arguments;
+    std::vector<String> arguments;
     // Check all set parameters and get them into arguments StringList
     {
-      arguments << "batch";
-      arguments << "-b" << input_file_list.toQString();
-      arguments << "-f" << tmp_dir.getPath().toQString();
-      arguments << "-a" << txt_designator.toQString();
+      arguments.push_back("batch");
+      arguments.push_back("-b"); arguments.push_back(input_file_list);
+      arguments.push_back("-f"); arguments.push_back(tmp_dir.getPath());
+      arguments.push_back("-a"); arguments.push_back(txt_designator);
 
       map<String,int> precursor_tolerance_units;
       precursor_tolerance_units["ppm"] = 0;
       precursor_tolerance_units["Da"] = 1;
 
-      arguments << "-p" << (String(getDoubleOption_("precursor_tolerance")) + precursor_tolerance_units[getStringOption_("precursor_tolerance_units")]).toQString();
+      arguments.push_back("-p"); arguments.push_back(String(getDoubleOption_("precursor_tolerance")) + precursor_tolerance_units[getStringOption_("precursor_tolerance_units")]);
 
-      arguments << "-t" << String(pcut).toQString();
-      arguments << "-c" << String(pcut).toQString();
+      arguments.push_back("-t"); arguments.push_back(String(pcut));
+      arguments.push_back("-c"); arguments.push_back(String(pcut));
 
       Int verbose_level = getIntOption_("verbose");
       if (verbose_level != 2)
       {
-        arguments << "-v" << String(verbose_level).toQString();
+        arguments.push_back("-v"); arguments.push_back(String(verbose_level));
       }
     }
     writeLogInfo_("Prepared maracluster command.");
@@ -343,7 +350,7 @@ protected:
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
     writeLogInfo_("Executing maracluster ...");
-    auto exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
+    auto exit_code = runExternalProcess_(maracluster_executable, arguments);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
@@ -441,18 +448,18 @@ protected:
     //output consensus mzML
     if (!consensus_out.empty())
     {
-      QStringList arguments_consensus;
+      std::vector<String> arguments_consensus;
       // Check all set parameters and get them into arguments StringList
       {
-        arguments_consensus << "consensus";
-        arguments_consensus << "-l" << consensus_output_file.toQString();
-        arguments_consensus << "-f" << tmp_dir.getPath().toQString();
-        arguments_consensus << "-o" << consensus_out.toQString();
+        arguments_consensus.push_back("consensus");
+        arguments_consensus.push_back("-l"); arguments_consensus.push_back(consensus_output_file);
+        arguments_consensus.push_back("-f"); arguments_consensus.push_back(tmp_dir.getPath());
+        arguments_consensus.push_back("-o"); arguments_consensus.push_back(consensus_out);
         Int min_cluster_size = getIntOption_("min_cluster_size");
-        arguments_consensus << "-M" << String(min_cluster_size).toQString();
+        arguments_consensus.push_back("-M"); arguments_consensus.push_back(String(min_cluster_size));
 
         Int verbose_level = getIntOption_("verbose");
-        if (verbose_level != 2) arguments_consensus << "-v" << String(verbose_level).toQString();
+        if (verbose_level != 2) { arguments_consensus.push_back("-v"); arguments_consensus.push_back(String(verbose_level)); }
       }
       writeLogInfo_("Prepared maracluster-consensus command.");
 
@@ -460,7 +467,7 @@ protected:
       // run MaRaCluster for consensus output
       //-------------------------------------------------------------
       // MaRaCluster execution with the executable and the arguments StringList
-      TOPPBase::ExitCodes exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(maracluster_executable, arguments_consensus);
       if (exit_code != EXECUTION_OK)
       {
         return exit_code;

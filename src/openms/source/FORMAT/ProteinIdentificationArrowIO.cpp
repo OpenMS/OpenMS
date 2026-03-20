@@ -130,7 +130,7 @@ namespace // anonymous
       OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to open file: " << filename << std::endl;
       return false;
     }
-    auto outfile = *result;
+    const auto& outfile = *result;
 
     // Configure Parquet writer
     auto builder = parquet::WriterProperties::Builder();
@@ -196,7 +196,7 @@ namespace // anonymous
       OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to open file: " << filename << std::endl;
       return nullptr;
     }
-    auto infile = *infile_result;
+    const auto& infile = *infile_result;
 
     auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
     if (!reader_result.ok())

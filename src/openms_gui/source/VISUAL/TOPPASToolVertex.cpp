@@ -18,6 +18,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <QtWidgets/QGraphicsScene>
@@ -557,7 +558,7 @@ namespace OpenMS
         {
           if (param_tmp.getValue(param_name).valueType() == ParamValue::STRING_LIST)
           {
-            param_tmp.setValue(param_name, ListUtils::create<std::string>(StringListUtils::fromQStringList(file_list)));
+            param_tmp.setValue(param_name, ListUtils::create<std::string>(fromQStringList(file_list)));
           }
           else
           {
@@ -601,7 +602,7 @@ namespace OpenMS
         {
           if (param_tmp.getValue(param_name).valueType() == ParamValue::STRING_LIST)
           {
-            param_tmp.setValue(param_name, ListUtils::create<std::string>(StringListUtils::fromQStringList(output_files)));
+            param_tmp.setValue(param_name, ListUtils::create<std::string>(fromQStringList(output_files)));
           }
           else
           {

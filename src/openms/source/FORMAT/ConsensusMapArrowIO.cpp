@@ -717,7 +717,7 @@ namespace // anonymous
       OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to open file: " << filename << std::endl;
       return false;
     }
-    auto outfile = *result;
+    const auto& outfile = *result;
 
     auto builder = parquet::WriterProperties::Builder();
 
@@ -781,7 +781,7 @@ namespace // anonymous
       OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to open file: " << filename << std::endl;
       return nullptr;
     }
-    auto infile = *infile_result;
+    const auto& infile = *infile_result;
 
     auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
     if (!reader_result.ok())
@@ -1314,7 +1314,7 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
     OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to combine chunks" << std::endl;
     return false;
   }
-  auto tbl = *combined_result;
+  const auto& tbl = *combined_result;
 
   int64_t num_rows = tbl->num_rows();
   if (num_rows == 0)
@@ -1382,7 +1382,7 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
     OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to combine chunks in importPSMsFromArrow" << std::endl;
     return false;
   }
-  auto tbl = *combined_result;
+  const auto& tbl = *combined_result;
   int64_t num_rows = tbl->num_rows();
 
   // Build consensus feature lookup: unique_id -> ConsensusFeature*

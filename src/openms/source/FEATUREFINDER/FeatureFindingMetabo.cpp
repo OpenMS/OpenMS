@@ -360,7 +360,7 @@ namespace OpenMS
     auto isodist = solver.estimateFromPeptideWeight(mol_weight);
     // isodist.renormalize();
 
-    IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();
+    const IsotopeDistribution::ContainerType& averagine_dist = isodist.getContainer();
     double max_int(0.0), theo_max_int(0.0);
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {

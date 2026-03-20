@@ -60,10 +60,10 @@ namespace OpenMS
      * @param[in] labels    string describing the labels used in each sample. [...] specifies the labels for a single sample. For example
      * For example, [][Lys8,Arg10] describes a standard SILAC experiment. In the "light" sample, none of the amino acids are labelled [].
      * In the "heavy" sample, lysines and arginines are isotopically labelled [Lys8,Arg10].
-     * @param[in] missed_cleavages    maximum number of missed cleavages due to incomplete digestion
+     * @param[in] max_nr_labelled_aas    maximum number of labelled amino acids per peptide
      * @param[in] label_mass_shift    name of labels (e.g. Lys8) and their corresponding mass shifts (e.g. 8.0141988132)
      */
-    MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
+    MultiplexDeltaMassesGenerator(String labels, int max_nr_labelled_aas, std::map<String,double> label_mass_shift);
      
     /**
      * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
@@ -165,9 +165,9 @@ namespace OpenMS
     std::vector<std::vector<String> > samples_labels_;
     
     /**
-     * @brief maximum number of missed cleavages
+     * @brief maximum number of labelled amino acids per peptide
      */
-    int missed_cleavages_;
+    int max_nr_labelled_aas_;
 
     /**
      * @brief list of all possible mass shift patterns

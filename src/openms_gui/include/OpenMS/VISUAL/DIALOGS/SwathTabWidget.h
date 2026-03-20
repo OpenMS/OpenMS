@@ -52,7 +52,7 @@ namespace OpenMS
 
       StringList getMzMLInputFiles() const;
 
-      QStringList getPyProphetOutputFileNames() const;
+      std::vector<String> getPyProphetOutputFileNames() const;
 
     private slots:
       void on_run_swath_clicked();

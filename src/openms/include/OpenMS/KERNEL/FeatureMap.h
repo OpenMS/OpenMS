@@ -10,14 +10,13 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
-#include <OpenMS/METADATA/ID/Observation.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
@@ -28,13 +27,10 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <exception>
-
 namespace OpenMS
 {
-  class ProteinIdentification;
+  class MSExperiment;
   class PeptideIdentification;
-  class DataProcessing;
 
   /// summary of the peptide identification assigned to each feature of this map.
   /// Each feature contributes one vote (=state)

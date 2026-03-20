@@ -707,117 +707,97 @@ Constructors
 Wrapper struct for all the structs needed by FLASHDeconv.
 Contains: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak
 )doc")
-    .def(nb::init<>())
-    .def(nb::init<const OpenMS::FLASHHelperClasses&>())
-    .def("__copy__", [](const OpenMS::FLASHHelperClasses& self) { return OpenMS::FLASHHelperClasses(self); })
-    .def(
-      "__deepcopy__", [](const OpenMS::FLASHHelperClasses& self, nb::dict) { return OpenMS::FLASHHelperClasses(self); }, "memo"_a)
-    .def_static(
-      "getLogMz", [](double mz, bool positive) { return OpenMS::FLASHHelperClasses::getLogMz(mz, positive); }, "mz"_a, "positive"_a)
-    .def_static(
-      "getChargeMass", [](bool positive_ioniziation_mode) { return OpenMS::FLASHHelperClasses::getChargeMass(positive_ioniziation_mode); },
-      "positive_ioniziation_mode"_a, "Calculate log mz from mz");
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::FLASHHelperClasses &>())
+        .def("__copy__", [](const OpenMS::FLASHHelperClasses& self) { return OpenMS::FLASHHelperClasses(self); })
+        .def("__deepcopy__", [](const OpenMS::FLASHHelperClasses& self, nb::dict) { return OpenMS::FLASHHelperClasses(self); }, "memo"_a)
+        .def_static("getLogMz", [](double mz, bool positive) { return OpenMS::FLASHHelperClasses::getLogMz(mz, positive); }, "mz"_a, "positive"_a)
+        .def_static("getChargeMass", [](bool positive_ioniziation_mode) { return OpenMS::FLASHHelperClasses::getChargeMass(positive_ioniziation_mode); }, "positive_ioniziation_mode"_a, "Calculate log mz from mz")
+        ;
 
-  // -----------------------------------------------------------------------
-  // FeatureMapping
-  // -----------------------------------------------------------------------
-  nb::class_<OpenMS::FeatureMapping>(m, "FeatureMapping", "OpenMS class FeatureMapping")
-    .def(nb::init<>())
-    .def(nb::init<const OpenMS::FeatureMapping&>())
-    .def("__copy__", [](const OpenMS::FeatureMapping& self) { return OpenMS::FeatureMapping(self); })
-    .def(
-      "__deepcopy__", [](const OpenMS::FeatureMapping& self, nb::dict) { return OpenMS::FeatureMapping(self); }, "memo"_a)
-    .def_static(
-      "assignMS2IndexToFeature",
-      [](const OpenMS::MSExperiment& spectra, const OpenMS::FeatureMapping::FeatureMappingInfo& fm_info, const double& precursor_mz_tolerance,
-         const double& precursor_rt_tolerance,
-         bool ppm) { return OpenMS::FeatureMapping::assignMS2IndexToFeature(spectra, fm_info, precursor_mz_tolerance, precursor_rt_tolerance, ppm); },
-      "spectra"_a, "fm_info"_a, "precursor_mz_tolerance"_a, "precursor_rt_tolerance"_a, "ppm"_a);
+    // -----------------------------------------------------------------------
+    // FeatureMapping
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureMapping>(m, "FeatureMapping", "OpenMS class FeatureMapping")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::FeatureMapping &>())
+        .def("__copy__", [](const OpenMS::FeatureMapping& self) { return OpenMS::FeatureMapping(self); })
+        .def("__deepcopy__", [](const OpenMS::FeatureMapping& self, nb::dict) { return OpenMS::FeatureMapping(self); }, "memo"_a)
+        .def_static("assignMS2IndexToFeature", [](const OpenMS::MSExperiment& spectra, const OpenMS::FeatureMapping::FeatureMappingInfo& fm_info, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance, bool ppm) { return OpenMS::FeatureMapping::assignMS2IndexToFeature(spectra, fm_info, precursor_mz_tolerance, precursor_rt_tolerance, ppm); }, "spectra"_a, "fm_info"_a, "precursor_mz_tolerance"_a, "precursor_rt_tolerance"_a, "ppm"_a)
+        ;
 
-  // -----------------------------------------------------------------------
-  // FeatureMapping_FeatureMappingInfo
-  // -----------------------------------------------------------------------
-  nb::class_<OpenMS::FeatureMapping::FeatureMappingInfo>(m, "FeatureMapping_FeatureMappingInfo", "OpenMS class FeatureMapping_FeatureMappingInfo")
-    .def(nb::init<>())
-    .def(nb::init<const OpenMS::FeatureMapping::FeatureMappingInfo&>())
-    .def("__copy__", [](const OpenMS::FeatureMapping::FeatureMappingInfo& self) { return OpenMS::FeatureMapping::FeatureMappingInfo(self); })
-    .def(
-      "__deepcopy__",
-      [](const OpenMS::FeatureMapping::FeatureMappingInfo& self, nb::dict) { return OpenMS::FeatureMapping::FeatureMappingInfo(self); }, "memo"_a)
-    .def_rw("feature_maps", &OpenMS::FeatureMapping::FeatureMappingInfo::feature_maps)
-    .def_rw("kd_tree", &OpenMS::FeatureMapping::FeatureMappingInfo::kd_tree);
+    // -----------------------------------------------------------------------
+    // FeatureMapping_FeatureMappingInfo
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureMapping::FeatureMappingInfo>(m, "FeatureMapping_FeatureMappingInfo", "OpenMS class FeatureMapping_FeatureMappingInfo")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::FeatureMapping::FeatureMappingInfo &>())
+        .def("__copy__", [](const OpenMS::FeatureMapping::FeatureMappingInfo& self) { return OpenMS::FeatureMapping::FeatureMappingInfo(self); })
+        .def("__deepcopy__", [](const OpenMS::FeatureMapping::FeatureMappingInfo& self, nb::dict) { return OpenMS::FeatureMapping::FeatureMappingInfo(self); }, "memo"_a)
+        .def_rw("feature_maps", &OpenMS::FeatureMapping::FeatureMappingInfo::feature_maps)
+        .def_rw("kd_tree", &OpenMS::FeatureMapping::FeatureMappingInfo::kd_tree)
+        ;
 
-  // -----------------------------------------------------------------------
-  // FeatureMapping_FeatureToMs2Indices
-  // -----------------------------------------------------------------------
-  nb::class_<OpenMS::FeatureMapping::FeatureToMs2Indices>(m, "FeatureMapping_FeatureToMs2Indices", "OpenMS class FeatureMapping_FeatureToMs2Indices")
-    .def(nb::init<>())
-    .def(nb::init<const OpenMS::FeatureMapping::FeatureToMs2Indices&>())
-    .def("__copy__", [](const OpenMS::FeatureMapping::FeatureToMs2Indices& self) { return OpenMS::FeatureMapping::FeatureToMs2Indices(self); })
-    .def(
-      "__deepcopy__",
-      [](const OpenMS::FeatureMapping::FeatureToMs2Indices& self, nb::dict) { return OpenMS::FeatureMapping::FeatureToMs2Indices(self); }, "memo"_a)
-    .def_ro("assignedMS2", &OpenMS::FeatureMapping::FeatureToMs2Indices::assignedMS2)
-    .def_rw("unassignedMS2", &OpenMS::FeatureMapping::FeatureToMs2Indices::unassignedMS2);
+    // -----------------------------------------------------------------------
+    // FeatureMapping_FeatureToMs2Indices
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureMapping::FeatureToMs2Indices>(m, "FeatureMapping_FeatureToMs2Indices", "OpenMS class FeatureMapping_FeatureToMs2Indices")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::FeatureMapping::FeatureToMs2Indices &>())
+        .def("__copy__", [](const OpenMS::FeatureMapping::FeatureToMs2Indices& self) { return OpenMS::FeatureMapping::FeatureToMs2Indices(self); })
+        .def("__deepcopy__", [](const OpenMS::FeatureMapping::FeatureToMs2Indices& self, nb::dict) { return OpenMS::FeatureMapping::FeatureToMs2Indices(self); }, "memo"_a)
+        .def_ro("assignedMS2", &OpenMS::FeatureMapping::FeatureToMs2Indices::assignedMS2)
+        .def_rw("unassignedMS2", &OpenMS::FeatureMapping::FeatureToMs2Indices::unassignedMS2)
+        ;
 
-  // -----------------------------------------------------------------------
-  // HyperScore
-  // -----------------------------------------------------------------------
-  nb::class_<OpenMS::HyperScore>(m, "HyperScore", "OpenMS class HyperScore")
-    .def(nb::init<>())
-    .def(nb::init<const OpenMS::HyperScore&>())
-    .def("__copy__", [](const OpenMS::HyperScore& self) { return OpenMS::HyperScore(self); })
-    .def(
-      "__deepcopy__", [](const OpenMS::HyperScore& self, nb::dict) { return OpenMS::HyperScore(self); }, "memo"_a)
-    .def_static(
-      "compute",
-      [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum,
-         const OpenMS::MSSpectrum& theo_spectrum) {
-        return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
-      },
-      "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a)
-    .def_static(
-      "compute",
-      [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum,
-         const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum,
-         const OpenMS::DataArrays::IntegerDataArray& theo_charges) {
-        return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, exp_charges, theo_spectrum,
-                                           theo_charges);
-      },
-      "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "exp_charges"_a, "theo_spectrum"_a, "theo_charges"_a)
-    .def_static(
-      "compute",
-      [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum,
-         const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum,
-         const OpenMS::DataArrays::IntegerDataArray& theo_charges, std::vector<double> intensity_sum) {
-        auto score = OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, exp_charges, theo_spectrum,
-                                                 theo_charges, intensity_sum);
-        return nb::make_tuple(score, intensity_sum);
-      },
-      "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "exp_charges"_a, "theo_spectrum"_a, "theo_charges"_a,
-      "intensity_sum"_a);
+    // -----------------------------------------------------------------------
+    // HyperScore
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::HyperScore>(m, "HyperScore", "OpenMS class HyperScore")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::HyperScore &>())
+        .def("__copy__", [](const OpenMS::HyperScore& self) { return OpenMS::HyperScore(self); })
+        .def("__deepcopy__", [](const OpenMS::HyperScore& self, nb::dict) { return OpenMS::HyperScore(self); }, "memo"_a)
+        .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& theo_spectrum) { return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "theo_spectrum"_a)
+        .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum, const OpenMS::DataArrays::IntegerDataArray& theo_charges) { return OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, exp_charges, theo_spectrum, theo_charges); }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "exp_charges"_a, "theo_spectrum"_a, "theo_charges"_a)
+        .def_static("compute", [](double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::DataArrays::IntegerDataArray& exp_charges, const OpenMS::MSSpectrum& theo_spectrum, const OpenMS::DataArrays::IntegerDataArray& theo_charges, std::vector<double> intensity_sum) {
+            auto score = OpenMS::HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, exp_charges, theo_spectrum, theo_charges, intensity_sum);
+            return nb::make_tuple(score, intensity_sum);
+        }, "fragment_mass_tolerance"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "exp_charges"_a, "theo_spectrum"_a, "theo_charges"_a, "intensity_sum"_a)
+        ;
 
-  // -----------------------------------------------------------------------
-  // IDConflictResolverAlgorithm
-  // -----------------------------------------------------------------------
-  nb::class_<OpenMS::IDConflictResolverAlgorithm>(m, "IDConflictResolverAlgorithm", "OpenMS class IDConflictResolverAlgorithm")
-    .def(nb::init<>())
-    .def(nb::init<const OpenMS::IDConflictResolverAlgorithm&>())
-    .def("__copy__", [](const OpenMS::IDConflictResolverAlgorithm& self) { return OpenMS::IDConflictResolverAlgorithm(self); })
-    .def(
-      "__deepcopy__", [](const OpenMS::IDConflictResolverAlgorithm& self, nb::dict) { return OpenMS::IDConflictResolverAlgorithm(self); }, "memo"_a)
-    .def_static(
-      "resolve",
-      [](OpenMS::FeatureMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); },
-      "features"_a, "keep_matching"_a)
-    .def_static(
-      "resolve",
-      [](OpenMS::ConsensusMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); },
-      "features"_a, "keep_matching"_a)
-    .def_static(
-      "resolveBetweenFeatures", [](OpenMS::FeatureMap& features) { return OpenMS::IDConflictResolverAlgorithm::resolveBetweenFeatures(features); },
-      "features"_a,
-      R"doc(
+    // -----------------------------------------------------------------------
+    // IDConflictResolverAlgorithm
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::IDConflictResolverAlgorithm>(m, "IDConflictResolverAlgorithm", "OpenMS class IDConflictResolverAlgorithm")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::IDConflictResolverAlgorithm &>())
+        .def("__copy__", [](const OpenMS::IDConflictResolverAlgorithm& self) { return OpenMS::IDConflictResolverAlgorithm(self); })
+        .def("__deepcopy__", [](const OpenMS::IDConflictResolverAlgorithm& self, nb::dict) { return OpenMS::IDConflictResolverAlgorithm(self); }, "memo"_a)
+        .def_static("resolve", [](OpenMS::FeatureMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); }, "features"_a, "keep_matching"_a)
+        .def_static("resolve", [](OpenMS::ConsensusMap& features, bool keep_matching) { return OpenMS::IDConflictResolverAlgorithm::resolve(features, keep_matching); }, "features"_a, "keep_matching"_a)
+        .def_static("resolveAllHitRankAggregation", [](OpenMS::FeatureMap& features) { return OpenMS::IDConflictResolverAlgorithm::resolveAllHitRankAggregation(features); }, "features"_a,
+            R"doc(
+Resolves ambiguous annotations of features with peptide identifications using rank aggregation.
+For each feature, peptide hits across all identifications are aggregated by rank.
+Each unique sequence is assigned a rank in every identification in which it appears
+(rank 0 = best hit). Sequences absent from an identification receive a penalty rank
+equal to the maximum number of considered hits. The sequence with the best average
+rank score is selected as the winner.
+:param features: FeatureMap to work on (modified in-place)
+)doc")
+        .def_static("resolveAllHitRankAggregation", [](OpenMS::ConsensusMap& features) { return OpenMS::IDConflictResolverAlgorithm::resolveAllHitRankAggregation(features); }, "features"_a,
+            R"doc(
+Resolves ambiguous annotations of consensus features with peptide identifications using rank aggregation.
+For each consensus feature, peptide hits across all identifications are aggregated by rank.
+Each unique sequence is assigned a rank in every identification in which it appears
+(rank 0 = best hit). Sequences absent from an identification receive a penalty rank
+equal to the maximum number of considered hits. The sequence with the best average
+rank score is selected as the winner.
+:param features: ConsensusMap to work on (modified in-place)
+)doc")
+        .def_static("resolveBetweenFeatures", [](OpenMS::FeatureMap& features) { return OpenMS::IDConflictResolverAlgorithm::resolveBetweenFeatures(features); }, "features"_a, 
+            R"doc(
 Resolves ambiguous annotations of consensus features with peptide identifications\n
 The the filtered identifications are added to the vector of unassigned peptides
 and also reduced to a single best hit

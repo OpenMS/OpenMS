@@ -14,6 +14,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
 #include <regex>
@@ -1201,7 +1202,7 @@ namespace OpenMS
     protein_identification.setSearchEngineVersion("unknown");
     // searching for something like this: InsPecT version 20060907, InsPecT version 20100331
     std::smatch match;
-    std::string response(cmd_output);
+    const std::string& response(cmd_output);
     static const std::regex rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
     if (!std::regex_search(response, match, rx))
     {

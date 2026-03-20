@@ -258,7 +258,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
         if (seq.hasNTerminalModification())
         {
           const auto* mod = seq.getNTerminalModification();
-          std::string name = seq.getNTerminalModificationName();
+          const std::string& name = seq.getNTerminalModificationName();
           std::string acc_str;
           if (mod && mod->getUniModRecordId() > 0)
           {
@@ -275,7 +275,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
           if (residue.isModified())
           {
             const auto* mod = residue.getModification();
-            std::string name = residue.getModificationName();
+            const std::string& name = residue.getModificationName();
             std::string acc_str;
             if (mod && mod->getUniModRecordId() > 0)
             {
@@ -294,7 +294,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
         if (seq.hasCTerminalModification())
         {
           const auto* mod = seq.getCTerminalModification();
-          std::string name = seq.getCTerminalModificationName();
+          const std::string& name = seq.getCTerminalModificationName();
           std::string acc_str;
           if (mod && mod->getUniModRecordId() > 0)
           {
@@ -741,7 +741,7 @@ bool QPXFile::exportToParquet(
     OPENMS_LOG_ERROR << "QPXFile: Failed to open file: " << filename << std::endl;
     return false;
   }
-  auto outfile = *result;
+  const auto& outfile = *result;
 
   // Configure Parquet writer
   auto builder = parquet::WriterProperties::Builder();

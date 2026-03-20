@@ -25,6 +25,11 @@
 #include <unordered_map>
 #include <vector>
 
+feature/my-new-feature
+
+#include <filesystem>
+
+ develop
 #ifdef WITH_PARQUET
   #ifdef signals
     #undef signals
@@ -387,6 +392,11 @@ void OpenSwathOSWParquetWriter::write(const String& output_path,
         // accept the numeric id and ensure next_precursor_id moves past it
         if (precursor_id >= next_precursor_id) { next_precursor_id = precursor_id + 1; }
       }
+      File::makeDir(library_tmp_dir);
+      File::makeDir(library_dir);
+      TransitionParquetFile().convertLightTargetedExperimentToParquet(library_tmp_dir, assay_library);
+      File::copyDirRecursively(library_tmp_dir + "/library", library_dir);
+      File::removeDirRecursively(library_tmp_dir);
     }
     else { precursor_id = next_precursor_id++; }
 
@@ -977,35 +987,143 @@ void OpenSwathOSWParquetWriter::write(const String& output_path,
         appendOptionalFloatFromList_(ft_var_im_xcorr_shape_combined_builder, id_decoy_im_sum_contrast_shape, i, "var_im_xcorr_shape_combined");
         if (enable_decoy_peak_shape)
         {
-          appendOptionalFloatFromList_(ft_start_position_at_5_builder, id_decoy_ind_start_position_at_5, i, "start_position_at_5");
-          appendOptionalFloatFromList_(ft_end_position_at_5_builder, id_decoy_ind_end_position_at_5, i, "end_position_at_5");
-          appendOptionalFloatFromList_(ft_start_position_at_10_builder, id_decoy_ind_start_position_at_10, i, "start_position_at_10");
-          appendOptionalFloatFromList_(ft_end_position_at_10_builder, id_decoy_ind_end_position_at_10, i, "end_position_at_10");
-          appendOptionalFloatFromList_(ft_start_position_at_50_builder, id_decoy_ind_start_position_at_50, i, "start_position_at_50");
-          appendOptionalFloatFromList_(ft_end_position_at_50_builder, id_decoy_ind_end_position_at_50, i, "end_position_at_50");
-          appendOptionalFloatFromList_(ft_total_width_builder, id_decoy_ind_total_width, i, "total_width");
-          appendOptionalFloatFromList_(ft_tailing_factor_builder, id_decoy_ind_tailing_factor, i, "tailing_factor");
-          appendOptionalFloatFromList_(ft_asymmetry_factor_builder, id_decoy_ind_asymmetry_factor, i, "asymmetry_factor");
-          appendOptionalFloatFromList_(ft_slope_of_baseline_builder, id_decoy_ind_slope_of_baseline, i, "slope_of_baseline");
-          appendOptionalFloatFromList_(ft_baseline_delta_2_height_builder, id_decoy_ind_baseline_delta_2_height, i, "baseline_delta_2_height");
-          appendOptionalFloatFromList_(ft_points_across_baseline_builder, id_decoy_ind_points_across_baseline, i, "points_across_baseline");
-          appendOptionalFloatFromList_(ft_points_across_half_height_builder, id_decoy_ind_points_across_half_height, i, "points_across_half_height");
+          const String& transition_name = id_target_transition_names[i];
+          auto it = transition_to_id.find(transition_name);
+          if (it == transition_to_id.end()) continue;
+
+          ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
+          ParquetFile::appendOrThrow(ft_run_id_builder.Append(run_id_clean), "run_id");
+          ParquetFile::appendOrThrow(ft_transition_id_builder.Append(it->second), "transition_id");
+          appendOptionalFloatFromList_(ft_area_builder, id_target_area_intensity, i, "area_intensity");
+          appendOptionalFloatFromList_(ft_total_area_builder, id_target_total_area_intensity, i, "total_area_intensity");
+          appendOptionalFloatFromList_(ft_apex_int_builder, id_target_apex_intensity, i, "apex_intensity");
+          appendOptionalFloatFromList_(ft_apex_rt_builder, id_target_peak_apex_position, i, "apex_rt");
+          appendOptionalFloatFromList_(ft_rt_fwhm_builder, id_target_peak_fwhm, i, "rt_fwhm");
+          appendOptionalFloatFromList_(ft_masserror_builder, id_target_massdev_score, i, "masserror_ppm");
+          appendOptionalFloatFromList_(ft_total_mi_builder, id_target_total_mi, i, "total_mi");
+          appendOptionalFloatFromList_(ft_var_intensity_builder, id_target_intensity_score, i, "var_intensity_score");
+          appendOptionalFloatFromList_(ft_var_intensity_ratio_builder, id_target_intensity_ratio_score, i, "var_intensity_ratio_score");
+          appendOptionalFloatFromList_(ft_var_log_intensity_builder, id_target_log_intensity, i, "var_log_intensity");
+          appendOptionalFloatFromList_(ft_var_xcorr_coelution_builder, id_target_xcorr_coelution, i, "var_xcorr_coelution");
+          appendOptionalFloatFromList_(ft_var_xcorr_shape_builder, id_target_xcorr_shape, i, "var_xcorr_shape");
+          appendOptionalFloatFromList_(ft_var_log_sn_builder, id_target_log_sn_score, i, "var_log_sn_score");
+          appendOptionalFloatFromList_(ft_var_massdev_builder, id_target_massdev_score, i, "var_massdev_score");
+          appendOptionalFloatFromList_(ft_var_mi_builder, id_target_mi_score, i, "var_mi_score");
+          appendOptionalFloatFromList_(ft_var_mi_ratio_builder, id_target_mi_ratio_score, i, "var_mi_ratio_score");
+          appendOptionalFloatFromList_(ft_var_isotope_corr_builder, id_target_isotope_correlation, i, "var_isotope_correlation_score");
+          appendOptionalFloatFromList_(ft_var_isotope_overlap_builder, id_target_isotope_overlap, i, "var_isotope_overlap_score");
+          appendOptionalFloatFromList_(ft_exp_im_builder, id_target_im_drift, i, "exp_im");
+          appendOptionalFloatFromList_(ft_exp_im_left_builder, id_target_im_drift_left, i, "exp_im_leftwidth");
+          appendOptionalFloatFromList_(ft_exp_im_right_builder, id_target_im_drift_right, i, "exp_im_rightwidth");
+          appendOptionalFloatFromList_(ft_delta_im_builder, id_target_im_delta, i, "delta_im");
+          appendOptionalFloatFromList_(ft_var_im_delta_builder, id_target_im_delta_score, i, "var_im_delta_score");
+          appendOptionalFloatFromList_(ft_var_im_log_intensity_builder, id_target_im_log_intensity, i, "var_im_log_intensity");
+          appendOptionalFloatFromList_(ft_var_im_xcorr_coelution_contrast_builder, id_target_im_contrast_coelution, i, "var_im_xcorr_coelution_contrast");
+          appendOptionalFloatFromList_(ft_var_im_xcorr_shape_contrast_builder, id_target_im_contrast_shape, i, "var_im_xcorr_shape_contrast");
+          appendOptionalFloatFromList_(ft_var_im_xcorr_coelution_combined_builder, id_target_im_sum_contrast_coelution, i, "var_im_xcorr_coelution_combined");
+          appendOptionalFloatFromList_(ft_var_im_xcorr_shape_combined_builder, id_target_im_sum_contrast_shape, i, "var_im_xcorr_shape_combined");
+          if (enable_target_peak_shape)
+          {
+            appendOptionalFloatFromList_(ft_start_position_at_5_builder, id_target_ind_start_position_at_5, i, "start_position_at_5");
+            appendOptionalFloatFromList_(ft_end_position_at_5_builder, id_target_ind_end_position_at_5, i, "end_position_at_5");
+            appendOptionalFloatFromList_(ft_start_position_at_10_builder, id_target_ind_start_position_at_10, i, "start_position_at_10");
+            appendOptionalFloatFromList_(ft_end_position_at_10_builder, id_target_ind_end_position_at_10, i, "end_position_at_10");
+            appendOptionalFloatFromList_(ft_start_position_at_50_builder, id_target_ind_start_position_at_50, i, "start_position_at_50");
+            appendOptionalFloatFromList_(ft_end_position_at_50_builder, id_target_ind_end_position_at_50, i, "end_position_at_50");
+            appendOptionalFloatFromList_(ft_total_width_builder, id_target_ind_total_width, i, "total_width");
+            appendOptionalFloatFromList_(ft_tailing_factor_builder, id_target_ind_tailing_factor, i, "tailing_factor");
+            appendOptionalFloatFromList_(ft_asymmetry_factor_builder, id_target_ind_asymmetry_factor, i, "asymmetry_factor");
+            appendOptionalFloatFromList_(ft_slope_of_baseline_builder, id_target_ind_slope_of_baseline, i, "slope_of_baseline");
+            appendOptionalFloatFromList_(ft_baseline_delta_2_height_builder, id_target_ind_baseline_delta_2_height, i, "baseline_delta_2_height");
+            appendOptionalFloatFromList_(ft_points_across_baseline_builder, id_target_ind_points_across_baseline, i, "points_across_baseline");
+            appendOptionalFloatFromList_(ft_points_across_half_height_builder, id_target_ind_points_across_half_height, i, "points_across_half_height");
+          }
+          else
+          {
+            ParquetFile::appendOrThrow(ft_start_position_at_5_builder.AppendNull(), "start_position_at_5");
+            ParquetFile::appendOrThrow(ft_end_position_at_5_builder.AppendNull(), "end_position_at_5");
+            ParquetFile::appendOrThrow(ft_start_position_at_10_builder.AppendNull(), "start_position_at_10");
+            ParquetFile::appendOrThrow(ft_end_position_at_10_builder.AppendNull(), "end_position_at_10");
+            ParquetFile::appendOrThrow(ft_start_position_at_50_builder.AppendNull(), "start_position_at_50");
+            ParquetFile::appendOrThrow(ft_end_position_at_50_builder.AppendNull(), "end_position_at_50");
+            ParquetFile::appendOrThrow(ft_total_width_builder.AppendNull(), "total_width");
+            ParquetFile::appendOrThrow(ft_tailing_factor_builder.AppendNull(), "tailing_factor");
+            ParquetFile::appendOrThrow(ft_asymmetry_factor_builder.AppendNull(), "asymmetry_factor");
+            ParquetFile::appendOrThrow(ft_slope_of_baseline_builder.AppendNull(), "slope_of_baseline");
+            ParquetFile::appendOrThrow(ft_baseline_delta_2_height_builder.AppendNull(), "baseline_delta_2_height");
+            ParquetFile::appendOrThrow(ft_points_across_baseline_builder.AppendNull(), "points_across_baseline");
+            ParquetFile::appendOrThrow(ft_points_across_half_height_builder.AppendNull(), "points_across_half_height");
+          }
         }
         else
         {
-          ParquetFile::appendOrThrow(ft_start_position_at_5_builder.AppendNull(), "start_position_at_5");
-          ParquetFile::appendOrThrow(ft_end_position_at_5_builder.AppendNull(), "end_position_at_5");
-          ParquetFile::appendOrThrow(ft_start_position_at_10_builder.AppendNull(), "start_position_at_10");
-          ParquetFile::appendOrThrow(ft_end_position_at_10_builder.AppendNull(), "end_position_at_10");
-          ParquetFile::appendOrThrow(ft_start_position_at_50_builder.AppendNull(), "start_position_at_50");
-          ParquetFile::appendOrThrow(ft_end_position_at_50_builder.AppendNull(), "end_position_at_50");
-          ParquetFile::appendOrThrow(ft_total_width_builder.AppendNull(), "total_width");
-          ParquetFile::appendOrThrow(ft_tailing_factor_builder.AppendNull(), "tailing_factor");
-          ParquetFile::appendOrThrow(ft_asymmetry_factor_builder.AppendNull(), "asymmetry_factor");
-          ParquetFile::appendOrThrow(ft_slope_of_baseline_builder.AppendNull(), "slope_of_baseline");
-          ParquetFile::appendOrThrow(ft_baseline_delta_2_height_builder.AppendNull(), "baseline_delta_2_height");
-          ParquetFile::appendOrThrow(ft_points_across_baseline_builder.AppendNull(), "points_across_baseline");
-          ParquetFile::appendOrThrow(ft_points_across_half_height_builder.AppendNull(), "points_across_half_height");
+          const String& transition_name = id_decoy_transition_names[i];
+          auto it = transition_to_id.find(transition_name);
+          if (it == transition_to_id.end()) continue;
+
+          ParquetFile::appendOrThrow(ft_feature_id_builder.Append(feature_id), "feature_id");
+          ParquetFile::appendOrThrow(ft_run_id_builder.Append(run_id_clean), "run_id");
+          ParquetFile::appendOrThrow(ft_transition_id_builder.Append(it->second), "transition_id");
+          appendOptionalFloatFromList_(ft_area_builder, id_decoy_area_intensity, i, "area_intensity");
+          appendOptionalFloatFromList_(ft_total_area_builder, id_decoy_total_area_intensity, i, "total_area_intensity");
+          appendOptionalFloatFromList_(ft_apex_int_builder, id_decoy_apex_intensity, i, "apex_intensity");
+          appendOptionalFloatFromList_(ft_apex_rt_builder, id_decoy_peak_apex_position, i, "apex_rt");
+          appendOptionalFloatFromList_(ft_rt_fwhm_builder, id_decoy_peak_fwhm, i, "rt_fwhm");
+          appendOptionalFloatFromList_(ft_masserror_builder, id_decoy_massdev_score, i, "masserror_ppm");
+          appendOptionalFloatFromList_(ft_total_mi_builder, id_decoy_total_mi, i, "total_mi");
+          appendOptionalFloatFromList_(ft_var_intensity_builder, id_decoy_intensity_score, i, "var_intensity_score");
+          appendOptionalFloatFromList_(ft_var_intensity_ratio_builder, id_decoy_intensity_ratio_score, i, "var_intensity_ratio_score");
+          appendOptionalFloatFromList_(ft_var_log_intensity_builder, id_decoy_log_intensity, i, "var_log_intensity");
+          appendOptionalFloatFromList_(ft_var_xcorr_coelution_builder, id_decoy_xcorr_coelution, i, "var_xcorr_coelution");
+          appendOptionalFloatFromList_(ft_var_xcorr_shape_builder, id_decoy_xcorr_shape, i, "var_xcorr_shape");
+          appendOptionalFloatFromList_(ft_var_log_sn_builder, id_decoy_log_sn_score, i, "var_log_sn_score");
+          appendOptionalFloatFromList_(ft_var_massdev_builder, id_decoy_massdev_score, i, "var_massdev_score");
+          appendOptionalFloatFromList_(ft_var_mi_builder, id_decoy_mi_score, i, "var_mi_score");
+          appendOptionalFloatFromList_(ft_var_mi_ratio_builder, id_decoy_mi_ratio_score, i, "var_mi_ratio_score");
+          appendOptionalFloatFromList_(ft_var_isotope_corr_builder, id_decoy_isotope_correlation, i, "var_isotope_correlation_score");
+          appendOptionalFloatFromList_(ft_var_isotope_overlap_builder, id_decoy_isotope_overlap, i, "var_isotope_overlap_score");
+          appendOptionalFloatFromList_(ft_exp_im_builder, id_decoy_im_drift, i, "exp_im");
+          appendOptionalFloatFromList_(ft_exp_im_left_builder, id_decoy_im_drift_left, i, "exp_im_leftwidth");
+          appendOptionalFloatFromList_(ft_exp_im_right_builder, id_decoy_im_drift_right, i, "exp_im_rightwidth");
+          appendOptionalFloatFromList_(ft_delta_im_builder, id_decoy_im_delta, i, "delta_im");
+          appendOptionalFloatFromList_(ft_var_im_delta_builder, id_decoy_im_delta_score, i, "var_im_delta_score");
+          appendOptionalFloatFromList_(ft_var_im_log_intensity_builder, id_decoy_im_log_intensity, i, "var_im_log_intensity");
+          appendOptionalFloatFromList_(ft_var_im_xcorr_coelution_contrast_builder, id_decoy_im_contrast_coelution, i, "var_im_xcorr_coelution_contrast");
+          appendOptionalFloatFromList_(ft_var_im_xcorr_shape_contrast_builder, id_decoy_im_contrast_shape, i, "var_im_xcorr_shape_contrast");
+          appendOptionalFloatFromList_(ft_var_im_xcorr_coelution_combined_builder, id_decoy_im_sum_contrast_coelution, i, "var_im_xcorr_coelution_combined");
+          appendOptionalFloatFromList_(ft_var_im_xcorr_shape_combined_builder, id_decoy_im_sum_contrast_shape, i, "var_im_xcorr_shape_combined");
+          if (enable_decoy_peak_shape)
+          {
+            appendOptionalFloatFromList_(ft_start_position_at_5_builder, id_decoy_ind_start_position_at_5, i, "start_position_at_5");
+            appendOptionalFloatFromList_(ft_end_position_at_5_builder, id_decoy_ind_end_position_at_5, i, "end_position_at_5");
+            appendOptionalFloatFromList_(ft_start_position_at_10_builder, id_decoy_ind_start_position_at_10, i, "start_position_at_10");
+            appendOptionalFloatFromList_(ft_end_position_at_10_builder, id_decoy_ind_end_position_at_10, i, "end_position_at_10");
+            appendOptionalFloatFromList_(ft_start_position_at_50_builder, id_decoy_ind_start_position_at_50, i, "start_position_at_50");
+            appendOptionalFloatFromList_(ft_end_position_at_50_builder, id_decoy_ind_end_position_at_50, i, "end_position_at_50");
+            appendOptionalFloatFromList_(ft_total_width_builder, id_decoy_ind_total_width, i, "total_width");
+            appendOptionalFloatFromList_(ft_tailing_factor_builder, id_decoy_ind_tailing_factor, i, "tailing_factor");
+            appendOptionalFloatFromList_(ft_asymmetry_factor_builder, id_decoy_ind_asymmetry_factor, i, "asymmetry_factor");
+            appendOptionalFloatFromList_(ft_slope_of_baseline_builder, id_decoy_ind_slope_of_baseline, i, "slope_of_baseline");
+            appendOptionalFloatFromList_(ft_baseline_delta_2_height_builder, id_decoy_ind_baseline_delta_2_height, i, "baseline_delta_2_height");
+            appendOptionalFloatFromList_(ft_points_across_baseline_builder, id_decoy_ind_points_across_baseline, i, "points_across_baseline");
+            appendOptionalFloatFromList_(ft_points_across_half_height_builder, id_decoy_ind_points_across_half_height, i, "points_across_half_height");
+          }
+          else
+          {
+            ParquetFile::appendOrThrow(ft_start_position_at_5_builder.AppendNull(), "start_position_at_5");
+            ParquetFile::appendOrThrow(ft_end_position_at_5_builder.AppendNull(), "end_position_at_5");
+            ParquetFile::appendOrThrow(ft_start_position_at_10_builder.AppendNull(), "start_position_at_10");
+            ParquetFile::appendOrThrow(ft_end_position_at_10_builder.AppendNull(), "end_position_at_10");
+            ParquetFile::appendOrThrow(ft_start_position_at_50_builder.AppendNull(), "start_position_at_50");
+            ParquetFile::appendOrThrow(ft_end_position_at_50_builder.AppendNull(), "end_position_at_50");
+            ParquetFile::appendOrThrow(ft_total_width_builder.AppendNull(), "total_width");
+            ParquetFile::appendOrThrow(ft_tailing_factor_builder.AppendNull(), "tailing_factor");
+            ParquetFile::appendOrThrow(ft_asymmetry_factor_builder.AppendNull(), "asymmetry_factor");
+            ParquetFile::appendOrThrow(ft_slope_of_baseline_builder.AppendNull(), "slope_of_baseline");
+            ParquetFile::appendOrThrow(ft_baseline_delta_2_height_builder.AppendNull(), "baseline_delta_2_height");
+            ParquetFile::appendOrThrow(ft_points_across_baseline_builder.AppendNull(), "points_across_baseline");
+            ParquetFile::appendOrThrow(ft_points_across_half_height_builder.AppendNull(), "points_across_half_height");
+          }
         }
       }
     }

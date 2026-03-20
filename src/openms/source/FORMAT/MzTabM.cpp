@@ -532,7 +532,7 @@ namespace OpenMS
     int evidence_section_entry_counter = 1;
     for (auto& f : feature_map) // iterate over features and fill all sections
     {
-      auto match_refs = f.getIDMatches();
+      const auto& match_refs = f.getIDMatches();
       if (match_refs.empty()) // features without identification
       {
         MzTabMSmallMoleculeFeatureSectionRow smf;

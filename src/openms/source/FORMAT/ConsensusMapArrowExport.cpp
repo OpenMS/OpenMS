@@ -860,7 +860,7 @@ bool ConsensusMapArrowExport::exportToParquet(
     OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to open file: " << filename << std::endl;
     return false;
   }
-  auto outfile = *result;
+  const auto& outfile = *result;
 
   // Configure Parquet writer
   auto builder = parquet::WriterProperties::Builder();

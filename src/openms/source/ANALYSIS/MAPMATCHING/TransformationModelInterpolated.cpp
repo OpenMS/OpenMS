@@ -265,7 +265,7 @@ private:
       //uff... well here we go.. adding an empty string
       for (Size s = 0; s < x_.size(); ++s)
       {
-        bloated_data.emplace_back(TransformationModel::DataPoint(x_[s],y_[s]));
+        bloated_data.emplace_back(x_[s],y_[s]);
       }
       lm_front_ = new TransformationModelLinear(bloated_data, Param());
       lm_back_ = new TransformationModelLinear(bloated_data, Param());

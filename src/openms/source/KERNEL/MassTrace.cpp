@@ -10,6 +10,8 @@
 
 #include <boost/dynamic_bitset.hpp>
 
+#include <numeric>
+
 namespace OpenMS
 {
     // must match MassTrace::MT_QUANTMETHOD enum!

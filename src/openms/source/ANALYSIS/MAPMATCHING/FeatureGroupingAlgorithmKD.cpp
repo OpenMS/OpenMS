@@ -129,6 +129,12 @@ namespace OpenMS
     distance_params.setValue("distance_RT:max_difference", rt_tol_secs_);
     distance_params.setValue("distance_MZ:max_difference", mz_tol_);
     distance_params.setValue("distance_MZ:unit", (mz_ppm_ ? "ppm" : "Da"));
+    // charge_merging="Any" allows all charge states into the candidate pool,
+    // so FeatureDistance must not reject charge-mismatched pairs (segfault: #8927)
+    if (param_.getValue("link:charge_merging").toString() == "Any")
+    {
+      distance_params.setValue("ignore_charge", "true");
+    }
     feature_distance_ = FeatureDistance(max_intensity, false);
     feature_distance_.setParameters(distance_params);
 

@@ -151,7 +151,7 @@ jobs:
           if [[ "${{ matrix.compiler }}" == "xcode" ]]; then
             ls -la /Applications/Xcode*
             sudo xcode-select -s '/Applications/Xcode_${{ matrix.compiler_ver }}.app/Contents/Developer'
-            echo "cxx_compiler=clang++" >> $GITHUB_OUTPUT
+            echo "cxx_compiler=$(xcrun -f clang++)" >> $GITHUB_OUTPUT
           elif [[ "${{ matrix.compiler }}" == "clang++" ]]; then
             echo "cxx_compiler=$(brew --prefix llvm@${{ matrix.compiler_ver }})/bin/clang++" >> $GITHUB_OUTPUT
           else
@@ -332,7 +332,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
-        key: ${{ runner.os }}-contrib3
+        key: ${{ runner.os }}-contrib4
     
     - name: Download contrib build from archive (Windows)
       if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'

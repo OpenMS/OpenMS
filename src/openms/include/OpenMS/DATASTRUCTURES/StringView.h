@@ -17,8 +17,6 @@
 #include <cstring>
 #include <vector>
 
-class QString;
-
 namespace OpenMS
 {
 

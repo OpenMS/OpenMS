@@ -573,7 +573,7 @@ namespace OpenMS
         QColor color;
         if (f.metaValueExists(5))
         {
-          color = QColor(f.getMetaValue(5).toQString());
+          color = QColor(String(f.getMetaValue(5)).toQString());
         }
         else
         {
@@ -602,7 +602,7 @@ namespace OpenMS
           else if (layer_->label == LayerDataBase::L_META_LABEL)
           {
             painter->setPen(Qt::darkBlue);
-            painter->drawText(pos.x() + 10, pos.y() + 10, f.getMetaValue(3).toQString());
+            painter->drawText(pos.x() + 10, pos.y() + 10, String(f.getMetaValue(3)).toQString());
           }
         }
       }
@@ -667,7 +667,7 @@ namespace OpenMS
         QColor color;
         if (cf.metaValueExists(5))
         {
-          color = cf.getMetaValue(5).toQString();
+          color = String(cf.getMetaValue(5)).toQString();
         }
         else
         {

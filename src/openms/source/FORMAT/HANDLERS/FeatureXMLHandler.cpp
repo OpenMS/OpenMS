@@ -897,7 +897,7 @@ namespace OpenMS::Internal
     os << indent << "\t\t\t<charge>" << feat.getCharge() << "</charge>\n";
 
     // write convex hull
-    vector<ConvexHull2D> hulls = feat.getConvexHulls();
+    const vector<ConvexHull2D>& hulls = feat.getConvexHulls();
 
     Size hulls_count = hulls.size();
 

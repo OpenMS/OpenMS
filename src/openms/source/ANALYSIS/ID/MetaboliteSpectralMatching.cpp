@@ -668,7 +668,13 @@ void MetaboliteSpectralMatching::exportMzTab_(const vector<SpectralMatch>& overa
   {
     SpectralMatch current_id(overall_results[id_idx]);
 
+ feature/my-new-feature
     MzTabSmallMoleculeSectionRow mztab_row_record;
+
+    for (Size id_idx = 0; id_idx < overall_results.size(); ++id_idx)
+    {
+      const SpectralMatch& current_id(overall_results[id_idx]);
+ develop
 
     // set the identifier field
     String hid_temp = current_id.getPrimaryIdentifier();

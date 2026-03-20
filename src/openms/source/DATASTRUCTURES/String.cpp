@@ -14,6 +14,8 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <QString>
+
 using namespace std;
 
 namespace OpenMS
@@ -35,13 +37,13 @@ namespace OpenMS
   {
   }
 
-  String::String(const char* s) :
-    string(s)
+  String::String(const QString& s) :
+    string(s.toStdString())
   {
   }
 
-  String::String(const QString& s) :
-    string(s.toStdString())
+  String::String(const char* s) :
+    string(s)
   {
   }
 
@@ -268,11 +270,6 @@ namespace OpenMS
     return StringUtils::split_quoted(*this, splitter, substrings, q, method);
   }
 
-  QString String::toQString() const
-  {
-    return StringUtils::toQString(*this);
-  }
-
   Int String::toInt() const
   {
     if constexpr (is_same<Int, Int32>::value)
@@ -303,6 +300,11 @@ namespace OpenMS
   double String::toDouble() const
   {
     return StringUtils::toDouble(*this);
+  }
+
+  QString String::toQString() const
+  {
+    return QString::fromStdString(*this);
   }
 
   String& String::toUpper()

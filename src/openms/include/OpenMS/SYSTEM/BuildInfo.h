@@ -11,8 +11,18 @@
 #include <OpenMS/build_config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtCore/QSysInfo>
-#include <QtCore/QString>
+#include <cstddef>
+#include <string>
+#include <fstream>
+#include <cstring>
+
+#ifdef _WIN32
+  #include <windows.h>
+  #include <winternl.h>
+#elif defined(__APPLE__)
+  #include <sys/types.h>
+  #include <sys/sysctl.h>
+#endif
 
 #ifdef _OPENMP
   #include "omp.h"
@@ -27,6 +37,59 @@ namespace OpenMS
     inline const std::string OpenMS_OSNames[] = {"unknown", "MacOS", "Windows", "Linux"};
     enum class OpenMS_Architecture {ARCH_UNKNOWN, ARCH_32BIT, ARCH_64BIT, SIZE_OF_OPENMS_ARCHITECTURE};
     inline const std::string OpenMS_ArchNames[] = {"unknown", "32 bit", "64 bit"};
+
+    /// @brief Helper: get OS version string using platform APIs
+    inline std::string getOSVersionString_()
+    {
+#if defined(_WIN32)
+      // Use RtlGetVersion to get the real version (not compatibility-shimmed)
+      typedef NTSTATUS (WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+      HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
+      if (hMod)
+      {
+        auto fxPtr = reinterpret_cast<RtlGetVersionPtr>(GetProcAddress(hMod, "RtlGetVersion"));
+        if (fxPtr)
+        {
+          RTL_OSVERSIONINFOW rovi{};
+          rovi.dwOSVersionInfoSize = sizeof(rovi);
+          if (fxPtr(&rovi) == 0)
+          {
+            return std::to_string(rovi.dwMajorVersion) + "." + std::to_string(rovi.dwMinorVersion)
+                   + "." + std::to_string(rovi.dwBuildNumber);
+          }
+        }
+      }
+      return "unknown";
+#elif defined(__APPLE__)
+      char version[64] = {};
+      size_t len = sizeof(version);
+      if (sysctlbyname("kern.osproductversion", version, &len, nullptr, 0) == 0)
+      {
+        return std::string(version);
+      }
+      return "unknown";
+#elif defined(__unix__)
+      // Read VERSION_ID from /etc/os-release
+      std::ifstream ifs("/etc/os-release");
+      std::string line;
+      while (std::getline(ifs, line))
+      {
+        if (line.compare(0, 11, "VERSION_ID=") == 0)
+        {
+          std::string val = line.substr(11);
+          // Strip surrounding quotes if present
+          if (val.size() >= 2 && val.front() == '"' && val.back() == '"')
+          {
+            val = val.substr(1, val.size() - 2);
+          }
+          return val;
+        }
+      }
+      return "unknown";
+#else
+      return "unknown";
+#endif
+    }
 
     class OPENMS_DLLAPI OpenMSOSInfo
     {
@@ -89,11 +152,11 @@ namespace OpenMS
         info.os_ = OpenMS_OS::OS_LINUX;
         #endif // else stays unknown
 
-        // returns something meaningful for basically all important platforms
-        info.os_version_ = QSysInfo::productVersion();
+        // Get OS version using platform APIs
+        info.os_version_ = getOSVersionString_();
 
-        // identify architecture
-        if (QSysInfo::WordSize == 32)
+        // identify architecture by pointer size
+        if (sizeof(void*) == 4)
         {
           info.arch_ = OpenMS_Architecture::ARCH_32BIT;
         }

@@ -18,6 +18,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -40,8 +41,11 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
-#include <QtCore/QDir>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
+#include <QtCore/QDateTime> // still needed for logging timestamps; removed in PR 2 (DateTime)
+
+#include <filesystem>
 #include <iostream>
 
 // OpenMP support
@@ -63,7 +67,7 @@ namespace OpenMS
 
   using namespace Exception;
 
-  String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
+  String TOPPBase::topp_ini_file_ = File::getOpenMSHomePath() + "/.TOPP.ini";
   const Citation TOPPBase::cite_openms
     = {"Pfeuffer, J., Bielow, C., Wein, S. et al.", "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
        "Nat Methods (2024)", "10.1038/s41592-024-02197-7"};
@@ -1021,7 +1025,7 @@ namespace OpenMS
     StringList defaults;
 
     if (p.type == ParameterInformation::STRING)
-      defaults.push_back(String(p.default_value.toString()));
+      defaults.emplace_back(p.default_value.toString());
     else
       defaults = ListUtils::toStringList<std::string>(p.default_value);
 
@@ -1409,7 +1413,7 @@ namespace OpenMS
     // check if all input files are readable
     if (p.type == ParameterInformation::INPUT_FILE_LIST)
     {
-      for (String t : param_value)
+      for (const String& t : param_value)
       {
         if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(t, param_name);
 
@@ -1638,21 +1642,21 @@ namespace OpenMS
   {
     OPENMS_LOG_INFO << text << endl;
     enableLogging_();
-    log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+    log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
   }
 
   void TOPPBase::writeLogWarn_(const String& text) const
   {
     OPENMS_LOG_WARN << text << endl;
     enableLogging_();
-    log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+    log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
   }
 
   void TOPPBase::writeLogError_(const String& text) const
   {
     OPENMS_LOG_ERROR << text << endl;
     enableLogging_();
-    log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+    log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
   }
 
   void TOPPBase::writeDebug_(const String& text, UInt min_level) const
@@ -1661,7 +1665,7 @@ namespace OpenMS
     {
       OPENMS_LOG_DEBUG << text << endl;
       enableLogging_();
-      log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
+      log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
     }
   }
 
@@ -1670,24 +1674,24 @@ namespace OpenMS
     if (debug_level_ >= (Int)min_level)
     {
       OPENMS_LOG_DEBUG << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-                << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text << endl
+                << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << endl
                 << param
                 << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
       enableLogging_();
       log_ << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-           << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text << endl
+           << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << endl
            << param
            << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
     }
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir, const std::map<QString, QString>& env) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const String& executable, const std::vector<String>& arguments, const String& workdir, const std::map<String, String>& env) const
   {
     String proc_stdout, proc_stderr; // collect all output (might be useful if program crashes, see below)
     return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir, env);
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir, const std::map<QString, QString>& env) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const String& executable, const std::vector<String>& arguments, String& proc_stdout, String& proc_stderr, const String& workdir, const std::map<String, String>& env) const
   {
     proc_stdout.clear();
     proc_stderr.clear();
@@ -1870,7 +1874,7 @@ namespace OpenMS
     if (debug_level_ >= 1)
     {
       cout << "Writing to '" << log_destination << '\'' << "\n";
-      log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
+      log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  "\n";
     }
   }
 
@@ -2385,10 +2389,10 @@ namespace OpenMS
   void TOPPBase::writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension)
   {
     //store ini-file content in ini_file_str
-    QString out_dir_str = String(param_cmdline_.getValue(write_type).toString()).toQString();
-    if (out_dir_str == "")
+    String out_dir_str = String(param_cmdline_.getValue(write_type).toString());
+    if (out_dir_str.empty())
     {
-      out_dir_str = QDir::currentPath();
+      out_dir_str = std::filesystem::current_path().generic_string();
     }
     StringList type_list = ToolHandler::getTypes(tool_name_);
     if (type_list.empty())
@@ -2397,7 +2401,7 @@ namespace OpenMS
     for (Size i = 0; i < type_list.size(); ++i)
     {
       // check file is writable
-      QString write_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + fileExtension.c_str();
+      String write_file = out_dir_str + "/" + tool_name_ + type_list[i] + fileExtension.c_str();
       outputFileWritable_(write_file, write_type);
 
       // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
@@ -2438,7 +2442,7 @@ namespace OpenMS
       toolInfo.citations_   = citation_dois;
 
       // this will write the actual data to disk
-      writer.store(write_file.toStdString(), default_params, toolInfo);
+      writer.store(write_file, default_params, toolInfo);
     }
   }
 
@@ -2593,7 +2597,7 @@ namespace OpenMS
           // which is the LAST occurrence on the command line.
           if (cmd_params.exists(pos->second->name))
           {
-            ParamValue existing_value = cmd_params.getValue(pos->second->name);
+            const ParamValue& existing_value = cmd_params.getValue(pos->second->name);
             writeLogWarn_(String("Warning: Duplicate parameter '") + arg + "' given. Using last occurrence with value '" + String(existing_value.toString()) + "' (ignoring '" + String(value.toString()) + "').");
           }
           else

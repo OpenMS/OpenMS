@@ -8,15 +8,33 @@
 
 #pragma once
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <QSet>
+#include <QStringList>
+
+#include <vector>
 
 namespace OpenMS
 {
 
-/// Drop-in for QT5's QStringList::toSet   
+/// Drop-in for QT5's QStringList::toSet
 template <typename T, template<typename> typename C>
 QSet<T> toQSet(const C<T> &container)
 {
   return QSet<T>(container.begin(), container.end());
+}
+
+/// Convert QStringList to StringList (replaces StringListUtils::fromQStringList)
+inline std::vector<String> fromQStringList(const QStringList& rhs)
+{
+  std::vector<String> sl;
+  sl.reserve(rhs.size());
+  for (const auto& item : rhs)
+  {
+    sl.push_back(item.toStdString());
+  }
+  return sl;
 }
 
 } // namespace OpenMS

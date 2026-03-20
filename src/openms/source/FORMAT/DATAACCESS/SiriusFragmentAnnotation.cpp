@@ -10,8 +10,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
-#include <QtCore/QDir>
-#include <QtCore/QString>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <filesystem>
 
 using namespace std;
 
@@ -222,8 +222,8 @@ namespace OpenMS
         candidates.getRow(i, sl);
         String adduct = sl[columnname_to_columnindex.at("adduct")];
         adduct.erase(std::remove_if(adduct.begin(), adduct.end(), ::isspace), adduct.end());
-        rank_filename.emplace(std::make_pair(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
-                              String(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".tsv")));
+        rank_filename.emplace(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
+                              String(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".tsv"));
       }
     }
     fcandidates.close();
@@ -253,8 +253,8 @@ namespace OpenMS
       {
         StringList sl;
         candidates.getRow(i, sl);
-        rank_score.emplace(std::make_pair(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
-                                             sl[columnname_to_columnindex.at("explainedIntensity")].toDouble()));
+        rank_score.emplace(sl[columnname_to_columnindex.at("formulaRank")].toInt(),
+                                             sl[columnname_to_columnindex.at("explainedIntensity")].toDouble());
       }
     }
     fcandidates.close();
@@ -267,9 +267,10 @@ namespace OpenMS
     std::vector<MSSpectrum> result;
     std::string subfolder = decoy ? "/decoys/" : "/spectra/";
     const std::string sirius_spectra_dir = path_to_sirius_workspace + subfolder;
-    QDir dir(QString::fromStdString(sirius_spectra_dir));
+    namespace fs = std::filesystem;
+    auto dir_path = to_path(sirius_spectra_dir);
 
-    if (dir.exists())
+    if (fs::is_directory(dir_path))
     {
       // TODO this probably can and should be extracted in one go.
       OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
@@ -301,7 +302,7 @@ namespace OpenMS
         msspectrum_to_fill.setName(concat_m_ids + suffix);
         String filename = rank_filename.at(i); // rank 1
         double score = rank_score.at(i); // rank 1
-        QFileInfo sirius_result_file(dir,filename.toQString());
+        auto sirius_result_file = dir_path / to_path(filename);
 
         if (use_exact_mass)
         {
@@ -325,7 +326,7 @@ namespace OpenMS
         }
 
         // read file and save in MSSpectrum
-        ifstream fragment_annotation_file(sirius_result_file.absoluteFilePath().toStdString());
+        ifstream fragment_annotation_file(sirius_result_file);
         if (fragment_annotation_file)
         {
           // Target schema

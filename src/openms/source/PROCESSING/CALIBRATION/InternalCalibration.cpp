@@ -16,7 +16,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/RWrapper.h>
 
-#include <QtCore/QStringList>
+#include <vector>
 
 #include <cstdio>
 
@@ -288,7 +288,7 @@ namespace OpenMS
                                       const String& file_residuals_plot,
                                       const String& rscript_executable_)
   {
-    QString rscript_executable = rscript_executable_.toQString();
+    String rscript_executable = rscript_executable_;
 
     // ensure sorting; required for finding RT ranges and lock masses
     if (!exp.isSorted(true))
@@ -444,7 +444,7 @@ namespace OpenMS
       // plot it
       if (!file_models_plot.empty())
       {
-        if (!RWrapper::runScript("InternalCalibration_Models.R", QStringList() << out_table.toQString() << file_models_plot.toQString(), rscript_executable))
+        if (!RWrapper::runScript("InternalCalibration_Models.R", {out_table, file_models_plot}, rscript_executable))
         {
           OPENMS_LOG_ERROR << "R script failed. To avoid the error, either disable the creation of 'quality_control:models_plot' (not recommended) or fix your R installation.\n";
           return false;
@@ -507,7 +507,7 @@ namespace OpenMS
     // plot it
     if (!file_residuals_plot.empty())
     {
-      if (!RWrapper::runScript("InternalCalibration_Residuals.R", QStringList() << out_table_residuals.toQString() << file_residuals_plot.toQString(), rscript_executable))
+      if (!RWrapper::runScript("InternalCalibration_Residuals.R", {out_table_residuals, file_residuals_plot}, rscript_executable))
       {
         OPENMS_LOG_ERROR << "R script failed. To avoid the error, either disable the creation of 'quality_control:residuals_plot' (not recommended) or fix your R installation.\n";
         return false;
