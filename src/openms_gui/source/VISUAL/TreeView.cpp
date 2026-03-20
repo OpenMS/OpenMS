@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/TreeView.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Qt5Port.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QHeaderView>
