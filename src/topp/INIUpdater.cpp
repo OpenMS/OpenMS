@@ -200,18 +200,25 @@ protected:
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
     d.mkpath(tmp_dir.toQString());
-    TOPPASScene ts(nullptr, tmp_dir.toQString(), false);
-    paramFile.store(tmp_ini_file, p);
-    ts.load(tmp_ini_file);
-    ts.store(tmp_ini_file);
-    paramFile.load(tmp_ini_file, p);
+    {
+      TOPPASScene ts(nullptr, tmp_dir.toQString(), false);
+      paramFile.store(tmp_ini_file, p);
+      ts.load(tmp_ini_file);
+      ts.store(tmp_ini_file);
+      paramFile.load(tmp_ini_file, p);
+    } // ts goes out of scope before we remove its directory
+    QDir(tmp_dir.toQString()).removeRecursively();
 
     // STORE
     if (outfile.empty()) // create a backup
     {
       QFileInfo fi(infile.toQString());
       String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".toppas";
-      QFile::rename(infile.toQString(), new_name.toQString());
+      if (!QFile::rename(infile.toQString(), new_name.toQString()))
+      {
+        OPENMS_LOG_ERROR << "Could not create backup '" << new_name << "' from '" << infile << "'. Aborting update to prevent data loss." << std::endl;
+        return;
+      }
       // write new file
       paramFile.store(infile, p);
     }
@@ -319,7 +326,12 @@ protected:
     {
       QFileInfo fi(infile.toQString());
       String backup_filename = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version_old + ".ini";
-      QFile::rename(infile.toQString(), backup_filename.toQString());
+      if (!QFile::rename(infile.toQString(), backup_filename.toQString()))
+      {
+        OPENMS_LOG_ERROR << "Could not create backup '" << backup_filename << "' from '" << infile << "'. Aborting update to prevent data loss." << std::endl;
+        failed_.push_back(infile);
+        return;
+      }
       std::cout << "Backup of input file created: " << backup_filename << std::endl;
       // write updated/new file
       paramFile.store(infile, p);
