@@ -202,7 +202,7 @@ namespace OpenMS
       }
       else  //  for lists
       {
-        String list = str.mid(1, str.length() - 2);
+        String list = str.mid(1, str.length() - 2).toStdString();
         StringList rlist = ListUtils::create<String>(list);
         for (auto& item : rlist)
         {

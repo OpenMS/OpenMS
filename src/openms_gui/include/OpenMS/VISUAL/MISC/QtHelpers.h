@@ -17,13 +17,8 @@
 
 namespace OpenMS
 {
-  /// Convert OpenMS::String to QString (free function replacing the former String::toQString() member)
-  inline QString toQString(const String& s)
-  {
-    return QString::fromStdString(s);
-  }
-
-  /// Convert std::string to QString
+  /// Convert OpenMS::String (or std::string) to QString
+  /// Free function replacing the former String::toQString() member
   inline QString toQString(const std::string& s)
   {
     return QString::fromStdString(s);
