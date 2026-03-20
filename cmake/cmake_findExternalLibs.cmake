@@ -287,9 +287,8 @@ endif()
 #------------------------------------------------------------------------------
 SET(QT_MIN_VERSION "6.1.0")
 
-# find qt
-set(OpenMS_QT_COMPONENTS Core CACHE INTERNAL "QT components for core lib")
-find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+# Qt6::Core is needed by TOPP tools and GUI, but NOT by libOpenMS itself
+find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Core REQUIRED)
 
 IF (NOT Qt6Core_FOUND)
   message(STATUS "Qt6Core not found!")
