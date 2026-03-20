@@ -23,7 +23,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/Tagger.h>
-#include <QStringList>
 
 using namespace OpenMS;
 
