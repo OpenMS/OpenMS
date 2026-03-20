@@ -313,7 +313,7 @@ namespace OpenMS
     }
 
     auto visitor_data = visible ? layer.storeVisibleData(getVisibleArea().getAreaUnit(), layer.filters) : layer.storeFullData();
-    visitor_data->saveToFile(file_name, ProgressLogger::GUI);
+    visitor_data->saveToFile(file_name.toStdString(), ProgressLogger::GUI);
     modificationStatus_(getCurrentLayerIndex(), false);
   }
 
