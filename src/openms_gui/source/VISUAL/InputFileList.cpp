@@ -141,7 +141,7 @@ namespace OpenMS
       StringList files;
       for (int i = 0; i < nr_files; ++i)
       {
-        files.push_back(ui_->input_file_list->item(i)->text());
+        files.push_back(ui_->input_file_list->item(i)->text().toStdString());
       }
       return files;
     }

@@ -148,7 +148,7 @@ namespace OpenMS
       QString name = QInputDialog::getText(this, "Rename layer", "Name:", QLineEdit::Normal, toQString(spectrum_widget_->canvas()->getLayerName(layer_idx)));
       if (name != "")
       {
-        spectrum_widget_->canvas()->setLayerName(layer_idx, name);
+        spectrum_widget_->canvas()->setLayerName(layer_idx, name.toStdString());
         emit layerDataChanged();
       }});
 
