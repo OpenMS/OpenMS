@@ -262,7 +262,7 @@ namespace OpenMS
       list_.clear();
       for (Int i = 0; i < count(); ++i)
       {
-        stringit = item(i)->text();
+        stringit = item(i)->text().toStdString();
         if (!stringit.empty())
         {
           stringit.trim();
