@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 
 #include <QApplication>
@@ -161,10 +162,10 @@ protected:
       QProcess pr;
       QStringList arguments;
       arguments << "-write_ini";
-      arguments << tmp_ini_file.toQString();
+      arguments << toQString(tmp_ini_file);
       arguments << "-instance";
-      arguments << String(this_instance).toQString();
-      pr.start((path + "/" + new_tool).toQString(), arguments);
+      arguments << toQString(String(this_instance));
+      pr.start(toQString(path + "/" + new_tool), arguments);
       if (!pr.waitForFinished(-1))
       {
         writeLogWarn_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
@@ -199,22 +200,22 @@ protected:
     QApplication app(argc, const_cast<char**>(argv), false);
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
-    d.mkpath(tmp_dir.toQString());
+    d.mkpath(toQString(tmp_dir));
     {
-      TOPPASScene ts(nullptr, tmp_dir.toQString(), false);
+      TOPPASScene ts(nullptr, toQString(tmp_dir), false);
       paramFile.store(tmp_ini_file, p);
       ts.load(tmp_ini_file);
       ts.store(tmp_ini_file);
       paramFile.load(tmp_ini_file, p);
     } // ts goes out of scope before we remove its directory
-    QDir(tmp_dir.toQString()).removeRecursively();
+    QDir(toQString(tmp_dir)).removeRecursively();
 
     // STORE
     if (outfile.empty()) // create a backup
     {
-      QFileInfo fi(infile.toQString());
-      String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".toppas";
-      if (!QFile::rename(infile.toQString(), new_name.toQString()))
+      QFileInfo fi(toQString(infile));
+      String new_name = fromQString(fi.path()) + "/" + fromQString(fi.completeBaseName()) + "_v" + version + ".toppas";
+      if (!QFile::rename(toQString(infile), toQString(new_name)))
       {
         OPENMS_LOG_ERROR << "Could not create backup '" << new_name << "' from '" << infile << "'. Aborting update to prevent data loss." << std::endl;
         return;
@@ -293,10 +294,10 @@ protected:
       QProcess pr;
       QStringList arguments;
       arguments << "-write_ini";
-      arguments << tmp_ini_file.toQString();
+      arguments << toQString(tmp_ini_file);
       arguments << "-instance";
-      arguments << String(this_instance).toQString();
-      pr.start((path + "/" + new_tool).toQString(), arguments);
+      arguments << toQString(String(this_instance));
+      pr.start(toQString(path + "/" + new_tool), arguments);
       if (!pr.waitForFinished(-1))
       {
         writeLogWarn_("Update for file '" + infile + "' failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
@@ -324,9 +325,9 @@ protected:
     // STORE
     if (outfile.empty()) // create a backup
     {
-      QFileInfo fi(infile.toQString());
-      String backup_filename = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version_old + ".ini";
-      if (!QFile::rename(infile.toQString(), backup_filename.toQString()))
+      QFileInfo fi(toQString(infile));
+      String backup_filename = fromQString(fi.path()) + "/" + fromQString(fi.completeBaseName()) + "_v" + version_old + ".ini";
+      if (!QFile::rename(toQString(infile), toQString(backup_filename)))
       {
         OPENMS_LOG_ERROR << "Could not create backup '" << backup_filename << "' from '" << infile << "'. Aborting update to prevent data loss." << std::endl;
         failed_.push_back(infile);
