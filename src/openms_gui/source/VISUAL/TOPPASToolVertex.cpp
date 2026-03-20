@@ -115,7 +115,7 @@ namespace OpenMS
     {
       if (!File::exists(old_ini_file.toStdString()))
       {
-        String msg = String("Could not open old INI file '") + old_ini_file.toStdString() + "'! File does not exist!";
+        String msg = String("Could not open old INI file '") + String(old_ini_file.toStdString()) + "'! File does not exist!";
         if (getScene_() && getScene_()->isGUIMode())
         {
           QMessageBox::critical(nullptr, "Error", msg.c_str());
@@ -135,7 +135,7 @@ namespace OpenMS
     p.start(program, arguments);
     if (!p.waitForFinished(-1) || p.exitStatus() != 0 || p.exitCode() != 0)
     {
-      String msg = String("Error! Call to '") + program.toStdString() + "' '" + String(arguments.join("' '").toStdString()) +
+      String msg = String("Error! Call to '") + String(program.toStdString()) + "' '" + String(arguments.join("' '").toStdString()) +
           " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
           "\noutput:\n" + String(QString(p.readAll()).toStdString()) +
           "\n";
@@ -152,7 +152,7 @@ namespace OpenMS
     }
     if (!File::exists(ini_file.toStdString()))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
-      String msg = String("Could not open '") + ini_file.toStdString() + "'! It does not exist!";
+      String msg = String("Could not open '") + String(ini_file.toStdString()) + "'! It does not exist!";
       if (getScene_() && getScene_()->isGUIMode())
       {
         QMessageBox::critical(nullptr, "Error", msg.c_str());

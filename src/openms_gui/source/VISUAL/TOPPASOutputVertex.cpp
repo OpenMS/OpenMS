@@ -79,7 +79,7 @@ namespace OpenMS
       }
       const TOPPASVertex* tv = e->getSourceVertex();
       // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-      dir += get3CharsNumber_(topo_nr_) + "-" + tv->getName() + "-" + e->getSourceOutParamName().remove(':').toStdString();
+      dir += get3CharsNumber_(topo_nr_) + "-" + tv->getName() + "-" + String(e->getSourceOutParamName().remove(':').toStdString());
     }
     else { 
       dir += output_folder_name_.toStdString();

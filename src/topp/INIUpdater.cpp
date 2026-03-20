@@ -211,7 +211,7 @@ protected:
     if (outfile.empty()) // create a backup
     {
       QFileInfo fi(toQString(infile));
-      String new_name = String(fi.path().toStdString()) + "/" + fi.completeBaseName().toStdString() + "_v" + version + ".toppas";
+      String new_name = String(fi.path().toStdString()) + "/" + String(fi.completeBaseName().toStdString()) + "_v" + version + ".toppas";
       QFile::rename(toQString(infile), toQString(new_name));
       // write new file
       paramFile.store(infile, p);
@@ -319,7 +319,7 @@ protected:
     if (outfile.empty()) // create a backup
     {
       QFileInfo fi(toQString(infile));
-      String backup_filename = String(fi.path().toStdString()) + "/" + fi.completeBaseName().toStdString() + "_v" + version_old + ".ini";
+      String backup_filename = String(fi.path().toStdString()) + "/" + String(fi.completeBaseName().toStdString()) + "_v" + version_old + ".ini";
       QFile::rename(toQString(infile), toQString(backup_filename));
       std::cout << "Backup of input file created: " << backup_filename << std::endl;
       // write updated/new file

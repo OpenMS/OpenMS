@@ -69,7 +69,7 @@ namespace OpenMS
 
   String TOPPASEdge::toString()
   {
-    String s = String("Edge: ") + getSourceOutParamName().toStdString() + " target-in: " + getTargetInParamName().toStdString() + "\n";
+    String s = String("Edge: ") + String(getSourceOutParamName().toStdString()) + " target-in: " + String(getTargetInParamName().toStdString()) + "\n";
     return s;
   }
   TOPPASEdge& TOPPASEdge::operator=(const TOPPASEdge& rhs)

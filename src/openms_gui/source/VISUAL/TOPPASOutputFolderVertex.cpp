@@ -159,7 +159,7 @@ namespace OpenMS
           for (const auto& src_file : src_files_to_copy)
           {
             String file_from = src_file.absoluteFilePath().toStdString();
-            String file_to = dir_to + '/' + src_file.fileName().toStdString();
+            String file_to = dir_to + '/' + String(src_file.fileName().toStdString());
             if (File::exists(file_to) // someone may have deleted the file in the meantime, which is fine
               && !QFile::remove(toQString(file_to))) // remove old file (would fail if file does not exist)
             {
