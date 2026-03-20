@@ -541,6 +541,12 @@ namespace OpenMS
     }
   }
 
+  void ControlledVocabulary::addAllChildTerms(set<String>& terms, const String& parent) const
+  {
+    terms.insert(parent);
+    getAllChildTerms(terms, parent);
+  }
+
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const
   {
     //slow, but Vocabulary is very finite and this method will be called only a few times during write of a ML file using a CV

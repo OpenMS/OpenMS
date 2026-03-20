@@ -38,6 +38,7 @@
 
 #include <list>
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -261,6 +262,10 @@ private:
       std::map<String, double> xl_mass_map_; ///< mapping Peptide id -> cross-link mass
       std::map<String, String> xl_mod_map_; ///< mapping peptide id -> cross-linking reagent name
 
+      /// cached CV child term sets (computed once, reused per PSM)
+      std::set<String> q_score_child_terms_;
+      std::set<String> e_score_child_terms_;
+      std::set<String> specific_score_child_terms_;
     };
   } // namespace Internal
 } // namespace OpenMS

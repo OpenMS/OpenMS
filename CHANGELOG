@@ -24,6 +24,7 @@ General:
   - Modernized TransformationDescription to use std::unique_ptr for memory safety
   - Fix undefined behavior in ProteinIdentification get*DataArrayByName by throwing ElementNotFound when the name is missing
   - Removed leftover traces of removed doc_internal target (#2256)
+  - Optimized MzIdentML parser performance by caching CV lookups and added mzIdentML 1.3 schema support (#8764)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
