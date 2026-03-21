@@ -54,13 +54,14 @@ function parseDirectoryListing(stringOfHtml) {
 
     docs = foo.sort().reverse()
 
+    let latestEntry = null;
     docs = docs.filter(function (line) {
-        // suppress link to current version
+        if (line === "latest") {
+            latestEntry = line;
+            return false;
+        }
         return (line != thisvers) &&
             (line != "Parent Directory") &&
-            // TODO decide how to display latest version
-            (line != "latest") &&
-            // suppress hidden dirs
             !/^[.]/.test(line);
     });
 
@@ -69,6 +70,15 @@ function parseDirectoryListing(stringOfHtml) {
         + '/release/' + x + '/html/' + patharr[patharr.length - 1] + '">'
         + x
         + '</a>');
+        
+    // Add latest as a pinned entry
+    if (latestEntry) {
+        docs.unshift('<a class="verslink latest" href="'
+            + urlrootdir
+            + '/release/latest/html/' + patharr[patharr.length - 1] + '">'
+            + 'latest (stable)'
+            + '</a>');
+}
         
     // This assumes that a nightly documentation folder is always present.
     // A specific class does not necessarily need to be present there,
