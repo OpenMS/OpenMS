@@ -27,6 +27,8 @@ General:
   - BREAKING: QDateTime/QDate/QSysInfo/QLocale replaced with std::chrono and platform APIs in DateTime, Date, BuildInfo, DimMapper, and TOPPBase; QDate constructor removed from Date class (#8937)
   - BREAKING: QDir/QFile/QFileInfo replaced with std::filesystem in the core library; copyDirRecursively/removeDir signatures changed from QString& to String&; ToolHandler returns StringList instead of QStringList; new PathUtils.h added with UTF-8-safe to_path() helper (#8938)
   - BREAKING: QProcess/QObject replaced with boost::process in ExternalProcess, PythonInfo, JavaInfo, and RWrapper; ExternalProcess no longer inherits from QObject; ExternalProcess::run(), TOPPBase::runExternalProcess_(), RWrapper::findR()/runScript(), and ExternalProcessMBox::run() now use String/vector<String> instead of QString/QStringList (#8939)
+  - BREAKING: Qt string interop removed from core String and DataValue API; String(const QString&), String::toQString(), DataValue(const QString&), DataValue::toQString(), and StringListUtils::fromQStringList() removed; Qt5Port.h deleted (#8940)
+  - BREAKING: Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake projects must now link Qt6::Core directly if needed (#8965)
 
 Dependencies:
   - PyOpenMS: Autowrap/Cython replaced with nanobind; nanobind 2.10.0+ fetched automatically (#8699)
@@ -38,6 +40,8 @@ Dependencies:
     - QDir/QFile/QFileInfo replaced with std::filesystem in File, PathUtils, ExperimentalDesignFile, and others; ToolHandler now returns StringList instead of QStringList (#8938)
     - QProcess/QObject replaced with boost::process in ExternalProcess, PythonInfo, JavaInfo, RWrapper; public APIs now use String/vector<String> instead of QString/QStringList (#8939)
     - QJsonDocument/QJsonObject replaced with nlohmann/json in OMSFileLoad (#8936)
+    - Qt string interop removed from String, DataValue, StringUtils, StringListUtils; Qt5Port.h deleted (#8940)
+    - Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake targets must link Qt6::Core directly if they use Qt (#8965)
   - boost-process added as a header-only dependency for cross-platform subprocess management (#8939)
 
 TOPP tools:
@@ -237,6 +241,7 @@ OpenMS Library:
     - OpenSwath scoring speedups: cap XCorr maxdelay, vectorize DIAScoring, hoist loop-invariant computations, pass SwathMap by const& (#8787, #8785)
     - BREAKING: ChromatogramPeak::IntensityType changed from double to float for consistency with Peak1D (#8857)
     - AccurateMassSearchEngine: Performance improvement when use_feature_adducts is set and a specific adduct is observed; only that adduct is evaluated instead of the full list (fixes #5867) (#8635)
+    - BREAKING: Transitive Qt and other includes trimmed from core KERNEL and METADATA headers (ConsensusMap.h, FeatureMap.h, ProteinIdentification.h, SpectrumSettings.h, ExperimentalSettings.h); downstream code relying on these transitive includes must now include headers directly (#8946)
 
 Fixes:
   - Fix inverted use_all_hits logic causing NucleicAcidSearchEngine crash with multiple hits per spectrum (#8542)
@@ -261,6 +266,7 @@ Fixes:
   - Fix OpenSwathWorkflow batch counting and loop bounds for empty compound sets (#8790)
   - Fix OpenSwathWorkflow run_id type mismatch between FEATURE table RUN_ID (INTEGER) and RUN table ID (BLOB) in OSW-Sqlite output (#8869)
   - Fix IDMapper duplicate spectrum reference insertion when the same spectrum is mapped multiple times (#8905)
+  - Fix segfault in FeatureLinkerUnlabeledKD with charge_merging=Any when all candidate features have a non-matching charge, causing best_index to remain unset (#8944)
 
 Documentation:
   - Comprehensive documentation for Targeted Quantitation algorithms (#8588)
@@ -292,6 +298,7 @@ Build System:
   - Fix pyOpenMS dev build RPATH: BUILD_WITH_INSTALL_RPATH now conditional on NO_DEPENDENCIES to prevent libOpenMS.so not found (#8892)
   - Correctly locate a locally installed nanobind in CMake (#8874)
   - Fix pyOpenMS MSVC compile-time error caused by nanobind __forceinline expansion in heavily templated code (#8933)
+  - Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake targets must now explicitly link Qt6::Core if needed (#8965)
 
 
 ------------------------------------------------------------------------------------------
