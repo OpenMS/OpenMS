@@ -13,6 +13,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 #include <QtCore/QStringList>
 #include <QtWidgets/QPushButton>
@@ -42,7 +43,7 @@ namespace OpenMS
     QLabel* description = new QLabel;
     description->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     description->setWordWrap(true);
-    description->setText(tool_desc.toQString());
+    description->setText(toQString(tool_desc));
     main_grid->addWidget(description, 0, 0, 1, 1);
 
     //Add advanced mode check box
@@ -76,7 +77,7 @@ namespace OpenMS
     editor_->load(*param_);
     editor_->setFocus(Qt::MouseFocusReason);
 
-    setWindowTitle(tool_name.toQString() + " " + tr("configuration"));
+    setWindowTitle(toQString(tool_name) + " " + tr("configuration"));
   }
 
   TOPPASToolConfigDialog::~TOPPASToolConfigDialog() = default;
@@ -158,27 +159,27 @@ namespace OpenMS
     arg_param_.insert(tool_name_ + ":1:", *param_);
     try
     {
-      QString tmp_ini_file = File::getTempDirectory().toQString() + QDir::separator() + "TOPPAS_" + tool_name_.toQString() + "_";
+      QString tmp_ini_file = toQString(File::getTempDirectory()) + QDir::separator() + "TOPPAS_" + toQString(tool_name_) + "_";
       if (!tool_type_.empty())
       {
-        tmp_ini_file += tool_type_.toQString() + "_";
+        tmp_ini_file += toQString(tool_type_) + "_";
       }
-      tmp_ini_file += File::getUniqueName().toQString() + "_tmp.ini";
+      tmp_ini_file += toQString(File::getUniqueName()) + "_tmp.ini";
       //store current parameters
       ParamXMLFile paramFile;
       paramFile.store(tmp_ini_file.toStdString(), arg_param_);
       //restore other parameters that might be missing
-      QString executable = File::findSiblingTOPPExecutable(tool_name_).toQString();
+      QString executable = toQString(File::findSiblingTOPPExecutable(tool_name_));
       QStringList args;
       args << "-write_ini" << filename_ << "-ini" << tmp_ini_file;
       if (!tool_type_.empty())
       {
-        args << "-type" << tool_type_.toQString();
+        args << "-type" << toQString(tool_type_);
       }
 
       if (QProcess::execute(executable, args) != 0)
       {
-        QMessageBox::critical(nullptr, "Error", (String("Could not execute '\"")  + executable + "\" \"" + args.join("\" \"") + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+        QMessageBox::critical(nullptr, "Error", (String("Could not execute '\"")  + fromQString(executable) + "\" \"" + fromQString(args.join("\" \"")) + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
         return;
       }
     }

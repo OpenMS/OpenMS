@@ -24,8 +24,6 @@
 #include <OpenMS/SYSTEM/JavaInfo.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 
-#include <QProcessEnvironment>
-
 #include <cstddef>
 #include <fstream>
 #include <map>

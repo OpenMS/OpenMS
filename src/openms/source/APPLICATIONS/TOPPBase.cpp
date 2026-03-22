@@ -43,8 +43,6 @@
 
 #include <OpenMS/SYSTEM/PathUtils.h>
 
-#include <QtCore/QDateTime> // still needed for logging timestamps; removed in PR 2 (DateTime)
-
 #include <filesystem>
 #include <iostream>
 

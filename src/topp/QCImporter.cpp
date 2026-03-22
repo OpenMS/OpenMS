@@ -15,11 +15,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
-#include <QByteArray>
-#include <QFile>
-#include <QString>
-#include <QFileInfo>
-
 //~ #include <QIODevice>
 #include <iostream>
 #include <fstream>

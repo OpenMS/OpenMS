@@ -8,6 +8,7 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/MetaInfoVisualizer.h>
+#include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 //QT
 #include <QtWidgets/QGridLayout>
@@ -179,9 +180,9 @@ namespace OpenMS
 
   void MetaInfoVisualizer::add_()
   {
-    String name(newkey_->text());
-    String description(newdescription_->text());
-    String value(newvalue_->text());
+    String name(fromQString(newkey_->text()));
+    String description(fromQString(newdescription_->text()));
+    String value(fromQString(newvalue_->text()));
 
 
     if (name.trim().length() == 0)    //Must have a name
@@ -230,7 +231,7 @@ namespace OpenMS
     for (iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); ++iter2)
     {
       UInt index = (*iter2).first;
-      String value(((*iter2).second)->text());
+      String value(fromQString(((*iter2).second)->text()));
       temp_.setMetaValue(index, value);
     }
     //copy temporary stored data into metainfo object

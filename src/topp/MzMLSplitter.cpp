@@ -95,7 +95,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      QFile mzml_file(in.toQString());
+      QFile mzml_file(QString::fromStdString(in));
       // use float here to avoid too many decimals in output below:
       float total_size = mzml_file.size();
       String unit = getStringOption_("unit");

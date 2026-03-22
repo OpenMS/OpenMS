@@ -17,8 +17,6 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
-#include <QString>
-
 #include <sstream>
 #include <iostream>
 

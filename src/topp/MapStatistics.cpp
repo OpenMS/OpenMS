@@ -15,8 +15,6 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <QtCore/QString>
-
 #include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <iomanip>     // setw

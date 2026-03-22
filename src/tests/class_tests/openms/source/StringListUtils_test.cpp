@@ -11,7 +11,6 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <QStringList>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
