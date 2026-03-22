@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -490,29 +491,7 @@ namespace OpenMS
 
     std::shared_ptr<arrow::Schema> buildSchema_() const
     {
-      return arrow::schema({
-        arrow::field("RUN_ID", arrow::int64()),
-        arrow::field("SOURCE_FILE", arrow::utf8()),
-        arrow::field("MS_LEVEL", arrow::int64()),
-        arrow::field("MOBILOGRAM_TYPE", arrow::utf8()),
-        arrow::field("PRECURSOR_ID", arrow::int64()),
-        arrow::field("TRANSITION_ID", arrow::int64()),
-        arrow::field("FEATURE_ID", arrow::int64()),
-        arrow::field("FEATURE_RT", arrow::float64()),
-        arrow::field("MODIFIED_SEQUENCE", arrow::utf8()),
-        arrow::field("PRECURSOR_CHARGE", arrow::int64()),
-        arrow::field("PRODUCT_CHARGE", arrow::int64()),
-        arrow::field("DETECTING_TRANSITION", arrow::int64()),
-        arrow::field("PRECURSOR_DECOY", arrow::int64()),
-        arrow::field("PRODUCT_DECOY", arrow::int64()),
-        arrow::field("TRANSITION_ORDINAL", arrow::int64()),
-        arrow::field("TRANSITION_TYPE", arrow::utf8()),
-        arrow::field("ANNOTATION", arrow::utf8()),
-        arrow::field("MOBILITY_DATA", arrow::binary()),
-        arrow::field("INTENSITY_DATA", arrow::binary()),
-        arrow::field("MOBILITY_COMPRESSION", arrow::int64()),
-        arrow::field("INTENSITY_COMPRESSION", arrow::int64())
-      });
+      return XIMSchema::schema();
     }
 
     void openWriterIfNeeded_()
@@ -593,6 +572,15 @@ namespace OpenMS
 
       openWriterIfNeeded_();
       auto table = buildTableFromBuilders_();
+
+      // Validate table against registry schema
+      auto validation = ArrowSchemaValidation::validate(table, XIMSchema::schema());
+      if (!validation.valid)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "XIM table schema validation failed: " + validation.toString(), "");
+      }
+
       auto status = writer_->WriteTable(*table, PARQUET_ROW_GROUP_SIZE_);
       if (!status.ok())
       {

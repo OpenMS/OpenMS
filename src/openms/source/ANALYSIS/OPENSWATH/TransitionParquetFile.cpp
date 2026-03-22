@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
@@ -236,6 +237,20 @@ namespace OpenMS
 
     auto precursors_table = open_table_from_entry("library/precursors.parquet");
     auto transitions_table = open_table_from_entry("library/transitions.parquet");
+
+    // Validate loaded tables against registry schemas (subset mode — file may have extra columns)
+    auto prec_validation = ArrowSchemaValidation::validate(precursors_table, OSWPrecursorSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+    if (!prec_validation.valid)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Precursors table schema validation failed: " + prec_validation.toString(), "");
+    }
+    auto trans_validation = ArrowSchemaValidation::validate(transitions_table, OSWTransitionSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+    if (!trans_validation.valid)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Transitions table schema validation failed: " + trans_validation.toString(), "");
+    }
 
     auto precursor_id_col = ParquetFile::getColumn(precursors_table, "precursor_id");
     auto precursor_mz_col = ParquetFile::getColumn(precursors_table, "precursor_mz");
@@ -553,18 +568,7 @@ namespace OpenMS
       }
     }
 
-    auto precursor_schema = arrow::schema({
-      arrow::field("precursor_id", arrow::int64()),
-      arrow::field("precursor_mz", arrow::float64()),
-      arrow::field("charge", arrow::int32()),
-      arrow::field("library_rt", arrow::float64()),
-      arrow::field("library_drift_time", arrow::float64()),
-      arrow::field("decoy", arrow::boolean()),
-      arrow::field("traml_id", arrow::utf8()),
-      arrow::field("modified_sequence", arrow::utf8()),
-      arrow::field("unmodified_sequence", arrow::utf8()),
-      arrow::field("protein_accessions", arrow::utf8())
-    });
+    auto precursor_schema = OSWPrecursorSchema::schema();
 
     auto precursors_table = arrow::Table::Make(
       precursor_schema,
@@ -578,6 +582,14 @@ namespace OpenMS
        ParquetFile::finishArray(modified_sequence_builder, "modified_sequence"),
        ParquetFile::finishArray(unmodified_sequence_builder, "unmodified_sequence"),
        ParquetFile::finishArray(protein_accessions_builder, "protein_accessions")});
+
+    // Validate precursors table against registry schema
+    auto prec_validation = ArrowSchemaValidation::validate(precursors_table, OSWPrecursorSchema::schema());
+    if (!prec_validation.valid)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Precursors table schema validation failed: " + prec_validation.toString(), "");
+    }
 
     ParquetFile::writeTable(precursors_table, library_dir + "/precursors.parquet");
 
@@ -652,21 +664,7 @@ namespace OpenMS
       }
     }
 
-    auto transition_schema = arrow::schema({
-      arrow::field("transition_id", arrow::int64()),
-      arrow::field("precursor_id", arrow::int64()),
-      arrow::field("traml_id", arrow::utf8()),
-      arrow::field("product_mz", arrow::float64()),
-      arrow::field("charge", arrow::int32()),
-      arrow::field("type", arrow::utf8()),
-      arrow::field("annotation", arrow::utf8()),
-      arrow::field("ordinal", arrow::int32()),
-      arrow::field("detecting", arrow::boolean()),
-      arrow::field("identifying", arrow::boolean()),
-      arrow::field("quantifying", arrow::boolean()),
-      arrow::field("library_intensity", arrow::float64()),
-      arrow::field("decoy", arrow::boolean())
-    });
+    auto transition_schema = OSWTransitionSchema::schema();
 
     auto transitions_table = arrow::Table::Make(
       transition_schema,
@@ -683,6 +681,14 @@ namespace OpenMS
        ParquetFile::finishArray(quantifying_builder, "quantifying"),
        ParquetFile::finishArray(transition_intensity_builder, "library_intensity"),
        ParquetFile::finishArray(transition_decoy_builder, "decoy")});
+
+    // Validate transitions table against registry schema
+    auto trans_validation = ArrowSchemaValidation::validate(transitions_table, OSWTransitionSchema::schema());
+    if (!trans_validation.valid)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Transitions table schema validation failed: " + trans_validation.toString(), "");
+    }
 
     ParquetFile::writeTable(transitions_table, library_dir + "/transitions.parquet");
 
