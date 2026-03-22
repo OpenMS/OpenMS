@@ -1456,6 +1456,304 @@ START_SECTION(ChromatogramSchema validation with full table)
 }
 END_SECTION
 
+// ========== OSWPrecursorSchema ==========
+
+START_SECTION(OSWPrecursorSchema::schema() returns non-null with 10 fields)
+{
+  auto s = OSWPrecursorSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 10)
+}
+END_SECTION
+
+START_SECTION(OSWPrecursorSchema column name constants)
+{
+  TEST_STRING_EQUAL(OSWPrecursorSchema::PRECURSOR_ID, "precursor_id")
+  TEST_STRING_EQUAL(OSWPrecursorSchema::PRECURSOR_MZ, "precursor_mz")
+  TEST_STRING_EQUAL(OSWPrecursorSchema::CHARGE, "charge")
+  TEST_STRING_EQUAL(OSWPrecursorSchema::LIBRARY_RT, "library_rt")
+  TEST_STRING_EQUAL(OSWPrecursorSchema::LIBRARY_DRIFT_TIME, "library_drift_time")
+  TEST_STRING_EQUAL(OSWPrecursorSchema::DECOY, "decoy")
+  TEST_STRING_EQUAL(OSWPrecursorSchema::TRAML_ID, "traml_id")
+  TEST_STRING_EQUAL(OSWPrecursorSchema::MODIFIED_SEQUENCE, "modified_sequence")
+  TEST_STRING_EQUAL(OSWPrecursorSchema::UNMODIFIED_SEQUENCE, "unmodified_sequence")
+  TEST_STRING_EQUAL(OSWPrecursorSchema::PROTEIN_ACCESSIONS, "protein_accessions")
+}
+END_SECTION
+
+START_SECTION(OSWPrecursorSchema field types and nullability)
+{
+  auto s = OSWPrecursorSchema::schema();
+  // precursor_id: int64, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "precursor_id")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // precursor_mz: float64, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "precursor_mz")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // charge: int32, nullable (default)
+  TEST_EQUAL(s->field(2)->name(), "charge")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  // library_rt: float64, nullable (default)
+  TEST_EQUAL(s->field(3)->name(), "library_rt")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // library_drift_time: float64, nullable (default)
+  TEST_EQUAL(s->field(4)->name(), "library_drift_time")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  // decoy: boolean, nullable (default)
+  TEST_EQUAL(s->field(5)->name(), "decoy")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::BOOL)
+  TEST_EQUAL(s->field(5)->nullable(), true)
+  // traml_id: utf8, nullable (default)
+  TEST_EQUAL(s->field(6)->name(), "traml_id")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(6)->nullable(), true)
+  // modified_sequence: utf8, nullable (default)
+  TEST_EQUAL(s->field(7)->name(), "modified_sequence")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(7)->nullable(), true)
+  // unmodified_sequence: utf8, nullable (default)
+  TEST_EQUAL(s->field(8)->name(), "unmodified_sequence")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(8)->nullable(), true)
+  // protein_accessions: utf8, nullable (default)
+  TEST_EQUAL(s->field(9)->name(), "protein_accessions")
+  TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(9)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(OSWPrecursorSchema validation with table)
+{
+  auto s = OSWPrecursorSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== OSWTransitionSchema ==========
+
+START_SECTION(OSWTransitionSchema::schema() returns non-null with 13 fields)
+{
+  auto s = OSWTransitionSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 13)
+}
+END_SECTION
+
+START_SECTION(OSWTransitionSchema column name constants)
+{
+  TEST_STRING_EQUAL(OSWTransitionSchema::TRANSITION_ID, "transition_id")
+  TEST_STRING_EQUAL(OSWTransitionSchema::PRECURSOR_ID, "precursor_id")
+  TEST_STRING_EQUAL(OSWTransitionSchema::TRAML_ID, "traml_id")
+  TEST_STRING_EQUAL(OSWTransitionSchema::PRODUCT_MZ, "product_mz")
+  TEST_STRING_EQUAL(OSWTransitionSchema::CHARGE, "charge")
+  TEST_STRING_EQUAL(OSWTransitionSchema::TYPE, "type")
+  TEST_STRING_EQUAL(OSWTransitionSchema::ANNOTATION, "annotation")
+  TEST_STRING_EQUAL(OSWTransitionSchema::ORDINAL, "ordinal")
+  TEST_STRING_EQUAL(OSWTransitionSchema::DETECTING, "detecting")
+  TEST_STRING_EQUAL(OSWTransitionSchema::IDENTIFYING, "identifying")
+  TEST_STRING_EQUAL(OSWTransitionSchema::QUANTIFYING, "quantifying")
+  TEST_STRING_EQUAL(OSWTransitionSchema::LIBRARY_INTENSITY, "library_intensity")
+  TEST_STRING_EQUAL(OSWTransitionSchema::DECOY, "decoy")
+}
+END_SECTION
+
+START_SECTION(OSWTransitionSchema field types and nullability)
+{
+  auto s = OSWTransitionSchema::schema();
+  // transition_id: int64, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "transition_id")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // precursor_id: int64, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "precursor_id")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // traml_id: utf8, nullable (default)
+  TEST_EQUAL(s->field(2)->name(), "traml_id")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  // product_mz: float64, nullable (default)
+  TEST_EQUAL(s->field(3)->name(), "product_mz")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // charge: int32, nullable (default)
+  TEST_EQUAL(s->field(4)->name(), "charge")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  // type: utf8, nullable (default)
+  TEST_EQUAL(s->field(5)->name(), "type")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(5)->nullable(), true)
+  // annotation: utf8, nullable (default)
+  TEST_EQUAL(s->field(6)->name(), "annotation")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(6)->nullable(), true)
+  // ordinal: int32, nullable (default)
+  TEST_EQUAL(s->field(7)->name(), "ordinal")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(7)->nullable(), true)
+  // detecting: boolean, nullable (default)
+  TEST_EQUAL(s->field(8)->name(), "detecting")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::BOOL)
+  TEST_EQUAL(s->field(8)->nullable(), true)
+  // identifying: boolean, nullable (default)
+  TEST_EQUAL(s->field(9)->name(), "identifying")
+  TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::BOOL)
+  TEST_EQUAL(s->field(9)->nullable(), true)
+  // quantifying: boolean, nullable (default)
+  TEST_EQUAL(s->field(10)->name(), "quantifying")
+  TEST_EQUAL(s->field(10)->type()->id(), arrow::Type::BOOL)
+  TEST_EQUAL(s->field(10)->nullable(), true)
+  // library_intensity: float64, nullable (default)
+  TEST_EQUAL(s->field(11)->name(), "library_intensity")
+  TEST_EQUAL(s->field(11)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(11)->nullable(), true)
+  // decoy: boolean, nullable (default)
+  TEST_EQUAL(s->field(12)->name(), "decoy")
+  TEST_EQUAL(s->field(12)->type()->id(), arrow::Type::BOOL)
+  TEST_EQUAL(s->field(12)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(OSWTransitionSchema validation with table)
+{
+  auto s = OSWTransitionSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== OSWFeaturePrecursorSchema ==========
+
+START_SECTION(OSWFeaturePrecursorSchema::schema() returns non-null with 5 fields)
+{
+  auto s = OSWFeaturePrecursorSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 5)
+}
+END_SECTION
+
+START_SECTION(OSWFeaturePrecursorSchema column name constants)
+{
+  TEST_STRING_EQUAL(OSWFeaturePrecursorSchema::FEATURE_ID, "feature_id")
+  TEST_STRING_EQUAL(OSWFeaturePrecursorSchema::RUN_ID, "run_id")
+  TEST_STRING_EQUAL(OSWFeaturePrecursorSchema::PRECURSOR_ISOTOPE, "precursor_isotope")
+  TEST_STRING_EQUAL(OSWFeaturePrecursorSchema::PRECURSOR_AREA_INTENSITY, "precursor_area_intensity")
+  TEST_STRING_EQUAL(OSWFeaturePrecursorSchema::PRECURSOR_APEX_INTENSITY, "precursor_apex_intensity")
+}
+END_SECTION
+
+START_SECTION(OSWFeaturePrecursorSchema field types and nullability)
+{
+  auto s = OSWFeaturePrecursorSchema::schema();
+  // feature_id: int64, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "feature_id")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // run_id: int64, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "run_id")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // precursor_isotope: int32, nullable (default)
+  TEST_EQUAL(s->field(2)->name(), "precursor_isotope")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  // precursor_area_intensity: float64, nullable (default)
+  TEST_EQUAL(s->field(3)->name(), "precursor_area_intensity")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // precursor_apex_intensity: float64, nullable (default)
+  TEST_EQUAL(s->field(4)->name(), "precursor_apex_intensity")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(OSWFeaturePrecursorSchema validation with table)
+{
+  auto s = OSWFeaturePrecursorSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== OSWRunSchema ==========
+
+START_SECTION(OSWRunSchema::schema() returns non-null with 2 fields)
+{
+  auto s = OSWRunSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 2)
+}
+END_SECTION
+
+START_SECTION(OSWRunSchema column name constants)
+{
+  TEST_STRING_EQUAL(OSWRunSchema::RUN_ID, "run_id")
+  TEST_STRING_EQUAL(OSWRunSchema::FILENAME, "filename")
+}
+END_SECTION
+
+START_SECTION(OSWRunSchema field types and nullability)
+{
+  auto s = OSWRunSchema::schema();
+  // run_id: int64, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "run_id")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // filename: utf8, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "filename")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(OSWRunSchema validation with table)
+{
+  auto s = OSWRunSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
 END_TEST
 
 #else // WITH_PARQUET

@@ -505,6 +505,68 @@ namespace OpenMS
     });
   }
 
+  // -- OSWPrecursorSchema --
+
+  std::shared_ptr<arrow::Schema> OSWPrecursorSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(PRECURSOR_ID, arrow::int64()),
+      arrow::field(PRECURSOR_MZ, arrow::float64()),
+      arrow::field(CHARGE, arrow::int32()),
+      arrow::field(LIBRARY_RT, arrow::float64()),
+      arrow::field(LIBRARY_DRIFT_TIME, arrow::float64()),
+      arrow::field(DECOY, arrow::boolean()),
+      arrow::field(TRAML_ID, arrow::utf8()),
+      arrow::field(MODIFIED_SEQUENCE, arrow::utf8()),
+      arrow::field(UNMODIFIED_SEQUENCE, arrow::utf8()),
+      arrow::field(PROTEIN_ACCESSIONS, arrow::utf8()),
+    });
+  }
+
+  // -- OSWTransitionSchema --
+
+  std::shared_ptr<arrow::Schema> OSWTransitionSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(TRANSITION_ID, arrow::int64()),
+      arrow::field(PRECURSOR_ID, arrow::int64()),
+      arrow::field(TRAML_ID, arrow::utf8()),
+      arrow::field(PRODUCT_MZ, arrow::float64()),
+      arrow::field(CHARGE, arrow::int32()),
+      arrow::field(TYPE, arrow::utf8()),
+      arrow::field(ANNOTATION, arrow::utf8()),
+      arrow::field(ORDINAL, arrow::int32()),
+      arrow::field(DETECTING, arrow::boolean()),
+      arrow::field(IDENTIFYING, arrow::boolean()),
+      arrow::field(QUANTIFYING, arrow::boolean()),
+      arrow::field(LIBRARY_INTENSITY, arrow::float64()),
+      arrow::field(DECOY, arrow::boolean()),
+    });
+  }
+
+  // -- OSWFeaturePrecursorSchema --
+
+  std::shared_ptr<arrow::Schema> OSWFeaturePrecursorSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(FEATURE_ID, arrow::int64()),
+      arrow::field(RUN_ID, arrow::int64()),
+      arrow::field(PRECURSOR_ISOTOPE, arrow::int32()),
+      arrow::field(PRECURSOR_AREA_INTENSITY, arrow::float64()),
+      arrow::field(PRECURSOR_APEX_INTENSITY, arrow::float64()),
+    });
+  }
+
+  // -- OSWRunSchema --
+
+  std::shared_ptr<arrow::Schema> OSWRunSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(RUN_ID, arrow::int64()),
+      arrow::field(FILENAME, arrow::utf8()),
+    });
+  }
+
 } // namespace OpenMS
 
 #endif // WITH_PARQUET

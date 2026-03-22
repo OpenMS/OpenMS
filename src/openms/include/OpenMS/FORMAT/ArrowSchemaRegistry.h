@@ -274,6 +274,60 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  struct OPENMS_DLLAPI OSWPrecursorSchema
+  {
+    static constexpr const char* PRECURSOR_ID = "precursor_id";
+    static constexpr const char* PRECURSOR_MZ = "precursor_mz";
+    static constexpr const char* CHARGE = "charge";
+    static constexpr const char* LIBRARY_RT = "library_rt";
+    static constexpr const char* LIBRARY_DRIFT_TIME = "library_drift_time";
+    static constexpr const char* DECOY = "decoy";
+    static constexpr const char* TRAML_ID = "traml_id";
+    static constexpr const char* MODIFIED_SEQUENCE = "modified_sequence";
+    static constexpr const char* UNMODIFIED_SEQUENCE = "unmodified_sequence";
+    static constexpr const char* PROTEIN_ACCESSIONS = "protein_accessions";
+
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  struct OPENMS_DLLAPI OSWTransitionSchema
+  {
+    static constexpr const char* TRANSITION_ID = "transition_id";
+    static constexpr const char* PRECURSOR_ID = "precursor_id";
+    static constexpr const char* TRAML_ID = "traml_id";
+    static constexpr const char* PRODUCT_MZ = "product_mz";
+    static constexpr const char* CHARGE = "charge";
+    static constexpr const char* TYPE = "type";
+    static constexpr const char* ANNOTATION = "annotation";
+    static constexpr const char* ORDINAL = "ordinal";
+    static constexpr const char* DETECTING = "detecting";
+    static constexpr const char* IDENTIFYING = "identifying";
+    static constexpr const char* QUANTIFYING = "quantifying";
+    static constexpr const char* LIBRARY_INTENSITY = "library_intensity";
+    static constexpr const char* DECOY = "decoy";
+
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  struct OPENMS_DLLAPI OSWFeaturePrecursorSchema
+  {
+    static constexpr const char* FEATURE_ID = "feature_id";
+    static constexpr const char* RUN_ID = "run_id";
+    static constexpr const char* PRECURSOR_ISOTOPE = "precursor_isotope";
+    static constexpr const char* PRECURSOR_AREA_INTENSITY = "precursor_area_intensity";
+    static constexpr const char* PRECURSOR_APEX_INTENSITY = "precursor_apex_intensity";
+
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  struct OPENMS_DLLAPI OSWRunSchema
+  {
+    static constexpr const char* RUN_ID = "run_id";
+    static constexpr const char* FILENAME = "filename";
+
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
 } // namespace OpenMS
 
 #endif // WITH_PARQUET
