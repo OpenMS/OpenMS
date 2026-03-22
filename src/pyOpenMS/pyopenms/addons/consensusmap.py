@@ -3,12 +3,6 @@ import numpy as np
 from collections import defaultdict as _defaultdict
 from . import addon
 
-try:
-    from pyopenms._arrow_zerocopy import ConsensusFeatureExportSchema as _CFES
-    _has_schema_constants = True
-except ImportError:
-    _has_schema_constants = False
-
 
 @addon("ConsensusMap")
 def df_columns(self, columns='default'):
@@ -214,44 +208,6 @@ def feature_columns(self):
     list
         List of column name strings.
     """
-    if _has_schema_constants:
-        return [
-            # QPX feature schema fields
-            _CFES.SEQUENCE,
-            _CFES.PEPTIDOFORM,
-            _CFES.MODIFICATIONS,
-            _CFES.PRECURSOR_CHARGE,
-            _CFES.CALCULATED_MZ,
-            _CFES.OBSERVED_MZ,
-            _CFES.RT,
-            _CFES.POSTERIOR_ERROR_PROBABILITY,
-            _CFES.IS_DECOY,
-            _CFES.ADDITIONAL_SCORES,
-            _CFES.PREDICTED_RT,
-            _CFES.REFERENCE_FILE_NAME,
-            _CFES.CV_PARAMS,
-            _CFES.SCAN,
-            _CFES.ION_MOBILITY,
-            _CFES.START_ION_MOBILITY,
-            _CFES.STOP_ION_MOBILITY,
-            _CFES.INTENSITIES,
-            _CFES.ADDITIONAL_INTENSITIES,
-            _CFES.PG_ACCESSIONS,
-            _CFES.ANCHOR_PROTEIN,
-            _CFES.UNIQUE,
-            _CFES.PG_GLOBAL_QVALUE,
-            _CFES.GG_ACCESSIONS,
-            _CFES.GG_NAMES,
-            _CFES.SCAN_REFERENCE_FILE_NAME,
-            _CFES.RT_START,
-            _CFES.RT_STOP,
-            # OpenMS-specific fields
-            _CFES.QUALITY,
-            _CFES.SCORE,
-            _CFES.SCORE_TYPE,
-            _CFES.SPECTRUM_REFERENCE,
-            _CFES.FEATURE_METAVALUES,
-        ]
     return [
         # QPX feature schema fields
         "sequence",
@@ -320,112 +276,41 @@ def to_feature_arrow(self, reference_file_name=None, columns=None,
 
     import pyopenms
 
-    # Column name constants (use schema constants when available, else strings)
-    if _has_schema_constants:
-        _c = _CFES
-        _SEQUENCE = _c.SEQUENCE
-        _PEPTIDOFORM = _c.PEPTIDOFORM
-        _MODIFICATIONS = _c.MODIFICATIONS
-        _PRECURSOR_CHARGE = _c.PRECURSOR_CHARGE
-        _CALCULATED_MZ = _c.CALCULATED_MZ
-        _OBSERVED_MZ = _c.OBSERVED_MZ
-        _RT = _c.RT
-        _PEP = _c.POSTERIOR_ERROR_PROBABILITY
-        _IS_DECOY = _c.IS_DECOY
-        _ADDITIONAL_SCORES = _c.ADDITIONAL_SCORES
-        _PREDICTED_RT = _c.PREDICTED_RT
-        _REFERENCE_FILE_NAME = _c.REFERENCE_FILE_NAME
-        _CV_PARAMS = _c.CV_PARAMS
-        _SCAN = _c.SCAN
-        _ION_MOBILITY = _c.ION_MOBILITY
-        _START_ION_MOBILITY = _c.START_ION_MOBILITY
-        _STOP_ION_MOBILITY = _c.STOP_ION_MOBILITY
-        _INTENSITIES = _c.INTENSITIES
-        _ADDITIONAL_INTENSITIES = _c.ADDITIONAL_INTENSITIES
-        _PG_ACCESSIONS = _c.PG_ACCESSIONS
-        _ANCHOR_PROTEIN = _c.ANCHOR_PROTEIN
-        _UNIQUE = _c.UNIQUE
-        _PG_GLOBAL_QVALUE = _c.PG_GLOBAL_QVALUE
-        _GG_ACCESSIONS = _c.GG_ACCESSIONS
-        _GG_NAMES = _c.GG_NAMES
-        _SCAN_REFERENCE_FILE_NAME = _c.SCAN_REFERENCE_FILE_NAME
-        _RT_START = _c.RT_START
-        _RT_STOP = _c.RT_STOP
-        _QUALITY = _c.QUALITY
-        _SCORE = _c.SCORE
-        _SCORE_TYPE = _c.SCORE_TYPE
-        _SPECTRUM_REFERENCE = _c.SPECTRUM_REFERENCE
-        _FEATURE_METAVALUES = _c.FEATURE_METAVALUES
-    else:
-        _SEQUENCE = 'sequence'
-        _PEPTIDOFORM = 'peptidoform'
-        _MODIFICATIONS = 'modifications'
-        _PRECURSOR_CHARGE = 'precursor_charge'
-        _CALCULATED_MZ = 'calculated_mz'
-        _OBSERVED_MZ = 'observed_mz'
-        _RT = 'rt'
-        _PEP = 'posterior_error_probability'
-        _IS_DECOY = 'is_decoy'
-        _ADDITIONAL_SCORES = 'additional_scores'
-        _PREDICTED_RT = 'predicted_rt'
-        _REFERENCE_FILE_NAME = 'reference_file_name'
-        _CV_PARAMS = 'cv_params'
-        _SCAN = 'scan'
-        _ION_MOBILITY = 'ion_mobility'
-        _START_ION_MOBILITY = 'start_ion_mobility'
-        _STOP_ION_MOBILITY = 'stop_ion_mobility'
-        _INTENSITIES = 'intensities'
-        _ADDITIONAL_INTENSITIES = 'additional_intensities'
-        _PG_ACCESSIONS = 'pg_accessions'
-        _ANCHOR_PROTEIN = 'anchor_protein'
-        _UNIQUE = 'unique'
-        _PG_GLOBAL_QVALUE = 'pg_global_qvalue'
-        _GG_ACCESSIONS = 'gg_accessions'
-        _GG_NAMES = 'gg_names'
-        _SCAN_REFERENCE_FILE_NAME = 'scan_reference_file_name'
-        _RT_START = 'rt_start'
-        _RT_STOP = 'rt_stop'
-        _QUALITY = 'quality'
-        _SCORE = 'score'
-        _SCORE_TYPE = 'score_type'
-        _SPECTRUM_REFERENCE = 'spectrum_reference'
-        _FEATURE_METAVALUES = 'feature_metavalues'
-
     # Build data arrays
     data = {
-        _SEQUENCE: [],
-        _PEPTIDOFORM: [],
-        _MODIFICATIONS: [],
-        _PRECURSOR_CHARGE: [],
-        _CALCULATED_MZ: [],
-        _OBSERVED_MZ: [],
-        _RT: [],
-        _PEP: [],
-        _IS_DECOY: [],
-        _ADDITIONAL_SCORES: [],
-        _PREDICTED_RT: [],
-        _REFERENCE_FILE_NAME: [],
-        _CV_PARAMS: [],
-        _SCAN: [],
-        _ION_MOBILITY: [],
-        _START_ION_MOBILITY: [],
-        _STOP_ION_MOBILITY: [],
-        _INTENSITIES: [],
-        _ADDITIONAL_INTENSITIES: [],
-        _PG_ACCESSIONS: [],
-        _ANCHOR_PROTEIN: [],
-        _UNIQUE: [],
-        _PG_GLOBAL_QVALUE: [],
-        _GG_ACCESSIONS: [],
-        _GG_NAMES: [],
-        _SCAN_REFERENCE_FILE_NAME: [],
-        _RT_START: [],
-        _RT_STOP: [],
-        _QUALITY: [],
-        _SCORE: [],
-        _SCORE_TYPE: [],
-        _SPECTRUM_REFERENCE: [],
-        _FEATURE_METAVALUES: [],
+        'sequence': [],
+        'peptidoform': [],
+        'modifications': [],
+        'precursor_charge': [],
+        'calculated_mz': [],
+        'observed_mz': [],
+        'rt': [],
+        'posterior_error_probability': [],
+        'is_decoy': [],
+        'additional_scores': [],
+        'predicted_rt': [],
+        'reference_file_name': [],
+        'cv_params': [],
+        'scan': [],
+        'ion_mobility': [],
+        'start_ion_mobility': [],
+        'stop_ion_mobility': [],
+        'intensities': [],
+        'additional_intensities': [],
+        'pg_accessions': [],
+        'anchor_protein': [],
+        'unique': [],
+        'pg_global_qvalue': [],
+        'gg_accessions': [],
+        'gg_names': [],
+        'scan_reference_file_name': [],
+        'rt_start': [],
+        'rt_stop': [],
+        'quality': [],
+        'score': [],
+        'score_type': [],
+        'spectrum_reference': [],
+        'feature_metavalues': [],
     }
 
     # Get column headers for intensity mapping
@@ -456,57 +341,57 @@ def to_feature_arrow(self, reference_file_name=None, columns=None,
         # Sequence info
         if best_hit:
             seq = best_hit.getSequence()
-            data[_SEQUENCE].append(seq.toUnmodifiedString())
-            data[_PEPTIDOFORM].append(seq.toString())
-            data[_MODIFICATIONS].append([])  # Simplified
-            data[_CALCULATED_MZ].append(seq.getMZ(cf.getCharge()) if cf.getCharge() > 0 else None)
-            data[_SCORE].append(best_hit.getScore())
-            data[_SCORE_TYPE].append(pep_ids[0].getScoreType() if pep_ids else '')
+            data['sequence'].append(seq.toUnmodifiedString())
+            data['peptidoform'].append(seq.toString())
+            data['modifications'].append([])  # Simplified
+            data['calculated_mz'].append(seq.getMZ(cf.getCharge()) if cf.getCharge() > 0 else None)
+            data['score'].append(best_hit.getScore())
+            data['score_type'].append(pep_ids[0].getScoreType() if pep_ids else '')
             # Get protein accessions
             prot_accs = [ev.getProteinAccession() for ev in best_hit.getPeptideEvidences()]
-            data[_PG_ACCESSIONS].append(prot_accs)
-            data[_ANCHOR_PROTEIN].append(prot_accs[0] if prot_accs else None)
+            data['pg_accessions'].append(prot_accs)
+            data['anchor_protein'].append(prot_accs[0] if prot_accs else None)
             # unique: 1 if single protein, 0 otherwise (QPX schema uses int)
-            data[_UNIQUE].append(1 if len(set(prot_accs)) == 1 else 0)
+            data['unique'].append(1 if len(set(prot_accs)) == 1 else 0)
             # Get q-value from protein groups
             qval = None
             for acc in prot_accs:
                 if acc in pg_qvalue_lookup:
                     qval = pg_qvalue_lookup[acc]
                     break
-            data[_PG_GLOBAL_QVALUE].append(qval)
+            data['pg_global_qvalue'].append(qval)
             # Decoy status from metavalue (QPX schema uses int: 0=target, 1=decoy)
             if best_hit.metaValueExists('target_decoy'):
                 td_val = best_hit.getMetaValue('target_decoy')
                 is_decoy = 1 if td_val == 'decoy' else 0
             else:
                 is_decoy = None
-            data[_IS_DECOY].append(is_decoy)
+            data['is_decoy'].append(is_decoy)
         else:
-            data[_SEQUENCE].append(None)
-            data[_PEPTIDOFORM].append(None)
-            data[_MODIFICATIONS].append(None)
-            data[_CALCULATED_MZ].append(None)
-            data[_SCORE].append(None)
-            data[_SCORE_TYPE].append(None)
-            data[_PG_ACCESSIONS].append(None)
-            data[_ANCHOR_PROTEIN].append(None)
-            data[_UNIQUE].append(0)  # QPX: 0 for unidentified
-            data[_PG_GLOBAL_QVALUE].append(None)
-            data[_IS_DECOY].append(None)
+            data['sequence'].append(None)
+            data['peptidoform'].append(None)
+            data['modifications'].append(None)
+            data['calculated_mz'].append(None)
+            data['score'].append(None)
+            data['score_type'].append(None)
+            data['pg_accessions'].append(None)
+            data['anchor_protein'].append(None)
+            data['unique'].append(0)  # QPX: 0 for unidentified
+            data['pg_global_qvalue'].append(None)
+            data['is_decoy'].append(None)
 
-        data[_PRECURSOR_CHARGE].append(cf.getCharge())
-        data[_OBSERVED_MZ].append(cf.getMZ())
-        data[_RT].append(cf.getRT())
-        data[_PEP].append(None)
-        data[_ADDITIONAL_SCORES].append(None)
-        data[_PREDICTED_RT].append(None)
-        data[_REFERENCE_FILE_NAME].append(reference_file_name)
-        data[_CV_PARAMS].append(None)
-        data[_SCAN].append(None)
-        data[_ION_MOBILITY].append(None)
-        data[_START_ION_MOBILITY].append(None)
-        data[_STOP_ION_MOBILITY].append(None)
+        data['precursor_charge'].append(cf.getCharge())
+        data['observed_mz'].append(cf.getMZ())
+        data['rt'].append(cf.getRT())
+        data['posterior_error_probability'].append(None)
+        data['additional_scores'].append(None)
+        data['predicted_rt'].append(None)
+        data['reference_file_name'].append(reference_file_name)
+        data['cv_params'].append(None)
+        data['scan'].append(None)
+        data['ion_mobility'].append(None)
+        data['start_ion_mobility'].append(None)
+        data['stop_ion_mobility'].append(None)
 
         # Build intensities as list of dicts (QPX schema)
         intensities = []
@@ -522,17 +407,17 @@ def to_feature_arrow(self, reference_file_name=None, columns=None,
                 if not labelfree and header.label:
                     entry["channel"] = header.label
                 intensities.append(entry)
-        data[_INTENSITIES].append(intensities)
-        data[_ADDITIONAL_INTENSITIES].append(None)
+        data['intensities'].append(intensities)
+        data['additional_intensities'].append(None)
 
-        data[_GG_ACCESSIONS].append(None)
-        data[_GG_NAMES].append(None)
-        data[_SCAN_REFERENCE_FILE_NAME].append(None)
-        data[_RT_START].append(None)
-        data[_RT_STOP].append(None)
-        data[_QUALITY].append(cf.getQuality())
-        data[_SPECTRUM_REFERENCE].append(None)
-        data[_FEATURE_METAVALUES].append(None)
+        data['gg_accessions'].append(None)
+        data['gg_names'].append(None)
+        data['scan_reference_file_name'].append(None)
+        data['rt_start'].append(None)
+        data['rt_stop'].append(None)
+        data['quality'].append(cf.getQuality())
+        data['spectrum_reference'].append(None)
+        data['feature_metavalues'].append(None)
 
     # Filter columns if specified
     if columns:
@@ -541,9 +426,9 @@ def to_feature_arrow(self, reference_file_name=None, columns=None,
     table = pa.table(data)
 
     # Sort by RT for consistent ordering
-    if _RT in table.column_names and table.num_rows > 0:
+    if 'rt' in table.column_names and table.num_rows > 0:
         import pyarrow.compute as pc
-        indices = pc.sort_indices(table, sort_keys=[(_RT, 'ascending')])
+        indices = pc.sort_indices(table, sort_keys=[('rt', 'ascending')])
         table = table.take(indices)
 
     return table

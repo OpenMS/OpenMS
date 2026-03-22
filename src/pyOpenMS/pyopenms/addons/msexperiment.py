@@ -5,14 +5,6 @@ import warnings
 import numpy as np
 from . import addon
 
-try:
-    from pyopenms._arrow_zerocopy import (
-        SpectraLongSchema, SpectraSemiWideSchema, ChromatogramSchema,
-    )
-    _has_schema_constants = True
-except ImportError:
-    _has_schema_constants = False
-
 
 @addon("MSExperiment")
 def df_columns(self, long_format=False):
@@ -72,46 +64,23 @@ def to_df(self, columns=None, ms_levels=None, long_format=False):
 def arrow_columns(self, data='spectra', format='long',
                   include_precursor_info=True, include_ion_mobility=True):
     """Returns column names that to_arrow() would produce."""
-    if _has_schema_constants:
-        _SL = SpectraLongSchema
-        _SSW = SpectraSemiWideSchema
-        _CS = ChromatogramSchema
+    spectra_long_cols = ['mz', 'intensity', 'rt']
+    if include_ion_mobility:
+        spectra_long_cols.append('ion_mobility')
+    spectra_long_cols.extend(['spectrum_index', 'ms_level', 'native_id'])
+    if include_precursor_info:
+        spectra_long_cols.extend(['precursor_mz', 'precursor_charge', 'precursor_intensity',
+                                  'isolation_lower', 'isolation_upper'])
 
-        spectra_long_cols = [_SL.MZ, _SL.INTENSITY, _SL.RT]
-        if include_ion_mobility:
-            spectra_long_cols.append(_SL.ION_MOBILITY)
-        spectra_long_cols.extend([_SL.SPECTRUM_INDEX, _SL.MS_LEVEL, _SL.NATIVE_ID])
-        if include_precursor_info:
-            spectra_long_cols.extend([_SL.PRECURSOR_MZ, _SL.PRECURSOR_CHARGE, _SL.PRECURSOR_INTENSITY,
-                                      _SL.ISOLATION_LOWER, _SL.ISOLATION_UPPER])
+    spectra_semi_wide_cols = ['spectrum_index', 'rt', 'ms_level', 'native_id', 'mz', 'intensity']
+    if include_ion_mobility:
+        spectra_semi_wide_cols.append('ion_mobility')
+    if include_precursor_info:
+        spectra_semi_wide_cols.extend(['precursor_mz', 'precursor_charge', 'precursor_intensity',
+                                       'isolation_lower', 'isolation_upper'])
 
-        spectra_semi_wide_cols = [_SSW.SPECTRUM_INDEX, _SSW.RT, _SSW.MS_LEVEL, _SSW.NATIVE_ID, _SSW.MZ, _SSW.INTENSITY]
-        if include_ion_mobility:
-            spectra_semi_wide_cols.append(_SSW.ION_MOBILITY)
-        if include_precursor_info:
-            spectra_semi_wide_cols.extend([_SSW.PRECURSOR_MZ, _SSW.PRECURSOR_CHARGE, _SSW.PRECURSOR_INTENSITY,
-                                           _SSW.ISOLATION_LOWER, _SSW.ISOLATION_UPPER])
-
-        chrom_long_cols = [_CS.RT, _CS.INTENSITY, _CS.CHROMATOGRAM_INDEX, _CS.NATIVE_ID, _CS.PRECURSOR_MZ, _CS.PRODUCT_MZ]
-        chrom_semi_wide_cols = [_CS.CHROMATOGRAM_INDEX, _CS.NATIVE_ID, _CS.RT, _CS.INTENSITY, _CS.PRECURSOR_MZ, _CS.PRODUCT_MZ]
-    else:
-        spectra_long_cols = ['mz', 'intensity', 'rt']
-        if include_ion_mobility:
-            spectra_long_cols.append('ion_mobility')
-        spectra_long_cols.extend(['spectrum_index', 'ms_level', 'native_id'])
-        if include_precursor_info:
-            spectra_long_cols.extend(['precursor_mz', 'precursor_charge', 'precursor_intensity',
-                                      'isolation_lower', 'isolation_upper'])
-
-        spectra_semi_wide_cols = ['spectrum_index', 'rt', 'ms_level', 'native_id', 'mz', 'intensity']
-        if include_ion_mobility:
-            spectra_semi_wide_cols.append('ion_mobility')
-        if include_precursor_info:
-            spectra_semi_wide_cols.extend(['precursor_mz', 'precursor_charge', 'precursor_intensity',
-                                           'isolation_lower', 'isolation_upper'])
-
-        chrom_long_cols = ['rt', 'intensity', 'chromatogram_index', 'native_id', 'precursor_mz', 'product_mz']
-        chrom_semi_wide_cols = ['chromatogram_index', 'native_id', 'rt', 'intensity', 'precursor_mz', 'product_mz']
+    chrom_long_cols = ['rt', 'intensity', 'chromatogram_index', 'native_id', 'precursor_mz', 'product_mz']
+    chrom_semi_wide_cols = ['chromatogram_index', 'native_id', 'rt', 'intensity', 'precursor_mz', 'product_mz']
 
     if data == 'spectra':
         return spectra_long_cols if format == 'long' else spectra_semi_wide_cols

@@ -5,12 +5,6 @@ import numpy as np
 import warnings
 from . import addon
 
-try:
-    from pyopenms._arrow_zerocopy import PSMSchema as _PSM
-    _has_schema_constants = True
-except ImportError:
-    _has_schema_constants = False
-
 
 @addon("PeptideIdentificationList")
 def to_df(self, decode_ontology=True, default_missing_values=None, export_unidentified=True, columns=None):
@@ -615,54 +609,6 @@ def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
                 all_ion_type_array.append(None)
                 all_ion_mobility_array.append(None)
 
-    # Column name constants (use schema constants when available, else strings)
-    if _has_schema_constants:
-        _SEQUENCE = _PSM.SEQUENCE
-        _PEPTIDOFORM = _PSM.PEPTIDOFORM
-        _MODIFICATIONS = _PSM.MODIFICATIONS
-        _PRECURSOR_CHARGE = _PSM.PRECURSOR_CHARGE
-        _PEP_COL = _PSM.POSTERIOR_ERROR_PROBABILITY
-        _IS_DECOY = _PSM.IS_DECOY
-        _CALCULATED_MZ = _PSM.CALCULATED_MZ
-        _OBSERVED_MZ = _PSM.OBSERVED_MZ
-        _ADDITIONAL_SCORES = _PSM.ADDITIONAL_SCORES
-        _PROTEIN_ACCESSIONS = _PSM.PROTEIN_ACCESSIONS
-        _PREDICTED_RT_COL = _PSM.PREDICTED_RT
-        _REFERENCE_FILE_NAME = _PSM.REFERENCE_FILE_NAME
-        _CV_PARAMS = _PSM.CV_PARAMS
-        _SCAN_COL = _PSM.SCAN
-        _RT_COL = _PSM.RT
-        _ION_MOBILITY_COL = _PSM.ION_MOBILITY
-        _SPECTRUM_REFERENCE = _PSM.SPECTRUM_REFERENCE
-        _SCORE_COL = _PSM.SCORE
-        _SCORE_TYPE_COL = _PSM.SCORE_TYPE
-        _RANK_COL = _PSM.RANK
-        _PSM_METAVALUES = _PSM.PSM_METAVALUES
-        _SPECTRUM_METAVALUES = _PSM.SPECTRUM_METAVALUES
-    else:
-        _SEQUENCE = "sequence"
-        _PEPTIDOFORM = "peptidoform"
-        _MODIFICATIONS = "modifications"
-        _PRECURSOR_CHARGE = "precursor_charge"
-        _PEP_COL = "posterior_error_probability"
-        _IS_DECOY = "is_decoy"
-        _CALCULATED_MZ = "calculated_mz"
-        _OBSERVED_MZ = "observed_mz"
-        _ADDITIONAL_SCORES = "additional_scores"
-        _PROTEIN_ACCESSIONS = "protein_accessions"
-        _PREDICTED_RT_COL = "predicted_rt"
-        _REFERENCE_FILE_NAME = "reference_file_name"
-        _CV_PARAMS = "cv_params"
-        _SCAN_COL = "scan"
-        _RT_COL = "rt"
-        _ION_MOBILITY_COL = "ion_mobility"
-        _SPECTRUM_REFERENCE = "spectrum_reference"
-        _SCORE_COL = "score"
-        _SCORE_TYPE_COL = "score_type"
-        _RANK_COL = "rank"
-        _PSM_METAVALUES = "psm_metavalues"
-        _SPECTRUM_METAVALUES = "spectrum_metavalues"
-
     # Build Arrow table with proper nested types
     columns_set = set(columns) if columns is not None else None
 
@@ -693,38 +639,38 @@ def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
     data_dict = {}
 
     # Core columns
-    if should_include(_SEQUENCE):
-        data_dict[_SEQUENCE] = pa.array(all_sequence, type=pa.utf8())
-    if should_include(_PEPTIDOFORM):
-        data_dict[_PEPTIDOFORM] = pa.array(all_peptidoform, type=pa.utf8())
-    if should_include(_MODIFICATIONS):
-        data_dict[_MODIFICATIONS] = pa.array(all_modifications, type=pa.list_(modification_type))
-    if should_include(_PRECURSOR_CHARGE):
-        data_dict[_PRECURSOR_CHARGE] = pa.array(all_precursor_charge, type=pa.int32())
-    if should_include(_PEP_COL):
-        data_dict[_PEP_COL] = pa.array(all_pep, type=pa.float64())
-    if should_include(_IS_DECOY):
-        data_dict[_IS_DECOY] = pa.array(all_is_decoy, type=pa.int32())
-    if should_include(_CALCULATED_MZ):
-        data_dict[_CALCULATED_MZ] = pa.array(all_calculated_mz, type=pa.float64())
-    if should_include(_OBSERVED_MZ):
-        data_dict[_OBSERVED_MZ] = pa.array(all_observed_mz, type=pa.float64())
-    if should_include(_ADDITIONAL_SCORES):
-        data_dict[_ADDITIONAL_SCORES] = pa.array(all_additional_scores, type=pa.list_(score_type_struct))
-    if should_include(_PROTEIN_ACCESSIONS):
-        data_dict[_PROTEIN_ACCESSIONS] = pa.array(all_protein_accessions, type=pa.list_(pa.utf8()))
-    if should_include(_PREDICTED_RT_COL):
-        data_dict[_PREDICTED_RT_COL] = pa.array(all_predicted_rt, type=pa.float64())
-    if should_include(_REFERENCE_FILE_NAME):
-        data_dict[_REFERENCE_FILE_NAME] = pa.array(all_reference_file, type=pa.utf8())
-    if should_include(_CV_PARAMS):
-        data_dict[_CV_PARAMS] = pa.array(all_cv_params, type=pa.utf8())
-    if should_include(_SCAN_COL):
-        data_dict[_SCAN_COL] = pa.array(all_scan, type=pa.utf8())
-    if should_include(_RT_COL):
-        data_dict[_RT_COL] = pa.array(all_rt, type=pa.float64())
-    if should_include(_ION_MOBILITY_COL):
-        data_dict[_ION_MOBILITY_COL] = pa.array(all_ion_mobility, type=pa.float64())
+    if should_include("sequence"):
+        data_dict["sequence"] = pa.array(all_sequence, type=pa.utf8())
+    if should_include("peptidoform"):
+        data_dict["peptidoform"] = pa.array(all_peptidoform, type=pa.utf8())
+    if should_include("modifications"):
+        data_dict["modifications"] = pa.array(all_modifications, type=pa.list_(modification_type))
+    if should_include("precursor_charge"):
+        data_dict["precursor_charge"] = pa.array(all_precursor_charge, type=pa.int32())
+    if should_include("posterior_error_probability"):
+        data_dict["posterior_error_probability"] = pa.array(all_pep, type=pa.float64())
+    if should_include("is_decoy"):
+        data_dict["is_decoy"] = pa.array(all_is_decoy, type=pa.int32())
+    if should_include("calculated_mz"):
+        data_dict["calculated_mz"] = pa.array(all_calculated_mz, type=pa.float64())
+    if should_include("observed_mz"):
+        data_dict["observed_mz"] = pa.array(all_observed_mz, type=pa.float64())
+    if should_include("additional_scores"):
+        data_dict["additional_scores"] = pa.array(all_additional_scores, type=pa.list_(score_type_struct))
+    if should_include("protein_accessions"):
+        data_dict["protein_accessions"] = pa.array(all_protein_accessions, type=pa.list_(pa.utf8()))
+    if should_include("predicted_rt"):
+        data_dict["predicted_rt"] = pa.array(all_predicted_rt, type=pa.float64())
+    if should_include("reference_file_name"):
+        data_dict["reference_file_name"] = pa.array(all_reference_file, type=pa.utf8())
+    if should_include("cv_params"):
+        data_dict["cv_params"] = pa.array(all_cv_params, type=pa.utf8())
+    if should_include("scan"):
+        data_dict["scan"] = pa.array(all_scan, type=pa.utf8())
+    if should_include("rt"):
+        data_dict["rt"] = pa.array(all_rt, type=pa.float64())
+    if should_include("ion_mobility"):
+        data_dict["ion_mobility"] = pa.array(all_ion_mobility, type=pa.float64())
 
     # Peak annotation columns
     if should_include("number_peaks"):
@@ -741,34 +687,34 @@ def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
         data_dict["ion_mobility_array"] = pa.array(all_ion_mobility_array, type=pa.list_(pa.float64()))
 
     # OpenMS-specific columns
-    if should_include(_SPECTRUM_REFERENCE):
-        data_dict[_SPECTRUM_REFERENCE] = pa.array(all_spectrum_reference, type=pa.utf8())
-    if should_include(_SCORE_COL):
-        data_dict[_SCORE_COL] = pa.array(all_score, type=pa.float64())
-    if should_include(_SCORE_TYPE_COL):
-        data_dict[_SCORE_TYPE_COL] = pa.array(all_score_type, type=pa.utf8())
-    if should_include(_RANK_COL):
-        data_dict[_RANK_COL] = pa.array(all_rank, type=pa.int32())
+    if should_include("spectrum_reference"):
+        data_dict["spectrum_reference"] = pa.array(all_spectrum_reference, type=pa.utf8())
+    if should_include("score"):
+        data_dict["score"] = pa.array(all_score, type=pa.float64())
+    if should_include("score_type"):
+        data_dict["score_type"] = pa.array(all_score_type, type=pa.utf8())
+    if should_include("rank"):
+        data_dict["rank"] = pa.array(all_rank, type=pa.int32())
     if should_include("P_ID"):
         data_dict["P_ID"] = pa.array(all_p_id, type=pa.int32())
 
     # Metavalue columns - stringify values for Arrow compatibility
-    if should_include(_PSM_METAVALUES):
+    if should_include("psm_metavalues"):
         all_psm_metavalues_str = [
             [{"name": mv["name"],
               "value": str(mv["value"]) if mv["value"] is not None else None,
               "value_type": mv["value_type"]}
              for mv in mvs] for mvs in all_psm_metavalues
         ]
-        data_dict[_PSM_METAVALUES] = pa.array(all_psm_metavalues_str, type=pa.list_(metavalue_type))
-    if should_include(_SPECTRUM_METAVALUES):
+        data_dict["psm_metavalues"] = pa.array(all_psm_metavalues_str, type=pa.list_(metavalue_type))
+    if should_include("spectrum_metavalues"):
         all_spectrum_metavalues_str = [
             [{"name": mv["name"],
               "value": str(mv["value"]) if mv["value"] is not None else None,
               "value_type": mv["value_type"]}
              for mv in mvs] for mvs in all_spectrum_metavalues
         ]
-        data_dict[_SPECTRUM_METAVALUES] = pa.array(all_spectrum_metavalues_str, type=pa.list_(metavalue_type))
+        data_dict["spectrum_metavalues"] = pa.array(all_spectrum_metavalues_str, type=pa.list_(metavalue_type))
 
     table = pa.Table.from_pydict(data_dict)
 
@@ -779,7 +725,7 @@ def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
                           f"Use psm_columns() to see available columns.")
 
     # Sort by rt, observed_mz, precursor_charge, rank for consistent ordering
-    sort_cols = [_RT_COL, _OBSERVED_MZ, _PRECURSOR_CHARGE, _RANK_COL]
+    sort_cols = ["rt", "observed_mz", "precursor_charge", "rank"]
     available_sort_cols = [(c, "ascending") for c in sort_cols if c in table.column_names]
     if available_sort_cols and table.num_rows > 0:
         import pyarrow.compute as pc
@@ -862,41 +808,6 @@ def psm_columns(self):
 
     :return: List of column name strings.
     """
-    if _has_schema_constants:
-        return [
-            # QPX schema fields (in schema order)
-            _PSM.SEQUENCE,
-            _PSM.PEPTIDOFORM,
-            _PSM.MODIFICATIONS,
-            _PSM.PRECURSOR_CHARGE,
-            _PSM.POSTERIOR_ERROR_PROBABILITY,
-            _PSM.IS_DECOY,
-            _PSM.CALCULATED_MZ,
-            _PSM.OBSERVED_MZ,
-            _PSM.ADDITIONAL_SCORES,
-            _PSM.PROTEIN_ACCESSIONS,
-            _PSM.PREDICTED_RT,
-            _PSM.REFERENCE_FILE_NAME,
-            _PSM.CV_PARAMS,
-            _PSM.SCAN,
-            _PSM.RT,
-            _PSM.ION_MOBILITY,
-            "number_peaks",
-            "mz_array",
-            "intensity_array",
-            "charge_array",
-            "ion_type_array",
-            "ion_mobility_array",
-            # OpenMS-specific fields (not in QPX)
-            _PSM.SPECTRUM_REFERENCE,
-            _PSM.SCORE,
-            _PSM.SCORE_TYPE,
-            _PSM.RANK,
-            "P_ID",
-            # Metavalues
-            _PSM.PSM_METAVALUES,
-            _PSM.SPECTRUM_METAVALUES,
-        ]
     return [
         # QPX schema fields (in schema order)
         "sequence",
