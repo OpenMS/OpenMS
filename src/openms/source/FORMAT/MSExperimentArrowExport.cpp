@@ -459,7 +459,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   auto validation = ArrowSchemaValidation::validate(table, SpectraLongSchema::schema(), ArrowSchemaValidation::Mode::Subset);
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Spectra long format schema validation failed: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Spectra long format schema validation failed: " << validation.toString() << "\n";
     return nullptr;
   }
 
@@ -757,7 +757,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   auto validation = ArrowSchemaValidation::validate(table, SpectraSemiWideSchema::schema(), ArrowSchemaValidation::Mode::Subset);
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Spectra semi-wide format schema validation failed: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Spectra semi-wide format schema validation failed: " << validation.toString() << "\n";
     return nullptr;
   }
 
@@ -940,7 +940,7 @@ std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
     auto validation = ArrowSchemaValidation::validate(table, ChromatogramSchema::schema(), ArrowSchemaValidation::Mode::Subset);
     if (!validation.valid)
     {
-      OPENMS_LOG_ERROR << "MSExperimentArrowExport: Chromatogram long format schema validation failed: " << validation.toString() << std::endl;
+      OPENMS_LOG_ERROR << "MSExperimentArrowExport: Chromatogram long format schema validation failed: " << validation.toString() << "\n";
       return nullptr;
     }
 

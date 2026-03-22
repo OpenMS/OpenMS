@@ -1050,7 +1050,7 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
   auto validation = ArrowSchemaValidation::validate(table, FeatureSchema::schema());
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
     return nullptr;
   }
 
@@ -1250,7 +1250,7 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
   auto validation = ArrowSchemaValidation::validate(tbl, FeatureSchema::schema(), ArrowSchemaValidation::Mode::Subset);
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
     return false;
   }
 
@@ -1265,7 +1265,7 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
   auto col_overall_quality = getColumn_(tbl, FeatureSchema::QUALITY);
   auto col_quality_rt = getColumn_(tbl, FeatureSchema::QUALITY_RT);
   auto col_quality_mz = getColumn_(tbl, FeatureSchema::QUALITY_MZ);
-  auto col_width = getColumn_(tbl, FeatureSchema::WIDTH);
+  auto col_width = getColumn_(tbl, FeatureSchema::WIDTH, /*required=*/false);
   auto col_convex_hulls = getColumn_(tbl, FeatureSchema::CONVEX_HULLS, /*required=*/false);
   auto col_metavalues = getColumn_(tbl, FeatureSchema::METAVALUES, /*required=*/false);
 

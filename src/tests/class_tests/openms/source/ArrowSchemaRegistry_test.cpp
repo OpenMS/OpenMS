@@ -2147,6 +2147,49 @@ START_SECTION(XIMSchema validation with table)
 }
 END_SECTION
 
+// ========== Timestamp unit compatibility ==========
+
+START_SECTION(validate - Strict mode - timestamp unit compatibility)
+{
+  // Expected schema uses timestamp[s]
+  auto expected = arrow::schema({
+    arrow::field("ts", arrow::timestamp(arrow::TimeUnit::SECOND), true),
+  });
+  // Actual table uses timestamp[ms] (e.g., Parquet round-trip can change precision)
+  auto actual_schema = arrow::schema({
+    arrow::field("ts", arrow::timestamp(arrow::TimeUnit::MILLI), true),
+  });
+  auto arr = arrow::json::ArrayFromJSONString(arrow::timestamp(arrow::TimeUnit::MILLI), "[1000]").ValueOrDie();
+  auto table = arrow::Table::Make(actual_schema, {arr});
+
+  // Strict mode: different timestamp units should still pass (areTypesCompatible)
+  auto result = ArrowSchemaValidation::validate(table, expected, ArrowSchemaValidation::Mode::Strict);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+START_SECTION(validate - Subset mode - timestamp unit compatibility)
+{
+  // Expected schema has multiple fields including a timestamp[s]
+  auto expected = arrow::schema({
+    arrow::field("id", arrow::utf8(), false),
+    arrow::field("ts", arrow::timestamp(arrow::TimeUnit::SECOND), true),
+  });
+  // Actual table uses timestamp[us] for the timestamp field
+  auto actual_schema = arrow::schema({
+    arrow::field("ts", arrow::timestamp(arrow::TimeUnit::MICRO), true),
+  });
+  auto arr = arrow::json::ArrayFromJSONString(arrow::timestamp(arrow::TimeUnit::MICRO), "[1000000]").ValueOrDie();
+  auto table = arrow::Table::Make(actual_schema, {arr});
+
+  // Subset mode: timestamp with different unit should pass
+  auto result = ArrowSchemaValidation::validate(table, expected, ArrowSchemaValidation::Mode::Subset);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
 END_TEST
 
 #else // WITH_PARQUET

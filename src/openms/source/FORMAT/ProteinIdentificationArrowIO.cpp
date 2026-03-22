@@ -605,7 +605,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
   auto validation = ArrowSchemaValidation::validate(table, ProteinSchema::schema());
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
     return nullptr;
   }
 
@@ -826,7 +826,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinGroupsT
   auto validation = ArrowSchemaValidation::validate(table, ProteinGroupSchema::schema());
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
     return nullptr;
   }
 
@@ -1257,7 +1257,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
   auto validation = ArrowSchemaValidation::validate(table, SearchParamsSchema::schema());
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
     return nullptr;
   }
 
@@ -1292,7 +1292,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
   auto validation = ArrowSchemaValidation::validate(table, SearchParamsSchema::schema(), ArrowSchemaValidation::Mode::Subset);
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
     return false;
   }
 
@@ -1470,7 +1470,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
   auto validation = ArrowSchemaValidation::validate(table, ProteinSchema::schema(), ArrowSchemaValidation::Mode::Subset);
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
     return false;
   }
 
@@ -1605,7 +1605,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
   auto validation = ArrowSchemaValidation::validate(table, ProteinGroupSchema::schema(), ArrowSchemaValidation::Mode::Subset);
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
     return false;
   }
 

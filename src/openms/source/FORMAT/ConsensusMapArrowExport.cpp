@@ -807,7 +807,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   auto validation = ArrowSchemaValidation::validate(table, ConsensusFeatureExportSchema::schema());
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Schema validation failed: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Schema validation failed: " << validation.toString() << "\n";
     return nullptr;
   }
 

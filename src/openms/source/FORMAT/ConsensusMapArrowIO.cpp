@@ -1141,7 +1141,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportFeaturesToArrow(
   auto validation = ArrowSchemaValidation::validate(table, ConsensusFeatureSchema::schema());
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
     return nullptr;
   }
 
@@ -1328,7 +1328,7 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
   auto validation = ArrowSchemaValidation::validate(tbl, ConsensusFeatureSchema::schema(), ArrowSchemaValidation::Mode::Subset);
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
     return false;
   }
 

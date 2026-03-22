@@ -659,7 +659,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   auto validation = ArrowSchemaValidation::validate(table, PSMSchema::schema());
   if (!validation.valid)
   {
-    OPENMS_LOG_ERROR << "QPXFile: Schema validation failed: " << validation.toString() << std::endl;
+    OPENMS_LOG_ERROR << "QPXFile: Schema validation failed: " << validation.toString() << "\n";
     return nullptr;
   }
 
