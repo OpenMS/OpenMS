@@ -298,6 +298,7 @@ Build System:
   - Fix pyOpenMS dev build RPATH: BUILD_WITH_INSTALL_RPATH now conditional on NO_DEPENDENCIES to prevent libOpenMS.so not found (#8892)
   - Correctly locate a locally installed nanobind in CMake (#8874)
   - Fix pyOpenMS MSVC compile-time error caused by nanobind __forceinline expansion in heavily templated code (#8933)
+  - Fix Windows CI Release builds: removed erroneous /Od /Ob0 flag override that caused all Windows CI Release binaries to be unoptimized since 2021; builds now use CMake defaults (/O2 /Ob2) (#8961)
   - Qt6::Core removed from libOpenMS PUBLIC CMake link dependencies; downstream CMake targets must now explicitly link Qt6::Core if needed (#8965)
 
 
