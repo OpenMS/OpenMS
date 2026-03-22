@@ -174,11 +174,19 @@ void convertINI2HTML(const Param& p, ostream& os)
     case ParamValue::STRING_LIST:
       if (!it->valid_strings.empty())
       {
-        // make sure browsers can word wrap with additional whitespace
-        // TODO: If param name is *modification* just add a link to
-        //  a page with all modifications otherwise you get a HUGE list.
-        //  Also think about a different separator, in case the restrictions have commas.
-        restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
+         String param_name = it->name;
+         param_name.toLower();
+
+         // Avoid huge lists (e.g. modifications) in HTML output
+         if (param_name.hasSubstring("modification") || it->valid_strings.size() > 20)
+         {
+            restrictions = R"(<a href="modifications.html">See available modifications</a>)";
+         }
+         else
+         {
+            // make sure browsers can word wrap with additional whitespace
+            restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
+         }
       }
       else if (value_type == ParamValue::STRING_VALUE)
       {
