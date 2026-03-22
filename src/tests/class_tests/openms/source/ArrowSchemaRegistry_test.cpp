@@ -891,6 +891,571 @@ START_SECTION(PSMSchema validation with table)
 }
 END_SECTION
 
+// ========== ConsensusFeatureExportSchema ==========
+
+START_SECTION(ConsensusFeatureExportSchema::schema() returns non-null with 33 fields)
+{
+  auto s = ConsensusFeatureExportSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 33)
+}
+END_SECTION
+
+START_SECTION(ConsensusFeatureExportSchema column name constants)
+{
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SEQUENCE, "sequence")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::PEPTIDOFORM, "peptidoform")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::MODIFICATIONS, "modifications")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::PRECURSOR_CHARGE, "precursor_charge")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::CALCULATED_MZ, "calculated_mz")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::OBSERVED_MZ, "observed_mz")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::RT, "rt")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::POSTERIOR_ERROR_PROBABILITY, "posterior_error_probability")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::IS_DECOY, "is_decoy")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::ADDITIONAL_SCORES, "additional_scores")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::PREDICTED_RT, "predicted_rt")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::REFERENCE_FILE_NAME, "reference_file_name")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::CV_PARAMS, "cv_params")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SCAN, "scan")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::ION_MOBILITY, "ion_mobility")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::START_ION_MOBILITY, "start_ion_mobility")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::STOP_ION_MOBILITY, "stop_ion_mobility")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::INTENSITIES, "intensities")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::ADDITIONAL_INTENSITIES, "additional_intensities")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::PG_ACCESSIONS, "pg_accessions")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::ANCHOR_PROTEIN, "anchor_protein")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::UNIQUE, "unique")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::PG_GLOBAL_QVALUE, "pg_global_qvalue")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::GG_ACCESSIONS, "gg_accessions")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::GG_NAMES, "gg_names")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SCAN_REFERENCE_FILE_NAME, "scan_reference_file_name")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::RT_START, "rt_start")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::RT_STOP, "rt_stop")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::QUALITY, "quality")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SCORE, "score")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SCORE_TYPE, "score_type")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::SPECTRUM_REFERENCE, "spectrum_reference")
+  TEST_STRING_EQUAL(ConsensusFeatureExportSchema::FEATURE_METAVALUES, "feature_metavalues")
+}
+END_SECTION
+
+START_SECTION(ConsensusFeatureExportSchema field types and nullability)
+{
+  auto s = ConsensusFeatureExportSchema::schema();
+  // sequence: utf8, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "sequence")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // peptidoform: utf8, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "peptidoform")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // modifications: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(2)->name(), "modifications")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  TEST_EQUAL(s->field(2)->type()->Equals(ConsensusFeatureExportSchema::modificationsType()), true)
+  // precursor_charge: int32, nullable (default)
+  TEST_EQUAL(s->field(3)->name(), "precursor_charge")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // calculated_mz: float32, nullable (default)
+  TEST_EQUAL(s->field(4)->name(), "calculated_mz")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  // observed_mz: float32, nullable (default)
+  TEST_EQUAL(s->field(5)->name(), "observed_mz")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(5)->nullable(), true)
+  // rt: float32, nullable (default)
+  TEST_EQUAL(s->field(6)->name(), "rt")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(6)->nullable(), true)
+  // posterior_error_probability: float64, nullable (default)
+  TEST_EQUAL(s->field(7)->name(), "posterior_error_probability")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(7)->nullable(), true)
+  // is_decoy: int32, nullable (default)
+  TEST_EQUAL(s->field(8)->name(), "is_decoy")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(8)->nullable(), true)
+  // additional_scores: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(9)->name(), "additional_scores")
+  TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(9)->nullable(), true)
+  TEST_EQUAL(s->field(9)->type()->Equals(ConsensusFeatureExportSchema::additionalScoresType()), true)
+  // predicted_rt: float32, nullable (default)
+  TEST_EQUAL(s->field(10)->name(), "predicted_rt")
+  TEST_EQUAL(s->field(10)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(10)->nullable(), true)
+  // reference_file_name: utf8, nullable (default)
+  TEST_EQUAL(s->field(11)->name(), "reference_file_name")
+  TEST_EQUAL(s->field(11)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(11)->nullable(), true)
+  // cv_params: utf8, nullable (default)
+  TEST_EQUAL(s->field(12)->name(), "cv_params")
+  TEST_EQUAL(s->field(12)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(12)->nullable(), true)
+  // scan: utf8, nullable (default)
+  TEST_EQUAL(s->field(13)->name(), "scan")
+  TEST_EQUAL(s->field(13)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(13)->nullable(), true)
+  // ion_mobility: float32, nullable (default)
+  TEST_EQUAL(s->field(14)->name(), "ion_mobility")
+  TEST_EQUAL(s->field(14)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(14)->nullable(), true)
+  // start_ion_mobility: float32, nullable (default)
+  TEST_EQUAL(s->field(15)->name(), "start_ion_mobility")
+  TEST_EQUAL(s->field(15)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(15)->nullable(), true)
+  // stop_ion_mobility: float32, nullable (default)
+  TEST_EQUAL(s->field(16)->name(), "stop_ion_mobility")
+  TEST_EQUAL(s->field(16)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(16)->nullable(), true)
+  // intensities: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(17)->name(), "intensities")
+  TEST_EQUAL(s->field(17)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(17)->nullable(), true)
+  TEST_EQUAL(s->field(17)->type()->Equals(ConsensusFeatureExportSchema::intensitiesType()), true)
+  // additional_intensities: utf8, nullable (default)
+  TEST_EQUAL(s->field(18)->name(), "additional_intensities")
+  TEST_EQUAL(s->field(18)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(18)->nullable(), true)
+  // pg_accessions: list<utf8>, nullable (default)
+  TEST_EQUAL(s->field(19)->name(), "pg_accessions")
+  TEST_EQUAL(s->field(19)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(19)->nullable(), true)
+  // anchor_protein: utf8, nullable (default)
+  TEST_EQUAL(s->field(20)->name(), "anchor_protein")
+  TEST_EQUAL(s->field(20)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(20)->nullable(), true)
+  // unique: int32, nullable (default)
+  TEST_EQUAL(s->field(21)->name(), "unique")
+  TEST_EQUAL(s->field(21)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(21)->nullable(), true)
+  // pg_global_qvalue: float64, nullable (default)
+  TEST_EQUAL(s->field(22)->name(), "pg_global_qvalue")
+  TEST_EQUAL(s->field(22)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(22)->nullable(), true)
+  // gg_accessions: list<utf8>, nullable (default)
+  TEST_EQUAL(s->field(23)->name(), "gg_accessions")
+  TEST_EQUAL(s->field(23)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(23)->nullable(), true)
+  // gg_names: list<utf8>, nullable (default)
+  TEST_EQUAL(s->field(24)->name(), "gg_names")
+  TEST_EQUAL(s->field(24)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(24)->nullable(), true)
+  // scan_reference_file_name: utf8, nullable (default)
+  TEST_EQUAL(s->field(25)->name(), "scan_reference_file_name")
+  TEST_EQUAL(s->field(25)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(25)->nullable(), true)
+  // rt_start: float32, nullable (default)
+  TEST_EQUAL(s->field(26)->name(), "rt_start")
+  TEST_EQUAL(s->field(26)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(26)->nullable(), true)
+  // rt_stop: float32, nullable (default)
+  TEST_EQUAL(s->field(27)->name(), "rt_stop")
+  TEST_EQUAL(s->field(27)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(27)->nullable(), true)
+  // quality: float32, nullable (default)
+  TEST_EQUAL(s->field(28)->name(), "quality")
+  TEST_EQUAL(s->field(28)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(28)->nullable(), true)
+  // score: float64, nullable (default)
+  TEST_EQUAL(s->field(29)->name(), "score")
+  TEST_EQUAL(s->field(29)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(29)->nullable(), true)
+  // score_type: utf8, nullable (default)
+  TEST_EQUAL(s->field(30)->name(), "score_type")
+  TEST_EQUAL(s->field(30)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(30)->nullable(), true)
+  // spectrum_reference: utf8, nullable (default)
+  TEST_EQUAL(s->field(31)->name(), "spectrum_reference")
+  TEST_EQUAL(s->field(31)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(31)->nullable(), true)
+  // feature_metavalues: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(32)->name(), "feature_metavalues")
+  TEST_EQUAL(s->field(32)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(32)->nullable(), true)
+  TEST_EQUAL(s->field(32)->type()->Equals(ConsensusFeatureExportSchema::metavaluesType()), true)
+}
+END_SECTION
+
+START_SECTION(ConsensusFeatureExportSchema nested types match PSMSchema)
+{
+  // modificationsType and additionalScoresType should be the same as PSMSchema's
+  TEST_EQUAL(ConsensusFeatureExportSchema::modificationsType()->Equals(PSMSchema::modificationsType()), true)
+  TEST_EQUAL(ConsensusFeatureExportSchema::additionalScoresType()->Equals(PSMSchema::additionalScoresType()), true)
+}
+END_SECTION
+
+START_SECTION(ConsensusFeatureExportSchema validation with table)
+{
+  auto s = ConsensusFeatureExportSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== SpectraLongSchema ==========
+
+START_SECTION(SpectraLongSchema::schema() returns non-null with 12 fields)
+{
+  auto s = SpectraLongSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 12)
+}
+END_SECTION
+
+START_SECTION(SpectraLongSchema column name constants)
+{
+  TEST_STRING_EQUAL(SpectraLongSchema::MZ, "mz")
+  TEST_STRING_EQUAL(SpectraLongSchema::INTENSITY, "intensity")
+  TEST_STRING_EQUAL(SpectraLongSchema::RT, "rt")
+  TEST_STRING_EQUAL(SpectraLongSchema::ION_MOBILITY, "ion_mobility")
+  TEST_STRING_EQUAL(SpectraLongSchema::SPECTRUM_INDEX, "spectrum_index")
+  TEST_STRING_EQUAL(SpectraLongSchema::MS_LEVEL, "ms_level")
+  TEST_STRING_EQUAL(SpectraLongSchema::NATIVE_ID, "native_id")
+  TEST_STRING_EQUAL(SpectraLongSchema::PRECURSOR_MZ, "precursor_mz")
+  TEST_STRING_EQUAL(SpectraLongSchema::PRECURSOR_CHARGE, "precursor_charge")
+  TEST_STRING_EQUAL(SpectraLongSchema::PRECURSOR_INTENSITY, "precursor_intensity")
+  TEST_STRING_EQUAL(SpectraLongSchema::ISOLATION_LOWER, "isolation_lower")
+  TEST_STRING_EQUAL(SpectraLongSchema::ISOLATION_UPPER, "isolation_upper")
+}
+END_SECTION
+
+START_SECTION(SpectraLongSchema field types and nullability)
+{
+  auto s = SpectraLongSchema::schema();
+  // mz: float64, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "mz")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // intensity: float32, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "intensity")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // rt: float32, nullable (default)
+  TEST_EQUAL(s->field(2)->name(), "rt")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  // ion_mobility: float32, nullable (default)
+  TEST_EQUAL(s->field(3)->name(), "ion_mobility")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // spectrum_index: uint32, nullable (default)
+  TEST_EQUAL(s->field(4)->name(), "spectrum_index")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::UINT32)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  // ms_level: uint8, nullable (default)
+  TEST_EQUAL(s->field(5)->name(), "ms_level")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::UINT8)
+  TEST_EQUAL(s->field(5)->nullable(), true)
+  // native_id: utf8, nullable (default)
+  TEST_EQUAL(s->field(6)->name(), "native_id")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(6)->nullable(), true)
+  // precursor_mz: float64, nullable (default)
+  TEST_EQUAL(s->field(7)->name(), "precursor_mz")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(7)->nullable(), true)
+  // precursor_charge: int16, nullable (default)
+  TEST_EQUAL(s->field(8)->name(), "precursor_charge")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::INT16)
+  TEST_EQUAL(s->field(8)->nullable(), true)
+  // precursor_intensity: float32, nullable (default)
+  TEST_EQUAL(s->field(9)->name(), "precursor_intensity")
+  TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(9)->nullable(), true)
+  // isolation_lower: float64, nullable (default)
+  TEST_EQUAL(s->field(10)->name(), "isolation_lower")
+  TEST_EQUAL(s->field(10)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(10)->nullable(), true)
+  // isolation_upper: float64, nullable (default)
+  TEST_EQUAL(s->field(11)->name(), "isolation_upper")
+  TEST_EQUAL(s->field(11)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(11)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(SpectraLongSchema subset validation with table)
+{
+  auto s = SpectraLongSchema::schema();
+  // Build a table with only a subset of fields (mz, rt, intensity)
+  auto subset_schema = arrow::schema({
+    arrow::field("mz", arrow::float64()),
+    arrow::field("intensity", arrow::float32()),
+    arrow::field("rt", arrow::float32()),
+  });
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < subset_schema->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(subset_schema->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(subset_schema, columns);
+  auto result = ArrowSchemaValidation::validate(table, s,
+    ArrowSchemaValidation::Mode::Subset);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+START_SECTION(SpectraLongSchema validation with full table)
+{
+  auto s = SpectraLongSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== SpectraSemiWideSchema ==========
+
+START_SECTION(SpectraSemiWideSchema::schema() returns non-null with 12 fields)
+{
+  auto s = SpectraSemiWideSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 12)
+}
+END_SECTION
+
+START_SECTION(SpectraSemiWideSchema column name constants)
+{
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::SPECTRUM_INDEX, "spectrum_index")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::RT, "rt")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::MS_LEVEL, "ms_level")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::NATIVE_ID, "native_id")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::MZ, "mz")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::INTENSITY, "intensity")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::ION_MOBILITY, "ion_mobility")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::PRECURSOR_MZ, "precursor_mz")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::PRECURSOR_CHARGE, "precursor_charge")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::PRECURSOR_INTENSITY, "precursor_intensity")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::ISOLATION_LOWER, "isolation_lower")
+  TEST_STRING_EQUAL(SpectraSemiWideSchema::ISOLATION_UPPER, "isolation_upper")
+}
+END_SECTION
+
+START_SECTION(SpectraSemiWideSchema field types and nullability)
+{
+  auto s = SpectraSemiWideSchema::schema();
+  // spectrum_index: uint32, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "spectrum_index")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::UINT32)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // rt: float32, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "rt")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // ms_level: uint8, nullable (default)
+  TEST_EQUAL(s->field(2)->name(), "ms_level")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::UINT8)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  // native_id: utf8, nullable (default)
+  TEST_EQUAL(s->field(3)->name(), "native_id")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // mz: list<float64>, nullable (default)
+  TEST_EQUAL(s->field(4)->name(), "mz")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  TEST_EQUAL(s->field(4)->type()->Equals(arrow::list(arrow::float64())), true)
+  // intensity: list<float32>, nullable (default)
+  TEST_EQUAL(s->field(5)->name(), "intensity")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(5)->nullable(), true)
+  TEST_EQUAL(s->field(5)->type()->Equals(arrow::list(arrow::float32())), true)
+  // ion_mobility: list<float32>, nullable (default)
+  TEST_EQUAL(s->field(6)->name(), "ion_mobility")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(6)->nullable(), true)
+  TEST_EQUAL(s->field(6)->type()->Equals(arrow::list(arrow::float32())), true)
+  // precursor_mz: float64, nullable (default)
+  TEST_EQUAL(s->field(7)->name(), "precursor_mz")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(7)->nullable(), true)
+  // precursor_charge: int16, nullable (default)
+  TEST_EQUAL(s->field(8)->name(), "precursor_charge")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::INT16)
+  TEST_EQUAL(s->field(8)->nullable(), true)
+  // precursor_intensity: float32, nullable (default)
+  TEST_EQUAL(s->field(9)->name(), "precursor_intensity")
+  TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(9)->nullable(), true)
+  // isolation_lower: float64, nullable (default)
+  TEST_EQUAL(s->field(10)->name(), "isolation_lower")
+  TEST_EQUAL(s->field(10)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(10)->nullable(), true)
+  // isolation_upper: float64, nullable (default)
+  TEST_EQUAL(s->field(11)->name(), "isolation_upper")
+  TEST_EQUAL(s->field(11)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(11)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(SpectraSemiWideSchema differs from SpectraLongSchema in mz/intensity/ion_mobility types)
+{
+  auto long_s = SpectraLongSchema::schema();
+  auto semi_s = SpectraSemiWideSchema::schema();
+  // Long format: mz is scalar float64
+  TEST_EQUAL(long_s->GetFieldByName("mz")->type()->id(), arrow::Type::DOUBLE)
+  // Semi-wide format: mz is list<float64>
+  TEST_EQUAL(semi_s->GetFieldByName("mz")->type()->id(), arrow::Type::LIST)
+  // Long format: intensity is scalar float32
+  TEST_EQUAL(long_s->GetFieldByName("intensity")->type()->id(), arrow::Type::FLOAT)
+  // Semi-wide format: intensity is list<float32>
+  TEST_EQUAL(semi_s->GetFieldByName("intensity")->type()->id(), arrow::Type::LIST)
+  // Long format: ion_mobility is scalar float32
+  TEST_EQUAL(long_s->GetFieldByName("ion_mobility")->type()->id(), arrow::Type::FLOAT)
+  // Semi-wide format: ion_mobility is list<float32>
+  TEST_EQUAL(semi_s->GetFieldByName("ion_mobility")->type()->id(), arrow::Type::LIST)
+}
+END_SECTION
+
+START_SECTION(SpectraSemiWideSchema subset validation with table)
+{
+  auto s = SpectraSemiWideSchema::schema();
+  // Build a table with only a subset of fields
+  auto subset_schema = arrow::schema({
+    arrow::field("spectrum_index", arrow::uint32()),
+    arrow::field("mz", arrow::list(arrow::float64())),
+    arrow::field("intensity", arrow::list(arrow::float32())),
+  });
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < subset_schema->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(subset_schema->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(subset_schema, columns);
+  auto result = ArrowSchemaValidation::validate(table, s,
+    ArrowSchemaValidation::Mode::Subset);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+START_SECTION(SpectraSemiWideSchema validation with full table)
+{
+  auto s = SpectraSemiWideSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== ChromatogramSchema ==========
+
+START_SECTION(ChromatogramSchema::schema() returns non-null with 6 fields)
+{
+  auto s = ChromatogramSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 6)
+}
+END_SECTION
+
+START_SECTION(ChromatogramSchema column name constants)
+{
+  TEST_STRING_EQUAL(ChromatogramSchema::RT, "rt")
+  TEST_STRING_EQUAL(ChromatogramSchema::INTENSITY, "intensity")
+  TEST_STRING_EQUAL(ChromatogramSchema::CHROMATOGRAM_INDEX, "chromatogram_index")
+  TEST_STRING_EQUAL(ChromatogramSchema::NATIVE_ID, "native_id")
+  TEST_STRING_EQUAL(ChromatogramSchema::PRECURSOR_MZ, "precursor_mz")
+  TEST_STRING_EQUAL(ChromatogramSchema::PRODUCT_MZ, "product_mz")
+}
+END_SECTION
+
+START_SECTION(ChromatogramSchema field types and nullability)
+{
+  auto s = ChromatogramSchema::schema();
+  // rt: float64, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "rt")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // intensity: float32, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "intensity")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // chromatogram_index: uint32, nullable (default)
+  TEST_EQUAL(s->field(2)->name(), "chromatogram_index")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::UINT32)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  // native_id: utf8, nullable (default)
+  TEST_EQUAL(s->field(3)->name(), "native_id")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // precursor_mz: float64, nullable (default)
+  TEST_EQUAL(s->field(4)->name(), "precursor_mz")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  // product_mz: float64, nullable (default)
+  TEST_EQUAL(s->field(5)->name(), "product_mz")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(5)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(ChromatogramSchema subset validation with table)
+{
+  auto s = ChromatogramSchema::schema();
+  // Build a table with only a subset of fields (rt, intensity)
+  auto subset_schema = arrow::schema({
+    arrow::field("rt", arrow::float64()),
+    arrow::field("intensity", arrow::float32()),
+  });
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < subset_schema->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(subset_schema->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(subset_schema, columns);
+  auto result = ArrowSchemaValidation::validate(table, s,
+    ArrowSchemaValidation::Mode::Subset);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+START_SECTION(ChromatogramSchema validation with full table)
+{
+  auto s = ChromatogramSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
 END_TEST
 
 #else // WITH_PARQUET

@@ -382,6 +382,129 @@ namespace OpenMS
     });
   }
 
+  // -- ConsensusFeatureExportSchema --
+
+  std::shared_ptr<arrow::DataType> ConsensusFeatureExportSchema::modificationsType()
+  {
+    return PSMSchema::modificationsType();
+  }
+
+  std::shared_ptr<arrow::DataType> ConsensusFeatureExportSchema::additionalScoresType()
+  {
+    return PSMSchema::additionalScoresType();
+  }
+
+  std::shared_ptr<arrow::DataType> ConsensusFeatureExportSchema::intensitiesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("sample_accession", arrow::utf8()),
+      arrow::field("channel", arrow::utf8()),
+      arrow::field("intensity", arrow::float32())
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> ConsensusFeatureExportSchema::metavaluesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("name", arrow::utf8()),
+      arrow::field("value", arrow::utf8()),
+      arrow::field("value_type", arrow::utf8())
+    }));
+  }
+
+  std::shared_ptr<arrow::Schema> ConsensusFeatureExportSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(SEQUENCE, arrow::utf8()),
+      arrow::field(PEPTIDOFORM, arrow::utf8()),
+      arrow::field(MODIFICATIONS, modificationsType()),
+      arrow::field(PRECURSOR_CHARGE, arrow::int32()),
+      arrow::field(CALCULATED_MZ, arrow::float32()),
+      arrow::field(OBSERVED_MZ, arrow::float32()),
+      arrow::field(RT, arrow::float32()),
+      arrow::field(POSTERIOR_ERROR_PROBABILITY, arrow::float64()),
+      arrow::field(IS_DECOY, arrow::int32()),
+      arrow::field(ADDITIONAL_SCORES, additionalScoresType()),
+      arrow::field(PREDICTED_RT, arrow::float32()),
+      arrow::field(REFERENCE_FILE_NAME, arrow::utf8()),
+      arrow::field(CV_PARAMS, arrow::utf8()),
+      arrow::field(SCAN, arrow::utf8()),
+      arrow::field(ION_MOBILITY, arrow::float32()),
+      arrow::field(START_ION_MOBILITY, arrow::float32()),
+      arrow::field(STOP_ION_MOBILITY, arrow::float32()),
+      arrow::field(INTENSITIES, intensitiesType()),
+      arrow::field(ADDITIONAL_INTENSITIES, arrow::utf8()),
+      arrow::field(PG_ACCESSIONS, arrow::list(arrow::utf8())),
+      arrow::field(ANCHOR_PROTEIN, arrow::utf8()),
+      arrow::field(UNIQUE, arrow::int32()),
+      arrow::field(PG_GLOBAL_QVALUE, arrow::float64()),
+      arrow::field(GG_ACCESSIONS, arrow::list(arrow::utf8())),
+      arrow::field(GG_NAMES, arrow::list(arrow::utf8())),
+      arrow::field(SCAN_REFERENCE_FILE_NAME, arrow::utf8()),
+      arrow::field(RT_START, arrow::float32()),
+      arrow::field(RT_STOP, arrow::float32()),
+      arrow::field(QUALITY, arrow::float32()),
+      arrow::field(SCORE, arrow::float64()),
+      arrow::field(SCORE_TYPE, arrow::utf8()),
+      arrow::field(SPECTRUM_REFERENCE, arrow::utf8()),
+      arrow::field(FEATURE_METAVALUES, metavaluesType()),
+    });
+  }
+
+  // -- SpectraLongSchema --
+
+  std::shared_ptr<arrow::Schema> SpectraLongSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(MZ, arrow::float64()),
+      arrow::field(INTENSITY, arrow::float32()),
+      arrow::field(RT, arrow::float32()),
+      arrow::field(ION_MOBILITY, arrow::float32()),
+      arrow::field(SPECTRUM_INDEX, arrow::uint32()),
+      arrow::field(MS_LEVEL, arrow::uint8()),
+      arrow::field(NATIVE_ID, arrow::utf8()),
+      arrow::field(PRECURSOR_MZ, arrow::float64()),
+      arrow::field(PRECURSOR_CHARGE, arrow::int16()),
+      arrow::field(PRECURSOR_INTENSITY, arrow::float32()),
+      arrow::field(ISOLATION_LOWER, arrow::float64()),
+      arrow::field(ISOLATION_UPPER, arrow::float64()),
+    });
+  }
+
+  // -- SpectraSemiWideSchema --
+
+  std::shared_ptr<arrow::Schema> SpectraSemiWideSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(SPECTRUM_INDEX, arrow::uint32()),
+      arrow::field(RT, arrow::float32()),
+      arrow::field(MS_LEVEL, arrow::uint8()),
+      arrow::field(NATIVE_ID, arrow::utf8()),
+      arrow::field(MZ, arrow::list(arrow::float64())),
+      arrow::field(INTENSITY, arrow::list(arrow::float32())),
+      arrow::field(ION_MOBILITY, arrow::list(arrow::float32())),
+      arrow::field(PRECURSOR_MZ, arrow::float64()),
+      arrow::field(PRECURSOR_CHARGE, arrow::int16()),
+      arrow::field(PRECURSOR_INTENSITY, arrow::float32()),
+      arrow::field(ISOLATION_LOWER, arrow::float64()),
+      arrow::field(ISOLATION_UPPER, arrow::float64()),
+    });
+  }
+
+  // -- ChromatogramSchema --
+
+  std::shared_ptr<arrow::Schema> ChromatogramSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(RT, arrow::float64()),
+      arrow::field(INTENSITY, arrow::float32()),
+      arrow::field(CHROMATOGRAM_INDEX, arrow::uint32()),
+      arrow::field(NATIVE_ID, arrow::utf8()),
+      arrow::field(PRECURSOR_MZ, arrow::float64()),
+      arrow::field(PRODUCT_MZ, arrow::float64()),
+    });
+  }
+
 } // namespace OpenMS
 
 #endif // WITH_PARQUET

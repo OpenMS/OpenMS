@@ -183,6 +183,97 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  struct OPENMS_DLLAPI ConsensusFeatureExportSchema
+  {
+    static constexpr const char* SEQUENCE = "sequence";
+    static constexpr const char* PEPTIDOFORM = "peptidoform";
+    static constexpr const char* MODIFICATIONS = "modifications";
+    static constexpr const char* PRECURSOR_CHARGE = "precursor_charge";
+    static constexpr const char* CALCULATED_MZ = "calculated_mz";
+    static constexpr const char* OBSERVED_MZ = "observed_mz";
+    static constexpr const char* RT = "rt";
+    static constexpr const char* POSTERIOR_ERROR_PROBABILITY = "posterior_error_probability";
+    static constexpr const char* IS_DECOY = "is_decoy";
+    static constexpr const char* ADDITIONAL_SCORES = "additional_scores";
+    static constexpr const char* PREDICTED_RT = "predicted_rt";
+    static constexpr const char* REFERENCE_FILE_NAME = "reference_file_name";
+    static constexpr const char* CV_PARAMS = "cv_params";
+    static constexpr const char* SCAN = "scan";
+    static constexpr const char* ION_MOBILITY = "ion_mobility";
+    static constexpr const char* START_ION_MOBILITY = "start_ion_mobility";
+    static constexpr const char* STOP_ION_MOBILITY = "stop_ion_mobility";
+    static constexpr const char* INTENSITIES = "intensities";
+    static constexpr const char* ADDITIONAL_INTENSITIES = "additional_intensities";
+    static constexpr const char* PG_ACCESSIONS = "pg_accessions";
+    static constexpr const char* ANCHOR_PROTEIN = "anchor_protein";
+    static constexpr const char* UNIQUE = "unique";
+    static constexpr const char* PG_GLOBAL_QVALUE = "pg_global_qvalue";
+    static constexpr const char* GG_ACCESSIONS = "gg_accessions";
+    static constexpr const char* GG_NAMES = "gg_names";
+    static constexpr const char* SCAN_REFERENCE_FILE_NAME = "scan_reference_file_name";
+    static constexpr const char* RT_START = "rt_start";
+    static constexpr const char* RT_STOP = "rt_stop";
+    static constexpr const char* QUALITY = "quality";
+    static constexpr const char* SCORE = "score";
+    static constexpr const char* SCORE_TYPE = "score_type";
+    static constexpr const char* SPECTRUM_REFERENCE = "spectrum_reference";
+    static constexpr const char* FEATURE_METAVALUES = "feature_metavalues";
+
+    static std::shared_ptr<arrow::DataType> modificationsType();
+    static std::shared_ptr<arrow::DataType> additionalScoresType();
+    static std::shared_ptr<arrow::DataType> intensitiesType();
+    static std::shared_ptr<arrow::DataType> metavaluesType();
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  struct OPENMS_DLLAPI SpectraLongSchema
+  {
+    static constexpr const char* MZ = "mz";
+    static constexpr const char* INTENSITY = "intensity";
+    static constexpr const char* RT = "rt";
+    static constexpr const char* ION_MOBILITY = "ion_mobility";
+    static constexpr const char* SPECTRUM_INDEX = "spectrum_index";
+    static constexpr const char* MS_LEVEL = "ms_level";
+    static constexpr const char* NATIVE_ID = "native_id";
+    static constexpr const char* PRECURSOR_MZ = "precursor_mz";
+    static constexpr const char* PRECURSOR_CHARGE = "precursor_charge";
+    static constexpr const char* PRECURSOR_INTENSITY = "precursor_intensity";
+    static constexpr const char* ISOLATION_LOWER = "isolation_lower";
+    static constexpr const char* ISOLATION_UPPER = "isolation_upper";
+
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  struct OPENMS_DLLAPI SpectraSemiWideSchema
+  {
+    static constexpr const char* SPECTRUM_INDEX = "spectrum_index";
+    static constexpr const char* RT = "rt";
+    static constexpr const char* MS_LEVEL = "ms_level";
+    static constexpr const char* NATIVE_ID = "native_id";
+    static constexpr const char* MZ = "mz";
+    static constexpr const char* INTENSITY = "intensity";
+    static constexpr const char* ION_MOBILITY = "ion_mobility";
+    static constexpr const char* PRECURSOR_MZ = "precursor_mz";
+    static constexpr const char* PRECURSOR_CHARGE = "precursor_charge";
+    static constexpr const char* PRECURSOR_INTENSITY = "precursor_intensity";
+    static constexpr const char* ISOLATION_LOWER = "isolation_lower";
+    static constexpr const char* ISOLATION_UPPER = "isolation_upper";
+
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  struct OPENMS_DLLAPI ChromatogramSchema
+  {
+    static constexpr const char* RT = "rt";
+    static constexpr const char* INTENSITY = "intensity";
+    static constexpr const char* CHROMATOGRAM_INDEX = "chromatogram_index";
+    static constexpr const char* NATIVE_ID = "native_id";
+    static constexpr const char* PRECURSOR_MZ = "precursor_mz";
+    static constexpr const char* PRODUCT_MZ = "product_mz";
+
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
 } // namespace OpenMS
 
 #endif // WITH_PARQUET
