@@ -1456,6 +1456,111 @@ START_SECTION(ChromatogramSchema validation with full table)
 }
 END_SECTION
 
+// ========== ChromatogramSemiWideSchema ==========
+
+START_SECTION(ChromatogramSemiWideSchema::schema() returns non-null with 6 fields)
+{
+  auto s = ChromatogramSemiWideSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 6)
+}
+END_SECTION
+
+START_SECTION(ChromatogramSemiWideSchema column name constants)
+{
+  TEST_STRING_EQUAL(ChromatogramSemiWideSchema::CHROMATOGRAM_INDEX, "chromatogram_index")
+  TEST_STRING_EQUAL(ChromatogramSemiWideSchema::NATIVE_ID, "native_id")
+  TEST_STRING_EQUAL(ChromatogramSemiWideSchema::RT, "rt")
+  TEST_STRING_EQUAL(ChromatogramSemiWideSchema::INTENSITY, "intensity")
+  TEST_STRING_EQUAL(ChromatogramSemiWideSchema::PRECURSOR_MZ, "precursor_mz")
+  TEST_STRING_EQUAL(ChromatogramSemiWideSchema::PRODUCT_MZ, "product_mz")
+}
+END_SECTION
+
+START_SECTION(ChromatogramSemiWideSchema field types and nullability)
+{
+  auto s = ChromatogramSemiWideSchema::schema();
+  // chromatogram_index: uint32, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "chromatogram_index")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::UINT32)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // native_id: utf8, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "native_id")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // rt: list<float64>, nullable (default)
+  TEST_EQUAL(s->field(2)->name(), "rt")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  // intensity: list<float32>, nullable (default)
+  TEST_EQUAL(s->field(3)->name(), "intensity")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // precursor_mz: float64, nullable (default)
+  TEST_EQUAL(s->field(4)->name(), "precursor_mz")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  // product_mz: float64, nullable (default)
+  TEST_EQUAL(s->field(5)->name(), "product_mz")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(5)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(ChromatogramSemiWideSchema differs from ChromatogramSchema in rt/intensity types)
+{
+  auto long_s = ChromatogramSchema::schema();
+  auto semi_s = ChromatogramSemiWideSchema::schema();
+  // Long format: rt is scalar float64
+  TEST_EQUAL(long_s->GetFieldByName("rt")->type()->id(), arrow::Type::DOUBLE)
+  // Semi-wide format: rt is list<float64>
+  TEST_EQUAL(semi_s->GetFieldByName("rt")->type()->id(), arrow::Type::LIST)
+  // Long format: intensity is scalar float32
+  TEST_EQUAL(long_s->GetFieldByName("intensity")->type()->id(), arrow::Type::FLOAT)
+  // Semi-wide format: intensity is list<float32>
+  TEST_EQUAL(semi_s->GetFieldByName("intensity")->type()->id(), arrow::Type::LIST)
+}
+END_SECTION
+
+START_SECTION(ChromatogramSemiWideSchema subset validation with table)
+{
+  auto s = ChromatogramSemiWideSchema::schema();
+  // Build a table with only a subset of fields
+  auto subset_schema = arrow::schema({
+    arrow::field("chromatogram_index", arrow::uint32()),
+    arrow::field("rt", arrow::list(arrow::float64())),
+    arrow::field("intensity", arrow::list(arrow::float32())),
+  });
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < subset_schema->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(subset_schema->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(subset_schema, columns);
+  auto result = ArrowSchemaValidation::validate(table, s,
+    ArrowSchemaValidation::Mode::Subset);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+START_SECTION(ChromatogramSemiWideSchema validation with full table)
+{
+  auto s = ChromatogramSemiWideSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
 // ========== OSWPrecursorSchema ==========
 
 START_SECTION(OSWPrecursorSchema::schema() returns non-null with 10 fields)

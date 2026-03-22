@@ -1422,27 +1422,27 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
 
   // Read columns
   auto col_feature_id = getColumn_(tbl, "feature_unique_id");
-  auto col_p_id = getColumn_(tbl, "peptide_identification_index");
-  auto col_peptidoform = getColumn_(tbl, "peptidoform", /*required=*/false);
-  auto col_sequence = getColumn_(tbl, "sequence", /*required=*/false);
-  auto col_charge = getColumn_(tbl, "precursor_charge");
-  auto col_score = getColumn_(tbl, "score");
-  auto col_score_type = getColumn_(tbl, "score_type");
-  auto col_rank = getColumn_(tbl, "rank", /*required=*/false);
-  auto col_rt = getColumn_(tbl, "rt", /*required=*/false);
-  auto col_mz = getColumn_(tbl, "observed_mz", /*required=*/false);
-  auto col_spec_ref = getColumn_(tbl, "spectrum_reference", /*required=*/false);
-  auto col_run_id = getColumn_(tbl, "run_identifier", /*required=*/false);
-  auto col_is_decoy = getColumn_(tbl, "is_decoy", /*required=*/false);
-  auto col_protein_accs = getColumn_(tbl, "protein_accessions", /*required=*/false);
-  auto col_additional_scores = getColumn_(tbl, "additional_scores", /*required=*/false);
-  auto col_psm_metavalues = getColumn_(tbl, "psm_metavalues", /*required=*/false);
-  auto col_spectrum_metavalues = getColumn_(tbl, "spectrum_metavalues", /*required=*/false);
-  auto col_predicted_rt = getColumn_(tbl, "predicted_rt", /*required=*/false);
-  auto col_ion_mobility = getColumn_(tbl, "ion_mobility", /*required=*/false);
-  auto col_hsb = getColumn_(tbl, "higher_score_better", /*required=*/false);
-  auto col_scan = getColumn_(tbl, "scan", /*required=*/false);
-  auto col_ref_file = getColumn_(tbl, "reference_file_name", /*required=*/false);
+  auto col_p_id = getColumn_(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
+  auto col_peptidoform = getColumn_(tbl, PSMSchema::PEPTIDOFORM, /*required=*/false);
+  auto col_sequence = getColumn_(tbl, PSMSchema::SEQUENCE, /*required=*/false);
+  auto col_charge = getColumn_(tbl, PSMSchema::PRECURSOR_CHARGE);
+  auto col_score = getColumn_(tbl, PSMSchema::SCORE);
+  auto col_score_type = getColumn_(tbl, PSMSchema::SCORE_TYPE);
+  auto col_rank = getColumn_(tbl, PSMSchema::RANK, /*required=*/false);
+  auto col_rt = getColumn_(tbl, PSMSchema::RT, /*required=*/false);
+  auto col_mz = getColumn_(tbl, PSMSchema::OBSERVED_MZ, /*required=*/false);
+  auto col_spec_ref = getColumn_(tbl, PSMSchema::SPECTRUM_REFERENCE, /*required=*/false);
+  auto col_run_id = getColumn_(tbl, PSMSchema::RUN_IDENTIFIER, /*required=*/false);
+  auto col_is_decoy = getColumn_(tbl, PSMSchema::IS_DECOY, /*required=*/false);
+  auto col_protein_accs = getColumn_(tbl, PSMSchema::PROTEIN_ACCESSIONS, /*required=*/false);
+  auto col_additional_scores = getColumn_(tbl, PSMSchema::ADDITIONAL_SCORES, /*required=*/false);
+  auto col_psm_metavalues = getColumn_(tbl, PSMSchema::PSM_METAVALUES, /*required=*/false);
+  auto col_spectrum_metavalues = getColumn_(tbl, PSMSchema::SPECTRUM_METAVALUES, /*required=*/false);
+  auto col_predicted_rt = getColumn_(tbl, PSMSchema::PREDICTED_RT, /*required=*/false);
+  auto col_ion_mobility = getColumn_(tbl, PSMSchema::ION_MOBILITY, /*required=*/false);
+  auto col_hsb = getColumn_(tbl, PSMSchema::HIGHER_SCORE_BETTER, /*required=*/false);
+  auto col_scan = getColumn_(tbl, PSMSchema::SCAN, /*required=*/false);
+  auto col_ref_file = getColumn_(tbl, PSMSchema::REFERENCE_FILE_NAME, /*required=*/false);
 
   if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
   {

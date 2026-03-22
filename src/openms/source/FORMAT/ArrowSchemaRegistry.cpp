@@ -524,6 +524,20 @@ namespace OpenMS
     });
   }
 
+  // -- ChromatogramSemiWideSchema --
+
+  std::shared_ptr<arrow::Schema> ChromatogramSemiWideSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(CHROMATOGRAM_INDEX, arrow::uint32()),
+      arrow::field(NATIVE_ID, arrow::utf8()),
+      arrow::field(RT, arrow::list(arrow::float64())),
+      arrow::field(INTENSITY, arrow::list(arrow::float32())),
+      arrow::field(PRECURSOR_MZ, arrow::float64()),
+      arrow::field(PRODUCT_MZ, arrow::float64()),
+    });
+  }
+
   // -- OSWPrecursorSchema --
 
   std::shared_ptr<arrow::Schema> OSWPrecursorSchema::schema()

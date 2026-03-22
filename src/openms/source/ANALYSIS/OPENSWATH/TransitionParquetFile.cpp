@@ -252,16 +252,16 @@ namespace OpenMS
                                     "Transitions table schema validation failed: " + trans_validation.toString(), "");
     }
 
-    auto precursor_id_col = ParquetFile::getColumn(precursors_table, "precursor_id");
-    auto precursor_mz_col = ParquetFile::getColumn(precursors_table, "precursor_mz");
-    auto charge_col = ParquetFile::getColumn(precursors_table, "charge");
-    auto library_rt_col = ParquetFile::getColumn(precursors_table, "library_rt");
-    auto drift_time_col = ParquetFile::getOptionalColumn(precursors_table, "library_drift_time");
-    auto traml_id_col = ParquetFile::getOptionalColumn(precursors_table, "traml_id");
-    auto decoy_col = ParquetFile::getOptionalColumn(precursors_table, "decoy");
-    auto modified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, "modified_sequence");
-    auto unmodified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, "unmodified_sequence");
-    auto protein_accessions_col = ParquetFile::getOptionalColumn(precursors_table, "protein_accessions");
+    auto precursor_id_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::PRECURSOR_ID);
+    auto precursor_mz_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::PRECURSOR_MZ);
+    auto charge_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::CHARGE);
+    auto library_rt_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::LIBRARY_RT);
+    auto drift_time_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::LIBRARY_DRIFT_TIME);
+    auto traml_id_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::TRAML_ID);
+    auto decoy_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::DECOY);
+    auto modified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::MODIFIED_SEQUENCE);
+    auto unmodified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::UNMODIFIED_SEQUENCE);
+    auto protein_accessions_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::PROTEIN_ACCESSIONS);
 
     std::unordered_map<int64_t, PrecursorInfo> precursor_map;
     precursor_map.reserve(precursors_table->num_rows());
@@ -324,19 +324,19 @@ namespace OpenMS
       }
     }
 
-    auto transition_id_col = ParquetFile::getColumn(transitions_table, "transition_id");
-    auto transition_traml_id_col = ParquetFile::getOptionalColumn(transitions_table, "traml_id");
-    auto transition_precursor_id_col = ParquetFile::getColumn(transitions_table, "precursor_id");
-    auto product_mz_col = ParquetFile::getColumn(transitions_table, "product_mz");
-    auto fragment_charge_col = ParquetFile::getColumn(transitions_table, "charge");
-    auto fragment_type_col = ParquetFile::getColumn(transitions_table, "type");
-    auto fragment_annotation_col = ParquetFile::getOptionalColumn(transitions_table, "annotation");
-    auto fragment_ordinal_col = ParquetFile::getColumn(transitions_table, "ordinal");
-    auto detecting_col = ParquetFile::getColumn(transitions_table, "detecting");
-    auto identifying_col = ParquetFile::getColumn(transitions_table, "identifying");
-    auto quantifying_col = ParquetFile::getColumn(transitions_table, "quantifying");
-    auto transition_intensity_col = ParquetFile::getColumn(transitions_table, "library_intensity");
-    auto transition_decoy_col = ParquetFile::getColumn(transitions_table, "decoy");
+    auto transition_id_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::TRANSITION_ID);
+    auto transition_traml_id_col = ParquetFile::getOptionalColumn(transitions_table, OSWTransitionSchema::TRAML_ID);
+    auto transition_precursor_id_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::PRECURSOR_ID);
+    auto product_mz_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::PRODUCT_MZ);
+    auto fragment_charge_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::CHARGE);
+    auto fragment_type_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::TYPE);
+    auto fragment_annotation_col = ParquetFile::getOptionalColumn(transitions_table, OSWTransitionSchema::ANNOTATION);
+    auto fragment_ordinal_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::ORDINAL);
+    auto detecting_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::DETECTING);
+    auto identifying_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::IDENTIFYING);
+    auto quantifying_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::QUANTIFYING);
+    auto transition_intensity_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::LIBRARY_INTENSITY);
+    auto transition_decoy_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::DECOY);
 
     std::unordered_set<std::string> used_transition_names;
     used_transition_names.reserve(transitions_table->num_rows());

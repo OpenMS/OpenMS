@@ -1017,15 +1017,25 @@ std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
     std::vector<std::shared_ptr<arrow::Array>> arrays;
     std::shared_ptr<arrow::Array> arr;
 
-    if (inc_chrom_index) { status = chrom_index_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::CHROMATOGRAM_INDEX, arrow::uint32())); arrays.push_back(arr); }
-    if (inc_native_id) { status = native_id_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::NATIVE_ID, arrow::utf8())); arrays.push_back(arr); }
-    if (inc_rt) { status = rt_list_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::RT, arrow::list(arrow::float64()))); arrays.push_back(arr); }
-    if (inc_intensity) { status = intensity_list_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::INTENSITY, arrow::list(arrow::float32()))); arrays.push_back(arr); }
-    if (inc_precursor_mz) { status = precursor_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::PRECURSOR_MZ, arrow::float64())); arrays.push_back(arr); }
-    if (inc_product_mz) { status = product_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::PRODUCT_MZ, arrow::float64())); arrays.push_back(arr); }
+    if (inc_chrom_index) { status = chrom_index_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSemiWideSchema::CHROMATOGRAM_INDEX, arrow::uint32())); arrays.push_back(arr); }
+    if (inc_native_id) { status = native_id_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSemiWideSchema::NATIVE_ID, arrow::utf8())); arrays.push_back(arr); }
+    if (inc_rt) { status = rt_list_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSemiWideSchema::RT, arrow::list(arrow::float64()))); arrays.push_back(arr); }
+    if (inc_intensity) { status = intensity_list_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSemiWideSchema::INTENSITY, arrow::list(arrow::float32()))); arrays.push_back(arr); }
+    if (inc_precursor_mz) { status = precursor_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSemiWideSchema::PRECURSOR_MZ, arrow::float64())); arrays.push_back(arr); }
+    if (inc_product_mz) { status = product_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSemiWideSchema::PRODUCT_MZ, arrow::float64())); arrays.push_back(arr); }
 
     auto schema = arrow::schema(fields);
-    return arrow::Table::Make(schema, arrays);
+    auto table = arrow::Table::Make(schema, arrays);
+
+    // Validate table against registry schema (subset — dynamic columns)
+    auto validation = ArrowSchemaValidation::validate(table, ChromatogramSemiWideSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+    if (!validation.valid)
+    {
+      OPENMS_LOG_ERROR << "MSExperimentArrowExport: Chromatogram semi-wide format schema validation failed: " << validation.toString() << "\n";
+      return nullptr;
+    }
+
+    return table;
   }
 }
 
@@ -1045,9 +1055,9 @@ std::vector<std::string> MSExperimentArrowExport::getChromatogramArrowColumnName
   }
   else // SemiWide
   {
-    columns = {ChromatogramSchema::CHROMATOGRAM_INDEX, ChromatogramSchema::NATIVE_ID,
-               ChromatogramSchema::RT, ChromatogramSchema::INTENSITY,
-               ChromatogramSchema::PRECURSOR_MZ, ChromatogramSchema::PRODUCT_MZ};
+    columns = {ChromatogramSemiWideSchema::CHROMATOGRAM_INDEX, ChromatogramSemiWideSchema::NATIVE_ID,
+               ChromatogramSemiWideSchema::RT, ChromatogramSemiWideSchema::INTENSITY,
+               ChromatogramSemiWideSchema::PRECURSOR_MZ, ChromatogramSemiWideSchema::PRODUCT_MZ};
   }
 
   // Filter by requested columns if specified

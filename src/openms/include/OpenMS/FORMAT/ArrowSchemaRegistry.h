@@ -282,6 +282,18 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  struct OPENMS_DLLAPI ChromatogramSemiWideSchema
+  {
+    static constexpr const char* CHROMATOGRAM_INDEX = "chromatogram_index";
+    static constexpr const char* NATIVE_ID = "native_id";
+    static constexpr const char* RT = "rt";
+    static constexpr const char* INTENSITY = "intensity";
+    static constexpr const char* PRECURSOR_MZ = "precursor_mz";
+    static constexpr const char* PRODUCT_MZ = "product_mz";
+
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
   struct OPENMS_DLLAPI OSWPrecursorSchema
   {
     static constexpr const char* PRECURSOR_ID = "precursor_id";
