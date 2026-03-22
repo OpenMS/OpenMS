@@ -9,6 +9,17 @@ namespace OpenMS
 
   namespace ArrowSchemaValidation
   {
+    /// Check if two types are compatible, allowing timestamp precision differences.
+    /// Parquet may change timestamp resolution (e.g., timestamp[s] -> timestamp[ms]) on round-trip.
+    static bool areTypesCompatible(const std::shared_ptr<arrow::DataType>& actual,
+                                   const std::shared_ptr<arrow::DataType>& expected)
+    {
+      if (actual->Equals(expected)) return true;
+      // Allow timestamp precision differences (both are timestamp types)
+      if (actual->id() == arrow::Type::TIMESTAMP && expected->id() == arrow::Type::TIMESTAMP) return true;
+      return false;
+    }
+
     std::string ValidationResult::toString() const
     {
       std::ostringstream oss;
@@ -51,7 +62,7 @@ namespace OpenMS
               ": got '" + actual_field->name() + "', expected '" + expected_field->name() + "'");
             continue;
           }
-          if (!actual_field->type()->Equals(expected_field->type()))
+          if (!areTypesCompatible(actual_field->type(), expected_field->type()))
           {
             result.valid = false;
             result.errors.push_back("Type mismatch for field '" + actual_field->name() +
@@ -95,7 +106,7 @@ namespace OpenMS
               "' not in expected schema");
             continue;
           }
-          if (!actual_field->type()->Equals(expected_field->type()))
+          if (!areTypesCompatible(actual_field->type(), expected_field->type()))
           {
             result.valid = false;
             result.errors.push_back("Type mismatch for field '" + actual_field->name() +

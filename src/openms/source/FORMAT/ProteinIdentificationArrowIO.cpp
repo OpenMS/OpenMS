@@ -15,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -589,19 +590,8 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
   status = metavalues_builder.Finish(&arr_metavalues);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema (10 columns)
-  auto schema = arrow::schema({
-    arrow::field("accession", arrow::utf8(), /*nullable=*/false),
-    arrow::field("score", arrow::float64(), /*nullable=*/false),
-    arrow::field("rank", arrow::int32(), /*nullable=*/true),
-    arrow::field("coverage", arrow::float64(), /*nullable=*/true),
-    arrow::field("sequence", arrow::utf8(), /*nullable=*/true),
-    arrow::field("description", arrow::utf8(), /*nullable=*/true),
-    arrow::field("is_decoy", arrow::boolean(), /*nullable=*/true),
-    arrow::field("run_identifier", arrow::utf8(), /*nullable=*/false),
-    arrow::field("modifications", arrow::list(mod_struct_type), /*nullable=*/true),
-    arrow::field("metavalues", metavalues_builder.type(), /*nullable=*/false),
-  });
+  // Build table using registry schema
+  auto schema = ProteinSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_accession, arr_score,
@@ -610,6 +600,14 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
     arr_run_id,
     arr_modifications, arr_metavalues
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, ProteinSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << std::endl;
+    return nullptr;
+  }
 
   return table;
 }
@@ -815,23 +813,22 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinGroupsT
   status = integer_data_builder.Finish(&arr_integer_data);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: integer_data_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema (8 columns)
-  auto schema = arrow::schema({
-    arrow::field("group_type", arrow::utf8(), /*nullable=*/false),
-    arrow::field("probability", arrow::float64(), /*nullable=*/false),
-    arrow::field("accessions", arrow::list(arrow::utf8()), /*nullable=*/false),
-    arrow::field("run_identifier", arrow::utf8(), /*nullable=*/false),
-    arrow::field("group_index", arrow::int32(), /*nullable=*/false),
-    arrow::field("float_data", arrow::list(fd_struct_type), /*nullable=*/true),
-    arrow::field("string_data", arrow::list(sd_struct_type), /*nullable=*/true),
-    arrow::field("integer_data", arrow::list(id_struct_type), /*nullable=*/true),
-  });
+  // Build table using registry schema
+  auto schema = ProteinGroupSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_group_type, arr_probability, arr_accessions,
     arr_run_id, arr_group_index,
     arr_float_data, arr_string_data, arr_integer_data
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, ProteinGroupSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << std::endl;
+    return nullptr;
+  }
 
   return table;
 }
@@ -1237,35 +1234,8 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
   status = sp_metavalues_builder.Finish(&arr_sp_metavalues);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: sp_metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema (26 columns)
-  auto schema = arrow::schema({
-    arrow::field("run_identifier", arrow::utf8(), /*nullable=*/false),
-    arrow::field("search_engine", arrow::utf8(), /*nullable=*/false),
-    arrow::field("search_engine_version", arrow::utf8(), /*nullable=*/true),
-    arrow::field("inference_engine", arrow::utf8(), /*nullable=*/true),
-    arrow::field("inference_engine_version", arrow::utf8(), /*nullable=*/true),
-    arrow::field("date", arrow::timestamp(arrow::TimeUnit::SECOND), /*nullable=*/true),
-    arrow::field("score_type", arrow::utf8(), /*nullable=*/false),
-    arrow::field("higher_score_better", arrow::boolean(), /*nullable=*/false),
-    arrow::field("significance_threshold", arrow::float64(), /*nullable=*/true),
-    arrow::field("db", arrow::utf8(), /*nullable=*/true),
-    arrow::field("db_version", arrow::utf8(), /*nullable=*/true),
-    arrow::field("taxonomy", arrow::utf8(), /*nullable=*/true),
-    arrow::field("charges", arrow::utf8(), /*nullable=*/true),
-    arrow::field("mass_type", arrow::utf8(), /*nullable=*/false),
-    arrow::field("precursor_mass_tolerance", arrow::float64(), /*nullable=*/false),
-    arrow::field("precursor_mass_tolerance_ppm", arrow::boolean(), /*nullable=*/false),
-    arrow::field("fragment_mass_tolerance", arrow::float64(), /*nullable=*/false),
-    arrow::field("fragment_mass_tolerance_ppm", arrow::boolean(), /*nullable=*/false),
-    arrow::field("digestion_enzyme", arrow::utf8(), /*nullable=*/true),
-    arrow::field("enzyme_term_specificity", arrow::utf8(), /*nullable=*/true),
-    arrow::field("missed_cleavages", arrow::int32(), /*nullable=*/false),
-    arrow::field("fixed_modifications", arrow::list(arrow::utf8()), /*nullable=*/false),
-    arrow::field("variable_modifications", arrow::list(arrow::utf8()), /*nullable=*/false),
-    arrow::field("primary_ms_run_paths", arrow::list(arrow::utf8()), /*nullable=*/false),
-    arrow::field("metavalues", metavalues_builder.type(), /*nullable=*/false),
-    arrow::field("sp_metavalues", sp_metavalues_builder.type(), /*nullable=*/false),
-  });
+  // Build table using registry schema
+  auto schema = SearchParamsSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_run_id, arr_search_engine, arr_se_version,
@@ -1282,6 +1252,14 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
     arr_ms_run_paths, arr_metavalues,
     arr_sp_metavalues
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, SearchParamsSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << std::endl;
+    return nullptr;
+  }
 
   return table;
 }
@@ -1310,33 +1288,41 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
 {
   if (!table || table->num_rows() == 0) return true;
 
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(table, SearchParamsSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << std::endl;
+    return false;
+  }
+
   // Get all columns
-  auto col_run_id = getColumn_(table, "run_identifier");
-  auto col_search_engine = getColumn_(table, "search_engine");
-  auto col_se_version = getColumn_(table, "search_engine_version", false);
-  auto col_inf_engine = getColumn_(table, "inference_engine", false);
-  auto col_inf_version = getColumn_(table, "inference_engine_version", false);
-  auto col_date = getColumn_(table, "date", false);
-  auto col_score_type = getColumn_(table, "score_type");
-  auto col_higher_better = getColumn_(table, "higher_score_better");
-  auto col_sig_threshold = getColumn_(table, "significance_threshold", false);
-  auto col_db = getColumn_(table, "db", false);
-  auto col_db_version = getColumn_(table, "db_version", false);
-  auto col_taxonomy = getColumn_(table, "taxonomy", false);
-  auto col_charges = getColumn_(table, "charges", false);
-  auto col_mass_type = getColumn_(table, "mass_type");
-  auto col_precursor_tol = getColumn_(table, "precursor_mass_tolerance");
-  auto col_precursor_ppm = getColumn_(table, "precursor_mass_tolerance_ppm");
-  auto col_fragment_tol = getColumn_(table, "fragment_mass_tolerance");
-  auto col_fragment_ppm = getColumn_(table, "fragment_mass_tolerance_ppm");
-  auto col_enzyme = getColumn_(table, "digestion_enzyme", false);
-  auto col_enzyme_spec = getColumn_(table, "enzyme_term_specificity", false);
-  auto col_missed_cleavages = getColumn_(table, "missed_cleavages");
-  auto col_fixed_mods = getColumn_(table, "fixed_modifications", false);
-  auto col_var_mods = getColumn_(table, "variable_modifications", false);
-  auto col_ms_run_paths = getColumn_(table, "primary_ms_run_paths", false);
-  auto col_metavalues = getColumn_(table, "metavalues", false);
-  auto col_sp_metavalues = getColumn_(table, "sp_metavalues", false);
+  auto col_run_id = getColumn_(table, SearchParamsSchema::RUN_IDENTIFIER);
+  auto col_search_engine = getColumn_(table, SearchParamsSchema::SEARCH_ENGINE);
+  auto col_se_version = getColumn_(table, SearchParamsSchema::SEARCH_ENGINE_VERSION, false);
+  auto col_inf_engine = getColumn_(table, SearchParamsSchema::INFERENCE_ENGINE, false);
+  auto col_inf_version = getColumn_(table, SearchParamsSchema::INFERENCE_ENGINE_VERSION, false);
+  auto col_date = getColumn_(table, SearchParamsSchema::DATE, false);
+  auto col_score_type = getColumn_(table, SearchParamsSchema::SCORE_TYPE);
+  auto col_higher_better = getColumn_(table, SearchParamsSchema::HIGHER_SCORE_BETTER);
+  auto col_sig_threshold = getColumn_(table, SearchParamsSchema::SIGNIFICANCE_THRESHOLD, false);
+  auto col_db = getColumn_(table, SearchParamsSchema::DB, false);
+  auto col_db_version = getColumn_(table, SearchParamsSchema::DB_VERSION, false);
+  auto col_taxonomy = getColumn_(table, SearchParamsSchema::TAXONOMY, false);
+  auto col_charges = getColumn_(table, SearchParamsSchema::CHARGES, false);
+  auto col_mass_type = getColumn_(table, SearchParamsSchema::MASS_TYPE);
+  auto col_precursor_tol = getColumn_(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE);
+  auto col_precursor_ppm = getColumn_(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE_PPM);
+  auto col_fragment_tol = getColumn_(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE);
+  auto col_fragment_ppm = getColumn_(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE_PPM);
+  auto col_enzyme = getColumn_(table, SearchParamsSchema::DIGESTION_ENZYME, false);
+  auto col_enzyme_spec = getColumn_(table, SearchParamsSchema::ENZYME_TERM_SPECIFICITY, false);
+  auto col_missed_cleavages = getColumn_(table, SearchParamsSchema::MISSED_CLEAVAGES);
+  auto col_fixed_mods = getColumn_(table, SearchParamsSchema::FIXED_MODIFICATIONS, false);
+  auto col_var_mods = getColumn_(table, SearchParamsSchema::VARIABLE_MODIFICATIONS, false);
+  auto col_ms_run_paths = getColumn_(table, SearchParamsSchema::PRIMARY_MS_RUN_PATHS, false);
+  auto col_metavalues = getColumn_(table, SearchParamsSchema::METAVALUES, false);
+  auto col_sp_metavalues = getColumn_(table, SearchParamsSchema::SP_METAVALUES, false);
 
   if (!col_run_id || !col_search_engine || !col_score_type || !col_higher_better ||
       !col_mass_type || !col_precursor_tol || !col_precursor_ppm ||
@@ -1480,17 +1466,25 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
 {
   if (!table || table->num_rows() == 0) return true;
 
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(table, ProteinSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << std::endl;
+    return false;
+  }
+
   // Get all columns
-  auto col_accession = getColumn_(table, "accession");
-  auto col_score = getColumn_(table, "score");
-  auto col_rank = getColumn_(table, "rank", false);
-  auto col_coverage = getColumn_(table, "coverage", false);
-  auto col_sequence = getColumn_(table, "sequence", false);
-  auto col_description = getColumn_(table, "description", false);
-  auto col_is_decoy = getColumn_(table, "is_decoy", false);
-  auto col_run_id = getColumn_(table, "run_identifier");
-  auto col_modifications = getColumn_(table, "modifications", false);
-  auto col_metavalues = getColumn_(table, "metavalues", false);
+  auto col_accession = getColumn_(table, ProteinSchema::ACCESSION);
+  auto col_score = getColumn_(table, ProteinSchema::SCORE);
+  auto col_rank = getColumn_(table, ProteinSchema::RANK, false);
+  auto col_coverage = getColumn_(table, ProteinSchema::COVERAGE, false);
+  auto col_sequence = getColumn_(table, ProteinSchema::SEQUENCE, false);
+  auto col_description = getColumn_(table, ProteinSchema::DESCRIPTION, false);
+  auto col_is_decoy = getColumn_(table, ProteinSchema::IS_DECOY, false);
+  auto col_run_id = getColumn_(table, ProteinSchema::RUN_IDENTIFIER);
+  auto col_modifications = getColumn_(table, ProteinSchema::MODIFICATIONS, false);
+  auto col_metavalues = getColumn_(table, ProteinSchema::METAVALUES, false);
 
   if (!col_accession || !col_score || !col_run_id)
   {
@@ -1607,15 +1601,23 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
 {
   if (!table || table->num_rows() == 0) return true;
 
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(table, ProteinGroupSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << std::endl;
+    return false;
+  }
+
   // Get all columns
-  auto col_group_type = getColumn_(table, "group_type");
-  auto col_probability = getColumn_(table, "probability");
-  auto col_accessions = getColumn_(table, "accessions");
-  auto col_run_id = getColumn_(table, "run_identifier");
-  auto col_group_index = getColumn_(table, "group_index", false); // informational, not needed for reconstruction
-  auto col_float_data = getColumn_(table, "float_data", false);
-  auto col_string_data = getColumn_(table, "string_data", false);
-  auto col_integer_data = getColumn_(table, "integer_data", false);
+  auto col_group_type = getColumn_(table, ProteinGroupSchema::GROUP_TYPE);
+  auto col_probability = getColumn_(table, ProteinGroupSchema::PROBABILITY);
+  auto col_accessions = getColumn_(table, ProteinGroupSchema::ACCESSIONS);
+  auto col_run_id = getColumn_(table, ProteinGroupSchema::RUN_IDENTIFIER);
+  auto col_group_index = getColumn_(table, ProteinGroupSchema::GROUP_INDEX, false); // informational, not needed for reconstruction
+  auto col_float_data = getColumn_(table, ProteinGroupSchema::FLOAT_DATA, false);
+  auto col_string_data = getColumn_(table, ProteinGroupSchema::STRING_DATA, false);
+  auto col_integer_data = getColumn_(table, ProteinGroupSchema::INTEGER_DATA, false);
 
   if (!col_group_type || !col_probability || !col_accessions || !col_run_id)
   {
