@@ -10,6 +10,7 @@
 
 #ifdef WITH_PARQUET
 
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
@@ -156,18 +157,18 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
 {
   // Determine which columns to include
   const auto& cols = config.columns;
-  bool inc_mz = shouldIncludeColumn("mz", cols);
-  bool inc_intensity = shouldIncludeColumn("intensity", cols);
-  bool inc_rt = shouldIncludeColumn("rt", cols);
-  bool inc_spectrum_index = shouldIncludeColumn("spectrum_index", cols);
-  bool inc_ms_level = shouldIncludeColumn("ms_level", cols);
-  bool inc_native_id = shouldIncludeColumn("native_id", cols);
-  bool inc_ion_mobility = config.include_ion_mobility && shouldIncludeColumn("ion_mobility", cols);
-  bool inc_precursor_mz = config.include_precursor_info && shouldIncludeColumn("precursor_mz", cols);
-  bool inc_precursor_charge = config.include_precursor_info && shouldIncludeColumn("precursor_charge", cols);
-  bool inc_precursor_intensity = config.include_precursor_info && shouldIncludeColumn("precursor_intensity", cols);
-  bool inc_isolation_lower = config.include_precursor_info && shouldIncludeColumn("isolation_lower", cols);
-  bool inc_isolation_upper = config.include_precursor_info && shouldIncludeColumn("isolation_upper", cols);
+  bool inc_mz = shouldIncludeColumn(SpectraLongSchema::MZ, cols);
+  bool inc_intensity = shouldIncludeColumn(SpectraLongSchema::INTENSITY, cols);
+  bool inc_rt = shouldIncludeColumn(SpectraLongSchema::RT, cols);
+  bool inc_spectrum_index = shouldIncludeColumn(SpectraLongSchema::SPECTRUM_INDEX, cols);
+  bool inc_ms_level = shouldIncludeColumn(SpectraLongSchema::MS_LEVEL, cols);
+  bool inc_native_id = shouldIncludeColumn(SpectraLongSchema::NATIVE_ID, cols);
+  bool inc_ion_mobility = config.include_ion_mobility && shouldIncludeColumn(SpectraLongSchema::ION_MOBILITY, cols);
+  bool inc_precursor_mz = config.include_precursor_info && shouldIncludeColumn(SpectraLongSchema::PRECURSOR_MZ, cols);
+  bool inc_precursor_charge = config.include_precursor_info && shouldIncludeColumn(SpectraLongSchema::PRECURSOR_CHARGE, cols);
+  bool inc_precursor_intensity = config.include_precursor_info && shouldIncludeColumn(SpectraLongSchema::PRECURSOR_INTENSITY, cols);
+  bool inc_isolation_lower = config.include_precursor_info && shouldIncludeColumn(SpectraLongSchema::ISOLATION_LOWER, cols);
+  bool inc_isolation_upper = config.include_precursor_info && shouldIncludeColumn(SpectraLongSchema::ISOLATION_UPPER, cols);
 
   // Check if experiment has IM data (only if we want to include it)
   bool has_im_data = inc_ion_mobility && experimentHasIMData(exp, ms_levels_set, config);
@@ -359,7 +360,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = mz_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("mz", arrow::float64()));
+    fields.push_back(arrow::field(SpectraLongSchema::MZ, arrow::float64()));
     arrays.push_back(arr);
   }
 
@@ -367,7 +368,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = intensity_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow intensity_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("intensity", arrow::float32()));
+    fields.push_back(arrow::field(SpectraLongSchema::INTENSITY, arrow::float32()));
     arrays.push_back(arr);
   }
 
@@ -375,7 +376,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = rt_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow rt_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("rt", arrow::float32()));
+    fields.push_back(arrow::field(SpectraLongSchema::RT, arrow::float32()));
     arrays.push_back(arr);
   }
 
@@ -383,7 +384,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = ion_mobility_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow ion_mobility_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("ion_mobility", arrow::float32()));
+    fields.push_back(arrow::field(SpectraLongSchema::ION_MOBILITY, arrow::float32()));
     arrays.push_back(arr);
   }
 
@@ -391,7 +392,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = spectrum_index_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow spectrum_index_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("spectrum_index", arrow::uint32()));
+    fields.push_back(arrow::field(SpectraLongSchema::SPECTRUM_INDEX, arrow::uint32()));
     arrays.push_back(arr);
   }
 
@@ -399,7 +400,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = ms_level_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow ms_level_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("ms_level", arrow::uint8()));
+    fields.push_back(arrow::field(SpectraLongSchema::MS_LEVEL, arrow::uint8()));
     arrays.push_back(arr);
   }
 
@@ -407,7 +408,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = native_id_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow native_id_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("native_id", arrow::utf8()));
+    fields.push_back(arrow::field(SpectraLongSchema::NATIVE_ID, arrow::utf8()));
     arrays.push_back(arr);
   }
 
@@ -415,7 +416,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = precursor_mz_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow precursor_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("precursor_mz", arrow::float64()));
+    fields.push_back(arrow::field(SpectraLongSchema::PRECURSOR_MZ, arrow::float64()));
     arrays.push_back(arr);
   }
 
@@ -423,7 +424,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = precursor_charge_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow precursor_charge_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("precursor_charge", arrow::int16()));
+    fields.push_back(arrow::field(SpectraLongSchema::PRECURSOR_CHARGE, arrow::int16()));
     arrays.push_back(arr);
   }
 
@@ -431,7 +432,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = precursor_intensity_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow precursor_intensity_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("precursor_intensity", arrow::float32()));
+    fields.push_back(arrow::field(SpectraLongSchema::PRECURSOR_INTENSITY, arrow::float32()));
     arrays.push_back(arr);
   }
 
@@ -439,7 +440,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = isolation_lower_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow isolation_lower_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("isolation_lower", arrow::float64()));
+    fields.push_back(arrow::field(SpectraLongSchema::ISOLATION_LOWER, arrow::float64()));
     arrays.push_back(arr);
   }
 
@@ -447,12 +448,22 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   {
     status = isolation_upper_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow isolation_upper_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("isolation_upper", arrow::float64()));
+    fields.push_back(arrow::field(SpectraLongSchema::ISOLATION_UPPER, arrow::float64()));
     arrays.push_back(arr);
   }
 
   auto schema = arrow::schema(fields);
-  return arrow::Table::Make(schema, arrays);
+  auto table = arrow::Table::Make(schema, arrays);
+
+  // Validate table against registry schema (subset — dynamic columns are a subset of the superset)
+  auto validation = ArrowSchemaValidation::validate(table, SpectraLongSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Spectra long format schema validation failed: " << validation.toString() << std::endl;
+    return nullptr;
+  }
+
+  return table;
 }
 
 
@@ -464,18 +475,18 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
 {
   // Determine which columns to include
   const auto& cols = config.columns;
-  bool inc_mz = shouldIncludeColumn("mz", cols);
-  bool inc_intensity = shouldIncludeColumn("intensity", cols);
-  bool inc_rt = shouldIncludeColumn("rt", cols);
-  bool inc_spectrum_index = shouldIncludeColumn("spectrum_index", cols);
-  bool inc_ms_level = shouldIncludeColumn("ms_level", cols);
-  bool inc_native_id = shouldIncludeColumn("native_id", cols);
-  bool inc_ion_mobility = config.include_ion_mobility && shouldIncludeColumn("ion_mobility", cols);
-  bool inc_precursor_mz = config.include_precursor_info && shouldIncludeColumn("precursor_mz", cols);
-  bool inc_precursor_charge = config.include_precursor_info && shouldIncludeColumn("precursor_charge", cols);
-  bool inc_precursor_intensity = config.include_precursor_info && shouldIncludeColumn("precursor_intensity", cols);
-  bool inc_isolation_lower = config.include_precursor_info && shouldIncludeColumn("isolation_lower", cols);
-  bool inc_isolation_upper = config.include_precursor_info && shouldIncludeColumn("isolation_upper", cols);
+  bool inc_mz = shouldIncludeColumn(SpectraSemiWideSchema::MZ, cols);
+  bool inc_intensity = shouldIncludeColumn(SpectraSemiWideSchema::INTENSITY, cols);
+  bool inc_rt = shouldIncludeColumn(SpectraSemiWideSchema::RT, cols);
+  bool inc_spectrum_index = shouldIncludeColumn(SpectraSemiWideSchema::SPECTRUM_INDEX, cols);
+  bool inc_ms_level = shouldIncludeColumn(SpectraSemiWideSchema::MS_LEVEL, cols);
+  bool inc_native_id = shouldIncludeColumn(SpectraSemiWideSchema::NATIVE_ID, cols);
+  bool inc_ion_mobility = config.include_ion_mobility && shouldIncludeColumn(SpectraSemiWideSchema::ION_MOBILITY, cols);
+  bool inc_precursor_mz = config.include_precursor_info && shouldIncludeColumn(SpectraSemiWideSchema::PRECURSOR_MZ, cols);
+  bool inc_precursor_charge = config.include_precursor_info && shouldIncludeColumn(SpectraSemiWideSchema::PRECURSOR_CHARGE, cols);
+  bool inc_precursor_intensity = config.include_precursor_info && shouldIncludeColumn(SpectraSemiWideSchema::PRECURSOR_INTENSITY, cols);
+  bool inc_isolation_lower = config.include_precursor_info && shouldIncludeColumn(SpectraSemiWideSchema::ISOLATION_LOWER, cols);
+  bool inc_isolation_upper = config.include_precursor_info && shouldIncludeColumn(SpectraSemiWideSchema::ISOLATION_UPPER, cols);
 
   // Check if experiment has IM data
   bool has_im_data = inc_ion_mobility && experimentHasIMData(exp, ms_levels_set, config);
@@ -647,7 +658,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = spectrum_index_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("spectrum_index", arrow::uint32()));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::SPECTRUM_INDEX, arrow::uint32()));
     arrays.push_back(arr);
   }
 
@@ -655,7 +666,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = rt_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("rt", arrow::float32()));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::RT, arrow::float32()));
     arrays.push_back(arr);
   }
 
@@ -663,7 +674,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = ms_level_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("ms_level", arrow::uint8()));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::MS_LEVEL, arrow::uint8()));
     arrays.push_back(arr);
   }
 
@@ -671,7 +682,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = native_id_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("native_id", arrow::utf8()));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::NATIVE_ID, arrow::utf8()));
     arrays.push_back(arr);
   }
 
@@ -679,7 +690,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = mz_list_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("mz", arrow::list(arrow::float64())));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::MZ, arrow::list(arrow::float64())));
     arrays.push_back(arr);
   }
 
@@ -687,7 +698,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = intensity_list_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("intensity", arrow::list(arrow::float32())));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::INTENSITY, arrow::list(arrow::float32())));
     arrays.push_back(arr);
   }
 
@@ -695,7 +706,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = im_list_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("ion_mobility", arrow::list(arrow::float32())));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::ION_MOBILITY, arrow::list(arrow::float32())));
     arrays.push_back(arr);
   }
 
@@ -703,7 +714,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = precursor_mz_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("precursor_mz", arrow::float64()));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::PRECURSOR_MZ, arrow::float64()));
     arrays.push_back(arr);
   }
 
@@ -711,7 +722,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = precursor_charge_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("precursor_charge", arrow::int16()));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::PRECURSOR_CHARGE, arrow::int16()));
     arrays.push_back(arr);
   }
 
@@ -719,7 +730,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = precursor_intensity_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("precursor_intensity", arrow::float32()));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::PRECURSOR_INTENSITY, arrow::float32()));
     arrays.push_back(arr);
   }
 
@@ -727,7 +738,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = isolation_lower_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("isolation_lower", arrow::float64()));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::ISOLATION_LOWER, arrow::float64()));
     arrays.push_back(arr);
   }
 
@@ -735,12 +746,22 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   {
     status = isolation_upper_builder.Finish(&arr);
     if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; }
-    fields.push_back(arrow::field("isolation_upper", arrow::float64()));
+    fields.push_back(arrow::field(SpectraSemiWideSchema::ISOLATION_UPPER, arrow::float64()));
     arrays.push_back(arr);
   }
 
   auto schema = arrow::schema(fields);
-  return arrow::Table::Make(schema, arrays);
+  auto table = arrow::Table::Make(schema, arrays);
+
+  // Validate table against registry schema (subset — dynamic columns are a subset of the superset)
+  auto validation = ArrowSchemaValidation::validate(table, SpectraSemiWideSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "MSExperimentArrowExport: Spectra semi-wide format schema validation failed: " << validation.toString() << std::endl;
+    return nullptr;
+  }
+
+  return table;
 }
 
 // Internal function - not part of public API
@@ -779,33 +800,34 @@ std::vector<std::string> MSExperimentArrowExport::getSpectraArrowColumnNames(
 
   if (config.format == ArrowExportFormat::Long)
   {
-    columns = {"mz", "intensity", "rt"};
-    if (has_im_data) columns.push_back("ion_mobility");
-    columns.push_back("spectrum_index");
-    columns.push_back("ms_level");
-    columns.push_back("native_id");
+    columns = {SpectraLongSchema::MZ, SpectraLongSchema::INTENSITY, SpectraLongSchema::RT};
+    if (has_im_data) columns.push_back(SpectraLongSchema::ION_MOBILITY);
+    columns.push_back(SpectraLongSchema::SPECTRUM_INDEX);
+    columns.push_back(SpectraLongSchema::MS_LEVEL);
+    columns.push_back(SpectraLongSchema::NATIVE_ID);
 
     if (config.include_precursor_info)
     {
-      columns.push_back("precursor_mz");
-      columns.push_back("precursor_charge");
-      columns.push_back("precursor_intensity");
-      columns.push_back("isolation_lower");
-      columns.push_back("isolation_upper");
+      columns.push_back(SpectraLongSchema::PRECURSOR_MZ);
+      columns.push_back(SpectraLongSchema::PRECURSOR_CHARGE);
+      columns.push_back(SpectraLongSchema::PRECURSOR_INTENSITY);
+      columns.push_back(SpectraLongSchema::ISOLATION_LOWER);
+      columns.push_back(SpectraLongSchema::ISOLATION_UPPER);
     }
   }
   else // SemiWide
   {
-    columns = {"spectrum_index", "rt", "ms_level", "native_id", "mz", "intensity"};
-    if (has_im_data) columns.push_back("ion_mobility");
+    columns = {SpectraSemiWideSchema::SPECTRUM_INDEX, SpectraSemiWideSchema::RT, SpectraSemiWideSchema::MS_LEVEL,
+               SpectraSemiWideSchema::NATIVE_ID, SpectraSemiWideSchema::MZ, SpectraSemiWideSchema::INTENSITY};
+    if (has_im_data) columns.push_back(SpectraSemiWideSchema::ION_MOBILITY);
 
     if (config.include_precursor_info)
     {
-      columns.push_back("precursor_mz");
-      columns.push_back("precursor_charge");
-      columns.push_back("precursor_intensity");
-      columns.push_back("isolation_lower");
-      columns.push_back("isolation_upper");
+      columns.push_back(SpectraSemiWideSchema::PRECURSOR_MZ);
+      columns.push_back(SpectraSemiWideSchema::PRECURSOR_CHARGE);
+      columns.push_back(SpectraSemiWideSchema::PRECURSOR_INTENSITY);
+      columns.push_back(SpectraSemiWideSchema::ISOLATION_LOWER);
+      columns.push_back(SpectraSemiWideSchema::ISOLATION_UPPER);
     }
   }
 
@@ -837,12 +859,12 @@ std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
 {
   const auto& chroms = exp.getChromatograms();
   const auto& cols = config.columns;
-  bool inc_rt = shouldIncludeColumn("rt", cols);
-  bool inc_intensity = shouldIncludeColumn("intensity", cols);
-  bool inc_chrom_index = shouldIncludeColumn("chromatogram_index", cols);
-  bool inc_native_id = shouldIncludeColumn("native_id", cols);
-  bool inc_precursor_mz = shouldIncludeColumn("precursor_mz", cols);
-  bool inc_product_mz = shouldIncludeColumn("product_mz", cols);
+  bool inc_rt = shouldIncludeColumn(ChromatogramSchema::RT, cols);
+  bool inc_intensity = shouldIncludeColumn(ChromatogramSchema::INTENSITY, cols);
+  bool inc_chrom_index = shouldIncludeColumn(ChromatogramSchema::CHROMATOGRAM_INDEX, cols);
+  bool inc_native_id = shouldIncludeColumn(ChromatogramSchema::NATIVE_ID, cols);
+  bool inc_precursor_mz = shouldIncludeColumn(ChromatogramSchema::PRECURSOR_MZ, cols);
+  bool inc_product_mz = shouldIncludeColumn(ChromatogramSchema::PRODUCT_MZ, cols);
 
   arrow::MemoryPool* pool = arrow::default_memory_pool();
   arrow::Status status;
@@ -904,15 +926,25 @@ std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
     std::vector<std::shared_ptr<arrow::Array>> arrays;
     std::shared_ptr<arrow::Array> arr;
 
-    if (inc_rt) { status = rt_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow rt_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("rt", arrow::float64())); arrays.push_back(arr); }
-    if (inc_intensity) { status = intensity_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow intensity_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("intensity", arrow::float32())); arrays.push_back(arr); }
-    if (inc_chrom_index) { status = chrom_index_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow chrom_index_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("chromatogram_index", arrow::uint32())); arrays.push_back(arr); }
-    if (inc_native_id) { status = native_id_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow native_id_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("native_id", arrow::utf8())); arrays.push_back(arr); }
-    if (inc_precursor_mz) { status = precursor_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow precursor_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("precursor_mz", arrow::float64())); arrays.push_back(arr); }
-    if (inc_product_mz) { status = product_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow product_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("product_mz", arrow::float64())); arrays.push_back(arr); }
+    if (inc_rt) { status = rt_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow rt_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::RT, arrow::float64())); arrays.push_back(arr); }
+    if (inc_intensity) { status = intensity_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow intensity_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::INTENSITY, arrow::float32())); arrays.push_back(arr); }
+    if (inc_chrom_index) { status = chrom_index_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow chrom_index_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::CHROMATOGRAM_INDEX, arrow::uint32())); arrays.push_back(arr); }
+    if (inc_native_id) { status = native_id_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow native_id_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::NATIVE_ID, arrow::utf8())); arrays.push_back(arr); }
+    if (inc_precursor_mz) { status = precursor_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow precursor_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::PRECURSOR_MZ, arrow::float64())); arrays.push_back(arr); }
+    if (inc_product_mz) { status = product_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow product_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::PRODUCT_MZ, arrow::float64())); arrays.push_back(arr); }
 
     auto schema = arrow::schema(fields);
-    return arrow::Table::Make(schema, arrays);
+    auto table = arrow::Table::Make(schema, arrays);
+
+    // Validate table against registry schema (subset — dynamic columns)
+    auto validation = ArrowSchemaValidation::validate(table, ChromatogramSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+    if (!validation.valid)
+    {
+      OPENMS_LOG_ERROR << "MSExperimentArrowExport: Chromatogram long format schema validation failed: " << validation.toString() << std::endl;
+      return nullptr;
+    }
+
+    return table;
   }
   else // SemiWide
   {
@@ -985,12 +1017,12 @@ std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
     std::vector<std::shared_ptr<arrow::Array>> arrays;
     std::shared_ptr<arrow::Array> arr;
 
-    if (inc_chrom_index) { status = chrom_index_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("chromatogram_index", arrow::uint32())); arrays.push_back(arr); }
-    if (inc_native_id) { status = native_id_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("native_id", arrow::utf8())); arrays.push_back(arr); }
-    if (inc_rt) { status = rt_list_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("rt", arrow::list(arrow::float64()))); arrays.push_back(arr); }
-    if (inc_intensity) { status = intensity_list_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("intensity", arrow::list(arrow::float32()))); arrays.push_back(arr); }
-    if (inc_precursor_mz) { status = precursor_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("precursor_mz", arrow::float64())); arrays.push_back(arr); }
-    if (inc_product_mz) { status = product_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("product_mz", arrow::float64())); arrays.push_back(arr); }
+    if (inc_chrom_index) { status = chrom_index_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::CHROMATOGRAM_INDEX, arrow::uint32())); arrays.push_back(arr); }
+    if (inc_native_id) { status = native_id_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::NATIVE_ID, arrow::utf8())); arrays.push_back(arr); }
+    if (inc_rt) { status = rt_list_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::RT, arrow::list(arrow::float64()))); arrays.push_back(arr); }
+    if (inc_intensity) { status = intensity_list_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::INTENSITY, arrow::list(arrow::float32()))); arrays.push_back(arr); }
+    if (inc_precursor_mz) { status = precursor_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::PRECURSOR_MZ, arrow::float64())); arrays.push_back(arr); }
+    if (inc_product_mz) { status = product_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field(ChromatogramSchema::PRODUCT_MZ, arrow::float64())); arrays.push_back(arr); }
 
     auto schema = arrow::schema(fields);
     return arrow::Table::Make(schema, arrays);
@@ -1008,11 +1040,14 @@ std::vector<std::string> MSExperimentArrowExport::getChromatogramArrowColumnName
 
   if (config.format == ArrowExportFormat::Long)
   {
-    columns = {"rt", "intensity", "chromatogram_index", "native_id", "precursor_mz", "product_mz"};
+    columns = {ChromatogramSchema::RT, ChromatogramSchema::INTENSITY, ChromatogramSchema::CHROMATOGRAM_INDEX,
+               ChromatogramSchema::NATIVE_ID, ChromatogramSchema::PRECURSOR_MZ, ChromatogramSchema::PRODUCT_MZ};
   }
   else // SemiWide
   {
-    columns = {"chromatogram_index", "native_id", "rt", "intensity", "precursor_mz", "product_mz"};
+    columns = {ChromatogramSchema::CHROMATOGRAM_INDEX, ChromatogramSchema::NATIVE_ID,
+               ChromatogramSchema::RT, ChromatogramSchema::INTENSITY,
+               ChromatogramSchema::PRECURSOR_MZ, ChromatogramSchema::PRODUCT_MZ};
   }
 
   // Filter by requested columns if specified
