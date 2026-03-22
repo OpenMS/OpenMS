@@ -109,10 +109,7 @@ namespace OpenMS
 
           if (!expected_field)
           {
-            result.valid = false;
-            result.errors.push_back("Unexpected field '" + actual_field->name() +
-              "' not in expected schema");
-            continue;
+            continue;  // Ignore unknown fields for forward compatibility
           }
           if (!areTypesCompatible(actual_field->type(), expected_field->type()))
           {

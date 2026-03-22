@@ -26,14 +26,17 @@ namespace arrow
 namespace OpenMS
 {
 
+  /// @brief Utilities for validating Arrow table schemas against expected definitions
   namespace ArrowSchemaValidation
   {
+    /// @brief Validation strictness: Strict requires exact match, Subset allows missing and extra columns
     enum class Mode
     {
       Strict,
       Subset
     };
 
+    /// @brief Result of schema validation containing validity flag and error messages
     struct OPENMS_DLLAPI ValidationResult
     {
       bool valid = true;
@@ -41,12 +44,14 @@ namespace OpenMS
       std::string toString() const;
     };
 
+    /// @brief Validate an Arrow table's schema against an expected schema
     OPENMS_DLLAPI ValidationResult validate(
       const std::shared_ptr<arrow::Table>& table,
       const std::shared_ptr<arrow::Schema>& expected_schema,
       Mode mode = Mode::Strict);
   }
 
+  /// @brief Schema for protein identification results table
   struct OPENMS_DLLAPI ProteinSchema
   {
     static constexpr const char* ACCESSION = "accession";
@@ -65,6 +70,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for protein group (indistinguishable group) results table
   struct OPENMS_DLLAPI ProteinGroupSchema
   {
     static constexpr const char* GROUP_TYPE = "group_type";
@@ -82,6 +88,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for search engine parameters and settings table
   struct OPENMS_DLLAPI SearchParamsSchema
   {
     static constexpr const char* RUN_IDENTIFIER = "run_identifier";
@@ -115,6 +122,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for LC-MS feature table (FeatureMap features)
   struct OPENMS_DLLAPI FeatureSchema
   {
     static constexpr const char* UNIQUE_ID = "unique_id";
@@ -140,6 +148,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for consensus feature table (ConsensusMap features)
   struct OPENMS_DLLAPI ConsensusFeatureSchema
   {
     static constexpr const char* UNIQUE_ID = "unique_id";
@@ -157,6 +166,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for peptide-spectrum match (PSM) results table
   struct OPENMS_DLLAPI PSMSchema
   {
     static constexpr const char* SEQUENCE = "sequence";
@@ -191,6 +201,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for consensus feature export table with flattened PSM and quantification data
   struct OPENMS_DLLAPI ConsensusFeatureExportSchema
   {
     static constexpr const char* SEQUENCE = "sequence";
@@ -234,6 +245,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for spectra in long (one row per peak) format
   struct OPENMS_DLLAPI SpectraLongSchema
   {
     static constexpr const char* MZ = "mz";
@@ -252,6 +264,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for spectra in semi-wide (one row per spectrum, list columns for peaks) format
   struct OPENMS_DLLAPI SpectraSemiWideSchema
   {
     static constexpr const char* SPECTRUM_INDEX = "spectrum_index";
@@ -270,6 +283,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for chromatograms in long (one row per data point) format
   struct OPENMS_DLLAPI ChromatogramSchema
   {
     static constexpr const char* RT = "rt";
@@ -282,6 +296,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for chromatograms in semi-wide (one row per chromatogram, list columns) format
   struct OPENMS_DLLAPI ChromatogramSemiWideSchema
   {
     static constexpr const char* CHROMATOGRAM_INDEX = "chromatogram_index";
@@ -294,6 +309,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for OpenSWATH precursor (peptide query) table
   struct OPENMS_DLLAPI OSWPrecursorSchema
   {
     static constexpr const char* PRECURSOR_ID = "precursor_id";
@@ -310,6 +326,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for OpenSWATH transition (fragment ion) table
   struct OPENMS_DLLAPI OSWTransitionSchema
   {
     static constexpr const char* TRANSITION_ID = "transition_id";
@@ -329,6 +346,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for OpenSWATH feature-level precursor intensity table
   struct OPENMS_DLLAPI OSWFeaturePrecursorSchema
   {
     static constexpr const char* FEATURE_ID = "feature_id";
@@ -340,6 +358,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for OpenSWATH run metadata table
   struct OPENMS_DLLAPI OSWRunSchema
   {
     static constexpr const char* RUN_ID = "run_id";
@@ -348,6 +367,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for OpenSWATH feature scoring results table
   struct OPENMS_DLLAPI OSWFeatureSchema
   {
     static constexpr const char* FEATURE_ID = "feature_id";
@@ -419,6 +439,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for OpenSWATH per-transition feature scoring results table
   struct OPENMS_DLLAPI OSWFeatureTransitionSchema
   {
     static constexpr const char* FEATURE_ID = "feature_id";
@@ -469,6 +490,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for extracted ion chromatogram (XIC) data table
   struct OPENMS_DLLAPI XICSchema
   {
     static constexpr const char* RUN_ID = "RUN_ID";
@@ -493,6 +515,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  /// @brief Schema for extracted ion mobilogram (XIM) data table
   struct OPENMS_DLLAPI XIMSchema
   {
     static constexpr const char* RUN_ID = "RUN_ID";

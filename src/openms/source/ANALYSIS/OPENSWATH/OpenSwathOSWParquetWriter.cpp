@@ -1063,6 +1063,8 @@ namespace OpenMS
     }
 
     std::vector<std::future<void>> write_tasks;
+    try
+    {
     {
       auto features_schema = OSWFeatureSchema::schema();
       auto features_table = arrow::Table::Make(features_schema, {
@@ -1228,13 +1230,11 @@ namespace OpenMS
       }));
     }
 
-    try
-    {
       waitForWriteTasks_(write_tasks);
     }
     catch (...)
     {
-      // If any asynchronous write failed, remove the partially-created run
+      // If any validation or asynchronous write failed, remove the partially-created run
       // directory to avoid leaving a stale run_id=<id> that blocks retries.
       if (File::exists(run_path))
       {

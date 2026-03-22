@@ -1395,6 +1395,13 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
   const auto& tbl = *combined_result;
   int64_t num_rows = tbl->num_rows();
 
+  auto psm_validation = ArrowSchemaValidation::validate(tbl, PSMSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!psm_validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible PSM schema: " << psm_validation.toString() << "\n";
+    return false;
+  }
+
   // Build consensus feature lookup: unique_id -> ConsensusFeature*
   std::unordered_map<int64_t, ConsensusFeature*> feature_lookup;
   for (auto& cf : cmap)

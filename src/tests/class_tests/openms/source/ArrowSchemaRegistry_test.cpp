@@ -125,7 +125,7 @@ START_SECTION(validate - Subset mode - valid subset passes)
 }
 END_SECTION
 
-START_SECTION(validate - Subset mode - unknown field fails)
+START_SECTION(validate - Subset mode - unknown field ignored for forward compatibility)
 {
   auto expected = arrow::schema({
     arrow::field("a", arrow::utf8(), false),
@@ -140,7 +140,7 @@ START_SECTION(validate - Subset mode - unknown field fails)
 
   auto result = ArrowSchemaValidation::validate(table, expected,
     ArrowSchemaValidation::Mode::Subset);
-  TEST_EQUAL(result.valid, false)
+  TEST_EQUAL(result.valid, true)
 }
 END_SECTION
 

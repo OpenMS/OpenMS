@@ -1405,6 +1405,13 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   const auto& tbl = *combined_result;
   int64_t num_rows = tbl->num_rows();
 
+  auto psm_validation = ArrowSchemaValidation::validate(tbl, PSMSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!psm_validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible PSM schema: " << psm_validation.toString() << "\n";
+    return false;
+  }
+
   // Build feature lookup: unique_id -> Feature* (recursively includes subordinates)
   std::unordered_map<int64_t, Feature*> feature_lookup;
   std::function<void(Feature&)> buildLookup = [&](Feature& f)

@@ -97,7 +97,21 @@ protected:
 
     if (fs::is_directory(fs::path(std::string(in))))
     {
-      return importFromParquet_(in, out);
+      // Verify directory contains parquet files before treating as import source
+      bool has_parquet = false;
+      for (const auto& entry : fs::directory_iterator(fs::path(std::string(in))))
+      {
+        if (entry.path().extension() == ".parquet")
+        {
+          has_parquet = true;
+          break;
+        }
+      }
+      if (has_parquet)
+      {
+        return importFromParquet_(in, out);
+      }
+      // Fall through to error if directory has no parquet files
     }
 
     if (in.hasSuffix(".featureXML"))
