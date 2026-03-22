@@ -517,6 +517,380 @@ START_SECTION(SearchParamsSchema validation with table)
 }
 END_SECTION
 
+// ========== FeatureSchema ==========
+
+START_SECTION(FeatureSchema::schema() returns non-null with 17 fields)
+{
+  auto s = FeatureSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 17)
+}
+END_SECTION
+
+START_SECTION(FeatureSchema column name constants)
+{
+  TEST_STRING_EQUAL(FeatureSchema::UNIQUE_ID, "unique_id")
+  TEST_STRING_EQUAL(FeatureSchema::PARENT_FEATURE_ID, "parent_feature_id")
+  TEST_STRING_EQUAL(FeatureSchema::DEPTH, "depth")
+  TEST_STRING_EQUAL(FeatureSchema::RT, "rt")
+  TEST_STRING_EQUAL(FeatureSchema::MZ, "mz")
+  TEST_STRING_EQUAL(FeatureSchema::INTENSITY, "intensity")
+  TEST_STRING_EQUAL(FeatureSchema::CHARGE, "charge")
+  TEST_STRING_EQUAL(FeatureSchema::QUALITY, "quality")
+  TEST_STRING_EQUAL(FeatureSchema::QUALITY_RT, "quality_rt")
+  TEST_STRING_EQUAL(FeatureSchema::QUALITY_MZ, "quality_mz")
+  TEST_STRING_EQUAL(FeatureSchema::WIDTH, "width")
+  TEST_STRING_EQUAL(FeatureSchema::RT_BB_MIN, "rt_bb_min")
+  TEST_STRING_EQUAL(FeatureSchema::RT_BB_MAX, "rt_bb_max")
+  TEST_STRING_EQUAL(FeatureSchema::MZ_BB_MIN, "mz_bb_min")
+  TEST_STRING_EQUAL(FeatureSchema::MZ_BB_MAX, "mz_bb_max")
+  TEST_STRING_EQUAL(FeatureSchema::CONVEX_HULLS, "convex_hulls")
+  TEST_STRING_EQUAL(FeatureSchema::METAVALUES, "metavalues")
+}
+END_SECTION
+
+START_SECTION(FeatureSchema field types and nullability)
+{
+  auto s = FeatureSchema::schema();
+  // unique_id: int64, non-null
+  TEST_EQUAL(s->field(0)->name(), "unique_id")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(0)->nullable(), false)
+  // parent_feature_id: int64, nullable
+  TEST_EQUAL(s->field(1)->name(), "parent_feature_id")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // depth: int32, non-null
+  TEST_EQUAL(s->field(2)->name(), "depth")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(2)->nullable(), false)
+  // rt: float64, non-null
+  TEST_EQUAL(s->field(3)->name(), "rt")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(3)->nullable(), false)
+  // mz: float64, non-null
+  TEST_EQUAL(s->field(4)->name(), "mz")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(4)->nullable(), false)
+  // intensity: float32, non-null
+  TEST_EQUAL(s->field(5)->name(), "intensity")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(5)->nullable(), false)
+  // charge: int32, non-null
+  TEST_EQUAL(s->field(6)->name(), "charge")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(6)->nullable(), false)
+  // quality: float32, non-null
+  TEST_EQUAL(s->field(7)->name(), "quality")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(7)->nullable(), false)
+  // quality_rt: float32, non-null
+  TEST_EQUAL(s->field(8)->name(), "quality_rt")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(8)->nullable(), false)
+  // quality_mz: float32, non-null
+  TEST_EQUAL(s->field(9)->name(), "quality_mz")
+  TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(9)->nullable(), false)
+  // width: float32, nullable
+  TEST_EQUAL(s->field(10)->name(), "width")
+  TEST_EQUAL(s->field(10)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(10)->nullable(), true)
+  // rt_bb_min: float64, nullable
+  TEST_EQUAL(s->field(11)->name(), "rt_bb_min")
+  TEST_EQUAL(s->field(11)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(11)->nullable(), true)
+  // rt_bb_max: float64, nullable
+  TEST_EQUAL(s->field(12)->name(), "rt_bb_max")
+  TEST_EQUAL(s->field(12)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(12)->nullable(), true)
+  // mz_bb_min: float64, nullable
+  TEST_EQUAL(s->field(13)->name(), "mz_bb_min")
+  TEST_EQUAL(s->field(13)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(13)->nullable(), true)
+  // mz_bb_max: float64, nullable
+  TEST_EQUAL(s->field(14)->name(), "mz_bb_max")
+  TEST_EQUAL(s->field(14)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(14)->nullable(), true)
+  // convex_hulls: list<struct>, non-null
+  TEST_EQUAL(s->field(15)->name(), "convex_hulls")
+  TEST_EQUAL(s->field(15)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(15)->nullable(), false)
+  TEST_EQUAL(s->field(15)->type()->Equals(FeatureSchema::convexHullType()), true)
+  // metavalues: list<struct>, non-null
+  TEST_EQUAL(s->field(16)->name(), "metavalues")
+  TEST_EQUAL(s->field(16)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(16)->nullable(), false)
+  TEST_EQUAL(s->field(16)->type()->Equals(FeatureSchema::metavaluesType()), true)
+}
+END_SECTION
+
+START_SECTION(FeatureSchema validation with table)
+{
+  auto s = FeatureSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== ConsensusFeatureSchema ==========
+
+START_SECTION(ConsensusFeatureSchema::schema() returns non-null with 9 fields)
+{
+  auto s = ConsensusFeatureSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 9)
+}
+END_SECTION
+
+START_SECTION(ConsensusFeatureSchema column name constants)
+{
+  TEST_STRING_EQUAL(ConsensusFeatureSchema::UNIQUE_ID, "unique_id")
+  TEST_STRING_EQUAL(ConsensusFeatureSchema::RT, "rt")
+  TEST_STRING_EQUAL(ConsensusFeatureSchema::MZ, "mz")
+  TEST_STRING_EQUAL(ConsensusFeatureSchema::INTENSITY, "intensity")
+  TEST_STRING_EQUAL(ConsensusFeatureSchema::CHARGE, "charge")
+  TEST_STRING_EQUAL(ConsensusFeatureSchema::QUALITY, "quality")
+  TEST_STRING_EQUAL(ConsensusFeatureSchema::WIDTH, "width")
+  TEST_STRING_EQUAL(ConsensusFeatureSchema::HANDLES, "handles")
+  TEST_STRING_EQUAL(ConsensusFeatureSchema::METAVALUES, "metavalues")
+}
+END_SECTION
+
+START_SECTION(ConsensusFeatureSchema field types and nullability)
+{
+  auto s = ConsensusFeatureSchema::schema();
+  // unique_id: int64, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "unique_id")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // rt: float64, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "rt")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // mz: float64, nullable (default)
+  TEST_EQUAL(s->field(2)->name(), "mz")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  // intensity: float32, nullable (default)
+  TEST_EQUAL(s->field(3)->name(), "intensity")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // charge: int32, nullable (default)
+  TEST_EQUAL(s->field(4)->name(), "charge")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  // quality: float32, nullable (default)
+  TEST_EQUAL(s->field(5)->name(), "quality")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(5)->nullable(), true)
+  // width: float32, nullable (default)
+  TEST_EQUAL(s->field(6)->name(), "width")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(6)->nullable(), true)
+  // handles: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(7)->name(), "handles")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(7)->nullable(), true)
+  TEST_EQUAL(s->field(7)->type()->Equals(ConsensusFeatureSchema::handlesType()), true)
+  // metavalues: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(8)->name(), "metavalues")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(8)->nullable(), true)
+  TEST_EQUAL(s->field(8)->type()->Equals(ConsensusFeatureSchema::metavaluesType()), true)
+}
+END_SECTION
+
+START_SECTION(ConsensusFeatureSchema validation with table)
+{
+  auto s = ConsensusFeatureSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== PSMSchema ==========
+
+START_SECTION(PSMSchema::schema() returns non-null with 25 fields)
+{
+  auto s = PSMSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 25)
+}
+END_SECTION
+
+START_SECTION(PSMSchema column name constants)
+{
+  TEST_STRING_EQUAL(PSMSchema::SEQUENCE, "sequence")
+  TEST_STRING_EQUAL(PSMSchema::PEPTIDOFORM, "peptidoform")
+  TEST_STRING_EQUAL(PSMSchema::MODIFICATIONS, "modifications")
+  TEST_STRING_EQUAL(PSMSchema::PRECURSOR_CHARGE, "precursor_charge")
+  TEST_STRING_EQUAL(PSMSchema::POSTERIOR_ERROR_PROBABILITY, "posterior_error_probability")
+  TEST_STRING_EQUAL(PSMSchema::IS_DECOY, "is_decoy")
+  TEST_STRING_EQUAL(PSMSchema::CALCULATED_MZ, "calculated_mz")
+  TEST_STRING_EQUAL(PSMSchema::OBSERVED_MZ, "observed_mz")
+  TEST_STRING_EQUAL(PSMSchema::ADDITIONAL_SCORES, "additional_scores")
+  TEST_STRING_EQUAL(PSMSchema::PROTEIN_ACCESSIONS, "protein_accessions")
+  TEST_STRING_EQUAL(PSMSchema::PREDICTED_RT, "predicted_rt")
+  TEST_STRING_EQUAL(PSMSchema::REFERENCE_FILE_NAME, "reference_file_name")
+  TEST_STRING_EQUAL(PSMSchema::CV_PARAMS, "cv_params")
+  TEST_STRING_EQUAL(PSMSchema::SCAN, "scan")
+  TEST_STRING_EQUAL(PSMSchema::RT, "rt")
+  TEST_STRING_EQUAL(PSMSchema::ION_MOBILITY, "ion_mobility")
+  TEST_STRING_EQUAL(PSMSchema::SPECTRUM_REFERENCE, "spectrum_reference")
+  TEST_STRING_EQUAL(PSMSchema::SCORE, "score")
+  TEST_STRING_EQUAL(PSMSchema::SCORE_TYPE, "score_type")
+  TEST_STRING_EQUAL(PSMSchema::HIGHER_SCORE_BETTER, "higher_score_better")
+  TEST_STRING_EQUAL(PSMSchema::RANK, "rank")
+  TEST_STRING_EQUAL(PSMSchema::PEPTIDE_IDENTIFICATION_INDEX, "peptide_identification_index")
+  TEST_STRING_EQUAL(PSMSchema::PSM_METAVALUES, "psm_metavalues")
+  TEST_STRING_EQUAL(PSMSchema::SPECTRUM_METAVALUES, "spectrum_metavalues")
+  TEST_STRING_EQUAL(PSMSchema::RUN_IDENTIFIER, "run_identifier")
+}
+END_SECTION
+
+START_SECTION(PSMSchema field types and nullability)
+{
+  auto s = PSMSchema::schema();
+  // sequence: utf8, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "sequence")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // peptidoform: utf8, nullable (default)
+  TEST_EQUAL(s->field(1)->name(), "peptidoform")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // modifications: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(2)->name(), "modifications")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  TEST_EQUAL(s->field(2)->type()->Equals(PSMSchema::modificationsType()), true)
+  // precursor_charge: int32, nullable (default)
+  TEST_EQUAL(s->field(3)->name(), "precursor_charge")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // posterior_error_probability: float64, nullable (default)
+  TEST_EQUAL(s->field(4)->name(), "posterior_error_probability")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  // is_decoy: boolean, nullable (default)
+  TEST_EQUAL(s->field(5)->name(), "is_decoy")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::BOOL)
+  TEST_EQUAL(s->field(5)->nullable(), true)
+  // calculated_mz: float64, nullable (default)
+  TEST_EQUAL(s->field(6)->name(), "calculated_mz")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(6)->nullable(), true)
+  // observed_mz: float64, nullable (default)
+  TEST_EQUAL(s->field(7)->name(), "observed_mz")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(7)->nullable(), true)
+  // additional_scores: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(8)->name(), "additional_scores")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(8)->nullable(), true)
+  TEST_EQUAL(s->field(8)->type()->Equals(PSMSchema::additionalScoresType()), true)
+  // protein_accessions: list<utf8>, nullable (default)
+  TEST_EQUAL(s->field(9)->name(), "protein_accessions")
+  TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(9)->nullable(), true)
+  // predicted_rt: float64, nullable (default)
+  TEST_EQUAL(s->field(10)->name(), "predicted_rt")
+  TEST_EQUAL(s->field(10)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(10)->nullable(), true)
+  // reference_file_name: utf8, nullable (default)
+  TEST_EQUAL(s->field(11)->name(), "reference_file_name")
+  TEST_EQUAL(s->field(11)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(11)->nullable(), true)
+  // cv_params: utf8, nullable (default)
+  TEST_EQUAL(s->field(12)->name(), "cv_params")
+  TEST_EQUAL(s->field(12)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(12)->nullable(), true)
+  // scan: int32, nullable (default)
+  TEST_EQUAL(s->field(13)->name(), "scan")
+  TEST_EQUAL(s->field(13)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(13)->nullable(), true)
+  // rt: float64, nullable (default)
+  TEST_EQUAL(s->field(14)->name(), "rt")
+  TEST_EQUAL(s->field(14)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(14)->nullable(), true)
+  // ion_mobility: float64, nullable (default)
+  TEST_EQUAL(s->field(15)->name(), "ion_mobility")
+  TEST_EQUAL(s->field(15)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(15)->nullable(), true)
+  // spectrum_reference: utf8, nullable (default)
+  TEST_EQUAL(s->field(16)->name(), "spectrum_reference")
+  TEST_EQUAL(s->field(16)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(16)->nullable(), true)
+  // score: float64, nullable (default)
+  TEST_EQUAL(s->field(17)->name(), "score")
+  TEST_EQUAL(s->field(17)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(17)->nullable(), true)
+  // score_type: utf8, nullable (default)
+  TEST_EQUAL(s->field(18)->name(), "score_type")
+  TEST_EQUAL(s->field(18)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(18)->nullable(), true)
+  // higher_score_better: boolean, nullable (default)
+  TEST_EQUAL(s->field(19)->name(), "higher_score_better")
+  TEST_EQUAL(s->field(19)->type()->id(), arrow::Type::BOOL)
+  TEST_EQUAL(s->field(19)->nullable(), true)
+  // rank: int32, nullable (default)
+  TEST_EQUAL(s->field(20)->name(), "rank")
+  TEST_EQUAL(s->field(20)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(20)->nullable(), true)
+  // peptide_identification_index: int32, nullable (default)
+  TEST_EQUAL(s->field(21)->name(), "peptide_identification_index")
+  TEST_EQUAL(s->field(21)->type()->id(), arrow::Type::INT32)
+  TEST_EQUAL(s->field(21)->nullable(), true)
+  // psm_metavalues: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(22)->name(), "psm_metavalues")
+  TEST_EQUAL(s->field(22)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(22)->nullable(), true)
+  TEST_EQUAL(s->field(22)->type()->Equals(PSMSchema::metavaluesType()), true)
+  // spectrum_metavalues: list<struct>, nullable (default)
+  TEST_EQUAL(s->field(23)->name(), "spectrum_metavalues")
+  TEST_EQUAL(s->field(23)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(23)->nullable(), true)
+  TEST_EQUAL(s->field(23)->type()->Equals(PSMSchema::metavaluesType()), true)
+  // run_identifier: utf8, nullable (default)
+  TEST_EQUAL(s->field(24)->name(), "run_identifier")
+  TEST_EQUAL(s->field(24)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(24)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(PSMSchema validation with table)
+{
+  auto s = PSMSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
 END_TEST
 
 #else // WITH_PARQUET

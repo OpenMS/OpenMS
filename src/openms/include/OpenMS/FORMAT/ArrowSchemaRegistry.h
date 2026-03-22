@@ -107,6 +107,82 @@ namespace OpenMS
     static std::shared_ptr<arrow::Schema> schema();
   };
 
+  struct OPENMS_DLLAPI FeatureSchema
+  {
+    static constexpr const char* UNIQUE_ID = "unique_id";
+    static constexpr const char* PARENT_FEATURE_ID = "parent_feature_id";
+    static constexpr const char* DEPTH = "depth";
+    static constexpr const char* RT = "rt";
+    static constexpr const char* MZ = "mz";
+    static constexpr const char* INTENSITY = "intensity";
+    static constexpr const char* CHARGE = "charge";
+    static constexpr const char* QUALITY = "quality";
+    static constexpr const char* QUALITY_RT = "quality_rt";
+    static constexpr const char* QUALITY_MZ = "quality_mz";
+    static constexpr const char* WIDTH = "width";
+    static constexpr const char* RT_BB_MIN = "rt_bb_min";
+    static constexpr const char* RT_BB_MAX = "rt_bb_max";
+    static constexpr const char* MZ_BB_MIN = "mz_bb_min";
+    static constexpr const char* MZ_BB_MAX = "mz_bb_max";
+    static constexpr const char* CONVEX_HULLS = "convex_hulls";
+    static constexpr const char* METAVALUES = "metavalues";
+
+    static std::shared_ptr<arrow::DataType> convexHullType();
+    static std::shared_ptr<arrow::DataType> metavaluesType();
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  struct OPENMS_DLLAPI ConsensusFeatureSchema
+  {
+    static constexpr const char* UNIQUE_ID = "unique_id";
+    static constexpr const char* RT = "rt";
+    static constexpr const char* MZ = "mz";
+    static constexpr const char* INTENSITY = "intensity";
+    static constexpr const char* CHARGE = "charge";
+    static constexpr const char* QUALITY = "quality";
+    static constexpr const char* WIDTH = "width";
+    static constexpr const char* HANDLES = "handles";
+    static constexpr const char* METAVALUES = "metavalues";
+
+    static std::shared_ptr<arrow::DataType> handlesType();
+    static std::shared_ptr<arrow::DataType> metavaluesType();
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
+  struct OPENMS_DLLAPI PSMSchema
+  {
+    static constexpr const char* SEQUENCE = "sequence";
+    static constexpr const char* PEPTIDOFORM = "peptidoform";
+    static constexpr const char* MODIFICATIONS = "modifications";
+    static constexpr const char* PRECURSOR_CHARGE = "precursor_charge";
+    static constexpr const char* POSTERIOR_ERROR_PROBABILITY = "posterior_error_probability";
+    static constexpr const char* IS_DECOY = "is_decoy";
+    static constexpr const char* CALCULATED_MZ = "calculated_mz";
+    static constexpr const char* OBSERVED_MZ = "observed_mz";
+    static constexpr const char* ADDITIONAL_SCORES = "additional_scores";
+    static constexpr const char* PROTEIN_ACCESSIONS = "protein_accessions";
+    static constexpr const char* PREDICTED_RT = "predicted_rt";
+    static constexpr const char* REFERENCE_FILE_NAME = "reference_file_name";
+    static constexpr const char* CV_PARAMS = "cv_params";
+    static constexpr const char* SCAN = "scan";
+    static constexpr const char* RT = "rt";
+    static constexpr const char* ION_MOBILITY = "ion_mobility";
+    static constexpr const char* SPECTRUM_REFERENCE = "spectrum_reference";
+    static constexpr const char* SCORE = "score";
+    static constexpr const char* SCORE_TYPE = "score_type";
+    static constexpr const char* HIGHER_SCORE_BETTER = "higher_score_better";
+    static constexpr const char* RANK = "rank";
+    static constexpr const char* PEPTIDE_IDENTIFICATION_INDEX = "peptide_identification_index";
+    static constexpr const char* PSM_METAVALUES = "psm_metavalues";
+    static constexpr const char* SPECTRUM_METAVALUES = "spectrum_metavalues";
+    static constexpr const char* RUN_IDENTIFIER = "run_identifier";
+
+    static std::shared_ptr<arrow::DataType> modificationsType();
+    static std::shared_ptr<arrow::DataType> additionalScoresType();
+    static std::shared_ptr<arrow::DataType> metavaluesType();
+    static std::shared_ptr<arrow::Schema> schema();
+  };
+
 } // namespace OpenMS
 
 #endif // WITH_PARQUET

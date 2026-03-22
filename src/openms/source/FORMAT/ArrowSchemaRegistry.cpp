@@ -233,6 +233,155 @@ namespace OpenMS
     });
   }
 
+  // -- FeatureSchema --
+
+  std::shared_ptr<arrow::DataType> FeatureSchema::convexHullType()
+  {
+    auto point_struct_type = arrow::struct_({
+      arrow::field("x", arrow::float64()),
+      arrow::field("y", arrow::float64())
+    });
+    return arrow::list(arrow::struct_({
+      arrow::field("hull_index", arrow::int32()),
+      arrow::field("points", arrow::list(point_struct_type))
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> FeatureSchema::metavaluesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("name", arrow::utf8()),
+      arrow::field("value", arrow::utf8()),
+      arrow::field("value_type", arrow::utf8())
+    }));
+  }
+
+  std::shared_ptr<arrow::Schema> FeatureSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(UNIQUE_ID, arrow::int64(), /*nullable=*/false),
+      arrow::field(PARENT_FEATURE_ID, arrow::int64(), /*nullable=*/true),
+      arrow::field(DEPTH, arrow::int32(), /*nullable=*/false),
+      arrow::field(RT, arrow::float64(), /*nullable=*/false),
+      arrow::field(MZ, arrow::float64(), /*nullable=*/false),
+      arrow::field(INTENSITY, arrow::float32(), /*nullable=*/false),
+      arrow::field(CHARGE, arrow::int32(), /*nullable=*/false),
+      arrow::field(QUALITY, arrow::float32(), /*nullable=*/false),
+      arrow::field(QUALITY_RT, arrow::float32(), /*nullable=*/false),
+      arrow::field(QUALITY_MZ, arrow::float32(), /*nullable=*/false),
+      arrow::field(WIDTH, arrow::float32(), /*nullable=*/true),
+      arrow::field(RT_BB_MIN, arrow::float64(), /*nullable=*/true),
+      arrow::field(RT_BB_MAX, arrow::float64(), /*nullable=*/true),
+      arrow::field(MZ_BB_MIN, arrow::float64(), /*nullable=*/true),
+      arrow::field(MZ_BB_MAX, arrow::float64(), /*nullable=*/true),
+      arrow::field(CONVEX_HULLS, convexHullType(), /*nullable=*/false),
+      arrow::field(METAVALUES, metavaluesType(), /*nullable=*/false),
+    });
+  }
+
+  // -- ConsensusFeatureSchema --
+
+  std::shared_ptr<arrow::DataType> ConsensusFeatureSchema::handlesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("map_index", arrow::int64()),
+      arrow::field("unique_id", arrow::int64()),
+      arrow::field("rt", arrow::float64()),
+      arrow::field("mz", arrow::float64()),
+      arrow::field("intensity", arrow::float32()),
+      arrow::field("charge", arrow::int32()),
+      arrow::field("width", arrow::float32())
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> ConsensusFeatureSchema::metavaluesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("name", arrow::utf8()),
+      arrow::field("value", arrow::utf8()),
+      arrow::field("value_type", arrow::utf8())
+    }));
+  }
+
+  std::shared_ptr<arrow::Schema> ConsensusFeatureSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(UNIQUE_ID, arrow::int64()),
+      arrow::field(RT, arrow::float64()),
+      arrow::field(MZ, arrow::float64()),
+      arrow::field(INTENSITY, arrow::float32()),
+      arrow::field(CHARGE, arrow::int32()),
+      arrow::field(QUALITY, arrow::float32()),
+      arrow::field(WIDTH, arrow::float32()),
+      arrow::field(HANDLES, handlesType()),
+      arrow::field(METAVALUES, metavaluesType()),
+    });
+  }
+
+  // -- PSMSchema --
+
+  std::shared_ptr<arrow::DataType> PSMSchema::modificationsType()
+  {
+    auto position_struct_type = arrow::struct_({
+      arrow::field("position", arrow::utf8()),
+      arrow::field("scores", arrow::float64())
+    });
+    return arrow::list(arrow::struct_({
+      arrow::field("name", arrow::utf8()),
+      arrow::field("accession", arrow::utf8()),
+      arrow::field("positions", arrow::list(position_struct_type))
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> PSMSchema::additionalScoresType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("score_name", arrow::utf8()),
+      arrow::field("score_value", arrow::float64()),
+      arrow::field("higher_better", arrow::boolean())
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> PSMSchema::metavaluesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("name", arrow::utf8()),
+      arrow::field("value", arrow::utf8()),
+      arrow::field("value_type", arrow::utf8())
+    }));
+  }
+
+  std::shared_ptr<arrow::Schema> PSMSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(SEQUENCE, arrow::utf8()),
+      arrow::field(PEPTIDOFORM, arrow::utf8()),
+      arrow::field(MODIFICATIONS, modificationsType()),
+      arrow::field(PRECURSOR_CHARGE, arrow::int32()),
+      arrow::field(POSTERIOR_ERROR_PROBABILITY, arrow::float64()),
+      arrow::field(IS_DECOY, arrow::boolean()),
+      arrow::field(CALCULATED_MZ, arrow::float64()),
+      arrow::field(OBSERVED_MZ, arrow::float64()),
+      arrow::field(ADDITIONAL_SCORES, additionalScoresType()),
+      arrow::field(PROTEIN_ACCESSIONS, arrow::list(arrow::utf8())),
+      arrow::field(PREDICTED_RT, arrow::float64()),
+      arrow::field(REFERENCE_FILE_NAME, arrow::utf8()),
+      arrow::field(CV_PARAMS, arrow::utf8()),
+      arrow::field(SCAN, arrow::int32()),
+      arrow::field(RT, arrow::float64()),
+      arrow::field(ION_MOBILITY, arrow::float64()),
+      arrow::field(SPECTRUM_REFERENCE, arrow::utf8()),
+      arrow::field(SCORE, arrow::float64()),
+      arrow::field(SCORE_TYPE, arrow::utf8()),
+      arrow::field(HIGHER_SCORE_BETTER, arrow::boolean()),
+      arrow::field(RANK, arrow::int32()),
+      arrow::field(PEPTIDE_IDENTIFICATION_INDEX, arrow::int32()),
+      arrow::field(PSM_METAVALUES, metavaluesType()),
+      arrow::field(SPECTRUM_METAVALUES, metavaluesType()),
+      arrow::field(RUN_IDENTIFIER, arrow::utf8()),
+    });
+  }
+
 } // namespace OpenMS
 
 #endif // WITH_PARQUET
