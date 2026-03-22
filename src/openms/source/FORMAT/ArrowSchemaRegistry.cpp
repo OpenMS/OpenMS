@@ -113,6 +113,124 @@ namespace OpenMS
 
       return result;
     }
+  } // namespace ArrowSchemaValidation
+
+  // -- ProteinSchema --
+
+  std::shared_ptr<arrow::DataType> ProteinSchema::modificationsType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("position", arrow::int32()),
+      arrow::field("modification", arrow::utf8())
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> ProteinSchema::metavaluesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("name", arrow::utf8()),
+      arrow::field("value", arrow::utf8()),
+      arrow::field("value_type", arrow::utf8())
+    }));
+  }
+
+  std::shared_ptr<arrow::Schema> ProteinSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(ACCESSION, arrow::utf8(), /*nullable=*/false),
+      arrow::field(SCORE, arrow::float64(), /*nullable=*/false),
+      arrow::field(RANK, arrow::int32(), /*nullable=*/true),
+      arrow::field(COVERAGE, arrow::float64(), /*nullable=*/true),
+      arrow::field(SEQUENCE, arrow::utf8(), /*nullable=*/true),
+      arrow::field(DESCRIPTION, arrow::utf8(), /*nullable=*/true),
+      arrow::field(IS_DECOY, arrow::boolean(), /*nullable=*/true),
+      arrow::field(RUN_IDENTIFIER, arrow::utf8(), /*nullable=*/false),
+      arrow::field(MODIFICATIONS, modificationsType(), /*nullable=*/true),
+      arrow::field(METAVALUES, metavaluesType(), /*nullable=*/false),
+    });
+  }
+
+  // -- ProteinGroupSchema --
+
+  std::shared_ptr<arrow::DataType> ProteinGroupSchema::floatDataType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("name", arrow::utf8()),
+      arrow::field("values", arrow::list(arrow::float64()))
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> ProteinGroupSchema::stringDataType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("name", arrow::utf8()),
+      arrow::field("values", arrow::list(arrow::utf8()))
+    }));
+  }
+
+  std::shared_ptr<arrow::DataType> ProteinGroupSchema::integerDataType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("name", arrow::utf8()),
+      arrow::field("values", arrow::list(arrow::int64()))
+    }));
+  }
+
+  std::shared_ptr<arrow::Schema> ProteinGroupSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(GROUP_TYPE, arrow::utf8(), /*nullable=*/false),
+      arrow::field(PROBABILITY, arrow::float64(), /*nullable=*/false),
+      arrow::field(ACCESSIONS, arrow::list(arrow::utf8()), /*nullable=*/false),
+      arrow::field(RUN_IDENTIFIER, arrow::utf8(), /*nullable=*/false),
+      arrow::field(GROUP_INDEX, arrow::int32(), /*nullable=*/false),
+      arrow::field(FLOAT_DATA, floatDataType(), /*nullable=*/true),
+      arrow::field(STRING_DATA, stringDataType(), /*nullable=*/true),
+      arrow::field(INTEGER_DATA, integerDataType(), /*nullable=*/true),
+    });
+  }
+
+  // -- SearchParamsSchema --
+
+  std::shared_ptr<arrow::DataType> SearchParamsSchema::metavaluesType()
+  {
+    return arrow::list(arrow::struct_({
+      arrow::field("name", arrow::utf8()),
+      arrow::field("value", arrow::utf8()),
+      arrow::field("value_type", arrow::utf8())
+    }));
+  }
+
+  std::shared_ptr<arrow::Schema> SearchParamsSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(RUN_IDENTIFIER, arrow::utf8(), /*nullable=*/false),
+      arrow::field(SEARCH_ENGINE, arrow::utf8(), /*nullable=*/false),
+      arrow::field(SEARCH_ENGINE_VERSION, arrow::utf8(), /*nullable=*/true),
+      arrow::field(INFERENCE_ENGINE, arrow::utf8(), /*nullable=*/true),
+      arrow::field(INFERENCE_ENGINE_VERSION, arrow::utf8(), /*nullable=*/true),
+      arrow::field(DATE, arrow::timestamp(arrow::TimeUnit::SECOND), /*nullable=*/true),
+      arrow::field(SCORE_TYPE, arrow::utf8(), /*nullable=*/false),
+      arrow::field(HIGHER_SCORE_BETTER, arrow::boolean(), /*nullable=*/false),
+      arrow::field(SIGNIFICANCE_THRESHOLD, arrow::float64(), /*nullable=*/true),
+      arrow::field(DB, arrow::utf8(), /*nullable=*/true),
+      arrow::field(DB_VERSION, arrow::utf8(), /*nullable=*/true),
+      arrow::field(TAXONOMY, arrow::utf8(), /*nullable=*/true),
+      arrow::field(CHARGES, arrow::utf8(), /*nullable=*/true),
+      arrow::field(MASS_TYPE, arrow::utf8(), /*nullable=*/false),
+      arrow::field(PRECURSOR_MASS_TOLERANCE, arrow::float64(), /*nullable=*/false),
+      arrow::field(PRECURSOR_MASS_TOLERANCE_PPM, arrow::boolean(), /*nullable=*/false),
+      arrow::field(FRAGMENT_MASS_TOLERANCE, arrow::float64(), /*nullable=*/false),
+      arrow::field(FRAGMENT_MASS_TOLERANCE_PPM, arrow::boolean(), /*nullable=*/false),
+      arrow::field(DIGESTION_ENZYME, arrow::utf8(), /*nullable=*/true),
+      arrow::field(ENZYME_TERM_SPECIFICITY, arrow::utf8(), /*nullable=*/true),
+      arrow::field(MISSED_CLEAVAGES, arrow::int32(), /*nullable=*/false),
+      arrow::field(FIXED_MODIFICATIONS, arrow::list(arrow::utf8()), /*nullable=*/false),
+      arrow::field(VARIABLE_MODIFICATIONS, arrow::list(arrow::utf8()), /*nullable=*/false),
+      arrow::field(PRIMARY_MS_RUN_PATHS, arrow::list(arrow::utf8()), /*nullable=*/false),
+      arrow::field(METAVALUES, metavaluesType(), /*nullable=*/false),
+      arrow::field(SP_METAVALUES, metavaluesType(), /*nullable=*/false),
+    });
   }
 
 } // namespace OpenMS
