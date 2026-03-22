@@ -5,9 +5,41 @@
 
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <arrow/api.h>
-#include <arrow/json/from_string.h>
-
 using namespace OpenMS;
+
+// Helper functions to build small test arrays without arrow::json::ArrayFromJSONString
+// (which is not available in static Arrow builds on Windows).
+namespace {
+  std::shared_ptr<arrow::Array> makeUtf8Array(const std::vector<std::string>& values)
+  {
+    arrow::StringBuilder builder;
+    for (const auto& v : values) { (void)builder.Append(v); }
+    return builder.Finish().ValueOrDie();
+  }
+
+  std::shared_ptr<arrow::Array> makeFloat64Array(const std::vector<double>& values)
+  {
+    arrow::DoubleBuilder builder;
+    for (auto v : values) { (void)builder.Append(v); }
+    return builder.Finish().ValueOrDie();
+  }
+
+  std::shared_ptr<arrow::Array> makeInt32Array(const std::vector<int32_t>& values)
+  {
+    arrow::Int32Builder builder;
+    for (auto v : values) { (void)builder.Append(v); }
+    return builder.Finish().ValueOrDie();
+  }
+
+  std::shared_ptr<arrow::Array> makeTimestampArray(
+    const std::shared_ptr<arrow::DataType>& type,
+    const std::vector<int64_t>& values)
+  {
+    arrow::TimestampBuilder builder(type, arrow::default_memory_pool());
+    for (auto v : values) { (void)builder.Append(v); }
+    return builder.Finish().ValueOrDie();
+  }
+} // anonymous namespace
 
 START_TEST(ArrowSchemaRegistry, "$Id$")
 
@@ -26,8 +58,8 @@ START_SECTION(validate - Strict mode - exact match passes)
     arrow::field("a", arrow::utf8(), false),
     arrow::field("b", arrow::float64(), true),
   });
-  auto arr_a = arrow::json::ArrayFromJSONString(arrow::utf8(), R"(["x","y"])").ValueOrDie();
-  auto arr_b = arrow::json::ArrayFromJSONString(arrow::float64(), "[1.0, 2.0]").ValueOrDie();
+  auto arr_a = makeUtf8Array({"x", "y"});
+  auto arr_b = makeFloat64Array({1.0, 2.0});
   auto table = arrow::Table::Make(schema, {arr_a, arr_b});
 
   auto result = ArrowSchemaValidation::validate(table, schema);
@@ -45,7 +77,7 @@ START_SECTION(validate - Strict mode - missing field)
   auto actual_schema = arrow::schema({
     arrow::field("a", arrow::utf8(), false),
   });
-  auto arr_a = arrow::json::ArrayFromJSONString(arrow::utf8(), R"(["x"])").ValueOrDie();
+  auto arr_a = makeUtf8Array({"x"});
   auto table = arrow::Table::Make(actual_schema, {arr_a});
 
   auto result = ArrowSchemaValidation::validate(table, expected);
@@ -63,8 +95,8 @@ START_SECTION(validate - Strict mode - extra field)
     arrow::field("a", arrow::utf8(), false),
     arrow::field("b", arrow::float64(), true),
   });
-  auto arr_a = arrow::json::ArrayFromJSONString(arrow::utf8(), R"(["x"])").ValueOrDie();
-  auto arr_b = arrow::json::ArrayFromJSONString(arrow::float64(), "[1.0]").ValueOrDie();
+  auto arr_a = makeUtf8Array({"x"});
+  auto arr_b = makeFloat64Array({1.0});
   auto table = arrow::Table::Make(actual_schema, {arr_a, arr_b});
 
   auto result = ArrowSchemaValidation::validate(table, expected);
@@ -80,7 +112,7 @@ START_SECTION(validate - Strict mode - type mismatch)
   auto actual_schema = arrow::schema({
     arrow::field("a", arrow::int32(), false),
   });
-  auto arr_a = arrow::json::ArrayFromJSONString(arrow::int32(), "[1]").ValueOrDie();
+  auto arr_a = makeInt32Array({1});
   auto table = arrow::Table::Make(actual_schema, {arr_a});
 
   auto result = ArrowSchemaValidation::validate(table, expected);
@@ -96,7 +128,7 @@ START_SECTION(validate - Strict mode - nullability mismatch)
   auto actual_schema = arrow::schema({
     arrow::field("a", arrow::utf8(), true),
   });
-  auto arr_a = arrow::json::ArrayFromJSONString(arrow::utf8(), R"(["x"])").ValueOrDie();
+  auto arr_a = makeUtf8Array({"x"});
   auto table = arrow::Table::Make(actual_schema, {arr_a});
 
   auto result = ArrowSchemaValidation::validate(table, expected);
@@ -115,8 +147,8 @@ START_SECTION(validate - Subset mode - valid subset passes)
     arrow::field("a", arrow::utf8(), false),
     arrow::field("c", arrow::int32(), true),
   });
-  auto arr_a = arrow::json::ArrayFromJSONString(arrow::utf8(), R"(["x"])").ValueOrDie();
-  auto arr_c = arrow::json::ArrayFromJSONString(arrow::int32(), "[1]").ValueOrDie();
+  auto arr_a = makeUtf8Array({"x"});
+  auto arr_c = makeInt32Array({1});
   auto table = arrow::Table::Make(actual_schema, {arr_a, arr_c});
 
   auto result = ArrowSchemaValidation::validate(table, expected,
@@ -134,8 +166,8 @@ START_SECTION(validate - Subset mode - unknown field ignored for forward compati
     arrow::field("a", arrow::utf8(), false),
     arrow::field("z", arrow::float64(), true),
   });
-  auto arr_a = arrow::json::ArrayFromJSONString(arrow::utf8(), R"(["x"])").ValueOrDie();
-  auto arr_z = arrow::json::ArrayFromJSONString(arrow::float64(), "[1.0]").ValueOrDie();
+  auto arr_a = makeUtf8Array({"x"});
+  auto arr_z = makeFloat64Array({1.0});
   auto table = arrow::Table::Make(actual_schema, {arr_a, arr_z});
 
   auto result = ArrowSchemaValidation::validate(table, expected,
@@ -152,7 +184,7 @@ START_SECTION(validate - Subset mode - type mismatch fails)
   auto actual_schema = arrow::schema({
     arrow::field("a", arrow::int32(), false),
   });
-  auto arr_a = arrow::json::ArrayFromJSONString(arrow::int32(), "[1]").ValueOrDie();
+  auto arr_a = makeInt32Array({1});
   auto table = arrow::Table::Make(actual_schema, {arr_a});
 
   auto result = ArrowSchemaValidation::validate(table, expected,
@@ -170,7 +202,7 @@ START_SECTION(validate - metadata is ignored)
   auto actual_schema = arrow::schema({
     arrow::field("a", arrow::utf8(), false),
   })->WithMetadata(metadata);
-  auto arr_a = arrow::json::ArrayFromJSONString(arrow::utf8(), R"(["x"])").ValueOrDie();
+  auto arr_a = makeUtf8Array({"x"});
   auto table = arrow::Table::Make(actual_schema, {arr_a});
 
   auto result = ArrowSchemaValidation::validate(table, expected);
@@ -2264,7 +2296,7 @@ START_SECTION(validate - Strict mode - timestamp unit compatibility)
   auto actual_schema = arrow::schema({
     arrow::field("ts", arrow::timestamp(arrow::TimeUnit::MILLI), true),
   });
-  auto arr = arrow::json::ArrayFromJSONString(arrow::timestamp(arrow::TimeUnit::MILLI), "[1000]").ValueOrDie();
+  auto arr = makeTimestampArray(arrow::timestamp(arrow::TimeUnit::MILLI), {1000});
   auto table = arrow::Table::Make(actual_schema, {arr});
 
   // Strict mode: different timestamp units should still pass (areTypesCompatible)
@@ -2285,7 +2317,7 @@ START_SECTION(validate - Subset mode - timestamp unit compatibility)
   auto actual_schema = arrow::schema({
     arrow::field("ts", arrow::timestamp(arrow::TimeUnit::MICRO), true),
   });
-  auto arr = arrow::json::ArrayFromJSONString(arrow::timestamp(arrow::TimeUnit::MICRO), "[1000000]").ValueOrDie();
+  auto arr = makeTimestampArray(arrow::timestamp(arrow::TimeUnit::MICRO), {1000000});
   auto table = arrow::Table::Make(actual_schema, {arr});
 
   // Subset mode: timestamp with different unit should pass
