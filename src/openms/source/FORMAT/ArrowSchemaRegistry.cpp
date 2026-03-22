@@ -567,6 +567,186 @@ namespace OpenMS
     });
   }
 
+  // -- OSWFeatureSchema --
+
+  std::shared_ptr<arrow::Schema> OSWFeatureSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(FEATURE_ID, arrow::int64()),
+      arrow::field(RUN_ID, arrow::int64()),
+      arrow::field(PRECURSOR_ID, arrow::int64()),
+      arrow::field(EXP_RT, arrow::float64()),
+      arrow::field(EXP_IM, arrow::float64()),
+      arrow::field(NORM_RT, arrow::float64()),
+      arrow::field(DELTA_RT, arrow::float64()),
+      arrow::field(LEFT_WIDTH, arrow::float64()),
+      arrow::field(RIGHT_WIDTH, arrow::float64()),
+      arrow::field(EXP_IM_LEFTWIDTH, arrow::float64()),
+      arrow::field(EXP_IM_RIGHTWIDTH, arrow::float64()),
+      arrow::field(MS1_AREA_INTENSITY, arrow::float64()),
+      arrow::field(MS1_APEX_INTENSITY, arrow::float64()),
+      arrow::field(MS1_EXP_IM, arrow::float64()),
+      arrow::field(MS1_DELTA_IM, arrow::float64()),
+      arrow::field(VAR_MS1_MASSDEV_SCORE, arrow::float64()),
+      arrow::field(VAR_MS1_IM_MS1_DELTA_SCORE, arrow::float64()),
+      arrow::field(VAR_MS1_MI_SCORE, arrow::float64()),
+      arrow::field(VAR_MS1_MI_CONTRAST_SCORE, arrow::float64()),
+      arrow::field(VAR_MS1_MI_COMBINED_SCORE, arrow::float64()),
+      arrow::field(VAR_MS1_ISOTOPE_CORRELATION_SCORE, arrow::float64()),
+      arrow::field(VAR_MS1_ISOTOPE_OVERLAP_SCORE, arrow::float64()),
+      arrow::field(VAR_MS1_XCORR_COELUTION, arrow::float64()),
+      arrow::field(VAR_MS1_XCORR_COELUTION_CONTRAST, arrow::float64()),
+      arrow::field(VAR_MS1_XCORR_COELUTION_COMBINED, arrow::float64()),
+      arrow::field(VAR_MS1_XCORR_SHAPE, arrow::float64()),
+      arrow::field(VAR_MS1_XCORR_SHAPE_CONTRAST, arrow::float64()),
+      arrow::field(VAR_MS1_XCORR_SHAPE_COMBINED, arrow::float64()),
+      arrow::field(MS2_AREA_INTENSITY, arrow::float64()),
+      arrow::field(MS2_TOTAL_AREA_INTENSITY, arrow::float64()),
+      arrow::field(MS2_APEX_INTENSITY, arrow::float64()),
+      arrow::field(MS2_EXP_IM, arrow::float64()),
+      arrow::field(MS2_EXP_IM_LEFTWIDTH, arrow::float64()),
+      arrow::field(MS2_EXP_IM_RIGHTWIDTH, arrow::float64()),
+      arrow::field(MS2_DELTA_IM, arrow::float64()),
+      arrow::field(MS2_TOTAL_MI, arrow::float64()),
+      arrow::field(VAR_MS2_BSERIES_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_DOTPROD_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_INTENSITY_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_ISOTOPE_CORRELATION_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_ISOTOPE_OVERLAP_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_LIBRARY_CORR, arrow::float64()),
+      arrow::field(VAR_MS2_LIBRARY_DOTPROD, arrow::float64()),
+      arrow::field(VAR_MS2_LIBRARY_MANHATTAN, arrow::float64()),
+      arrow::field(VAR_MS2_LIBRARY_RMSD, arrow::float64()),
+      arrow::field(VAR_MS2_LIBRARY_ROOTMEANSQUARE, arrow::float64()),
+      arrow::field(VAR_MS2_LIBRARY_SANGLE, arrow::float64()),
+      arrow::field(VAR_MS2_LOG_SN_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_MANHATTAN_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_MASSDEV_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_MASSDEV_SCORE_WEIGHTED, arrow::float64()),
+      arrow::field(VAR_MS2_MI_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_MI_WEIGHTED_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_MI_RATIO_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_NORM_RT_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_XCORR_COELUTION, arrow::float64()),
+      arrow::field(VAR_MS2_XCORR_COELUTION_WEIGHTED, arrow::float64()),
+      arrow::field(VAR_MS2_XCORR_SHAPE, arrow::float64()),
+      arrow::field(VAR_MS2_XCORR_SHAPE_WEIGHTED, arrow::float64()),
+      arrow::field(VAR_MS2_YSERIES_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_ELUTION_MODEL_FIT_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_IM_XCORR_SHAPE, arrow::float64()),
+      arrow::field(VAR_MS2_IM_XCORR_COELUTION, arrow::float64()),
+      arrow::field(VAR_MS2_IM_DELTA_SCORE, arrow::float64()),
+      arrow::field(VAR_MS2_IM_LOG_INTENSITY, arrow::float64()),
+    });
+  }
+
+  // -- OSWFeatureTransitionSchema --
+
+  std::shared_ptr<arrow::Schema> OSWFeatureTransitionSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(FEATURE_ID, arrow::int64()),
+      arrow::field(RUN_ID, arrow::int64()),
+      arrow::field(TRANSITION_ID, arrow::int64()),
+      arrow::field(AREA_INTENSITY, arrow::float64()),
+      arrow::field(TOTAL_AREA_INTENSITY, arrow::float64()),
+      arrow::field(APEX_INTENSITY, arrow::float64()),
+      arrow::field(APEX_RT, arrow::float64()),
+      arrow::field(RT_FWHM, arrow::float64()),
+      arrow::field(MASSERROR_PPM, arrow::float64()),
+      arrow::field(TOTAL_MI, arrow::float64()),
+      arrow::field(VAR_INTENSITY_SCORE, arrow::float64()),
+      arrow::field(VAR_INTENSITY_RATIO_SCORE, arrow::float64()),
+      arrow::field(VAR_LOG_INTENSITY, arrow::float64()),
+      arrow::field(VAR_XCORR_COELUTION, arrow::float64()),
+      arrow::field(VAR_XCORR_SHAPE, arrow::float64()),
+      arrow::field(VAR_LOG_SN_SCORE, arrow::float64()),
+      arrow::field(VAR_MASSDEV_SCORE, arrow::float64()),
+      arrow::field(VAR_MI_SCORE, arrow::float64()),
+      arrow::field(VAR_MI_RATIO_SCORE, arrow::float64()),
+      arrow::field(VAR_ISOTOPE_CORRELATION_SCORE, arrow::float64()),
+      arrow::field(VAR_ISOTOPE_OVERLAP_SCORE, arrow::float64()),
+      arrow::field(EXP_IM, arrow::float64()),
+      arrow::field(EXP_IM_LEFTWIDTH, arrow::float64()),
+      arrow::field(EXP_IM_RIGHTWIDTH, arrow::float64()),
+      arrow::field(DELTA_IM, arrow::float64()),
+      arrow::field(VAR_IM_DELTA_SCORE, arrow::float64()),
+      arrow::field(VAR_IM_LOG_INTENSITY, arrow::float64()),
+      arrow::field(VAR_IM_XCORR_COELUTION_CONTRAST, arrow::float64()),
+      arrow::field(VAR_IM_XCORR_SHAPE_CONTRAST, arrow::float64()),
+      arrow::field(VAR_IM_XCORR_COELUTION_COMBINED, arrow::float64()),
+      arrow::field(VAR_IM_XCORR_SHAPE_COMBINED, arrow::float64()),
+      arrow::field(START_POSITION_AT_5, arrow::float64()),
+      arrow::field(END_POSITION_AT_5, arrow::float64()),
+      arrow::field(START_POSITION_AT_10, arrow::float64()),
+      arrow::field(END_POSITION_AT_10, arrow::float64()),
+      arrow::field(START_POSITION_AT_50, arrow::float64()),
+      arrow::field(END_POSITION_AT_50, arrow::float64()),
+      arrow::field(TOTAL_WIDTH, arrow::float64()),
+      arrow::field(TAILING_FACTOR, arrow::float64()),
+      arrow::field(ASYMMETRY_FACTOR, arrow::float64()),
+      arrow::field(SLOPE_OF_BASELINE, arrow::float64()),
+      arrow::field(BASELINE_DELTA_2_HEIGHT, arrow::float64()),
+      arrow::field(POINTS_ACROSS_BASELINE, arrow::float64()),
+      arrow::field(POINTS_ACROSS_HALF_HEIGHT, arrow::float64()),
+    });
+  }
+
+  // -- XICSchema --
+
+  std::shared_ptr<arrow::Schema> XICSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(RUN_ID, arrow::int64()),
+      arrow::field(SOURCE_FILE, arrow::utf8()),
+      arrow::field(MS_LEVEL, arrow::int64()),
+      arrow::field(PRECURSOR_ID, arrow::int64()),
+      arrow::field(TRANSITION_ID, arrow::int64()),
+      arrow::field(MODIFIED_SEQUENCE, arrow::utf8()),
+      arrow::field(PRECURSOR_CHARGE, arrow::int64()),
+      arrow::field(PRODUCT_CHARGE, arrow::int64()),
+      arrow::field(DETECTING_TRANSITION, arrow::int64()),
+      arrow::field(PRECURSOR_DECOY, arrow::int64()),
+      arrow::field(PRODUCT_DECOY, arrow::int64()),
+      arrow::field(TRANSITION_ORDINAL, arrow::int64()),
+      arrow::field(TRANSITION_TYPE, arrow::utf8()),
+      arrow::field(ANNOTATION, arrow::utf8()),
+      arrow::field(RT_DATA, arrow::binary()),
+      arrow::field(INTENSITY_DATA, arrow::binary()),
+      arrow::field(RT_COMPRESSION, arrow::int64()),
+      arrow::field(INTENSITY_COMPRESSION, arrow::int64()),
+    });
+  }
+
+  // -- XIMSchema --
+
+  std::shared_ptr<arrow::Schema> XIMSchema::schema()
+  {
+    return arrow::schema({
+      arrow::field(RUN_ID, arrow::int64()),
+      arrow::field(SOURCE_FILE, arrow::utf8()),
+      arrow::field(MS_LEVEL, arrow::int64()),
+      arrow::field(MOBILOGRAM_TYPE, arrow::utf8()),
+      arrow::field(PRECURSOR_ID, arrow::int64()),
+      arrow::field(TRANSITION_ID, arrow::int64()),
+      arrow::field(FEATURE_ID, arrow::int64()),
+      arrow::field(FEATURE_RT, arrow::float64()),
+      arrow::field(MODIFIED_SEQUENCE, arrow::utf8()),
+      arrow::field(PRECURSOR_CHARGE, arrow::int64()),
+      arrow::field(PRODUCT_CHARGE, arrow::int64()),
+      arrow::field(DETECTING_TRANSITION, arrow::int64()),
+      arrow::field(PRECURSOR_DECOY, arrow::int64()),
+      arrow::field(PRODUCT_DECOY, arrow::int64()),
+      arrow::field(TRANSITION_ORDINAL, arrow::int64()),
+      arrow::field(TRANSITION_TYPE, arrow::utf8()),
+      arrow::field(ANNOTATION, arrow::utf8()),
+      arrow::field(MOBILITY_DATA, arrow::binary()),
+      arrow::field(INTENSITY_DATA, arrow::binary()),
+      arrow::field(MOBILITY_COMPRESSION, arrow::int64()),
+      arrow::field(INTENSITY_COMPRESSION, arrow::int64()),
+    });
+  }
+
 } // namespace OpenMS
 
 #endif // WITH_PARQUET

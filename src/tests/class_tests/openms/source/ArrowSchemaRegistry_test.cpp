@@ -1754,6 +1754,399 @@ START_SECTION(OSWRunSchema validation with table)
 }
 END_SECTION
 
+// ========== OSWFeatureSchema ==========
+
+START_SECTION(OSWFeatureSchema::schema() returns non-null with 65 fields)
+{
+  auto s = OSWFeatureSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 65)
+}
+END_SECTION
+
+START_SECTION(OSWFeatureSchema column name constants)
+{
+  TEST_STRING_EQUAL(OSWFeatureSchema::FEATURE_ID, "feature_id")
+  TEST_STRING_EQUAL(OSWFeatureSchema::RUN_ID, "run_id")
+  TEST_STRING_EQUAL(OSWFeatureSchema::PRECURSOR_ID, "precursor_id")
+  TEST_STRING_EQUAL(OSWFeatureSchema::EXP_RT, "exp_rt")
+  TEST_STRING_EQUAL(OSWFeatureSchema::EXP_IM, "exp_im")
+  TEST_STRING_EQUAL(OSWFeatureSchema::NORM_RT, "norm_rt")
+  TEST_STRING_EQUAL(OSWFeatureSchema::DELTA_RT, "delta_rt")
+  TEST_STRING_EQUAL(OSWFeatureSchema::LEFT_WIDTH, "left_width")
+  TEST_STRING_EQUAL(OSWFeatureSchema::RIGHT_WIDTH, "right_width")
+  TEST_STRING_EQUAL(OSWFeatureSchema::EXP_IM_LEFTWIDTH, "exp_im_leftwidth")
+  TEST_STRING_EQUAL(OSWFeatureSchema::EXP_IM_RIGHTWIDTH, "exp_im_rightwidth")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS1_AREA_INTENSITY, "ms1_area_intensity")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS1_APEX_INTENSITY, "ms1_apex_intensity")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS1_EXP_IM, "ms1_exp_im")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS1_DELTA_IM, "ms1_delta_im")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_MASSDEV_SCORE, "var_ms1_massdev_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_IM_MS1_DELTA_SCORE, "var_ms1_im_ms1_delta_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_MI_SCORE, "var_ms1_mi_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_MI_CONTRAST_SCORE, "var_ms1_mi_contrast_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_MI_COMBINED_SCORE, "var_ms1_mi_combined_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_ISOTOPE_CORRELATION_SCORE, "var_ms1_isotope_correlation_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_ISOTOPE_OVERLAP_SCORE, "var_ms1_isotope_overlap_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_XCORR_COELUTION, "var_ms1_xcorr_coelution")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_XCORR_COELUTION_CONTRAST, "var_ms1_xcorr_coelution_contrast")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_XCORR_COELUTION_COMBINED, "var_ms1_xcorr_coelution_combined")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_XCORR_SHAPE, "var_ms1_xcorr_shape")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_XCORR_SHAPE_CONTRAST, "var_ms1_xcorr_shape_contrast")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS1_XCORR_SHAPE_COMBINED, "var_ms1_xcorr_shape_combined")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS2_AREA_INTENSITY, "ms2_area_intensity")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS2_TOTAL_AREA_INTENSITY, "ms2_total_area_intensity")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS2_APEX_INTENSITY, "ms2_apex_intensity")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS2_EXP_IM, "ms2_exp_im")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS2_EXP_IM_LEFTWIDTH, "ms2_exp_im_leftwidth")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS2_EXP_IM_RIGHTWIDTH, "ms2_exp_im_rightwidth")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS2_DELTA_IM, "ms2_delta_im")
+  TEST_STRING_EQUAL(OSWFeatureSchema::MS2_TOTAL_MI, "ms2_total_mi")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_BSERIES_SCORE, "var_ms2_bseries_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_DOTPROD_SCORE, "var_ms2_dotprod_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_INTENSITY_SCORE, "var_ms2_intensity_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_ISOTOPE_CORRELATION_SCORE, "var_ms2_isotope_correlation_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_ISOTOPE_OVERLAP_SCORE, "var_ms2_isotope_overlap_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_LIBRARY_CORR, "var_ms2_library_corr")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_LIBRARY_DOTPROD, "var_ms2_library_dotprod")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_LIBRARY_MANHATTAN, "var_ms2_library_manhattan")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_LIBRARY_RMSD, "var_ms2_library_rmsd")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_LIBRARY_ROOTMEANSQUARE, "var_ms2_library_rootmeansquare")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_LIBRARY_SANGLE, "var_ms2_library_sangle")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_LOG_SN_SCORE, "var_ms2_log_sn_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_MANHATTAN_SCORE, "var_ms2_manhattan_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_MASSDEV_SCORE, "var_ms2_massdev_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_MASSDEV_SCORE_WEIGHTED, "var_ms2_massdev_score_weighted")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_MI_SCORE, "var_ms2_mi_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_MI_WEIGHTED_SCORE, "var_ms2_mi_weighted_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_MI_RATIO_SCORE, "var_ms2_mi_ratio_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_NORM_RT_SCORE, "var_ms2_norm_rt_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_XCORR_COELUTION, "var_ms2_xcorr_coelution")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_XCORR_COELUTION_WEIGHTED, "var_ms2_xcorr_coelution_weighted")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_XCORR_SHAPE, "var_ms2_xcorr_shape")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_XCORR_SHAPE_WEIGHTED, "var_ms2_xcorr_shape_weighted")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_YSERIES_SCORE, "var_ms2_yseries_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_ELUTION_MODEL_FIT_SCORE, "var_ms2_elution_model_fit_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_IM_XCORR_SHAPE, "var_ms2_im_xcorr_shape")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_IM_XCORR_COELUTION, "var_ms2_im_xcorr_coelution")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_IM_DELTA_SCORE, "var_ms2_im_delta_score")
+  TEST_STRING_EQUAL(OSWFeatureSchema::VAR_MS2_IM_LOG_INTENSITY, "var_ms2_im_log_intensity")
+}
+END_SECTION
+
+START_SECTION(OSWFeatureSchema field types - representative sample)
+{
+  auto s = OSWFeatureSchema::schema();
+  // feature_id: int64, nullable (default)
+  TEST_EQUAL(s->field(0)->name(), "feature_id")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // run_id: int64
+  TEST_EQUAL(s->field(1)->name(), "run_id")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(1)->nullable(), true)
+  // precursor_id: int64
+  TEST_EQUAL(s->field(2)->name(), "precursor_id")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  // exp_rt: float64
+  TEST_EQUAL(s->field(3)->name(), "exp_rt")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(3)->nullable(), true)
+  // ms2_area_intensity: float64 (field 28)
+  TEST_EQUAL(s->field(28)->name(), "ms2_area_intensity")
+  TEST_EQUAL(s->field(28)->type()->id(), arrow::Type::DOUBLE)
+  // var_ms2_im_log_intensity: float64 (last field, index 64)
+  TEST_EQUAL(s->field(64)->name(), "var_ms2_im_log_intensity")
+  TEST_EQUAL(s->field(64)->type()->id(), arrow::Type::DOUBLE)
+}
+END_SECTION
+
+START_SECTION(OSWFeatureSchema validation with table)
+{
+  auto s = OSWFeatureSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== OSWFeatureTransitionSchema ==========
+
+START_SECTION(OSWFeatureTransitionSchema::schema() returns non-null with 44 fields)
+{
+  auto s = OSWFeatureTransitionSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 44)
+}
+END_SECTION
+
+START_SECTION(OSWFeatureTransitionSchema column name constants)
+{
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::FEATURE_ID, "feature_id")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::RUN_ID, "run_id")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::TRANSITION_ID, "transition_id")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::AREA_INTENSITY, "area_intensity")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::TOTAL_AREA_INTENSITY, "total_area_intensity")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::APEX_INTENSITY, "apex_intensity")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::APEX_RT, "apex_rt")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::RT_FWHM, "rt_fwhm")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::MASSERROR_PPM, "masserror_ppm")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::TOTAL_MI, "total_mi")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_INTENSITY_SCORE, "var_intensity_score")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_INTENSITY_RATIO_SCORE, "var_intensity_ratio_score")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_LOG_INTENSITY, "var_log_intensity")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_XCORR_COELUTION, "var_xcorr_coelution")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_XCORR_SHAPE, "var_xcorr_shape")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_LOG_SN_SCORE, "var_log_sn_score")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_MASSDEV_SCORE, "var_massdev_score")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_MI_SCORE, "var_mi_score")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_MI_RATIO_SCORE, "var_mi_ratio_score")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_ISOTOPE_CORRELATION_SCORE, "var_isotope_correlation_score")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_ISOTOPE_OVERLAP_SCORE, "var_isotope_overlap_score")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::EXP_IM, "exp_im")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::EXP_IM_LEFTWIDTH, "exp_im_leftwidth")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::EXP_IM_RIGHTWIDTH, "exp_im_rightwidth")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::DELTA_IM, "delta_im")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_IM_DELTA_SCORE, "var_im_delta_score")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_IM_LOG_INTENSITY, "var_im_log_intensity")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_IM_XCORR_COELUTION_CONTRAST, "var_im_xcorr_coelution_contrast")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_IM_XCORR_SHAPE_CONTRAST, "var_im_xcorr_shape_contrast")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_IM_XCORR_COELUTION_COMBINED, "var_im_xcorr_coelution_combined")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::VAR_IM_XCORR_SHAPE_COMBINED, "var_im_xcorr_shape_combined")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::START_POSITION_AT_5, "start_position_at_5")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::END_POSITION_AT_5, "end_position_at_5")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::START_POSITION_AT_10, "start_position_at_10")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::END_POSITION_AT_10, "end_position_at_10")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::START_POSITION_AT_50, "start_position_at_50")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::END_POSITION_AT_50, "end_position_at_50")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::TOTAL_WIDTH, "total_width")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::TAILING_FACTOR, "tailing_factor")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::ASYMMETRY_FACTOR, "asymmetry_factor")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::SLOPE_OF_BASELINE, "slope_of_baseline")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::BASELINE_DELTA_2_HEIGHT, "baseline_delta_2_height")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::POINTS_ACROSS_BASELINE, "points_across_baseline")
+  TEST_STRING_EQUAL(OSWFeatureTransitionSchema::POINTS_ACROSS_HALF_HEIGHT, "points_across_half_height")
+}
+END_SECTION
+
+START_SECTION(OSWFeatureTransitionSchema field types - representative sample)
+{
+  auto s = OSWFeatureTransitionSchema::schema();
+  // feature_id: int64
+  TEST_EQUAL(s->field(0)->name(), "feature_id")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // run_id: int64
+  TEST_EQUAL(s->field(1)->name(), "run_id")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::INT64)
+  // transition_id: int64
+  TEST_EQUAL(s->field(2)->name(), "transition_id")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::INT64)
+  // area_intensity: float64
+  TEST_EQUAL(s->field(3)->name(), "area_intensity")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::DOUBLE)
+  // points_across_half_height: float64 (last field, index 43)
+  TEST_EQUAL(s->field(43)->name(), "points_across_half_height")
+  TEST_EQUAL(s->field(43)->type()->id(), arrow::Type::DOUBLE)
+}
+END_SECTION
+
+START_SECTION(OSWFeatureTransitionSchema validation with table)
+{
+  auto s = OSWFeatureTransitionSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== XICSchema ==========
+
+START_SECTION(XICSchema::schema() returns non-null with 18 fields)
+{
+  auto s = XICSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 18)
+}
+END_SECTION
+
+START_SECTION(XICSchema column name constants)
+{
+  TEST_STRING_EQUAL(XICSchema::RUN_ID, "RUN_ID")
+  TEST_STRING_EQUAL(XICSchema::SOURCE_FILE, "SOURCE_FILE")
+  TEST_STRING_EQUAL(XICSchema::MS_LEVEL, "MS_LEVEL")
+  TEST_STRING_EQUAL(XICSchema::PRECURSOR_ID, "PRECURSOR_ID")
+  TEST_STRING_EQUAL(XICSchema::TRANSITION_ID, "TRANSITION_ID")
+  TEST_STRING_EQUAL(XICSchema::MODIFIED_SEQUENCE, "MODIFIED_SEQUENCE")
+  TEST_STRING_EQUAL(XICSchema::PRECURSOR_CHARGE, "PRECURSOR_CHARGE")
+  TEST_STRING_EQUAL(XICSchema::PRODUCT_CHARGE, "PRODUCT_CHARGE")
+  TEST_STRING_EQUAL(XICSchema::DETECTING_TRANSITION, "DETECTING_TRANSITION")
+  TEST_STRING_EQUAL(XICSchema::PRECURSOR_DECOY, "PRECURSOR_DECOY")
+  TEST_STRING_EQUAL(XICSchema::PRODUCT_DECOY, "PRODUCT_DECOY")
+  TEST_STRING_EQUAL(XICSchema::TRANSITION_ORDINAL, "TRANSITION_ORDINAL")
+  TEST_STRING_EQUAL(XICSchema::TRANSITION_TYPE, "TRANSITION_TYPE")
+  TEST_STRING_EQUAL(XICSchema::ANNOTATION, "ANNOTATION")
+  TEST_STRING_EQUAL(XICSchema::RT_DATA, "RT_DATA")
+  TEST_STRING_EQUAL(XICSchema::INTENSITY_DATA, "INTENSITY_DATA")
+  TEST_STRING_EQUAL(XICSchema::RT_COMPRESSION, "RT_COMPRESSION")
+  TEST_STRING_EQUAL(XICSchema::INTENSITY_COMPRESSION, "INTENSITY_COMPRESSION")
+}
+END_SECTION
+
+START_SECTION(XICSchema field types)
+{
+  auto s = XICSchema::schema();
+  // RUN_ID: int64
+  TEST_EQUAL(s->field(0)->name(), "RUN_ID")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // SOURCE_FILE: utf8
+  TEST_EQUAL(s->field(1)->name(), "SOURCE_FILE")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::STRING)
+  // MS_LEVEL: int64
+  TEST_EQUAL(s->field(2)->name(), "MS_LEVEL")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::INT64)
+  // MODIFIED_SEQUENCE: utf8
+  TEST_EQUAL(s->field(5)->name(), "MODIFIED_SEQUENCE")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::STRING)
+  // TRANSITION_TYPE: utf8
+  TEST_EQUAL(s->field(12)->name(), "TRANSITION_TYPE")
+  TEST_EQUAL(s->field(12)->type()->id(), arrow::Type::STRING)
+  // ANNOTATION: utf8
+  TEST_EQUAL(s->field(13)->name(), "ANNOTATION")
+  TEST_EQUAL(s->field(13)->type()->id(), arrow::Type::STRING)
+  // RT_DATA: binary
+  TEST_EQUAL(s->field(14)->name(), "RT_DATA")
+  TEST_EQUAL(s->field(14)->type()->id(), arrow::Type::BINARY)
+  // INTENSITY_DATA: binary
+  TEST_EQUAL(s->field(15)->name(), "INTENSITY_DATA")
+  TEST_EQUAL(s->field(15)->type()->id(), arrow::Type::BINARY)
+  // RT_COMPRESSION: int64
+  TEST_EQUAL(s->field(16)->name(), "RT_COMPRESSION")
+  TEST_EQUAL(s->field(16)->type()->id(), arrow::Type::INT64)
+  // INTENSITY_COMPRESSION: int64
+  TEST_EQUAL(s->field(17)->name(), "INTENSITY_COMPRESSION")
+  TEST_EQUAL(s->field(17)->type()->id(), arrow::Type::INT64)
+}
+END_SECTION
+
+START_SECTION(XICSchema validation with table)
+{
+  auto s = XICSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
+// ========== XIMSchema ==========
+
+START_SECTION(XIMSchema::schema() returns non-null with 21 fields)
+{
+  auto s = XIMSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 21)
+}
+END_SECTION
+
+START_SECTION(XIMSchema column name constants)
+{
+  TEST_STRING_EQUAL(XIMSchema::RUN_ID, "RUN_ID")
+  TEST_STRING_EQUAL(XIMSchema::SOURCE_FILE, "SOURCE_FILE")
+  TEST_STRING_EQUAL(XIMSchema::MS_LEVEL, "MS_LEVEL")
+  TEST_STRING_EQUAL(XIMSchema::MOBILOGRAM_TYPE, "MOBILOGRAM_TYPE")
+  TEST_STRING_EQUAL(XIMSchema::PRECURSOR_ID, "PRECURSOR_ID")
+  TEST_STRING_EQUAL(XIMSchema::TRANSITION_ID, "TRANSITION_ID")
+  TEST_STRING_EQUAL(XIMSchema::FEATURE_ID, "FEATURE_ID")
+  TEST_STRING_EQUAL(XIMSchema::FEATURE_RT, "FEATURE_RT")
+  TEST_STRING_EQUAL(XIMSchema::MODIFIED_SEQUENCE, "MODIFIED_SEQUENCE")
+  TEST_STRING_EQUAL(XIMSchema::PRECURSOR_CHARGE, "PRECURSOR_CHARGE")
+  TEST_STRING_EQUAL(XIMSchema::PRODUCT_CHARGE, "PRODUCT_CHARGE")
+  TEST_STRING_EQUAL(XIMSchema::DETECTING_TRANSITION, "DETECTING_TRANSITION")
+  TEST_STRING_EQUAL(XIMSchema::PRECURSOR_DECOY, "PRECURSOR_DECOY")
+  TEST_STRING_EQUAL(XIMSchema::PRODUCT_DECOY, "PRODUCT_DECOY")
+  TEST_STRING_EQUAL(XIMSchema::TRANSITION_ORDINAL, "TRANSITION_ORDINAL")
+  TEST_STRING_EQUAL(XIMSchema::TRANSITION_TYPE, "TRANSITION_TYPE")
+  TEST_STRING_EQUAL(XIMSchema::ANNOTATION, "ANNOTATION")
+  TEST_STRING_EQUAL(XIMSchema::MOBILITY_DATA, "MOBILITY_DATA")
+  TEST_STRING_EQUAL(XIMSchema::INTENSITY_DATA, "INTENSITY_DATA")
+  TEST_STRING_EQUAL(XIMSchema::MOBILITY_COMPRESSION, "MOBILITY_COMPRESSION")
+  TEST_STRING_EQUAL(XIMSchema::INTENSITY_COMPRESSION, "INTENSITY_COMPRESSION")
+}
+END_SECTION
+
+START_SECTION(XIMSchema field types)
+{
+  auto s = XIMSchema::schema();
+  // RUN_ID: int64
+  TEST_EQUAL(s->field(0)->name(), "RUN_ID")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::INT64)
+  TEST_EQUAL(s->field(0)->nullable(), true)
+  // SOURCE_FILE: utf8
+  TEST_EQUAL(s->field(1)->name(), "SOURCE_FILE")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::STRING)
+  // MOBILOGRAM_TYPE: utf8
+  TEST_EQUAL(s->field(3)->name(), "MOBILOGRAM_TYPE")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::STRING)
+  // FEATURE_ID: int64
+  TEST_EQUAL(s->field(6)->name(), "FEATURE_ID")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::INT64)
+  // FEATURE_RT: float64
+  TEST_EQUAL(s->field(7)->name(), "FEATURE_RT")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::DOUBLE)
+  // MOBILITY_DATA: binary
+  TEST_EQUAL(s->field(17)->name(), "MOBILITY_DATA")
+  TEST_EQUAL(s->field(17)->type()->id(), arrow::Type::BINARY)
+  // INTENSITY_DATA: binary
+  TEST_EQUAL(s->field(18)->name(), "INTENSITY_DATA")
+  TEST_EQUAL(s->field(18)->type()->id(), arrow::Type::BINARY)
+  // MOBILITY_COMPRESSION: int64
+  TEST_EQUAL(s->field(19)->name(), "MOBILITY_COMPRESSION")
+  TEST_EQUAL(s->field(19)->type()->id(), arrow::Type::INT64)
+  // INTENSITY_COMPRESSION: int64
+  TEST_EQUAL(s->field(20)->name(), "INTENSITY_COMPRESSION")
+  TEST_EQUAL(s->field(20)->type()->id(), arrow::Type::INT64)
+}
+END_SECTION
+
+START_SECTION(XIMSchema validation with table)
+{
+  auto s = XIMSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
 END_TEST
 
 #else // WITH_PARQUET
