@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -1032,26 +1033,8 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
 
   #undef FINISH_OR_RETURN
 
-  // Build schema (17 columns)
-  auto schema = arrow::schema({
-    arrow::field("unique_id", arrow::int64(), /*nullable=*/false),
-    arrow::field("parent_feature_id", arrow::int64(), /*nullable=*/true),
-    arrow::field("depth", arrow::int32(), /*nullable=*/false),
-    arrow::field("rt", arrow::float64(), /*nullable=*/false),
-    arrow::field("mz", arrow::float64(), /*nullable=*/false),
-    arrow::field("intensity", arrow::float32(), /*nullable=*/false),
-    arrow::field("charge", arrow::int32(), /*nullable=*/false),
-    arrow::field("quality", arrow::float32(), /*nullable=*/false),
-    arrow::field("quality_rt", arrow::float32(), /*nullable=*/false),
-    arrow::field("quality_mz", arrow::float32(), /*nullable=*/false),
-    arrow::field("width", arrow::float32(), /*nullable=*/true),
-    arrow::field("rt_bb_min", arrow::float64(), /*nullable=*/true),
-    arrow::field("rt_bb_max", arrow::float64(), /*nullable=*/true),
-    arrow::field("mz_bb_min", arrow::float64(), /*nullable=*/true),
-    arrow::field("mz_bb_max", arrow::float64(), /*nullable=*/true),
-    arrow::field("convex_hulls", convex_hulls_builder.type(), /*nullable=*/false),
-    arrow::field("metavalues", metavalues_builder.type(), /*nullable=*/false),
-  });
+  // Build schema from registry (17 columns)
+  auto schema = FeatureSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_unique_id, arr_parent_id, arr_depth,
@@ -1062,6 +1045,14 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
     arr_rt_bb_min, arr_rt_bb_max, arr_mz_bb_min, arr_mz_bb_max,
     arr_convex_hulls, arr_metavalues
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, FeatureSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << std::endl;
+    return nullptr;
+  }
 
   return table;
 }
@@ -1255,20 +1246,28 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
     return true;
   }
 
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(tbl, FeatureSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << std::endl;
+    return false;
+  }
+
   // Get all columns
-  auto col_unique_id = getColumn_(tbl, "unique_id");
-  auto col_parent_id = getColumn_(tbl, "parent_feature_id");
-  auto col_depth = getColumn_(tbl, "depth");
-  auto col_rt = getColumn_(tbl, "rt");
-  auto col_mz = getColumn_(tbl, "mz");
-  auto col_intensity = getColumn_(tbl, "intensity");
-  auto col_charge = getColumn_(tbl, "charge");
-  auto col_overall_quality = getColumn_(tbl, "quality");
-  auto col_quality_rt = getColumn_(tbl, "quality_rt");
-  auto col_quality_mz = getColumn_(tbl, "quality_mz");
-  auto col_width = getColumn_(tbl, "width");
-  auto col_convex_hulls = getColumn_(tbl, "convex_hulls", /*required=*/false);
-  auto col_metavalues = getColumn_(tbl, "metavalues", /*required=*/false);
+  auto col_unique_id = getColumn_(tbl, FeatureSchema::UNIQUE_ID);
+  auto col_parent_id = getColumn_(tbl, FeatureSchema::PARENT_FEATURE_ID);
+  auto col_depth = getColumn_(tbl, FeatureSchema::DEPTH);
+  auto col_rt = getColumn_(tbl, FeatureSchema::RT);
+  auto col_mz = getColumn_(tbl, FeatureSchema::MZ);
+  auto col_intensity = getColumn_(tbl, FeatureSchema::INTENSITY);
+  auto col_charge = getColumn_(tbl, FeatureSchema::CHARGE);
+  auto col_overall_quality = getColumn_(tbl, FeatureSchema::QUALITY);
+  auto col_quality_rt = getColumn_(tbl, FeatureSchema::QUALITY_RT);
+  auto col_quality_mz = getColumn_(tbl, FeatureSchema::QUALITY_MZ);
+  auto col_width = getColumn_(tbl, FeatureSchema::WIDTH);
+  auto col_convex_hulls = getColumn_(tbl, FeatureSchema::CONVEX_HULLS, /*required=*/false);
+  auto col_metavalues = getColumn_(tbl, FeatureSchema::METAVALUES, /*required=*/false);
 
   if (!col_unique_id || !col_parent_id || !col_depth || !col_rt || !col_mz ||
       !col_intensity || !col_charge || !col_overall_quality ||

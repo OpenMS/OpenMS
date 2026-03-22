@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -1127,23 +1128,24 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportFeaturesToArrow(
 
   #undef FINISH_OR_RETURN
 
-  auto schema = arrow::schema({
-    arrow::field("unique_id", arrow::int64()),
-    arrow::field("rt", arrow::float64()),
-    arrow::field("mz", arrow::float64()),
-    arrow::field("intensity", arrow::float32()),
-    arrow::field("charge", arrow::int32()),
-    arrow::field("quality", arrow::float32()),
-    arrow::field("width", arrow::float32()),
-    arrow::field("handles", arrow::list(handle_struct_type)),
-    arrow::field("metavalues", arrow::list(mv_struct_type))
-  });
+  // Build schema from registry
+  auto schema = ConsensusFeatureSchema::schema();
 
-  return arrow::Table::Make(schema, {
+  auto table = arrow::Table::Make(schema, {
     arr_unique_id, arr_rt, arr_mz, arr_intensity,
     arr_charge, arr_quality, arr_width,
     arr_handles, arr_metavalues
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, ConsensusFeatureSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << std::endl;
+    return nullptr;
+  }
+
+  return table;
 }
 
 std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportPSMsToArrow(
@@ -1322,15 +1324,23 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
     return true;
   }
 
-  auto col_unique_id = getColumn_(tbl, "unique_id");
-  auto col_rt = getColumn_(tbl, "rt");
-  auto col_mz = getColumn_(tbl, "mz");
-  auto col_intensity = getColumn_(tbl, "intensity");
-  auto col_charge = getColumn_(tbl, "charge");
-  auto col_quality = getColumn_(tbl, "quality");
-  auto col_width = getColumn_(tbl, "width", /*required=*/false);
-  auto col_handles = getColumn_(tbl, "handles", /*required=*/false);
-  auto col_metavalues = getColumn_(tbl, "metavalues", /*required=*/false);
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(tbl, ConsensusFeatureSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << std::endl;
+    return false;
+  }
+
+  auto col_unique_id = getColumn_(tbl, ConsensusFeatureSchema::UNIQUE_ID);
+  auto col_rt = getColumn_(tbl, ConsensusFeatureSchema::RT);
+  auto col_mz = getColumn_(tbl, ConsensusFeatureSchema::MZ);
+  auto col_intensity = getColumn_(tbl, ConsensusFeatureSchema::INTENSITY);
+  auto col_charge = getColumn_(tbl, ConsensusFeatureSchema::CHARGE);
+  auto col_quality = getColumn_(tbl, ConsensusFeatureSchema::QUALITY);
+  auto col_width = getColumn_(tbl, ConsensusFeatureSchema::WIDTH, /*required=*/false);
+  auto col_handles = getColumn_(tbl, ConsensusFeatureSchema::HANDLES, /*required=*/false);
+  auto col_metavalues = getColumn_(tbl, ConsensusFeatureSchema::METAVALUES, /*required=*/false);
 
   if (!col_unique_id || !col_rt || !col_mz || !col_intensity || !col_charge || !col_quality)
   {
