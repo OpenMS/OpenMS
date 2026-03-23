@@ -33,7 +33,7 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
-#ifdef WITH_TIMSRUST
+#ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #endif
 
@@ -177,30 +177,24 @@ protected:
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
     
-#ifdef WITH_TIMSRUST
-    registerTOPPSubsection_("timsrust", "Options for reading Bruker TimsTOF .d files (requires WITH_TIMSRUST)");
-    registerIntOption_("timsrust:smoothing_window", "<int>", 0, "TOF-domain smoothing window in bins (0 = library default). "
-      "Applied during spectrum assembly in 'auto' and 'spectrum' export modes; has no effect in 'frame' mode.", false, true);
-    setMinInt_("timsrust:smoothing_window", 0);
-    registerIntOption_("timsrust:centroiding_window", "<int>", 0, "TOF-domain centroiding window in bins (0 = library default). "
-      "Applied during spectrum assembly in 'auto' and 'spectrum' export modes; has no effect in 'frame' mode.", false, true);
-    setMinInt_("timsrust:centroiding_window", 0);
-    registerDoubleOption_("timsrust:calibration_tolerance", "<float>", 0.0, "m/z recalibration tolerance (0 = library default)", false, true);
-    setMinFloat_("timsrust:calibration_tolerance", 0.0);
-    registerStringOption_("timsrust:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
-    setValidStrings_("timsrust:calibrate", {"true", "false"});
-    registerStringOption_("timsrust:export_mode", "<mode>", "auto", "Export mode: 'auto' detects DDA/DIA acquisition type, "
+#ifdef WITH_OPENTIMS
+    registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
+    registerDoubleOption_("bruker:calibration_tolerance", "<float>", 0.0, "m/z recalibration tolerance (0 = library default)", false, true);
+    setMinFloat_("bruker:calibration_tolerance", 0.0);
+    registerStringOption_("bruker:calibrate", "<toggle>", "false", "Enable m/z recalibration (may fail on some datasets)", false, true);
+    setValidStrings_("bruker:calibrate", {"true", "false"});
+    registerStringOption_("bruker:export_mode", "<mode>", "auto", "Export mode: 'auto' detects DDA/DIA acquisition type, "
       "'spectrum' forces per-precursor MS2 spectra (DDA-style), 'frame' returns raw 4D frames without signal processing.", false, true);
-    setValidStrings_("timsrust:export_mode", {"auto", "spectrum", "frame"});
-    registerDoubleOption_("timsrust:ms1_centroid_mz_ppm", "<float>", 0.0,
+    setValidStrings_("bruker:export_mode", {"auto", "spectrum", "frame"});
+    registerDoubleOption_("bruker:ms1_centroid_mz_ppm", "<float>", 0.0,
       "MS1 frame IM-centroiding m/z tolerance in ppm. Collapses the ion mobility dimension "
       "by aggregating neighboring peaks. Both this and ms1_centroid_im_pct must be > 0 to enable. "
       "Suggested value: 5.0. Algorithm from Sage (Lazear 2023).", false, true);
-    setMinFloat_("timsrust:ms1_centroid_mz_ppm", 0.0);
-    registerDoubleOption_("timsrust:ms1_centroid_im_pct", "<float>", 0.0,
+    setMinFloat_("bruker:ms1_centroid_mz_ppm", 0.0);
+    registerDoubleOption_("bruker:ms1_centroid_im_pct", "<float>", 0.0,
       "MS1 frame IM-centroiding ion mobility tolerance in percent. Both this and ms1_centroid_mz_ppm "
       "must be > 0 to enable. Suggested value: 3.0.", false, true);
-    setMinFloat_("timsrust:ms1_centroid_im_pct", 0.0);
+    setMinFloat_("bruker:ms1_centroid_im_pct", 0.0);
 #endif
 
     registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
@@ -222,20 +216,18 @@ protected:
   // Note: subsection defaults are not overridden here; TransitionTSVFile parameters
   // are available via the standard parameter mechanism when requested.
 
-#ifdef WITH_TIMSRUST
-  BrukerTimsFile::Config getTimsConfig_()
+#ifdef WITH_OPENTIMS
+  BrukerTimsFile::Config getBrukerConfig_()
   {
     BrukerTimsFile::Config c;
-    c.smoothing_window = static_cast<uint32_t>(getIntOption_("timsrust:smoothing_window"));
-    c.centroiding_window = static_cast<uint32_t>(getIntOption_("timsrust:centroiding_window"));
-    c.calibration_tolerance = getDoubleOption_("timsrust:calibration_tolerance");
-    c.calibrate = (getStringOption_("timsrust:calibrate") == "true");
-    String mode = getStringOption_("timsrust:export_mode");
+    c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
+    c.calibrate = (getStringOption_("bruker:calibrate") == "true");
+    String mode = getStringOption_("bruker:export_mode");
     if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
     else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
     else c.export_mode = BrukerTimsFile::Config::AUTO;
-    c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("timsrust:ms1_centroid_mz_ppm"));
-    c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("timsrust:ms1_centroid_im_pct"));
+    c.ms1_centroid_mz_ppm = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_mz_ppm"));
+    c.ms1_centroid_im_pct = static_cast<float>(getDoubleOption_("bruker:ms1_centroid_im_pct"));
     return c;
   }
 #endif
@@ -500,13 +492,13 @@ protected:
           "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
       }
     }
-#ifdef WITH_TIMSRUST
+#ifdef WITH_OPENTIMS
     else if (in_type == FileTypes::BRUKER_TDF)
     {
-      auto tims_config = getTimsConfig_();
+      auto bruker_config = getBrukerConfig_();
       BrukerTimsFile tims_file;
       tims_file.setLogType(log_type_);
-      tims_file.load(in, exp, tims_config);
+      tims_file.load(in, exp, bruker_config);
     }
 #endif
     else

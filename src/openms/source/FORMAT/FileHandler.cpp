@@ -51,7 +51,7 @@
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 
-#ifdef WITH_TIMSRUST
+#ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #endif
 
@@ -895,7 +895,7 @@ namespace OpenMS
       }
       break;
 
-#ifdef WITH_TIMSRUST
+#ifdef WITH_OPENTIMS
       case FileTypes::BRUKER_TDF:
       {
         BrukerTimsFile f;
