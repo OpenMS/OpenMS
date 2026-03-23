@@ -99,7 +99,7 @@ namespace OpenMS
     for (int i = 0; i <= m; ++i)
     {
       const double x = static_cast<double>(i) / (m + 1);
-      const double sinc_arg = M_PI * 0.5 * (isMS1 ? degree + 2 : degree + 4) * x;
+      const double sinc_arg = Constants::PI * 0.5 * (isMS1 ? degree + 2 : degree + 4) * x;
       double k = (i == 0) ? 1.0 : std::sin(sinc_arg) / sinc_arg;
 
       // optional correction terms
@@ -107,12 +107,12 @@ namespace OpenMS
       {
         if (isMS1)
         {
-          k += coeffs[j] * x * std::sin((j + 1) * M_PI * x);
+          k += coeffs[j] * x * std::sin((j + 1) * Constants::PI * x);
         }
         else
         {
           const int nu = ((degree / 2) % 2 == 0) ? 2 : 1;
-          k += coeffs[j] * x * std::sin((2 * static_cast<int>(j) + nu) * M_PI * x);
+          k += coeffs[j] * x * std::sin((2 * static_cast<int>(j) + nu) * Constants::PI * x);
         }
       }
 
@@ -211,7 +211,7 @@ namespace OpenMS
     std::vector<double> weights(static_cast<size_t>(std::max(fit_len, 0)), 0.0);
     for (int p = 0; p < fit_len; ++p)
     {
-      weights[static_cast<size_t>(p)] = sqr(std::cos(0.5 * M_PI / (first_zero * beta) * p));
+      weights[static_cast<size_t>(p)] = sqr(std::cos(0.5 * Constants::PI / (first_zero * beta) * p));
     }
     return weights;
   }
