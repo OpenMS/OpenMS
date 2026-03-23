@@ -3,7 +3,7 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_TIMSRUST
+#ifdef WITH_OPENTIMS
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
@@ -42,14 +42,14 @@ START_SECTION([FileHandler] BRUKER_TDF detection)
 }
 END_SECTION
 
-// Integration tests (only run when ENABLE_TIMSRUST_TESTS is ON and data is available)
-#ifdef TIMSRUST_DDA_TEST_DATA
+// Integration tests (only run when ENABLE_OPENTIMS_TESTS is ON and data is available)
+#ifdef OPENTIMS_DDA_TEST_DATA
 
 START_SECTION(DDA loading integration test)
 {
   BrukerTimsFile f;
   MSExperiment exp;
-  f.load(TIMSRUST_DDA_TEST_DATA, exp);
+  f.load(OPENTIMS_DDA_TEST_DATA, exp);
 
   // Verify we got spectra
   TEST_NOT_EQUAL(exp.size(), 0);
@@ -96,7 +96,7 @@ START_SECTION(DDA round-trip test: load .d -> write mzML -> reload -> verify)
   // Load from .d
   BrukerTimsFile f;
   MSExperiment orig;
-  f.load(TIMSRUST_DDA_TEST_DATA, orig);
+  f.load(OPENTIMS_DDA_TEST_DATA, orig);
 
   // Write to temporary mzML — avoid NEW_TMP_FILE because the test
   // framework validates all registered .mzML files, and the IM data
@@ -137,7 +137,7 @@ START_SECTION(DDA frame-level loading test)
   cfg.export_mode = BrukerTimsFile::Config::FRAME;
 
   MSExperiment exp;
-  f.load(TIMSRUST_DDA_TEST_DATA, exp, cfg);
+  f.load(OPENTIMS_DDA_TEST_DATA, exp, cfg);
 
   TEST_NOT_EQUAL(exp.size(), 0);
 
@@ -159,14 +159,14 @@ START_SECTION(DDA MS1 centroiding test)
 
   // Load without centroiding (baseline)
   MSExperiment exp_raw;
-  f.load(TIMSRUST_DDA_TEST_DATA, exp_raw);
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_raw);
 
   // Load with centroiding enabled
   BrukerTimsFile::Config cfg;
   cfg.ms1_centroid_mz_ppm = 5.0f;
   cfg.ms1_centroid_im_pct = 3.0f;
   MSExperiment exp_cent;
-  f.load(TIMSRUST_DDA_TEST_DATA, exp_cent, cfg);
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_cent, cfg);
 
   // Count MS1 and MS2 spectra and total MS1 peaks in both
   Size raw_ms1_peaks = 0, cent_ms1_peaks = 0;
@@ -229,11 +229,11 @@ START_SECTION(DDA partial centroiding config test)
   cfg_partial.ms1_centroid_mz_ppm = 5.0f;  // set
   cfg_partial.ms1_centroid_im_pct = 0.0f;  // NOT set
   MSExperiment exp_partial;
-  f.load(TIMSRUST_DDA_TEST_DATA, exp_partial, cfg_partial);
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_partial, cfg_partial);
 
   // Load without centroiding for comparison
   MSExperiment exp_raw;
-  f.load(TIMSRUST_DDA_TEST_DATA, exp_raw);
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_raw);
 
   // MS1 peak counts should be identical (centroiding was NOT applied)
   Size partial_ms1_peaks = 0, raw_ms1_peaks = 0;
@@ -251,7 +251,7 @@ START_SECTION(DDA search engine IM annotation integration test)
   // Load real DDA-PASEF data
   BrukerTimsFile f;
   MSExperiment exp;
-  f.load(TIMSRUST_DDA_TEST_DATA, exp);
+  f.load(OPENTIMS_DDA_TEST_DATA, exp);
 
   // Verify MS2 spectra have drift times (pre-condition for IM annotation)
   Size ms2_count = 0;
@@ -274,7 +274,7 @@ START_SECTION(DDA search engine IM annotation integration test)
   // parameters used by the TOPP-level DDA tests for SSE and FI.
   // The key test: any PSMs produced must have IM annotation.
   vector<FASTAFile::FASTAEntry> fasta_db;
-  FASTAFile().load(TIMSRUST_TEST_FASTA, fasta_db);
+  FASTAFile().load(OPENTIMS_TEST_FASTA, fasta_db);
   TEST_TRUE(fasta_db.size() > 0)
 
   // Typical timsTOF Pro DDA-PASEF search parameters
@@ -319,15 +319,15 @@ START_SECTION(DDA search engine IM annotation integration test)
 }
 END_SECTION
 
-#endif // TIMSRUST_DDA_TEST_DATA
+#endif // OPENTIMS_DDA_TEST_DATA
 
-#ifdef TIMSRUST_DIA_TEST_DATA
+#ifdef OPENTIMS_DIA_TEST_DATA
 
 START_SECTION(DIA loading integration test)
 {
   BrukerTimsFile f;
   MSExperiment exp;
-  f.load(TIMSRUST_DIA_TEST_DATA, exp);
+  f.load(OPENTIMS_DIA_TEST_DATA, exp);
 
   TEST_NOT_EQUAL(exp.size(), 0);
 
@@ -349,7 +349,7 @@ START_SECTION(DIA round-trip test: load .d -> write mzML -> reload -> verify)
   // Load from .d
   BrukerTimsFile f;
   MSExperiment orig;
-  f.load(TIMSRUST_DIA_TEST_DATA, orig);
+  f.load(OPENTIMS_DIA_TEST_DATA, orig);
 
   // Write to temporary mzML — avoid NEW_TMP_FILE (see DDA round-trip comment)
   String tmp_mzml = File::getTempDirectory() + "/" + File::getUniqueName() + "_dia_roundtrip.mzML";
@@ -381,14 +381,14 @@ START_SECTION(DIA MS1 centroiding test)
 
   // Load without centroiding
   MSExperiment exp_raw;
-  f.load(TIMSRUST_DIA_TEST_DATA, exp_raw);
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
 
   // Load with centroiding
   BrukerTimsFile::Config cfg;
   cfg.ms1_centroid_mz_ppm = 5.0f;
   cfg.ms1_centroid_im_pct = 3.0f;
   MSExperiment exp_cent;
-  f.load(TIMSRUST_DIA_TEST_DATA, exp_cent, cfg);
+  f.load(OPENTIMS_DIA_TEST_DATA, exp_cent, cfg);
 
   // Count MS1 peaks
   Size raw_ms1_peaks = 0, cent_ms1_peaks = 0;
@@ -402,18 +402,18 @@ START_SECTION(DIA MS1 centroiding test)
 }
 END_SECTION
 
-#endif // TIMSRUST_DIA_TEST_DATA
+#endif // OPENTIMS_DIA_TEST_DATA
 
 END_TEST
 
-#else // WITH_TIMSRUST
+#else // WITH_OPENTIMS
 
-// Minimal test when timsrust is not available
+// Minimal test when opentims is not available
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
 START_TEST(BrukerTimsFile, "$Id$")
-// No tests when WITH_TIMSRUST is off
+// No tests when WITH_OPENTIMS is off
 END_TEST
 
-#endif // WITH_TIMSRUST
+#endif // WITH_OPENTIMS

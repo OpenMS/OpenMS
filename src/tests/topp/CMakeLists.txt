@@ -2926,18 +2926,18 @@ set_tests_properties("TOPP_PeptideDataBaseSearchFI_2_out" PROPERTIES DEPENDS
 "TOPP_PeptideDataBaseSearchFI_2")
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
-if (WITH_TIMSRUST AND TIMSRUST_DDA_TEST_DATA)
+if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format
-  set(TIMSRUST_DDA_SYMLINK "${CMAKE_BINARY_DIR}/test_data/DDA_HeLa.d")
+  set(OPENTIMS_DDA_SYMLINK "${CMAKE_BINARY_DIR}/test_data/DDA_HeLa.d")
   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test_data")
-  file(CREATE_LINK "${TIMSRUST_DDA_TEST_DATA}" "${TIMSRUST_DDA_SYMLINK}" SYMBOLIC)
+  file(CREATE_LINK "${OPENTIMS_DDA_TEST_DATA}" "${OPENTIMS_DDA_SYMLINK}" SYMBOLIC)
 
   # Typical timsTOF Pro DDA-PASEF parameters: 20 ppm precursor, 20 ppm fragment,
   # Trypsin/P, 2 missed cleavages, Carbamidomethyl (C) fixed,
   # Oxidation (M) + Acetyl (Protein N-term) variable.
   add_test("TOPP_SimpleSearchEngine_DDA" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
-    -in ${TIMSRUST_DDA_SYMLINK}
-    -database ${TIMSRUST_TEST_FASTA}
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
     -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_DDA_out.tmp.idXML
     -Search:precursor:mass_tolerance 20
     -Search:precursor:mass_tolerance_unit ppm
@@ -2950,8 +2950,8 @@ if (WITH_TIMSRUST AND TIMSRUST_DDA_TEST_DATA)
     -threads 4)
 
   add_test("TOPP_PeptideDataBaseSearchFI_DDA" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
-    -in ${TIMSRUST_DDA_SYMLINK}
-    -database ${TIMSRUST_TEST_FASTA}
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${OPENTIMS_TEST_FASTA}
     -out ${TESTS_TEMP_DIR}/PeptideDataBaseSearchFI_DDA_out.tmp.idXML
     -Search:precursor:mass_tolerance 20
     -Search:precursor:mass_tolerance_unit ppm
@@ -2967,13 +2967,13 @@ if (WITH_TIMSRUST AND TIMSRUST_DDA_TEST_DATA)
   # then search with Sage, then apply FDR filtering on hyperscore via FalseDiscoveryRate.
   if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
     add_test("TOPP_DecoyDatabase_DDA" ${TOPP_BIN_PATH}/DecoyDatabase -test
-      -in ${TIMSRUST_TEST_FASTA}
+      -in ${OPENTIMS_TEST_FASTA}
       -out ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
       -decoy_string DECOY_
       -decoy_string_position prefix)
 
     add_test("TOPP_SageAdapter_DDA" ${TOPP_BIN_PATH}/SageAdapter -test
-      -in ${TIMSRUST_DDA_SYMLINK}
+      -in ${OPENTIMS_DDA_SYMLINK}
       -database ${TESTS_TEMP_DIR}/DecoyDatabase_DDA_out.tmp.fasta
       -out ${TESTS_TEMP_DIR}/SageAdapter_DDA_out.tmp.idXML
       -sage_executable "${SAGE_BINARY}"
