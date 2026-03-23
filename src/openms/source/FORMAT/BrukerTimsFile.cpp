@@ -3,79 +3,35 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_TIMSRUST
+#ifdef WITH_OPENTIMS
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/OpenTimsCalibration.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <timsrust_cpp_bridge.h>
+#include <opentims.h>
+#include <tof2mz_converter.h>
+#include <scan2inv_ion_mobility_converter.h>
+#include <SQLiteCpp/SQLiteCpp.h>
 
 #include <memory>
 #include <algorithm>
 #include <numeric>
 #include <vector>
 #include <cmath>
+#include <limits>
+#include <map>
+#include <set>
+#include <unordered_map>
 
 namespace OpenMS
 {
-
-  // RAII wrapper for tims_dataset handle
-  struct TimsDatasetHandle
-  {
-    tims_dataset* ptr = nullptr;
-
-    ~TimsDatasetHandle()
-    {
-      if (ptr) tims_close(ptr);
-    }
-
-    TimsDatasetHandle() = default;
-    TimsDatasetHandle(const TimsDatasetHandle&) = delete;
-    TimsDatasetHandle& operator=(const TimsDatasetHandle&) = delete;
-  };
-
-  // RAII wrapper for tims_config
-  struct TimsConfigHandle
-  {
-    tims_config* ptr = nullptr;
-
-    ~TimsConfigHandle()
-    {
-      if (ptr) tims_config_free(ptr);
-    }
-
-    TimsConfigHandle() = default;
-    TimsConfigHandle(const TimsConfigHandle&) = delete;
-    TimsConfigHandle& operator=(const TimsConfigHandle&) = delete;
-  };
-
-  // Helper: expand run-length-encoded scan offsets to per-peak IM values.
-  // Translated from Sage's PeakBuffer::expand_mobility_iter().
-  // T = float for frameToSpectrum_() / centroiding path,
-  // T = double for loadDIA_() SWATH splitting (preserves precision for window boundary comparisons).
-  template <typename T>
-  static void expandScanOffsets(const uint64_t* scan_offsets, uint32_t num_scans,
-                                const double* scan_im, uint32_t num_peaks,
-                                std::vector<T>& out_im)
-  {
-    out_im.resize(num_peaks);
-    for (uint32_t scan_idx = 0; scan_idx < num_scans; ++scan_idx)
-    {
-      uint64_t start = scan_offsets[scan_idx];
-      uint64_t end = scan_offsets[scan_idx + 1];
-      for (uint64_t p = start; p < end; ++p)
-      {
-        out_im[p] = static_cast<T>(scan_im[scan_idx]);
-      }
-    }
-  }
 
   // IM-aware peak for centroiding. Adapted from Sage's ImsPeak.
   struct ImsPeak
@@ -104,11 +60,11 @@ namespace OpenMS
     }
 
     // Load already-converted frame data into the buffer.
-    // mz_values: converted m/z (double, from tims_convert_tof_to_mz_array)
-    // intensities: raw uint32_t from tims_frame::intensities (cast to float internally)
-    // im_values: expanded per-peak IM (float, from expandScanOffsets)
+    // mz_values: converted m/z (double, from save_to_buffs)
+    // intensities: corrected uint32_t from save_to_buffs (cast to float internally)
+    // im_values: converted per-peak inv_ion_mobility (double, from save_to_buffs)
     void loadFrame(const double* mz_values, const uint32_t* intensities,
-                   const float* im_values, uint32_t count)
+                   const double* im_values, uint32_t count)
     {
       clear();
       peaks.reserve(count);
@@ -116,7 +72,7 @@ namespace OpenMS
       {
         peaks.push_back({static_cast<float>(mz_values[i]),
                          static_cast<float>(intensities[i]),
-                         im_values[i]});
+                         static_cast<float>(im_values[i])});
       }
 
       // Sort by m/z for binary-search neighbor finding
@@ -231,54 +187,304 @@ namespace OpenMS
     return has_mz && has_im;
   }
 
-  // Helper: get error string from handle
-  static String getTimsError(tims_dataset* handle)
+  // =====================================================================
+  // TdfMetadataReader: private helper functions for SQL-based metadata
+  // =====================================================================
+  namespace
   {
-    if (!handle) return "unknown timsrust error (null handle)";
-    char buf[512];
-    tims_get_last_error(handle, buf, sizeof(buf));
-    return String(buf);
+
+    // Check if the dataset is DIA by looking for SWATH window tables with data
+    bool isDIA(SQLite::Database& db)
+    {
+      // Try DiaFrameMsMsWindows first (newer format)
+      try
+      {
+        SQLite::Statement q(db, "SELECT COUNT(*) FROM DiaFrameMsMsWindows");
+        if (q.executeStep() && q.getColumn(0).getInt() > 0)
+          return true;
+      }
+      catch (const SQLite::Exception&)
+      {
+        // Table does not exist, try fallback
+      }
+
+      // Fallback: DiaFrameMsMsInfo (older format)
+      try
+      {
+        SQLite::Statement q(db, "SELECT COUNT(*) FROM DiaFrameMsMsInfo");
+        if (q.executeStep() && q.getColumn(0).getInt() > 0)
+          return true;
+      }
+      catch (const SQLite::Exception&)
+      {
+        // Table does not exist either
+      }
+
+      return false;
+    }
+
+    // SWATH window descriptor
+    struct DIAWindow
+    {
+      int window_group;
+      double mz_center;
+      double mz_width;
+      double im_lower;  // 1/K0 lower bound
+      double im_upper;  // 1/K0 upper bound
+    };
+
+    // Read DIA SWATH windows from SQL, converting scan bounds to IM
+    std::vector<DIAWindow> readDIAWindows(SQLite::Database& db,
+                                          Scan2InvIonMobilityConverter& im_converter)
+    {
+      std::vector<DIAWindow> windows;
+
+      // Try newer DiaFrameMsMsWindows table first
+      bool use_new_table = false;
+      try
+      {
+        SQLite::Statement check(db, "SELECT COUNT(*) FROM DiaFrameMsMsWindows");
+        if (check.executeStep() && check.getColumn(0).getInt() > 0)
+          use_new_table = true;
+      }
+      catch (const SQLite::Exception&) {}
+
+      if (use_new_table)
+      {
+        SQLite::Statement q(db,
+          "SELECT WindowGroup, ScanNumBegin, ScanNumEnd, IsolationMz, IsolationWidth "
+          "FROM DiaFrameMsMsWindows ORDER BY WindowGroup, ScanNumBegin");
+
+        while (q.executeStep())
+        {
+          DIAWindow w;
+          w.window_group = q.getColumn(0).getInt();
+          uint32_t scan_begin = static_cast<uint32_t>(q.getColumn(1).getInt());
+          uint32_t scan_end   = static_cast<uint32_t>(q.getColumn(2).getInt());
+          w.mz_center = q.getColumn(3).getDouble();
+          w.mz_width  = q.getColumn(4).getDouble();
+
+          // Convert scan bounds to 1/K0 (frame_id=1 is used as reference; linear model is frame-independent)
+          double im_begin = 0.0, im_end = 0.0;
+          im_converter.convert(1, &im_begin, &scan_begin, 1);
+          im_converter.convert(1, &im_end, &scan_end, 1);
+          w.im_lower = std::min(im_begin, im_end);
+          w.im_upper = std::max(im_begin, im_end);
+
+          windows.push_back(w);
+        }
+      }
+      else
+      {
+        // Fallback: DiaFrameMsMsInfo (older format, may have per-frame entries)
+        // Deduplicate by (IsolationMz, IsolationWidth, ScanNumBegin, ScanNumEnd)
+        SQLite::Statement q(db,
+          "SELECT DISTINCT ScanNumBegin, ScanNumEnd, IsolationMz, IsolationWidth "
+          "FROM DiaFrameMsMsInfo ORDER BY IsolationMz, ScanNumBegin");
+
+        int group_id = 0;
+        while (q.executeStep())
+        {
+          DIAWindow w;
+          w.window_group = group_id++;
+          uint32_t scan_begin = static_cast<uint32_t>(q.getColumn(0).getInt());
+          uint32_t scan_end   = static_cast<uint32_t>(q.getColumn(1).getInt());
+          w.mz_center = q.getColumn(2).getDouble();
+          w.mz_width  = q.getColumn(3).getDouble();
+
+          double im_begin = 0.0, im_end = 0.0;
+          im_converter.convert(1, &im_begin, &scan_begin, 1);
+          im_converter.convert(1, &im_end, &scan_end, 1);
+          w.im_lower = std::min(im_begin, im_end);
+          w.im_upper = std::max(im_begin, im_end);
+
+          windows.push_back(w);
+        }
+      }
+
+      return windows;
+    }
+
+    // DDA precursor info (joined from Precursors + PasefFrameMsMsInfo)
+    struct DDAPrecursorInfo
+    {
+      int precursor_id;
+      double monoisotopic_mz;
+      int charge;
+      double intensity;      // precursor intensity (may be NaN/NULL)
+      uint32_t frame_id;
+      uint32_t scan_begin;
+      uint32_t scan_end;
+      double isolation_mz;
+      double isolation_width;
+    };
+
+    // Read DDA precursors from SQL
+    std::vector<DDAPrecursorInfo> readDDAPrecursors(SQLite::Database& db)
+    {
+      std::vector<DDAPrecursorInfo> precursors;
+
+      SQLite::Statement q(db,
+        "SELECT p.Id, p.MonoisotopicMz, p.Charge, p.Intensity, "
+        "       pfm.Frame, pfm.ScanNumBegin, pfm.ScanNumEnd, "
+        "       pfm.IsolationMz, pfm.IsolationWidth "
+        "FROM Precursors p "
+        "JOIN PasefFrameMsMsInfo pfm ON p.Id = pfm.Precursor "
+        "ORDER BY p.Id, pfm.Frame, pfm.ScanNumBegin");
+
+      while (q.executeStep())
+      {
+        DDAPrecursorInfo info;
+        info.precursor_id   = q.getColumn(0).getInt();
+        info.monoisotopic_mz = q.getColumn(1).getDouble();
+        info.charge          = q.getColumn(2).isNull() ? 0 : q.getColumn(2).getInt();
+        info.intensity       = q.getColumn(3).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(3).getDouble();
+        info.frame_id        = static_cast<uint32_t>(q.getColumn(4).getInt());
+        info.scan_begin      = static_cast<uint32_t>(q.getColumn(5).getInt());
+        info.scan_end        = static_cast<uint32_t>(q.getColumn(6).getInt());
+        info.isolation_mz    = q.getColumn(7).getDouble();
+        info.isolation_width = q.getColumn(8).getDouble();
+        precursors.push_back(info);
+      }
+
+      return precursors;
+    }
+
+    // Frame count info for progress reporting
+    struct FrameCounts
+    {
+      uint32_t total = 0;
+      uint32_t ms1 = 0;
+      uint32_t ms2 = 0;
+    };
+
+    FrameCounts readFrameCounts(SQLite::Database& db)
+    {
+      FrameCounts counts;
+
+      SQLite::Statement q_total(db, "SELECT COUNT(*) FROM Frames");
+      if (q_total.executeStep())
+        counts.total = static_cast<uint32_t>(q_total.getColumn(0).getInt());
+
+      SQLite::Statement q_ms1(db, "SELECT COUNT(*) FROM Frames WHERE MsMsType = 0");
+      if (q_ms1.executeStep())
+        counts.ms1 = static_cast<uint32_t>(q_ms1.getColumn(0).getInt());
+
+      // MS2 = everything that is not MS1 (MsMsType != 0)
+      SQLite::Statement q_ms2(db, "SELECT COUNT(*) FROM Frames WHERE MsMsType != 0");
+      if (q_ms2.executeStep())
+        counts.ms2 = static_cast<uint32_t>(q_ms2.getColumn(0).getInt());
+
+      return counts;
+    }
+
+    // Count distinct precursors (for DDA MS2 spectrum count)
+    uint32_t countDDAPrecursors(SQLite::Database& db)
+    {
+      try
+      {
+        SQLite::Statement q(db, "SELECT COUNT(*) FROM Precursors");
+        if (q.executeStep())
+          return static_cast<uint32_t>(q.getColumn(0).getInt());
+      }
+      catch (const SQLite::Exception&) {}
+      return 0;
+    }
+
+  } // anonymous namespace
+
+  // =====================================================================
+  // Helper: register opentims converter factories and open TimsDataHandle
+  // =====================================================================
+  static std::unique_ptr<TimsDataHandle> openTimsDataHandle(const String& path)
+  {
+    std::string path_string = path;
+
+    // Register our open-source converter factories before constructing the handle.
+    // TimsDataHandle::init() calls produceDefaultConverterInstance which uses these.
+    DefaultTof2MzConverterFactory::setAsDefault<OpenSourceTof2MzConverterFactory>();
+    DefaultScan2InvIonMobilityConverterFactory::setAsDefault<OpenSourceScan2ImConverterFactory>();
+
+    try
+    {
+      return std::make_unique<TimsDataHandle>(path_string);
+    }
+    catch (const std::exception& e)
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        path + " (opentims: " + String(e.what()) + ")");
+    }
   }
 
-  // Centroid a single MS1 frame: convert TOF->mz, expand scan offsets, run centroider,
-  // build MSSpectrum with centroided peaks and IM FloatDataArray.
-  // Note: This duplicates the TOF-to-mz and scan-to-IM conversion from frameToSpectrum_()
-  // because centroiding needs the intermediate arrays before they are packed into MSSpectrum.
-  static void centroidMS1Frame_(tims_dataset* ds, const tims_frame& frame,
-                                MSSpectrum& spec, const BrukerTimsFile::Config& config,
-                                FrameCentroider& centroider)
+  // =====================================================================
+  // Helper: convert a single opentims frame to MSSpectrum
+  // =====================================================================
+  static void frameToSpectrum(TimsFrame& frame, MSSpectrum& spec, int ms_level)
   {
     spec.clear(true);
-    spec.setRT(frame.rt_seconds);
-    spec.setMSLevel(frame.ms_level);
+    spec.setRT(frame.time);
+    spec.setMSLevel(ms_level);
     spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-    spec.setNativeID("frame=" + String(frame.index));
+    spec.setNativeID("frame=" + String(frame.id));
 
     if (frame.num_peaks == 0) return;
 
-    // Batch-convert TOF indices to m/z
-    std::vector<double> mz_values(frame.num_peaks);
-    timsffi_status mz_status = tims_convert_tof_to_mz_array(ds, frame.tof_indices, frame.num_peaks, mz_values.data());
-    if (mz_status != TIMSFFI_OK)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "", "TOF to m/z conversion failed: " + getTimsError(ds));
+    // Allocate output buffers
+    std::vector<uint32_t> scan_ids(frame.num_peaks);
+    std::vector<uint32_t> intensities(frame.num_peaks);
+    std::vector<double> mzs(frame.num_peaks);
+    std::vector<double> inv_ion_mobilities(frame.num_peaks);
 
-    // Batch-convert scan indices to IM
-    std::vector<uint32_t> scan_indices(frame.num_scans);
-    std::iota(scan_indices.begin(), scan_indices.end(), 0u);
-    std::vector<double> scan_im(frame.num_scans);
-    timsffi_status im_status = tims_convert_scan_to_im_array(ds, scan_indices.data(), frame.num_scans, scan_im.data());
-    if (im_status != TIMSFFI_OK)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "", "Scan to IM conversion failed: " + getTimsError(ds));
+    frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                        mzs.data(), inv_ion_mobilities.data(), nullptr);
 
-    // Expand scan offsets to per-peak IM
-    std::vector<float> im_values;
-    expandScanOffsets(frame.scan_offsets, frame.num_scans, scan_im.data(), frame.num_peaks, im_values);
+    // Fill spectrum peaks
+    spec.reserve(frame.num_peaks);
+    for (uint32_t i = 0; i < frame.num_peaks; ++i)
+    {
+      Peak1D peak;
+      peak.setMZ(mzs[i]);
+      peak.setIntensity(static_cast<double>(intensities[i]));
+      spec.push_back(peak);
+    }
+
+    // Set IM float data array with correct CV term
+    DataArrays::FloatDataArray im_array;
+    im_array.resize(frame.num_peaks);
+    for (uint32_t i = 0; i < frame.num_peaks; ++i)
+    {
+      im_array[i] = static_cast<float>(inv_ion_mobilities[i]);
+    }
+    IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+    spec.getFloatDataArrays().push_back(std::move(im_array));
+  }
+
+  // =====================================================================
+  // Helper: centroid a single MS1 frame
+  // =====================================================================
+  static void centroidMS1Frame(TimsFrame& frame, MSSpectrum& spec,
+                               const BrukerTimsFile::Config& config,
+                               FrameCentroider& centroider)
+  {
+    spec.clear(true);
+    spec.setRT(frame.time);
+    spec.setMSLevel(1);
+    spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+    spec.setNativeID("frame=" + String(frame.id));
+
+    if (frame.num_peaks == 0) return;
+
+    // Extract data from frame using save_to_buffs
+    std::vector<uint32_t> intensities(frame.num_peaks);
+    std::vector<double> mzs(frame.num_peaks);
+    std::vector<double> inv_ion_mobilities(frame.num_peaks);
+
+    frame.save_to_buffs(nullptr, nullptr, nullptr, intensities.data(),
+                        mzs.data(), inv_ion_mobilities.data(), nullptr);
 
     // Run centroiding
-    centroider.loadFrame(mz_values.data(), frame.intensities, im_values.data(), frame.num_peaks);
+    centroider.loadFrame(mzs.data(), intensities.data(), inv_ion_mobilities.data(), frame.num_peaks);
 
     std::vector<double> cent_mz, cent_intensity;
     std::vector<float> cent_im;
@@ -302,56 +508,27 @@ namespace OpenMS
     spec.getFloatDataArrays().push_back(std::move(im_array));
   }
 
-  // Helper: open dataset with optional config
-  static void openDataset(const String& path, const BrukerTimsFile::Config& config,
-                          TimsDatasetHandle& ds, TimsConfigHandle& cfg)
+  // =====================================================================
+  // isDIA_: detect DDA vs DIA by querying for SWATH window tables
+  // =====================================================================
+  bool BrukerTimsFile::isDIA_(const String& tdf_path) const
   {
-    bool has_config = (config.smoothing_window != 0 || config.centroiding_window != 0 ||
-                       config.calibration_tolerance != 0.0 || config.calibrate);
-
-    if (has_config)
+    try
     {
-      cfg.ptr = tims_config_create();
-      if (!cfg.ptr)
-        throw Exception::BaseException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Internal error", "Failed to create timsrust config");
-
-      if (config.smoothing_window != 0)
-        tims_config_set_smoothing_window(cfg.ptr, config.smoothing_window);
-      if (config.centroiding_window != 0)
-        tims_config_set_centroiding_window(cfg.ptr, config.centroiding_window);
-      if (config.calibration_tolerance != 0.0)
-        tims_config_set_calibration_tolerance(cfg.ptr, config.calibration_tolerance);
-      if (config.calibrate)
-        tims_config_set_calibrate(cfg.ptr, true);
-
-      timsffi_status status = tims_open_with_config(path.c_str(), cfg.ptr, &ds.ptr);
-      if (status != TIMSFFI_OK)
-        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          path + " (timsrust: " + getTimsError(ds.ptr) + ")");
+      SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
+      return isDIA(db);
     }
-    else
+    catch (const SQLite::Exception& e)
     {
-      timsffi_status status = tims_open(path.c_str(), &ds.ptr);
-      if (status != TIMSFFI_OK)
-        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          path + " (timsrust: " + getTimsError(ds.ptr) + ")");
+      OPENMS_LOG_WARN << "Warning: could not query DIA status from " << tdf_path
+                      << ": " << e.what() << std::endl;
+      return false;
     }
   }
 
-  bool BrukerTimsFile::isDIA_(void* handle) const
-  {
-    tims_dataset* ds = static_cast<tims_dataset*>(handle);
-    unsigned int count = 0;
-    tims_swath_window* windows = nullptr;
-    timsffi_status status = tims_get_swath_windows(ds, &count, &windows);
-    if (status == TIMSFFI_OK && windows)
-    {
-      tims_free_swath_windows(ds, windows);
-    }
-    return (status == TIMSFFI_OK && count > 0);
-  }
-
+  // =====================================================================
+  // load() overloads
+  // =====================================================================
   void BrukerTimsFile::load(const String& path, MSExperiment& exp)
   {
     load(path, exp, Config());
@@ -359,24 +536,23 @@ namespace OpenMS
 
   void BrukerTimsFile::load(const String& path, MSExperiment& exp, const Config& config)
   {
-    TimsDatasetHandle ds;
-    TimsConfigHandle cfg;
-    openDataset(path, config, ds, cfg);
+    auto handle = openTimsDataHandle(path);
 
-    bool is_dia = isDIA_(ds.ptr);
+    String tdf_path = path + "/analysis.tdf";
+    bool is_dia = isDIA_(tdf_path);
     Config::ExportMode mode = config.export_mode;
 
     if (mode == Config::FRAME)
     {
-      loadFrames_(ds.ptr, exp, config);
+      loadFrames_(*handle, exp, config);
     }
     else if (mode == Config::SPECTRUM || (mode == Config::AUTO && !is_dia))
     {
-      loadDDA_(ds.ptr, exp, config);  // DDA path (also used for SPECTRUM mode on DIA data)
+      loadDDA_(*handle, exp, config);
     }
     else // AUTO + DIA
     {
-      loadDIA_(ds.ptr, exp, config);
+      loadDIA_(*handle, exp, config);
     }
 
     // Populate source file metadata
@@ -393,6 +569,9 @@ namespace OpenMS
     exp.updateRanges();
   }
 
+  // =====================================================================
+  // transform() overloads
+  // =====================================================================
   void BrukerTimsFile::transform(const String& path, Interfaces::IMSDataConsumer* consumer)
   {
     transform(path, consumer, Config());
@@ -400,53 +579,48 @@ namespace OpenMS
 
   void BrukerTimsFile::transform(const String& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
   {
-    TimsDatasetHandle ds;
-    TimsConfigHandle cfg;
-    openDataset(path, config, ds, cfg);
+    auto handle = openTimsDataHandle(path);
 
-    tims_file_info_t info;
-    timsffi_status status = tims_file_info(ds.ptr, &info);
-    if (status != TIMSFFI_OK)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "", "Failed to read file info: " + getTimsError(ds.ptr));
+    String tdf_path = path + "/analysis.tdf";
+    SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
-    bool is_dia = isDIA_(ds.ptr);
+    bool is_dia = isDIA(db);
     Config::ExportMode mode = config.export_mode;
 
-    // Compute expected size
+    // Compute expected size for consumer
+    FrameCounts counts = readFrameCounts(db);
     size_t expected = 0;
     if (mode == Config::FRAME)
     {
-      expected = info.num_frames;
+      expected = counts.total;
     }
     else if (is_dia && mode != Config::SPECTRUM)
     {
       // DIA: MS1 frames + MS2 frames * windows
-      unsigned int win_count = 0;
-      tims_swath_window* windows = nullptr;
-      timsffi_status win_status = tims_get_swath_windows(ds.ptr, &win_count, &windows);
-      if (win_status == TIMSFFI_OK && windows) tims_free_swath_windows(ds.ptr, windows);
-      expected = info.ms1.count + info.ms2.count * win_count;
+      auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
+      expected = counts.ms1 + static_cast<size_t>(counts.ms2) * windows.size();
     }
     else
     {
-      expected = info.ms1.count + info.num_spectra_ms2;
+      // DDA: MS1 frames + per-precursor MS2 spectra
+      uint32_t num_precursors = countDDAPrecursors(db);
+      expected = counts.ms1 + num_precursors;
     }
 
     consumer->setExpectedSize(expected, 0);
     consumer->setExperimentalSettings(ExperimentalSettings());
 
     // NOTE: This loads into a temporary experiment then feeds to consumer.
-    // Not truly constant-memory — a future optimization should iterate
+    // Not truly constant-memory -- a future optimization should iterate
     // frame-by-frame and call consumer->consumeSpectrum() inline.
     OPENMS_LOG_INFO << "BrukerTimsFile::transform(): loading full dataset (streaming optimization pending)" << std::endl;
     MSExperiment exp;
     if (mode == Config::FRAME)
-      loadFrames_(ds.ptr, exp, config);
+      loadFrames_(*handle, exp, config);
     else if (is_dia && mode != Config::SPECTRUM)
-      loadDIA_(ds.ptr, exp, config);
+      loadDIA_(*handle, exp, config);
     else
-      loadDDA_(ds.ptr, exp, config);
+      loadDDA_(*handle, exp, config);
 
     exp.sortSpectra(true);
     for (auto& spec : exp)
@@ -455,85 +629,283 @@ namespace OpenMS
     }
   }
 
-  void BrukerTimsFile::loadDDA_(void* handle, MSExperiment& exp, const Config& config)
+  // =====================================================================
+  // loadDDA_: MS1 frames (CONCATENATED) + MS2 spectra (scalar IM)
+  // =====================================================================
+  void BrukerTimsFile::loadDDA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
   {
-    tims_dataset* ds = static_cast<tims_dataset*>(handle);
+    String tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
+    SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
-    // --- MS1 frames (CONCATENATED format) ---
-    unsigned int ms1_count = 0;
-    tims_frame* ms1_frames = nullptr;
-    timsffi_status status = tims_get_frames_by_level(ds, 1, &ms1_count, &ms1_frames);
-    if (status != TIMSFFI_OK)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "", "Failed to read MS1 frames: " + getTimsError(ds));
+    // Collect frame IDs by MS level
+    std::vector<uint32_t> ms1_frame_ids;
+    std::vector<uint32_t> ms2_frame_ids;
 
-    RAIICleanup ms1_guard([&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); });
+    for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
+    {
+      if (!handle.has_frame(fid)) continue;
+      TimsFrame& frame = handle.get_frame(fid);
+      if (frame.msms_type == 0)
+        ms1_frame_ids.push_back(fid);
+      else
+        ms2_frame_ids.push_back(fid);
+    }
 
-    unsigned int num_ms2 = tims_num_spectra(ds);
-    exp.reserveSpaceSpectra(ms1_count + num_ms2);
+    // Read DDA precursors from SQL
+    std::vector<DDAPrecursorInfo> precursor_entries = readDDAPrecursors(db);
 
-    startProgress(0, ms1_count + num_ms2, "Loading DDA-PASEF data");
+    // Group by precursor ID
+    std::map<int, std::vector<const DDAPrecursorInfo*>> precursor_groups;
+    for (const auto& entry : precursor_entries)
+    {
+      precursor_groups[entry.precursor_id].push_back(&entry);
+    }
 
+    uint32_t num_ms2 = static_cast<uint32_t>(precursor_groups.size());
+    exp.reserveSpaceSpectra(static_cast<unsigned int>(ms1_frame_ids.size()) + num_ms2);
+
+    startProgress(0, ms1_frame_ids.size() + num_ms2, "Loading DDA-PASEF data");
+
+    // --- MS1 frames ---
     bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
-    for (unsigned int i = 0; i < ms1_count; ++i)
+    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
     {
+      TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
       if (do_centroid)
       {
-        centroidMS1Frame_(ds, ms1_frames[i], spec, config, centroider);
+        centroidMS1Frame(frame, spec, config, centroider);
       }
       else
       {
-        frameToSpectrum_(handle, &ms1_frames[i], spec);
+        frameToSpectrum(frame, spec, 1);
       }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
     }
 
-    // --- MS2 spectra (one per precursor, scalar IM) ---
-    for (unsigned int i = 0; i < num_ms2; ++i)
+    // --- MS2 spectra (one per precursor, reconstructed from frames) ---
+    // Pre-extract frame data for all MS2 frames that are referenced by precursors.
+    // Cache: frame_id -> (scan_ids, intensities, mzs, inv_ion_mobilities)
+    struct FrameData
     {
-      tims_spectrum ts;
-      status = tims_get_spectrum(ds, i, &ts);
-      if (status != TIMSFFI_OK)
+      std::vector<uint32_t> scan_ids;
+      std::vector<uint32_t> tofs;
+      std::vector<uint32_t> intensities;
+      std::vector<double> mzs;
+      std::vector<double> inv_ion_mobilities;
+      double rt = 0.0;
+    };
+
+    // Determine which frames are needed
+    std::set<uint32_t> needed_frames;
+    for (const auto& entry : precursor_entries)
+    {
+      needed_frames.insert(entry.frame_id);
+    }
+
+    // Extract data for needed frames (lazy, on demand per precursor group)
+    // We cache extracted frame data to avoid re-extraction when multiple
+    // precursors share the same frame.
+    std::unordered_map<uint32_t, FrameData> frame_cache;
+
+    auto getFrameData = [&](uint32_t frame_id) -> const FrameData&
+    {
+      auto it = frame_cache.find(frame_id);
+      if (it != frame_cache.end()) return it->second;
+
+      TimsFrame& frame = handle.get_frame(frame_id);
+      FrameData fd;
+      fd.rt = frame.time;
+
+      if (frame.num_peaks > 0)
       {
-        OPENMS_LOG_WARN << "Warning: failed to read MS2 spectrum " << i << ": " << getTimsError(ds) << std::endl;
+        fd.scan_ids.resize(frame.num_peaks);
+        fd.tofs.resize(frame.num_peaks);
+        fd.intensities.resize(frame.num_peaks);
+        fd.mzs.resize(frame.num_peaks);
+        fd.inv_ion_mobilities.resize(frame.num_peaks);
+
+        frame.save_to_buffs(nullptr, fd.scan_ids.data(), fd.tofs.data(),
+                            fd.intensities.data(), fd.mzs.data(),
+                            fd.inv_ion_mobilities.data(), nullptr);
+      }
+
+      auto result = frame_cache.emplace(frame_id, std::move(fd));
+      return result.first->second;
+    };
+
+    // OLS recalibration for DDA (when config.calibrate == true)
+    if (config.calibrate && config.calibration_tolerance > 0.0)
+    {
+      // Collect (tof_index, sqrt(monoisotopic_mz)) pairs for regression
+      std::vector<double> tof_vals;
+      std::vector<double> sqrt_mz_vals;
+
+      for (const auto& entry : precursor_entries)
+      {
+        if (!handle.has_frame(entry.frame_id)) continue;
+        if (std::isnan(entry.monoisotopic_mz) || entry.monoisotopic_mz <= 0.0) continue;
+
+        const FrameData& fd = getFrameData(entry.frame_id);
+        if (fd.mzs.empty()) continue;
+
+        // Find the highest-intensity peak in the scan range [scan_begin, scan_end)
+        double best_intensity = -1.0;
+        uint32_t best_tof = 0;
+        double best_mz = 0.0;
+
+        for (uint32_t p = 0; p < fd.scan_ids.size(); ++p)
+        {
+          if (fd.scan_ids[p] >= entry.scan_begin && fd.scan_ids[p] < entry.scan_end)
+          {
+            if (static_cast<double>(fd.intensities[p]) > best_intensity)
+            {
+              best_intensity = static_cast<double>(fd.intensities[p]);
+              best_tof = fd.tofs[p];
+              best_mz = fd.mzs[p];
+            }
+          }
+        }
+
+        if (best_intensity > 0.0 &&
+            std::abs(best_mz - entry.monoisotopic_mz) < config.calibration_tolerance)
+        {
+          tof_vals.push_back(static_cast<double>(best_tof));
+          sqrt_mz_vals.push_back(std::sqrt(entry.monoisotopic_mz));
+        }
+      }
+
+      if (tof_vals.size() >= 2)
+      {
+        // Simple OLS regression: sqrt(mz) = intercept + slope * tof
+        double n = static_cast<double>(tof_vals.size());
+        double sum_x = 0, sum_y = 0, sum_xy = 0, sum_xx = 0;
+        for (size_t i = 0; i < tof_vals.size(); ++i)
+        {
+          sum_x += tof_vals[i];
+          sum_y += sqrt_mz_vals[i];
+          sum_xy += tof_vals[i] * sqrt_mz_vals[i];
+          sum_xx += tof_vals[i] * tof_vals[i];
+        }
+        double denom = n * sum_xx - sum_x * sum_x;
+        if (std::abs(denom) > 1e-15)
+        {
+          double new_slope = (n * sum_xy - sum_x * sum_y) / denom;
+          double new_intercept = (sum_y - new_slope * sum_x) / n;
+
+          OPENMS_LOG_INFO << "OLS recalibration: " << tof_vals.size() << " calibration points, "
+                          << "new intercept=" << new_intercept << ", slope=" << new_slope << std::endl;
+
+          // Update the converter
+          auto* converter = dynamic_cast<OpenSourceTof2MzConverter*>(handle.tof2mz_converter.get());
+          if (converter)
+          {
+            converter->updateCalibration(new_intercept, new_slope);
+            // Clear the frame cache so frames are re-extracted with new calibration
+            frame_cache.clear();
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Warning: OLS recalibration requested but converter type is not OpenSourceTof2MzConverter" << std::endl;
+          }
+        }
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Warning: OLS recalibration requested but only "
+                        << tof_vals.size() << " calibration points found (need >= 2)" << std::endl;
+      }
+    }
+
+    // Build one MS2 spectrum per precursor
+    uint32_t precursor_idx = 0;
+    for (const auto& [prec_id, entries] : precursor_groups)
+    {
+      // Collect peaks from all frames for this precursor
+      std::vector<double> all_mz;
+      std::vector<double> all_intensity;
+      std::vector<double> all_im;
+      double rt_sum = 0.0;
+
+      for (const DDAPrecursorInfo* entry : entries)
+      {
+        if (!handle.has_frame(entry->frame_id)) continue;
+
+        const FrameData& fd = getFrameData(entry->frame_id);
+        rt_sum += fd.rt;
+
+        // Extract peaks in the scan range [scan_begin, scan_end)
+        for (uint32_t p = 0; p < fd.scan_ids.size(); ++p)
+        {
+          if (fd.scan_ids[p] >= entry->scan_begin && fd.scan_ids[p] < entry->scan_end)
+          {
+            all_mz.push_back(fd.mzs[p]);
+            all_intensity.push_back(static_cast<double>(fd.intensities[p]));
+            all_im.push_back(fd.inv_ion_mobilities[p]);
+          }
+        }
+      }
+
+      if (all_mz.empty())
+      {
+        ++precursor_idx;
+        setProgress(ms1_frame_ids.size() + precursor_idx);
         continue;
       }
 
-      MSSpectrum spec;
-      spec.setRT(ts.rt_seconds);
-      spec.setMSLevel(2);
-      spec.setDriftTime(ts.im);
-      spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-      spec.setNativeID("scan=" + String(ts.index));
+      // Sort by m/z
+      std::vector<size_t> sort_idx(all_mz.size());
+      std::iota(sort_idx.begin(), sort_idx.end(), 0u);
+      std::sort(sort_idx.begin(), sort_idx.end(),
+                [&all_mz](size_t a, size_t b) { return all_mz[a] < all_mz[b]; });
 
-      // Copy peak data (float -> double widening)
-      spec.reserve(ts.num_peaks);
-      for (uint32_t p = 0; p < ts.num_peaks; ++p)
+      // Compute intensity-weighted mean IM (scalar drift time for DDA MS2)
+      double im_weighted_sum = 0.0;
+      double intensity_sum = 0.0;
+      for (size_t i = 0; i < all_mz.size(); ++i)
+      {
+        im_weighted_sum += all_im[i] * all_intensity[i];
+        intensity_sum += all_intensity[i];
+      }
+      double scalar_im = (intensity_sum > 0.0) ? (im_weighted_sum / intensity_sum) : 0.0;
+
+      // Use the first entry's metadata for the precursor info
+      const DDAPrecursorInfo* first_entry = entries.front();
+      double avg_rt = rt_sum / static_cast<double>(entries.size());
+
+      MSSpectrum spec;
+      spec.setRT(avg_rt);
+      spec.setMSLevel(2);
+      spec.setDriftTime(scalar_im);
+      spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+      spec.setNativeID("scan=" + String(prec_id));
+
+      // Copy sorted peak data
+      spec.reserve(all_mz.size());
+      for (size_t idx : sort_idx)
       {
         Peak1D peak;
-        peak.setMZ(static_cast<double>(ts.mz[p]));
-        peak.setIntensity(static_cast<double>(ts.intensity[p]));
+        peak.setMZ(all_mz[idx]);
+        peak.setIntensity(all_intensity[idx]);
         spec.push_back(peak);
       }
 
       // Precursor metadata
-      // Use selected-ion m/z (monoisotopic precursor) for Precursor::getMZ() so
-      // search engines use the correct mass for candidate lookup. The quadrupole
-      // isolation-window center goes into the isolation window offsets (relative
-      // to the selected ion m/z).
       Precursor prec;
-      prec.setMZ(ts.precursor_mz);  // selected ion m/z (monoisotopic)
-      prec.setCharge(static_cast<int>(ts.charge));
-      if (!std::isnan(ts.precursor_intensity))
-        prec.setIntensity(static_cast<float>(ts.precursor_intensity));
-      prec.setDriftTime(ts.im);
+      prec.setMZ(first_entry->monoisotopic_mz);  // selected ion m/z (monoisotopic)
+      prec.setCharge(first_entry->charge);
+      if (!std::isnan(first_entry->intensity))
+        prec.setIntensity(static_cast<float>(first_entry->intensity));
+      prec.setDriftTime(scalar_im);
       prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+
       // Isolation window offsets relative to the selected ion m/z
-      double iso_offset_lower = ts.isolation_width / 2.0 + (ts.precursor_mz - ts.isolation_mz);
-      double iso_offset_upper = ts.isolation_width / 2.0 - (ts.precursor_mz - ts.isolation_mz);
+      double iso_offset_lower = first_entry->isolation_width / 2.0 +
+                                (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+      double iso_offset_upper = first_entry->isolation_width / 2.0 -
+                                (first_entry->monoisotopic_mz - first_entry->isolation_mz);
       prec.setIsolationWindowLowerOffset(std::max(0.0, iso_offset_lower));
       prec.setIsolationWindowUpperOffset(std::max(0.0, iso_offset_upper));
 
@@ -542,37 +914,49 @@ namespace OpenMS
       spec.setPrecursors(std::move(precursors));
 
       exp.addSpectrum(std::move(spec));
-      setProgress(ms1_count + i);
+      ++precursor_idx;
+      setProgress(ms1_frame_ids.size() + precursor_idx);
     }
     endProgress();
   }
 
-  void BrukerTimsFile::loadDIA_(void* handle, MSExperiment& exp, const Config& config)
+  // =====================================================================
+  // loadDIA_: MS1 frames + MS2 frames split by SWATH window
+  // =====================================================================
+  void BrukerTimsFile::loadDIA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
   {
-    tims_dataset* ds = static_cast<tims_dataset*>(handle);
+    String tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
+    SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
-    // --- MS1 frames (same as DDA) ---
-    unsigned int ms1_count = 0;
-    tims_frame* ms1_frames = nullptr;
-    timsffi_status status = tims_get_frames_by_level(ds, 1, &ms1_count, &ms1_frames);
-    if (status != TIMSFFI_OK)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "", "Failed to read MS1 frames: " + getTimsError(ds));
-    RAIICleanup ms1_guard([&]() { if (ms1_frames) tims_free_frame_array(ds, ms1_frames, ms1_count); });
+    // Collect frame IDs by MS level
+    std::vector<uint32_t> ms1_frame_ids;
+    std::vector<uint32_t> ms2_frame_ids;
 
+    for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
+    {
+      if (!handle.has_frame(fid)) continue;
+      TimsFrame& frame = handle.get_frame(fid);
+      if (frame.msms_type == 0)
+        ms1_frame_ids.push_back(fid);
+      else
+        ms2_frame_ids.push_back(fid);
+    }
+
+    // --- MS1 frames ---
     bool do_centroid = isCentroidingEnabled(config);
     FrameCentroider centroider;
-    startProgress(0, ms1_count, "Loading DIA-PASEF MS1 frames");
-    for (unsigned int i = 0; i < ms1_count; ++i)
+    startProgress(0, ms1_frame_ids.size(), "Loading DIA-PASEF MS1 frames");
+    for (size_t i = 0; i < ms1_frame_ids.size(); ++i)
     {
+      TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
       MSSpectrum spec;
       if (do_centroid)
       {
-        centroidMS1Frame_(ds, ms1_frames[i], spec, config, centroider);
+        centroidMS1Frame(frame, spec, config, centroider);
       }
       else
       {
-        frameToSpectrum_(handle, &ms1_frames[i], spec);
+        frameToSpectrum(frame, spec, 1);
       }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
@@ -580,66 +964,47 @@ namespace OpenMS
     endProgress();
 
     // --- SWATH windows ---
-    unsigned int win_count = 0;
-    tims_swath_window* windows = nullptr;
-    status = tims_get_swath_windows(ds, &win_count, &windows);
-    if (status != TIMSFFI_OK)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "", "Failed to read SWATH windows: " + getTimsError(ds));
-    RAIICleanup win_guard([&]() { if (windows) tims_free_swath_windows(ds, windows); });
+    std::vector<DIAWindow> windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
+
+    if (windows.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
+      return;
+    }
 
     // --- MS2 frames (split by SWATH window) ---
-    unsigned int ms2_count = 0;
-    tims_frame* ms2_frames = nullptr;
-    status = tims_get_frames_by_level(ds, 2, &ms2_count, &ms2_frames);
-    if (status != TIMSFFI_OK)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "", "Failed to read MS2 frames: " + getTimsError(ds));
-    RAIICleanup ms2_guard([&]() { if (ms2_frames) tims_free_frame_array(ds, ms2_frames, ms2_count); });
-
-    startProgress(0, ms2_count, "Loading DIA-PASEF MS2 frames");
-    for (unsigned int fi = 0; fi < ms2_count; ++fi)
+    startProgress(0, ms2_frame_ids.size(), "Loading DIA-PASEF MS2 frames");
+    for (size_t fi = 0; fi < ms2_frame_ids.size(); ++fi)
     {
       setProgress(fi);
-      const tims_frame& frame = ms2_frames[fi];
+      TimsFrame& frame = handle.get_frame(ms2_frame_ids[fi]);
       if (frame.num_peaks == 0) continue;
 
-      // Convert TOF -> m/z for entire frame
-      std::vector<double> mz_values(frame.num_peaks);
-      timsffi_status mz_status = tims_convert_tof_to_mz_array(ds, frame.tof_indices, frame.num_peaks, mz_values.data());
-      if (mz_status != TIMSFFI_OK)
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "", "TOF to m/z conversion failed: " + getTimsError(ds));
+      // Extract all data from frame
+      std::vector<uint32_t> scan_ids(frame.num_peaks);
+      std::vector<uint32_t> intensities(frame.num_peaks);
+      std::vector<double> mzs(frame.num_peaks);
+      std::vector<double> inv_ion_mobilities(frame.num_peaks);
 
-      // Batch scan -> IM conversion
-      std::vector<uint32_t> scan_indices(frame.num_scans);
-      std::iota(scan_indices.begin(), scan_indices.end(), 0u);
-      std::vector<double> scan_im(frame.num_scans);
-      timsffi_status im_status = tims_convert_scan_to_im_array(ds, scan_indices.data(), frame.num_scans, scan_im.data());
-      if (im_status != TIMSFFI_OK)
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "", "Scan to IM conversion failed: " + getTimsError(ds));
-
-      // Build per-peak IM from scan offsets
-      std::vector<double> im_values;
-      expandScanOffsets<double>(frame.scan_offsets, frame.num_scans, scan_im.data(), frame.num_peaks, im_values);
+      frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
+                          mzs.data(), inv_ion_mobilities.data(), nullptr);
 
       // Split peaks by SWATH window IM bounds
-      for (unsigned int wi = 0; wi < win_count; ++wi)
+      for (size_t wi = 0; wi < windows.size(); ++wi)
       {
-        if (windows[wi].is_ms1) continue;
+        const DIAWindow& win = windows[wi];
 
         MSSpectrum spec;
-        spec.setRT(frame.rt_seconds);
+        spec.setRT(frame.time);
         spec.setMSLevel(2);
         spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-        spec.setNativeID("frame=" + String(frame.index) + " windowGroup=" + String(wi));
+        spec.setNativeID("frame=" + String(frame.id) + " windowGroup=" + String(wi));
 
         // Set isolation window
         Precursor prec;
-        prec.setMZ(windows[wi].mz_center);
-        prec.setIsolationWindowLowerOffset(windows[wi].mz_center - windows[wi].mz_lower);
-        prec.setIsolationWindowUpperOffset(windows[wi].mz_upper - windows[wi].mz_center);
+        prec.setMZ(win.mz_center);
+        prec.setIsolationWindowLowerOffset(win.mz_width / 2.0);
+        prec.setIsolationWindowUpperOffset(win.mz_width / 2.0);
         spec.setPrecursors({prec});
 
         DataArrays::FloatDataArray im_array;
@@ -648,13 +1013,13 @@ namespace OpenMS
         for (uint32_t p = 0; p < frame.num_peaks; ++p)
         {
           // Check if peak falls within this window's IM bounds
-          if (im_values[p] >= windows[wi].im_lower && im_values[p] <= windows[wi].im_upper)
+          if (inv_ion_mobilities[p] >= win.im_lower && inv_ion_mobilities[p] <= win.im_upper)
           {
             Peak1D peak;
-            peak.setMZ(mz_values[p]);
-            peak.setIntensity(static_cast<double>(frame.intensities[p]));
+            peak.setMZ(mzs[p]);
+            peak.setIntensity(static_cast<double>(intensities[p]));
             spec.push_back(peak);
-            im_array.push_back(static_cast<float>(im_values[p]));
+            im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
           }
         }
 
@@ -668,38 +1033,48 @@ namespace OpenMS
     endProgress();
   }
 
-  void BrukerTimsFile::loadFrames_(void* handle, MSExperiment& exp, const Config& config)
+  // =====================================================================
+  // loadFrames_: raw frames without precursor grouping or SWATH splitting
+  // =====================================================================
+  void BrukerTimsFile::loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
   {
-    tims_dataset* ds = static_cast<tims_dataset*>(handle);
-
-    // Load all frames for each MS level
-    for (uint8_t level = 1; level <= 2; ++level)
+    // Iterate all frames at each MS level
+    for (int level = 1; level <= 2; ++level)
     {
-      unsigned int count = 0;
-      tims_frame* frames = nullptr;
-      timsffi_status status = tims_get_frames_by_level(ds, level, &count, &frames);
-      if (status != TIMSFFI_OK)
+      // Collect frame IDs at this level
+      std::vector<uint32_t> frame_ids;
+      for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
       {
-        // MS2 frame-level access may not be available (e.g., DDA datasets)
-        OPENMS_LOG_WARN << "Warning: failed to read frames at MS level " << (int)level
-                        << ": " << getTimsError(ds) << " (skipping)" << std::endl;
+        if (!handle.has_frame(fid)) continue;
+        TimsFrame& frame = handle.get_frame(fid);
+        if ((level == 1 && frame.msms_type == 0) ||
+            (level == 2 && frame.msms_type != 0))
+        {
+          frame_ids.push_back(fid);
+        }
+      }
+
+      if (frame_ids.empty())
+      {
+        if (level == 2)
+          OPENMS_LOG_WARN << "Warning: no MS2 frames found (skipping)" << std::endl;
         continue;
       }
-      RAIICleanup frame_guard([&]() { if (frames) tims_free_frame_array(ds, frames, count); });
 
       bool do_centroid = (level == 1) && isCentroidingEnabled(config);
       FrameCentroider centroider;
-      startProgress(0, count, String("Loading MS") + String(level) + " frames");
-      for (unsigned int i = 0; i < count; ++i)
+      startProgress(0, frame_ids.size(), String("Loading MS") + String(level) + " frames");
+      for (size_t i = 0; i < frame_ids.size(); ++i)
       {
+        TimsFrame& frame = handle.get_frame(frame_ids[i]);
         MSSpectrum spec;
         if (do_centroid)
         {
-          centroidMS1Frame_(ds, frames[i], spec, config, centroider);
+          centroidMS1Frame(frame, spec, config, centroider);
         }
         else
         {
-          frameToSpectrum_(handle, &frames[i], spec);
+          frameToSpectrum(frame, spec, level);
         }
         exp.addSpectrum(std::move(spec));
         setProgress(i);
@@ -708,57 +1083,6 @@ namespace OpenMS
     }
   }
 
-  void BrukerTimsFile::frameToSpectrum_(void* handle, const void* frame_ptr, MSSpectrum& spec) const
-  {
-    tims_dataset* ds = static_cast<tims_dataset*>(handle);
-    const tims_frame* frame = static_cast<const tims_frame*>(frame_ptr);
-
-    spec.clear(true);
-    spec.setRT(frame->rt_seconds);
-    spec.setMSLevel(frame->ms_level);
-    spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-    spec.setNativeID("frame=" + String(frame->index));
-
-    if (frame->num_peaks == 0) return;
-
-    // Batch-convert TOF indices to m/z (check return value!)
-    std::vector<double> mz_values(frame->num_peaks);
-    timsffi_status mz_status = tims_convert_tof_to_mz_array(ds, frame->tof_indices, frame->num_peaks, mz_values.data());
-    if (mz_status != TIMSFFI_OK)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "", "TOF to m/z conversion failed: " + getTimsError(ds));
-
-    // Batch-convert scan indices to IM (use batch API for efficiency)
-    std::vector<uint32_t> scan_indices(frame->num_scans);
-    std::iota(scan_indices.begin(), scan_indices.end(), 0u);
-    std::vector<double> scan_im(frame->num_scans);
-    timsffi_status im_status = tims_convert_scan_to_im_array(ds, scan_indices.data(), frame->num_scans, scan_im.data());
-    if (im_status != TIMSFFI_OK)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "", "Scan to IM conversion failed: " + getTimsError(ds));
-
-    // Build per-peak IM values from scan offsets
-    std::vector<float> im_values;
-    expandScanOffsets<float>(frame->scan_offsets, frame->num_scans, scan_im.data(), frame->num_peaks, im_values);
-
-    // Fill spectrum peaks
-    spec.reserve(frame->num_peaks);
-    for (uint32_t i = 0; i < frame->num_peaks; ++i)
-    {
-      Peak1D peak;
-      peak.setMZ(mz_values[i]);
-      peak.setIntensity(static_cast<double>(frame->intensities[i]));
-      spec.push_back(peak);
-    }
-
-    // Set IM float data array with correct CV term
-    DataArrays::FloatDataArray im_array;
-    im_array.resize(frame->num_peaks);
-    std::copy(im_values.begin(), im_values.end(), im_array.begin());
-    IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
-    spec.getFloatDataArrays().push_back(std::move(im_array));
-  }
-
 } // namespace OpenMS
 
-#endif // WITH_TIMSRUST
+#endif // WITH_OPENTIMS
