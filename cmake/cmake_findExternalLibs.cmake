@@ -303,13 +303,71 @@ if (WITH_OPENTIMS)
     message(STATUS "Patched opentims.h: added get_tims_dir_path() accessor")
   endif()
 
+  # Patch sqlite_helper.h to use direct sqlite3 calls instead of dlopen.
+  # opentims dynamically loads sqlite3 symbols at runtime, but we statically
+  # link OpenMS's sqlite3 library, so we redirect to direct function calls.
+  file(WRITE "${_OPENTIMS_SRC}/sqlite_helper.h" [=[
+#pragma once
+#include <sqlite3.h>
+#include <string>
+#include <stdexcept>
+
+// Patched by OpenMS: use direct sqlite3 calls instead of dlopen-based ot_sqlite.
+class ot_sqlite
+{
+public:
+    static int sqlite3_open_v2(const char* s, sqlite3** ptr, int flags, const char*) { return ::sqlite3_open_v2(s, ptr, flags, NULL); }
+    static int sqlite3_close(sqlite3* db) { return ::sqlite3_close(db); }
+    static int sqlite3_exec(sqlite3* db, const char* query, int (*callback)(void*,int,char**,char**), void* arg, char **err) { return ::sqlite3_exec(db, query, callback, arg, err); }
+    static void sqlite3_free(void* ptr) { ::sqlite3_free(ptr); }
+    static const char* sqlite3_errmsg(sqlite3* db) { return ::sqlite3_errmsg(db); }
+};
+
+class RAIISqlite
+{
+    sqlite3* db_conn;
+public:
+    RAIISqlite(const std::string& tims_tdf_path) : db_conn(nullptr)
+    {
+        if(ot_sqlite::sqlite3_open_v2(tims_tdf_path.c_str(), &db_conn, SQLITE_OPEN_READONLY, NULL))
+            throw std::runtime_error(std::string("ERROR opening database: " + tims_tdf_path + " SQLite error msg: ") + ot_sqlite::sqlite3_errmsg(db_conn));
+    }
+    ~RAIISqlite()
+    {
+        if(db_conn != nullptr) ot_sqlite::sqlite3_close(db_conn);
+    }
+    void query(const std::string& sql, int (*callback)(void*,int,char**,char**), void* arg)
+    {
+        char* error = NULL;
+        if(ot_sqlite::sqlite3_exec(db_conn, sql.c_str(), callback, arg, &error) != SQLITE_OK)
+        {
+            std::string err_msg(std::string("ERROR performing SQL query. SQLite error msg: ") + error);
+            ot_sqlite::sqlite3_free(error);
+            throw std::runtime_error(err_msg);
+        }
+    }
+};
+]=])
+  message(STATUS "Patched sqlite_helper.h: use direct sqlite3 calls")
+
+  # Patch variadic template bug in setAsDefault(): std::forward<Args...>(args...)
+  # should be std::forward<Args>(args)... to work with zero arguments.
+  foreach(_converter_header "tof2mz_converter.h" "scan2inv_ion_mobility_converter.h")
+    file(READ "${_OPENTIMS_SRC}/${_converter_header}" _converter_content)
+    string(REPLACE
+      "std::forward<Args...>(args...)"
+      "std::forward<Args>(args)..."
+      _converter_content "${_converter_content}")
+    file(WRITE "${_OPENTIMS_SRC}/${_converter_header}" "${_converter_content}")
+  endforeach()
+  message(STATUS "Patched opentims converter headers: fix std::forward variadic expansion")
+
   add_library(opentims_cpp STATIC
     "${_OPENTIMS_SRC}/opentims.cpp"
     "${_OPENTIMS_SRC}/tof2mz_converter.cpp"
     "${_OPENTIMS_SRC}/scan2inv_ion_mobility_converter.cpp"
     "${_OPENTIMS_SRC}/converters.cpp"
     "${_OPENTIMS_SRC}/so_manager.cpp"
-    "${_OPENTIMS_SRC}/sqlite_helper.cpp"
     "${_OPENTIMS_SRC}/thread_mgr.cpp"
   )
 
@@ -318,6 +376,8 @@ if (WITH_OPENTIMS)
   target_include_directories(opentims_cpp PRIVATE "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
   target_link_libraries(opentims_cpp PRIVATE sqlite3)
   target_compile_features(opentims_cpp PRIVATE cxx_std_20)
+  # -fPIC required because this static lib is linked into libOpenMS.so
+  set_target_properties(opentims_cpp PROPERTIES POSITION_INDEPENDENT_CODE ON)
   target_compile_options(opentims_cpp PRIVATE -w)
 
   message(STATUS "Built opentims_cpp from source: ${opentims_SOURCE_DIR}")
