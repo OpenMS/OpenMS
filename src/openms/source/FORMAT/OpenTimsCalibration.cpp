@@ -6,10 +6,10 @@
 #ifdef WITH_OPENTIMS
 
 #include <OpenMS/FORMAT/OpenTimsCalibration.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <opentims.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <cmath>
-#include <stdexcept>
 
 namespace OpenMS
 {
@@ -136,7 +136,8 @@ namespace OpenMS
     }
 
     if (mz_min <= 0 || mz_max <= 0 || tof_max == 0)
-      throw std::runtime_error("OpenSourceTof2MzConverterFactory: missing calibration metadata in " + tdf_path);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        tdf_path, "OpenSourceTof2MzConverterFactory: missing calibration metadata (MzAcqRangeLower/MzAcqRangeUpper/DigitizerNumSamples)");
 
     return std::make_unique<OpenSourceTof2MzConverter>(mz_min, mz_max, tof_max, is_otof);
   }
@@ -167,7 +168,8 @@ namespace OpenMS
     }
 
     if (im_min <= 0 || im_max <= 0 || scan_max == 0)
-      throw std::runtime_error("OpenSourceScan2ImConverterFactory: missing calibration metadata in " + tdf_path);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        tdf_path, "OpenSourceScan2ImConverterFactory: missing calibration metadata (OneOverK0AcqRangeLower/OneOverK0AcqRangeUpper/NumScans)");
 
     return std::make_unique<OpenSourceScan2ImConverter>(im_min, im_max, scan_max);
   }

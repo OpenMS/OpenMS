@@ -46,7 +46,7 @@ namespace OpenMS
     /// Processing and export configuration
     struct Config
     {
-      double calibration_tolerance = 0.0;  ///< m/z recalibration tolerance (0 = timsrust default)
+      double calibration_tolerance = 0.0;  ///< m/z recalibration tolerance in Da (0 = default 0.1 Da)
       bool calibrate = false;              ///< Enable m/z recalibration (off by default; may fail on some datasets)
 
       float ms1_centroid_mz_ppm = 0.0f; ///< MS1 IM-centroiding m/z tolerance in ppm (0 = disabled, suggested: 5.0). Adapted from Sage (Lazear 2023, doi:10.1021/acs.jproteome.3c00486).

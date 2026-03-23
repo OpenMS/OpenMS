@@ -151,7 +151,11 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "d", "tsv", "peplist", "kroenik", "edta", "oms", "sqMass"};
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid",
+#ifdef WITH_OPENTIMS
+    "d",
+#endif
+    "tsv", "peplist", "kroenik", "edta", "oms", "sqMass"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
 

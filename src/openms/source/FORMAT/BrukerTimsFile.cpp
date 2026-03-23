@@ -536,6 +536,7 @@ namespace OpenMS
 
   void BrukerTimsFile::load(const String& path, MSExperiment& exp, const Config& config)
   {
+    exp.clear(true);
     auto handle = openTimsDataHandle(path);
 
     String tdf_path = path + "/analysis.tdf";
@@ -560,6 +561,9 @@ namespace OpenMS
     sf.setNameOfFile(File::basename(path));
     sf.setPathToFile(File::path(path));
     sf.setFileType("Bruker TDF");
+    // TODO: MS:1000776 ("scan number only nativeID format") expects "scan=NUMBER" IDs,
+    // but MS1/DIA spectra use "frame=..." and DIA MS2 uses "frame=... windowGroup=...".
+    // There is no standard CV term for Bruker frame-based native IDs yet.
     sf.setNativeIDType("scan number only nativeID format");
     sf.setNativeIDTypeAccession("MS:1000776");
     exp.getSourceFiles().push_back(sf);
@@ -608,7 +612,19 @@ namespace OpenMS
     }
 
     consumer->setExpectedSize(expected, 0);
-    consumer->setExperimentalSettings(ExperimentalSettings());
+
+    // Populate source file metadata (same as load())
+    ExperimentalSettings settings;
+    SourceFile sf;
+    sf.setNameOfFile(File::basename(path));
+    sf.setPathToFile(File::path(path));
+    sf.setFileType("Bruker TDF");
+    // TODO: MS:1000776 ("scan number only nativeID format") expects "scan=NUMBER" IDs,
+    // but MS1/DIA spectra use "frame=..." and DIA MS2 uses "frame=... windowGroup=...".
+    sf.setNativeIDType("scan number only nativeID format");
+    sf.setNativeIDTypeAccession("MS:1000776");
+    settings.getSourceFiles().push_back(sf);
+    consumer->setExperimentalSettings(settings);
 
     // NOTE: This loads into a temporary experiment then feeds to consumer.
     // Not truly constant-memory -- a future optimization should iterate
@@ -737,7 +753,8 @@ namespace OpenMS
     };
 
     // OLS recalibration for DDA (when config.calibrate == true)
-    if (config.calibrate && config.calibration_tolerance > 0.0)
+    const double cal_tol = (config.calibration_tolerance > 0.0) ? config.calibration_tolerance : 0.1;
+    if (config.calibrate)
     {
       // Collect (tof_index, sqrt(monoisotopic_mz)) pairs for regression
       std::vector<double> tof_vals;
@@ -751,6 +768,7 @@ namespace OpenMS
         const FrameData& fd = getFrameData(entry.frame_id);
         if (fd.mzs.empty()) continue;
 
+        // TODO: precompute per-scan peak buckets to avoid O(peaks * precursors) scanning
         // Find the highest-intensity peak in the scan range [scan_begin, scan_end)
         double best_intensity = -1.0;
         uint32_t best_tof = 0;
@@ -770,7 +788,7 @@ namespace OpenMS
         }
 
         if (best_intensity > 0.0 &&
-            std::abs(best_mz - entry.monoisotopic_mz) < config.calibration_tolerance)
+            std::abs(best_mz - entry.monoisotopic_mz) < cal_tol)
         {
           tof_vals.push_back(static_cast<double>(best_tof));
           sqrt_mz_vals.push_back(std::sqrt(entry.monoisotopic_mz));

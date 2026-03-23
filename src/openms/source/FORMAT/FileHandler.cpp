@@ -176,6 +176,7 @@ namespace OpenMS
 
     // Directory-based formats: validate marker files before returning.
     // Must happen before getTypeByContent() which would fail on directories.
+#ifdef WITH_OPENTIMS
     if (type == FileTypes::BRUKER_TDF)
     {
       if (File::exists(normalized + "/analysis.tdf") || File::exists(normalized + "/analysis.tdf_bin"))
@@ -184,6 +185,12 @@ namespace OpenMS
       }
       return FileTypes::UNKNOWN; // .d suffix but not a TDF directory
     }
+#else
+    if (type == FileTypes::BRUKER_TDF)
+    {
+      return FileTypes::UNKNOWN; // .d format requires WITH_OPENTIMS
+    }
+#endif
 
     if (type == FileTypes::UNKNOWN)
     {

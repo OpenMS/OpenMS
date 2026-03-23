@@ -378,7 +378,7 @@ public:
   target_compile_features(opentims_cpp PRIVATE cxx_std_20)
   # -fPIC required because this static lib is linked into libOpenMS.so
   set_target_properties(opentims_cpp PROPERTIES POSITION_INDEPENDENT_CODE ON)
-  target_compile_options(opentims_cpp PRIVATE -w)
+  target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
 
   message(STATUS "Built opentims_cpp from source: ${opentims_SOURCE_DIR}")
 endif()

@@ -29,7 +29,7 @@ namespace OpenMS
    * Calibration parameters are derived from the GlobalMetadata table in
    * analysis.tdf: MzAcqRangeLower, MzAcqRangeUpper, DigitizerNumSamples.
    */
-  class OpenSourceTof2MzConverter : public Tof2MzConverter
+  class OPENMS_DLLAPI OpenSourceTof2MzConverter : public Tof2MzConverter
   {
   public:
     /**
@@ -71,7 +71,7 @@ namespace OpenMS
    * where intercept = OneOverK0AcqRangeUpper and slope is derived from the
    * acquisition range and maximum number of scans per frame.
    */
-  class OpenSourceScan2ImConverter : public Scan2InvIonMobilityConverter
+  class OPENMS_DLLAPI OpenSourceScan2ImConverter : public Scan2InvIonMobilityConverter
   {
   public:
     /**
@@ -99,7 +99,7 @@ namespace OpenMS
    * Reads calibration metadata from the analysis.tdf SQLite database inside
    * the .d directory and constructs an OpenSourceTof2MzConverter.
    */
-  class OpenSourceTof2MzConverterFactory : public Tof2MzConverterFactory
+  class OPENMS_DLLAPI OpenSourceTof2MzConverterFactory : public Tof2MzConverterFactory
   {
   public:
     std::unique_ptr<Tof2MzConverter> produce(TimsDataHandle& TDH,
@@ -112,7 +112,7 @@ namespace OpenMS
    * Reads ion mobility calibration metadata from the analysis.tdf SQLite
    * database and the Frames table to construct an OpenSourceScan2ImConverter.
    */
-  class OpenSourceScan2ImConverterFactory : public Scan2InvIonMobilityConverterFactory
+  class OPENMS_DLLAPI OpenSourceScan2ImConverterFactory : public Scan2InvIonMobilityConverterFactory
   {
   public:
     std::unique_ptr<Scan2InvIonMobilityConverter> produce(TimsDataHandle& TDH,
