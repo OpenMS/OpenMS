@@ -78,6 +78,11 @@ namespace OpenMS
 
   int ModifiedSincSmoother::noiseGainToM(bool isMS1, int degree, double noiseGain)
   {
+    if (noiseGain <= 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Invalid noiseGain value; must be > 0.");
+    }
     const double invNG2 = 1.0 / (noiseGain * noiseGain);
     const double e = -2.5 - 0.8 * degree;
     const double m = isMS1
