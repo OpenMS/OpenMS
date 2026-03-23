@@ -92,6 +92,16 @@ namespace OpenMS
     String getPrecursorAdduct() const;
     void setPrecursorAdduct(const String&);
 
+    /// returns the observed CCS value, or -1.0 if not available
+    double getObservedCCS() const;
+    /// sets the observed CCS value in Angstrom^2
+    void setObservedCCS(const double&);
+
+    /// returns the found CCS value, or -1.0 if not available
+    double getFoundCCS() const;
+    /// sets the found CCS value in Angstrom^2
+    void setFoundCCS(const double&);
+
 
   private:
     double observed_precursor_mass_;
@@ -111,6 +121,9 @@ namespace OpenMS
     String inchi_string_;
     String smiles_string_;
     String precursor_adduct_;
+
+    double observed_ccs_;
+    double found_ccs_;
 
   };
 
@@ -179,6 +192,8 @@ namespace OpenMS
     String report_mode_;
 
     bool merge_spectra_;
+
+    double ccs_error_percent_;
   };
 
 }

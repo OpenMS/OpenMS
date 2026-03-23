@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
@@ -42,7 +43,9 @@ namespace OpenMS
     sum_formula_(),
     inchi_string_(),
     smiles_string_(),
-    precursor_adduct_()
+    precursor_adduct_(),
+    observed_ccs_(-1.0),
+    found_ccs_(-1.0)
   {
   }
 
@@ -72,6 +75,8 @@ namespace OpenMS
     inchi_string_ = rhs.inchi_string_;
     smiles_string_ = rhs.smiles_string_;
     precursor_adduct_ = rhs.precursor_adduct_;
+    observed_ccs_ = rhs.observed_ccs_;
+    found_ccs_ = rhs.found_ccs_;
 
     return *this;
   }
@@ -256,6 +261,63 @@ namespace OpenMS
   }
 
 
+  double SpectralMatch::getObservedCCS() const
+  {
+    return observed_ccs_;
+  }
+
+
+  void SpectralMatch::setObservedCCS(const double& ccs)
+  {
+    observed_ccs_ = ccs;
+  }
+
+
+  double SpectralMatch::getFoundCCS() const
+  {
+    return found_ccs_;
+  }
+
+
+  void SpectralMatch::setFoundCCS(const double& ccs)
+  {
+    found_ccs_ = ccs;
+  }
+
+
+  /// extract CCS value from a spectrum, returns -1.0 if CCS is not available
+  static double extractCCS(const MSSpectrum& spectrum)
+  {
+    if (spectrum.getDriftTimeUnit() == DriftTimeUnit::CCS && spectrum.getDriftTime() >= 0)
+    {
+      return spectrum.getDriftTime();
+    }
+
+    if (!spectrum.getPrecursors().empty())
+    {
+      const auto& prec = spectrum.getPrecursors()[0];
+      if (prec.getDriftTimeUnit() == DriftTimeUnit::CCS && prec.getDriftTime() >= 0)
+      {
+        return prec.getDriftTime();
+      }
+    }
+
+    if (spectrum.metaValueExists("CCS"))
+    {
+      try
+      {
+        return String(spectrum.getMetaValue("CCS").toString()).toDouble();
+      }
+      catch (const Exception::ConversionError&)
+      {
+        // ignore non-numeric CCS metavalue
+      }
+    }
+
+    return -1.0;
+  }
+
+
   MetaboliteSpectralMatching::MetaboliteSpectralMatching() :
     DefaultParamHandler("MetaboliteSpectralMatching"), ProgressLogger()
   {
@@ -273,6 +335,9 @@ namespace OpenMS
 
     defaults_.setValue("merge_spectra", "true", "Merge MS2 spectra with the same precursor mass.");
     defaults_.setValidStrings("merge_spectra", {"true","false"});
+
+    defaults_.setValue("ccs_error_percent", 0.0, "Allowed CCS error in percent for filtering matches (0 = disabled). Example: 5.0 means 5% CCS tolerance.");
+    defaults_.setMinFloat("ccs_error_percent", 0.0);
 
     defaultsToParam_();
 
@@ -460,6 +525,9 @@ namespace OpenMS
     {
       OPENMS_LOG_DEBUG << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << endl;
 
+      // extract CCS for the experimental spectrum
+      double obs_ccs = extractCCS(msexp[spec_idx]);
+
       // iterate over all precursor masses
       for (Size prec_idx = 0; prec_idx < msexp[spec_idx].getPrecursors().size(); ++prec_idx)
       {
@@ -533,6 +601,21 @@ namespace OpenMS
             continue;
           }
 
+          // skip candidates outside CCS tolerance
+          double lib_ccs = -1.0;
+          if (ccs_error_percent_ > 0.0)
+          {
+            lib_ccs = extractCCS(spec_db[search_idx]);
+            if (obs_ccs > 0.0 && lib_ccs > 0.0)
+            {
+              double ccs_error = std::abs(obs_ccs - lib_ccs) / lib_ccs * 100.0;
+              if (ccs_error > ccs_error_percent_)
+              {
+                continue;
+              }
+            }
+          }
+
           double hyperscore(computeHyperScore(fragment_mz_error_, fragment_error_unit_ppm, msexp[spec_idx], spec_db[search_idx], 0.0));
 
           OPENMS_LOG_DEBUG << " scored with " << hyperscore << endl;
@@ -589,6 +672,18 @@ namespace OpenMS
             tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
             tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
 
+            // set CCS values if available
+            tmp_match.setObservedCCS(obs_ccs);
+            // When CCS filtering is disabled (ccs_error_percent_ == 0), the filtering block
+            // above is skipped and lib_ccs stays at -1.0. 
+            // Extracting it here so the MzTab output still reports library CCS values 
+            // even when filtering is not active.
+            if (lib_ccs < 0.0)
+            {
+              lib_ccs = extractCCS(spec_db[search_idx]); // extract if not already done
+            }
+            tmp_match.setFoundCCS(lib_ccs);
+
             partial_results.push_back(tmp_match);
           }
         }
@@ -637,6 +732,7 @@ namespace OpenMS
     mz_error_unit_ = param_.getValue("mass_error_unit").toString();
     report_mode_ = param_.getValue("report_mode").toString();
     merge_spectra_ = (bool)param_.getValue("merge_spectra").toBool();
+    ccs_error_percent_ = (double)param_.getValue("ccs_error_percent");
   }
 
 
@@ -833,6 +929,38 @@ namespace OpenMS
       col5.first = "opt_spec_native_id";
       col5.second = spec_native_id_str;
       optionals.push_back(col5);
+
+      // observed CCS
+      MzTabString obs_ccs_str;
+      obs_ccs_str.set(current_id.getObservedCCS() > 0.0 ? String(current_id.getObservedCCS()) : "null");
+      MzTabOptionalColumnEntry col6;
+      col6.first = "opt_observed_ccs";
+      col6.second = obs_ccs_str;
+      optionals.push_back(col6);
+
+      // library CCS
+      MzTabString lib_ccs_str;
+      lib_ccs_str.set(current_id.getFoundCCS() > 0.0 ? String(current_id.getFoundCCS()) : "null");
+      MzTabOptionalColumnEntry col7;
+      col7.first = "opt_library_ccs";
+      col7.second = lib_ccs_str;
+      optionals.push_back(col7);
+
+      // CCS error percent
+      MzTabString ccs_err_str;
+      if (current_id.getObservedCCS() > 0.0 && current_id.getFoundCCS() > 0.0)
+      {
+        double ccs_err = std::abs(current_id.getObservedCCS() - current_id.getFoundCCS()) / current_id.getFoundCCS() * 100.0;
+        ccs_err_str.set(String(floor(ccs_err * 100) / 100));
+      }
+      else
+      {
+        ccs_err_str.set("null");
+      }
+      MzTabOptionalColumnEntry col8;
+      col8.first = "opt_ccs_error_percent";
+      col8.second = ccs_err_str;
+      optionals.push_back(col8);
 
       mztab_row_record.opt_ = optionals;
 
