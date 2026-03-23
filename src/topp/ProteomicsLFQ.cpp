@@ -57,6 +57,8 @@
 
 #ifdef WITH_PARQUET
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/FORMAT/QPXFile.h>
 #endif
 
 using namespace OpenMS;
@@ -171,8 +173,7 @@ protected:
     setValidFormats_("out_cxml", ListUtils::create<String>("consensusXML"));
 
 #ifdef WITH_PARQUET
-    registerOutputFile_("out_feature_qpx", "<file>", "", "Output parquet file for feature-level quantification (QPX feature format)", false, false);
-    setValidFormats_("out_feature_qpx", ListUtils::create<String>("parquet"));
+    registerOutputDir_("out_qpx", "<directory>", "", "Output directory for QPX Parquet files (features.parquet, psms.parquet, protein_groups.parquet)", false, false);
 #endif
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
@@ -1647,20 +1648,6 @@ protected:
     // only keep best scoring ID for each consensus feature
     IDConflictResolverAlgorithm::resolve(consensus);
 
-#ifdef WITH_PARQUET
-    {
-      String out_feature_qpx = getStringOption_("out_feature_qpx");
-      if (!out_feature_qpx.empty())
-      {
-        OPENMS_LOG_INFO << "Exporting feature-level Parquet file..." << std::endl;
-        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_feature_qpx))
-        {
-          OPENMS_LOG_ERROR << "Failed to write Parquet file: " << out_feature_qpx << std::endl;
-          return CANNOT_WRITE_OUTPUT_FILE;
-        }
-      }
-    }
-#endif
 
     //-------------------------------------------------------------
     // Peptide quantification
@@ -1726,6 +1713,50 @@ protected:
     // e.g. by removing them with a Filter beforehand.
 
     consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed
+
+#ifdef WITH_PARQUET
+    {
+      String out_qpx = getOutputDirOption("out_qpx");
+      if (!out_qpx.empty())
+      {
+        OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
+
+        // Feature-level export
+        if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/features.parquet"))
+        {
+          OPENMS_LOG_ERROR << "Failed to write features Parquet file" << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+
+        // PSM-level export: collect all peptide IDs from consensus map
+        PeptideIdentificationList all_pepids;
+        for (const auto& feature : consensus)
+        {
+          for (const auto& pepid : feature.getPeptideIdentifications())
+          {
+            all_pepids.push_back(pepid);
+          }
+        }
+        for (const auto& pepid : consensus.getUnassignedPeptideIdentifications())
+        {
+          all_pepids.push_back(pepid);
+        }
+
+        if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids, out_qpx + "/psms.parquet"))
+        {
+          OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+
+        // Protein group export
+        if (!ProteinGroupArrowExport::exportToParquet(consensus, out_qpx + "/protein_groups.parquet"))
+        {
+          OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+      }
+    }
+#endif
 
     if (!getStringOption_("out_cxml").empty())
     {
