@@ -481,41 +481,21 @@ namespace OpenMS
   }
 
   // -- QPXFeatureSchema (quantms Parquet eXchange format) --
+  // Shared types delegate to QPXPSMSchema to avoid duplication
 
   std::shared_ptr<arrow::DataType> QPXFeatureSchema::modificationsType()
   {
-    auto scores_struct = arrow::struct_({
-      arrow::field("score_name", arrow::utf8(), /*nullable=*/false),
-      arrow::field("score_value", arrow::float64(), /*nullable=*/false),
-      arrow::field("higher_better", arrow::boolean())
-    });
-    auto position_struct = arrow::struct_({
-      arrow::field("position", arrow::int32(), /*nullable=*/false),
-      arrow::field("amino_acid", arrow::utf8()),
-      arrow::field("scores", arrow::list(scores_struct))
-    });
-    return arrow::list(arrow::struct_({
-      arrow::field("name", arrow::utf8(), /*nullable=*/false),
-      arrow::field("accession", arrow::utf8()),
-      arrow::field("positions", arrow::list(position_struct), /*nullable=*/false)
-    }));
+    return QPXPSMSchema::modificationsType();
   }
 
   std::shared_ptr<arrow::DataType> QPXFeatureSchema::additionalScoresType()
   {
-    return arrow::list(arrow::struct_({
-      arrow::field("score_name", arrow::utf8(), /*nullable=*/false),
-      arrow::field("score_value", arrow::float64(), /*nullable=*/false),
-      arrow::field("higher_better", arrow::boolean())
-    }));
+    return QPXPSMSchema::additionalScoresType();
   }
 
   std::shared_ptr<arrow::DataType> QPXFeatureSchema::cvParamsType()
   {
-    return arrow::list(arrow::struct_({
-      arrow::field("cv_name", arrow::utf8(), /*nullable=*/false),
-      arrow::field("cv_value", arrow::utf8(), /*nullable=*/false)
-    }));
+    return QPXPSMSchema::cvParamsType();
   }
 
   std::shared_ptr<arrow::DataType> QPXFeatureSchema::intensitiesType()

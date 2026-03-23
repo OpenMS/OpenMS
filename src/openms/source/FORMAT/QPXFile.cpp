@@ -429,13 +429,26 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       }
 
       // === run_file_name (non-nullable) ===
-      if (fn_it != id_to_filename.end())
+      // Prefer per-hit or per-PeptideIdentification file reference, fall back to identifier-level path
       {
-        (void)run_file_name_builder.Append(fn_it->second);
-      }
-      else
-      {
-        (void)run_file_name_builder.Append(""); // non-nullable, default to empty
+        std::string run_file;
+        if (hit.metaValueExists("reference_file_name"))
+        {
+          run_file = hit.getMetaValue("reference_file_name").toString();
+        }
+        else if (hit.metaValueExists("run_file_name"))
+        {
+          run_file = hit.getMetaValue("run_file_name").toString();
+        }
+        else if (pep_id.metaValueExists("reference_file_name"))
+        {
+          run_file = pep_id.getMetaValue("reference_file_name").toString();
+        }
+        if (run_file.empty() && fn_it != id_to_filename.end())
+        {
+          run_file = fn_it->second;
+        }
+        (void)run_file_name_builder.Append(run_file); // non-nullable, default to empty
       }
 
       // === cv_params (list<struct>, nullable - null for now) ===

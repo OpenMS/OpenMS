@@ -537,9 +537,14 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     // === scan (list<int32>) ===
     {
       std::string spec_ref;
-      if (!pep_ids.empty() && pep_ids[0].metaValueExists("spectrum_reference"))
+      if (!pep_ids.empty())
       {
-        spec_ref = pep_ids[0].getMetaValue("spectrum_reference").toString();
+        // Prefer the dedicated member, fall back to metavalue
+        spec_ref = pep_ids[0].getSpectrumReference();
+        if (spec_ref.empty() && pep_ids[0].metaValueExists("spectrum_reference"))
+        {
+          spec_ref = pep_ids[0].getMetaValue("spectrum_reference").toString();
+        }
       }
 
       (void)scan_builder.Append();
@@ -605,9 +610,10 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     (void)id_run_file_name_builder.AppendNull();
 
     // === Protein accessions (now list<struct>) ===
+    // Collect ALL peptide evidences (including repeated accessions with different positions)
+    // and separately track unique accessions for anchor_protein/unique
     std::vector<std::string> protein_accs;
     std::unordered_set<std::string> seen_accs;
-    // Collect peptide evidences for pg_accessions with positional info
     struct EvidenceInfo { std::string acc; int start; int end; char pre; char post; };
     std::vector<EvidenceInfo> evidences;
     if (best_hit)
@@ -615,17 +621,19 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
       for (const auto& ev : best_hit->getPeptideEvidences())
       {
         const std::string& acc = ev.getProteinAccession();
+        // Track unique accessions for anchor_protein / unique
         if (seen_accs.insert(acc).second)
         {
           protein_accs.push_back(acc);
-          EvidenceInfo ei;
-          ei.acc = acc;
-          ei.start = ev.getStart();
-          ei.end = ev.getEnd();
-          ei.pre = ev.getAABefore();
-          ei.post = ev.getAAAfter();
-          evidences.push_back(ei);
         }
+        // Emit every evidence (including repeated accessions at different positions)
+        EvidenceInfo ei;
+        ei.acc = acc;
+        ei.start = ev.getStart();
+        ei.end = ev.getEnd();
+        ei.pre = ev.getAABefore();
+        ei.post = ev.getAAAfter();
+        evidences.push_back(ei);
       }
     }
 
