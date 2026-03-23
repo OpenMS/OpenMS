@@ -5,30 +5,24 @@
 
 #include <OpenMS/config.h>
 
-#ifdef WITH_TIMSRUST
+#ifdef WITH_OPENTIMS
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <cstdint>
 
+class TimsDataHandle;
+
 namespace OpenMS
 {
 
   /**
-   * @brief Reader for Bruker TimsTOF .d directories via timsrust_cpp_bridge.
+   * @brief Reader for Bruker TimsTOF .d directories via opentims.
    *
    * Supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access.
    * Ion mobility data is stored in VSSC (1/K0) units using CONCATENATED format
    * for MS1 and DIA MS2, and scalar drift times for DDA MS2.
-   *
-   * @section signal_processing Signal processing
-   *
-   * In AUTO and SPECTRUM export modes, spectra are produced by timsrust's
-   * SpectrumReader which always applies TOF-domain smoothing and centroiding
-   * to the raw scan data. This processing is the same for both DDA and DIA
-   * acquisitions. The @p smoothing_window and @p centroiding_window parameters
-   * control the aggressiveness (bin count); 0 uses the library defaults.
    *
    * In FRAME export mode, raw TOF indices and intensities are returned without
    * any signal processing. TOF-to-m/z and scan-to-IM conversions are applied,
@@ -52,8 +46,6 @@ namespace OpenMS
     /// Processing and export configuration
     struct Config
     {
-      uint32_t smoothing_window = 0;       ///< Smoothing window in TOF bins (0 = timsrust default). Applied in AUTO/SPECTRUM modes only.
-      uint32_t centroiding_window = 0;     ///< Centroiding window in TOF bins (0 = timsrust default). Applied in AUTO/SPECTRUM modes only.
       double calibration_tolerance = 0.0;  ///< m/z recalibration tolerance (0 = timsrust default)
       bool calibrate = false;              ///< Enable m/z recalibration (off by default; may fail on some datasets)
 
@@ -78,21 +70,18 @@ namespace OpenMS
 
   private:
     /// Load DDA-PASEF data: MS1 frames (CONCATENATED) + MS2 spectra (scalar IM)
-    void loadDDA_(void* handle, MSExperiment& exp, const Config& config);
+    void loadDDA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
 
     /// Load DIA-PASEF data: MS1 frames (CONCATENATED) + MS2 frames split by SWATH window
-    void loadDIA_(void* handle, MSExperiment& exp, const Config& config);
+    void loadDIA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
 
     /// Load raw frames without precursor grouping or SWATH splitting
-    void loadFrames_(void* handle, MSExperiment& exp, const Config& config);
-
-    /// Convert a single tims_frame to an MSSpectrum in CONCATENATED format
-    void frameToSpectrum_(void* handle, const void* frame, MSSpectrum& spec) const;
+    void loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
 
     /// Detect DDA vs DIA by checking for SWATH windows
-    bool isDIA_(void* handle) const;
+    bool isDIA_(const String& tdf_path) const;
   };
 
 } // namespace OpenMS
 
-#endif // WITH_TIMSRUST
+#endif // WITH_OPENTIMS
