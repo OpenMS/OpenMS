@@ -75,6 +75,54 @@ START_SECTION((smooth MS1 variant))
 }
 END_SECTION
 
+START_SECTION((smooth with correction coefficients active, degree 8))
+{
+  int degree = 8;
+  int m = 10;
+  std::vector<double> data = {0, 1, -2, 3, -4, 5, -6, 7, -8, 9, 10, 6, 3, 1, 0};
+
+  std::vector<double> expected = {
+    4.0115164326883515e-02,  1.7343455236363028e-01,  1.3837225122592080e-02,
+   -1.3679047792299953e-01, -1.3822129268404207e-01,  3.7724434168548170e-01,
+    2.9434588024971550e-01, -1.1946044466547185e+00, -3.4299476063451995e-01,
+    5.2766357414382290e+00,  9.6167148837388830e+00,  7.3920204737632450e+00,
+    2.7337361809027270e+00,  6.3008317717784400e-01,  8.8849725091422600e-02
+  };
+
+  ModifiedSincSmoother smoother(false, degree, m);
+  std::vector<double> output = smoother.smooth(data);
+
+  for (size_t i = 0; i < data.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(output[i], expected[i])
+  }
+}
+END_SECTION
+
+START_SECTION((smooth MS1 with correction coefficients, degree 4))
+{
+  int degree = 4;
+  int m = 5;
+  std::vector<double> data = {0, 1, -2, 3, -4, 5, -6, 7, -8, 9, 10, 6, 3, 1, 0};
+
+  std::vector<double> expected = {
+   -2.0134608712825580e-02,  1.5981707967146100e-01, -1.1921763597028505e-02,
+   -6.9368352740410770e-03, -1.2594087487395433e-02,  9.7654613807182390e-02,
+   -1.1245533076423640e-02, -8.7072404127170470e-01,  2.2797486631074101e-01,
+    5.1968315648088000e+00,  8.9482994438211460e+00,  7.1448507383672570e+00,
+    3.1759540185629900e+00,  9.6327576333055360e-01, -1.1503424676296573e-01
+  };
+
+  ModifiedSincSmoother smoother(true, degree, m);
+  std::vector<double> output = smoother.smooth(data);
+
+  for (size_t i = 0; i < data.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(output[i], expected[i])
+  }
+}
+END_SECTION
+
 START_SECTION((short input, expect safe behavior))
 {
   int degree = 4;

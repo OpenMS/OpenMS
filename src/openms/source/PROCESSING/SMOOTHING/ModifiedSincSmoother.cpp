@@ -133,8 +133,64 @@ namespace OpenMS
 
   std::vector<double> ModifiedSincSmoother::getCoefficients(bool isMS1, int degree, int m)
   {
-    // Placeholder for potential correction coefficients; currently none.
-    return {};
+    struct ABC { double a, b, c; };
+    std::vector<ABC> table;
+
+    if (isMS1)
+    {
+      switch (degree)
+      {
+        case 2: break;
+        case 4:
+          table = {{0.021944195, 0.050284006, 0.765625}};
+          break;
+        case 6:
+          table = {{0.0018977303, 0.008476806, 1.2625},
+                   {0.023064667, 0.13047926, 1.2265625}};
+          break;
+        case 8:
+          table = {{0.0065903002, 0.057929456, 1.915625},
+                   {0.0023234477, 0.010298849, 2.2726562},
+                   {0.021046653, 0.16646601, 1.98125}};
+          break;
+        case 10:
+          table = {{9.749618e-4, 0.0020742896, 3.74375},
+                   {0.008975366, 0.09902466, 2.7078125},
+                   {0.0024195414, 0.010064855, 3.296875},
+                   {0.019185117, 0.18953617, 2.784961}};
+          break;
+        default: break;
+      }
+    }
+    else
+    {
+      switch (degree)
+      {
+        case 2: break;
+        case 4: break;
+        case 6:
+          table = {{0.001717576, 0.02437382, 1.64375}};
+          break;
+        case 8:
+          table = {{0.0043993373, 0.088211164, 2.359375},
+                   {0.006146815, 0.024715371, 3.6359375}};
+          break;
+        case 10:
+          table = {{0.0011840032, 0.04219344, 2.746875},
+                   {0.0036718843, 0.12780383, 2.7703125}};
+          break;
+        default: break;
+      }
+    }
+
+    std::vector<double> coeffs;
+    coeffs.reserve(table.size());
+    for (const auto& abc : table)
+    {
+      double cm = abc.c - m;
+      coeffs.push_back(abc.a + abc.b / (cm * cm * cm));
+    }
+    return coeffs;
   }
 
   std::vector<double> ModifiedSincSmoother::makeFitWeights(bool isMS1, int degree, int m)
