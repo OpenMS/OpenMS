@@ -1,5 +1,6 @@
 #include <OpenMS/PROCESSING/SMOOTHING/ModifiedSincSmoother.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/Mobilogram.h>
@@ -18,13 +19,15 @@ namespace OpenMS
   {
     if (degree < 2 || degree > 10 || (degree % 2) != 0)
     {
-      throw std::invalid_argument("Invalid degree; must be even and between 2 and 10.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Invalid degree; must be even and between 2 and 10.");
     }
 
     const int mMin = isMS1 ? degree / 2 + 1 : degree / 2 + 2;
     if (m < mMin)
     {
-      throw std::invalid_argument("Invalid kernel half-width m; too small for the given degree.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Invalid kernel half-width m; too small for the given degree.");
     }
 
     kernel_ = makeKernel(isMS1_, degree_, m_, getCoefficients(isMS1_, degree_, m_));
@@ -64,7 +67,8 @@ namespace OpenMS
   {
     if (bandwidth <= 0.0 || bandwidth >= 0.5)
     {
-      throw std::invalid_argument("Invalid bandwidth value. Expected in (0, 0.5).");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Invalid bandwidth value. Expected in (0, 0.5).");
     }
     const double radius = isMS1
       ? (0.27037 + 0.24920 * degree) / bandwidth - 1.0
