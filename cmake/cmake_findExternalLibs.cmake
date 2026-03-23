@@ -376,6 +376,11 @@ public:
   target_include_directories(opentims_cpp PRIVATE "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
   target_link_libraries(opentims_cpp PRIVATE sqlite3)
   target_compile_features(opentims_cpp PRIVATE cxx_std_20)
+  # Windows: opentims includes <libloaderapi.h> which needs WIN32_LEAN_AND_MEAN
+  # and proper architecture defines for winnt.h
+  if(MSVC)
+    target_compile_definitions(opentims_cpp PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+  endif()
   # -fPIC required because this static lib is linked into libOpenMS.so
   set_target_properties(opentims_cpp PROPERTIES POSITION_INDEPENDENT_CODE ON)
   target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
