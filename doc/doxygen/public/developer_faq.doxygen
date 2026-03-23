@@ -256,9 +256,9 @@
  <ol>
  <LI>
  <B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinderCentroided) gives "The application was unable to start correctly (0xc0000005). Click OK to close the application"</B><BR>
-          When you run the tool in Debug mode and look where it crashes, you might actually find it to be a very weird place - e.g. when creating a perfectly legal String from a QString:
+          When you run the tool in Debug mode and look where it crashes, you might actually find it to be a very weird place - e.g. when passing an OpenMS path string to a Qt API in GUI code:
 @code
-  QFileInfo fi(file.toQString());
+  QFileInfo fi(QString::fromStdString(file));
   return fi.path()
 @endcode          
     The reason this happens is usually: you've mixed DLL's from multiple runtimes (e.g. compiled with VS10 and VS9). This can easily happen,
