@@ -7,6 +7,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/PROCESSING/SMOOTHING/ModifiedSincSmoother.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -35,6 +36,30 @@ END_SECTION
 
 START_SECTION((virtual ~ModifiedSincSmoother()))
   delete ms_ptr;
+END_SECTION
+
+START_SECTION((Default constructor and parameter API))
+{
+  ModifiedSincSmoother smoother;
+  Param p = smoother.getParameters();
+  TEST_EQUAL(p.getValue("degree"), 6)
+  TEST_EQUAL(p.getValue("m"), 7)
+  TEST_EQUAL(p.getValue("is_ms1").toString(), "false")
+
+  // Modify parameters
+  p.setValue("degree", 4);
+  p.setValue("m", 5);
+  p.setValue("is_ms1", "true");
+  smoother.setParameters(p);
+
+  // Should work after parameter update
+  std::vector<double> data(21, 5.0);
+  std::vector<double> output = smoother.smooth(data);
+  for (double val : output)
+  {
+    TEST_REAL_SIMILAR(val, 5.0)
+  }
+}
 END_SECTION
 
 START_SECTION((std::vector<double> smooth(const std::vector<double>&)))

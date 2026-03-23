@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -60,9 +61,13 @@ namespace OpenMS
     @ingroup SignalProcessing
   */
   class OPENMS_DLLAPI ModifiedSincSmoother :
-    public ProgressLogger
+    public ProgressLogger,
+    public DefaultParamHandler
   {
   public:
+    /// Default constructor with parameter registration
+    ModifiedSincSmoother();
+
     /**
       @brief Constructor initializing the modified sinc smoother.
 
@@ -209,7 +214,14 @@ namespace OpenMS
     */
     void filterExperiment(PeakMap& map);
 
+  protected:
+    /// Sync internal state from parameters
+    void updateMembers_() override;
+
   private:
+    /// Register default parameters (shared by both constructors)
+    void registerDefaults_();
+
     /// MS1 vs MS filter variant selection
     bool isMS1_;
     /// Polynomial degree for sinc modification (even, 2-10)

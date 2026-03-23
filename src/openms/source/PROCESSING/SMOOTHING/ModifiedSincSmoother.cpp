@@ -14,8 +14,34 @@
 namespace OpenMS
 {
 
+  void ModifiedSincSmoother::registerDefaults_()
+  {
+    defaults_.setValue("is_ms1", "false",
+      "If true, uses the MS1 filter variant (smaller kernel, faster). "
+      "If false, uses the MS variant (better stopband suppression).");
+    defaults_.setValidStrings("is_ms1", {"true", "false"});
+    defaults_.setValue("degree", 6,
+      "Polynomial degree of the filter (even, 2-10). Higher degree gives sharper frequency cutoff.");
+    defaults_.setMinInt("degree", 2);
+    defaults_.setMaxInt("degree", 10);
+    defaults_.setValue("m", 7,
+      "Kernel half-width. Larger m means more smoothing.");
+    defaults_.setMinInt("m", 2);
+  }
+
+  ModifiedSincSmoother::ModifiedSincSmoother()
+    : ProgressLogger(),
+      DefaultParamHandler("ModifiedSincSmoother"),
+      isMS1_(false), degree_(6), m_(7)
+  {
+    registerDefaults_();
+    defaultsToParam_(); // copies defaults to param_ and calls updateMembers_()
+  }
+
   ModifiedSincSmoother::ModifiedSincSmoother(bool isMS1, int degree, int m)
-    : isMS1_(isMS1), degree_(degree), m_(m)
+    : ProgressLogger(),
+      DefaultParamHandler("ModifiedSincSmoother"),
+      isMS1_(isMS1), degree_(degree), m_(m)
   {
     if (degree < 2 || degree > 10 || (degree % 2) != 0)
     {
@@ -25,6 +51,34 @@ namespace OpenMS
 
     const int mMin = isMS1 ? degree / 2 + 1 : degree / 2 + 2;
     if (m < mMin)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Invalid kernel half-width m; too small for the given degree.");
+    }
+
+    registerDefaults_();
+    defaultsToParam_();
+    // override the default param values with the actual constructor arguments,
+    // then call updateMembers_() to sync member variables and rebuild the kernel
+    param_.setValue("is_ms1", isMS1 ? "true" : "false");
+    param_.setValue("degree", degree);
+    param_.setValue("m", m);
+    updateMembers_();
+  }
+
+  void ModifiedSincSmoother::updateMembers_()
+  {
+    isMS1_ = param_.getValue("is_ms1").toBool();
+    degree_ = static_cast<int>(param_.getValue("degree"));
+    m_ = static_cast<int>(param_.getValue("m"));
+
+    if (degree_ < 2 || degree_ > 10 || (degree_ % 2) != 0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Invalid degree; must be even and between 2 and 10.");
+    }
+    const int mMin = isMS1_ ? degree_ / 2 + 1 : degree_ / 2 + 2;
+    if (m_ < mMin)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Invalid kernel half-width m; too small for the given degree.");
