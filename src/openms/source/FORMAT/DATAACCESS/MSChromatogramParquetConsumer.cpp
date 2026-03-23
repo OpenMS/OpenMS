@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
@@ -192,26 +193,7 @@ namespace OpenMS
 #else
       buildTransitionMaps_(transition_exp);
       // Build the invariant schema once; reuse on every flushBuffers_() call.
-      schema_ = arrow::schema({
-        arrow::field("RUN_ID", arrow::int64()),
-        arrow::field("SOURCE_FILE", arrow::utf8()),
-        arrow::field("MS_LEVEL", arrow::int64()),
-        arrow::field("PRECURSOR_ID", arrow::int64()),
-        arrow::field("TRANSITION_ID", arrow::int64()),
-        arrow::field("MODIFIED_SEQUENCE", arrow::utf8()),
-        arrow::field("PRECURSOR_CHARGE", arrow::int64()),
-        arrow::field("PRODUCT_CHARGE", arrow::int64()),
-        arrow::field("DETECTING_TRANSITION", arrow::int64()),
-        arrow::field("PRECURSOR_DECOY", arrow::int64()),
-        arrow::field("PRODUCT_DECOY", arrow::int64()),
-        arrow::field("TRANSITION_ORDINAL", arrow::int64()),
-        arrow::field("TRANSITION_TYPE", arrow::utf8()),
-        arrow::field("ANNOTATION", arrow::utf8()),
-        arrow::field("RT_DATA", arrow::binary()),
-        arrow::field("INTENSITY_DATA", arrow::binary()),
-        arrow::field("RT_COMPRESSION", arrow::int64()),
-        arrow::field("INTENSITY_COMPRESSION", arrow::int64())
-      });
+      schema_ = XICSchema::schema();
 #endif
     }
 
@@ -645,6 +627,14 @@ namespace OpenMS
         arr_tr_type, arr_annotation,
         arr_rt_data, arr_int_data, arr_rt_comp, arr_int_comp
       });
+
+      // Validate table against registry schema
+      auto validation = ArrowSchemaValidation::validate(table, XICSchema::schema());
+      if (!validation.valid)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "XIC table schema validation failed: " + validation.toString(), "");
+      }
 
       // Open output file on first flush and prepare writer properties.
       if (!outfile_)

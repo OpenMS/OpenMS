@@ -299,7 +299,8 @@ if(WITH_PARQUET)
     OpenSwathOSWParquetRoundTrip_test
     ProteinIdentificationArrowIO_test
     FeatureMapArrowIO_test
-    ConsensusMapArrowIO_test)
+    ConsensusMapArrowIO_test
+    ArrowSchemaRegistry_test)
 endif()
 
 set(math_executables_list

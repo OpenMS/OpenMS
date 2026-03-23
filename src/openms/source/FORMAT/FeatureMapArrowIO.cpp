@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -1032,26 +1033,8 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
 
   #undef FINISH_OR_RETURN
 
-  // Build schema (17 columns)
-  auto schema = arrow::schema({
-    arrow::field("unique_id", arrow::int64(), /*nullable=*/false),
-    arrow::field("parent_feature_id", arrow::int64(), /*nullable=*/true),
-    arrow::field("depth", arrow::int32(), /*nullable=*/false),
-    arrow::field("rt", arrow::float64(), /*nullable=*/false),
-    arrow::field("mz", arrow::float64(), /*nullable=*/false),
-    arrow::field("intensity", arrow::float32(), /*nullable=*/false),
-    arrow::field("charge", arrow::int32(), /*nullable=*/false),
-    arrow::field("quality", arrow::float32(), /*nullable=*/false),
-    arrow::field("quality_rt", arrow::float32(), /*nullable=*/false),
-    arrow::field("quality_mz", arrow::float32(), /*nullable=*/false),
-    arrow::field("width", arrow::float32(), /*nullable=*/true),
-    arrow::field("rt_bb_min", arrow::float64(), /*nullable=*/true),
-    arrow::field("rt_bb_max", arrow::float64(), /*nullable=*/true),
-    arrow::field("mz_bb_min", arrow::float64(), /*nullable=*/true),
-    arrow::field("mz_bb_max", arrow::float64(), /*nullable=*/true),
-    arrow::field("convex_hulls", convex_hulls_builder.type(), /*nullable=*/false),
-    arrow::field("metavalues", metavalues_builder.type(), /*nullable=*/false),
-  });
+  // Build schema from registry (17 columns)
+  auto schema = FeatureSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_unique_id, arr_parent_id, arr_depth,
@@ -1062,6 +1045,14 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
     arr_rt_bb_min, arr_rt_bb_max, arr_mz_bb_min, arr_mz_bb_max,
     arr_convex_hulls, arr_metavalues
   });
+
+  // Validate table against registry schema
+  auto validation = ArrowSchemaValidation::validate(table, FeatureSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Schema validation failed: " << validation.toString() << "\n";
+    return nullptr;
+  }
 
   return table;
 }
@@ -1255,20 +1246,28 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
     return true;
   }
 
+  // Validate table schema against registry (subset mode — file may have extra columns)
+  auto validation = ArrowSchemaValidation::validate(tbl, FeatureSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible schema: " << validation.toString() << "\n";
+    return false;
+  }
+
   // Get all columns
-  auto col_unique_id = getColumn_(tbl, "unique_id");
-  auto col_parent_id = getColumn_(tbl, "parent_feature_id");
-  auto col_depth = getColumn_(tbl, "depth");
-  auto col_rt = getColumn_(tbl, "rt");
-  auto col_mz = getColumn_(tbl, "mz");
-  auto col_intensity = getColumn_(tbl, "intensity");
-  auto col_charge = getColumn_(tbl, "charge");
-  auto col_overall_quality = getColumn_(tbl, "quality");
-  auto col_quality_rt = getColumn_(tbl, "quality_rt");
-  auto col_quality_mz = getColumn_(tbl, "quality_mz");
-  auto col_width = getColumn_(tbl, "width");
-  auto col_convex_hulls = getColumn_(tbl, "convex_hulls", /*required=*/false);
-  auto col_metavalues = getColumn_(tbl, "metavalues", /*required=*/false);
+  auto col_unique_id = getColumn_(tbl, FeatureSchema::UNIQUE_ID);
+  auto col_parent_id = getColumn_(tbl, FeatureSchema::PARENT_FEATURE_ID);
+  auto col_depth = getColumn_(tbl, FeatureSchema::DEPTH);
+  auto col_rt = getColumn_(tbl, FeatureSchema::RT);
+  auto col_mz = getColumn_(tbl, FeatureSchema::MZ);
+  auto col_intensity = getColumn_(tbl, FeatureSchema::INTENSITY);
+  auto col_charge = getColumn_(tbl, FeatureSchema::CHARGE);
+  auto col_overall_quality = getColumn_(tbl, FeatureSchema::QUALITY);
+  auto col_quality_rt = getColumn_(tbl, FeatureSchema::QUALITY_RT);
+  auto col_quality_mz = getColumn_(tbl, FeatureSchema::QUALITY_MZ);
+  auto col_width = getColumn_(tbl, FeatureSchema::WIDTH, /*required=*/false);
+  auto col_convex_hulls = getColumn_(tbl, FeatureSchema::CONVEX_HULLS, /*required=*/false);
+  auto col_metavalues = getColumn_(tbl, FeatureSchema::METAVALUES, /*required=*/false);
 
   if (!col_unique_id || !col_parent_id || !col_depth || !col_rt || !col_mz ||
       !col_intensity || !col_charge || !col_overall_quality ||
@@ -1406,6 +1405,13 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   const auto& tbl = *combined_result;
   int64_t num_rows = tbl->num_rows();
 
+  auto psm_validation = ArrowSchemaValidation::validate(tbl, PSMSchema::schema(), ArrowSchemaValidation::Mode::Subset);
+  if (!psm_validation.valid)
+  {
+    OPENMS_LOG_ERROR << "Incompatible PSM schema: " << psm_validation.toString() << "\n";
+    return false;
+  }
+
   // Build feature lookup: unique_id -> Feature* (recursively includes subordinates)
   std::unordered_map<int64_t, Feature*> feature_lookup;
   std::function<void(Feature&)> buildLookup = [&](Feature& f)
@@ -1423,27 +1429,27 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
 
   // Read columns
   auto col_feature_id = getColumn_(tbl, "feature_unique_id");
-  auto col_p_id = getColumn_(tbl, "peptide_identification_index");
-  auto col_peptidoform = getColumn_(tbl, "peptidoform", /*required=*/false);
-  auto col_sequence = getColumn_(tbl, "sequence", /*required=*/false);
-  auto col_charge = getColumn_(tbl, "precursor_charge");
-  auto col_score = getColumn_(tbl, "score");
-  auto col_score_type = getColumn_(tbl, "score_type");
-  auto col_rank = getColumn_(tbl, "rank", /*required=*/false);
-  auto col_rt = getColumn_(tbl, "rt", /*required=*/false);
-  auto col_mz = getColumn_(tbl, "observed_mz", /*required=*/false);
-  auto col_spec_ref = getColumn_(tbl, "spectrum_reference", /*required=*/false);
-  auto col_run_id = getColumn_(tbl, "run_identifier", /*required=*/false);
-  auto col_is_decoy = getColumn_(tbl, "is_decoy", /*required=*/false);
-  auto col_protein_accs = getColumn_(tbl, "protein_accessions", /*required=*/false);
-  auto col_additional_scores = getColumn_(tbl, "additional_scores", /*required=*/false);
-  auto col_psm_metavalues = getColumn_(tbl, "psm_metavalues", /*required=*/false);
-  auto col_spectrum_metavalues = getColumn_(tbl, "spectrum_metavalues", /*required=*/false);
-  auto col_predicted_rt = getColumn_(tbl, "predicted_rt", /*required=*/false);
-  auto col_ion_mobility = getColumn_(tbl, "ion_mobility", /*required=*/false);
-  auto col_hsb = getColumn_(tbl, "higher_score_better", /*required=*/false);
-  auto col_scan = getColumn_(tbl, "scan", /*required=*/false);
-  auto col_ref_file = getColumn_(tbl, "reference_file_name", /*required=*/false);
+  auto col_p_id = getColumn_(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
+  auto col_peptidoform = getColumn_(tbl, PSMSchema::PEPTIDOFORM, /*required=*/false);
+  auto col_sequence = getColumn_(tbl, PSMSchema::SEQUENCE, /*required=*/false);
+  auto col_charge = getColumn_(tbl, PSMSchema::PRECURSOR_CHARGE);
+  auto col_score = getColumn_(tbl, PSMSchema::SCORE);
+  auto col_score_type = getColumn_(tbl, PSMSchema::SCORE_TYPE);
+  auto col_rank = getColumn_(tbl, PSMSchema::RANK, /*required=*/false);
+  auto col_rt = getColumn_(tbl, PSMSchema::RT, /*required=*/false);
+  auto col_mz = getColumn_(tbl, PSMSchema::OBSERVED_MZ, /*required=*/false);
+  auto col_spec_ref = getColumn_(tbl, PSMSchema::SPECTRUM_REFERENCE, /*required=*/false);
+  auto col_run_id = getColumn_(tbl, PSMSchema::RUN_IDENTIFIER, /*required=*/false);
+  auto col_is_decoy = getColumn_(tbl, PSMSchema::IS_DECOY, /*required=*/false);
+  auto col_protein_accs = getColumn_(tbl, PSMSchema::PROTEIN_ACCESSIONS, /*required=*/false);
+  auto col_additional_scores = getColumn_(tbl, PSMSchema::ADDITIONAL_SCORES, /*required=*/false);
+  auto col_psm_metavalues = getColumn_(tbl, PSMSchema::PSM_METAVALUES, /*required=*/false);
+  auto col_spectrum_metavalues = getColumn_(tbl, PSMSchema::SPECTRUM_METAVALUES, /*required=*/false);
+  auto col_predicted_rt = getColumn_(tbl, PSMSchema::PREDICTED_RT, /*required=*/false);
+  auto col_ion_mobility = getColumn_(tbl, PSMSchema::ION_MOBILITY, /*required=*/false);
+  auto col_hsb = getColumn_(tbl, PSMSchema::HIGHER_SCORE_BETTER, /*required=*/false);
+  auto col_scan = getColumn_(tbl, PSMSchema::SCAN, /*required=*/false);
+  auto col_ref_file = getColumn_(tbl, PSMSchema::REFERENCE_FILE_NAME, /*required=*/false);
 
   if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
   {

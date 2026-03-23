@@ -157,6 +157,7 @@ if(WITH_PARQUET)
   set(TOPP_executables
     ${TOPP_executables}
     QPXConverter
+    ParquetConverter
   )
 endif(WITH_PARQUET)
 

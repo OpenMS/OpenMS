@@ -10,6 +10,7 @@
 
 #ifdef WITH_PARQUET
 
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
@@ -640,35 +641,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   status = run_identifier_builder.Finish(&arr_run_identifier);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: run_identifier_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema matching the Python to_psm_arrow() column order
-  auto schema = arrow::schema({
-    arrow::field("sequence", arrow::utf8()),
-    arrow::field("peptidoform", arrow::utf8()),
-    arrow::field("modifications", modifications_builder.type()),
-    arrow::field("precursor_charge", arrow::int32()),
-    arrow::field("posterior_error_probability", arrow::float64()),
-    arrow::field("is_decoy", arrow::boolean()),
-    arrow::field("calculated_mz", arrow::float64()),
-    arrow::field("observed_mz", arrow::float64()),
-    arrow::field("additional_scores", additional_scores_builder.type()),
-    arrow::field("protein_accessions", arrow::list(arrow::utf8())),
-    arrow::field("predicted_rt", arrow::float64()),
-    arrow::field("reference_file_name", arrow::utf8()),
-    arrow::field("cv_params", arrow::utf8()),
-    arrow::field("scan", arrow::int32()),
-    arrow::field("rt", arrow::float64()),
-    arrow::field("ion_mobility", arrow::float64()),
-    // OpenMS-specific columns
-    arrow::field("spectrum_reference", arrow::utf8()),
-    arrow::field("score", arrow::float64()),
-    arrow::field("score_type", arrow::utf8()),
-    arrow::field("higher_score_better", arrow::boolean()),
-    arrow::field("rank", arrow::int32()),
-    arrow::field("peptide_identification_index", arrow::int32()),
-    arrow::field("psm_metavalues", psm_metavalues_builder.type()),
-    arrow::field("spectrum_metavalues", spectrum_metavalues_builder.type()),
-    arrow::field("run_identifier", arrow::utf8()),
-  });
+  // Build schema from registry
+  auto schema = PSMSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_sequence, arr_peptidoform, arr_modifications,
@@ -680,6 +654,14 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
     arr_rank, arr_p_id, arr_psm_mvs, arr_spectrum_mvs,
     arr_run_identifier
   });
+
+  // Validate table against registry schema (strict — write path must match exactly)
+  auto validation = ArrowSchemaValidation::validate(table, PSMSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "QPXFile: Schema validation failed: " << validation.toString() << "\n";
+    return nullptr;
+  }
 
   return table;
 }

@@ -10,6 +10,7 @@
 
 #ifdef WITH_PARQUET
 
+#include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
@@ -785,43 +786,8 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
   status = feature_metavalues_builder.Finish(&arr_feature_mvs);
   if (!status.ok()) { OPENMS_LOG_ERROR << "ConsensusMapArrowExport: feature_metavalues_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build schema matching the Python to_feature_arrow() column order
-  auto schema = arrow::schema({
-    arrow::field("sequence", arrow::utf8()),
-    arrow::field("peptidoform", arrow::utf8()),
-    arrow::field("modifications", modifications_builder.type()),
-    arrow::field("precursor_charge", arrow::int32()),
-    arrow::field("calculated_mz", arrow::float32()),
-    arrow::field("observed_mz", arrow::float32()),
-    arrow::field("rt", arrow::float32()),
-    arrow::field("posterior_error_probability", arrow::float64()),
-    arrow::field("is_decoy", arrow::int32()),
-    arrow::field("additional_scores", additional_scores_builder.type()),
-    arrow::field("predicted_rt", arrow::float32()),
-    arrow::field("reference_file_name", arrow::utf8()),
-    arrow::field("cv_params", arrow::utf8()),
-    arrow::field("scan", arrow::utf8()),
-    arrow::field("ion_mobility", arrow::float32()),
-    arrow::field("start_ion_mobility", arrow::float32()),
-    arrow::field("stop_ion_mobility", arrow::float32()),
-    arrow::field("intensities", intensities_builder.type()),
-    arrow::field("additional_intensities", arrow::utf8()),
-    arrow::field("pg_accessions", arrow::list(arrow::utf8())),
-    arrow::field("anchor_protein", arrow::utf8()),
-    arrow::field("unique", arrow::int32()),
-    arrow::field("pg_global_qvalue", arrow::float64()),
-    arrow::field("gg_accessions", arrow::list(arrow::utf8())),
-    arrow::field("gg_names", arrow::list(arrow::utf8())),
-    arrow::field("scan_reference_file_name", arrow::utf8()),
-    arrow::field("rt_start", arrow::float32()),
-    arrow::field("rt_stop", arrow::float32()),
-    // OpenMS-specific columns
-    arrow::field("quality", arrow::float32()),
-    arrow::field("score", arrow::float64()),
-    arrow::field("score_type", arrow::utf8()),
-    arrow::field("spectrum_reference", arrow::utf8()),
-    arrow::field("feature_metavalues", feature_metavalues_builder.type()),
-  });
+  // Build schema from registry
+  auto schema = ConsensusFeatureExportSchema::schema();
 
   auto table = arrow::Table::Make(schema, {
     arr_sequence, arr_peptidoform, arr_modifications,
@@ -836,6 +802,14 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
     arr_quality, arr_score, arr_score_type, arr_spectrum_ref,
     arr_feature_mvs
   });
+
+  // Validate table against registry schema (strict — write path must match exactly)
+  auto validation = ArrowSchemaValidation::validate(table, ConsensusFeatureExportSchema::schema());
+  if (!validation.valid)
+  {
+    OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Schema validation failed: " << validation.toString() << "\n";
+    return nullptr;
+  }
 
   return table;
 }
