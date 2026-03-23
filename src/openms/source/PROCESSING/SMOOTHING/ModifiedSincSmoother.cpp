@@ -345,7 +345,7 @@ namespace OpenMS
 
   void ModifiedSincSmoother::LinearRegression::clear()
   {
-    sum_weights = sum_x = sum_y = sum_xy = sum_x2 = sum_y2 = 0;
+    sum_weights = sum_x = sum_y = sum_xy = sum_x2 = 0;
     calculated = false;
   }
 
@@ -356,7 +356,6 @@ namespace OpenMS
     sum_y += weight * y;
     sum_xy += weight * x * y;
     sum_x2 += weight * x * x;
-    sum_y2 += weight * y * y;
     calculated = false;
   }
 

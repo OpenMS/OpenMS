@@ -21,44 +21,41 @@
 namespace OpenMS
 {
   /**
-    @brief Computes a modified sinc smoothing filter for mass spectrometry data.
+    @brief Computes a modified sinc smoothing filter for profile data.
 
-    This class implements a modified sinc-based smoothing filter optimized for mass spectrometry data.
-    The filter supports two main variants:
-    - MS1 mode: optimized for full scan mass spectra
-    - MS2 mode: optimized for fragmentation spectra
-    
-    The algorithm constructs a symmetric convolution kernel based on a modified sinc function with
-    exponential decay terms. The kernel shape is determined by:
-    - @p degree: polynomial degree (must be even, between 2-10)
-    - @p m: kernel half-width parameter (determines filter width)
-    - @p isMS1: selects MS1 vs MS2 optimization variant
+    This class implements the modified sinc (MS) filter from Schmid, Rath & Diebold,
+    "Why and How Savitzky-Golay Filters Should Be Replaced",
+    ACS Measurement Science Au, 2022, 2(2), 185-196.
+
+    The filter supports two variants from the paper:
+    - @b MS variant (@p isMS1 = false): wider kernel with decay alpha=4, providing
+      excellent stopband suppression (~-70 dB). Requires m >= degree/2 + 2.
+    - @b MS1 variant (@p isMS1 = true): narrower kernel with decay alpha=2, trading
+      some stopband suppression for a smaller kernel size. Requires m >= degree/2 + 1.
+
+    @note These are two filter design variants, NOT mass spectrometry scan level designations.
+    The naming follows the original paper's convention.
+
+    The algorithm constructs a symmetric convolution kernel based on a sinc function
+    multiplied by a modified Gaussian window, with optional passband correction terms
+    for polynomial degrees >= 6 (MS) or >= 4 (MS1).
+
+    @b Parameters:
+    - @p degree: polynomial degree (must be even, 2-10). Higher degree gives sharper cutoff.
+    - @p m: kernel half-width (determines smoothing strength). Use bandwidthToM() or
+      noiseGainToM() to compute from desired filter characteristics.
+    - @p isMS1: selects MS1 (smaller) vs MS (wider) kernel variant.
 
     @b Boundary @b Handling:
     For finite data, the filter extends boundaries using weighted linear regression
     on the nearest available data points to minimize edge artifacts.
 
     @b Container @b Support:
-    The filter can process individual data vectors or OpenMS container types:
-    - MSSpectrum: preserves m/z positions, smooths intensities
-    - MSChromatogram: preserves RT positions, smooths intensities  
-    - Mobilogram: preserves IM positions, smooths intensities
-    - PeakMap (MSExperiment): batch processing with progress logging
+    The filter can process individual data vectors or OpenMS container types
+    (MSSpectrum, MSChromatogram, Mobilogram, PeakMap).
 
-    @b Usage @b Requirements:
-    - Input data should represent uniform profile data for optimal results
-    - Data must have sufficient length relative to kernel width (≥ 2*m+1 points recommended)
-    - For container filters, positions are preserved exactly while only intensities are modified
-
-    @b Parameter @b Helpers:
-    Static utility methods provide conversions between different parameterizations:
-    - bandwidthToM(): convert frequency domain bandwidth to spatial domain m
-    - noiseGainToM(): convert desired noise gain to optimal m value
-    - savitzkyGolayBandwidth(): compute equivalent Savitzky-Golay bandwidth
-
-    @note This filter works optimally with uniform profile data!
+    @note This filter works optimally with uniform profile data.
     @note Data should be sorted by position (m/z, RT, or IM) before filtering.
-    @note Kernel parameters must satisfy degree ∈ [2,4,6,8,10] and m ≥ degree/2 + (1 or 2).
 
     @ingroup SignalProcessing
   */
@@ -69,13 +66,13 @@ namespace OpenMS
     /**
       @brief Constructor initializing the modified sinc smoother.
 
-      @param isMS1 true for MS1 optimization, false for MS2 optimization
+      @param isMS1 true for MS1 variant (smaller kernel), false for MS variant (wider kernel)
       @param degree polynomial degree for sinc modification (must be even, 2-10)
       @param m kernel half-width parameter (spatial domain)
 
       @throws std::invalid_argument if degree is not even or outside [2,10]
       @throws std::invalid_argument if m is too small for the given degree
-        (minimum: m ≥ degree/2 + 1 for MS1, m ≥ degree/2 + 2 for MS2)
+        (minimum: m >= degree/2 + 1 for MS1 variant, m >= degree/2 + 2 for MS variant)
     */
     ModifiedSincSmoother(bool isMS1, int degree, int m);
 
@@ -112,7 +109,7 @@ namespace OpenMS
     /**
       @brief Convert frequency domain bandwidth to spatial domain parameter m.
 
-      @param isMS1 true for MS1 mode, false for MS2 mode  
+      @param isMS1 true for MS1 variant (smaller kernel), false for MS variant (wider kernel)
       @param degree polynomial degree used in the filter
       @param bandwidth normalized frequency bandwidth in (0, 0.5)
       @return corresponding kernel half-width parameter m
@@ -130,8 +127,8 @@ namespace OpenMS
       Computes the kernel half-width m that achieves the specified noise gain
       factor for the given filter configuration.
 
-      @param isMS1 true for MS1 mode, false for MS2 mode
-      @param degree polynomial degree used in the filter  
+      @param isMS1 true for MS1 variant (smaller kernel), false for MS variant (wider kernel)
+      @param degree polynomial degree used in the filter
       @param noiseGain desired noise amplification factor (typically < 1)
       @return corresponding kernel half-width parameter m
 
@@ -213,7 +210,7 @@ namespace OpenMS
     void filterExperiment(PeakMap& map);
 
   private:
-    /// MS1 vs MS2 mode selection
+    /// MS1 vs MS filter variant selection
     bool isMS1_;
     /// Polynomial degree for sinc modification (even, 2-10)
     int degree_;
@@ -227,7 +224,7 @@ namespace OpenMS
     /**
       @brief Construct the modified sinc convolution kernel.
 
-      @param isMS1 MS1 vs MS2 mode selection
+      @param isMS1 MS1 vs MS filter variant selection
       @param degree polynomial degree for modifications
       @param m kernel half-width
       @param coeffs optional correction coefficients (currently unused)
@@ -241,7 +238,7 @@ namespace OpenMS
     /**
       @brief Get correction coefficients for kernel modification.
 
-      @param isMS1 MS1 vs MS2 mode selection  
+      @param isMS1 MS1 vs MS filter variant selection
       @param degree polynomial degree
       @param m kernel half-width
       @return correction coefficients (currently empty placeholder)
@@ -256,13 +253,13 @@ namespace OpenMS
       Derives fitting window size and cosine-squared weights based on
       kernel first zero location and empirical beta parameter.
 
-      @param isMS1 MS1 vs MS2 mode selection
-      @param degree polynomial degree  
+      @param isMS1 MS1 vs MS filter variant selection
+      @param degree polynomial degree
       @param m kernel half-width
       @return weight vector for boundary fitting
 
       @note Weight derivation: first_zero → beta → fit_length → cos²(·) weights
-      @note Optimized separately for MS1 and MS2 boundary characteristics
+      @note Optimized separately for MS1 and MS filter variant boundary characteristics
     */
     std::vector<double> makeFitWeights(bool isMS1, int degree, int m);
 
@@ -274,7 +271,6 @@ namespace OpenMS
 
       @param data original data vector
       @param m extension half-width (points to add on each side)
-      @param degree polynomial degree (affects fit length)
       @return extended data: [left_ext..., original_data..., right_ext...]
 
       @note Left extension: fit forward from start, extrapolate backward
@@ -296,7 +292,6 @@ namespace OpenMS
       double sum_y = 0;        ///< Sum of weighted y values  
       double sum_xy = 0;       ///< Sum of weighted x*y products
       double sum_x2 = 0;       ///< Sum of weighted x² values
-      double sum_y2 = 0;       ///< Sum of weighted y² values
       double offset = NAN;     ///< Regression intercept (cached)
       double slope = NAN;      ///< Regression slope (cached)
       bool calculated = false; ///< Whether regression has been computed

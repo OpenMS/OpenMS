@@ -129,7 +129,7 @@ START_SECTION((short input, expect safe behavior))
   int m = 3;
   std::vector<double> data = {1.0, 2.0, 3.0};
 
-  ModifiedSincSmoother smoother(false, degree, m);
+  ModifiedSincSmoother smoother(true, degree, m);  // MS1 mode: m >= 3 is valid for degree=4
   std::vector<double> output = smoother.smooth(data);
 
   TEST_EQUAL(output.size(), data.size())
@@ -351,10 +351,11 @@ START_SECTION((Constructor parameter validation))
   TEST_EXCEPTION(Exception::InvalidParameter, ModifiedSincSmoother(true, 4, 2))
   
   // Test valid parameters
-  TEST_NOT_EQUAL(new ModifiedSincSmoother(false, 4, 4), ms_nullPointer)
-  delete new ModifiedSincSmoother(false, 4, 4);
-  TEST_NOT_EQUAL(new ModifiedSincSmoother(true, 6, 4), ms_nullPointer)
-  delete new ModifiedSincSmoother(true, 6, 4);
+  ModifiedSincSmoother valid_ms2(false, 4, 4);
+  TEST_NOT_EQUAL(&valid_ms2, ms_nullPointer)
+
+  ModifiedSincSmoother valid_ms1(true, 6, 4);
+  TEST_NOT_EQUAL(&valid_ms1, ms_nullPointer)
 }
 END_SECTION
 
