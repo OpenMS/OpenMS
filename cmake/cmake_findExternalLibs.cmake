@@ -290,6 +290,19 @@ if (WITH_OPENTIMS)
 
   set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
 
+  # Patch opentims.h to expose tims_dir_path via a public getter.
+  # The upstream TimsDataHandle keeps this member private with friend-only access,
+  # but our open-source calibration converters need to read the .d directory path.
+  file(READ "${_OPENTIMS_SRC}/opentims.h" _opentims_h_content)
+  if(NOT _opentims_h_content MATCHES "get_tims_dir_path")
+    string(REPLACE
+      "size_t get_decomp_buffer_size() const { return decomp_buffer_size; };"
+      "size_t get_decomp_buffer_size() const { return decomp_buffer_size; };\n    const std::string& get_tims_dir_path() const { return tims_dir_path; };"
+      _opentims_h_content "${_opentims_h_content}")
+    file(WRITE "${_OPENTIMS_SRC}/opentims.h" "${_opentims_h_content}")
+    message(STATUS "Patched opentims.h: added get_tims_dir_path() accessor")
+  endif()
+
   add_library(opentims_cpp STATIC
     "${_OPENTIMS_SRC}/opentims.cpp"
     "${_OPENTIMS_SRC}/tof2mz_converter.cpp"
