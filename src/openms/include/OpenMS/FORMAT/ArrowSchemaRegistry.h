@@ -202,6 +202,9 @@ namespace OpenMS
   };
 
   /// @brief Schema for QPX PSM export (quantms Parquet eXchange format, PSM table)
+  ///
+  /// Defines column names, nested Arrow types, and the complete schema for
+  /// peptide-spectrum match data in the QPX format. Used by QPXFile for export.
   struct OPENMS_DLLAPI QPXPSMSchema
   {
     static constexpr const char* SEQUENCE = "sequence";
@@ -229,14 +232,22 @@ namespace OpenMS
     static constexpr const char* ION_TYPE_ARRAY = "ion_type_array";
     static constexpr const char* ION_MOBILITY_ARRAY = "ion_mobility_array";
 
+    /// @brief Arrow type for modifications: list<struct{name, accession, positions: list<struct{position, amino_acid, scores}>}>
     static std::shared_ptr<arrow::DataType> modificationsType();
+    /// @brief Arrow type for additional scores: list<struct{score_name, score_value, higher_better}>
     static std::shared_ptr<arrow::DataType> additionalScoresType();
+    /// @brief Arrow type for CV params: list<struct{cv_name, cv_value}>
     static std::shared_ptr<arrow::DataType> cvParamsType();
+    /// @brief Arrow type for cross-links: list<struct{xl_type, partner_sequence, ...}>
     static std::shared_ptr<arrow::DataType> crossLinksType();
+    /// @brief Complete Arrow schema for QPX PSM table (24 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 
   /// @brief Schema for QPX feature view (quantms Parquet eXchange format)
+  ///
+  /// Defines column names, nested Arrow types, and the complete schema for
+  /// consensus feature data in the QPX format. Used by ConsensusMapArrowExport.
   struct OPENMS_DLLAPI QPXFeatureSchema
   {
     static constexpr const char* SEQUENCE = "sequence";
@@ -271,13 +282,21 @@ namespace OpenMS
     static constexpr const char* RT_START = "rt_start";
     static constexpr const char* RT_STOP = "rt_stop";
 
+    /// @brief Arrow type for modifications (delegates to QPXPSMSchema::modificationsType)
     static std::shared_ptr<arrow::DataType> modificationsType();
+    /// @brief Arrow type for additional scores (delegates to QPXPSMSchema::additionalScoresType)
     static std::shared_ptr<arrow::DataType> additionalScoresType();
+    /// @brief Arrow type for CV params (delegates to QPXPSMSchema::cvParamsType)
     static std::shared_ptr<arrow::DataType> cvParamsType();
+    /// @brief Arrow type for intensities: list<struct{label, intensity}>
     static std::shared_ptr<arrow::DataType> intensitiesType();
+    /// @brief Arrow type for additional intensities: list<struct{label, intensities: list<struct{...}>}>
     static std::shared_ptr<arrow::DataType> additionalIntensitiesType();
+    /// @brief Arrow type for protein group accessions: list<struct{accession, start, end, pre, post}>
     static std::shared_ptr<arrow::DataType> pgAccessionsType();
+    /// @brief Arrow type for protein group positions: list<struct{protein_accession, start, end}>
     static std::shared_ptr<arrow::DataType> pgPositionsType();
+    /// @brief Complete Arrow schema for QPX feature table (31 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 
