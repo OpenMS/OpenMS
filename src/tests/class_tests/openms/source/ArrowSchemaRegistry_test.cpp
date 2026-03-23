@@ -923,6 +923,167 @@ START_SECTION(PSMSchema validation with table)
 }
 END_SECTION
 
+// ========== QPXPSMSchema ==========
+
+START_SECTION(QPXPSMSchema::schema() returns non-null with 24 fields)
+{
+  auto s = QPXPSMSchema::schema();
+  TEST_NOT_EQUAL(s, nullptr)
+  TEST_EQUAL(s->num_fields(), 24)
+}
+END_SECTION
+
+START_SECTION(QPXPSMSchema column name constants)
+{
+  TEST_STRING_EQUAL(QPXPSMSchema::SEQUENCE, "sequence")
+  TEST_STRING_EQUAL(QPXPSMSchema::PEPTIDOFORM, "peptidoform")
+  TEST_STRING_EQUAL(QPXPSMSchema::MODIFICATIONS, "modifications")
+  TEST_STRING_EQUAL(QPXPSMSchema::CHARGE, "charge")
+  TEST_STRING_EQUAL(QPXPSMSchema::POSTERIOR_ERROR_PROBABILITY, "posterior_error_probability")
+  TEST_STRING_EQUAL(QPXPSMSchema::IS_DECOY, "is_decoy")
+  TEST_STRING_EQUAL(QPXPSMSchema::CALCULATED_MZ, "calculated_mz")
+  TEST_STRING_EQUAL(QPXPSMSchema::OBSERVED_MZ, "observed_mz")
+  TEST_STRING_EQUAL(QPXPSMSchema::MASS_ERROR_PPM, "mass_error_ppm")
+  TEST_STRING_EQUAL(QPXPSMSchema::ADDITIONAL_SCORES, "additional_scores")
+  TEST_STRING_EQUAL(QPXPSMSchema::PREDICTED_RT, "predicted_rt")
+  TEST_STRING_EQUAL(QPXPSMSchema::RUN_FILE_NAME, "run_file_name")
+  TEST_STRING_EQUAL(QPXPSMSchema::CV_PARAMS, "cv_params")
+  TEST_STRING_EQUAL(QPXPSMSchema::SCAN, "scan")
+  TEST_STRING_EQUAL(QPXPSMSchema::RT, "rt")
+  TEST_STRING_EQUAL(QPXPSMSchema::ION_MOBILITY, "ion_mobility")
+  TEST_STRING_EQUAL(QPXPSMSchema::MISSED_CLEAVAGES, "missed_cleavages")
+  TEST_STRING_EQUAL(QPXPSMSchema::PROTEIN_ACCESSIONS, "protein_accessions")
+  TEST_STRING_EQUAL(QPXPSMSchema::CROSS_LINKS, "cross_links")
+  TEST_STRING_EQUAL(QPXPSMSchema::MZ_ARRAY, "mz_array")
+  TEST_STRING_EQUAL(QPXPSMSchema::INTENSITY_ARRAY, "intensity_array")
+  TEST_STRING_EQUAL(QPXPSMSchema::CHARGE_ARRAY, "charge_array")
+  TEST_STRING_EQUAL(QPXPSMSchema::ION_TYPE_ARRAY, "ion_type_array")
+  TEST_STRING_EQUAL(QPXPSMSchema::ION_MOBILITY_ARRAY, "ion_mobility_array")
+}
+END_SECTION
+
+START_SECTION(QPXPSMSchema field types and nullability)
+{
+  auto s = QPXPSMSchema::schema();
+  // sequence: utf8, not null
+  TEST_EQUAL(s->field(0)->name(), "sequence")
+  TEST_EQUAL(s->field(0)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(0)->nullable(), false)
+  // peptidoform: utf8, not null
+  TEST_EQUAL(s->field(1)->name(), "peptidoform")
+  TEST_EQUAL(s->field(1)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(1)->nullable(), false)
+  // modifications: list<struct>, nullable
+  TEST_EQUAL(s->field(2)->name(), "modifications")
+  TEST_EQUAL(s->field(2)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(2)->nullable(), true)
+  TEST_EQUAL(s->field(2)->type()->Equals(QPXPSMSchema::modificationsType()), true)
+  // charge: int16, not null
+  TEST_EQUAL(s->field(3)->name(), "charge")
+  TEST_EQUAL(s->field(3)->type()->id(), arrow::Type::INT16)
+  TEST_EQUAL(s->field(3)->nullable(), false)
+  // posterior_error_probability: float64, nullable
+  TEST_EQUAL(s->field(4)->name(), "posterior_error_probability")
+  TEST_EQUAL(s->field(4)->type()->id(), arrow::Type::DOUBLE)
+  TEST_EQUAL(s->field(4)->nullable(), true)
+  // is_decoy: bool, not null
+  TEST_EQUAL(s->field(5)->name(), "is_decoy")
+  TEST_EQUAL(s->field(5)->type()->id(), arrow::Type::BOOL)
+  TEST_EQUAL(s->field(5)->nullable(), false)
+  // calculated_mz: float32, not null
+  TEST_EQUAL(s->field(6)->name(), "calculated_mz")
+  TEST_EQUAL(s->field(6)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(6)->nullable(), false)
+  // observed_mz: float32, not null
+  TEST_EQUAL(s->field(7)->name(), "observed_mz")
+  TEST_EQUAL(s->field(7)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(7)->nullable(), false)
+  // mass_error_ppm: float32, nullable
+  TEST_EQUAL(s->field(8)->name(), "mass_error_ppm")
+  TEST_EQUAL(s->field(8)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(8)->nullable(), true)
+  // additional_scores: list<struct>, nullable
+  TEST_EQUAL(s->field(9)->name(), "additional_scores")
+  TEST_EQUAL(s->field(9)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(9)->nullable(), true)
+  TEST_EQUAL(s->field(9)->type()->Equals(QPXPSMSchema::additionalScoresType()), true)
+  // predicted_rt: float32, nullable
+  TEST_EQUAL(s->field(10)->name(), "predicted_rt")
+  TEST_EQUAL(s->field(10)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(10)->nullable(), true)
+  // run_file_name: utf8, not null
+  TEST_EQUAL(s->field(11)->name(), "run_file_name")
+  TEST_EQUAL(s->field(11)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(11)->nullable(), false)
+  // cv_params: list<struct>, nullable
+  TEST_EQUAL(s->field(12)->name(), "cv_params")
+  TEST_EQUAL(s->field(12)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(12)->nullable(), true)
+  TEST_EQUAL(s->field(12)->type()->Equals(QPXPSMSchema::cvParamsType()), true)
+  // scan: list<int32>, not null
+  TEST_EQUAL(s->field(13)->name(), "scan")
+  TEST_EQUAL(s->field(13)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(13)->nullable(), false)
+  // rt: float32, nullable
+  TEST_EQUAL(s->field(14)->name(), "rt")
+  TEST_EQUAL(s->field(14)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(14)->nullable(), true)
+  // ion_mobility: float32, nullable
+  TEST_EQUAL(s->field(15)->name(), "ion_mobility")
+  TEST_EQUAL(s->field(15)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(15)->nullable(), true)
+  // missed_cleavages: int16, nullable
+  TEST_EQUAL(s->field(16)->name(), "missed_cleavages")
+  TEST_EQUAL(s->field(16)->type()->id(), arrow::Type::INT16)
+  TEST_EQUAL(s->field(16)->nullable(), true)
+  // protein_accessions: list<utf8>, nullable
+  TEST_EQUAL(s->field(17)->name(), "protein_accessions")
+  TEST_EQUAL(s->field(17)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(17)->nullable(), true)
+  // cross_links: list<struct>, nullable
+  TEST_EQUAL(s->field(18)->name(), "cross_links")
+  TEST_EQUAL(s->field(18)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(18)->nullable(), true)
+  TEST_EQUAL(s->field(18)->type()->Equals(QPXPSMSchema::crossLinksType()), true)
+  // mz_array: list<float>, nullable
+  TEST_EQUAL(s->field(19)->name(), "mz_array")
+  TEST_EQUAL(s->field(19)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(19)->nullable(), true)
+  // intensity_array: list<float>, nullable
+  TEST_EQUAL(s->field(20)->name(), "intensity_array")
+  TEST_EQUAL(s->field(20)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(20)->nullable(), true)
+  // charge_array: list<int32>, nullable
+  TEST_EQUAL(s->field(21)->name(), "charge_array")
+  TEST_EQUAL(s->field(21)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(21)->nullable(), true)
+  // ion_type_array: list<string>, nullable
+  TEST_EQUAL(s->field(22)->name(), "ion_type_array")
+  TEST_EQUAL(s->field(22)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(22)->nullable(), true)
+  // ion_mobility_array: list<float>, nullable
+  TEST_EQUAL(s->field(23)->name(), "ion_mobility_array")
+  TEST_EQUAL(s->field(23)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(23)->nullable(), true)
+}
+END_SECTION
+
+START_SECTION(QPXPSMSchema validation with table)
+{
+  auto s = QPXPSMSchema::schema();
+  std::vector<std::shared_ptr<arrow::Array>> columns;
+  for (int i = 0; i < s->num_fields(); ++i)
+  {
+    auto result = arrow::MakeEmptyArray(s->field(i)->type());
+    columns.push_back(result.ValueOrDie());
+  }
+  auto table = arrow::Table::Make(s, columns);
+  auto result = ArrowSchemaValidation::validate(table, s);
+  TEST_EQUAL(result.valid, true)
+  TEST_EQUAL(result.errors.size(), 0)
+}
+END_SECTION
+
 // ========== QPXFeatureSchema ==========
 
 START_SECTION(QPXFeatureSchema::schema() returns non-null with 31 fields)

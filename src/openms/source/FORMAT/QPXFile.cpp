@@ -554,10 +554,12 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   status = protein_accessions_builder.Finish(&arr_protein_acc);
   if (!status.ok()) { OPENMS_LOG_ERROR << "QPXFile: protein_accessions_builder Finish failed: " << status.ToString() << std::endl; return nullptr; }
 
-  // Build null arrays for columns not yet populated
+  // Build null arrays for columns not yet populated.
+  // Use actual row count from a finalized array to avoid coupling with the pre-loop estimate.
+  const int64_t actual_rows = arr_sequence->length();
   auto make_null_array = [&](const std::shared_ptr<arrow::DataType>& type) -> std::shared_ptr<arrow::Array>
   {
-    auto result = arrow::MakeArrayOfNull(type, num_rows);
+    auto result = arrow::MakeArrayOfNull(type, actual_rows);
     if (!result.ok())
     {
       OPENMS_LOG_ERROR << "QPXFile: MakeArrayOfNull failed: " << result.status().ToString() << std::endl;
